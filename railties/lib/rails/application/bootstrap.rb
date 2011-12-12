@@ -24,9 +24,18 @@ module Rails
       initializer :initialize_logger, :group => :all do
         Rails.logger ||= config.logger || begin
           path = config.paths["log"].first
-          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::BufferedLogger.new(path))
+          unless File.exist? File.dirname path
+            FileUtils.mkdir_p File.dirname path
+          end
+
+          f = File.open path, 'w'
+          f.binmode
+          f.sync = !Rails.env.production? # make sure every write flushes
+
+          logger = ActiveSupport::TaggedLogging.new(
+            ActiveSupport::BufferedLogger.new(f)
+          )
           logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
-          logger.auto_flushing = false if Rails.env.production?
           logger
         rescue StandardError
           logger = ActiveSupport::TaggedLogging.new(ActiveSupport::BufferedLogger.new(STDERR))
@@ -37,7 +46,6 @@ module Rails
           )
           logger
         end
-        at_exit { Rails.logger.flush if Rails.logger.respond_to?(:flush) }
       end
 
       # Initialize cache early in the stack so railties can make use of it.
@@ -48,13 +56,6 @@ module Rails
           if RAILS_CACHE.respond_to?(:middleware)
             config.middleware.insert_before("Rack::Runtime", RAILS_CACHE.middleware)
           end
-        end
-      end
-
-      initializer :set_clear_dependencies_hook, :group => :all do
-        ActionDispatch::Reloader.to_cleanup do
-          ActiveSupport::DescendantsTracker.clear
-          ActiveSupport::Dependencies.clear
         end
       end
 

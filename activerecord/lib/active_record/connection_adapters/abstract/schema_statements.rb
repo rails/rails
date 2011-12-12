@@ -23,12 +23,10 @@ module ActiveRecord
       # === Example
       #   table_exists?(:developers)
       def table_exists?(table_name)
-        begin
-          select_value("SELECT 1 FROM #{quote_table_name(table_name)} where 1=0")
-          true
-        rescue
-          false
-        end
+        select_value("SELECT 1 FROM #{quote_table_name(table_name)} where 1=0", 'SCHEMA')
+        true
+      rescue
+        false
       end
 
       # Returns an array of indexes for the given table.

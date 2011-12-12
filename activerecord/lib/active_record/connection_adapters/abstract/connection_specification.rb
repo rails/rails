@@ -127,7 +127,7 @@ module ActiveRecord
       spec = resolver.spec
 
       unless respond_to?(spec.adapter_method)
-        raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
+        raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
       end
 
       remove_connection

@@ -762,7 +762,7 @@ module ActiveRecord #:nodoc:
 
       # Indicates whether the table associated with this class exists
       def table_exists?
-        connection.table_exists?(table_name)
+        connection.schema_cache.table_exists?(table_name)
       end
 
       # Returns an array of column objects for the table associated with this class.
@@ -2221,8 +2221,6 @@ MSG
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
     include Aggregations, Transactions, Reflection, Serialization, Store
-
-    NilClass.add_whiner(self) if NilClass.respond_to?(:add_whiner)
 
     # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
     # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).

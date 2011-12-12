@@ -72,7 +72,7 @@ module ApplicationTests
       end
     end
 
-    test "precompile application.js and application.css and all other files not ending with .js or .css by default" do
+    test "precompile application.js and application.css and all other non JS/CSS files" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/stylesheets/application.css", "body{}"
 
@@ -82,8 +82,11 @@ module ApplicationTests
       app_file "app/assets/javascripts/something.min.js", "alert();"
       app_file "app/assets/stylesheets/something.min.css", "body{}"
 
+      app_file "app/assets/javascripts/something.else.js.erb", "alert();"
+      app_file "app/assets/stylesheets/something.else.css.erb", "body{}"
+
       images_should_compile = ["a.png", "happyface.png", "happy_face.png", "happy.face.png",
-                               "happy-face.png", "happy.happy_face.png", "happy_happy.face.png", 
+                               "happy-face.png", "happy.happy_face.png", "happy_happy.face.png",
                                "happy.happy.face.png", "happy", "happy.face", "-happyface",
                                "-happy.png", "-happy.face.png", "_happyface", "_happy.face.png",
                                "_happy.png"]
@@ -106,6 +109,9 @@ module ApplicationTests
 
       assert !File.exists?("#{app_path}/public/assets/something.min.js")
       assert !File.exists?("#{app_path}/public/assets/something.min.css")
+
+      assert !File.exists?("#{app_path}/public/assets/something.else.js")
+      assert !File.exists?("#{app_path}/public/assets/something.else.css")
     end
 
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do

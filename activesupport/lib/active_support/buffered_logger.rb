@@ -1,5 +1,8 @@
 require 'thread'
+require 'logger'
 require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/deprecation'
+require 'fileutils'
 
 module ActiveSupport
   # Inspired by the buffered logger idea by Ezra
@@ -25,40 +28,35 @@ module ActiveSupport
     # Silences the logger for the duration of the block.
     def silence(temporary_level = ERROR)
       if silencer
-        old_logger_level = @tmp_levels[Thread.current]
         begin
-          @tmp_levels[Thread.current] = temporary_level
-          yield self
+          logger = self.class.new @log_dest, temporary_level
+          yield logger
         ensure
-          if old_logger_level
-            @tmp_levels[Thread.current] = old_logger_level
-          else
-            @tmp_levels.delete(Thread.current)
-          end
+          logger.close
         end
       else
         yield self
       end
     end
+    deprecate :silence
 
-    attr_writer :level
     attr_reader :auto_flushing
+    deprecate :auto_flushing
 
     def initialize(log, level = DEBUG)
       @level         = level
-      @tmp_levels    = {}
-      @buffer        = Hash.new { |h,k| h[k] = [] }
-      @auto_flushing = 1
-      @guard = Mutex.new
+      @log_dest      = log
 
-      if log.respond_to?(:write)
-        @log = log
-      elsif File.exist?(log)
-        @log = open_log(log, (File::WRONLY | File::APPEND))
-      else
-        FileUtils.mkdir_p(File.dirname(log))
-        @log = open_log(log, (File::WRONLY | File::APPEND | File::CREAT))
+      unless log.respond_to?(:write)
+        unless File.exist?(File.dirname(log))
+          ActiveSupport::Deprecation.warn(<<-eowarn)
+Automatic directory creation for '#{log}' is deprecated.  Please make sure the directory for your log file exists before creating the logger.
+          eowarn
+          FileUtils.mkdir_p(File.dirname(log))
+        end
       end
+
+      @log = open_logfile log
     end
 
     def open_log(log, mode)
@@ -67,20 +65,18 @@ module ActiveSupport
         open_log.sync = true
       end
     end
+    deprecate :open_log
 
     def level
-      @tmp_levels[Thread.current] || @level
+      @log.level
+    end
+
+    def level=(l)
+      @log.level = l
     end
 
     def add(severity, message = nil, progname = nil, &block)
-      return if level > severity
-      message = (message || (block && block.call) || progname).to_s
-      # If a newline is necessary then create a new message ending with a newline.
-      # Ensures that the original message is not mutated.
-      message = "#{message}\n" unless message[-1] == ?\n
-      buffer << message
-      auto_flush
-      message
+      @log.add(severity, message, progname, &block)
     end
 
     # Dynamically add methods such as:
@@ -104,62 +100,25 @@ module ActiveSupport
     # never auto-flush. If you turn auto-flushing off, be sure to regularly
     # flush the log yourself -- it will eat up memory until you do.
     def auto_flushing=(period)
-      @auto_flushing =
-        case period
-        when true;                1
-        when false, nil, 0;       MAX_BUFFER_SIZE
-        when Integer;             period
-        else raise ArgumentError, "Unrecognized auto_flushing period: #{period.inspect}"
-        end
     end
+    deprecate :auto_flushing=
 
     def flush
-      @guard.synchronize do
-        write_buffer(buffer)
+    end
+    deprecate :flush
 
-        # Important to do this even if buffer was empty or else @buffer will
-        # accumulate empty arrays for each request where nothing was logged.
-        clear_buffer
-
-        # Clear buffers associated with dead threads or else spawned threads
-        # that don't call flush will result in a memory leak.
-        flush_dead_buffers
-      end
+    def respond_to?(method, include_private = false)
+      return false if method.to_s == "flush"
+      super
     end
 
     def close
-      flush
-      @log.close if @log.respond_to?(:close)
-      @log = nil
+      @log.close
     end
 
-    protected
-      def auto_flush
-        flush if buffer.size >= @auto_flushing
-      end
-
-      def buffer
-        @buffer[Thread.current]
-      end
-
-      def clear_buffer
-        @buffer.delete(Thread.current)
-      end
-
-      # Find buffers created by threads that are no longer alive and flush them to the log
-      # in order to prevent memory leaks from spawned threads.
-      def flush_dead_buffers #:nodoc:
-        @buffer.keys.reject{|thread| thread.alive?}.each do |thread|
-          buffer = @buffer[thread]
-          write_buffer(buffer)
-          @buffer.delete(thread)
-        end
-      end
-
-      def write_buffer(buffer)
-        buffer.each do |content|
-          @log.write(content)
-        end
-      end
+    private
+    def open_logfile(log)
+      Logger.new log
+    end
   end
 end

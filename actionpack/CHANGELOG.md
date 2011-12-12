@@ -1,5 +1,33 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Add `button_tag` support to ActionView::Helpers::FormBuilder.
+
+    This support mimics the default behavior of `submit_tag`.
+
+    Example:
+
+        <%= form_for @post do |f| %>
+          <%= f.button %>
+        <% end %>
+
+*   Date helpers accept a new option, `:use_two_digit_numbers = true`, that renders select boxes for months and days with a leading zero without changing the respective values. 
+    For example, this is useful for displaying ISO8601-style dates such as '2011-08-01'. *Lennart Fridén and Kim Persson*
+
+*   Make ActiveSupport::Benchmarkable a default module for ActionController::Base, so the #benchmark method is once again available in the controller context like it used to be *DHH*
+
+*   Deprecated implied layout lookup in controllers whose parent had a explicit layout set:
+
+        class ApplicationController
+          layout "application"
+        end
+
+        class PostsController < ApplicationController
+        end
+
+    In the example above, Posts controller will no longer automatically look up for a posts layout.
+
+    If you need this functionality you could either remove `layout "application"` from ApplicationController or explicitly set it to nil in PostsController. *José Valim*
+
 *   Rails will now use your default layout (such as "layouts/application") when you specify a layout with `:only` and `:except` condition, and those conditions fail. *Prem Sichanugrist*
 
     For example, consider this snippet:

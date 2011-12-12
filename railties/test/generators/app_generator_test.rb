@@ -206,13 +206,29 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
       assert_no_match(/config\.assets\.enabled = true/, content)
     end
+    assert_file "Gemfile" do |content|
+      assert_no_match(/sass-rails/, content)
+      assert_no_match(/coffee-rails/, content)
+      assert_no_match(/uglifier/, content)
+    end
+    assert_file "config/environments/development.rb" do |content|
+      assert_no_match(/config\.assets\.debug = true/, content)
+    end
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/config\.assets\.digest = true/, content)
+      assert_no_match(/config\.assets\.compress = true/, content)
+    end
     assert_file "test/performance/browsing_test.rb"
   end
 
   def test_inclusion_of_therubyrhino_under_jruby
+    run_generator([destination_root])
     if defined?(JRUBY_VERSION)
-      run_generator([destination_root])
       assert_file "Gemfile", /gem\s+["']therubyrhino["']$/
+    else
+      assert_file "Gemfile" do |content|
+        assert_no_match(/gem\s+["']therubyrhino["']$/, content)
+      end
     end
   end
 

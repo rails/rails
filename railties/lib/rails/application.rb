@@ -33,6 +33,24 @@ module Rails
   #
   # The Application is also responsible for building the middleware stack.
   #
+  # == Booting process
+  #
+  # The application is also responsible for setting up and executing the booting
+  # process. From the moment you require "config/application.rb" in your app,
+  # the booting process goes like this:
+  #
+  #   1)  require "config/boot.rb" to setup load paths
+  #   2)  require railties and engines
+  #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
+  #   4)  Run config.before_configuration callbacks
+  #   5)  Load config/environments/ENV.rb
+  #   6)  Run config.before_initialize callbacks
+  #   7)  Run Railtie#initializer defined by railties, engines and application.
+  #       One by one, each engine sets up its load paths, routes and runs its initializer files.
+  #   8)  Build the middleware stack and run to_prepare callbacks
+  #   9)  Run config.before_eager_load and eager_load if cache classes is true
+  #   10) Run config.after_initialize callbacks
+  #
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configuration,  'rails/application/configuration'
@@ -83,27 +101,55 @@ module Rails
       require environment if environment
     end
 
+    # Reload application routes regardless if they changed or not.
     def reload_routes!
       routes_reloader.reload!
     end
 
-    def routes_reloader
+    def routes_reloader #:nodoc:
       @routes_reloader ||= RoutesReloader.new
     end
 
-    def initialize!(group=:default)
+    # A routes reloader hook that is used to setup to_prepare callbacks.
+    # A plugin may override this if they desire to provide a more
+    # exquisite route reloading.
+    # :api: plugin
+    def routes_reloader_hook
+      app = self
+      lambda { app.routes_reloader.execute_if_updated }
+    end
+
+    # An app reloader hook that is used to setup to_cleanup callbacks.
+    # A plugin may override this if they desire to provide a more exquisite app reloading.
+    # :api: plugin
+    def app_reloader_hook
+      lambda {
+        ActiveSupport::DescendantsTracker.clear
+        ActiveSupport::Dependencies.clear
+      }
+    end
+
+    # Initialize the application passing the given group. By default, the
+    # group is :default but sprockets precompilation passes group equals
+    # to assets if initialize_on_precompile is false to avoid booting the
+    # whole app.
+    def initialize!(group=:default) #:nodoc:
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true
       self
     end
 
+    # Load the application and its railties tasks and invoke the registered hooks.
+    # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
     def load_tasks(app=self)
       initialize_tasks
       super
       self
     end
 
+    # Load the application console and invoke the registered hooks.
+    # Check <tt>Rails::Railtie.console</tt> for more info.
     def load_console(app=self)
       initialize_console
       super
@@ -129,7 +175,8 @@ module Rails
       })
     end
 
-    def ordered_railties
+    # Returns the ordered railties for this application considering railties_order.
+    def ordered_railties #:nodoc:
       @ordered_railties ||= begin
         order = config.railties_order.map do |railtie|
           if railtie == :main_app
@@ -151,13 +198,13 @@ module Rails
       end
     end
 
-    def initializers
+    def initializers #:nodoc:
       Bootstrap.initializers_for(self) +
       super +
       Finisher.initializers_for(self)
     end
 
-    def config
+    def config #:nodoc:
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
@@ -165,7 +212,7 @@ module Rails
       self
     end
 
-    def helpers_paths
+    def helpers_paths #:nodoc:
       config.helpers_paths
     end
 
@@ -222,7 +269,7 @@ module Rails
       end
     end
 
-    def initialize_tasks
+    def initialize_tasks #:nodoc:
       self.class.rake_tasks do
         require "rails/tasks"
         task :environment do
@@ -232,7 +279,7 @@ module Rails
       end
     end
 
-    def initialize_console
+    def initialize_console #:nodoc:
       require "pp"
       require "rails/console/app"
       require "rails/console/helpers"

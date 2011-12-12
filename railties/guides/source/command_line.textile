@@ -36,7 +36,7 @@ WARNING: You can install the rails gem by typing +gem install rails+, if you don
 <shell>
 $ rails new commandsapp
      create
-     create  README
+     create  README.rdoc
      create  .gitignore
      create  Rakefile
      create  config.ru
@@ -420,7 +420,7 @@ The +doc:+ namespace has the tools to generate documentation for your app, API d
 
 h4. +notes+
 
-+rake notes+ will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is only done in files with extension +.builder+, +.rb+ and +.erb+ for both default and custom annotations.
++rake notes+ will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is done in files with extension +.builder+, +.rb+, +.erb+, +.haml+ and +.slim+ for both default and custom annotations.
 
 <shell>
 $ rake notes
@@ -509,8 +509,8 @@ $ rails new . --git --database=postgresql
       create  tmp/pids
       create  Rakefile
 add 'Rakefile'
-      create  README
-add 'README'
+      create  README.rdoc
+add 'README.rdoc'
       create  app/controllers/application_controller.rb
 add 'app/controllers/application_controller.rb'
       create  app/helpers/application_helper.rb

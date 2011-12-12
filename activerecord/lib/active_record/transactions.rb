@@ -301,7 +301,7 @@ module ActiveRecord
     protected
 
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
-    def remember_transaction_record_state #:nodoc
+    def remember_transaction_record_state #:nodoc:
       @_start_transaction_state ||= {}
       @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
       unless @_start_transaction_state.include?(:new_record)
@@ -314,7 +314,7 @@ module ActiveRecord
     end
 
     # Clear the new record state and id of a record.
-    def clear_transaction_record_state #:nodoc
+    def clear_transaction_record_state #:nodoc:
       if defined?(@_start_transaction_state)
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         remove_instance_variable(:@_start_transaction_state) if @_start_transaction_state[:level] < 1
@@ -322,7 +322,7 @@ module ActiveRecord
     end
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
-    def restore_transaction_record_state(force = false) #:nodoc
+    def restore_transaction_record_state(force = false) #:nodoc:
       if defined?(@_start_transaction_state)
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         if @_start_transaction_state[:level] < 1
@@ -341,12 +341,12 @@ module ActiveRecord
     end
 
     # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
-    def transaction_record_state(state) #:nodoc
+    def transaction_record_state(state) #:nodoc:
       @_start_transaction_state[state] if defined?(@_start_transaction_state)
     end
 
     # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
-    def transaction_include_action?(action) #:nodoc
+    def transaction_include_action?(action) #:nodoc:
       case action
       when :create
         transaction_record_state(:new_record)

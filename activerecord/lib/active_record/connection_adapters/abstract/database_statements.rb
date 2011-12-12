@@ -130,7 +130,7 @@ module ActiveRecord
       #
       # In order to get around this problem, #transaction will emulate the effect
       # of nested transactions, by using savepoints:
-      # http://dev.mysql.com/doc/refman/5.0/en/savepoints.html
+      # http://dev.mysql.com/doc/refman/5.0/en/savepoint.html
       # Savepoints are supported by MySQL and PostgreSQL, but not SQLite3.
       #
       # It is safe to call this method if a database transaction is already open,
@@ -341,7 +341,7 @@ module ActiveRecord
 
         # Send a rollback message to all records after they have been rolled back. If rollback
         # is false, only rollback records since the last save point.
-        def rollback_transaction_records(rollback) #:nodoc
+        def rollback_transaction_records(rollback)
           if rollback
             records = @_current_transaction_records.flatten
             @_current_transaction_records.clear
@@ -361,7 +361,7 @@ module ActiveRecord
         end
 
         # Send a commit message to all records after they have been committed.
-        def commit_transaction_records #:nodoc
+        def commit_transaction_records
           records = @_current_transaction_records.flatten
           @_current_transaction_records.clear
           unless records.blank?

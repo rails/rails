@@ -247,8 +247,7 @@ module ActiveRecord
           def #{column_type}(*args)                                   # def string(*args)
             options = args.extract_options!                           #   options = args.extract_options!
             column_names = args                                       #   column_names = args
-            type = :'#{column_type}'
-                                                                      #
+            type = :'#{column_type}'                                  #   type = :string
             column_names.each { |name| column(name, type, options) }  #   column_names.each { |name| column(name, type, options) }
           end                                                         # end
         EOV
@@ -465,8 +464,7 @@ module ActiveRecord
           def #{column_type}(*args)                                          # def string(*args)
             options = args.extract_options!                                  #   options = args.extract_options!
             column_names = args                                              #   column_names = args
-            type = :'#{column_type}'
-                                                                             #
+            type = :'#{column_type}'                                         #   type = :string
             column_names.each do |name|                                      #   column_names.each do |name|
               column = ColumnDefinition.new(@base, name.to_s, type)          #     column = ColumnDefinition.new(@base, name, type)
               if options[:limit]                                             #     if options[:limit]
