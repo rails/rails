@@ -194,7 +194,7 @@ module Rails
 
       def assets_gemfile_entry
         return if options[:skip_sprockets]
-        <<-GEMFILE.strip_heredoc
+        <<-GEMFILE.strip_heredoc.gsub(/^[ \t]*$/, '')
           # Gems used only for assets and not required
           # in production environments by default.
           group :assets do

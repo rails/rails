@@ -124,6 +124,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "hats/config/environment.rb", /Hats::Application\.initialize!/
   end
 
+  def test_gemfile_has_no_whitespace_errors
+    run_generator
+    absolute = File.expand_path("Gemfile", destination_root)
+    File.open(absolute, 'r') do |f|
+      f.each_line do |line|
+        assert_no_match /^[ \t]+$/, line
+      end
+    end
+  end
+
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
