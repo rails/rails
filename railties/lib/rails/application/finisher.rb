@@ -66,16 +66,14 @@ module Rails
 
       # Set app reload just after the finisher hook to ensure
       # paths added in the hook are still loaded.
-      initializer :set_clear_dependencies_hook, :group => :all do |app|
-        ActionDispatch::Reloader.to_cleanup(&app.app_reloader_hook)
+      initializer :set_dependencies_hook, :group => :all do |app|
+        app.set_dependencies_hook
       end
 
       # Set app reload just after the finisher hook to ensure
       # routes added in the hook are still loaded.
-      initializer :set_routes_reloader do |app|
-        reloader = app.routes_reloader_hook
-        reloader.call
-        ActionDispatch::Reloader.to_prepare(&reloader)
+      initializer :set_routes_reloader_hook do |app|
+        app.set_routes_reloader_hook
       end
 
       # Disable dependency loading during request cycle
