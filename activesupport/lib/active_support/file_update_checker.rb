@@ -32,6 +32,9 @@ module ActiveSupport
       if @last_update_at != current_update_at
         @last_update_at = current_update_at
         @block.call
+        true
+      else
+        false
       end
     end
   end
