@@ -7,11 +7,11 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets,
                     :cache_classes, :cache_store, :consider_all_requests_local,
-                    :dependency_loading, :filter_parameters,
-                    :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
-                    :relative_url_root, :reload_plugins, :secret_token, :serve_static_assets,
-                    :ssl_options, :static_cache_control, :session_options,
-                    :time_zone, :whiny_nils, :railties_order, :all_initializers
+                    :dependency_loading, :filter_parameters, :force_ssl, :helpers_paths,
+                    :initializers_paths, :logger, :log_tags, :preload_frameworks,
+                    :railties_order, :relative_url_root, :reload_plugins, :secret_token,
+                    :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
+                    :time_zone, :reload_classes_only_on_change, :whiny_nils
 
       attr_writer :log_level
       attr_reader :encoding
@@ -19,25 +19,26 @@ module Rails
       def initialize(*)
         super
         self.encoding = "utf-8"
-        @allow_concurrency           = false
-        @consider_all_requests_local = false
-        @filter_parameters           = []
-        @helpers_paths               = []
-        @dependency_loading          = true
-        @serve_static_assets         = true
-        @static_cache_control        = nil
-        @force_ssl                   = false
-        @ssl_options                 = {}
-        @session_store               = :cookie_store
-        @session_options             = {}
-        @time_zone                   = "UTC"
-        @log_level                   = nil
-        @middleware                  = app_middleware
-        @generators                  = app_generators
-        @cache_store                 = [ :file_store, "#{root}/tmp/cache/" ]
-        @railties_order              = [:all]
-        @all_initializers            = []
-        @relative_url_root           = ENV["RAILS_RELATIVE_URL_ROOT"]
+        @allow_concurrency             = false
+        @consider_all_requests_local   = false
+        @filter_parameters             = []
+        @helpers_paths                 = []
+        @dependency_loading            = true
+        @serve_static_assets           = true
+        @static_cache_control          = nil
+        @force_ssl                     = false
+        @ssl_options                   = {}
+        @session_store                 = :cookie_store
+        @session_options               = {}
+        @time_zone                     = "UTC"
+        @log_level                     = nil
+        @middleware                    = app_middleware
+        @generators                    = app_generators
+        @cache_store                   = [ :file_store, "#{root}/tmp/cache/" ]
+        @railties_order                = [:all]
+        @initializers_paths            = []
+        @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
+        @reload_classes_only_on_change = true
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false

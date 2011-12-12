@@ -39,30 +39,53 @@ module ActiveSupport
       @paths = paths
       @glob  = compile_glob(@paths.extract_options!)
       @block = block
+      @updated_at = nil
       @last_update_at = calculate ? updated_at : nil
     end
 
-    def updated_at
-      all = []
-      all.concat @paths
-      all.concat Dir[@glob] if @glob
-      all.map { |path| File.mtime(path) }.max
-    end
-
-    def execute_if_updated
-      current_update_at = self.updated_at
-      if @last_update_at != current_update_at
-        @last_update_at = current_update_at
-        @block.call
+    # Check if any of the entries were updated. If so, the updated_at
+    # value is cached until flush! is called.
+    def updated?
+      current_updated_at = updated_at
+      if @last_update_at != current_updated_at
+        @updated_at = updated_at
         true
       else
         false
       end
     end
 
+    # Flush the cache so updated? is calculated again
+    def flush!
+      @updated_at = nil
+    end
+
+    # Execute the block given if updated. This call
+    # always flush the cache.
+    def execute_if_updated
+      if updated?
+        @last_update_at = updated_at
+        @block.call
+        true
+      else
+        false
+      end
+    ensure
+      flush!
+    end
+
     private
 
-    def compile_glob(hash)
+    def updated_at #:nodoc:
+      @updated_at || begin
+        all = []
+        all.concat @paths
+        all.concat Dir[@glob] if @glob
+        all.map { |path| File.mtime(path) }.max
+      end
+    end
+
+    def compile_glob(hash) #:nodoc:
       return if hash.empty?
       globs = []
       hash.each do |key, value|
@@ -71,7 +94,7 @@ module ActiveSupport
       "{#{globs.join(",")}}"
     end
 
-    def compile_ext(array)
+    def compile_ext(array) #:nodoc:
       array = Array.wrap(array)
       return if array.empty?
       ".{#{array.join(",")}}"

@@ -66,6 +66,7 @@ class LoadingTest < Test::Unit::TestCase
   def test_descendants_are_cleaned_on_each_request_without_cache_classes
     add_to_config <<-RUBY
       config.cache_classes = false
+      config.reload_classes_only_on_change = false
     RUBY
 
     app_file "app/models/post.rb", <<-MODEL

@@ -71,12 +71,14 @@ module Rails
 
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
+    attr_reader :reloaders
 
     delegate :default_url_options, :default_url_options=, :to => :routes
 
     def initialize
       super
       @initialized = false
+      @reloaders   = []
     end
 
     # This method is called just after an application inherits from Rails::Application,
@@ -119,6 +121,7 @@ module Rails
       reloader = routes_reloader
       hook = lambda { reloader.execute_if_updated }
       hook.call
+      self.reloaders << reloader
       ActionDispatch::Reloader.to_prepare(&hook)
     end
 
@@ -126,10 +129,35 @@ module Rails
     # A plugin may override this if they desire to provide a more exquisite app reloading.
     # :api: plugin
     def set_dependencies_hook
-      ActionDispatch::Reloader.to_cleanup do
+      callback = lambda do
         ActiveSupport::DescendantsTracker.clear
         ActiveSupport::Dependencies.clear
       end
+
+      if config.reload_classes_only_on_change
+        reloader = ActiveSupport::FileUpdateChecker.new(watchable_args, true, &callback)
+        self.reloaders << reloader
+        # We need to set a to_prepare callback regardless of the reloader result, i.e.
+        # models should be reloaded if any of the reloaders (i18n, routes) were updated.
+        ActionDispatch::Reloader.to_prepare(:prepend => true, &callback)
+      else
+        ActionDispatch::Reloader.to_cleanup(&callback)
+      end
+    end
+
+    # Returns an array of file paths appended with a hash of directories-extensions
+    # suitable for ActiveSupport::FileUpdateChecker API.
+    def watchable_args
+      files = []
+      files.concat config.watchable_files
+
+      dirs = {}
+      dirs.merge! config.watchable_dirs
+      ActiveSupport::Dependencies.autoload_paths.each do |path|
+        dirs[path.to_s] = [:rb]
+      end
+
+      files << dirs
     end
 
     # Initialize the application passing the given group. By default, the
@@ -223,6 +251,10 @@ module Rails
 
     alias :build_middleware_stack :app
 
+    def reload_dependencies?
+      config.reload_classes_only_on_change != true || reloaders.map(&:updated?).any?
+    end
+
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
@@ -252,7 +284,11 @@ module Rails
           middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
         end
 
-        middleware.use ::ActionDispatch::Reloader unless config.cache_classes
+        unless config.cache_classes
+          app = self
+          middleware.use ::ActionDispatch::Reloader, lambda { app.reload_dependencies? }
+        end
+
         middleware.use ::ActionDispatch::Callbacks
         middleware.use ::ActionDispatch::Cookies
 

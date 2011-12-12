@@ -94,6 +94,11 @@ module ActiveRecord
       end
     end
 
+    initializer "active_record.add_watchable_files" do |app|
+      files = ["#{app.root}/db/schema.rb", "#{app.root}/db/structure.sql"]
+      config.watchable_files.concat files.select { |f| File.exist?(f) }
+    end
+
     config.after_initialize do
       ActiveSupport.on_load(:active_record) do
         instantiate_observers

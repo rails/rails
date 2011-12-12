@@ -5,7 +5,7 @@ module Rails
       $rails_rake_task = nil
 
       initializer :load_config_initializers do
-        config.all_initializers.each { |init| load(init) }
+        config.initializers_paths.each { |init| load(init) }
       end
 
       initializer :add_generator_templates do
@@ -65,15 +65,15 @@ module Rails
       end
 
       # Set app reload just after the finisher hook to ensure
-      # paths added in the hook are still loaded.
-      initializer :set_dependencies_hook, :group => :all do |app|
-        app.set_dependencies_hook
-      end
-
-      # Set app reload just after the finisher hook to ensure
       # routes added in the hook are still loaded.
       initializer :set_routes_reloader_hook do |app|
         app.set_routes_reloader_hook
+      end
+
+      # Set app reload just after the finisher hook to ensure
+      # paths added in the hook are still loaded.
+      initializer :set_dependencies_hook, :group => :all do |app|
+        app.set_dependencies_hook
       end
 
       # Disable dependency loading during request cycle

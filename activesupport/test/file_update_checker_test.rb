@@ -54,6 +54,19 @@ class FileUpdateCheckerWithEnumerableTest < Test::Unit::TestCase
     assert_equal 1, i
   end
 
+  def test_should_cache_updated_result_until_flushed
+    i = 0
+    checker = ActiveSupport::FileUpdateChecker.new(FILES, true){ i += 1 }
+    assert !checker.updated?
+
+    sleep(1)
+    FileUtils.touch(FILES)
+
+    assert checker.updated?
+    assert checker.execute_if_updated
+    assert !checker.updated?
+  end
+
   def test_should_invoke_the_block_if_a_watched_dir_changed_its_glob
     i = 0
     checker = ActiveSupport::FileUpdateChecker.new([{"tmp_watcher" => [:txt]}], true){ i += 1 }
