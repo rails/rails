@@ -1,3 +1,7 @@
+## Rails 4.0.0 (unreleased) ##
+*   New applications enforce whitelist mode for mass assignment using `config.active_record.whitelist_attributes`
+    turned on by default in `config/application.rb`. *Sergey Nartimov*
+
 ## Rails 3.2.0 (unreleased) ##
 
 *   Added `config.exceptions_app` to set the exceptions application invoked by the ShowException middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`. *José Valim*

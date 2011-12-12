@@ -283,15 +283,22 @@ module ApplicationTests
     end
 
     test "sets all Active Record models to whitelist all attributes by default" do
-      add_to_config <<-RUBY
-        config.active_record.whitelist_attributes = true
-      RUBY
-
       require "#{app_path}/config/environment"
 
       assert_equal ActiveModel::MassAssignmentSecurity::WhiteList,
                    ActiveRecord::Base.active_authorizers[:default].class
       assert_equal [""], ActiveRecord::Base.active_authorizers[:default].to_a
+    end
+
+    test "sets all Active Record models to blacklist all attributes by default when whitelist is disabled" do
+      add_to_config <<-RUBY
+        config.active_record.whitelist_attributes = false
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal ActiveModel::MassAssignmentSecurity::BlackList,
+                   ActiveRecord::Base.active_authorizers[:default].class
     end
 
     test "registers interceptors with ActionMailer" do
