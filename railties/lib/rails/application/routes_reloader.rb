@@ -1,11 +1,19 @@
 module Rails
   class Application
-    class RoutesReloader < ::ActiveSupport::FileUpdateChecker
+    class RoutesReloader
       attr_reader :route_sets
 
-      def initialize
-        super([]) { reload! }
+      def initialize(updater=ActiveSupport::FileUpdateChecker)
+        @updater    = updater.new([]) { reload! }
         @route_sets = []
+      end
+
+      def paths
+        @updater.paths
+      end
+
+      def execute_if_updated
+        @updater.execute_if_updated
       end
 
       def reload!
