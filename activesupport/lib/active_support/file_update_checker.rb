@@ -22,7 +22,9 @@ module ActiveSupport
     end
 
     def updated_at
-      paths.map { |path| File.mtime(path) }.max
+      # TODO: Use Enumerable check once we get rid of 1.8.7
+      all = paths.is_a?(Array) ? paths : Dir[paths]
+      all.map { |path| File.mtime(path) }.max
     end
 
     def execute_if_updated
