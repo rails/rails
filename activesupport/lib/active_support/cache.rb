@@ -68,7 +68,7 @@ module ActiveSupport
             end
           store_class.new(*parameters)
         when nil
-          ActiveSupport::Cache::NullStore.new
+          ActiveSupport::Cache::MemoryStore.new
         else
           store
         end
