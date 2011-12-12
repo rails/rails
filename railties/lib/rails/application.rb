@@ -115,19 +115,21 @@ module Rails
     # A plugin may override this if they desire to provide a more
     # exquisite route reloading.
     # :api: plugin
-    def routes_reloader_hook
-      app = self
-      lambda { app.routes_reloader.execute_if_updated }
+    def set_routes_reloader_hook
+      reloader = routes_reloader
+      hook = lambda { reloader.execute_if_updated }
+      hook.call
+      ActionDispatch::Reloader.to_prepare(&hook)
     end
 
-    # An app reloader hook that is used to setup to_cleanup callbacks.
+    # An app dependencies hook that is used to setup to_cleanup callbacks.
     # A plugin may override this if they desire to provide a more exquisite app reloading.
     # :api: plugin
-    def app_reloader_hook
-      lambda {
+    def set_dependencies_hook
+      ActionDispatch::Reloader.to_cleanup do
         ActiveSupport::DescendantsTracker.clear
         ActiveSupport::Dependencies.clear
-      }
+      end
     end
 
     # Initialize the application passing the given group. By default, the
