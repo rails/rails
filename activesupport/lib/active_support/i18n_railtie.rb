@@ -41,7 +41,7 @@ module I18n
 
     # Setup i18n configuration
     def self.initialize_i18n(app)
-      return if @i18n_inited
+      return if defined?(@i18n_inited)
 
       fallbacks = app.config.i18n.delete(:fallbacks)
 
