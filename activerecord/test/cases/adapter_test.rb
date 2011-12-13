@@ -17,6 +17,7 @@ module ActiveRecord
     def test_table_exists?
       assert @connection.table_exists?("accounts")
       assert !@connection.table_exists?("nonexistingtable")
+      assert !@connection.table_exists?(nil)
     end
 
     def test_indexes

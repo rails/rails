@@ -152,7 +152,7 @@ module ActiveRecord
         true
       end
 
-      # Technically MySQL allows to create indexes with the sort order syntax 
+      # Technically MySQL allows to create indexes with the sort order syntax
       # but at the moment (5.5) it doesn't yet implement them
       def supports_index_sort_order?
         true
@@ -363,8 +363,10 @@ module ActiveRecord
         show_variable 'collation_database'
       end
 
-      def tables(name = nil, database = nil) #:nodoc:
-        sql = ["SHOW TABLES", database].compact.join(' IN ')
+      def tables(name = nil, database = nil, like = nil) #:nodoc:
+        sql = "SHOW TABLES "
+        sql << "IN #{database} " if database
+        sql << "LIKE #{quote(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
           result.collect { |field| field.first }
@@ -372,7 +374,8 @@ module ActiveRecord
       end
 
       def table_exists?(name)
-        return true if super
+        return false unless name
+        return true if tables(nil, nil, name).any?
 
         name          = name.to_s
         schema, table = name.split('.', 2)
@@ -382,7 +385,7 @@ module ActiveRecord
           schema = nil
         end
 
-        tables(nil, schema).include? table
+        tables(nil, schema, table).any?
       end
 
       # Returns an array of indexes for the given table.

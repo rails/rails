@@ -329,16 +329,21 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables(name = 'SCHEMA') #:nodoc:
+      def tables(name = 'SCHEMA', table_name = nil) #:nodoc:
         sql = <<-SQL
           SELECT name
           FROM sqlite_master
           WHERE type = 'table' AND NOT name = 'sqlite_sequence'
         SQL
+        sql << " AND name = #{quote_table_name(table_name)}" if table_name
 
         exec_query(sql, name).map do |row|
           row['name']
         end
+      end
+
+      def table_exists?(name)
+        name && tables('SCHEMA', name).any?
       end
 
       # Returns an array of +SQLiteColumn+ objects for the table specified by +table_name+.
