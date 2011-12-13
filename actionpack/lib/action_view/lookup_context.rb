@@ -85,6 +85,7 @@ module ActionView
     protected
 
       def _set_detail(key, value)
+        @details = @details.dup if @details_key
         @details_key = nil
         @details[key] = value
       end
