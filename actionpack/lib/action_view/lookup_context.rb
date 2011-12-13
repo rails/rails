@@ -44,7 +44,7 @@ module ActionView
     module Accessors #:nodoc:
     end
 
-    register_detail(:locale)  { [I18n.locale, I18n.default_locale] }
+    register_detail(:locale)  { [I18n.locale, I18n.default_locale].uniq }
     register_detail(:formats) { Mime::SET.symbols }
     register_detail(:handlers){ Template::Handlers.extensions }
 
