@@ -495,7 +495,7 @@ def show
 end
 </ruby>
 
-Make sure to use +and return+ and not +&amp;&amp; return+, since +&amp;&amp; return+ will not work due to the operator precedence in the Ruby Language.
+Make sure to use +and return+ instead of +&amp;&amp; return+ because +&amp;&amp; return+ will not work due to the operator precedence in the Ruby Language.
 
 Note that the implicit render done by ActionController detects if +render+ has been called, so the following will work without errors:
 
