@@ -1,6 +1,6 @@
 namespace :<%= file_name %> do
 <% actions.each do |action| -%>
-  desc "<%= action %> <%= file_name %>"
+  desc "TODO"
   task :<%= action %> => :environment do
   end
 
