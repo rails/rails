@@ -63,7 +63,7 @@ class FileUpdateCheckerWithEnumerableTest < Test::Unit::TestCase
     FileUtils.touch(FILES)
 
     assert checker.updated?
-    assert checker.execute_if_updated
+    checker.execute
     assert !checker.updated?
   end
 

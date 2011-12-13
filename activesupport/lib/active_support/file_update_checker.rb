@@ -16,8 +16,6 @@ module ActiveSupport
   #   end
   #
   class FileUpdateChecker
-    attr_reader :paths, :last_update_at
-
     # It accepts two parameters on initialization. The first is
     # the *paths* and the second is *calculate*, a boolean.
     #
@@ -29,12 +27,13 @@ module ActiveSupport
     # on initialization, therefore, the first call to execute_if_updated
     # will only evaluate the block if something really changed.
     #
-    # This method must also receive a block that will be the block called
-    # once a file changes.
+    # This method must also receive a block that will be called once a file changes.
     #
     # This particular implementation checks for added files and updated files,
     # but not removed files. Directories lookup are compiled to a glob for
-    # performance.
+    # performance. Therefore, while someone can add new files to paths after
+    # initialization, adding new directories is not allowed. Notice that,
+    # depending on the implementation, not even new files may be added.
     def initialize(paths, calculate=false, &block)
       @paths = paths
       @glob  = compile_glob(@paths.extract_options!)
@@ -44,7 +43,7 @@ module ActiveSupport
     end
 
     # Check if any of the entries were updated. If so, the updated_at
-    # value is cached until flush! is called.
+    # value is cached until the block is executed via +execute+ or +execute_if_updated+
     def updated?
       current_updated_at = updated_at
       if @last_update_at != current_updated_at
@@ -55,8 +54,11 @@ module ActiveSupport
       end
     end
 
-    # Flush the cache so updated? is calculated again
-    def flush!
+    # Executes the given block expiring any internal cache.
+    def execute
+      @last_update_at = updated_at
+      @block.call
+    ensure
       @updated_at = nil
     end
 
@@ -64,14 +66,11 @@ module ActiveSupport
     # always flush the cache.
     def execute_if_updated
       if updated?
-        @last_update_at = updated_at
-        @block.call
+        execute
         true
       else
         false
       end
-    ensure
-      flush!
     end
 
     private
@@ -86,7 +85,9 @@ module ActiveSupport
     end
 
     def compile_glob(hash) #:nodoc:
+      hash.freeze # Freeze so changes aren't accidently pushed
       return if hash.empty?
+
       globs = []
       hash.each do |key, value|
         globs << "#{key}/**/*#{compile_ext(value)}"
