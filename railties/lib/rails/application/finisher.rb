@@ -62,14 +62,31 @@ module Rails
 
       # Set app reload just after the finisher hook to ensure
       # routes added in the hook are still loaded.
-      initializer :set_routes_reloader_hook do |app|
-        app.set_routes_reloader_hook
+      initializer :set_routes_reloader_hook do
+        reloader = routes_reloader
+        hook = lambda { reloader.execute_if_updated }
+        hook.call
+        self.reloaders << reloader
+        ActionDispatch::Reloader.to_prepare(&hook)
       end
 
       # Set app reload just after the finisher hook to ensure
       # paths added in the hook are still loaded.
-      initializer :set_dependencies_hook, :group => :all do |app|
-        app.set_dependencies_hook
+      initializer :set_dependencies_hook, :group => :all do
+        callback = lambda do
+          ActiveSupport::DescendantsTracker.clear
+          ActiveSupport::Dependencies.clear
+        end
+
+        if config.reload_classes_only_on_change
+          reloader = config.file_watcher.new(watchable_args, true, &callback)
+          self.reloaders << reloader
+          # We need to set a to_prepare callback regardless of the reloader result, i.e.
+          # models should be reloaded if any of the reloaders (i18n, routes) were updated.
+          ActionDispatch::Reloader.to_prepare(:prepend => true, &callback)
+        else
+          ActionDispatch::Reloader.to_cleanup(&callback)
+        end
       end
 
       # Disable dependency loading during request cycle
