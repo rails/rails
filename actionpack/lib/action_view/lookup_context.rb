@@ -56,7 +56,7 @@ module ActionView
       @details_keys = Hash.new
 
       def self.get(details)
-        @details_keys[details.freeze] ||= new
+        @details_keys[details] ||= new
       end
 
       def initialize
@@ -86,7 +86,6 @@ module ActionView
 
       def _set_detail(key, value)
         @details_key = nil
-        @details = @details.dup if @details.frozen?
         @details[key] = value
       end
     end
