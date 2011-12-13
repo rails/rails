@@ -4,11 +4,10 @@ module Rails
   class Application
     class RoutesReloader
       attr_reader :route_sets, :paths
-      delegate :execute_if_updated, :updated?, :to => :@updater
+      delegate :execute_if_updated, :execute, :updated?, :to => :updater
 
-      def initialize(updater=ActiveSupport::FileUpdateChecker)
+      def initialize
         @paths      = []
-        @updater    = updater.new(paths) { reload! }
         @route_sets = []
       end
 
@@ -20,7 +19,15 @@ module Rails
         revert
       end
 
-    protected
+    private
+
+      def updater
+        @updater ||= begin
+          updater = ActiveSupport::FileUpdateChecker.new(paths) { reload! }
+          updater.execute
+          updater
+        end
+      end
 
       def clear!
         route_sets.each do |routes|

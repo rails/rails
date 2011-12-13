@@ -124,7 +124,7 @@ module Rails
         dirs[path.to_s] = [:rb]
       end
 
-      files << dirs
+      [files, dirs]
     end
 
     # Initialize the application passing the given group. By default, the

@@ -95,8 +95,7 @@ module ActiveRecord
     end
 
     initializer "active_record.add_watchable_files" do |app|
-      files = ["#{app.root}/db/schema.rb", "#{app.root}/db/structure.sql"]
-      config.watchable_files.concat files.select { |f| File.exist?(f) }
+      config.watchable_files.concat ["#{app.root}/db/schema.rb", "#{app.root}/db/structure.sql"]
     end
 
     config.after_initialize do

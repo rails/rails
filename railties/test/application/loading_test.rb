@@ -175,6 +175,38 @@ class LoadingTest < Test::Unit::TestCase
     assert_equal "1", last_response.body
   end
 
+  test "added files also trigger reloading" do
+    add_to_config <<-RUBY
+      config.cache_classes = false
+    RUBY
+
+    app_file 'config/routes.rb', <<-RUBY
+      $counter = 0
+      AppTemplate::Application.routes.draw do
+        match '/c', :to => lambda { |env| User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+      end
+    RUBY
+
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        $counter += 1
+      end
+    MODEL
+
+    require 'rack/test'
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+
+    get "/c"
+    assert_equal "1", last_response.body
+
+    app_file "db/schema.rb", ""
+
+    get "/c"
+    assert_equal "2", last_response.body
+  end
+
   protected
 
   def setup_ar!
