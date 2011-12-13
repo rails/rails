@@ -39,7 +39,9 @@ module ActiveRecord
             end
 
             array_predicates.inject {|composite, predicate| composite.or(predicate)}
-          when Range, Arel::Relation
+          when Range
+            value.out? ? attribute.not_in(value) : attribute.in(value)
+          when Arel::Relation
             attribute.in(value)
           when ActiveRecord::Base
             attribute.eq(value.id)
