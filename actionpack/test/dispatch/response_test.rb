@@ -5,6 +5,15 @@ class ResponseTest < ActiveSupport::TestCase
     @response = ActionDispatch::Response.new
   end
 
+  def test_response_body_encoding
+    # FIXME: remove this conditional on Rails 4.0
+    return unless "<3".encoding_aware?
+
+    body = ["hello".encode('utf-8')]
+    response = ActionDispatch::Response.new 200, {}, body
+    assert_equal Encoding::UTF_8, response.body.encoding
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
