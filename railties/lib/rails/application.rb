@@ -1,5 +1,4 @@
 require 'active_support/core_ext/hash/reverse_merge'
-require 'active_support/file_update_checker'
 require 'fileutils'
 require 'rails/plugin'
 require 'rails/engine'
@@ -135,7 +134,7 @@ module Rails
       end
 
       if config.reload_classes_only_on_change
-        reloader = ActiveSupport::FileUpdateChecker.new(watchable_args, true, &callback)
+        reloader = config.file_watcher.new(watchable_args, true, &callback)
         self.reloaders << reloader
         # We need to set a to_prepare callback regardless of the reloader result, i.e.
         # models should be reloaded if any of the reloaders (i18n, routes) were updated.

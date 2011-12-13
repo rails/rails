@@ -16,7 +16,7 @@ class LoadingTest < Test::Unit::TestCase
     @app ||= Rails.application
   end
 
-  def test_constants_in_app_are_autoloaded
+  test "constants in app are autoloaded" do
     app_file "app/models/post.rb", <<-MODEL
       class Post < ActiveRecord::Base
         validates_acceptance_of :title, :accept => "omg"
@@ -33,7 +33,7 @@ class LoadingTest < Test::Unit::TestCase
     assert_equal 'omg', p.title
   end
 
-  def test_models_without_table_do_not_panic_on_scope_definitions_when_loaded
+  test "models without table do not panic on scope definitions when loaded" do
     app_file "app/models/user.rb", <<-MODEL
       class User < ActiveRecord::Base
         default_scope where(:published => true)
@@ -63,7 +63,7 @@ class LoadingTest < Test::Unit::TestCase
     assert ::AppTemplate::Application.config.loaded
   end
 
-  def test_descendants_are_cleaned_on_each_request_without_cache_classes
+  test "descendants are cleaned on each request without cache classes" do
     add_to_config <<-RUBY
       config.cache_classes = false
       config.reload_classes_only_on_change = false
@@ -97,6 +97,82 @@ class LoadingTest < Test::Unit::TestCase
   test "initialize_cant_be_called_twice" do
     require "#{app_path}/config/environment"
     assert_raise(RuntimeError) { ::AppTemplate::Application.initialize! }
+  end
+
+  test "reload constants on development" do
+    add_to_config <<-RUBY
+      config.cache_classes = false
+    RUBY
+
+    app_file 'config/routes.rb', <<-RUBY
+      AppTemplate::Application.routes.draw do
+        match '/c', :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
+      end
+    RUBY
+
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        def self.counter; 1; end
+      end
+    MODEL
+
+    require 'rack/test'
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+    sleep(1)
+
+    get "/c"
+    assert_equal "1", last_response.body
+
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        def self.counter; 2; end
+      end
+    MODEL
+
+    get "/c"
+    assert_equal "2", last_response.body
+  end
+
+  test "does not reload constants on development if custom file watcher always returns false" do
+    add_to_config <<-RUBY
+      config.cache_classes = false
+      config.file_watcher = Class.new do
+        def initialize(*); end
+        def updated?; false; end
+      end
+    RUBY
+
+    app_file 'config/routes.rb', <<-RUBY
+      AppTemplate::Application.routes.draw do
+        match '/c', :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
+      end
+    RUBY
+
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        def self.counter; 1; end
+      end
+    MODEL
+
+    require 'rack/test'
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+    sleep(1)
+
+    get "/c"
+    assert_equal "1", last_response.body
+
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        def self.counter; 2; end
+      end
+    MODEL
+
+    get "/c"
+    assert_equal "1", last_response.body
   end
 
   protected

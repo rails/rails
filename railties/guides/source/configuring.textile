@@ -82,6 +82,8 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.encoding+ sets up the application-wide encoding. Defaults to UTF-8.
 
+* +config.file_watcher+ the class used to detect file updates in the filesystem when +config.reload_classes_only_on_change+ is true. Must conform to +ActiveSupport::FileUpdateChecker+ API.
+
 * +config.filter_parameters+ used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card numbers.
 
 * +config.force_ssl+ forces all requests to be under HTTPS protocol by using +Rack::SSL+ middleware.
@@ -98,7 +100,7 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.preload_frameworks+ enables or disables preloading all frameworks at startup. Enabled by +config.threadsafe!+. Defaults to +nil+, so is disabled.
 
-* +config.reload_classes_only_on_change+ enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to true.
+* +config.reload_classes_only_on_change+ enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to true. If +config.cache_classes+ is true, this option is ignored.
 
 * +config.reload_plugins+ enables or disables plugin reloading. Defaults to false.
 
