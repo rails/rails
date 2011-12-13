@@ -3,12 +3,12 @@ require "active_support/core_ext/module/delegation"
 module Rails
   class Application
     class RoutesReloader
-      attr_reader :route_sets
-
-      delegate :paths, :execute_if_updated, :updated?, :to => :@updater
+      attr_reader :route_sets, :paths
+      delegate :execute_if_updated, :updated?, :to => :@updater
 
       def initialize(updater=ActiveSupport::FileUpdateChecker)
-        @updater    = updater.new([]) { reload! }
+        @paths      = []
+        @updater    = updater.new(paths) { reload! }
         @route_sets = []
       end
 

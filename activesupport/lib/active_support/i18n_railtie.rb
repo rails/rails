@@ -10,7 +10,11 @@ module I18n
     config.i18n.fallbacks = ActiveSupport::OrderedOptions.new
 
     def self.reloader
-      @reloader ||= ActiveSupport::FileUpdateChecker.new([]){ I18n.reload! }
+      @reloader ||= ActiveSupport::FileUpdateChecker.new(reloader_paths){ I18n.reload! }
+    end
+
+    def self.reloader_paths
+      @reloader_paths ||= []
     end
 
     # Add <tt>I18n::Railtie.reloader</tt> to ActionDispatch callbacks. Since, at this
@@ -59,7 +63,7 @@ module I18n
 
       init_fallbacks(fallbacks) if fallbacks && validate_fallbacks(fallbacks)
 
-      reloader.paths.concat I18n.load_path
+      reloader_paths.concat I18n.load_path
       reloader.execute_if_updated
 
       @i18n_inited = true
