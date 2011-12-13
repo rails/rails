@@ -16,17 +16,12 @@ module ActiveRecord
         table_name[0...table_alias_length].gsub(/\./, '_')
       end
 
-      # def tables(name = nil) end
-
       # Checks to see if the table +table_name+ exists on the database.
       #
       # === Example
       #   table_exists?(:developers)
       def table_exists?(table_name)
-        select_value("SELECT 1 FROM #{quote_table_name(table_name)} where 1=0", 'SCHEMA')
-        true
-      rescue
-        false
+        tables.include?(table_name.to_s)
       end
 
       # Returns an array of indexes for the given table.
