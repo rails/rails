@@ -87,7 +87,7 @@ module ActionView
       def _set_detail(key, value)
         @details_key = nil
         @details = @details.dup if @details.frozen?
-        @details[key] = value.freeze
+        @details[key] = value
       end
     end
 
