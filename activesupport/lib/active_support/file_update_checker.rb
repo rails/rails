@@ -2,10 +2,27 @@ require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/array/extract_options"
 
 module ActiveSupport
-  # This class is responsible to track files and invoke the given block
-  # whenever one of these files are changed. For example, this class
-  # is used by Rails to reload the I18n framework whenever they are
-  # changed upon a new request.
+  # \FileUpdateChecker specifies the API used by Rails to watch files
+  # and control reloading. The API depends on four methods:
+  #
+  # * +initialize+ which expects two parameters and one block as
+  #   described below;
+  #
+  # * +updated?+ which returns a boolean if there were updates in
+  #   the filesystem or not;
+  #
+  # * +execute+ which executes the given block on initialization
+  #   and updates the counter to the latest timestamp;
+  #
+  # * +execute_if_updated+ which just executes the block if it was updated;
+  #
+  # After initialization, a call to +execute_if_updated+ must execute
+  # the block only if there was really a change in the filesystem.
+  #
+  # == Examples
+  #
+  # This class is used by Rails to reload the I18n framework whenever
+  # they are changed upon a new request.
   #
   #   i18n_reloader = ActiveSupport::FileUpdateChecker.new(paths) do
   #     I18n.reload!
@@ -16,37 +33,38 @@ module ActiveSupport
   #   end
   #
   class FileUpdateChecker
-    # It accepts two parameters on initialization. The first is
-    # the *paths* and the second is *calculate*, a boolean.
+    # It accepts two parameters on initialization. The first is an array
+    # of files and the second is an optional hash of directories. The hash must
+    # have directories as keys and the value is an array of extensions to be
+    # watched under that directory.
     #
-    # paths must be an array of file paths but can contain a hash as
-    # last argument. The hash must have directories as keys and the
-    # value is an array of extensions to be watched under that directory.
+    # This method must also receive a block that will be called once a path changes.
     #
-    # If *calculate* is true, the latest updated at will calculated
-    # on initialization, therefore, the first call to execute_if_updated
-    # will only evaluate the block if something really changed.
+    # == Implementation details
     #
-    # This method must also receive a block that will be called once a file changes.
-    #
-    # This particular implementation checks for added files and updated files,
+    # This particular implementation checks for added and updated files,
     # but not removed files. Directories lookup are compiled to a glob for
-    # performance. Therefore, while someone can add new files to paths after
-    # initialization, adding new directories is not allowed. Notice that,
-    # depending on the implementation, not even new files may be added.
-    def initialize(paths, calculate=false, &block)
-      @paths = paths
-      @glob  = compile_glob(@paths.extract_options!)
+    # performance. Therefore, while someone can add new files to the +files+
+    # array after initialization (and parts of Rails do depend on this feature),
+    # adding new directories after initialization is not allowed.
+    #
+    # Notice that other objects that implements FileUpdateChecker API may
+    # not even allow new files to be added after initialization. If this
+    # is the case, we recommend freezing the +files+ after initialization to
+    # avoid changes that won't make effect.
+    def initialize(files, dirs={}, &block)
+      @files = files
+      @glob  = compile_glob(dirs)
       @block = block
       @updated_at = nil
-      @last_update_at = calculate ? updated_at : nil
+      @last_update_at = updated_at
     end
 
     # Check if any of the entries were updated. If so, the updated_at
     # value is cached until the block is executed via +execute+ or +execute_if_updated+
     def updated?
       current_updated_at = updated_at
-      if @last_update_at != current_updated_at
+      if @last_update_at < current_updated_at
         @updated_at = updated_at
         true
       else
@@ -54,7 +72,7 @@ module ActiveSupport
       end
     end
 
-    # Executes the given block expiring any internal cache.
+    # Executes the given block and updates the counter to latest timestamp.
     def execute
       @last_update_at = updated_at
       @block.call
@@ -62,8 +80,7 @@ module ActiveSupport
       @updated_at = nil
     end
 
-    # Execute the block given if updated. This call
-    # always flush the cache.
+    # Execute the block given if updated.
     def execute_if_updated
       if updated?
         execute
@@ -78,9 +95,9 @@ module ActiveSupport
     def updated_at #:nodoc:
       @updated_at || begin
         all = []
-        all.concat @paths
+        all.concat @files.select { |f| File.exists?(f) }
         all.concat Dir[@glob] if @glob
-        all.map { |path| File.mtime(path) }.max
+        all.map { |path| File.mtime(path) }.max || Time.at(0)
       end
     end
 

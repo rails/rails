@@ -64,10 +64,9 @@ module Rails
       # routes added in the hook are still loaded.
       initializer :set_routes_reloader_hook do
         reloader = routes_reloader
-        hook = lambda { reloader.execute_if_updated }
-        hook.call
+        reloader.execute_if_updated
         self.reloaders << reloader
-        ActionDispatch::Reloader.to_prepare(&hook)
+        ActionDispatch::Reloader.to_prepare { reloader.execute_if_updated }
       end
 
       # Set app reload just after the finisher hook to ensure
@@ -79,7 +78,7 @@ module Rails
         end
 
         if config.reload_classes_only_on_change
-          reloader = config.file_watcher.new(watchable_args, true, &callback)
+          reloader = config.file_watcher.new(*watchable_args, &callback)
           self.reloaders << reloader
           # We need to set a to_prepare callback regardless of the reloader result, i.e.
           # models should be reloaded if any of the reloaders (i18n, routes) were updated.
