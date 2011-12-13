@@ -137,8 +137,10 @@ module ActiveRecord
       #     # same effect as calling Book.transaction
       #   end
       def transaction(*args)
-        reflection.klass.transaction(*args) do
-          yield
+        if block_given?
+          reflection.klass.transaction(*args) do
+            yield
+          end
         end
       end
 
