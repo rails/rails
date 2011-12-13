@@ -112,38 +112,6 @@ module Rails
       @routes_reloader ||= RoutesReloader.new
     end
 
-    # A routes reloader hook that is used to setup to_prepare callbacks.
-    # A plugin may override this if they desire to provide a more
-    # exquisite route reloading.
-    # :api: plugin
-    def set_routes_reloader_hook
-      reloader = routes_reloader
-      hook = lambda { reloader.execute_if_updated }
-      hook.call
-      self.reloaders << reloader
-      ActionDispatch::Reloader.to_prepare(&hook)
-    end
-
-    # An app dependencies hook that is used to setup to_cleanup callbacks.
-    # A plugin may override this if they desire to provide a more exquisite app reloading.
-    # :api: plugin
-    def set_dependencies_hook
-      callback = lambda do
-        ActiveSupport::DescendantsTracker.clear
-        ActiveSupport::Dependencies.clear
-      end
-
-      if config.reload_classes_only_on_change
-        reloader = config.file_watcher.new(watchable_args, true, &callback)
-        self.reloaders << reloader
-        # We need to set a to_prepare callback regardless of the reloader result, i.e.
-        # models should be reloaded if any of the reloaders (i18n, routes) were updated.
-        ActionDispatch::Reloader.to_prepare(:prepend => true, &callback)
-      else
-        ActionDispatch::Reloader.to_cleanup(&callback)
-      end
-    end
-
     # Returns an array of file paths appended with a hash of directories-extensions
     # suitable for ActiveSupport::FileUpdateChecker API.
     def watchable_args
