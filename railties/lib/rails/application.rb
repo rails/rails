@@ -46,11 +46,11 @@ module Rails
   #   5)  Load config/environments/ENV.rb
   #   6)  Run config.before_initialize callbacks
   #   7)  Run Railtie#initializer defined by railties, engines and application.
-  #       One by one, each engine sets up its load paths, routes, locales and so on.
-  #   8)  Runs all registered config/initializers/*, executing the engines one first
-  #   9)  Build the middleware stack and run to_prepare callbacks
-  #   10) Run config.before_eager_load and eager_load if cache classes is true
-  #   11) Run config.after_initialize callbacks
+  #       One by one, each engine sets up its load paths, routes and runs its config/initializers/* files.
+  #   9)  Custom Railtie#initializers added by railties, engines and applications are executed
+  #   10) Build the middleware stack and run to_prepare callbacks
+  #   11) Run config.before_eager_load and eager_load if cache classes is true
+  #   12) Run config.after_initialize callbacks
   #
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'

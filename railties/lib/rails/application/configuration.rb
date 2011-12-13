@@ -8,7 +8,7 @@ module Rails
       attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets,
                     :cache_classes, :cache_store, :consider_all_requests_local,
                     :dependency_loading, :filter_parameters, :force_ssl, :helpers_paths,
-                    :initializers_paths, :logger, :log_tags, :preload_frameworks,
+                    :logger, :log_tags, :preload_frameworks,
                     :railties_order, :relative_url_root, :reload_plugins, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change, :whiny_nils
@@ -36,7 +36,6 @@ module Rails
         @generators                    = app_generators
         @cache_store                   = [ :file_store, "#{root}/tmp/cache/" ]
         @railties_order                = [:all]
-        @initializers_paths            = []
         @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change = true
 
