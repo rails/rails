@@ -1,5 +1,6 @@
 require 'thread'
 require 'logger'
+require 'active_support/core_ext/logger'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/deprecation'
 require 'fileutils'
