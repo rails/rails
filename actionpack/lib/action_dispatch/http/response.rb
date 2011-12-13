@@ -108,9 +108,9 @@ module ActionDispatch # :nodoc:
     end
 
     def body
-      str = ''
-      each { |part| str << part.to_s }
-      str
+      strings = []
+      each { |part| strings << part.to_s }
+      strings.join
     end
 
     EMPTY = " "
