@@ -122,4 +122,17 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/", {}, {'action_dispatch.show_exceptions' => true, 'action_dispatch.backtrace_cleaner' => cleaner}
     assert_match(/passed backtrace cleaner/, body)
   end
+
+  test 'logs exception backtrace when all lines silenced' do
+    output = StringIO.new
+    backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
+    backtrace_cleaner.add_silencer { true }
+
+    env = {'action_dispatch.show_exceptions' => true,
+           'action_dispatch.logger' => Logger.new(output),
+           'action_dispatch.backtrace_cleaner' => backtrace_cleaner}
+
+    get "/", {}, env
+    assert_operator (output.rewind && output.read).lines.count, :>, 10
+  end
 end
