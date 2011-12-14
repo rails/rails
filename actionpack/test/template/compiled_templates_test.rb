@@ -3,6 +3,10 @@ require 'controller/fake_models'
 
 class CompiledTemplatesTest < Test::Unit::TestCase
   def setup
+    # Clean up any details key cached to expose failures
+    # that otherwise would appear just on isolated tests
+    ActionView::LookupContext::DetailsKey.clear
+
     @compiled_templates = ActionView::CompiledTemplates
     @compiled_templates.instance_methods.each do |m|
       @compiled_templates.send(:remove_method, m) if m =~ /^_render_template_/
