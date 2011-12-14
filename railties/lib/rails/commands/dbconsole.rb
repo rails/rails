@@ -41,7 +41,7 @@ module Rails
         abort opt.to_s unless (0..1).include?(ARGV.size)
       end
 
-      unless config = YAML::load(ERB.new(IO.read("#{@app.root}/config/database.yml")).result)[Rails.env]
+      unless config = @app.config.database_configuration[Rails.env]
         abort "No database is configured for the environment '#{Rails.env}'"
       end
 
