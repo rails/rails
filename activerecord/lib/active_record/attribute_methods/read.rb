@@ -31,10 +31,8 @@ module ActiveRecord
 
         def undefine_attribute_methods
           if base_class == self
-            generated_attribute_methods.module_eval do
-              public_methods(false).each do |m|
-                singleton_class.send(:undef_method, m) if m.to_s =~ /^attribute_/
-              end
+            generated_external_attribute_methods.module_eval do
+              instance_methods.each { |m| undef_method(m) }
             end
           end
 
@@ -52,22 +50,20 @@ module ActiveRecord
           # rename it to what we want.
           def define_method_attribute(attr_name)
             cast_code = attribute_cast_code(attr_name)
-            internal  = internal_attribute_access_code(attr_name, cast_code)
-            external  = external_attribute_access_code(attr_name, cast_code)
 
             generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
               def __temp__
-                #{internal}
+                #{internal_attribute_access_code(attr_name, cast_code)}
               end
               alias_method '#{attr_name}', :__temp__
               undef_method :__temp__
             STR
 
-            generated_attribute_methods.singleton_class.module_eval <<-STR, __FILE__, __LINE__ + 1
+            generated_external_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
               def __temp__(v, attributes, attributes_cache, attr_name)
-                #{external}
+                #{external_attribute_access_code(attr_name, cast_code)}
               end
-              alias_method 'attribute_#{attr_name}', :__temp__
+              alias_method '#{attr_name}', :__temp__
               undef_method :__temp__
             STR
           end
@@ -110,12 +106,11 @@ module ActiveRecord
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         attr_name = attr_name.to_s
-        accessor  = "attribute_#{attr_name}"
-        methods   = self.class.generated_attribute_methods
+        methods   = self.class.generated_external_attribute_methods
 
-        if methods.respond_to?(accessor)
+        if methods.method_defined?(attr_name)
           if @attributes.has_key?(attr_name) || attr_name == 'id'
-            methods.send(accessor, @attributes[attr_name], @attributes, @attributes_cache, attr_name)
+            methods.send(attr_name, @attributes[attr_name], @attributes, @attributes_cache, attr_name)
           end
         elsif !self.class.attribute_methods_generated?
           # If we haven't generated the caster methods yet, do that and
