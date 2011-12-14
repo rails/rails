@@ -343,7 +343,7 @@ module ActiveRecord
               if autosave
                 saved = association.insert_record(record, false)
               else
-                association.insert_record(record)
+                association.insert_record(record) unless reflection.nested?
               end
             elsif autosave
               saved = record.save(:validate => false)
