@@ -5,7 +5,7 @@ gemspec
 if ENV['AREL']
   gem 'arel', :path => ENV['AREL']
 else
-  gem 'arel', :git => 'git://github.com/rails/arel'
+  gem 'arel'
 end
 
 gem 'bcrypt-ruby', '~> 3.0.0'
@@ -14,7 +14,7 @@ gem 'jquery-rails'
 if ENV['JOURNEY']
   gem 'journey', :path => ENV['JOURNEY']
 else
-  gem 'journey', :git => 'git://github.com/rails/journey'
+  gem 'journey'
 end
 
 # This needs to be with require false to avoid
