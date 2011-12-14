@@ -59,6 +59,10 @@ module ActionView
         @details_keys[details] ||= new
       end
 
+      def self.clear
+        @details_keys.clear
+      end
+
       def initialize
         @hash = object_hash
       end
