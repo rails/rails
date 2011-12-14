@@ -71,6 +71,14 @@ module AbstractController
         )
       end
 
+      def test_subdomain_may_be_object
+        model = mock(:to_param => 'api')
+        add_host!
+        assert_equal('http://api.basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => model, :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
       def test_subdomain_may_be_removed
         add_host!
         assert_equal('http://basecamphq.com/c/a/i',
