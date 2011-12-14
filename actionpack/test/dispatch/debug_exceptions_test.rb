@@ -3,8 +3,18 @@ require 'abstract_unit'
 class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   class Boomer
+    attr_accessor :closed
+
     def initialize(detailed  = false)
       @detailed = detailed
+      @closed = false
+    end
+
+    def each
+    end
+
+    def close
+      @closed = true
     end
 
     def call(env)
@@ -12,7 +22,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       req = ActionDispatch::Request.new(env)
       case req.path
       when "/pass"
-        [404, { "X-Cascade" => "pass" }, []]
+        [404, { "X-Cascade" => "pass" }, self]
       when "/not_found"
         raise ActionController::UnknownAction
       when "/runtime_error"
@@ -31,8 +41,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  ProductionApp  = ActionDispatch::DebugExceptions.new((Boomer.new(false)))
-  DevelopmentApp = ActionDispatch::DebugExceptions.new((Boomer.new(true)))
+  ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false))
+  DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true))
 
   test 'skip diagnosis if not showing detailed exceptions' do
     @app = ProductionApp
@@ -53,6 +63,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_raise ActionController::RoutingError do
       get "/pass", {}, {'action_dispatch.show_exceptions' => true}
     end
+  end
+
+  test 'closes the response body on cascade pass' do
+    boomer = Boomer.new(false)
+    @app = ActionDispatch::DebugExceptions.new(boomer)
+    assert_raise ActionController::RoutingError do
+      get "/pass", {}, {'action_dispatch.show_exceptions' => true}
+    end
+    assert boomer.closed, "Expected to close the response body"
   end
 
   test "rescue with diagnostics message" do
