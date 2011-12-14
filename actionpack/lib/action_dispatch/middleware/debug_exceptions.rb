@@ -17,6 +17,8 @@ module ActionDispatch
 
         # TODO: Maybe this should be in the router itself
         if response[1]['X-Cascade'] == 'pass'
+          body = response[2]
+          body.close if body.respond_to?(:close)
           raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
         end
       rescue Exception => exception
