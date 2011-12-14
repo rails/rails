@@ -707,6 +707,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Topic.undefine_attribute_methods
   end
 
+  def test_read_attribute_with_nil_should_not_asplode
+    assert_equal nil, Topic.new.read_attribute(nil)
+  end
+
   private
   def cached_columns
     @cached_columns ||= time_related_columns_on_topic.map(&:name)
