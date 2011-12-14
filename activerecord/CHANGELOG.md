@@ -1,5 +1,10 @@
 ## Rails 3.1.4 (unreleased) ##
 
+*   Perf fix (second try): don't load records for `has many :dependent =>
+    :delete_all` *GH 3672*
+
+    *Jon Leighton*
+
 *   Fix accessing `proxy_association` method from an association extension
     where the calls are chained. *GH #3890*
 

@@ -46,10 +46,16 @@ module ActiveRecord::Associations::Builder
       def define_delete_all_dependency_method
         name = self.name
         model.send(:define_method, dependency_method_name) do
+          association(name).delete_all_on_destroy
+        end
+      end
+
+      def define_nullify_dependency_method
+        name = self.name
+        model.send(:define_method, dependency_method_name) do
           send(name).delete_all
         end
       end
-      alias :define_nullify_dependency_method :define_delete_all_dependency_method
 
       def define_restrict_dependency_method
         name = self.name
