@@ -4,21 +4,13 @@
 # or operating system, you probably want to add a global ignore instead:
 #   git config --global core.excludesfile ~/.gitignore_global
 
-# Ignore secret rails files
-/config/initializers/secret_token.rb
-/config/*.yml
-
-# Ignore bundler config
+# Ignore the generated bundler configuration files
 /.bundle
 
-# Ignore other VC directories
-/.svn
-
 # Ignore testing and documentation files
-/test/tmp
 /coverage
-/.yardoc
 /rdoc
+/doc
 
 # Ignore the default SQLite database.
 /db/*.sqlite3
@@ -26,3 +18,13 @@
 # Ignore all logfiles and tempfiles.
 /log/*.log
 /tmp
+
+# Examples
+#
+# Ignore these types of files because they might contain secret data
+# /config/initializers/secret_token.rb
+# /config/*.yml
+#
+# These directories are made by other version control software
+# /.svn
+# /.hg
