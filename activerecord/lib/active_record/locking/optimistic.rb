@@ -65,7 +65,7 @@ module ActiveRecord
         end
 
         def attributes_from_column_definition
-          result = super
+          result = self.class.column_defaults.dup
 
           # If the locking column has no default value set,
           # start the lock version at zero. Note we can't use
