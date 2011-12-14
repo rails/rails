@@ -298,11 +298,11 @@ module ActionController
   #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
   #   assert flash.empty? # makes sure that there's nothing in the flash
   #
-  # For historic reasons, the assigns hash uses string-based keys. So assigns[:person] won't work, but assigns["person"] will. To
+  # For historic reasons, the assigns hash uses string-based keys. So <tt>assigns[:person]</tt> won't work, but <tt>assigns["person"]</tt> will. To
   # appease our yearning for symbols, though, an alternative accessor has been devised using a method call instead of index referencing.
-  # So assigns(:person) will work just like assigns["person"], but again, assigns[:person] will not work.
+  # So <tt>assigns(:person)</tt> will work just like <tt>assigns["person"]</tt>, but again, <tt>assigns[:person]</tt> will not work.
   #
-  # On top of the collections, you have the complete url that a given action redirected to available in redirect_to_url.
+  # On top of the collections, you have the complete url that a given action redirected to available in <tt>redirect_to_url</tt>.
   #
   # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
   # action call which can then be asserted against.
