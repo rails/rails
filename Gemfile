@@ -25,7 +25,6 @@ gem 'rake', '>= 0.8.7'
 gem 'mocha', '>= 0.9.8'
 
 group :doc do
-  gem 'rdoc',  '~> 3.4'
   # The current sdoc cannot generate GitHub links due
   # to a bug, but the PR that fixes it has been there
   # for some weeks unapplied. As a temporary solution
