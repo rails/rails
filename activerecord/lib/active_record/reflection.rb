@@ -262,6 +262,10 @@ module ActiveRecord
         [self]
       end
 
+      def nested?
+        false
+      end
+
       # An array of arrays of conditions. Each item in the outside array corresponds to a reflection
       # in the #chain. The inside arrays are simply conditions (and each condition may itself be
       # a hash, array, arel predicate, etc...)
