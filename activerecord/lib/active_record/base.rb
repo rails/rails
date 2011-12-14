@@ -782,7 +782,7 @@ module ActiveRecord #:nodoc:
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
-        connection.schema_cache.column_defaults[table_name]
+        @column_defaults ||= connection.schema_cache.column_defaults[table_name]
       end
 
       # Returns an array of column names as strings.
@@ -841,7 +841,7 @@ module ActiveRecord #:nodoc:
         undefine_attribute_methods
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
-        @column_names = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
+        @column_names = @content_columns = @column_defaults = @dynamic_methods_hash = @inheritance_column = nil
         @arel_engine = @relation = nil
       end
 
