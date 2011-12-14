@@ -33,6 +33,9 @@ module ActiveRecord
         esql
 
         assert(!result.rows.first.include?("blob"), "should not store blobs")
+
+        Owner.connection.instance_variable_set(:@logger, nil)
+        assert_nothing_raised { Owner.create!(:name => "hello".encode('ascii-8bit')) }
       end
 
       def test_exec_insert
