@@ -1,6 +1,6 @@
 class <%= migration_class_name %> < ActiveRecord::Migration
 <%- if migration_action == 'add' -%>
-  def change
+  def self.change
 <% attributes.each do |attribute| -%>
     add_column :<%= table_name %>, :<%= attribute.name %>, :<%= attribute.type %>
 <%- end -%>
