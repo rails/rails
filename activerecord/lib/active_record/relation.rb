@@ -132,13 +132,6 @@ module ActiveRecord
       first || new(attributes, options, &block)
     end
 
-    def respond_to?(method, include_private = false)
-      arel.respond_to?(method, include_private)     ||
-        Array.method_defined?(method)               ||
-        @klass.respond_to?(method, include_private) ||
-        super
-    end
-
     # Runs EXPLAIN on the query or queries triggered by this relation and
     # returns the result as a string. The string is formatted imitating the
     # ones printed by the database shell.
