@@ -62,8 +62,6 @@ class ConsoleTest < Test::Unit::TestCase
     load_environment
     assert User.new.respond_to?(:name)
 
-    sleep(1)
-
     app_file "app/models/user.rb", <<-MODEL
       class User
         attr_accessor :name, :age

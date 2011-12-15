@@ -71,7 +71,7 @@ module Rails
 
       # Set app reload just after the finisher hook to ensure
       # paths added in the hook are still loaded.
-      initializer :set_dependencies_hook, :group => :all do
+      initializer :set_clear_dependencies_hook, :group => :all do
         callback = lambda do
           ActiveSupport::DescendantsTracker.clear
           ActiveSupport::Dependencies.clear

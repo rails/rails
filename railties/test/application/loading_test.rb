@@ -120,7 +120,6 @@ class LoadingTest < Test::Unit::TestCase
     extend Rack::Test::Methods
 
     require "#{rails_root}/config/environment"
-    sleep(1)
 
     get "/c"
     assert_equal "1", last_response.body
@@ -160,7 +159,6 @@ class LoadingTest < Test::Unit::TestCase
     extend Rack::Test::Methods
 
     require "#{rails_root}/config/environment"
-    sleep(1)
 
     get "/c"
     assert_equal "1", last_response.body
@@ -175,7 +173,7 @@ class LoadingTest < Test::Unit::TestCase
     assert_equal "1", last_response.body
   end
 
-  test "added files also trigger reloading" do
+  test "added files (like db/schema.rb) also trigger reloading" do
     add_to_config <<-RUBY
       config.cache_classes = false
     RUBY
@@ -205,6 +203,56 @@ class LoadingTest < Test::Unit::TestCase
 
     get "/c"
     assert_equal "2", last_response.body
+  end
+
+  test "columns migrations also trigger reloading" do
+    add_to_config <<-RUBY
+      config.cache_classes = false
+    RUBY
+
+    app_file 'config/routes.rb', <<-RUBY
+      AppTemplate::Application.routes.draw do
+        match '/title', :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.title]] }
+        match '/body',  :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.body]] }
+      end
+    RUBY
+
+    app_file "app/models/post.rb", <<-MODEL
+      class Post < ActiveRecord::Base
+      end
+    MODEL
+
+    require 'rack/test'
+    extend Rack::Test::Methods
+
+    app_file "db/migrate/1_create_posts.rb", <<-MIGRATION
+      class CreatePosts < ActiveRecord::Migration
+        def change
+          create_table :posts do |t|
+            t.string :title, :default => "TITLE"
+          end
+        end
+      end
+    MIGRATION
+
+    Dir.chdir(app_path) { `rake db:migrate`}
+    require "#{rails_root}/config/environment"
+
+    get "/title"
+    assert_equal "TITLE", last_response.body
+
+    app_file "db/migrate/2_add_body_to_posts.rb", <<-MIGRATION
+      class AddBodyToPosts < ActiveRecord::Migration
+        def change
+          add_column :posts, :body, :text, :default => "BODY"
+        end
+      end
+    MIGRATION
+
+    Dir.chdir(app_path) { `rake db:migrate` }
+
+    get "/body"
+    assert_equal "BODY", last_response.body
   end
 
   protected
