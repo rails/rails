@@ -686,7 +686,6 @@ module ActiveRecord #:nodoc:
     extend Translation
     include Inheritance
     include Scoping
-    include DefaultScope
     extend DynamicMatchers
     include Sanitization
     include Integration
@@ -697,7 +696,7 @@ module ActiveRecord #:nodoc:
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
     include Callbacks, ActiveModel::Observing, Timestamp
-    include Associations, NamedScope
+    include Associations
     include IdentityMap
     include ActiveModel::SecurePassword
     include Explain
