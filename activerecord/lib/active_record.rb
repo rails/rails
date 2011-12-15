@@ -51,6 +51,7 @@ module ActiveRecord
       autoload :SpawnMethods
       autoload :Batches
       autoload :Explain
+      autoload :Delegation
     end
 
     autoload :Base
