@@ -86,7 +86,7 @@ module ApplicationTests
           `rails generate migration add_email_to_users email:string`
         end
 
-        Dir.chdir(app_path) { `rake db:migrate`}
+        Dir.chdir(app_path) { `rake db:migrate` }
         output = Dir.chdir(app_path) { `rake db:migrate:status` }
 
         assert_match(/up\s+\d{14}\s+Create users/, output)
