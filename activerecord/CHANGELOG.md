@@ -1,5 +1,9 @@
 ## Rails 3.1.4 (unreleased) ##
 
+*   Fix a custom primary key regression *GH 3987*
+
+    *Jon Leighton*
+
 *   Perf fix (second try): don't load records for `has many :dependent =>
     :delete_all` *GH 3672*
 

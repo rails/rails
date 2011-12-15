@@ -146,6 +146,16 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.connection.quote_column_name("bar"), k.quoted_primary_key
   end
 
+  def test_set_primary_key_sets_schema_cache
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = 'fuuuuuu'
+    klass.connection.create_table(:fuuuuuu, :id => false) { |t| t.integer :omg }
+    klass.primary_key = 'omg'
+    assert klass.connection_pool.columns_hash['fuuuuuu']['omg'].primary
+  ensure
+    klass.connection.drop_table(:fuuuuuu) if klass.table_exists?
+  end
+
   def test_set_primary_key_with_no_connection
     return skip("disconnect wipes in-memory db") if in_memory_db?
 

@@ -53,6 +53,8 @@ module ActiveRecord
         def primary_key=(value)
           @quoted_primary_key = nil
           @primary_key = value
+
+          connection_pool.primary_keys[table_name] = @primary_key if connected?
         end
 
         # Sets the name of the primary key column to use to the given value,
