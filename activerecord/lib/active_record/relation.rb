@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/module/delegation'
 
 module ActiveRecord
   # = Active Record Relation
@@ -10,13 +9,7 @@ module ActiveRecord
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order, :uniq]
 
-    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain
-
-    # These are explicitly delegated to improve performance (avoids method_missing)
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :to => :to_a
-    delegate :ast, :engine, :to => :arel
-    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
-             :connection, :columns_hash, :auto_explain_threshold_in_seconds, :to => :klass
+    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions, :default_scoped
@@ -516,20 +509,6 @@ module ActiveRecord
         default_scope
       else
         self
-      end
-    end
-
-    protected
-
-    def method_missing(method, *args, &block)
-      if Array.method_defined?(method)
-        to_a.send(method, *args, &block)
-      elsif @klass.respond_to?(method)
-        scoping { @klass.send(method, *args, &block) }
-      elsif arel.respond_to?(method)
-        arel.send(method, *args, &block)
-      else
-        super
       end
     end
 
