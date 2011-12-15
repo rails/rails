@@ -251,7 +251,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      @klass.send(:with_scope, self, :overwrite) { yield }
+      @klass.with_scope(self, :overwrite) { yield }
     end
 
     # Updates all records with details given if they match a set of conditions supplied, limits and order can
