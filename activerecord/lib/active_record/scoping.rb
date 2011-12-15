@@ -4,6 +4,11 @@ module ActiveRecord
   module Scoping
     extend ActiveSupport::Concern
 
+    included do
+      include Default
+      include Named
+    end
+
     module ClassMethods
       # with_scope lets you apply options to inner block incrementally. It takes a hash and the keys must be
       # <tt>:find</tt> or <tt>:create</tt>. <tt>:find</tt> parameter is <tt>Relation</tt> while

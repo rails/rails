@@ -58,7 +58,6 @@ module ActiveRecord
     autoload :Base
     autoload :Callbacks
     autoload :CounterCache
-    autoload :DefaultScope
     autoload :DynamicMatchers
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch
@@ -69,7 +68,6 @@ module ActiveRecord
     autoload :Migration
     autoload :Migrator, 'active_record/migration'
     autoload :ModelSchema
-    autoload :NamedScope
     autoload :NestedAttributes
     autoload :Observer
     autoload :Persistence
@@ -126,6 +124,15 @@ module ActiveRecord
     eager_autoload do
       autoload :AbstractAdapter
       autoload :ConnectionManagement, "active_record/connection_adapters/abstract/connection_pool"
+    end
+  end
+
+  module Scoping
+    extend ActiveSupport::Autoload
+
+    eager_autoload do
+      autoload :Named
+      autoload :Default
     end
   end
 
