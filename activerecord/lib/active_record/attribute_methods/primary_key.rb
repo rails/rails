@@ -102,6 +102,8 @@ module ActiveRecord
           @original_primary_key = @primary_key if defined?(@primary_key)
           @primary_key          = value && value.to_s
           @quoted_primary_key   = nil
+
+          connection.schema_cache.primary_keys[table_name] = @primary_key if connected?
         end
 
         def set_primary_key(value = nil, &block) #:nodoc:

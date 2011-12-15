@@ -148,6 +148,16 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     k.primary_key = "foo"
     assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
   end
+
+  def test_set_primary_key_sets_schema_cache
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = 'fuuuuuu'
+    klass.connection.create_table(:fuuuuuu, :id => false) { |t| t.integer :omg }
+    klass.primary_key = 'omg'
+    assert klass.connection.schema_cache.columns_hash['fuuuuuu']['omg'].primary
+  ensure
+    klass.connection.drop_table(:fuuuuuu) if klass.table_exists?
+  end
 end
 
 class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
