@@ -696,12 +696,6 @@ module ActiveRecord #:nodoc:
     extend CounterCache
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
-    include AttributeMethods::Read, AttributeMethods::Write, AttributeMethods::BeforeTypeCast, AttributeMethods::Query
-    include AttributeMethods::PrimaryKey
-    include AttributeMethods::TimeZoneConversion
-    include AttributeMethods::Dirty
-    include AttributeMethods::Serialization
-    include AttributeMethods::DeprecatedUnderscoreRead
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, NamedScope
     include IdentityMap
@@ -712,17 +706,6 @@ module ActiveRecord #:nodoc:
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
     include Aggregations, Transactions, Reflection, Serialization, Store
-
-    # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-    # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
-    # (Alias for the protected read_attribute method).
-    alias [] read_attribute
-
-    # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
-    # (Alias for the protected write_attribute method).
-    alias []= write_attribute
-
-    public :[], :[]=
   end
 end
 

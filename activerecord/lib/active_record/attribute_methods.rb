@@ -7,6 +7,29 @@ module ActiveRecord
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods
 
+    included do
+      include Read
+      include Write
+      include BeforeTypeCast
+      include Query
+      include PrimaryKey
+      include TimeZoneConversion
+      include Dirty
+      include Serialization
+      include DeprecatedUnderscoreRead
+
+      # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
+      # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
+      # (Alias for the protected read_attribute method).
+      alias [] read_attribute
+
+      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
+      # (Alias for the protected write_attribute method).
+      alias []= write_attribute
+
+      public :[], :[]=
+    end
+
     module ClassMethods
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
