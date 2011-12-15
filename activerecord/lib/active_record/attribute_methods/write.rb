@@ -49,6 +49,18 @@ module ActiveRecord
             value
           end
         end
+
+        def convert_number_column_value(value)
+          if value == false
+            0
+          elsif value == true
+            1
+          elsif value.is_a?(String) && value.blank?
+            nil
+          else
+            value
+          end
+        end
     end
   end
 end
