@@ -5,7 +5,15 @@ module ShowExceptions
     use ActionDispatch::ShowExceptions
     use ActionDispatch::DebugExceptions
 
+    before_filter :only => :another_boom do
+      request.env["action_dispatch.show_detailed_exceptions"] = true
+    end
+
     def boom
+      raise 'boom!'
+    end
+
+    def another_boom
       raise 'boom!'
     end
   end
@@ -27,9 +35,8 @@ module ShowExceptions
       end
     end
 
-    test 'show diagnostics from a remote ip when consider_all_requests_local is true' do
-      ShowExceptionsController.any_instance.stubs(:consider_all_requests_local).returns(true)
-      @app = ShowExceptionsController.action(:boom)
+    test 'show diagnostics from a remote ip when env is already set' do
+      @app = ShowExceptionsController.action(:another_boom)
       self.remote_addr = '208.77.188.166'
       get '/'
       assert_match(/boom/, body)
