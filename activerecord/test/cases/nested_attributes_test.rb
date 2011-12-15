@@ -617,6 +617,11 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal ['Grace OMalley', 'Privateers Greed'], [@child_1.name, @child_2.name]
   end
 
+  def test_should_take_a_hash_with_owner_attributes_and_assign_the_attributes_to_the_associated_model
+    @pirate.birds.create :name => 'bird', :pirate_attributes => {:id => @pirate.id.to_s, :catchphrase => 'Holla!'}
+    assert_equal 'Holla!', @pirate.reload.catchphrase
+  end
+
   def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
     assert_raise_with_message ActiveRecord::RecordNotFound, "Couldn't find #{@child_1.class.name} with ID=1234567890 for Pirate with ID=#{@pirate.id}" do
       @pirate.attributes = { association_getter => [{ :id => 1234567890 }] }
