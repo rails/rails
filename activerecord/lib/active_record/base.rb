@@ -1776,6 +1776,7 @@ MSG
 
         attributes = new_attributes.stringify_keys
         multi_parameter_attributes = []
+        nested_parameter_attributes = []
         @mass_assignment_options = options
 
         unless options[:without_protection]
@@ -1786,10 +1787,19 @@ MSG
           if k.include?("(")
             multi_parameter_attributes << [ k, v ]
           elsif respond_to?("#{k}=")
-            send("#{k}=", v)
+            if v.is_a?(Hash)
+              nested_parameter_attributes << [ k, v ]
+            else
+              send("#{k}=", v)
+            end
           else
             raise(UnknownAttributeError, "unknown attribute: #{k}")
           end
+        end
+
+        # assign any deferred nested attributes after the base attributes have been set
+        nested_parameter_attributes.each do |k,v|
+          send("#{k}=", v)
         end
 
         @mass_assignment_options = nil
