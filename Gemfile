@@ -30,7 +30,7 @@ group :doc do
   # for some weeks unapplied. As a temporary solution
   # this is our own fork with the fix.
   gem 'sdoc',  :git => 'git://github.com/fxn/sdoc.git'
-  gem 'RedCloth', '~> 4.2' if RUBY_VERSION < '1.9.3'
+  gem 'RedCloth', '~> 4.2'
   gem 'w3c_validators'
 end
 
