@@ -68,9 +68,9 @@
           <%= f.text_field :version %>
         <% end %>
 
-*   Refactor ActionDispatch::ShowExceptions. Controller is responsible for choice to show exceptions. *Sergey Nartimov*
+*   Refactor ActionDispatch::ShowExceptions. Controller is responsible for choosing to show exceptions when `consider_all_requests_local` is false. *Sergey Nartimov*
 
-    It's possible to override +show_detailed_exceptions?+ in controllers to specify which requests should provide debugging information on errors.
+    It's possible to override `show_detailed_exceptions?` in controllers to specify which requests should provide debugging information on errors.
 
 *   Responders now return 204 No Content for API requests without a response body (as in the new scaffold) *José Valim*
 
