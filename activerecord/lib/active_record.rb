@@ -39,6 +39,7 @@ module ActiveRecord
     autoload :Aggregations
     autoload :Associations
     autoload :AttributeMethods
+    autoload :AttributeAssignment
     autoload :AutosaveAssociation
 
     autoload :Relation
@@ -57,27 +58,37 @@ module ActiveRecord
     autoload :Base
     autoload :Callbacks
     autoload :CounterCache
+    autoload :DefaultScope
+    autoload :DynamicMatchers
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch
+    autoload :Explain
+    autoload :IdentityMap
+    autoload :Inheritance
+    autoload :Integration
     autoload :Migration
     autoload :Migrator, 'active_record/migration'
+    autoload :ModelSchema
     autoload :NamedScope
     autoload :NestedAttributes
     autoload :Observer
     autoload :Persistence
     autoload :QueryCache
+    autoload :Querying
+    autoload :ReadonlyAttributes
     autoload :Reflection
     autoload :Result
+    autoload :Sanitization
     autoload :Schema
     autoload :SchemaDumper
+    autoload :Scoping
     autoload :Serialization
-    autoload :Store
     autoload :SessionStore
+    autoload :Store
     autoload :Timestamp
     autoload :Transactions
+    autoload :Translation
     autoload :Validations
-    autoload :IdentityMap
-    autoload :Explain
   end
 
   module Coders
