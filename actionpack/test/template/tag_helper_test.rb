@@ -87,6 +87,11 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
+  def test_content_tag_with_newline
+    str = content_tag('textarea', "limelight", {})
+    assert_dom_equal "<textarea>\nlimelight</textarea>", str
+  end
+
   def test_cdata_section
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
   end
