@@ -236,7 +236,7 @@ module ActiveRecord
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
-        @column_defaults ||= connection.schema_cache.column_defaults[table_name]
+        @column_defaults ||= Hash[columns.map { |c| [c.name, c.default] }]
       end
 
       # Returns an array of column names as strings.
