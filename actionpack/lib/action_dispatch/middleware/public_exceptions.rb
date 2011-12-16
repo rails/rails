@@ -17,7 +17,7 @@ module ActionDispatch
       elsif File.exist?(path)
         render(status, File.read(path))
       else
-        render(status, '')
+        [404, { "X-Cascade" => "pass" }, []]
       end
     end
 

@@ -4,12 +4,17 @@ require 'active_support/deprecation'
 
 module ActionDispatch
   # This middleware rescues any exception returned by the application
-  # and calls a rack application that will wrap it in a format for the end user.
+  # and calls an exceptions app that will wrap it in a format for the end user.
   #
-  # The rack application should be passed as parameter on initialization
+  # The exceptions app should be passed as parameter on initialization
   # of ShowExceptions. Everytime there is an exception, ShowExceptions will
   # store the exception in env["action_dispatch.exception"], rewrite the
   # PATH_INFO to the exception status code and call the rack app.
+  # 
+  # If the application returns a "X-Cascade" pass response, this middleware
+  # will send an empty response as result with the correct status code.
+  # If any exception happens inside the exceptions app, this middleware
+  # catches the exceptions and returns a FAILSAFE_RESPONSE.
   class ShowExceptions
     FAILSAFE_RESPONSE = [500, {'Content-Type' => 'text/html'},
       ["<html><body><h1>500 Internal Server Error</h1>" <<
@@ -65,12 +70,18 @@ module ActionDispatch
 
     def render_exception(env, exception)
       wrapper = ExceptionWrapper.new(env, exception)
+      status  = wrapper.status_code
       env["action_dispatch.exception"] = wrapper.exception
-      env["PATH_INFO"] = "/#{wrapper.status_code}"
-      @exceptions_app.call(env)
+      env["PATH_INFO"] = "/#{status}"
+      response = @exceptions_app.call(env)
+      response[1]['X-Cascade'] == 'pass' ? pass_response(status) : response
     rescue Exception => failsafe_error
       $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
       FAILSAFE_RESPONSE
+    end
+
+    def pass_response(status)
+      [status, {"Content-Type" => "text/html; charset=#{Response.default_charset}", "Content-Length" => "0"}, []]
     end
   end
 end
