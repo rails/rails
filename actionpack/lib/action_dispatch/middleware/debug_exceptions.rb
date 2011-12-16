@@ -15,7 +15,6 @@ module ActionDispatch
       begin
         response = @app.call(env)
 
-        # TODO: Maybe this should be in the router itself
         if response[1]['X-Cascade'] == 'pass'
           body = response[2]
           body.close if body.respond_to?(:close)
