@@ -72,7 +72,7 @@ module ActiveRecord
           when :table_name_with_underscore
             base_name.foreign_key
           else
-            if ActiveRecord::Base != self && table_name
+            if ActiveRecord::Base != self && table_exists?
               connection.schema_cache.primary_keys[table_name]
             else
               'id'
