@@ -219,7 +219,9 @@ module ApplicationTests
       app_file "app/assets/javascripts/app.js", "alert();"
 
       require "#{app_path}/config/environment"
-      class ::PostsController < ActionController::Base ; end
+      class ::PostsController < ActionController::Base
+        def show_detailed_exceptions?() true end
+      end
 
       get '/posts'
       assert_match(/AssetNotPrecompiledError/, last_response.body)
