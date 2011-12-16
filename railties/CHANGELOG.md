@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Added `config.exceptions_app` to set the exceptions application invoked by the ShowException middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`. *José Valim*
+
 *   Speed up development by only reloading classes if dependencies files changed. This can be turned off by setting `config.reload_classes_only_on_change` to false. *José Valim*
 
 *   New applications get a flag `config.active_record.auto_explain_threshold_in_seconds` in the environments configuration files. With a value of 0.5 in development.rb, and commented out in production.rb. No mention in test.rb. *fxn*

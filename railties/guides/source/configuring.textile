@@ -82,6 +82,8 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.encoding+ sets up the application-wide encoding. Defaults to UTF-8.
 
+* +config.exceptions_app+ sets the exceptions application invoked by the ShowException middleware when an exception happens. Defaults to +ActionDispatch::PublicExceptions.new(Rails.public_path)+.
+
 * +config.file_watcher+ the class used to detect file updates in the filesystem when +config.reload_classes_only_on_change+ is true. Must conform to +ActiveSupport::FileUpdateChecker+ API.
 
 * +config.filter_parameters+ used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card numbers.
