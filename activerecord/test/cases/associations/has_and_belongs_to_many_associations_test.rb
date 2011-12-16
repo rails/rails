@@ -825,7 +825,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # clear cache possibly created by other tests
     david.projects.reset_column_information
 
-    # One query for columns, one for primary key, one for table existence
     assert_queries(1) { david.projects.columns; david.projects.columns }
 
     ## and again to verify that reset_column_information clears the cache correctly
