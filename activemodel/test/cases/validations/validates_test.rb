@@ -16,6 +16,13 @@ class ValidatesTest < ActiveModel::TestCase
     PersonWithValidator.reset_callbacks(:validate)
   end
 
+  def test_foo_bar
+    Person.validates :title, :presence => {:message => ""}
+    person = Person.new
+    person.title = ''
+    assert !person.valid?, 'person should not be valid'
+  end
+
   def test_validates_with_built_in_validation
     Person.validates :title, :numericality => true
     person = Person.new
