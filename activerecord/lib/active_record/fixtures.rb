@@ -460,7 +460,7 @@ module ActiveRecord
           fixture_files = files_to_read.map do |path|
             fixtures_map[path] = new(
               connection,
-              table_name = path.tr('/', '_'), # FIXME: shouldn't table_name be defined by the model?
+              path,
               fixture_classes[path.to_sym] || path.classify,
               ::File.join(fixtures_directory, path))
           end
@@ -505,10 +505,11 @@ module ActiveRecord
 
     attr_reader :table_name, :name, :fixtures, :model_class
 
-    def initialize(connection, table_name, class_name, fixture_path)
+    def initialize(connection, fixture_short_path, class_name, fixture_full_path)
       @connection   = connection
-      @fixture_path = fixture_path
-      @name         = table_name # preserve fixture base name
+      @fixture_path = fixture_full_path
+      @name         = fixture_short_path.tr('/', '_') # preserve fixture base name
+                                                      # TODO: see what it is used for and if the substitution can be avoided
       @class_name   = class_name
 
       @fixtures     = ActiveSupport::OrderedHash.new
@@ -520,7 +521,11 @@ module ActiveRecord
         @table_name   = @model_class.table_name
       else
         @model_class  = class_name.constantize rescue nil
-        @table_name   = "#{ActiveRecord::Base.table_name_prefix}#{table_name}#{ActiveRecord::Base.table_name_suffix}"
+        @table_name   = "#{ActiveRecord::Base.table_name_prefix}#{@name}#{ActiveRecord::Base.table_name_suffix}"
+        # FIXME: i think the following should work here, but it does not pass one test:
+        # @table_name = ( @model_class.respond_to?(:table_name) ?
+        #                 @model_class.table_name :
+        #                 "#{ActiveRecord::Base.table_name_prefix}#{@name}#{ActiveRecord::Base.table_name_suffix}" )
       end
 
       read_fixture_files
