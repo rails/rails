@@ -16,15 +16,6 @@ module ActiveRecord
         assert_equal 'id', @cache.primary_keys['omgponies']
       end
 
-      def test_primary_key_is_set_on_columns
-        posts_columns = @cache.columns_hash['posts']
-        assert posts_columns['id'].primary
-
-        (posts_columns.keys - ['id']).each do |key|
-          assert !posts_columns[key].primary
-        end
-      end
-
       def test_caches_columns
         columns = @cache.columns['posts']
         assert_equal columns, @cache.columns['posts']
