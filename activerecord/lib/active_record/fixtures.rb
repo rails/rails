@@ -518,15 +518,13 @@ module ActiveRecord
       if class_name.is_a?(Class)
         @connection   = class_name.connection
         @model_class  = class_name
-        @table_name   = @model_class.table_name
       else
         @model_class  = class_name.constantize rescue nil
-        @table_name   = "#{ActiveRecord::Base.table_name_prefix}#{@name}#{ActiveRecord::Base.table_name_suffix}"
-        # FIXME: i think the following should work here, but it does not pass one test:
-        # @table_name = ( @model_class.respond_to?(:table_name) ?
-        #                 @model_class.table_name :
-        #                 "#{ActiveRecord::Base.table_name_prefix}#{@name}#{ActiveRecord::Base.table_name_suffix}" )
       end
+
+      @table_name = ( model_class.respond_to?(:table_name) ?
+                      model_class.table_name :
+                      "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}" )
 
       read_fixture_files
     end
