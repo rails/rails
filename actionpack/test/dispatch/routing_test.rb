@@ -91,6 +91,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match "/local/:action", :controller => "local"
 
       match "/projects/status(.:format)"
+      match "/404", :to => lambda { |env| [404, {"Content-Type" => "text/plain"}, ["NOT FOUND"]] }
 
       constraints(:ip => /192\.168\.1\.\d\d\d/) do
         get 'admin' => "queenbee#index"
