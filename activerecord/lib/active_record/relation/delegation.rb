@@ -8,7 +8,7 @@ module ActiveRecord
              :connection, :columns_hash, :auto_explain_threshold_in_seconds, :to => :klass
 
     def self.delegate_to_scoped_klass(method)
-      if method.to_s =~ /[a-z]\w*!?/
+      if method.to_s =~ /\A[a-zA-Z_]\w*[!?]?\z/
         module_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)
             scoping { @klass.#{method}(*args, &block) }

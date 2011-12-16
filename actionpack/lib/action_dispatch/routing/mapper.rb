@@ -1286,7 +1286,7 @@ module ActionDispatch
             action = nil
           end
 
-          if !options.fetch(:as) { true }
+          if !options.fetch(:as, true)
             options.delete(:as)
           else
             options[:as] = name_for_action(options[:as], action)
@@ -1472,8 +1472,16 @@ module ActionDispatch
               [name_prefix, member_name, prefix]
             end
 
-            candidate = name.select(&:present?).join("_").presence
-            candidate unless as.nil? && @set.routes.find { |r| r.name == candidate }
+            if candidate = name.select(&:present?).join("_").presence
+              # If a name was not explicitly given, we check if it is valid
+              # and return nil in case it isn't. Otherwise, we pass the invalid name
+              # forward so the underlying router engine treats it and raises an exception.
+              if as.nil?
+                candidate unless @set.routes.find { |r| r.name == candidate } || candidate !~ /\A[_a-z]/i
+              else
+                candidate
+              end
+            end
           end
       end
 
