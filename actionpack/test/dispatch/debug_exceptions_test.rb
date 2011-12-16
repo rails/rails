@@ -152,6 +152,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
            'action_dispatch.backtrace_cleaner' => backtrace_cleaner}
 
     get "/", {}, env
-    assert_operator (output.rewind && output.read).lines.count, :>, 10
+    assert_operator((output.rewind && output.read).lines.count, :>, 10)
   end
 end
