@@ -228,23 +228,19 @@ module ActionView
         )
       end
 
-      # Web browsers cache favicons. If you just throw a <tt>favicon.ico</tt> into the document
-      # root of your application and it changes later, clients that have it in their cache
-      # won't see the update. Using this helper prevents that because it appends an asset ID:
-      #
       #   <%= favicon_link_tag %>
       #
       # generates
       #
-      #   <link href="/favicon.ico?4649789979" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+      #   <link href="/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
       #
       # You may specify a different file in the first argument:
       #
-      #   <%= favicon_link_tag 'favicon.ico' %>
+      #   <%= favicon_link_tag '/myicon.ico' %>
       #
       # That's passed to +path_to_image+ as is, so it gives
       #
-      #   <link href="/images/favicon.ico?4649789979" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+      #   <link href="/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
       #
       # The helper accepts an additional options hash where you can override "rel" and "type".
       #
