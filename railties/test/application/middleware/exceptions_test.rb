@@ -88,6 +88,7 @@ module ApplicationTests
 
     test "displays diagnostics message when exception raised in template that contains UTF-8" do
       app.config.action_dispatch.show_exceptions = true
+      app.config.consider_all_requests_local = true
 
       controller :foo, <<-RUBY
         class FooController < ActionController::Base

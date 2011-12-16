@@ -16,6 +16,10 @@ module ShowExceptions
     def another_boom
       raise 'boom!'
     end
+
+    def show_detailed_exceptions?
+      request.local?
+    end
   end
 
   class ShowExceptionsTest < ActionDispatch::IntegrationTest
@@ -26,7 +30,7 @@ module ShowExceptions
       assert_equal "500 error fixture\n", body
     end
 
-    test 'show diagnostics from a local ip' do
+    test 'show diagnostics from a local ip if show_detailed_exceptions? is set to request.local?' do
       @app = ShowExceptionsController.action(:boom)
       ['127.0.0.1', '127.0.0.127', '::1', '0:0:0:0:0:0:0:1', '0:0:0:0:0:0:0:1%0'].each do |ip_address|
         self.remote_addr = ip_address
