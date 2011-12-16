@@ -115,6 +115,10 @@ class FixturesTest < ActiveRecord::TestCase
       ActiveRecord::Base.table_name_prefix = 'prefix_'
       ActiveRecord::Base.table_name_suffix = '_suffix'
 
+      # This is the best way i've found to reset the table name, other then using Topic.send(:reset_table_name)
+      old_table_name = Topic.table_name
+      Topic.table_name = "prefix_topics_suffix" # TODO: see if setting prefix and suffix was needed at all.
+
       topics = create_fixtures("topics")
 
       first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'David'")
@@ -127,6 +131,9 @@ class FixturesTest < ActiveRecord::TestCase
       # class-level configuration helper.
       assert_not_nil topics, "Fixture data inserted, but fixture objects not returned from create"
     ensure
+      # Restore table_name to its previous value
+      Topic.table_name = old_table_name
+
       # Restore prefix/suffix to its previous values
       ActiveRecord::Base.table_name_prefix = old_prefix
       ActiveRecord::Base.table_name_suffix = old_suffix
