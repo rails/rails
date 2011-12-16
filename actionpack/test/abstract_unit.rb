@@ -174,7 +174,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
-      middleware.use "ActionDispatch::ShowExceptions"
+      middleware.use "ActionDispatch::ShowExceptions", ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use "ActionDispatch::DebugExceptions"
       middleware.use "ActionDispatch::Callbacks"
       middleware.use "ActionDispatch::ParamsParser"
@@ -337,14 +337,6 @@ class Workshop
 end
 
 module ActionDispatch
-  class ShowExceptions
-    private
-    remove_method :public_path
-    def public_path
-      "#{FIXTURE_LOAD_PATH}/public"
-    end
-  end
-
   class DebugExceptions
     private
     remove_method :stderr_logger

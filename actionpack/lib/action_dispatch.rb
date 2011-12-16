@@ -56,6 +56,7 @@ module ActionDispatch
     autoload :Flash
     autoload :Head
     autoload :ParamsParser
+    autoload :PublicExceptions
     autoload :Reloader
     autoload :RemoteIp
     autoload :Rescue
