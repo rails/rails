@@ -34,6 +34,7 @@ module ActiveRecord
       def clear!
         @columns.clear
         @columns_hash.clear
+        @primary_keys.clear
         @tables.clear
       end
 
