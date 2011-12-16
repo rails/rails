@@ -45,6 +45,20 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
+    test "uses custom exceptions app" do
+      add_to_config <<-RUBY
+        config.exceptions_app = lambda do |env|
+          ["404", { "Content-Type" => "text/plain" }, ["YOU FAILED BRO"]]
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = true
+
+      get "/foo"
+      assert_equal 404, last_response.status
+      assert_equal "YOU FAILED BRO", last_response.body
+    end
+
     test "unspecified route when action_dispatch.show_exceptions is not set raises an exception" do
       app.config.action_dispatch.show_exceptions = false
 

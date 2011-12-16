@@ -8,7 +8,7 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets,
                     :cache_classes, :cache_store, :consider_all_requests_local,
-                    :dependency_loading, :file_watcher, :filter_parameters,
+                    :dependency_loading, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
                     :railties_order, :relative_url_root, :reload_plugins, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
@@ -40,6 +40,7 @@ module Rails
         @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change = true
         @file_watcher                  = ActiveSupport::FileUpdateChecker
+        @exceptions_app                = nil
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false
