@@ -20,7 +20,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
 
   ProductionApp = ActionDispatch::ShowExceptions.new(Boomer.new, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public"))
 
-  test 'skip diagnosis if not showing exceptions' do
+  test "skip exceptions app if not showing exceptions" do
     @app = ProductionApp
     assert_raise RuntimeError do
       get "/", {}, {'action_dispatch.show_exceptions' => false}
@@ -74,5 +74,18 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     get "/not_found_original_exception", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 404
     assert_match(/404 error/, body)
+  end
+
+  test "calls custom exceptions app" do
+    exceptions_app = lambda do |env|
+      assert_kind_of AbstractController::ActionNotFound, env["action_dispatch.exception"]
+      assert_equal "/404", env["PATH_INFO"]
+      [404, { "Content-Type" => "text/plain" }, ["YOU FAILED BRO"]]
+    end
+
+    @app = ActionDispatch::ShowExceptions.new(Boomer.new, exceptions_app)
+    get "/not_found_original_exception", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 404
+    assert_equal "YOU FAILED BRO", body
   end
 end
