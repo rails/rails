@@ -699,7 +699,7 @@ module ActiveRecord #:nodoc:
     include Associations
     include IdentityMap
     include ActiveModel::SecurePassword
-    include Explain
+    extend Explain
 
     # AutosaveAssociation needs to be included before Transactions, because we want
     # #save_with_autosave_associations to be wrapped inside a transaction.
