@@ -16,9 +16,16 @@ module ActiveRecord
     #
     #   Person.count(:age, distinct: true)
     #   # => counts the number of different age values
+    #
+    #   Person.where("age > 26").count { |person| gender == 'female' }
+    #   # => queries people where "age > 26" then count the loaded results filtering by gender
     def count(column_name = nil, options = {})
-      column_name, options = nil, column_name if column_name.is_a?(Hash)
-      calculate(:count, column_name, options)
+      if block_given?
+        self.to_a.count { |*block_args| yield(*block_args) }
+      else
+        column_name, options = nil, column_name if column_name.is_a?(Hash)
+        calculate(:count, column_name, options)
+      end
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -52,9 +59,13 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.sum('age') # => 4562
+    #   # => returns the total sum of all people's age
+    #
+    #   Person.where('age > 100').sum { |person| person.age - 100 }
+    #   # queries people where "age > 100" then perform a sum calculation with the block returns
     def sum(*args)
       if block_given?
-        self.to_a.sum(*args) {|*block_args| yield(*block_args)}
+        self.to_a.sum(*args) { |*block_args| yield(*block_args) }
       else
         calculate(:sum, *args)
       end
