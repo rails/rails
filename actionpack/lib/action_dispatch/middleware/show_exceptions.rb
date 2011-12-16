@@ -6,8 +6,6 @@ module ActionDispatch
   # This middleware rescues any exception returned by the application
   # and wraps them in a format for the end user.
   class ShowExceptions
-    RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
-
     FAILSAFE_RESPONSE = [500, {'Content-Type' => 'text/html'},
       ["<html><body><h1>500 Internal Server Error</h1>" <<
        "If you are the administrator of this website, then please read this web " <<
@@ -28,9 +26,19 @@ module ActionDispatch
       end
     end
 
-    def initialize(app, consider_all_requests_local = nil)
-      ActiveSupport::Deprecation.warn "Passing consider_all_requests_local option to ActionDispatch::ShowExceptions middleware no longer works" unless consider_all_requests_local.nil?
+    def initialize(app, exceptions_app = nil)
+      if [true, false].include?(exceptions_app)
+        ActiveSupport::Deprecation.warn "Passing consider_all_requests_local option to ActionDispatch::ShowExceptions middleware no longer works"
+        exceptions_app = nil
+      end
+
+      if exceptions_app.nil?
+        raise ArgumentError, "You need to pass an exceptions_app when initializing ActionDispatch::ShowExceptions. " \
+          "In case you want to render pages from a public path, you can use ActionDispatch::PublicExceptions.new('path/to/public')"
+      end
+
       @app = app
+      @exceptions_app = exceptions_app
     end
 
     def call(env)
@@ -40,7 +48,7 @@ module ActionDispatch
         raise exception if env['action_dispatch.show_exceptions'] == false
       end
 
-      response || render_exception_with_failsafe(env, exception)
+      response || render_exception(env, exception)
     end
 
     private
@@ -50,37 +58,14 @@ module ActionDispatch
     def status_code(*)
     end
 
-    def render_exception_with_failsafe(env, exception)
-      render_exception(env, exception)
+    def render_exception(env, exception)
+      wrapper = ExceptionWrapper.new(env, exception)
+      env["action_dispatch.exception"] = wrapper.exception
+      env["PATH_INFO"] = "/#{wrapper.status_code}"
+      @exceptions_app.call(env)
     rescue Exception => failsafe_error
       $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
       FAILSAFE_RESPONSE
-    end
-
-    def render_exception(env, exception)
-      wrapper = ExceptionWrapper.new(env, exception)
-
-      status      = wrapper.status_code
-      locale_path = "#{public_path}/#{status}.#{I18n.locale}.html" if I18n.locale
-      path        = "#{public_path}/#{status}.html"
-
-      if locale_path && File.exist?(locale_path)
-        render(status, File.read(locale_path))
-      elsif File.exist?(path)
-        render(status, File.read(path))
-      else
-        render(status, '')
-      end
-    end
-
-    def render(status, body)
-      [status, {'Content-Type' => "text/html; charset=#{Response.default_charset}", 'Content-Length' => body.bytesize.to_s}, [body]]
-    end
-
-    # TODO: Make this a middleware initialization parameter once
-    # we removed the second option (which is deprecated)
-    def public_path
-      defined?(Rails.public_path) ? Rails.public_path : 'public_path'
     end
   end
 end

@@ -244,7 +244,7 @@ module Rails
         middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::RequestId
         middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
-        middleware.use ::ActionDispatch::ShowExceptions
+        middleware.use ::ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new(Rails.public_path)
         middleware.use ::ActionDispatch::DebugExceptions
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 

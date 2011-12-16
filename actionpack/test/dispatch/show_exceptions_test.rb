@@ -18,7 +18,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  ProductionApp = ActionDispatch::ShowExceptions.new(Boomer.new)
+  ProductionApp = ActionDispatch::ShowExceptions.new(Boomer.new, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public"))
 
   test 'skip diagnosis if not showing exceptions' do
     @app = ProductionApp
