@@ -120,6 +120,9 @@ en:
       get "/i18n"
       assert_equal "1", last_response.body
 
+      # Wait a full second so we have time for changes to propagate
+      sleep(1)
+
       app_file "config/locales/en.yml", <<-YAML
 en:
   foo: "2"
