@@ -48,7 +48,7 @@ module ApplicationTests
     test "uses custom exceptions app" do
       add_to_config <<-RUBY
         config.exceptions_app = lambda do |env|
-          ["404", { "Content-Type" => "text/plain" }, ["YOU FAILED BRO"]]
+          [404, { "Content-Type" => "text/plain" }, ["YOU FAILED BRO"]]
         end
       RUBY
 
