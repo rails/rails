@@ -8,7 +8,7 @@ module ActiveRecord
         @connection = conn
         @tables     = {}
 
-        @columns     = Hash.new do |h, table_name|
+        @columns = Hash.new do |h, table_name|
           h[table_name] = conn.columns(table_name, "#{table_name} Columns")
         end
 
@@ -19,8 +19,7 @@ module ActiveRecord
         end
 
         @primary_keys = Hash.new do |h, table_name|
-          h[table_name] = table_exists?(table_name) ?
-                          conn.primary_key(table_name) : 'id'
+          h[table_name] = table_exists?(table_name) ? conn.primary_key(table_name) : nil
         end
       end
 

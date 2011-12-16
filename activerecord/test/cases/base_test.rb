@@ -1494,6 +1494,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_original_primary_key
     k = Class.new(ActiveRecord::Base)
     def k.name; "Foo"; end
+    k.table_name = "posts"
     k.primary_key = "bar"
 
     assert_deprecated do

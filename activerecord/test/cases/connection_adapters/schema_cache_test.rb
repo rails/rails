@@ -13,7 +13,7 @@ module ActiveRecord
       end
 
       def test_primary_key_for_non_existent_table
-        assert_equal 'id', @cache.primary_keys['omgponies']
+        assert_nil @cache.primary_keys['omgponies']
       end
 
       def test_caches_columns
