@@ -221,16 +221,16 @@ module ActiveRecord
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        if defined?(@primary_key)
-          connection.schema_cache.primary_keys[table_name] ||= primary_key
+        @columns ||= connection.schema_cache.columns[table_name].map do |col|
+          col = col.dup
+          col.primary = (col.name == primary_key)
+          col
         end
-
-        connection.schema_cache.columns[table_name]
       end
 
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
-        connection.schema_cache.columns_hash[table_name]
+        @columns_hash ||= Hash[columns.map { |c| [c.name, c] }]
       end
 
       # Returns a hash where the keys are column names and the values are
@@ -295,7 +295,8 @@ module ActiveRecord
         undefine_attribute_methods
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
-        @column_names = @content_columns = @column_defaults = @dynamic_methods_hash = @inheritance_column = nil
+        @column_names = @content_columns = @column_defaults = @columns = @columns_hash = nil
+        @dynamic_methods_hash = @inheritance_column = nil
         @arel_engine = @relation = nil
       end
 

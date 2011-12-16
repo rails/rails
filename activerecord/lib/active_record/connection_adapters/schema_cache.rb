@@ -7,17 +7,10 @@ module ActiveRecord
 
       def initialize(conn)
         @connection = conn
-        @tables              = {}
+        @tables     = {}
 
         @columns     = Hash.new do |h, table_name|
-          h[table_name] =
-            # Fetch a list of columns
-            conn.columns(table_name, "#{table_name} Columns").tap do |cs|
-              # set primary key information
-              cs.each do |column|
-                column.primary = column.name == primary_keys[table_name]
-              end
-            end
+          h[table_name] = conn.columns(table_name, "#{table_name} Columns")
         end
 
         @columns_hash = Hash.new do |h, table_name|
