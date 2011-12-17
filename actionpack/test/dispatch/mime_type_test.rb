@@ -95,6 +95,17 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
+  test "custom type with extension aliases" do
+    begin
+      Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
+      %w[foobar foo bar].each do |extension|
+        assert_equal Mime::FOOBAR, Mime::EXTENSION_LOOKUP[extension]
+      end
+    ensure
+      Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
   test "type should be equal to symbol" do
     assert_equal Mime::HTML, 'application/xhtml+xml'
     assert_equal Mime::HTML, :html
