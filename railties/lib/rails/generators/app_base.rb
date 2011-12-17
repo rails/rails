@@ -194,16 +194,32 @@ module Rails
 
       def assets_gemfile_entry
         return if options[:skip_sprockets]
-        <<-GEMFILE.strip_heredoc.gsub(/^[ \t]*$/, '')
-          # Gems used only for assets and not required
-          # in production environments by default.
-          group :assets do
-            gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
-            gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
-            #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
-            gem 'uglifier', '>= 1.0.3'
-          end
-        GEMFILE
+
+        gemfile = if options.dev? || options.edge?
+          <<-GEMFILE
+            # Gems used only for assets and not required
+            # in production environments by default.
+            group :assets do
+              gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
+              gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
+              #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
+              gem 'uglifier', '>= 1.0.3'
+            end
+          GEMFILE
+        else
+          <<-GEMFILE
+            # Gems used only for assets and not required
+            # in production environments by default.
+            group :assets do
+              gem 'sass-rails',   '~> 3.2.0'
+              gem 'coffee-rails', '~> 3.2.0'
+              #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
+              gem 'uglifier', '>= 1.0.3'
+            end
+          GEMFILE
+        end
+
+        gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
       end
 
       def javascript_gemfile_entry
