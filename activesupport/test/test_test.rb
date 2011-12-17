@@ -158,25 +158,25 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
 
     def test_array_of_lambdas_and_array_of_differences
-      assert_difference [ ->{@object.num}, ->{@object.num + 1} ], [+1, +1] do
+      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], [+1, +1] do
         @object.increment
       end
     end
 
     def test_array_of_lambdas_and_array_of_negative_differences
-      assert_difference [ ->{@object.num}, ->{@object.num - 1} ], [-1, -1] do
+      assert_difference [ lambda{@object.num}, lambda{@object.num - 1} ], [-1, -1] do
         @object.decrement
       end
     end
 
     def test_array_of_lambdas_and_array_of_differences_of_size_1
-      assert_difference [ ->{@object.num}, ->{@object.num + 1} ], [+1] do
+      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], [+1] do
         @object.increment
       end
     end
 
     def test_array_of_lambdas_and_array_of_differences_with_array_too_short
-      assert_difference [ ->{@object.num}, ->{@object.num + 1}, ->{@object.num + 1} ], [+1, +1] do
+      assert_difference [ lambda{@object.num}, lambda{@object.num + 1}, lambda{@object.num + 1} ], [+1, +1] do
         @object.increment
         @object.increment
       end
@@ -185,7 +185,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
 
     def test_array_of_lambdas_and_array_of_differences_with_array_too_long
-      assert_difference [ ->{@object.num}, ->{@object.num + 1} ], [+1, +1, +1] do
+      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], [+1, +1, +1] do
         @object.increment
       end
     rescue Exception => e
@@ -193,21 +193,21 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
 
     def test_array_of_lambdas_with_difference_of_more_than_1
-      assert_difference [ ->{@object.num}, ->{@object.num + 1} ], +2 do
+      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], +2 do
         @object.increment
         @object.increment
       end
     end
 
     def test_array_of_lambdas_and_an_array_of_differences_with_difference_of_more_than_1
-      assert_difference [ ->{@object.num}, ->{@object.num + 1} ], [+2, +2] do
+      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], [+2, +2] do
         @object.increment
         @object.increment
       end
     end
 
     def test_array_of_lambdas_and_array_of_differences_with_message
-      assert_difference [ ->{@object.num}, ->{@object.num + 1} ], [+1, -1], "Foo! Expected @object to decrease by one" do
+      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], [+1, -1], "Foo! Expected @object to decrease by one" do
         @object.increment
       end
     rescue Exception => e
@@ -224,7 +224,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
       end.new
       cl.num = 0
 
-      assert_difference [ ->{@object.num}, ->{cl.num} ], [+1, -1] do
+      assert_difference [ lambda{@object.num}, lambda{cl.num} ], [+1, -1] do
         @object.increment
         cl.decrement
       end
