@@ -117,6 +117,15 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
+  test "register alias" do
+    begin
+      Mime::Type.register_alias "application/xhtml+xml", :foobar
+      assert_equal Mime::HTML, Mime::EXTENSION_LOOKUP['foobar']
+    ensure
+      Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
   test "type should be equal to symbol" do
     assert_equal Mime::HTML, 'application/xhtml+xml'
     assert_equal Mime::HTML, :html
