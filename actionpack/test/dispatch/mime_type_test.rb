@@ -95,6 +95,17 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
+  test "custom type with type aliases" do
+    begin
+      Mime::Type.register "text/foobar", :foobar, ["text/foo", "text/bar"]
+      %w[text/foobar text/foo text/bar].each do |type|
+        assert_equal Mime::FOOBAR, type
+      end
+    ensure
+      Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
   test "custom type with extension aliases" do
     begin
       Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
