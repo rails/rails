@@ -404,8 +404,9 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Account.count, accounts.count{ true }
     assert_equal 0, accounts.count{ false }
     assert_equal Account.where('credit_limit > 50').size, accounts.count{|account| account.credit_limit > 50}
+    assert_equal Account.where('credit_limit > 50').size, Account.count{|account| account.credit_limit > 50}
     assert_equal Account.count, Account.count{true}
-    assert_equal Account.count, Account.count{false}
+    assert_equal 0, Account.count{false}
   end
 
   def test_sum_with_block_acts_as_array

@@ -53,18 +53,22 @@ module ActiveRecord
     #   Person.count(:all, :conditions => "age > 26") # Performs a COUNT(*) (:all is an alias for '*')
     #
     # Examples for count with a block:
-    #   Person.where(:conditions => "age > 26").count{|person| gender=='female' }
-    
-    # Note: <tt>Person.count(:all)</tt> will not work because it will use <tt>:all</tt> as the condition.
-    # Use Person.count instead.
+    #   Person.where(:conditions => "age > 26").count{|person| person.gender=='female' }
     #
-    # Note: passing a block to the base ActiveRecord Class will not work <tt>Person.count{|person| gender=='female' }</tt>.
-    # Use <tt>Person.all.count{|person| gender=='female'}</tt>
-    def count(column_name = nil, options = {})
+    #   Person.count{|person| person.age > 26 && person.gender=='female' }
+    def count(*args)
       if block_given?
         self.to_a.count {|*block_args| yield(*block_args)}
       else
-        column_name, options = nil, column_name if column_name.is_a?(Hash)
+        raise ArgumentError, "Too many arguments. No more than 2 are allowed." if args.size > 2
+        if args.blank?
+          column_name, options = nil, {}
+        elsif args.first.is_a?(Hash)
+          column_name, options = nil, args.first
+        else
+          column_name = args.shift
+          options = args.shift || {}
+        end
         calculate(:count, column_name, options)
       end
     end
