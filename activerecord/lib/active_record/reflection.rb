@@ -461,7 +461,7 @@ module ActiveRecord
         source_reflection.source_macro
       end
 
-      # A through association is nested iff there would be more than one join table
+      # A through association is nested if there would be more than one join table
       def nested?
         chain.length > 2 || through_reflection.macro == :has_and_belongs_to_many
       end

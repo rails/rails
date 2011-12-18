@@ -72,6 +72,7 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_with_layout
+    @variable_for_layout = nil
     render "test/hello_world", :layout => "layouts/standard"
   end
 
