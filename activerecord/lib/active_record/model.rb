@@ -1,7 +1,14 @@
 module ActiveRecord
   module Model
+    # So we can recognise an AR class even while self.included is being
+    # executed. (At that time, klass < Model == false.)
+    module Tag #:nodoc:
+    end
+
     def self.included(base)
       base.class_eval do
+        include Tag
+
         include ActiveRecord::Persistence
         extend ActiveModel::Naming
         extend QueryCache::ClassMethods
@@ -35,10 +42,12 @@ module ActiveRecord
         include Aggregations, Transactions, Reflection, Serialization, Store
 
         include Core
+
+        self.connection_handler = ActiveRecord::Base.connection_handler
       end
     end
   end
 end
 
 require 'active_record/connection_adapters/abstract/connection_specification'
-ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
+ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Model)

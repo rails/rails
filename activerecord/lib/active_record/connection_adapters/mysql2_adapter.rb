@@ -4,9 +4,9 @@ gem 'mysql2', '~> 0.3.10'
 require 'mysql2'
 
 module ActiveRecord
-  class Base
+  module Core::ClassMethods
     # Establishes a connection to the database that's used by all Active Record objects.
-    def self.mysql2_connection(config)
+    def mysql2_connection(config)
       config[:username] = 'root' if config[:username].nil?
 
       if Mysql2::Client.const_defined? :FOUND_ROWS

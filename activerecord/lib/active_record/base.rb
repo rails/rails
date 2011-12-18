@@ -328,5 +328,7 @@ module ActiveRecord #:nodoc:
   # instances in the current object space.
   class Base
     include ActiveRecord::Model
+
+    self.connection_handler = ConnectionAdapters::ConnectionHandler.new
   end
 end

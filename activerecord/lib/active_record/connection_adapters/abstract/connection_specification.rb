@@ -1,5 +1,7 @@
+require 'active_support/core_ext/module/delegation'
+
 module ActiveRecord
-  class Base
+  module Core
     class ConnectionSpecification #:nodoc:
       attr_reader :config, :adapter_method
       def initialize (config, adapter_method)
@@ -75,12 +77,6 @@ module ActiveRecord
       end
     end
 
-    ##
-    # :singleton-method:
-    # The connection handler
-    class_attribute :connection_handler, :instance_writer => false
-    self.connection_handler = ConnectionAdapters::ConnectionHandler.new
-
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work that isn't
     # easily done without going straight to SQL.
@@ -88,53 +84,53 @@ module ActiveRecord
       self.class.connection
     end
 
-    # Establishes the connection to the database. Accepts a hash as input where
-    # the <tt>:adapter</tt> key must be specified with the name of a database adapter (in lower-case)
-    # example for regular databases (MySQL, Postgresql, etc):
-    #
-    #   ActiveRecord::Base.establish_connection(
-    #     :adapter  => "mysql",
-    #     :host     => "localhost",
-    #     :username => "myuser",
-    #     :password => "mypass",
-    #     :database => "somedatabase"
-    #   )
-    #
-    # Example for SQLite database:
-    #
-    #   ActiveRecord::Base.establish_connection(
-    #     :adapter => "sqlite",
-    #     :database  => "path/to/dbfile"
-    #   )
-    #
-    # Also accepts keys as strings (for parsing from YAML for example):
-    #
-    #   ActiveRecord::Base.establish_connection(
-    #     "adapter" => "sqlite",
-    #     "database"  => "path/to/dbfile"
-    #   )
-    #
-    # Or a URL:
-    #
-    #   ActiveRecord::Base.establish_connection(
-    #     "postgres://myuser:mypass@localhost/somedatabase"
-    #   )
-    #
-    # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
-    # may be returned on an error.
-    def self.establish_connection(spec = ENV["DATABASE_URL"])
-      resolver = ConnectionSpecification::Resolver.new spec, configurations
-      spec = resolver.spec
+    module ClassMethods
+      # Establishes the connection to the database. Accepts a hash as input where
+      # the <tt>:adapter</tt> key must be specified with the name of a database adapter (in lower-case)
+      # example for regular databases (MySQL, Postgresql, etc):
+      #
+      #   ActiveRecord::Base.establish_connection(
+      #     :adapter  => "mysql",
+      #     :host     => "localhost",
+      #     :username => "myuser",
+      #     :password => "mypass",
+      #     :database => "somedatabase"
+      #   )
+      #
+      # Example for SQLite database:
+      #
+      #   ActiveRecord::Base.establish_connection(
+      #     :adapter => "sqlite",
+      #     :database  => "path/to/dbfile"
+      #   )
+      #
+      # Also accepts keys as strings (for parsing from YAML for example):
+      #
+      #   ActiveRecord::Base.establish_connection(
+      #     "adapter" => "sqlite",
+      #     "database"  => "path/to/dbfile"
+      #   )
+      #
+      # Or a URL:
+      #
+      #   ActiveRecord::Base.establish_connection(
+      #     "postgres://myuser:mypass@localhost/somedatabase"
+      #   )
+      #
+      # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
+      # may be returned on an error.
+      def establish_connection(spec = ENV["DATABASE_URL"])
+        resolver = ConnectionSpecification::Resolver.new spec, configurations
+        spec = resolver.spec
 
-      unless respond_to?(spec.adapter_method)
-        raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
+        unless respond_to?(spec.adapter_method)
+          raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
+        end
+
+        remove_connection
+        connection_handler.establish_connection name, spec
       end
 
-      remove_connection
-      connection_handler.establish_connection name, spec
-    end
-
-    class << self
       # Returns the connection currently associated with the class. This can
       # also be used to "borrow" the connection to do database work unrelated
       # to any of the specific Active Records.

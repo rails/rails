@@ -65,6 +65,11 @@ module ActiveRecord
       # Specify whether or not to use timestamps for migration versions
       cattr_accessor :timestamped_migrations , :instance_writer => false
       self.timestamped_migrations = true
+
+      ##
+      # :singleton-method:
+      # The connection handler
+      class_attribute :connection_handler, :instance_writer => false
     end
 
     module ClassMethods
@@ -111,7 +116,13 @@ module ActiveRecord
           if self == ActiveRecord::Base
             ActiveRecord::Base
           else
-            connection_handler.connection_pools[name] ? self : superclass.arel_engine
+            if connection_handler.connection_pools[name]
+              self
+            elsif superclass < ActiveRecord::Model
+              superclass.arel_engine
+            else
+              ActiveRecord::Base
+            end
           end
         end
       end
