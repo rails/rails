@@ -128,7 +128,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     absolute = File.expand_path("Gemfile", destination_root)
     File.open(absolute, 'r') do |f|
       f.each_line do |line|
-        assert_no_match /^[ \t]+$/, line
+        assert_no_match %r{/^[ \t]+$/}, line
       end
     end
   end
