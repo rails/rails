@@ -113,7 +113,7 @@ module ActiveRecord
       end
 
       # Loads the \target if not already loaded. Returns +self+ if the \target is present.
-      def load
+      def _load
         load_target unless loaded?
         self unless @target.nil?
       end
@@ -121,7 +121,7 @@ module ActiveRecord
       # Reloads the \target and returns +self+ on success.
       def reload
         reset
-        load
+        _load
       end
 
       # Has the \target been already \loaded?
