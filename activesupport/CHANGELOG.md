@@ -111,38 +111,12 @@
 *   JSON decoding now uses the multi_json gem which also vendors a json engine called OkJson. The yaml backend has been removed in favor of OkJson as a default engine for 1.8.x, while the built in 1.9.x json implementation will be used by default. *Josh Kalderimis*
 
 
-## Rails 3.0.12 (unreleased) ##
-
-*   No changes.
-
-
-## Rails 3.0.11 (November 18, 2011) ##
-
-*   No changes.
-
-
-## Rails 3.0.10 (August 16, 2011) ##
-
-*  Delayed backtrace scrubbing in `load_missing_constant` until we actually
-   raise the exception
-
-
-## Rails 3.0.9 (June 16, 2011) ##
-
-*   No changes.
-
-
-## Rails 3.0.8 (June 7, 2011) ##
-
-*   No changes.
-
-
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   Hash.from_xml no longer loses attributes on tags containing only whitespace *André Arko*
 
 
-##   Rails 3.0.6 (April 5, 2011) ##
+*   Rails 3.0.6 (April 5, 2011)
 
 *   No changes.
 
