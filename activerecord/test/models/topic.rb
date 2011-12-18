@@ -8,6 +8,8 @@ class Topic < ActiveRecord::Base
   scope :approved, :conditions => {:approved => true}
   scope :rejected, :conditions => {:approved => false}
 
+  scope :scope_with_lambda, lambda { scoped }
+
   scope :by_lifo, :conditions => {:author_name => 'lifo'}
 
   scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}

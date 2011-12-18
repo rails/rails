@@ -176,7 +176,7 @@ module ActiveRecord
         extension = Module.new(&Proc.new) if block_given?
 
         scope_proc = lambda do |*args|
-          options = scope_options.respond_to?(:call) ? scope_options.call(*args) : scope_options
+          options = scope_options.respond_to?(:call) ? unscoped { scope_options.call(*args) } : scope_options
           options = scoped.apply_finder_options(options) if options.is_a?(Hash)
 
           relation = scoped.merge(options)
