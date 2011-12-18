@@ -1,6 +1,58 @@
+## Rails 4.0.0 (unreleased) ##
+
+*   No changes
+
+
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.0 (January 20, 2012) ##
+
+*   Upgrade mail version to 2.4.0 *ML*
+
+*   Remove Old ActionMailer API *Josh Kalderimis*
+
+
+## Rails 3.1.3 (November 20, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.2 (November 18, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.1 (October 7, 2011) ##
+
+*   No changes
+
+
 ## Rails 3.1.0 (August 30, 2011) ##
 
 *   No changes
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   Mail dependency increased to 2.2.19
 
 
 ## Rails 3.0.7 (April 18, 2011) ##
@@ -8,7 +60,7 @@
 *   remove AM delegating register_observer and register_interceptor to Mail *Josh Kalderimis*
 
 
-*   Rails 3.0.6 (April 5, 2011)
+## Rails 3.0.6 (April 5, 2011) ##
 
 *   Don't allow i18n to change the minor version, version now set to ~> 0.5.0 *Santiago Pastorino*
 
