@@ -57,6 +57,7 @@ module ActiveRecord
 
     autoload :Base
     autoload :Callbacks
+    autoload :Core
     autoload :CounterCache
     autoload :DynamicMatchers
     autoload :DynamicFinderMatch
@@ -67,6 +68,7 @@ module ActiveRecord
     autoload :Integration
     autoload :Migration
     autoload :Migrator, 'active_record/migration'
+    autoload :Model
     autoload :ModelSchema
     autoload :NestedAttributes
     autoload :Observer
