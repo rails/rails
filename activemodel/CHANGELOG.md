@@ -36,31 +36,6 @@
 *   Add support for selectively enabling/disabling observers *Myron Marston*
 
 
-## Rails 3.0.12 (unreleased) ##
-
-*   No changes.
-
-
-## Rails 3.0.11 (November 18, 2011) ##
-
-*   No changes.
-
-
-## Rails 3.0.10 (August 16, 2011) ##
-
-*   No changes.
-
-
-## Rails 3.0.9 (June 16, 2011) ##
-
-*   No changes.
-
-
-## Rails 3.0.8 (June 7, 2011) ##
-
-*   No changes.
-
-
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   No changes.
