@@ -1,4 +1,3 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/plugin_new/plugin_new_generator'
 require 'generators/shared_generator_tests.rb'
