@@ -13,7 +13,9 @@ module ActiveRecord
     module ClassMethods
       # True if this isn't a concrete subclass needing a STI type condition.
       def descends_from_active_record?
-        if superclass.abstract_class?
+        if !(superclass < Model)
+          true
+        elsif superclass.abstract_class?
           superclass.descends_from_active_record?
         else
           superclass == Base || !columns_hash.include?(inheritance_column)
@@ -84,10 +86,14 @@ module ActiveRecord
       # Returns the class descending directly from ActiveRecord::Base or an
       # abstract class, if any, in the inheritance hierarchy.
       def class_of_active_record_descendant(klass)
-        if klass == Base || klass.superclass == Base || klass.superclass.abstract_class?
-          klass
-        elsif klass.superclass.nil?
+        unless klass < Model::Tag
           raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
+        end
+
+        if klass == Base || klass.superclass == Base ||
+           klass.superclass < Model::Tag && klass.superclass.abstract_class? ||
+           !(klass.superclass < Model::Tag)
+          klass
         else
           class_of_active_record_descendant(klass.superclass)
         end

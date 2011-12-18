@@ -7,9 +7,9 @@ gem 'pg', '~> 0.11'
 require 'pg'
 
 module ActiveRecord
-  class Base
+  module Core::ClassMethods
     # Establishes a connection to the database that's used by all Active Record objects
-    def self.postgresql_connection(config) # :nodoc:
+    def postgresql_connection(config) # :nodoc:
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port] || 5432
@@ -876,7 +876,7 @@ module ActiveRecord
           # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
           desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
           orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
-      
+
           column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders)
         end.compact
       end

@@ -596,6 +596,10 @@ ActiveRecord::Schema.define do
     t.datetime :ending
   end
 
+  create_table :teapots, :force => true do |t|
+    t.string :name
+  end
+
   create_table :topics, :force => true do |t|
     t.string   :title
     t.string   :author_name

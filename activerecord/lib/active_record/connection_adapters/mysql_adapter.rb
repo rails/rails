@@ -18,9 +18,9 @@ class Mysql
 end
 
 module ActiveRecord
-  class Base
+  module Core::ClassMethods
     # Establishes a connection to the database that's used by all Active Record objects.
-    def self.mysql_connection(config) # :nodoc:
+    def mysql_connection(config) # :nodoc:
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port]
