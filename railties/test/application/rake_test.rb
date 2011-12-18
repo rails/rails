@@ -133,5 +133,13 @@ module ApplicationTests
 
       assert_match(/7 tests, 10 assertions, 0 failures, 0 errors/, content)
     end
+
+    def test_rake_dump_structure_should_respect_db_structure_env_variable
+      Dir.chdir(app_path) do
+        `bundle exec rake db:migrate` # ensure we have a schema_migrations table to dump
+        `bundle exec rake db:structure:dump DB_STRUCTURE=db/my_structure.sql`
+      end
+      assert File.exists?(File.join(app_path, 'db', 'my_structure.sql'))
+    end
   end
 end

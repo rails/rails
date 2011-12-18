@@ -371,10 +371,10 @@ db_namespace = namespace :db do
   end
 
   namespace :structure do
-    desc 'Dump the database structure to an SQL file'
+    desc 'Dump the database structure to db/structure.sql. Specify an alternative file (eg. db/my_strcuture.sql) using DB_STRUCTURE=db/my_strcuture.sql'
     task :dump => :environment do
       abcs = ActiveRecord::Base.configurations
-      filename = ENV['STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
+      filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case abcs[Rails.env]['adapter']
       when /mysql/, 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(abcs[Rails.env])
@@ -410,7 +410,7 @@ db_namespace = namespace :db do
       env = ENV['RAILS_ENV'] || 'test'
 
       abcs = ActiveRecord::Base.configurations
-      filename = ENV['STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
+      filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case abcs[env]['adapter']
       when /mysql/
         ActiveRecord::Base.establish_connection(abcs[env])
