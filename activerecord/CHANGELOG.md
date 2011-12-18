@@ -583,6 +583,58 @@
     *Aaron Patterson*
 
 
+## Rails 3.0.12 (unreleased) ##
+
+*   No changes.
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   Exceptions from database adapters should not lose their backtrace.
+
+*   Backport "ActiveRecord::Persistence#touch should not use default_scope" (GH #1519)
+
+*   Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
+    GH #2731
+
+*   Fix ActiveRecord#exists? when passsed a nil value
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   Magic encoding comment added to schema.rb files
+
+*   schema.rb is written as UTF-8 by default.
+
+*   Ensuring an established connection when running `rake db:schema:dump`
+
+*   Association conditions will not clobber join conditions.
+
+*   Destroying a record will destroy the HABTM record before destroying itself.
+    GH #402.
+
+*   Make `ActiveRecord::Batches#find_each` to not return `self`.
+
+*   Update `table_exists?` in PG to to always use current search_path or schema if explictly set.
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   Fix various problems with using :primary_key and :foreign_key options in conjunction with
+  :through associations. [Jon Leighton]
+
+*   Correctly handle inner joins on polymorphic relationships.
+
+*   Fixed infinity and negative infinity cases in PG date columns.
+
+*   Creating records with invalid associations via `create` or `save` will no longer raise exceptions.
+
+
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   Destroying records via nested attributes works independent of reject_if LH #6006 *Durran Jordan*
