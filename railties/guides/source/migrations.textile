@@ -814,7 +814,7 @@ replaying the entire migration history. It is much simpler and faster to just
 load into the database a description of the current schema.
 
 For example, this is how the test database is created: the current development
-database is dumped (either to +db/schema.rb+ or +db/development.sql+) and then
+database is dumped (either to +db/schema.rb+ or +db/structure.sql+) and then
 loaded into the test database.
 
 Schema files are also useful if you want a quick look at what attributes an
