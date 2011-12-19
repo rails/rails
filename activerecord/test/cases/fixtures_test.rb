@@ -1,6 +1,7 @@
 require 'cases/helper'
 require 'models/admin'
 require 'models/admin/account'
+require 'models/admin/randomly_named_c1'
 require 'models/admin/user'
 require 'models/binary'
 require 'models/book'
@@ -14,6 +15,7 @@ require 'models/matey'
 require 'models/parrot'
 require 'models/pirate'
 require 'models/post'
+require 'models/randomly_named_c1'
 require 'models/reply'
 require 'models/ship'
 require 'models/task'
@@ -727,5 +729,31 @@ class FixtureLoadingTest < ActiveRecord::TestCase
     ActiveRecord::TestCase.expects(:require_dependency).with(:works_out_fine)
     ActiveRecord::Base.logger.expects(:warn).never
     ActiveRecord::TestCase.try_to_load_dependency(:works_out_fine)
+  end
+end
+
+class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
+  ActiveRecord::Fixtures.reset_cache
+
+  set_fixture_class :randomly_named_a9         =>
+                        ClassNameThatDoesNotFollowCONVENTIONS,
+                    :'admin/randomly_named_a9' =>
+                        Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                    'admin/randomly_named_b0'  =>
+                        Admin::ClassNameThatDoesNotFollowCONVENTIONS
+
+  fixtures :randomly_named_a9, 'admin/randomly_named_a9',
+           :'admin/randomly_named_b0'
+
+  def test_named_accessor_for_randomly_named_fixture_and_class
+    assert_kind_of ClassNameThatDoesNotFollowCONVENTIONS,
+                   randomly_named_a9(:first_instance)
+  end
+
+  def test_named_accessor_for_randomly_named_namespaced_fixture_and_class
+    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                   admin_randomly_named_a9(:first_instance)
+    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                   admin_randomly_named_b0(:second_instance)
   end
 end

@@ -499,6 +499,11 @@ ActiveRecord::Schema.define do
     t.string :type
   end
 
+  create_table :randomly_named_table, :force => true do |t|
+    t.string  :some_attribute
+    t.integer :another_attribute
+  end
+
   create_table :ratings, :force => true do |t|
     t.integer :comment_id
     t.integer :value
