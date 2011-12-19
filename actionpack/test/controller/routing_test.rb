@@ -85,6 +85,57 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     @rs.clear!
   end
 
+  def test_class_and_lambda_constraints
+    subdomain = Class.new {
+      def matches? request
+        request.subdomain.present? and request.subdomain != 'clients'
+      end
+    }
+
+    @rs.draw do
+      match '/', :constraints => subdomain.new,
+                 :to          => lambda { |env| [200, {}, 'default'] }
+      match '/', :constraints => { :subdomain => 'clients' },
+                 :to          => lambda { |env| [200, {}, 'clients'] }
+    end
+
+    body = @rs.call({'PATH_INFO'      => '/',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'www.example.org'})[2]
+
+    assert_equal 'default', body
+
+    body = @rs.call({'PATH_INFO'      => '/',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'clients.example.org'})[2]
+
+    assert_equal 'clients', body
+  end
+
+  def test_lambda_constraints
+    @rs.draw do
+      match '/', :constraints => lambda { |req|
+        req.subdomain.present? and req.subdomain != "clients" },
+                 :to          => lambda { |env| [200, {}, 'default'] }
+
+      match '/', :constraints => lambda { |req|
+        req.subdomain.present? && req.subdomain == "clients" },
+                 :to          => lambda { |env| [200, {}, 'clients'] }
+    end
+
+    body = @rs.call({'PATH_INFO'      => '/',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'www.example.org'})[2]
+
+    assert_equal 'default', body
+
+    body = @rs.call({'PATH_INFO'      => '/',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'clients.example.org'})[2]
+
+    assert_equal 'clients', body
+  end
+
   def test_draw_with_block_arity_one_raises
     assert_raise(RuntimeError) do
       @rs.draw { |map| map.match '/:controller(/:action(/:id))' }
