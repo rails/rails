@@ -80,7 +80,7 @@ module ActiveRecord
         when :decimal              then klass.value_to_decimal(value)
         when :datetime, :timestamp then klass.string_to_time(value)
         when :time                 then klass.string_to_dummy_time(value)
-        when :date                 then klass.string_to_date(value)
+        when :date                 then klass.value_to_date(value)
         when :binary               then klass.binary_to_string(value)
         when :boolean              then klass.value_to_boolean(value)
         else value
@@ -97,7 +97,7 @@ module ActiveRecord
         when :decimal              then "#{klass}.value_to_decimal(#{var_name})"
         when :datetime, :timestamp then "#{klass}.string_to_time(#{var_name})"
         when :time                 then "#{klass}.string_to_dummy_time(#{var_name})"
-        when :date                 then "#{klass}.string_to_date(#{var_name})"
+        when :date                 then "#{klass}.value_to_date(#{var_name})"
         when :binary               then "#{klass}.binary_to_string(#{var_name})"
         when :boolean              then "#{klass}.value_to_boolean(#{var_name})"
         else var_name
@@ -132,11 +132,15 @@ module ActiveRecord
           value
         end
 
-        def string_to_date(string)
-          return string unless string.is_a?(String)
-          return nil if string.empty?
-
-          fast_string_to_date(string) || fallback_string_to_date(string)
+        def value_to_date(value)
+          if value.is_a?(String)
+            return nil if value.empty?
+            fast_string_to_date(value) || fallback_string_to_date(value)
+          elsif value.respond_to?(:to_date)
+            value.to_date
+          else
+            value
+          end
         end
 
         def string_to_time(string)
