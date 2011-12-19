@@ -209,8 +209,9 @@ module ActiveRecord
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
+        context = options.delete(:context)
         self.assign_attributes(attributes, options)
-        save
+        context ? save(:context => context) : save
       end
     end
 
@@ -220,8 +221,9 @@ module ActiveRecord
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
+        context = options.delete(:context)
         self.assign_attributes(attributes, options)
-        save!
+        context ? save!(:context => context) : save!
       end
     end
 
