@@ -1219,9 +1219,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
 
-      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid")
+      migrations_path = MIGRATIONS_ROOT + "/valid"
+      ActiveRecord::Migrator.migrations_paths = migrations_path
+      ActiveRecord::Migrator.up(migrations_path)
 
       assert_equal 3, ActiveRecord::Migrator.current_version
+      assert_equal 3, ActiveRecord::Migrator.last_version
+      assert_equal false, ActiveRecord::Migrator.needs_migration?
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
       assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
@@ -1230,6 +1234,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
 
       assert_equal 0, ActiveRecord::Migrator.current_version
+      assert_equal true, ActiveRecord::Migrator.needs_migration?
       Person.reset_column_information
       assert !Person.column_methods_hash.include?(:last_name)
       assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
@@ -1269,6 +1274,11 @@ if ActiveRecord::Base.connection.supports_migrations?
         @went_down = true
         super
       end
+    end
+
+    def test_migrations_last_version_on_empty_directory
+      ActiveRecord::Migrator.migrations_path = MIGRATIONS_ROOT + "/empty"
+      assert_equal 0, ActiveRecord::Migrator.last_version
     end
 
     def test_instance_based_migration_up
@@ -2276,6 +2286,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       clear
       Dir.delete(@migrations_path)
     end
+
 
     def test_copying_migrations_to_empty_directory
       @migrations_path = MIGRATIONS_ROOT + "/empty"

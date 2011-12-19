@@ -570,6 +570,14 @@ module ActiveRecord
         Base.connection.select_values(table.project(table['version'])).map{ |v| v.to_i }.sort
       end
 
+      def needs_migration?
+        current_version != last_version
+      end
+
+      def last_version
+        migrations(migrations_paths).last.try(:version)||0
+      end
+
       def current_version
         sm_table = schema_migrations_table_name
         if Base.connection.table_exists?(sm_table)
