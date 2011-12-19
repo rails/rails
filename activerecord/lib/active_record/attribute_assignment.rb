@@ -85,7 +85,9 @@ module ActiveRecord
             send("#{k}=", v)
           end
         else
-          raise(UnknownAttributeError, "unknown attribute: #{k}")
+          msg =  "unknown attribute: '#{k}'"
+          msg << ", try running 'rake db:migrate' to resolve pending migrations" if ActiveRecord::Migrator.needs_migration?
+          raise(UnknownAttributeError, msg)
         end
       end
 
