@@ -1,0 +1,12 @@
+Description:
+    Stubs out a new module in the lib directory. Pass in the module name and a list of optional method names.
+    
+    This is useful when writing custom modules for use in multiple models etc.
+    
+    This generates a custom module file in lib as well as a test in test/unit.
+
+Example:
+    `rails generate module custom method1 method2 method3`
+
+        Task:      lib/custom.rb
+        Test:      test/unit/custom_test.rb
