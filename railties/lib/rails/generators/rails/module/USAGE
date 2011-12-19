@@ -8,5 +8,5 @@ Description:
 Example:
     `rails generate module custom method1 method2 method3`
 
-        Task:      lib/custom.rb
+        Module:      lib/custom.rb
         Test:      test/unit/custom_test.rb
