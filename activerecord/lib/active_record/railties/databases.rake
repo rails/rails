@@ -446,37 +446,26 @@ db_namespace = namespace :db do
   end
 
   namespace :test do
-
-    # desc "Recreate the test database from the current schema"
+    # desc "Recreate the test database from the current schema.rb"
     task :load => 'db:test:purge' do
-      case ActiveRecord::Base.schema_format
-        when :ruby
-          db_namespace["test:load_schema"].invoke
-        when :sql
-          db_namespace["test:load_structure"].invoke
-        end
-    end
+      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
+      ActiveRecord::Schema.verbose = false
+      db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
 
-    # desc "Recreate the test database from an existent structure.sql file"
-    task :load_structure => 'db:test:purge' do
       begin
         old_env, ENV['RAILS_ENV'] = ENV['RAILS_ENV'], 'test'
-        db_namespace["structure:load"].invoke
+        db_namespace["structure:load"].invoke if ActiveRecord::Base.schema_format == :sql
       ensure
         ENV['RAILS_ENV'] = old_env
       end
+
     end
 
-    # desc "Recreate the test database from an existent schema.rb file"
-    task :load_schema => 'db:test:purge' do
-      db_namespace["schema:load"].invoke
-    end
+    # desc "Recreate the test database from the current environment's database schema"
+    task :clone => %w(db:schema:dump db:test:load)
 
-    # desc "Recreate the test database from a fresh schema.rb file"
-    task :clone => %w(db:schema:dump db:test:load_schema)
-
-    # desc "Recreate the test database from a fresh structure.sql file"
-    task :clone_structure => [ "db:structure:dump", "db:test:load_structure" ]
+    # desc "Recreate the test databases from the structure.sql file"
+    task :clone_structure => [ "db:structure:dump", "db:test:load" ]
 
     # desc "Empty the test database"
     task :purge => :environment do
