@@ -50,11 +50,15 @@ module ActiveRecord
           end
         end
 
-        def cast_hstore(string)
-          kvs = string.split(', ').map { |kv|
-            kv.split('=>').map { |k| k[1...-1] }
-          }
-          Hash[kvs]
+        def cast_hstore(object)
+          if Hash === object
+            object.map { |k,v| "#{k}=>#{v}" }.join ', '
+          else
+            kvs = object.split(', ').map { |kv|
+              kv.split('=>').map { |k| k[1...-1] }
+            }
+            Hash[kvs]
+          end
         end
       end
       # :startdoc:
