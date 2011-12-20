@@ -45,32 +45,38 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
   end
 
   def test_create
-    assert_cycle_hstore('a' => 'b', '1' => '2')
+    assert_cycle('a' => 'b', '1' => '2')
   end
 
   def test_quotes
-    assert_cycle_hstore('a' => 'b"ar', '1"foo' => '2')
+    assert_cycle('a' => 'b"ar', '1"foo' => '2')
   end
 
   def test_whitespace
-    assert_cycle_hstore('a b' => 'b ar', '1"foo' => '2')
+    assert_cycle('a b' => 'b ar', '1"foo' => '2')
   end
 
   def test_backslash
-    assert_cycle_hstore('a\\b' => 'b\\ar', '1"foo' => '2')
+    assert_cycle('a\\b' => 'b\\ar', '1"foo' => '2')
   end
 
   def test_comma
-    assert_cycle_hstore('a, b' => 'bar', '1"foo' => '2')
+    assert_cycle('a, b' => 'bar', '1"foo' => '2')
   end
 
   def test_arrow
-    assert_cycle_hstore('a=>b' => 'bar', '1"foo' => '2')
+    assert_cycle('a=>b' => 'bar', '1"foo' => '2')
   end
 
   private
-  def assert_cycle_hstore hash
+  def assert_cycle hash
     x = Hstore.create!(:tags => hash)
+    x.reload
+    assert_equal(hash, x.tags)
+
+    # make sure updates work
+    x.tags = hash
+    x.save!
     x.reload
     assert_equal(hash, x.tags)
   end
