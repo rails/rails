@@ -101,15 +101,8 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
 
   def setup
     @chars = UNICODE_STRING.dup.mb_chars
-
-    if RUBY_VERSION < '1.9'
-      # Multibyte support all kinds of whitespace (ie. NEWLINE, SPACE, EM SPACE)
-      @whitespace = "\n\t#{[32, 8195].pack('U*')}"
-    else
-      # Ruby 1.9 only supports basic whitespace
-      @whitespace = "\n\t "
-    end
-
+    # Ruby 1.9 only supports basic whitespace
+    @whitespace = "\n\t "
     @byte_order_mark = [65279].pack('U')
   end
 

@@ -23,11 +23,7 @@ class Object
   #   end
   #
   #   C.new(0, 1).instance_variable_names # => ["@y", "@x"]
-  if RUBY_VERSION >= '1.9'
-    def instance_variable_names
-      instance_variables.map { |var| var.to_s }
-    end
-  else
-    alias_method :instance_variable_names, :instance_variables
+  def instance_variable_names
+    instance_variables.map { |var| var.to_s }
   end
 end

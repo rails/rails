@@ -81,24 +81,21 @@ class OrderedHashTest < Test::Unit::TestCase
     keys = []
     assert_equal @ordered_hash, @ordered_hash.each_key { |k| keys << k }
     assert_equal @keys, keys
-    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
-    assert_kind_of expected_class, @ordered_hash.each_key
+    assert_kind_of Enumerator, @ordered_hash.each_key
   end
 
   def test_each_value
     values = []
     assert_equal @ordered_hash, @ordered_hash.each_value { |v| values << v }
     assert_equal @values, values
-    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
-    assert_kind_of expected_class, @ordered_hash.each_value
+    assert_kind_of Enumerator, @ordered_hash.each_value
   end
 
   def test_each
     values = []
     assert_equal @ordered_hash, @ordered_hash.each {|key, value| values << value}
     assert_equal @values, values
-    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
-    assert_kind_of expected_class, @ordered_hash.each
+    assert_kind_of Enumerator, @ordered_hash.each
   end
 
   def test_each_with_index
@@ -114,9 +111,7 @@ class OrderedHashTest < Test::Unit::TestCase
     end
     assert_equal @values, values
     assert_equal @keys, keys
-
-    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
-    assert_kind_of expected_class, @ordered_hash.each_pair
+    assert_kind_of Enumerator, @ordered_hash.each_pair
   end
 
   def test_find_all
