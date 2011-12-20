@@ -49,6 +49,10 @@ module ActiveRecord
             super
           end
         end
+
+        def cast_hstore(string)
+          Hash[[string.split('=>').map { |k| k[1...-1] }]]
+        end
       end
       # :startdoc:
 
