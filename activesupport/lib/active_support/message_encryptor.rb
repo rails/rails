@@ -24,27 +24,10 @@ module ActiveSupport
     OpenSSLCipherError = OpenSSL::Cipher.const_defined?(:CipherError) ? OpenSSL::Cipher::CipherError : OpenSSL::CipherError
 
     def initialize(secret, options = {})
-      unless options.is_a?(Hash)
-        ActiveSupport::Deprecation.warn "The second parameter should be an options hash. Use :cipher => 'algorithm' to specify the cipher algorithm."
-        options = { :cipher => options }
-      end
-
       @secret = secret
       @cipher = options[:cipher] || 'aes-256-cbc'
       @verifier = MessageVerifier.new(@secret, :serializer => NullSerializer)
       @serializer = options[:serializer] || Marshal
-    end
-
-    def encrypt(value)
-      ActiveSupport::Deprecation.warn "MessageEncryptor#encrypt is deprecated as it is not safe without a signature. " \
-        "Please use MessageEncryptor#encrypt_and_sign instead."
-      _encrypt(value)
-    end
-
-    def decrypt(value)
-      ActiveSupport::Deprecation.warn "MessageEncryptor#decrypt is deprecated as it is not safe without a signature. " \
-        "Please use MessageEncryptor#decrypt_and_verify instead."
-      _decrypt(value)
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid padding attacks.

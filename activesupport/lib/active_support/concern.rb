@@ -109,11 +109,6 @@ module ActiveSupport
         @_dependencies.each { |dep| base.send(:include, dep) }
         super
         base.extend const_get("ClassMethods") if const_defined?("ClassMethods")
-        if const_defined?("InstanceMethods")
-          base.send :include, const_get("InstanceMethods")
-          ActiveSupport::Deprecation.warn "The InstanceMethods module inside ActiveSupport::Concern will be " \
-            "no longer included automatically. Please define instance methods directly in #{base} instead.", caller
-        end
         base.class_eval(&@_included_block) if instance_variable_defined?("@_included_block")
       end
     end
