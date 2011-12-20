@@ -1888,7 +1888,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_silence_sets_log_level_to_error_in_block
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
-    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
     ActiveRecord::Base.logger.level = Logger::DEBUG
     ActiveRecord::Base.silence do
       ActiveRecord::Base.logger.warn "warn"
@@ -1902,7 +1902,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_silence_sets_log_level_back_to_level_before_yield
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
-    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
     ActiveRecord::Base.logger.level = Logger::WARN
     ActiveRecord::Base.silence do
     end
@@ -1930,9 +1930,7 @@ class BasicsTest < ActiveRecord::TestCase
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
     ActiveRecord::Base.logger = Logger.new(log)
-    ActiveRecord::Base.benchmark("Logging", :level => :debug, :silence => true) { ActiveRecord::Base.logger.debug "Loud" }
     ActiveRecord::Base.benchmark("Logging", :level => :debug, :silence => false)  { ActiveRecord::Base.logger.debug "Quiet" }
-    assert_no_match(/Loud/, log.string)
     assert_match(/Quiet/, log.string)
   ensure
     ActiveRecord::Base.logger = original_logger
