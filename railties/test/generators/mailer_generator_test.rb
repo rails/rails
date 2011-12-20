@@ -10,11 +10,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "app/mailers/notifier.rb" do |mailer|
       assert_match(/class Notifier < ActionMailer::Base/, mailer)
-      if RUBY_VERSION < "1.9"
-        assert_match(/default :from => "from@example.com"/, mailer)
-      else
-        assert_match(/default from: "from@example.com"/, mailer)
-      end
+      assert_match(/default from: "from@example.com"/, mailer)
     end
   end
 

@@ -189,12 +189,8 @@ module ApplicationTests
     end
 
     def assert_utf8
-      if RUBY_VERSION < '1.9'
-        assert_equal "UTF8", $KCODE
-      else
-        assert_equal Encoding::UTF_8, Encoding.default_external
-        assert_equal Encoding::UTF_8, Encoding.default_internal
-      end
+      assert_equal Encoding::UTF_8, Encoding.default_external
+      assert_equal Encoding::UTF_8, Encoding.default_internal
     end
 
     test "skipping config.encoding still results in 'utf-8' as the default" do
