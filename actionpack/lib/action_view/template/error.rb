@@ -94,7 +94,10 @@ module ActionView
           "#{indent}#{line_counter}: #{line}\n"
         end
 
-        extract.encode! if extract.respond_to?(:encode!)
+        if extract.respond_to?(:force_encoding)
+          extract.force_encoding(Encoding.default_internal)
+          extract.encode! unless extract.valid_encoding?
+        end
 
         extract
       end
