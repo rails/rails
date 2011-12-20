@@ -151,14 +151,8 @@ module ActionView
       # as well as incorrectly putting part of the path in the template
       # name instead of the prefix.
       def normalize_name(name, prefixes) #:nodoc:
-        name  = name.to_s.sub(handlers_regexp) do |match|
-          ActiveSupport::Deprecation.warn "Passing a template handler in the template name is deprecated. " \
-            "You can simply remove the handler name or pass render :handlers => [:#{match[1..-1]}] instead.", caller
-          ""
-        end
-
         prefixes = nil if prefixes.blank?
-        parts    = name.split('/')
+        parts    = name.to_s.split('/')
         name     = parts.pop
 
         return name, prefixes || [""] if parts.empty?
@@ -167,10 +161,6 @@ module ActionView
         prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
-      end
-
-      def handlers_regexp #:nodoc:
-        @@handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
       end
     end
 

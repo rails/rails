@@ -6,7 +6,6 @@ module ActionView
     def render(context, options)
       @view    = context
       @details = extract_details(options)
-      extract_format(options[:file] || options[:template], @details)
       template = determine_template(options)
       freeze_formats(template.formats, true)
       render_template(template, options[:layout], options[:locals])
