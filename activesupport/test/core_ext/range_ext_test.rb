@@ -63,6 +63,31 @@ class RangeTest < Test::Unit::TestCase
     assert_equal [1,3,5,7,9], array
   end
 
+  def test_min
+    assert_equal 3, (3..10).min
+    assert_equal nil, (3..1).min
+    assert_equal 2, (2..2).min
+    assert_equal 1, (1..10).min { |x, y| y > x ? x : y }
+    
+  end
+
+  def test_max
+    assert_equal 10, (3..10).max
+    assert_equal nil, (3..1).max
+    assert_equal 2, (2..2).max
+    assert_equal 10, (1..10).max { |x, y| y > x ? y : x }
+  end
+
+  def test_min_is_from_range
+    range = (1..3)
+    assert_equal range.method(:min).owner, range.class
+  end
+  
+  def test_max_is_from_range
+    range = (1..3)
+    assert_equal range.method(:max).owner, range.class
+  end
+
   if RUBY_VERSION < '1.9'
     def test_cover
       assert((1..3).cover?(2))
