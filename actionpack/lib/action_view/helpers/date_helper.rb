@@ -422,7 +422,7 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the seconds 0 through 59 with the current second selected.
-      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.      
+      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.
       # Override the field name using the <tt>:field_name</tt> option, 'second' by default.
       #
       # ==== Examples
@@ -448,7 +448,7 @@ module ActionView
 
       # Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
       # Also can return a select tag with options by <tt>minute_step</tt> from 0 through 59 with the 00 minute
-      # selected. The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer. 
+      # selected. The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.
       # Override the field name using the <tt>:field_name</tt> option, 'minute' by default.
       #
       # ==== Examples
@@ -473,7 +473,7 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
-      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.      
+      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.
       # Override the field name using the <tt>:field_name</tt> option, 'hour' by default.
       #
       # ==== Examples
@@ -868,7 +868,7 @@ module ActionView
             tag_options = { :value => value }
             tag_options[:selected] = "selected" if selected == i
             text = options[:use_two_digit_numbers] ? sprintf("%02d", i) : value
-            text = options[:ampm] ? AMPM_TRANSLATION[i] : text            
+            text = options[:ampm] ? AMPM_TRANSLATION[i] : text
             select_options << content_tag(:option, text, tag_options)
           end
           (select_options.join("\n") + "\n").html_safe
@@ -974,7 +974,7 @@ module ActionView
         end
     end
 
-    class InstanceTag #:nodoc:
+    module DateHelperInstanceTag
       def to_date_select_tag(options = {}, html_options = {})
         datetime_selector(options, html_options).select_date.html_safe
       end
@@ -1028,6 +1028,10 @@ module ActionView
               )
           end
         end
+    end
+
+    class InstanceTag #:nodoc:
+      include DateHelperInstanceTag
     end
 
     class FormBuilder
