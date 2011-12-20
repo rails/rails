@@ -99,7 +99,7 @@ module ApplicationTests
 
       app_file 'app/views/foo/index.html.erb', <<-ERB
         <% raise 'boooom' %>
-        ✓
+        ✓測試テスト시험
       ERB
 
       app_file 'config/routes.rb', <<-RUBY
@@ -110,6 +110,7 @@ module ApplicationTests
 
       post '/foo', :utf8 => '✓'
       assert_match(/boooom/, last_response.body)
+      assert_match(/測試テスト시험/, last_response.body)
     end
   end
 end
