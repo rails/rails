@@ -33,13 +33,13 @@ module Rails
           f.sync = !Rails.env.production? # make sure every write flushes
 
           logger = ActiveSupport::TaggedLogging.new(
-            ActiveSupport::BufferedLogger.new(f)
+            ActiveSupport::Logger.new(f)
           )
-          logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
+          logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
           logger
         rescue StandardError
-          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::BufferedLogger.new(STDERR))
-          logger.level = ActiveSupport::BufferedLogger::WARN
+          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
+          logger.level = ActiveSupport::Logger::WARN
           logger.warn(
             "Rails Error: Unable to access log file. Please ensure that #{path} exists and is chmod 0666. " +
             "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."

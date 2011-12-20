@@ -10,7 +10,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
   include MultibyteTestHelpers
   include ActiveSupport::Testing::Deprecation
 
-  Logger = ActiveSupport::BufferedLogger
+  Logger = ActiveSupport::Logger
 
   def setup
     @message = "A debug message"
@@ -113,19 +113,10 @@ class BufferedLoggerTest < Test::Unit::TestCase
 
   def test_should_know_if_its_loglevel_is_below_a_given_level
     Logger::Severity.constants.each do |level|
+      next if level.to_s == 'UNKNOWN'
       @logger.level = Logger::Severity.const_get(level) - 1
       assert @logger.send("#{level.downcase}?"), "didn't know if it was #{level.downcase}? or below"
     end
-  end
-
-  def test_should_create_the_log_directory_if_it_doesnt_exist
-    tmp_directory = File.join(File.dirname(__FILE__), "tmp")
-    log_file = File.join(tmp_directory, "development.log")
-    FileUtils.rm_rf(tmp_directory)
-    assert_deprecated do
-      @logger  = Logger.new(log_file)
-    end
-    assert File.exist?(tmp_directory)
   end
 
   def test_buffer_multibyte

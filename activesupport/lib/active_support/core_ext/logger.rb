@@ -1,4 +1,7 @@
 require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/deprecation'
+
+ActiveSupport::Deprecation.warn 'this file is deprecated and will be removed'
 
 # Adds the 'around_level' method to Logger.
 class Logger #:nodoc:
