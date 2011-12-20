@@ -8,6 +8,8 @@
   
 ## Resources
 
+  * [StackOverflow: Kindle Periodical Format](http://stackoverflow.com/questions/5379565/kindle-periodical-format)
+  * Example Periodical [.ncx](https://gist.github.com/808c971ed087b839d462) and [.opf](https://gist.github.com/d6349aa8488eca2ee6d0)
   * [Kindle Publishing guidelines](http://kindlegen.s3.amazonaws.com/AmazonKindlePublishingGuidelines.pdf)
   * [KindleGen & Kindle Previewer](http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000234621) 
   
