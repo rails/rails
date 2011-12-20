@@ -147,10 +147,6 @@
 
     *Aaron Christy*
     
-*   Add ActiveSupport::Cache::NullStore for use in development and testing.
-
-    *Brian Durand*
-
 ## Rails 3.1.3 (unreleased) ##
 
 *   Perf fix: If we're deleting all records in an association, don't add a IN(..) clause
