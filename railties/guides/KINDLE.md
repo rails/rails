@@ -1,10 +1,17 @@
 # Rails Guides on the Kindle
 
+
 ## Synopsis
 
   1. Obtain `kindlegen` from the link below and put the binary in your path
   2. Run `KINDLE=1 ruby rails_guides.rb` to generate the guides and compile the `.mobi` file
   3. Copy `output/kindle/rails_guides.mobi` to your Kindle
+
+## Download
+  
+Recompiled manually whenever a significant update is made to the Kindle generation:
+
+  * [http://bit.ly/railsguidesforkindle](http://bit.ly/railsguidesforkindle)
   
 ## Resources
 
