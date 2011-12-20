@@ -38,6 +38,7 @@ end
 
 require "active_support/dependencies/autoload"
 require "active_support/version"
+require "active_support/logger"
 
 module ActiveSupport
   extend ActiveSupport::Autoload
@@ -53,7 +54,6 @@ module ActiveSupport
     autoload :Base64
     autoload :BasicObject
     autoload :Benchmarkable
-    autoload :BufferedLogger
     autoload :Cache
     autoload :Callbacks
     autoload :Concern

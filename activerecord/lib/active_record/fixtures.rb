@@ -10,7 +10,6 @@ require 'zlib'
 require 'active_support/dependencies'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/logger'
 require 'active_support/ordered_hash'
 require 'active_record/fixtures/file'
 

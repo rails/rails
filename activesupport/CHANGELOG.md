@@ -1,3 +1,8 @@
+## Rails 4.0.0 (unreleased) ##
+
+* BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger
+  from Ruby stdlib.
+
 ## Rails 3.2.0 (unreleased) ##
 
 *   Added Enumerable#pluck to wrap the common pattern of collect(&:method) *DHH*
