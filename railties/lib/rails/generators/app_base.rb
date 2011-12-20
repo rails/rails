@@ -200,8 +200,8 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
-              gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
+              gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git',   :branch => '3-2-stable'
+              gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git', :branch => '3-2-stable'
               #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
               gem 'uglifier', '>= 1.0.3'
             end
