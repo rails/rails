@@ -401,6 +401,11 @@ module ActiveRecord
       alias_method :find_table_name, :default_fixture_model_name
     end
 
+    def self.default_fixture_table_name(fixture_name) # :nodoc:
+       "#{ActiveRecord::Base.table_name_prefix}"\
+         "#{fixture_name.tr('/', '_')}#{ActiveRecord::Base.table_name_suffix}".to_sym
+    end
+
     def self.reset_cache
       @@all_cached_fixtures.clear
     end
@@ -480,12 +485,11 @@ module ActiveRecord
           fixtures_map = {}
 
           fixture_files = files_to_read.map do |path|
-            table_name = path.tr '/', '_'
             fixture_name = path
 
             fixtures_map[fixture_name] = new( # ActiveRecord::Fixtures.new
               connection,
-              table_name,
+              fixture_name,
               class_names[fixture_name] || default_fixture_model_name(fixture_name),
               ::File.join(fixtures_directory, path))
           end
@@ -530,24 +534,27 @@ module ActiveRecord
 
     attr_reader :table_name, :name, :fixtures, :model_class
 
-    def initialize(connection, table_name, class_name, fixture_path)
-      @connection   = connection
-      @table_name   = table_name
-      @fixture_path = fixture_path
-      @name         = table_name # preserve fixture base name
-      @class_name   = class_name
-
+    def initialize(connection, fixture_name, class_name, fixture_path)
       @fixtures     = ActiveSupport::OrderedHash.new
-      @table_name   = "#{ActiveRecord::Base.table_name_prefix}#{@table_name}#{ActiveRecord::Base.table_name_suffix}"
+      @name         = fixture_name.tr('/', '_') # preserve fixture base name
+                                                # TODO: see how it is used and if the substitution can be avoided
+      @fixture_path = fixture_path
+
+      @class_name   = class_name # TODO: this variable is not used, should it be removed?
 
       # Should be an AR::Base type class
       if class_name.is_a?(Class)
-        @table_name   = class_name.table_name
-        @connection   = class_name.connection
-        @model_class  = class_name
+        @model_class = class_name
       else
-        @model_class  = class_name.constantize rescue nil
+        @model_class = class_name.constantize rescue nil
       end
+
+      @connection  = model_class.respond_to?(:connection) ?
+                     model_class.connection : connection
+
+      @table_name = model_class.respond_to?(:table_name) ?
+                    model_class.table_name :
+                    self.class.default_fixture_table_name(fixture_name)
 
       read_fixture_files
     end
