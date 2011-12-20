@@ -57,11 +57,8 @@ module AbstractControllerTests
       layout "hello_override"
     end
 
-    class WithNilChild < WithString
-      layout nil
-    end
-
     class WithStringImpliedChild < WithString
+      layout nil
     end
 
     class WithChildOfImplied < WithStringImpliedChild
@@ -258,20 +255,14 @@ module AbstractControllerTests
 
       test "when a child controller has an implied layout, use that layout and not the parent controller layout" do
         controller = WithStringImpliedChild.new
-        assert_deprecated { controller.process(:index) }
-        assert_equal "With Implied Hello string!", controller.response_body
-      end
-
-      test "when a child controller specifies layout nil, do not use the parent layout" do
-        controller = WithNilChild.new
         controller.process(:index)
-        assert_equal "Hello string!", controller.response_body
+        assert_equal "With Implied Hello string!", controller.response_body
       end
 
       test "when a grandchild has no layout specified, the child has an implied layout, and the " \
         "parent has specified a layout, use the child controller layout" do
           controller = WithChildOfImplied.new
-          assert_deprecated { controller.process(:index) }
+          controller.process(:index)
           assert_equal "With Implied Hello string!", controller.response_body
       end
 
