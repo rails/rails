@@ -130,8 +130,16 @@ module ActionDispatch
       Http::Headers.new(@env)
     end
 
+    def original_fullpath
+      @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
+    end
+
     def fullpath
       @fullpath ||= super
+    end
+
+    def original_url
+      base_url + original_fullpath
     end
 
     def forgery_whitelisted?

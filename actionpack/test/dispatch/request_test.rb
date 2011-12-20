@@ -606,6 +606,30 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal "/authenticate?secret", path
   end
 
+  test "original_fullpath returns ORIGINAL_FULLPATH" do
+    request = stub_request('ORIGINAL_FULLPATH' => "/foo?bar")
+
+    path = request.original_fullpath
+    assert_equal "/foo?bar", path
+  end
+
+  test "original_url returns url built using ORIGINAL_FULLPATH" do
+    request = stub_request('ORIGINAL_FULLPATH' => "/foo?bar",
+                           'HTTP_HOST'         => "example.org",
+                           'rack.url_scheme'   => "http")
+
+    url = request.original_url
+    assert_equal "http://example.org/foo?bar", url
+  end
+
+  test "original_fullpath returns fullpath if ORIGINAL_FULLPATH is not present" do
+    request = stub_request('PATH_INFO'    => "/foo",
+                           'QUERY_STRING' => "bar")
+
+    path = request.original_fullpath
+    assert_equal "/foo?bar", path
+  end
+
 protected
 
   def stub_request(env = {})
