@@ -1,3 +1,7 @@
+## Rails 4.0.0 (unreleased) ##
+
+*   PostgreSQL hstore types are automatically deserialized from the database.
+
 ## Rails 3.2.0 (unreleased) ##
 
 *   Added ability to run migrations only for given scope, which allows
