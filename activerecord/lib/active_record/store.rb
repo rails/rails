@@ -1,5 +1,6 @@
 module ActiveRecord
-  # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
+  # Store gives you a thin wrapper around serialize for the purpose of storing hashes or other objects in a single
+  # column. Object should respond to [] and []= methods.
   # It's like a simple key/value store backed into your record when you don't care about being able to
   # query that store outside the context of a single record.
   #
@@ -13,7 +14,7 @@ module ActiveRecord
   # Examples:
   #
   #   class User < ActiveRecord::Base
-  #     store :settings, accessors: [ :color, :homepage ]
+  #     store :settings, accessors: [ :color, :homepage ], [ type: ActiveSupport::OrderedOptions ]
   #   end
   #   
   #   u = User.new(color: 'black', homepage: '37signals.com')
@@ -29,7 +30,8 @@ module ActiveRecord
   
     module ClassMethods
       def store(store_attribute, options = {})
-        serialize store_attribute, Hash
+        options[:type] ||= Hash
+        serialize store_attribute, options[:type]
         store_accessor(store_attribute, options[:accessors]) if options.has_key? :accessors
       end
 

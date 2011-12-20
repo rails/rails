@@ -36,6 +36,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :admin_users, :force => true do |t|
+    t.string :type
     t.string :name
     t.text :settings
     t.references :account
