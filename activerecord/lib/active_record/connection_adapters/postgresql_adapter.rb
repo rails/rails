@@ -64,27 +64,25 @@ module ActiveRecord
         end
 
         private
-        def unescape_hstore(value)
-          escape_values = {
-            '\\ '  => ' ',
-            '\\\\' => '\\',
-            '\\"'  => '"',
-            '\\='  => '=',
-          }
-          value.gsub(Regexp.union(escape_values.keys)) do |match|
-            escape_values[match]
-          end
-        end
-
-        def escape_hstore(value)
-          escape_values = {
+        HSTORE_ESCAPE = {
             ' '  => '\\ ',
             '\\' => '\\\\',
             '"'  => '\\"',
             '='  => '\\=',
-          }
-          value.gsub(Regexp.union(escape_values.keys)) do |match|
-            escape_values[match]
+        }
+        HSTORE_ESCAPE_RE   = Regexp.union(HSTORE_ESCAPE.keys)
+        HSTORE_UNESCAPE    = HSTORE_ESCAPE.invert
+        HSTORE_UNESCAPE_RE = Regexp.union(HSTORE_UNESCAPE.keys)
+
+        def unescape_hstore(value)
+          value.gsub(HSTORE_UNESCAPE_RE) do |match|
+            HSTORE_UNESCAPE[match]
+          end
+        end
+
+        def escape_hstore(value)
+          value.gsub(HSTORE_ESCAPE_RE) do |match|
+            HSTORE_ESCAPE[match]
           end
         end
       end
