@@ -2,6 +2,7 @@ require 'cgi'
 require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
+require 'action_view/helpers/active_model_helper'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/method_names'
@@ -963,7 +964,7 @@ module ActionView
     end
 
     class InstanceTag
-      include Helpers::TagHelper, Helpers::FormTagHelper
+      include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
 
       attr_reader :object, :method_name, :object_name
 
