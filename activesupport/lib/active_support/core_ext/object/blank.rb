@@ -89,9 +89,6 @@ class Hash
 end
 
 class String
-  # 0x3000: fullwidth whitespace
-  NON_WHITESPACE_REGEXP = %r![^\s#{[0x3000].pack("U")}]!
-
   # A string is blank if it's empty or contains whitespaces only:
   #
   #   "".blank?                 # => true
@@ -100,12 +97,7 @@ class String
   #   " something here ".blank? # => false
   #
   def blank?
-    # 1.8 does not takes [:space:] properly
-    if encoding_aware?
-      self !~ /[^[:space:]]/
-    else
-      self !~ NON_WHITESPACE_REGEXP
-    end
+    self !~ /[^[:space:]]/
   end
 end
 
