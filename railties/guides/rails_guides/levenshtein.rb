@@ -1,6 +1,6 @@
 module RailsGuides
   module Levenshtein
-    # Based on the pseudocode in http://en.wikipedia.org/wiki/Levenshtein_distance.
+    # Based on the pseudocode in http://en.wikipedia.org/wiki/Levenshtein_distance
     def self.distance(s1, s2)
       s = s1.unpack('U*')
       t = s2.unpack('U*')
