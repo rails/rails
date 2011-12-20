@@ -173,7 +173,7 @@ module ActionView
       @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", '') : identifier
     end
 
-    # This method is responsible for properly setting he encoding of the
+    # This method is responsible for properly setting the encoding of the
     # source. Until this point, we assume that the source is BINARY data.
     # If no additional information is supplied, we assume the encoding is
     # the same as <tt>Encoding.default_external</tt>.
@@ -184,38 +184,36 @@ module ActionView
     # before passing the source on to the template engine, leaving a
     # blank line in its stead.
     def encode!
-      return unless source.encoding == Encoding::BINARY
+      return unless source.encoding_aware? && source.encoding == Encoding::BINARY
 
-      if source.encoding_aware?
-        # Look for # encoding: *. If we find one, we'll encode the
-        # String in that encoding, otherwise, we'll use the
-        # default external encoding.
-        if source.sub!(/\A#{ENCODING_FLAG}/, '')
-          encoding = magic_encoding = $1
-        else
-          encoding = Encoding.default_external
-        end
+      # Look for # encoding: *. If we find one, we'll encode the
+      # String in that encoding, otherwise, we'll use the
+      # default external encoding.
+      if source.sub!(/\A#{ENCODING_FLAG}/, '')
+        encoding = magic_encoding = $1
+      else
+        encoding = Encoding.default_external
+      end
 
-        # Tag the source with the default external encoding
-        # or the encoding specified in the file
-        source.force_encoding(encoding)
+      # Tag the source with the default external encoding
+      # or the encoding specified in the file
+      source.force_encoding(encoding)
 
-        # If the user didn't specify an encoding, and the handler
-        # handles encodings, we simply pass the String as is to
-        # the handler (with the default_external tag)
-        if !magic_encoding && @handler.respond_to?(:handles_encoding?) && @handler.handles_encoding?
-          source
-        # Otherwise, if the String is valid in the encoding,
-        # encode immediately to default_internal. This means
-        # that if a handler doesn't handle encodings, it will
-        # always get Strings in the default_internal
-        elsif source.valid_encoding?
-          source.encode!
-        # Otherwise, since the String is invalid in the encoding
-        # specified, raise an exception
-        else
-          raise WrongEncodingError.new(source, encoding)
-        end
+      # If the user didn't specify an encoding, and the handler
+      # handles encodings, we simply pass the String as is to
+      # the handler (with the default_external tag)
+      if !magic_encoding && @handler.respond_to?(:handles_encoding?) && @handler.handles_encoding?
+        source
+      # Otherwise, if the String is valid in the encoding,
+      # encode immediately to default_internal. This means
+      # that if a handler doesn't handle encodings, it will
+      # always get Strings in the default_internal
+      elsif source.valid_encoding?
+        source.encode!
+      # Otherwise, since the String is invalid in the encoding
+      # specified, raise an exception
+      else
+        raise WrongEncodingError.new(source, encoding)
       end
     end
 
