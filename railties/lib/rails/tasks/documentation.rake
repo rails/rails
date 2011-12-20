@@ -61,7 +61,7 @@ namespace :doc do
     rdoc.template = "#{ENV['template']}.rb" if ENV['template']
     rdoc.title    = "Rails Framework Documentation"
     rdoc.options << '--line-numbers'
-    rdoc.rdoc_files.include('README')
+    rdoc.rdoc_files.include('README.rdoc')
 
     gem_path('actionmailer') do |actionmailer|
       %w(README.rdoc CHANGELOG.md MIT-LICENSE lib/action_mailer/base.rb).each do |file|
