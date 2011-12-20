@@ -369,26 +369,12 @@ module ActiveSupport #:nodoc:
     end
 
     # Is the provided constant path defined?
-    if Module.method(:const_defined?).arity == 1
-      def qualified_const_defined?(path)
-        Object.qualified_const_defined?(path.sub(/^::/, ''))
-      end
-    else
-      def qualified_const_defined?(path)
-        Object.qualified_const_defined?(path.sub(/^::/, ''), false)
-      end
+    def qualified_const_defined?(path)
+      Object.qualified_const_defined?(path.sub(/^::/, ''), false)
     end
 
-    if Module.method(:const_defined?).arity == 1
-      # Does this module define this constant?
-      # Wrapper to accommodate changing Module#const_defined? in Ruby 1.9
-      def local_const_defined?(mod, const)
-        mod.const_defined?(const)
-      end
-    else
-      def local_const_defined?(mod, const) #:nodoc:
-        mod.const_defined?(const, false)
-      end
+    def local_const_defined?(mod, const) #:nodoc:
+      mod.const_defined?(const, false)
     end
 
     # Given +path+, a filesystem path to a ruby file, return an array of constant

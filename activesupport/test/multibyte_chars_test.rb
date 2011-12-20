@@ -143,10 +143,8 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_not_equal original, proxy.to_s
   end
 
-  if RUBY_VERSION >= '1.9'
-    def test_unicode_string_should_have_utf8_encoding
-      assert_equal Encoding::UTF_8, UNICODE_STRING.encoding
-    end
+  def test_unicode_string_should_have_utf8_encoding
+    assert_equal Encoding::UTF_8, UNICODE_STRING.encoding
   end
 
   def test_identity
