@@ -1413,7 +1413,7 @@ module ActiveResource
         namespaces = module_names[0, module_names.size-1].map do |module_name|
           receiver = receiver.const_get(module_name)
         end
-        const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
+        const_args = [resource_name, false]
         if namespace = namespaces.reverse.detect { |ns| ns.const_defined?(*const_args) }
           namespace.const_get(*const_args)
         else
@@ -1425,7 +1425,7 @@ module ActiveResource
       def find_or_create_resource_for(name)
         resource_name = name.to_s.camelize
 
-        const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
+        const_args = [resource_name, false]
         if self.class.const_defined?(*const_args)
           self.class.const_get(*const_args)
         else
