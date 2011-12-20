@@ -37,4 +37,10 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     x = Hstore.find :first
     assert_equal({'1' => '2'}, x.tags)
   end
+
+  def test_select_multikey
+    @connection.execute "insert into hstores (tags) VALUES ('1=>2,2=>3')"
+    x = Hstore.find :first
+    assert_equal({'1' => '2', '2' => '3'}, x.tags)
+  end
 end
