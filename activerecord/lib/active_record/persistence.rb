@@ -209,7 +209,7 @@ module ActiveRecord
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
-        self.assign_attributes(attributes, options)
+        assign_attributes(attributes, options)
         save
       end
     end
@@ -220,7 +220,7 @@ module ActiveRecord
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
-        self.assign_attributes(attributes, options)
+        assign_attributes(attributes, options)
         save!
       end
     end
@@ -285,7 +285,7 @@ module ActiveRecord
       clear_association_cache
 
       IdentityMap.without do
-        fresh_object = self.class.unscoped { self.class.find(self.id, options) }
+        fresh_object = self.class.unscoped { self.class.find(id, options) }
         @attributes.update(fresh_object.instance_variable_get('@attributes'))
       end
 
