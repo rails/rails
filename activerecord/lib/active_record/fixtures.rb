@@ -392,10 +392,10 @@ module ActiveRecord
 
     @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
 
-    def self.find_table_name(table_name) # :nodoc:
+    def self.default_fixture_model_name(fixture_name) # :nodoc:
       ActiveRecord::Base.pluralize_table_names ?
-        table_name.to_s.singularize.camelize :
-        table_name.to_s.camelize
+        fixture_name.singularize.camelize :
+        fixture_name.camelize
     end
 
     def self.reset_cache
@@ -445,9 +445,6 @@ module ActiveRecord
 
     def self.create_fixtures(fixtures_directory, table_names, class_names = {})
       table_names = [table_names].flatten.map { |n| n.to_s }
-      table_names.each { |n|
-        class_names[n.tr('/', '_').to_sym] = n.classify if n.include?('/')
-      }
 
       # FIXME: Apparently JK uses this.
       connection = block_given? ? yield : ActiveRecord::Base.connection
@@ -462,11 +459,12 @@ module ActiveRecord
 
           fixture_files = files_to_read.map do |path|
             table_name = path.tr '/', '_'
+            fixture_name = path
 
-            fixtures_map[path] = ActiveRecord::Fixtures.new(
+            fixtures_map[fixture_name] = new( # ActiveRecord::Fixtures.new
               connection,
               table_name,
-              class_names[table_name.to_sym] || table_name.classify,
+              class_names[fixture_name] || default_fixture_model_name(fixture_name),
               File.join(fixtures_directory, path))
           end
 
@@ -782,14 +780,29 @@ module ActiveRecord
       self.use_instantiated_fixtures = false
       self.pre_loaded_fixtures = false
 
-      self.fixture_class_names = Hash.new do |h, table_name|
-        h[table_name] = ActiveRecord::Fixtures.find_table_name(table_name)
+      self.fixture_class_names = Hash.new do |h, fixture_name|
+        h[fixture_name] = ActiveRecord::Fixtures.default_fixture_model_name(fixture_name)
       end
     end
 
     module ClassMethods
+      # Sets the model class for a fixture when the class name cannot be inferred from the fixture name.
+      #
+      # Examples:
+      #
+      #   set_fixture_class :some_fixture        => SomeModel,
+      #                     'namespaced/fixture' => Another::Model
+      #
+      # The keys must be the fixture names, that coincide with the short paths to the fixture files.
+      #--
+      # It is also possible to pass the class name instead of the class:
+      #   set_fixture_class 'some_fixture' => 'SomeModel'
+      # I think this option is redundant, i propose to deprecate it.
+      # Isn't it easier to always pass the class itself?
+      # (2011-12-20 alexeymuranov)
+      #++
       def set_fixture_class(class_names = {})
-        self.fixture_class_names = self.fixture_class_names.merge(class_names)
+        self.fixture_class_names = self.fixture_class_names.merge(class_names.stringify_keys)
       end
 
       def fixtures(*fixture_names)
@@ -829,7 +842,7 @@ module ActiveRecord
         fixture_names = Array.wrap(fixture_names || fixture_table_names)
         methods = Module.new do
           fixture_names.each do |fixture_name|
-            fixture_name = fixture_name.to_s.tr('./', '_')
+            fixture_name = fixture_name.to_s.tr('./', '_') # TODO: use fixture_name variable for only one form of fixture names ("admin/users" for example)
 
             define_method(fixture_name) do |*fixtures|
               force_reload = fixtures.pop if fixtures.last == true || fixtures.last == :reload
