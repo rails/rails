@@ -478,7 +478,7 @@ class RecursiveHTTPFetcher
   def initialize(urls_to_fetch, level = 1, cwd = ".")
     @level = level
     @cwd = cwd
-    @urls_to_fetch = RUBY_VERSION >= '1.9' ? urls_to_fetch.lines : urls_to_fetch.to_a
+    @urls_to_fetch = urls_to_fetch.lines
     @quiet = false
   end
 

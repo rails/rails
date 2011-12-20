@@ -285,17 +285,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_ruby_debug
+  def test_inclusion_of_ruby_debug19
     run_generator
     assert_file "Gemfile" do |contents|
-      assert_match(/gem 'ruby-debug'/, contents) if RUBY_VERSION < '1.9'
-    end
-  end
-
-  def test_inclusion_of_ruby_debug19_if_ruby19
-    run_generator
-    assert_file "Gemfile" do |contents|
-      assert_match(/gem 'ruby-debug19', :require => 'ruby-debug'/, contents) unless RUBY_VERSION < '1.9'
+      assert_match(/gem 'ruby-debug19', :require => 'ruby-debug'/, contents)
     end
   end
 

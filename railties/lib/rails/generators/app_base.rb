@@ -182,11 +182,7 @@ module Rails
       end
 
       def ruby_debugger_gemfile_entry
-        if RUBY_VERSION < "1.9"
-          "gem 'ruby-debug'"
-        else
-          "gem 'ruby-debug19', :require => 'ruby-debug'"
-        end
+        "gem 'ruby-debug19', :require => 'ruby-debug'"
       end
 
       def assets_gemfile_entry
