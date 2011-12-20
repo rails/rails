@@ -128,13 +128,13 @@
       name: API Documentation Guidelines
       url: api_documentation_guidelines.html
       description: This guide documents the Ruby on Rails API documentation guidelines.
--
-  name: Release Notes
-  documents:
     - 
       name: Ruby on Rails Guides Guidelines
       url: ruby_on_rails_guides_guidelines.html
       description: This guide documents the Ruby on Rails guides guidelines.
+-
+  name: Release Notes
+  documents:
     - 
       name: Ruby on Rails 3.1 Release Notes
       url: 3_1_release_notes.html
