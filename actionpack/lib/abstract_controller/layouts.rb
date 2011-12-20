@@ -241,6 +241,7 @@ module AbstractController
       #   the template name
       # false::  There is no layout
       # true::   raise an ArgumentError
+      # nil::    Force default layout behavior with inheritance
       #
       # ==== Parameters
       # * <tt>layout</tt> - The layout to use.
@@ -254,7 +255,7 @@ module AbstractController
         conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
         self._layout_conditions = conditions
 
-        @_layout = layout || false # Converts nil to false
+        @_layout = layout
         _write_layout_method
       end
 

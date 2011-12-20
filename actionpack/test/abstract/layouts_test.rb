@@ -14,7 +14,10 @@ module AbstractControllerTests
         "layouts/overwrite.erb"         => "Overwrite <%= yield %>",
         "layouts/with_false_layout.erb" => "False Layout <%= yield %>",
         "abstract_controller_tests/layouts/with_string_implied_child.erb" =>
-                                           "With Implied <%= yield %>"
+                                           "With Implied <%= yield %>",
+        "abstract_controller_tests/layouts/with_grand_child_of_implied.erb" =>
+                                           "With Grand Child <%= yield %>"
+
       )]
     end
 
@@ -57,14 +60,14 @@ module AbstractControllerTests
       layout "hello_override"
     end
 
-    class WithNilChild < WithString
-      layout nil
-    end
-
     class WithStringImpliedChild < WithString
     end
 
     class WithChildOfImplied < WithStringImpliedChild
+    end
+
+    class WithGrandChildOfImplied < WithStringImpliedChild
+      layout nil
     end
 
     class WithProc < Base
@@ -262,17 +265,18 @@ module AbstractControllerTests
         assert_equal "With Implied Hello string!", controller.response_body
       end
 
-      test "when a child controller specifies layout nil, do not use the parent layout" do
-        controller = WithNilChild.new
-        controller.process(:index)
-        assert_equal "Hello string!", controller.response_body
-      end
-
       test "when a grandchild has no layout specified, the child has an implied layout, and the " \
         "parent has specified a layout, use the child controller layout" do
           controller = WithChildOfImplied.new
           assert_deprecated { controller.process(:index) }
           assert_equal "With Implied Hello string!", controller.response_body
+      end
+
+      test "when a grandchild has nil layout specified, the child has an implied layout, and the " \
+        "parent has specified a layout, use the child controller layout" do
+          controller = WithGrandChildOfImplied.new
+          controller.process(:index)
+          assert_equal "With Grand Child Hello string!", controller.response_body
       end
 
       test "raises an exception when specifying layout true" do
