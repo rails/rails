@@ -52,12 +52,39 @@ module ActiveRecord
 
         def cast_hstore(object)
           if Hash === object
-            object.map { |k,v| "#{k}=>#{v}" }.join ', '
+            object.map { |k,v|
+              "#{escape_hstore(k)}=>#{escape_hstore(v)}"
+            }.join ', '
           else
-            kvs = object.split(', ').map { |kv|
-              kv.split('=>').map { |k| k[1...-1] }
+            kvs = object.scan(/(?<!\\)".*?(?<!\\)"/).map { |o|
+              unescape_hstore(o[1...-1])
             }
-            Hash[kvs]
+            Hash[kvs.each_slice(2).to_a]
+          end
+        end
+
+        private
+        def unescape_hstore(value)
+          escape_values = {
+            '\\ '  => ' ',
+            '\\\\' => '\\',
+            '\\"'  => '"',
+            '\\='  => '=',
+          }
+          value.gsub(Regexp.union(escape_values.keys)) do |match|
+            escape_values[match]
+          end
+        end
+
+        def escape_hstore(value)
+          escape_values = {
+            ' '  => '\\ ',
+            '\\' => '\\\\',
+            '"'  => '\\"',
+            '='  => '\\=',
+          }
+          value.gsub(Regexp.union(escape_values.keys)) do |match|
+            escape_values[match]
           end
         end
       end
