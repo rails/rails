@@ -27,11 +27,6 @@ module ActiveSupport
     class InvalidSignature < StandardError; end
 
     def initialize(secret, options = {})
-      unless options.is_a?(Hash)
-        ActiveSupport::Deprecation.warn "The second parameter should be an options hash. Use :digest => 'algorithm' to specify the digest algorithm."
-        options = { :digest => options }
-      end
-
       @secret = secret
       @digest = options[:digest] || 'SHA1'
       @serializer = options[:serializer] || Marshal
