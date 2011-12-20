@@ -43,4 +43,11 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     x = Hstore.find :first
     assert_equal({'1' => '2', '2' => '3'}, x.tags)
   end
+
+  def test_create
+    hash = { 'a' => 'b', '1' => '2' }
+    x = Hstore.create!(:tags => hash)
+    x.reload
+    assert_equal hash, x.tags
+  end
 end

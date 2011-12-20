@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   PostgreSQL hstore records can be created.
+
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
 ## Rails 3.2.0 (unreleased) ##
