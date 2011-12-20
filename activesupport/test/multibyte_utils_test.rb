@@ -73,22 +73,12 @@ class MultibyteUtilsTest < ActiveSupport::TestCase
     'invalid Shift-JIS' => [184, 158, 8, 0, 255, 136, 165].pack('C*')
   }
 
-  if Kernel.const_defined?(:Encoding)
-    def example(key)
-      STRINGS[key].force_encoding(Encoding.default_external)
-    end
+  def example(key)
+    STRINGS[key].force_encoding(Encoding.default_external)
+  end
 
-    def examples
-      STRINGS.values.map { |s| s.force_encoding(Encoding.default_external) }
-    end
-  else
-    def example(key)
-      STRINGS[key]
-    end
-
-    def examples
-      STRINGS.values
-    end
+  def examples
+    STRINGS.values.map { |s| s.force_encoding(Encoding.default_external) }
   end
 
   KCODE_TO_ENCODING = Hash.new(Encoding::BINARY).
