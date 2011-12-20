@@ -1146,6 +1146,30 @@ h3. +select_all+
 Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 </ruby>
 
+h3. +pluck+
+
+<tt>pluck</tt> can be used to query a single column from the underlying table of a model. It accepts a column name as argument and returns an array of values of the specified column with the corresponding data type.
+
+<ruby>
+Client.where(:active => true).pluck(:id)
+# SELECT id FROM clients WHERE active = 1
+
+Client.uniq.pluck(:role)
+# SELECT DISTINCT role FROM clients
+</ruby>
+
++pluck+ makes it possible to replace code like
+
+<ruby>
+Client.select(:id).map { |c| c.id }
+</ruby>
+
+with
+
+<ruby>
+Client.pluck(:id)
+</ruby>
+
 h3. Existence of Objects
 
 If you simply want to check for the existence of the object there's a method called +exists?+. This method will query the database using the same query as +find+, but instead of returning an object or collection of objects it will return either +true+ or +false+.
@@ -1344,6 +1368,42 @@ EXPLAIN for: SELECT `posts`.* FROM `posts`  WHERE `posts`.`user_id` IN (1)
 </plain>
 
 under MySQL.
+
+h4. Automatic EXPLAIN
+
+Active Record is able to run EXPLAIN automatically on slow queries and log its
+output. This feature is controlled by the configuration parameter
+
+<ruby>
+config.active_record.auto_explain_threshold_in_seconds
+</ruby>
+
+If set to a number, any query exceeding those many seconds will have its EXPLAIN
+automatically triggered and logged. In the case of relations, the threshold is
+compared to the total time needed to fetch records. So, a relation is seen as a
+unit of work, no matter whether the implementation of eager loading involves
+several queries under the hood.
+
+A threshold of +nil+ disables automatic EXPLAINs.
+
+The default threshold in development mode is 0.5 seconds, and +nil+ in test and
+production modes.
+
+h5. Disabling Automatic EXPLAIN
+
+Automatic EXPLAIN can be selectively silenced with +ActiveRecord::Base.silence_auto_explain+:
+
+<ruby>
+ActiveRecord::Base.silence_auto_explain do
+  # no automatic EXPLAIN is triggered here
+end
+</ruby>
+
+That may be useful for queries you know are slow but fine, like a heavyweight
+report of an admin interface.
+
+As its name suggests, +silence_auto_explain+ only silences automatic EXPLAINs.
+Explicit calls to +ActiveRecord::Relation#explain+ run.
 
 h4. Interpreting EXPLAIN
 

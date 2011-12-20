@@ -81,6 +81,14 @@ module ActiveSupport
       send("_run_#{kind}_callbacks", *args, &block)
     end
 
+    private
+
+    # A hook invoked everytime a before callback is halted.
+    # This can be overriden in AS::Callback implementors in order
+    # to provide better debugging/logging.
+    def halted_callback_hook(filter)
+    end
+
     class Callback #:nodoc:#
       @@_callback_sequence = 0
 
@@ -173,12 +181,14 @@ module ActiveSupport
           # end
           <<-RUBY_EVAL
             if !halted && #{@compiled_options}
-              # This double assignment is to prevent warnings in 1.9.3.  I would
-              # remove the `result` variable, but apparently some other
-              # generated code is depending on this variable being set sometimes
-              # and sometimes not.
+              # This double assignment is to prevent warnings in 1.9.3 as
+              # the `result` variable is not always used except if the
+              # terminator code refers to it.
               result = result = #{@filter}
               halted = (#{chain.config[:terminator]})
+              if halted
+                halted_callback_hook(#{@raw_filter.inspect.inspect})
+              end
             end
           RUBY_EVAL
         when :around

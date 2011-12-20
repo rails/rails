@@ -248,7 +248,7 @@ the following:
 $ rails --version
 </shell>
 
-If it says something like "Rails 3.1.1" you are ready to continue.
+If it says something like "Rails 3.1.3" you are ready to continue.
 
 h4. Creating the Blog Application
 
@@ -289,7 +289,7 @@ rundown on the function of each of the files and folders that Rails created by d
 |log/|Application log files.|
 |public/|The only folder seen to the world as-is. Contains the static files and compiled assets.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
-|README|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
+|README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
 |tmp/|Temporary files|
@@ -449,6 +449,8 @@ start a web server on your development machine. You can do this by running:
 <shell>
 $ rails server
 </shell>
+
+TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an +execjs+ error. Usually Mac OS X and Windows come with a JavaScript runtime installed. +therubyracer+ and +therubyrhino+ are the commonly used runtimes for Ruby and JRuby respectively. You can also investigate a list of runtimes at "ExecJS":https://github.com/sstephenson/execjs.
 
 This will fire up an instance of the WEBrick web server by default (Rails can
 also use several other web servers). To see your application in action, open a

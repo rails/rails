@@ -228,7 +228,7 @@ module Rails
   #     resources :articles
   #   end
   #
-  # The routes above will automatically point to <tt>MyEngine::ApplicationContoller</tt>. Furthermore, you don't
+  # The routes above will automatically point to <tt>MyEngine::ApplicationController</tt>. Furthermore, you don't
   # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you should simply use
   # <tt>articles_path</tt> as you would do with your application.
   #
@@ -517,7 +517,7 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds"].existent.first
-      load(seed_file) if seed_file && File.exist?(seed_file)
+      load(seed_file) if seed_file
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.

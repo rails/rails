@@ -30,7 +30,7 @@ module ActiveSupport
       @logger.add(severity, "#{tags_text}#{message}", progname, &block)
     end
 
-    %w( fatal error warn info debug unkown ).each do |severity|
+    %w( fatal error warn info debug unknown ).each do |severity|
       eval <<-EOM, nil, __FILE__, __LINE__ + 1
         def #{severity}(progname = nil, &block)
           add(Logger::#{severity.upcase}, progname, &block)
@@ -38,9 +38,9 @@ module ActiveSupport
       EOM
     end
 
-    def flush(*args)
+    def flush
       @tags.delete(Thread.current)
-      @logger.flush(*args) if @logger.respond_to?(:flush)
+      @logger.flush if @logger.respond_to?(:flush)
     end
 
     def method_missing(method, *args)

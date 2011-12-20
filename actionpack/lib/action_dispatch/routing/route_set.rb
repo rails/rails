@@ -356,7 +356,7 @@ module ActionDispatch
         conditions = build_conditions(conditions, valid_conditions, path.names.map { |x| x.to_sym })
 
         route = @set.add_route(app, path, conditions, defaults, name)
-        named_routes[name] = route if name
+        named_routes[name] = route if name && !named_routes[name]
         route
       end
 
@@ -557,7 +557,7 @@ module ActionDispatch
         path_addition, params = generate(path_options, path_segments || {})
         path << path_addition
 
-        ActionDispatch::Http::URL.url_for(options.merge({
+        ActionDispatch::Http::URL.url_for(options.merge!({
           :path => path,
           :params => params,
           :user => user,

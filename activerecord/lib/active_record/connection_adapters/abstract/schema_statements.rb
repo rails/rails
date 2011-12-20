@@ -16,8 +16,6 @@ module ActiveRecord
         table_name[0...table_alias_length].gsub(/\./, '_')
       end
 
-      # def tables(name = nil) end
-
       # Checks to see if the table +table_name+ exists on the database.
       #
       # === Example
@@ -114,7 +112,7 @@ module ActiveRecord
       #   Defaults to +id+. If <tt>:id</tt> is false this option is ignored.
       #
       #   Also note that this just sets the primary key in the table. You additionally
-      #   need to configure the primary key in the model via the +set_primary_key+ macro.
+      #   need to configure the primary key in the model via +self.primary_key=+.
       #   Models do NOT auto-detect the primary key from their table definition.
       #
       # [<tt>:options</tt>]

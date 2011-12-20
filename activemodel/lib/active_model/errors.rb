@@ -176,8 +176,9 @@ module ActiveModel
     end
 
     # Returns true if no errors are found, false otherwise.
+    # If the error message is a string it can be empty.
     def empty?
-      all? { |k, v| v && v.empty? }
+      all? { |k, v| v && v.empty? && !v.is_a?(String) }
     end
     alias_method :blank?, :empty?
 

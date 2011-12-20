@@ -49,10 +49,18 @@ module ActiveRecord
           end
         else
           column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
+          relation = scoped
 
-          scoped.select(column).map! do |record|
-            record.send(reflection.association_primary_key)
+          including = (relation.eager_load_values + relation.includes_values).uniq
+
+          if including.any?
+            join_dependency = ActiveRecord::Associations::JoinDependency.new(reflection.klass, including, [])
+            relation = join_dependency.join_associations.inject(relation) do |r, association|
+              association.join_relation(r)
+            end
           end
+
+          relation.uniq.pluck(column)
         end
       end
 
@@ -152,6 +160,13 @@ module ActiveRecord
         end
       end
 
+      # Called when the association is declared as :dependent => :delete_all. This is
+      # an optimised version which avoids loading the records into memory. Not really
+      # for public consumption.
+      def delete_all_on_destroy
+        scoped.delete_all
+      end
+
       # Destroy all the records from this association.
       #
       # See destroy for more info.
@@ -235,7 +250,7 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if owner.new_record? || (loaded? && !options[:uniq])
+        if !find_target? || (loaded? && !options[:uniq])
           target.size
         elsif !loaded? && options[:group]
           load_target.size

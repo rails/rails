@@ -390,6 +390,11 @@ module ActiveRecord
         true
       end
 
+      # Returns true.
+      def supports_explain?
+        true
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
         @table_alias_length ||= query('SHOW max_identifier_length')[0][0].to_i
@@ -514,9 +519,9 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
-      def explain(arel)
+      def explain(arel, binds = [])
         sql = "EXPLAIN #{to_sql(arel)}"
-        ExplainPrettyPrinter.new.pp(exec_query(sql))
+        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
       end
 
       class ExplainPrettyPrinter # :nodoc:

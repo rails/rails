@@ -1,12 +1,9 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Renamed (with a deprecation the following constants):
+*   Deprecated `define_attr_method` in `ActiveModel::AttributeMethods`, because this only existed to
+    support methods like `set_table_name` in Active Record, which are themselves being deprecated.
 
-        ActiveModel::Serialization     => ActiveModel::Serializable
-        ActiveModel::Serializers::JSON => ActiveModel::Serializable::JSON
-        ActiveModel::Serializers::Xml  => ActiveModel::Serializable::XML
-
-    *José Valim*
+    *Jon Leighton*
 
 *   Add ActiveModel::Errors#added? to check if a specific error has been added *Martin Svalin*
 

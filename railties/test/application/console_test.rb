@@ -61,7 +61,6 @@ class ConsoleTest < Test::Unit::TestCase
 
     load_environment
     assert User.new.respond_to?(:name)
-    assert !User.new.respond_to?(:age)
 
     app_file "app/models/user.rb", <<-MODEL
       class User

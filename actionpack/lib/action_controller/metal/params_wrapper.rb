@@ -43,6 +43,11 @@ module ActionController
   #       wrap_parameters :person, :include => [:username, :password]
   #     end
   #
+  # On ActiveRecord models with no +:include+ or +:exclude+ option set, 
+  # if attr_accessible is set on that model, it will only wrap the accessible
+  # parameters, else it will only wrap the parameters returned by the class 
+  # method attribute_names.
+  #
   # If you're going to pass the parameters to an +ActiveModel+ object (such as
   # +User.new(params[:user])+), you might consider passing the model class to
   # the method instead. The +ParamsWrapper+ will actually try to determine the
@@ -141,7 +146,7 @@ module ActionController
       # try to find Foo::Bar::User, Foo::User and finally User.
       def _default_wrap_model #:nodoc:
         return nil if self.anonymous?
-        model_name = self.name.sub(/Controller$/, '').singularize
+        model_name = self.name.sub(/Controller$/, '').classify
 
         begin
           if model_klass = model_name.safe_constantize
@@ -162,7 +167,9 @@ module ActionController
 
         unless options[:include] || options[:exclude]
           model ||= _default_wrap_model
-          if model.respond_to?(:attribute_names) && model.attribute_names.present?
+          if model.respond_to?(:accessible_attributes) && model.accessible_attributes.present?
+            options[:include] = model.accessible_attributes.to_a
+          elsif model.respond_to?(:attribute_names) && model.attribute_names.present?
             options[:include] = model.attribute_names
           end
         end

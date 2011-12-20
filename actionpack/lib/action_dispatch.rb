@@ -51,9 +51,12 @@ module ActionDispatch
     autoload :BestStandardsSupport
     autoload :Callbacks
     autoload :Cookies
+    autoload :DebugExceptions
+    autoload :ExceptionWrapper
     autoload :Flash
     autoload :Head
     autoload :ParamsParser
+    autoload :PublicExceptions
     autoload :Reloader
     autoload :RemoteIp
     autoload :Rescue
@@ -61,7 +64,6 @@ module ActionDispatch
     autoload :Static
   end
 
-  autoload :ClosedError, 'action_dispatch/middleware/closed_error'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
   autoload :Routing
 

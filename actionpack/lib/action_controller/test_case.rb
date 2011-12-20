@@ -86,6 +86,21 @@ module ActionController
           end
         end
       when Hash
+        if expected_layout = options[:layout]
+          msg = build_message(message,
+                  "expecting layout <?> but action rendered <?>",
+                  expected_layout, @layouts.keys)
+
+          case expected_layout
+          when String
+            assert(@layouts.keys.include?(expected_layout), msg)
+          when Regexp
+            assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
+          when nil
+            assert(@layouts.empty?, msg)
+          end
+        end
+
         if expected_partial = options[:partial]
           if expected_locals = options[:locals]
             actual_locals = @locals[expected_partial.to_s.sub(/^_/,'')]
@@ -98,19 +113,6 @@ module ActionController
                     "expecting ? to be rendered ? time(s) but rendered ? time(s)",
                      expected_partial, expected_count, actual_count)
             assert(actual_count == expected_count.to_i, msg)
-          elsif options.key?(:layout)
-            msg = build_message(message,
-                    "expecting layout <?> but action rendered <?>",
-                    expected_layout, @layouts.keys)
-
-            case layout = options[:layout]
-            when String
-              assert(@layouts.include?(expected_layout), msg)
-            when Regexp
-              assert(@layouts.any? {|l| l =~ layout }, msg)
-            when nil
-              assert(@layouts.empty?, msg)
-            end
           else
             msg = build_message(message,
                     "expecting partial <?> but action rendered <?>",
@@ -296,11 +298,11 @@ module ActionController
   #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
   #   assert flash.empty? # makes sure that there's nothing in the flash
   #
-  # For historic reasons, the assigns hash uses string-based keys. So assigns[:person] won't work, but assigns["person"] will. To
+  # For historic reasons, the assigns hash uses string-based keys. So <tt>assigns[:person]</tt> won't work, but <tt>assigns["person"]</tt> will. To
   # appease our yearning for symbols, though, an alternative accessor has been devised using a method call instead of index referencing.
-  # So assigns(:person) will work just like assigns["person"], but again, assigns[:person] will not work.
+  # So <tt>assigns(:person)</tt> will work just like <tt>assigns["person"]</tt>, but again, <tt>assigns[:person]</tt> will not work.
   #
-  # On top of the collections, you have the complete url that a given action redirected to available in redirect_to_url.
+  # On top of the collections, you have the complete url that a given action redirected to available in <tt>redirect_to_url</tt>.
   #
   # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
   # action call which can then be asserted against.

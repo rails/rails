@@ -5,10 +5,11 @@ require 'active_record/session_store'
 module ActiveRecord
   class SessionStore
     class SessionTest < ActiveRecord::TestCase
-      self.use_transactional_fixtures = false unless supports_savepoints? && ActiveRecord::Base.connection.supports_ddl_transactions?
+      self.use_transactional_fixtures = false
 
       def setup
         super
+        ActiveRecord::Base.connection.schema_cache.clear!
         Session.drop_table! if Session.table_exists?
       end
 

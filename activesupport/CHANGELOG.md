@@ -1,4 +1,14 @@
+## Rails 4.0.0 (unreleased) ##
+
+* BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger
+  from Ruby stdlib.
+
 ## Rails 3.2.0 (unreleased) ##
+
+*   Added Enumerable#pluck to wrap the common pattern of collect(&:method) *DHH*
+
+*   Module#synchronize is deprecated with no replacement.  Please use `monitor`
+    from ruby's standard library.
 
 *   (Date|DateTime|Time)#beginning_of_week accept an optional argument to
     be able to set the day at which weeks are assumed to start.
@@ -41,6 +51,28 @@
 
 *   ActiveSupport::OrderedHash now has different behavior for #each and
     \#each_pair when given a block accepting its parameters with a splat. *Andrew Radev*
+
+*   ActiveSupport::BufferedLogger#silence is deprecated.  If you want to squelch
+    logs for a certain block, change the log level for that block.
+
+*   ActiveSupport::BufferedLogger#open_log is deprecated.  This method should
+    not have been public in the first place.
+
+*   ActiveSupport::BufferedLogger's behavior of automatically creating the
+    directory for your log file is deprecated.  Please make sure to create the
+    directory for your log file before instantiating.
+
+*   ActiveSupport::BufferedLogger#auto_flushing is deprecated.  Either set the
+    sync level on the underlying file handle like this:
+
+        f = File.open('foo.log', 'w')
+        f.sync = true
+        ActiveSupport::BufferedLogger.new f
+
+    Or tune your filesystem.  The FS cache is now what controls flushing.
+
+*   ActiveSupport::BufferedLogger#flush is deprecated.  Set sync on your
+    filehandle, or tune your filesystem.
 
 ## Rails 3.1.0 (August 30, 2011) ##
 

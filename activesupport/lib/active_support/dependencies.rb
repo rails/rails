@@ -71,14 +71,24 @@ module ActiveSupport #:nodoc:
     #
     # This is handled by walking back up the watch stack and adding the constants
     # found by child.rb to the list of original constants in parent.rb
-    class WatchStack < Hash
+    class WatchStack
+      include Enumerable
+
       # @watching is a stack of lists of constants being watched. For instance,
       # if parent.rb is autoloaded, the stack will look like [[Object]]. If parent.rb
       # then requires namespace/child.rb, the stack will look like [[Object], [Namespace]].
 
       def initialize
         @watching = []
-        super { |h,k| h[k] = [] }
+        @stack = Hash.new { |h,k| h[k] = [] }
+      end
+
+      def each(&block)
+        @stack.each(&block)
+      end
+
+      def watching?
+        !@watching.empty?
       end
 
       # return a list of new constants found since the last call to watch_namespaces
@@ -89,7 +99,7 @@ module ActiveSupport #:nodoc:
         @watching.last.each do |namespace|
           # Retrieve the constants that were present under the namespace when watch_namespaces
           # was originally called
-          original_constants = self[namespace].last
+          original_constants = @stack[namespace].last
 
           mod = Inflector.constantize(namespace) if Dependencies.qualified_const_defined?(namespace)
           next unless mod.is_a?(Module)
@@ -102,7 +112,7 @@ module ActiveSupport #:nodoc:
           # element of self[Object] will be an Array of the constants that were present
           # before parent.rb was required. The second element will be an Array of the
           # constants that were present before child.rb was required.
-          self[namespace].each do |namespace_constants|
+          @stack[namespace].each do |namespace_constants|
             namespace_constants.concat(new_constants)
           end
 
@@ -126,13 +136,14 @@ module ActiveSupport #:nodoc:
             Inflector.constantize(module_name).local_constant_names : []
 
           watching << module_name
-          self[module_name] << original_constants
+          @stack[module_name] << original_constants
         end
         @watching << watching
       end
 
+      private
       def pop_modules(modules)
-        modules.each { |mod| self[mod].pop }
+        modules.each { |mod| @stack[mod].pop }
       end
     end
 
@@ -219,8 +230,8 @@ module ActiveSupport #:nodoc:
       end
 
       def load_dependency(file)
-        if Dependencies.load?
-          Dependencies.new_constants_in(Object) { yield }.presence
+        if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
+          Dependencies.new_constants_in(Object) { yield }
         else
           yield
         end
@@ -229,13 +240,13 @@ module ActiveSupport #:nodoc:
         raise
       end
 
-      def load(file, *)
+      def load(file, wrap = false)
         result = false
         load_dependency(file) { result = super }
         result
       end
 
-      def require(file, *)
+      def require(file)
         result = false
         load_dependency(file) { result = super }
         result

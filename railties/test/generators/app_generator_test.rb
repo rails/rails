@@ -1,4 +1,3 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
 require 'generators/shared_generator_tests.rb'
@@ -55,6 +54,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb", /javascript_include_tag\s+"application"/
     assert_file "app/assets/stylesheets/application.css"
     assert_file "config/application.rb", /config\.assets\.enabled = true/
+    assert_file "public/index.html", /url\("assets\/rails.png"\);/
   end
 
   def test_invalid_application_name_raises_an_error
@@ -121,6 +121,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_application_names_are_not_singularized
     run_generator [File.join(destination_root, "hats")]
     assert_file "hats/config/environment.rb", /Hats::Application\.initialize!/
+  end
+
+  def test_gemfile_has_no_whitespace_errors
+    run_generator
+    absolute = File.expand_path("Gemfile", destination_root)
+    File.open(absolute, 'r') do |f|
+      f.each_line do |line|
+        assert_no_match %r{/^[ \t]+$/}, line
+      end
+    end
   end
 
   def test_config_database_is_added_by_default
@@ -205,13 +215,29 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
       assert_no_match(/config\.assets\.enabled = true/, content)
     end
+    assert_file "Gemfile" do |content|
+      assert_no_match(/sass-rails/, content)
+      assert_no_match(/coffee-rails/, content)
+      assert_no_match(/uglifier/, content)
+    end
+    assert_file "config/environments/development.rb" do |content|
+      assert_no_match(/config\.assets\.debug = true/, content)
+    end
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/config\.assets\.digest = true/, content)
+      assert_no_match(/config\.assets\.compress = true/, content)
+    end
     assert_file "test/performance/browsing_test.rb"
   end
 
   def test_inclusion_of_therubyrhino_under_jruby
+    run_generator([destination_root])
     if defined?(JRUBY_VERSION)
-      run_generator([destination_root])
       assert_file "Gemfile", /gem\s+["']therubyrhino["']$/
+    else
+      assert_file "Gemfile" do |content|
+        assert_no_match(/gem\s+["']therubyrhino["']$/, content)
+      end
     end
   end
 
@@ -328,9 +354,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generated_environments_file_for_sanitizer
     run_generator [destination_root, "--skip-active-record"]
-    ["config/environments/development.rb", "config/environments/test.rb"].each do |env_file|
-      assert_file env_file do |file|
+    %w(development test).each do |env|
+      assert_file "config/environments/#{env}.rb" do |file|
         assert_no_match(/config.active_record.mass_assignment_sanitizer = :strict/, file)
+      end
+    end
+  end
+
+  def test_generated_environments_file_for_auto_explain
+    run_generator [destination_root, "--skip-active-record"]
+    %w(development production).each do |env|
+      assert_file "config/environments/#{env}.rb" do |file|
+        assert_no_match %r(auto_explain_threshold_in_seconds), file
       end
     end
   end

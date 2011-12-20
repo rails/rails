@@ -6,12 +6,16 @@ require 'models/topic'
 require 'models/developer'
 
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
+require MIGRATIONS_ROOT + "/rename/1_we_need_things"
+require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
 if ActiveRecord::Base.connection.supports_migrations?
   class BigNumber < ActiveRecord::Base; end
 
   class Reminder < ActiveRecord::Base; end
+
+  class Thing < ActiveRecord::Base; end
 
   class ActiveRecord::Migration
     class << self
@@ -56,6 +60,11 @@ if ActiveRecord::Base.connection.supports_migrations?
     def teardown
       ActiveRecord::Base.connection.initialize_schema_migrations_table
       ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::Migrator.schema_migrations_table_name}"
+
+      %w(things awesome_things prefix_things_suffix prefix_awesome_things_suffix).each do |table|
+        Thing.connection.drop_table(table) rescue nil
+      end
+      Thing.reset_column_information
 
       %w(reminders people_reminders prefix_reminders_suffix).each do |table|
         Reminder.connection.drop_table(table) rescue nil
@@ -1027,7 +1036,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         t.column :title, :string
       end
       person_klass = Class.new(Person)
-      person_klass.set_table_name 'testings'
+      person_klass.table_name = 'testings'
 
       person_klass.connection.add_column "testings", "wealth", :integer, :null => false, :default => 99
       person_klass.reset_column_information
@@ -1226,6 +1235,24 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     end
 
+    def test_filtering_migrations
+      assert !Person.column_methods_hash.include?(:last_name)
+      assert !Reminder.table_exists?
+
+      name_filter = lambda { |migration| migration.name == "ValidPeopleHaveLastNames" }
+      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", &name_filter)
+
+      Person.reset_column_information
+      assert Person.column_methods_hash.include?(:last_name)
+      assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+
+      ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", &name_filter)
+
+      Person.reset_column_information
+      assert !Person.column_methods_hash.include?(:last_name)
+      assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    end
+
     class MockMigration < ActiveRecord::Migration
       attr_reader :went_up, :went_down
       def initialize
@@ -1330,6 +1357,15 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_finds_migrations
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
+
+      [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
+        assert_equal migrations[i].version, pair.first
+        assert_equal migrations[i].name, pair.last
+      end
+    end
+
+    def test_finds_migrations_in_subdirectories
+      migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid_with_subdirectories").migrations
 
       [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
         assert_equal migrations[i].version, pair.first
@@ -1532,6 +1568,28 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_prefix = ""
       ActiveRecord::Base.table_name_suffix = ""
       Reminder.reset_table_name
+    end
+
+    def test_rename_table_with_prefix_and_suffix
+      assert !Thing.table_exists?
+      ActiveRecord::Base.table_name_prefix = 'prefix_'
+      ActiveRecord::Base.table_name_suffix = '_suffix'
+      Thing.reset_table_name
+      Thing.reset_sequence_name
+      WeNeedThings.up
+
+      assert Thing.create("content" => "hello world")
+      assert_equal "hello world", Thing.find(:first).content
+
+      RenameThings.up
+      Thing.table_name = "prefix_awesome_things_suffix"
+
+      assert_equal "hello world", Thing.find(:first).content
+    ensure
+      ActiveRecord::Base.table_name_prefix = ''
+      ActiveRecord::Base.table_name_suffix = ''
+      Thing.reset_table_name
+      Thing.reset_sequence_name
     end
 
     def test_add_drop_table_with_prefix_and_suffix
@@ -2068,9 +2126,12 @@ if ActiveRecord::Base.connection.supports_migrations?
       @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
       copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
-      assert File.exists?(@migrations_path + "/4_people_have_hobbies.rb")
-      assert File.exists?(@migrations_path + "/5_people_have_descriptions.rb")
-      assert_equal [@migrations_path + "/4_people_have_hobbies.rb", @migrations_path + "/5_people_have_descriptions.rb"], copied.map(&:filename)
+      assert File.exists?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
+      assert File.exists?(@migrations_path + "/5_people_have_descriptions.bukkits.rb")
+      assert_equal [@migrations_path + "/4_people_have_hobbies.bukkits.rb", @migrations_path + "/5_people_have_descriptions.bukkits.rb"], copied.map(&:filename)
+
+      expected = "# This migration comes from bukkits (originally 1)"
+      assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.bukkits.rb")[0].chomp
 
       files_count = Dir[@migrations_path + "/*.rb"].length
       copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
@@ -2089,10 +2150,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy"
       sources[:omg] = MIGRATIONS_ROOT + "/to_copy2"
       ActiveRecord::Migration.copy(@migrations_path, sources)
-      assert File.exists?(@migrations_path + "/4_people_have_hobbies.rb")
-      assert File.exists?(@migrations_path + "/5_people_have_descriptions.rb")
-      assert File.exists?(@migrations_path + "/6_create_articles.rb")
-      assert File.exists?(@migrations_path + "/7_create_comments.rb")
+      assert File.exists?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
+      assert File.exists?(@migrations_path + "/5_people_have_descriptions.bukkits.rb")
+      assert File.exists?(@migrations_path + "/6_create_articles.omg.rb")
+      assert File.exists?(@migrations_path + "/7_create_comments.omg.rb")
 
       files_count = Dir[@migrations_path + "/*.rb"].length
       ActiveRecord::Migration.copy(@migrations_path, sources)
@@ -2107,10 +2168,10 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
-        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
-        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
-        expected = [@migrations_path + "/20100726101010_people_have_hobbies.rb",
-                    @migrations_path + "/20100726101011_people_have_descriptions.rb"]
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
+        expected = [@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb",
+                    @migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb"]
         assert_equal expected, copied.map(&:filename)
 
         files_count = Dir[@migrations_path + "/*.rb"].length
@@ -2132,10 +2193,10 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, sources)
-        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
-        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
-        assert File.exists?(@migrations_path + "/20100726101012_create_articles.rb")
-        assert File.exists?(@migrations_path + "/20100726101013_create_comments.rb")
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
+        assert File.exists?(@migrations_path + "/20100726101012_create_articles.omg.rb")
+        assert File.exists?(@migrations_path + "/20100726101013_create_comments.omg.rb")
         assert_equal 4, copied.length
 
         files_count = Dir[@migrations_path + "/*.rb"].length
@@ -2152,8 +2213,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Time.travel_to(Time.utc(2010, 2, 20, 10, 10, 10)) do
         ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
-        assert File.exists?(@migrations_path + "/20100301010102_people_have_hobbies.rb")
-        assert File.exists?(@migrations_path + "/20100301010103_people_have_descriptions.rb")
+        assert File.exists?(@migrations_path + "/20100301010102_people_have_hobbies.bukkits.rb")
+        assert File.exists?(@migrations_path + "/20100301010103_people_have_descriptions.bukkits.rb")
 
         files_count = Dir[@migrations_path + "/*.rb"].length
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
@@ -2169,15 +2230,34 @@ if ActiveRecord::Base.connection.supports_migrations?
       @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
       sources = ActiveSupport::OrderedHash.new
-      sources[:bukkits] = sources[:omg] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
+      sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
+      sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_name_collision"
 
       skipped = []
       on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
       copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
       assert_equal 2, copied.length
 
-      assert_equal 2, skipped.length
-      assert_equal ["bukkits PeopleHaveHobbies", "bukkits PeopleHaveDescriptions"], skipped
+      assert_equal 1, skipped.length
+      assert_equal ["omg PeopleHaveHobbies"], skipped
+    ensure
+      clear
+    end
+
+    def test_skip_is_not_called_if_migrations_are_from_the_same_plugin
+      @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      sources = ActiveSupport::OrderedHash.new
+      sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
+
+      skipped = []
+      on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
+      copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+      ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+
+      assert_equal 2, copied.length
+      assert_equal 0, skipped.length
     ensure
       clear
     end
@@ -2188,8 +2268,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
-        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
-        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
         assert_equal 2, copied.length
       end
     ensure
@@ -2203,8 +2283,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
-        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
-        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
         assert_equal 2, copied.length
       end
     ensure

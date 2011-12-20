@@ -69,6 +69,15 @@ end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
+  def test_generated_methods_modules
+    modules = Computer.ancestors
+    assert modules.include?(Computer::GeneratedFeatureMethods)
+    assert_equal(Computer::GeneratedFeatureMethods, Computer.generated_feature_methods)
+    assert(modules.index(Computer.generated_attribute_methods) > modules.index(Computer.generated_feature_methods),
+           "generated_attribute_methods must be higher in inheritance hierarchy than generated_feature_methods")
+    assert_not_equal Computer.generated_feature_methods, Post.generated_feature_methods
+  end
+
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection
     classname = conn.class.name[/[^:]*$/]
@@ -561,10 +570,12 @@ class BasicsTest < ActiveRecord::TestCase
     weird = Weird.create('a$b' => 'value')
     weird.reload
     assert_equal 'value', weird.send('a$b')
+    assert_equal 'value', weird.read_attribute('a$b')
 
     weird.update_column('a$b', 'value2')
     weird.reload
     assert_equal 'value2', weird.send('a$b')
+    assert_equal 'value2', weird.read_attribute('a$b')
   end
 
   def test_multiparameter_attributes_on_date
@@ -1185,19 +1196,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert(auto.id > 0)
   end
 
-  def quote_column_name(name)
-    "<#{name}>"
-  end
-
-  def test_quote_keys
-    ar = AutoId.new
-    source = {"foo" => "bar", "baz" => "quux"}
-    actual = ar.send(:quote_columns, self, source)
-    inverted = actual.invert
-    assert_equal("<foo>", inverted["bar"])
-    assert_equal("<baz>", inverted["quux"])
-  end
-
   def test_sql_injection_via_find
     assert_raise(ActiveRecord::RecordNotFound, ActiveRecord::StatementInvalid) do
       Topic.find("123456 OR id > 0")
@@ -1401,37 +1399,23 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal dev, dev.reload
   end
 
-  def test_define_attr_method_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.send(:define_attr_method, :table_name, "foo")
-    assert_equal "foo", k.table_name
-  end
-
-  def test_define_attr_method_with_block
-    k = Class.new( ActiveRecord::Base ) do
-      class << self
-        attr_accessor :foo_key
-      end
-    end
-    k.foo_key = "id"
-    k.send(:define_attr_method, :foo_key) { "sys_" + original_foo_key }
-    assert_equal "sys_id", k.foo_key
-  end
-
   def test_set_table_name_with_value
     k = Class.new( ActiveRecord::Base )
     k.table_name = "foo"
     assert_equal "foo", k.table_name
-    k.set_table_name "bar"
+
+    assert_deprecated do
+      k.set_table_name "bar"
+    end
     assert_equal "bar", k.table_name
   end
 
   def test_switching_between_table_name
     assert_difference("GoodJoke.count") do
-      Joke.set_table_name "cold_jokes"
+      Joke.table_name = "cold_jokes"
       Joke.create
 
-      Joke.set_table_name "funny_jokes"
+      Joke.table_name = "funny_jokes"
       Joke.create
     end
   end
@@ -1439,48 +1423,180 @@ class BasicsTest < ActiveRecord::TestCase
   def test_quoted_table_name_after_set_table_name
     klass = Class.new(ActiveRecord::Base)
 
-    klass.set_table_name "foo"
+    klass.table_name = "foo"
     assert_equal "foo", klass.table_name
     assert_equal klass.connection.quote_table_name("foo"), klass.quoted_table_name
 
-    klass.set_table_name "bar"
+    klass.table_name = "bar"
     assert_equal "bar", klass.table_name
     assert_equal klass.connection.quote_table_name("bar"), klass.quoted_table_name
   end
 
   def test_set_table_name_with_block
     k = Class.new( ActiveRecord::Base )
-    k.set_table_name { "ks" }
-    assert_equal "ks", k.table_name
+    assert_deprecated do
+      k.set_table_name "foo"
+      k.set_table_name do
+        ActiveSupport::Deprecation.silence { original_table_name } + "ks"
+      end
+    end
+    assert_equal "fooks", k.table_name
+  end
+
+  def test_set_table_name_with_inheritance
+    k = Class.new( ActiveRecord::Base )
+    def k.name; "Foo"; end
+    def k.table_name; super + "ks"; end
+    assert_equal "foosks", k.table_name
+  end
+
+  def test_original_table_name
+    k = Class.new(ActiveRecord::Base)
+    def k.name; "Foo"; end
+    k.table_name = "bar"
+
+    assert_deprecated do
+      assert_equal "foos", k.original_table_name
+    end
+
+    k = Class.new(ActiveRecord::Base)
+    k.table_name = "omg"
+    k.table_name = "wtf"
+
+    assert_deprecated do
+      assert_equal "omg", k.original_table_name
+    end
   end
 
   def test_set_primary_key_with_value
     k = Class.new( ActiveRecord::Base )
     k.primary_key = "foo"
     assert_equal "foo", k.primary_key
-    k.set_primary_key "bar"
+
+    assert_deprecated do
+      k.set_primary_key "bar"
+    end
     assert_equal "bar", k.primary_key
   end
 
   def test_set_primary_key_with_block
     k = Class.new( ActiveRecord::Base )
     k.primary_key = 'id'
-    k.set_primary_key { "sys_" + original_primary_key }
+
+    assert_deprecated do
+      k.set_primary_key do
+        "sys_" + ActiveSupport::Deprecation.silence { original_primary_key }
+      end
+    end
     assert_equal "sys_id", k.primary_key
+  end
+
+  def test_original_primary_key
+    k = Class.new(ActiveRecord::Base)
+    def k.name; "Foo"; end
+    k.table_name = "posts"
+    k.primary_key = "bar"
+
+    assert_deprecated do
+      assert_equal "id", k.original_primary_key
+    end
+
+    k = Class.new(ActiveRecord::Base)
+    k.primary_key = "omg"
+    k.primary_key = "wtf"
+
+    assert_deprecated do
+      assert_equal "omg", k.original_primary_key
+    end
   end
 
   def test_set_inheritance_column_with_value
     k = Class.new( ActiveRecord::Base )
     k.inheritance_column = "foo"
     assert_equal "foo", k.inheritance_column
-    k.set_inheritance_column "bar"
+
+    assert_deprecated do
+      k.set_inheritance_column "bar"
+    end
     assert_equal "bar", k.inheritance_column
   end
 
   def test_set_inheritance_column_with_block
     k = Class.new( ActiveRecord::Base )
-    k.set_inheritance_column { original_inheritance_column + "_id" }
+    assert_deprecated do
+      k.set_inheritance_column do
+        ActiveSupport::Deprecation.silence { original_inheritance_column } + "_id"
+      end
+    end
     assert_equal "type_id", k.inheritance_column
+  end
+
+  def test_original_inheritance_column
+    k = Class.new(ActiveRecord::Base)
+    def k.name; "Foo"; end
+    k.inheritance_column = "omg"
+
+    assert_deprecated do
+      assert_equal "type", k.original_inheritance_column
+    end
+  end
+
+  def test_set_sequence_name_with_value
+    k = Class.new( ActiveRecord::Base )
+    k.sequence_name = "foo"
+    assert_equal "foo", k.sequence_name
+
+    assert_deprecated do
+      k.set_sequence_name "bar"
+    end
+    assert_equal "bar", k.sequence_name
+  end
+
+  def test_set_sequence_name_with_block
+    k = Class.new( ActiveRecord::Base )
+    k.table_name = "projects"
+    orig_name = k.sequence_name
+    return skip "sequences not supported by db" unless orig_name
+
+    assert_deprecated do
+      k.set_sequence_name do
+        ActiveSupport::Deprecation.silence { original_sequence_name } + "_lol"
+      end
+    end
+    assert_equal orig_name + "_lol", k.sequence_name
+  end
+
+  def test_original_sequence_name
+    k = Class.new(ActiveRecord::Base)
+    k.table_name = "projects"
+    orig_name = k.sequence_name
+    return skip "sequences not supported by db" unless orig_name
+
+    k = Class.new(ActiveRecord::Base)
+    k.table_name = "projects"
+    k.sequence_name = "omg"
+
+    assert_deprecated do
+      assert_equal orig_name, k.original_sequence_name
+    end
+
+    k = Class.new(ActiveRecord::Base)
+    k.table_name = "projects"
+    k.sequence_name = "omg"
+    k.sequence_name = "wtf"
+    assert_deprecated do
+      assert_equal "omg", k.original_sequence_name
+    end
+  end
+
+  def test_sequence_name_with_abstract_class
+    ak = Class.new(ActiveRecord::Base)
+    ak.abstract_class = true
+    k = Class.new(ak)
+    k.table_name = "projects"
+    orig_name = k.sequence_name
+    return skip "sequences not supported by db" unless orig_name
+    assert_equal k.reset_sequence_name, orig_name
   end
 
   def test_count_with_join
@@ -1772,7 +1888,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_silence_sets_log_level_to_error_in_block
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
-    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
     ActiveRecord::Base.logger.level = Logger::DEBUG
     ActiveRecord::Base.silence do
       ActiveRecord::Base.logger.warn "warn"
@@ -1786,7 +1902,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_silence_sets_log_level_back_to_level_before_yield
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
-    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
     ActiveRecord::Base.logger.level = Logger::WARN
     ActiveRecord::Base.silence do
     end
@@ -1814,9 +1930,7 @@ class BasicsTest < ActiveRecord::TestCase
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
     ActiveRecord::Base.logger = Logger.new(log)
-    ActiveRecord::Base.benchmark("Logging", :level => :debug, :silence => true) { ActiveRecord::Base.logger.debug "Loud" }
     ActiveRecord::Base.benchmark("Logging", :level => :debug, :silence => false)  { ActiveRecord::Base.logger.debug "Quiet" }
-    assert_no_match(/Loud/, log.string)
     assert_match(/Quiet/, log.string)
   ensure
     ActiveRecord::Base.logger = original_logger
@@ -1848,9 +1962,9 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clear_cache!
     # preheat cache
-    c1 = Post.columns
+    c1 = Post.connection.schema_cache.columns['posts']
     ActiveRecord::Base.clear_cache!
-    c2 = Post.columns
+    c2 = Post.connection.schema_cache.columns['posts']
     assert_not_equal c1, c2
   end
 

@@ -26,23 +26,23 @@ class SchemaTest < ActiveRecord::TestCase
   PK_TABLE_NAME = 'table_with_pk'
 
   class Thing1 < ActiveRecord::Base
-    set_table_name "test_schema.things"
+    self.table_name = "test_schema.things"
   end
 
   class Thing2 < ActiveRecord::Base
-    set_table_name "test_schema2.things"
+    self.table_name = "test_schema2.things"
   end
 
   class Thing3 < ActiveRecord::Base
-    set_table_name 'test_schema."things.table"'
+    self.table_name = 'test_schema."things.table"'
   end
 
   class Thing4 < ActiveRecord::Base
-    set_table_name 'test_schema."Things"'
+    self.table_name = 'test_schema."Things"'
   end
 
   class Thing5 < ActiveRecord::Base
-    set_table_name 'things'
+    self.table_name = 'things'
   end
 
   def setup
@@ -68,11 +68,15 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_schema_change_with_prepared_stmt
+    altered = false
     @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
     @connection.exec_query "alter table developers add column zomg int", 'sql', []
+    altered = true
     @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
   ensure
-    @connection.exec_query "alter table developers drop column if exists zomg", 'sql', []
+    # We are not using DROP COLUMN IF EXISTS because that syntax is only
+    # supported by pg 9.X
+    @connection.exec_query("alter table developers drop column zomg", 'sql', []) if altered
   end
 
   def test_table_exists?

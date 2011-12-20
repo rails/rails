@@ -16,6 +16,7 @@ module ActiveSupport
     autoload :FileStore, 'active_support/cache/file_store'
     autoload :MemoryStore, 'active_support/cache/memory_store'
     autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
+    autoload :NullStore, 'active_support/cache/null_store'
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -90,7 +91,7 @@ module ActiveSupport
       def retrieve_cache_key(key)
         case
         when key.respond_to?(:cache_key) then key.cache_key
-        when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
+        when key.is_a?(Array)            then ['Array', *key.map { |element| retrieve_cache_key(element) }].to_param
         else                                  key.to_param
         end.to_s
       end

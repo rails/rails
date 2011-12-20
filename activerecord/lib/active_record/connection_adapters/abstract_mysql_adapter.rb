@@ -152,7 +152,7 @@ module ActiveRecord
         true
       end
 
-      # Technically MySQL allows to create indexes with the sort order syntax 
+      # Technically MySQL allows to create indexes with the sort order syntax
       # but at the moment (5.5) it doesn't yet implement them
       def supports_index_sort_order?
         true
@@ -224,80 +224,6 @@ module ActiveRecord
       end
 
       # DATABASE STATEMENTS ======================================
-
-      def explain(arel)
-        sql     = "EXPLAIN #{to_sql(arel)}"
-        start   = Time.now
-        result  = exec_query(sql, 'EXPLAIN')
-        elapsed = Time.now - start
-
-        ExplainPrettyPrinter.new.pp(result, elapsed)
-      end
-
-      class ExplainPrettyPrinter # :nodoc:
-        # Pretty prints the result of a EXPLAIN in a way that resembles the output of the
-        # MySQL shell:
-        #
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
-        #   |  1 | SIMPLE      | posts | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   2 rows in set (0.00 sec)
-        #
-        # This is an exercise in Ruby hyperrealism :).
-        def pp(result, elapsed)
-          widths    = compute_column_widths(result)
-          separator = build_separator(widths)
-
-          pp = []
-
-          pp << separator
-          pp << build_cells(result.columns, widths)
-          pp << separator
-
-          result.rows.each do |row|
-            pp << build_cells(row, widths)
-          end
-
-          pp << separator
-          pp << build_footer(result.rows.length, elapsed)
-
-          pp.join("\n") + "\n"
-        end
-
-        private
-
-        def compute_column_widths(result)
-          [].tap do |widths|
-            result.columns.each_with_index do |column, i|
-              cells_in_column = [column] + result.rows.map {|r| r[i].nil? ? 'NULL' : r[i].to_s}
-              widths << cells_in_column.map(&:length).max
-            end
-          end
-        end
-
-        def build_separator(widths)
-          padding = 1
-          '+' + widths.map {|w| '-' * (w + (padding*2))}.join('+') + '+'
-        end
-
-        def build_cells(items, widths)
-          cells = []
-          items.each_with_index do |item, i|
-            item = 'NULL' if item.nil?
-            justifier = item.is_a?(Numeric) ? 'rjust' : 'ljust'
-            cells << item.to_s.send(justifier, widths[i])
-          end
-          '| ' + cells.join(' | ') + ' |'
-        end
-
-        def build_footer(nrows, elapsed)
-          rows_label = nrows == 1 ? 'row' : 'rows'
-          "#{nrows} #{rows_label} in set (%.2f sec)" % elapsed
-        end
-      end
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
@@ -437,8 +363,10 @@ module ActiveRecord
         show_variable 'collation_database'
       end
 
-      def tables(name = nil, database = nil) #:nodoc:
-        sql = ["SHOW TABLES", database].compact.join(' IN ')
+      def tables(name = nil, database = nil, like = nil) #:nodoc:
+        sql = "SHOW TABLES "
+        sql << "IN #{database} " if database
+        sql << "LIKE #{quote(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
           result.collect { |field| field.first }
@@ -446,7 +374,8 @@ module ActiveRecord
       end
 
       def table_exists?(name)
-        return true if super
+        return false unless name
+        return true if tables(nil, nil, name).any?
 
         name          = name.to_s
         schema, table = name.split('.', 2)
@@ -456,7 +385,7 @@ module ActiveRecord
           schema = nil
         end
 
-        tables(nil, schema).include? table
+        tables(nil, schema, table).any?
       end
 
       # Returns an array of indexes for the given table.
@@ -573,9 +502,14 @@ module ActiveRecord
 
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table)
-        execute_and_free("SHOW INDEX FROM #{quote_table_name(table)} WHERE Key_name = 'PRIMARY'", 'SCHEMA') do |result|
-          keys = each_hash(result).map { |row| row[:Column_name] }
-          keys.length == 1 ? [keys.first, nil] : nil
+        execute_and_free("SHOW CREATE TABLE #{quote_table_name(table)}", 'SCHEMA') do |result|
+          create_table = each_hash(result).first[:"Create Table"]
+          if create_table.to_s =~ /PRIMARY KEY\s+\((.+)\)/
+            keys = $1.split(",").map { |key| key.gsub(/`/, "") }
+            keys.length == 1 ? [keys.first, nil] : nil
+          else
+            nil
+          end
         end
       end
 

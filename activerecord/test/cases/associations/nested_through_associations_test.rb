@@ -545,6 +545,15 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [organizations(:nsa)], organizations
   end
 
+  def test_nested_has_many_through_should_not_be_autosaved
+    c = Categorization.new
+    c.author = authors(:david)
+    c.post_taggings.to_a
+    assert !c.post_taggings.empty?
+    c.save
+    assert !c.post_taggings.empty?
+  end
+
   private
 
     def assert_includes_and_joins_equal(query, expected, association)

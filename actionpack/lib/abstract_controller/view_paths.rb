@@ -10,7 +10,7 @@ module AbstractController
       self._view_paths.freeze
     end
 
-    delegate :find_template, :template_exists?, :view_paths, :formats, :formats=,
+    delegate :template_exists?, :view_paths, :formats, :formats=,
              :locale, :locale=, :to => :lookup_context
 
     module ClassMethods

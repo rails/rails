@@ -495,7 +495,7 @@ def show
 end
 </ruby>
 
-Make sure to use +and return+ and not +&amp;&amp; return+, since +&amp;&amp; return+ will not work due to the operator precedence in the Ruby Language.
+Make sure to use +and return+ instead of +&amp;&amp; return+ because +&amp;&amp; return+ will not work due to the operator precedence in the Ruby Language.
 
 Note that the implicit render done by ActionController detects if +render+ has been called, so the following will work without errors:
 
@@ -671,19 +671,33 @@ There are three tag options available for the +auto_discovery_link_tag+:
 
 h5. Linking to JavaScript Files with the +javascript_include_tag+
 
-The +javascript_include_tag+ helper returns an HTML +script+ tag for each source provided. Rails looks in +public/javascripts+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/javascripts/main.js+:
+The +javascript_include_tag+ helper returns an HTML +script+ tag for each source provided.
+
+If you are using Rails with the "Asset Pipeline":asset_pipeline.html enabled, this helper will generate a link to +/assets/javascripts/+ rather than +public/javascripts+ which was used in earlier versions of Rails. This link is then served by the Sprockets gem, which was introduced in Rails 3.1.
+
+A JavaScript file within a Rails application or Rails engine goes in one of three locations: +app/assets+, +lib/assets+ or +vendor/assets+. These locations are explained in detail in the "Asset Organization section in the Asset Pipeline Guide":asset_pipeline.html#asset-organization
+
+You can specify a full path relative to the document root, or a URL, if you prefer. For example, to link to a JavaScript file that is inside a directory called +javascripts+ inside of one of +app/assets+, +lib/assets+ or +vendor/assets+, you would do this:
 
 <erb>
 <%= javascript_include_tag "main" %>
 </erb>
 
-To include +public/javascripts/main.js+ and +public/javascripts/columns.js+:
+Rails will then output a +script+ tag such as this:
+
+<html>
+<script src='/assets/main.js' type="text/javascript"></script>
+</html>
+
+The request to this asset is then served by the Sprockets gem.
+
+To include multiple files such as +app/assets/javascripts/main.js+ and +app/assets/javascripts/columns.js+ at the same time:
 
 <erb>
 <%= javascript_include_tag "main", "columns" %>
 </erb>
 
-To include +public/javascripts/main.js+ and +public/photos/columns.js+:
+To include +app/assets/javascripts/main.js+ and +app/assets/javascripts/photos/columns.js+:
 
 <erb>
 <%= javascript_include_tag "main", "/photos/columns" %>
@@ -701,15 +715,38 @@ If the application does not use the asset pipeline, the +:defaults+ option loads
 <%= javascript_include_tag :defaults %>
 </erb>
 
-And you can in any case override the expansion in <tt>config/application.rb</tt>:
+Outputting +script+ tags such as this:
+
+<html>
+<script src="/javascripts/jquery.js" type="text/javascript"></script>
+<script src="/javascripts/jquery_ujs.js" type="text/javascript"></script>
+</html>
+
+These two files for jQuery, +jquery.js+ and +jquery_ujs.js+ must be placed inside +public/javascripts+ if the application doesn't use the asset pipeline. These files can be downloaded from the "jquery-rails repository on GitHub":https://github.com/indirect/jquery-rails/tree/master/vendor/assets/javascripts
+
+WARNING: If you are using the asset pipeline, this tag will render a +script+ tag for an asset called +defaults.js+, which would not exist in your application unless you've explicitly defined it to be.
+
+And you can in any case override the +:defaults+ expansion in <tt>config/application.rb</tt>:
 
 <ruby>
 config.action_view.javascript_expansions[:defaults] = %w(foo.js bar.js)
 </ruby>
 
-When using <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in <tt>public/javascripts</tt> it will be included as well at then end.
+You can also define new defaults:
 
-Also, the +:all+ option loads every JavaScript file in +public/javascripts+:
+<ruby>
+config.action_view.javascript_expansions[:projects] = %w(projects.js tickets.js)
+</ruby>
+
+And use them by referencing them exactly like +:defaults+:
+
+<erb>
+<%= javascript_include_tag :projects %>
+</erb>
+
+When using <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in <tt>public/javascripts</tt> it will be included as well at the end.
+
+Also, if the asset pipeline is disabled, the +:all+ expansion loads every JavaScript file in +public/javascripts+:
 
 <erb>
 <%= javascript_include_tag :all %>
@@ -740,19 +777,23 @@ You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to CSS Files with the +stylesheet_link_tag+
 
-The +stylesheet_link_tag+ helper returns an HTML +&lt;link&gt;+ tag for each source provided. Rails looks in +public/stylesheets+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/stylesheets/main.css+:
+The +stylesheet_link_tag+ helper returns an HTML +&lt;link&gt;+ tag for each source provided.
+
+If you are using Rails with the "Asset Pipeline" enabled, this helper will generate a link to +/assets/stylesheets/+. This link is then processed by the Sprockets gem. A stylesheet file can be stored in one of three locations: +app/assets+, +lib/assets+ or +vendor/assets+.
+
+You can specify a full path relative to the document root, or a URL. For example, to link to a stylesheet file that is inside a directory called +stylesheets+ inside of one of +app/assets+, +lib/assets+ or +vendor/assets+, you would do this:
 
 <erb>
 <%= stylesheet_link_tag "main" %>
 </erb>
 
-To include +public/stylesheets/main.css+ and +public/stylesheets/columns.css+:
+To include +app/assets/stylesheets/main.css+ and +app/assets/stylesheets/columns.css+:
 
 <erb>
 <%= stylesheet_link_tag "main", "columns" %>
 </erb>
 
-To include +public/stylesheets/main.css+ and +public/photos/columns.css+:
+To include +app/assets/stylesheets/main.css+ and +app/assets/stylesheets/photos/columns.css+:
 
 <erb>
 <%= stylesheet_link_tag "main", "/photos/columns" %>
@@ -770,7 +811,7 @@ By default, the +stylesheet_link_tag+ creates links with +media="screen" rel="st
 <%= stylesheet_link_tag "main_print", :media => "print" %>
 </erb>
 
-The +all+ option links every CSS file in +public/stylesheets+:
+If the asset pipeline is disabled, the +all+ option links every CSS file in +public/stylesheets+:
 
 <erb>
 <%= stylesheet_link_tag :all %>

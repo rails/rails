@@ -33,6 +33,7 @@ module ApplicationTests
         "ActionDispatch::RequestId",
         "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::ShowExceptions",
+        "ActionDispatch::DebugExceptions",
         "ActionDispatch::RemoteIp",
         "Rack::Sendfile",
         "ActionDispatch::Reloader",
@@ -104,10 +105,11 @@ module ApplicationTests
       assert !middleware.include?("ActionDispatch::Static")
     end
 
-    test "includes show exceptions even action_dispatch.show_exceptions is disabled" do
+    test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
       assert middleware.include?("ActionDispatch::ShowExceptions")
+      assert middleware.include?("ActionDispatch::DebugExceptions")
     end
 
     test "removes ActionDispatch::Reloader if cache_classes is true" do
@@ -189,26 +191,6 @@ module ApplicationTests
       assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
       assert_equal "no-cache", last_response.headers["Cache-Control"]
       assert_equal nil, last_response.headers["Etag"]
-    end
-
-    # Show exceptions middleware
-    test "show exceptions middleware filter backtrace before logging" do
-      my_middleware = Struct.new(:app) do
-        def call(env)
-          raise "Failure"
-        end
-      end
-
-      make_basic_app do |app|
-        app.config.middleware.use my_middleware
-      end
-
-      stringio = StringIO.new
-      Rails.logger = Logger.new(stringio)
-
-      env = Rack::MockRequest.env_for("/")
-      Rails.application.call(env)
-      assert_no_match(/action_dispatch/, stringio.string)
     end
 
     private

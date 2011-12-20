@@ -3,6 +3,8 @@ require 'controller/fake_models'
 require 'active_support/core_ext/object/inclusion'
 
 class FormHelperTest < ActionView::TestCase
+  include RenderERBUtils
+
   tests ActionView::Helpers::FormHelper
 
   def form_for(*)
@@ -228,6 +230,10 @@ class FormHelperTest < ActionView::TestCase
 
   def test_label_with_block
     assert_dom_equal('<label for="post_title">The title, please:</label>', label(:post, :title) { "The title, please:" })
+  end
+
+  def test_label_with_block_in_erb
+    assert_equal "<label for=\"post_message\">\n  Message\n  <input id=\"post_message\" name=\"post[message]\" size=\"30\" type=\"text\" />\n</label>", view.render("test/label_with_block")
   end
 
   def test_text_field
@@ -683,6 +689,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.text_area(:body)
       concat f.check_box(:secret)
       concat f.submit('Create post')
+      concat f.button('Create post')
     end
 
     expected = whole_form("/posts/123", "create-post" , "edit_post", :method => "put") do
@@ -691,7 +698,8 @@ class FormHelperTest < ActionView::TestCase
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
-      "<input name='commit' type='submit' value='Create post' />"
+      "<input name='commit' type='submit' value='Create post' />" +
+      "<button name='button' type='submit'>Create post</button>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -763,7 +771,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.submit('Create post')
     end
 
-    expected =  whole_form("/posts/123", "create-post", "other_name_edit", :method => "put") do
+    expected =  whole_form("/posts/123", "create-post", "edit_other_name", :method => "put") do
       "<label for='other_name_title' class='post_title'>Title</label>" +
       "<input name='other_name[title]' size='30' id='other_name_title' value='Hello World' type='text' />" +
       "<textarea name='other_name[body]' id='other_name_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
@@ -900,7 +908,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.check_box(:secret)
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<label for='post_123_title'>Title</label>" +
       "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
       "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
@@ -918,11 +926,87 @@ class FormHelperTest < ActionView::TestCase
       concat f.check_box(:secret)
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[][title]' size='30' type='text' id='post__title' value='Hello World' />" +
       "<textarea name='post[][body]' id='post__body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[][secret]' type='hidden' value='0' />" +
       "<input name='post[][secret]' checked='checked' type='checkbox' id='post__secret' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_namespace
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
+      "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='namespace_post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[secret]' type='hidden' value='0' />" +
+      "<input name='post[secret]' checked='checked' type='checkbox' id='namespace_post_secret' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_namespace_with_label
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
+      "<label for='namespace_post_title'>Title</label>" +
+      "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_two_form_for_with_namespace
+    form_for(@post, :namespace => 'namespace_1') do |f|
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected_1 = whole_form('/posts/123', 'namespace_1_edit_post_123', 'edit_post', 'put') do
+      "<label for='namespace_1_post_title'>Title</label>" +
+      "<input name='post[title]' size='30' type='text' id='namespace_1_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected_1, output_buffer
+
+    form_for(@post, :namespace => 'namespace_2') do |f|
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected_2 = whole_form('/posts/123', 'namespace_2_edit_post_123', 'edit_post', 'put') do
+      "<label for='namespace_2_post_title'>Title</label>" +
+      "<input name='post[title]' size='30' type='text' id='namespace_2_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected_2, output_buffer
+  end
+
+  def test_fields_for_with_namespace
+    @comment.body = 'Hello World'
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.fields_for(@comment) { |c|
+        concat c.text_field(:body)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
+      "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='namespace_post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[comment][body]' size='30' type='text' id='namespace_post_comment_body' value='Hello World' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -984,7 +1068,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.submit
     end
 
-    expected = whole_form('/posts/123', 'another_post_edit', 'another_post_edit', :method => 'put') do
+    expected = whole_form('/posts/123', 'edit_another_post', 'edit_another_post', :method => 'put') do
       "<input name='commit' type='submit' value='Update your Post' />"
     end
 
@@ -1016,7 +1100,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
       "<input name='post[123][comment][][name]' size='30' type='text' id='post_123_comment__name' value='new comment' />"
     end
@@ -1075,7 +1159,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[123][comment][title]' size='30' type='text' id='post_123_comment_title' value='Hello World' />"
     end
 
@@ -1103,7 +1187,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[123][comment][123][title]' size='30' type='text' id='post_123_comment_123_title' value='Hello World' />"
     end
 
@@ -1123,9 +1207,9 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[123][comment][5][title]' size='30' type='text' id='post_123_comment_5_title' value='Hello World' />"
-    end + whole_form('/posts/123', 'post_edit', 'post_edit', 'put') do
+    end + whole_form('/posts/123', 'edit_post', 'edit_post', 'put') do
       "<input name='post[1][comment][123][title]' size='30' type='text' id='post_1_comment_123_title' value='Hello World' />"
     end
 
@@ -1778,7 +1862,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'create-post', 'post_edit', :method => 'put') do
+    expected = whole_form('/posts/123', 'create-post', 'edit_post', :method => 'put') do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='parent_post[secret]' type='hidden' value='0' />" +
@@ -1798,7 +1882,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'create-post', 'post_edit', :method => 'put') do
+    expected = whole_form('/posts/123', 'create-post', 'edit_post', :method => 'put') do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[comment][name]' type='text' id='post_comment_name' value='new comment' size='30' />"

@@ -91,6 +91,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match "/local/:action", :controller => "local"
 
       match "/projects/status(.:format)"
+      match "/404", :to => lambda { |env| [404, {"Content-Type" => "text/plain"}, ["NOT FOUND"]] }
 
       constraints(:ip => /192\.168\.1\.\d\d\d/) do
         get 'admin' => "queenbee#index"
@@ -2296,7 +2297,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_named_routes_collision_is_avoided_unless_explicitly_given_as
     assert_equal "/c/1", routes_collision_path(1)
-    assert_equal "/forced_collision", routes_forced_collision_path
+    assert_equal "/fc", routes_forced_collision_path
   end
 
   def test_redirect_argument_error

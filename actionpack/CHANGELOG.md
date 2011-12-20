@@ -1,8 +1,78 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Refactor ActionDispatch::ShowExceptions. Controller is responsible for choice to show exceptions. *Sergey Nartimov*
+*   The ShowExceptions middleware now accepts a exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in `env["action_dispatch.exception"]` and with the PATH_INFO rewritten to the status code. *José Valim*
 
-    It's possible to override +show_detailed_exceptions?+ in controllers to specify which requests should provide debugging information on errors.
+*   Add `button_tag` support to ActionView::Helpers::FormBuilder.
+
+    This support mimics the default behavior of `submit_tag`.
+
+    Example:
+
+        <%= form_for @post do |f| %>
+          <%= f.button %>
+        <% end %>
+
+*   Date helpers accept a new option, `:use_two_digit_numbers = true`, that renders select boxes for months and days with a leading zero without changing the respective values. 
+    For example, this is useful for displaying ISO8601-style dates such as '2011-08-01'. *Lennart Fridén and Kim Persson*
+
+*   Make ActiveSupport::Benchmarkable a default module for ActionController::Base, so the #benchmark method is once again available in the controller context like it used to be *DHH*
+
+*   Deprecated implied layout lookup in controllers whose parent had a explicit layout set:
+
+        class ApplicationController
+          layout "application"
+        end
+
+        class PostsController < ApplicationController
+        end
+
+    In the example above, Posts controller will no longer automatically look up for a posts layout.
+
+    If you need this functionality you could either remove `layout "application"` from ApplicationController or explicitly set it to nil in PostsController. *José Valim*
+
+*   Rails will now use your default layout (such as "layouts/application") when you specify a layout with `:only` and `:except` condition, and those conditions fail. *Prem Sichanugrist*
+
+    For example, consider this snippet:
+
+        class CarsController
+          layout 'single_car', :only => :show
+        end
+
+    Rails will use 'layouts/single_car' when a request comes in `:show` action, and use 'layouts/application' (or 'layouts/cars', if exists) when a request comes in for any other actions.
+
+*   form_for with +:as+ option uses "#{action}_#{as}" as css class and id:
+
+    Before:
+
+        form_for(@user, :as => 'client') # => "<form class="client_new">..."
+
+    Now:
+
+        form_for(@user, :as => 'client') # => "<form class="new_client">..."
+
+    *Vasiliy Ermolovich*
+
+*   Allow rescue responses to be configured through a railtie as in `config.action_dispatch.rescue_responses`. Please look at ActiveRecord::Railtie for an example *José Valim*
+
+*   Allow fresh_when/stale? to take a record instead of an options hash *DHH*
+
+*   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
+
+*   Log "Filter chain halted as CALLBACKNAME rendered or redirected" every time a before callback halts *José Valim*
+
+*   You can provide a namespace for your form to ensure uniqueness of id attributes on form elements.
+    The namespace attribute will be prefixed with underscore on the generate HTML id. *Vasiliy Ermolovich*
+
+    Example:
+
+        <%= form_for(@offer, :namespace => 'namespace') do |f| %>
+          <%= f.label :version, 'Version' %>:
+          <%= f.text_field :version %>
+        <% end %>
+
+*   Refactor ActionDispatch::ShowExceptions. The controller is responsible for choosing to show exceptions when `consider_all_requests_local` is false.
+
+    It's possible to override `show_detailed_exceptions?` in controllers to specify which requests should provide debugging information on errors. The default value is now false, meaning local requests in production will no longer show the detailed exceptions page unless `show_detailed_exceptions?` is overridden and set to `request.local?`.
 
 *   Responders now return 204 No Content for API requests without a response body (as in the new scaffold) *José Valim*
 
@@ -65,6 +135,19 @@
     We now no longer write out HTTP_COOKIE and the cookie jar is
     persistent between requests so if you need to manipulate the environment
     for your test you need to do it before the cookie jar is created.
+
+*   ActionController::ParamsWrapper on ActiveRecord models now only wrap
+    attr_accessible attributes if they were set, if not, only the attributes
+    returned by the class method attribute_names will be wrapped. This fixes
+    the wrapping of nested attributes by adding them to attr_accessible.
+
+## Rails 3.1.4 (unreleased) ##
+
+*   Allow to use asset_path on named_routes aliasing RailsHelper's
+    asset_path to path_to_asset *Adrian Pike*
+
+*   Assets should use the request protocol by default or default to
+    relative if no request is available *Jonathan del Strother*
 
 ## Rails 3.1.3 (unreleased) ##
 

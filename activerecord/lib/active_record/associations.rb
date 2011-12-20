@@ -70,7 +70,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc
+  class HasManyThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc:
     def initialize(owner, reflection)
       super("Cannot modify association '#{owner.class.name}##{reflection.name}' because it goes through more than one other association.")
     end
@@ -195,6 +195,26 @@ module ActiveRecord
     #   <tt>Project#milestones.build, Project#milestones.create</tt>
     # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
     #   <tt>Project#categories.delete(category1)</tt>
+    #
+    # === Overriding generated methods
+    #
+    # Association methods are generated in a module that is included into the model class,
+    # which allows you to easily override with your own methods and call the original
+    # generated method with +super+. For example:
+    #
+    #   class Car < ActiveRecord::Base
+    #     belongs_to :owner
+    #     belongs_to :old_owner
+    #     def owner=(new_owner)
+    #       self.old_owner = self.owner
+    #       super
+    #     end
+    #   end
+    #
+    # If your model class is <tt>Project</tt>, the module is
+    # named <tt>Project::GeneratedFeatureMethods</tt>. The GeneratedFeatureMethods module is
+    # included in the model class immediately after the (anonymous) generated attributes methods
+    # module, meaning an association will override the methods for an attribute with the same name.
     #
     # === A word of warning
     #
@@ -1165,7 +1185,7 @@ module ActiveRecord
       #   has_many :subscribers, :through => :subscriptions, :source => :user
       #   has_many :subscribers, :class_name => "Person", :finder_sql => Proc.new {
       #       %Q{
-      #         SELECT DISTINCT people.*
+      #         SELECT DISTINCT *
       #         FROM people p, post_subscriptions ps
       #         WHERE ps.post_id = #{id} AND ps.person_id = p.id
       #         ORDER BY p.first_name

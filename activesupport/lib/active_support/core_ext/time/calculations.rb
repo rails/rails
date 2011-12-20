@@ -174,8 +174,13 @@ class Time
     days_to_start = days_to_week_start(start_day)
     (self - days_to_start.days).midnight
   end
-  alias :monday :beginning_of_week
   alias :at_beginning_of_week :beginning_of_week
+
+  # Returns a new +Date+/+DateTime+ representing the start of this week. Week is
+  # assumed to start on a Monday. +DateTime+ objects have their time set to 0:00.
+  def monday
+    beginning_of_week
+  end
 
   # Returns a new Time representing the end of this week, week starts on start_day (default is :monday, i.e. end of Sunday).
   def end_of_week(start_day = :monday)
@@ -183,6 +188,12 @@ class Time
     (self + days_to_end.days).end_of_day
   end
   alias :at_end_of_week :end_of_week
+
+  # Returns a new +Date+/+DateTime+ representing the end of this week. Week is
+  # assumed to start on a Monday. +DateTime+ objects have their time set to 23:59:59.
+  def sunday
+    end_of_week
+  end
 
   # Returns a new Time representing the start of the given day in the previous week (default is :monday).
   def prev_week(day = :monday)

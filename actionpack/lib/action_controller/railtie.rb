@@ -21,8 +21,6 @@ module ActionController
       paths   = app.config.paths
       options = app.config.action_controller
 
-      options.consider_all_requests_local ||= app.config.consider_all_requests_local
-
       options.assets_dir           ||= paths["public"].first
       options.javascripts_dir      ||= paths["public/javascripts"].first
       options.stylesheets_dir      ||= paths["public/stylesheets"].first
@@ -31,6 +29,7 @@ module ActionController
       # make sure readers methods get compiled
       options.asset_path           ||= app.config.asset_path
       options.asset_host           ||= app.config.asset_host
+      options.relative_url_root    ||= app.config.relative_url_root
 
       ActiveSupport.on_load(:action_controller) do
         include app.routes.mounted_helpers

@@ -825,7 +825,7 @@ h5. Active Record Methods
 
 * +ActiveRecord::Errors#generate_message+ (which is used by Active Record validations but may also be used manually) uses +model_name.human+ and +human_attribute_name+ (see above). It also translates the error message and supports translations for inherited class names as explained above in "Error message scopes".
 
-*+ ActiveRecord::Errors#full_messages+ prepends the attribute name to the error message using a separator that will be looked up from "activerecord.errors.format.separator":https://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L91 (and which defaults to +'&nbsp;'+).
+* +ActiveRecord::Errors#full_messages+ prepends the attribute name to the error message using a separator that will be looked up from "activerecord.errors.format.separator":https://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L91 (and which defaults to +'&nbsp;'+).
 
 h5. Active Support Methods
 

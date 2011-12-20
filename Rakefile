@@ -77,9 +77,10 @@ RDoc::Task.new do |rdoc|
     rdoc_main.gsub!(/^(?=\S).*?\b(?=Rails)\b/) { "#$&\\" }
     rdoc_main.gsub!(%r{link:/rails/rails/blob/master/(\w+)/README\.rdoc}, "link:files/\\1/README_rdoc.html")
 
-    # Remove Travis build status image from API pages. Only GitHub README page gets this image
-    # https build image is used to avoid GitHub caching: http://about.travis-ci.org/docs/user/status-images
-    rdoc_main.gsub!(%r{^== Travis.*}, '')
+    # Remove Travis and Gemnasium status images from API pages. Only GitHub
+    # README page gets these images. Travis' https build image is used to avoid
+    # GitHub caching: http://about.travis-ci.org/docs/user/status-images
+    rdoc_main.gsub!(%r{^== (Build|Dependency) Status.*}, '')
 
     File.open(RDOC_MAIN, 'w') do |f|
       f.write(rdoc_main)
@@ -189,7 +190,7 @@ end
 #
 desc 'Publishes docs, run this AFTER a new stable tag has been pushed'
 task :publish_docs do
-  Net::HTTP.new('rails-hooks.hashref.com').start do |http|
+  Net::HTTP.new('api.rubyonrails.org', 8080).start do |http|
     request  = Net::HTTP::Post.new('/rails-master-hook')
     response = http.request(request)
     puts response.body

@@ -4,19 +4,19 @@ require 'active_support/cache'
 
 class CacheKeyTest < ActiveSupport::TestCase
   def test_expand_cache_key
-    assert_equal '1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true])
-    assert_equal 'name/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true], :name)
+    assert_equal 'Array/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true])
+    assert_equal 'name/Array/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true], :name)
   end
 
   def test_expand_cache_key_with_rails_cache_id
     begin
       ENV['RAILS_CACHE_ID'] = 'c99'
       assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key(:foo)
-      assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key([:foo])
-      assert_equal 'c99/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar])
+      assert_equal 'c99/Array/foo', ActiveSupport::Cache.expand_cache_key([:foo])
+      assert_equal 'c99/Array/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar])
       assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key(:foo, :nm)
-      assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key([:foo], :nm)
-      assert_equal 'nm/c99/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar], :nm)
+      assert_equal 'nm/c99/Array/foo', ActiveSupport::Cache.expand_cache_key([:foo], :nm)
+      assert_equal 'nm/c99/Array/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar], :nm)
     ensure
       ENV['RAILS_CACHE_ID'] = nil
     end
@@ -55,7 +55,7 @@ class CacheKeyTest < ActiveSupport::TestCase
     def key.cache_key
       :foo_key
     end
-    assert_equal 'foo_key', ActiveSupport::Cache.expand_cache_key([key])
+    assert_equal 'Array/foo_key', ActiveSupport::Cache.expand_cache_key([key])
   end
 
   def test_expand_cache_key_of_nil
@@ -68,6 +68,14 @@ class CacheKeyTest < ActiveSupport::TestCase
 
   def test_expand_cache_key_of_true
     assert_equal 'true', ActiveSupport::Cache.expand_cache_key(true)
+  end
+
+  def test_expand_cache_key_of_one_element_array_different_than_key_of_element
+    element = 'foo'
+    array = [element]
+    element_cache_key = ActiveSupport::Cache.expand_cache_key(element)
+    array_cache_key = ActiveSupport::Cache.expand_cache_key(array)
+    assert_not_equal element_cache_key, array_cache_key
   end
 end
 
@@ -218,7 +226,7 @@ module CacheStoreBehavior
     @cache.write('fud', 'biz')
     assert_equal({"foo" => "bar", "fu" => "baz"}, @cache.read_multi('foo', 'fu'))
   end
-  
+
   def test_read_multi_with_expires
     @cache.write('foo', 'bar', :expires_in => 0.001)
     @cache.write('fu', 'baz')
@@ -576,12 +584,12 @@ class FileStoreTest < ActiveSupport::TestCase
     key = @cache_with_pathname.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache_with_pathname.send(:file_path_key, key)
   end
-  
+
   # Because file systems have a maximum filename size, filenames > max size should be split in to directories
   # If filename is 'AAAAB', where max size is 4, the returned path should be AAAA/B
   def test_key_transformation_max_filename_size
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}B"
-    path = @cache.send(:key_file_path, key)    
+    path = @cache.send(:key_file_path, key)
     assert path.split('/').all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}
     assert_equal 'B', File.basename(path)
   end
@@ -689,14 +697,14 @@ uses_memcached 'memcached backed store' do
       cache.write("foo", 2)
       assert_equal "2", cache.read("foo")
     end
-    
+
     def test_raw_values_with_marshal
       cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
       cache.clear
       cache.write("foo", Marshal.dump([]))
-      assert_equal [], cache.read("foo")      
+      assert_equal [], cache.read("foo")
     end
-    
+
     def test_local_cache_raw_values
       cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
       cache.clear
@@ -714,6 +722,64 @@ uses_memcached 'memcached backed store' do
         assert_equal [], cache.read("foo")
       end
     end
+  end
+end
+
+class NullStoreTest < ActiveSupport::TestCase
+  def setup
+    @cache = ActiveSupport::Cache.lookup_store(:null_store)
+  end
+
+  def test_clear
+    @cache.clear
+  end
+
+  def test_cleanup
+    @cache.cleanup
+  end
+
+  def test_write
+    assert_equal true, @cache.write("name", "value")
+  end
+
+  def test_read
+    @cache.write("name", "value")
+    assert_nil @cache.read("name")
+  end
+
+  def test_delete
+    @cache.write("name", "value")
+    assert_equal false, @cache.delete("name")
+  end
+
+  def test_increment
+    @cache.write("name", 1, :raw => true)
+    assert_nil @cache.increment("name")
+  end
+
+  def test_decrement
+    @cache.write("name", 1, :raw => true)
+    assert_nil @cache.increment("name")
+  end
+
+  def test_delete_matched
+    @cache.write("name", "value")
+    @cache.delete_matched(/name/)
+  end
+
+  def test_local_store_strategy
+    @cache.with_local_cache do
+      @cache.write("name", "value")
+      assert_equal "value", @cache.read("name")
+      @cache.delete("name")
+      assert_nil @cache.read("name")
+      @cache.write("name", "value")
+    end
+    assert_nil @cache.read("name")
+  end
+
+  def test_setting_nil_cache_store
+    assert ActiveSupport::Cache.lookup_store.class.name, ActiveSupport::Cache::NullStore.name
   end
 end
 
