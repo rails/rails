@@ -146,7 +146,7 @@ module RenderTestCases
     @view.render(:partial => nil)
     flunk "Render did not raise ArgumentError"
   rescue ArgumentError => e
-    assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object that returns a valid partial path.", e.message
+    assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.", e.message
   end
 
   def test_render_partial_with_errors
@@ -241,36 +241,6 @@ module RenderTestCases
     customers = [ Customer.new("Amazon"), Customer.new("Yahoo") ]
     assert_equal "Hello: AmazonHello: Yahoo",
       @controller_view.render(customers, :greeting => "Hello")
-  end
-
-  class CustomerWithDeprecatedPartialPath
-    attr_reader :name
-
-    def self.model_name
-      Struct.new(:partial_path).new("customers/customer")
-    end
-
-    def initialize(name)
-      @name = name
-    end
-  end
-
-  def test_render_partial_using_object_with_deprecated_partial_path
-    assert_deprecated(/#model_name.*#partial_path.*#to_partial_path/) do
-      assert_equal "Hello: nertzy",
-        @controller_view.render(CustomerWithDeprecatedPartialPath.new("nertzy"), :greeting => "Hello")
-    end
-  end
-
-  def test_render_partial_using_collection_with_deprecated_partial_path
-    assert_deprecated(/#model_name.*#partial_path.*#to_partial_path/) do
-      customers = [
-        CustomerWithDeprecatedPartialPath.new("nertzy"),
-        CustomerWithDeprecatedPartialPath.new("peeja")
-      ]
-      assert_equal "Hello: nertzyHello: peeja",
-        @controller_view.render(customers, :greeting => "Hello")
-    end
   end
 
   # TODO: The reason for this test is unclear, improve documentation

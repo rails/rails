@@ -22,31 +22,7 @@ module ActionDispatch
        "application's log file and/or the web server's log file to find out what " <<
        "went wrong.</body></html>"]]
 
-    class << self
-      def rescue_responses
-        ActiveSupport::Deprecation.warn "ActionDispatch::ShowExceptions.rescue_responses is deprecated. " \
-          "Please configure your exceptions using a railtie or in your application config instead."
-        ExceptionWrapper.rescue_responses
-      end
-
-      def rescue_templates
-        ActiveSupport::Deprecation.warn "ActionDispatch::ShowExceptions.rescue_templates is deprecated. " \
-          "Please configure your exceptions using a railtie or in your application config instead."
-        ExceptionWrapper.rescue_templates
-      end
-    end
-
-    def initialize(app, exceptions_app = nil)
-      if [true, false].include?(exceptions_app)
-        ActiveSupport::Deprecation.warn "Passing consider_all_requests_local option to ActionDispatch::ShowExceptions middleware no longer works"
-        exceptions_app = nil
-      end
-
-      if exceptions_app.nil?
-        raise ArgumentError, "You need to pass an exceptions_app when initializing ActionDispatch::ShowExceptions. " \
-          "In case you want to render pages from a public path, you can use ActionDispatch::PublicExceptions.new('path/to/public')"
-      end
-
+    def initialize(app, exceptions_app)
       @app = app
       @exceptions_app = exceptions_app
     end
