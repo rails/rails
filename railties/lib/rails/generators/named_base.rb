@@ -9,9 +9,6 @@ module Rails
       class_option :skip_namespace, :type => :boolean, :default => false,
                                     :desc => "Skip namespace (affects only isolated applications)"
 
-      class_option :old_style_hash, :type => :boolean, :default => false,
-                                    :desc => "Force using old style hash (:foo => 'bar') on Ruby >= 1.9"
-
       def initialize(args, *options) #:nodoc:
         @inside_template = nil
         # Unfreeze name in case it's given as a frozen string

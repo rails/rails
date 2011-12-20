@@ -337,18 +337,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_new_hash_style
     run_generator [destination_root]
     assert_file "config/initializers/session_store.rb" do |file|
-      if RUBY_VERSION < "1.9"
-        assert_match(/config.session_store :cookie_store, :key => '_.+_session'/, file)
-      else
-        assert_match(/config.session_store :cookie_store, key: '_.+_session'/, file)
-      end
-    end
-  end
-
-  def test_force_old_style_hash
-    run_generator [destination_root, "--old-style-hash"]
-    assert_file "config/initializers/session_store.rb" do |file|
-      assert_match(/config.session_store :cookie_store, :key => '_.+_session'/, file)
+      assert_match(/config.session_store :cookie_store, key: '_.+_session'/, file)
     end
   end
 
