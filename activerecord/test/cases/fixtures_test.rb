@@ -756,4 +756,9 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
     assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
                    admin_randomly_named_b0(:second_instance)
   end
+
+  def test_table_name_is_defined_in_the_model
+    assert_equal 'randomly_named_table', ActiveRecord::Fixtures::all_loaded_fixtures['admin/randomly_named_a9'].table_name.to_s
+    assert_equal 'randomly_named_table', Admin::ClassNameThatDoesNotFollowCONVENTIONS.table_name.to_s
+  end
 end
