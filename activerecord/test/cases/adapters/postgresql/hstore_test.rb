@@ -7,8 +7,14 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    @connection.create_table('hstores') do |t|
-      t.hstore 'tags'
+    begin
+      @connection.transaction do
+        @connection.create_table('hstores') do |t|
+          t.hstore 'tags'
+        end
+      end
+    rescue ActiveRecord::StatementInvalid
+      return skip "do not test on PG without hstore"
     end
   end
 
