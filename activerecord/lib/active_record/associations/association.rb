@@ -230,13 +230,8 @@ module ActiveRecord
         end
 
         def build_record(attributes, options)
-          attributes = (attributes || {}).reverse_merge(creation_attributes)
-
           reflection.build_association(attributes, options) do |record|
-            record.assign_attributes(
-              create_scope.except(*record.changed),
-              :without_protection => true
-            )
+            record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
           end
         end
     end
