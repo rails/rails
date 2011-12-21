@@ -226,48 +226,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 end
 
-class SetLockingColumnTest < ActiveRecord::TestCase
-  def test_set_set_locking_column_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.locking_column = "foo"
-    assert_equal "foo", k.locking_column
-
-    assert_deprecated do
-      k.set_locking_column "bar"
-    end
-    assert_equal "bar", k.locking_column
-  end
-
-  def test_set_locking_column_with_block
-    k = Class.new( ActiveRecord::Base )
-    k.locking_column = 'foo'
-
-    assert_deprecated do
-      k.set_locking_column do
-        "lock_" + ActiveSupport::Deprecation.silence { original_locking_column }
-      end
-    end
-    assert_equal "lock_foo", k.locking_column
-  end
-
-  def test_original_locking_column
-    k = Class.new(ActiveRecord::Base)
-    k.locking_column = "bar"
-
-    assert_deprecated do
-      assert_equal ActiveRecord::Locking::Optimistic::ClassMethods::DEFAULT_LOCKING_COLUMN, k.original_locking_column
-    end
-
-    k = Class.new(ActiveRecord::Base)
-    k.locking_column = "omg"
-    k.locking_column = "wtf"
-
-    assert_deprecated do
-      assert_equal "omg", k.original_locking_column
-    end
-  end
-end
-
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references
 

@@ -1383,17 +1383,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal dev, dev.reload
   end
 
-  def test_set_table_name_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.table_name = "foo"
-    assert_equal "foo", k.table_name
-
-    assert_deprecated do
-      k.set_table_name "bar"
-    end
-    assert_equal "bar", k.table_name
-  end
-
   def test_switching_between_table_name
     assert_difference("GoodJoke.count") do
       Joke.table_name = "cold_jokes"
@@ -1416,161 +1405,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal klass.connection.quote_table_name("bar"), klass.quoted_table_name
   end
 
-  def test_set_table_name_with_block
-    k = Class.new( ActiveRecord::Base )
-    assert_deprecated do
-      k.set_table_name "foo"
-      k.set_table_name do
-        ActiveSupport::Deprecation.silence { original_table_name } + "ks"
-      end
-    end
-    assert_equal "fooks", k.table_name
-  end
-
   def test_set_table_name_with_inheritance
     k = Class.new( ActiveRecord::Base )
     def k.name; "Foo"; end
     def k.table_name; super + "ks"; end
     assert_equal "foosks", k.table_name
-  end
-
-  def test_original_table_name
-    k = Class.new(ActiveRecord::Base)
-    def k.name; "Foo"; end
-    k.table_name = "bar"
-
-    assert_deprecated do
-      assert_equal "foos", k.original_table_name
-    end
-
-    k = Class.new(ActiveRecord::Base)
-    k.table_name = "omg"
-    k.table_name = "wtf"
-
-    assert_deprecated do
-      assert_equal "omg", k.original_table_name
-    end
-  end
-
-  def test_set_primary_key_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.primary_key = "foo"
-    assert_equal "foo", k.primary_key
-
-    assert_deprecated do
-      k.set_primary_key "bar"
-    end
-    assert_equal "bar", k.primary_key
-  end
-
-  def test_set_primary_key_with_block
-    k = Class.new( ActiveRecord::Base )
-    k.primary_key = 'id'
-
-    assert_deprecated do
-      k.set_primary_key do
-        "sys_" + ActiveSupport::Deprecation.silence { original_primary_key }
-      end
-    end
-    assert_equal "sys_id", k.primary_key
-  end
-
-  def test_original_primary_key
-    k = Class.new(ActiveRecord::Base)
-    def k.name; "Foo"; end
-    k.table_name = "posts"
-    k.primary_key = "bar"
-
-    assert_deprecated do
-      assert_equal "id", k.original_primary_key
-    end
-
-    k = Class.new(ActiveRecord::Base)
-    k.primary_key = "omg"
-    k.primary_key = "wtf"
-
-    assert_deprecated do
-      assert_equal "omg", k.original_primary_key
-    end
-  end
-
-  def test_set_inheritance_column_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.inheritance_column = "foo"
-    assert_equal "foo", k.inheritance_column
-
-    assert_deprecated do
-      k.set_inheritance_column "bar"
-    end
-    assert_equal "bar", k.inheritance_column
-  end
-
-  def test_set_inheritance_column_with_block
-    k = Class.new( ActiveRecord::Base )
-    assert_deprecated do
-      k.set_inheritance_column do
-        ActiveSupport::Deprecation.silence { original_inheritance_column } + "_id"
-      end
-    end
-    assert_equal "type_id", k.inheritance_column
-  end
-
-  def test_original_inheritance_column
-    k = Class.new(ActiveRecord::Base)
-    def k.name; "Foo"; end
-    k.inheritance_column = "omg"
-
-    assert_deprecated do
-      assert_equal "type", k.original_inheritance_column
-    end
-  end
-
-  def test_set_sequence_name_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.sequence_name = "foo"
-    assert_equal "foo", k.sequence_name
-
-    assert_deprecated do
-      k.set_sequence_name "bar"
-    end
-    assert_equal "bar", k.sequence_name
-  end
-
-  def test_set_sequence_name_with_block
-    k = Class.new( ActiveRecord::Base )
-    k.table_name = "projects"
-    orig_name = k.sequence_name
-    return skip "sequences not supported by db" unless orig_name
-
-    assert_deprecated do
-      k.set_sequence_name do
-        ActiveSupport::Deprecation.silence { original_sequence_name } + "_lol"
-      end
-    end
-    assert_equal orig_name + "_lol", k.sequence_name
-  end
-
-  def test_original_sequence_name
-    k = Class.new(ActiveRecord::Base)
-    k.table_name = "projects"
-    orig_name = k.sequence_name
-    return skip "sequences not supported by db" unless orig_name
-
-    k = Class.new(ActiveRecord::Base)
-    k.table_name = "projects"
-    k.sequence_name = "omg"
-
-    assert_deprecated do
-      assert_equal orig_name, k.original_sequence_name
-    end
-
-    k = Class.new(ActiveRecord::Base)
-    k.table_name = "projects"
-    k.sequence_name = "omg"
-    k.sequence_name = "wtf"
-    assert_deprecated do
-      assert_equal "omg", k.original_sequence_name
-    end
   end
 
   def test_sequence_name_with_abstract_class
