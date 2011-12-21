@@ -91,14 +91,12 @@ class AssociationValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_size_of_association_utf8
-    with_kcode('UTF8') do
-      assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
-      o = Owner.new('name' => 'あいうえおかきくけこ')
-      assert !o.save
-      assert o.errors[:pets].any?
-      o.pets.build('name' => 'あいうえおかきくけこ')
-      assert o.valid?
-    end
+    assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
+    o = Owner.new('name' => 'あいうえおかきくけこ')
+    assert !o.save
+    assert o.errors[:pets].any?
+    o.pets.build('name' => 'あいうえおかきくけこ')
+    assert o.valid?
   end
 
   def test_validates_presence_of_belongs_to_association__parent_is_new_record
