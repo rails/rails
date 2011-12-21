@@ -479,7 +479,7 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        routes.append do
+        routes.prepend do
           resources :posts
         end
       RUBY
