@@ -1,4 +1,5 @@
 require "isolation/abstract_unit"
+require 'rack/test'
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -15,6 +16,7 @@ class ::MyOtherMailObserver < ::MyMailObserver; end
 module ApplicationTests
   class ConfigurationTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
+    include Rack::Test::Methods
 
     def new_app
       File.expand_path("#{app_path}/../new_app")
@@ -181,8 +183,6 @@ module ApplicationTests
       assert !$prepared
 
       require "#{app_path}/config/environment"
-      require 'rack/test'
-      extend Rack::Test::Methods
 
       get "/"
       assert $prepared
@@ -485,8 +485,6 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      require "rack/test"
-      extend Rack::Test::Methods
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
       assert_equal '{"title"=>"foo"}', last_response.body
