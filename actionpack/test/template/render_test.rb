@@ -20,6 +20,13 @@ module RenderTestCases
     assert_equal ORIGINAL_LOCALES, I18n.available_locales.map {|l| l.to_s }.sort
   end
 
+  def test_render_without_options
+    @view.render()
+    flunk "Render did not raise ArgumentError"
+  rescue ArgumentError => e
+    assert_match "You invoked render but did not give any of :partial, :template, :inline, :file or :text option.", e.message
+  end
+
   def test_render_file
     assert_equal "Hello world!", @view.render(:file => "test/hello_world")
   end
@@ -43,21 +50,21 @@ module RenderTestCases
     assert_match "<h1>No Comment</h1>", @view.render(:template => "comments/empty", :formats => [:html])
     assert_match "<error>No Comment</error>", @view.render(:template => "comments/empty", :formats => [:xml])
   end
-  
+
   def test_render_file_with_locale
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(:file => "comments/empty", :locale => [:de])
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(:file => "comments/empty", :locale => :de)
   end
-  
+
   def test_render_template_with_locale
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(:template => "comments/empty", :locale => [:de])
   end
-  
+
   def test_render_file_with_handlers
     assert_equal "<h1>No Comment</h1>\n", @view.render(:file => "comments/empty", :handlers => [:builder])
     assert_equal "<h1>No Comment</h1>\n", @view.render(:file => "comments/empty", :handlers => :builder)
   end
-  
+
   def test_render_template_with_handlers
     assert_equal "<h1>No Comment</h1>\n", @view.render(:template => "comments/empty", :handlers => [:builder])
   end
