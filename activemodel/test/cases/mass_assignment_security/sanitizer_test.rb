@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'logger'
+require 'active_support/logger'
 require 'active_support/core_ext/object/inclusion'
 
 class SanitizerTest < ActiveModel::TestCase
