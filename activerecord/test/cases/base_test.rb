@@ -1233,6 +1233,26 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
+  def test_serialized_attribute_in_base_class
+    Topic.serialize("content", Hash)
+
+    hash = { 'content1' => 'value1', 'content2' => 'value2' }
+    important_topic = ImportantTopic.create("content" => hash)
+    assert_equal(hash, important_topic.content)
+
+    important_topic.reload
+    assert_equal(hash, important_topic.content)
+  end
+
+  def test_serialized_attribute_declared_in_subclass
+    hash = { 'important1' => 'value1', 'important2' => 'value2' }
+    important_topic = ImportantTopic.create("important" => hash)
+    assert_equal(hash, important_topic.important)
+
+    important_topic.reload
+    assert_equal(hash, important_topic.important)
+  end
+
   def test_serialized_time_attribute
     myobj = Time.local(2008,1,1,1,0)
     topic = Topic.create("content" => myobj).reload
@@ -1671,7 +1691,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_inspect_instance
     topic = topics(:first)
-    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", approved: false, replies_count: 1, parent_id: nil, parent_title: nil, type: nil, group: nil, created_at: "#{topic.created_at.to_s(:db)}", updated_at: "#{topic.updated_at.to_s(:db)}">), topic.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", important: nil, approved: false, replies_count: 1, parent_id: nil, parent_title: nil, type: nil, group: nil, created_at: "#{topic.created_at.to_s(:db)}", updated_at: "#{topic.updated_at.to_s(:db)}">), topic.inspect
   end
 
   def test_inspect_new_instance

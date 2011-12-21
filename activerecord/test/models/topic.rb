@@ -108,6 +108,10 @@ class Topic < ActiveRecord::Base
     def after_create_for_transaction; end
 end
 
+class ImportantTopic < Topic
+  serialize :important, Hash
+end
+
 module Web
   class Topic < ActiveRecord::Base
     has_many :replies, :dependent => :destroy, :foreign_key => "parent_id", :class_name => 'Web::Reply'
