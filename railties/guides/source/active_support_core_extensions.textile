@@ -1838,43 +1838,6 @@ NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
 h4(#string-conversions). Conversions
 
-h5. +ord+
-
-Ruby 1.9 defines +ord+ to be the codepoint of the first character of the receiver. Active Support backports +ord+ for single-byte encodings like ASCII or ISO-8859-1 in Ruby 1.8:
-
-<ruby>
-"a".ord # => 97
-"à".ord # => 224, in ISO-8859-1
-</ruby>
-
-In Ruby 1.8 +ord+ doesn't work in general in UTF8 strings, use the multibyte support in Active Support for that:
-
-<ruby>
-"a".mb_chars.ord # => 97
-"à".mb_chars.ord # => 224, in UTF8
-</ruby>
-
-Note that the 224 is different in both examples. In ISO-8859-1 "à" is represented as a single byte, 224. Its single-character representation in UTF8 has two bytes, namely 195 and 160, but its Unicode codepoint is 224. If we call +ord+ on the UTF8 string "à" the return value will be 195 in Ruby 1.8. That is not an error, because UTF8 is unsupported, the call itself would be bogus.
-
-INFO: +ord+ is equivalent to +getbyte(0)+.
-
-NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
-
-h5. +getbyte+
-
-Active Support backports +getbyte+ from Ruby 1.9:
-
-<ruby>
-"foo".getbyte(0)  # => 102, same as "foo".ord
-"foo".getbyte(1)  # => 111
-"foo".getbyte(9)  # => nil
-"foo".getbyte(-1) # => 111
-</ruby>
-
-INFO: +getbyte+ is equivalent to +[]+.
-
-NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
-
 h5. +to_date+, +to_time+, +to_datetime+
 
 The methods +to_date+, +to_time+, and +to_datetime+ are basically convenience wrappers around +Date._parse+:
@@ -1966,20 +1929,6 @@ h3. Extensions to +BigDecimal+
 ...
 
 h3. Extensions to +Enumerable+
-
-h4. +group_by+
-
-Active Support redefines +group_by+ in Ruby 1.8.7 so that it returns an ordered hash as in 1.9:
-
-<ruby>
-entries_by_surname_initial = address_book.group_by do |entry|
-  entry.surname.at(0).upcase
-end
-</ruby>
-
-Distinct block return values are added to the hash as they come, so that's the resulting order.
-
-NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
 h4. +sum+
 
@@ -2134,20 +2083,6 @@ The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding el
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/array/access.rb+.
-
-h4. Random Access
-
-Active Support backports +sample+ from Ruby 1.9:
-
-<ruby>
-shape_type = [Circle, Square, Triangle].sample
-# => Square, for example
-
-shape_types = [Circle, Square, Triangle].sample(2)
-# => [Triangle, Circle], for example
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/array/random_access.rb+.
 
 h4. Adding Elements
 
@@ -2900,14 +2835,6 @@ Active Support extends this method so that the argument may be another range in 
 WARNING: The original +Range#include?+ is still the one aliased to +Range#===+.
 
 NOTE: Defined in +active_support/core_ext/range/include_range.rb+.
-
-h4. +cover?+
-
-Ruby 1.9 provides +cover?+, and Active Support defines it for previous versions as an alias for +include?+.
-
-The method +include?+ in Ruby 1.9 is different from the one in 1.8 for non-numeric ranges: instead of being based on comparisons between the value and the range's endpoints, it walks the range with +succ+ looking for value. This works better for ranges with holes, but it has different complexity and may not finish in some other cases.
-
-In Ruby 1.9 the old behavior is still available in the new +cover?+, which Active Support backports for forward compatibility. For example, Rails uses +cover?+ for ranges in +validates_inclusion_of+.
 
 h4. +overlaps?+
 
