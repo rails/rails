@@ -80,10 +80,6 @@ module ActiveRecord
           end
         end
 
-        def original_primary_key #:nodoc:
-          deprecated_original_property_getter :primary_key
-        end
-
         # Sets the name of the primary key column.
         #
         #   class Project < ActiveRecord::Base
@@ -102,11 +98,6 @@ module ActiveRecord
           @original_primary_key = @primary_key if defined?(@primary_key)
           @primary_key          = value && value.to_s
           @quoted_primary_key   = nil
-        end
-
-        def set_primary_key(value = nil, &block) #:nodoc:
-          deprecated_property_setter :primary_key, value, block
-          @quoted_primary_key = nil
         end
       end
     end

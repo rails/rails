@@ -105,10 +105,6 @@ module ActiveRecord
         @table_name
       end
 
-      def original_table_name #:nodoc:
-        deprecated_original_property_getter :table_name
-      end
-
       # Sets the table name explicitly. Example:
       #
       #   class Project < ActiveRecord::Base
@@ -123,13 +119,6 @@ module ActiveRecord
         @quoted_table_name   = nil
         @arel_table          = nil
         @relation            = Relation.new(self, arel_table)
-      end
-
-      def set_table_name(value = nil, &block) #:nodoc:
-        deprecated_property_setter :table_name, value, block
-        @quoted_table_name = nil
-        @arel_table        = nil
-        @relation          = Relation.new(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -161,18 +150,10 @@ module ActiveRecord
         end
       end
 
-      def original_inheritance_column #:nodoc:
-        deprecated_original_property_getter :inheritance_column
-      end
-
       # Sets the value of inheritance_column
       def inheritance_column=(value)
         @original_inheritance_column = inheritance_column
         @inheritance_column          = value.to_s
-      end
-
-      def set_inheritance_column(value = nil, &block) #:nodoc:
-        deprecated_property_setter :inheritance_column, value, block
       end
 
       def sequence_name
@@ -181,10 +162,6 @@ module ActiveRecord
         else
           (@sequence_name ||= nil) || base_class.sequence_name
         end
-      end
-
-      def original_sequence_name #:nodoc:
-        deprecated_original_property_getter :sequence_name
       end
 
       def reset_sequence_name #:nodoc:
@@ -208,10 +185,6 @@ module ActiveRecord
       def sequence_name=(value)
         @original_sequence_name = @sequence_name if defined?(@sequence_name)
         @sequence_name          = value.to_s
-      end
-
-      def set_sequence_name(value = nil, &block) #:nodoc:
-        deprecated_property_setter :sequence_name, value, block
       end
 
       # Indicates whether the table associated with this class exists
@@ -327,34 +300,6 @@ module ActiveRecord
         else
           # STI subclasses always use their superclass' table.
           base.table_name
-        end
-      end
-
-      def deprecated_property_setter(property, value, block)
-        if block
-          ActiveSupport::Deprecation.warn(
-            "Calling set_#{property} is deprecated. If you need to lazily evaluate " \
-            "the #{property}, define your own `self.#{property}` class method. You can use `super` " \
-            "to get the default #{property} where you would have called `original_#{property}`."
-          )
-
-          define_attr_method property, value, false, &block
-        else
-          ActiveSupport::Deprecation.warn(
-            "Calling set_#{property} is deprecated. Please use `self.#{property} = 'the_name'` instead."
-          )
-
-          define_attr_method property, value, false
-        end
-      end
-
-      def deprecated_original_property_getter(property)
-        ActiveSupport::Deprecation.warn("original_#{property} is deprecated. Define self.#{property} and call super instead.")
-
-        if !instance_variable_defined?("@original_#{property}") && respond_to?("reset_#{property}")
-          send("reset_#{property}")
-        else
-          instance_variable_get("@original_#{property}")
         end
       end
     end
