@@ -162,34 +162,6 @@ module ActiveRecord
         end
       end
 
-      def columns
-        with_connection do |c|
-          c.schema_cache.columns
-        end
-      end
-      deprecate :columns
-
-      def columns_hash
-        with_connection do |c|
-          c.schema_cache.columns_hash
-        end
-      end
-      deprecate :columns_hash
-
-      def primary_keys
-        with_connection do |c|
-          c.schema_cache.primary_keys
-        end
-      end
-      deprecate :primary_keys
-
-      def clear_cache!
-        with_connection do |c|
-          c.schema_cache.clear!
-        end
-      end
-      deprecate :clear_cache!
-
       # Return any checked-out connections back to the pool by threads that
       # are no longer alive.
       def clear_stale_cached_connections!
