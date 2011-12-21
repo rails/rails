@@ -665,13 +665,8 @@ XML
 
   FILES_DIR = File.dirname(__FILE__) + '/../fixtures/multipart'
 
-  if RUBY_VERSION < '1.9'
-    READ_BINARY = 'rb'
-    READ_PLAIN = 'r'
-  else
-    READ_BINARY = 'rb:binary'
-    READ_PLAIN = 'r:binary'
-  end
+  READ_BINARY = 'rb:binary'
+  READ_PLAIN = 'r:binary'
 
   def test_test_uploaded_file
     filename = 'mona_lisa.jpg'
