@@ -25,6 +25,8 @@ module ActionView
       elsif options.key?(:template)
         options[:template].respond_to?(:render) ?
           options[:template] : find_template(options[:template], options[:prefixes], false, keys, @details)
+      else
+        raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file or :text option."
       end
     end
 
