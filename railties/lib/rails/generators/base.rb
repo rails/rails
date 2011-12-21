@@ -128,13 +128,13 @@ module Rails
       #
       # ==== Boolean hooks
       #
-      # In some cases, you want to provide a boolean hook. For example, webrat
+      # In some cases, you may want to provide a boolean hook. For example, webrat
       # developers might want to have webrat available on controller generator.
       # This can be achieved as:
       #
       #   Rails::Generators::ControllerGenerator.hook_for :webrat, :type => :boolean
       #
-      # Then, if you want, webrat to be invoked, just supply:
+      # Then, if you want webrat to be invoked, just supply:
       #
       #   rails generate controller Account --webrat
       #
@@ -146,7 +146,7 @@ module Rails
       #
       # You can also supply a block to hook_for to customize how the hook is
       # going to be invoked. The block receives two arguments, an instance
-      # of the current class and the klass to be invoked.
+      # of the current class and the class to be invoked.
       #
       # For example, in the resource generator, the controller should be invoked
       # with a pluralized class name. But by default it is invoked with the same
