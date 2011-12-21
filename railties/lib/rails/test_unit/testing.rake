@@ -83,12 +83,16 @@ end
 task :default => :test
 
 desc 'Runs test:units, test:functionals, test:integration together (also available: test:benchmark, test:profile, test:plugins)'
-task :test => %w(test:units test:functionals test:integration)
+task :test do
+  Rake::Task[ENV['TEST'] ? 'test:single' : 'test:run'].invoke
+end
 
 namespace :test do
   task :prepare do
     # Placeholder task for other Railtie and plugins to enhance. See Active Record for an example.
   end
+
+  task :run => %w(test:units test:functionals test:integration)
 
   Rake::TestTask.new(:recent => "test:prepare") do |t|
     since = TEST_CHANGES_SINCE
