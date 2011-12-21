@@ -16,7 +16,6 @@ module ActiveRecord
       include TimeZoneConversion
       include Dirty
       include Serialization
-      include DeprecatedUnderscoreRead
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
