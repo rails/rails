@@ -33,14 +33,6 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   end
 
   # Will deadlock due to lack of Monitor timeouts in 1.9
-  if RUBY_VERSION < '1.9'
-    def test_pooled_connection_checkout
-      checkout_connections
-      assert_equal 2, @connections.length
-      assert_equal 2, @timed_out
-    end
-  end
-
   def checkout_checkin_connections(pool_size, threads)
     ActiveRecord::Base.establish_connection(@connection.merge({:pool => pool_size, :wait_timeout => 0.5}))
     @connection_count = 0
