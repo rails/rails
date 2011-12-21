@@ -1357,22 +1357,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal author_name, Topic.find(topic.id).author_name
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_quote_chars
-      with_kcode('UTF8') do
-        str = 'The Narrator'
-        topic = Topic.create(:author_name => str)
-        assert_equal str, topic.author_name
-
-        assert_kind_of ActiveSupport::Multibyte.proxy_class, str.mb_chars
-        topic = Topic.find_by_author_name(str.mb_chars)
-
-        assert_kind_of Topic, topic
-        assert_equal str, topic.author_name, "The right topic should have been found by name even with name passed as Chars"
-      end
-    end
-  end
-
   def test_toggle_attribute
     assert !topics(:first).approved?
     topics(:first).toggle!(:approved)
