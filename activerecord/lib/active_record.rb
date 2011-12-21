@@ -105,7 +105,6 @@ module ActiveRecord
       autoload :TimeZoneConversion
       autoload :Write
       autoload :Serialization
-      autoload :DeprecatedUnderscoreRead
     end
   end
 
