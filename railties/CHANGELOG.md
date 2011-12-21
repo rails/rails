@@ -32,19 +32,6 @@
 *   Remove old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API *Guillermo Iguaran*
 
 
-*   Rails 3.1.1
-
-*   Add jquery-rails to Gemfile of plugins, test/dummy app needs it. Closes #3091. *Santiago Pastorino*
-
-*   Add config.assets.initialize_on_precompile which, when set to false, forces
-    `rake assets:precompile` to load the application but does not initialize it.
-
-    To the app developer, this means configuration add in
-    config/initializers/* will not be executed.
-
-    Plugins developers need to special case their initializers that are
-    meant to be run in the assets group by adding :group => :assets.
-
 ## Rails 3.1.2 (unreleased) ##
 
 *   Engines: don't blow up if db/seeds.rb is missing.
@@ -55,6 +42,19 @@
     *GH 2564*
 
     *José Valim*
+    
+## Rails 3.1.1 ##
+
+*   Add jquery-rails to Gemfile of plugins, test/dummy app needs it. Closes #3091. *Santiago Pastorino*
+
+*   Add config.assets.initialize_on_precompile which, when set to false, forces
+    `rake assets:precompile` to load the application but does not initialize it.
+
+    To the app developer, this means configuration add in
+    config/initializers/* will not be executed.
+
+    Plugins developers need to special case their initializers that are
+    meant to be run in the assets group by adding :group => :assets.    
 
 ## Rails 3.1.0 (August 30, 2011) ##
 
