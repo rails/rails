@@ -81,10 +81,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     @rs = ::ActionDispatch::Routing::RouteSet.new
   end
 
-  def teardown
-    @rs.clear!
-  end
-
   def test_class_and_lambda_constraints
     subdomain = Class.new {
       def matches? request
