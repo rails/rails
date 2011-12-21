@@ -2414,7 +2414,8 @@ class TestAppendingRoutes < ActionDispatch::IntegrationTest
     lambda { |e| [ 200, { 'Content-Type' => 'text/plain' }, [resp] ] }
   end
 
-  setup do
+  def setup
+    super
     s = self
     @app = ActionDispatch::Routing::RouteSet.new
     @app.append do
