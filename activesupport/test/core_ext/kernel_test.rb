@@ -42,11 +42,6 @@ class KernelTest < Test::Unit::TestCase
     assert_equal 1, silence_stderr { 1 }
   end
 
-  def test_singleton_class
-    o = Object.new
-    assert_equal class << o; self end, o.singleton_class
-  end
-
   def test_class_eval
     o = Object.new
     class << o; @x = 1; end

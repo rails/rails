@@ -177,19 +177,6 @@ end
 
 NOTE: Defined in +active_support/core_ext/object/try.rb+.
 
-h4. +singleton_class+
-
-The method +singleton_class+ returns the singleton class of the receiver:
-
-<ruby>
-String.singleton_class     # => #<Class:String>
-String.new.singleton_class # => #<Class:#<String:0x17a1d1c>>
-</ruby>
-
-WARNING: Fixnums and symbols have no singleton classes, +singleton_class+ raises +TypeError+ on them. Moreover, the singleton classes of +nil+, +true+, and +false+, are +NilClass+, +TrueClass+, and +FalseClass+, respectively.
-
-NOTE: Defined in +active_support/core_ext/kernel/singleton_class.rb+.
-
 h4. +class_eval(*args, &block)+
 
 You can evaluate code in the context of any object's singleton class using +class_eval+:
