@@ -1974,18 +1974,6 @@ The method +ordinalize+ returns the ordinal string corresponding to the receiver
 
 NOTE: Defined in +active_support/core_ext/integer/inflections.rb+.
 
-h3. Extensions to +Float+
-
-h4. +round+
-
-The built-in method +Float#round+ rounds a float to the nearest integer. In Ruby 1.9 this method takes an optional argument to let you specify a precision. Active Support adds that functionality to +round+ in previous versions of Ruby:
-
-<ruby>
-Math::E.round(4) # => 2.7183
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/float/rounding.rb+.
-
 h3. Extensions to +BigDecimal+
 
 ...
