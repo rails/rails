@@ -76,7 +76,7 @@ module ActionDispatch
     end
 
     def stderr_logger
-      @stderr_logger ||= Logger.new($stderr)
+      @stderr_logger ||= ActiveSupport::Logger.new($stderr)
     end
   end
 end
