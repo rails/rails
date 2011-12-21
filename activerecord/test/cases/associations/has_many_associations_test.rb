@@ -502,7 +502,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_default_select
-    assert_equal Comment.column_names.sort, posts(:welcome).comments.first.attributes.keys.sort
+    assert_equal Comment.column_names, posts(:welcome).comments.first.attributes.keys
   end
 
   def test_select_query_method
