@@ -131,17 +131,15 @@ class CaptureHelperTest < ActionView::TestCase
     assert buffer.equal?(@av.output_buffer)
   end
 
-  unless RUBY_VERSION < '1.9'
-    def test_with_output_buffer_sets_proper_encoding
-      @av.output_buffer = ActionView::OutputBuffer.new
+  def test_with_output_buffer_sets_proper_encoding
+    @av.output_buffer = ActionView::OutputBuffer.new
 
-      # Ensure we set the output buffer to an encoding different than the default one.
-      alt_encoding = alt_encoding(@av.output_buffer)
-      @av.output_buffer.force_encoding(alt_encoding)
+    # Ensure we set the output buffer to an encoding different than the default one.
+    alt_encoding = alt_encoding(@av.output_buffer)
+    @av.output_buffer.force_encoding(alt_encoding)
 
-      @av.with_output_buffer do
-        assert_equal alt_encoding, @av.output_buffer.encoding
-      end
+    @av.with_output_buffer do
+      assert_equal alt_encoding, @av.output_buffer.encoding
     end
   end
 
@@ -165,14 +163,12 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal '', view.output_buffer
   end
 
-  unless RUBY_VERSION < '1.9'
-    def test_flush_output_buffer_preserves_the_encoding_of_the_output_buffer
-      view = view_with_controller
-      alt_encoding = alt_encoding(view.output_buffer)
-      view.output_buffer.force_encoding(alt_encoding)
-      flush_output_buffer
-      assert_equal alt_encoding, view.output_buffer.encoding
-    end
+  def test_flush_output_buffer_preserves_the_encoding_of_the_output_buffer
+    view = view_with_controller
+    alt_encoding = alt_encoding(view.output_buffer)
+    view.output_buffer.force_encoding(alt_encoding)
+    flush_output_buffer
+    assert_equal alt_encoding, view.output_buffer.encoding
   end
 
   def alt_encoding(output_buffer)
