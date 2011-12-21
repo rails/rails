@@ -3,7 +3,7 @@
 #
 # Date        next_year, next_month
 # DateTime    to_date, to_datetime, xmlschema
-# Enumerable  group_by, each_with_object, none?
+# Enumerable  group_by, none?
 # Process     Process.daemon
 # REXML       security fix
 # String      ord
