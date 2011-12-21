@@ -63,26 +63,23 @@ module ApplicationTests
     def test_rake_test_error_output
       Dir.chdir(app_path){ `rake db:migrate` }
 
-      app_file "config/database.yml", <<-RUBY
-        development:
-      RUBY
-
       app_file "test/unit/one_unit_test.rb", <<-RUBY
+        raise 'unit'
       RUBY
 
       app_file "test/functional/one_functional_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'functional'
       RUBY
 
       app_file "test/integration/one_integration_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'integration'
       RUBY
 
       silence_stderr do
-        output = Dir.chdir(app_path){ `rake test` }
-        assert_match(/Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output)
-        assert_match(/Errors running test:functionals! #<RuntimeError/, output)
-        assert_match(/Errors running test:integration! #<RuntimeError/, output)
+        output = Dir.chdir(app_path) { `rake test 2>&1` }
+        assert_match 'unit', output
+        assert_match 'functional', output
+        assert_match 'integration', output
       end
     end
 
