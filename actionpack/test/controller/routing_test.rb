@@ -81,6 +81,28 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     @rs = ::ActionDispatch::Routing::RouteSet.new
   end
 
+  def test_regexp_precidence
+    @rs.draw do
+      match '/whois/:domain', :constraints => {
+        :domain => /\w+\.[\w\.]+/ },
+        :to     => lambda { |env| [200, {}, 'regexp'] }
+
+      match '/whois/:id', :to => lambda { |env| [200, {}, 'id'] }
+    end
+
+    body = @rs.call({'PATH_INFO'      => '/whois/example.org',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'www.example.org'})[2]
+
+    assert_equal 'regexp', body
+
+    body = @rs.call({'PATH_INFO'      => '/whois/123',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'clients.example.org'})[2]
+
+    assert_equal 'id', body
+  end
+
   def test_class_and_lambda_constraints
     subdomain = Class.new {
       def matches? request
