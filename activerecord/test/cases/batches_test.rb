@@ -151,4 +151,14 @@ class EachTest < ActiveRecord::TestCase
     assert_equal @total, batches[0]
   end
 
+  def test_find_each_without_a_block_should_return_an_enumerator
+    enumerator = Post.find_each
+    assert_kind_of Enumerator, enumerator
+    each_post = []
+    enumerator.each do |post|
+      each_post << post
+    end
+    assert_equal Post.count, each_post.length
+  end
+
 end

@@ -16,10 +16,12 @@ module ActiveRecord
     # large amounts of records that wouldn't fit in memory all at once. If
     # you just need to loop over less than 1000 records, it's probably
     # better just to use the regular find methods.
-    def find_each(options = {})
-      find_in_batches(options) do |records|
-        records.each { |record| yield record }
-      end
+    def find_each(options = {}, &block)
+      Enumerator.new do |yielder|
+        find_in_batches(options) do |records|
+          records.each { |record| yielder.yield record }
+        end
+      end.tap{|enum| enum.each(&block) if block_given?}
     end
 
     # Yields each batch of records that was found by the find +options+ as
