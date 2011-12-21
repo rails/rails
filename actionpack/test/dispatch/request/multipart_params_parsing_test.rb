@@ -88,8 +88,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     assert_equal 'bar', params['foo']
 
     # Rack doesn't handle multipart/mixed for us.
-    files = params['files']
-    files.force_encoding('ASCII-8BIT') if files.respond_to?(:force_encoding)
+    files = params['files'].force_encoding('ASCII-8BIT')
     assert_equal 19756, files.size
   end
 
