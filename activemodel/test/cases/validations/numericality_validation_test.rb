@@ -106,6 +106,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
     valid!([2])
   end
 
+  def test_validates_numericality_with_other_than
+    Topic.validates_numericality_of :approved, :other_than => 0
+
+    invalid!([0, 0.0])
+    valid!([-1, 42])
+  end
+
   def test_validates_numericality_with_proc
     Topic.send(:define_method, :min_approved, lambda { 5 })
     Topic.validates_numericality_of :approved, :greater_than_or_equal_to => Proc.new {|topic| topic.min_approved }
