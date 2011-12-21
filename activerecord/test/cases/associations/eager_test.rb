@@ -1095,4 +1095,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
       Post.includes(:comments).order(nil).where(:comments => {:body => "Thank you for the welcome"}).first
     end
   end
+
+  def test_deep_including_through_habtm
+    posts = Post.find(:all, :include => {:categories => :categorizations}, :order => "posts.id")
+    assert_no_queries { assert_equal 2, posts[0].categories[0].categorizations.length }
+    assert_no_queries { assert_equal 1, posts[0].categories[1].categorizations.length }
+    assert_no_queries { assert_equal 2, posts[1].categories[0].categorizations.length }
+  end
 end
