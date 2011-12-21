@@ -607,8 +607,10 @@ ActiveRecord::Schema.define do
     # Oracle SELECT WHERE clause which causes many unit test failures
     if current_adapter?(:OracleAdapter)
       t.string   :content, :limit => 4000
+      t.string   :important, :limit => 4000
     else
       t.text     :content
+      t.text     :important
     end
     t.boolean  :approved, :default => true
     t.integer  :replies_count, :default => 0
