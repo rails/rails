@@ -33,7 +33,7 @@ module ActionDispatch
       end
 
       def internal_request_id
-        SecureRandom.hex(16)
+        SecureRandom.uuid
       end
   end
 end
