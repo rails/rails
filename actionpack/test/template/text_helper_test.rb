@@ -1,10 +1,8 @@
 # encoding: utf-8
 require 'abstract_unit'
-require 'testing_sandbox'
 
 class TextHelperTest < ActionView::TestCase
   tests ActionView::Helpers::TextHelper
-  include TestingSandbox
 
   def setup
     super
