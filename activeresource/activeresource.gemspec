@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.summary     = 'REST modeling framework (part of Rails).'
   s.description = 'REST on Rails. Wrap your RESTful web app with Ruby classes and work with them like Active Record models.'
 
-  s.required_ruby_version = '>= 1.8.7'
+  s.required_ruby_version = '>= 1.9.3'
 
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'
