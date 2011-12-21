@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'active_support/core_ext/array/random_access'
 require 'models/post'
 require 'models/topic'
 require 'models/comment'
