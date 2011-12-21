@@ -1,5 +1,6 @@
 require 'isolation/abstract_unit'
 require 'stringio'
+require 'rack/test'
 
 module ApplicationTests
   class MiddlewareTest < Test::Unit::TestCase
@@ -75,7 +76,7 @@ module ApplicationTests
       add_to_config "config.force_ssl = true"
       add_to_config "config.ssl_options = { :host => 'example.com' }"
       boot!
-      
+
       assert_equal AppTemplate::Application.middleware.first.args, [{:host => 'example.com'}]
     end
 
@@ -191,6 +192,14 @@ module ApplicationTests
       assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
       assert_equal "no-cache", last_response.headers["Cache-Control"]
       assert_equal nil, last_response.headers["Etag"]
+    end
+
+    test "ORIGINAL_FULLPATH is passed to env" do
+      boot!
+      env = ::Rack::MockRequest.env_for("/foo/?something")
+      Rails.application.call(env)
+
+      assert_equal "/foo/?something", env["ORIGINAL_FULLPATH"]
     end
 
     private
