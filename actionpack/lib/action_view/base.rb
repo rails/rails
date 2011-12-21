@@ -4,7 +4,6 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/ordered_options'
 require 'action_view/log_subscriber'
-require 'active_support/core_ext/module/deprecation'
 
 module ActionView #:nodoc:
   # = Action View Base
