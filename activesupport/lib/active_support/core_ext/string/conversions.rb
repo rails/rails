@@ -1,5 +1,4 @@
 require 'date'
-require 'active_support/core_ext/time/publicize_conversion_methods'
 require 'active_support/core_ext/time/calculations'
 
 class String
