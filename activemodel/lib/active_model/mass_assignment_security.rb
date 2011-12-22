@@ -71,7 +71,7 @@ module ActiveModel
       #   class Customer
       #     include ActiveModel::MassAssignmentSecurity
       #
-      #     attr_accessor :name, :credit_rating
+      #     attr_accessor :name, :credit_rating, :last_login
       #
       #     attr_protected :credit_rating, :last_login
       #     attr_protected :last_login, :as => :admin
