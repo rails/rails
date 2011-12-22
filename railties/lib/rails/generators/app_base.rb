@@ -211,7 +211,7 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sass-rails',   '~> 3.2.0'
+              gem 'sass-rails',   '~> 3.2.2'
               gem 'coffee-rails', '~> 3.2.0'
               #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
               gem 'uglifier', '>= 1.0.3'

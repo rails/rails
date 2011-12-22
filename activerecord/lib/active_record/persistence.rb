@@ -368,13 +368,5 @@ module ActiveRecord
       @new_record = false
       id
     end
-
-    # Initializes the attributes array with keys matching the columns from the linked table and
-    # the values matching the corresponding default value of that column, so
-    # that a new instance, or one populated from a passed-in Hash, still has all the attributes
-    # that instances loaded from the database would.
-    def attributes_from_column_definition
-      self.class.column_defaults.dup
-    end
   end
 end

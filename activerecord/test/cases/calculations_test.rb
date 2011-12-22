@@ -458,7 +458,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.approved ], relation.pluck(:approved)
     assert_equal [ topic.last_read ], relation.pluck(:last_read)
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
-
   end
 
   def test_pluck_and_uniq
@@ -471,4 +470,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [contract.id], company.contracts.pluck(:id)
   end
 
+  def test_pluck_with_serialization
+    t = Topic.create!(:content => { :foo => :bar })
+    assert_equal [{:foo => :bar}], Topic.where(:id => t.id).pluck(:content)
+  end
+
+  def test_pluck_with_qualified_column_name
+    assert_equal [1,2,3,4], Topic.order(:id).pluck("topics.id")
+  end
 end
