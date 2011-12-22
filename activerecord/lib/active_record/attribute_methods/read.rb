@@ -39,6 +39,26 @@ module ActiveRecord
           super
         end
 
+        def type_cast_attribute(attr_name, attributes, cache = {}) #:nodoc:
+          return unless attr_name
+          attr_name = attr_name.to_s
+
+          if generated_external_attribute_methods.method_defined?(attr_name)
+            if attributes.has_key?(attr_name) || attr_name == 'id'
+              generated_external_attribute_methods.send(attr_name, attributes[attr_name], attributes, cache, attr_name)
+            end
+          elsif !attribute_methods_generated?
+            # If we haven't generated the caster methods yet, do that and
+            # then try again
+            define_attribute_methods
+            type_cast_attribute(attr_name, attributes, cache)
+          else
+            # If we get here, the attribute has no associated DB column, so
+            # just return it verbatim.
+            attributes[attr_name]
+          end
+        end
+
         protected
           # We want to generate the methods via module_eval rather than define_method,
           # because define_method is slower on dispatch and uses more memory (because it
@@ -105,25 +125,7 @@ module ActiveRecord
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
-        return unless attr_name
-
-        attr_name = attr_name.to_s
-        methods   = self.class.generated_external_attribute_methods
-
-        if methods.method_defined?(attr_name)
-          if @attributes.has_key?(attr_name) || attr_name == 'id'
-            methods.send(attr_name, @attributes[attr_name], @attributes, @attributes_cache, attr_name)
-          end
-        elsif !self.class.attribute_methods_generated?
-          # If we haven't generated the caster methods yet, do that and
-          # then try again
-          self.class.define_attribute_methods
-          read_attribute(attr_name)
-        else
-          # If we get here, the attribute has no associated DB column, so
-          # just return it verbatim.
-          @attributes[attr_name]
-        end
+        self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
       end
 
       private
