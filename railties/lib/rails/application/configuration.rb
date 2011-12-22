@@ -12,7 +12,7 @@ module Rails
                     :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
                     :railties_order, :relative_url_root, :reload_plugins, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
-                    :time_zone, :reload_classes_only_on_change, :whiny_nils
+                    :time_zone, :reload_classes_only_on_change
 
       attr_writer :log_level
       attr_reader :encoding
@@ -144,6 +144,11 @@ module Rails
           @session_store = args.shift
           @session_options = args.shift || {}
         end
+      end
+
+      def whiny_nils=(*)
+        ActiveSupport::Deprecation.warn "config.whiny_nils option " \
+          "is deprecated and no longer works", caller
       end
     end
   end
