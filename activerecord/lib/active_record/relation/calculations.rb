@@ -166,20 +166,56 @@ module ActiveRecord
       0
     end
 
-    # This method is designed to perform select by a single column as direct SQL query
-    # Returns <tt>Array</tt> with values of the specified column name
-    # The values has same data type as column. 
+    # Returns an <tt>Array</tt> containing the type-cast values of a single
+    # attribute of all records retrieved by the relation. This is identical
+    # to the idiom:
+    #
+    #   Person.where(:confirmed => true).select(:id).map(&:id)
+    #
+    # but without the overhead of instantiating each ActiveRecord::Base
+    # object in the relation.
     #
     # Examples:
     #
-    #   Person.pluck(:id) # SELECT people.id FROM people
-    #   Person.uniq.pluck(:role) # SELECT DISTINCT role FROM people
-    #   Person.where(:confirmed => true).limit(5).pluck(:id)
+    #   Person.uniq.select_column(:role) # SELECT DISTINCT role FROM people
+    #   Person.where(:confirmed => true).limit(5).select_column(:id)
+    def select_column(attr_name)
+      attr_name = attr_name.to_s
+      attr_name = klass.primary_key if attr_name == 'id'
+
+      # Don't re-run query if the records have already been loaded.
+      if loaded? && (empty? || first.attributes.has_key?(attr_name))
+        to_a.map {|record| record[attr_name]}
+      else
+        scoping { klass.select_column attr_name }
+      end
+    end
+
+    # Returns an <tt>Array</tt> which contains an <tt>Array</tt> for each
+    # record retrieved by the relation. Each internal array contains the
+    # type-cast values of the attributes given as parameters. Like
+    # <tt>select_column</tt>, this avoids the overhead of instantiating each
+    # ActiveRecord::Base object in the relation, but it allows for the
+    # following:
     #
-    def pluck(column_name)
-      scope = self.select(column_name)
-      self.connection.select_values(scope.to_sql).map! do |value|
-        type_cast_using_column(value, column_for(column_name))
+    #   Person.where(:confirmed => true).select_columns(:name, :email) do |name, email|
+    #     puts "#{name}'s e-mail address is #{email}"
+    #   end
+    #
+    # Example:
+    #
+    #   Person.where(:confirmed => true).limit(5).select_columns(:name, :salary)
+    def select_columns(*attr_names)
+      attr_names.map! do |attr_name|
+        attr_name = attr_name.to_s
+        attr_name == 'id' ? klass.primary_key : attr_name
+      end
+
+      # Don't re-run query if the records have already been loaded.
+      if loaded? && (empty? || attr_names.all? {|a| first.attributes.has_key? a})
+        to_a.map {|record| attr_names.map {|a| record[a]}}
+      else
+        scoping { klass.select_columns(*attr_names) }
       end
     end
 

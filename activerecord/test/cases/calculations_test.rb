@@ -448,27 +448,57 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal distinct_authors_for_approved_count, 2
   end
 
-  def test_pluck
-    assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
+  def test_select_column
+    assert_equal [1,2,3,4], Topic.order(:id).select_column(:id)
   end
 
-  def test_pluck_type_cast
+  def test_select_column_type_cast
     topic = topics(:first)
     relation = Topic.where(:id => topic.id)
-    assert_equal [ topic.approved ], relation.pluck(:approved)
-    assert_equal [ topic.last_read ], relation.pluck(:last_read)
-    assert_equal [ topic.written_on ], relation.pluck(:written_on)
-
+    assert_equal [ topic.approved ], relation.select_column(:approved)
+    assert_equal [ topic.last_read ], relation.select_column(:last_read)
+    assert_equal [ topic.written_on ], relation.select_column(:written_on)
   end
 
-  def test_pluck_and_uniq
-    assert_equal [50, 53, 55, 60], Account.order(:credit_limit).uniq.pluck(:credit_limit)
+  def test_select_column_and_uniq
+    assert_equal [50, 53, 55, 60], Account.order(:credit_limit).uniq.select_column(:credit_limit)
   end
 
-  def test_pluck_in_relation
+  def test_select_column_runs_necessary_queries
+    topics = Topic.select(:title)
+    topics.all
+    assert_queries 1 do
+      assert_equal [1,2,3,4], topics.select_column(:id)
+    end
+  end
+
+  def test_select_column_does_not_run_unnecessary_queries
+    topics = Topic.scoped
+    topics.all
+    assert_queries 0 do
+      assert_equal [1,2,3,4], topics.select_column(:id)
+    end
+  end
+
+  def test_select_column_on_association
     company = Company.first
     contract = company.contracts.create!
-    assert_equal [contract.id], company.contracts.pluck(:id)
+    assert_equal [contract.id], company.contracts.select_column(:id)
+  end
+
+  def test_select_columns
+    assert_equal [
+      [1, 'The First Topic'],
+      [2, 'The Second Topic of the day'],
+      [3, 'The Third Topic of the day'],
+      [4, 'The Fourth Topic of the day'] ], Topic.order(:id).select_columns(:id, :title)
+  end
+
+  def test_select_columns_type_cast
+    topic = topics(:first)
+    relation = Topic.where(:id => topic.id)
+    assert_equal [ [topic.approved, topic.last_read, topic.written_on] ],
+                 relation.select_columns(:approved, :last_read, :written_on)
   end
 
 end
