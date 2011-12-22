@@ -111,12 +111,11 @@ module ActiveRecord
     # model object.
     def reinit_with(coder)
       @attributes_cache = {}
-      dirty = @changed_attributes.keys
-      @attributes.update(coder['attributes'].except(*dirty))
+      dirty      = @changed_attributes.keys
+      attributes = self.class.initialize_attributes(coder['attributes'].except(*dirty))
+      @attributes.update(attributes)
       @changed_attributes.update(coder['attributes'].slice(*dirty))
       @changed_attributes.delete_if{|k,v| v.eql? @attributes[k]}
-
-      set_serialized_attributes
 
       run_callbacks :find
 
