@@ -70,12 +70,13 @@ module ActiveModel
       #
       #   class Customer
       #     include ActiveModel::MassAssignmentSecurity
-      #
-      #     attr_accessor :name, :credit_rating, :last_login
-      #
-      #     attr_protected :credit_rating, :last_login
-      #     attr_protected :last_login, :as => :admin
-      #
+      #   
+      #     attr_accessor :name, :password, :logins_count
+      #   
+      #     attr_protected :logins_count
+      #     # Suppose that admin can not change password for employee
+      #     attr_protected :password, :as => :admin 
+      #   
       #     def assign_attributes(values, options = {})
       #       sanitize_for_mass_assignment(values, options[:as]).each do |k, v|
       #         send("#{k}=", v)
@@ -86,21 +87,21 @@ module ActiveModel
       # When using the :default role :
       #
       #   customer = Customer.new
-      #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :default)
+      #   customer.assign_attributes({ "name" => "David", "password" => "firstpass", :logins_count => 5 }, :as => :default)
       #   customer.name          # => "David"
-      #   customer.credit_rating # => nil
-      #   customer.last_login    # => nil
-      #
-      #   customer.credit_rating = "Average"
-      #   customer.credit_rating # => "Average"
+      #   customer.password # => "firstpass"
+      #   customer.logins_count    # => nil
       #
       # And using the :admin role :
       #
       #   customer = Customer.new
-      #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :admin)
+      #   customer.assign_attributes({ "name" => "David", "password" => "firstpass", :logins_count => 5}, :as => :admin)
       #   customer.name          # => "David"
-      #   customer.credit_rating # => "Excellent"
-      #   customer.last_login    # => nil
+      #   customer.password # => nil
+      #   customer.logins_count    # => nil
+      #   
+      #   customer.password = "alternative"
+      #   customer.password # => "alternative"
       #
       # To start from an all-closed default and enable attributes as needed,
       # have a look at +attr_accessible+.
