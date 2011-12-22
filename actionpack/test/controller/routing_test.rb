@@ -90,16 +90,16 @@ class LegacyRouteSetTests < Test::Unit::TestCase
               'REQUEST_METHOD' => 'GET',
               'HTTP_HOST'      => host}
 
-    @rs.call(params)[2]
+    @rs.call(params)[2].join
   end
 
   def test_regexp_precidence
     @rs.draw do
       match '/whois/:domain', :constraints => {
         :domain => /\w+\.[\w\.]+/ },
-        :to     => lambda { |env| [200, {}, 'regexp'] }
+        :to     => lambda { |env| [200, {}, %w{regexp}] }
 
-      match '/whois/:id', :to => lambda { |env| [200, {}, 'id'] }
+      match '/whois/:id', :to => lambda { |env| [200, {}, %w{id}] }
     end
 
     assert_equal 'regexp', get(URI('http://example.org/whois/example.org'))
@@ -115,9 +115,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
     @rs.draw do
       match '/', :constraints => subdomain.new,
-                 :to          => lambda { |env| [200, {}, 'default'] }
+                 :to          => lambda { |env| [200, {}, %w{default}] }
       match '/', :constraints => { :subdomain => 'clients' },
-                 :to          => lambda { |env| [200, {}, 'clients'] }
+                 :to          => lambda { |env| [200, {}, %w{clients}] }
     end
 
     assert_equal 'default', get(URI('http://www.example.org/'))
@@ -128,11 +128,11 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     @rs.draw do
       match '/', :constraints => lambda { |req|
         req.subdomain.present? and req.subdomain != "clients" },
-                 :to          => lambda { |env| [200, {}, 'default'] }
+                 :to          => lambda { |env| [200, {}, %w{default}] }
 
       match '/', :constraints => lambda { |req|
         req.subdomain.present? && req.subdomain == "clients" },
-                 :to          => lambda { |env| [200, {}, 'clients'] }
+                 :to          => lambda { |env| [200, {}, %w{clients}] }
     end
 
     assert_equal 'default', get(URI('http://www.example.org/'))
