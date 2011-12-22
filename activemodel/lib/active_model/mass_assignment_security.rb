@@ -1,6 +1,7 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/array/wrap'
+require "active_support/concern"
 require 'active_model/mass_assignment_security/permission_set'
 require 'active_model/mass_assignment_security/sanitizer'
 
