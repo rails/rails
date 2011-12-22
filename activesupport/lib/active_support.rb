@@ -43,6 +43,7 @@ require "active_support/logger"
 module ActiveSupport
   extend ActiveSupport::Autoload
 
+  autoload :Concern
   autoload :DescendantsTracker
   autoload :FileUpdateChecker
   autoload :LogSubscriber
@@ -56,7 +57,6 @@ module ActiveSupport
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks
-    autoload :Concern
     autoload :Configurable
     autoload :Deprecation
     autoload :Gzip
