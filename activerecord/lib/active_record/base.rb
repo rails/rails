@@ -545,15 +545,6 @@ module ActiveRecord #:nodoc:
         super
       end
 
-      # Backport dup from 1.9 so that initialize_dup() gets called
-      unless Object.respond_to?(:initialize_dup)
-        def dup # :nodoc:
-          copy = super
-          copy.initialize_dup(self)
-          copy
-        end
-      end
-
       # Populate +coder+ with attributes about this record that should be
       # serialized. The structure of +coder+ defined in this method is
       # guaranteed to match the structure of +coder+ passed to the +init_with+
