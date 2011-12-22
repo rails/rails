@@ -4,15 +4,10 @@ module ActiveSupport
   #   module M
   #     def self.included(base)
   #       base.extend ClassMethods
-  #       base.send(:include, InstanceMethods)
   #       scope :disabled, where(:disabled => true)
   #     end
   #
   #     module ClassMethods
-  #       ...
-  #     end
-  #
-  #     module InstanceMethods
   #       ...
   #     end
   #   end
@@ -29,10 +24,6 @@ module ActiveSupport
   #     end
   #
   #     module ClassMethods
-  #       ...
-  #     end
-  #
-  #     module InstanceMethods
   #       ...
   #     end
   #   end
@@ -118,7 +109,6 @@ module ActiveSupport
         @_dependencies.each { |dep| base.send(:include, dep) }
         super
         base.extend const_get("ClassMethods") if const_defined?("ClassMethods")
-        base.send :include, const_get("InstanceMethods") if const_defined?("InstanceMethods")
         base.class_eval(&@_included_block) if instance_variable_defined?("@_included_block")
       end
     end

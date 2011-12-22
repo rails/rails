@@ -37,6 +37,9 @@ module ActiveRecord
     # You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging,
     # or otherwise apply the business logic needed to resolve the conflict.
     #
+    # This locking mechanism will function inside a single Ruby process. To make it work across all
+    # web requests, the recommended approach is to add +lock_version+ as a hidden field to your form.
+    #
     # You must ensure that your database schema defaults the +lock_version+ column to 0.
     #
     # This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
@@ -48,10 +51,6 @@ module ActiveRecord
       included do
         cattr_accessor :lock_optimistically, :instance_writer => false
         self.lock_optimistically = true
-
-        class << self
-          alias_method :locking_column=, :set_locking_column
-        end
       end
 
       def locking_enabled? #:nodoc:
@@ -66,7 +65,7 @@ module ActiveRecord
         end
 
         def attributes_from_column_definition
-          result = super
+          result = self.class.column_defaults.dup
 
           # If the locking column has no default value set,
           # start the lock version at zero. Note we can't use
@@ -103,7 +102,7 @@ module ActiveRecord
             affected_rows = connection.update stmt
 
             unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError, "Attempted to update a stale object: #{self.class.name}"
+              raise ActiveRecord::StaleObjectError.new(self, "update")
             end
 
             affected_rows
@@ -127,7 +126,7 @@ module ActiveRecord
             affected_rows = self.class.unscoped.where(predicate).delete_all
 
             unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError, "Attempted to delete a stale object: #{self.class.name}"
+              raise ActiveRecord::StaleObjectError.new(self, "destroy")
             end
           end
 
@@ -146,14 +145,15 @@ module ActiveRecord
         end
 
         # Set the column to use for optimistic locking. Defaults to +lock_version+.
-        def set_locking_column(value = nil, &block)
-          define_attr_method :locking_column, value, &block
-          value
+        def locking_column=(value)
+          @original_locking_column = @locking_column if defined?(@locking_column)
+          @locking_column          = value.to_s
         end
 
         # The version column used for optimistic locking. Defaults to +lock_version+.
         def locking_column
-          reset_locking_column
+          reset_locking_column unless defined?(@locking_column)
+          @locking_column
         end
 
         # Quote the column name used for optimistic locking.
@@ -163,7 +163,7 @@ module ActiveRecord
 
         # Reset the column used for optimistic locking back to the +lock_version+ default.
         def reset_locking_column
-          set_locking_column DEFAULT_LOCKING_COLUMN
+          self.locking_column = DEFAULT_LOCKING_COLUMN
         end
 
         # Make sure the lock version column gets updated when counters are

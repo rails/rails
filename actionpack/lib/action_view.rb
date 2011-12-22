@@ -33,6 +33,7 @@ module ActionView
     autoload :AssetPaths
     autoload :Base
     autoload :Context
+    autoload :CompiledTemplates, "action_view/context"
     autoload :Helpers
     autoload :LookupContext
     autoload :PathSet

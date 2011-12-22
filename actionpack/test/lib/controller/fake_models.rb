@@ -175,8 +175,8 @@ class HashBackedAuthor < Hash
 end
 
 module Blog
-  def self._railtie
-    self
+  def self.use_relative_model_naming?
+    true
   end
 
   class Post < Struct.new(:title, :id)

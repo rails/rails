@@ -1,12 +1,38 @@
 require 'test/unit'
 require 'rails/application/route_inspector'
 require 'action_controller'
+require 'rails/engine'
 
 module ApplicationTests
   class RouteInspectTest < Test::Unit::TestCase
     def setup
       @set = ActionDispatch::Routing::RouteSet.new
       @inspector = Rails::Application::RouteInspector.new
+    end
+
+    def test_displaying_routes_for_engines
+      engine = Class.new(Rails::Engine) do
+        def self.to_s
+          "Blog::Engine"
+        end
+      end
+      engine.routes.draw do
+        get '/cart', :to => 'cart#show'
+      end
+
+      @set.draw do
+        get '/custom/assets', :to => 'custom_assets#show'
+        mount engine => "/blog", :as => "blog"
+      end
+
+      output = @inspector.format @set.routes
+      expected = [
+        "custom_assets GET /custom/assets(.:format) custom_assets#show",
+        "         blog     /blog                    Blog::Engine",
+        "\nRoutes for Blog::Engine:",
+        "cart GET /cart(.:format) cart#show"
+      ]
+      assert_equal expected, output
     end
 
     def test_cart_inspect
@@ -49,12 +75,20 @@ module ApplicationTests
       assert_equal ["root  / pages#main"], output
     end
 
+    def test_inspect_routes_shows_dynamic_action_route
+      @set.draw do
+        match 'api/:action' => 'api'
+      end
+      output = @inspector.format @set.routes
+      assert_equal ["  /api/:action(.:format) api#:action"], output
+    end
+
     def test_inspect_routes_shows_controller_and_action_only_route
       @set.draw do
         match ':controller/:action'
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /:controller/:action(.:format) "], output
+      assert_equal ["  /:controller/:action(.:format) :controller#:action"], output
     end
 
     def test_inspect_routes_shows_controller_and_action_route_with_constraints
@@ -62,7 +96,7 @@ module ApplicationTests
         match ':controller(/:action(/:id))', :id => /\d+/
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /:controller(/:action(/:id))(.:format) {:id=>/\\d+/}"], output
+      assert_equal ["  /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"], output
     end
 
     def test_rake_routes_shows_route_with_defaults

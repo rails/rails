@@ -1,4 +1,4 @@
-require 'journey/router'
+require 'journey'
 require 'forwardable'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
@@ -37,7 +37,7 @@ module ActionDispatch
 
         # If this is a default_controller (i.e. a controller specified by the user)
         # we should raise an error in case it's not found, because it usually means
-        # an user error. However, if the controller was retrieved through a dynamic
+        # a user error. However, if the controller was retrieved through a dynamic
         # segment, as in :controller(/:action), we should simply return nil and
         # delegate the control back to Rack cascade. Besides, if this is not a default
         # controller, it means we should respect the @scope[:module] parameter.
@@ -356,7 +356,7 @@ module ActionDispatch
         conditions = build_conditions(conditions, valid_conditions, path.names.map { |x| x.to_sym })
 
         route = @set.add_route(app, path, conditions, defaults, name)
-        named_routes[name] = route if name
+        named_routes[name] = route if name && !named_routes[name]
         route
       end
 
@@ -394,10 +394,9 @@ module ActionDispatch
           if name == :controller
             value
           elsif value.is_a?(Array)
-            value.map { |v| Journey::Router::Utils.escape_uri(v.to_param) }.join('/')
-          else
-            return nil unless param = value.to_param
-            param.split('/').map { |v| Journey::Router::Utils.escape_uri(v) }.join("/")
+            value.map { |v| v.to_param }.join('/')
+          elsif param = value.to_param
+            param
           end
         end
 
@@ -558,7 +557,7 @@ module ActionDispatch
         path_addition, params = generate(path_options, path_segments || {})
         path << path_addition
 
-        ActionDispatch::Http::URL.url_for(options.merge({
+        ActionDispatch::Http::URL.url_for(options.merge!({
           :path => path,
           :params => params,
           :user => user,

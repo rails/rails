@@ -56,37 +56,9 @@ class MultibyteUtilsTest < ActiveSupport::TestCase
     end
   end
 
-  if RUBY_VERSION < '1.9'
-    test "clean leaves ASCII strings intact" do
-      with_encoding('None') do
-        [
-          'word', "\270\236\010\210\245"
-        ].each do |string|
-          assert_equal string, ActiveSupport::Multibyte.clean(string)
-        end
-      end
-    end
-
-    test "clean cleans invalid characters from UTF-8 encoded strings" do
-      with_encoding('UTF8') do
-        cleaned_utf8 = [8].pack('C*')
-        assert_equal example('valid UTF-8'), ActiveSupport::Multibyte.clean(example('valid UTF-8'))
-        assert_equal cleaned_utf8, ActiveSupport::Multibyte.clean(example('invalid UTF-8'))
-      end
-    end
-
-    test "clean cleans invalid characters from Shift-JIS encoded strings" do
-      with_encoding('SJIS') do
-        cleaned_sjis = [184, 0, 136, 165].pack('C*')
-        assert_equal example('valid Shift-JIS'), ActiveSupport::Multibyte.clean(example('valid Shift-JIS'))
-        assert_equal cleaned_sjis, ActiveSupport::Multibyte.clean(example('invalid Shift-JIS'))
-      end
-    end
-  else
-    test "clean is a no-op" do
-      with_encoding('UTF8') do
-        assert_equal example('invalid Shift-JIS'), ActiveSupport::Multibyte.clean(example('invalid Shift-JIS'))
-      end
+  test "clean is a no-op" do
+    with_encoding('UTF8') do
+      assert_equal example('invalid Shift-JIS'), ActiveSupport::Multibyte.clean(example('invalid Shift-JIS'))
     end
   end
 
@@ -101,37 +73,21 @@ class MultibyteUtilsTest < ActiveSupport::TestCase
     'invalid Shift-JIS' => [184, 158, 8, 0, 255, 136, 165].pack('C*')
   }
 
-  if Kernel.const_defined?(:Encoding)
-    def example(key)
-      STRINGS[key].force_encoding(Encoding.default_external)
-    end
-
-    def examples
-      STRINGS.values.map { |s| s.force_encoding(Encoding.default_external) }
-    end
-  else
-    def example(key)
-      STRINGS[key]
-    end
-
-    def examples
-      STRINGS.values
-    end
+  def example(key)
+    STRINGS[key].force_encoding(Encoding.default_external)
   end
 
-  if 'string'.respond_to?(:encoding)
-    KCODE_TO_ENCODING = Hash.new(Encoding::BINARY).
-      update('UTF8' => Encoding::UTF_8, 'SJIS' => Encoding::Shift_JIS)
+  def examples
+    STRINGS.values.map { |s| s.force_encoding(Encoding.default_external) }
+  end
 
-    def with_encoding(enc)
-      before = Encoding.default_external
-      silence_warnings { Encoding.default_external = KCODE_TO_ENCODING[enc] }
+  KCODE_TO_ENCODING = Hash.new(Encoding::BINARY).
+    update('UTF8' => Encoding::UTF_8, 'SJIS' => Encoding::Shift_JIS)
 
-      yield
-
-      silence_warnings { Encoding.default_external = before }
-    end
-  else
-    alias with_encoding with_kcode
+  def with_encoding(enc)
+    before = Encoding.default_external
+    silence_warnings { Encoding.default_external = KCODE_TO_ENCODING[enc] }
+    yield
+    silence_warnings { Encoding.default_external = before }
   end
 end

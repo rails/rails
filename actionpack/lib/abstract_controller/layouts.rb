@@ -66,27 +66,40 @@ module AbstractController
   # == Inheritance Examples
   #
   #   class BankController < ActionController::Base
-  #     layout "bank_standard"
+  #     # bank.html.erb exists
+  #
+  #   class ExchangeController < BankController
+  #     # exchange.html.erb exists
+  #
+  #   class CurrencyController < BankController
   #
   #   class InformationController < BankController
+  #     layout "information"
   #
-  #   class TellerController < BankController
+  #   class TellerController < InformationController
   #     # teller.html.erb exists
   #
-  #   class TillController < TellerController
+  #   class EmployeeController < InformationController
+  #     # employee.html.erb exists
+  #     layout nil
   #
   #   class VaultController < BankController
   #     layout :access_level_layout
   #
-  #   class EmployeeController < BankController
-  #     layout nil
+  #   class TillController < BankController
+  #     layout false
   #
-  # In these examples:
-  # * The InformationController uses the "bank_standard" layout, inherited from BankController.
-  # * The TellerController follows convention and uses +app/views/layouts/teller.html.erb+.
-  # * The TillController inherits the layout from TellerController and uses +teller.html.erb+ as well.
+  # In these examples, we have three implicit lookup scenrios:
+  # * The BankController uses the "bank" layout.
+  # * The ExchangeController uses the "exchange" layout.
+  # * The CurrencyController inherits the layout from BankController.
+  #
+  # However, when a layout is explicitly set, the explicitly set layout wins:
+  # * The InformationController uses the "information" layout, explicitly set.
+  # * The TellerController also uses the "information" layout, because the parent explicitly set it.
+  # * The EmployeeController uses the "employee" layout, because it set the layout to nil, resetting the parent configuration.
   # * The VaultController chooses a layout dynamically by calling the <tt>access_level_layout</tt> method.
-  # * The EmployeeController does not use a layout at all.
+  # * The TillController does not use a layout at all.
   #
   # == Types of layouts
   #
@@ -125,6 +138,22 @@ module AbstractController
   #
   # If no directory is specified for the template name, the template will by default be looked for in <tt>app/views/layouts/</tt>.
   # Otherwise, it will be looked up relative to the template root.
+  #
+  # Setting the layout to nil forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
+  # Setting it to nil is useful to re-enable template lookup overriding a previous configuration set in the parent:
+  #
+  #     class ApplicationController < ActionController::Base
+  #       layout "application"
+  #     end
+  #
+  #     class PostsController < ApplicationController
+  #       # Will use "application" layout
+  #     end
+  #
+  #     class CommentsController < ApplicationController
+  #       # Will search for "comments" layout and fallback "application" layout
+  #       layout nil
+  #     end
   #
   # == Conditional layouts
   #
@@ -166,12 +195,14 @@ module AbstractController
     include Rendering
 
     included do
-      class_attribute :_layout_conditions
-      remove_possible_method :_layout_conditions
-      delegate :_layout_conditions, :to => :'self.class'
+      class_attribute :_layout, :_layout_conditions,
+        :instance_reader => false, :instance_writer => false
+      self._layout = nil
       self._layout_conditions = {}
       _write_layout_method
     end
+
+    delegate :_layout_conditions, :to => "self.class"
 
     module ClassMethods
       def inherited(klass)
@@ -188,7 +219,7 @@ module AbstractController
         #
         # ==== Returns
         # * <tt> Boolean</tt> - True if the action has a layout, false otherwise.
-        def action_has_layout?
+        def conditional_layout?
           return unless super
 
           conditions = _layout_conditions
@@ -213,7 +244,7 @@ module AbstractController
       # true::   raise an ArgumentError
       #
       # ==== Parameters
-      # * <tt>String, Symbol, false</tt> - The layout to use.
+      # * <tt>layout</tt> - The layout to use.
       #
       # ==== Options (conditions)
       # * :only   - A list of actions to apply this layout to.
@@ -224,7 +255,7 @@ module AbstractController
         conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
         self._layout_conditions = conditions
 
-        @_layout = layout || false # Converts nil to false
+        self._layout = layout
         _write_layout_method
       end
 
@@ -244,43 +275,46 @@ module AbstractController
       def _write_layout_method
         remove_possible_method(:_layout)
 
-        case defined?(@_layout) ? @_layout : nil
-        when String
-          self.class_eval %{def _layout; #{@_layout.inspect} end}, __FILE__, __LINE__
-        when Symbol
-          self.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
-            def _layout
-              #{@_layout}.tap do |layout|
+        prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+        name_clause = if name
+          <<-RUBY
+            lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first || super
+          RUBY
+        end
+
+        layout_definition = case _layout
+          when String
+            _layout.inspect
+          when Symbol
+            <<-RUBY
+              #{_layout}.tap do |layout|
                 unless layout.is_a?(String) || !layout
-                  raise ArgumentError, "Your layout method :#{@_layout} returned \#{layout}. It " \
+                  raise ArgumentError, "Your layout method :#{_layout} returned \#{layout}. It " \
                     "should have returned a String, false, or nil"
                 end
               end
-            end
-          ruby_eval
-        when Proc
-          define_method :_layout_from_proc, &@_layout
-          self.class_eval %{def _layout; _layout_from_proc(self) end}, __FILE__, __LINE__
-        when false
-          self.class_eval %{def _layout; end}, __FILE__, __LINE__
-        when true
-          raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
-        when nil
-          if name
-            _prefixes = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
-
-            self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def _layout
-                if template_exists?("#{_implied_layout_name}", #{_prefixes.inspect})
-                  "#{_implied_layout_name}"
-                else
-                  super
-                end
-              end
             RUBY
-          end
+          when Proc
+            define_method :_layout_from_proc, &_layout
+            "_layout_from_proc(self)"
+          when false
+            nil
+          when true
+            raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
+          when nil
+            name_clause
         end
-        self.class_eval { private :_layout }
+
+        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def _layout
+            if conditional_layout?
+              #{layout_definition}
+            else
+              #{name_clause}
+            end
+          end
+          private :_layout
+        RUBY
       end
     end
 
@@ -289,8 +323,7 @@ module AbstractController
 
       if _include_layout?(options)
         layout = options.key?(:layout) ? options.delete(:layout) : :default
-        value = _layout_for_option(layout)
-        options[:layout] = (value =~ /\blayouts/ ? value : "layouts/#{value}") if value
+        options[:layout] = _layout_for_option(layout)
       end
     end
 
@@ -305,24 +338,25 @@ module AbstractController
       @_action_has_layout
     end
 
+    def conditional_layout?
+      true
+    end
+
   private
 
     # This will be overwritten by _write_layout_method
     def _layout; end
 
-    # Determine the layout for a given name and details, taking into account
-    # the name type.
+    # Determine the layout for a given name, taking into account the name type.
     #
     # ==== Parameters
     # * <tt>name</tt> - The name of the template
-    # * <tt>details</tt> - A list of details to restrict
-    #   the lookup to. By default, layout lookup is limited to the
-    #   formats specified for the current request.
     def _layout_for_option(name)
       case name
-      when String     then name
-      when true       then _default_layout(true)
-      when :default   then _default_layout(false)
+      when String     then _normalize_layout(name)
+      when Proc       then name
+      when true       then Proc.new { _default_layout(true)  }
+      when :default   then Proc.new { _default_layout(false) }
       when false, nil then nil
       else
         raise ArgumentError,
@@ -330,31 +364,32 @@ module AbstractController
       end
     end
 
-    # Returns the default layout for this controller and a given set of details.
+    def _normalize_layout(value)
+      value.is_a?(String) && value !~ /\blayouts/ ? "layouts/#{value}" : value
+    end
+
+    # Returns the default layout for this controller.
     # Optionally raises an exception if the layout could not be found.
     #
     # ==== Parameters
-    # * <tt>details</tt> - A list of details to restrict the search by. This
-    #   might include details like the format or locale of the template.
-    # * <tt>require_layout</tt> - If this is true, raise an ArgumentError
-    #   with details about the fact that the exception could not be
-    #   found (defaults to false)
+    # * <tt>require_layout</tt> - If set to true and layout is not found,
+    #   an ArgumentError exception is raised (defaults to false)
     #
     # ==== Returns
     # * <tt>template</tt> - The template object for the default layout (or nil)
     def _default_layout(require_layout = false)
       begin
-        layout_name = _layout if action_has_layout?
+        value = _layout if action_has_layout?
       rescue NameError => e
         raise e, "Could not render layout: #{e.message}"
       end
 
-      if require_layout && action_has_layout? && !layout_name
+      if require_layout && action_has_layout? && !value
         raise ArgumentError,
           "There was no default layout for #{self.class} in #{view_paths.inspect}"
       end
 
-      layout_name
+      _normalize_layout(value)
     end
 
     def _include_layout?(options)

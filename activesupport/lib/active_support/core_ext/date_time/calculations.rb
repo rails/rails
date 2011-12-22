@@ -1,5 +1,3 @@
-require 'rational' unless RUBY_VERSION >= '1.9.2'
-
 class DateTime
   class << self
     # DateTimes aren't aware of DST rules, so use a consistent non-DST offset when creating a DateTime with an offset in the local zone

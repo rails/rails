@@ -10,7 +10,6 @@ require 'zlib'
 require 'active_support/dependencies'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/logger'
 require 'active_support/ordered_hash'
 require 'active_record/fixtures/file'
 
@@ -21,8 +20,6 @@ else
   class FixtureClassNotFound < StandardError #:nodoc:
   end
 end
-
-class FixturesFileNotFound < StandardError; end
 
 module ActiveRecord
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
@@ -644,14 +641,6 @@ module ActiveRecord
       end
 
       def read_fixture_files
-        if ::File.file?(yaml_file_path)
-          read_yaml_fixture_files
-        else
-          raise FixturesFileNotFound, "Could not find #{yaml_file_path}"
-        end
-      end
-
-      def read_yaml_fixture_files
         yaml_files = Dir["#{@fixture_path}/**/*.yml"].select { |f|
           ::File.file?(f)
         } + [yaml_file_path]
@@ -832,6 +821,7 @@ module ActiveRecord
       end
 
       @fixture_cache = {}
+      @fixture_connections = []
       @@already_loaded_fixtures ||= {}
 
       # Load fixtures once and begin transaction.
@@ -842,9 +832,12 @@ module ActiveRecord
           @loaded_fixtures = load_fixtures
           @@already_loaded_fixtures[self.class] = @loaded_fixtures
         end
-        ActiveRecord::Base.connection.increment_open_transactions
-        ActiveRecord::Base.connection.transaction_joinable = false
-        ActiveRecord::Base.connection.begin_db_transaction
+        @fixture_connections = enlist_fixture_connections
+        @fixture_connections.each do |connection|
+          connection.increment_open_transactions
+          connection.transaction_joinable = false
+          connection.begin_db_transaction
+        end
       # Load fixtures for every test.
       else
         ActiveRecord::Fixtures.reset_cache
@@ -864,11 +857,20 @@ module ActiveRecord
       end
 
       # Rollback changes if a transaction is active.
-      if run_in_transaction? && ActiveRecord::Base.connection.open_transactions != 0
-        ActiveRecord::Base.connection.rollback_db_transaction
-        ActiveRecord::Base.connection.decrement_open_transactions
+      if run_in_transaction?
+        @fixture_connections.each do |connection|
+          if connection.open_transactions != 0
+            connection.rollback_db_transaction
+            connection.decrement_open_transactions
+          end
+        end
+        @fixture_connections.clear
       end
       ActiveRecord::Base.clear_active_connections!
+    end
+
+    def enlist_fixture_connections
+      ActiveRecord::Base.connection_handler.connection_pools.values.map(&:connection)
     end
 
     private

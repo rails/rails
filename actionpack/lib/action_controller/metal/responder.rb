@@ -84,8 +84,8 @@ module ActionController #:nodoc:
   #
   # === Custom options
   #
-  # <code>respond_with</code> also allow you to pass options that are forwarded
-  # to the underlying render call. Those options are only applied success
+  # <code>respond_with</code> also allows you to pass options that are forwarded
+  # to the underlying render call. Those options are only applied for success
   # scenarios. For instance, you can do the following in the create method above:
   #
   #   def create
@@ -95,7 +95,7 @@ module ActionController #:nodoc:
   #     respond_with(@project, @task, :status => 201)
   #   end
   #
-  # This will return status 201 if the task was saved with success. If not,
+  # This will return status 201 if the task was saved successfully. If not,
   # it will simply ignore the given options and return status 422 and the
   # resource errors. To customize the failure scenario, you can pass a
   # a block to <code>respond_with</code>:
@@ -202,10 +202,8 @@ module ActionController #:nodoc:
         display resource
       elsif post?
         display resource, :status => :created, :location => api_location
-      elsif has_empty_resource_definition?
-        display empty_resource, :status => :ok
       else
-        head :ok
+        head :no_content
       end
     end
 
@@ -224,7 +222,7 @@ module ActionController #:nodoc:
     alias :navigation_location :resource_location
     alias :api_location :resource_location
 
-    # If a given response block was given, use it, otherwise call render on
+    # If a response block was given, use it, otherwise call render on
     # controller.
     #
     def default_render
@@ -253,7 +251,7 @@ module ActionController #:nodoc:
     end
 
     def display_errors
-      controller.render format => resource.errors, :status => :unprocessable_entity
+      controller.render format => resource_errors, :status => :unprocessable_entity
     end
 
     # Check whether the resource has errors.
@@ -269,22 +267,12 @@ module ActionController #:nodoc:
       @action ||= ACTIONS_FOR_VERBS[request.request_method_symbol]
     end
 
-    # Check whether resource needs a specific definition of empty resource to be valid
-    #
-    def has_empty_resource_definition?
-      respond_to?("empty_#{format}_resource")
+    def resource_errors
+      respond_to?("#{format}_resource_errors") ? send("#{format}_resource_errors") : resource.errors
     end
 
-    # Delegate to proper empty resource method
-    #
-    def empty_resource
-      send("empty_#{format}_resource")
-    end
-
-    # Return a valid empty JSON resource
-    #
-    def empty_json_resource
-      "{}"
+    def json_resource_errors
+      {:errors => resource.errors}
     end
   end
 end

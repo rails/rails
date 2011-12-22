@@ -8,6 +8,9 @@ class TestERBTemplate < ActiveSupport::TestCase
     def disable_cache
       yield
     end
+
+    def find_template(*args)
+    end
   end
 
   class Context
@@ -167,6 +170,7 @@ class TestERBTemplate < ActiveSupport::TestCase
 
     def with_external_encoding(encoding)
       old = Encoding.default_external
+      Encoding::Converter.new old, encoding if old != encoding
       silence_warnings { Encoding.default_external = encoding }
       yield
     ensure

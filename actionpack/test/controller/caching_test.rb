@@ -194,10 +194,11 @@ class ActionCachingTestController < CachingController
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
   caches_action :with_layout
+  caches_action :with_format_and_http_param, :cache_path => Proc.new { |c| { :key => 'value' } } 
   caches_action :layout_false, :layout => false
   caches_action :record_not_found, :four_oh_four, :simple_runtime_error
 
-  layout 'talk_from_action.erb'
+  layout 'talk_from_action'
 
   def index
     @cache_this = MockTime.now.to_f.to_s
@@ -219,6 +220,11 @@ class ActionCachingTestController < CachingController
     render :text => @cache_this, :layout => true
   end
 
+  def with_format_and_http_param
+    @cache_this = MockTime.now.to_f.to_s
+    render :text => @cache_this
+  end
+  
   def record_not_found
     raise ActiveRecord::RecordNotFound, "oops!"
   end
@@ -243,6 +249,11 @@ class ActionCachingTestController < CachingController
 
   def expire_xml
     expire_action :controller => 'action_caching_test', :action => 'index', :format => 'xml'
+    render :nothing => true
+  end
+
+  def expire_with_url_string
+    expire_action url_for(:controller => 'action_caching_test', :action => 'index')
     render :nothing => true
   end
 end
@@ -359,6 +370,13 @@ class ActionCacheTest < ActionController::TestCase
     assert !fragment_exist?('hostname.com/action_caching_test')
   end
 
+  def test_action_cache_with_format_and_http_param
+    get :with_format_and_http_param, :format => 'json'
+    assert_response :success
+    assert !fragment_exist?('hostname.com/action_caching_test/with_format_and_http_param.json?key=value.json')
+    assert fragment_exist?('hostname.com/action_caching_test/with_format_and_http_param.json?key=value')
+  end
+
   def test_action_cache_with_store_options
     MockTime.expects(:now).returns(12345).once
     @controller.expects(:read_fragment).with('hostname.com/action_caching_test', :expires_in => 1.hour).once
@@ -424,6 +442,21 @@ class ActionCacheTest < ActionController::TestCase
 
     @request.request_uri = "/action_caching_test/expire.xml"
     get :expire, :format => :xml
+    assert_response :success
+    reset!
+
+    get :index
+    assert_response :success
+    assert_not_equal cached_time, @response.body
+  end
+
+  def test_cache_expiration_with_url_string
+    get :index
+    cached_time = content_to_cache
+    reset!
+
+    @request.request_uri = "/action_caching_test/expire_with_url_string"
+    get :expire_with_url_string
     assert_response :success
     reset!
 
@@ -745,6 +778,7 @@ class FunctionalFragmentCachingTest < ActionController::TestCase
     expected_body = <<-CACHED
 Hello
 This bit's fragment cached
+Ciao
 CACHED
     assert_equal expected_body, @response.body
 
@@ -785,4 +819,52 @@ CACHED
 
     assert_equal "  <p>Builder</p>\n", @store.read('views/test.host/functional_caching/formatted_fragment_cached')
   end
+end
+
+class CacheHelperOutputBufferTest < ActionController::TestCase
+
+  class MockController
+    def read_fragment(name, options)
+      return false
+    end
+
+    def write_fragment(name, fragment, options)
+      fragment
+    end
+  end
+
+  def setup
+    super
+  end
+
+  def test_output_buffer
+    output_buffer = ActionView::OutputBuffer.new
+    controller = MockController.new
+    cache_helper = Object.new
+    cache_helper.extend(ActionView::Helpers::CacheHelper)
+    cache_helper.expects(:controller).returns(controller).at_least(0)
+    cache_helper.expects(:output_buffer).returns(output_buffer).at_least(0)
+    # if the output_buffer is changed, the new one should be html_safe and of the same type
+    cache_helper.expects(:output_buffer=).with(responds_with(:html_safe?, true)).with(instance_of(output_buffer.class)).at_least(0)
+
+    assert_nothing_raised do
+      cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+    end
+  end
+
+  def test_safe_buffer
+    output_buffer = ActiveSupport::SafeBuffer.new
+    controller = MockController.new
+    cache_helper = Object.new
+    cache_helper.extend(ActionView::Helpers::CacheHelper)
+    cache_helper.expects(:controller).returns(controller).at_least(0)
+    cache_helper.expects(:output_buffer).returns(output_buffer).at_least(0)
+    # if the output_buffer is changed, the new one should be html_safe and of the same type
+    cache_helper.expects(:output_buffer=).with(responds_with(:html_safe?, true)).with(instance_of(output_buffer.class)).at_least(0)
+
+    assert_nothing_raised do
+      cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+    end
+  end
+
 end

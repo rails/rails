@@ -103,7 +103,7 @@ module Mime
         SET << Mime.const_get(symbol.to_s.upcase)
 
         ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
-        ([symbol.to_s] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext] = SET.last }
+        ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = SET.last }
       end
 
       def parse(accept_header)
@@ -254,6 +254,10 @@ module Mime
 
     def html?
       @@html_types.include?(to_sym) || @string =~ /html/
+    end
+
+    def respond_to?(method, include_private = false) #:nodoc:
+      super || method.to_s =~ /(\w+)\?$/
     end
 
     private

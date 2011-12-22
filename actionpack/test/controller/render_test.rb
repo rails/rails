@@ -25,6 +25,8 @@ end
 class TestController < ActionController::Base
   protect_from_forgery
 
+  before_filter :set_variable_for_layout
+
   class LabellingFormBuilder < ActionView::Helpers::FormBuilder
   end
 
@@ -41,7 +43,7 @@ class TestController < ActionController::Base
   end
 
   def hello_world_file
-    render :file => File.expand_path("../../fixtures/hello.html", __FILE__)
+    render :file => File.expand_path("../../fixtures/hello", __FILE__), :formats => [:html]
   end
 
   def conditional_hello
@@ -50,8 +52,24 @@ class TestController < ActionController::Base
     end
   end
 
+  def conditional_hello_with_record
+    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
+    
+    if stale?(record)
+      render :action => 'hello_world'
+    end
+  end
+
   def conditional_hello_with_public_header
     if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
+      render :action => 'hello_world'
+    end
+  end
+
+  def conditional_hello_with_public_header_with_record
+    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
+
+    if stale?(record, :public => true)
       render :action => 'hello_world'
     end
   end
@@ -163,14 +181,14 @@ class TestController < ActionController::Base
   # :ported:
   def render_file_with_instance_variables
     @secret = 'in the sauce'
-    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb')
+    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar')
     render :file => path
   end
 
   # :ported:
   def render_file_as_string_with_instance_variables
     @secret = 'in the sauce'
-    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb'))
+    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar'))
     render path
   end
 
@@ -187,21 +205,21 @@ class TestController < ActionController::Base
 
   def render_file_using_pathname
     @secret = 'in the sauce'
-    render :file => Pathname.new(File.dirname(__FILE__)).join('..', 'fixtures', 'test', 'dot.directory', 'render_file_with_ivar.erb')
+    render :file => Pathname.new(File.dirname(__FILE__)).join('..', 'fixtures', 'test', 'dot.directory', 'render_file_with_ivar')
   end
 
   def render_file_from_template
     @secret = 'in the sauce'
-    @path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb'))
+    @path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar'))
   end
 
   def render_file_with_locals
-    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb')
+    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals')
     render :file => path, :locals => {:secret => 'in the sauce'}
   end
 
   def render_file_as_string_with_locals
-    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb'))
+    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals'))
     render path, :locals => {:secret => 'in the sauce'}
   end
 
@@ -348,17 +366,14 @@ class TestController < ActionController::Base
   end
 
   def layout_test_with_different_layout
-    @variable_for_layout = nil
     render :action => "hello_world", :layout => "standard"
   end
 
   def layout_test_with_different_layout_and_string_action
-    @variable_for_layout = nil
     render "hello_world", :layout => "standard"
   end
 
   def layout_test_with_different_layout_and_symbol_action
-    @variable_for_layout = nil
     render :hello_world, :layout => "standard"
   end
 
@@ -367,7 +382,6 @@ class TestController < ActionController::Base
   end
 
   def layout_overriding_layout
-    @variable_for_layout = nil
     render :action => "hello_world", :layout => "standard"
   end
 
@@ -453,17 +467,13 @@ class TestController < ActionController::Base
     render :action => "potential_conflicts"
   end
 
-  # :deprecated:
-  # Tests being able to pick a .builder template over a .erb
-  # For instance, being able to have hello.xml.builder and hello.xml.erb
-  # and select one via "hello.builder" or "hello.erb"
   def hello_world_from_rxml_using_action
-    render :action => "hello_world_from_rxml.builder"
+    render :action => "hello_world_from_rxml", :handlers => [:builder]
   end
 
   # :deprecated:
   def hello_world_from_rxml_using_template
-    render :template => "test/hello_world_from_rxml.builder"
+    render :template => "test/hello_world_from_rxml", :handlers => [:builder]
   end
 
   def action_talk_to_layout
@@ -525,8 +535,8 @@ class TestController < ActionController::Base
     render :action => "using_layout_around_block", :layout => "layouts/block_with_layout"
   end
 
-  def partial_dot_html
-    render :partial => 'partial.html.erb'
+  def partial_formats_html
+    render :partial => 'partial', :formats => [:html]
   end
 
   def partial
@@ -654,8 +664,11 @@ class TestController < ActionController::Base
 
   private
 
+    def set_variable_for_layout
+      @variable_for_layout = nil
+    end
+
     def determine_layout
-      @variable_for_layout ||= nil
       case action_name
         when "hello_world", "layout_test", "rendering_without_layout",
              "rendering_nothing_on_layout", "render_text_hello_world",
@@ -797,9 +810,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_render_file
-    assert_deprecated do
-      get :hello_world_file
-    end
+    get :hello_world_file
     assert_equal "Hello world!", @response.body
   end
 
@@ -1235,8 +1246,8 @@ class RenderTest < ActionController::TestCase
     assert_equal 'partial html', @response.body
   end
 
-  def test_should_render_html_partial_with_dot
-    get :partial_dot_html
+  def test_should_render_html_partial_with_formats
+    get :partial_formats_html
     assert_equal 'partial html', @response.body
   end
 
@@ -1443,6 +1454,36 @@ class LastModifiedRenderTest < ActionController::TestCase
     assert_present @response.body
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
+
+
+  def test_responds_with_last_modified_with_record
+    get :conditional_hello_with_record
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_with_record
+    @request.if_modified_since = @last_modified
+    get :conditional_hello_with_record
+    assert_equal 304, @response.status.to_i
+    assert_blank @response.body
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_but_etag_differs_with_record
+    @request.if_modified_since = @last_modified
+    @request.if_none_match = "234"
+    get :conditional_hello_with_record
+    assert_response :success
+  end
+
+  def test_request_modified_with_record
+    @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
+    get :conditional_hello_with_record
+    assert_equal 200, @response.status.to_i
+    assert_present @response.body
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
 
   def test_request_with_bang_gets_last_modified
     get :conditional_hello_with_bangs

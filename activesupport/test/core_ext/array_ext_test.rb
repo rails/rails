@@ -343,51 +343,31 @@ end
 
 class ArrayUniqByTests < Test::Unit::TestCase
   def test_uniq_by
-    assert_equal [1,2], [1,2,3,4].uniq_by { |i| i.odd? }
-    assert_equal [1,2], [1,2,3,4].uniq_by(&:even?)
-    assert_equal((-5..0).to_a, (-5..5).to_a.uniq_by{ |i| i**2 })
+    ActiveSupport::Deprecation.silence do
+      assert_equal [1,2], [1,2,3,4].uniq_by { |i| i.odd? }
+      assert_equal [1,2], [1,2,3,4].uniq_by(&:even?)
+      assert_equal((-5..0).to_a, (-5..5).to_a.uniq_by{ |i| i**2 })
+    end
   end
 
   def test_uniq_by!
     a = [1,2,3,4]
-    a.uniq_by! { |i| i.odd? }
+    ActiveSupport::Deprecation.silence do
+      a.uniq_by! { |i| i.odd? }
+    end
     assert_equal [1,2], a
 
     a = [1,2,3,4]
-    a.uniq_by! { |i| i.even? }
+    ActiveSupport::Deprecation.silence do
+      a.uniq_by! { |i| i.even? }
+    end
     assert_equal [1,2], a
 
     a = (-5..5).to_a
-    a.uniq_by! { |i| i**2 }
+    ActiveSupport::Deprecation.silence do
+      a.uniq_by! { |i| i**2 }
+    end
     assert_equal((-5..0).to_a, a)
-  end
-end
-
-class ArrayExtRandomTests < ActiveSupport::TestCase
-  def test_sample_from_array
-    assert_nil [].sample
-    assert_equal [], [].sample(5)
-    assert_equal 42, [42].sample
-    assert_equal [42], [42].sample(5)
-
-    a = [:foo, :bar, 42]
-    s = a.sample(2)
-    assert_equal 2, s.size
-    assert_equal 1, (a-s).size
-    assert_equal [], a-(0..20).sum{a.sample(2)}
-
-    o = Object.new
-    def o.to_int; 1; end
-    assert_equal [0], [0].sample(o)
-
-    o = Object.new
-    assert_raises(TypeError) { [0].sample(o) }
-
-    o = Object.new
-    def o.to_int; ''; end
-    assert_raises(TypeError) { [0].sample(o) }
-
-    assert_raises(ArgumentError) { [0].sample(-7) }
   end
 end
 

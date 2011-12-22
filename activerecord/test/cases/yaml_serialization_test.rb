@@ -18,6 +18,11 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal topic, t
   end
 
+  def test_roundtrip_serialized_column
+    topic = Topic.new(:content => {:omg=>:lol})
+    assert_equal({:omg=>:lol}, YAML.load(YAML.dump(topic)).content)
+  end
+
   def test_encode_with_coder
     topic = Topic.first
     coder = {}

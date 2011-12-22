@@ -134,20 +134,33 @@ class AttributeMethodsTest < ActiveModel::TestCase
   end
 
   test '#define_attr_method generates attribute method' do
-    ModelWithAttributes.define_attr_method(:bar, 'bar')
+    assert_deprecated do
+      ModelWithAttributes.define_attr_method(:bar, 'bar')
+    end
 
     assert_respond_to ModelWithAttributes, :bar
-    assert_equal "original bar", ModelWithAttributes.original_bar
+
+    assert_deprecated do
+      assert_equal "original bar", ModelWithAttributes.original_bar
+    end
+
     assert_equal "bar", ModelWithAttributes.bar
-    ModelWithAttributes.define_attr_method(:bar)
+    ActiveSupport::Deprecation.silence do
+      ModelWithAttributes.define_attr_method(:bar)
+    end
     assert !ModelWithAttributes.bar
   end
 
   test '#define_attr_method generates attribute method with invalid identifier characters' do
-    ModelWithWeirdNamesAttributes.define_attr_method(:'c?d', 'c?d')
+    ActiveSupport::Deprecation.silence do
+      ModelWithWeirdNamesAttributes.define_attr_method(:'c?d', 'c?d')
+    end
 
     assert_respond_to ModelWithWeirdNamesAttributes, :'c?d'
-    assert_equal "original c?d", ModelWithWeirdNamesAttributes.send('original_c?d')
+
+    ActiveSupport::Deprecation.silence do
+      assert_equal "original c?d", ModelWithWeirdNamesAttributes.send('original_c?d')
+    end
     assert_equal "c?d", ModelWithWeirdNamesAttributes.send('c?d')
   end
 

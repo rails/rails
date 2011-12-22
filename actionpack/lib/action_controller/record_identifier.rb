@@ -14,9 +14,9 @@ module ActionController
   #   <% end %>                  </div>
   #
   #   # controller
-  #   def destroy
+  #   def update
   #     post = Post.find(params[:id])
-  #     post.destroy
+  #     post.update_attributes(params[:post])
   #
   #     redirect_to(post) # Calls polymorphic_url(post) which in turn calls post_url(post)
   #   end

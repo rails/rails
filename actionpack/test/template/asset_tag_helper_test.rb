@@ -366,6 +366,10 @@ class AssetTagHelperTest < ActionView::TestCase
     assert stylesheet_link_tag('dir/other/file', 'dir/file2').html_safe?
   end
 
+  def test_stylesheet_link_tag_escapes_options
+    assert_dom_equal %(<link href="/file.css" media="&lt;script&gt;" rel="stylesheet" type="text/css" />), stylesheet_link_tag('/file', :media => '<script>')
+  end
+
   def test_custom_stylesheet_expansions
     ENV["RAILS_ASSET_ID"] = ''
     ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :robbery => ["bank", "robber"]

@@ -99,6 +99,10 @@ module ActiveRecord
             end
           end
         end
+
+        def foreign_key_present?
+          owner.attribute_present?(reflection.association_primary_key)
+        end
     end
   end
 end

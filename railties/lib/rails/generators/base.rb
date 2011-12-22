@@ -34,7 +34,7 @@ module Rails
         usage = source_root && File.expand_path("../USAGE", source_root)
 
         @desc ||= if usage && File.exist?(usage)
-          File.read(usage)
+          ERB.new(File.read(usage)).result(binding)
         else
           "Description:\n    Create #{base_name.humanize.downcase} files for #{generator_name} generator."
         end
@@ -91,7 +91,7 @@ module Rails
       #
       # The lookup in this case for test_unit as input is:
       #
-      #   "test_unit:awesome", "test_unit"
+      #   "test_framework:awesome", "test_framework"
       #
       # Which is not the desired the lookup. You can change it by providing the
       # :as option:
@@ -102,7 +102,7 @@ module Rails
       #
       # And now it will lookup at:
       #
-      #   "test_unit:controller", "test_unit"
+      #   "test_framework:controller", "test_framework"
       #
       # Similarly, if you want it to also lookup in the rails namespace, you just
       # need to provide the :base value:
@@ -113,7 +113,7 @@ module Rails
       #
       # And the lookup is exactly the same as previously:
       #
-      #   "rails:test_unit", "test_unit:controller", "test_unit"
+      #   "rails:test_framework", "test_framework:controller", "test_framework"
       #
       # ==== Switches
       #
@@ -128,13 +128,13 @@ module Rails
       #
       # ==== Boolean hooks
       #
-      # In some cases, you want to provide a boolean hook. For example, webrat
+      # In some cases, you may want to provide a boolean hook. For example, webrat
       # developers might want to have webrat available on controller generator.
       # This can be achieved as:
       #
       #   Rails::Generators::ControllerGenerator.hook_for :webrat, :type => :boolean
       #
-      # Then, if you want, webrat to be invoked, just supply:
+      # Then, if you want webrat to be invoked, just supply:
       #
       #   rails generate controller Account --webrat
       #
@@ -146,7 +146,7 @@ module Rails
       #
       # You can also supply a block to hook_for to customize how the hook is
       # going to be invoked. The block receives two arguments, an instance
-      # of the current class and the klass to be invoked.
+      # of the current class and the class to be invoked.
       #
       # For example, in the resource generator, the controller should be invoked
       # with a pluralized class name. But by default it is invoked with the same

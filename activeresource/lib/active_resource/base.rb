@@ -170,8 +170,8 @@ module ActiveResource
   # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   #
-  # * 200..399 - Valid response, no exception (other than 301, 302)
-  # * 301, 302 - ActiveResource::Redirection
+  # * 200..399 - Valid response. No exceptions, other than these redirects:
+  # * 301, 302, 303, 307 - ActiveResource::Redirection
   # * 400 - ActiveResource::BadRequest
   # * 401 - ActiveResource::UnauthorizedAccess
   # * 403 - ActiveResource::ForbiddenAccess
@@ -637,6 +637,10 @@ module ActiveResource
       #   Post.element_path(1)
       #   # => /posts/1.json
       #
+      #   class Comment < ActiveResource::Base
+      #     self.site = "http://37s.sunrise.i/posts/:post_id/"
+      #   end
+      #
       #   Comment.element_path(1, :post_id => 5)
       #   # => /posts/5/comments/1.json
       #
@@ -662,6 +666,10 @@ module ActiveResource
       # ==== Examples
       #   Post.new_element_path
       #   # => /posts/new.json
+      #
+      #   class Comment < ActiveResource::Base
+      #     self.site = "http://37s.sunrise.i/posts/:post_id/"
+      #   end
       #
       #   Comment.collection_path(:post_id => 5)
       #   # => /posts/5/comments/new.json
@@ -1384,6 +1392,10 @@ module ActiveResource
 
     private
 
+      def read_attribute_for_serialization(n)
+        attributes[n]
+      end
+
       # Determine whether the response is allowed to have a body per HTTP 1.1 spec section 4.4.1
       def response_code_allows_body?(c)
         !((100..199).include?(c) || [204,304].include?(c))
@@ -1401,7 +1413,7 @@ module ActiveResource
         namespaces = module_names[0, module_names.size-1].map do |module_name|
           receiver = receiver.const_get(module_name)
         end
-        const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
+        const_args = [resource_name, false]
         if namespace = namespaces.reverse.detect { |ns| ns.const_defined?(*const_args) }
           namespace.const_get(*const_args)
         else
@@ -1413,7 +1425,7 @@ module ActiveResource
       def find_or_create_resource_for(name)
         resource_name = name.to_s.camelize
 
-        const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
+        const_args = [resource_name, false]
         if self.class.const_defined?(*const_args)
           self.class.const_get(*const_args)
         else

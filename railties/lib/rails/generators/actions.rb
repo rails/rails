@@ -68,8 +68,9 @@ module Rails
         end
 
         in_root do
-          str = "gem #{parts.join(", ")}\n"
+          str = "gem #{parts.join(", ")}"
           str = "  " + str if @in_group
+          str = "\n" + str
           append_file "Gemfile", str, :verbose => false
         end
       end
@@ -87,13 +88,13 @@ module Rails
         log :gemfile, "group #{name}"
 
         in_root do
-          append_file "Gemfile", "\ngroup #{name} do\n", :force => true
+          append_file "Gemfile", "\ngroup #{name} do", :force => true
 
           @in_group = true
-          instance_eval &block
+          instance_eval(&block)
           @in_group = false
 
-          append_file "Gemfile", "end\n", :force => true
+          append_file "Gemfile", "\nend\n", :force => true
         end
       end
 
@@ -252,7 +253,7 @@ module Rails
       #
       def rake(command, options={})
         log :rake, command
-        env  = options[:env] || 'development'
+        env  = options[:env] || ENV["RAILS_ENV"] || 'development'
         sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
         in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", :verbose => false) }
       end

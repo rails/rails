@@ -50,7 +50,7 @@ module ActiveSupport
       end
 
       class MockLogger
-        include ActiveSupport::BufferedLogger::Severity
+        include ActiveSupport::Logger::Severity
 
         attr_reader :flush_count
         attr_accessor :level
@@ -73,7 +73,7 @@ module ActiveSupport
           @flush_count += 1
         end
 
-        ActiveSupport::BufferedLogger::Severity.constants.each do |severity|
+        ActiveSupport::Logger::Severity.constants.each do |severity|
           class_eval <<-EOT, __FILE__, __LINE__ + 1
             def #{severity.downcase}?
               #{severity} >= @level

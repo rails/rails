@@ -2,42 +2,40 @@ require 'active_record_unit'
 require 'fixtures/project'
 
 class Task < ActiveRecord::Base
-  set_table_name 'projects'
+  self.table_name = 'projects'
 end
 
 class Step < ActiveRecord::Base
-  set_table_name 'projects'
+  self.table_name = 'projects'
 end
 
 class Bid < ActiveRecord::Base
-  set_table_name 'projects'
+  self.table_name = 'projects'
 end
 
 class Tax < ActiveRecord::Base
-  set_table_name 'projects'
+  self.table_name = 'projects'
 end
 
 class Fax < ActiveRecord::Base
-  set_table_name 'projects'
+  self.table_name = 'projects'
 end
 
 class Series < ActiveRecord::Base
-  set_table_name 'projects'
+  self.table_name = 'projects'
 end
 
 module Blog
   class Post < ActiveRecord::Base
-    set_table_name 'projects'
+    self.table_name = 'projects'
   end
 
   class Blog < ActiveRecord::Base
-    set_table_name 'projects'
+    self.table_name = 'projects'
   end
 
-  def self._railtie
-    o = Object.new
-    def o.railtie_name; "blog" end
-    o
+  def self.use_relative_model_naming?
+    true
   end
 end
 

@@ -422,7 +422,7 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the seconds 0 through 59 with the current second selected.
-      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.      
+      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.
       # Override the field name using the <tt>:field_name</tt> option, 'second' by default.
       #
       # ==== Examples
@@ -448,7 +448,7 @@ module ActionView
 
       # Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
       # Also can return a select tag with options by <tt>minute_step</tt> from 0 through 59 with the 00 minute
-      # selected. The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer. 
+      # selected. The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.
       # Override the field name using the <tt>:field_name</tt> option, 'minute' by default.
       #
       # ==== Examples
@@ -473,7 +473,7 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
-      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.      
+      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.
       # Override the field name using the <tt>:field_name</tt> option, 'hour' by default.
       #
       # ==== Examples
@@ -736,7 +736,7 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_day]
           build_hidden(:day, day)
         else
-          build_options_and_select(:day, day, :start => 1, :end => 31, :leading_zeros => false)
+          build_options_and_select(:day, day, :start => 1, :end => 31, :leading_zeros => false, :use_two_digit_numbers => @options[:use_two_digit_numbers])
         end
       end
 
@@ -765,11 +765,16 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_year]
           build_hidden(:year, val)
         else
-          options                 = {}
-          options[:start]         = @options[:start_year] || middle_year - 5
-          options[:end]           = @options[:end_year] || middle_year + 5
-          options[:step]          = options[:start] < options[:end] ? 1 : -1
-          options[:leading_zeros] = false
+          options                     = {}
+          options[:start]             = @options[:start_year] || middle_year - 5
+          options[:end]               = @options[:end_year] || middle_year + 5
+          options[:step]              = options[:start] < options[:end] ? 1 : -1
+          options[:leading_zeros]     = false
+          options[:max_years_allowed] = @options[:max_years_allowed] || 1000
+
+          if (options[:end] - options[:start]).abs > options[:max_years_allowed]
+            raise ArgumentError,  "There're too many years options to be built. Are you sure you haven't mistyped something? You can provide the :max_years_allowed parameter"
+          end
 
           build_options_and_select(:year, val, options)
         end
@@ -817,6 +822,8 @@ module ActionView
         def month_name(number)
           if @options[:use_month_numbers]
             number
+          elsif @options[:use_two_digit_numbers]
+            sprintf "%02d", number
           elsif @options[:add_month_numbers]
             "#{number} - #{month_names[number]}"
           else
@@ -852,7 +859,7 @@ module ActionView
           start         = options.delete(:start) || 0
           stop          = options.delete(:end) || 59
           step          = options.delete(:step) || 1
-          options.reverse_merge!({:leading_zeros => true, :ampm => false})
+          options.reverse_merge!({:leading_zeros => true, :ampm => false, :use_two_digit_numbers => false})
           leading_zeros = options.delete(:leading_zeros)
 
           select_options = []
@@ -860,7 +867,8 @@ module ActionView
             value = leading_zeros ? sprintf("%02d", i) : i
             tag_options = { :value => value }
             tag_options[:selected] = "selected" if selected == i
-            text = options[:ampm] ? AMPM_TRANSLATION[i] : value
+            text = options[:use_two_digit_numbers] ? sprintf("%02d", i) : value
+            text = options[:ampm] ? AMPM_TRANSLATION[i] : text
             select_options << content_tag(:option, text, tag_options)
           end
           (select_options.join("\n") + "\n").html_safe
@@ -939,8 +947,9 @@ module ActionView
         # and join them with their appropriate separators.
         def build_selects_from_types(order)
           select = ''
+          first_visible = order.find { |type| !@options[:"discard_#{type}"] }
           order.reverse.each do |type|
-            separator = separator(type) unless type == order.first # don't add on last field
+            separator = separator(type) unless type == first_visible # don't add before first visible field
             select.insert(0, separator.to_s + send("select_#{type}").to_s)
           end
           select.html_safe
@@ -965,7 +974,7 @@ module ActionView
         end
     end
 
-    class InstanceTag #:nodoc:
+    module DateHelperInstanceTag
       def to_date_select_tag(options = {}, html_options = {})
         datetime_selector(options, html_options).select_date.html_safe
       end
@@ -1019,6 +1028,10 @@ module ActionView
               )
           end
         end
+    end
+
+    class InstanceTag #:nodoc:
+      include DateHelperInstanceTag
     end
 
     class FormBuilder

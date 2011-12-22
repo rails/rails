@@ -2,6 +2,8 @@ require 'abstract_unit'
 require 'active_support/core_ext/object/inclusion'
 
 class FormTagHelperTest < ActionView::TestCase
+  include RenderERBUtils
+
   tests ActionView::Helpers::FormTagHelper
 
   def setup
@@ -104,14 +106,14 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_with_block_in_erb
-    output_buffer = form_tag("http://www.example.com") { concat "Hello world!" }
+    output_buffer = render_erb("<%= form_tag('http://www.example.com') do %>Hello world!<% end %>")
 
     expected = whole_form { "Hello world!" }
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_tag_with_block_and_method_in_erb
-    output_buffer = form_tag("http://www.example.com", :method => :put) { concat "Hello world!" }
+    output_buffer = render_erb("<%= form_tag('http://www.example.com', :method => :put) do %>Hello world!<% end %>")
 
     expected = whole_form("http://www.example.com", :method => "put") do
       "Hello world!"
@@ -485,27 +487,27 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_field_set_tag_in_erb
-    output_buffer = field_set_tag("Your details") { concat "Hello world!" }
+    output_buffer = render_erb("<%= field_set_tag('Your details') do %>Hello world!<% end %>")
 
     expected = %(<fieldset><legend>Your details</legend>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    output_buffer = field_set_tag { concat "Hello world!" }
+    output_buffer = render_erb("<%= field_set_tag do %>Hello world!<% end %>")
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    output_buffer = field_set_tag('') { concat "Hello world!" }
+    output_buffer = render_erb("<%= field_set_tag('') do %>Hello world!<% end %>")
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    output_buffer = field_set_tag('', :class => 'format') { concat "Hello world!" }
+    output_buffer = render_erb("<%= field_set_tag('', :class => 'format') do %>Hello world!<% end %>")
 
     expected = %(<fieldset class="format">Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
   end
-  
+
   def test_text_area_tag_options_symbolize_keys_side_effects
     options = { :option => "random_option" }
     text_area_tag "body", "hello world", options

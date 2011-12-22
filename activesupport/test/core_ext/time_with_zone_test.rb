@@ -200,8 +200,15 @@ class TimeWithZoneTest < Test::Unit::TestCase
   end
 
   def test_eql?
-    assert @twz.eql?(Time.utc(2000))
-    assert @twz.eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]) )
+    assert_equal true, @twz.eql?(Time.utc(2000))
+    assert_equal true, @twz.eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]) )
+    assert_equal false, @twz.eql?( Time.utc(2000, 1, 1, 0, 0, 1) )
+    assert_equal false, @twz.eql?( DateTime.civil(1999, 12, 31, 23, 59, 59) )
+  end
+
+  def test_hash
+    assert_equal Time.utc(2000).hash, @twz.hash
+    assert_equal Time.utc(2000).hash, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]).hash
   end
 
   def test_plus_with_integer
@@ -441,9 +448,8 @@ class TimeWithZoneTest < Test::Unit::TestCase
   end
 
   def test_ruby_19_weekday_name_query_methods
-    ruby_19_or_greater = RUBY_VERSION >= '1.9'
     %w(sunday? monday? tuesday? wednesday? thursday? friday? saturday?).each do |name|
-      assert_equal ruby_19_or_greater, @twz.respond_to?(name)
+      assert_respond_to @twz, name
     end
   end
 

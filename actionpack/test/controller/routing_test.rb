@@ -11,12 +11,6 @@ end
 
 ROUTING = ActionDispatch::Routing
 
-module RoutingTestHelpers
-  def url_for(set, options, recall = nil)
-    set.send(:url_for, options.merge(:only_path => true, :_path_segments => recall))
-  end
-end
-
 # See RFC 3986, section 3.3 for allowed path characters.
 class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   include RoutingTestHelpers
@@ -87,8 +81,77 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     @rs = ::ActionDispatch::Routing::RouteSet.new
   end
 
-  def teardown
-    @rs.clear!
+  def test_regexp_precidence
+    @rs.draw do
+      match '/whois/:domain', :constraints => {
+        :domain => /\w+\.[\w\.]+/ },
+        :to     => lambda { |env| [200, {}, 'regexp'] }
+
+      match '/whois/:id', :to => lambda { |env| [200, {}, 'id'] }
+    end
+
+    body = @rs.call({'PATH_INFO'      => '/whois/example.org',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'www.example.org'})[2]
+
+    assert_equal 'regexp', body
+
+    body = @rs.call({'PATH_INFO'      => '/whois/123',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'clients.example.org'})[2]
+
+    assert_equal 'id', body
+  end
+
+  def test_class_and_lambda_constraints
+    subdomain = Class.new {
+      def matches? request
+        request.subdomain.present? and request.subdomain != 'clients'
+      end
+    }
+
+    @rs.draw do
+      match '/', :constraints => subdomain.new,
+                 :to          => lambda { |env| [200, {}, 'default'] }
+      match '/', :constraints => { :subdomain => 'clients' },
+                 :to          => lambda { |env| [200, {}, 'clients'] }
+    end
+
+    body = @rs.call({'PATH_INFO'      => '/',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'www.example.org'})[2]
+
+    assert_equal 'default', body
+
+    body = @rs.call({'PATH_INFO'      => '/',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'clients.example.org'})[2]
+
+    assert_equal 'clients', body
+  end
+
+  def test_lambda_constraints
+    @rs.draw do
+      match '/', :constraints => lambda { |req|
+        req.subdomain.present? and req.subdomain != "clients" },
+                 :to          => lambda { |env| [200, {}, 'default'] }
+
+      match '/', :constraints => lambda { |req|
+        req.subdomain.present? && req.subdomain == "clients" },
+                 :to          => lambda { |env| [200, {}, 'clients'] }
+    end
+
+    body = @rs.call({'PATH_INFO'      => '/',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'www.example.org'})[2]
+
+    assert_equal 'default', body
+
+    body = @rs.call({'PATH_INFO'      => '/',
+                     'REQUEST_METHOD' => 'GET',
+                     'HTTP_HOST'      => 'clients.example.org'})[2]
+
+    assert_equal 'clients', body
   end
 
   def test_draw_with_block_arity_one_raises
@@ -719,12 +782,12 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal set.routes.first, set.named_routes[:hello]
   end
 
-  def test_later_named_routes_take_precedence
+  def test_earlier_named_routes_take_precedence
     set.draw do
       match '/hello/world' => 'a#b', :as => 'hello'
       match '/hello'       => 'a#b', :as => 'hello'
     end
-    assert_equal set.routes.last, set.named_routes[:hello]
+    assert_equal set.routes.first, set.named_routes[:hello]
   end
 
   def setup_named_route_test

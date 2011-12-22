@@ -1,3 +1,5 @@
+require 'cases/helper'
+
 class PostgreSQLUtilsTest < ActiveSupport::TestCase
   include ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::Utils
 

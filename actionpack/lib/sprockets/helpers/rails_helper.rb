@@ -8,12 +8,8 @@ module Sprockets
 
       def asset_paths
         @asset_paths ||= begin
-          config     = self.config if respond_to?(:config)
-          config   ||= Rails.application.config
-          controller = self.controller if respond_to?(:controller)
           paths = RailsHelper::AssetPaths.new(config, controller)
           paths.asset_environment = asset_environment
-          paths.asset_prefix      = asset_prefix
           paths.asset_digests     = asset_digests
           paths.compile_assets    = compile_assets?
           paths.digest_assets     = digest_assets?
@@ -30,10 +26,10 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
-              super(dep.to_s, { :src => asset_path(dep, :ext => 'js', :body => true, :digest => digest) }.merge!(options))
+              super(dep.pathname.to_s, { :src => path_to_asset(dep, :ext => 'js', :body => true, :digest => digest) }.merge!(options))
             }
           else
-            super(source.to_s, { :src => asset_path(source, :ext => 'js', :body => body, :digest => digest) }.merge!(options))
+            super(source.to_s, { :src => path_to_asset(source, :ext => 'js', :body => body, :digest => digest) }.merge!(options))
           end
         end.join("\n").html_safe
       end
@@ -47,19 +43,35 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
-              super(dep.to_s, { :href => asset_path(dep, :ext => 'css', :body => true, :protocol => :request, :digest => digest) }.merge!(options))
+              super(dep.pathname.to_s, { :href => path_to_asset(dep, :ext => 'css', :body => true, :protocol => :request, :digest => digest) }.merge!(options))
             }
           else
-            super(source.to_s, { :href => asset_path(source, :ext => 'css', :body => body, :protocol => :request, :digest => digest) }.merge!(options))
+            super(source.to_s, { :href => path_to_asset(source, :ext => 'css', :body => body, :protocol => :request, :digest => digest) }.merge!(options))
           end
         end.join("\n").html_safe
       end
 
       def asset_path(source, options = {})
         source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, 'assets', options.merge(:body => true))
+        path = asset_paths.compute_public_path(source, asset_prefix, options.merge(:body => true))
         options[:body] ? "#{path}?body=1" : path
       end
+      alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route
+
+      def image_path(source)
+        path_to_asset(source)
+      end
+      alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
+
+      def javascript_path(source)
+        path_to_asset(source)
+      end
+      alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with an javascript_path named route
+
+      def stylesheet_path(source)
+        path_to_asset(source)
+      end
+      alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with an stylesheet_path named route
 
     private
       def debug_assets?
@@ -102,10 +114,6 @@ module Sprockets
 
         class AssetNotPrecompiledError < StandardError; end
 
-        def compute_public_path(source, dir, options = {})
-          super(source, asset_prefix, options)
-        end
-
         # Return the filesystem path for the source
         def compute_source_path(source, ext)
           asset_for(source, ext)
@@ -116,10 +124,12 @@ module Sprockets
           return nil if is_uri?(source)
           source = rewrite_extension(source, nil, ext)
           asset_environment[source]
+        rescue Sprockets::FileOutsidePaths
+          nil
         end
 
         def digest_for(logical_path)
-          if asset_digests && (digest = asset_digests[logical_path])
+          if digest_assets && asset_digests && (digest = asset_digests[logical_path])
             return digest
           end
 
@@ -145,7 +155,7 @@ module Sprockets
         end
 
         def rewrite_extension(source, dir, ext)
-          if ext && File.extname(source).empty?
+          if ext && File.extname(source) != ".#{ext}"
             "#{source}.#{ext}"
           else
             source

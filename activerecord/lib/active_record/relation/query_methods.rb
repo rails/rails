@@ -9,7 +9,8 @@ module ActiveRecord
                   :select_values, :group_values, :order_values, :joins_values,
                   :where_values, :having_values, :bind_values,
                   :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value,
-                  :from_value, :reorder_value, :reverse_order_value
+                  :from_value, :reorder_value, :reverse_order_value,
+                  :uniq_value
 
     def includes(*args)
       args.reject! {|a| a.blank? }
@@ -38,7 +39,7 @@ module ActiveRecord
     end
 
     # Works in two unique ways.
-    # 
+    #
     # First: takes a block so it can be used just like Array#select.
     #
     #   Model.scoped.select { |m| m.field == value }
@@ -176,9 +177,25 @@ module ActiveRecord
       relation
     end
 
+    # Specifies whether the records should be unique or not. For example:
+    #
+    #   User.select(:name)
+    #   # => Might return two records with the same name
+    #
+    #   User.select(:name).uniq
+    #   # => Returns 1 record per unique name
+    #
+    #   User.select(:name).uniq.uniq(false)
+    #   # => You can also remove the uniqueness
+    def uniq(value = true)
+      relation = clone
+      relation.uniq_value = value
+      relation
+    end
+
     # Used to extend a scope with additional methods, either through
-    # a module or through a block provided. 
-    # 
+    # a module or through a block provided.
+    #
     # The object returned is a relation, which can be further extended.
     #
     # === Using a module
@@ -200,7 +217,7 @@ module ActiveRecord
     #
     #   scope = Model.scoped.extending do
     #     def page(number)
-    #       # pagination code goes here 
+    #       # pagination code goes here
     #     end
     #   end
     #   scope.page(params[:page])
@@ -209,7 +226,7 @@ module ActiveRecord
     #
     #   scope = Model.scoped.extending(Pagination) do
     #     def per_page(number)
-    #       # pagination code goes here 
+    #       # pagination code goes here
     #     end
     #   end
     def extending(*modules)
@@ -252,6 +269,7 @@ module ActiveRecord
 
       build_select(arel, @select_values.uniq)
 
+      arel.distinct(@uniq_value)
       arel.from(@from_value) if @from_value
       arel.lock(@lock_value) if @lock_value
 

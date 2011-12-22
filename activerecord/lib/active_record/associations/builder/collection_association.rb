@@ -58,7 +58,7 @@ module ActiveRecord::Associations::Builder
         super
 
         name = self.name
-        model.redefine_method("#{name.to_s.singularize}_ids") do
+        mixin.redefine_method("#{name.to_s.singularize}_ids") do
           association(name).ids_reader
         end
       end
@@ -67,7 +67,7 @@ module ActiveRecord::Associations::Builder
         super
 
         name = self.name
-        model.redefine_method("#{name.to_s.singularize}_ids=") do |ids|
+        mixin.redefine_method("#{name.to_s.singularize}_ids=") do |ids|
           association(name).ids_writer(ids)
         end
       end

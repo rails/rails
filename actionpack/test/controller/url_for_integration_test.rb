@@ -3,12 +3,6 @@ require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'active_support/core_ext/object/with_options'
 
-module RoutingTestHelpers
-  def url_for(set, options, recall = nil)
-    set.send(:url_for, options.merge(:only_path => true, :_path_segments => recall))
-  end
-end
-
 module ActionPack
   class URLForIntegrationTest < ActiveSupport::TestCase
     include RoutingTestHelpers

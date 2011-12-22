@@ -2,6 +2,7 @@
 require 'date'
 require 'abstract_unit'
 require 'inflector_test_cases'
+require 'constantize_test_cases'
 
 require 'active_support/inflector'
 require 'active_support/core_ext/string'
@@ -9,14 +10,16 @@ require 'active_support/time'
 require 'active_support/core_ext/string/strip'
 require 'active_support/core_ext/string/output_safety'
 
+module Ace
+  module Base
+    class Case
+    end
+  end
+end
+
 class StringInflectionsTest < Test::Unit::TestCase
   include InflectorTestCases
-
-  def test_erb_escape
-    string = [192, 60].pack('CC')
-    expected = 192.chr + "&lt;"
-    assert_equal expected, ERB::Util.html_escape(string)
-  end
+  include ConstantizeTestCases
 
   def test_strip_heredoc_on_an_empty_string
     assert_equal '', ''.strip_heredoc
@@ -55,6 +58,10 @@ class StringInflectionsTest < Test::Unit::TestCase
     end
 
     assert_equal("plurals", "plurals".pluralize)
+
+    assert_equal("blargles", "blargle".pluralize(0))
+    assert_equal("blargle", "blargle".pluralize(1))
+    assert_equal("blargles", "blargle".pluralize(2))
   end
 
   def test_singularize
@@ -96,6 +103,10 @@ class StringInflectionsTest < Test::Unit::TestCase
 
   def test_demodulize
     assert_equal "Account", "MyApplication::Billing::Account".demodulize
+  end
+
+  def test_deconstantize
+    assert_equal "MyApplication::Billing", "MyApplication::Billing::Account".deconstantize
   end
 
   def test_foreign_key
@@ -147,14 +158,6 @@ class StringInflectionsTest < Test::Unit::TestCase
   def test_ord
     assert_equal 97, 'a'.ord
     assert_equal 97, 'abc'.ord
-  end
-
-  if RUBY_VERSION < '1.9'
-    def test_getbyte
-      assert_equal 97, 'a'.getbyte(0)
-      assert_equal 99, 'abc'.getbyte(2)
-      assert_nil   'abc'.getbyte(3)
-    end
   end
 
   def test_string_to_time
@@ -276,20 +279,20 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => ' ')
   end
 
-  if RUBY_VERSION < '1.9.0'
-    def test_truncate_multibyte
-      with_kcode 'none' do
-        assert_equal "\354\225\210\353\205\225\355...", "\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224".truncate(10)
-      end
-      with_kcode 'u' do
-        assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...",
-          "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".truncate(10)
-      end
+  def test_truncate_multibyte
+    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
+      "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8').truncate(10)
+  end
+
+  def test_constantize
+    run_constantize_tests_on do |string|
+      string.constantize
     end
-  else
-    def test_truncate_multibyte
-      assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
-        "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8').truncate(10)
+  end
+
+  def test_safe_constantize
+    run_safe_constantize_tests_on do |string|
+      string.safe_constantize
     end
   end
 end
@@ -315,22 +318,8 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
     assert !BYTE_STRING.is_utf8?
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_mb_chars_returns_self_when_kcode_not_set
-      with_kcode('none') do
-        assert_kind_of String, UNICODE_STRING.mb_chars
-      end
-    end
-
-    def test_mb_chars_returns_an_instance_of_the_chars_proxy_when_kcode_utf8
-      with_kcode('UTF8') do
-        assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
-      end
-    end
-  else
-    def test_mb_chars_returns_instance_of_proxy_class
-      assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
-    end
+  def test_mb_chars_returns_instance_of_proxy_class
+    assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
   end
 end
 
@@ -360,7 +349,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "A fixnum is safe by default" do
     assert 5.html_safe?
   end
-  
+
   test "a float is safe by default" do
     assert 5.7.html_safe?
   end
@@ -456,17 +445,30 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test 'knows whether it is encoding aware' do
-    if RUBY_VERSION >= "1.9"
-      assert 'ruby'.encoding_aware?
-    else
-      assert !'ruby'.encoding_aware?
-    end
+    assert 'ruby'.encoding_aware?
   end
 
   test "call to_param returns a normal string" do
     string = @string.html_safe
     assert string.html_safe?
     assert !string.to_param.html_safe?
+  end
+
+  test "ERB::Util.html_escape should escape unsafe characters" do
+    string = '<>&"'
+    expected = '&lt;&gt;&amp;&quot;'
+    assert_equal expected, ERB::Util.html_escape(string)
+  end
+
+  test "ERB::Util.html_escape should correctly handle invalid UTF-8 strings" do
+    string = [192, 60].pack('CC')
+    expected = 192.chr + "&lt;"
+    assert_equal expected, ERB::Util.html_escape(string)
+  end
+
+  test "ERB::Util.html_escape should not escape safe strings" do
+    string = "<b>hello</b>".html_safe
+    assert_equal string, ERB::Util.html_escape(string)
   end
 end
 

@@ -1004,9 +1004,17 @@ class BaseTest < Test::Unit::TestCase
 
   def test_to_xml_with_private_method_name_as_attribute
     Person.format = :xml
-    assert_nothing_raised(ArgumentError) {
-      Customer.new(:test => true).to_xml
-    }
+
+    customer = Customer.new(:foo => "foo")
+    customer.singleton_class.class_eval do
+      def foo
+        "bar"
+      end
+      private :foo
+    end
+
+    assert !customer.to_xml.include?("<foo>bar</foo>")
+    assert customer.to_xml.include?("<foo>foo</foo>")
   ensure
     Person.format = :json
   end

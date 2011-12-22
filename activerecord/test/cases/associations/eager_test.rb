@@ -252,6 +252,41 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_nested_loading_through_has_one_association
+    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts})
+    assert_equal aa.author.posts.count, aa.author.posts.length
+  end
+
+  def test_nested_loading_through_has_one_association_with_order
+    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts}, :order => 'author_addresses.id')
+    assert_equal aa.author.posts.count, aa.author.posts.length
+  end
+
+  def test_nested_loading_through_has_one_association_with_order_on_association
+    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts}, :order => 'authors.id')
+    assert_equal aa.author.posts.count, aa.author.posts.length
+  end
+
+  def test_nested_loading_through_has_one_association_with_order_on_nested_association
+    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts}, :order => 'posts.id')
+    assert_equal aa.author.posts.count, aa.author.posts.length
+  end
+
+  def test_nested_loading_through_has_one_association_with_conditions
+    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts}, :conditions => "author_addresses.id > 0")
+    assert_equal aa.author.posts.count, aa.author.posts.length
+  end
+
+  def test_nested_loading_through_has_one_association_with_conditions_on_association
+    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts}, :conditions => "authors.id > 0")
+    assert_equal aa.author.posts.count, aa.author.posts.length
+  end
+
+  def test_nested_loading_through_has_one_association_with_conditions_on_nested_association
+    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts}, :conditions => "posts.id > 0")
+    assert_equal aa.author.posts.count, aa.author.posts.length
+  end
+
   def test_eager_association_loading_with_belongs_to_and_foreign_keys
     pets = Pet.find(:all, :include => :owner)
     assert_equal 3, pets.length
@@ -1059,5 +1094,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nothing_raised(ActiveRecord::StatementInvalid) do
       Post.includes(:comments).order(nil).where(:comments => {:body => "Thank you for the welcome"}).first
     end
+  end
+
+  def test_deep_including_through_habtm
+    posts = Post.find(:all, :include => {:categories => :categorizations}, :order => "posts.id")
+    assert_no_queries { assert_equal 2, posts[0].categories[0].categorizations.length }
+    assert_no_queries { assert_equal 1, posts[0].categories[1].categorizations.length }
+    assert_no_queries { assert_equal 2, posts[1].categories[0].categorizations.length }
   end
 end

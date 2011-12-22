@@ -2,6 +2,7 @@ require 'cgi'
 require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
+require 'action_view/helpers/active_model_helper'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/method_names'
@@ -158,6 +159,9 @@ module ActionView
       # * <tt>:url</tt> - The URL the form is submitted to. It takes the same
       #   fields you pass to +url_for+ or +link_to+. In particular you may pass
       #   here a named route directly as well. Defaults to the current action.
+      # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
+      #   id attributes on form elements. The namespace attribute will be prefixed
+      #   with underscore on the generated HTML id.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
@@ -384,8 +388,8 @@ module ActionView
         as = options[:as]
         action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :put] : [:new, :post]
         options[:html].reverse_merge!(
-          :class  => as ? "#{as}_#{action}" : dom_class(object, action),
-          :id     => as ? "#{as}_#{action}" : dom_id(object, action),
+          :class  => as ? "#{action}_#{as}" : dom_class(object, action),
+          :id     => as ? "#{action}_#{as}" : [options[:namespace], dom_id(object, action)].compact.join("_").presence,
           :method => method
         )
 
@@ -649,7 +653,7 @@ module ActionView
       #   # => <label for="post_privacy_public">Public Post</label>
       #
       #   label(:post, :terms) do
-      #     'Accept <a href="/terms">Terms</a>.'
+      #     'Accept <a href="/terms">Terms</a>.'.html_safe
       #   end
       def label(object_name, method, content_or_options = nil, options = nil, &block)
         content_is_options = content_or_options.is_a?(Hash)
@@ -738,7 +742,7 @@ module ActionView
       #   # => <input type="file" id="user_avatar" name="user[avatar]" />
       #
       #   file_field(:post, :attached, :accept => 'text/html')
-      #   # => <input type="file" id="post_attached" name="post[attached]" />
+      #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
       #
       #   file_field(:attachment, :file, :class => 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
@@ -960,7 +964,7 @@ module ActionView
     end
 
     class InstanceTag
-      include Helpers::CaptureHelper, Context, Helpers::TagHelper, Helpers::FormTagHelper
+      include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
 
       attr_reader :object, :method_name, :object_name
 
@@ -971,6 +975,7 @@ module ActionView
       def initialize(object_name, method_name, template_object, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
         @template_object = template_object
+
         @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
         @object = retrieve_object(object)
         @auto_index = retrieve_autoindex(Regexp.last_match.pre_match) if Regexp.last_match
@@ -989,14 +994,23 @@ module ActionView
 
         add_default_name_and_id_for_value(tag_value, name_and_id)
         options.delete("index")
+        options.delete("namespace")
         options["for"] ||= name_and_id["id"]
 
         if block_given?
-          label_tag(name_and_id["id"], options, &block)
+          @template_object.label_tag(name_and_id["id"], options, &block)
         else
           content = if text.blank?
+            object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
             method_and_value = tag_value.present? ? "#{method_name}.#{tag_value}" : method_name
-            I18n.t("helpers.label.#{object_name}.#{method_and_value}", :default => "").presence
+
+            if object.respond_to?(:to_model)
+              key = object.class.model_name.i18n_key
+              i18n_default = ["#{key}.#{method_and_value}".to_sym, ""]
+            end
+
+            i18n_default ||= ""
+            I18n.t("#{object_name}.#{method_and_value}", :default => i18n_default, :scope => "helpers.label").presence
           else
             text.to_s
           end
@@ -1027,6 +1041,8 @@ module ActionView
 
       def to_number_field_tag(field_type, options = {})
         options = options.stringify_keys
+        options['size'] ||= nil
+
         if range = options.delete("in") || options.delete("within")
           options.update("min" => range.min, "max" => range.max)
         end
@@ -1185,6 +1201,7 @@ module ActionView
             options["name"] ||= tag_name + (options['multiple'] ? '[]' : '')
             options["id"] = options.fetch("id"){ tag_id }
           end
+          options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
         end
 
         def tag_name
@@ -1243,7 +1260,7 @@ module ActionView
         @nested_child_index = {}
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc
         @parent_builder = options[:parent_builder]
-        @default_options = @options ? @options.slice(:index) : {}
+        @default_options = @options ? @options.slice(:index, :namespace) : {}
         if @object_name.to_s.match(/\[\]$/)
           if object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:to_param)
             @auto_index = object.to_param
@@ -1270,6 +1287,7 @@ module ActionView
         fields_options, record_object = record_object, nil if record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options[:builder] ||= options[:builder]
         fields_options[:parent_builder] = self
+        fields_options[:namespace] = fields_options[:parent_builder].options[:namespace]
 
         case record_name
         when String, Symbol
@@ -1345,6 +1363,39 @@ module ActionView
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
         @template.submit_tag(value, options)
+      end
+
+      # Add the submit button for the given form. When no value is given, it checks
+      # if the object is a new resource or not to create the proper label:
+      #
+      #   <%= form_for @post do |f| %>
+      #     <%= f.button %>
+      #   <% end %>
+      #
+      # In the example above, if @post is a new record, it will use "Create Post" as
+      # submit button label, otherwise, it uses "Update Post".
+      #
+      # Those labels can be customized using I18n, under the helpers.submit key and accept
+      # the %{model} as translation interpolation:
+      #
+      #   en:
+      #     helpers:
+      #       button:
+      #         create: "Create a %{model}"
+      #         update: "Confirm changes to %{model}"
+      #
+      # It also searches for a key specific for the given object:
+      #
+      #   en:
+      #     helpers:
+      #       button:
+      #         post:
+      #           create: "Add %{model}"
+      #
+      def button(value=nil, options={})
+        value, options = nil, value if value.is_a?(Hash)
+        value ||= submit_default_value
+        @template.button_tag(value, options)
       end
 
       def emitted_hidden_id?

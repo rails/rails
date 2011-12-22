@@ -57,11 +57,8 @@ module AbstractControllerTests
       layout "hello_override"
     end
 
-    class WithNilChild < WithString
-      layout nil
-    end
-
     class WithStringImpliedChild < WithString
+      layout nil
     end
 
     class WithChildOfImplied < WithStringImpliedChild
@@ -138,6 +135,30 @@ module AbstractControllerTests
 
       def index
         render :template => ActionView::Template::Text.new("Hello nil!")
+      end
+    end
+
+    class WithOnlyConditional < WithStringImpliedChild
+      layout "overwrite", :only => :show
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello index!")
+      end
+
+      def show
+        render :template => ActionView::Template::Text.new("Hello show!")
+      end
+    end
+
+    class WithExceptConditional < WithStringImpliedChild
+      layout "overwrite", :except => :show
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello index!")
+      end
+
+      def show
+        render :template => ActionView::Template::Text.new("Hello show!")
       end
     end
 
@@ -238,12 +259,6 @@ module AbstractControllerTests
         assert_equal "With Implied Hello string!", controller.response_body
       end
 
-      test "when a child controller specifies layout nil, do not use the parent layout" do
-        controller = WithNilChild.new
-        controller.process(:index)
-        assert_equal "Hello string!", controller.response_body
-      end
-
       test "when a grandchild has no layout specified, the child has an implied layout, and the " \
         "parent has specified a layout, use the child controller layout" do
           controller = WithChildOfImplied.new
@@ -259,6 +274,30 @@ module AbstractControllerTests
             end
           end
         end
+      end
+
+      test "when specify an :only option which match current action name" do
+        controller = WithOnlyConditional.new
+        controller.process(:show)
+        assert_equal "Overwrite Hello show!", controller.response_body
+      end
+
+      test "when specify an :only option which does not match current action name" do
+        controller = WithOnlyConditional.new
+        controller.process(:index)
+        assert_equal "With Implied Hello index!", controller.response_body
+      end
+
+      test "when specify an :except option which match current action name" do
+        controller = WithExceptConditional.new
+        controller.process(:show)
+        assert_equal "With Implied Hello show!", controller.response_body
+      end
+
+      test "when specify an :except option which does not match current action name" do
+        controller = WithExceptConditional.new
+        controller.process(:index)
+        assert_equal "Overwrite Hello index!", controller.response_body
       end
     end
   end

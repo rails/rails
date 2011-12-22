@@ -16,7 +16,7 @@ Action View and Action Controller are the two major components of Action Pack. I
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
-Note: Some features of Action View are tied to Active Record, but that doesn't mean that Action View depends on Active Record. Action View is an independent package that can be used with any sort of backend.
+NOTE. Some features of Action View are tied to Active Record, but that doesn't mean that Action View depends on Active Record. Action View is an independent package that can be used with any sort of backend.
 
 h3. Using Action View with Rails
 

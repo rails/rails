@@ -152,3 +152,9 @@
       update: 'Update %{model}'
       submit: 'Save %{model}'
 
+    # Default translation keys for button FormHelper
+    button:
+      create: 'Create %{model}'
+      update: 'Update %{model}'
+      submit: 'Save %{model}'
+

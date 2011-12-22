@@ -50,12 +50,6 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_equal verifier.verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
   
-  def test_digest_algorithm_as_second_parameter_deprecation
-    assert_deprecated(/options hash/) do
-      ActiveSupport::MessageVerifier.new("secret", "SHA1")
-    end
-  end
-
   def assert_not_verified(message)
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
       @verifier.verify(message)

@@ -8,7 +8,7 @@ module ActionView
     module RenderingHelper
       # Returns the result of a render that's dictated by the options hash. The primary options are:
       #
-      # * <tt>:partial</tt> - See ActionView::Partials.
+      # * <tt>:partial</tt> - See <tt>ActionView::PartialRenderer</tt>.
       # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add :locals to pass in those.
       # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
       # * <tt>:text</tt> - Renders the text passed in out.

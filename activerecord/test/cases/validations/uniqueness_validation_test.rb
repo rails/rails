@@ -149,16 +149,14 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t2.valid?, "should validate with nil"
     assert t2.save, "should save with nil"
 
-    with_kcode('UTF8') do
-      t_utf8 = Topic.new("title" => "Я тоже уникальный!")
-      assert t_utf8.save, "Should save t_utf8 as unique"
+    t_utf8 = Topic.new("title" => "Я тоже уникальный!")
+    assert t_utf8.save, "Should save t_utf8 as unique"
 
-      # If database hasn't UTF-8 character set, this test fails
-      if Topic.find(t_utf8, :select => 'LOWER(title) AS title').title == "я тоже уникальный!"
-        t2_utf8 = Topic.new("title" => "я тоже УНИКАЛЬНЫЙ!")
-        assert !t2_utf8.valid?, "Shouldn't be valid"
-        assert !t2_utf8.save, "Shouldn't save t2_utf8 as unique"
-      end
+    # If database hasn't UTF-8 character set, this test fails
+    if Topic.find(t_utf8, :select => 'LOWER(title) AS title').title == "я тоже уникальный!"
+      t2_utf8 = Topic.new("title" => "я тоже УНИКАЛЬНЫЙ!")
+      assert !t2_utf8.valid?, "Shouldn't be valid"
+      assert !t2_utf8.save, "Shouldn't save t2_utf8 as unique"
     end
   end
 
@@ -256,13 +254,11 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_limit_and_utf8
-    with_kcode('UTF8') do
-      # Event.title is limited to 5 characters
-      e1 = Event.create(:title => "一二三四五")
-      assert e1.valid?, "Could not create an event with a unique, 5 character title"
-      e2 = Event.create(:title => "一二三四五六七八")
-      assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
-    end
+    # Event.title is limited to 5 characters
+    e1 = Event.create(:title => "一二三四五")
+    assert e1.valid?, "Could not create an event with a unique, 5 character title"
+    e2 = Event.create(:title => "一二三四五六七八")
+    assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
   end
 
   def test_validate_straight_inheritance_uniqueness
