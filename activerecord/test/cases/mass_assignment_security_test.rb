@@ -98,29 +98,33 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
     Firm.new.assign_attributes(nil)
   end
 
+  def new_loose_person
+    LoosePerson.new
+  end
+
   def test_assign_attributes_uses_default_role_when_no_role_is_provided
-    p = LoosePerson.new
+    p = new_loose_person
     p.assign_attributes(attributes_hash)
 
     assert_default_attributes(p)
   end
 
   def test_assign_attributes_skips_mass_assignment_security_protection_when_without_protection_is_used
-    p = LoosePerson.new
+    p = new_loose_person
     p.assign_attributes(attributes_hash, :without_protection => true)
 
     assert_all_attributes(p)
   end
 
   def test_assign_attributes_with_default_role_and_attr_protected_attributes
-    p = LoosePerson.new
+    p = new_loose_person
     p.assign_attributes(attributes_hash, :as => :default)
 
     assert_default_attributes(p)
   end
 
   def test_assign_attributes_with_admin_role_and_attr_protected_attributes
-    p = LoosePerson.new
+    p = new_loose_person
     p.assign_attributes(attributes_hash, :as => :admin)
 
     assert_admin_attributes(p)
@@ -306,14 +310,19 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
   # build
 
   def test_has_one_build_with_attr_protected_attributes
-    best_friend = @person.build_best_friend(attributes_hash)
+    best_friend = build_best_friend
     assert_default_attributes(best_friend)
   end
 
   def test_has_one_build_with_attr_accessible_attributes
-    best_friend = @person.build_best_friend(attributes_hash)
+    best_friend = build_best_friend
     assert_default_attributes(best_friend)
   end
+ 
+  def build_best_friend
+    @person.build_best_friend(attributes_hash)
+  end
+
 
   def test_has_one_build_with_admin_role_with_attr_protected_attributes
     best_friend = @person.build_best_friend(attributes_hash, :as => :admin)
@@ -336,6 +345,7 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
       assert_equal @person.id, best_friend.best_friend_id
     end
   end
+
 
   # create
 
