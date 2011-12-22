@@ -117,11 +117,4 @@ class EnumerableTests < Test::Unit::TestCase
     assert_equal true,  GenericEnumerable.new([ 1 ]).exclude?(2)
     assert_equal false, GenericEnumerable.new([ 1 ]).exclude?(1)
   end
-  
-  def test_pluck_single_method
-    person = Struct.new(:name)
-    people = [ person.new("David"), person.new("Jamie") ]
-    
-    assert_equal [ "David", "Jamie" ], people.pluck(:name)
-  end
 end

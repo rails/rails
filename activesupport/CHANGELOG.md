@@ -7,8 +7,6 @@
 
 *   Add ActiveSupport::Cache::NullStore for use in development and testing. *Brian Durand*
 
-*   Added Enumerable#pluck to wrap the common pattern of collect(&:method) *DHH*
-
 *   Module#synchronize is deprecated with no replacement.  Please use `monitor`
     from ruby's standard library.
 
