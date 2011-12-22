@@ -406,7 +406,13 @@ module ActiveRecord
       if conditions
         where(conditions).delete_all
       else
-        statement = arel.compile_delete
+        statement = if joins_values.present?
+          pk = "#{@klass.connection.quote_table_name table_name}.#{@klass.connection.quote_column_name primary_key}"
+          ids = select(pk)
+          unscoped { @klass.where("#{pk} IN (SELECT * FROM (#{ids.to_sql}) AS derived_#{table_name}_#{primary_key}_ids)").build_arel.compile_delete }
+        else
+          arel.compile_delete
+        end
         affected = @klass.connection.delete(statement, 'SQL', bind_values)
 
         reset
