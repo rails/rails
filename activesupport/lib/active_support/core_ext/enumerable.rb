@@ -83,7 +83,6 @@ module Enumerable
     end
     memo
   end unless [].respond_to?(:each_with_object)
->>>>>>> parent of 4d20de8... Added Enumerable#pluck to wrap the common pattern of collect(&:method) *DHH*
 
   # Convert an enumerable to a hash. Examples:
   #
