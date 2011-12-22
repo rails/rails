@@ -78,7 +78,19 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   attr_reader :rs
 
   def setup
-    @rs = ::ActionDispatch::Routing::RouteSet.new
+    @rs       = ::ActionDispatch::Routing::RouteSet.new
+    @response = nil
+  end
+
+  def get(uri_or_host, path = nil, port = nil)
+    host = uri_or_host.host unless path
+    path ||= uri_or_host.path
+
+    params = {'PATH_INFO'      => path,
+              'REQUEST_METHOD' => 'GET',
+              'HTTP_HOST'      => host}
+
+    @rs.call(params)[2]
   end
 
   def test_regexp_precidence
@@ -90,17 +102,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match '/whois/:id', :to => lambda { |env| [200, {}, 'id'] }
     end
 
-    body = @rs.call({'PATH_INFO'      => '/whois/example.org',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'www.example.org'})[2]
-
-    assert_equal 'regexp', body
-
-    body = @rs.call({'PATH_INFO'      => '/whois/123',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'clients.example.org'})[2]
-
-    assert_equal 'id', body
+    assert_equal 'regexp', get(URI('http://example.org/whois/example.org'))
+    assert_equal 'id', get(URI('http://example.org/whois/123'))
   end
 
   def test_class_and_lambda_constraints
@@ -117,17 +120,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
                  :to          => lambda { |env| [200, {}, 'clients'] }
     end
 
-    body = @rs.call({'PATH_INFO'      => '/',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'www.example.org'})[2]
-
-    assert_equal 'default', body
-
-    body = @rs.call({'PATH_INFO'      => '/',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'clients.example.org'})[2]
-
-    assert_equal 'clients', body
+    assert_equal 'default', get(URI('http://www.example.org/'))
+    assert_equal 'clients', get(URI('http://clients.example.org/'))
   end
 
   def test_lambda_constraints
@@ -141,17 +135,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
                  :to          => lambda { |env| [200, {}, 'clients'] }
     end
 
-    body = @rs.call({'PATH_INFO'      => '/',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'www.example.org'})[2]
-
-    assert_equal 'default', body
-
-    body = @rs.call({'PATH_INFO'      => '/',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'clients.example.org'})[2]
-
-    assert_equal 'clients', body
+    assert_equal 'default', get(URI('http://www.example.org/'))
+    assert_equal 'clients', get(URI('http://clients.example.org/'))
   end
 
   def test_draw_with_block_arity_one_raises
