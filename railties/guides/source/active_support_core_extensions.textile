@@ -3479,12 +3479,6 @@ Time.utc_time(1582, 10, 3) + 5.days
 # => Mon Oct 18 00:00:00 UTC 1582
 </ruby>
 
-h3. Extensions to +Process+
-
-h4. +daemon+
-
-Ruby 1.9 provides +Process.daemon+, and Active Support defines it for previous versions. It accepts the same two arguments, whether it should chdir to the root directory (default, true), and whether it should inherit the standard file descriptors from the parent (default, false).
-
 h3. Extensions to +File+
 
 h4. +atomic_write+
