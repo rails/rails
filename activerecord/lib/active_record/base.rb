@@ -469,7 +469,7 @@ module ActiveRecord #:nodoc:
       #   # Instantiates a single new object bypassing mass-assignment security
       #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
       def initialize(attributes = nil, options = {})
-        @attributes = attributes_from_column_definition
+        @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
         @association_cache = {}
         @aggregation_cache = {}
         @attributes_cache = {}
@@ -482,7 +482,6 @@ module ActiveRecord #:nodoc:
         @relation = nil
 
         ensure_proper_type
-        set_serialized_attributes
 
         populate_with_current_scope_attributes
 
@@ -503,10 +502,8 @@ module ActiveRecord #:nodoc:
       #   post.init_with('attributes' => { 'title' => 'hello world' })
       #   post.title # => 'hello world'
       def init_with(coder)
-        @attributes = coder['attributes']
+        @attributes = self.class.initialize_attributes(coder['attributes'])
         @relation = nil
-
-        set_serialized_attributes
 
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
         @association_cache = {}
@@ -534,7 +531,7 @@ module ActiveRecord #:nodoc:
         _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
 
         @changed_attributes = {}
-        attributes_from_column_definition.each do |attr, orig_value|
+        self.class.column_defaults.each do |attr, orig_value|
           @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
         end
 

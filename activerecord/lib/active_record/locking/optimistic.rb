@@ -64,21 +64,6 @@ module ActiveRecord
           send(lock_col + '=', previous_lock_value + 1)
         end
 
-        def attributes_from_column_definition
-          result = self.class.column_defaults.dup
-
-          # If the locking column has no default value set,
-          # start the lock version at zero. Note we can't use
-          # <tt>locking_enabled?</tt> at this point as
-          # <tt>@attributes</tt> may not have been initialized yet.
-
-          if result.key?(self.class.locking_column) && lock_optimistically
-            result[self.class.locking_column] ||= 0
-          end
-
-          result
-        end
-
         def update(attribute_names = @attributes.keys) #:nodoc:
           return super unless locking_enabled?
           return 0 if attribute_names.empty?
@@ -171,6 +156,18 @@ module ActiveRecord
         def update_counters(id, counters)
           counters = counters.merge(locking_column => 1) if locking_enabled?
           super
+        end
+
+        # If the locking column has no default value set,
+        # start the lock version at zero. Note we can't use
+        # <tt>locking_enabled?</tt> at this point as
+        # <tt>@attributes</tt> may not have been initialized yet.
+        def initialize_attributes(attributes) #:nodoc:
+          if attributes.key?(locking_column) && lock_optimistically
+            attributes[locking_column] ||= 0
+          end
+
+          attributes
         end
       end
     end
