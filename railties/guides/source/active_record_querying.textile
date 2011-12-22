@@ -939,7 +939,7 @@ When a +lambda+ is used for a +scope+, it can take arguments:
 
 <ruby>
 class Post < ActiveRecord::Base
-  scope :1_week_before, lambda { |time| where("created_at < ?", time)
+  scope :1_week_before, lambda { |time| where("created_at < ?", time) }
 end
 </ruby>
 
