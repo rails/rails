@@ -65,6 +65,20 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { t.title2 }
   end
 
+  def test_custom_migration_error_message_on_method
+    t = Topic.new
+    ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
+    exception = assert_raise(NoMethodError) { t.title2 }
+    assert exception.message.include?("rake db:migrate")
+  end
+
+  def test_default_error_message_on_method
+    t = Topic.new
+    ActiveRecord::Migrator.stubs(:needs_migration?).returns(false)
+    exception = assert_raise(NoMethodError) { t.title2 }
+    assert !exception.message.include?("rake db:migrate")
+  end
+
   def test_boolean_attributes
     assert ! Topic.find(1).approved?
     assert Topic.find(2).approved?
