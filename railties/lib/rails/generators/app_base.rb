@@ -135,21 +135,21 @@ module Rails
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'journey',   :git => 'git://github.com/rails/journey.git'
-            gem 'arel',      :git => 'git://github.com/rails/arel.git'
+            gem 'journey',   :git => 'https://github.com/rails/journey.git'
+            gem 'arel',      :git => 'https://github.com/rails/arel.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
-            gem 'rails',     :git => 'git://github.com/rails/rails.git'
-            gem 'journey',   :git => 'git://github.com/rails/journey.git'
-            gem 'arel',      :git => 'git://github.com/rails/arel.git'
+            gem 'rails',     :git => 'https://github.com/rails/rails.git'
+            gem 'journey',   :git => 'https://github.com/rails/journey.git'
+            gem 'arel',      :git => 'https://github.com/rails/arel.git'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
-            # gem 'rails', :git => 'git://github.com/rails/rails.git'
+            # gem 'rails', :git => 'https://github.com/rails/rails.git'
           GEMFILE
         end
       end
@@ -193,8 +193,8 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
-              gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
+              gem 'sass-rails',   :git => 'https://github.com/rails/sass-rails.git'
+              gem 'coffee-rails', :git => 'https://github.com/rails/coffee-rails.git'
               #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
               gem 'uglifier', '>= 1.0.3'
             end
@@ -204,8 +204,8 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sass-rails',   '~> 3.2.0'
-              gem 'coffee-rails', '~> 3.2.0'
+              gem 'sass-rails',   '~> 4.0.0.beta'
+              gem 'coffee-rails', '~> 4.0.0.beta'
               #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
               gem 'uglifier', '>= 1.0.3'
             end
