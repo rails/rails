@@ -306,14 +306,19 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
   # build
 
   def test_has_one_build_with_attr_protected_attributes
-    best_friend = @person.build_best_friend(attributes_hash)
+    best_friend = build_best_friend
     assert_default_attributes(best_friend)
   end
 
   def test_has_one_build_with_attr_accessible_attributes
-    best_friend = @person.build_best_friend(attributes_hash)
+    best_friend = build_best_friend
     assert_default_attributes(best_friend)
   end
+ 
+  def build_best_friend
+    @person.build_best_friend(attributes_hash)
+  end
+
 
   def test_has_one_build_with_admin_role_with_attr_protected_attributes
     best_friend = @person.build_best_friend(attributes_hash, :as => :admin)
@@ -336,6 +341,7 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
       assert_equal @person.id, best_friend.best_friend_id
     end
   end
+
 
   # create
 
