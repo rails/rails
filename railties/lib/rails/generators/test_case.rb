@@ -219,7 +219,7 @@ module Rails
       #   create_generated_attribute(:string, 'name')
       #
       def create_generated_attribute(attribute_type, name = 'test')
-        Rails::Generators::GeneratedAttribute.new(name, attribute_type.to_s)
+        Rails::Generators::GeneratedAttribute.new([name, attribute_type.to_s].join(':'))
       end
 
       protected
