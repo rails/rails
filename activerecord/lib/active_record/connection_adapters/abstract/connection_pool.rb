@@ -371,12 +371,7 @@ connection.  For example: ActiveRecord::Base.connection.close
         pool = @class_to_pool[klass.name]
         return pool if pool
         return nil if ActiveRecord::Base == klass
-
-        if klass.superclass && klass.superclass < Model
-          retrieve_connection_pool klass.superclass
-        else
-          retrieve_connection_pool ActiveRecord::Base
-        end
+        retrieve_connection_pool klass.active_record_super
       end
     end
 

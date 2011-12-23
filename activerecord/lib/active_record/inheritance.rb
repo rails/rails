@@ -13,12 +13,12 @@ module ActiveRecord
     module ClassMethods
       # True if this isn't a concrete subclass needing a STI type condition.
       def descends_from_active_record?
-        if !(superclass < Model)
-          true
-        elsif superclass.abstract_class?
-          superclass.descends_from_active_record?
+        sup = active_record_super
+
+        if sup.abstract_class?
+          sup.descends_from_active_record?
         else
-          superclass == Base || !columns_hash.include?(inheritance_column)
+          sup == Base || !columns_hash.include?(inheritance_column)
         end
       end
 
@@ -81,6 +81,20 @@ module ActiveRecord
         instance
       end
 
+      # If this class includes ActiveRecord::Model then it won't have a
+      # superclass. So this provides a way to get to the 'root' (ActiveRecord::Base),
+      # through inheritance hierarchy, ending in Base, whether or not that is
+      # actually an ancestor of the class.
+      #
+      # Mainly for internal use.
+      def active_record_super #:nodoc:
+        if self == Base || superclass && superclass < Model::Tag
+          superclass
+        else
+          Base
+        end
+      end
+
       protected
 
       # Returns the class descending directly from ActiveRecord::Base or an
@@ -90,12 +104,11 @@ module ActiveRecord
           raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
         end
 
-        if klass == Base || klass.superclass == Base ||
-           klass.superclass < Model::Tag && klass.superclass.abstract_class? ||
-           !(klass.superclass < Model::Tag)
+        sup = klass.active_record_super
+        if klass == Base || sup == Base || sup.abstract_class?
           klass
         else
-          class_of_active_record_descendant(klass.superclass)
+          class_of_active_record_descendant(sup)
         end
       end
 

@@ -128,10 +128,10 @@ module ActiveRecord
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
-        if (superclass < ActiveRecord::Model) && superclass.abstract_class?
-          self.table_name = superclass.table_name || compute_table_name
+        if active_record_super.abstract_class?
+          self.table_name = active_record_super.table_name || compute_table_name
         elsif abstract_class?
-          self.table_name = superclass == Base ? nil : superclass.table_name
+          self.table_name = active_record_super == Base ? nil : active_record_super.table_name
         else
           self.table_name = compute_table_name
         end
@@ -143,10 +143,10 @@ module ActiveRecord
 
       # The name of the column containing the object's class when Single Table Inheritance is used
       def inheritance_column
-        if self == Base || !(superclass < Model)
+        if self == Base
           'type'
         else
-          (@inheritance_column ||= nil) || superclass.inheritance_column
+          (@inheritance_column ||= nil) || active_record_super.inheritance_column
         end
       end
 

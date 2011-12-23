@@ -8,6 +8,9 @@ module ActiveRecord
         @handler.establish_connection 'america', Base.connection_pool.spec
         @klass = Class.new do
           def self.name; 'america'; end
+          class << self
+            alias active_record_super superclass
+          end
         end
         @subklass = Class.new(@klass) do
           def self.name; 'north america'; end
