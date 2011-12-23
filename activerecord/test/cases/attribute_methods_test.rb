@@ -711,6 +711,26 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal nil, Topic.new.read_attribute(nil)
   end
 
+  # If B < A, and A defines an accessor for 'foo', we don't want to override
+  # that by defining a 'foo' method in the generated methods module for B.
+  # (That module will be inserted between the two, e.g. [B, <GeneratedAttributes>, A].)
+  def test_inherited_custom_accessors
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.abstract_class = true
+      def title; "omg"; end
+      def title=(val); self.author_name = val; end
+    end
+    subklass = Class.new(klass)
+    [klass, subklass].each(&:define_attribute_methods)
+
+    topic = subklass.find(1)
+    assert_equal "omg", topic.title
+
+    topic.title = "lol"
+    assert_equal "lol", topic.author_name
+  end
+
   private
   def cached_columns
     @cached_columns ||= time_related_columns_on_topic.map(&:name)
