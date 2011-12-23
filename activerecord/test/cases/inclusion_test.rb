@@ -14,6 +14,10 @@ class BasicInclusionModelTest < ActiveRecord::TestCase
     assert_equal "Bob", teapot.name
     assert_equal "mmm", teapot.aaahhh
   end
+
+  def test_generated_feature_methods
+    assert Teapot < Teapot::GeneratedFeatureMethods
+  end
 end
 
 class InclusionUnitTest < ActiveRecord::TestCase
