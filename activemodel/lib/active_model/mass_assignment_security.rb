@@ -71,11 +71,11 @@ module ActiveModel
       #   class Customer
       #     include ActiveModel::MassAssignmentSecurity
       #   
-      #     attr_accessor :name, :password, :logins_count
+      #     attr_accessor :name, :email, :logins_count
       #   
       #     attr_protected :logins_count
-      #     # Suppose that admin can not change password for employee
-      #     attr_protected :password, :as => :admin 
+      #     # Suppose that admin can not change email for customer
+      #     attr_protected :logins_count, :email, :as => :admin 
       #   
       #     def assign_attributes(values, options = {})
       #       sanitize_for_mass_assignment(values, options[:as]).each do |k, v|
@@ -87,21 +87,21 @@ module ActiveModel
       # When using the :default role :
       #
       #   customer = Customer.new
-      #   customer.assign_attributes({ "name" => "David", "password" => "firstpass", :logins_count => 5 }, :as => :default)
+      #   customer.assign_attributes({ "name" => "David", "email" => "a@b.com", :logins_count => 5 }, :as => :default)
       #   customer.name          # => "David"
-      #   customer.password # => "firstpass"
+      #   customer.email # => "a@b.com"
       #   customer.logins_count    # => nil
       #
       # And using the :admin role :
       #
       #   customer = Customer.new
-      #   customer.assign_attributes({ "name" => "David", "password" => "firstpass", :logins_count => 5}, :as => :admin)
+      #   customer.assign_attributes({ "name" => "David", "email" => "a@b.com", :logins_count => 5}, :as => :admin)
       #   customer.name          # => "David"
-      #   customer.password # => nil
+      #   customer.email # => nil
       #   customer.logins_count    # => nil
       #   
-      #   customer.password = "alternative"
-      #   customer.password # => "alternative"
+      #   customer.email = "c@d.com"
+      #   customer.email # => "c@d.com"
       #
       # To start from an all-closed default and enable attributes as needed,
       # have a look at +attr_accessible+.
