@@ -29,6 +29,7 @@ $:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include
 
 require 'active_support'
 require 'active_support/dependencies/autoload'
+require 'active_support/core_ext/module/attribute_accessors'
 
 require 'action_pack'
 require 'active_model'
@@ -87,6 +88,8 @@ module ActionDispatch
     autoload :MemCacheStore, 'action_dispatch/middleware/session/mem_cache_store'
     autoload :CacheStore,    'action_dispatch/middleware/session/cache_store'
   end
+
+  mattr_accessor :test_app
 
   autoload_under 'testing' do
     autoload :Assertions
