@@ -148,6 +148,19 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal 'foo', get(URI('http://example.org/hello'))
   end
 
+  def test_non_greedy_glob_regexp
+    params = nil
+    rs.draw do
+      get '/posts/:id(/*filters)', :constraints => { :filters => /.+?/ },
+        :to => lambda { |e|
+        params = e["action_dispatch.request.path_parameters"]
+        [200, {}, ['foo']]
+      }
+    end
+    assert_equal 'foo', get(URI('http://example.org/posts/1/foo.js'))
+    assert_equal({:id=>"1", :filters=>"foo", :format=>"js"}, params)
+  end
+
   def test_draw_with_block_arity_one_raises
     assert_raise(RuntimeError) do
       @rs.draw { |map| map.match '/:controller(/:action(/:id))' }
