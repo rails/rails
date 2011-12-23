@@ -78,7 +78,6 @@ module ActiveRecord
             STR
 
             generated_external_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-              # raise if method_defined?('#{attr_name}')
               def __temp__(v, attributes, attributes_cache, attr_name)
                 #{external_attribute_access_code(attr_name, cast_code)}
               end
