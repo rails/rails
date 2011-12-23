@@ -139,6 +139,15 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal 'clients', get(URI('http://clients.example.org/'))
   end
 
+  def test_empty_string_match
+    rs.draw do
+      get '/:username', :constraints => { :username => /[^\/]+/ },
+                       :to => lambda { |e| [200, {}, ['foo']] }
+    end
+    assert_equal 'Not Found', get(URI('http://example.org/'))
+    assert_equal 'foo', get(URI('http://example.org/hello'))
+  end
+
   def test_draw_with_block_arity_one_raises
     assert_raise(RuntimeError) do
       @rs.draw { |map| map.match '/:controller(/:action(/:id))' }
