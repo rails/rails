@@ -1977,16 +1977,6 @@ end
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
-h4. +pluck+
-
-The +pluck+ method collects the value of the passed method for each element and returns the result as an array.
-
-<ruby>
-people.pluck(:name) # => [ "David Heinemeier Hansson", "Jamie Heinemeier Hansson" ]
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/enumerable.rb+.
-
 h4. +index_by+
 
 The method +index_by+ generates a hash with the elements of an enumerable indexed by some key.
