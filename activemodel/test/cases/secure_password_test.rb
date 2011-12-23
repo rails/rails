@@ -5,8 +5,22 @@ require 'models/administrator'
 
 class SecurePasswordTest < ActiveModel::TestCase
 
+  class DirtyUser < User
+    include ActiveModel::Dirty
+    define_attribute_methods [:password_digest]
+
+    def password_digest
+      @password_digest
+    end
+
+    def password_digest=(val)
+      password_digest_will_change! unless @password_digest == val
+      @password_digest = val
+    end
+  end
+
   setup do
-    @user = User.new
+    @user = DirtyUser.new
   end
 
   test "blank password" do
@@ -22,6 +36,12 @@ class SecurePasswordTest < ActiveModel::TestCase
   test "password must be present" do
     assert !@user.valid?
     assert_equal 1, @user.errors.size
+  end
+
+  test "password confirmation must be present" do
+    @user.password = "thiswillberight"
+    @user.password_confirmation = nil
+    assert !@user.valid?, 'user should be invalid'
   end
 
   test "password must match confirmation" do
