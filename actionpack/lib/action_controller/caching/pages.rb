@@ -66,23 +66,29 @@ module ActionController #:nodoc:
 
           instrument_page_cache :expire_page, path do
             File.delete(path) if File.exist?(path)
+            File.delete(path + '.gz') if File.exist?(path + '.gz')
           end
         end
 
         # Manually cache the +content+ in the key determined by +path+. Example:
         #   cache_page "I'm the cached content", "/lists/show"
-        def cache_page(content, path, extension = nil)
+        def cache_page(content, path, extension = nil, gzip = Zlib::BEST_COMPRESSION)
           return unless perform_caching
           path = page_cache_path(path, extension)
 
           instrument_page_cache :write_page, path do
             FileUtils.makedirs(File.dirname(path))
             File.open(path, "wb+") { |f| f.write(content) }
+            if gzip
+              Zlib::GzipWriter.open(path + '.gz', gzip) { |f| f.write(content) }
+            end
           end
         end
 
         # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that
         # matches the triggering url.
+        #
+        # You can disable gzipping by setting +:gzip+ option to false.
         #
         # Usage:
         #
@@ -91,10 +97,28 @@ module ActionController #:nodoc:
         #
         #   # cache the index action except for JSON requests
         #   caches_page :index, :if => Proc.new { |c| !c.request.format.json? }
+        #
+        #   # don't gzip images
+        #   caches_page :image, :gzip => false
         def caches_page(*actions)
           return unless perform_caching
           options = actions.extract_options!
-          after_filter({:only => actions}.merge(options)) { |c| c.cache_page }
+
+          gzip_level = options.fetch(:gzip, :best_compression)
+          if gzip_level
+            gzip_level = case gzip_level
+              when Symbol
+                Zlib.const_get(gzip_level.to_s.upcase)
+              when Fixnum
+                gzip_level
+              else
+                Zlib::BEST_COMPRESSION
+            end
+          end
+
+          after_filter({:only => actions}.merge(options)) do |c|
+            c.cache_page(nil, nil, gzip_level)
+          end
         end
 
         private
@@ -136,7 +160,7 @@ module ActionController #:nodoc:
       # Manually cache the +content+ in the key determined by +options+. If no content is provided, the contents of response.body is used.
       # If no options are provided, the url of the current request being handled is used. Example:
       #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
-      def cache_page(content = nil, options = nil)
+      def cache_page(content = nil, options = nil, gzip = Zlib::BEST_COMPRESSION)
         return unless self.class.perform_caching && caching_allowed?
 
         path = case options
@@ -152,7 +176,7 @@ module ActionController #:nodoc:
           extension = ".#{type_symbol}"
         end
 
-        self.class.cache_page(content || response.body, path, extension)
+        self.class.cache_page(content || response.body, path, extension, gzip)
       end
 
     end
