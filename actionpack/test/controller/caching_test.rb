@@ -17,6 +17,9 @@ class PageCachingTestController < CachingController
   caches_page :ok, :no_content, :if => Proc.new { |c| !c.request.format.json? }
   caches_page :found, :not_found
   caches_page :about_me
+  caches_page :default_gzip
+  caches_page :no_gzip, :gzip => false
+  caches_page :gzip_level, :gzip => :best_speed
 
 
   def ok
@@ -38,6 +41,18 @@ class PageCachingTestController < CachingController
   def custom_path
     render :text => "Super soaker"
     cache_page("Super soaker", "/index.html")
+  end
+
+  def default_gzip
+    render :text => "Text"
+  end
+
+  def no_gzip
+    render :text => "PNG"
+  end
+
+  def gzip_level
+    render :text => "Big text"
   end
 
   def expire_custom_path
@@ -113,6 +128,30 @@ class PageCachingTest < ActionController::TestCase
 
     get :expire_custom_path
     assert !File.exist?("#{FILE_STORE_PATH}/index.html")
+  end
+
+  def test_should_gzip_cache
+    get :custom_path
+    assert File.exist?("#{FILE_STORE_PATH}/index.html.gz")
+
+    get :expire_custom_path
+    assert !File.exist?("#{FILE_STORE_PATH}/index.html.gz")
+  end
+
+  def test_should_allow_to_disable_gzip
+    get :no_gzip
+    assert File.exist?("#{FILE_STORE_PATH}/page_caching_test/no_gzip.html")
+    assert !File.exist?("#{FILE_STORE_PATH}/page_caching_test/no_gzip.html.gz")
+  end
+
+  def test_should_use_best_gzip_by_default
+    @controller.expects(:cache_page).with(nil, nil, Zlib::BEST_COMPRESSION)
+    get :default_gzip
+  end
+
+  def test_should_set_gzip_level
+    @controller.expects(:cache_page).with(nil, nil, Zlib::BEST_SPEED)
+    get :gzip_level
   end
 
   def test_should_cache_without_trailing_slash_on_url
@@ -224,7 +263,7 @@ class ActionCachingTestController < CachingController
     @cache_this = MockTime.now.to_f.to_s
     render :text => @cache_this
   end
-  
+
   def record_not_found
     raise ActiveRecord::RecordNotFound, "oops!"
   end
