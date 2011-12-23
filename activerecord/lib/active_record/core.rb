@@ -116,13 +116,7 @@ module ActiveRecord
           if self == ActiveRecord::Base
             ActiveRecord::Base
           else
-            if connection_handler.connection_pools[name]
-              self
-            elsif superclass < ActiveRecord::Model
-              superclass.arel_engine
-            else
-              ActiveRecord::Base
-            end
+            connection_handler.connection_pools[name] ? self : active_record_super.arel_engine
           end
         end
       end
