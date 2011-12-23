@@ -64,7 +64,9 @@ module ActiveRecord
         if superclass == Base
           super
         else
-          method_defined_within?(method_name, superclass, superclass.generated_attribute_methods) || super
+          # If B < A and A defines its own attribute method, then we don't want to overwrite that.
+          defined = method_defined_within?(method_name, superclass, superclass.generated_attribute_methods)
+          defined && !ActiveRecord::Base.method_defined?(method_name) || super
         end
       end
 
@@ -74,9 +76,6 @@ module ActiveRecord
         method_defined_within?(name, Base)
       end
 
-      # Note that we could do this via klass.instance_methods(false), but this would require us
-      # to maintain a cached Set (for speed) and invalidate it at the correct time, which would
-      # be a pain. This implementation is also O(1) while avoiding maintaining a cached Set.
       def method_defined_within?(name, klass, sup = klass.superclass)
         if klass.method_defined?(name) || klass.private_method_defined?(name)
           if sup.method_defined?(name) || sup.private_method_defined?(name)
