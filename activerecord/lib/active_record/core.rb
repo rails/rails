@@ -62,19 +62,24 @@ module ActiveRecord
     Configuration.define :timestamped_migrations, true
 
     included do
-
       ##
       # :singleton-method:
       # The connection handler
       class_attribute :connection_handler, :instance_writer => false
+
+      initialize_generated_modules
     end
 
     module ClassMethods
       def inherited(child_class) #:nodoc:
-        # force attribute methods to be higher in inheritance hierarchy than other generated methods
-        child_class.generated_attribute_methods
-        child_class.generated_feature_methods
+        child_class.initialize_generated_modules
         super
+      end
+
+      def initialize_generated_modules
+        # force attribute methods to be higher in inheritance hierarchy than other generated methods
+        generated_attribute_methods
+        generated_feature_methods
       end
 
       def generated_feature_methods
