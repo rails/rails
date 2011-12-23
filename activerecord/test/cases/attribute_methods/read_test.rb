@@ -14,6 +14,7 @@ module ActiveRecord
 
       def setup
         @klass = Class.new do
+          def self.superclass; Base; end
           def self.base_class; self; end
 
           include ActiveRecord::AttributeMethods

@@ -30,10 +30,8 @@ module ActiveRecord
         end
 
         def undefine_attribute_methods
-          if base_class == self
-            generated_external_attribute_methods.module_eval do
-              instance_methods.each { |m| undef_method(m) }
-            end
+          generated_external_attribute_methods.module_eval do
+            instance_methods.each { |m| undef_method(m) }
           end
 
           super
@@ -80,6 +78,7 @@ module ActiveRecord
             STR
 
             generated_external_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
+              # raise if method_defined?('#{attr_name}')
               def __temp__(v, attributes, attributes_cache, attr_name)
                 #{external_attribute_access_code(attr_name, cast_code)}
               end

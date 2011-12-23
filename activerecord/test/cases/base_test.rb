@@ -1251,6 +1251,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     important_topic.reload
     assert_equal(hash, important_topic.important)
+    assert_equal(hash, important_topic.read_attribute(:important))
   end
 
   def test_serialized_time_attribute
