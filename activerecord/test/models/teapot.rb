@@ -11,3 +11,14 @@ class Teapot
 
   include ActiveRecord::Model
 end
+
+class OMFGIMATEAPOT
+  def aaahhh
+    "mmm"
+  end
+end
+
+class CoolTeapot < OMFGIMATEAPOT
+  include ActiveRecord::Model
+  self.table_name = "teapots"
+end
