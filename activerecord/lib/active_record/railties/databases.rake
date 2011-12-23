@@ -38,6 +38,7 @@ db_namespace = namespace :db do
   desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
   task :create => :load_config do
     configs_for_environment.each { |config| create_database(config) }
+    ActiveRecord::Base.establish_connection(configs_for_environment.first)
   end
 
   def mysql_creation_options(config)
