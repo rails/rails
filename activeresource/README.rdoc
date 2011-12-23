@@ -172,7 +172,9 @@ Destruction of a resource can be invoked as a class and instance method of the r
 
 == License
 
-Active Support is released under the MIT license.
+Active Support is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
 
 == Support
 
