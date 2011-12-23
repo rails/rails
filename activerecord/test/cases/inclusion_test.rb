@@ -51,3 +51,15 @@ class InclusionUnitTest < ActiveRecord::TestCase
     ActiveRecord::Base.time_zone_aware_attributes = false
   end
 end
+
+class InclusionFixturesTest < ActiveRecord::TestCase
+  fixtures :teapots
+
+  def test_fixtured_record
+    assert_equal "Bob", teapots(:bob).name
+  end
+
+  def test_timestamped_fixture
+    assert_not_nil teapots(:bob).created_at
+  end
+end
