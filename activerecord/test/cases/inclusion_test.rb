@@ -18,6 +18,11 @@ class BasicInclusionModelTest < ActiveRecord::TestCase
   def test_generated_feature_methods
     assert Teapot < Teapot::GeneratedFeatureMethods
   end
+
+  def test_exists
+    t = Teapot.create!(:name => "Ronnie Kemper")
+    assert Teapot.exists?(t)
+  end
 end
 
 class InclusionUnitTest < ActiveRecord::TestCase
