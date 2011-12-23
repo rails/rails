@@ -34,48 +34,26 @@ module ActiveRecord
       # accessors, mutators and query methods.
       def define_attribute_methods
         return if attribute_methods_generated?
-
-        if base_class == self
-          super(column_names)
-          @attribute_methods_generated = true
-        else
-          base_class.define_attribute_methods
-        end
+        superclass.define_attribute_methods unless self == base_class
+        super(column_names)
+        @attribute_methods_generated = true
       end
 
       def attribute_methods_generated?
-        if base_class == self
-          @attribute_methods_generated ||= false
-        else
-          base_class.attribute_methods_generated?
-        end
+        @attribute_methods_generated ||= false
       end
 
-      def generated_attribute_methods
-        @generated_attribute_methods ||= (base_class == self ? super : base_class.generated_attribute_methods)
-      end
-
+      # We will define the methods as instance methods, but will call them as singleton
+      # methods. This allows us to use method_defined? to check if the method exists,
+      # which is fast and won't give any false positives from the ancestors (because
+      # there are no ancestors).
       def generated_external_attribute_methods
-        @generated_external_attribute_methods ||= begin
-          if base_class == self
-            # We will define the methods as instance methods, but will call them as singleton
-            # methods. This allows us to use method_defined? to check if the method exists,
-            # which is fast and won't give any false positives from the ancestors (because
-            # there are no ancestors).
-            Module.new { extend self }
-          else
-            base_class.generated_external_attribute_methods
-          end
-        end
+        @generated_external_attribute_methods ||= Module.new { extend self }
       end
 
       def undefine_attribute_methods
-        if base_class == self
-          super
-          @attribute_methods_generated = false
-        else
-          base_class.undefine_attribute_methods
-        end
+        super
+        @attribute_methods_generated = false
       end
 
       def instance_method_already_implemented?(method_name)
@@ -83,19 +61,32 @@ module ActiveRecord
           raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord"
         end
 
-        super
+        if superclass == Base
+          super
+        else
+          method_defined_within?(method_name, superclass, superclass.generated_attribute_methods) || super
+        end
       end
 
       # A method name is 'dangerous' if it is already defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'save' is.)
-      def dangerous_attribute_method?(method_name)
-        active_record = ActiveRecord::Base
-        superclass    = ActiveRecord::Base.superclass
+      def dangerous_attribute_method?(name)
+        method_defined_within?(name, Base)
+      end
 
-        (active_record.method_defined?(method_name) ||
-         active_record.private_method_defined?(method_name)) &&
-        !superclass.method_defined?(method_name) &&
-        !superclass.private_method_defined?(method_name)
+      # Note that we could do this via klass.instance_methods(false), but this would require us
+      # to maintain a cached Set (for speed) and invalidate it at the correct time, which would
+      # be a pain. This implementation is also O(1) while avoiding maintaining a cached Set.
+      def method_defined_within?(name, klass, sup = klass.superclass)
+        if klass.method_defined?(name) || klass.private_method_defined?(name)
+          if sup.method_defined?(name) || sup.private_method_defined?(name)
+            klass.instance_method(name).owner != sup.instance_method(name).owner
+          else
+            true
+          end
+        else
+          false
+        end
       end
 
       def attribute_method?(attribute)
