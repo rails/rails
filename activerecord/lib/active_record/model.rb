@@ -9,6 +9,8 @@ module ActiveRecord
       base.class_eval do
         include Tag
 
+        include Configuration
+
         include ActiveRecord::Persistence
         extend ActiveModel::Naming
         extend QueryCache::ClassMethods
@@ -43,7 +45,7 @@ module ActiveRecord
 
         include Core
 
-        self.connection_handler = ActiveRecord::Base.connection_handler
+        self.connection_handler = Base.connection_handler
       end
     end
   end

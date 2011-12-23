@@ -6,10 +6,9 @@ module ActiveRecord
     module TimeZoneConversion
       extend ActiveSupport::Concern
 
-      included do
-        cattr_accessor :time_zone_aware_attributes, :instance_writer => false
-        self.time_zone_aware_attributes = false
+      Configuration.define :time_zone_aware_attributes, false
 
+      included do
         class_attribute :skip_time_zone_conversion_for_attributes, :instance_writer => false
         self.skip_time_zone_conversion_for_attributes = []
       end

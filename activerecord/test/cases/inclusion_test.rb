@@ -41,4 +41,13 @@ class InclusionUnitTest < ActiveRecord::TestCase
   def test_connection_handler
     assert_equal ActiveRecord::Base.connection_handler, @klass.connection_handler
   end
+
+  def test_mirrored_configuration
+    ActiveRecord::Base.time_zone_aware_attributes = true
+    assert @klass.time_zone_aware_attributes
+    ActiveRecord::Base.time_zone_aware_attributes = false
+    assert !@klass.time_zone_aware_attributes
+  ensure
+    ActiveRecord::Base.time_zone_aware_attributes = false
+  end
 end

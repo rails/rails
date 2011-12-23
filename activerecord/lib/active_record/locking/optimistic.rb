@@ -48,10 +48,7 @@ module ActiveRecord
     module Optimistic
       extend ActiveSupport::Concern
 
-      included do
-        cattr_accessor :lock_optimistically, :instance_writer => false
-        self.lock_optimistically = true
-      end
+      Configuration.define :lock_optimistically, true
 
       def locking_enabled? #:nodoc:
         self.class.locking_enabled?
