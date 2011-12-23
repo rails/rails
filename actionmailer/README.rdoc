@@ -148,7 +148,9 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 == License
 
-Action Mailer is released under the MIT license.
+Action Mailer is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
 
 
 == Support
