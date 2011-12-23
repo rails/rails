@@ -57,6 +57,7 @@ module ActiveRecord
 
     autoload :Base
     autoload :Callbacks
+    autoload :Configuration
     autoload :Core
     autoload :CounterCache
     autoload :DynamicMatchers

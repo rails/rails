@@ -5,10 +5,7 @@ module ActiveRecord
 
       ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
 
-      included do
-        cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
-        self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
-      end
+      Configuration.define :attribute_types_cached_by_default, ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
 
       module ClassMethods
         # +cache_attributes+ allows you to declare which converted attribute values should

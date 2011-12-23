@@ -1,20 +1,20 @@
 require 'active_support/concern'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module ActiveRecord
   module ModelSchema
     extend ActiveSupport::Concern
 
-    included do
-      ##
-      # :singleton-method:
-      # Accessor for the prefix type that will be prepended to every primary key column name.
-      # The options are :table_name and :table_name_with_underscore. If the first is specified,
-      # the Product class will look for "productid" instead of "id" as the primary column. If the
-      # latter is specified, the Product class will look for "product_id" instead of "id". Remember
-      # that this is a global setting for all Active Records.
-      cattr_accessor :primary_key_prefix_type, :instance_writer => false
-      self.primary_key_prefix_type = nil
+    ##
+    # :singleton-method:
+    # Accessor for the prefix type that will be prepended to every primary key column name.
+    # The options are :table_name and :table_name_with_underscore. If the first is specified,
+    # the Product class will look for "productid" instead of "id" as the primary column. If the
+    # latter is specified, the Product class will look for "product_id" instead of "id". Remember
+    # that this is a global setting for all Active Records.
+    Configuration.define :primary_key_prefix_type
 
+    included do
       ##
       # :singleton-method:
       # Accessor for the name of the prefix string to prepend to every table name. So if set
