@@ -90,7 +90,10 @@ end
 unless ENV['FIXTURE_DEBUG']
   module ActiveRecord::TestFixtures::ClassMethods
     def try_to_load_dependency_with_silence(*args)
-      ActiveRecord::Base.logger.silence { try_to_load_dependency_without_silence(*args)}
+      old = ActiveRecord::Base.logger.level
+      ActiveRecord::Base.logger.level = Logger::ERROR
+      try_to_load_dependency_without_silence(*args)
+      ActiveRecord::Base.logger.level = old
     end
 
     alias_method_chain :try_to_load_dependency, :silence
