@@ -463,9 +463,12 @@ module ActionDispatch
     @@app = nil
 
     def self.app
-      # DEPRECATE Rails application fallback
-      # This should be set by the initializer
-      @@app || (defined?(Rails.application) && Rails.application) || nil
+      if !@@app && !ActionDispatch.test_app
+        ActiveSupport::Deprecation.warn "Rails application fallback is deprecated " \
+          "and no longer works, please set ActionDispatch.test_app", caller
+      end
+
+      @@app || ActionDispatch.test_app
     end
 
     def self.app=(app)
