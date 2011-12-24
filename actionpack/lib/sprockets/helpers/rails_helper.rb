@@ -114,11 +114,6 @@ module Sprockets
 
         class AssetNotPrecompiledError < StandardError; end
 
-        # Return the filesystem path for the source
-        def compute_source_path(source, ext)
-          asset_for(source, ext)
-        end
-
         def asset_for(source, ext)
           source = source.to_s
           return nil if is_uri?(source)
