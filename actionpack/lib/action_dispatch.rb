@@ -60,7 +60,6 @@ module ActionDispatch
     autoload :PublicExceptions
     autoload :Reloader
     autoload :RemoteIp
-    autoload :Rescue
     autoload :ShowExceptions
     autoload :Static
   end
