@@ -1,5 +1,33 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added the `ActiveRecord::Model` module which can be included in a
+    class as an alternative to inheriting from `ActiveRecord::Base`:
+
+        class Post
+          include ActiveRecord::Model
+        end
+
+    Please note:
+
+      * Up until now it has been safe to assume that all AR models are
+        descendants of `ActiveRecord::Base`. This is no longer a safe
+        assumption, but it may transpire that there are areas of the
+        code which still make this assumption. So there may be
+        'teething difficulties' with this feature. (But please do try it
+        and report bugs.)
+
+      * Plugins & libraries etc that add methods to `ActiveRecord::Base`
+        will not be compatible with `ActiveRecord::Model`. Those libraries
+        should add to `ActiveRecord::Model` instead (which is included in
+        `Base`), or better still, avoid monkey-patching AR and instead
+        provide a module that users can include where they need it.
+
+      * To minimise the risk of conflicts with other code, it is
+        advisable to include `ActiveRecord::Model` early in your class
+        definition.
+
+    *Jon Leighton*
+
 *   PostgreSQL hstore records can be created.
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
@@ -36,7 +64,7 @@
 *   Implemented ActiveRecord::Relation#pluck method
 
     Method returns Array of column value from table under ActiveRecord model
-        
+
         Client.pluck(:id)
 
     *Bogdan Gusiev*
@@ -53,7 +81,7 @@
       Post.find(1)
       Post.connection.close
     }.join
-    
+
     Only people who spawn threads in their application code need to worry
     about this change.
 
@@ -152,7 +180,7 @@
     during :reject_if => :all_blank (fixes #2937)
 
     *Aaron Christy*
-    
+
 ## Rails 3.1.3 (unreleased) ##
 
 *   Perf fix: If we're deleting all records in an association, don't add a IN(..) clause
