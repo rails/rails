@@ -65,6 +65,11 @@ class InclusionUnitTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.time_zone_aware_attributes = false
   end
+
+  # Doesn't really test anything, but this is here to ensure warnings don't occur
+  def test_included_twice
+    @klass.send :include, ActiveRecord::Model
+  end
 end
 
 class InclusionFixturesTest < ActiveRecord::TestCase
