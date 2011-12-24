@@ -60,7 +60,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
   def test_add_migration_with_attributes_and_indices
     migration = "add_title_with_index_and_body_to_posts"
-    run_generator [migration, "title:string:index", "body:text", "user_id:integer:unique"]
+    run_generator [migration, "title:string:index", "body:text", "user_id:integer:uniq"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |up|
