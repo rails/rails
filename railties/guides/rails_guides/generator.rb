@@ -65,25 +65,61 @@ module RailsGuides
   class Generator
     attr_reader :guides_dir, :source_dir, :output_dir, :edge, :warnings, :all
 
-    GUIDES_RE = /\.(?:textile|html\.erb)$/
+    GUIDES_RE = /\.(?:textile|erb)$/
 
     def initialize(output=nil)
       @lang = ENV['GUIDES_LANGUAGE']
+      @kindle = ENV['KINDLE']
+      if kindle?
+        check_for_kindlegen
+        register_kindle_mime_types
+      end
       initialize_dirs(output)
       create_output_dir_if_needed
       set_flags_from_environment
     end
+    
+    def register_kindle_mime_types
+      Mime::Type.register_alias "application/xml", :opf, %w(opf)
+      Mime::Type.register_alias "application/xml", :ncx ,%w(ncx)
+    end
 
+    def kindle?
+      @kindle
+    end
+    
     def generate
       generate_guides
       copy_assets
+      generate_mobi if kindle?
     end
 
     private
+    
+    def generate_mobi
+      system "kindlegen #{output_dir}/rails_guides.opf -o #{kindle_output_file} > #{output_dir}/kindlegen.out 2>&1"
+      puts "Guides compiled as Kindle book to #{kindle_output_file}"
+      puts "(kindlegen log at #{output_dir}/kindlegen.out)."
+    end
+    
+    def kindle_output_file
+      "rails_guides#{edge ? '_edge' : ''}#{@lang ? '_' + @lang.to_s : ''}.mobi"
+    end
+    
+    def check_for_kindlegen
+      if `which kindlegen`.strip == ''
+        raise "Can't create a kindle version without `kindlegen`."
+      end
+    end
+      
+    def default_output_dir
+      File.join(@guides_dir, (kindle? ? ['output', 'kindle'] : 'output'), @lang.to_s)
+    end
+    
     def initialize_dirs(output)
       @guides_dir = File.join(File.dirname(__FILE__), '..')
       @source_dir = File.join(@guides_dir, "source", @lang.to_s)
-      @output_dir = output || File.join(@guides_dir, "output", @lang.to_s)
+      @output_dir = output || default_output_dir
     end
 
     def create_output_dir_if_needed
@@ -105,6 +141,11 @@ module RailsGuides
 
     def guides_to_generate
       guides = Dir.entries(source_dir).grep(GUIDES_RE)
+      if kindle?
+        Dir.entries(File.join(source_dir, 'kindle')).grep(GUIDES_RE).map do |entry|
+          guides << File.join('kindle', entry)
+        end
+      end
       ENV.key?('ONLY') ? select_only(guides) : guides
     end
 
@@ -120,31 +161,42 @@ module RailsGuides
     end
 
     def output_file_for(guide)
-      guide.sub(GUIDES_RE, '.html')
+      if guide =~/\.textile$/
+        guide.sub(/\.textile$/, '.html')
+      else
+        guide.sub(/\.erb$/, '')
+      end
     end
-
+    
+    def output_path_for(output_file)
+      File.join(output_dir, File.basename(output_file))
+    end
+    
     def generate?(source_file, output_file)
       fin  = File.join(source_dir, source_file)
-      fout = File.join(output_dir, output_file)
+      fout = output_path_for(output_file)
       all || !File.exists?(fout) || File.mtime(fout) < File.mtime(fin)
     end
-
+    
     def generate_guide(guide, output_file)
-      puts "Generating #{output_file}"
-      File.open(File.join(output_dir, output_file), 'w') do |f|
+      output_path = output_path_for(output_file)
+      puts "Generating #{guide} as #{output_file}"
+      use_layout = kindle? ? 'kindle/layout' : 'layout'
+      
+      File.open(output_path, 'w') do |f|
         view = ActionView::Base.new(source_dir, :edge => edge)
         view.extend(Helpers)
 
-        if guide =~ /\.html\.erb$/
+        if guide =~ /\.(\w+)\.erb$/
           # Generate the special pages like the home.
           # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
-          result = view.render(:layout => 'layout', :file => $`)
+          result = view.render(:layout => use_layout, :formats => [$1], :file => $`)
         else
           body = File.read(File.join(source_dir, guide))
           body = set_header_section(body, view)
           body = set_index(body, view)
 
-          result = view.render(:layout => 'layout', :text => textile(body))
+          result = view.render(:layout => use_layout, :text => textile(body))
 
           warn_about_broken_links(result) if @warnings
         end
