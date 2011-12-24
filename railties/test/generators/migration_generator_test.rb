@@ -83,8 +83,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
         assert_match(/add_column :books, :content, :text/, up)
         assert_match(/add_column :books, :user_id, :integer/, up)
       end
-      assert_not_match(/add_index :books, :title/, content)
-      assert_not_match(/add_index :books, :user_id/, content)
+      assert_no_match(/add_index :books, :title/, content)
+      assert_no_match(/add_index :books, :user_id/, content)
     end
   end
 
