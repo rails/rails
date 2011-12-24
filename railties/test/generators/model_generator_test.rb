@@ -34,6 +34,11 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_migration "db/migrate/create_accounts.rb"
   end
 
+  def test_model_with_with_include_option
+    run_generator ["account", "--with-include"]
+    assert_file "app/models/account.rb", /class Account\n  include ActiveRecord::Model/
+  end
+
   def test_model_with_underscored_parent_option
     run_generator ["account", "--parent", "admin/account"]
     assert_file "app/models/account.rb", /class Account < Admin::Account/
