@@ -14,11 +14,7 @@ module ActionView
         "'"     => "\\'"
       }
 
-      if "ruby".encoding_aware?
-        JS_ESCAPE_MAP["\342\200\250".force_encoding('UTF-8').encode!] = '&#x2028;'
-      else
-        JS_ESCAPE_MAP["\342\200\250"] = '&#x2028;'
-      end
+      JS_ESCAPE_MAP["\342\200\250".force_encoding('UTF-8').encode!] = '&#x2028;'
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #

@@ -8,7 +8,7 @@ module ActiveSupport
     class Stream < StringIO
       def initialize(*)
         super
-        set_encoding "BINARY" if "".encoding_aware?
+        set_encoding "BINARY"
       end
       def close; rewind; end
     end

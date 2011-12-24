@@ -184,7 +184,7 @@ module ActionView
     # before passing the source on to the template engine, leaving a
     # blank line in its stead.
     def encode!
-      return unless source.encoding_aware? && source.encoding == Encoding::BINARY
+      return unless source.encoding == Encoding::BINARY
 
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
@@ -265,20 +265,18 @@ module ActionView
           end
         end_src
 
-        if source.encoding_aware?
-          # Make sure the source is in the encoding of the returned code
-          source.force_encoding(code.encoding)
+        # Make sure the source is in the encoding of the returned code
+        source.force_encoding(code.encoding)
 
-          # In case we get back a String from a handler that is not in
-          # BINARY or the default_internal, encode it to the default_internal
-          source.encode!
+        # In case we get back a String from a handler that is not in
+        # BINARY or the default_internal, encode it to the default_internal
+        source.encode!
 
-          # Now, validate that the source we got back from the template
-          # handler is valid in the default_internal. This is for handlers
-          # that handle encoding but screw up
-          unless source.valid_encoding?
-            raise WrongEncodingError.new(@source, Encoding.default_internal)
-          end
+        # Now, validate that the source we got back from the template
+        # handler is valid in the default_internal. This is for handlers
+        # that handle encoding but screw up
+        unless source.valid_encoding?
+          raise WrongEncodingError.new(@source, Encoding.default_internal)
         end
 
         begin
