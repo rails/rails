@@ -142,9 +142,9 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         assert_match(/t\.integer :supplier_id/, up)
         assert_match(/t\.integer :user_id/, up)
 
-        assert_not_match(/add_index :products, :name/, up)
-        assert_not_match(/add_index :products, :supplier_id/, up)
-        assert_not_match(/add_index :products, :user_id/, up)
+        assert_no_match(/add_index :products, :name/, up)
+        assert_no_match(/add_index :products, :supplier_id/, up)
+        assert_no_match(/add_index :products, :user_id/, up)
       end
     end
   end
@@ -160,7 +160,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         
         assert_match(/add_index :products, :name/, up)
         assert_match(/add_index :products, :supplier_id/, up)
-        assert_not_match(/add_index :products, :year/, up)
+        assert_no_match(/add_index :products, :year/, up)
       end
     end
   end
