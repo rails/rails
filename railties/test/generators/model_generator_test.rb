@@ -114,7 +114,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_migration_with_attributes_and_with_index
-    run_generator ["product", "name:string:index", "supplier_id:integer:index", "user_id:integer:uniq", "order_id:unique"]
+    run_generator ["product", "name:string:index", "supplier_id:integer:index", "user_id:integer:uniq", "order_id:uniq"]
 
     assert_migration "db/migrate/create_products.rb" do |m|
       assert_method :change, m do |up|
