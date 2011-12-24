@@ -13,8 +13,7 @@ module ActiveModel
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
           raise ArgumentError, ":in and :within must be a Range" unless range.is_a?(Range)
-          options[:minimum], options[:maximum] = range.begin, range.end
-          options[:maximum] -= 1 if range.exclude_end?
+          options[:minimum], options[:maximum] = range.min, range.max
         end
 
         super
