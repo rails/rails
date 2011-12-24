@@ -52,7 +52,7 @@ module ActiveRecord
       end
 
       def undefine_attribute_methods
-        super
+        super if attribute_methods_generated?
         @attribute_methods_generated = false
       end
 

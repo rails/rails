@@ -67,7 +67,7 @@ module ActiveRecord
       # The connection handler
       class_attribute :connection_handler, :instance_writer => false
 
-      initialize_generated_modules
+      initialize_generated_modules unless self == Base
     end
 
     module ClassMethods
