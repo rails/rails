@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module ActiveRecord
   module Model
     # So we can recognise an AR class even while self.included is being
@@ -50,8 +52,29 @@ module ActiveRecord
         self.connection_handler = Base.connection_handler
       end
     end
+
+    module DeprecationProxy #:nodoc:
+      class << self
+        instance_methods.each { |m| undef_method m unless m =~ /^__|^object_id$|^instance_eval$/ }
+
+        def method_missing(name, *args, &block)
+          if Model.respond_to?(name)
+            Model.send(name, *args, &block)
+          else
+            ActiveSupport::Deprecation.warn(
+              "The object passed to the active_record load hook was previously ActiveRecord::Base " \
+              "(a Class). Now it is ActiveRecord::Model (a Module). You have called `#{name}' which " \
+              "is only defined on ActiveRecord::Base. Please change your code so that it works with " \
+              "a module rather than a class. (Model is included in Base, so anything added to Model " \
+              "will be available on Base as well.)"
+            )
+            Base.send(name, *args, &block)
+          end
+        end
+      end
+    end
   end
 end
 
 require 'active_record/connection_adapters/abstract/connection_specification'
-ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Model)
+ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Model::DeprecationProxy)
