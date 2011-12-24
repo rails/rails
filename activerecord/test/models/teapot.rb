@@ -22,3 +22,11 @@ class CoolTeapot < OMFGIMATEAPOT
   include ActiveRecord::Model
   self.table_name = "teapots"
 end
+
+class Ceiling
+  include ActiveRecord::Model
+
+  class Teapot
+    include ActiveRecord::Model
+  end
+end

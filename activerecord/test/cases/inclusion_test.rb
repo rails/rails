@@ -29,6 +29,10 @@ class BasicInclusionModelTest < ActiveRecord::TestCase
     assert_equal "Bob", Teapot.where(:id => [t]).first.name
     assert_equal "Bob", Teapot.where(:id => t).first.name
   end
+
+  def test_nested_model
+    assert_equal "ceiling_teapots", Ceiling::Teapot.table_name
+  end
 end
 
 class InclusionUnitTest < ActiveRecord::TestCase
