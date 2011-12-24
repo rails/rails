@@ -876,8 +876,9 @@ module ActiveRecord
           # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
           desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
           orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
-      
-          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders)
+          type = inddef.scan(/USING (\w+) /).flatten.compact.first.intern
+
+          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, type)
         end.compact
       end
 
@@ -1060,6 +1061,76 @@ module ActiveRecord
       def rename_column(table_name, column_name, new_column_name)
         clear_cache!
         execute "ALTER TABLE #{quote_table_name(table_name)} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
+      end
+      
+      # Adds a new index to the table. +column_name+ can be a single Symbol, or
+      # an Array of Symbols.
+      #
+      # The index will be named after the table and the first column name,
+      # unless you pass <tt>:name</tt> as an option.
+      #
+      # When creating an index on multiple columns, the first column is used as a name
+      # for the index. For example, when you specify an index on two columns
+      # [<tt>:first</tt>, <tt>:last</tt>], the DBMS creates an index for both columns as well as an
+      # index for the first column <tt>:first</tt>. Using just the first name for this index
+      # makes sense, because you will never have to create a singular index with this
+      # name.
+      #
+      # ===== Examples
+      #
+      # ====== Creating a simple index
+      #  add_index(:suppliers, :name)
+      # generates
+      #  CREATE INDEX suppliers_name_index ON suppliers(name)
+      #
+      # ====== Creating a unique index
+      #  add_index(:accounts, [:branch_id, :party_id], :unique => true)
+      # generates
+      #  CREATE UNIQUE INDEX accounts_branch_id_party_id_index ON accounts(branch_id, party_id)
+      #
+      # ====== Creating a named index
+      #  add_index(:accounts, [:branch_id, :party_id], :unique => true, :name => 'by_branch_party')
+      # generates
+      #  CREATE UNIQUE INDEX by_branch_party ON accounts(branch_id, party_id)
+      #
+      # ====== Creating an index with specific key length
+      #  add_index(:accounts, :name, :name => 'by_name', :length => 10)
+      # generates
+      #  CREATE INDEX by_name ON accounts(name(10))
+      #
+      #  add_index(:accounts, [:name, :surname], :name => 'by_name_surname', :length => {:name => 10, :surname => 15})
+      # generates
+      #  CREATE INDEX by_name_surname ON accounts(name(10), surname(15))
+      #
+      # Note: SQLite doesn't support index length
+      #
+      # ====== Creating an index with a sort order (desc or asc, asc is the default)
+      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :part_id => :asc})
+      # generates
+      #  CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
+      #
+      # Note: mysql doesn't yet support index order (it accepts the syntax but ignores it)
+      #
+      # ====== Creating an GIN index
+      #  add_index(:developers, :name, :gin => true)
+      # generates
+      #  CREATE INDEX index_developers_on_name ON developers USING gin(name)
+      #
+      # ====== Creating an GiST index
+      #  add_index(:developers, :name, :gist => true)
+      # generates
+      #  CREATE INDEX index_developers_on_name ON developers USING gist(name)
+      #
+      def add_index(table_name, column_name, options = {})
+        if options[:gin]
+          index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
+          execute "CREATE INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} USING gin(#{index_columns})" 
+        elsif options[:gist]
+          index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
+          execute "CREATE INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} USING gist(#{index_columns})"
+        else
+          super(table_name, column_name, options)
+        end
       end
 
       def remove_index!(table_name, index_name) #:nodoc:
