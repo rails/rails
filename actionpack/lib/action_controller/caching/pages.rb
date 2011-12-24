@@ -42,20 +42,20 @@ module ActionController #:nodoc:
         # For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>Rails.root + "/public"</tt>). Changing
         # this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your
         # web server to look in the new location for cached files.
-        config_accessor :page_cache_directory
+        class_attribute :page_cache_directory
         self.page_cache_directory ||= ''
 
         # Most Rails requests do not have an extension, such as <tt>/weblog/new</tt>. In these cases, the page caching mechanism will add one in
         # order to make it easy for the cached files to be picked up properly by the web server. By default, this cache extension is <tt>.html</tt>.
         # If you want something else, like <tt>.php</tt> or <tt>.shtml</tt>, just set Base.page_cache_extension. In cases where a request already has an
         # extension, such as <tt>.xml</tt> or <tt>.rss</tt>, page caching will not add an extension. This allows it to work well with RESTful apps.
-        config_accessor :page_cache_extension
+        class_attribute :page_cache_extension
         self.page_cache_extension ||= '.html'
 
         # The compression used for gzip. If false (default), the page is not compressed.
         # If can be a symbol showing the ZLib compression method, for example, :best_compression
         # or :best_speed or an integer configuring the compression level.
-        config_accessor :page_cache_compression
+        class_attribute :page_cache_compression
         self.page_cache_compression ||= false
       end
 
