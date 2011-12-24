@@ -6,6 +6,8 @@ module ActiveRecord
     end
 
     def self.included(base)
+      return if base < Tag
+
       base.class_eval do
         include Tag
 
