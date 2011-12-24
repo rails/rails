@@ -16,7 +16,7 @@ module ActionController #:nodoc:
     #     caches_page :show, :new
     #   end
     #
-    # This will generate cache files such as <tt>weblog/show/5.html</tt> and <tt>weblog/new.html</tt>, which match the URLs used 
+    # This will generate cache files such as <tt>weblog/show/5.html</tt> and <tt>weblog/new.html</tt>, which match the URLs used
     # that would normally trigger dynamic page generation. Page caching works by configuring a web server to first check for the
     # existence of files on disk, and to serve them directly when found, without passing the request through to Action Pack.
     # This is much faster than handling the full dynamic request in the usual way.
@@ -38,8 +38,6 @@ module ActionController #:nodoc:
       extend ActiveSupport::Concern
 
       included do
-        ##
-        # :singleton-method:
         # The cache directory should be the document root for the web server and is set using <tt>Base.page_cache_directory = "/document/root"</tt>.
         # For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>Rails.root + "/public"</tt>). Changing
         # this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your
@@ -47,14 +45,18 @@ module ActionController #:nodoc:
         config_accessor :page_cache_directory
         self.page_cache_directory ||= ''
 
-        ##
-        # :singleton-method:
         # Most Rails requests do not have an extension, such as <tt>/weblog/new</tt>. In these cases, the page caching mechanism will add one in
         # order to make it easy for the cached files to be picked up properly by the web server. By default, this cache extension is <tt>.html</tt>.
         # If you want something else, like <tt>.php</tt> or <tt>.shtml</tt>, just set Base.page_cache_extension. In cases where a request already has an
         # extension, such as <tt>.xml</tt> or <tt>.rss</tt>, page caching will not add an extension. This allows it to work well with RESTful apps.
         config_accessor :page_cache_extension
         self.page_cache_extension ||= '.html'
+
+        # The compression used for gzip. If false (default), the page is not compressed.
+        # If can be a symbol showing the ZLib compression method, for example, :best_compression
+        # or :best_speed or an integer configuring the compression level.
+        config_accessor :page_cache_compression
+        self.page_cache_compression ||= false
       end
 
       module ClassMethods
@@ -85,10 +87,11 @@ module ActionController #:nodoc:
           end
         end
 
-        # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that
+        # Caches the +actions+ using the page-caching approach that'll store
+        # the cache in a path within the page_cache_directory that
         # matches the triggering url.
         #
-        # You can disable gzipping by setting +:gzip+ option to false.
+        # You can also pass a :gzip option to override the class configuration one.
         #
         # Usage:
         #
@@ -104,16 +107,16 @@ module ActionController #:nodoc:
           return unless perform_caching
           options = actions.extract_options!
 
-          gzip_level = options.fetch(:gzip, :best_compression)
-          if gzip_level
-            gzip_level = case gzip_level
-              when Symbol
-                Zlib.const_get(gzip_level.to_s.upcase)
-              when Fixnum
-                gzip_level
-              else
-                Zlib::BEST_COMPRESSION
-            end
+          gzip_level = options.fetch(:gzip, page_cache_compression)
+          gzip_level = case gzip_level
+          when Symbol
+            Zlib.const_get(gzip_level.to_s.upcase)
+          when Fixnum
+            gzip_level
+          when false
+            nil
+          else
+            Zlib::BEST_COMPRESSION
           end
 
           after_filter({:only => actions}.merge(options)) do |c|

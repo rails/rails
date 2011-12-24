@@ -14,13 +14,14 @@ class CachingController < ActionController::Base
 end
 
 class PageCachingTestController < CachingController
+  self.page_cache_compression = :best_compression
+
   caches_page :ok, :no_content, :if => Proc.new { |c| !c.request.format.json? }
   caches_page :found, :not_found
   caches_page :about_me
   caches_page :default_gzip
   caches_page :no_gzip, :gzip => false
   caches_page :gzip_level, :gzip => :best_speed
-
 
   def ok
     head :ok
@@ -144,7 +145,7 @@ class PageCachingTest < ActionController::TestCase
     assert !File.exist?("#{FILE_STORE_PATH}/page_caching_test/no_gzip.html.gz")
   end
 
-  def test_should_use_best_gzip_by_default
+  def test_should_use_config_gzip_by_default
     @controller.expects(:cache_page).with(nil, nil, Zlib::BEST_COMPRESSION)
     get :default_gzip
   end
@@ -233,7 +234,7 @@ class ActionCachingTestController < CachingController
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
   caches_action :with_layout
-  caches_action :with_format_and_http_param, :cache_path => Proc.new { |c| { :key => 'value' } } 
+  caches_action :with_format_and_http_param, :cache_path => Proc.new { |c| { :key => 'value' } }
   caches_action :layout_false, :layout => false
   caches_action :record_not_found, :four_oh_four, :simple_runtime_error
 
