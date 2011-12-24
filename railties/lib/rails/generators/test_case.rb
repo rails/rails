@@ -218,8 +218,8 @@ module Rails
       #
       #   create_generated_attribute(:string, 'name')
       #
-      def create_generated_attribute(attribute_type, name = 'test')
-        Rails::Generators::GeneratedAttribute.new(name, attribute_type.to_s)
+      def create_generated_attribute(attribute_type, name = 'test', index = nil)
+        Rails::Generators::GeneratedAttribute.parse([name, attribute_type, index].compact.join(':'))
       end
 
       protected
