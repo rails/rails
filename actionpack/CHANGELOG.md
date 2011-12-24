@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Add :gzip option to `caches_page`. The default option can be configured globally using `page_cache_compression` *Andrey Sitnik*
+
 *   The ShowExceptions middleware now accepts a exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in `env["action_dispatch.exception"]` and with the PATH_INFO rewritten to the status code. *José Valim*
 
 *   Add `button_tag` support to ActionView::Helpers::FormBuilder.
