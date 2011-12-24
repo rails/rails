@@ -96,7 +96,7 @@ module Rails
       end
 
       def inject_options
-        @attr_options.blank? ? '' : ", #{@attr_options.to_s.gsub(/[{}]/, '')}"
+        "".tap { |s| @attr_options.each { |k,v| s << ", :#{k} => #{v.inspect}" } }
       end
 
       def inject_index_options

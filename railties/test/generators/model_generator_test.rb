@@ -171,9 +171,11 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_products.rb" do |content|
       assert_method :change, content do |up|
         assert_match(/create_table :products/, up)
-        assert_match(/t.string :title, :limit=>40/, up)
-        assert_match(/t.string :content, :limit=>255/, up)
-        assert_match(/t.decimal :price, :precision=>5, :scale=>2/, up)
+        assert_match(/t.string :title, :limit => 40/, up)
+        assert_match(/t.string :content, :limit => 255/, up)
+        assert_match(/t.decimal :price,/, up)
+        assert_match(/, :precision => 5/, up)
+        assert_match(/, :scale => 2/, up)
       end
       assert_match(/add_index :products, :title/, content)
       assert_match(/add_index :products, :price/, content)

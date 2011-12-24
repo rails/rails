@@ -109,10 +109,15 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |up|
-        assert_match(/add_column :books, :title, :string, :limit=>40/, up)
-        assert_match(/add_column :books, :content, :string, :limit=>255/, up)
-        assert_match(/add_column :books, :price, :decimal, :precision=>5, :scale=>2/, up)
-        assert_match(/add_column :books, :discount, :decimal, :precision=>3, :scale=>2/, up)
+        assert_match(/add_column :books, :title, :string, :limit => 40/, up)
+        assert_match(/add_column :books, :content, :string, :limit => 255/, up)
+        assert_match(/add_column :books, :price, :decimal, :precision => 5, :scale => 2/, up)
+        assert_match(/add_column :books, :price, :decimal,/, up)
+        assert_match(/, :precision => 5/, up)
+        assert_match(/, :scale => 2/, up)
+        assert_match(/add_column :books, :discount, :decimal,/, up)
+        assert_match(/, :precision => 3/, up)
+        assert_match(/, :scale => 2/, up)
       end
       assert_match(/add_index :books, :title/, content)
       assert_match(/add_index :books, :price/, content)
