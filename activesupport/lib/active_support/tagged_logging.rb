@@ -32,9 +32,9 @@ module ActiveSupport
 
     %w( fatal error warn info debug unknown ).each do |severity|
       eval <<-EOM, nil, __FILE__, __LINE__ + 1
-        def #{severity}(progname = nil, &block)
-          add(Logger::#{severity.upcase}, progname, &block)
-        end
+        def #{severity}(progname = nil, &block)              # def warn(progname = nil, &block)
+          add(Logger::#{severity.upcase}, progname, &block)  #   add(Logger::WARN, progname, &block)
+        end                                                  # end
       EOM
     end
 
