@@ -133,9 +133,11 @@ module ActiveSupport
     #
     # Singular names are not handled correctly:
     #   "business".classify     # => "Busines"
-    def classify(table_name)
+    def classify(table_name, singular = false)
       # strip out any leading schema name
-      camelize(singularize(table_name.to_s.sub(/.*\./, '')))
+      underscored_name = table_name.to_s.sub(/.*\./, '')
+      underscored_name = singularize(underscored_name) unless singular
+      camelize(underscored_name)
     end
 
     # Replaces underscores with dashes in the string.
