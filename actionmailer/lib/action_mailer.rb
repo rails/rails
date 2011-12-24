@@ -31,7 +31,6 @@ require 'action_mailer/version'
 # Common Active Support usage in Action Mailer
 require 'active_support/core_ext/class'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/array/uniq_by'
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/string/inflections'
