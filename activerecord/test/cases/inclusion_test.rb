@@ -7,6 +7,11 @@ class BasicInclusionModelTest < ActiveRecord::TestCase
     assert_equal "Ronnie Kemper", Teapot.find(1).name
   end
 
+  def test_initialization
+    t = Teapot.new(:name => "Bob")
+    assert_equal "Bob", t.name
+  end
+
   def test_inherited_model
     teapot = CoolTeapot.create!(:name => "Bob")
     teapot.reload
