@@ -1,6 +1,13 @@
 require 'active_support/deprecation'
 
 module ActiveRecord
+  # <tt>ActiveRecord::Model</tt> can be included into a class to add Active Record persistence.
+  # This is an alternative to inheriting from <tt>ActiveRecord::Base</tt>. Example:
+  #
+  #     class Post
+  #       include ActiveRecord::Model
+  #     end
+  #
   module Model
     # So we can recognise an AR class even while self.included is being
     # executed. (At that time, klass < Model == false.)
