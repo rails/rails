@@ -23,6 +23,12 @@ class BasicInclusionModelTest < ActiveRecord::TestCase
     t = Teapot.create!(:name => "Ronnie Kemper")
     assert Teapot.exists?(t)
   end
+
+  def test_predicate_builder
+    t = Teapot.create!(:name => "Bob")
+    assert_equal "Bob", Teapot.where(:id => [t]).first.name
+    assert_equal "Bob", Teapot.where(:id => t).first.name
+  end
 end
 
 class InclusionUnitTest < ActiveRecord::TestCase

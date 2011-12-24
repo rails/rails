@@ -22,7 +22,7 @@ module ActiveRecord
             value = value.select(value.klass.arel_table[value.klass.primary_key]) if value.select_values.empty?
             attribute.in(value.arel.ast)
           when Array, ActiveRecord::Associations::CollectionProxy
-            values = value.to_a.map {|x| x.is_a?(ActiveRecord::Base) ? x.id : x}
+            values = value.to_a.map {|x| x.is_a?(ActiveRecord::Model) ? x.id : x}
             ranges, values = values.partition {|v| v.is_a?(Range) || v.is_a?(Arel::Relation)}
 
             array_predicates = ranges.map {|range| attribute.in(range)}
@@ -41,7 +41,7 @@ module ActiveRecord
             array_predicates.inject {|composite, predicate| composite.or(predicate)}
           when Range, Arel::Relation
             attribute.in(value)
-          when ActiveRecord::Base
+          when ActiveRecord::Model
             attribute.eq(value.id)
           when Class
             # FIXME: I think we need to deprecate this behavior
