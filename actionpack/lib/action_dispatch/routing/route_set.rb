@@ -584,7 +584,7 @@ module ActionDispatch
         @router.recognize(req) do |route, matches, params|
           params.each do |key, value|
             if value.is_a?(String)
-              value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?
+              value = value.dup.force_encoding(Encoding::BINARY)
               params[key] = URI.parser.unescape(value)
             end
           end

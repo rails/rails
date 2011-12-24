@@ -445,7 +445,9 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test 'knows whether it is encoding aware' do
-    assert 'ruby'.encoding_aware?
+    assert_deprecated do
+      assert 'ruby'.encoding_aware?
+    end
   end
 
   test "call to_param returns a normal string" do

@@ -13,10 +13,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
     @stream.string
   end
 
-  if "string".encoding_aware?
-    def test_magic_comment
-      assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
-    end
+  def test_magic_comment
+    assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
   end
 
   def test_schema_dump
