@@ -23,8 +23,6 @@ module ActiveRecord
       end
 
       def test_column_types
-        return skip('only test encoding on 1.9') unless "<3".encoding_aware?
-
         owner = Owner.create!(:name => "hello".encode('ascii-8bit'))
         owner.reload
         select = Owner.columns.map { |c| "typeof(#{c.name})" }.join ', '

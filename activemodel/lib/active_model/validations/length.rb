@@ -60,8 +60,6 @@ module ActiveModel
         if value.kind_of?(String)
           if options[:tokenizer]
             options[:tokenizer].call(value)
-          elsif !value.encoding_aware?
-            value.mb_chars
           end
         end || value
       end

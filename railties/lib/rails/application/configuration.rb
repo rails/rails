@@ -65,17 +65,9 @@ module Rails
 
       def encoding=(value)
         @encoding = value
-        if "ruby".encoding_aware?
-          silence_warnings do
-            Encoding.default_external = value
-            Encoding.default_internal = value
-          end
-        else
-          $KCODE = value
-          if $KCODE == "NONE"
-            raise "The value you specified for config.encoding is " \
-                  "invalid. The possible values are UTF8, SJIS, or EUC"
-          end
+        silence_warnings do
+          Encoding.default_external = value
+          Encoding.default_internal = value
         end
       end
 
