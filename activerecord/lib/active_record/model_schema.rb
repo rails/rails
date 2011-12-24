@@ -291,7 +291,7 @@ module ActiveRecord
         base = base_class
         if self == base
           # Nested classes are prefixed with singular parent table name.
-          if parent < ActiveRecord::Base && !parent.abstract_class?
+          if parent < ActiveRecord::Model && !parent.abstract_class?
             contained = parent.table_name
             contained = contained.singularize if parent.pluralize_table_names
             contained += '_'
