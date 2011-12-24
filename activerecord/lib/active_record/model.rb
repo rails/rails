@@ -81,7 +81,7 @@ module ActiveRecord
       end
     end
   end
-end
 
-require 'active_record/connection_adapters/abstract/connection_specification'
-ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Model::DeprecationProxy)
+  # Load Base at this point, because the active_record load hook is run in that file.
+  Base
+end
