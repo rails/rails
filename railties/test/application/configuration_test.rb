@@ -282,6 +282,11 @@ module ApplicationTests
       assert_equal res, last_response.body # value should be unchanged
     end
 
+    test "sets ActionDispatch.test_app" do
+      make_basic_app
+      assert_equal Rails.application, ActionDispatch.test_app
+    end
+
     test "sets all Active Record models to whitelist all attributes by default" do
       add_to_config <<-RUBY
         config.active_record.whitelist_attributes = true
