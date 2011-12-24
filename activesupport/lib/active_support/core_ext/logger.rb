@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/deprecation'
 
 # Adds the 'around_level' method to Logger.
 class Logger #:nodoc:
@@ -49,6 +50,7 @@ class Logger
       yield self
     end
   end
+  deprecate :silence
 
   alias :old_datetime_format= :datetime_format=
   # Logging date-time format (string passed to +strftime+). Ignored if the formatter

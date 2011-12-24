@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/deprecation'
 require 'logger'
 
 module ActiveSupport
@@ -25,6 +26,11 @@ module ActiveSupport
     ensure
       new_tags.size.times { tags.pop }
     end
+
+    def silence(temporary_level = ERROR, &block)
+      @logger.silience(temporary_level, &block)
+    end
+    deprecate :silence
 
     def add(severity, message = nil, progname = nil, &block)
       @logger.add(severity, "#{tags_text}#{message}", progname, &block)
