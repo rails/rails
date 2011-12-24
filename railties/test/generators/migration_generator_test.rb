@@ -69,7 +69,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
         assert_match(/add_column :posts, :user_id, :integer/, up)
       end
       assert_match(/add_index :posts, :title/, content)
-      assert_match(/add_index :posts, :user_id, :unique => true/, content)
+      assert_match(/add_index :posts, :user_id, unique: true/, content)
     end
   end
 
@@ -99,7 +99,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
         assert_match(/add_column :posts, :user_uuid, :string/, up)
       end
       assert_match(/add_index :posts, :title/, content)
-      assert_match(/add_index :posts, :user_uuid, :unique => true/, content)
+      assert_match(/add_index :posts, :user_uuid, unique: true/, content)
     end
   end
 
@@ -109,14 +109,14 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |up|
-        assert_match(/add_column :books, :title, :string, :limit=>40/, up)
-        assert_match(/add_column :books, :content, :string, :limit=>255/, up)
-        assert_match(/add_column :books, :price, :decimal, :precision=>5, :scale=>2/, up)
-        assert_match(/add_column :books, :discount, :decimal, :precision=>3, :scale=>2/, up)
+        assert_match(/add_column :books, :title, :string, limit: 40/, up)
+        assert_match(/add_column :books, :content, :string, limit: 255/, up)
+        assert_match(/add_column :books, :price, :decimal, precision: 5, scale: 2/, up)
+        assert_match(/add_column :books, :discount, :decimal, precision: 3, scale: 2/, up)
       end
       assert_match(/add_index :books, :title/, content)
       assert_match(/add_index :books, :price/, content)
-      assert_match(/add_index :books, :discount, :unique => true/, content)
+      assert_match(/add_index :books, :discount, unique: true/, content)
     end
   end
 
