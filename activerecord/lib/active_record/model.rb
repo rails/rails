@@ -78,6 +78,8 @@ module ActiveRecord
             Base.send(name, *args, &block)
           end
         end
+
+        alias send method_missing
       end
     end
   end
