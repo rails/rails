@@ -149,14 +149,14 @@
 *   Assets should use the request protocol by default or default to
     relative if no request is available *Jonathan del Strother*
 
-## Rails 3.1.3 (November 20, 2011) ##
+## Rails 3.1.3 (unreleased) ##
 
 *   Fix using `tranlate` helper with a html translation which uses the `:count` option for
     pluralization.
 
     *Jon Leighton*
 
-## Rails 3.1.2 (November 18, 2011) ##
+## Rails 3.1.2 (unreleased) ##
 
 *   Fix XSS security vulnerability in the `translate` helper method. When using interpolation
     in combination with HTML-safe translations, the interpolated input would not get HTML
@@ -197,7 +197,7 @@
 
 *   Ensure users upgrading from 3.0.x to 3.1.x will properly upgrade their flash object in session (issues #3298 and #2509)
 
-## Rails 3.1.1 (October 7, 2011) ##
+## Rails 3.1.1 (unreleased) ##
 
 *   javascript_path and stylesheet_path now refer to /assets if asset pipelining
     is on. [Santiago Pastorino]
