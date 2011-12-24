@@ -151,7 +151,7 @@ module Rails
         # Convert attributes array into GeneratedAttribute objects.
         def parse_attributes! #:nodoc:
           self.attributes = (attributes || []).map do |attr|
-            Rails::Generators::GeneratedAttribute.new(attr)
+            Rails::Generators::GeneratedAttribute.parse(attr)
           end
         end
 
