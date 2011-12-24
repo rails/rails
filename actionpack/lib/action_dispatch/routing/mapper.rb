@@ -1432,8 +1432,7 @@ module ActionDispatch
           end
 
           def action_path(name, path = nil) #:nodoc:
-            # Ruby 1.8 can't transform empty strings to symbols
-            name = name.to_sym if name.is_a?(String) && !name.empty?
+            name = name.to_sym if name.is_a?(String)
             path || @scope[:path_names][name] || name.to_s
           end
 
