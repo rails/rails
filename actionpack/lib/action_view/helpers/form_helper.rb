@@ -5,7 +5,6 @@ require 'action_view/helpers/form_tag_helper'
 require 'action_view/helpers/active_model_helper'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/module/method_names'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
@@ -1232,7 +1231,7 @@ module ActionView
     class FormBuilder
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
-      self.field_helpers = FormHelper.instance_method_names - %w(form_for convert_to_model)
+      self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model]
 
       attr_accessor :object_name, :object, :options
 

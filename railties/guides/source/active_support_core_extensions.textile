@@ -937,13 +937,7 @@ NOTE: Defined in +active_support/core_ext/module/delegation.rb+
 
 h4. Method Names
 
-The builtin methods +instance_methods+ and +methods+ return method names as strings or symbols depending on the Ruby version. Active Support defines +instance_method_names+ and +method_names+ to be equivalent to them, respectively, but always getting strings back.
-
-For example, +ActionView::Helpers::FormBuilder+ knows this array difference is going to work no matter the Ruby version:
-
-<ruby>
-self.field_helpers = (FormHelper.instance_method_names - ['form_for'])
-</ruby>
+The builtin method +methods+ returns method names as strings or symbols depending on the Ruby version. Active Support defines +method_names+ to be equivalent, but always getting strings back.
 
 NOTE: Defined in +active_support/core_ext/module/method_names.rb+
 
