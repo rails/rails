@@ -483,7 +483,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal({ :controller => "content", :action => 'show_page', :id => 'foo' }, rs.recognize_path("/page/foo"))
 
     token = "\321\202\320\265\320\272\321\201\321\202" # 'text' in Russian
-    token.force_encoding(Encoding::BINARY) if token.respond_to?(:force_encoding)
+    token.force_encoding(Encoding::BINARY)
     escaped_token = CGI::escape(token)
 
     assert_equal '/page/' + escaped_token, url_for(rs, { :controller => 'content', :action => 'show_page', :id => token })
