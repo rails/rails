@@ -9,9 +9,20 @@ module RenderImplicitAction
     )]
 
     def hello_world() end
+    def unexisted_template() end
   end
 
   class RenderImplicitActionTest < Rack::TestCase
+    test "render a action without any template " do
+      get "/render_implicit_action/simple/unexisted_template"
+      assert_status 500
+    end
+
+    test "render a unexisted format of template" do
+      get "/render_implicit_action/simple/hello_world.json"
+      assert_status 406
+    end
+
     test "render a simple action with new explicit call to render" do
       get "/render_implicit_action/simple/hello_world"
 
