@@ -9,7 +9,7 @@ module ActiveRecord
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
       #
-      # The +attributes+ parameter can be either be a Hash or an Array of Hashes. These Hashes describe the
+      # The +attributes+ parameter can be either a Hash or an Array of Hashes. These Hashes describe the
       # attributes on the objects that are to be created.
       #
       # +create+ respects mass-assignment security and accepts either +:as+ or +:without_protection+ options
@@ -59,8 +59,8 @@ module ActiveRecord
       @destroyed
     end
 
-    # Returns if the record is persisted, i.e. it's not a new record and it was
-    # not destroyed.
+    # Returns true if the record is persisted, i.e. it's not a new record and it was
+    # not destroyed, otherwise returns false.
     def persisted?
       !(new_record? || destroyed?)
     end
