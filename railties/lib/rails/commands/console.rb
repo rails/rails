@@ -31,7 +31,7 @@ module Rails
           require 'ruby-debug'
           puts "=> Debugger enabled"
         rescue Exception
-          puts "You need to install ruby-debug to run the console in debugging mode. With gems, use 'gem install ruby-debug'"
+          puts "You need to install ruby-debug19 to run the console in debugging mode. With gems, use 'gem install ruby-debug19'"
           exit
         end
       end
