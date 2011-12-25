@@ -381,9 +381,8 @@ module ActiveSupport
         name = __callback_runner_name(nil, symbol)
         undef_method(name) if method_defined?(name)
 
-        silence_warnings do
-          runner_method = "_run_#{symbol}_callbacks" 
-          undef_method runner_method if method_defined?(runner_method)
+        runner_method = "_run_#{symbol}_callbacks" 
+        unless private_method_defined?(runner_method)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{runner_method}(key = nil, &blk)
               self.class.__run_callback(key, :#{symbol}, self, &blk)
