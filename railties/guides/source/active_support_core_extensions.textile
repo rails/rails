@@ -822,7 +822,7 @@ M.name # => "M"
 N = Module.new
 N.name # => "N"
 
-Module.new.name # => "" in 1.8, nil in 1.9
+Module.new.name # => nil
 </ruby>
 
 You can check whether a module has a name with the predicate +anonymous?+:
