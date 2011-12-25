@@ -378,18 +378,15 @@ module ActiveSupport
     module ClassMethods
       # Generate the internal runner method called by +run_callbacks+.
       def __define_runner(symbol) #:nodoc:
-        body = send("_#{symbol}_callbacks").compile
-        runner_method = "_run_#{symbol}_callbacks" 
+        name = __callback_runner_name(nil, symbol)
+        undef_method(name) if method_defined?(name)
 
         silence_warnings do
+          runner_method = "_run_#{symbol}_callbacks" 
           undef_method runner_method if method_defined?(runner_method)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{runner_method}(key = nil, &blk)
-              if key
-                self.class.__run_keyed_callback(key, :#{symbol}, self, &blk)
-              else
-                #{body}
-              end
+              self.class.__run_callback(key, :#{symbol}, self, &blk)
             end
             private :#{runner_method}
           RUBY_EVAL
@@ -400,16 +397,20 @@ module ActiveSupport
       # If this called first time it creates a new callback method for the key, 
       # calculating which callbacks can be omitted because of per_key conditions.
       #
-      def __run_keyed_callback(key, kind, object, &blk) #:nodoc:
-        name = "_run__#{self.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
+      def __run_callback(key, kind, object, &blk) #:nodoc:
+        name = __callback_runner_name(key, kind)
         unless object.respond_to?(name)
-          str = send("_#{kind}_callbacks").compile(name, object)
+          str = send("_#{kind}_callbacks").compile(key, object)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{name}() #{str} end
             protected :#{name}
           RUBY_EVAL
         end
         object.send(name, &blk)
+      end
+
+      def __callback_runner_name(key, kind)
+        "_run__#{self.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
       end
 
       # This is used internally to append, prepend and skip callbacks to the
