@@ -107,7 +107,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
     expected = "\312\213\254\232)b"
-    expected.force_encoding(Encoding::BINARY) if '1.9'.respond_to?(:force_encoding)
+    expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments['invoice.jpg'].decoded
   end
 
@@ -116,7 +116,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
     expected = "\312\213\254\232)b"
-    expected.force_encoding(Encoding::BINARY) if '1.9'.respond_to?(:force_encoding)
+    expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments['invoice.jpg'].decoded
   end
 

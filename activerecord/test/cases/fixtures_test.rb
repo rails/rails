@@ -213,7 +213,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_binary_in_fixtures
     data = File.open(ASSETS_ROOT + "/flowers.jpg", 'rb') { |f| f.read }
-    data.force_encoding('ASCII-8BIT') if data.respond_to?(:force_encoding)
+    data.force_encoding('ASCII-8BIT')
     data.freeze
     assert_equal data, @flowers.data
   end

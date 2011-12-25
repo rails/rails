@@ -3,10 +3,7 @@
 module MultibyteTestHelpers
   UNICODE_STRING = 'こにちわ'
   ASCII_STRING = 'ohayo'
-  BYTE_STRING = "\270\236\010\210\245"
-  if BYTE_STRING.respond_to?(:force_encoding)
-    BYTE_STRING.force_encoding("ASCII-8BIT")
-  end
+  BYTE_STRING = "\270\236\010\210\245".force_encoding("ASCII-8BIT")
 
   def chars(str)
     ActiveSupport::Multibyte::Chars.new(str)
