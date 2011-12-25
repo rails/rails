@@ -117,13 +117,16 @@ module RailsGuides
     end
 
     def generate_mobi
-      opf  = "#{output_dir}/rails_guides.opf"
-      mobi = "ruby_on_rails_guides_#@version%s.mobi" % (@lang.present? ? ".#@lang" : '')
-      out  = "#{output_dir}/kindlegen.out"
+      opf = "#{output_dir}/rails_guides.opf"
+      out = "#{output_dir}/kindlegen.out"
 
       system "kindlegen #{opf} -o #{mobi} > #{out} 2>&1"
       puts "Guides compiled as Kindle book to #{mobi}"
       puts "(kindlegen log at #{out})."
+    end
+
+    def mobi
+      "ruby_on_rails_guides_#@version%s.mobi" % (@lang.present? ? ".#@lang" : '')
     end
 
     def initialize_dirs(output)
@@ -196,7 +199,7 @@ module RailsGuides
       layout = kindle? ? 'kindle/layout' : 'layout'
 
       File.open(output_path, 'w') do |f|
-        view = ActionView::Base.new(source_dir, :version => @version)
+        view = ActionView::Base.new(source_dir, :version => @version, :mobi => "kindle/#{mobi}")
         view.extend(Helpers)
 
         if guide =~ /\.(\w+)\.erb$/
