@@ -59,8 +59,8 @@ module ActiveRecord
       @destroyed
     end
 
-    # Returns if the record is persisted, i.e. it's not a new record and it was
-    # not destroyed.
+    # Returns true if the record is persisted, i.e. it's not a new record and it was
+    # not destroyed, otherwise returns false.
     def persisted?
       !(new_record? || destroyed?)
     end
