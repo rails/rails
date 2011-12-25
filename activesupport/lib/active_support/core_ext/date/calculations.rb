@@ -136,26 +136,6 @@ class Date
     advance(:years => years)
   end
 
-  # Shorthand for years_ago(1)
-  def prev_year
-    years_ago(1)
-  end unless method_defined?(:prev_year)
-
-  # Shorthand for years_since(1)
-  def next_year
-    years_since(1)
-  end unless method_defined?(:next_year)
-
-  # Shorthand for months_ago(1)
-  def prev_month
-    months_ago(1)
-  end unless method_defined?(:prev_month)
-
-  # Shorthand for months_since(1)
-  def next_month
-    months_since(1)
-  end unless method_defined?(:next_month)
-
   # Returns number of days to start of this week. Week is assumed to start on
   # +start_day+, default is +:monday+.
   def days_to_week_start(start_day = :monday)
