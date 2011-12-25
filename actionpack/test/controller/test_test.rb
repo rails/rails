@@ -673,7 +673,7 @@ XML
     path = "#{FILES_DIR}/#{filename}"
     content_type = 'image/png'
     expected = File.read(path)
-    expected.force_encoding(Encoding::BINARY) if expected.respond_to?(:force_encoding)
+    expected.force_encoding(Encoding::BINARY)
 
     file = Rack::Test::UploadedFile.new(path, content_type)
     assert_equal filename, file.original_filename
