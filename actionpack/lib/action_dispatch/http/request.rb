@@ -189,7 +189,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = @env['RAW_POST_DATA']
-        raw_post.force_encoding(Encoding::BINARY) if raw_post.respond_to?(:force_encoding)
+        raw_post.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         @env['rack.input']

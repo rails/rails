@@ -91,11 +91,11 @@ class TestJSONEncoding < Test::Unit::TestCase
   def test_utf8_string_encoded_properly
     result = ActiveSupport::JSON.encode('€2.99')
     assert_equal '"\\u20ac2.99"', result
-    assert_equal(Encoding::UTF_8, result.encoding) if result.respond_to?(:encoding)
+    assert_equal(Encoding::UTF_8, result.encoding)
 
     result = ActiveSupport::JSON.encode('✎☺')
     assert_equal '"\\u270e\\u263a"', result
-    assert_equal(Encoding::UTF_8, result.encoding) if result.respond_to?(:encoding)
+    assert_equal(Encoding::UTF_8, result.encoding)
   end
 
   def test_non_utf8_string_transcodes
