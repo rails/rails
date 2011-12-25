@@ -1,6 +1,6 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Guides are available as a single .mobi for the Kindle and free Kindle readers apps. *Mip Earson & Xavier Noria*
+*   Guides are available as a single .mobi for the Kindle and free Kindle readers apps. *Michael Pearson & Xavier Noria*
 
 *   Allow scaffold/model/migration generators to accept a "index" and "uniq" modifiers, as in: "tracking_id:integer:uniq" in order to generate (unique) indexes. Some types also accept custom options, for instance, you can specify the precision and scale for decimals as "price:decimal{7,2}". *Dmitrii Samoilov*
 
