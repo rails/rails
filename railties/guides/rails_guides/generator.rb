@@ -95,7 +95,7 @@ module RailsGuides
 
     def register_kindle_mime_types
       Mime::Type.register_alias("application/xml", :opf, %w(opf))
-      Mime::Type.register_alias("application/xml", :ncx ,%w(ncx))
+      Mime::Type.register_alias("application/xml", :ncx, %w(ncx))
     end
 
     def generate
@@ -117,19 +117,25 @@ module RailsGuides
     end
 
     def generate_mobi
-      system "kindlegen #{output_dir}/rails_guides.opf -o #{kindle_output_file} > #{output_dir}/kindlegen.out 2>&1"
-      puts "Guides compiled as Kindle book to #{kindle_output_file}"
-      puts "(kindlegen log at #{output_dir}/kindlegen.out)."
-    end
+      opf  = "#{output_dir}/rails_guides.opf"
+      mobi = "ruby_on_rails_guides_#@version%s.mobi" % (@lang.present? ? ".#@lang" : '')
+      out  = "#{output_dir}/kindlegen.out"
 
-    def kindle_output_file
-      "rails_guides_#@version%s.mobi" % (@lang.present? ? ".#@lang" : '')
+      system "kindlegen #{opf} -o #{mobi} > #{out} 2>&1"
+      puts "Guides compiled as Kindle book to #{mobi}"
+      puts "(kindlegen log at #{out})."
     end
 
     def initialize_dirs(output)
       @guides_dir = File.join(File.dirname(__FILE__), '..')
       @source_dir = "#@guides_dir/source/#@lang"
-      @output_dir = output || "#@guides_dir/output/#@lang"
+      @output_dir = if output
+        output
+      elsif kindle?
+        "#@guides_dir/output/kindle/#@lang"
+      else
+        "#@guides_dir/output/#@lang"
+      end.sub(%r</$>, '')
     end
 
     def create_output_dir_if_needed
@@ -187,7 +193,7 @@ module RailsGuides
     def generate_guide(guide, output_file)
       output_path = output_path_for(output_file)
       puts "Generating #{guide} as #{output_file}"
-      layout = guide.start_with?('kindle/') ? 'kindle/layout' : 'layout'
+      layout = kindle? ? 'kindle/layout' : 'layout'
 
       File.open(output_path, 'w') do |f|
         view = ActionView::Base.new(source_dir, :version => @version)
