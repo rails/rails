@@ -11,6 +11,14 @@ module RailsGuides
       result << content_tag(:dd, capture(&block))
       result
     end
+    
+    def documents_by_section
+      @documents_by_section ||= YAML.load_file(File.expand_path('../../source/documents.yaml', __FILE__))
+    end
+    
+    def documents_flat
+      documents_by_section.map {|section| section['documents']}.flatten
+    end
 
     def author(name, nick, image = 'credits_pic_blank.gif', &block)
       image = "images/#{image}"
