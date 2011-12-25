@@ -1,7 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
-* BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger
-  from Ruby stdlib.
+*    Deletes the compatibility method Module#instance_method_names,
+     use Module#instance_methods from now on (which returns symbols). *fxn*
+
+*    BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger
+     from Ruby stdlib.
 
 ## Rails 3.2.0 (unreleased) ##
 
