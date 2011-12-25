@@ -935,12 +935,6 @@ In the previous example the macro generates +avatar_size+ rather than +size+.
 
 NOTE: Defined in +active_support/core_ext/module/delegation.rb+
 
-h4. Method Names
-
-The builtin method +methods+ returns method names as strings or symbols depending on the Ruby version. Active Support defines +method_names+ to be equivalent, but always getting strings back.
-
-NOTE: Defined in +active_support/core_ext/module/method_names.rb+
-
 h4. Redefining Methods
 
 There are cases where you need to define a method with +define_method+, but don't know whether a method with that name already exists. If it does, a warning is issued if they are enabled. No big deal, but not clean either.

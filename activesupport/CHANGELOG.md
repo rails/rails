@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Deletes the compatibility method Module#method_names,
+     use Module#methods from now on (which returns symbols). *fxn*
+
 *    Deletes the compatibility method Module#instance_method_names,
      use Module#instance_methods from now on (which returns symbols). *fxn*
 
