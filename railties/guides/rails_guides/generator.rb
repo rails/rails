@@ -49,8 +49,8 @@
 #
 #   KINDLE
 #     Set to "1" to generate the .mobi with all the guides. The kindlegen
-#     executable must be in your PATH. Google for it if you do not have it
-#     locally, it is available from Amazon for free.
+#     executable must be in your PATH. You can get it for free from
+#     http://www.amazon.com/kindlepublishing
 #
 # ---------------------------------------------------------------------------
 
@@ -199,7 +199,7 @@ module RailsGuides
       layout = kindle? ? 'kindle/layout' : 'layout'
 
       File.open(output_path, 'w') do |f|
-        view = ActionView::Base.new(source_dir, :version => @version, :mobi => "kindle/#{mobi}")
+        view = ActionView::Base.new(source_dir, :edge => @edge, :version => @version, :mobi => "kindle/#{mobi}")
         view.extend(Helpers)
 
         if guide =~ /\.(\w+)\.erb$/
