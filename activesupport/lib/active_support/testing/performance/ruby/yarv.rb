@@ -32,20 +32,14 @@ module ActiveSupport
         end
 
         class GcRuns < Amount
-          # Ruby 1.9
-          if GC.respond_to?(:count)
-            def measure
-              GC.count
-            end
+          def measure
+            GC.count
           end
         end
 
         class GcTime < Time
-          # Ruby 1.9 with GC::Profiler
-          if defined?(GC::Profiler) && GC::Profiler.respond_to?(:total_time)
-            def measure
-              GC::Profiler.total_time
-            end
+          def measure
+            GC::Profiler.total_time
           end
         end
       end
