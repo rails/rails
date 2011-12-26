@@ -58,6 +58,7 @@ module ActiveSupport
 
           mocha_counter = retrieve_mocha_counter(result)
           yield(Test::Unit::TestCase::STARTED, name)
+          yield(Test::Unit::TestCase::STARTED_OBJECT, self) if Test::Unit::VERSION >= "2.3.0"
           @_result = result
 
           begin
@@ -67,6 +68,7 @@ module ActiveSupport
                 __send__(@method_name)
                 mocha_verify(mocha_counter) if mocha_counter
               end
+              add_pass if Test::Unit::VERSION >= "2.3.0"
             rescue Mocha::ExpectationError => e
               add_failure(e.message, e.backtrace)
             rescue Test::Unit::AssertionFailedError => e
@@ -91,6 +93,7 @@ module ActiveSupport
 
           result.add_run
           yield(Test::Unit::TestCase::FINISHED, name)
+          yield(Test::Unit::TestCase::FINISHED_OBJECT, self) if Test::Unit::VERSION >= "2.3.0"
         end
 
         protected
