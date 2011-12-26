@@ -22,7 +22,7 @@ class SourceAnnotationExtractor
     # If +options+ has a flag <tt>:tag</tt> the tag is shown as in the example above.
     # Otherwise the string contains just line and text.
     def to_s(options={})
-      s = "[%3d] " % line
+      s = "[#{line.to_s.rjust(options[:indent])}]"
       s << "[#{tag}] " if options[:tag]
       s << text
     end
@@ -93,6 +93,7 @@ class SourceAnnotationExtractor
   # Prints the mapping from filenames to annotations in +results+ ordered by filename.
   # The +options+ hash is passed to each annotation's +to_s+.
   def display(results, options={})
+    options[:indent] = results.map { |f, a| a.map(&:line) }.flatten.max.to_s.size
     results.keys.sort.each do |file|
       puts "#{file}:"
       results[file].each do |note|

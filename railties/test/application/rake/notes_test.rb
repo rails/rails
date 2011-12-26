@@ -17,6 +17,7 @@ module ApplicationTests
         app_file "app/views/home/index.html.erb", "<% # TODO: note in erb %>"
         app_file "app/views/home/index.html.haml", "-# TODO: note in haml"
         app_file "app/views/home/index.html.slim", "/ TODO: note in slim"
+        app_file "app/controllers/application_controller.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in ruby"
 
         boot_rails
         require 'rake'
@@ -27,10 +28,18 @@ module ApplicationTests
    
         Dir.chdir(app_path) do
           output = `bundle exec rake notes`
+          lines = output.scan(/\[([0-9\s]+)\]/).flatten
         
           assert_match /note in erb/, output
           assert_match /note in haml/, output
           assert_match /note in slim/, output
+          assert_match /note in ruby/, output
+
+          assert_equal 4, lines.size
+          assert_equal 4, lines[0].size
+          assert_equal 4, lines[1].size
+          assert_equal 4, lines[2].size
+          assert_equal 4, lines[3].size
         end
       
       end
