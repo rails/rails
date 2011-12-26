@@ -13,12 +13,7 @@ module ActiveSupport
       included do
         superclass_delegating_accessor :profile_options
         self.profile_options = {}
-
-        if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
-          include ForMiniTest
-        else
-          include ForClassicTestUnit
-        end
+        include ForMiniTest
       end
 
       # each implementation should define metrics and freeze the defaults
@@ -74,48 +69,6 @@ module ActiveSupport
             end
           end
           result
-        end
-      end
-
-      module ForClassicTestUnit
-        def run(result)
-          return if method_name =~ /^default_test$/
-
-          yield(self.class::STARTED, name)
-          @_result = result
-
-          run_warmup
-          if full_profile_options && metrics = full_profile_options[:metrics]
-            metrics.each do |metric_name|
-              if klass = Metrics[metric_name.to_sym]
-                run_profile(klass.new)
-                result.add_run
-              else
-                puts '%20s: unsupported' % metric_name
-              end
-            end
-          end
-
-          yield(self.class::FINISHED, name)
-        end
-
-        def run_test(metric, mode)
-          run_callbacks :setup
-          setup
-          metric.send(mode) { __send__ @method_name }
-        rescue ::Test::Unit::AssertionFailedError => e
-        add_failure(e.message, e.backtrace)
-        rescue StandardError, ScriptError => e
-          add_error(e)
-        ensure
-          begin
-            teardown
-            run_callbacks :teardown, :enumerator => :reverse_each
-          rescue ::Test::Unit::AssertionFailedError => e
-            add_failure(e.message, e.backtrace)
-          rescue StandardError, ScriptError => e
-            add_error(e)
-          end
         end
       end
 
