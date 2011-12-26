@@ -13,7 +13,7 @@ module ActionView
     #
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
     # would give birthday[month] instead of date[month] if passed to the <tt>select_month</tt> method.
-    # * <tt>:include_blank</tt> - set to true or to a prompt string if it should be possible to set an empty date.
+    # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true,
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
     #   of "date[month]".
@@ -887,7 +887,7 @@ module ActionView
           select_options.merge!(:disabled => 'disabled') if @options[:disabled]
 
           select_html = "\n"
-          select_html << content_tag(:option, "#{ERB::Util.html_escape(@options[:include_blank]) if @options[:include_blank].kind_of?(String)}", :value => '') + "\n" if @options[:include_blank]
+          select_html << content_tag(:option, '', :value => '') + "\n" if @options[:include_blank]
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html
 
