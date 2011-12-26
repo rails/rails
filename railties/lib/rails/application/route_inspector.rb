@@ -23,7 +23,7 @@ module Rails
         routes = routes.collect do |route|
           route_reqs = route.requirements
 
-          rack_app = route.app unless route.app.class.name.to_s =~ /^ActionDispatch::Routing/
+          rack_app = discover_rack_app(route.app)
 
           controller = route_reqs[:controller] || ':controller'
           action     = route_reqs[:action]     || ':action'
@@ -68,6 +68,15 @@ module Rails
 
         routes.map do |r|
           "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
+        end
+      end
+
+      def discover_rack_app(app)
+        class_name = app.class.name.to_s
+        if class_name == "ActionDispatch::Routing::Mapper::Constraints"
+          discover_rack_app(app.app)
+        elsif class_name !~ /^ActionDispatch::Routing/
+          app
         end
       end
     end

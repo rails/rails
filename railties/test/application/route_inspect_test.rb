@@ -127,5 +127,22 @@ module ApplicationTests
       output = @inspector.format @set.routes
       assert_equal ["  /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"], output
     end
+
+    def test_rake_routes_shows_route_with_rack_app_nested_with_dynamic_constraints
+      constraint = Class.new do
+        def to_s
+          "( my custom constraint )"
+        end
+      end
+
+      @set.draw do
+        scope :constraint => constraint.new do
+          mount RackApp => '/foo'
+        end
+      end
+
+      output = @inspector.format @set.routes
+      assert_equal ["  /foo #{RackApp.name} {:constraint=>( my custom constraint )}"], output
+    end
   end
 end
