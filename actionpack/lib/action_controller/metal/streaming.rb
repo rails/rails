@@ -1,4 +1,3 @@
-require 'active_support/core_ext/file/path'
 require 'rack/chunked'
 
 module ActionController #:nodoc:
@@ -195,7 +194,7 @@ module ActionController #:nodoc:
   # ==== Passenger
   #
   # To be described.
-  # 
+  #
   module Streaming
     extend ActiveSupport::Concern
 
