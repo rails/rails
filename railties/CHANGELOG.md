@@ -36,7 +36,7 @@
 *   Remove old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API *Guillermo Iguaran*
 
 
-## Rails 3.1.2 (unreleased) ##
+## Rails 3.1.2 (November 18, 2011) ##
 
 *   Engines: don't blow up if db/seeds.rb is missing.
 
@@ -46,8 +46,8 @@
     *GH 2564*
 
     *José Valim*
-    
-## Rails 3.1.1 (October 07, 2011) ##
+
+## Rails 3.1.1 (October 7, 2011) ##
 
 *   Add jquery-rails to Gemfile of plugins, test/dummy app needs it. Closes #3091. *Santiago Pastorino*
 
