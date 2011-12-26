@@ -4,15 +4,12 @@ module ActiveSupport
       module Metrics
         class Base
           protected
-            # Ruby 1.9 with GC::Profiler
-            if defined?(GC::Profiler)
-              def with_gc_stats
-                GC::Profiler.enable
-                GC.start
-                yield
-              ensure
-                GC::Profiler.disable
-              end
+            def with_gc_stats
+              GC::Profiler.enable
+              GC.start
+              yield
+            ensure
+              GC::Profiler.disable
             end
         end
 
