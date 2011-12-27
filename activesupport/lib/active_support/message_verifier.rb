@@ -18,7 +18,7 @@ module ActiveSupport
   #     self.current_user = User.find(id)
   #   end
   #
-  # By default it uses Marshal to serialize the message. If you want to use another 
+  # By default it uses Marshal to serialize the message. If you want to use another
   # serialization method, you can set the serializer attribute to something that responds
   # to dump and load, e.g.:
   #
@@ -44,7 +44,7 @@ module ActiveSupport
     end
 
     def generate(value)
-      data = ActiveSupport::Base64.encode64s(@serializer.dump(value))
+      data = ActiveSupport::Base64.strict_encode64(@serializer.dump(value))
       "#{data}--#{generate_digest(data)}"
     end
 

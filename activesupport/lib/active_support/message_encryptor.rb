@@ -56,7 +56,7 @@ module ActiveSupport
       encrypted_data = cipher.update(@serializer.dump(value))
       encrypted_data << cipher.final
 
-      [encrypted_data, iv].map {|v| ActiveSupport::Base64.encode64s(v)}.join("--")
+      [encrypted_data, iv].map {|v| ActiveSupport::Base64.strict_encode64(v)}.join("--")
     end
 
     def _decrypt(encrypted_message)
