@@ -490,8 +490,8 @@ module ActiveRecord
 
             # Cap primary key sequences to max(pk).
             if connection.respond_to?(:reset_pk_sequence!)
-              table_names.each do |table_name|
-                connection.reset_pk_sequence!(table_name.tr('/', '_'))
+              fixture_files.each do |ff|
+                connection.reset_pk_sequence!(ff.table_name)
               end
             end
           end
