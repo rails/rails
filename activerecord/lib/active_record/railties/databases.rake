@@ -112,8 +112,7 @@ db_namespace = namespace :db do
         end
       end
     else
-      # Bug with 1.9.2 Calling return within begin still executes else
-      $stderr.puts "#{config['database']} already exists" unless config['adapter'] =~ /sqlite/
+      $stderr.puts "#{config['database']} already exists"
     end
   end
 
