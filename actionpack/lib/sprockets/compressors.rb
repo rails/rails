@@ -7,12 +7,12 @@ module Sprockets
 
     def self.register_css_compressor(name, klass, options = {})
       @@default_css_compressor = name.to_sym if options[:default] || @@default_css_compressor.nil?
-      @@css_compressors[name.to_sym] = {:klass => klass.to_s, :require => options[:require]}
+      @@css_compressors[name.to_sym] = {klass: klass.to_s, require: options[:require]}
     end
 
     def self.register_js_compressor(name, klass, options = {})
       @@default_js_compressor = name.to_sym if options[:default] || @@default_js_compressor.nil?
-      @@js_compressors[name.to_sym] = {:klass => klass.to_s, :require => options[:require]}
+      @@js_compressors[name.to_sym] = {klass: klass.to_s, require: options[:require]}
     end
 
     def self.registered_css_compressor(name)
@@ -36,13 +36,13 @@ module Sprockets
     end
 
     # The default compressors must be registered in default plugins (ex. Sass-Rails)
-    register_css_compressor(:scss, 'Sass::Rails::Compressor', :require => 'sass/rails/compressor', :default => true)
-    register_js_compressor(:uglifier, 'Uglifier', :require => 'uglifier', :default => true)
+    register_css_compressor(:scss, 'Sass::Rails::Compressor', require: 'sass/rails/compressor', default: true)
+    register_js_compressor(:uglifier, 'Uglifier', require: 'uglifier', default: true)
 
     # Automaticaly register some compressors
-    register_css_compressor(:yui, 'YUI::CssCompressor', :require => 'yui/compressor')
-    register_js_compressor(:closure, 'Closure::Compiler', :require => 'closure-compiler')
-    register_js_compressor(:yui, 'YUI::JavaScriptCompressor', :require => 'yui/compressor')
+    register_css_compressor(:yui, 'YUI::CssCompressor', require: 'yui/compressor')
+    register_js_compressor(:closure, 'Closure::Compiler', require: 'closure-compiler')
+    register_js_compressor(:yui, 'YUI::JavaScriptCompressor', require: 'yui/compressor')
   end
 
   # An asset compressor which does nothing.

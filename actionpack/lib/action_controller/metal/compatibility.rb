@@ -15,7 +15,7 @@ module ActionController
       self.config.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
 
       class << self
-        delegate :default_charset=, :to => "ActionDispatch::Response"
+        delegate :default_charset=, to: "ActionDispatch::Response"
       end
 
       self.protected_instance_variables = %w(

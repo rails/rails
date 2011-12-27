@@ -15,7 +15,7 @@ module ActionView
     #
     # For example,
     #
-    #   select("post", "category", Post::CATEGORIES, {:include_blank => true})
+    #   select("post", "category", Post::CATEGORIES, {include_blank: true})
     #
     # could become:
     #
@@ -29,7 +29,7 @@ module ActionView
     #
     # Example with @post.person_id => 2:
     #
-    #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {:include_blank => 'None'})
+    #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {include_blank: 'None'})
     #
     # could become:
     #
@@ -44,7 +44,7 @@ module ActionView
     #
     # Example:
     #
-    #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {:prompt => 'Select Person'})
+    #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {prompt: 'Select Person'})
     #
     # could become:
     #
@@ -60,7 +60,7 @@ module ActionView
     #
     # Example:
     #
-    #   select("album[]", "genre", %w[rap rock country], {}, { :index => nil })
+    #   select("album[]", "genre", %w[rap rock country], {}, { index: nil })
     #
     # becomes:
     #
@@ -74,7 +74,7 @@ module ActionView
     #
     # Example:
     #
-    #   select("post", "category", Post::CATEGORIES, {:disabled => 'restricted'})
+    #   select("post", "category", Post::CATEGORIES, {disabled: 'restricted'})
     #
     # could become:
     #
@@ -89,7 +89,7 @@ module ActionView
     #
     # Example:
     #
-    #   collection_select(:post, :category_id, Category.all, :id, :name, {:disabled => lambda{|category| category.archived? }})
+    #   collection_select(:post, :category_id, Category.all, :id, :name, {disabled: lambda{|category| category.archived? }})
     #
     # If the categories "2008 stuff" and "Christmas" return true when the method <tt>archived?</tt> is called, this would return:
     #   <select name="post[category_id]">
@@ -111,7 +111,7 @@ module ActionView
       #   * A nested collection: see grouped_options_for_select
       #
       # Example with @post.person_id => 1:
-      #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
+      #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true })
       #
       # could become:
       #
@@ -128,8 +128,8 @@ module ActionView
       # This allows the user to submit a form page more than once with the expected results of creating multiple records.
       # In addition, this allows a single partial to be used to generate form inputs for both edit and create forms.
       #
-      # By default, <tt>post.person_id</tt> is the selected option. Specify <tt>:selected => value</tt> to use a different selection
-      # or <tt>:selected => nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
+      # By default, <tt>post.person_id</tt> is the selected option. Specify <tt>selected: value</tt> to use a different selection
+      # or <tt>selected: nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
       # tags by specifying the <tt>:disabled</tt> option. This can either be a single value or an array of values to be disabled.
       #
       # ==== Gotcha
@@ -178,7 +178,7 @@ module ActionView
       #   end
       #
       # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
-      #   collection_select(:post, :author_id, Author.all, :id, :name_with_initial, :prompt => true)
+      #   collection_select(:post, :author_id, Author.all, :id, :name_with_initial, prompt: true)
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
       #   <select name="post[author_id]">
@@ -262,17 +262,17 @@ module ActionView
       # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
       #
       # Examples:
-      #   time_zone_select( "user", "time_zone", nil, :include_blank => true)
+      #   time_zone_select( "user", "time_zone", nil, include_blank: true)
       #
-      #   time_zone_select( "user", "time_zone", nil, :default => "Pacific Time (US & Canada)" )
+      #   time_zone_select( "user", "time_zone", nil, default: "Pacific Time (US & Canada)" )
       #
-      #   time_zone_select( "user", 'time_zone', ActiveSupport::TimeZone.us_zones, :default => "Pacific Time (US & Canada)")
+      #   time_zone_select( "user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
       #
       #   time_zone_select( "user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
       #
       #   time_zone_select( "user", 'time_zone', /Australia/)
       #
-      #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, :model => ActiveSupport::TimeZone)
+      #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
         InstanceTag.new(object, method, self,  options.delete(:object)).to_time_zone_select_tag(priority_zones, options, html_options)
       end
@@ -299,23 +299,23 @@ module ActionView
       # You can optionally provide html attributes as the last element of the array.
       #
       # Examples:
-      #   options_for_select([ "Denmark", ["USA", {:class => 'bold'}], "Sweden" ], ["USA", "Sweden"])
+      #   options_for_select([ "Denmark", ["USA", {class: 'bold'}], "Sweden" ], ["USA", "Sweden"])
       #     <option value="Denmark">Denmark</option>\n<option value="USA" class="bold" selected="selected">USA</option>\n<option value="Sweden" selected="selected">Sweden</option>
       #
-      #   options_for_select([["Dollar", "$", {:class => "bold"}], ["Kroner", "DKK", {:onclick => "alert('HI');"}]])
+      #   options_for_select([["Dollar", "$", {class: "bold"}], ["Kroner", "DKK", {onclick: "alert('HI');"}]])
       #     <option value="$" class="bold">Dollar</option>\n<option value="DKK" onclick="alert('HI');">Kroner</option>
       #
       # If you wish to specify disabled option tags, set +selected+ to be a hash, with <tt>:disabled</tt> being either a value
       # or array of values to be disabled. In this case, you can use <tt>:selected</tt> to specify selected option tags.
       #
       # Examples:
-      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :disabled => "Super Platinum")
+      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], disabled: "Super Platinum")
       #     <option value="Free">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
-      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :disabled => ["Advanced", "Super Platinum"])
+      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], disabled: ["Advanced", "Super Platinum"])
       #     <option value="Free">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced" disabled="disabled">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
-      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :selected => "Free", :disabled => "Super Platinum")
+      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], selected: "Free", disabled: "Super Platinum")
       #     <option value="Free" selected="selected">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
@@ -472,12 +472,12 @@ module ActionView
       # wrap the output in an appropriate <tt><select></tt> tag.
       def grouped_options_for_select(grouped_options, selected_key = nil, prompt = nil)
         body = ''
-        body << content_tag(:option, prompt, { :value => "" }, true) if prompt
+        body << content_tag(:option, prompt, { value: "" }, true) if prompt
 
         grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
 
         grouped_options.each do |group|
-          body << content_tag(:optgroup, options_for_select(group[1], selected_key), :label => group[0])
+          body << content_tag(:optgroup, options_for_select(group[1], selected_key), label: group[0])
         end
 
         body.html_safe
@@ -585,9 +585,9 @@ module ActionView
         #   { nil => [] }
         #
         if !choices.empty? && choices.first.respond_to?(:last) && Array === choices.first.last
-          option_tags = grouped_options_for_select(choices, :selected => selected_value, :disabled => options[:disabled])
+          option_tags = grouped_options_for_select(choices, selected: selected_value, disabled: options[:disabled])
         else
-          option_tags = options_for_select(choices, :selected => selected_value, :disabled => options[:disabled])
+          option_tags = options_for_select(choices, selected: selected_value, disabled: options[:disabled])
         end
 
         select_content_tag(option_tags, options, html_options)
@@ -596,7 +596,7 @@ module ActionView
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)
         selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
         select_content_tag(
-          options_from_collection_for_select(collection, value_method, text_method, :selected => selected_value, :disabled => options[:disabled]), options, html_options
+          options_from_collection_for_select(collection, value_method, text_method, selected: selected_value, disabled: options[:disabled]), options, html_options
         )
       end
 
@@ -618,7 +618,7 @@ module ActionView
             option_tags = "<option value=\"\">#{ERB::Util.html_escape(options[:include_blank]) if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
           end
           if value.blank? && options[:prompt]
-            prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
+            prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', default: 'Please select')
             option_tags = "<option value=\"\">#{ERB::Util.html_escape(prompt)}</option>\n" + option_tags
           end
           option_tags.html_safe
@@ -629,7 +629,7 @@ module ActionView
           add_default_name_and_id(html_options)
           select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
           if html_options["multiple"]
-            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select 
+            tag("input", disabled: html_options["disabled"], name: html_options["name"], type: "hidden", value: "") + select 
           else
             select
           end

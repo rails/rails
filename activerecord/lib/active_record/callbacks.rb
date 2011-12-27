@@ -37,7 +37,7 @@ module ActiveRecord
   #   class CreditCard < ActiveRecord::Base
   #     # Strip everything but digits, so the user can specify "555 234 34" or
   #     # "5552-3434" or both will mean "55523434"
-  #     before_validation(:on => :create) do
+  #     before_validation(on: :create) do
   #       self.number = number.gsub(/[^0-9]/, "") if attribute_present?("number")
   #     end
   #   end
@@ -246,7 +246,7 @@ module ActiveRecord
       extend ActiveModel::Callbacks
       include ActiveModel::Validations::Callbacks
 
-      define_model_callbacks :initialize, :find, :touch, :only => :after
+      define_model_callbacks :initialize, :find, :touch, only: :after
       define_model_callbacks :save, :create, :update, :destroy
     end
 

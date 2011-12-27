@@ -5,7 +5,7 @@ ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers',
 module Fun
   class GamesController < ActionController::Base
     def render_hello_world
-      render :inline => "hello: <%= stratego %>"
+      render inline: "hello: <%= stratego %>"
     end
 
     def rescue_action(e) raise end
@@ -13,7 +13,7 @@ module Fun
 
   class PdfController < ActionController::Base
     def test
-      render :inline => "test: <%= foobar %>"
+      render inline: "test: <%= foobar %>"
     end
 
     def rescue_action(e) raise end
@@ -39,11 +39,11 @@ class JustMeController < ActionController::Base
   clear_helpers
 
   def flash
-    render :inline => "<h1><%= notice %></h1>"
+    render inline: "<h1><%= notice %></h1>"
   end
 
   def lib
-    render :inline => '<%= useful_function %>'
+    render inline: '<%= useful_function %>'
   end
 end
 
@@ -199,7 +199,7 @@ end
 class IsolatedHelpersTest < ActiveSupport::TestCase
   class A < ActionController::Base
     def index
-      render :inline => '<%= shout %>'
+      render inline: '<%= shout %>'
     end
 
     def rescue_action(e) raise end
@@ -209,7 +209,7 @@ class IsolatedHelpersTest < ActiveSupport::TestCase
     helper { def shout; 'B' end }
 
     def index
-      render :inline => '<%= shout %>'
+      render inline: '<%= shout %>'
     end
   end
 
@@ -217,7 +217,7 @@ class IsolatedHelpersTest < ActiveSupport::TestCase
     helper { def shout; 'C' end }
 
     def index
-      render :inline => '<%= shout %>'
+      render inline: '<%= shout %>'
     end
   end
 

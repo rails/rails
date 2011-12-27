@@ -77,14 +77,14 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
       Person.connection.remove_column("people", "first_name") rescue nil
       Person.connection.remove_column("people", "middle_name") rescue nil
-      Person.connection.add_column("people", "first_name", :string, :limit => 40)
+      Person.connection.add_column("people", "first_name", :string, limit: 40)
       Person.reset_column_information
     end
 
     def test_add_index
       # Limit size of last_name and key columns to support Firebird index limitations
-      Person.connection.add_column "people", "last_name", :string, :limit => 100
-      Person.connection.add_column "people", "key", :string, :limit => 100
+      Person.connection.add_column "people", "last_name", :string, limit: 100
+      Person.connection.add_column "people", "key", :string, limit: 100
       Person.connection.add_column "people", "administrator", :boolean
 
       assert_nothing_raised { Person.connection.add_index("people", "last_name") }
@@ -94,24 +94,24 @@ if ActiveRecord::Base.connection.supports_migrations?
       # OpenBase does not have named indexes.  You must specify a single column name
       unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.remove_index("people", :column => ["last_name", "first_name"]) }
+        assert_nothing_raised { Person.connection.remove_index("people", column: ["last_name", "first_name"]) }
         # Oracle adapter cannot have specified index name larger than 30 characters
         # Oracle adapter is shortening index name when just column list is given
         unless current_adapter?(:OracleAdapter)
           assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-          assert_nothing_raised { Person.connection.remove_index("people", :name => :index_people_on_last_name_and_first_name) }
+          assert_nothing_raised { Person.connection.remove_index("people", name: :index_people_on_last_name_and_first_name) }
           assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
           assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
         end
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :length => 10) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name"], length: 10) }
         assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :length => {:last_name => 10}) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name"], length: {last_name: 10}) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name"]) }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :length => 10) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], length: 10) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :length => {:last_name => 10, :first_name => 20}) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], length: {last_name: 10, first_name: 20}) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
       end
 
@@ -120,45 +120,45 @@ if ActiveRecord::Base.connection.supports_migrations?
       # OpenBase does not have named indexes.  You must specify a single column name
       unless current_adapter?(:OpenBaseAdapter)
         Person.update_all "#{Person.connection.quote_column_name 'key'}=#{Person.connection.quote_column_name 'id'}" #some databases (including sqlite2 won't add a unique index if existing data non unique)
-        assert_nothing_raised { Person.connection.add_index("people", ["key"], :name => "key_idx", :unique => true) }
-        assert_nothing_raised { Person.connection.remove_index("people", :name => "key_idx", :unique => true) }
+        assert_nothing_raised { Person.connection.add_index("people", ["key"], name: "key_idx", unique: true) }
+        assert_nothing_raised { Person.connection.remove_index("people", name: "key_idx", unique: true) }
       end
 
       # Sybase adapter does not support indexes on :boolean columns
       # OpenBase does not have named indexes.  You must specify a single column
       unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
-        assert_nothing_raised { Person.connection.add_index("people", %w(last_name first_name administrator), :name => "named_admin") }
-        assert_nothing_raised { Person.connection.remove_index("people", :name => "named_admin") }
+        assert_nothing_raised { Person.connection.add_index("people", %w(last_name first_name administrator), name: "named_admin") }
+        assert_nothing_raised { Person.connection.remove_index("people", name: "named_admin") }
       end
 
       # Selected adapters support index sort order
       if current_adapter?(:SQLite3Adapter, :MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :order => {:last_name => :desc}) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name"], order: {last_name: :desc}) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name"]) }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :order => {:last_name => :desc}) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], order: {last_name: :desc}) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :order => {:last_name => :desc, :first_name => :asc}) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], order: {last_name: :desc, first_name: :asc}) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :order => :desc) }
+        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], order: :desc) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
       end
     end
 
     def test_index_symbol_names
-      assert_nothing_raised { Person.connection.add_index :people, :primary_contact_id, :name => :symbol_index_name }
-      assert Person.connection.index_exists?(:people, :primary_contact_id, :name => :symbol_index_name)
-      assert_nothing_raised { Person.connection.remove_index :people, :name => :symbol_index_name }
-      assert !Person.connection.index_exists?(:people, :primary_contact_id, :name => :symbol_index_name)
+      assert_nothing_raised { Person.connection.add_index :people, :primary_contact_id, name: :symbol_index_name }
+      assert Person.connection.index_exists?(:people, :primary_contact_id, name: :symbol_index_name)
+      assert_nothing_raised { Person.connection.remove_index :people, name: :symbol_index_name }
+      assert !Person.connection.index_exists?(:people, :primary_contact_id, name: :symbol_index_name)
     end
 
     def test_add_index_length_limit
       good_index_name = 'x' * Person.connection.index_name_length
       too_long_index_name = good_index_name + 'x'
-      assert_raise(ArgumentError)  { Person.connection.add_index("people", "first_name", :name => too_long_index_name) }
+      assert_raise(ArgumentError)  { Person.connection.add_index("people", "first_name", name: too_long_index_name) }
       assert !Person.connection.index_name_exists?("people", too_long_index_name, false)
-      assert_nothing_raised { Person.connection.add_index("people", "first_name", :name => good_index_name) }
+      assert_nothing_raised { Person.connection.add_index("people", "first_name", name: good_index_name) }
       assert Person.connection.index_name_exists?("people", good_index_name, false)
-      Person.connection.remove_index("people", :name => good_index_name)
+      Person.connection.remove_index("people", name: good_index_name)
     end
 
     def test_remove_nonexistent_index
@@ -171,7 +171,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_rename_index
       unless current_adapter?(:OpenBaseAdapter)
         # keep the names short to make Oracle and similar behave
-        Person.connection.add_index('people', [:first_name], :name => 'old_idx')
+        Person.connection.add_index('people', [:first_name], name: 'old_idx')
         assert_nothing_raised { Person.connection.rename_index('people', 'old_idx', 'new_idx') }
         # if the adapter doesn't support the indexes call, pick defaults that let the test pass
         assert !Person.connection.index_name_exists?('people', 'old_idx', false)
@@ -181,15 +181,15 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_double_add_index
       unless current_adapter?(:OpenBaseAdapter)
-        Person.connection.add_index('people', [:first_name], :name => 'some_idx')
-        assert_raise(ArgumentError) { Person.connection.add_index('people', [:first_name], :name => 'some_idx') }
+        Person.connection.add_index('people', [:first_name], name: 'some_idx')
+        assert_raise(ArgumentError) { Person.connection.add_index('people', [:first_name], name: 'some_idx') }
       end
     end
 
     def test_index_exists
       Person.connection.create_table :testings do |t|
-        t.column :foo, :string, :limit => 100
-        t.column :bar, :string, :limit => 100
+        t.column :foo, :string, limit: 100
+        t.column :bar, :string, limit: 100
       end
       Person.connection.add_index :testings, :foo
 
@@ -201,8 +201,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_index_exists_on_multiple_columns
       Person.connection.create_table :testings do |t|
-        t.column :foo, :string, :limit => 100
-        t.column :bar, :string, :limit => 100
+        t.column :foo, :string, limit: 100
+        t.column :bar, :string, limit: 100
       end
       Person.connection.add_index :testings, [:foo, :bar]
 
@@ -213,28 +213,28 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_unique_index_exists
       Person.connection.create_table :testings do |t|
-        t.column :foo, :string, :limit => 100
+        t.column :foo, :string, limit: 100
       end
-      Person.connection.add_index :testings, :foo, :unique => true
+      Person.connection.add_index :testings, :foo, unique: true
 
-      assert Person.connection.index_exists?(:testings, :foo, :unique => true)
+      assert Person.connection.index_exists?(:testings, :foo, unique: true)
     ensure
       Person.connection.drop_table :testings rescue nil
     end
 
     def test_named_index_exists
       Person.connection.create_table :testings do |t|
-        t.column :foo, :string, :limit => 100
+        t.column :foo, :string, limit: 100
       end
-      Person.connection.add_index :testings, :foo, :name => "custom_index_name"
+      Person.connection.add_index :testings, :foo, name: "custom_index_name"
 
-      assert Person.connection.index_exists?(:testings, :foo, :name => "custom_index_name")
+      assert Person.connection.index_exists?(:testings, :foo, name: "custom_index_name")
     ensure
       Person.connection.drop_table :testings rescue nil
     end
 
     def testing_table_with_only_foo_attribute
-      Person.connection.create_table :testings, :id => false do |t|
+      Person.connection.create_table :testings, id: false do |t|
         t.column :foo, :string
       end
 
@@ -271,7 +271,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_create_table_with_not_null_column
       assert_nothing_raised do
         Person.connection.create_table :testings do |t|
-          t.column :foo, :string, :null => false
+          t.column :foo, :string, null: false
         end
       end
 
@@ -287,11 +287,11 @@ if ActiveRecord::Base.connection.supports_migrations?
       mysql = current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
 
       Person.connection.create_table :testings do |t|
-        t.column :one, :string, :default => "hello"
-        t.column :two, :boolean, :default => true
-        t.column :three, :boolean, :default => false
-        t.column :four, :integer, :default => 1
-        t.column :five, :text, :default => "hello" unless mysql
+        t.column :one, :string, default: "hello"
+        t.column :two, :boolean, default: true
+        t.column :three, :boolean, default: false
+        t.column :four, :integer, default: 1
+        t.column :five, :text, default: "hello" unless mysql
       end
 
       columns = Person.connection.columns(:testings)
@@ -314,14 +314,14 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_create_table_with_limits
       assert_nothing_raised do
         Person.connection.create_table :testings do |t|
-          t.column :foo, :string, :limit => 255
+          t.column :foo, :string, limit: 255
 
           t.column :default_int, :integer
 
-          t.column :one_int,    :integer, :limit => 1
-          t.column :four_int,   :integer, :limit => 4
-          t.column :eight_int,  :integer, :limit => 8
-          t.column :eleven_int, :integer, :limit => 11
+          t.column :one_int,    :integer, limit: 1
+          t.column :four_int,   :integer, limit: 4
+          t.column :eight_int,  :integer, limit: 8
+          t.column :eleven_int, :integer, limit: 11
         end
       end
 
@@ -392,7 +392,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       # continue to work for the ensure block of the test
       temp_conn = Person.connection.dup
       temp_conn.expects(:drop_table).never
-      temp_conn.create_table :testings2, :force => true do |t|
+      temp_conn.create_table :testings2, force: true do |t|
         t.column :foo, :string
       end
     ensure
@@ -420,7 +420,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       table_name = :testings
 
       Person.connection.create_table table_name do |t|
-        t.timestamps :null => false
+        t.timestamps null: false
       end
       created_columns = Person.connection.columns(table_name)
 
@@ -447,7 +447,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.create_table :testings do |t|
           t.column :foo, :string
         end
-        Person.connection.add_column :testings, :bar, :string, :null => false
+        Person.connection.add_column :testings, :bar, :string, null: false
 
         assert_raise(ActiveRecord::StatementInvalid) do
           Person.connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
@@ -466,7 +466,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.enable_identity_insert("testings", true) if current_adapter?(:SybaseAdapter)
       Person.connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
       Person.connection.enable_identity_insert("testings", false) if current_adapter?(:SybaseAdapter)
-      assert_nothing_raised {Person.connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
+      assert_nothing_raised {Person.connection.add_column :testings, :bar, :string, null: false, default: "default" }
 
       assert_raise(ActiveRecord::StatementInvalid) do
         unless current_adapter?(:OpenBaseAdapter)
@@ -487,7 +487,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       correct_value = '0012345678901234567890.0123456789'.to_d
 
       Person.delete_all
-      Person.connection.add_column "people", "wealth", :decimal, :precision => '30', :scale => '10'
+      Person.connection.add_column "people", "wealth", :decimal, precision: '30', scale: '10'
       Person.reset_column_information
 
       # Do a manual insertion
@@ -514,7 +514,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.delete_all
 
       # Now use the Rails insertion
-      assert_nothing_raised { Person.create :wealth => BigDecimal.new("12345678901234567890.0123456789") }
+      assert_nothing_raised { Person.create wealth: BigDecimal.new("12345678901234567890.0123456789") }
 
       # SELECT
       row = Person.find(:first)
@@ -531,7 +531,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_add_column_with_precision_and_scale
-      Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
+      Person.connection.add_column 'people', 'wealth', :decimal, precision: 9, scale: 7
       Person.reset_column_information
 
       wealth_column = Person.columns_hash['wealth']
@@ -545,10 +545,10 @@ if ActiveRecord::Base.connection.supports_migrations?
     if current_adapter?(:SQLite3Adapter)
       def test_change_column_with_new_precision_and_scale
         Person.delete_all
-        Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
+        Person.connection.add_column 'people', 'wealth', :decimal, precision: 9, scale: 7
         Person.reset_column_information
 
-        Person.connection.change_column 'people', 'wealth', :decimal, :precision => 12, :scale => 8
+        Person.connection.change_column 'people', 'wealth', :decimal, precision: 12, scale: 8
         Person.reset_column_information
 
         wealth_column = Person.columns_hash['wealth']
@@ -559,14 +559,14 @@ if ActiveRecord::Base.connection.supports_migrations?
       def test_change_column_preserve_other_column_precision_and_scale
         Person.delete_all
         Person.connection.add_column 'people', 'last_name', :string
-        Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
+        Person.connection.add_column 'people', 'wealth', :decimal, precision: 9, scale: 7
         Person.reset_column_information
 
         wealth_column = Person.columns_hash['wealth']
         assert_equal 9, wealth_column.precision
         assert_equal 7, wealth_column.scale
 
-        Person.connection.change_column 'people', 'last_name', :string, :null => false
+        Person.connection.change_column 'people', 'last_name', :string, null: false
         Person.reset_column_information
 
         wealth_column = Person.columns_hash['wealth']
@@ -581,7 +581,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.add_column "people", "bio", :text
       Person.connection.add_column "people", "age", :integer
       Person.connection.add_column "people", "height", :float
-      Person.connection.add_column "people", "wealth", :decimal, :precision => '30', :scale => '10'
+      Person.connection.add_column "people", "wealth", :decimal, precision: '30', scale: '10'
       Person.connection.add_column "people", "birthday", :datetime
       Person.connection.add_column "people", "favorite_day", :date
       Person.connection.add_column "people", "moment_of_truth", :datetime
@@ -589,11 +589,11 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.reset_column_information
 
       assert_nothing_raised do
-        Person.create :first_name => 'bob', :last_name => 'bobsen',
-          :bio => "I was born ....", :age => 18, :height => 1.78,
-          :wealth => BigDecimal.new("12345678901234567890.0123456789"),
-          :birthday => 18.years.ago, :favorite_day => 10.days.ago,
-          :moment_of_truth => "1782-10-10 21:40:18", :male => true
+        Person.create first_name: 'bob', last_name: 'bobsen',
+          bio: "I was born ....", age: 18, height: 1.78,
+          wealth: BigDecimal.new("12345678901234567890.0123456789"),
+          birthday: 18.years.ago, favorite_day: 10.days.ago,
+          moment_of_truth: "1782-10-10 21:40:18", male: true
       end
 
       bob = Person.find(:first)
@@ -690,7 +690,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
       def testing_table_for_positioning
-        Person.connection.create_table :testings, :id => false do |t|
+        Person.connection.create_table :testings, id: false do |t|
           t.column :first, :integer
           t.column :second, :integer
           t.column :third, :integer
@@ -714,22 +714,22 @@ if ActiveRecord::Base.connection.supports_migrations?
           assert_equal %w(first second third new_col), conn.columns(:testings).map {|c| c.name }
         end
         testing_table_for_positioning do |conn|
-          conn.add_column :testings, :new_col, :integer, :first => true
+          conn.add_column :testings, :new_col, :integer, first: true
           assert_equal %w(new_col first second third), conn.columns(:testings).map {|c| c.name }
         end
         testing_table_for_positioning do |conn|
-          conn.add_column :testings, :new_col, :integer, :after => :first
+          conn.add_column :testings, :new_col, :integer, after: :first
           assert_equal %w(first new_col second third), conn.columns(:testings).map {|c| c.name }
         end
       end
 
       def test_change_column_with_positioning
         testing_table_for_positioning do |conn|
-          conn.change_column :testings, :second, :integer, :first => true
+          conn.change_column :testings, :second, :integer, first: true
           assert_equal %w(second first third), conn.columns(:testings).map {|c| c.name }
         end
         testing_table_for_positioning do |conn|
-          conn.change_column :testings, :second, :integer, :after => :third
+          conn.change_column :testings, :second, :integer, after: :third
           assert_equal %w(first third second), conn.columns(:testings).map {|c| c.name }
         end
       end
@@ -741,7 +741,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       begin
         Person.connection.add_column "people", "girlfriend", :string
         Person.reset_column_information
-        Person.create :girlfriend => 'bobette'
+        Person.create girlfriend: 'bobette'
 
         Person.connection.rename_column "people", "girlfriend", "exgirlfriend"
 
@@ -799,7 +799,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_rename_nonexistent_column
       ActiveRecord::Base.connection.create_table(:hats) do |table|
-        table.column :hat_name, :string, :default => nil
+        table.column :hat_name, :string, default: nil
       end
       exception = if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
         ActiveRecord::StatementInvalid
@@ -826,7 +826,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_rename_column_with_an_index
       ActiveRecord::Base.connection.create_table(:hats) do |table|
-        table.column :hat_name, :string, :limit => 100
+        table.column :hat_name, :string, limit: 100
         table.column :hat_size, :integer
       end
       Person.connection.add_index :hats, :hat_name
@@ -839,7 +839,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_remove_column_with_index
       ActiveRecord::Base.connection.create_table(:hats) do |table|
-        table.column :hat_name, :string, :limit => 100
+        table.column :hat_name, :string, limit: 100
         table.column :hat_size, :integer
       end
       ActiveRecord::Base.connection.add_index "hats", "hat_size"
@@ -851,11 +851,11 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_remove_column_with_multi_column_index
       ActiveRecord::Base.connection.create_table(:hats) do |table|
-        table.column :hat_name, :string, :limit => 100
+        table.column :hat_name, :string, limit: 100
         table.column :hat_size, :integer
-        table.column :hat_style, :string, :limit => 100
+        table.column :hat_style, :string, limit: 100
       end
-      ActiveRecord::Base.connection.add_index "hats", ["hat_style", "hat_size"], :unique => true
+      ActiveRecord::Base.connection.add_index "hats", ["hat_style", "hat_size"], unique: true
 
       assert_nothing_raised { Person.connection.remove_column("hats", "hat_size") }
     ensure
@@ -868,13 +868,13 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_change_type_of_not_null_column
       assert_nothing_raised do
-        Topic.connection.change_column "topics", "written_on", :datetime, :null => false
+        Topic.connection.change_column "topics", "written_on", :datetime, null: false
         Topic.reset_column_information
 
-        Topic.connection.change_column "topics", "written_on", :datetime, :null => false
+        Topic.connection.change_column "topics", "written_on", :datetime, null: false
         Topic.reset_column_information
 
-        Topic.connection.change_column "topics", "written_on", :datetime, :null => true
+        Topic.connection.change_column "topics", "written_on", :datetime, null: true
         Topic.reset_column_information
       end
     end
@@ -931,10 +931,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.add_column "people", "funny", :boolean
       Person.reset_column_information
       assert Person.columns_hash["funny"].null, "Column 'funny' must initially allow nulls"
-      Person.connection.change_column "people", "funny", :boolean, :null => false, :default => true
+      Person.connection.change_column "people", "funny", :boolean, null: false, default: true
       Person.reset_column_information
       assert !Person.columns_hash["funny"].null, "Column 'funny' must *not* allow nulls at this point"
-      Person.connection.change_column "people", "funny", :boolean, :null => true
+      Person.connection.change_column "people", "funny", :boolean, null: true
       Person.reset_column_information
       assert Person.columns_hash["funny"].null, "Column 'funny' must allow nulls again at this point"
     end
@@ -976,19 +976,19 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       old_columns = Topic.connection.columns(Topic.table_name, label)
       assert old_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
-      assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => false }
+      assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, default: false }
       new_columns = Topic.connection.columns(Topic.table_name, label)
       assert_nil new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
       assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
-      assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => true }
+      assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, default: true }
     end
 
     def test_change_column_with_nil_default
-      Person.connection.add_column "people", "contributor", :boolean, :default => true
+      Person.connection.add_column "people", "contributor", :boolean, default: true
       Person.reset_column_information
       assert Person.new.contributor?
 
-      assert_nothing_raised { Person.connection.change_column "people", "contributor", :boolean, :default => nil }
+      assert_nothing_raised { Person.connection.change_column "people", "contributor", :boolean, default: nil }
       Person.reset_column_information
       assert !Person.new.contributor?
       assert_nil Person.new.contributor
@@ -997,11 +997,11 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_change_column_with_new_default
-      Person.connection.add_column "people", "administrator", :boolean, :default => true
+      Person.connection.add_column "people", "administrator", :boolean, default: true
       Person.reset_column_information
       assert Person.new.administrator?
 
-      assert_nothing_raised { Person.connection.change_column "people", "administrator", :boolean, :default => false }
+      assert_nothing_raised { Person.connection.change_column "people", "administrator", :boolean, default: false }
       Person.reset_column_information
       assert !Person.new.administrator?
     ensure
@@ -1019,7 +1019,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         t.column :select, :string
       end
 
-      assert_nothing_raised { Person.connection.change_column :testings, :select, :string, :limit => 10 }
+      assert_nothing_raised { Person.connection.change_column :testings, :select, :string, limit: 10 }
 
       # Oracle needs primary key value from sequence
       if current_adapter?(:OracleAdapter)
@@ -1038,7 +1038,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       person_klass = Class.new(Person)
       person_klass.table_name = 'testings'
 
-      person_klass.connection.add_column "testings", "wealth", :integer, :null => false, :default => 99
+      person_klass.connection.add_column "testings", "wealth", :integer, null: false, default: 99
       person_klass.reset_column_information
       assert_equal 99, person_klass.columns_hash["wealth"].default
       assert_equal false, person_klass.columns_hash["wealth"].null
@@ -1063,13 +1063,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal false, person_klass.columns_hash["money"].null
 
       # change column
-      person_klass.connection.change_column "testings", "money", :integer, :null => false, :default => 1000
+      person_klass.connection.change_column "testings", "money", :integer, null: false, default: 1000
       person_klass.reset_column_information
       assert_equal 1000, person_klass.columns_hash["money"].default
       assert_equal false, person_klass.columns_hash["money"].null
 
       # change column, make it nullable and clear default
-      person_klass.connection.change_column "testings", "money", :integer, :null => true, :default => nil
+      person_klass.connection.change_column "testings", "money", :integer, null: true, default: nil
       person_klass.reset_column_information
       assert_nil person_klass.columns_hash["money"].default
       assert_equal true, person_klass.columns_hash["money"].null
@@ -1105,7 +1105,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_column_exists_with_type
       Person.connection.create_table :testings do |t|
         t.column :foo, :string
-        t.column :bar, :decimal, :precision => 8, :scale => 2
+        t.column :bar, :decimal, precision: 8, scale: 2
       end
 
       assert Person.connection.column_exists?(:testings, :foo, :string)
@@ -1118,14 +1118,14 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_column_exists_with_definition
       Person.connection.create_table :testings do |t|
-        t.column :foo, :string, :limit => 100
-        t.column :bar, :decimal, :precision => 8, :scale => 2
+        t.column :foo, :string, limit: 100
+        t.column :bar, :decimal, precision: 8, scale: 2
       end
 
-      assert Person.connection.column_exists?(:testings, :foo, :string, :limit => 100)
-      assert !Person.connection.column_exists?(:testings, :foo, :string, :limit => 50)
-      assert Person.connection.column_exists?(:testings, :bar, :decimal, :precision => 8, :scale => 2)
-      assert !Person.connection.column_exists?(:testings, :bar, :decimal, :precision => 10, :scale => 2)
+      assert Person.connection.column_exists?(:testings, :foo, :string, limit: 100)
+      assert !Person.connection.column_exists?(:testings, :foo, :string, limit: 50)
+      assert Person.connection.column_exists?(:testings, :bar, :decimal, precision: 8, scale: 2)
+      assert !Person.connection.column_exists?(:testings, :bar, :decimal, precision: 10, scale: 2)
     ensure
       Person.connection.drop_table :testings rescue nil
     end
@@ -1161,11 +1161,11 @@ if ActiveRecord::Base.connection.supports_migrations?
       GiveMeBigNumbers.up
 
       assert BigNumber.create(
-        :bank_balance => 1586.43,
-        :big_bank_balance => BigDecimal("1000234000567.95"),
-        :world_population => 6000000000,
-        :my_house_population => 3,
-        :value_of_e => BigDecimal("2.7182818284590452353602875")
+        bank_balance: 1586.43,
+        big_bank_balance: BigDecimal("1000234000567.95"),
+        world_population: 6000000000,
+        my_house_population: 3,
+        value_of_e: BigDecimal("2.7182818284590452353602875")
       )
 
       b = BigNumber.find(:first)
@@ -1616,7 +1616,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       assert_nothing_raised {
         Person.connection.create_table :binary_testings do |t|
-          t.column "data", :binary, :null => false
+          t.column "data", :binary, null: false
         end
       }
 
@@ -1658,7 +1658,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised do
         begin
           Person.connection.create_table :table_with_name_thats_just_ok do |t|
-            t.column :foo, :string, :null => false
+            t.column :foo, :string, null: false
           end
         ensure
           Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
@@ -1669,15 +1669,15 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised do
         begin
           Person.connection.create_table :table_with_name_thats_just_ok,
-                                         :sequence_name => 'suitably_short_seq' do |t|
-            t.column :foo, :string, :null => false
+                                         sequence_name: 'suitably_short_seq' do |t|
+            t.column :foo, :string, null: false
           end
 
           Person.connection.execute("select suitably_short_seq.nextval from dual")
 
         ensure
           Person.connection.drop_table :table_with_name_thats_just_ok,
-                                       :sequence_name => 'suitably_short_seq' rescue nil
+                                       sequence_name: 'suitably_short_seq' rescue nil
         end
       end
 
@@ -1733,13 +1733,13 @@ if ActiveRecord::Base.connection.supports_migrations?
   class ReservedWordsMigrationTest < ActiveRecord::TestCase
     def test_drop_index_from_table_named_values
       connection = Person.connection
-      connection.create_table :values, :force => true do |t|
+      connection.create_table :values, force: true do |t|
         t.integer :value
       end
 
       assert_nothing_raised do
         connection.add_index :values, :value
-        connection.remove_index :values, :column => :value
+        connection.remove_index :values, column: :value
       end
 
       connection.drop_table :values rescue nil
@@ -1750,7 +1750,7 @@ if ActiveRecord::Base.connection.supports_migrations?
   class ChangeTableMigrationsTest < ActiveRecord::TestCase
     def setup
       @connection = Person.connection
-      @connection.create_table :delete_me, :force => true do |t|
+      @connection.create_table :delete_me, force: true do |t|
       end
     end
 
@@ -1790,7 +1790,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       with_change_table do |t|
         @connection.expects(:add_column).with(:delete_me, 'taggable_type', :string, {})
         @connection.expects(:add_column).with(:delete_me, 'taggable_id', :integer, {})
-        t.references :taggable, :polymorphic => true
+        t.references :taggable, polymorphic: true
       end
     end
 
@@ -1798,15 +1798,15 @@ if ActiveRecord::Base.connection.supports_migrations?
       with_change_table do |t|
         @connection.expects(:remove_column).with(:delete_me, 'taggable_type')
         @connection.expects(:remove_column).with(:delete_me, 'taggable_id')
-        t.remove_references :taggable, :polymorphic => true
+        t.remove_references :taggable, polymorphic: true
       end
     end
 
     def test_references_column_type_with_polymorphic_and_options_null_is_false_adds_table_flag
       with_change_table do |t|
-        @connection.expects(:add_column).with(:delete_me, 'taggable_type', :string, {:null => false})
-        @connection.expects(:add_column).with(:delete_me, 'taggable_id', :integer, {:null => false})
-        t.references :taggable, :polymorphic => true, :null => false
+        @connection.expects(:add_column).with(:delete_me, 'taggable_type', :string, {null: false})
+        @connection.expects(:add_column).with(:delete_me, 'taggable_id', :integer, {null: false})
+        t.references :taggable, polymorphic: true, null: false
       end
     end
 
@@ -1814,7 +1814,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       with_change_table do |t|
         @connection.expects(:remove_column).with(:delete_me, 'taggable_type')
         @connection.expects(:remove_column).with(:delete_me, 'taggable_id')
-        t.remove_references :taggable, :polymorphic => true, :null => false
+        t.remove_references :taggable, polymorphic: true, null: false
       end
     end
 
@@ -1877,8 +1877,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_column_creates_column_with_options
       with_change_table do |t|
-        @connection.expects(:add_column).with(:delete_me, :bar, :integer, {:null => false})
-        t.column :bar, :integer, :null => false
+        @connection.expects(:add_column).with(:delete_me, :bar, :integer, {null: false})
+        t.column :bar, :integer, null: false
       end
     end
 
@@ -1891,8 +1891,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_index_creates_index_with_options
       with_change_table do |t|
-        @connection.expects(:add_index).with(:delete_me, :bar, {:unique => true})
-        t.index :bar, :unique => true
+        @connection.expects(:add_index).with(:delete_me, :bar, {unique: true})
+        t.index :bar, unique: true
       end
     end
 
@@ -1905,8 +1905,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_index_exists_with_options
       with_change_table do |t|
-        @connection.expects(:index_exists?).with(:delete_me, :bar, {:unique => true})
-        t.index_exists?(:bar, :unique => true)
+        @connection.expects(:index_exists?).with(:delete_me, :bar, {unique: true})
+        t.index_exists?(:bar, unique: true)
       end
     end
 
@@ -1919,8 +1919,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_change_changes_column_with_options
       with_change_table do |t|
-        @connection.expects(:change_column).with(:delete_me, :bar, :string, {:null => true})
-        t.change :bar, :string, :null => true
+        @connection.expects(:change_column).with(:delete_me, :bar, :string, {null: true})
+        t.change :bar, :string, null: true
       end
     end
 
@@ -1947,8 +1947,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_remove_index_removes_index_with_options
       with_change_table do |t|
-        @connection.expects(:remove_index).with(:delete_me, {:unique => true})
-        t.remove_index :unique => true
+        @connection.expects(:remove_index).with(:delete_me, {unique: true})
+        t.remove_index unique: true
       end
     end
 
@@ -1971,7 +1971,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     class BulkAlterTableMigrationsTest < ActiveRecord::TestCase
       def setup
         @connection = Person.connection
-        @connection.create_table(:delete_me, :force => true) {|t| }
+        @connection.create_table(:delete_me, force: true) {|t| }
       end
 
       def teardown
@@ -1983,7 +1983,7 @@ if ActiveRecord::Base.connection.supports_migrations?
           with_bulk_change_table do |t|
             t.column :name, :string
             t.string :qualification, :experience
-            t.integer :age, :default => 0
+            t.integer :age, default: 0
             t.date :birthdate
             t.timestamps
           end
@@ -2022,7 +2022,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         # Adding an index fires a query every time to check if an index already exists or not
         assert_queries(3) do
           with_bulk_change_table do |t|
-            t.index :username, :unique => true, :name => :awesome_username_index
+            t.index :username, unique: true, name: :awesome_username_index
             t.index [:name, :age]
           end
         end
@@ -2047,7 +2047,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_queries(3) do
           with_bulk_change_table do |t|
             t.remove_index :name
-            t.index :name, :name => :new_name_index, :unique => true
+            t.index :name, name: :new_name_index, unique: true
           end
         end
 
@@ -2071,7 +2071,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         # One query to do the bulk change
         assert_queries(3) do
           with_bulk_change_table do |t|
-            t.change :name, :string, :default => 'NONAME'
+            t.change :name, :string, default: 'NONAME'
             t.change :birthdate, :datetime
           end
         end
@@ -2086,7 +2086,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         # Reset columns/indexes cache as we're changing the table
         @columns = @indexes = nil
 
-        Person.connection.change_table(:delete_me, :bulk => true) do |t|
+        Person.connection.change_table(:delete_me, bulk: true) do |t|
           yield t
         end
       end
@@ -2125,7 +2125,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       @migrations_path = MIGRATIONS_ROOT + "/valid"
       @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy"})
       assert File.exists?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
       assert File.exists?(@migrations_path + "/5_people_have_descriptions.bukkits.rb")
       assert_equal [@migrations_path + "/4_people_have_hobbies.bukkits.rb", @migrations_path + "/5_people_have_descriptions.bukkits.rb"], copied.map(&:filename)
@@ -2134,7 +2134,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.bukkits.rb")[0].chomp
 
       files_count = Dir[@migrations_path + "/*.rb"].length
-      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy"})
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
       assert copied.empty?
     ensure
@@ -2167,7 +2167,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
-        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
         assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
         assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
         expected = [@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb",
@@ -2175,7 +2175,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal expected, copied.map(&:filename)
 
         files_count = Dir[@migrations_path + "/*.rb"].length
-        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
         assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
         assert copied.empty?
       end
@@ -2212,12 +2212,12 @@ if ActiveRecord::Base.connection.supports_migrations?
       @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
       Time.travel_to(Time.utc(2010, 2, 20, 10, 10, 10)) do
-        ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
         assert File.exists?(@migrations_path + "/20100301010102_people_have_hobbies.bukkits.rb")
         assert File.exists?(@migrations_path + "/20100301010103_people_have_descriptions.bukkits.rb")
 
         files_count = Dir[@migrations_path + "/*.rb"].length
-        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
         assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
         assert copied.empty?
       end
@@ -2235,7 +2235,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       skipped = []
       on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
-      copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+      copied = ActiveRecord::Migration.copy(@migrations_path, sources, on_skip: on_skip)
       assert_equal 2, copied.length
 
       assert_equal 1, skipped.length
@@ -2253,8 +2253,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       skipped = []
       on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
-      copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
-      ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+      copied = ActiveRecord::Migration.copy(@migrations_path, sources, on_skip: on_skip)
+      ActiveRecord::Migration.copy(@migrations_path, sources, on_skip: on_skip)
 
       assert_equal 2, copied.length
       assert_equal 0, skipped.length
@@ -2267,7 +2267,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       @existing_migrations = []
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
-        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
         assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
         assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
         assert_equal 2, copied.length
@@ -2282,7 +2282,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       @existing_migrations = []
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
-        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
         assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
         assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
         assert_equal 2, copied.length

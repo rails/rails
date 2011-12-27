@@ -30,7 +30,7 @@ module ActiveRecord
       end
 
       def test_unknown_commands_delegate
-        recorder = CommandRecorder.new(stub(:foo => 'bar'))
+        recorder = CommandRecorder.new(stub(foo: 'bar'))
         assert_equal 'bar', recorder.foo
       end
 
@@ -86,21 +86,21 @@ module ActiveRecord
       end
 
       def test_invert_add_index
-        @recorder.record :add_index, [:table, [:one, :two], {:options => true}]
+        @recorder.record :add_index, [:table, [:one, :two], {options: true}]
         remove = @recorder.inverse.first
-        assert_equal [:remove_index, [:table, {:column => [:one, :two]}]], remove
+        assert_equal [:remove_index, [:table, {column: [:one, :two]}]], remove
       end
 
       def test_invert_add_index_with_name
-          @recorder.record :add_index, [:table, [:one, :two], {:name => "new_index"}]
+          @recorder.record :add_index, [:table, [:one, :two], {name: "new_index"}]
           remove = @recorder.inverse.first
-          assert_equal [:remove_index, [:table, {:name => "new_index"}]], remove
+          assert_equal [:remove_index, [:table, {name: "new_index"}]], remove
       end
 
       def test_invert_add_index_with_no_options
         @recorder.record :add_index, [:table, [:one, :two]]
         remove = @recorder.inverse.first
-        assert_equal [:remove_index, [:table, {:column => [:one, :two]}]], remove
+        assert_equal [:remove_index, [:table, {column: [:one, :two]}]], remove
       end
 
       def test_invert_rename_index

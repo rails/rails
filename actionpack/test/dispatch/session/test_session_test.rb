@@ -3,7 +3,7 @@ require 'stringio'
 
 class ActionController::TestSessionTest < ActiveSupport::TestCase
   def test_ctor_allows_setting
-    session = ActionController::TestSession.new({:one => 'one', :two => 'two'})
+    session = ActionController::TestSession.new({one: 'one', two: 'two'})
     assert_equal('one', session[:one])
     assert_equal('two', session[:two])
   end
@@ -29,7 +29,7 @@ class ActionController::TestSessionTest < ActiveSupport::TestCase
   end
 
   def test_clear_emptys_session
-    session = ActionController::TestSession.new({:one => 'one', :two => 'two'})
+    session = ActionController::TestSession.new({one: 'one', two: 'two'})
     session.clear
     assert_nil(session[:one])
     assert_nil(session[:two])

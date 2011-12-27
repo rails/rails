@@ -3,13 +3,13 @@ require 'active_support/values/time_zone'
 
 class Time
   DATE_FORMATS = {
-    :db           => "%Y-%m-%d %H:%M:%S",
-    :number       => "%Y%m%d%H%M%S",
-    :time         => "%H:%M",
-    :short        => "%d %b %H:%M",
-    :long         => "%B %d, %Y %H:%M",
-    :long_ordinal => lambda { |time| time.strftime("%B #{ActiveSupport::Inflector.ordinalize(time.day)}, %Y %H:%M") },
-    :rfc822       => lambda { |time| time.strftime("%a, %d %b %Y %H:%M:%S #{time.formatted_offset(false)}") }
+    db:           "%Y-%m-%d %H:%M:%S",
+    number:       "%Y%m%d%H%M%S",
+    time:         "%H:%M",
+    short:        "%d %b %H:%M",
+    long:         "%B %d, %Y %H:%M",
+    long_ordinal: lambda { |time| time.strftime("%B #{ActiveSupport::Inflector.ordinalize(time.day)}, %Y %H:%M") },
+    rfc822:       lambda { |time| time.strftime("%a, %d %b %Y %H:%M:%S #{time.formatted_offset(false)}") }
   }
 
   # Converts to a formatted string. See DATE_FORMATS for builtin formats.

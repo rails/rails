@@ -37,7 +37,7 @@ module ActiveRecord #:nodoc:
     #
     # For instance:
     #
-    #   topic.to_xml(:skip_instruct => true, :except => [ :id, :bonus_time, :written_on, :replies_count ])
+    #   topic.to_xml(skip_instruct: true, except: [ :id, :bonus_time, :written_on, :replies_count ])
     #
     #   <topic>
     #     <title>The First Topic</title>
@@ -51,7 +51,7 @@ module ActiveRecord #:nodoc:
     #
     # To include first level associations use <tt>:include</tt>:
     #
-    #   firm.to_xml :include => [ :account, :clients ]
+    #   firm.to_xml include: [ :account, :clients ]
     #
     #   <?xml version="1.0" encoding="UTF-8"?>
     #   <firm>
@@ -82,7 +82,7 @@ module ActiveRecord #:nodoc:
     # associated with models.
     #
     #   proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
-    #   firm.to_xml :procs => [ proc ]
+    #   firm.to_xml procs: [ proc ]
     #
     #   <firm>
     #     # ... normal attributes as shown above ...
@@ -91,7 +91,7 @@ module ActiveRecord #:nodoc:
     #
     # To include deeper levels of associations pass a hash like this:
     #
-    #   firm.to_xml :include => {:account => {}, :clients => {:include => :address}}
+    #   firm.to_xml include: {account: {}, clients: {include: :address}}
     #   <?xml version="1.0" encoding="UTF-8"?>
     #   <firm>
     #     <id type="integer">1</id>
@@ -121,7 +121,7 @@ module ActiveRecord #:nodoc:
     #
     # To include any methods on the model being called use <tt>:methods</tt>:
     #
-    #   firm.to_xml :methods => [ :calculated_earnings, :real_earnings ]
+    #   firm.to_xml methods: [ :calculated_earnings, :real_earnings ]
     #
     #   <firm>
     #     # ... normal attributes as shown above ...
@@ -133,7 +133,7 @@ module ActiveRecord #:nodoc:
     # modified version of the options hash that was given to +to_xml+:
     #
     #   proc = Proc.new { |options| options[:builder].tag!('abc', 'def') }
-    #   firm.to_xml :procs => [ proc ]
+    #   firm.to_xml procs: [ proc ]
     #
     #   <firm>
     #     # ... normal attributes as shown above ...
@@ -164,7 +164,7 @@ module ActiveRecord #:nodoc:
     #   class IHaveMyOwnXML < ActiveRecord::Base
     #     def to_xml(options = {})
     #       options[:indent] ||= 2
-    #       xml = options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    #       xml = options[:builder] ||= Builder::XmlMarkup.new(indent: options[:indent])
     #       xml.instruct! unless options[:skip_instruct]
     #       xml.level_one do
     #         xml.tag!(:second_level, 'content')
@@ -193,8 +193,8 @@ module ActiveRecord #:nodoc:
                  NilClass
                end
 
-        { :text => :string,
-          :time => :datetime }[type] || type
+        { text: :string,
+          time: :datetime }[type] || type
       end
       protected :compute_type
     end

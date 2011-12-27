@@ -19,13 +19,13 @@ module ActiveSupport
       # each implementation should define metrics and freeze the defaults
       DEFAULTS =
         if ARGV.include?('--benchmark') # HAX for rake test
-          { :runs => 4,
-            :output => 'tmp/performance',
-            :benchmark => true }
+          { runs: 4,
+            output: 'tmp/performance',
+            benchmark: true }
         else
-          { :runs => 1,
-            :output => 'tmp/performance',
-            :benchmark => false }
+          { runs: 1,
+            output: 'tmp/performance',
+            benchmark: false }
         end
 
       def full_profile_options
@@ -63,7 +63,7 @@ module ActiveSupport
           ensure
             begin
               teardown
-              run_callbacks :teardown, :enumerator => :reverse_each
+              run_callbacks :teardown, enumerator: :reverse_each
             rescue Exception => e
               result = @runner.puke(self.class, method_name, e)
             end
@@ -96,7 +96,7 @@ module ActiveSupport
         end
 
       class Performer
-        delegate :run_test, :full_profile_options, :full_test_name, :to => :@harness
+        delegate :run_test, :full_profile_options, :full_test_name, to: :@harness
 
         def initialize(harness, metric)
           @harness, @metric, @supported = harness, metric, false
@@ -248,7 +248,7 @@ module ActiveSupport
 
         class DigitalInformationUnit < Base
           def format(measurement)
-            number_to_human_size(measurement, :precision => 2)
+            number_to_human_size(measurement, precision: 2)
           end
         end
 

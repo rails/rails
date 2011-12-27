@@ -176,7 +176,7 @@ module ActiveSupport
         #
         case @kind
         when :before
-          # if condition    # before_save :filter_name, :if => :condition
+          # if condition    # before_save :filter_name, if: :condition
           #   filter_name
           # end
           <<-RUBY_EVAL
@@ -195,7 +195,7 @@ module ActiveSupport
           # Compile around filters with conditions into proxy methods
           # that contain the conditions.
           #
-          # For `around_save :filter_name, :if => :condition':
+          # For `around_save :filter_name, if: :condition':
           #
           # def _conditional_callback_save_17
           #   if condition
@@ -230,7 +230,7 @@ module ActiveSupport
 
         case @kind
         when :after
-          # after_save :filter_name, :if => :condition
+          # after_save :filter_name, if: :condition
           <<-RUBY_EVAL
           if #{@compiled_options}
             #{@filter}
@@ -337,9 +337,9 @@ module ActiveSupport
       def initialize(name, config)
         @name = name
         @config = {
-          :terminator => "false",
-          :rescuable => false,
-          :scope => [ :kind ]
+          terminator: "false",
+          rescuable: false,
+          scope: [ :kind ]
         }.merge(config)
       end
 
@@ -430,7 +430,7 @@ module ActiveSupport
       # Install a callback for the given event.
       #
       #   set_callback :save, :before, :before_meth
-      #   set_callback :save, :after,  :after_meth, :if => :condition
+      #   set_callback :save, :after,  :after_meth, if: :condition
       #   set_callback :save, :around, lambda { |r| stuff; result = yield; stuff }
       #
       # The second arguments indicates whether the callback is to be run +:before+,
@@ -471,11 +471,11 @@ module ActiveSupport
       # are always the same for a given key. For instance, in Action Pack,
       # we convert :only and :except conditions into per-key conditions.
       #
-      #   before_filter :authenticate, :except => "index"
+      #   before_filter :authenticate, except: "index"
       #
       # becomes
       #
-      #   set_callback :process_action, :before, :authenticate, :per_key => {:unless => proc {|c| c.action_name == "index"}}
+      #   set_callback :process_action, :before, :authenticate, per_key: {unless: proc {|c| c.action_name == "index"}}
       #
       # Per-key conditions are evaluated only once per use of a given key.
       # In the case of the above example, you would do:
@@ -508,7 +508,7 @@ module ActiveSupport
       # options may be passed in order to control when the callback is skipped.
       #
       #   class Writer < Person
-      #      skip_callback :validate, :before, :check_membership, :if => lambda { self.age > 18 }
+      #      skip_callback :validate, :before, :check_membership, if: lambda { self.age > 18 }
       #   end
       #
       def skip_callback(name, *filter_list, &block)
@@ -557,7 +557,7 @@ module ActiveSupport
       #   triggered. This is a string to be eval'ed. The result of the callback is available
       #   in the <tt>result</tt> variable.
       #
-      #     define_callbacks :validate, :terminator => "result == false"
+      #     define_callbacks :validate, terminator: "result == false"
       #
       #   In this example, if any before validate callbacks returns +false+,
       #   other callbacks are not executed. Defaults to "false", meaning no value
@@ -597,7 +597,7 @@ module ActiveSupport
       #   In the above case whenever you save an account the method <tt>Audit#before</tt> will
       #   be called. On the other hand
       #
-      #     define_callbacks :save, :scope => [:kind, :name]
+      #     define_callbacks :save, scope: [:kind, :name]
       #
       #   would trigger <tt>Audit#before_save</tt> instead. That's constructed by calling
       #   <tt>#{kind}_#{name}</tt> on the given instance. In this case "kind" is "before" and
@@ -607,7 +607,7 @@ module ActiveSupport
       #
       #   A declaration like
       #
-      #     define_callbacks :save, :scope => [:name]
+      #     define_callbacks :save, scope: [:name]
       #
       #   would call <tt>Audit#save</tt>.
       #

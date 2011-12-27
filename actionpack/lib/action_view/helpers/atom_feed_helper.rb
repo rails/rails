@@ -12,7 +12,7 @@ module ActionView
       #   config/routes.rb:
       #     Basecamp::Application.routes.draw do
       #       resources :posts
-      #       root :to => "posts#index"
+      #       root to: "posts#index"
       #     end
       #
       #   app/controllers/posts_controller.rb:
@@ -37,7 +37,7 @@ module ActionView
       #       @posts.each do |post|
       #         feed.entry(post) do |entry|
       #           entry.title(post.title)
-      #           entry.content(post.body, :type => 'html')
+      #           entry.content(post.body, type: 'html')
       #
       #           entry.author do |author|
       #             author.name("DHH")
@@ -69,7 +69,7 @@ module ActionView
       #       @posts.each do |post|
       #         feed.entry(post) do |entry|
       #           entry.title(post.title)
-      #           entry.content(post.body, :type => 'html')
+      #           entry.content(post.body, type: 'html')
       #           entry.tag!('app:edited', Time.now)
       #
       #           entry.author do |author|
@@ -80,11 +80,11 @@ module ActionView
       #     end
       #
       # The Atom spec defines five elements (content rights title subtitle
-      # summary) which may directly contain xhtml content if :type => 'xhtml'
+      # summary) which may directly contain xhtml content if type: 'xhtml'
       # is specified as an attribute. If so, this helper will take care of
       # the enclosing div and xhtml namespace declaration. Example usage:
       #
-      #    entry.summary :type => 'xhtml' do |xhtml|
+      #    entry.summary type: 'xhtml' do |xhtml|
       #      xhtml.p pluralize(order.line_items.count, "line item")
       #      xhtml.p "Shipped to #{order.address}"
       #      xhtml.p "Paid by #{order.pay_type}"
@@ -117,8 +117,8 @@ module ActionView
 
         xml.feed(feed_opts) do
           xml.id(options[:id] || "tag:#{request.host},#{options[:schema_date]}:#{request.fullpath.split(".")[0]}")
-          xml.link(:rel => 'alternate', :type => 'text/html', :href => options[:root_url] || (request.protocol + request.host_with_port))
-          xml.link(:rel => 'self', :type => 'application/atom+xml', :href => options[:url] || request.url)
+          xml.link(rel: 'alternate', type: 'text/html', href: options[:root_url] || (request.protocol + request.host_with_port))
+          xml.link(rel: 'self', type: 'application/atom+xml', href: options[:url] || request.url)
 
           yield AtomFeedBuilder.new(xml, self, options)
         end
@@ -138,7 +138,7 @@ module ActionView
           def method_missing(method, *arguments, &block)
             if xhtml_block?(method, arguments)
               @xml.__send__(method, *arguments) do
-                @xml.div(:xmlns => 'http://www.w3.org/1999/xhtml') do |xhtml|
+                @xml.div(xmlns: 'http://www.w3.org/1999/xhtml') do |xhtml|
                   block.call(xhtml)
                 end
               end
@@ -149,7 +149,7 @@ module ActionView
 
           # True if the method name matches one of the five elements defined
           # in the Atom spec as potentially containing XHTML content and
-          # if :type => 'xhtml' is, in fact, specified.
+          # if type: 'xhtml' is, in fact, specified.
           def xhtml_block?(method, arguments)
             if XHTML_TAG_NAMES.include?(method.to_s)
               last = arguments.last
@@ -188,7 +188,7 @@ module ActionView
               @xml.updated((options[:updated] || record.updated_at).xmlschema)
             end
 
-            @xml.link(:rel => 'alternate', :type => 'text/html', :href => options[:url] || @view.polymorphic_url(record))
+            @xml.link(rel: 'alternate', type: 'text/html', href: options[:url] || @view.polymorphic_url(record))
 
             yield AtomBuilder.new(@xml)
           end

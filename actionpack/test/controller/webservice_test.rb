@@ -4,9 +4,9 @@ class WebServiceTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def assign_parameters
       if params[:full]
-        render :text => dump_params_keys
+        render text: dump_params_keys
       else
-        render :text => (params.keys - ['controller', 'action']).sort.join(", ")
+        render text: (params.keys - ['controller', 'action']).sort.join(", ")
       end
     end
 
@@ -256,7 +256,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          match '/', :to => 'web_service_test/test#assign_parameters'
+          match '/', to: 'web_service_test/test#assign_parameters'
         end
         yield
       end

@@ -6,46 +6,46 @@ TIMES = (ENV['N'] || 10_000).to_i
 
 # deep nested resource
 attrs = {
-  :id => 1,
-  :name => 'Luis',
-  :age => 21,
-  :friends => [
+  id: 1,
+  name: 'Luis',
+  age: 21,
+  friends: [
     {
-      :name => 'JK',
-      :age => 24,
-      :colors => ['red', 'green', 'blue'],
-      :brothers => [
+      name: 'JK',
+      age: 24,
+      colors: ['red', 'green', 'blue'],
+      brothers: [
         {
-          :name => 'Mateo',
-          :age => 35,
-          :children => [{ :name => 'Edith', :age => 5 }, { :name => 'Martha', :age => 4 }]
+          name: 'Mateo',
+          age: 35,
+          children: [{ name: 'Edith', age: 5 }, { name: 'Martha', age: 4 }]
         },
         {
-          :name => 'Felipe',
-          :age => 33,
-          :children => [{ :name => 'Bryan', :age => 1 }, { :name => 'Luke', :age => 0 }]
+          name: 'Felipe',
+          age: 33,
+          children: [{ name: 'Bryan', age: 1 }, { name: 'Luke', age: 0 }]
         }
       ]
     },
     {
-      :name => 'Eduardo',
-      :age => 20,
-      :colors => [],
-      :brothers => [
+      name: 'Eduardo',
+      age: 20,
+      colors: [],
+      brothers: [
         {
-          :name => 'Sebas',
-          :age => 23,
-          :children => [{ :name => 'Andres', :age => 0 }, { :name => 'Jorge', :age => 2 }]
+          name: 'Sebas',
+          age: 23,
+          children: [{ name: 'Andres', age: 0 }, { name: 'Jorge', age: 2 }]
         },
         {
-          :name => 'Elsa',
-          :age => 19,
-          :children => [{ :name => 'Natacha', :age => 1 }]
+          name: 'Elsa',
+          age: 19,
+          children: [{ name: 'Natacha', age: 1 }]
         },
         {
-          :name => 'Milena',
-          :age => 16,
-          :children => []
+          name: 'Milena',
+          age: 16,
+          children: []
         }
       ]
     }

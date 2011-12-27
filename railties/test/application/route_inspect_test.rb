@@ -17,12 +17,12 @@ module ApplicationTests
         end
       end
       engine.routes.draw do
-        get '/cart', :to => 'cart#show'
+        get '/cart', to: 'cart#show'
       end
 
       @set.draw do
-        get '/custom/assets', :to => 'custom_assets#show'
-        mount engine => "/blog", :as => "blog"
+        get '/custom/assets', to: 'custom_assets#show'
+        mount engine => "/blog", as: "blog"
       end
 
       output = @inspector.format @set.routes
@@ -37,7 +37,7 @@ module ApplicationTests
 
     def test_cart_inspect
       @set.draw do
-        get '/cart', :to => 'cart#show'
+        get '/cart', to: 'cart#show'
       end
       output = @inspector.format @set.routes
       assert_equal ["cart GET /cart(.:format) cart#show"], output
@@ -45,7 +45,7 @@ module ApplicationTests
 
     def test_inspect_shows_custom_assets
       @set.draw do
-        get '/custom/assets', :to => 'custom_assets#show'
+        get '/custom/assets', to: 'custom_assets#show'
       end
       output = @inspector.format @set.routes
       assert_equal ["custom_assets GET /custom/assets(.:format) custom_assets#show"], output
@@ -69,7 +69,7 @@ module ApplicationTests
 
     def test_inspect_routes_shows_root_route
       @set.draw do
-        root :to => 'pages#main'
+        root to: 'pages#main'
       end
       output = @inspector.format @set.routes
       assert_equal ["root  / pages#main"], output
@@ -93,26 +93,26 @@ module ApplicationTests
 
     def test_inspect_routes_shows_controller_and_action_route_with_constraints
       @set.draw do
-        match ':controller(/:action(/:id))', :id => /\d+/
+        match ':controller(/:action(/:id))', id: /\d+/
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"], output
+      assert_equal ["  /:controller(/:action(/:id))(.:format) :controller#:action {id: /\\d+/}"], output
     end
 
     def test_rake_routes_shows_route_with_defaults
       @set.draw do
-        match 'photos/:id' => 'photos#show', :defaults => {:format => 'jpg'}
+        match 'photos/:id' => 'photos#show', defaults: {format: 'jpg'}
       end
       output = @inspector.format @set.routes
-      assert_equal [%Q[  /photos/:id(.:format) photos#show {:format=>"jpg"}]], output
+      assert_equal [%Q[  /photos/:id(.:format) photos#show {format: "jpg"}]], output
     end
 
     def test_rake_routes_shows_route_with_constraints
       @set.draw do
-        match 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
+        match 'photos/:id' => 'photos#show', id: /[A-Z]\d{5}/
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"], output
+      assert_equal ["  /photos/:id(.:format) photos#show {id: /[A-Z]\\d{5}/}"], output
     end
 
     class RackApp
@@ -122,10 +122,10 @@ module ApplicationTests
 
     def test_rake_routes_shows_route_with_rack_app
       @set.draw do
-        match 'foo/:id' => RackApp, :id => /[A-Z]\d{5}/
+        match 'foo/:id' => RackApp, id: /[A-Z]\d{5}/
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"], output
+      assert_equal ["  /foo/:id(.:format) #{RackApp.name} {id: /[A-Z]\\d{5}/}"], output
     end
 
     def test_rake_routes_shows_route_with_rack_app_nested_with_dynamic_constraints
@@ -136,13 +136,13 @@ module ApplicationTests
       end
 
       @set.draw do
-        scope :constraint => constraint.new do
+        scope constraint: constraint.new do
           mount RackApp => '/foo'
         end
       end
 
       output = @inspector.format @set.routes
-      assert_equal ["  /foo #{RackApp.name} {:constraint=>( my custom constraint )}"], output
+      assert_equal ["  /foo #{RackApp.name} {constraint: ( my custom constraint )}"], output
     end
   end
 end

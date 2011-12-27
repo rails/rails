@@ -41,7 +41,7 @@ module ActiveModel
   # You can choose not to have all three callbacks by passing a hash to the
   # define_model_callbacks method.
   #
-  #   define_model_callbacks :create, :only => [:after, :before]
+  #   define_model_callbacks :create, only: [:after, :before]
   #
   # Would only create the after_create and before_create callback methods in your
   # class.
@@ -56,15 +56,15 @@ module ActiveModel
     # you want to overwrite a default. Besides that, it also accepts an :only option,
     # where you can choose if you want all types (before, around or after) or just some.
     #
-    #   define_model_callbacks :initializer, :only => :after
+    #   define_model_callbacks :initializer, only: :after
     #
-    # Note, the <tt>:only => <type></tt> hash will apply to all callbacks defined on
+    # Note, the <tt>only: <type></tt> hash will apply to all callbacks defined on
     # that method call. To get around this you can call the define_model_callbacks
     # method as many times as you need.
     #
-    #   define_model_callbacks :create, :only => :after
-    #   define_model_callbacks :update, :only => :before
-    #   define_model_callbacks :destroy, :only => :around
+    #   define_model_callbacks :create, only: :after
+    #   define_model_callbacks :update, only: :before
+    #   define_model_callbacks :destroy, only: :around
     #
     # Would create +after_create+, +before_update+ and +around_destroy+ methods only.
     #
@@ -88,9 +88,9 @@ module ActiveModel
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
       options = {
-         :terminator => "result == false",
-         :scope => [:kind, :name],
-         :only => [:before, :around, :after]
+         terminator: "result == false",
+         scope: [:kind, :name],
+         only: [:before, :around, :after]
       }.merge(options)
 
       types = Array.wrap(options.delete(:only))

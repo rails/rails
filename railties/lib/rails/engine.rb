@@ -255,7 +255,7 @@ module Rails
   #
   #   # config/routes.rb
   #   MyApplication::Application.routes.draw do
-  #     mount MyEngine::Engine => "/my_engine", :as => "my_engine"
+  #     mount MyEngine::Engine => "/my_engine", as: "my_engine"
   #     match "/foo" => "foo#index"
   #   end
   #
@@ -379,7 +379,7 @@ module Rails
       def isolate_namespace(mod)
         engine_name(generate_railtie_name(mod))
 
-        self.routes.default_scope = { :module => ActiveSupport::Inflector.underscore(mod.name) }
+        self.routes.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
         self.isolated = true
 
         unless mod.respond_to?(:railtie_namespace)
@@ -416,8 +416,8 @@ module Rails
       end
     end
 
-    delegate :middleware, :root, :paths, :to => :config
-    delegate :engine_name, :isolated?, :to => "self.class"
+    delegate :middleware, :root, :paths, to: :config
+    delegate :engine_name, :isolated?, to: "self.class"
 
     def load_tasks(app=self)
       railties.all { |r| r.load_tasks(app) }
@@ -521,7 +521,7 @@ module Rails
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
-    initializer :set_load_path, :before => :bootstrap_hook do
+    initializer :set_load_path, before: :bootstrap_hook do
       _all_load_paths.reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
       end
@@ -533,7 +533,7 @@ module Rails
     #
     # This needs to be an initializer, since it needs to run once
     # per engine and get the engine as a block parameter
-    initializer :set_autoload_paths, :before => :bootstrap_hook do |app|
+    initializer :set_autoload_paths, before: :bootstrap_hook do |app|
       ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
       ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
 
@@ -566,12 +566,12 @@ module Rails
       end
     end
 
-    initializer :load_environment_config, :before => :load_environment_hook, :group => :all do
+    initializer :load_environment_config, before: :load_environment_hook, group: :all do
       environment = paths["config/environments"].existent.first
       require environment if environment
     end
 
-    initializer :append_assets_path, :group => :all do |app|
+    initializer :append_assets_path, group: :all do |app|
       app.config.assets.paths.unshift(*paths["vendor/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["lib/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["app/assets"].existent_directories)

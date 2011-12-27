@@ -11,7 +11,7 @@
 #     include ActionController::UrlFor
 #     include Rails.application.routes.url_helpers
 #
-#     delegate :env, :request, :to => :controller
+#     delegate :env, :request, to: :controller
 #
 #     def initialize(controller)
 #       @controller = controller
@@ -27,10 +27,10 @@ module ActionController
 
     def url_options
       @_url_options ||= super.reverse_merge(
-        :host => request.host,
-        :port => request.optional_port,
-        :protocol => request.protocol,
-        :_path_segments => request.symbolized_path_parameters
+        host: request.host,
+        port: request.optional_port,
+        protocol: request.protocol,
+        _path_segments: request.symbolized_path_parameters
       ).freeze
 
       if _routes.equal?(env["action_dispatch.routes"])

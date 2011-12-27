@@ -88,7 +88,7 @@ module Rails
     #
     # == Examples
     #
-    #   groups :assets => [:development, :test]
+    #   groups assets: [:development, :test]
     #
     #   # Returns
     #   # => [:default, :development, :assets] for Rails.env == "development"

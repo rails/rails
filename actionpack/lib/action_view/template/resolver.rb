@@ -48,7 +48,7 @@ module ActionView
 
   private
 
-    delegate :caching?, :to => "self.class"
+    delegate :caching?, to: "self.class"
 
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
@@ -132,9 +132,9 @@ module ActionView
         contents = File.binread template
 
         Template.new(contents, File.expand_path(template), handler,
-          :virtual_path => path.virtual,
-          :format       => format,
-          :updated_at   => mtime(template))
+          virtual_path: path.virtual,
+          format:       format,
+          updated_at:   mtime(template))
       }
     end
 

@@ -9,15 +9,15 @@ class I18nTestMailer < ActionMailer::Base
   def mail_with_i18n_subject(recipient)
     @recipient  = recipient
     I18n.locale = :de
-    mail(:to => recipient, :subject => "#{I18n.t :email_subject} #{recipient}",
-      :from => "system@loudthinking.com", :date => Time.local(2004, 12, 12))
+    mail(to: recipient, subject: "#{I18n.t :email_subject} #{recipient}",
+      from: "system@loudthinking.com", date: Time.local(2004, 12, 12))
   end
 end
 
 class TestController < ActionController::Base
   def send_mail
     I18nTestMailer.mail_with_i18n_subject("test@localhost").deliver
-    render :text => 'Mail sent'
+    render text: 'Mail sent'
   end
 end
 
@@ -32,7 +32,7 @@ class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
   end
 
   def setup
-    I18n.backend.store_translations('de', :email_subject => '[Signed up] Welcome')
+    I18n.backend.store_translations('de', email_subject: '[Signed up] Welcome')
   end
 
   def teardown

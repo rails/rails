@@ -17,7 +17,7 @@ module ActionController
   # a non-empty array:
   #
   #     class UsersController < ApplicationController
-  #       wrap_parameters :format => [:json, :xml]
+  #       wrap_parameters format: [:json, :xml]
   #     end
   #
   # If you enable +ParamsWrapper+ for +:json+ format, instead of having to
@@ -40,7 +40,7 @@ module ActionController
   # +:exclude+ options like this:
   #
   #     class UsersController < ApplicationController
-  #       wrap_parameters :person, :include => [:username, :password]
+  #       wrap_parameters :person, include: [:username, :password]
   #     end
   #
   # On ActiveRecord models with no +:include+ or +:exclude+ option set, 
@@ -77,7 +77,7 @@ module ActionController
 
     included do
       class_attribute :_wrapper_options
-      self._wrapper_options = { :format => [] }
+      self._wrapper_options = { format: [] }
     end
 
     module ClassMethods
@@ -85,7 +85,7 @@ module ActionController
       # would use to determine the attribute names from.
       #
       # ==== Examples
-      #   wrap_parameters :format => :xml
+      #   wrap_parameters format: :xml
       #     # enables the parameter wrapper for XML format
       #
       #   wrap_parameters :person
@@ -95,7 +95,7 @@ module ActionController
       #     # wraps parameters by determining the wrapper key from Person class
       #     (+person+, in this case) and the list of attribute names
       #
-      #   wrap_parameters :include => [:username, :title]
+      #   wrap_parameters include: [:username, :title]
       #     # wraps only +:username+ and +:title+ attributes from parameters.
       #
       #   wrap_parameters false
@@ -115,9 +115,9 @@ module ActionController
         when Hash
           options = name_or_model_or_options
         when false
-          options = options.merge(:format => [])
+          options = options.merge(format: [])
         when Symbol, String
-          options = options.merge(:name => name_or_model_or_options)
+          options = options.merge(name: name_or_model_or_options)
         else
           model = name_or_model_or_options
         end

@@ -5,9 +5,9 @@ class ModuleAttributeAccessorTest < Test::Unit::TestCase
   def setup
     m = @module = Module.new do
       mattr_accessor :foo
-      mattr_accessor :bar, :instance_writer => false
-      mattr_reader   :shaq, :instance_reader => false
-      mattr_accessor :camp, :instance_accessor => false
+      mattr_accessor :bar, instance_writer: false
+      mattr_reader   :shaq, instance_reader: false
+      mattr_accessor :camp, instance_accessor: false
     end
     @class = Class.new
     @class.instance_eval { include m }

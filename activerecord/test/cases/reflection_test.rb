@@ -77,7 +77,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_klass_for_nested_class_name
-    reflection = MacroReflection.new(:company, nil, { :class_name => 'MyApplication::Business::Company' }, ActiveRecord::Base)
+    reflection = MacroReflection.new(:company, nil, { class_name: 'MyApplication::Business::Company' }, ActiveRecord::Base)
     assert_nothing_raised do
       assert_equal MyApplication::Business::Company, reflection.klass
     end
@@ -85,11 +85,11 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_aggregation_reflection
     reflection_for_address = AggregateReflection.new(
-      :composed_of, :address, { :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
+      :composed_of, :address, { mapping: [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
     )
 
     reflection_for_balance = AggregateReflection.new(
-      :composed_of, :balance, { :class_name => "Money", :mapping => %w(balance amount) }, Customer
+      :composed_of, :balance, { class_name: "Money", mapping: %w(balance amount) }, Customer
     )
 
     reflection_for_gps_location = AggregateReflection.new(
@@ -117,7 +117,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_has_many_reflection
-    reflection_for_clients = AssociationReflection.new(:has_many, :clients, { :order => "id", :dependent => :destroy }, Firm)
+    reflection_for_clients = AssociationReflection.new(:has_many, :clients, { order: "id", dependent: :destroy }, Firm)
 
     assert_equal reflection_for_clients, Firm.reflect_on_association(:clients)
 
@@ -129,7 +129,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_has_one_reflection
-    reflection_for_account = AssociationReflection.new(:has_one, :account, { :foreign_key => "firm_id", :dependent => :destroy }, Firm)
+    reflection_for_account = AssociationReflection.new(:has_one, :account, { foreign_key: "firm_id", dependent: :destroy }, Firm)
     assert_equal reflection_for_account, Firm.reflect_on_association(:account)
 
     assert_equal Account, Firm.reflect_on_association(:account).klass
@@ -139,9 +139,9 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_belongs_to_inferred_foreign_key_from_assoc_name
     Company.belongs_to :foo
     assert_equal "foo_id", Company.reflect_on_association(:foo).foreign_key
-    Company.belongs_to :bar, :class_name => "Xyzzy"
+    Company.belongs_to :bar, class_name: "Xyzzy"
     assert_equal "bar_id", Company.reflect_on_association(:bar).foreign_key
-    Company.belongs_to :baz, :class_name => "Xyzzy", :foreign_key => "xyzzy_id"
+    Company.belongs_to :baz, class_name: "Xyzzy", foreign_key: "xyzzy_id"
     assert_equal "xyzzy_id", Company.reflect_on_association(:baz).foreign_key
   end
 
@@ -150,39 +150,39 @@ class ReflectionTest < ActiveRecord::TestCase
 
     assert_reflection MyApplication::Business::Firm,
       :clients_of_firm,
-      :klass      => MyApplication::Business::Client,
-      :class_name => 'Client',
-      :table_name => 'companies'
+      klass:      MyApplication::Business::Client,
+      class_name: 'Client',
+      table_name: 'companies'
 
     assert_reflection MyApplication::Billing::Account,
       :firm,
-      :klass      => MyApplication::Business::Firm,
-      :class_name => 'MyApplication::Business::Firm',
-      :table_name => 'companies'
+      klass:      MyApplication::Business::Firm,
+      class_name: 'MyApplication::Business::Firm',
+      table_name: 'companies'
 
     assert_reflection MyApplication::Billing::Account,
       :qualified_billing_firm,
-      :klass      => MyApplication::Billing::Firm,
-      :class_name => 'MyApplication::Billing::Firm',
-      :table_name => 'companies'
+      klass:      MyApplication::Billing::Firm,
+      class_name: 'MyApplication::Billing::Firm',
+      table_name: 'companies'
 
     assert_reflection MyApplication::Billing::Account,
       :unqualified_billing_firm,
-      :klass      => MyApplication::Billing::Firm,
-      :class_name => 'Firm',
-      :table_name => 'companies'
+      klass:      MyApplication::Billing::Firm,
+      class_name: 'Firm',
+      table_name: 'companies'
 
     assert_reflection MyApplication::Billing::Account,
       :nested_qualified_billing_firm,
-      :klass      => MyApplication::Billing::Nested::Firm,
-      :class_name => 'MyApplication::Billing::Nested::Firm',
-      :table_name => 'companies'
+      klass:      MyApplication::Billing::Nested::Firm,
+      class_name: 'MyApplication::Billing::Nested::Firm',
+      table_name: 'companies'
 
     assert_reflection MyApplication::Billing::Account,
       :nested_unqualified_billing_firm,
-      :klass      => MyApplication::Billing::Nested::Firm,
-      :class_name => 'Nested::Firm',
-      :table_name => 'companies'
+      klass:      MyApplication::Billing::Nested::Firm,
+      class_name: 'Nested::Firm',
+      table_name: 'companies'
   ensure
     ActiveRecord::Base.store_full_sti_class = true
   end
@@ -216,15 +216,15 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_conditions
     expected = [
-      [{ :tags => { :name => 'Blue' } }],
-      [{ :taggings => { :comment => 'first' } }],
-      [{ :posts => { :title => ['misc post by bob', 'misc post by mary'] } }]
+      [{ tags: { name: 'Blue' } }],
+      [{ taggings: { comment: 'first' } }],
+      [{ posts: { title: ['misc post by bob', 'misc post by mary'] } }]
     ]
     actual = Author.reflect_on_association(:misc_post_first_blue_tags).conditions
     assert_equal expected, actual
 
     expected = [
-      [{ :tags => { :name => 'Blue' } }, { :taggings => { :comment => 'first' } }, { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }],
+      [{ tags: { name: 'Blue' } }, { taggings: { comment: 'first' } }, { posts: { title: ['misc post by bob', 'misc post by mary'] } }],
       [],
       []
     ]
@@ -258,7 +258,7 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::UnknownPrimaryKey) { reflection.association_primary_key }
 
     through = ActiveRecord::Reflection::ThroughReflection.new(:fuu, :edge, {}, Author)
-    through.stubs(:source_reflection).returns(stub_everything(:options => {}, :class_name => 'Edge'))
+    through.stubs(:source_reflection).returns(stub_everything(options: {}, class_name: 'Edge'))
     assert_raises(ActiveRecord::UnknownPrimaryKey) { through.association_primary_key }
   end
 
@@ -294,24 +294,24 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_always_validate_association_if_explicit
-    assert AssociationReflection.new(:has_one, :client, { :validate => true }, Firm).validate?
-    assert AssociationReflection.new(:belongs_to, :client, { :validate => true }, Firm).validate?
-    assert AssociationReflection.new(:has_many, :clients, { :validate => true }, Firm).validate?
-    assert AssociationReflection.new(:has_and_belongs_to_many, :clients, { :validate => true }, Firm).validate?
+    assert AssociationReflection.new(:has_one, :client, { validate: true }, Firm).validate?
+    assert AssociationReflection.new(:belongs_to, :client, { validate: true }, Firm).validate?
+    assert AssociationReflection.new(:has_many, :clients, { validate: true }, Firm).validate?
+    assert AssociationReflection.new(:has_and_belongs_to_many, :clients, { validate: true }, Firm).validate?
   end
 
   def test_validate_association_if_autosave
-    assert AssociationReflection.new(:has_one, :client, { :autosave => true }, Firm).validate?
-    assert AssociationReflection.new(:belongs_to, :client, { :autosave => true }, Firm).validate?
-    assert AssociationReflection.new(:has_many, :clients, { :autosave => true }, Firm).validate?
-    assert AssociationReflection.new(:has_and_belongs_to_many, :clients, { :autosave => true }, Firm).validate?
+    assert AssociationReflection.new(:has_one, :client, { autosave: true }, Firm).validate?
+    assert AssociationReflection.new(:belongs_to, :client, { autosave: true }, Firm).validate?
+    assert AssociationReflection.new(:has_many, :clients, { autosave: true }, Firm).validate?
+    assert AssociationReflection.new(:has_and_belongs_to_many, :clients, { autosave: true }, Firm).validate?
   end
 
   def test_never_validate_association_if_explicit
-    assert !AssociationReflection.new(:has_one, :client, { :autosave => true, :validate => false }, Firm).validate?
-    assert !AssociationReflection.new(:belongs_to, :client, { :autosave => true, :validate => false }, Firm).validate?
-    assert !AssociationReflection.new(:has_many, :clients, { :autosave => true, :validate => false }, Firm).validate?
-    assert !AssociationReflection.new(:has_and_belongs_to_many, :clients, { :autosave => true, :validate => false }, Firm).validate?
+    assert !AssociationReflection.new(:has_one, :client, { autosave: true, validate: false }, Firm).validate?
+    assert !AssociationReflection.new(:belongs_to, :client, { autosave: true, validate: false }, Firm).validate?
+    assert !AssociationReflection.new(:has_many, :clients, { autosave: true, validate: false }, Firm).validate?
+    assert !AssociationReflection.new(:has_and_belongs_to_many, :clients, { autosave: true, validate: false }, Firm).validate?
   end
 
   def test_foreign_key

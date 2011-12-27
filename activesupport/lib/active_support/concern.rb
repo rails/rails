@@ -4,7 +4,7 @@ module ActiveSupport
   #   module M
   #     def self.included(base)
   #       base.extend ClassMethods
-  #       scope :disabled, where(:disabled => true)
+  #       scope :disabled, where(disabled: true)
   #     end
   #
   #     module ClassMethods
@@ -20,7 +20,7 @@ module ActiveSupport
   #     extend ActiveSupport::Concern
   #
   #     included do
-  #       scope :disabled, where(:disabled => true)
+  #       scope :disabled, where(disabled: true)
   #     end
   #
   #     module ClassMethods

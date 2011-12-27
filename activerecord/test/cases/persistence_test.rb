@@ -53,7 +53,7 @@ class PersistencesTest < ActiveRecord::TestCase
       author = authors(:david)
       assert_nothing_raised do
         assert_equal 1, author.posts_sorted_by_id_limited.size
-        assert_equal 2, author.posts_sorted_by_id_limited.find(:all, :limit => 2).size
+        assert_equal 2, author.posts_sorted_by_id_limited.find(:all, limit: 2).size
         assert_equal 1, author.posts_sorted_by_id_limited.update_all([ "body = ?", "bulk update!" ])
         assert_equal "bulk update!", posts(:welcome).body
         assert_not_equal "bulk update!", posts(:thinking).body
@@ -108,7 +108,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_destroy_all
     conditions = "author_name = 'Mary'"
-    topics_by_mary = Topic.all(:conditions => conditions, :order => 'id')
+    topics_by_mary = Topic.all(conditions: conditions, order: 'id')
     assert ! topics_by_mary.empty?
 
     assert_difference('Topic.count', -topics_by_mary.size) do
@@ -119,7 +119,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_destroy_many
-    clients = Client.find([2, 3], :order => 'id')
+    clients = Client.find([2, 3], order: 'id')
 
     assert_difference('Client.count', -2) do
       destroyed = Client.destroy([2, 3]).sort_by(&:id)
@@ -162,7 +162,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_save!
-    topic = Topic.new(:title => "New Topic")
+    topic = Topic.new(title: "New Topic")
     assert topic.save!
 
     reply = WrongReply.new
@@ -192,7 +192,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_save_for_record_with_only_primary_key_that_is_provided
-    assert_nothing_raised { Minimalistic.create!(:id => 2) }
+    assert_nothing_raised { Minimalistic.create!(id: 2) }
   end
 
   def test_create_many
@@ -312,7 +312,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_all_with_hash
     assert_not_nil Topic.find(1).last_read
-    assert_equal Topic.count, Topic.update_all(:content => 'bulk updated with hash!', :last_read => nil)
+    assert_equal Topic.count, Topic.update_all(content: 'bulk updated with hash!', last_read: nil)
     assert_equal "bulk updated with hash!", Topic.find(1).content
     assert_equal "bulk updated with hash!", Topic.find(2).content
     assert_nil Topic.find(1).last_read
@@ -514,7 +514,7 @@ class PersistencesTest < ActiveRecord::TestCase
     assert topic.approved?
     assert_equal "The First Topic Updated", topic.title
 
-    topic.update_attributes(:approved => false, :title => "The First Topic")
+    topic.update_attributes(approved: false, title: "The First Topic")
     topic.reload
     assert !topic.approved?
     assert_equal "The First Topic", topic.title
@@ -522,7 +522,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attributes_as_admin
     person = TightPerson.create({ "first_name" => 'Joshua' })
-    person.update_attributes({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, :as => :admin)
+    person.update_attributes({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, as: :admin)
     person.reload
 
     assert_equal 'Josh',    person.first_name
@@ -532,7 +532,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attributes_without_protection
     person = TightPerson.create({ "first_name" => 'Joshua' })
-    person.update_attributes({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, :without_protection => true)
+    person.update_attributes({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, without_protection: true)
     person.reload
 
     assert_equal 'Josh',    person.first_name
@@ -551,19 +551,19 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal "The Second Topic of the day updated", reply.title
     assert_equal "Have a nice evening", reply.content
 
-    reply.update_attributes!(:title => "The Second Topic of the day", :content => "Have a nice day")
+    reply.update_attributes!(title: "The Second Topic of the day", content: "Have a nice day")
     reply.reload
     assert_equal "The Second Topic of the day", reply.title
     assert_equal "Have a nice day", reply.content
 
-    assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(:title => nil, :content => "Have a nice evening") }
+    assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(title: nil, content: "Have a nice evening") }
   ensure
     Reply.reset_callbacks(:validate)
   end
 
   def test_update_attributes_with_bang_as_admin
     person = TightPerson.create({ "first_name" => 'Joshua' })
-    person.update_attributes!({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, :as => :admin)
+    person.update_attributes!({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, as: :admin)
     person.reload
 
     assert_equal 'Josh', person.first_name
@@ -573,7 +573,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attributestes_with_bang_without_protection
     person = TightPerson.create({ "first_name" => 'Joshua' })
-    person.update_attributes!({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, :without_protection => true)
+    person.update_attributes!({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, without_protection: true)
     person.reload
 
     assert_equal 'Josh', person.first_name
@@ -594,7 +594,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_persisted_returns_boolean
-    developer = Developer.new(:name => "Jose")
+    developer = Developer.new(name: "Jose")
     assert_equal false, developer.persisted?
     developer.save!
     assert_equal true, developer.persisted?
@@ -632,7 +632,7 @@ class PersistencesTest < ActiveRecord::TestCase
     custom_datetime = 1.hour.ago.beginning_of_day
 
     %w(created_at created_on updated_at updated_on).each do |attribute|
-      parrot = LiveParrot.create(:name => "colombian", attribute => custom_datetime)
+      parrot = LiveParrot.create(name: "colombian", attribute => custom_datetime)
       assert_equal custom_datetime, parrot[attribute]
     end
   end

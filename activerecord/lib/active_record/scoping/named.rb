@@ -18,7 +18,7 @@ module ActiveRecord
         #   posts.each {|p| puts p.name } # Fires "select * from posts" and loads post objects
         #
         #   fruits = Fruit.scoped
-        #   fruits = fruits.where(:color => 'red') if options[:red_only]
+        #   fruits = fruits.where(color: 'red') if options[:red_only]
         #   fruits = fruits.limit(10) if limited?
         #
         # Anonymous \scopes tend to be useful when procedurally generating complex
@@ -61,27 +61,27 @@ module ActiveRecord
         end
 
         # Adds a class method for retrieving and querying objects. A \scope represents a narrowing of a database query,
-        # such as <tt>where(:color => :red).select('shirts.*').includes(:washing_instructions)</tt>.
+        # such as <tt>where(color: :red).select('shirts.*').includes(:washing_instructions)</tt>.
         #
         #   class Shirt < ActiveRecord::Base
-        #     scope :red, where(:color => 'red')
+        #     scope :red, where(color: 'red')
         #     scope :dry_clean_only, joins(:washing_instructions).where('washing_instructions.dry_clean_only = ?', true)
         #   end
         #
         # The above calls to <tt>scope</tt> define class methods Shirt.red and Shirt.dry_clean_only. Shirt.red,
-        # in effect, represents the query <tt>Shirt.where(:color => 'red')</tt>.
+        # in effect, represents the query <tt>Shirt.where(color: 'red')</tt>.
         #
         # Note that this is simply 'syntactic sugar' for defining an actual class method:
         #
         #   class Shirt < ActiveRecord::Base
         #     def self.red
-        #       where(:color => 'red')
+        #       where(color: 'red')
         #     end
         #   end
         #
         # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by Shirt.red is not an Array; it
         # resembles the association object constructed by a <tt>has_many</tt> declaration. For instance,
-        # you can invoke <tt>Shirt.red.first</tt>, <tt>Shirt.red.count</tt>, <tt>Shirt.red.where(:size => 'small')</tt>.
+        # you can invoke <tt>Shirt.red.first</tt>, <tt>Shirt.red.count</tt>, <tt>Shirt.red.where(size: 'small')</tt>.
         # Also, just as with the association objects, named \scopes act like an Array, implementing Enumerable;
         # <tt>Shirt.red.each(&block)</tt>, <tt>Shirt.red.first</tt>, and <tt>Shirt.red.inject(memo, &block)</tt>
         # all behave as if Shirt.red really was an Array.
@@ -105,14 +105,14 @@ module ActiveRecord
         # Named \scopes can also be procedural:
         #
         #   class Shirt < ActiveRecord::Base
-        #     scope :colored, lambda { |color| where(:color => color) }
+        #     scope :colored, lambda { |color| where(color: color) }
         #   end
         #
         # In this example, <tt>Shirt.colored('puce')</tt> finds all puce shirts.
         #
         # On Ruby 1.9 you can use the 'stabby lambda' syntax:
         #
-        #   scope :colored, ->(color) { where(:color => color) }
+        #   scope :colored, ->(color) { where(color: color) }
         #
         # Note that scopes defined with \scope will be evaluated when they are defined, rather than
         # when they are used. For example, the following would be incorrect:
@@ -133,7 +133,7 @@ module ActiveRecord
         # Named \scopes can also have extensions, just as with <tt>has_many</tt> declarations:
         #
         #   class Shirt < ActiveRecord::Base
-        #     scope :red, where(:color => 'red') do
+        #     scope :red, where(color: 'red') do
         #       def dom_id
         #         'red_shirts'
         #       end
@@ -143,7 +143,7 @@ module ActiveRecord
         # Scopes can also be used while creating/building a record.
         #
         #   class Article < ActiveRecord::Base
-        #     scope :published, where(:published => true)
+        #     scope :published, where(published: true)
         #   end
         #
         #   Article.published.new.published    # => true
@@ -153,8 +153,8 @@ module ActiveRecord
         # on scopes. Assuming the following setup:
         #
         #   class Article < ActiveRecord::Base
-        #     scope :published, where(:published => true)
-        #     scope :featured, where(:featured => true)
+        #     scope :published, where(published: true)
+        #     scope :featured, where(featured: true)
         #
         #     def self.latest_article
         #       order('published_at desc').first

@@ -353,7 +353,7 @@ module Rails
       def initialize(base_command)
         @base_command = base_command
         @method = :http
-        @options = { :quiet => false, :revision => nil, :force => false }
+        @options = { quiet: false, revision: nil, force: false }
       end
 
       def options

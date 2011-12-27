@@ -19,7 +19,7 @@ class RDocTaskWithoutDescriptions < RDoc::Task
       rm_r rdoc_dir rescue nil
     end
 
-    task :clobber => [clobber_task_name]
+    task clobber: [clobber_task_name]
 
     directory @rdoc_dir
     task rdoc_task_name => [rdoc_target]
@@ -111,7 +111,7 @@ namespace :doc do
   plugins = FileList['vendor/plugins/**'].collect { |plugin| File.basename(plugin) }
 
   # desc "Generate documentation for all installed plugins"
-  task :plugins => plugins.collect { |plugin| "doc:plugins:#{plugin}" }
+  task plugins: plugins.collect { |plugin| "doc:plugins:#{plugin}" }
 
   # desc "Remove plugin documentation"
   task :clobber_plugins do

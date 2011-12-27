@@ -88,12 +88,12 @@ module Rails
 
     def default_options
       super.merge({
-        :Port        => 3000,
-        :environment => (ENV['RAILS_ENV'] || "development").dup,
-        :daemonize   => false,
-        :debugger    => false,
-        :pid         => File.expand_path("tmp/pids/server.pid"),
-        :config      => File.expand_path("config.ru")
+        Port:        3000,
+        environment: (ENV['RAILS_ENV'] || "development").dup,
+        daemonize:   false,
+        debugger:    false,
+        pid:         File.expand_path("tmp/pids/server.pid"),
+        config:      File.expand_path("config.ru")
       })
     end
   end

@@ -10,7 +10,7 @@ class LogSubscriberTest < ActiveSupport::TestCase
   def setup
     super
 
-    @matz = { :person => { :id => 1, :name => 'Matz' } }.to_json
+    @matz = { person: { id: 1, name: 'Matz' } }.to_json
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1.json", {}, @matz
     end

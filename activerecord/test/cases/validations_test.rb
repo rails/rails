@@ -42,7 +42,7 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_error_on_given_context
-    r = WrongReply.new(:title => "Valid title")
+    r = WrongReply.new(title: "Valid title")
     assert !r.valid?(:special_case)
     assert_equal "Invalid", r.errors[:author_name].join
 
@@ -51,11 +51,11 @@ class ValidationsTest < ActiveRecord::TestCase
     assert r.valid?(:special_case)
 
     r.author_name = nil
-    assert !r.save(:context => :special_case)
+    assert !r.save(context: :special_case)
     assert_equal "Invalid", r.errors[:author_name].join
 
     r.author_name = "secret"
-    assert r.save(:context => :special_case)
+    assert r.save(context: :special_case)
   end
 
   def test_invalid_record_exception
@@ -94,15 +94,15 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_scoped_create_without_attributes
-    WrongReply.send(:with_scope, :create => {}) do
+    WrongReply.send(:with_scope, create: {}) do
       assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
     end
   end
 
   def test_create_with_exceptions_using_scope_for_protected_attributes
     assert_nothing_raised do
-      ProtectedPerson.send(:with_scope,  :create => { :first_name => "Mary" } ) do
-        person = ProtectedPerson.create! :addon => "Addon"
+      ProtectedPerson.send(:with_scope,  create: { first_name: "Mary" } ) do
+        person = ProtectedPerson.create! addon: "Addon"
         assert_equal person.first_name, "Mary", "scope should ignore attr_protected"
       end
     end
@@ -110,7 +110,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_create_with_exceptions_using_scope_and_empty_attributes
     assert_nothing_raised do
-      ProtectedPerson.send(:with_scope,  :create => { :first_name => "Mary" } ) do
+      ProtectedPerson.send(:with_scope,  create: { first_name: "Mary" } ) do
         person = ProtectedPerson.create!
         assert_equal person.first_name, "Mary", "should be ok when no attributes are passed to create!"
       end
@@ -120,7 +120,7 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_create_without_validation
     reply = WrongReply.new
     assert !reply.save
-    assert reply.save(:validate => false)
+    assert reply.save(validate: false)
   end
 
   def test_validates_acceptance_of_with_non_existant_table

@@ -61,12 +61,12 @@ module ActiveRecord
           config = URI.parse url
           adapter = config.scheme
           adapter = "postgresql" if adapter == "postgres"
-          spec = { :adapter  => adapter,
-                   :username => config.user,
-                   :password => config.password,
-                   :port     => config.port,
-                   :database => config.path.sub(%r{^/},""),
-                   :host     => config.host }
+          spec = { adapter:  adapter,
+                   username: config.user,
+                   password: config.password,
+                   port:     config.port,
+                   database: config.path.sub(%r{^/},""),
+                   host:     config.host }
           spec.reject!{ |_,value| !value }
           if config.query
             options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
@@ -90,18 +90,18 @@ module ActiveRecord
       # example for regular databases (MySQL, Postgresql, etc):
       #
       #   ActiveRecord::Base.establish_connection(
-      #     :adapter  => "mysql",
-      #     :host     => "localhost",
-      #     :username => "myuser",
-      #     :password => "mypass",
-      #     :database => "somedatabase"
+      #     adapter:  "mysql",
+      #     host:     "localhost",
+      #     username: "myuser",
+      #     password: "mypass",
+      #     database: "somedatabase"
       #   )
       #
       # Example for SQLite database:
       #
       #   ActiveRecord::Base.establish_connection(
-      #     :adapter => "sqlite",
-      #     :database  => "path/to/dbfile"
+      #     adapter: "sqlite",
+      #     database:  "path/to/dbfile"
       #   )
       #
       # Also accepts keys as strings (for parsing from YAML for example):
@@ -149,7 +149,7 @@ module ActiveRecord
       # Returns the configuration of the associated connection as a hash:
       #
       #  ActiveRecord::Base.connection_config
-      #  # => {:pool=>5, :timeout=>5000, :database=>"db/development.sqlite3", :adapter=>"sqlite3"}
+      #  # => {pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}
       #
       # Please use only for reading.
       def connection_config
@@ -178,7 +178,7 @@ module ActiveRecord
       end
 
       delegate :clear_reloadable_connections!,
-        :clear_all_connections!,:verify_active_connections!, :to => :connection_handler
+        :clear_all_connections!,:verify_active_connections!, to: :connection_handler
     end
   end
 end

@@ -44,12 +44,12 @@ module ActionView
       #
       # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
       # tag. Example:
-      #   javascript_tag "alert('All is good')", :defer => 'defer'
+      #   javascript_tag "alert('All is good')", defer: 'defer'
       #   # => <script defer="defer" type="text/javascript">alert('All is good')</script>
       #
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
-      #   <%= javascript_tag :defer => 'defer' do -%>
+      #   <%= javascript_tag defer: 'defer' do -%>
       #     alert('All is good')
       #   <% end -%>
       def javascript_tag(content_or_options_with_block = nil, html_options = {}, &block)
@@ -61,7 +61,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        content_tag(:script, javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
+        content_tag(:script, javascript_cdata_section(content), html_options.merge(type: Mime::JS))
       end
 
       def javascript_cdata_section(content) #:nodoc:
@@ -74,13 +74,13 @@ module ActionView
       # name is used as button label and the JavaScript code goes into its +onclick+ attribute.
       # If +html_options+ has an <tt>:onclick</tt>, that one is put before +function+.
       #
-      #   button_to_function "Greeting", "alert('Hello world!')", :class => "ok"
+      #   button_to_function "Greeting", "alert('Hello world!')", class: "ok"
       #   # => <input class="ok" onclick="alert('Hello world!');" type="button" value="Greeting" />
       #
       def button_to_function(name, function=nil, html_options={})
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function};"
 
-        tag(:input, html_options.merge(:type => 'button', :value => name, :onclick => onclick))
+        tag(:input, html_options.merge(type: 'button', value: name, onclick: onclick))
       end
 
       # Returns a link whose +onclick+ handler triggers the passed JavaScript.
@@ -92,14 +92,14 @@ module ActionView
       #
       # The +href+ attribute of the tag is set to "#" unless +html_options+ has one.
       #
-      #   link_to_function "Greeting", "alert('Hello world!')", :class => "nav_link"
+      #   link_to_function "Greeting", "alert('Hello world!')", class: "nav_link"
       #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>
       #
       def link_to_function(name, function, html_options={})
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function}; return false;"
         href = html_options[:href] || '#'
 
-        content_tag(:a, name, html_options.merge(:href => href, :onclick => onclick))
+        content_tag(:a, name, html_options.merge(href: href, onclick: onclick))
       end
     end
   end

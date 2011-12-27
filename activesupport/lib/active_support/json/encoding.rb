@@ -19,7 +19,7 @@ module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
-      :to => :'ActiveSupport::JSON::Encoding'
+      to: :'ActiveSupport::JSON::Encoding'
   end
 
   module JSON
@@ -59,7 +59,7 @@ module ActiveSupport
         def options_for(value)
           if value.is_a?(Array) || value.is_a?(Hash)
             # hashes and arrays need to get encoder in the options, so that they can detect circular references
-            options.merge(:encoder => self)
+            options.merge(encoder: self)
           else
             options
           end
@@ -119,7 +119,7 @@ module ActiveSupport
         end
 
         def escape(string)
-          string = string.encode(::Encoding::UTF_8, :undef => :replace).force_encoding(::Encoding::BINARY)
+          string = string.encode(::Encoding::UTF_8, undef: :replace).force_encoding(::Encoding::BINARY)
           json = string.
             gsub(escape_regex) { |s| ESCAPED_CHARS[s] }.
             gsub(/([\xC0-\xDF][\x80-\xBF]|

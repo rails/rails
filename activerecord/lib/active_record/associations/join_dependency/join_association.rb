@@ -24,9 +24,9 @@ module ActiveRecord
 
         attr_reader :tables
 
-        delegate :options, :through_reflection, :source_reflection, :chain, :to => :reflection
-        delegate :table, :table_name, :to => :parent, :prefix => :parent
-        delegate :alias_tracker, :to => :join_dependency
+        delegate :options, :through_reflection, :source_reflection, :chain, to: :reflection
+        delegate :table, :table_name, to: :parent, prefix: :parent
+        delegate :alias_tracker, to: :join_dependency
 
         alias :alias_suffix :parent_table_name
 

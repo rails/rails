@@ -57,16 +57,16 @@ module ActionController
     #   assert_template "new"
     #
     #   # assert that the "_customer" partial was rendered twice
-    #   assert_template :partial => '_customer', :count => 2
+    #   assert_template partial: '_customer', count: 2
     #
     #   # assert that no partials were rendered
-    #   assert_template :partial => false
+    #   assert_template partial: false
     #
     # In a view test case, you can also assert that specific locals are passed
     # to partials:
     #
     #   # assert that the "_customer" partial was rendered with a specific object
-    #   assert_template :partial => '_customer', :locals => { :customer => @customer }
+    #   assert_template partial: '_customer', locals: { customer: @customer }
     #
     def assert_template(options = {}, message = nil)
       validate_request!
@@ -132,7 +132,7 @@ module ActionController
       super
 
       self.session = TestSession.new
-      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
+      self.session_options = TestSession::DEFAULT_OPTIONS.merge(id: SecureRandom.hex(16))
     end
 
     class Result < ::Array #:nodoc:
@@ -143,7 +143,7 @@ module ActionController
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
-      parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
+      parameters = parameters.symbolize_keys.merge(controller: controller_path, action: action)
       extra_keys = routes.extra_keys(parameters)
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
@@ -241,7 +241,7 @@ module ActionController
   #   class BooksControllerTest < ActionController::TestCase
   #     def test_create
   #       # Simulate a POST response with the given HTTP parameters.
-  #       post(:create, :book => { :title => "Love Hina" })
+  #       post(:create, book: { title: "Love Hina" })
   #
   #       # Assert that the controller tried to redirect us to
   #       # the created book's URI.
@@ -324,7 +324,7 @@ module ActionController
   # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
   # Example:
   #
-  #  assert_redirected_to page_url(:title => 'foo')
+  #  assert_redirected_to page_url(title: 'foo')
   class TestCase < ActiveSupport::TestCase
     module Behavior
       extend ActiveSupport::Concern
@@ -501,10 +501,10 @@ module ActionController
         unless @request.env["PATH_INFO"]
           options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
           options.update(
-            :only_path => true,
-            :action => action,
-            :relative_url_root => nil,
-            :_path_segments => @request.symbolized_path_parameters)
+            only_path: true,
+            action: action,
+            relative_url_root: nil,
+            _path_segments: @request.symbolized_path_parameters)
 
           url, query_string = @routes.url_for(options).split("?", 2)
 

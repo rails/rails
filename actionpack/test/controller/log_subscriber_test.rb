@@ -4,22 +4,22 @@ require "action_controller/log_subscriber"
 
 module Another
   class LogSubscribersController < ActionController::Base
-    wrap_parameters :person, :include => :name, :format => :json
+    wrap_parameters :person, include: :name, format: :json
 
     class SpecialException < Exception
     end
 
     rescue_from SpecialException do
-      head :status => 406
+      head status: 406
     end
 
-    before_filter :redirector, :only => :never_executed
+    before_filter :redirector, only: :never_executed
 
     def never_executed
     end
 
     def show
-      render :nothing => true
+      render nothing: true
     end
 
     def redirector
@@ -27,7 +27,7 @@ module Another
     end
 
     def data_sender
-      send_data "cool data", :filename => "file.txt"
+      send_data "cool data", filename: "file.txt"
     end
 
     def file_sender
@@ -35,16 +35,16 @@ module Another
     end
 
     def with_fragment_cache
-      render :inline => "<%= cache('foo'){ 'bar' } %>"
+      render inline: "<%= cache('foo'){ 'bar' } %>"
     end
 
     def with_fragment_cache_and_percent_in_key
-      render :inline => "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
+      render inline: "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
     end
 
     def with_page_cache
       cache_page("Super soaker", "/index.html")
-      render :nothing => true
+      render nothing: true
     end
 
     def with_exception
@@ -112,7 +112,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_process_action_with_parameters
-    get :show, :id => '10'
+    get :show, id: '10'
     wait
 
     assert_equal 3, logs.size
@@ -121,7 +121,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
   def test_process_action_with_wrapped_parameters
     @request.env['CONTENT_TYPE'] = 'application/json'
-    post :show, :id => '10', :name => 'jose'
+    post :show, id: '10', name: 'jose'
     wait
 
     assert_equal 3, logs.size
@@ -137,7 +137,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_process_action_with_filter_parameters
     @request.env["action_dispatch.parameter_filter"] = [:lifo, :amount]
 
-    get :show, :lifo => 'Pratik', :amount => '420', :step => '1'
+    get :show, lifo: 'Pratik', amount: '420', step: '1'
     wait
 
     params = logs[1]

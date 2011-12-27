@@ -30,7 +30,7 @@ module ActiveModel
     #     include ActiveModel::MassAssignmentSecurity
     #
     #     attr_accessible :first_name, :last_name
-    #     attr_accessible :first_name, :last_name, :plan_id, :as => :admin
+    #     attr_accessible :first_name, :last_name, :plan_id, as: :admin
     #
     #     def update
     #       ...
@@ -75,7 +75,7 @@ module ActiveModel
       #   
       #     attr_protected :logins_count
       #     # Suppose that admin can not change email for customer
-      #     attr_protected :logins_count, :email, :as => :admin 
+      #     attr_protected :logins_count, :email, as: :admin 
       #   
       #     def assign_attributes(values, options = {})
       #       sanitize_for_mass_assignment(values, options[:as]).each do |k, v|
@@ -87,7 +87,7 @@ module ActiveModel
       # When using the :default role :
       #
       #   customer = Customer.new
-      #   customer.assign_attributes({ "name" => "David", "email" => "a@b.com", :logins_count => 5 }, :as => :default)
+      #   customer.assign_attributes({ "name" => "David", "email" => "a@b.com", logins_count: 5 }, as: :default)
       #   customer.name          # => "David"
       #   customer.email # => "a@b.com"
       #   customer.logins_count    # => nil
@@ -95,7 +95,7 @@ module ActiveModel
       # And using the :admin role :
       #
       #   customer = Customer.new
-      #   customer.assign_attributes({ "name" => "David", "email" => "a@b.com", :logins_count => 5}, :as => :admin)
+      #   customer.assign_attributes({ "name" => "David", "email" => "a@b.com", logins_count: 5}, as: :admin)
       #   customer.name          # => "David"
       #   customer.email # => nil
       #   customer.logins_count    # => nil
@@ -142,7 +142,7 @@ module ActiveModel
       #     attr_accessor :name, :credit_rating
       #
       #     attr_accessible :name
-      #     attr_accessible :name, :credit_rating, :as => :admin
+      #     attr_accessible :name, :credit_rating, as: :admin
       #
       #     def assign_attributes(values, options = {})
       #       sanitize_for_mass_assignment(values, options[:as]).each do |k, v|
@@ -154,7 +154,7 @@ module ActiveModel
       # When using the :default role :
       #
       #   customer = Customer.new
-      #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :default)
+      #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", last_login: 1.day.ago }, as: :default)
       #   customer.name          # => "David"
       #   customer.credit_rating # => nil
       #
@@ -164,7 +164,7 @@ module ActiveModel
       # And using the :admin role :
       #
       #   customer = Customer.new
-      #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :admin)
+      #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", last_login: 1.day.ago }, as: :admin)
       #   customer.name          # => "David"
       #   customer.credit_rating # => "Excellent"
       #

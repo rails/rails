@@ -9,7 +9,7 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      build_app(:initializers => true)
+      build_app(initializers: true)
       boot_rails
     end
 
@@ -32,7 +32,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '*path', :to => lambda { |env| [200, { "Content-Type" => "text/html" }, "Not an asset"] }
+          match '*path', to: lambda { |env| [200, { "Content-Type" => "text/html" }, "Not an asset"] }
         end
       RUBY
 
@@ -208,7 +208,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          match '/posts', to: "posts#index"
         end
       RUBY
 
@@ -234,7 +234,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          match '/posts', to: "posts#index"
         end
       RUBY
 
@@ -338,7 +338,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/omg', :to => "omg#index"
+          match '/omg', to: "omg#index"
         end
       RUBY
 
@@ -347,7 +347,7 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           flash[:cool_story] = true
-          render :text => "ok"
+          render text: "ok"
         end
       end
 
@@ -499,7 +499,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          match '/posts', to: "posts#index"
         end
       RUBY
     end

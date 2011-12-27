@@ -2,11 +2,11 @@ require 'abstract_unit'
 
 class ForceSSLController < ActionController::Base
   def banana
-    render :text => "monkey"
+    render text: "monkey"
   end
 
   def cheeseburger
-    render :text => "sikachu"
+    render text: "sikachu"
   end
 end
 
@@ -15,15 +15,15 @@ class ForceSSLControllerLevel < ForceSSLController
 end
 
 class ForceSSLCustomDomain < ForceSSLController
-  force_ssl :host => "secure.test.host"
+  force_ssl host: "secure.test.host"
 end
 
 class ForceSSLOnlyAction < ForceSSLController
-  force_ssl :only => :cheeseburger
+  force_ssl only: :cheeseburger
 end
 
 class ForceSSLExceptAction < ForceSSLController
-  force_ssl :except => :banana
+  force_ssl except: :banana
 end
 
 class ForceSSLControllerLevelTest < ActionController::TestCase

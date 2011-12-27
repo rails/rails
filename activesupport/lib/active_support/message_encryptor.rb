@@ -26,7 +26,7 @@ module ActiveSupport
     def initialize(secret, options = {})
       @secret = secret
       @cipher = options[:cipher] || 'aes-256-cbc'
-      @verifier = MessageVerifier.new(@secret, :serializer => NullSerializer)
+      @verifier = MessageVerifier.new(@secret, serializer: NullSerializer)
       @serializer = options[:serializer] || Marshal
     end
 

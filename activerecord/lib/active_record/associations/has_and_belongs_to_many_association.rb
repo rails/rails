@@ -12,9 +12,9 @@ module ActiveRecord
       def insert_record(record, validate = true, raise = false)
         if record.new_record?
           if raise
-            record.save!(:validate => validate)
+            record.save!(validate: validate)
           else
-            return unless record.save(:validate => validate)
+            return unless record.save(validate: validate)
           end
         end
 

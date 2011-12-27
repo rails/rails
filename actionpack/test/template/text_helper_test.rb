@@ -34,8 +34,8 @@ class TextHelperTest < ActionView::TestCase
     text = "A\r\n  \nB\n\n\r\n\t\nC\nD".freeze
     assert_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
 
-    assert_equal %q(<p class="test">This is a classy test</p>), simple_format("This is a classy test", :class => 'test')
-    assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", :class => 'test')
+    assert_equal %q(<p class="test">This is a classy test</p>), simple_format("This is a classy test", class: 'test')
+    assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", class: 'test')
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_not_false
@@ -43,7 +43,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
-    assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false)
+    assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, sanitize: false)
   end
 
   def test_simple_format_should_not_change_the_text_passed
@@ -54,16 +54,16 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_should_not_be_html_safe
-    assert !truncate("Hello World!", :length => 12).html_safe?
+    assert !truncate("Hello World!", length: 12).html_safe?
   end
 
   def test_truncate
-    assert_equal "Hello World!", truncate("Hello World!", :length => 12)
-    assert_equal "Hello Wor...", truncate("Hello World!!", :length => 12)
+    assert_equal "Hello World!", truncate("Hello World!", length: 12)
+    assert_equal "Hello Wor...", truncate("Hello World!!", length: 12)
   end
 
   def test_truncate_should_not_escape_input
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", :length => 12)
+    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", length: 12)
   end
 
   def test_truncate_should_use_default_length_of_30
@@ -72,21 +72,21 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_options_hash
-    assert_equal "This is a string that wil[...]", truncate("This is a string that will go longer then the default truncate length of 30", :omission => "[...]")
-    assert_equal "Hello W...", truncate("Hello World!", :length => 10)
-    assert_equal "Hello[...]", truncate("Hello World!", :omission => "[...]", :length => 10)
-    assert_equal "Hello[...]", truncate("Hello Big World!", :omission => "[...]", :length => 13, :separator => ' ')
-    assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 14, :separator => ' ')
-    assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 15, :separator => ' ')
+    assert_equal "This is a string that wil[...]", truncate("This is a string that will go longer then the default truncate length of 30", omission: "[...]")
+    assert_equal "Hello W...", truncate("Hello World!", length: 10)
+    assert_equal "Hello[...]", truncate("Hello World!", omission: "[...]", length: 10)
+    assert_equal "Hello[...]", truncate("Hello Big World!", omission: "[...]", length: 13, separator: ' ')
+    assert_equal "Hello Big[...]", truncate("Hello Big World!", omission: "[...]", length: 14, separator: ' ')
+    assert_equal "Hello Big[...]", truncate("Hello Big World!", omission: "[...]", length: 15, separator: ' ')
   end
 
   def test_truncate_multibyte
     # .mb_chars always returns a UTF-8 String.
     # assert_equal "\354\225\210\353\205\225\355...",
-    #   truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", :length => 10)
+    #   truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", length: 10)
 
     assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
-      truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8'), :length => 10)
+      truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8'), length: 10)
   end
 
   def test_highlight_should_be_html_safe
@@ -127,7 +127,7 @@ class TextHelperTest < ActionView::TestCase
   def test_highlight_should_not_sanitize_if_sanitize_option_if_false
     assert_equal(
       "This is a <strong class=\"highlight\">beautiful</strong> morning<script>code!</script>",
-      highlight("This is a beautiful morning<script>code!</script>", "beautiful", :sanitize => false)
+      highlight("This is a beautiful morning<script>code!</script>", "beautiful", sanitize: false)
     )
   end
 
@@ -155,7 +155,7 @@ class TextHelperTest < ActionView::TestCase
   def test_highlight_with_options_hash
     assert_equal(
       "This is a <b>beautiful</b> morning, but also a <b>beautiful</b> day",
-      highlight("This is a beautiful morning, but also a beautiful day", "beautiful", :highlighter => '<b>\1</b>')
+      highlight("This is a beautiful morning, but also a beautiful day", "beautiful", highlighter: '<b>\1</b>')
     )
   end
 
@@ -182,7 +182,7 @@ class TextHelperTest < ActionView::TestCase
     )
     assert_equal(
       "<div>abc <b>div</b></div>",
-      highlight("<div>abc div</div>", "div", :highlighter => '<b>\1</b>')
+      highlight("<div>abc div</div>", "div", highlighter: '<b>\1</b>')
     )
   end
 
@@ -220,12 +220,12 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_with_options_hash
-    assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", :radius => 5))
-    assert_equal("[...]is a beautiful morn[...]", excerpt("This is a beautiful morning", "beautiful", :omission => "[...]",:radius => 5))
+    assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", radius: 5))
+    assert_equal("[...]is a beautiful morn[...]", excerpt("This is a beautiful morning", "beautiful", omission: "[...]",radius: 5))
     assert_equal(
       "This is the ultimate supercalifragilisticexpialidoceous very looooooooooooooooooong looooooooooooong beautiful morning with amazing sunshine and awesome tempera[...]",
       excerpt("This is the ultimate supercalifragilisticexpialidoceous very looooooooooooooooooong looooooooooooong beautiful morning with amazing sunshine and awesome temperatures. So what are you gonna do about it?", "very",
-      :omission => "[...]")
+      omission: "[...]")
     )
   end
 
@@ -244,7 +244,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_word_wrap_with_options_hash
-    assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", :line_width => 15))
+    assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", line_width: 15))
   end
 
   def test_pluralization
@@ -304,12 +304,12 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_named_cycles
-    assert_equal("1", cycle(1, 2, 3, :name => "numbers"))
-    assert_equal("red", cycle("red", "blue", :name => "colors"))
-    assert_equal("2", cycle(1, 2, 3, :name => "numbers"))
-    assert_equal("blue", cycle("red", "blue", :name => "colors"))
-    assert_equal("3", cycle(1, 2, 3, :name => "numbers"))
-    assert_equal("red", cycle("red", "blue", :name => "colors"))
+    assert_equal("1", cycle(1, 2, 3, name: "numbers"))
+    assert_equal("red", cycle("red", "blue", name: "colors"))
+    assert_equal("2", cycle(1, 2, 3, name: "numbers"))
+    assert_equal("blue", cycle("red", "blue", name: "colors"))
+    assert_equal("3", cycle(1, 2, 3, name: "numbers"))
+    assert_equal("red", cycle("red", "blue", name: "colors"))
   end
 
   def test_current_cycle_with_default_name
@@ -322,11 +322,11 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_current_cycle_with_named_cycles
-    cycle("red", "blue", :name => "colors")
+    cycle("red", "blue", name: "colors")
     assert_equal "red", current_cycle("colors")
-    cycle("red", "blue", :name => "colors")
+    cycle("red", "blue", name: "colors")
     assert_equal "blue", current_cycle("colors")
-    cycle("red", "blue", :name => "colors")
+    cycle("red", "blue", name: "colors")
     assert_equal "red", current_cycle("colors")
   end
 
@@ -348,7 +348,7 @@ class TextHelperTest < ActionView::TestCase
 
   def test_default_named_cycle
     assert_equal("1", cycle(1, 2, 3))
-    assert_equal("2", cycle(1, 2, 3, :name => "default"))
+    assert_equal("2", cycle(1, 2, 3, name: "default"))
     assert_equal("3", cycle(1, 2, 3))
   end
 
@@ -364,13 +364,13 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_recet_named_cycle
-    assert_equal("1", cycle(1, 2, 3, :name => "numbers"))
-    assert_equal("red", cycle("red", "blue", :name => "colors"))
+    assert_equal("1", cycle(1, 2, 3, name: "numbers"))
+    assert_equal("red", cycle("red", "blue", name: "colors"))
     reset_cycle("numbers")
-    assert_equal("1", cycle(1, 2, 3, :name => "numbers"))
-    assert_equal("blue", cycle("red", "blue", :name => "colors"))
-    assert_equal("2", cycle(1, 2, 3, :name => "numbers"))
-    assert_equal("red", cycle("red", "blue", :name => "colors"))
+    assert_equal("1", cycle(1, 2, 3, name: "numbers"))
+    assert_equal("blue", cycle("red", "blue", name: "colors"))
+    assert_equal("2", cycle(1, 2, 3, name: "numbers"))
+    assert_equal("red", cycle("red", "blue", name: "colors"))
   end
 
   def test_cycle_no_instance_variable_clashes

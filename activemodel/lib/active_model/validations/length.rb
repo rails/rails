@@ -5,8 +5,8 @@ module ActiveModel
   # == Active Model Length Validator
   module Validations
     class LengthValidator < EachValidator
-      MESSAGES  = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }.freeze
-      CHECKS    = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
+      MESSAGES  = { is: :wrong_length, minimum: :too_short, maximum: :too_long }.freeze
+      CHECKS    = { is: :==, minimum: :>=, maximum: :<= }.freeze
 
       RESERVED_OPTIONS  = [:minimum, :maximum, :within, :is, :tokenizer, :too_short, :too_long]
 
@@ -67,14 +67,14 @@ module ActiveModel
       # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
       #
       #   class Person < ActiveRecord::Base
-      #     validates_length_of :first_name, :maximum => 30
-      #     validates_length_of :last_name, :maximum => 30, :message => "less than 30 if you don't mind"
-      #     validates_length_of :fax, :in => 7..32, :allow_nil => true
-      #     validates_length_of :phone, :in => 7..32, :allow_blank => true
-      #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
-      #     validates_length_of :zip_code, :minimum => 5, :too_short => "please enter at least 5 characters"
-      #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with 4 characters... don't play me."
-      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least 100 words.", :tokenizer => lambda { |str| str.scan(/\w+/) }
+      #     validates_length_of :first_name, maximum: 30
+      #     validates_length_of :last_name, maximum: 30, message: "less than 30 if you don't mind"
+      #     validates_length_of :fax, in: 7..32, allow_nil: true
+      #     validates_length_of :phone, in: 7..32, allow_blank: true
+      #     validates_length_of :user_name, within: 6..20, too_long: "pick a shorter name", too_short: "pick a longer name"
+      #     validates_length_of :zip_code, minimum: 5, too_short: "please enter at least 5 characters"
+      #     validates_length_of :smurf_leader, is: 4, message: "papa is spelled with 4 characters... don't play me."
+      #     validates_length_of :essay, minimum: 100, too_short: "Your essay must be at least 100 words.", tokenizer: lambda { |str| str.scan(/\w+/) }
       #   end
       #
       # Configuration options:
@@ -93,12 +93,12 @@ module ActiveModel
       #   validation contexts by default (+nil+), other options are <tt>:create</tt>
       #   and <tt>:update</tt>.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The
+      #   occur (e.g. <tt>if: :allow_validation</tt>, or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
+      #   not occur (e.g. <tt>unless: :skip_validation</tt>, or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string. (e.g. <tt>:tokenizer => lambda {|str| str.scan(/\w+/)}</tt> to
+      # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string. (e.g. <tt>tokenizer: lambda {|str| str.scan(/\w+/)}</tt> to
       #   count words as in above example.)
       #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.

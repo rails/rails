@@ -262,20 +262,20 @@ module ActiveRecord
       ADAPTER_NAME = 'PostgreSQL'
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => "serial primary key",
-        :string      => { :name => "character varying", :limit => 255 },
-        :text        => { :name => "text" },
-        :integer     => { :name => "integer" },
-        :float       => { :name => "float" },
-        :decimal     => { :name => "decimal" },
-        :datetime    => { :name => "timestamp" },
-        :timestamp   => { :name => "timestamp" },
-        :time        => { :name => "time" },
-        :date        => { :name => "date" },
-        :binary      => { :name => "bytea" },
-        :boolean     => { :name => "boolean" },
-        :xml         => { :name => "xml" },
-        :tsvector    => { :name => "tsvector" }
+        primary_key: "serial primary key",
+        string:      { name: "character varying", limit: 255 },
+        text:        { name: "text" },
+        integer:     { name: "integer" },
+        float:       { name: "float" },
+        decimal:     { name: "decimal" },
+        datetime:    { name: "timestamp" },
+        timestamp:   { name: "timestamp" },
+        time:        { name: "time" },
+        date:        { name: "date" },
+        binary:      { name: "bytea" },
+        boolean:     { name: "boolean" },
+        xml:         { name: "xml" },
+        tsvector:    { name: "tsvector" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -491,7 +491,7 @@ module ActiveRecord
         case value
         when String
           return super unless 'bytea' == column.sql_type
-          { :value => value, :format => 1 }
+          { value: value, format: 1 }
         else
           super
         end
@@ -772,9 +772,9 @@ module ActiveRecord
       #
       # Example:
       #   create_database config[:database], config
-      #   create_database 'foo_development', :encoding => 'unicode'
+      #   create_database 'foo_development', encoding: 'unicode'
       def create_database(name, options = {})
-        options = options.reverse_merge(:encoding => "utf8")
+        options = options.reverse_merge(encoding: "utf8")
 
         option_string = options.symbolize_keys.sum do |key, value|
           case key

@@ -9,7 +9,7 @@ module ActiveRecord
       Configuration.define :time_zone_aware_attributes, false
 
       included do
-        class_attribute :skip_time_zone_conversion_for_attributes, :instance_writer => false
+        class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false
         self.skip_time_zone_conversion_for_attributes = []
       end
 

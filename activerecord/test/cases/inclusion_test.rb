@@ -3,17 +3,17 @@ require 'models/teapot'
 
 class BasicInclusionModelTest < ActiveRecord::TestCase
   def test_basic_model
-    Teapot.create!(:name => "Ronnie Kemper")
+    Teapot.create!(name: "Ronnie Kemper")
     assert_equal "Ronnie Kemper", Teapot.find(1).name
   end
 
   def test_initialization
-    t = Teapot.new(:name => "Bob")
+    t = Teapot.new(name: "Bob")
     assert_equal "Bob", t.name
   end
 
   def test_inherited_model
-    teapot = CoolTeapot.create!(:name => "Bob")
+    teapot = CoolTeapot.create!(name: "Bob")
     teapot.reload
 
     assert_equal "Bob", teapot.name
@@ -25,14 +25,14 @@ class BasicInclusionModelTest < ActiveRecord::TestCase
   end
 
   def test_exists
-    t = Teapot.create!(:name => "Ronnie Kemper")
+    t = Teapot.create!(name: "Ronnie Kemper")
     assert Teapot.exists?(t)
   end
 
   def test_predicate_builder
-    t = Teapot.create!(:name => "Bob")
-    assert_equal "Bob", Teapot.where(:id => [t]).first.name
-    assert_equal "Bob", Teapot.where(:id => t).first.name
+    t = Teapot.create!(name: "Bob")
+    assert_equal "Bob", Teapot.where(id: [t]).first.name
+    assert_equal "Bob", Teapot.where(id: t).first.name
   end
 
   def test_nested_model

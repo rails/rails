@@ -13,9 +13,9 @@ module ActionDispatch
     config.action_dispatch.rescue_responses = { }
 
     config.action_dispatch.rack_cache = {
-      :metastore => "rails:/",
-      :entitystore => "rails:/",
-      :verbose => true
+      metastore: "rails:/",
+      entitystore: "rails:/",
+      verbose: true
     }
 
     initializer "action_dispatch.configure" do |app|
