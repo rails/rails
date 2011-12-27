@@ -6,7 +6,7 @@ module Rails
       extend ActiveSupport::Concern
 
       module ClassMethods
-        delegate :config, :to => :instance
+        delegate :config, to: :instance
 
         def inherited(base)
           raise "You cannot inherit from a #{self.superclass.name} child"

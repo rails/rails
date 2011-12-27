@@ -15,10 +15,10 @@ module MassAssignmentTestHelpers
 
   def attributes_hash
     {
-      :id => 5,
-      :first_name => 'Josh',
-      :gender   => 'm',
-      :comments => 'rides a sweet bike'
+      id: 5,
+      first_name: 'Josh',
+      gender:   'm',
+      comments: 'rides a sweet bike'
     }
   end
 
@@ -71,18 +71,18 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
   include MassAssignmentTestHelpers
 
   def test_customized_primary_key_remains_protected
-    subscriber = Subscriber.new(:nick => 'webster123', :name => 'nice try')
+    subscriber = Subscriber.new(nick: 'webster123', name: 'nice try')
     assert_nil subscriber.id
 
-    keyboard = Keyboard.new(:key_number => 9, :name => 'nice try')
+    keyboard = Keyboard.new(key_number: 9, name: 'nice try')
     assert_nil keyboard.id
   end
 
   def test_customized_primary_key_remains_protected_when_referred_to_as_id
-    subscriber = Subscriber.new(:id => 'webster123', :name => 'nice try')
+    subscriber = Subscriber.new(id: 'webster123', name: 'nice try')
     assert_nil subscriber.id
 
-    keyboard = Keyboard.new(:id => 9, :name => 'nice try')
+    keyboard = Keyboard.new(id: 9, name: 'nice try')
     assert_nil keyboard.id
   end
 
@@ -107,35 +107,35 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
 
   def test_assign_attributes_skips_mass_assignment_security_protection_when_without_protection_is_used
     p = LoosePerson.new
-    p.assign_attributes(attributes_hash, :without_protection => true)
+    p.assign_attributes(attributes_hash, without_protection: true)
 
     assert_all_attributes(p)
   end
 
   def test_assign_attributes_with_default_role_and_attr_protected_attributes
     p = LoosePerson.new
-    p.assign_attributes(attributes_hash, :as => :default)
+    p.assign_attributes(attributes_hash, as: :default)
 
     assert_default_attributes(p)
   end
 
   def test_assign_attributes_with_admin_role_and_attr_protected_attributes
     p = LoosePerson.new
-    p.assign_attributes(attributes_hash, :as => :admin)
+    p.assign_attributes(attributes_hash, as: :admin)
 
     assert_admin_attributes(p)
   end
 
   def test_assign_attributes_with_default_role_and_attr_accessible_attributes
     p = TightPerson.new
-    p.assign_attributes(attributes_hash, :as => :default)
+    p.assign_attributes(attributes_hash, as: :default)
 
     assert_default_attributes(p)
   end
 
   def test_assign_attributes_with_admin_role_and_attr_accessible_attributes
     p = TightPerson.new
-    p.assign_attributes(attributes_hash, :as => :admin)
+    p.assign_attributes(attributes_hash, as: :admin)
 
     assert_admin_attributes(p)
   end
@@ -165,73 +165,73 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
   end
 
   def test_new_with_admin_role_with_attr_accessible_attributes
-    p = TightPerson.new(attributes_hash, :as => :admin)
+    p = TightPerson.new(attributes_hash, as: :admin)
 
     assert_admin_attributes(p)
   end
 
   def test_new_with_admin_role_with_attr_protected_attributes
-    p = LoosePerson.new(attributes_hash, :as => :admin)
+    p = LoosePerson.new(attributes_hash, as: :admin)
 
     assert_admin_attributes(p)
   end
 
   def test_create_with_admin_role_with_attr_accessible_attributes
-    p = TightPerson.create(attributes_hash, :as => :admin)
+    p = TightPerson.create(attributes_hash, as: :admin)
 
     assert_admin_attributes(p, true)
   end
 
   def test_create_with_admin_role_with_attr_protected_attributes
-    p = LoosePerson.create(attributes_hash, :as => :admin)
+    p = LoosePerson.create(attributes_hash, as: :admin)
 
     assert_admin_attributes(p, true)
   end
 
   def test_create_with_bang_with_admin_role_with_attr_accessible_attributes
-    p = TightPerson.create!(attributes_hash, :as => :admin)
+    p = TightPerson.create!(attributes_hash, as: :admin)
 
     assert_admin_attributes(p, true)
   end
 
   def test_create_with_bang_with_admin_role_with_attr_protected_attributes
-    p = LoosePerson.create!(attributes_hash, :as => :admin)
+    p = LoosePerson.create!(attributes_hash, as: :admin)
 
     assert_admin_attributes(p, true)
   end
 
   def test_new_with_without_protection_with_attr_accessible_attributes
-    p = TightPerson.new(attributes_hash, :without_protection => true)
+    p = TightPerson.new(attributes_hash, without_protection: true)
 
     assert_all_attributes(p)
   end
 
   def test_new_with_without_protection_with_attr_protected_attributes
-    p = LoosePerson.new(attributes_hash, :without_protection => true)
+    p = LoosePerson.new(attributes_hash, without_protection: true)
 
     assert_all_attributes(p)
   end
 
   def test_create_with_without_protection_with_attr_accessible_attributes
-    p = TightPerson.create(attributes_hash, :without_protection => true)
+    p = TightPerson.create(attributes_hash, without_protection: true)
 
     assert_all_attributes(p)
   end
 
   def test_create_with_without_protection_with_attr_protected_attributes
-    p = LoosePerson.create(attributes_hash, :without_protection => true)
+    p = LoosePerson.create(attributes_hash, without_protection: true)
 
     assert_all_attributes(p)
   end
 
   def test_create_with_bang_with_without_protection_with_attr_accessible_attributes
-    p = TightPerson.create!(attributes_hash, :without_protection => true)
+    p = TightPerson.create!(attributes_hash, without_protection: true)
 
     assert_all_attributes(p)
   end
 
   def test_create_with_bang_with_without_protection_with_attr_protected_attributes
-    p = LoosePerson.create!(attributes_hash, :without_protection => true)
+    p = LoosePerson.create!(attributes_hash, without_protection: true)
 
     assert_all_attributes(p)
   end
@@ -255,7 +255,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
   end
 
   def test_find_or_initialize_by_with_admin_role_with_attr_accessible_attributes
-    p = TightPerson.find_or_initialize_by_first_name('Josh', attributes_hash, :as => :admin)
+    p = TightPerson.find_or_initialize_by_first_name('Josh', attributes_hash, as: :admin)
 
     assert_admin_attributes(p)
   end
@@ -267,7 +267,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
   end
 
   def test_find_or_initialize_by_with_admin_role_with_attr_protected_attributes
-    p = LoosePerson.find_or_initialize_by_first_name('Josh', attributes_hash, :as => :admin)
+    p = LoosePerson.find_or_initialize_by_first_name('Josh', attributes_hash, as: :admin)
 
     assert_admin_attributes(p)
   end
@@ -279,7 +279,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
   end
 
   def test_find_or_create_by_with_admin_role_with_attr_accessible_attributes
-    p = TightPerson.find_or_create_by_first_name('Josh', attributes_hash, :as => :admin)
+    p = TightPerson.find_or_create_by_first_name('Josh', attributes_hash, as: :admin)
 
     assert_admin_attributes(p, true)
   end
@@ -291,7 +291,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
   end
 
   def test_find_or_create_by_with_admin_role_with_attr_protected_attributes
-    p = LoosePerson.find_or_create_by_first_name('Josh', attributes_hash, :as => :admin)
+    p = LoosePerson.find_or_create_by_first_name('Josh', attributes_hash, as: :admin)
 
     assert_admin_attributes(p, true)
   end
@@ -316,17 +316,17 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_build_with_admin_role_with_attr_protected_attributes
-    best_friend = @person.build_best_friend(attributes_hash, :as => :admin)
+    best_friend = @person.build_best_friend(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend)
   end
 
   def test_has_one_build_with_admin_role_with_attr_accessible_attributes
-    best_friend = @person.build_best_friend(attributes_hash, :as => :admin)
+    best_friend = @person.build_best_friend(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend)
   end
 
   def test_has_one_build_without_protection
-    best_friend = @person.build_best_friend(attributes_hash, :without_protection => true)
+    best_friend = @person.build_best_friend(attributes_hash, without_protection: true)
     assert_all_attributes(best_friend)
   end
 
@@ -350,17 +350,17 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_create_with_admin_role_with_attr_protected_attributes
-    best_friend = @person.create_best_friend(attributes_hash, :as => :admin)
+    best_friend = @person.create_best_friend(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_has_one_create_with_admin_role_with_attr_accessible_attributes
-    best_friend = @person.create_best_friend(attributes_hash, :as => :admin)
+    best_friend = @person.create_best_friend(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_has_one_create_without_protection
-    best_friend = @person.create_best_friend(attributes_hash, :without_protection => true)
+    best_friend = @person.create_best_friend(attributes_hash, without_protection: true)
     assert_all_attributes(best_friend)
   end
 
@@ -384,17 +384,17 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_create_with_bang_with_admin_role_with_attr_protected_attributes
-    best_friend = @person.create_best_friend!(attributes_hash, :as => :admin)
+    best_friend = @person.create_best_friend!(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_has_one_create_with_bang_with_admin_role_with_attr_accessible_attributes
-    best_friend = @person.create_best_friend!(attributes_hash, :as => :admin)
+    best_friend = @person.create_best_friend!(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_has_one_create_with_bang_without_protection
-    best_friend = @person.create_best_friend!(attributes_hash, :without_protection => true)
+    best_friend = @person.create_best_friend!(attributes_hash, without_protection: true)
     assert_all_attributes(best_friend)
   end
 
@@ -425,17 +425,17 @@ class MassAssignmentSecurityBelongsToRelationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_build_with_admin_role_with_attr_protected_attributes
-    best_friend = @person.build_best_friend_of(attributes_hash, :as => :admin)
+    best_friend = @person.build_best_friend_of(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend)
   end
 
   def test_belongs_to_build_with_admin_role_with_attr_accessible_attributes
-    best_friend = @person.build_best_friend_of(attributes_hash, :as => :admin)
+    best_friend = @person.build_best_friend_of(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend)
   end
 
   def test_belongs_to_build_without_protection
-    best_friend = @person.build_best_friend_of(attributes_hash, :without_protection => true)
+    best_friend = @person.build_best_friend_of(attributes_hash, without_protection: true)
     assert_all_attributes(best_friend)
   end
 
@@ -452,17 +452,17 @@ class MassAssignmentSecurityBelongsToRelationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_create_with_admin_role_with_attr_protected_attributes
-    best_friend = @person.create_best_friend_of(attributes_hash, :as => :admin)
+    best_friend = @person.create_best_friend_of(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_belongs_to_create_with_admin_role_with_attr_accessible_attributes
-    best_friend = @person.create_best_friend_of(attributes_hash, :as => :admin)
+    best_friend = @person.create_best_friend_of(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_belongs_to_create_without_protection
-    best_friend = @person.create_best_friend_of(attributes_hash, :without_protection => true)
+    best_friend = @person.create_best_friend_of(attributes_hash, without_protection: true)
     assert_all_attributes(best_friend)
   end
 
@@ -486,17 +486,17 @@ class MassAssignmentSecurityBelongsToRelationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_create_with_bang_with_admin_role_with_attr_protected_attributes
-    best_friend = @person.create_best_friend!(attributes_hash, :as => :admin)
+    best_friend = @person.create_best_friend!(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_belongs_to_create_with_bang_with_admin_role_with_attr_accessible_attributes
-    best_friend = @person.create_best_friend!(attributes_hash, :as => :admin)
+    best_friend = @person.create_best_friend!(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_belongs_to_create_with_bang_without_protection
-    best_friend = @person.create_best_friend!(attributes_hash, :without_protection => true)
+    best_friend = @person.create_best_friend!(attributes_hash, without_protection: true)
     assert_all_attributes(best_friend)
   end
 
@@ -527,17 +527,17 @@ class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_build_with_admin_role_with_attr_protected_attributes
-    best_friend = @person.best_friends.build(attributes_hash, :as => :admin)
+    best_friend = @person.best_friends.build(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend)
   end
 
   def test_has_many_build_with_admin_role_with_attr_accessible_attributes
-    best_friend = @person.best_friends.build(attributes_hash, :as => :admin)
+    best_friend = @person.best_friends.build(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend)
   end
 
   def test_has_many_build_without_protection
-    best_friend = @person.best_friends.build(attributes_hash, :without_protection => true)
+    best_friend = @person.best_friends.build(attributes_hash, without_protection: true)
     assert_all_attributes(best_friend)
   end
 
@@ -561,17 +561,17 @@ class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_create_with_admin_role_with_attr_protected_attributes
-    best_friend = @person.best_friends.create(attributes_hash, :as => :admin)
+    best_friend = @person.best_friends.create(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_has_many_create_with_admin_role_with_attr_accessible_attributes
-    best_friend = @person.best_friends.create(attributes_hash, :as => :admin)
+    best_friend = @person.best_friends.create(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_has_many_create_without_protection
-    best_friend = @person.best_friends.create(attributes_hash, :without_protection => true)
+    best_friend = @person.best_friends.create(attributes_hash, without_protection: true)
     assert_all_attributes(best_friend)
   end
 
@@ -595,17 +595,17 @@ class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_create_with_bang_with_admin_role_with_attr_protected_attributes
-    best_friend = @person.best_friends.create!(attributes_hash, :as => :admin)
+    best_friend = @person.best_friends.create!(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_has_many_create_with_bang_with_admin_role_with_attr_accessible_attributes
-    best_friend = @person.best_friends.create!(attributes_hash, :as => :admin)
+    best_friend = @person.best_friends.create!(attributes_hash, as: :admin)
     assert_admin_attributes(best_friend, true)
   end
 
   def test_has_many_create_with_bang_without_protection
-    best_friend = @person.best_friends.create!(attributes_hash, :without_protection => true)
+    best_friend = @person.best_friends.create!(attributes_hash, without_protection: true)
     assert_all_attributes(best_friend)
   end
 
@@ -624,9 +624,9 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
 
   def nested_attributes_hash(association, collection = false, except = [:id])
     if collection
-      { :first_name => 'David' }.merge(:"#{association}_attributes" => [attributes_hash.except(*except)])
+      { first_name: 'David' }.merge(:"#{association}_attributes" => [attributes_hash.except(*except)])
     else
-      { :first_name => 'David' }.merge(:"#{association}_attributes" => attributes_hash.except(*except))
+      { first_name: 'David' }.merge(:"#{association}_attributes" => attributes_hash.except(*except))
     end
   end
 
@@ -643,17 +643,17 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
   end
 
   def test_has_one_new_with_admin_role_with_attr_protected_attributes
-    person = LoosePerson.new(nested_attributes_hash(:best_friend), :as => :admin)
+    person = LoosePerson.new(nested_attributes_hash(:best_friend), as: :admin)
     assert_admin_attributes(person.best_friend)
   end
 
   def test_has_one_new_with_admin_role_with_attr_accessible_attributes
-    person = TightPerson.new(nested_attributes_hash(:best_friend), :as => :admin)
+    person = TightPerson.new(nested_attributes_hash(:best_friend), as: :admin)
     assert_admin_attributes(person.best_friend)
   end
 
   def test_has_one_new_without_protection
-    person = LoosePerson.new(nested_attributes_hash(:best_friend, false, nil), :without_protection => true)
+    person = LoosePerson.new(nested_attributes_hash(:best_friend, false, nil), without_protection: true)
     assert_all_attributes(person.best_friend)
   end
 
@@ -668,17 +668,17 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_new_with_admin_role_with_attr_protected_attributes
-    person = LoosePerson.new(nested_attributes_hash(:best_friend_of), :as => :admin)
+    person = LoosePerson.new(nested_attributes_hash(:best_friend_of), as: :admin)
     assert_admin_attributes(person.best_friend_of)
   end
 
   def test_belongs_to_new_with_admin_role_with_attr_accessible_attributes
-    person = TightPerson.new(nested_attributes_hash(:best_friend_of), :as => :admin)
+    person = TightPerson.new(nested_attributes_hash(:best_friend_of), as: :admin)
     assert_admin_attributes(person.best_friend_of)
   end
 
   def test_belongs_to_new_without_protection
-    person = LoosePerson.new(nested_attributes_hash(:best_friend_of, false, nil), :without_protection => true)
+    person = LoosePerson.new(nested_attributes_hash(:best_friend_of, false, nil), without_protection: true)
     assert_all_attributes(person.best_friend_of)
   end
 
@@ -693,17 +693,17 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
   end
 
   def test_has_many_new_with_admin_role_with_attr_protected_attributes
-    person = LoosePerson.new(nested_attributes_hash(:best_friends, true), :as => :admin)
+    person = LoosePerson.new(nested_attributes_hash(:best_friends, true), as: :admin)
     assert_admin_attributes(person.best_friends.first)
   end
 
   def test_has_many_new_with_admin_role_with_attr_accessible_attributes
-    person = TightPerson.new(nested_attributes_hash(:best_friends, true), :as => :admin)
+    person = TightPerson.new(nested_attributes_hash(:best_friends, true), as: :admin)
     assert_admin_attributes(person.best_friends.first)
   end
 
   def test_has_many_new_without_protection
-    person = LoosePerson.new(nested_attributes_hash(:best_friends, true, nil), :without_protection => true)
+    person = LoosePerson.new(nested_attributes_hash(:best_friends, true, nil), without_protection: true)
     assert_all_attributes(person.best_friends.first)
   end
 
@@ -720,17 +720,17 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
   end
 
   def test_has_one_create_with_admin_role_with_attr_protected_attributes
-    person = LoosePerson.create(nested_attributes_hash(:best_friend), :as => :admin)
+    person = LoosePerson.create(nested_attributes_hash(:best_friend), as: :admin)
     assert_admin_attributes(person.best_friend, true)
   end
 
   def test_has_one_create_with_admin_role_with_attr_accessible_attributes
-    person = TightPerson.create(nested_attributes_hash(:best_friend), :as => :admin)
+    person = TightPerson.create(nested_attributes_hash(:best_friend), as: :admin)
     assert_admin_attributes(person.best_friend, true)
   end
 
   def test_has_one_create_without_protection
-    person = LoosePerson.create(nested_attributes_hash(:best_friend, false, nil), :without_protection => true)
+    person = LoosePerson.create(nested_attributes_hash(:best_friend, false, nil), without_protection: true)
     assert_all_attributes(person.best_friend)
   end
 
@@ -745,17 +745,17 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_create_with_admin_role_with_attr_protected_attributes
-    person = LoosePerson.create(nested_attributes_hash(:best_friend_of), :as => :admin)
+    person = LoosePerson.create(nested_attributes_hash(:best_friend_of), as: :admin)
     assert_admin_attributes(person.best_friend_of, true)
   end
 
   def test_belongs_to_create_with_admin_role_with_attr_accessible_attributes
-    person = TightPerson.create(nested_attributes_hash(:best_friend_of), :as => :admin)
+    person = TightPerson.create(nested_attributes_hash(:best_friend_of), as: :admin)
     assert_admin_attributes(person.best_friend_of, true)
   end
 
   def test_belongs_to_create_without_protection
-    person = LoosePerson.create(nested_attributes_hash(:best_friend_of, false, nil), :without_protection => true)
+    person = LoosePerson.create(nested_attributes_hash(:best_friend_of, false, nil), without_protection: true)
     assert_all_attributes(person.best_friend_of)
   end
 
@@ -770,17 +770,17 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
   end
 
   def test_has_many_create_with_admin_role_with_attr_protected_attributes
-    person = LoosePerson.create(nested_attributes_hash(:best_friends, true), :as => :admin)
+    person = LoosePerson.create(nested_attributes_hash(:best_friends, true), as: :admin)
     assert_admin_attributes(person.best_friends.first, true)
   end
 
   def test_has_many_create_with_admin_role_with_attr_accessible_attributes
-    person = TightPerson.create(nested_attributes_hash(:best_friends, true), :as => :admin)
+    person = TightPerson.create(nested_attributes_hash(:best_friends, true), as: :admin)
     assert_admin_attributes(person.best_friends.first, true)
   end
 
   def test_has_many_create_without_protection
-    person = LoosePerson.create(nested_attributes_hash(:best_friends, true, nil), :without_protection => true)
+    person = LoosePerson.create(nested_attributes_hash(:best_friends, true, nil), without_protection: true)
     assert_all_attributes(person.best_friends.first)
   end
 
@@ -797,17 +797,17 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
   end
 
   def test_has_one_create_with_bang_with_admin_role_with_attr_protected_attributes
-    person = LoosePerson.create!(nested_attributes_hash(:best_friend), :as => :admin)
+    person = LoosePerson.create!(nested_attributes_hash(:best_friend), as: :admin)
     assert_admin_attributes(person.best_friend, true)
   end
 
   def test_has_one_create_with_bang_with_admin_role_with_attr_accessible_attributes
-    person = TightPerson.create!(nested_attributes_hash(:best_friend), :as => :admin)
+    person = TightPerson.create!(nested_attributes_hash(:best_friend), as: :admin)
     assert_admin_attributes(person.best_friend, true)
   end
 
   def test_has_one_create_with_bang_without_protection
-    person = LoosePerson.create!(nested_attributes_hash(:best_friend, false, nil), :without_protection => true)
+    person = LoosePerson.create!(nested_attributes_hash(:best_friend, false, nil), without_protection: true)
     assert_all_attributes(person.best_friend)
   end
 
@@ -822,17 +822,17 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_create_with_bang_with_admin_role_with_attr_protected_attributes
-    person = LoosePerson.create!(nested_attributes_hash(:best_friend_of), :as => :admin)
+    person = LoosePerson.create!(nested_attributes_hash(:best_friend_of), as: :admin)
     assert_admin_attributes(person.best_friend_of, true)
   end
 
   def test_belongs_to_create_with_bang_with_admin_role_with_attr_accessible_attributes
-    person = TightPerson.create!(nested_attributes_hash(:best_friend_of), :as => :admin)
+    person = TightPerson.create!(nested_attributes_hash(:best_friend_of), as: :admin)
     assert_admin_attributes(person.best_friend_of, true)
   end
 
   def test_belongs_to_create_with_bang_without_protection
-    person = LoosePerson.create!(nested_attributes_hash(:best_friend_of, false, nil), :without_protection => true)
+    person = LoosePerson.create!(nested_attributes_hash(:best_friend_of, false, nil), without_protection: true)
     assert_all_attributes(person.best_friend_of)
   end
 
@@ -847,17 +847,17 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
   end
 
   def test_has_many_create_with_bang_with_admin_role_with_attr_protected_attributes
-    person = LoosePerson.create!(nested_attributes_hash(:best_friends, true), :as => :admin)
+    person = LoosePerson.create!(nested_attributes_hash(:best_friends, true), as: :admin)
     assert_admin_attributes(person.best_friends.first, true)
   end
 
   def test_has_many_create_with_bang_with_admin_role_with_attr_accessible_attributes
-    person = TightPerson.create!(nested_attributes_hash(:best_friends, true), :as => :admin)
+    person = TightPerson.create!(nested_attributes_hash(:best_friends, true), as: :admin)
     assert_admin_attributes(person.best_friends.first, true)
   end
 
   def test_has_many_create_with_bang_without_protection
-    person = LoosePerson.create!(nested_attributes_hash(:best_friends, true, nil), :without_protection => true)
+    person = LoosePerson.create!(nested_attributes_hash(:best_friends, true, nil), without_protection: true)
     assert_all_attributes(person.best_friends.first)
   end
 

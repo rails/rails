@@ -46,9 +46,9 @@ namespace :assets do
       compiler = Sprockets::StaticCompiler.new(env,
                                                target,
                                                config.assets.precompile,
-                                               :manifest_path => config.assets.manifest,
-                                               :digest => config.assets.digest,
-                                               :manifest => digest.nil?)
+                                               manifest_path: config.assets.manifest,
+                                               digest: config.assets.digest,
+                                               manifest: digest.nil?)
       compiler.compile
     end
 
@@ -62,11 +62,11 @@ namespace :assets do
       ruby_rake_task "assets:precompile:nondigest" if Rails.application.config.assets.digest
     end
 
-    task :primary => ["assets:environment", "tmp:cache:clear"] do
+    task primary: ["assets:environment", "tmp:cache:clear"] do
       internal_precompile
     end
 
-    task :nondigest => ["assets:environment", "tmp:cache:clear"] do
+    task nondigest: ["assets:environment", "tmp:cache:clear"] do
       internal_precompile(false)
     end
   end
@@ -77,10 +77,10 @@ namespace :assets do
   end
 
   namespace :clean do
-    task :all => ["assets:environment", "tmp:cache:clear"] do
+    task all: ["assets:environment", "tmp:cache:clear"] do
       config = Rails.application.config
       public_asset_path = File.join(Rails.public_path, config.assets.prefix)
-      rm_rf public_asset_path, :secure => true
+      rm_rf public_asset_path, secure: true
     end
   end
 

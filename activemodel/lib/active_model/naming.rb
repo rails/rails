@@ -10,7 +10,7 @@ module ActiveModel
 
     alias_method :cache_key, :collection
 
-    deprecate :partial_path => "ActiveModel::Name#partial_path is deprecated. Call #to_partial_path on model instances directly instead."
+    deprecate partial_path: "ActiveModel::Name#partial_path is deprecated. Call #to_partial_path on model instances directly instead."
 
     def initialize(klass, namespace = nil, name = nil)
       name ||= klass.name
@@ -53,7 +53,7 @@ module ActiveModel
       defaults << options[:default] if options[:default]
       defaults << @human
 
-      options = {:scope => [@klass.i18n_scope, :models], :count => 1, :default => defaults}.merge(options.except(:default))
+      options = {scope: [@klass.i18n_scope, :models], count: 1, default: defaults}.merge(options.except(:default))
       I18n.translate(defaults.shift, options)
     end
 

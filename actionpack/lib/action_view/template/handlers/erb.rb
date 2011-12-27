@@ -83,7 +83,7 @@ module ActionView
 
           self.class.erb_implementation.new(
             erb,
-            :trim => (self.class.erb_trim_mode == "-")
+            trim: (self.class.erb_trim_mode == "-")
           ).src
         end
 

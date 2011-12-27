@@ -65,7 +65,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # The connection handler
-      class_attribute :connection_handler, :instance_writer => false
+      class_attribute :connection_handler, instance_writer: false
 
       initialize_generated_modules unless self == Base
     end
@@ -146,13 +146,13 @@ module ActiveRecord
     #
     # ==== Examples
     #   # Instantiates a single new object
-    #   User.new(:first_name => 'Jamie')
+    #   User.new(first_name: 'Jamie')
     #
     #   # Instantiates a single new object using the :admin mass-assignment security role
-    #   User.new({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
+    #   User.new({ first_name: 'Jamie', is_admin: true }, as: :admin)
     #
     #   # Instantiates a single new object bypassing mass-assignment security
-    #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
+    #   User.new({ first_name: 'Jamie', is_admin: true }, without_protection: true)
     def initialize(attributes = nil, options = {})
       @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
       @association_cache = {}

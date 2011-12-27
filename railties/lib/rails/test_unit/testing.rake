@@ -43,7 +43,7 @@ module Kernel
   end
 end
 
-task :default => :test
+task default: :test
 
 desc 'Runs test:units, test:functionals, test:integration together (also available: test:benchmark, test:profile, test:plugins)'
 task :test do
@@ -55,9 +55,9 @@ namespace :test do
     # Placeholder task for other Railtie and plugins to enhance. See Active Record for an example.
   end
 
-  task :run => %w(test:units test:functionals test:integration)
+  task run: %w(test:units test:functionals test:integration)
 
-  Rake::TestTask.new(:recent => "test:prepare") do |t|
+  Rake::TestTask.new(recent: "test:prepare") do |t|
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
       recent_tests('app/models/**/*.rb', 'test/unit', since) +
@@ -68,7 +68,7 @@ namespace :test do
   end
   Rake::Task['test:recent'].comment = "Test recent changes"
 
-  Rake::TestTask.new(:uncommitted => "test:prepare") do |t|
+  Rake::TestTask.new(uncommitted: "test:prepare") do |t|
     def t.file_list
       if File.directory?(".svn")
         changed_since_checkin = silence_stderr { `svn status` }.split.map { |path| path.chomp[7 .. -1] }
@@ -90,37 +90,37 @@ namespace :test do
   end
   Rake::Task['test:uncommitted'].comment = "Test changes since last checkin (only Subversion and Git)"
 
-  Rake::TestTask.new(:single => "test:prepare") do |t|
+  Rake::TestTask.new(single: "test:prepare") do |t|
     t.libs << "test"
   end
 
-  Rails::SubTestTask.new(:units => "test:prepare") do |t|
+  Rails::SubTestTask.new(units: "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/unit/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:functionals => "test:prepare") do |t|
+  Rails::SubTestTask.new(functionals: "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/functional/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:integration => "test:prepare") do |t|
+  Rails::SubTestTask.new(integration: "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/integration/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:benchmark => 'test:prepare') do |t|
+  Rails::SubTestTask.new(benchmark: 'test:prepare') do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
     t.options = '-- --benchmark'
   end
 
-  Rails::SubTestTask.new(:profile => 'test:prepare') do |t|
+  Rails::SubTestTask.new(profile: 'test:prepare') do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:plugins => :environment) do |t|
+  Rails::SubTestTask.new(plugins: :environment) do |t|
     t.libs << "test"
 
     if ENV['PLUGIN']

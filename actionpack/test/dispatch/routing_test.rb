@@ -23,8 +23,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   stub_controllers do |routes|
     Routes = routes
     Routes.draw do
-      default_url_options :host => "rubyonrails.org"
-      resources_path_names :correlation_indexes => "info_about_correlation_indexes"
+      default_url_options host: "rubyonrails.org"
+      resources_path_names correlation_indexes: "info_about_correlation_indexes"
 
       controller :sessions do
         get  'login' => :new
@@ -43,28 +43,28 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      scope "bookmark", :controller => "bookmarks", :as => :bookmark do
-        get  :new, :path => "build"
-        post :create, :path => "create", :as => ""
+      scope "bookmark", controller: "bookmarks", as: :bookmark do
+        get  :new, path: "build"
+        post :create, path: "create", as: ""
         put  :update
-        get  :remove, :action => :destroy, :as => :remove
+        get  :remove, action: :destroy, as: :remove
       end
 
-      scope "pagemark", :controller => "pagemarks", :as => :pagemark do
-        get  "new", :path => "build"
-        post "create", :as => ""
+      scope "pagemark", controller: "pagemarks", as: :pagemark do
+        get  "new", path: "build"
+        post "create", as: ""
         put  "update"
-        get  "remove", :action => :destroy, :as => :remove
+        get  "remove", action: :destroy, as: :remove
       end
 
-      match 'account/logout' => redirect("/logout"), :as => :logout_redirect
-      match 'account/login', :to => redirect("/login")
-      match 'secure', :to => redirect("/secure/login")
+      match 'account/logout' => redirect("/logout"), as: :logout_redirect
+      match 'account/login', to: redirect("/login")
+      match 'secure', to: redirect("/secure/login")
 
-      match 'mobile', :to => redirect(:subdomain => 'mobile')
-      match 'super_new_documentation', :to => redirect(:host => 'super-docs.com')
+      match 'mobile', to: redirect(subdomain: 'mobile')
+      match 'super_new_documentation', to: redirect(host: 'super-docs.com')
 
-      match 'youtube_favorites/:youtube_id/:name', :to => redirect(YoutubeFavoritesRedirector)
+      match 'youtube_favorites/:youtube_id/:name', to: redirect(YoutubeFavoritesRedirector)
 
       constraints(lambda { |req| true }) do
         match 'account/overview'
@@ -73,27 +73,27 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match '/account/nested/overview'
       match 'sign_in' => "sessions#new"
 
-      match 'account/modulo/:name', :to => redirect("/%{name}s")
-      match 'account/proc/:name', :to => redirect {|params, req| "/#{params[:name].pluralize}" }
+      match 'account/modulo/:name', to: redirect("/%{name}s")
+      match 'account/proc/:name', to: redirect {|params, req| "/#{params[:name].pluralize}" }
       match 'account/proc_req' => redirect {|params, req| "/#{req.method}" }
 
-      match 'account/google' => redirect('http://www.google.com/', :status => 302)
+      match 'account/google' => redirect('http://www.google.com/', status: 302)
 
-      match 'openid/login', :via => [:get, :post], :to => "openid#login"
+      match 'openid/login', via: [:get, :post], to: "openid#login"
 
       controller(:global) do
         get   'global/hide_notice'
-        match 'global/export',      :to => :export, :as => :export_request
-        match '/export/:id/:file',  :to => :export, :as => :export_download, :constraints => { :file => /.*/ }
+        match 'global/export',      to: :export, as: :export_request
+        match '/export/:id/:file',  to: :export, as: :export_download, constraints: { file: /.*/ }
         match 'global/:action'
       end
 
-      match "/local/:action", :controller => "local"
+      match "/local/:action", controller: "local"
 
       match "/projects/status(.:format)"
-      match "/404", :to => lambda { |env| [404, {"Content-Type" => "text/plain"}, ["NOT FOUND"]] }
+      match "/404", to: lambda { |env| [404, {"Content-Type" => "text/plain"}, ["NOT FOUND"]] }
 
-      constraints(:ip => /192\.168\.1\.\d\d\d/) do
+      constraints(ip: /192\.168\.1\.\d\d\d/) do
         get 'admin' => "queenbee#index"
       end
 
@@ -101,43 +101,43 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get 'admin/accounts' => "queenbee#accounts"
       end
 
-      get 'admin/passwords' => "queenbee#passwords", :constraints => ::TestRoutingMapper::IpRestrictor
+      get 'admin/passwords' => "queenbee#passwords", constraints: ::TestRoutingMapper::IpRestrictor
 
-      scope 'pt', :as => 'pt' do
-        resources :projects, :path_names => { :edit => 'editar', :new => 'novo' }, :path => 'projetos' do
-          post :preview, :on => :new
-          put :close, :on => :member, :path => 'fechar'
-          get :open, :on => :new, :path => 'abrir'
+      scope 'pt', as: 'pt' do
+        resources :projects, path_names: { edit: 'editar', new: 'novo' }, path: 'projetos' do
+          post :preview, on: :new
+          put :close, on: :member, path: 'fechar'
+          get :open, on: :new, path: 'abrir'
         end
-        resource  :admin, :path_names => { :new => 'novo', :activate => 'ativar' }, :path => 'administrador' do
-          post :preview, :on => :new
-          put :activate, :on => :member
+        resource  :admin, path_names: { new: 'novo', activate: 'ativar' }, path: 'administrador' do
+          post :preview, on: :new
+          put :activate, on: :member
         end
-        resources :products, :path_names => { :new => 'novo' } do
+        resources :products, path_names: { new: 'novo' } do
           new do
             post :preview
           end
         end
       end
 
-      resources :projects, :controller => :project do
+      resources :projects, controller: :project do
         resources :involvements, :attachments
-        get :correlation_indexes, :on => :collection
+        get :correlation_indexes, on: :collection
 
         resources :participants do
-          put :update_all, :on => :collection
+          put :update_all, on: :collection
         end
 
         resources :companies do
           resources :people
-          resource  :avatar, :controller => :avatar
+          resource  :avatar, controller: :avatar
         end
 
-        resources :images, :as => :funny_images do
-          post :revise, :on => :member
+        resources :images, as: :funny_images do
+          post :revise, on: :member
         end
 
-        resource :manager, :as => :super_manager do
+        resource :manager, as: :super_manager do
           post :fire
         end
 
@@ -156,21 +156,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
 
         resources :posts do
-          get  :archive, :toggle_view, :on => :collection
-          post :preview, :on => :member
+          get  :archive, :toggle_view, on: :collection
+          post :preview, on: :member
 
           resource :subscription
 
           resources :comments do
-            post :preview, :on => :collection
+            post :preview, on: :collection
           end
         end
       end
 
       resources :replies do
         collection do
-          get 'page/:page' => 'replies#index', :page => %r{\d+}
-          get ':page' => 'replies#index', :page => %r{\d+}
+          get 'page/:page' => 'replies#index', page: %r{\d+}
+          get ':page' => 'replies#index', page: %r{\d+}
         end
 
         new do
@@ -178,25 +178,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
 
         member do
-          put :answer, :to => :mark_as_answer
-          delete :answer, :to => :unmark_as_answer
+          put :answer, to: :mark_as_answer
+          delete :answer, to: :unmark_as_answer
         end
       end
 
-      resources :posts, :only => [:index, :show] do
+      resources :posts, only: [:index, :show] do
         namespace :admin do
-          root :to => "index#index"
+          root to: "index#index"
         end
-        resources :comments, :except => :destroy do
-          get "views" => "comments#views", :as => :views
+        resources :comments, except: :destroy do
+          get "views" => "comments#views", as: :views
         end
       end
 
-      resource  :past, :only => :destroy
-      resource  :present, :only => :update
-      resource  :future, :only => :create
-      resources :relationships, :only => [:create, :destroy]
-      resources :friendships,   :only => [:update]
+      resource  :past, only: :destroy
+      resource  :present, only: :update
+      resource  :future, only: :create
+      resources :relationships, only: [:create, :destroy]
+      resources :friendships,   only: [:update]
 
       shallow do
         namespace :api do
@@ -215,7 +215,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      resources :threads, :shallow => true do
+      resources :threads, shallow: true do
         resource :owner
         resources :messages do
           resources :comments do
@@ -227,7 +227,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :sheep do
-        get "_it", :on => :member
+        get "_it", on: :member
       end
 
       resources :clients do
@@ -241,63 +241,63 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :customers do
-        get :recent, :on => :collection
-        get "profile", :on => :member
-        get "secret/profile" => "customers#secret", :on => :member
-        post "preview" => "customers#preview", :as => :another_preview, :on => :new
+        get :recent, on: :collection
+        get "profile", on: :member
+        get "secret/profile" => "customers#secret", on: :member
+        post "preview" => "customers#preview", as: :another_preview, on: :new
         resource :avatar do
-          get "thumbnail" => "avatars#thumbnail", :as => :thumbnail, :on => :member
+          get "thumbnail" => "avatars#thumbnail", as: :thumbnail, on: :member
         end
         resources :invoices do
-          get "outstanding" => "invoices#outstanding", :on => :collection
-          get "overdue", :to => :overdue, :on => :collection
-          get "print" => "invoices#print", :as => :print, :on => :member
-          post "preview" => "invoices#preview", :as => :preview, :on => :new
-          get "aged/:months", :on => :collection, :action => :aged, :as => :aged
+          get "outstanding" => "invoices#outstanding", on: :collection
+          get "overdue", to: :overdue, on: :collection
+          get "print" => "invoices#print", as: :print, on: :member
+          post "preview" => "invoices#preview", as: :preview, on: :new
+          get "aged/:months", on: :collection, action: :aged, as: :aged
         end
-        resources :notes, :shallow => true do
-          get "preview" => "notes#preview", :as => :preview, :on => :new
-          get "print" => "notes#print", :as => :print, :on => :member
+        resources :notes, shallow: true do
+          get "preview" => "notes#preview", as: :preview, on: :new
+          get "print" => "notes#print", as: :print, on: :member
         end
-        get "inactive", :on => :collection
-        post "deactivate", :on => :member
-        get "old", :on => :collection, :as => :stale
+        get "inactive", on: :collection
+        post "deactivate", on: :member
+        get "old", on: :collection, as: :stale
         get "export"
       end
 
       namespace :api do
         resources :customers do
-          get "recent" => "customers#recent", :as => :recent, :on => :collection
-          get "profile" => "customers#profile", :as => :profile, :on => :member
-          post "preview" => "customers#preview", :as => :preview, :on => :new
+          get "recent" => "customers#recent", as: :recent, on: :collection
+          get "profile" => "customers#profile", as: :profile, on: :member
+          post "preview" => "customers#preview", as: :preview, on: :new
         end
-        scope(':version', :version => /.+/) do
-          resources :users, :id => /.+?/, :format => /json|xml/
+        scope(':version', version: /.+/) do
+          resources :users, id: /.+?/, format: /json|xml/
         end
       end
 
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
-      match 'people/:id/update', :to => 'people#update', :as => :update_person
-      match '/projects/:project_id/people/:id/update', :to => 'people#update', :as => :update_project_person
+      match 'people/:id/update', to: 'people#update', as: :update_person
+      match '/projects/:project_id/people/:id/update', to: 'people#update', as: :update_project_person
 
       # misc
-      match 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
+      match 'articles/:year/:month/:day/:title', to: "articles#show", as: :article
 
       # default params
-      match 'inline_pages/(:id)', :to => 'pages#show', :id => 'home'
-      match 'default_pages/(:id)', :to => 'pages#show', :defaults => { :id => 'home' }
-      defaults :id => 'home' do
-        match 'scoped_pages/(:id)', :to => 'pages#show'
+      match 'inline_pages/(:id)', to: 'pages#show', id: 'home'
+      match 'default_pages/(:id)', to: 'pages#show', defaults: { id: 'home' }
+      defaults id: 'home' do
+        match 'scoped_pages/(:id)', to: 'pages#show'
       end
 
       namespace :account do
         match 'shorthand'
-        match 'description', :to => :description, :as => "description"
-        match ':action/callback', :action => /twitter|github/, :to => "callbacks", :as => :callback
+        match 'description', to: :description, as: "description"
+        match ':action/callback', action: /twitter|github/, to: "callbacks", as: :callback
         resource :subscription, :credit, :credit_card
 
-        root :to => "account#index"
+        root to: "account#index"
 
         namespace :admin do
           resource :subscription
@@ -305,60 +305,60 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       namespace :forum do
-        resources :products, :path => '' do
+        resources :products, path: '' do
           resources :questions
         end
       end
 
-      namespace :users, :path => 'usuarios' do
-        root :to => 'home#index'
+      namespace :users, path: 'usuarios' do
+        root to: 'home#index'
       end
 
       controller :articles do
-        scope '/articles', :as => 'article' do
-          scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
-            match '/:id', :to => :with_id, :as => ""
+        scope '/articles', as: 'article' do
+          scope path: '/:title', title: /[a-z]+/, as: :with_title do
+            match '/:id', to: :with_id, as: ""
           end
         end
       end
 
-      scope ':access_token', :constraints => { :access_token => /\w{5,5}/ } do
+      scope ':access_token', constraints: { access_token: /\w{5,5}/ } do
         resources :rooms
       end
 
-      match '/info' => 'projects#info', :as => 'info'
+      match '/info' => 'projects#info', as: 'info'
 
       namespace :admin do
-        scope '(:locale)', :locale => /en|pl/ do
+        scope '(:locale)', locale: /en|pl/ do
           resources :descriptions
         end
       end
 
-      scope '(:locale)', :locale => /en|pl/ do
+      scope '(:locale)', locale: /en|pl/ do
         get "registrations/new"
         resources :descriptions
-        root :to => 'projects#index'
+        root to: 'projects#index'
       end
 
-      scope :only => [:index, :show] do
-        resources :products, :constraints => { :id => /\d{4}/ } do
-          root :to => "products#root"
-          get :favorite, :on => :collection
+      scope only: [:index, :show] do
+        resources :products, constraints: { id: /\d{4}/ } do
+          root to: "products#root"
+          get :favorite, on: :collection
           resources :images
         end
         resource :account
       end
 
-      resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
+      resource :dashboard, constraints: { ip: /192\.168\.1\.\d{1,3}/ }
 
-      resource :token, :module => :api
-      scope :module => :api do
-        resources :errors, :shallow => true do
+      resource :token, module: :api
+      scope module: :api do
+        resources :errors, shallow: true do
           resources :notices
         end
       end
 
-      scope :path => 'api' do
+      scope path: 'api' do
         resource :me
         match '/' => 'mes#index'
       end
@@ -373,7 +373,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      match "whatever/:controller(/:action(/:id))", :id => /\d+/
+      match "whatever/:controller(/:action(/:id))", id: /\d+/
 
       resource :profile do
         get :settings
@@ -393,11 +393,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resource :taxis
       end
 
-      scope :constraints => { :id => /\d+/ } do
-        get '/tickets', :to => 'tickets#index', :as => :tickets
+      scope constraints: { id: /\d+/ } do
+        get '/tickets', to: 'tickets#index', as: :tickets
       end
 
-      scope :constraints => { :id => /\d{4}/ } do
+      scope constraints: { id: /\d{4}/ } do
         resources :movies do
           resources :reviews
           resource :trailer
@@ -405,11 +405,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       namespace :private do
-        root :to => redirect('/private/index')
-        match "index", :to => 'private#index'
+        root to: redirect('/private/index')
+        match "index", to: 'private#index'
       end
 
-      scope :only => [:index, :show] do
+      scope only: [:index, :show] do
         namespace :only do
           resources :clubs do
             resources :players
@@ -418,7 +418,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      scope :except => [:new, :create, :edit, :update, :destroy] do
+      scope except: [:new, :create, :edit, :update, :destroy] do
         namespace :except do
           resources :clubs do
             resources :players
@@ -428,84 +428,84 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       namespace :wiki do
-        resources :articles, :id => /[^\/]+/ do
-          resources :comments, :only => [:create, :new]
+        resources :articles, id: /[^\/]+/ do
+          resources :comments, only: [:create, :new]
         end
       end
 
-      resources :wiki_pages, :path => :pages
-      resource :wiki_account, :path => :my_account
+      resources :wiki_pages, path: :pages
+      resource :wiki_account, path: :my_account
 
-      scope :only => :show do
+      scope only: :show do
         namespace :only do
-          resources :sectors, :only => :index do
+          resources :sectors, only: :index do
             resources :companies do
-              scope :only => :index do
+              scope only: :index do
                 resources :divisions
               end
-              scope :except => [:show, :update, :destroy] do
+              scope except: [:show, :update, :destroy] do
                 resources :departments
               end
             end
             resource  :leader
-            resources :managers, :except => [:show, :update, :destroy]
+            resources :managers, except: [:show, :update, :destroy]
           end
         end
       end
 
-      scope :except => :index do
+      scope except: :index do
         namespace :except do
-          resources :sectors, :except => [:show, :update, :destroy] do
+          resources :sectors, except: [:show, :update, :destroy] do
             resources :companies do
-              scope :except => [:show, :update, :destroy] do
+              scope except: [:show, :update, :destroy] do
                 resources :divisions
               end
-              scope :only => :index do
+              scope only: :index do
                 resources :departments
               end
             end
             resource  :leader
-            resources :managers, :only => :index
+            resources :managers, only: :index
           end
         end
       end
 
-      resources :sections, :id => /.+/ do
-        get :preview, :on => :member
+      resources :sections, id: /.+/ do
+        get :preview, on: :member
       end
 
-      scope :as => "routes" do
-        get "/c/:id", :as => :collision, :to => "collision#show"
-        get "/collision", :to => "collision#show"
-        get "/no_collision", :to => "collision#show", :as => nil
+      scope as: "routes" do
+        get "/c/:id", as: :collision, to: "collision#show"
+        get "/collision", to: "collision#show"
+        get "/no_collision", to: "collision#show", as: nil
 
-        get "/fc/:id", :as => :forced_collision, :to => "forced_collision#show"
-        get "/forced_collision", :as => :forced_collision, :to => "forced_collision#show"
+        get "/fc/:id", as: :forced_collision, to: "forced_collision#show"
+        get "/forced_collision", as: :forced_collision, to: "forced_collision#show"
       end
 
       match '/purchases/:token/:filename',
-        :to => 'purchases#fetch',
-        :token => /[[:alnum:]]{10}/,
-        :filename => /(.+)/,
-        :as => :purchase
+        to: 'purchases#fetch',
+        token: /[[:alnum:]]{10}/,
+        filename: /(.+)/,
+        as: :purchase
 
-      resources :lists, :id => /([A-Za-z0-9]{25})|default/ do
-        resources :todos, :id => /\d+/
+      resources :lists, id: /([A-Za-z0-9]{25})|default/ do
+        resources :todos, id: /\d+/
       end
 
-      scope '/countries/:country', :constraints => lambda { |params, req| params[:country].in?(["all", "France"]) } do
-        match '/',       :to => 'countries#index'
-        match '/cities', :to => 'countries#cities'
+      scope '/countries/:country', constraints: lambda { |params, req| params[:country].in?(["all", "France"]) } do
+        match '/',       to: 'countries#index'
+        match '/cities', to: 'countries#cities'
       end
 
-      match '/countries/:country/(*other)', :to => redirect{ |params, req| params[:other] ? "/countries/all/#{params[:other]}" : '/countries/all' }
+      match '/countries/:country/(*other)', to: redirect{ |params, req| params[:other] ? "/countries/all/#{params[:other]}" : '/countries/all' }
 
-      match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
+      match '/:locale/*file.:format', to: 'files#show', file: /path\/to\/existing\/file/
 
       scope '/italians' do
-        match '/writers', :to => 'italians#writers', :constraints => ::TestRoutingMapper::IpRestrictor
-        match '/sculptors', :to => 'italians#sculptors'
-        match '/painters/:painter', :to => 'italians#painters', :constraints => {:painter => /michelangelo/}
+        match '/writers', to: 'italians#writers', constraints: ::TestRoutingMapper::IpRestrictor
+        match '/sculptors', to: 'italians#sculptors'
+        match '/painters/:painter', to: 'italians#painters', constraints: {painter: /michelangelo/}
       end
     end
   end
@@ -543,7 +543,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     AltRoutes = ActionDispatch::Routing::RouteSet.new(AltRequest)
     AltRoutes.draw do
-      get "/" => TestRoutingMapper::TestAltApp::XHeader.new, :constraints => {:x_header => /HEADER/}
+      get "/" => TestRoutingMapper::TestAltApp::XHeader.new, constraints: {x_header: /HEADER/}
       get "/" => TestRoutingMapper::TestAltApp::AltApp.new
     end
 
@@ -579,7 +579,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'sessions#destroy', @response.body
 
       assert_equal '/logout', logout_path
-      assert_equal '/logout', url_for(:controller => 'sessions', :action => 'destroy', :only_path => true)
+      assert_equal '/logout', url_for(controller: 'sessions', action: 'destroy', only_path: true)
     end
   end
 
@@ -592,10 +592,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       post '/login'
       assert_equal 'sessions#create', @response.body
 
-      assert_equal '/login', url_for(:controller => 'sessions', :action => 'create', :only_path => true)
-      assert_equal '/login', url_for(:controller => 'sessions', :action => 'new', :only_path => true)
+      assert_equal '/login', url_for(controller: 'sessions', action: 'create', only_path: true)
+      assert_equal '/login', url_for(controller: 'sessions', action: 'new', only_path: true)
 
-      assert_equal 'http://rubyonrails.org/login', Routes.url_for(:controller => 'sessions', :action => 'create')
+      assert_equal 'http://rubyonrails.org/login', Routes.url_for(controller: 'sessions', action: 'create')
       assert_equal 'http://rubyonrails.org/login', Routes.url_helpers.login_url
     end
   end
@@ -809,7 +809,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       assert_equal '/global/export', export_request_path
       assert_equal '/global/hide_notice', global_hide_notice_path
-      assert_equal '/export/123/foo.txt', export_download_path(:id => 123, :file => 'foo.txt')
+      assert_equal '/export/123/foo.txt', export_download_path(id: 123, file: 'foo.txt')
     end
   end
 
@@ -823,7 +823,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   # tests the use of dup in url_for
   def test_url_for_with_no_side_effects
     # without dup, additional (and possibly unwanted) values will be present in the options (eg. :host)
-    original_options = {:controller => 'projects', :action => 'status'}
+    original_options = {controller: 'projects', action: 'status'}
     options = original_options.dup
 
     url_for options
@@ -834,7 +834,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   # tests the arguments modification free version of define_hash_access
   def test_named_route_with_no_side_effects
-    original_options = { :host => 'test.host' }
+    original_options = { host: 'test.host' }
     options = original_options.dup
 
     profile_customer_url("customer_model", options)
@@ -845,8 +845,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_projects_status
     with_test_routes do
-      assert_equal '/projects/status', url_for(:controller => 'projects', :action => 'status', :only_path => true)
-      assert_equal '/projects/status.json', url_for(:controller => 'projects', :action => 'status', :format => 'json', :only_path => true)
+      assert_equal '/projects/status', url_for(controller: 'projects', action: 'status', only_path: true)
+      assert_equal '/projects/status.json', url_for(controller: 'projects', action: 'status', format: 'json', only_path: true)
     end
   end
 
@@ -861,7 +861,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects.xml'
       assert_equal 'project#index', @response.body
-      assert_equal '/projects.xml', projects_path(:format => 'xml')
+      assert_equal '/projects.xml', projects_path(format: 'xml')
 
       get '/projects/new'
       assert_equal 'project#new', @response.body
@@ -869,19 +869,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/new.xml'
       assert_equal 'project#new', @response.body
-      assert_equal '/projects/new.xml', new_project_path(:format => 'xml')
+      assert_equal '/projects/new.xml', new_project_path(format: 'xml')
 
       get '/projects/1'
       assert_equal 'project#show', @response.body
-      assert_equal '/projects/1', project_path(:id => '1')
+      assert_equal '/projects/1', project_path(id: '1')
 
       get '/projects/1.xml'
       assert_equal 'project#show', @response.body
-      assert_equal '/projects/1.xml', project_path(:id => '1', :format => 'xml')
+      assert_equal '/projects/1.xml', project_path(id: '1', format: 'xml')
 
       get '/projects/1/edit'
       assert_equal 'project#edit', @response.body
-      assert_equal '/projects/1/edit', edit_project_path(:id => '1')
+      assert_equal '/projects/1/edit', edit_project_path(id: '1')
     end
   end
 
@@ -889,15 +889,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/projects/1/involvements'
       assert_equal 'involvements#index', @response.body
-      assert_equal '/projects/1/involvements', project_involvements_path(:project_id => '1')
+      assert_equal '/projects/1/involvements', project_involvements_path(project_id: '1')
 
       get '/projects/1/involvements/new'
       assert_equal 'involvements#new', @response.body
-      assert_equal '/projects/1/involvements/new', new_project_involvement_path(:project_id => '1')
+      assert_equal '/projects/1/involvements/new', new_project_involvement_path(project_id: '1')
 
       get '/projects/1/involvements/1'
       assert_equal 'involvements#show', @response.body
-      assert_equal '/projects/1/involvements/1', project_involvement_path(:project_id => '1', :id => '1')
+      assert_equal '/projects/1/involvements/1', project_involvement_path(project_id: '1', id: '1')
 
       put '/projects/1/involvements/1'
       assert_equal 'involvements#update', @response.body
@@ -907,7 +907,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/1/involvements/1/edit'
       assert_equal 'involvements#edit', @response.body
-      assert_equal '/projects/1/involvements/1/edit', edit_project_involvement_path(:project_id => '1', :id => '1')
+      assert_equal '/projects/1/involvements/1/edit', edit_project_involvement_path(project_id: '1', id: '1')
     end
   end
 
@@ -915,7 +915,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/projects/1/attachments'
       assert_equal 'attachments#index', @response.body
-      assert_equal '/projects/1/attachments', project_attachments_path(:project_id => '1')
+      assert_equal '/projects/1/attachments', project_attachments_path(project_id: '1')
     end
   end
 
@@ -923,11 +923,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/projects/1/participants'
       assert_equal 'participants#index', @response.body
-      assert_equal '/projects/1/participants', project_participants_path(:project_id => '1')
+      assert_equal '/projects/1/participants', project_participants_path(project_id: '1')
 
       put '/projects/1/participants/update_all'
       assert_equal 'participants#update_all', @response.body
-      assert_equal '/projects/1/participants/update_all', update_all_project_participants_path(:project_id => '1')
+      assert_equal '/projects/1/participants/update_all', update_all_project_participants_path(project_id: '1')
     end
   end
 
@@ -935,15 +935,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/projects/1/companies'
       assert_equal 'companies#index', @response.body
-      assert_equal '/projects/1/companies', project_companies_path(:project_id => '1')
+      assert_equal '/projects/1/companies', project_companies_path(project_id: '1')
 
       get '/projects/1/companies/1/people'
       assert_equal 'people#index', @response.body
-      assert_equal '/projects/1/companies/1/people', project_company_people_path(:project_id => '1', :company_id => '1')
+      assert_equal '/projects/1/companies/1/people', project_company_people_path(project_id: '1', company_id: '1')
 
       get '/projects/1/companies/1/avatar'
       assert_equal 'avatar#show', @response.body
-      assert_equal '/projects/1/companies/1/avatar', project_company_avatar_path(:project_id => '1', :company_id => '1')
+      assert_equal '/projects/1/companies/1/avatar', project_company_avatar_path(project_id: '1', company_id: '1')
     end
   end
 
@@ -951,15 +951,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/projects/1/manager'
       assert_equal 'managers#show', @response.body
-      assert_equal '/projects/1/manager', project_super_manager_path(:project_id => '1')
+      assert_equal '/projects/1/manager', project_super_manager_path(project_id: '1')
 
       get '/projects/1/manager/new'
       assert_equal 'managers#new', @response.body
-      assert_equal '/projects/1/manager/new', new_project_super_manager_path(:project_id => '1')
+      assert_equal '/projects/1/manager/new', new_project_super_manager_path(project_id: '1')
 
       post '/projects/1/manager/fire'
       assert_equal 'managers#fire', @response.body
-      assert_equal '/projects/1/manager/fire', fire_project_super_manager_path(:project_id => '1')
+      assert_equal '/projects/1/manager/fire', fire_project_super_manager_path(project_id: '1')
     end
   end
 
@@ -967,15 +967,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/projects/1/images'
       assert_equal 'images#index', @response.body
-      assert_equal '/projects/1/images', project_funny_images_path(:project_id => '1')
+      assert_equal '/projects/1/images', project_funny_images_path(project_id: '1')
 
       get '/projects/1/images/new'
       assert_equal 'images#new', @response.body
-      assert_equal '/projects/1/images/new', new_project_funny_image_path(:project_id => '1')
+      assert_equal '/projects/1/images/new', new_project_funny_image_path(project_id: '1')
 
       post '/projects/1/images/1/revise'
       assert_equal 'images#revise', @response.body
-      assert_equal '/projects/1/images/1/revise', revise_project_funny_image_path(:project_id => '1', :id => '1')
+      assert_equal '/projects/1/images/1/revise', revise_project_funny_image_path(project_id: '1', id: '1')
     end
   end
 
@@ -983,27 +983,27 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/projects/1/people'
       assert_equal 'people#index', @response.body
-      assert_equal '/projects/1/people', project_people_path(:project_id => '1')
+      assert_equal '/projects/1/people', project_people_path(project_id: '1')
 
       get '/projects/1/people/1'
       assert_equal 'people#show', @response.body
-      assert_equal '/projects/1/people/1', project_person_path(:project_id => '1', :id => '1')
+      assert_equal '/projects/1/people/1', project_person_path(project_id: '1', id: '1')
 
       get '/projects/1/people/1/7a2dec8/avatar'
       assert_equal 'avatars#show', @response.body
-      assert_equal '/projects/1/people/1/7a2dec8/avatar', project_person_avatar_path(:project_id => '1', :person_id => '1', :access_token => '7a2dec8')
+      assert_equal '/projects/1/people/1/7a2dec8/avatar', project_person_avatar_path(project_id: '1', person_id: '1', access_token: '7a2dec8')
 
       put '/projects/1/people/1/accessible_projects'
       assert_equal 'people#accessible_projects', @response.body
-      assert_equal '/projects/1/people/1/accessible_projects', accessible_projects_project_person_path(:project_id => '1', :id => '1')
+      assert_equal '/projects/1/people/1/accessible_projects', accessible_projects_project_person_path(project_id: '1', id: '1')
 
       post '/projects/1/people/1/resend'
       assert_equal 'people#resend', @response.body
-      assert_equal '/projects/1/people/1/resend', resend_project_person_path(:project_id => '1', :id => '1')
+      assert_equal '/projects/1/people/1/resend', resend_project_person_path(project_id: '1', id: '1')
 
       post '/projects/1/people/1/generate_new_password'
       assert_equal 'people#generate_new_password', @response.body
-      assert_equal '/projects/1/people/1/generate_new_password', generate_new_password_project_person_path(:project_id => '1', :id => '1')
+      assert_equal '/projects/1/people/1/generate_new_password', generate_new_password_project_person_path(project_id: '1', id: '1')
     end
   end
 
@@ -1019,31 +1019,31 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/projects/1/posts'
       assert_equal 'posts#index', @response.body
-      assert_equal '/projects/1/posts', project_posts_path(:project_id => '1')
+      assert_equal '/projects/1/posts', project_posts_path(project_id: '1')
 
       get '/projects/1/posts/archive'
       assert_equal 'posts#archive', @response.body
-      assert_equal '/projects/1/posts/archive', archive_project_posts_path(:project_id => '1')
+      assert_equal '/projects/1/posts/archive', archive_project_posts_path(project_id: '1')
 
       get '/projects/1/posts/toggle_view'
       assert_equal 'posts#toggle_view', @response.body
-      assert_equal '/projects/1/posts/toggle_view', toggle_view_project_posts_path(:project_id => '1')
+      assert_equal '/projects/1/posts/toggle_view', toggle_view_project_posts_path(project_id: '1')
 
       post '/projects/1/posts/1/preview'
       assert_equal 'posts#preview', @response.body
-      assert_equal '/projects/1/posts/1/preview', preview_project_post_path(:project_id => '1', :id => '1')
+      assert_equal '/projects/1/posts/1/preview', preview_project_post_path(project_id: '1', id: '1')
 
       get '/projects/1/posts/1/subscription'
       assert_equal 'subscriptions#show', @response.body
-      assert_equal '/projects/1/posts/1/subscription', project_post_subscription_path(:project_id => '1', :post_id => '1')
+      assert_equal '/projects/1/posts/1/subscription', project_post_subscription_path(project_id: '1', post_id: '1')
 
       get '/projects/1/posts/1/comments'
       assert_equal 'comments#index', @response.body
-      assert_equal '/projects/1/posts/1/comments', project_post_comments_path(:project_id => '1', :post_id => '1')
+      assert_equal '/projects/1/posts/1/comments', project_post_comments_path(project_id: '1', post_id: '1')
 
       post '/projects/1/posts/1/comments/preview'
       assert_equal 'comments#preview', @response.body
-      assert_equal '/projects/1/posts/1/comments/preview', preview_project_post_comments_path(:project_id => '1', :post_id => '1')
+      assert_equal '/projects/1/posts/1/comments/preview', preview_project_post_comments_path(project_id: '1', post_id: '1')
     end
   end
 
@@ -1065,11 +1065,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/posts/1'
       assert_equal 'posts#show', @response.body
-      assert_equal '/posts/1', post_path(:id => 1)
+      assert_equal '/posts/1', post_path(id: 1)
 
       get '/posts/1/comments'
       assert_equal 'comments#index', @response.body
-      assert_equal '/posts/1/comments', post_comments_path(:post_id => 1)
+      assert_equal '/posts/1/comments', post_comments_path(post_id: 1)
 
       post '/posts'
       assert_equal 'pass', @response.headers['X-Cascade']
@@ -1118,7 +1118,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/posts/rails-rocks'
       assert_equal 'posts#show', @response.body
-      assert_equal '/posts/rails-rocks', post_path(:id => 'rails-rocks')
+      assert_equal '/posts/rails-rocks', post_path(id: 'rails-rocks')
     end
   end
 
@@ -1180,7 +1180,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/people/1/update'
       assert_equal 'people#update', @response.body
 
-      assert_equal '/people/1/update', update_person_path(:id => 1)
+      assert_equal '/people/1/update', update_person_path(id: 1)
     end
   end
 
@@ -1189,7 +1189,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/projects/1/people/2/update'
       assert_equal 'people#update', @response.body
 
-      assert_equal '/projects/1/people/2/update', update_project_person_path(:project_id => 1, :id => 2)
+      assert_equal '/projects/1/people/2/update', update_project_person_path(project_id: 1, id: 2)
     end
   end
 
@@ -1201,15 +1201,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/forum/basecamp'
       assert_equal 'forum/products#show', @response.body
-      assert_equal '/forum/basecamp', forum_product_path(:id => 'basecamp')
+      assert_equal '/forum/basecamp', forum_product_path(id: 'basecamp')
 
       get '/forum/basecamp/questions'
       assert_equal 'forum/questions#index', @response.body
-      assert_equal '/forum/basecamp/questions', forum_product_questions_path(:product_id => 'basecamp')
+      assert_equal '/forum/basecamp/questions', forum_product_questions_path(product_id: 'basecamp')
 
       get '/forum/basecamp/questions/1'
       assert_equal 'forum/questions#show', @response.body
-      assert_equal '/forum/basecamp/questions/1', forum_product_question_path(:product_id => 'basecamp', :id => 1)
+      assert_equal '/forum/basecamp/questions/1', forum_product_question_path(product_id: 'basecamp', id: 1)
     end
   end
 
@@ -1218,7 +1218,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/articles/2009/08/18/rails-3'
       assert_equal 'articles#show', @response.body
 
-      assert_equal '/articles/2009/8/18/rails-3', article_path(:year => 2009, :month => 8, :day => 18, :title => 'rails-3')
+      assert_equal '/articles/2009/8/18/rails-3', article_path(year: 2009, month: 8, day: 18, title: 'rails-3')
     end
   end
 
@@ -1274,7 +1274,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/articles/123/1'
       assert_equal 'pass', @response.headers['X-Cascade']
 
-      assert_equal '/articles/rails/1', article_with_title_path(:title => 'rails', :id => 1)
+      assert_equal '/articles/rails/1', article_with_title_path(title: 'rails', id: 1)
     end
   end
 
@@ -1519,7 +1519,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'foo#bar', @response.body
 
       assert_equal 'http://www.example.com/whatever/foo/bar/1',
-        url_for(:controller => "foo", :action => "bar", :id => 1)
+        url_for(controller: "foo", action: "bar", id: 1)
     end
   end
 
@@ -1532,16 +1532,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'foo/bar#show', @response.body
 
       assert_equal 'http://www.example.com/whatever/foo/bar/show',
-        url_for(:controller => "foo/bar", :action => "show")
+        url_for(controller: "foo/bar", action: "show")
 
       assert_equal 'http://www.example.com/whatever/foo/bar/show/1',
-        url_for(:controller => "foo/bar", :action => "show", :id => '1')
+        url_for(controller: "foo/bar", action: "show", id: '1')
     end
   end
 
   def test_assert_recognizes_account_overview
     with_test_routes do
-      assert_recognizes({:controller => "account", :action => "overview"}, "/account/overview")
+      assert_recognizes({controller: "account", action: "overview"}, "/account/overview")
     end
   end
 
@@ -1606,39 +1606,39 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/api/teams/1'
       assert_equal 'api/teams#show', @response.body
-      assert_equal '/api/teams/1', api_team_path(:id => '1')
+      assert_equal '/api/teams/1', api_team_path(id: '1')
 
       get '/api/teams/1/edit'
       assert_equal 'api/teams#edit', @response.body
-      assert_equal '/api/teams/1/edit', edit_api_team_path(:id => '1')
+      assert_equal '/api/teams/1/edit', edit_api_team_path(id: '1')
 
       get '/api/teams/1/players'
       assert_equal 'api/players#index', @response.body
-      assert_equal '/api/teams/1/players', api_team_players_path(:team_id => '1')
+      assert_equal '/api/teams/1/players', api_team_players_path(team_id: '1')
 
       get '/api/teams/1/players/new'
       assert_equal 'api/players#new', @response.body
-      assert_equal '/api/teams/1/players/new', new_api_team_player_path(:team_id => '1')
+      assert_equal '/api/teams/1/players/new', new_api_team_player_path(team_id: '1')
 
       get '/api/players/2'
       assert_equal 'api/players#show', @response.body
-      assert_equal '/api/players/2', api_player_path(:id => '2')
+      assert_equal '/api/players/2', api_player_path(id: '2')
 
       get '/api/players/2/edit'
       assert_equal 'api/players#edit', @response.body
-      assert_equal '/api/players/2/edit', edit_api_player_path(:id => '2')
+      assert_equal '/api/players/2/edit', edit_api_player_path(id: '2')
 
       get '/api/teams/1/captain'
       assert_equal 'api/captains#show', @response.body
-      assert_equal '/api/teams/1/captain', api_team_captain_path(:team_id => '1')
+      assert_equal '/api/teams/1/captain', api_team_captain_path(team_id: '1')
 
       get '/api/teams/1/captain/new'
       assert_equal 'api/captains#new', @response.body
-      assert_equal '/api/teams/1/captain/new', new_api_team_captain_path(:team_id => '1')
+      assert_equal '/api/teams/1/captain/new', new_api_team_captain_path(team_id: '1')
 
       get '/api/teams/1/captain/edit'
       assert_equal 'api/captains#edit', @response.body
-      assert_equal '/api/teams/1/captain/edit', edit_api_team_captain_path(:team_id => '1')
+      assert_equal '/api/teams/1/captain/edit', edit_api_team_captain_path(team_id: '1')
 
       get '/threads'
       assert_equal 'threads#index', @response.body
@@ -1650,51 +1650,51 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/threads/1'
       assert_equal 'threads#show', @response.body
-      assert_equal '/threads/1', thread_path(:id => '1')
+      assert_equal '/threads/1', thread_path(id: '1')
 
       get '/threads/1/edit'
       assert_equal 'threads#edit', @response.body
-      assert_equal '/threads/1/edit', edit_thread_path(:id => '1')
+      assert_equal '/threads/1/edit', edit_thread_path(id: '1')
 
       get '/threads/1/owner'
       assert_equal 'owners#show', @response.body
-      assert_equal '/threads/1/owner', thread_owner_path(:thread_id => '1')
+      assert_equal '/threads/1/owner', thread_owner_path(thread_id: '1')
 
       get '/threads/1/messages'
       assert_equal 'messages#index', @response.body
-      assert_equal '/threads/1/messages', thread_messages_path(:thread_id => '1')
+      assert_equal '/threads/1/messages', thread_messages_path(thread_id: '1')
 
       get '/threads/1/messages/new'
       assert_equal 'messages#new', @response.body
-      assert_equal '/threads/1/messages/new', new_thread_message_path(:thread_id => '1')
+      assert_equal '/threads/1/messages/new', new_thread_message_path(thread_id: '1')
 
       get '/messages/2'
       assert_equal 'messages#show', @response.body
-      assert_equal '/messages/2', message_path(:id => '2')
+      assert_equal '/messages/2', message_path(id: '2')
 
       get '/messages/2/edit'
       assert_equal 'messages#edit', @response.body
-      assert_equal '/messages/2/edit', edit_message_path(:id => '2')
+      assert_equal '/messages/2/edit', edit_message_path(id: '2')
 
       get '/messages/2/comments'
       assert_equal 'comments#index', @response.body
-      assert_equal '/messages/2/comments', message_comments_path(:message_id => '2')
+      assert_equal '/messages/2/comments', message_comments_path(message_id: '2')
 
       get '/messages/2/comments/new'
       assert_equal 'comments#new', @response.body
-      assert_equal '/messages/2/comments/new', new_message_comment_path(:message_id => '2')
+      assert_equal '/messages/2/comments/new', new_message_comment_path(message_id: '2')
 
       get '/comments/3'
       assert_equal 'comments#show', @response.body
-      assert_equal '/comments/3', comment_path(:id => '3')
+      assert_equal '/comments/3', comment_path(id: '3')
 
       get '/comments/3/edit'
       assert_equal 'comments#edit', @response.body
-      assert_equal '/comments/3/edit', edit_comment_path(:id => '3')
+      assert_equal '/comments/3/edit', edit_comment_path(id: '3')
 
       post '/comments/3/preview'
       assert_equal 'comments#preview', @response.body
-      assert_equal '/comments/3/preview', preview_comment_path(:id => '3')
+      assert_equal '/comments/3/preview', preview_comment_path(id: '3')
     end
   end
 
@@ -1703,23 +1703,23 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/hello/notes/1/trackbacks'
       assert_equal 'trackbacks#index', @response.body
-      assert_equal '/hello/notes/1/trackbacks', note_trackbacks_path(:note_id => 1)
+      assert_equal '/hello/notes/1/trackbacks', note_trackbacks_path(note_id: 1)
 
       get '/hello/notes/1/edit'
       assert_equal 'notes#edit', @response.body
-      assert_equal '/hello/notes/1/edit', edit_note_path(:id => '1')
+      assert_equal '/hello/notes/1/edit', edit_note_path(id: '1')
 
       get '/hello/notes/1/trackbacks/new'
       assert_equal 'trackbacks#new', @response.body
-      assert_equal '/hello/notes/1/trackbacks/new', new_note_trackback_path(:note_id => 1)
+      assert_equal '/hello/notes/1/trackbacks/new', new_note_trackback_path(note_id: 1)
 
       get '/hello/trackbacks/1'
       assert_equal 'trackbacks#show', @response.body
-      assert_equal '/hello/trackbacks/1', trackback_path(:id => '1')
+      assert_equal '/hello/trackbacks/1', trackback_path(id: '1')
 
       get '/hello/trackbacks/1/edit'
       assert_equal 'trackbacks#edit', @response.body
-      assert_equal '/hello/trackbacks/1/edit', edit_trackback_path(:id => '1')
+      assert_equal '/hello/trackbacks/1/edit', edit_trackback_path(id: '1')
 
       put '/hello/trackbacks/1'
       assert_equal 'trackbacks#update', @response.body
@@ -1742,7 +1742,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/hello/notes/1'
       assert_equal 'notes#show', @response.body
-      assert_equal '/hello/notes/1', note_path(:id => 1)
+      assert_equal '/hello/notes/1', note_path(id: 1)
 
       put '/hello/notes/1'
       assert_equal 'notes#update', @response.body
@@ -1755,17 +1755,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_custom_resource_routes_are_scoped
     with_test_routes do
       assert_equal '/customers/recent', recent_customers_path
-      assert_equal '/customers/1/profile', profile_customer_path(:id => '1')
-      assert_equal '/customers/1/secret/profile', secret_profile_customer_path(:id => '1')
+      assert_equal '/customers/1/profile', profile_customer_path(id: '1')
+      assert_equal '/customers/1/secret/profile', secret_profile_customer_path(id: '1')
       assert_equal '/customers/new/preview', another_preview_new_customer_path
-      assert_equal '/customers/1/avatar/thumbnail.jpg', thumbnail_customer_avatar_path(:customer_id => '1', :format => :jpg)
-      assert_equal '/customers/1/invoices/outstanding', outstanding_customer_invoices_path(:customer_id => '1')
-      assert_equal '/customers/1/invoices/2/print', print_customer_invoice_path(:customer_id => '1', :id => '2')
-      assert_equal '/customers/1/invoices/new/preview', preview_new_customer_invoice_path(:customer_id => '1')
-      assert_equal '/customers/1/notes/new/preview', preview_new_customer_note_path(:customer_id => '1')
-      assert_equal '/notes/1/print', print_note_path(:id => '1')
+      assert_equal '/customers/1/avatar/thumbnail.jpg', thumbnail_customer_avatar_path(customer_id: '1', format: :jpg)
+      assert_equal '/customers/1/invoices/outstanding', outstanding_customer_invoices_path(customer_id: '1')
+      assert_equal '/customers/1/invoices/2/print', print_customer_invoice_path(customer_id: '1', id: '2')
+      assert_equal '/customers/1/invoices/new/preview', preview_new_customer_invoice_path(customer_id: '1')
+      assert_equal '/customers/1/notes/new/preview', preview_new_customer_note_path(customer_id: '1')
+      assert_equal '/notes/1/print', print_note_path(id: '1')
       assert_equal '/api/customers/recent', recent_api_customers_path
-      assert_equal '/api/customers/1/profile', profile_api_customer_path(:id => '1')
+      assert_equal '/api/customers/1/profile', profile_api_customer_path(id: '1')
       assert_equal '/api/customers/new/preview', preview_new_api_customer_path
 
       get '/customers/1/invoices/overdue'
@@ -1780,11 +1780,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/errors/1/notices'
       assert_equal 'api/notices#index', @response.body
-      assert_equal '/errors/1/notices', error_notices_path(:error_id => '1')
+      assert_equal '/errors/1/notices', error_notices_path(error_id: '1')
 
       get '/notices/1'
       assert_equal 'api/notices#show', @response.body
-      assert_equal '/notices/1', notice_path(:id => '1')
+      assert_equal '/notices/1', notice_path(id: '1')
     end
   end
 
@@ -1792,23 +1792,23 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/api/1.0/users'
       assert_equal 'api/users#index', @response.body
-      assert_equal '/api/1.0/users', api_users_path(:version => '1.0')
+      assert_equal '/api/1.0/users', api_users_path(version: '1.0')
 
       get '/api/1.0/users.json'
       assert_equal 'api/users#index', @response.body
       assert_equal true, @request.format.json?
-      assert_equal '/api/1.0/users.json', api_users_path(:version => '1.0', :format => :json)
+      assert_equal '/api/1.0/users.json', api_users_path(version: '1.0', format: :json)
 
       get '/api/1.0/users/first.last'
       assert_equal 'api/users#show', @response.body
       assert_equal 'first.last', @request.params[:id]
-      assert_equal '/api/1.0/users/first.last', api_user_path(:version => '1.0', :id => 'first.last')
+      assert_equal '/api/1.0/users/first.last', api_user_path(version: '1.0', id: 'first.last')
 
       get '/api/1.0/users/first.last.xml'
       assert_equal 'api/users#show', @response.body
       assert_equal 'first.last', @request.params[:id]
       assert_equal true, @request.format.xml?
-      assert_equal '/api/1.0/users/first.last.xml', api_user_path(:version => '1.0', :id => 'first.last', :format => :xml)
+      assert_equal '/api/1.0/users/first.last.xml', api_user_path(version: '1.0', id: 'first.last', format: :xml)
     end
   end
 
@@ -1831,12 +1831,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/bob/followers'
       assert_equal 'followers#index', @response.body
       assert_equal 'http://www.example.com/bob/followers',
-        url_for(:controller => "followers", :action => "index", :username => "bob")
+        url_for(controller: "followers", action: "index", username: "bob")
 
       get '/followers'
       assert_equal 'followers#index', @response.body
       assert_equal 'http://www.example.com/followers',
-        url_for(:controller => "followers", :action => "index", :username => nil)
+        url_for(controller: "followers", action: "index", username: nil)
     end
   end
 
@@ -1845,12 +1845,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/groups/user/bob'
       assert_equal 'groups#index', @response.body
       assert_equal 'http://www.example.com/groups/user/bob',
-        url_for(:controller => "groups", :action => "index", :username => "bob")
+        url_for(controller: "groups", action: "index", username: "bob")
 
       get '/groups'
       assert_equal 'groups#index', @response.body
       assert_equal 'http://www.example.com/groups',
-        url_for(:controller => "groups", :action => "index", :username => nil)
+        url_for(controller: "groups", action: "index", username: nil)
     end
   end
 
@@ -1859,12 +1859,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get 'user/bob/photos'
       assert_equal 'photos#index', @response.body
       assert_equal 'http://www.example.com/user/bob/photos',
-        url_for(:controller => "photos", :action => "index", :username => "bob")
+        url_for(controller: "photos", action: "index", username: "bob")
 
       get 'photos'
       assert_equal 'photos#index', @response.body
       assert_equal 'http://www.example.com/photos',
-        url_for(:controller => "photos", :action => "index", :username => nil)
+        url_for(controller: "photos", action: "index", username: nil)
     end
   end
 
@@ -1908,35 +1908,35 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/movies/0001'
       assert_equal 'movies#show', @response.body
-      assert_equal '/movies/0001', movie_path(:id => '0001')
+      assert_equal '/movies/0001', movie_path(id: '0001')
 
       get '/movies/00001'
       assert_equal 'Not Found', @response.body
-      assert_raises(ActionController::RoutingError){ movie_path(:id => '00001') }
+      assert_raises(ActionController::RoutingError){ movie_path(id: '00001') }
 
       get '/movies/0001/reviews'
       assert_equal 'reviews#index', @response.body
-      assert_equal '/movies/0001/reviews', movie_reviews_path(:movie_id => '0001')
+      assert_equal '/movies/0001/reviews', movie_reviews_path(movie_id: '0001')
 
       get '/movies/00001/reviews'
       assert_equal 'Not Found', @response.body
-      assert_raises(ActionController::RoutingError){ movie_reviews_path(:movie_id => '00001') }
+      assert_raises(ActionController::RoutingError){ movie_reviews_path(movie_id: '00001') }
 
       get '/movies/0001/reviews/0001'
       assert_equal 'reviews#show', @response.body
-      assert_equal '/movies/0001/reviews/0001', movie_review_path(:movie_id => '0001', :id => '0001')
+      assert_equal '/movies/0001/reviews/0001', movie_review_path(movie_id: '0001', id: '0001')
 
       get '/movies/00001/reviews/0001'
       assert_equal 'Not Found', @response.body
-      assert_raises(ActionController::RoutingError){ movie_path(:movie_id => '00001', :id => '00001') }
+      assert_raises(ActionController::RoutingError){ movie_path(movie_id: '00001', id: '00001') }
 
       get '/movies/0001/trailer'
       assert_equal 'trailers#show', @response.body
-      assert_equal '/movies/0001/trailer', movie_trailer_path(:movie_id => '0001')
+      assert_equal '/movies/0001/trailer', movie_trailer_path(movie_id: '0001')
 
       get '/movies/00001/trailer'
       assert_equal 'Not Found', @response.body
-      assert_raises(ActionController::RoutingError){ movie_trailer_path(:movie_id => '00001') }
+      assert_raises(ActionController::RoutingError){ movie_trailer_path(movie_id: '00001') }
     end
   end
 
@@ -1948,23 +1948,23 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/only/clubs/1/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { edit_only_club_path(:id => '1') }
+      assert_raise(NoMethodError) { edit_only_club_path(id: '1') }
 
       get '/only/clubs/1/players'
       assert_equal 'only/players#index', @response.body
-      assert_equal '/only/clubs/1/players', only_club_players_path(:club_id => '1')
+      assert_equal '/only/clubs/1/players', only_club_players_path(club_id: '1')
 
       get '/only/clubs/1/players/2/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { edit_only_club_player_path(:club_id => '1', :id => '2') }
+      assert_raise(NoMethodError) { edit_only_club_player_path(club_id: '1', id: '2') }
 
       get '/only/clubs/1/chairman'
       assert_equal 'only/chairmen#show', @response.body
-      assert_equal '/only/clubs/1/chairman', only_club_chairman_path(:club_id => '1')
+      assert_equal '/only/clubs/1/chairman', only_club_chairman_path(club_id: '1')
 
       get '/only/clubs/1/chairman/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { edit_only_club_chairman_path(:club_id => '1') }
+      assert_raise(NoMethodError) { edit_only_club_chairman_path(club_id: '1') }
     end
   end
 
@@ -1976,23 +1976,23 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/except/clubs/1/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { edit_except_club_path(:id => '1') }
+      assert_raise(NoMethodError) { edit_except_club_path(id: '1') }
 
       get '/except/clubs/1/players'
       assert_equal 'except/players#index', @response.body
-      assert_equal '/except/clubs/1/players', except_club_players_path(:club_id => '1')
+      assert_equal '/except/clubs/1/players', except_club_players_path(club_id: '1')
 
       get '/except/clubs/1/players/2/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { edit_except_club_player_path(:club_id => '1', :id => '2') }
+      assert_raise(NoMethodError) { edit_except_club_player_path(club_id: '1', id: '2') }
 
       get '/except/clubs/1/chairman'
       assert_equal 'except/chairmen#show', @response.body
-      assert_equal '/except/clubs/1/chairman', except_club_chairman_path(:club_id => '1')
+      assert_equal '/except/clubs/1/chairman', except_club_chairman_path(club_id: '1')
 
       get '/except/clubs/1/chairman/edit'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { edit_except_club_chairman_path(:club_id => '1') }
+      assert_raise(NoMethodError) { edit_except_club_chairman_path(club_id: '1') }
     end
   end
 
@@ -2004,7 +2004,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/only/sectors/1'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { only_sector_path(:id => '1') }
+      assert_raise(NoMethodError) { only_sector_path(id: '1') }
     end
   end
 
@@ -2012,11 +2012,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/only/sectors/1/companies/2'
       assert_equal 'only/companies#show', @response.body
-      assert_equal '/only/sectors/1/companies/2', only_sector_company_path(:sector_id => '1', :id => '2')
+      assert_equal '/only/sectors/1/companies/2', only_sector_company_path(sector_id: '1', id: '2')
 
       get '/only/sectors/1/leader'
       assert_equal 'only/leaders#show', @response.body
-      assert_equal '/only/sectors/1/leader', only_sector_leader_path(:sector_id => '1')
+      assert_equal '/only/sectors/1/leader', only_sector_leader_path(sector_id: '1')
     end
   end
 
@@ -2028,7 +2028,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/except/sectors/1'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { except_sector_path(:id => '1') }
+      assert_raise(NoMethodError) { except_sector_path(id: '1') }
     end
   end
 
@@ -2036,11 +2036,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/except/sectors/1/companies/2'
       assert_equal 'except/companies#show', @response.body
-      assert_equal '/except/sectors/1/companies/2', except_sector_company_path(:sector_id => '1', :id => '2')
+      assert_equal '/except/sectors/1/companies/2', except_sector_company_path(sector_id: '1', id: '2')
 
       get '/except/sectors/1/leader'
       assert_equal 'except/leaders#show', @response.body
-      assert_equal '/except/sectors/1/leader', except_sector_leader_path(:sector_id => '1')
+      assert_equal '/except/sectors/1/leader', except_sector_leader_path(sector_id: '1')
     end
   end
 
@@ -2048,11 +2048,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/only/sectors/1/managers'
       assert_equal 'only/managers#index', @response.body
-      assert_equal '/only/sectors/1/managers', only_sector_managers_path(:sector_id => '1')
+      assert_equal '/only/sectors/1/managers', only_sector_managers_path(sector_id: '1')
 
       get '/only/sectors/1/managers/2'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { only_sector_manager_path(:sector_id => '1', :id => '2') }
+      assert_raise(NoMethodError) { only_sector_manager_path(sector_id: '1', id: '2') }
     end
   end
 
@@ -2060,11 +2060,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/except/sectors/1/managers'
       assert_equal 'except/managers#index', @response.body
-      assert_equal '/except/sectors/1/managers', except_sector_managers_path(:sector_id => '1')
+      assert_equal '/except/sectors/1/managers', except_sector_managers_path(sector_id: '1')
 
       get '/except/sectors/1/managers/2'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { except_sector_manager_path(:sector_id => '1', :id => '2') }
+      assert_raise(NoMethodError) { except_sector_manager_path(sector_id: '1', id: '2') }
     end
   end
 
@@ -2072,11 +2072,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/only/sectors/1/companies/2/divisions'
       assert_equal 'only/divisions#index', @response.body
-      assert_equal '/only/sectors/1/companies/2/divisions', only_sector_company_divisions_path(:sector_id => '1', :company_id => '2')
+      assert_equal '/only/sectors/1/companies/2/divisions', only_sector_company_divisions_path(sector_id: '1', company_id: '2')
 
       get '/only/sectors/1/companies/2/divisions/3'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { only_sector_company_division_path(:sector_id => '1', :company_id => '2', :id => '3') }
+      assert_raise(NoMethodError) { only_sector_company_division_path(sector_id: '1', company_id: '2', id: '3') }
     end
   end
 
@@ -2084,11 +2084,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/except/sectors/1/companies/2/divisions'
       assert_equal 'except/divisions#index', @response.body
-      assert_equal '/except/sectors/1/companies/2/divisions', except_sector_company_divisions_path(:sector_id => '1', :company_id => '2')
+      assert_equal '/except/sectors/1/companies/2/divisions', except_sector_company_divisions_path(sector_id: '1', company_id: '2')
 
       get '/except/sectors/1/companies/2/divisions/3'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { except_sector_company_division_path(:sector_id => '1', :company_id => '2', :id => '3') }
+      assert_raise(NoMethodError) { except_sector_company_division_path(sector_id: '1', company_id: '2', id: '3') }
     end
   end
 
@@ -2096,11 +2096,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/only/sectors/1/companies/2/departments'
       assert_equal 'only/departments#index', @response.body
-      assert_equal '/only/sectors/1/companies/2/departments', only_sector_company_departments_path(:sector_id => '1', :company_id => '2')
+      assert_equal '/only/sectors/1/companies/2/departments', only_sector_company_departments_path(sector_id: '1', company_id: '2')
 
       get '/only/sectors/1/companies/2/departments/3'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { only_sector_company_department_path(:sector_id => '1', :company_id => '2', :id => '3') }
+      assert_raise(NoMethodError) { only_sector_company_department_path(sector_id: '1', company_id: '2', id: '3') }
     end
   end
 
@@ -2108,11 +2108,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/except/sectors/1/companies/2/departments'
       assert_equal 'except/departments#index', @response.body
-      assert_equal '/except/sectors/1/companies/2/departments', except_sector_company_departments_path(:sector_id => '1', :company_id => '2')
+      assert_equal '/except/sectors/1/companies/2/departments', except_sector_company_departments_path(sector_id: '1', company_id: '2')
 
       get '/except/sectors/1/companies/2/departments/3'
       assert_equal 'Not Found', @response.body
-      assert_raise(NoMethodError) { except_sector_company_department_path(:sector_id => '1', :company_id => '2', :id => '3') }
+      assert_raise(NoMethodError) { except_sector_company_department_path(sector_id: '1', company_id: '2', id: '3') }
     end
   end
 
@@ -2131,11 +2131,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/transport/taxis/1'
       assert_equal 'transport/taxis#show', @response.body
-      assert_equal '/transport/taxis/1', transport_taxi_path(:id => '1')
+      assert_equal '/transport/taxis/1', transport_taxi_path(id: '1')
 
       get '/transport/taxis/1/edit'
       assert_equal 'transport/taxis#edit', @response.body
-      assert_equal '/transport/taxis/1/edit', edit_transport_taxi_path(:id => '1')
+      assert_equal '/transport/taxis/1/edit', edit_transport_taxi_path(id: '1')
 
       put '/transport/taxis/1'
       assert_equal 'transport/taxis#update', @response.body
@@ -2174,11 +2174,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/sections/1/edit'
       assert_equal 'sections#edit', @response.body
-      assert_equal '/sections/1/edit', edit_section_path(:id => '1')
+      assert_equal '/sections/1/edit', edit_section_path(id: '1')
 
       get '/sections/1/preview'
       assert_equal 'sections#preview', @response.body
-      assert_equal '/sections/1/preview', preview_section_path(:id => '1')
+      assert_equal '/sections/1/preview', preview_section_path(id: '1')
     end
   end
 
@@ -2186,15 +2186,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/wiki/articles/Ruby_on_Rails_3.0'
       assert_equal 'wiki/articles#show', @response.body
-      assert_equal '/wiki/articles/Ruby_on_Rails_3.0', wiki_article_path(:id => 'Ruby_on_Rails_3.0')
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0', wiki_article_path(id: 'Ruby_on_Rails_3.0')
 
       get '/wiki/articles/Ruby_on_Rails_3.0/comments/new'
       assert_equal 'wiki/comments#new', @response.body
-      assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments/new', new_wiki_article_comment_path(:article_id => 'Ruby_on_Rails_3.0')
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments/new', new_wiki_article_comment_path(article_id: 'Ruby_on_Rails_3.0')
 
       post '/wiki/articles/Ruby_on_Rails_3.0/comments'
       assert_equal 'wiki/comments#create', @response.body
-      assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments', wiki_article_comments_path(:article_id => 'Ruby_on_Rails_3.0')
+      assert_equal '/wiki/articles/Ruby_on_Rails_3.0/comments', wiki_article_comments_path(article_id: 'Ruby_on_Rails_3.0')
     end
   end
 
@@ -2206,7 +2206,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/pages/Ruby_on_Rails'
       assert_equal 'wiki_pages#show', @response.body
-      assert_equal '/pages/Ruby_on_Rails', wiki_page_path(:id => 'Ruby_on_Rails')
+      assert_equal '/pages/Ruby_on_Rails', wiki_page_path(id: 'Ruby_on_Rails')
 
       get '/my_account'
       assert_equal 'wiki_accounts#show', @response.body
@@ -2258,7 +2258,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     post '/customers/1/deactivate'
     assert_equal 'customers#deactivate', @response.body
-    assert_equal '/customers/1/deactivate', deactivate_customer_path(:id => '1')
+    assert_equal '/customers/1/deactivate', deactivate_customer_path(id: '1')
 
     get '/customers/old'
     assert_equal 'customers#old', @response.body
@@ -2266,33 +2266,33 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/customers/1/invoices/aged/3'
     assert_equal 'invoices#aged', @response.body
-    assert_equal '/customers/1/invoices/aged/3', aged_customer_invoices_path(:customer_id => '1', :months => '3')
+    assert_equal '/customers/1/invoices/aged/3', aged_customer_invoices_path(customer_id: '1', months: '3')
   end
 
   def test_route_defined_in_resources_scope_level
     get '/customers/1/export'
     assert_equal 'customers#export', @response.body
-    assert_equal '/customers/1/export', customer_export_path(:customer_id => '1')
+    assert_equal '/customers/1/export', customer_export_path(customer_id: '1')
   end
 
   def test_named_character_classes_in_regexp_constraints
     get '/purchases/315004be7e/Ruby_on_Rails_3.pdf'
     assert_equal 'purchases#fetch', @response.body
-    assert_equal '/purchases/315004be7e/Ruby_on_Rails_3.pdf', purchase_path(:token => '315004be7e', :filename => 'Ruby_on_Rails_3.pdf')
+    assert_equal '/purchases/315004be7e/Ruby_on_Rails_3.pdf', purchase_path(token: '315004be7e', filename: 'Ruby_on_Rails_3.pdf')
   end
 
   def test_nested_resource_constraints
     get '/lists/01234012340123401234fffff'
     assert_equal 'lists#show', @response.body
-    assert_equal '/lists/01234012340123401234fffff', list_path(:id => '01234012340123401234fffff')
+    assert_equal '/lists/01234012340123401234fffff', list_path(id: '01234012340123401234fffff')
 
     get '/lists/01234012340123401234fffff/todos/1'
     assert_equal 'todos#show', @response.body
-    assert_equal '/lists/01234012340123401234fffff/todos/1', list_todo_path(:list_id => '01234012340123401234fffff', :id => '1')
+    assert_equal '/lists/01234012340123401234fffff/todos/1', list_todo_path(list_id: '01234012340123401234fffff', id: '1')
 
     get '/lists/2/todos/1'
     assert_equal 'Not Found', @response.body
-    assert_raises(ActionController::RoutingError){ list_todo_path(:list_id => '2', :id => '1') }
+    assert_raises(ActionController::RoutingError){ list_todo_path(list_id: '2', id: '1') }
   end
 
   def test_named_routes_collision_is_avoided_unless_explicitly_given_as
@@ -2312,31 +2312,31 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_controller_name_with_leading_slash_raise_error
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
-        routes.draw { get '/feeds/:service', :to => '/feeds#show' }
+        routes.draw { get '/feeds/:service', to: '/feeds#show' }
       end
     end
 
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
-        routes.draw { get '/feeds/:service', :controller => '/feeds', :action => 'show' }
+        routes.draw { get '/feeds/:service', controller: '/feeds', action: 'show' }
       end
     end
 
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
-        routes.draw { get '/api/feeds/:service', :to => '/api/feeds#show' }
+        routes.draw { get '/api/feeds/:service', to: '/api/feeds#show' }
       end
     end
 
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
-        routes.draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
+        routes.draw { controller("/feeds") { get '/feeds/:service', to: :show } }
       end
     end
 
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
-        routes.draw { resources :feeds, :controller => '/feeds' }
+        routes.draw { resources :feeds, controller: '/feeds' }
       end
     end
   end
@@ -2344,31 +2344,31 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_invalid_route_name_raises_error
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
-        routes.draw { get '/products', :to => 'products#index', :as => 'products ' }
+        routes.draw { get '/products', to: 'products#index', as: 'products ' }
       end
     end
 
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
-        routes.draw { get '/products', :to => 'products#index', :as => ' products' }
+        routes.draw { get '/products', to: 'products#index', as: ' products' }
       end
     end
 
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
-        routes.draw { get '/products', :to => 'products#index', :as => 'products!' }
+        routes.draw { get '/products', to: 'products#index', as: 'products!' }
       end
     end
 
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
-        routes.draw { get '/products', :to => 'products#index', :as => 'products index' }
+        routes.draw { get '/products', to: 'products#index', as: 'products index' }
       end
     end
 
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
-        routes.draw { get '/products', :to => 'products#index', :as => '1products' }
+        routes.draw { get '/products', to: 'products#index', as: '1products' }
       end
     end
   end
@@ -2376,13 +2376,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_nested_route_in_nested_resource
     get "/posts/1/comments/2/views"
     assert_equal "comments#views", @response.body
-    assert_equal "/posts/1/comments/2/views", post_comment_views_path(:post_id => '1', :comment_id => '2')
+    assert_equal "/posts/1/comments/2/views", post_comment_views_path(post_id: '1', comment_id: '2')
   end
 
   def test_root_in_deeply_nested_scope
     get "/posts/1/admin"
     assert_equal "admin/index#index", @response.body
-    assert_equal "/posts/1/admin", post_admin_root_path(:post_id => '1')
+    assert_equal "/posts/1/admin", post_admin_root_path(post_id: '1')
   end
 
 private
@@ -2448,13 +2448,13 @@ class TestDefaultScope < ActionDispatch::IntegrationTest
   module ::Blog
     class PostsController < ActionController::Base
       def index
-        render :text => "blog/posts#index"
+        render text: "blog/posts#index"
       end
     end
   end
 
   DefaultScopeRoutes = ActionDispatch::Routing::RouteSet.new
-  DefaultScopeRoutes.default_scope = {:module => :blog}
+  DefaultScopeRoutes.default_scope = {module: :blog}
   DefaultScopeRoutes.draw do
     resources :posts
   end
@@ -2490,7 +2490,7 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
 
     @app.draw do
       (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789).each do |method|
-        match '/' => s.simple_app(method), :via => method.underscore.to_sym
+        match '/' => s.simple_app(method), via: method.underscore.to_sym
       end
     end
   end
@@ -2509,12 +2509,12 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
       match '/:segment' => lambda { |env|
         path_params = env['action_dispatch.request.path_parameters']
         [200, { 'Content-Type' => 'text/plain' }, [path_params[:segment]]]
-      }, :as => :segment
+      }, as: :segment
 
       match '/*splat' => lambda { |env|
         path_params = env['action_dispatch.request.path_parameters']
         [200, { 'Content-Type' => 'text/plain' }, [path_params[:splat]]]
-      }, :as => :splat
+      }, as: :splat
     end
   end
 
@@ -2522,7 +2522,7 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
   def app; Routes end
 
   test 'escapes generated path segment' do
-    assert_equal '/a%20b/c+d', segment_path(:segment => 'a b/c+d')
+    assert_equal '/a%20b/c+d', segment_path(segment: 'a b/c+d')
   end
 
   test 'unescapes recognized path segment' do
@@ -2531,7 +2531,7 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
   end
 
   test 'escapes generated path splat' do
-    assert_equal '/a%20b/c+d', splat_path(:splat => 'a b/c+d')
+    assert_equal '/a%20b/c+d', splat_path(splat: 'a b/c+d')
   end
 
   test 'unescapes recognized path splat' do

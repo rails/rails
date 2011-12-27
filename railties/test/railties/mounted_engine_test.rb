@@ -16,7 +16,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          mount Weblog::Engine, :at => '/', :as => 'weblog'
+          mount Weblog::Engine, at: '/', as: 'weblog'
           resources :posts
           match "/engine_route" => "application_generating#engine_route"
           match "/engine_route_in_view" => "application_generating#engine_route_in_view"
@@ -25,10 +25,10 @@ module ApplicationTests
           match "/url_for_engine_route" => "application_generating#url_for_engine_route"
           match "/polymorphic_route" => "application_generating#polymorphic_route"
           match "/application_polymorphic_path" => "application_generating#application_polymorphic_path"
-          scope "/:user", :user => "anonymous" do
+          scope "/:user", user: "anonymous" do
             mount Blog::Engine => "/blog"
           end
-          root :to => 'main#index'
+          root to: 'main#index'
         end
       RUBY
 
@@ -42,14 +42,14 @@ module ApplicationTests
 
       @simple_plugin.write "config/routes.rb", <<-RUBY
         Weblog::Engine.routes.draw do
-          match '/weblog' => "weblogs#index", :as => 'weblogs'
+          match '/weblog' => "weblogs#index", as: 'weblogs'
         end
       RUBY
 
       @simple_plugin.write "app/controllers/weblogs_controller.rb", <<-RUBY
         class WeblogsController < ActionController::Base
           def index
-            render :text => request.url
+            render text: request.url
           end
         end
       RUBY
@@ -86,9 +86,9 @@ module ApplicationTests
       @plugin.write "config/routes.rb", <<-RUBY
         Blog::Engine.routes.draw do
           resources :posts
-          match '/generate_application_route', :to => 'posts#generate_application_route'
-          match '/application_route_in_view', :to => 'posts#application_route_in_view'
-          match '/engine_polymorphic_path', :to => 'posts#engine_polymorphic_path'
+          match '/generate_application_route', to: 'posts#generate_application_route'
+          match '/application_route_in_view', to: 'posts#application_route_in_view'
+          match '/engine_polymorphic_path', to: 'posts#engine_polymorphic_path'
         end
       RUBY
 
@@ -96,22 +96,22 @@ module ApplicationTests
         module Blog
           class PostsController < ActionController::Base
             def index
-              render :text => blog.post_path(1)
+              render text: blog.post_path(1)
             end
 
             def generate_application_route
-              path = main_app.url_for(:controller => "/main",
-                                 :action => "index",
-                                 :only_path => true)
-              render :text => path
+              path = main_app.url_for(controller: "/main",
+                                 action: "index",
+                                 only_path: true)
+              render text: path
             end
 
             def application_route_in_view
-              render :inline => "<%= main_app.root_path %>"
+              render inline: "<%= main_app.root_path %>"
             end
 
             def engine_polymorphic_path
-              render :text => polymorphic_path(Post.new)
+              render text: polymorphic_path(Post.new)
             end
           end
         end
@@ -120,31 +120,31 @@ module ApplicationTests
       app_file "app/controllers/application_generating_controller.rb", <<-RUBY
         class ApplicationGeneratingController < ActionController::Base
           def engine_route
-            render :text => blog.posts_path
+            render text: blog.posts_path
           end
 
           def engine_route_in_view
-            render :inline => "<%= blog.posts_path %>"
+            render inline: "<%= blog.posts_path %>"
           end
 
           def weblog_engine_route
-            render :text => weblog.weblogs_path
+            render text: weblog.weblogs_path
           end
 
           def weblog_engine_route_in_view
-            render :inline => "<%= weblog.weblogs_path %>"
+            render inline: "<%= weblog.weblogs_path %>"
           end
 
           def url_for_engine_route
-            render :text => blog.url_for(:controller => "blog/posts", :action => "index", :user => "john", :only_path => true)
+            render text: blog.url_for(controller: "blog/posts", action: "index", user: "john", only_path: true)
           end
 
           def polymorphic_route
-            render :text => polymorphic_url([blog, Blog::Post.new])
+            render text: polymorphic_url([blog, Blog::Post.new])
           end
 
           def application_polymorphic_path
-            render :text => polymorphic_path(Blog::Post.new)
+            render text: polymorphic_path(Blog::Post.new)
           end
         end
       RUBY
@@ -168,7 +168,7 @@ module ApplicationTests
     end
 
     def script_name(script_name)
-      Rails.application.routes.default_url_options = {:script_name => script_name}
+      Rails.application.routes.default_url_options = {script_name: script_name}
     end
 
     test "routes generation in engine and application" do

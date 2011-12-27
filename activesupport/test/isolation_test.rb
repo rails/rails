@@ -95,7 +95,7 @@ else
       OUTPUT.scan(/^\s*\d+\).*?\n\n/m).each do |backtrace|
         # \n  1) Error:\ntest_captures_errors(ChildIsolationTest):
         backtrace =~ %r'\s*\d+\)\s*(Error|Failure):\n(\w+)'i
-        @backtraces[$2] = { :type => $1, :output => backtrace }
+        @backtraces[$2] = { type: $1, output: backtrace }
       end
     end
 
@@ -115,7 +115,7 @@ else
       OUTPUT.scan(/^\s*\d+\).*?\n\n/m).each do |backtrace|
         # \n  1) Error:\ntest_captures_errors(ChildIsolationTest):
         backtrace =~ %r'\s*\d+\)\s*(Error|Failure):\n(\w+)'i
-        @backtraces[$2] = { :type => $1, :output => backtrace }
+        @backtraces[$2] = { type: $1, output: backtrace }
       end
     end
 

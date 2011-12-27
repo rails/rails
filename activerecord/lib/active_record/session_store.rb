@@ -66,10 +66,10 @@ module ActiveRecord
       def create_table!
         connection.schema_cache.clear_table_cache!(table_name)
         connection.create_table(table_name) do |t|
-          t.string session_id_column, :limit => 255
+          t.string session_id_column, limit: 255
           t.text data_column_name
         end
-        connection.add_index table_name, session_id_column, :unique => true
+        connection.add_index table_name, session_id_column, unique: true
       end
     end
 
@@ -119,7 +119,7 @@ module ActiveRecord
               class << self; remove_method :find_by_session_id; end
 
               def self.find_by_session_id(session_id)
-                find :first, :conditions => {:session_id=>session_id}
+                find :first, conditions: {session_id: session_id}
               end
             end
           end
@@ -219,12 +219,12 @@ module ActiveRecord
         # Look up a session by id and unmarshal its data if found.
         def find_by_session_id(session_id)
           if record = connection.select_one("SELECT * FROM #{@@table_name} WHERE #{@@session_id_column}=#{connection.quote(session_id)}")
-            new(:session_id => session_id, :marshaled_data => record['data'])
+            new(session_id: session_id, marshaled_data: record['data'])
           end
         end
       end
       
-      delegate :connection, :connection=, :connection_pool, :connection_pool=, :to => self
+      delegate :connection, :connection=, :connection_pool, :connection_pool=, to: self
 
       attr_reader :session_id, :new_record
       alias :new_record? :new_record
@@ -307,7 +307,7 @@ module ActiveRecord
             # If the sid was nil or if there is no pre-existing session under the sid,
             # force the generation of a new sid and associate a new session associated with the new sid
             sid = generate_sid
-            session = @@session_class.new(:session_id => sid, :data => {})
+            session = @@session_class.new(session_id: sid, data: {})
           end
           env[SESSION_RECORD_KEY] = session
           [sid, session.data]
@@ -352,7 +352,7 @@ module ActiveRecord
 
       def find_session(id)
         @@session_class.find_by_session_id(id) ||
-          @@session_class.new(:session_id => id, :data => {})
+          @@session_class.new(session_id: id, data: {})
       end
   end
 end

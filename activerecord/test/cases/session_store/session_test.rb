@@ -46,7 +46,7 @@ module ActiveRecord
         klass.create_table!
 
         assert klass.columns_hash['sessid'], 'sessid column exists'
-        session = klass.new(:data => 'hello')
+        session = klass.new(data: 'hello')
         session.sessid = "100"
         session.save!
 
@@ -61,7 +61,7 @@ module ActiveRecord
       def test_find_by_session_id
         Session.create_table!
         session_id = "10"
-        s = Session.create!(:data => 'world', :session_id => session_id)
+        s = Session.create!(data: 'world', session_id: session_id)
         t = Session.find_by_session_id(session_id)
         assert_equal s, t
         assert_equal s.data, t.data

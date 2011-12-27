@@ -12,7 +12,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :nested_attributes_options, :instance_writer => false
+      class_attribute :nested_attributes_options, instance_writer: false
       self.nested_attributes_options = {}
     end
 
@@ -52,14 +52,14 @@ module ActiveRecord
     # Enabling nested attributes on a one-to-one association allows you to
     # create the member and avatar in one go:
     #
-    #   params = { :member => { :name => 'Jack', :avatar_attributes => { :icon => 'smiling' } } }
+    #   params = { member: { name: 'Jack', avatar_attributes: { icon: 'smiling' } } }
     #   member = Member.create(params[:member])
     #   member.avatar.id # => 2
     #   member.avatar.icon # => 'smiling'
     #
     # It also allows you to update the avatar through the member:
     #
-    #   params = { :member => { :avatar_attributes => { :id => '2', :icon => 'sad' } } }
+    #   params = { member: { avatar_attributes: { id: '2', icon: 'sad' } } }
     #   member.update_attributes params[:member]
     #   member.avatar.icon # => 'sad'
     #
@@ -70,13 +70,13 @@ module ActiveRecord
     #
     #   class Member < ActiveRecord::Base
     #     has_one :avatar
-    #     accepts_nested_attributes_for :avatar, :allow_destroy => true
+    #     accepts_nested_attributes_for :avatar, allow_destroy: true
     #   end
     #
     # Now, when you add the <tt>_destroy</tt> key to the attributes hash, with a
     # value that evaluates to +true+, you will destroy the associated model:
     #
-    #   member.avatar_attributes = { :id => '2', :_destroy => '1' }
+    #   member.avatar_attributes = { id: '2', _destroy: '1' }
     #   member.avatar.marked_for_destruction? # => true
     #   member.save
     #   member.reload.avatar # => nil
@@ -99,11 +99,11 @@ module ActiveRecord
     # be instantiated, unless the hash also contains a <tt>_destroy</tt> key
     # that evaluates to +true+.
     #
-    #   params = { :member => {
-    #     :name => 'joe', :posts_attributes => [
-    #       { :title => 'Kari, the awesome Ruby documentation browser!' },
-    #       { :title => 'The egalitarian assumption of the modern citizen' },
-    #       { :title => '', :_destroy => '1' } # this will be ignored
+    #   params = { member: {
+    #     name: 'joe', posts_attributes: [
+    #       { title: 'Kari, the awesome Ruby documentation browser!' },
+    #       { title: 'The egalitarian assumption of the modern citizen' },
+    #       { title: '', _destroy: '1' } # this will be ignored
     #     ]
     #   }}
     #
@@ -118,14 +118,14 @@ module ActiveRecord
     #
     #    class Member < ActiveRecord::Base
     #      has_many :posts
-    #      accepts_nested_attributes_for :posts, :reject_if => proc { |attributes| attributes['title'].blank? }
+    #      accepts_nested_attributes_for :posts, reject_if: proc { |attributes| attributes['title'].blank? }
     #    end
     #
-    #   params = { :member => {
-    #     :name => 'joe', :posts_attributes => [
-    #       { :title => 'Kari, the awesome Ruby documentation browser!' },
-    #       { :title => 'The egalitarian assumption of the modern citizen' },
-    #       { :title => '' } # this will be ignored because of the :reject_if proc
+    #   params = { member: {
+    #     name: 'joe', posts_attributes: [
+    #       { title: 'Kari, the awesome Ruby documentation browser!' },
+    #       { title: 'The egalitarian assumption of the modern citizen' },
+    #       { title: '' } # this will be ignored because of the :reject_if proc
     #     ]
     #   }}
     #
@@ -138,12 +138,12 @@ module ActiveRecord
     #
     #    class Member < ActiveRecord::Base
     #      has_many :posts
-    #      accepts_nested_attributes_for :posts, :reject_if => :new_record?
+    #      accepts_nested_attributes_for :posts, reject_if: :new_record?
     #    end
     #
     #    class Member < ActiveRecord::Base
     #      has_many :posts
-    #      accepts_nested_attributes_for :posts, :reject_if => :reject_posts
+    #      accepts_nested_attributes_for :posts, reject_if: :reject_posts
     #
     #      def reject_posts(attributed)
     #        attributed['title'].blank?
@@ -154,10 +154,10 @@ module ActiveRecord
     # associated record, the matching record will be modified:
     #
     #   member.attributes = {
-    #     :name => 'Joe',
-    #     :posts_attributes => [
-    #       { :id => 1, :title => '[UPDATED] An, as of yet, undisclosed awesome Ruby documentation browser!' },
-    #       { :id => 2, :title => '[UPDATED] other post' }
+    #     name: 'Joe',
+    #     posts_attributes: [
+    #       { id: 1, title: '[UPDATED] An, as of yet, undisclosed awesome Ruby documentation browser!' },
+    #       { id: 2, title: '[UPDATED] other post' }
     #     ]
     #   }
     #
@@ -172,11 +172,11 @@ module ActiveRecord
     #
     #   class Member < ActiveRecord::Base
     #     has_many :posts
-    #     accepts_nested_attributes_for :posts, :allow_destroy => true
+    #     accepts_nested_attributes_for :posts, allow_destroy: true
     #   end
     #
-    #   params = { :member => {
-    #     :posts_attributes => [{ :id => '2', :_destroy => '1' }]
+    #   params = { member: {
+    #     posts_attributes: [{ id: '2', _destroy: '1' }]
     #   }}
     #
     #   member.attributes = params['member']
@@ -211,12 +211,12 @@ module ActiveRecord
     # <tt>inverse_of</tt> as this example illustrates:
     #
     #   class Member < ActiveRecord::Base
-    #     has_many :posts, :inverse_of => :member
+    #     has_many :posts, inverse_of: :member
     #     accepts_nested_attributes_for :posts
     #   end
     #
     #   class Post < ActiveRecord::Base
-    #     belongs_to :member, :inverse_of => :posts
+    #     belongs_to :member, inverse_of: :posts
     #     validates_presence_of :member
     #   end
     module ClassMethods
@@ -255,13 +255,13 @@ module ActiveRecord
       #
       # Examples:
       #   # creates avatar_attributes=
-      #   accepts_nested_attributes_for :avatar, :reject_if => proc { |attributes| attributes['name'].blank? }
+      #   accepts_nested_attributes_for :avatar, reject_if: proc { |attributes| attributes['name'].blank? }
       #   # creates avatar_attributes=
-      #   accepts_nested_attributes_for :avatar, :reject_if => :all_blank
+      #   accepts_nested_attributes_for :avatar, reject_if: :all_blank
       #   # creates avatar_attributes= and posts_attributes=
-      #   accepts_nested_attributes_for :avatar, :posts, :allow_destroy => true
+      #   accepts_nested_attributes_for :avatar, :posts, allow_destroy: true
       def accepts_nested_attributes_for(*attr_names)
-        options = { :allow_destroy => false, :update_only => false }
+        options = { allow_destroy: false, update_only: false }
         options.update(attr_names.extract_options!)
         options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
@@ -352,9 +352,9 @@ module ActiveRecord
     # For example:
     #
     #   assign_nested_attributes_for_collection_association(:people, {
-    #     '1' => { :id => '1', :name => 'Peter' },
-    #     '2' => { :name => 'John' },
-    #     '3' => { :id => '2', :_destroy => true }
+    #     '1' => { id: '1', name: 'Peter' },
+    #     '2' => { name: 'John' },
+    #     '3' => { id: '2', _destroy: true }
     #   })
     #
     # Will update the name of the Person with ID 1, build a new associated
@@ -364,9 +364,9 @@ module ActiveRecord
     # Also accepts an Array of attribute hashes:
     #
     #   assign_nested_attributes_for_collection_association(:people, [
-    #     { :id => '1', :name => 'Peter' },
-    #     { :name => 'John' },
-    #     { :id => '2', :_destroy => true }
+    #     { id: '1', name: 'Peter' },
+    #     { name: 'John' },
+    #     { id: '2', _destroy: true }
     #   ])
     def assign_nested_attributes_for_collection_association(association_name, attributes_collection, assignment_opts = {})
       options = self.nested_attributes_options[association_name]

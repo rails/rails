@@ -150,8 +150,8 @@ module ActionDispatch
           end
 
           def define_named_route_methods(name, route)
-            {:url => {:only_path => false}, :path => {:only_path => true}}.each do |kind, opts|
-              hash = route.defaults.merge(:use_route => name).merge(opts)
+            {url: {only_path: false}, path: {only_path: true}}.each do |kind, opts|
+              hash = route.defaults.merge(use_route: name).merge(opts)
               define_hash_access route, name, kind, hash
               define_url_helper route, name, kind, hash
             end
@@ -186,11 +186,11 @@ module ActionDispatch
           #
           # Instead of:
           #
-          #   foo_url(:bar => bar, :baz => baz, :bang => bang)
+          #   foo_url(bar: bar, baz: baz, bang: bang)
           #
           # Also allow options hash, so you can do:
           #
-          #   foo_url(bar, baz, bang, :sort_by => 'baz')
+          #   foo_url(bar, baz, bang, sort_by: 'baz')
           #
           def define_url_helper(route, name, kind, options)
             selector = url_helper_name(name, kind)
@@ -213,7 +213,7 @@ module ActionDispatch
       alias :routes :set
 
       def self.default_resources_path_names
-        { :new => 'new', :edit => 'edit' }
+        { new: 'new', edit: 'edit' }
       end
 
       def initialize(request_class = ActionDispatch::Request)
@@ -239,8 +239,8 @@ module ActionDispatch
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new(@set, {
-          :parameters_key => PARAMETERS_KEY,
-          :request_class  => request_class})
+          parameters_key: PARAMETERS_KEY,
+          request_class:  request_class})
         @formatter = Journey::Formatter.new @set
       end
 
@@ -326,7 +326,7 @@ module ActionDispatch
 
             @_routes = routes
             class << self
-              delegate :url_for, :to => '@_routes'
+              delegate :url_for, to: '@_routes'
             end
             extend routes.named_routes.module
 
@@ -438,7 +438,7 @@ module ActionDispatch
           # If an explicit :controller was given, always make :action explicit
           # too, so that action expiry works as expected for things like
           #
-          #   generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
+          #   generate({controller: 'content'}, {controller: 'content', action: 'show'})
           #
           # (the above is from the unit tests). In the above case, because the
           # controller was explicitly given, but no action, the action is implied to
@@ -467,7 +467,7 @@ module ActionDispatch
           use_recall_for(:id)
         end
 
-        # if the current controller is "foo/bar/baz" and :controller => "baz/bat"
+        # if the current controller is "foo/bar/baz" and controller: "baz/bat"
         # is specified, the controller becomes "foo/baz/bat"
         def use_relative_controller!
           if !named_route && different_controller?
@@ -478,8 +478,8 @@ module ActionDispatch
           end
         end
 
-        # This handles the case of :action => nil being explicitly passed.
-        # It is identical to :action => "index"
+        # This handles the case of action: nil being explicitly passed.
+        # It is identical to action: "index"
         def handle_nil_action!
           if options.has_key?(:action) && options[:action].nil?
             options[:action] = 'index'
@@ -558,10 +558,10 @@ module ActionDispatch
         path << path_addition
 
         ActionDispatch::Http::URL.url_for(options.merge!({
-          :path => path,
-          :params => params,
-          :user => user,
-          :password => password
+          path: path,
+          params: params,
+          user: user,
+          password: password
         }))
       end
 
@@ -575,7 +575,7 @@ module ActionDispatch
         path = Journey::Router::Utils.normalize_path(path) unless path =~ %r{://}
 
         begin
-          env = Rack::MockRequest.env_for(path, {:method => method})
+          env = Rack::MockRequest.env_for(path, {method: method})
         rescue URI::InvalidURIError => e
           raise ActionController::RoutingError, e.message
         end

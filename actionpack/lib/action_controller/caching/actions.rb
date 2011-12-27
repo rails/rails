@@ -10,7 +10,7 @@ module ActionController #:nodoc:
     # to execute such action. Example:
     #
     #   class ListsController < ApplicationController
-    #     before_filter :authenticate, :except => :public
+    #     before_filter :authenticate, except: :public
     #
     #     caches_page   :public
     #     caches_action :index, :show
@@ -35,8 +35,8 @@ module ActionController #:nodoc:
     # <tt>http://david.example.com/lists.xml</tt>
     # are treated like separate requests and so are cached separately.
     # Keep in mind when expiring an action cache that
-    # <tt>:action => 'lists'</tt> is not the same as
-    # <tt>:action => 'list', :format => :xml</tt>.
+    # <tt>action: 'lists'</tt> is not the same as
+    # <tt>action: 'list', format: :xml</tt>.
     #
     # You can modify the default action cache path by passing a
     # <tt>:cache_path</tt> option. This will be passed directly to
@@ -52,18 +52,18 @@ module ActionController #:nodoc:
     # The following example depicts some of the points made above:
     #
     #   class ListsController < ApplicationController
-    #     before_filter :authenticate, :except => :public
+    #     before_filter :authenticate, except: :public
     #
     #     caches_page :public
     #
-    #     caches_action :index, :if => proc do
+    #     caches_action :index, if: proc do
     #       !request.format.json?  # cache if is not a JSON request
     #     end
     #
-    #     caches_action :show, :cache_path => { :project => 1 },
-    #       :expires_in => 1.hour
+    #     caches_action :show, cache_path: { project: 1 },
+    #       expires_in: 1.hour
     #
-    #     caches_action :feed, :cache_path => proc do
+    #     caches_action :feed, cache_path: proc do
     #       if params[:user_id]
     #         user_list_url(params[:user_id, params[:id])
     #       else
@@ -72,7 +72,7 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # If you pass <tt>:layout => false</tt>, it will only cache your action
+    # If you pass <tt>layout: false</tt>, it will only cache your action
     # content. That's useful when your layout has dynamic information.
     #
     # Warning: If the format of the request is determined by the Accept HTTP
@@ -94,8 +94,8 @@ module ActionController #:nodoc:
           return unless cache_configured?
           options = actions.extract_options!
           options[:layout] = true unless options.key?(:layout)
-          filter_options = options.extract!(:if, :unless).merge(:only => actions)
-          cache_options  = options.extract!(:layout, :cache_path).merge(:store_options => options)
+          filter_options = options.extract!(:if, :unless).merge(only: actions)
+          cache_options  = options.extract!(:layout, :cache_path).merge(store_options: options)
 
           around_filter ActionCacheFilter.new(cache_options), filter_options
         end
@@ -117,7 +117,7 @@ module ActionController #:nodoc:
         return unless cache_configured?
 
         if options.is_a?(Hash) && options[:action].is_a?(Array)
-          options[:action].each {|action| expire_action(options.merge(:action => action)) }
+          options[:action].each {|action| expire_action(options.merge(action: action)) }
         else
           expire_fragment(ActionCachePath.new(self, options, false).path)
         end
@@ -147,7 +147,7 @@ module ActionController #:nodoc:
             body = controller._save_fragment(cache_path.path, @store_options)
           end
 
-          body = controller.render_to_string(:text => body, :layout => true) unless @cache_layout
+          body = controller.render_to_string(text: body, layout: true) unless @cache_layout
 
           controller.response_body = body
           controller.content_type = Mime[cache_path.extension || :html]
@@ -164,7 +164,7 @@ module ActionController #:nodoc:
         def initialize(controller, options = {}, infer_extension = true)
           if infer_extension
             @extension = controller.params[:format]
-            options.reverse_merge!(:format => @extension) if options.is_a?(Hash)
+            options.reverse_merge!(format: @extension) if options.is_a?(Hash)
           end
 
           path = controller.url_for(options).split(%r{://}).last

@@ -61,7 +61,7 @@ module Rails
       @config ||= Engine::Configuration.new
     end
 
-    initializer :handle_lib_autoload, :before => :set_load_path do |app|
+    initializer :handle_lib_autoload, before: :set_load_path do |app|
       autoload = if app.config.reload_plugins
         config.autoload_paths
       else
@@ -71,7 +71,7 @@ module Rails
       autoload.concat paths["lib"].existent
     end
 
-    initializer :load_init_rb, :before => :load_config_initializers do |app|
+    initializer :load_init_rb, before: :load_config_initializers do |app|
       init_rb = File.expand_path("init.rb", root)
       if File.file?(init_rb)
         # This double assignment is to prevent an "unused variable" warning on Ruby 1.9.3.

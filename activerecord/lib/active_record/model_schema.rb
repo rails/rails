@@ -25,14 +25,14 @@ module ActiveRecord
       # If you are organising your models within modules you can add a prefix to the models within
       # a namespace by defining a singleton method in the parent module called table_name_prefix which
       # returns your chosen prefix.
-      class_attribute :table_name_prefix, :instance_writer => false
+      class_attribute :table_name_prefix, instance_writer: false
       self.table_name_prefix = ""
 
       ##
       # :singleton-method:
       # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
       # "people_basecamp"). By default, the suffix is the empty string.
-      class_attribute :table_name_suffix, :instance_writer => false
+      class_attribute :table_name_suffix, instance_writer: false
       self.table_name_suffix = ""
 
       ##
@@ -40,7 +40,7 @@ module ActiveRecord
       # Indicates whether table names should be the pluralized versions of the corresponding class names.
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.
-      class_attribute :pluralize_table_names, :instance_writer => false
+      class_attribute :pluralize_table_names, instance_writer: false
       self.pluralize_table_names = true
     end
 
@@ -255,7 +255,7 @@ module ActiveRecord
       #
       #      JobLevel.reset_column_information
       #      %w{assistant executive manager director}.each do |type|
-      #        JobLevel.create(:name => type)
+      #        JobLevel.create(name: type)
       #      end
       #    end
       #

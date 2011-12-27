@@ -39,9 +39,9 @@ class SprocketsHelperWithRoutesTest < ActionView::TestCase
     assert_match %r{/assets/logo-[0-9a-f]+.png},
       path_to_asset("logo.png")
     assert_match %r{/assets/logo-[0-9a-f]+.png},
-      path_to_asset("logo.png", :digest => true)
+      path_to_asset("logo.png", digest: true)
     assert_match %r{/assets/logo.png},
-      path_to_asset("logo.png", :digest => false)
+      path_to_asset("logo.png", digest: false)
   end
 
   test "javascript_include_tag with a named_route named asset_path" do

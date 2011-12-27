@@ -26,10 +26,10 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
-              super(dep.pathname.to_s, { :src => path_to_asset(dep, :ext => 'js', :body => true, :digest => digest) }.merge!(options))
+              super(dep.pathname.to_s, { src: path_to_asset(dep, ext: 'js', body: true, digest: digest) }.merge!(options))
             }
           else
-            super(source.to_s, { :src => path_to_asset(source, :ext => 'js', :body => body, :digest => digest) }.merge!(options))
+            super(source.to_s, { src: path_to_asset(source, ext: 'js', body: body, digest: digest) }.merge!(options))
           end
         end.join("\n").html_safe
       end
@@ -43,17 +43,17 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
-              super(dep.pathname.to_s, { :href => path_to_asset(dep, :ext => 'css', :body => true, :protocol => :request, :digest => digest) }.merge!(options))
+              super(dep.pathname.to_s, { href: path_to_asset(dep, ext: 'css', body: true, protocol: :request, digest: digest) }.merge!(options))
             }
           else
-            super(source.to_s, { :href => path_to_asset(source, :ext => 'css', :body => body, :protocol => :request, :digest => digest) }.merge!(options))
+            super(source.to_s, { href: path_to_asset(source, ext: 'css', body: body, protocol: :request, digest: digest) }.merge!(options))
           end
         end.join("\n").html_safe
       end
 
       def asset_path(source, options = {})
         source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, asset_prefix, options.merge(:body => true))
+        path = asset_paths.compute_public_path(source, asset_prefix, options.merge(body: true))
         options[:body] ? "#{path}?body=1" : path
       end
       alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route

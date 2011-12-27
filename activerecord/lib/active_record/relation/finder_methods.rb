@@ -22,7 +22,7 @@ module ActiveRecord
     # ==== Options
     #
     # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1", <tt>["user_name = ?", username]</tt>,
-    #   or <tt>["user_name = :user_name", { :user_name => user_name }]</tt>. See conditions in the intro.
+    #   or <tt>["user_name = :user_name", { user_name: user_name }]</tt>. See conditions in the intro.
     # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
     # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
     # * <tt>:having</tt> - Combined with +:group+ this can be used to filter the records that a
@@ -36,7 +36,7 @@ module ActiveRecord
     #   or an array containing a mixture of both strings and named associations.
     #   If the value is a string, then the records will be returned read-only since they will
     #   have attributes that do not correspond to the table's columns.
-    #   Pass <tt>:readonly => false</tt> to override.
+    #   Pass <tt>readonly: false</tt> to override.
     # * <tt>:include</tt> - Names associations that should be loaded alongside. The symbols named refer
     #   to already defined associations. See eager loading under Associations.
     # * <tt>:select</tt> - By default, this is "*" as in "SELECT * FROM", but can be changed if you,
@@ -45,7 +45,7 @@ module ActiveRecord
     #   to an alternate table name (or even the name of a database view).
     # * <tt>:readonly</tt> - Mark the returned records read-only so they cannot be saved or updated.
     # * <tt>:lock</tt> - An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
-    #   <tt>:lock => true</tt> gives connection's default exclusive lock, usually "FOR UPDATE".
+    #   <tt>lock: true</tt> gives connection's default exclusive lock, usually "FOR UPDATE".
     #
     # ==== Examples
     #
@@ -65,7 +65,7 @@ module ActiveRecord
     #   # find first
     #   Person.first # returns the first object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).first
-    #   Person.where(["user_name = :u", { :u => user_name }]).first
+    #   Person.where(["user_name = :u", { u: user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
     #
     #   # find last
@@ -76,7 +76,7 @@ module ActiveRecord
     #   # find all
     #   Person.all # returns an array of objects for all the rows fetched by SELECT * FROM people
     #   Person.where(["category IN (?)", categories]).limit(50).all
-    #   Person.where({ :friends => ["Bob", "Steve", "Fred"] }).all
+    #   Person.where({ friends: ["Bob", "Steve", "Fred"] }).all
     #   Person.offset(10).limit(10).all
     #   Person.includes([:account, :friends]).all
     #   Person.group("category").all
@@ -168,7 +168,7 @@ module ActiveRecord
     # * Array - Finds the record that matches these +find+-style conditions
     #   (such as <tt>['color = ?', 'red']</tt>).
     # * Hash - Finds the record that matches these +find+-style conditions
-    #   (such as <tt>{:color => 'red'}</tt>).
+    #   (such as <tt>{color: 'red'}</tt>).
     # * No args - Returns false if the table is empty, true otherwise.
     #
     # For more information about specifying conditions as a Hash or Array,
@@ -181,7 +181,7 @@ module ActiveRecord
     # ==== Examples
     #   Person.exists?(5)
     #   Person.exists?('5')
-    #   Person.exists?(:name => "David")
+    #   Person.exists?(name: "David")
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
     #   Person.exists?
     def exists?(id = false)
@@ -287,7 +287,7 @@ module ActiveRecord
 
       unless record
         record = @klass.new(protected_attributes_for_create, options) do |r|
-          r.assign_attributes(unprotected_attributes_for_create, :without_protection => true)
+          r.assign_attributes(unprotected_attributes_for_create, without_protection: true)
         end
         yield(record) if block_given?
         record.save if match.instantiator == :create

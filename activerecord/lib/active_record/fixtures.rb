@@ -261,7 +261,7 @@ module ActiveRecord
   #
   #   ### in fruit.rb
   #
-  #   belongs_to :eater, :polymorphic => true
+  #   belongs_to :eater, polymorphic: true
   #
   #   ### in fruits.yml
   #
@@ -468,7 +468,7 @@ module ActiveRecord
 
           all_loaded_fixtures.update(fixtures_map)
 
-          connection.transaction(:requires_new => true) do
+          connection.transaction(requires_new: true) do
             fixture_files.each do |ff|
               conn = ff.model_class.respond_to?(:connection) ? ff.model_class.connection : connection
               table_rows = ff.table_rows

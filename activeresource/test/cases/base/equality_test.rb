@@ -5,9 +5,9 @@ require "fixtures/street_address"
 class BaseEqualityTest < Test::Unit::TestCase
   def setup
     @new = Person.new
-    @one = Person.new(:id => 1)
-    @two = Person.new(:id => 2)
-    @street = StreetAddress.new(:id => 2)
+    @one = Person.new(id: 1)
+    @two = Person.new(id: 2)
+    @street = StreetAddress.new(id: 2)
   end
 
   def test_should_equal_self
@@ -45,7 +45,7 @@ class BaseEqualityTest < Test::Unit::TestCase
     assert_equal @one == @one, @one.eql?(@one)
     assert_equal @one == @one.dup, @one.eql?(@one.dup)
     new_one = @one.dup
-    new_one.prefix_options = {:foo => 'bar'}
+    new_one.prefix_options = {foo: 'bar'}
     assert_not_equal @one, new_one
 	end
 

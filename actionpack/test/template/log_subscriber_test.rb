@@ -27,7 +27,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_file_template
-    @view.render(:file => "test/hello_world")
+    @view.render(file: "test/hello_world")
     wait
 
     assert_equal 1, @logger.logged(:info).size
@@ -35,7 +35,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_text_template
-    @view.render(:text => "TEXT")
+    @view.render(text: "TEXT")
     wait
 
     assert_equal 1, @logger.logged(:info).size
@@ -43,7 +43,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_inline_template
-    @view.render(:inline => "<%= 'TEXT' %>")
+    @view.render(inline: "<%= 'TEXT' %>")
     wait
 
     assert_equal 1, @logger.logged(:info).size
@@ -51,7 +51,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_partial_template
-    @view.render(:partial => "test/customer")
+    @view.render(partial: "test/customer")
     wait
 
     assert_equal 1, @logger.logged(:info).size
@@ -59,7 +59,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_partial_with_implicit_path
-    @view.render(Customer.new("david"), :greeting => "hi")
+    @view.render(Customer.new("david"), greeting: "hi")
     wait
 
     assert_equal 1, @logger.logged(:info).size
@@ -67,7 +67,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_collection_template
-    @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), Customer.new("mary") ])
+    @view.render(partial: "test/customer", collection: [ Customer.new("david"), Customer.new("mary") ])
     wait
 
     assert_equal 1, @logger.logged(:info).size
@@ -75,7 +75,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_collection_with_implicit_path
-    @view.render([ Customer.new("david"), Customer.new("mary") ], :greeting => "hi")
+    @view.render([ Customer.new("david"), Customer.new("mary") ], greeting: "hi")
     wait
 
     assert_equal 1, @logger.logged(:info).size
@@ -83,7 +83,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_collection_template_without_path
-    @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], :greeting => "hi")
+    @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], greeting: "hi")
     wait
 
     assert_equal 1, @logger.logged(:info).size

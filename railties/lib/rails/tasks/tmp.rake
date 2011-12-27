@@ -1,6 +1,6 @@
 namespace :tmp do
   desc "Clear session, cache, and socket files from tmp/ (narrow w/ tmp:sessions:clear, tmp:cache:clear, tmp:sockets:clear)"
-  task :clear => [ "tmp:sessions:clear",  "tmp:cache:clear", "tmp:sockets:clear"]
+  task clear: [ "tmp:sessions:clear",  "tmp:cache:clear", "tmp:sockets:clear"]
 
   desc "Creates tmp directories for sessions, cache, sockets, and pids"
   task :create do

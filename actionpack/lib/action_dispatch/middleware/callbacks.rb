@@ -5,10 +5,10 @@ module ActionDispatch
   class Callbacks
     include ActiveSupport::Callbacks
 
-    define_callbacks :call, :rescuable => true
+    define_callbacks :call, rescuable: true
 
     class << self
-      delegate :to_prepare, :to_cleanup, :to => "ActionDispatch::Reloader"
+      delegate :to_prepare, :to_cleanup, to: "ActionDispatch::Reloader"
     end
 
     def self.before(*args, &block)

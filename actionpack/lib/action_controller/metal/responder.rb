@@ -45,10 +45,10 @@ module ActionController #:nodoc:
   #       if @user.save
   #         flash[:notice] = 'User was successfully created.'
   #         format.html { redirect_to(@user) }
-  #         format.xml { render :xml => @user, :status => :created, :location => @user }
+  #         format.xml { render xml: @user, status: :created, location: @user }
   #       else
-  #         format.html { render :action => "new" }
-  #         format.xml { render :xml => @user.errors, :status => :unprocessable_entity }
+  #         format.html { render action: "new" }
+  #         format.xml { render xml: @user.errors, status: :unprocessable_entity }
   #       end
   #     end
   #   end
@@ -92,7 +92,7 @@ module ActionController #:nodoc:
   #     @project = Project.find(params[:project_id])
   #     @task = @project.comments.build(params[:task])
   #     flash[:notice] = 'Task was successfully created.' if @task.save
-  #     respond_with(@project, @task, :status => 201)
+  #     respond_with(@project, @task, status: 201)
   #   end
   #
   # This will return status 201 if the task was saved successfully. If not,
@@ -103,7 +103,7 @@ module ActionController #:nodoc:
   #   def create
   #     @project = Project.find(params[:project_id])
   #     @task = @project.comments.build(params[:task])
-  #     respond_with(@project, @task, :status => 201) do |format|
+  #     respond_with(@project, @task, status: 201) do |format|
   #       if @task.save
   #         flash[:notice] = 'Task was successfully created.'
   #       else
@@ -117,8 +117,8 @@ module ActionController #:nodoc:
     attr_reader :controller, :request, :format, :resource, :resources, :options
 
     ACTIONS_FOR_VERBS = {
-      :post => :new,
-      :put => :edit
+      post: :new,
+      put: :edit
     }
 
     def initialize(controller, resources, options={})
@@ -132,8 +132,8 @@ module ActionController #:nodoc:
       @default_response = options.delete(:default_response)
     end
 
-    delegate :head, :render, :redirect_to,   :to => :controller
-    delegate :get?, :post?, :put?, :delete?, :to => :request
+    delegate :head, :render, :redirect_to,   to: :controller
+    delegate :get?, :post?, :put?, :delete?, to: :request
 
     # Undefine :to_json and :to_yaml since it's defined on Object
     undef_method(:to_json) if method_defined?(:to_json)
@@ -188,7 +188,7 @@ module ActionController #:nodoc:
       if get?
         raise error
       elsif has_errors? && default_action
-        render :action => default_action
+        render action: default_action
       else
         redirect_to navigation_location
       end
@@ -201,7 +201,7 @@ module ActionController #:nodoc:
       if get?
         display resource
       elsif post?
-        display resource, :status => :created, :location => api_location
+        display resource, status: :created, location: api_location
       else
         head :no_content
       end
@@ -231,27 +231,27 @@ module ActionController #:nodoc:
 
     # Display is just a shortcut to render a resource with the current format.
     #
-    #   display @user, :status => :ok
+    #   display @user, status: :ok
     #
     # For XML requests it's equivalent to:
     #
-    #   render :xml => @user, :status => :ok
+    #   render xml: @user, status: :ok
     #
     # Options sent by the user are also used:
     #
-    #   respond_with(@user, :status => :created)
-    #   display(@user, :status => :ok)
+    #   respond_with(@user, status: :created)
+    #   display(@user, status: :ok)
     #
     # Results in:
     #
-    #   render :xml => @user, :status => :created
+    #   render xml: @user, status: :created
     #
     def display(resource, given_options={})
       controller.render given_options.merge!(options).merge!(format => resource)
     end
 
     def display_errors
-      controller.render format => resource_errors, :status => :unprocessable_entity
+      controller.render format => resource_errors, status: :unprocessable_entity
     end
 
     # Check whether the resource has errors.
@@ -272,7 +272,7 @@ module ActionController #:nodoc:
     end
 
     def json_resource_errors
-      {:errors => resource.errors}
+      {errors: resource.errors}
     end
   end
 end

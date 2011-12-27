@@ -158,7 +158,7 @@ class BasicController
       config.assets_dir = public_dir
       config.javascripts_dir = "#{public_dir}/javascripts"
       config.stylesheets_dir = "#{public_dir}/stylesheets"
-      config.assets          = ActiveSupport::InheritableOptions.new({ :prefix => "assets" })
+      config.assets          = ActiveSupport::InheritableOptions.new({ prefix: "assets" })
       config
     end
   end
@@ -346,6 +346,6 @@ end
 
 module RoutingTestHelpers
   def url_for(set, options, recall = nil)
-    set.send(:url_for, options.merge(:only_path => true, :_path_segments => recall))
+    set.send(:url_for, options.merge(only_path: true, _path_segments: recall))
   end
 end

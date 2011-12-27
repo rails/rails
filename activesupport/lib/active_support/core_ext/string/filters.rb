@@ -27,13 +27,13 @@ class String
   #
   # Pass a <tt>:separator</tt> to truncate +text+ at a natural break:
   #
-  #   "Once upon a time in a world far far away".truncate(27, :separator => ' ')
+  #   "Once upon a time in a world far far away".truncate(27, separator: ' ')
   #   # => "Once upon a time in a..."
   #
   # The last characters will be replaced with the <tt>:omission</tt> string (defaults to "...")
   # for a total length not exceeding <tt>:length</tt>:
   #
-  #   "And they found that many people were sleeping better.".truncate(25, :omission => "... (continued)")
+  #   "And they found that many people were sleeping better.".truncate(25, omission: "... (continued)")
   #   # => "And they f... (continued)"
   def truncate(length, options = {})
     text = self.dup

@@ -76,7 +76,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
   private
   def assert_cycle hash
-    x = Hstore.create!(:tags => hash)
+    x = Hstore.create!(tags: hash)
     x.reload
     assert_equal(hash, x.tags)
 

@@ -160,7 +160,7 @@ module ActiveRecord
     # <tt>:db</tt> format. Other attributes return the value of
     # <tt>#inspect</tt> without modification.
     #
-    #   person = Person.create!(:name => "David Heinemeier Hansson " * 3)
+    #   person = Person.create!(name: "David Heinemeier Hansson " * 3)
     #
     #   person.attribute_for_inspect(:name)
     #   # => '"David Heinemeier Hansson David Heinemeier Hansson D..."'

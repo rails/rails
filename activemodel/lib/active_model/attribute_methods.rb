@@ -25,7 +25,7 @@ module ActiveModel
   #   class Person
   #     include ActiveModel::AttributeMethods
   #
-  #     attribute_method_affix  :prefix => 'reset_', :suffix => '_to_default!'
+  #     attribute_method_affix  prefix: 'reset_', suffix: '_to_default!'
   #     attribute_method_suffix '_contrived?'
   #     attribute_method_prefix 'clear_'
   #     define_attribute_methods ['name']
@@ -61,7 +61,7 @@ module ActiveModel
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
 
     included do
-      class_attribute :attribute_method_matchers, :instance_writer => false
+      class_attribute :attribute_method_matchers, instance_writer: false
       self.attribute_method_matchers = [ClassMethods::AttributeMethodMatcher.new]
     end
 
@@ -100,7 +100,7 @@ module ActiveModel
       #   person.clear_name
       #   person.name          # => nil
       def attribute_method_prefix(*prefixes)
-        self.attribute_method_matchers += prefixes.map { |prefix| AttributeMethodMatcher.new :prefix => prefix }
+        self.attribute_method_matchers += prefixes.map { |prefix| AttributeMethodMatcher.new prefix: prefix }
         undefine_attribute_methods
       end
 
@@ -137,7 +137,7 @@ module ActiveModel
       #   person.name          # => "Bob"
       #   person.name_short?   # => true
       def attribute_method_suffix(*suffixes)
-        self.attribute_method_matchers += suffixes.map { |suffix| AttributeMethodMatcher.new :suffix => suffix }
+        self.attribute_method_matchers += suffixes.map { |suffix| AttributeMethodMatcher.new suffix: suffix }
         undefine_attribute_methods
       end
 
@@ -160,7 +160,7 @@ module ActiveModel
       #
       #     include ActiveModel::AttributeMethods
       #     attr_accessor :name
-      #     attribute_method_affix :prefix => 'reset_', :suffix => '_to_default!'
+      #     attribute_method_affix prefix: 'reset_', suffix: '_to_default!'
       #     define_attribute_methods [:name]
       #
       #     private
@@ -175,7 +175,7 @@ module ActiveModel
       #   person.reset_name_to_default!
       #   person.name                         # => 'Gemma'
       def attribute_method_affix(*affixes)
-        self.attribute_method_matchers += affixes.map { |affix| AttributeMethodMatcher.new :prefix => affix[:prefix], :suffix => affix[:suffix] }
+        self.attribute_method_matchers += affixes.map { |affix| AttributeMethodMatcher.new prefix: affix[:prefix], suffix: affix[:suffix] }
         undefine_attribute_methods
       end
 

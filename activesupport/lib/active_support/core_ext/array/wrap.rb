@@ -22,8 +22,8 @@ class Array
   #
   # The last point is particularly worth comparing for some enumerables:
   #
-  #   Array(:foo => :bar)      # => [[:foo, :bar]]
-  #   Array.wrap(:foo => :bar) # => [{:foo => :bar}]
+  #   Array(foo: :bar)      # => [[:foo, :bar]]
+  #   Array.wrap(foo: :bar) # => [{foo: :bar}]
   #
   #   Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
   #   Array.wrap("foo\nbar")   # => ["foo\nbar"]

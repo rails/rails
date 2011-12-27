@@ -16,8 +16,8 @@ module ActionView
     # unchanged if can't be converted into a valid number.
     module NumberHelper
 
-      DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :negative_format => "-%u%n", :unit => "$", :separator => ".", :delimiter => ",",
-                                  :precision => 2, :significant => false, :strip_insignificant_zeros => false }
+      DEFAULT_CURRENCY_VALUES = { format: "%u%n", negative_format: "-%u%n", unit: "$", separator: ".", delimiter: ",",
+                                  precision: 2, significant: false, strip_insignificant_zeros: false }
 
       # Raised when argument +number+ param given to the helpers is invalid and
       # the option :raise is set to  +true+.
@@ -41,12 +41,12 @@ module ActionView
       # ==== Examples
       #  number_to_phone(5551234)                                           # => 555-1234
       #  number_to_phone(1235551234)                                        # => 123-555-1234
-      #  number_to_phone(1235551234, :area_code => true)                    # => (123) 555-1234
-      #  number_to_phone(1235551234, :delimiter => " ")                     # => 123 555 1234
-      #  number_to_phone(1235551234, :area_code => true, :extension => 555) # => (123) 555-1234 x 555
-      #  number_to_phone(1235551234, :country_code => 1)                    # => +1-123-555-1234
+      #  number_to_phone(1235551234, area_code: true)                    # => (123) 555-1234
+      #  number_to_phone(1235551234, delimiter: " ")                     # => 123 555 1234
+      #  number_to_phone(1235551234, area_code: true, extension: 555) # => (123) 555-1234 x 555
+      #  number_to_phone(1235551234, country_code: 1)                    # => +1-123-555-1234
       #
-      #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
+      #  number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: ".")
       #  => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
         return unless number
@@ -98,22 +98,22 @@ module ActionView
       # ==== Examples
       #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
       #  number_to_currency(1234567890.506)                   # => $1,234,567,890.51
-      #  number_to_currency(1234567890.506, :precision => 3)  # => $1,234,567,890.506
-      #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,51 €
+      #  number_to_currency(1234567890.506, precision: 3)  # => $1,234,567,890.506
+      #  number_to_currency(1234567890.506, locale: :fr)   # => 1 234 567 890,51 €
       #
-      #  number_to_currency(-1234567890.50, :negative_format => "(%u%n)")
+      #  number_to_currency(-1234567890.50, negative_format: "(%u%n)")
       #  # => ($1,234,567,890.50)
-      #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
+      #  number_to_currency(1234567890.50, unit: "&pound;", separator: ",", delimiter: "")
       #  # => &pound;1234567890,50
-      #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
+      #  number_to_currency(1234567890.50, unit: "&pound;", separator: ",", delimiter: "", format: "%n %u")
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
         return unless number
 
         options.symbolize_keys!
 
-        defaults  = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :default => {})
+        defaults  = I18n.translate(:'number.format', locale: options[:locale], default: {})
+        currency  = I18n.translate(:'number.currency.format', locale: options[:locale], default: {})
 
         defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults).merge!(currency)
         defaults[:negative_format] = "-" + options[:format] if options[:format]
@@ -128,7 +128,7 @@ module ActionView
         end
 
         begin
-          value = number_with_precision(number, options.merge(:raise => true))
+          value = number_with_precision(number, options.merge(raise: true))
           format.gsub(/%n/, value).gsub(/%u/, unit).html_safe
         rescue InvalidNumberError => e
           if options[:raise]
@@ -154,23 +154,23 @@ module ActionView
       #
       # ==== Examples
       #  number_to_percentage(100)                                        # => 100.000%
-      #  number_to_percentage(100, :precision => 0)                       # => 100%
-      #  number_to_percentage(1000, :delimiter => '.', :separator => ',') # => 1.000,000%
-      #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
-      #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
+      #  number_to_percentage(100, precision: 0)                       # => 100%
+      #  number_to_percentage(1000, delimiter: '.', separator: ',') # => 1.000,000%
+      #  number_to_percentage(302.24398923423, precision: 5)           # => 302.24399%
+      #  number_to_percentage(1000, locale: :fr)                       # => 1 000,000%
       def number_to_percentage(number, options = {})
         return unless number
 
         options.symbolize_keys!
 
-        defaults   = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        percentage = I18n.translate(:'number.percentage.format', :locale => options[:locale], :default => {})
+        defaults   = I18n.translate(:'number.format', locale: options[:locale], default: {})
+        percentage = I18n.translate(:'number.percentage.format', locale: options[:locale], default: {})
         defaults  = defaults.merge(percentage)
 
         options = options.reverse_merge(defaults)
 
         begin
-          "#{number_with_precision(number, options.merge(:raise => true))}%".html_safe
+          "#{number_with_precision(number, options.merge(raise: true))}%".html_safe
         rescue InvalidNumberError => e
           if options[:raise]
             raise
@@ -191,11 +191,11 @@ module ActionView
       # ==== Examples
       #  number_with_delimiter(12345678)                        # => 12,345,678
       #  number_with_delimiter(12345678.05)                     # => 12,345,678.05
-      #  number_with_delimiter(12345678, :delimiter => ".")     # => 12.345.678
-      #  number_with_delimiter(12345678, :delimiter => ",")     # => 12,345,678
-      #  number_with_delimiter(12345678.05, :separator => " ")  # => 12,345,678 05
-      #  number_with_delimiter(12345678.05, :locale => :fr)     # => 12 345 678,05
-      #  number_with_delimiter(98765432.98, :delimiter => " ", :separator => ",")
+      #  number_with_delimiter(12345678, delimiter: ".")     # => 12.345.678
+      #  number_with_delimiter(12345678, delimiter: ",")     # => 12,345,678
+      #  number_with_delimiter(12345678.05, separator: " ")  # => 12,345,678 05
+      #  number_with_delimiter(12345678.05, locale: :fr)     # => 12 345 678,05
+      #  number_with_delimiter(98765432.98, delimiter: " ", separator: ",")
       #  # => 98 765 432,98
       def number_with_delimiter(number, options = {})
         options.symbolize_keys!
@@ -210,7 +210,7 @@ module ActionView
           end
         end
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
+        defaults = I18n.translate(:'number.format', locale: options[:locale], default: {})
         options = options.reverse_merge(defaults)
 
         parts = number.to_s.to_str.split('.')
@@ -233,17 +233,17 @@ module ActionView
       #
       # ==== Examples
       #  number_with_precision(111.2345)                                            # => 111.235
-      #  number_with_precision(111.2345, :precision => 2)                           # => 111.23
-      #  number_with_precision(13, :precision => 5)                                 # => 13.00000
-      #  number_with_precision(389.32314, :precision => 0)                          # => 389
-      #  number_with_precision(111.2345, :significant => true)                      # => 111
-      #  number_with_precision(111.2345, :precision => 1, :significant => true)     # => 100
-      #  number_with_precision(13, :precision => 5, :significant => true)           # => 13.000
-      #  number_with_precision(111.234, :locale => :fr)                             # => 111,234
-      #  number_with_precision(13, :precision => 5, :significant => true, :strip_insignificant_zeros => true)
+      #  number_with_precision(111.2345, precision: 2)                           # => 111.23
+      #  number_with_precision(13, precision: 5)                                 # => 13.00000
+      #  number_with_precision(389.32314, precision: 0)                          # => 389
+      #  number_with_precision(111.2345, significant: true)                      # => 111
+      #  number_with_precision(111.2345, precision: 1, significant: true)     # => 100
+      #  number_with_precision(13, precision: 5, significant: true)           # => 13.000
+      #  number_with_precision(111.234, locale: :fr)                             # => 111,234
+      #  number_with_precision(13, precision: 5, significant: true, strip_insignificant_zeros: true)
       #  # => 13
-      #  number_with_precision(389.32314, :precision => 4, :significant => true)    # => 389.3
-      #  number_with_precision(1111.2345, :precision => 2, :separator => ',', :delimiter => '.')
+      #  number_with_precision(389.32314, precision: 4, significant: true)    # => 389.3
+      #  number_with_precision(1111.2345, precision: 2, separator: ',', delimiter: '.')
       #  # => 1.111,23
       def number_with_precision(number, options = {})
         options.symbolize_keys!
@@ -258,11 +258,11 @@ module ActionView
           end
         end
 
-        defaults           = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        precision_defaults = I18n.translate(:'number.precision.format', :locale => options[:locale], :default => {})
+        defaults           = I18n.translate(:'number.format', locale: options[:locale], default: {})
+        precision_defaults = I18n.translate(:'number.precision.format', locale: options[:locale], default: {})
         defaults           = defaults.merge(precision_defaults)
 
-        options = options.reverse_merge(defaults)  # Allow the user to unset default values: Eg.: :significant => false
+        options = options.reverse_merge(defaults)  # Allow the user to unset default values: Eg.: significant: false
         precision = options.delete :precision
         significant = options.delete :significant
         strip_insignificant_zeros = options.delete :strip_insignificant_zeros
@@ -314,14 +314,14 @@ module ActionView
       #  number_to_human_size(1234567)                                      # => 1.18 MB
       #  number_to_human_size(1234567890)                                   # => 1.15 GB
       #  number_to_human_size(1234567890123)                                # => 1.12 TB
-      #  number_to_human_size(1234567, :precision => 2)                     # => 1.2 MB
-      #  number_to_human_size(483989, :precision => 2)                      # => 470 KB
-      #  number_to_human_size(1234567, :precision => 2, :separator => ',')  # => 1,2 MB
+      #  number_to_human_size(1234567, precision: 2)                     # => 1.2 MB
+      #  number_to_human_size(483989, precision: 2)                      # => 470 KB
+      #  number_to_human_size(1234567, precision: 2, separator: ',')  # => 1,2 MB
       #
       # Non-significant zeros after the fractional separator are stripped out by default (set
       # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
-      #  number_to_human_size(1234567890123, :precision => 5)        # => "1.1229 TB"
-      #  number_to_human_size(524288000, :precision => 5)            # => "500 MB"
+      #  number_to_human_size(1234567890123, precision: 5)        # => "1.1229 TB"
+      #  number_to_human_size(524288000, precision: 5)            # => "500 MB"
       def number_to_human_size(number, options = {})
         options.symbolize_keys!
 
@@ -335,20 +335,20 @@ module ActionView
           end
         end
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
+        defaults = I18n.translate(:'number.format', locale: options[:locale], default: {})
+        human    = I18n.translate(:'number.human.format', locale: options[:locale], default: {})
         defaults = defaults.merge(human)
 
         options = options.reverse_merge(defaults)
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
-        storage_units_format = I18n.translate(:'number.human.storage_units.format', :locale => options[:locale], :raise => true)
+        storage_units_format = I18n.translate(:'number.human.storage_units.format', locale: options[:locale], raise: true)
 
         base = options[:prefix] == :si ? 1000 : 1024
 
         if number.to_i < base
-          unit = I18n.translate(:'number.human.storage_units.units.byte', :locale => options[:locale], :count => number.to_i, :raise => true)
+          unit = I18n.translate(:'number.human.storage_units.units.byte', locale: options[:locale], count: number.to_i, raise: true)
           storage_units_format.gsub(/%n/, number.to_i.to_s).gsub(/%u/, unit).html_safe
         else
           max_exp  = STORAGE_UNITS.size - 1
@@ -357,7 +357,7 @@ module ActionView
           number  /= base ** exponent
 
           unit_key = STORAGE_UNITS[exponent]
-          unit = I18n.translate(:"number.human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
+          unit = I18n.translate(:"number.human.storage_units.units.#{unit_key}", locale: options[:locale], count: number, raise: true)
 
           formatted_number = number_with_precision(number, options)
           storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).html_safe
@@ -401,23 +401,23 @@ module ActionView
       #  number_to_human(1234567890123)                                # => "1.23 Trillion"
       #  number_to_human(1234567890123456)                             # => "1.23 Quadrillion"
       #  number_to_human(1234567890123456789)                          # => "1230 Quadrillion"
-      #  number_to_human(489939, :precision => 2)                      # => "490 Thousand"
-      #  number_to_human(489939, :precision => 4)                      # => "489.9 Thousand"
-      #  number_to_human(1234567, :precision => 4,
-      #                           :significant => false)               # => "1.2346 Million"
-      #  number_to_human(1234567, :precision => 1,
-      #                           :separator => ',',
-      #                           :significant => false)               # => "1,2 Million"
+      #  number_to_human(489939, precision: 2)                      # => "490 Thousand"
+      #  number_to_human(489939, precision: 4)                      # => "489.9 Thousand"
+      #  number_to_human(1234567, precision: 4,
+      #                           significant: false)               # => "1.2346 Million"
+      #  number_to_human(1234567, precision: 1,
+      #                           separator: ',',
+      #                           significant: false)               # => "1,2 Million"
       #
       # Unsignificant zeros after the decimal separator are stripped out by default (set
       # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
-      #  number_to_human(12345012345, :significant_digits => 6)       # => "12.345 Billion"
-      #  number_to_human(500000000, :precision => 5)                  # => "500 Million"
+      #  number_to_human(12345012345, significant_digits: 6)       # => "12.345 Billion"
+      #  number_to_human(500000000, precision: 5)                  # => "500 Million"
       #
       # ==== Custom Unit Quantifiers
       #
       # You can also use your own custom unit quantifiers:
-      #  number_to_human(500000, :units => {:unit => "ml", :thousand => "lt"})  # => "500 lt"
+      #  number_to_human(500000, units: {unit: "ml", thousand: "lt"})  # => "500 lt"
       #
       # If in your I18n locale you have:
       #   distance:
@@ -434,12 +434,12 @@ module ActionView
       #
       # Then you could do:
       #
-      #  number_to_human(543934, :units => :distance)                              # => "544 kilometers"
-      #  number_to_human(54393498, :units => :distance)                            # => "54400 kilometers"
-      #  number_to_human(54393498000, :units => :distance)                         # => "54.4 gazillion-distance"
-      #  number_to_human(343, :units => :distance, :precision => 1)                # => "300 meters"
-      #  number_to_human(1, :units => :distance)                                   # => "1 meter"
-      #  number_to_human(0.34, :units => :distance)                                # => "34 centimeters"
+      #  number_to_human(543934, units: :distance)                              # => "544 kilometers"
+      #  number_to_human(54393498, units: :distance)                            # => "54400 kilometers"
+      #  number_to_human(54393498000, units: :distance)                         # => "54.4 gazillion-distance"
+      #  number_to_human(343, units: :distance, precision: 1)                # => "300 meters"
+      #  number_to_human(1, units: :distance)                                   # => "1 meter"
+      #  number_to_human(0.34, units: :distance)                                # => "34 centimeters"
       #
       def number_to_human(number, options = {})
         options.symbolize_keys!
@@ -454,8 +454,8 @@ module ActionView
           end
         end
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
+        defaults = I18n.translate(:'number.format', locale: options[:locale], default: {})
+        human    = I18n.translate(:'number.human.format', locale: options[:locale], default: {})
         defaults = defaults.merge(human)
 
         options = options.reverse_merge(defaults)
@@ -469,9 +469,9 @@ module ActionView
         when Hash
           units
         when String, Symbol
-          I18n.translate(:"#{units}", :locale => options[:locale], :raise => true)
+          I18n.translate(:"#{units}", locale: options[:locale], raise: true)
         when nil
-          I18n.translate(:"number.human.decimal_units.units", :locale => options[:locale], :raise => true)
+          I18n.translate(:"number.human.decimal_units.units", locale: options[:locale], raise: true)
         else
           raise ArgumentError, ":units must be a Hash or String translation scope."
         end.keys.map{|e_name| inverted_du[e_name] }.sort_by{|e| -e}
@@ -484,12 +484,12 @@ module ActionView
         when Hash
           units[DECIMAL_UNITS[display_exponent]]
         when String, Symbol
-          I18n.translate(:"#{units}.#{DECIMAL_UNITS[display_exponent]}", :locale => options[:locale], :count => number.to_i)
+          I18n.translate(:"#{units}.#{DECIMAL_UNITS[display_exponent]}", locale: options[:locale], count: number.to_i)
         else
-          I18n.translate(:"number.human.decimal_units.units.#{DECIMAL_UNITS[display_exponent]}", :locale => options[:locale], :count => number.to_i)
+          I18n.translate(:"number.human.decimal_units.units.#{DECIMAL_UNITS[display_exponent]}", locale: options[:locale], count: number.to_i)
         end
 
-        decimal_format = options[:format] || I18n.translate(:'number.human.decimal_units.format', :locale => options[:locale], :default => "%n %u")
+        decimal_format = options[:format] || I18n.translate(:'number.human.decimal_units.format', locale: options[:locale], default: "%n %u")
         formatted_number = number_with_precision(number, options)
         decimal_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).strip.html_safe
       end

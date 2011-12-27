@@ -31,37 +31,37 @@ Somewhere = Struct.new(:street, :city) do
 end
 
 class Someone < Struct.new(:name, :place)
-  delegate :street, :city, :to_f, :to => :place
-  delegate :name=, :to => :place, :prefix => true
-  delegate :upcase, :to => "place.city"
+  delegate :street, :city, :to_f, to: :place
+  delegate :name=, to: :place, prefix: true
+  delegate :upcase, to: "place.city"
 
   FAILED_DELEGATE_LINE = __LINE__ + 1
-  delegate :foo, :to => :place
+  delegate :foo, to: :place
 
   FAILED_DELEGATE_LINE_2 = __LINE__ + 1
-  delegate :bar, :to => :place, :allow_nil => true
+  delegate :bar, to: :place, allow_nil: true
 end
 
 Invoice   = Struct.new(:client) do
-  delegate :street, :city, :name, :to => :client, :prefix => true
-  delegate :street, :city, :name, :to => :client, :prefix => :customer
+  delegate :street, :city, :name, to: :client, prefix: true
+  delegate :street, :city, :name, to: :client, prefix: :customer
 end
 
 Project   = Struct.new(:description, :person) do
-  delegate :name, :to => :person, :allow_nil => true
-  delegate :to_f, :to => :description, :allow_nil => true
+  delegate :name, to: :person, allow_nil: true
+  delegate :to_f, to: :description, allow_nil: true
 end
 
 Developer = Struct.new(:client) do
-  delegate :name, :to => :client, :prefix => nil
+  delegate :name, to: :client, prefix: nil
 end
 
 Tester = Struct.new(:client) do
-  delegate :name, :to => :client, :prefix => false
+  delegate :name, to: :client, prefix: false
 end
 
 class Name
-  delegate :upcase, :to => :@full_name
+  delegate :upcase, to: :@full_name
 
   def initialize(first, last)
     @full_name = "#{first} #{last}"
@@ -97,7 +97,7 @@ class ModuleTest < Test::Unit::TestCase
       Name.send :delegate, :nowhere
     end
     assert_raise(ArgumentError) do
-      Name.send :delegate, :noplace, :tos => :hollywood
+      Name.send :delegate, :noplace, tos: :hollywood
     end
   end
 
@@ -126,7 +126,7 @@ class ModuleTest < Test::Unit::TestCase
         def initialize(client)
           @client = client
         end
-        delegate :name, :address, :to => :@client, :prefix => true
+        delegate :name, :address, to: :@client, prefix: true
       end
     end
   end
@@ -143,7 +143,7 @@ class ModuleTest < Test::Unit::TestCase
 
   def test_delegation_with_allow_nil_and_nil_value_and_prefix
     Project.class_eval do
-      delegate :name, :to => :person, :allow_nil => true, :prefix => true
+      delegate :name, to: :person, allow_nil: true, prefix: true
     end
     rails = Project.new("Rails")
     assert_nil rails.person_name
@@ -172,7 +172,7 @@ class ModuleTest < Test::Unit::TestCase
     assert_nothing_raised do
       Class.new(parent) do
         class << self
-          delegate :parent_method, :to => :superclass
+          delegate :parent_method, to: :superclass
         end
       end
     end

@@ -6,9 +6,9 @@ class ConnectionTest < Test::Unit::TestCase
 
   def setup
     @conn = ActiveResource::Connection.new('http://localhost')
-    matz  = { :person => { :id => 1, :name => 'Matz' } }
-    david = { :person => { :id => 2, :name => 'David' } }
-    @people = { :people => [ matz, david ] }.to_json
+    matz  = { person: { id: 1, name: 'Matz' } }
+    david = { person: { id: 2, name: 'David' } }
+    @people = { people: [ matz, david ] }.to_json
     @people_single = { 'people-single-elements' => [ matz ] }.to_json
     @people_empty = { 'people-empty-elements' => [ ] }.to_json
     @matz  = matz.to_json
@@ -223,7 +223,7 @@ class ConnectionTest < Test::Unit::TestCase
   def test_ssl_options_get_applied_to_http
     http = Net::HTTP.new('')
     @conn.site="https://secure"
-    @conn.ssl_options={:verify_mode => OpenSSL::SSL::VERIFY_PEER}
+    @conn.ssl_options={verify_mode: OpenSSL::SSL::VERIFY_PEER}
     @conn.timeout = 10 # prevent warning about uninitialized.
     @conn.send(:configure_http, http)
 

@@ -6,7 +6,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_attr_readonly, :instance_writer => false
+      class_attribute :_attr_readonly, instance_writer: false
       self._attr_readonly = []
     end
 

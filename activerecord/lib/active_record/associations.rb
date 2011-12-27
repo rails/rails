@@ -48,7 +48,7 @@ module ActiveRecord
       through_reflection      = reflection.through_reflection
       source_reflection_names = reflection.source_reflection_names
       source_associations     = reflection.through_reflection.klass.reflect_on_all_associations.collect { |a| a.name.inspect }
-      super("Could not find the source association(s) #{source_reflection_names.collect{ |a| a.inspect }.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
+      super("Could not find the source association(s) #{source_reflection_names.collect{ |a| a.inspect }.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ', locale: :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, through: #{through_reflection.name.inspect}, source: <name>'. Is it one of #{source_associations.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ', locale: :en)}?")
     end
   end
 
@@ -305,11 +305,11 @@ module ActiveRecord
     #   end
     #   class Programmer < ActiveRecord::Base
     #     has_many :assignments
-    #     has_many :projects, :through => :assignments
+    #     has_many :projects, through: :assignments
     #   end
     #   class Project < ActiveRecord::Base
     #     has_many :assignments
-    #     has_many :programmers, :through => :assignments
+    #     has_many :programmers, through: :assignments
     #   end
     #
     # For the second way, use +has_and_belongs_to_many+ in both models. This requires a join table
@@ -405,7 +405,7 @@ module ActiveRecord
     # object from an association collection.
     #
     #   class Project
-    #     has_and_belongs_to_many :developers, :after_add => :evaluate_velocity
+    #     has_and_belongs_to_many :developers, after_add: :evaluate_velocity
     #
     #     def evaluate_velocity(developer)
     #       ...
@@ -416,7 +416,7 @@ module ActiveRecord
     #
     #   class Project
     #     has_and_belongs_to_many :developers,
-    #                             :after_add => [:evaluate_velocity, Proc.new { |p, d| p.shipping_date = Time.now}]
+    #                             after_add: [:evaluate_velocity, Proc.new { |p, d| p.shipping_date = Time.now}]
     #   end
     #
     # Possible callbacks are: +before_add+, +after_add+, +before_remove+ and +after_remove+.
@@ -455,11 +455,11 @@ module ActiveRecord
     #   end
     #
     #   class Account < ActiveRecord::Base
-    #     has_many :people, :extend => FindOrCreateByNameExtension
+    #     has_many :people, extend: FindOrCreateByNameExtension
     #   end
     #
     #   class Company < ActiveRecord::Base
-    #     has_many :people, :extend => FindOrCreateByNameExtension
+    #     has_many :people, extend: FindOrCreateByNameExtension
     #   end
     #
     # If you need to use multiple named extension modules, you can specify an array of modules
@@ -468,7 +468,7 @@ module ActiveRecord
     # in the array supercede those earlier in the array.
     #
     #   class Account < ActiveRecord::Base
-    #     has_many :people, :extend => [FindOrCreateByNameExtension, FindRecentExtension]
+    #     has_many :people, extend: [FindOrCreateByNameExtension, FindRecentExtension]
     #   end
     #
     # Some extensions can only be made to work with knowledge of the association's internals.
@@ -495,7 +495,7 @@ module ActiveRecord
     #
     #   class Author < ActiveRecord::Base
     #     has_many :authorships
-    #     has_many :books, :through => :authorships
+    #     has_many :books, through: :authorships
     #   end
     #
     #   class Authorship < ActiveRecord::Base
@@ -511,7 +511,7 @@ module ActiveRecord
     #
     #   class Firm < ActiveRecord::Base
     #     has_many   :clients
-    #     has_many   :invoices, :through => :clients
+    #     has_many   :invoices, through: :clients
     #   end
     #
     #   class Client < ActiveRecord::Base
@@ -531,7 +531,7 @@ module ActiveRecord
     #
     #   class Group < ActiveRecord::Base
     #     has_many   :users
-    #     has_many   :avatars, :through => :users
+    #     has_many   :avatars, through: :users
     #   end
     #
     #   class User < ActiveRecord::Base
@@ -559,7 +559,7 @@ module ActiveRecord
     # works correctly (where <tt>tags</tt> is a +has_many+ <tt>:through</tt> association):
     #
     #   @post = Post.first
-    #   @tag = @post.tags.build :name => "ruby"
+    #   @tag = @post.tags.build name: "ruby"
     #   @tag.save
     #
     # The last line ought to save the through record (a <tt>Taggable</tt>). This will only work if the
@@ -567,7 +567,7 @@ module ActiveRecord
     #
     #   class Taggable < ActiveRecord::Base
     #     belongs_to :post
-    #     belongs_to :tag, :inverse_of => :taggings
+    #     belongs_to :tag, inverse_of: :taggings
     #   end
     #
     # === Nested Associations
@@ -577,8 +577,8 @@ module ActiveRecord
     #
     #   class Author < ActiveRecord::Base
     #     has_many :posts
-    #     has_many :comments, :through => :posts
-    #     has_many :commenters, :through => :comments
+    #     has_many :comments, through: :posts
+    #     has_many :commenters, through: :comments
     #   end
     #
     #   class Post < ActiveRecord::Base
@@ -596,12 +596,12 @@ module ActiveRecord
     #
     #   class Author < ActiveRecord::Base
     #     has_many :posts
-    #     has_many :commenters, :through => :posts
+    #     has_many :commenters, through: :posts
     #   end
     #
     #   class Post < ActiveRecord::Base
     #     has_many :comments
-    #     has_many :commenters, :through => :comments
+    #     has_many :commenters, through: :comments
     #   end
     #
     #   class Comment < ActiveRecord::Base
@@ -620,11 +620,11 @@ module ActiveRecord
     # must adhere to.
     #
     #   class Asset < ActiveRecord::Base
-    #     belongs_to :attachable, :polymorphic => true
+    #     belongs_to :attachable, polymorphic: true
     #   end
     #
     #   class Post < ActiveRecord::Base
-    #     has_many :assets, :as => :attachable         # The :as option specifies the polymorphic interface to use.
+    #     has_many :assets, as: :attachable         # The :as option specifies the polymorphic interface to use.
     #   end
     #
     #   @asset.attachable = @post
@@ -641,7 +641,7 @@ module ActiveRecord
     # column in the posts table.
     #
     #   class Asset < ActiveRecord::Base
-    #     belongs_to :attachable, :polymorphic => true
+    #     belongs_to :attachable, polymorphic: true
     #
     #     def attachable_type=(sType)
     #        super(sType.to_s.classify.constantize.base_class.to_s)
@@ -649,8 +649,8 @@ module ActiveRecord
     #   end
     #
     #   class Post < ActiveRecord::Base
-    #     # because we store "Post" in attachable_type now :dependent => :destroy will work
-    #     has_many :assets, :as => :attachable, :dependent => :destroy
+    #     # because we store "Post" in attachable_type now dependent: :destroy will work
+    #     has_many :assets, as: :attachable, dependent: :destroy
     #   end
     #
     #   class GuestPost < Post
@@ -712,7 +712,7 @@ module ActiveRecord
     #
     # To include a deep hierarchy of associations, use a hash:
     #
-    #   Post.includes(:author, {:comments => {:author => :gravatar}}).each do |post|
+    #   Post.includes(:author, {comments: {author: :gravatar}}).each do |post|
     #
     # That'll grab not only all the comments but all their authors and gravatar pictures.
     # You can mix and match symbols, arrays and hashes in any combination to describe the
@@ -737,13 +737,13 @@ module ActiveRecord
     # In the above example posts with no approved comments are not returned at all, because
     # the conditions apply to the SQL statement as a whole and not just to the association.
     # You must disambiguate column references for this fallback to happen, for example
-    # <tt>:order => "author.name DESC"</tt> will work but <tt>:order => "name DESC"</tt> will not.
+    # <tt>order: "author.name DESC"</tt> will work but <tt>order: "name DESC"</tt> will not.
     #
     # If you do want eager load only some members of an association it is usually more natural
     # to include an association which has conditions defined on it:
     #
     #   class Post < ActiveRecord::Base
-    #     has_many :approved_comments, :class_name => 'Comment', :conditions => ['approved = ?', true]
+    #     has_many :approved_comments, class_name: 'Comment', conditions: ['approved = ?', true]
     #   end
     #
     #   Post.includes(:approved_comments)
@@ -755,7 +755,7 @@ module ActiveRecord
     # returning all the associated objects:
     #
     #   class Picture < ActiveRecord::Base
-    #     has_many :most_recent_comments, :class_name => 'Comment', :order => 'id DESC', :limit => 10
+    #     has_many :most_recent_comments, class_name: 'Comment', order: 'id DESC', limit: 10
     #   end
     #
     #   Picture.includes(:most_recent_comments).first.most_recent_comments # => returns all associated comments.
@@ -766,7 +766,7 @@ module ActiveRecord
     # Eager loading is supported with polymorphic associations.
     #
     #   class Address < ActiveRecord::Base
-    #     belongs_to :addressable, :polymorphic => true
+    #     belongs_to :addressable, polymorphic: true
     #   end
     #
     # A call that tries to eager load the addressable model
@@ -800,10 +800,10 @@ module ActiveRecord
     #
     #   TreeMixin.joins(:children)
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
-    #   TreeMixin.joins(:children => :parent)
+    #   TreeMixin.joins(children: :parent)
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
     #                               INNER JOIN parents_mixins ...
-    #   TreeMixin.joins(:children => {:parent => :children})
+    #   TreeMixin.joins(children: {parent: :children})
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
     #                               INNER JOIN parents_mixins ...
     #                               INNER JOIN mixins childrens_mixins_2
@@ -812,10 +812,10 @@ module ActiveRecord
     #
     #   Post.joins(:categories)
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
-    #   Post.joins(:categories => :posts)
+    #   Post.joins(categories: :posts)
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
     #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
-    #   Post.joins(:categories => {:posts => :categories})
+    #   Post.joins(categories: {posts: :categories})
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
     #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
     #                              INNER JOIN categories_posts categories_posts_join INNER JOIN categories categories_posts_2
@@ -859,7 +859,7 @@ module ActiveRecord
     #
     #     module Billing
     #       class Account < ActiveRecord::Base
-    #         belongs_to :firm, :class_name => "MyApplication::Business::Firm"
+    #         belongs_to :firm, class_name: "MyApplication::Business::Firm"
     #       end
     #     end
     #   end
@@ -901,16 +901,16 @@ module ActiveRecord
     # example, if we changed our model definitions to:
     #
     #    class Dungeon < ActiveRecord::Base
-    #      has_many :traps, :inverse_of => :dungeon
-    #      has_one :evil_wizard, :inverse_of => :dungeon
+    #      has_many :traps, inverse_of: :dungeon
+    #      has_one :evil_wizard, inverse_of: :dungeon
     #    end
     #
     #    class Trap < ActiveRecord::Base
-    #      belongs_to :dungeon, :inverse_of => :traps
+    #      belongs_to :dungeon, inverse_of: :traps
     #    end
     #
     #    class EvilWizard < ActiveRecord::Base
-    #      belongs_to :dungeon, :inverse_of => :evil_wizard
+    #      belongs_to :dungeon, inverse_of: :evil_wizard
     #    end
     #
     # Then, from our code snippet above, +d+ and <tt>t.dungeon</tt> are actually the same
@@ -933,7 +933,7 @@ module ActiveRecord
     # For example:
     #
     #     class Author
-    #       has_many :posts, :dependent => :destroy
+    #       has_many :posts, dependent: :destroy
     #     end
     #     Author.find(1).destroy # => Will destroy all of the author's posts, too
     #
@@ -1011,12 +1011,12 @@ module ActiveRecord
       #   parent object.
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
-      #   Objects will be in addition destroyed if they're associated with <tt>:dependent => :destroy</tt>,
-      #   and deleted if they're associated with <tt>:dependent => :delete_all</tt>.
+      #   Objects will be in addition destroyed if they're associated with <tt>dependent: :destroy</tt>,
+      #   and deleted if they're associated with <tt>dependent: :delete_all</tt>.
       #
       #   If the <tt>:through</tt> option is used, then the join records are deleted (rather than
-      #   nullified) by default, but you can specify <tt>:dependent => :destroy</tt> or
-      #   <tt>:dependent => :nullify</tt> to override this.
+      #   nullified) by default, but you can specify <tt>dependent: :destroy</tt> or
+      #   <tt>dependent: :nullify</tt> to override this.
       # [collection=objects]
       #   Replaces the collections content by deleting and adding objects as appropriate. If the <tt>:through</tt>
       #   option is true callbacks in the join models are triggered except destroy callbacks, since deletion is
@@ -1028,8 +1028,8 @@ module ActiveRecord
       #   method loads the models and calls <tt>collection=</tt>. See above.
       # [collection.clear]
       #   Removes every object from the collection. This destroys the associated objects if they
-      #   are associated with <tt>:dependent => :destroy</tt>, deletes them directly from the
-      #   database if <tt>:dependent => :delete_all</tt>, otherwise sets their foreign keys to +NULL+.
+      #   are associated with <tt>dependent: :destroy</tt>, deletes them directly from the
+      #   database if <tt>dependent: :delete_all</tt>, otherwise sets their foreign keys to +NULL+.
       #   If the <tt>:through</tt> option is true no destroy callbacks are invoked on the join models.
       #   Join models are directly deleted.
       # [collection.empty?]
@@ -1057,7 +1057,7 @@ module ActiveRecord
       # === Example
       #
       # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
-      # * <tt>Firm#clients</tt> (similar to <tt>Clients.all :conditions => ["firm_id = ?", id]</tt>)
+      # * <tt>Firm#clients</tt> (similar to <tt>Clients.all conditions: ["firm_id = ?", id]</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#clients=</tt>
@@ -1066,8 +1066,8 @@ module ActiveRecord
       # * <tt>Firm#clients.clear</tt>
       # * <tt>Firm#clients.empty?</tt> (similar to <tt>firm.clients.size == 0</tt>)
       # * <tt>Firm#clients.size</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
-      # * <tt>Firm#clients.find</tt> (similar to <tt>Client.find(id, :conditions => "firm_id = #{id}")</tt>)
-      # * <tt>Firm#clients.exists?(:name => 'ACME')</tt> (similar to <tt>Client.exists?(:name => 'ACME', :firm_id => firm.id)</tt>)
+      # * <tt>Firm#clients.find</tt> (similar to <tt>Client.find(id, conditions: "firm_id = #{id}")</tt>)
+      # * <tt>Firm#clients.exists?(name: 'ACME')</tt> (similar to <tt>Client.exists?(name: 'ACME', firm_id: firm.id)</tt>)
       # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
       # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
@@ -1082,7 +1082,7 @@ module ActiveRecord
       #   Specify the conditions that the associated objects must meet in order to be included as a +WHERE+
       #   SQL fragment, such as <tt>price > 5 AND name LIKE 'B%'</tt>. Record creations from
       #   the association are scoped if a hash is used.
-      #   <tt>has_many :posts, :conditions => {:published => true}</tt> will create published
+      #   <tt>has_many :posts, conditions: {published: true}</tt> will create published
       #   posts with <tt>@blog.posts.create</tt> or <tt>@blog.posts.build</tt>.
       # [:order]
       #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
@@ -1153,7 +1153,7 @@ module ActiveRecord
       # [:source]
       #   Specifies the source association name used by <tt>has_many :through</tt> queries.
       #   Only use it if the name cannot be inferred from the association.
-      #   <tt>has_many :subscribers, :through => :subscriptions</tt> will look for either <tt>:subscribers</tt> or
+      #   <tt>has_many :subscribers, through: :subscriptions</tt> will look for either <tt>:subscribers</tt> or
       #   <tt>:subscriber</tt> on Subscription, unless a <tt>:source</tt> is given.
       # [:source_type]
       #   Specifies type of the source association used by <tt>has_many :through</tt> queries where the source
@@ -1175,15 +1175,15 @@ module ActiveRecord
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
-      #   has_many :comments, :order => "posted_on"
-      #   has_many :comments, :include => :author
-      #   has_many :people, :class_name => "Person", :conditions => "deleted = 0", :order => "name"
-      #   has_many :tracks, :order => "position", :dependent => :destroy
-      #   has_many :comments, :dependent => :nullify
-      #   has_many :tags, :as => :taggable
-      #   has_many :reports, :readonly => true
-      #   has_many :subscribers, :through => :subscriptions, :source => :user
-      #   has_many :subscribers, :class_name => "Person", :finder_sql => Proc.new {
+      #   has_many :comments, order: "posted_on"
+      #   has_many :comments, include: :author
+      #   has_many :people, class_name: "Person", conditions: "deleted = 0", order: "name"
+      #   has_many :tracks, order: "position", dependent: :destroy
+      #   has_many :comments, dependent: :nullify
+      #   has_many :tags, as: :taggable
+      #   has_many :reports, readonly: true
+      #   has_many :subscribers, through: :subscriptions, source: :user
+      #   has_many :subscribers, class_name: "Person", finder_sql: Proc.new {
       #       %Q{
       #         SELECT DISTINCT *
       #         FROM people p, post_subscriptions ps
@@ -1225,7 +1225,7 @@ module ActiveRecord
       # === Example
       #
       # An Account class declares <tt>has_one :beneficiary</tt>, which will add:
-      # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.first(:conditions => "account_id = #{id}")</tt>)
+      # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.first(conditions: "account_id = #{id}")</tt>)
       # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
       # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
       # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
@@ -1243,7 +1243,7 @@ module ActiveRecord
       # [:conditions]
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
       #   SQL fragment, such as <tt>rank = 5</tt>. Record creation from the association is scoped if a hash
-      #   is used. <tt>has_one :account, :conditions => {:enabled => true}</tt> will create
+      #   is used. <tt>has_one :account, conditions: {enabled: true}</tt> will create
       #   an enabled account with <tt>@company.create_account</tt> or <tt>@company.build_account</tt>.
       # [:order]
       #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
@@ -1276,7 +1276,7 @@ module ActiveRecord
       # [:source]
       #   Specifies the source association name used by <tt>has_one :through</tt> queries.
       #   Only use it if the name cannot be inferred from the association.
-      #   <tt>has_one :favorite, :through => :favorites</tt> will look for a
+      #   <tt>has_one :favorite, through: :favorites</tt> will look for a
       #   <tt>:favorite</tt> on Favorite, unless a <tt>:source</tt> is given.
       # [:source_type]
       #   Specifies type of the source association used by <tt>has_one :through</tt> queries where the source
@@ -1296,15 +1296,15 @@ module ActiveRecord
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
-      #   has_one :credit_card, :dependent => :destroy  # destroys the associated credit card
-      #   has_one :credit_card, :dependent => :nullify  # updates the associated records foreign
+      #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
+      #   has_one :credit_card, dependent: :nullify  # updates the associated records foreign
       #                                                 # key value to NULL rather than destroying it
-      #   has_one :last_comment, :class_name => "Comment", :order => "posted_on"
-      #   has_one :project_manager, :class_name => "Person", :conditions => "role = 'project_manager'"
-      #   has_one :attachment, :as => :attachable
-      #   has_one :boss, :readonly => :true
-      #   has_one :club, :through => :membership
-      #   has_one :primary_address, :through => :addressables, :conditions => ["addressable.primary = ?", true], :source => :addressable
+      #   has_one :last_comment, class_name: "Comment", order: "posted_on"
+      #   has_one :project_manager, class_name: "Person", conditions: "role = 'project_manager'"
+      #   has_one :attachment, as: :attachable
+      #   has_one :boss, readonly: :true
+      #   has_one :club, through: :membership
+      #   has_one :primary_address, through: :addressables, conditions: ["addressable.primary = ?", true], source: :addressable
       def has_one(name, options = {})
         Builder::HasOne.build(self, name, options)
       end
@@ -1362,12 +1362,12 @@ module ActiveRecord
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt>
       #   association will use "person_id" as the default <tt>:foreign_key</tt>. Similarly,
-      #   <tt>belongs_to :favorite_person, :class_name => "Person"</tt> will use a foreign key
+      #   <tt>belongs_to :favorite_person, class_name: "Person"</tt> will use a foreign key
       #   of "favorite_person_id".
       # [:foreign_type]
       #   Specify the column used to store the associated object's type, if this is a polymorphic
       #   association. By default this is guessed to be the name of the association with a "_type"
-      #   suffix. So a class that defines a <tt>belongs_to :taggable, :polymorphic => true</tt>
+      #   suffix. So a class that defines a <tt>belongs_to :taggable, polymorphic: true</tt>
       #   association will use "taggable_type" as the default <tt>:foreign_type</tt>.
       # [:primary_key]
       #   Specify the method that returns the primary key of associated object used for the association.
@@ -1385,7 +1385,7 @@ module ActiveRecord
       #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
       #   is used on the associate class (such as a Post class). You can also specify a custom counter
       #   cache column by providing a column name instead of a +true+/+false+ value to this
-      #   option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
+      #   option (e.g., <tt>counter_cache: :my_custom_counter</tt>.)
       #   Note: Specifying a counter cache will add it to that model's list of readonly attributes
       #   using +attr_readonly+.
       # [:include]
@@ -1414,16 +1414,16 @@ module ActiveRecord
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
-      #   belongs_to :firm, :foreign_key => "client_of"
-      #   belongs_to :person, :primary_key => "name", :foreign_key => "person_name"
-      #   belongs_to :author, :class_name => "Person", :foreign_key => "author_id"
-      #   belongs_to :valid_coupon, :class_name => "Coupon", :foreign_key => "coupon_id",
-      #              :conditions => 'discounts > #{payments_count}'
-      #   belongs_to :attachable, :polymorphic => true
-      #   belongs_to :project, :readonly => true
-      #   belongs_to :post, :counter_cache => true
-      #   belongs_to :company, :touch => true
-      #   belongs_to :company, :touch => :employees_last_updated_at
+      #   belongs_to :firm, foreign_key: "client_of"
+      #   belongs_to :person, primary_key: "name", foreign_key: "person_name"
+      #   belongs_to :author, class_name: "Person", foreign_key: "author_id"
+      #   belongs_to :valid_coupon, class_name: "Coupon", foreign_key: "coupon_id",
+      #              conditions: 'discounts > #{payments_count}'
+      #   belongs_to :attachable, polymorphic: true
+      #   belongs_to :project, readonly: true
+      #   belongs_to :post, counter_cache: true
+      #   belongs_to :company, touch: true
+      #   belongs_to :company, touch: :employees_last_updated_at
       def belongs_to(name, options = {})
         Builder::BelongsTo.build(self, name, options)
       end
@@ -1445,7 +1445,7 @@ module ActiveRecord
       #
       #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration
       #     def change
-      #       create_table :developers_projects, :id => false do |t|
+      #       create_table :developers_projects, id: false do |t|
       #         t.integer :developer_id
       #         t.integer :project_id
       #       end
@@ -1541,7 +1541,7 @@ module ActiveRecord
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
       #   SQL fragment, such as <tt>authorized = 1</tt>. Record creations from the association are
       #   scoped if a hash is used.
-      #   <tt>has_many :posts, :conditions => {:published => true}</tt> will create published posts with <tt>@blog.posts.create</tt>
+      #   <tt>has_many :posts, conditions: {published: true}</tt> will create published posts with <tt>@blog.posts.create</tt>
       #   or <tt>@blog.posts.build</tt>.
       # [:order]
       #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
@@ -1590,12 +1590,11 @@ module ActiveRecord
       #
       # Option examples:
       #   has_and_belongs_to_many :projects
-      #   has_and_belongs_to_many :projects, :include => [ :milestones, :manager ]
-      #   has_and_belongs_to_many :nations, :class_name => "Country"
-      #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
-      #   has_and_belongs_to_many :categories, :readonly => true
-      #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql =>
-      #   "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}"
+      #   has_and_belongs_to_many :projects, include: [ :milestones, :manager ]
+      #   has_and_belongs_to_many :nations, class_name: "Country"
+      #   has_and_belongs_to_many :categories, join_table: "prods_cats"
+      #   has_and_belongs_to_many :categories, readonly: true
+      #   has_and_belongs_to_many :active_projects, join_table: 'developers_projects', delete_sql: #   "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}"
       def has_and_belongs_to_many(name, options = {}, &extension)
         Builder::HasAndBelongsToMany.build(self, name, options, &extension)
       end

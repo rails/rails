@@ -65,7 +65,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::JsonParamsParsingTest::TestController
+          match ':action', to: ::JsonParamsParsingTest::TestController
         end
         yield
       end
@@ -74,7 +74,7 @@ end
 
 class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
   class UsersController < ActionController::Base
-    wrap_parameters :format => :json
+    wrap_parameters format: :json
 
     class << self
       attr_accessor :last_request_parameters, :last_parameters
@@ -118,7 +118,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing(controller)
       with_routing do |set|
         set.draw do
-          match ':action', :to => controller
+          match ':action', to: controller
         end
         yield
       end

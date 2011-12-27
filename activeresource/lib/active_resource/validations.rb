@@ -48,7 +48,7 @@ module ActiveResource
   # Consider a Person resource on the server requiring both a +first_name+ and a +last_name+ with a
   # <tt>validates_presence_of :first_name, :last_name</tt> declaration in the model:
   #
-  #   person = Person.new(:first_name => "Jim", :last_name => "")
+  #   person = Person.new(first_name: "Jim", last_name: "")
   #   person.save                   # => false (server returns an HTTP 422 status code and errors)
   #   person.valid?                 # => false
   #   person.errors.empty?          # => false

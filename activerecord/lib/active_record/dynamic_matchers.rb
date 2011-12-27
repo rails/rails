@@ -35,7 +35,7 @@ module ActiveRecord
             def self.#{method_id}(*args)                                    # def self.scoped_by_user_name_and_password(*args)
               attributes = Hash[[:#{attribute_names.join(',:')}].zip(args)] #   attributes = Hash[[:user_name, :password].zip(args)]
                                                                             #
-              scoped(:conditions => attributes)                             #   scoped(:conditions => attributes)
+              scoped(conditions: attributes)                             #   scoped(conditions: attributes)
             end                                                             # end
           METHOD
           send(method_id, *arguments)

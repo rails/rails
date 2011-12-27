@@ -18,7 +18,7 @@ module ActiveSupport
     # You may give an optional logger level (:debug, :info, :warn, :error) as the :level option.
     # The default logger level value is :info.
     #
-    #  <% benchmark "Low-level files", :level => :debug do %>
+    #  <% benchmark "Low-level files", level: :debug do %>
     #    <%= lowlevel_files_operation %>
     #  <% end %>
     #
@@ -26,7 +26,7 @@ module ActiveSupport
     # timing information) from inside the block. This is great for boiling down a noisy block to 
     # just a single statement that produces one log line:
     #
-    #  <% benchmark "Process data files", :level => :info, :silence => true do %>
+    #  <% benchmark "Process data files", level: :info, silence: true do %>
     #    <%= expensive_and_chatty_files_operation %>
     #  <% end %>
     def benchmark(message = "Benchmarking", options = {})

@@ -26,7 +26,7 @@ module ActiveModel
     end
 
     class LoggerSanitizer < Sanitizer
-      delegate :logger, :to => :@target
+      delegate :logger, to: :@target
 
       def initialize(target)
         @target = target

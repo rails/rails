@@ -96,8 +96,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     FileUtils.mv(app_root, app_moved_root)
 
-    generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
-                                                               :destination_root => app_moved_root, :shell => @shell
+    generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true },
+                                                               destination_root: app_moved_root, shell: @shell
     generator.send(:app_const)
     quietly { generator.send(:create_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
@@ -112,7 +112,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     Rails.application.class.stubs(:name).returns("Myapp")
     Rails.application.stubs(:is_a?).returns(Rails::Application)
 
-    generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true }, :destination_root => app_root, :shell => @shell
+    generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
     generator.send(:app_const)
     quietly { generator.send(:create_config_files) }
     assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
@@ -288,7 +288,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_inclusion_of_ruby_debug19
     run_generator
     assert_file "Gemfile" do |contents|
-      assert_match(/gem 'ruby-debug19', :require => 'ruby-debug'/, contents)
+      assert_match(/gem 'ruby-debug19', require: 'ruby-debug'/, contents)
     end
   end
 

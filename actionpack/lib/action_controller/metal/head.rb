@@ -7,9 +7,9 @@ module ActionController
     # This allows you to easily return a response that consists only of
     # significant headers:
     #
-    #   head :created, :location => person_path(@person)
+    #   head :created, location: person_path(@person)
     #
-    #   head :created, :location => @person
+    #   head :created, location: @person
     #
     # It can also be used to return exceptional conditions:
     #

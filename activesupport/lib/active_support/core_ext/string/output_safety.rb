@@ -20,7 +20,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.encode(s.encoding, :xml => :attr)[1...-1].html_safe
+        s.encode(s.encoding, xml: :attr)[1...-1].html_safe
       end
     end
 

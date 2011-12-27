@@ -7,7 +7,7 @@ module ActiveRecord
 
       included do
         # Stores the default scope for the class
-        class_attribute :default_scopes, :instance_writer => false
+        class_attribute :default_scopes, instance_writer: false
         self.default_scopes = []
       end
 
@@ -16,7 +16,7 @@ module ActiveRecord
         #
         #   class Post < ActiveRecord::Base
         #     def self.default_scope
-        #       where :published => true
+        #       where published: true
         #     end
         #   end
         #
@@ -51,7 +51,7 @@ module ActiveRecord
         # the model.
         #
         #   class Article < ActiveRecord::Base
-        #     default_scope where(:published => true)
+        #     default_scope where(published: true)
         #   end
         #
         #   Article.all # => SELECT * FROM articles WHERE published = true
@@ -65,7 +65,7 @@ module ActiveRecord
         # You can also use <tt>default_scope</tt> with a block, in order to have it lazily evaluated:
         #
         #   class Article < ActiveRecord::Base
-        #     default_scope { where(:published_at => Time.now - 1.week) }
+        #     default_scope { where(published_at: Time.now - 1.week) }
         #   end
         #
         # (You can also pass any object which responds to <tt>call</tt> to the <tt>default_scope</tt>
@@ -75,8 +75,8 @@ module ActiveRecord
         # be merged together:
         #
         #   class Article < ActiveRecord::Base
-        #     default_scope where(:published => true)
-        #     default_scope where(:rating => 'G')
+        #     default_scope where(published: true)
+        #     default_scope where(rating: 'G')
         #   end
         #
         #   Article.all # => SELECT * FROM articles WHERE published = true AND rating = 'G'

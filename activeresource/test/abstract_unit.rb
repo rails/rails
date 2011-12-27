@@ -14,19 +14,19 @@ require 'logger'
 ActiveResource::Base.logger = Logger.new("#{File.dirname(__FILE__)}/debug.log")
 
 def setup_response
-  matz_hash = { 'person' => { :id => 1, :name => 'Matz' } }
+  matz_hash = { 'person' => { id: 1, name: 'Matz' } }
 
   @default_request_headers = { 'Content-Type' => 'application/json' }
   @matz  = matz_hash.to_json
   @matz_xml  = matz_hash.to_xml
-  @david = { :person => { :id => 2, :name => 'David' } }.to_json
-  @greg  = { :person => { :id => 3, :name => 'Greg' } }.to_json
-  @addy  = { :address => { :id => 1, :street => '12345 Street', :country => 'Australia' } }.to_json
-  @rick  = { :person => { :name => "Rick", :age => 25 } }.to_json
-  @joe    = { :person => { :id => 6, :name => 'Joe', :likes_hats => true }}.to_json
-  @people = { :people => [ { :person => { :id => 1, :name => 'Matz' } }, { :person => { :id => 2, :name => 'David' } }] }.to_json
-  @people_david = { :people => [ { :person => { :id => 2, :name => 'David' } }] }.to_json
-  @addresses = { :addresses => [{ :address => { :id => 1, :street => '12345 Street', :country => 'Australia' } }] }.to_json
+  @david = { person: { id: 2, name: 'David' } }.to_json
+  @greg  = { person: { id: 3, name: 'Greg' } }.to_json
+  @addy  = { address: { id: 1, street: '12345 Street', country: 'Australia' } }.to_json
+  @rick  = { person: { name: "Rick", age: 25 } }.to_json
+  @joe    = { person: { id: 6, name: 'Joe', likes_hats: true }}.to_json
+  @people = { people: [ { person: { id: 1, name: 'Matz' } }, { person: { id: 2, name: 'David' } }] }.to_json
+  @people_david = { people: [ { person: { id: 2, name: 'David' } }] }.to_json
+  @addresses = { addresses: [{ address: { id: 1, street: '12345 Street', country: 'Australia' } }] }.to_json
 
   # - deep nested resource -
   # - Luis (Customer)
@@ -46,32 +46,32 @@ def setup_response
   #     - Milena (Customer::Friend::Brother)
   #
   @luis = {
-    :customer => {
-      :id => 1,
-      :name => 'Luis',
-      :friends => [{
-        :name => 'JK',
-        :brothers => [
+    customer: {
+      id: 1,
+      name: 'Luis',
+      friends: [{
+        name: 'JK',
+        brothers: [
           {
-            :name => 'Mateo',
-            :children => [{ :name => 'Edith' },{ :name => 'Martha' }]
+            name: 'Mateo',
+            children: [{ name: 'Edith' },{ name: 'Martha' }]
           }, {
-            :name => 'Felipe',
-            :children => [{ :name => 'Bryan' },{ :name => 'Luke' }]
+            name: 'Felipe',
+            children: [{ name: 'Bryan' },{ name: 'Luke' }]
           }
         ]
       }, {
-        :name => 'Eduardo',
-        :brothers => [
+        name: 'Eduardo',
+        brothers: [
           {
-            :name => 'Sebas',
-            :children => [{ :name => 'Andres' },{ :name => 'Jorge' }]
+            name: 'Sebas',
+            children: [{ name: 'Andres' },{ name: 'Jorge' }]
           }, {
-            :name => 'Elsa',
-            :children => [{ :name => 'Natacha' }]
+            name: 'Elsa',
+            children: [{ name: 'Natacha' }]
           }, {
-            :name => 'Milena',
-            :children => []
+            name: 'Milena',
+            children: []
           }
         ]
       }]
@@ -92,8 +92,8 @@ def setup_response
   eof
 
   @startup_sound = {
-    :sound => {
-      :name => "Mac Startup Sound", :author => { :name => "Jim Reekes" }
+    sound: {
+      name: "Mac Startup Sound", author: { name: "Jim Reekes" }
     }
   }.to_json
 

@@ -58,10 +58,10 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
-    assert !Topic.find(:all, :conditions => {:approved => true}).empty?
+    assert !Topic.find(:all, conditions: {approved: true}).empty?
 
-    assert_equal Topic.find(:all, :conditions => {:approved => true}), Topic.approved
-    assert_equal Topic.count(:conditions => {:approved => true}), Topic.approved.count
+    assert_equal Topic.find(:all, conditions: {approved: true}), Topic.approved
+    assert_equal Topic.count(conditions: {approved: true}), Topic.approved.count
   end
 
   def test_scopes_with_string_name_can_be_composed
@@ -75,8 +75,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scopes_are_composable
-    assert_equal((approved = Topic.find(:all, :conditions => {:approved => true})), Topic.approved)
-    assert_equal((replied = Topic.find(:all, :conditions => 'replies_count > 0')), Topic.replied)
+    assert_equal((approved = Topic.find(:all, conditions: {approved: true})), Topic.approved)
+    assert_equal((replied = Topic.find(:all, conditions: 'replies_count > 0')), Topic.replied)
     assert !(approved == replied)
     assert !(approved & replied).empty?
 
@@ -84,8 +84,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_procedural_scopes
-    topics_written_before_the_third = Topic.find(:all, :conditions => ['written_on < ?', topics(:third).written_on])
-    topics_written_before_the_second = Topic.find(:all, :conditions => ['written_on < ?', topics(:second).written_on])
+    topics_written_before_the_third = Topic.find(:all, conditions: ['written_on < ?', topics(:third).written_on])
+    topics_written_before_the_second = Topic.find(:all, conditions: ['written_on < ?', topics(:second).written_on])
     assert_not_equal topics_written_before_the_second, topics_written_before_the_third
 
     assert_equal topics_written_before_the_third, Topic.written_before(topics(:third).written_on)
@@ -101,8 +101,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_scopes_with_joins
     address = author_addresses(:david_address)
     posts_with_authors_at_address = Post.find(
-      :all, :joins => 'JOIN authors ON authors.id = posts.author_id',
-      :conditions => [ 'authors.author_address_id = ?', address.id ]
+      :all, joins: 'JOIN authors ON authors.id = posts.author_id',
+      conditions: [ 'authors.author_address_id = ?', address.id ]
     )
     assert_equal posts_with_authors_at_address, Post.with_authors_at_address(address)
   end
@@ -110,11 +110,11 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_scopes_with_joins_respects_custom_select
     address = author_addresses(:david_address)
     posts_with_authors_at_address_titles = Post.find(:all,
-      :select => 'title',
-      :joins => 'JOIN authors ON authors.id = posts.author_id',
-      :conditions => [ 'authors.author_address_id = ?', address.id ]
+      select: 'title',
+      joins: 'JOIN authors ON authors.id = posts.author_id',
+      conditions: [ 'authors.author_address_id = ?', address.id ]
     )
-    assert_equal posts_with_authors_at_address_titles.map(&:title), Post.with_authors_at_address(address).find(:all, :select => 'title').map(&:title)
+    assert_equal posts_with_authors_at_address_titles.map(&:title), Post.with_authors_at_address(address).find(:all, select: 'title').map(&:title)
   end
 
   def test_scope_with_object
@@ -169,14 +169,14 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_active_records_have_scope_named__scoped__
-    assert !Topic.find(:all, scope = {:conditions => "content LIKE '%Have%'"}).empty?
+    assert !Topic.find(:all, scope = {conditions: "content LIKE '%Have%'"}).empty?
 
     assert_equal Topic.find(:all, scope), Topic.scoped(scope)
   end
 
   def test_first_and_last_should_support_find_options
-    assert_equal Topic.base.first(:order => 'title'), Topic.base.find(:first, :order => 'title')
-    assert_equal Topic.base.last(:order => 'title'), Topic.base.find(:last, :order => 'title')
+    assert_equal Topic.base.first(order: 'title'), Topic.base.find(:first, order: 'title')
+    assert_equal Topic.base.last(order: 'title'), Topic.base.find(:last, order: 'title')
   end
 
   def test_first_and_last_should_allow_integers_for_limit
@@ -197,8 +197,8 @@ class NamedScopeTest < ActiveRecord::TestCase
     topics = Topic.base
     topics.reload # force load
     assert_queries(2) do
-      topics.first(:order => 'title')
-      topics.last(:order => 'title')
+      topics.first(order: 'title')
+      topics.last(order: 'title')
     end
   end
 
@@ -264,9 +264,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_many_should_return_false_if_none_or_one
-    topics = Topic.base.scoped(:conditions => {:id => 0})
+    topics = Topic.base.scoped(conditions: {id: 0})
     assert !topics.many?
-    topics = Topic.base.scoped(:conditions => {:id => 1})
+    topics = Topic.base.scoped(conditions: {id: 1})
     assert !topics.many?
   end
 
@@ -344,7 +344,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_chaining_with_duplicate_joins
     join = "INNER JOIN comments ON comments.post_id = posts.id"
     post = Post.find(1)
-    assert_equal post.comments.size, Post.scoped(:joins => join).scoped(:joins => join, :conditions => "posts.id = #{post.id}").size
+    assert_equal post.comments.size, Post.scoped(joins: join).scoped(joins: join, conditions: "posts.id = #{post.id}").size
   end
 
   def test_chaining_should_use_latest_conditions_when_creating
@@ -363,8 +363,8 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_chaining_should_use_latest_conditions_when_searching
     # Normal hash conditions
-    assert_equal Topic.where(:approved => true).to_a, Topic.rejected.approved.all
-    assert_equal Topic.where(:approved => false).to_a, Topic.approved.rejected.all
+    assert_equal Topic.where(approved: true).to_a, Topic.rejected.approved.all
+    assert_equal Topic.where(approved: false).to_a, Topic.approved.rejected.all
 
     # Nested hash conditions with same keys
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_very_special_comments.all
@@ -377,11 +377,11 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal 3, Topic.approved.count
 
     assert_queries(4) do
-      Topic.approved.find_each(:batch_size => 1) {|t| assert t.approved? }
+      Topic.approved.find_each(batch_size: 1) {|t| assert t.approved? }
     end
 
     assert_queries(2) do
-      Topic.approved.find_in_batches(:batch_size => 2) do |group|
+      Topic.approved.find_in_batches(batch_size: 2) do |group|
         group.each {|t| assert t.approved? }
       end
     end
@@ -463,7 +463,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_scopes_to_get_newest
     post = posts(:welcome)
     old_last_comment = post.comments.newest
-    new_comment = post.comments.create(:body => "My new comment")
+    new_comment = post.comments.create(body: "My new comment")
     assert_equal new_comment, post.comments.newest
     assert_not_equal old_last_comment, post.comments.newest
   end
@@ -509,7 +509,7 @@ class DynamicScopeTest < ActiveRecord::TestCase
 
   def test_dynamic_scope
     assert_equal @test_klass.scoped_by_author_id(1).find(1), @test_klass.find(1)
-    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.find(:first, :conditions => { :author_id => 1, :title => "Welcome to the weblog"})
+    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.find(:first, conditions: { author_id: 1, title: "Welcome to the weblog"})
   end
 
   def test_dynamic_scope_should_create_methods_after_hitting_method_missing

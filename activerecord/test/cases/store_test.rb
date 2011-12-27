@@ -4,7 +4,7 @@ require 'models/admin/user'
 
 class StoreTest < ActiveRecord::TestCase
   setup do
-    @john = Admin::User.create(:name => 'John Doe', :color => 'black')
+    @john = Admin::User.create(name: 'John Doe', color: 'black')
   end
 
   test "reading store attributes through accessors" do

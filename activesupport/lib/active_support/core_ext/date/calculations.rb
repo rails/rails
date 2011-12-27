@@ -5,7 +5,7 @@ require 'active_support/core_ext/date/zones'
 require 'active_support/core_ext/time/zones'
 
 class Date
-  DAYS_INTO_WEEK = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6 }
+  DAYS_INTO_WEEK = { monday: 0, tuesday: 1, wednesday: 2, thursday: 3, friday: 4, saturday: 5, sunday: 6 }
 
   class << self
     # Returns a new Date representing the date 1 day ago (i.e. yesterday's date).
@@ -101,8 +101,8 @@ class Date
   #
   # Examples:
   #
-  #   Date.new(2007, 5, 12).change(:day => 1)                  # => Date.new(2007, 5, 1)
-  #   Date.new(2007, 5, 12).change(:year => 2005, :month => 1) # => Date.new(2005, 1, 12)
+  #   Date.new(2007, 5, 12).change(day: 1)                  # => Date.new(2007, 5, 1)
+  #   Date.new(2007, 5, 12).change(year: 2005, month: 1) # => Date.new(2005, 1, 12)
   def change(options)
     ::Date.new(
       options[:year]  || self.year,
@@ -113,27 +113,27 @@ class Date
 
   # Returns a new Date/DateTime representing the time a number of specified weeks ago.
   def weeks_ago(weeks)
-    advance(:weeks => -weeks)
+    advance(weeks: -weeks)
   end
 
   # Returns a new Date/DateTime representing the time a number of specified months ago.
   def months_ago(months)
-    advance(:months => -months)
+    advance(months: -months)
   end
 
   # Returns a new Date/DateTime representing the time a number of specified months in the future.
   def months_since(months)
-    advance(:months => months)
+    advance(months: months)
   end
 
   # Returns a new Date/DateTime representing the time a number of specified years ago.
   def years_ago(years)
-    advance(:years => -years)
+    advance(years: -years)
   end
 
   # Returns a new Date/DateTime representing the time a number of specified years in the future.
   def years_since(years)
-    advance(:years => years)
+    advance(years: years)
   end
 
   # Returns number of days to start of this week. Week is assumed to start on
@@ -180,49 +180,49 @@ class Date
   # week. Default is +:monday+. +DateTime+ objects have their time set to 0:00.
   def prev_week(day = :monday)
     result = (self - 7).beginning_of_week + DAYS_INTO_WEEK[day]
-    self.acts_like?(:time) ? result.change(:hour => 0) : result
+    self.acts_like?(:time) ? result.change(hour: 0) : result
   end
 
   # Returns a new Date/DateTime representing the start of the given day in next week (default is :monday).
   def next_week(day = :monday)
     result = (self + 7).beginning_of_week + DAYS_INTO_WEEK[day]
-    self.acts_like?(:time) ? result.change(:hour => 0) : result
+    self.acts_like?(:time) ? result.change(hour: 0) : result
   end
 
   # Returns a new ; DateTime objects will have time set to 0:00DateTime representing the start of the month (1st of the month; DateTime objects will have time set to 0:00)
   def beginning_of_month
-    self.acts_like?(:time) ? change(:day => 1, :hour => 0) : change(:day => 1)
+    self.acts_like?(:time) ? change(day: 1, hour: 0) : change(day: 1)
   end
   alias :at_beginning_of_month :beginning_of_month
 
   # Returns a new Date/DateTime representing the end of the month (last day of the month; DateTime objects will have time set to 0:00)
   def end_of_month
     last_day = ::Time.days_in_month( self.month, self.year )
-    self.acts_like?(:time) ? change(:day => last_day, :hour => 23, :min => 59, :sec => 59) : change(:day => last_day)
+    self.acts_like?(:time) ? change(day: last_day, hour: 23, min: 59, sec: 59) : change(day: last_day)
   end
   alias :at_end_of_month :end_of_month
 
   # Returns a new Date/DateTime representing the start of the quarter (1st of january, april, july, october; DateTime objects will have time set to 0:00)
   def beginning_of_quarter
-    beginning_of_month.change(:month => [10, 7, 4, 1].detect { |m| m <= self.month })
+    beginning_of_month.change(month: [10, 7, 4, 1].detect { |m| m <= self.month })
   end
   alias :at_beginning_of_quarter :beginning_of_quarter
 
   # Returns a new Date/DateTime representing the end of the quarter (last day of march, june, september, december; DateTime objects will have time set to 23:59:59)
   def end_of_quarter
-    beginning_of_month.change(:month => [3, 6, 9, 12].detect { |m| m >= self.month }).end_of_month
+    beginning_of_month.change(month: [3, 6, 9, 12].detect { |m| m >= self.month }).end_of_month
   end
   alias :at_end_of_quarter :end_of_quarter
 
   # Returns a new Date/DateTime representing the start of the year (1st of january; DateTime objects will have time set to 0:00)
   def beginning_of_year
-    self.acts_like?(:time) ? change(:month => 1, :day => 1, :hour => 0) : change(:month => 1, :day => 1)
+    self.acts_like?(:time) ? change(month: 1, day: 1, hour: 0) : change(month: 1, day: 1)
   end
   alias :at_beginning_of_year :beginning_of_year
 
   # Returns a new Time representing the end of the year (31st of december; DateTime objects will have time set to 23:59:59)
   def end_of_year
-    self.acts_like?(:time) ? change(:month => 12, :day => 31, :hour => 23, :min => 59, :sec => 59) : change(:month => 12, :day => 31)
+    self.acts_like?(:time) ? change(month: 12, day: 31, hour: 23, min: 59, sec: 59) : change(month: 12, day: 31)
   end
   alias :at_end_of_year :end_of_year
 

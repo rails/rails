@@ -26,7 +26,7 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
       end
     end
     req = Rack::MockRequest.new(ActionDispatch::ParamsParser.new(Linted.new))
-    resp = req.post('/', "CONTENT_TYPE" => "application/xml", :input => "<foo>bar</foo>", :lint => true)
+    resp = req.post('/', "CONTENT_TYPE" => "application/xml", input: "<foo>bar</foo>", lint: true)
     assert_equal "<ok>bar</ok>", resp.body
   end
 
@@ -106,7 +106,7 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::XmlParamsParsingTest::TestController
+          match ':action', to: ::XmlParamsParsingTest::TestController
         end
         yield
       end
@@ -126,7 +126,7 @@ end
 
 class RootLessXmlParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
-    wrap_parameters :person, :format => :xml
+    wrap_parameters :person, format: :xml
 
     class << self
       attr_accessor :last_request_parameters
@@ -155,7 +155,7 @@ class RootLessXmlParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::RootLessXmlParamsParsingTest::TestController
+          match ':action', to: ::RootLessXmlParamsParsingTest::TestController
         end
         yield
       end

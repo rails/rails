@@ -8,7 +8,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
 
   def test_mysql_reconnect_attribute_after_connection_with_reconnect_true
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge({:reconnect => true}))
+      ActiveRecord::Base.establish_connection(orig_connection.merge({reconnect: true}))
       assert ActiveRecord::Base.connection.raw_connection.reconnect
     end
   end
@@ -25,7 +25,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
 
   def test_mysql_reconnect_attribute_after_connection_with_reconnect_false
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge({:reconnect => false}))
+      ActiveRecord::Base.establish_connection(orig_connection.merge({reconnect: false}))
       assert !ActiveRecord::Base.connection.raw_connection.reconnect
     end
   end

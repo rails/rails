@@ -96,7 +96,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_should_accept_setting_ssl_options
-    expected = {:verify => 1}
+    expected = {verify: 1}
     Forum.ssl_options= expected
     assert_equal(expected, Forum.ssl_options)
     assert_equal(expected, Forum.connection.ssl_options)
@@ -136,7 +136,7 @@ class BaseTest < Test::Unit::TestCase
     actor = Class.new(ActiveResource::Base)
     actor.site = 'https://cinema'
     assert_nil actor.ssl_options
-    actor.ssl_options = {:foo => 5}
+    actor.ssl_options = {foo: 5}
     actor.ssl_options = nil
     assert_nil actor.ssl_options
     assert_nil actor.connection.ssl_options
@@ -345,33 +345,33 @@ class BaseTest < Test::Unit::TestCase
     # Superclass is Object so returns nil.
     assert_nil ActiveResource::Base.ssl_options
     assert_nil Class.new(ActiveResource::Base).ssl_options
-    Person.ssl_options = {:foo => 'bar'}
+    Person.ssl_options = {foo: 'bar'}
 
     # Subclass uses superclass ssl_options.
     actor = Class.new(Person)
     assert_equal Person.ssl_options, actor.ssl_options
 
     # Changing subclass ssl_options doesn't change superclass ssl_options.
-    actor.ssl_options = {:baz => ''}
+    actor.ssl_options = {baz: ''}
     assert_not_equal Person.ssl_options, actor.ssl_options
 
     # Changing superclass ssl_options doesn't overwrite subclass ssl_options.
-    Person.ssl_options = {:color => 'blue'}
+    Person.ssl_options = {color: 'blue'}
     assert_not_equal Person.ssl_options, actor.ssl_options
 
     # Changing superclass ssl_options after subclassing changes subclass ssl_options.
     jester = Class.new(actor)
-    actor.ssl_options = {:color => 'red'}
+    actor.ssl_options = {color: 'red'}
     assert_equal actor.ssl_options, jester.ssl_options
 
     # Subclasses are always equal to superclass ssl_options when not overridden.
     fruit = Class.new(ActiveResource::Base)
     apple = Class.new(fruit)
 
-    fruit.ssl_options = {:alpha => 'betas'}
+    fruit.ssl_options = {alpha: 'betas'}
     assert_equal fruit.ssl_options, apple.ssl_options, 'subclass did not adopt changes from parent class'
 
-    fruit.ssl_options = {:omega => 'moos'}
+    fruit.ssl_options = {omega: 'moos'}
     assert_equal fruit.ssl_options, apple.ssl_options, 'subclass did not adopt changes from parent class'
   end
 
@@ -452,24 +452,24 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_collection_path_with_parameters
-    assert_equal '/people.json?gender=male', Person.collection_path(:gender => 'male')
-    assert_equal '/people.json?gender=false', Person.collection_path(:gender => false)
-    assert_equal '/people.json?gender=', Person.collection_path(:gender => nil)
+    assert_equal '/people.json?gender=male', Person.collection_path(gender: 'male')
+    assert_equal '/people.json?gender=false', Person.collection_path(gender: false)
+    assert_equal '/people.json?gender=', Person.collection_path(gender: nil)
 
     assert_equal '/people.json?gender=male', Person.collection_path('gender' => 'male')
 
     # Use includes? because ordering of param hash is not guaranteed
-    assert Person.collection_path(:gender => 'male', :student => true).include?('/people.json?')
-    assert Person.collection_path(:gender => 'male', :student => true).include?('gender=male')
-    assert Person.collection_path(:gender => 'male', :student => true).include?('student=true')
+    assert Person.collection_path(gender: 'male', student: true).include?('/people.json?')
+    assert Person.collection_path(gender: 'male', student: true).include?('gender=male')
+    assert Person.collection_path(gender: 'male', student: true).include?('student=true')
 
-    assert_equal '/people.json?name%5B%5D=bob&name%5B%5D=your+uncle%2Bme&name%5B%5D=&name%5B%5D=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
+    assert_equal '/people.json?name%5B%5D=bob&name%5B%5D=your+uncle%2Bme&name%5B%5D=&name%5B%5D=false', Person.collection_path(name: ['bob', 'your uncle+me', nil, false])
 
-    assert_equal '/people.json?struct%5Ba%5D%5B%5D=2&struct%5Ba%5D%5B%5D=1&struct%5Bb%5D=fred', Person.collection_path(:struct => ActiveSupport::OrderedHash[:a, [2,1], 'b', 'fred'])
+    assert_equal '/people.json?struct%5Ba%5D%5B%5D=2&struct%5Ba%5D%5B%5D=1&struct%5Bb%5D=fred', Person.collection_path(struct: ActiveSupport::OrderedHash[:a, [2,1], 'b', 'fred'])
   end
 
   def test_custom_element_path
-    assert_equal '/people/1/addresses/1.json', StreetAddress.element_path(1, :person_id => 1)
+    assert_equal '/people/1/addresses/1.json', StreetAddress.element_path(1, person_id: 1)
     assert_equal '/people/1/addresses/1.json', StreetAddress.element_path(1, 'person_id' => 1)
     assert_equal '/people/Greg/addresses/1.json', StreetAddress.element_path(1, 'person_id' => 'Greg')
     assert_equal '/people/ann%20mary/addresses/ann%20mary.json', StreetAddress.element_path(:'ann mary', 'person_id' => 'ann mary')
@@ -509,14 +509,14 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_custom_element_path_with_parameters
-    assert_equal '/people/1/addresses/1.json?type=work', StreetAddress.element_path(1, :person_id => 1, :type => 'work')
-    assert_equal '/people/1/addresses/1.json?type=work', StreetAddress.element_path(1, 'person_id' => 1, :type => 'work')
-    assert_equal '/people/1/addresses/1.json?type=work', StreetAddress.element_path(1, :type => 'work', :person_id => 1)
-    assert_equal '/people/1/addresses/1.json?type%5B%5D=work&type%5B%5D=play+time', StreetAddress.element_path(1, :person_id => 1, :type => ['work', 'play time'])
+    assert_equal '/people/1/addresses/1.json?type=work', StreetAddress.element_path(1, person_id: 1, type: 'work')
+    assert_equal '/people/1/addresses/1.json?type=work', StreetAddress.element_path(1, 'person_id' => 1, type: 'work')
+    assert_equal '/people/1/addresses/1.json?type=work', StreetAddress.element_path(1, type: 'work', person_id: 1)
+    assert_equal '/people/1/addresses/1.json?type%5B%5D=work&type%5B%5D=play+time', StreetAddress.element_path(1, person_id: 1, type: ['work', 'play time'])
   end
 
   def test_custom_element_path_with_prefix_and_parameters
-    assert_equal '/people/1/addresses/1.json?type=work', StreetAddress.element_path(1, {:person_id => 1}, {:type => 'work'})
+    assert_equal '/people/1/addresses/1.json?type=work', StreetAddress.element_path(1, {person_id: 1}, {type: 'work'})
   end
 
   def test_custom_collection_path_without_required_prefix_param
@@ -526,17 +526,17 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_custom_collection_path
-    assert_equal '/people/1/addresses.json', StreetAddress.collection_path(:person_id => 1)
+    assert_equal '/people/1/addresses.json', StreetAddress.collection_path(person_id: 1)
     assert_equal '/people/1/addresses.json', StreetAddress.collection_path('person_id' => 1)
   end
 
   def test_custom_collection_path_with_parameters
-    assert_equal '/people/1/addresses.json?type=work', StreetAddress.collection_path(:person_id => 1, :type => 'work')
-    assert_equal '/people/1/addresses.json?type=work', StreetAddress.collection_path('person_id' => 1, :type => 'work')
+    assert_equal '/people/1/addresses.json?type=work', StreetAddress.collection_path(person_id: 1, type: 'work')
+    assert_equal '/people/1/addresses.json?type=work', StreetAddress.collection_path('person_id' => 1, type: 'work')
   end
 
   def test_custom_collection_path_with_prefix_and_parameters
-    assert_equal '/people/1/addresses.json?type=work', StreetAddress.collection_path({:person_id => 1}, {:type => 'work'})
+    assert_equal '/people/1/addresses.json?type=work', StreetAddress.collection_path({person_id: 1}, {type: 'work'})
   end
 
   def test_custom_element_name
@@ -562,7 +562,7 @@ class BaseTest < Test::Unit::TestCase
   def test_set_prefix_with_inline_keys
     SetterTrap.rollback_sets(Person) do |person_class|
       person_class.prefix = "the_prefix:the_param"
-      assert_equal "the_prefixthe_param_value", person_class.prefix(:the_param => "the_param_value")
+      assert_equal "the_prefixthe_param_value", person_class.prefix(the_param: "the_param_value")
     end
   end
 
@@ -586,7 +586,7 @@ class BaseTest < Test::Unit::TestCase
 
   def test_custom_prefix
     assert_equal '/people//', StreetAddress.prefix
-    assert_equal '/people/1/', StreetAddress.prefix(:person_id => 1)
+    assert_equal '/people/1/', StreetAddress.prefix(person_id: 1)
     assert_equal [:person_id].to_set, StreetAddress.__send__(:prefix_parameters)
   end
 
@@ -669,20 +669,20 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_create_with_custom_prefix
-    matzs_house = StreetAddress.new(:person_id => 1)
+    matzs_house = StreetAddress.new(person_id: 1)
     matzs_house.save
     assert_equal '5', matzs_house.id
   end
 
   # Test that loading a resource preserves its prefix_options.
   def test_load_preserves_prefix_options
-    address = StreetAddress.find(1, :params => { :person_id => 1 })
-    ryan = Person.new(:id => 1, :name => 'Ryan', :address => address)
+    address = StreetAddress.find(1, params: { person_id: 1 })
+    ryan = Person.new(id: 1, name: 'Ryan', address: address)
     assert_equal address.prefix_options, ryan.address.prefix_options
   end
 
   def test_reload_works_with_prefix_options
-    address = StreetAddress.find(1, :params => { :person_id => 1 })
+    address = StreetAddress.find(1, params: { person_id: 1 })
     assert_equal address, address.reload
   end
 
@@ -712,7 +712,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_create
-    rick = Person.create(:name => 'Rick')
+    rick = Person.create(name: 'Rick')
     assert rick.valid?
     assert !rick.new?
     assert_equal '5', rick.id
@@ -724,14 +724,14 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.post   "/people.json", {}, nil, 409
     end
-    assert_raise(ActiveResource::ResourceConflict) { Person.create(:name => 'Rick') }
+    assert_raise(ActiveResource::ResourceConflict) { Person.create(name: 'Rick') }
   end
 
   def test_create_without_location
     ActiveResource::HttpMock.respond_to do |mock|
       mock.post   "/people.json", {}, nil, 201
     end
-    person = Person.create(:name => 'Rick')
+    person = Person.create(name: 'Rick')
     assert_nil person.id
   end
 
@@ -745,7 +745,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_nested_clone
-    addy = StreetAddress.find(1, :params => {:person_id => 1})
+    addy = StreetAddress.find(1, params: {person_id: 1})
     addy_c = addy.clone
     assert addy_c.new?
     addy.attributes.each do |k, v|
@@ -756,8 +756,8 @@ class BaseTest < Test::Unit::TestCase
 
   def test_complex_clone
     matz = Person.find(1)
-    matz.address = StreetAddress.find(1, :params => {:person_id => matz.id})
-    matz.non_ar_hash = {:not => "an ARes instance"}
+    matz.address = StreetAddress.find(1, params: {person_id: matz.id})
+    matz.non_ar_hash = {not: "an ARes instance"}
     matz.non_ar_arr = ["not", "ARes"]
     matz_c = matz.clone
     assert matz_c.new?
@@ -779,7 +779,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_update_with_custom_prefix_with_specific_id
-    addy = StreetAddress.find(1, :params => { :person_id => 1 })
+    addy = StreetAddress.find(1, params: { person_id: 1 })
     addy.street = "54321 Street"
     assert_kind_of StreetAddress, addy
     assert_equal "54321 Street", addy.street
@@ -787,7 +787,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_update_with_custom_prefix_without_specific_id
-    addy = StreetAddress.find(:first, :params => { :person_id => 1 })
+    addy = StreetAddress.find(:first, params: { person_id: 1 })
     addy.street = "54321 Lane"
     assert_kind_of StreetAddress, addy
     assert_equal "54321 Lane", addy.street
@@ -826,18 +826,18 @@ class BaseTest < Test::Unit::TestCase
 
 
   def test_update_attributes_as_symbols
-    addy = StreetAddress.first(:params => {:person_id => 1})
+    addy = StreetAddress.first(params: {person_id: 1})
     addy.expects(:save).returns(true)
 
     assert_equal "12345 Street", addy.street
     assert_equal "Australia", addy.country
-    assert addy.update_attributes(:street => '54321 Street', :country => 'USA')
+    assert addy.update_attributes(street: '54321 Street', country: 'USA')
     assert_equal "54321 Street", addy.street
     assert_equal "USA", addy.country
   end
 
   def test_update_attributes_as_strings
-    addy = StreetAddress.first(:params => {:person_id => 1})
+    addy = StreetAddress.first(params: {person_id: 1})
     addy.expects(:save).returns(true)
 
     assert_equal "12345 Street", addy.street
@@ -860,11 +860,11 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_destroy_with_custom_prefix
-    assert StreetAddress.find(1, :params => { :person_id => 1 }).destroy
+    assert StreetAddress.find(1, params: { person_id: 1 }).destroy
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1/addresses/1.json", {}, nil, 404
     end
-    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
+    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, params: { person_id: 1 }) }
   end
 
   def test_destroy_with_410_gone
@@ -884,11 +884,11 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_delete_with_custom_prefix
-    assert StreetAddress.delete(1, :person_id => 1)
+    assert StreetAddress.delete(1, person_id: 1)
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1/addresses/1.json", {}, nil, 404
     end
-    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
+    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, params: { person_id: 1 }) }
   end
 
   def test_delete_with_410_gone
@@ -911,17 +911,17 @@ class BaseTest < Test::Unit::TestCase
     # Instance method.
     assert !Person.new.exists?
     assert Person.find(1).exists?
-    assert !Person.new(:id => 99).exists?
+    assert !Person.new(id: 99).exists?
 
     # Nested class method.
-    assert StreetAddress.exists?(1,  :params => { :person_id => 1 })
-    assert !StreetAddress.exists?(1, :params => { :person_id => 2 })
-    assert !StreetAddress.exists?(2, :params => { :person_id => 1 })
+    assert StreetAddress.exists?(1,  params: { person_id: 1 })
+    assert !StreetAddress.exists?(1, params: { person_id: 2 })
+    assert !StreetAddress.exists?(2, params: { person_id: 1 })
 
     # Nested instance method.
-    assert StreetAddress.find(1, :params => { :person_id => 1 }).exists?
-    assert !StreetAddress.new({:id => 1, :person_id => 2}).exists?
-    assert !StreetAddress.new({:id => 2, :person_id => 1}).exists?
+    assert StreetAddress.find(1, params: { person_id: 1 }).exists?
+    assert !StreetAddress.new({id: 1, person_id: 2}).exists?
+    assert !StreetAddress.new({id: 2, person_id: 1}).exists?
   end
 
   def test_exists_with_redefined_to_param
@@ -939,10 +939,10 @@ class BaseTest < Test::Unit::TestCase
     assert Person.find('Greg').exists?
 
     # Nested class method.
-    assert StreetAddress.exists?(1,  :params => { :person_id => Person.find('Greg').to_param })
+    assert StreetAddress.exists?(1,  params: { person_id: Person.find('Greg').to_param })
 
     # Nested instance method.
-    assert StreetAddress.find(1, :params => { :person_id => Person.find('Greg').to_param }).exists?
+    assert StreetAddress.find(1, params: { person_id: Person.find('Greg').to_param }).exists?
 
   ensure
     # revert back to original
@@ -1005,7 +1005,7 @@ class BaseTest < Test::Unit::TestCase
   def test_to_xml_with_private_method_name_as_attribute
     Person.format = :xml
 
-    customer = Customer.new(:foo => "foo")
+    customer = Customer.new(foo: "foo")
     customer.singleton_class.class_eval do
       def foo
         "bar"
@@ -1091,7 +1091,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_with_custom_formatter
-    addresses = [{ :id => "1", :street => "1 Infinite Loop", :city => "Cupertino", :state => "CA" }].to_xml(:root => :addresses)
+    addresses = [{ id: "1", street: "1 Infinite Loop", city: "Cupertino", state: "CA" }].to_xml(root: :addresses)
 
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/addresses.xml", {}, addresses, 200
@@ -1105,13 +1105,13 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_create_with_custom_primary_key
-    silver_plan = { :plan => { :code => "silver", :price => 5.00 } }.to_json
+    silver_plan = { plan: { code: "silver", price: 5.00 } }.to_json
 
     ActiveResource::HttpMock.respond_to do |mock|
       mock.post "/plans.json", {}, silver_plan, 201, 'Location' => '/plans/silver.json'
     end
 
-    plan = SubscriptionPlan.new(:code => "silver", :price => 5.00)
+    plan = SubscriptionPlan.new(code: "silver", price: 5.00)
     assert plan.new?
 
     plan.save!
@@ -1119,8 +1119,8 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_update_with_custom_primary_key
-    silver_plan = { :plan => { :code => "silver", :price => 5.00 } }.to_json
-    silver_plan_updated = { :plan => { :code => "silver", :price => 10.00 } }.to_json
+    silver_plan = { plan: { code: "silver", price: 5.00 } }.to_json
+    silver_plan_updated = { plan: { code: "silver", price: 10.00 } }.to_json
 
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/plans/silver.json", {}, silver_plan

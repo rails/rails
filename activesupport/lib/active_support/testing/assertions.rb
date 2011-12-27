@@ -8,41 +8,41 @@ module ActiveSupport
       # in the yielded block.
       #
       #   assert_difference 'Article.count' do
-      #     post :create, :article => {...}
+      #     post :create, article: {...}
       #   end
       #
       # An arbitrary expression is passed in and evaluated.
       #
       #   assert_difference 'assigns(:article).comments(:reload).size' do
-      #     post :create, :comment => {...}
+      #     post :create, comment: {...}
       #   end
       #
       # An arbitrary positive or negative difference can be specified. The default is +1.
       #
       #   assert_difference 'Article.count', -1 do
-      #     post :delete, :id => ...
+      #     post :delete, id: ...
       #   end
       #
       # An array of expressions can also be passed in and evaluated.
       #
       #   assert_difference [ 'Article.count', 'Post.count' ], +2 do
-      #     post :create, :article => {...}
+      #     post :create, article: {...}
       #   end
       #
       # A lambda or a list of lambdas can be passed in and evaluated:
       #
       #   assert_difference lambda { Article.count }, 2 do
-      #     post :create, :article => {...}
+      #     post :create, article: {...}
       #   end
       #
       #   assert_difference [->{ Article.count }, ->{ Post.count }], 2 do
-      #     post :create, :article => {...}
+      #     post :create, article: {...}
       #   end
       #
       # A error message can be specified.
       #
       #   assert_difference 'Article.count', -1, "An Article should be destroyed" do
-      #     post :delete, :id => ...
+      #     post :delete, id: ...
       #   end
       def assert_difference(expression, difference = 1, message = nil, &block)
         expressions = Array.wrap expression
@@ -65,13 +65,13 @@ module ActiveSupport
       # invoking the passed in block.
       #
       #   assert_no_difference 'Article.count' do
-      #     post :create, :article => invalid_attributes
+      #     post :create, article: invalid_attributes
       #   end
       #
       # A error message can be specified.
       #
       #   assert_no_difference 'Article.count', "An Article should not be created" do
-      #     post :create, :article => invalid_attributes
+      #     post :create, article: invalid_attributes
       #   end
       def assert_no_difference(expression, message = nil, &block)
         assert_difference expression, 0, message, &block
@@ -87,7 +87,7 @@ module ActiveSupport
 
       # Test if an expression is not blank. Passes if object.present? is true.
       #
-      #   assert_present({:data => 'x' }) # => true
+      #   assert_present({data: 'x' }) # => true
       def assert_present(object, message=nil)
         message ||= "#{object.inspect} is blank"
         assert object.present?, message

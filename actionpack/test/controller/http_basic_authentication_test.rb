@@ -2,26 +2,26 @@ require 'abstract_unit'
 
 class HttpBasicAuthenticationTest < ActionController::TestCase
   class DummyController < ActionController::Base
-    before_filter :authenticate, :only => :index
-    before_filter :authenticate_with_request, :only => :display
-    before_filter :authenticate_long_credentials, :only => :show
+    before_filter :authenticate, only: :index
+    before_filter :authenticate_with_request, only: :display
+    before_filter :authenticate_long_credentials, only: :show
 
-    http_basic_authenticate_with :name => "David", :password => "Goliath", :only => :search
+    http_basic_authenticate_with name: "David", password: "Goliath", only: :search
 
     def index
-      render :text => "Hello Secret"
+      render text: "Hello Secret"
     end
 
     def display
-      render :text => 'Definitely Maybe'
+      render text: 'Definitely Maybe'
     end
 
     def show
-      render :text => 'Only for loooooong credentials'
+      render text: 'Only for loooooong credentials'
     end
     
     def search
-      render :text => 'All inline'
+      render text: 'All inline'
     end
 
     private

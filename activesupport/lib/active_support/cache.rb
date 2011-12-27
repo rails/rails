@@ -138,12 +138,12 @@ module ActiveSupport
     # Caches can also store values in a compressed format to save space and
     # reduce time spent sending data. Since there is overhead, values must be
     # large enough to warrant compression. To turn on compression either pass
-    # <tt>:compress => true</tt> in the initializer or as an option to +fetch+
+    # <tt>compress: true</tt> in the initializer or as an option to +fetch+
     # or +write+. To specify the threshold at which to compress values, set the
     # <tt>:compress_threshold</tt> option. The default threshold is 16K.
     class Store
 
-      cattr_accessor :logger, :instance_writer => true
+      cattr_accessor :logger, instance_writer: true
 
       attr_reader :silence, :options
       alias :silence? :silence
@@ -196,10 +196,10 @@ module ActiveSupport
       #   cache.fetch("city")   # => "Duckburgh"
       #
       # You may also specify additional options via the +options+ argument.
-      # Setting <tt>:force => true</tt> will force a cache miss:
+      # Setting <tt>force: true</tt> will force a cache miss:
       #
       #   cache.write("today", "Monday")
-      #   cache.fetch("today", :force => true)  # => nil
+      #   cache.fetch("today", force: true)  # => nil
       #
       # Setting <tt>:compress</tt> will store a large cache entry set by the call
       # in a compressed format.
@@ -211,8 +211,8 @@ module ActiveSupport
       # (in which case all entries will be affected), or it can be supplied to
       # the +fetch+ or +write+ method to effect just one entry.
       #
-      #   cache = ActiveSupport::Cache::MemoryStore.new(:expires_in => 5.minutes)
-      #   cache.write(key, value, :expires_in => 1.minute)  # Set a lower value for one entry
+      #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
+      #   cache.write(key, value, expires_in: 1.minute)  # Set a lower value for one entry
       #
       # Setting <tt>:race_condition_ttl</tt> is very useful in situations where a cache entry
       # is used very frequently and is under heavy load. If a cache expires and due to heavy load
@@ -231,7 +231,7 @@ module ActiveSupport
       # <tt>:race_condition_ttl</tt> does not play any role.
       #
       #   # Set all values to expire after one minute.
-      #   cache = ActiveSupport::Cache::MemoryStore.new(:expires_in => 1.minute)
+      #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.minute)
       #
       #   cache.write("foo", "original value")
       #   val_1 = nil
@@ -239,14 +239,14 @@ module ActiveSupport
       #   sleep 60
       #
       #   Thread.new do
-      #     val_1 = cache.fetch("foo", :race_condition_ttl => 10) do
+      #     val_1 = cache.fetch("foo", race_condition_ttl: 10) do
       #       sleep 1
       #       "new value 1"
       #     end
       #   end
       #
       #   Thread.new do
-      #     val_2 = cache.fetch("foo", :race_condition_ttl => 10) do
+      #     val_2 = cache.fetch("foo", race_condition_ttl: 10) do
       #       "new value 2"
       #     end
       #   end
@@ -265,7 +265,7 @@ module ActiveSupport
       # We can use this option with #fetch too:
       #
       #   cache = ActiveSupport::Cache::MemCacheStore.new
-      #   cache.fetch("foo", :force => true, :raw => true) do
+      #   cache.fetch("foo", force: true, raw: true) do
       #     :bar
       #   end
       #   cache.fetch("foo")  # => "bar"
@@ -283,7 +283,7 @@ module ActiveSupport
             race_ttl = options[:race_condition_ttl].to_f
             if race_ttl and Time.now.to_f - entry.expires_at <= race_ttl
               entry.expires_at = Time.now + race_ttl
-              write_entry(key, entry, :expires_in => race_ttl * 2)
+              write_entry(key, entry, expires_in: race_ttl * 2)
             else
               delete_entry(key, options)
             end
@@ -514,7 +514,7 @@ module ActiveSupport
           log(operation, key, options)
 
           if self.class.instrument
-            payload = { :key => key }
+            payload = { key: key }
             payload.merge!(options) if options.is_a?(Hash)
             ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
           else

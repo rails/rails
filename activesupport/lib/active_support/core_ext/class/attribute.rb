@@ -57,12 +57,12 @@ class Class
   #   object.setting          # => false
   #   Base.setting            # => true
   #
-  # To opt out of the instance reader method, pass :instance_reader => false.
+  # To opt out of the instance reader method, pass instance_reader: false.
   #
   #   object.setting          # => NoMethodError
   #   object.setting?         # => NoMethodError
   #
-  # To opt out of the instance writer method, pass :instance_writer => false.
+  # To opt out of the instance writer method, pass instance_writer: false.
   #
   #   object.setting = false  # => NoMethodError
   def class_attribute(*attrs)

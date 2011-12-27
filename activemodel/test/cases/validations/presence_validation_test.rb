@@ -41,7 +41,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_acceptance_of_with_custom_error_using_quotes
-    Person.validates_presence_of :karma, :message => "This string contains 'single' and \"double\" quotes"
+    Person.validates_presence_of :karma, message: "This string contains 'single' and \"double\" quotes"
     p = Person.new
     assert p.invalid?
     assert_equal "This string contains 'single' and \"double\" quotes", p.errors[:karma].last

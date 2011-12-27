@@ -30,9 +30,9 @@ module ActiveSupport
     #         ö: "oe"
     #
     #   # Or set them using Ruby
-    #   I18n.backend.store_translations(:de, :i18n => {
-    #     :transliterate => {
-    #       :rule => {
+    #   I18n.backend.store_translations(:de, i18n: {
+    #     transliterate: {
+    #       rule: {
     #         "ü" => "ue",
     #         "ö" => "oe"
     #       }
@@ -43,9 +43,9 @@ module ActiveSupport
     # characters to ASCII approximations as shown above, or, for more complex
     # requirements, a Proc:
     #
-    #   I18n.backend.store_translations(:de, :i18n => {
-    #     :transliterate => {
-    #       :rule => lambda {|string| MyTransliterator.transliterate(string)}
+    #   I18n.backend.store_translations(:de, i18n: {
+    #     transliterate: {
+    #       rule: lambda {|string| MyTransliterator.transliterate(string)}
     #     }
     #   })
     #
@@ -61,7 +61,7 @@ module ActiveSupport
     def transliterate(string, replacement = "?")
       I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
-          :replacement => replacement)
+          replacement: replacement)
     end
 
     # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.

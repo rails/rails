@@ -23,9 +23,9 @@ class MessageEncryptorTest < ActiveSupport::TestCase
 
   def setup
     @secret    = SecureRandom.hex(64)
-    @verifier  = ActiveSupport::MessageVerifier.new(@secret, :serializer => ActiveSupport::MessageEncryptor::NullSerializer)
+    @verifier  = ActiveSupport::MessageVerifier.new(@secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
     @encryptor = ActiveSupport::MessageEncryptor.new(@secret)
-    @data = { :some => "data", :now => Time.local(2010) }
+    @data = { some: "data", now: Time.local(2010) }
   end
 
   def test_encrypting_twice_yields_differing_cipher_text
@@ -56,8 +56,8 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def test_alternative_serialization_method
-    encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), :serializer => JSONSerializer.new)
-    message = encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
+    encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), serializer: JSONSerializer.new)
+    message = encryptor.encrypt_and_sign({ foo: 123, 'bar' => Time.utc(2010) })
     assert_equal encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
 

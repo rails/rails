@@ -61,7 +61,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   test "should include root in json (option) even if the default is set to false" do
     begin
       Contact.include_root_in_json = false
-      json = @contact.to_json(:root => true)
+      json = @contact.to_json(root: true)
       assert_match %r{^\{"contact":\{}, json
     ensure
       Contact.include_root_in_json = true
@@ -70,13 +70,13 @@ class JsonSerializationTest < ActiveModel::TestCase
 
   test "should not include root in json (option)" do
 
-    json = @contact.to_json(:root => false)
+    json = @contact.to_json(root: false)
 
     assert_no_match %r{^\{"contact":\{}, json
   end
 
   test "should include custom root in json" do
-    json = @contact.to_json(:root => 'json_contact')
+    json = @contact.to_json(root: 'json_contact')
 
     assert_match %r{^\{"json_contact":\{}, json
     assert_match %r{"name":"Konata Izumi"}, json
@@ -97,7 +97,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should allow attribute filtering with only" do
-    json = @contact.to_json(:only => [:name, :age])
+    json = @contact.to_json(only: [:name, :age])
 
     assert_match %r{"name":"Konata Izumi"}, json
     assert_match %r{"age":16}, json
@@ -107,7 +107,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should allow attribute filtering with except" do
-    json = @contact.to_json(:except => [:name, :age])
+    json = @contact.to_json(except: [:name, :age])
 
     assert_no_match %r{"name":"Konata Izumi"}, json
     assert_no_match %r{"age":16}, json
@@ -122,10 +122,10 @@ class JsonSerializationTest < ActiveModel::TestCase
     def @contact.favorite_quote; "Constraints are liberating"; end
 
     # Single method.
-    assert_match %r{"label":"Has cheezburger"}, @contact.to_json(:only => :name, :methods => :label)
+    assert_match %r{"label":"Has cheezburger"}, @contact.to_json(only: :name, methods: :label)
 
     # Both methods.
-    methods_json = @contact.to_json(:only => :name, :methods => [:label, :favorite_quote])
+    methods_json = @contact.to_json(only: :name, methods: [:label, :favorite_quote])
     assert_match %r{"label":"Has cheezburger"}, methods_json
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
@@ -143,7 +143,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "serializable_hash should not modify options passed in argument" do
-    options = { :except => :name }
+    options = { except: :name }
     @contact.serializable_hash(options)
 
     assert_nil options[:only]
@@ -172,7 +172,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "from_json should work without a root (method parameter)" do
-    json = @contact.to_json(:root => false)
+    json = @contact.to_json(root: false)
     result = Contact.new.from_json(json, false)
 
     assert_equal result.name, @contact.name
@@ -199,7 +199,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "custom as_json should be honored when generating json" do
-    def @contact.as_json(options); { :name => name, :created_at => created_at }; end
+    def @contact.as_json(options); { name: name, created_at: created_at }; end
     json = @contact.to_json
 
     assert_match %r{"name":"Konata Izumi"}, json
@@ -209,7 +209,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "custom as_json options should be extendible" do
-    def @contact.as_json(options = {}); super(options.merge(:only => [:name])); end
+    def @contact.as_json(options = {}); super(options.merge(only: [:name])); end
     json = @contact.to_json
 
     assert_match %r{"name":"Konata Izumi"}, json

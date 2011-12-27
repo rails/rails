@@ -22,7 +22,7 @@ module ActiveRecord
   #   end
   #
   #   # Comments are not patches, this assignment raises AssociationTypeMismatch.
-  #   @ticket.patches << Comment.new(:content => "Please attach tests to your patch.")
+  #   @ticket.patches << Comment.new(content: "Please attach tests to your patch.")
   class AssociationTypeMismatch < ActiveRecordError
   end
 

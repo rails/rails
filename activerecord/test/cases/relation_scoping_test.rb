@@ -53,8 +53,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_last_preserves_scope
-    lowest_salary  = Developer.first :order => "salary ASC"
-    highest_salary = Developer.first :order => "salary DESC"
+    lowest_salary  = Developer.first order: "salary ASC"
+    highest_salary = Developer.first order: "salary DESC"
 
     Developer.order("salary").scoping do
       assert_equal highest_salary, Developer.last
@@ -125,8 +125,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_create_with_where
-    new_comment = VerySpecialComment.where(:post_id => 1).scoping do
-      VerySpecialComment.create :body => "Wonderful world"
+    new_comment = VerySpecialComment.where(post_id: 1).scoping do
+      VerySpecialComment.create body: "Wonderful world"
     end
 
     assert_equal 1, new_comment.post_id
@@ -134,8 +134,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_create_with_create_with
-    new_comment = VerySpecialComment.create_with(:post_id => 1).scoping do
-      VerySpecialComment.create :body => "Wonderful world"
+    new_comment = VerySpecialComment.create_with(post_id: 1).scoping do
+      VerySpecialComment.create body: "Wonderful world"
     end
 
     assert_equal 1, new_comment.post_id
@@ -143,8 +143,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_create_with_create_with_has_higher_priority
-    new_comment = VerySpecialComment.where(:post_id => 2).create_with(:post_id => 1).scoping do
-      VerySpecialComment.create :body => "Wonderful world"
+    new_comment = VerySpecialComment.where(post_id: 2).create_with(post_id: 1).scoping do
+      VerySpecialComment.create body: "Wonderful world"
     end
 
     assert_equal 1, new_comment.post_id
@@ -185,9 +185,9 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_replace_options
-    Developer.where(:name => 'David').scoping do
+    Developer.where(name: 'David').scoping do
       Developer.unscoped do
-        assert_equal 'Jamis', Developer.where(:name => 'Jamis').first[:name]
+        assert_equal 'Jamis', Developer.where(name: 'Jamis').first[:name]
       end
 
       assert_equal 'David', Developer.first[:name]
@@ -215,9 +215,9 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_nested_scoped_create
-    comment = Comment.create_with(:post_id => 1).scoping do
-      Comment.create_with(:post_id => 2).scoping do
-        Comment.create :body => "Hey guys, nested scopes are broken. Please fix!"
+    comment = Comment.create_with(post_id: 1).scoping do
+      Comment.create_with(post_id: 2).scoping do
+        Comment.create body: "Hey guys, nested scopes are broken. Please fix!"
       end
     end
 
@@ -225,10 +225,10 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_nested_exclusive_scope_for_create
-    comment = Comment.create_with(:body => "Hey guys, nested scopes are broken. Please fix!").scoping do
-      Comment.unscoped.create_with(:post_id => 1).scoping do
+    comment = Comment.create_with(body: "Hey guys, nested scopes are broken. Please fix!").scoping do
+      Comment.unscoped.create_with(post_id: 1).scoping do
         assert_blank Comment.new.body
-        Comment.create :body => "Hey guys"
+        Comment.create body: "Hey guys"
       end
     end
 
@@ -282,7 +282,7 @@ class HasManyScopingTest< ActiveRecord::TestCase
   end
 
   def test_should_maintain_default_scope_on_eager_loaded_associations
-    michael = Person.where(:id => people(:michael).id).includes(:bad_references).first
+    michael = Person.where(id: people(:michael).id).includes(:bad_references).first
     magician = BadReference.find(1)
     assert_equal [magician], michael.bad_references
   end
@@ -323,7 +323,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts
 
   def test_default_scope
-    expected = Developer.find(:all, :order => 'salary DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, order: 'salary DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
     assert_equal expected, received
   end
@@ -396,21 +396,21 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_method_scope
-    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, order: 'salary DESC, name DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
   def test_nested_scope
-    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.send(:with_scope, :find => { :order => 'name DESC'}) do
+    expected = Developer.find(:all, order: 'salary DESC, name DESC').collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.send(:with_scope, find: { order: 'name DESC'}) do
       DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
     end
     assert_equal expected, received
   end
 
   def test_scope_overwrites_default
-    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.name }
+    expected = Developer.find(:all, order: 'salary DESC, name DESC').collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.by_name.find(:all).collect { |dev| dev.name }
     assert_equal expected, received
   end
@@ -422,42 +422,42 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_nested_exclusive_scope
-    expected = Developer.find(:all, :limit => 100).collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.send(:with_exclusive_scope, :find => { :limit => 100 }) do
+    expected = Developer.find(:all, limit: 100).collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.send(:with_exclusive_scope, find: { limit: 100 }) do
       DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
     end
     assert_equal expected, received
   end
 
   def test_order_in_default_scope_should_prevail
-    expected = Developer.find(:all, :order => 'salary desc').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
+    expected = Developer.find(:all, order: 'salary desc').collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.find(:all, order: 'salary').collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
   def test_create_attribute_overwrites_default_scoping
-    assert_equal 'David', PoorDeveloperCalledJamis.create!(:name => 'David').name
-    assert_equal 200000, PoorDeveloperCalledJamis.create!(:name => 'David', :salary => 200000).salary
+    assert_equal 'David', PoorDeveloperCalledJamis.create!(name: 'David').name
+    assert_equal 200000, PoorDeveloperCalledJamis.create!(name: 'David', salary: 200000).salary
   end
 
   def test_create_attribute_overwrites_default_values
-    assert_equal nil, PoorDeveloperCalledJamis.create!(:salary => nil).salary
-    assert_equal 50000, PoorDeveloperCalledJamis.create!(:name => 'David').salary
+    assert_equal nil, PoorDeveloperCalledJamis.create!(salary: nil).salary
+    assert_equal 50000, PoorDeveloperCalledJamis.create!(name: 'David').salary
   end
 
   def test_default_scope_attribute
-    jamis = PoorDeveloperCalledJamis.new(:name => 'David')
+    jamis = PoorDeveloperCalledJamis.new(name: 'David')
     assert_equal 50000, jamis.salary
   end
 
   def test_where_attribute
-    aaron = PoorDeveloperCalledJamis.where(:salary => 20).new(:name => 'Aaron')
+    aaron = PoorDeveloperCalledJamis.where(salary: 20).new(name: 'Aaron')
     assert_equal 20, aaron.salary
     assert_equal 'Aaron', aaron.name
   end
 
   def test_where_attribute_merge
-    aaron = PoorDeveloperCalledJamis.where(:name => 'foo').new(:name => 'Aaron')
+    aaron = PoorDeveloperCalledJamis.where(name: 'foo').new(name: 'Aaron')
     assert_equal 'Aaron', aaron.name
   end
 
@@ -468,26 +468,26 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_create_with_merge
-    aaron = PoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20).merge(
-              PoorDeveloperCalledJamis.create_with(:name => 'Aaron')).new
+    aaron = PoorDeveloperCalledJamis.create_with(name: 'foo', salary: 20).merge(
+              PoorDeveloperCalledJamis.create_with(name: 'Aaron')).new
     assert_equal 20, aaron.salary
     assert_equal 'Aaron', aaron.name
 
-    aaron = PoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20).
-                                     create_with(:name => 'Aaron').new
+    aaron = PoorDeveloperCalledJamis.create_with(name: 'foo', salary: 20).
+                                     create_with(name: 'Aaron').new
     assert_equal 20, aaron.salary
     assert_equal 'Aaron', aaron.name
   end
 
   def test_create_with_reset
-    jamis = PoorDeveloperCalledJamis.create_with(:name => 'Aaron').create_with(nil).new
+    jamis = PoorDeveloperCalledJamis.create_with(name: 'Aaron').create_with(nil).new
     assert_equal 'Jamis', jamis.name
   end
 
   # FIXME: I don't know if this is *desired* behavior, but it is *today's*
   # behavior.
   def test_create_with_empty_hash_will_not_reset
-    jamis = PoorDeveloperCalledJamis.create_with(:name => 'Aaron').create_with({}).new
+    jamis = PoorDeveloperCalledJamis.create_with(name: 'Aaron').create_with({}).new
     assert_equal 'Aaron', jamis.name
   end
 
@@ -520,9 +520,9 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_include_with_count
     d = DeveloperWithIncludes.create!
-    d.audit_logs.create! :message => 'foo'
+    d.audit_logs.create! message: 'foo'
 
-    assert_equal 1, DeveloperWithIncludes.where(:audit_logs => { :message => 'foo' }).count
+    assert_equal 1, DeveloperWithIncludes.where(audit_logs: { message: 'foo' }).count
   end
 
   def test_default_scope_is_threadsafe

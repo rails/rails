@@ -5,12 +5,12 @@ require 'active_support/core_ext/module/remove_method'
 
 class Date
   DATE_FORMATS = {
-    :short        => "%e %b",
-    :long         => "%B %e, %Y",
-    :db           => "%Y-%m-%d",
-    :number       => "%Y%m%d",
-    :long_ordinal => lambda { |date| date.strftime("%B #{ActiveSupport::Inflector.ordinalize(date.day)}, %Y") }, # => "April 25th, 2007"
-    :rfc822       => "%e %b %Y"
+    short:        "%e %b",
+    long:         "%B %e, %Y",
+    db:           "%Y-%m-%d",
+    number:       "%Y%m%d",
+    long_ordinal: lambda { |date| date.strftime("%B #{ActiveSupport::Inflector.ordinalize(date.day)}, %Y") }, # => "April 25th, 2007"
+    rfc822:       "%e %b %Y"
   }
 
   # Ruby 1.9 has Date#to_time which converts to localtime only.

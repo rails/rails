@@ -44,7 +44,7 @@ module ActionView
       #       if logged_in
       #         concat "Logged in!"
       #       else
-      #         concat link_to('login', :action => login)
+      #         concat link_to('login', action: login)
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
@@ -71,19 +71,19 @@ module ActionView
       #   truncate("Once upon a time in a world far far away")
       #   # => "Once upon a time in a world..."
       #
-      #   truncate("Once upon a time in a world far far away", :length => 17)
+      #   truncate("Once upon a time in a world far far away", length: 17)
       #   # => "Once upon a ti..."
       #
-      #   truncate("Once upon a time in a world far far away", :length => 17, :separator => ' ')
+      #   truncate("Once upon a time in a world far far away", length: 17, separator: ' ')
       #   # => "Once upon a..."
       #
-      #   truncate("And they found that many people were sleeping better.", :length => 25, :omission => '... (continued)')
+      #   truncate("And they found that many people were sleeping better.", length: 25, omission: '... (continued)')
       #   # => "And they f... (continued)"
       #
       #   truncate("<p>Once upon a time in a world far far away</p>")
       #   # => "<p>Once upon a time in a wo..."
       def truncate(text, options = {})
-        options.reverse_merge!(:length => 30)
+        options.reverse_merge!(length: 30)
         text.truncate(options.delete(:length), options) if text
       end
 
@@ -99,10 +99,10 @@ module ActionView
       #   highlight('You searched for: ruby, rails, dhh', 'actionpack')
       #   # => You searched for: ruby, rails, dhh
       #
-      #   highlight('You searched for: rails', ['for', 'rails'], :highlighter => '<em>\1</em>')
+      #   highlight('You searched for: rails', ['for', 'rails'], highlighter: '<em>\1</em>')
       #   # => You searched <em>for</em>: <em>rails</em>
       #
-      #   highlight('You searched for: rails', 'rails', :highlighter => '<a href="search?q=\1">\1</a>')
+      #   highlight('You searched for: rails', 'rails', highlighter: '<a href="search?q=\1">\1</a>')
       #   # => You searched for: <a href="search?q=rails">rails</a>
       #
       # You can still use <tt>highlight</tt> with the old API that accepts the
@@ -113,7 +113,7 @@ module ActionView
         unless args.empty?
           options[:highlighter] = args[0] || '<strong class="highlight">\1</strong>'
         end
-        options.reverse_merge!(:highlighter => '<strong class="highlight">\1</strong>')
+        options.reverse_merge!(highlighter: '<strong class="highlight">\1</strong>')
 
         text = sanitize(text) unless options[:sanitize] == false
         if text.blank? || phrases.blank?
@@ -131,19 +131,19 @@ module ActionView
       # will be stripped in any case. If the +phrase+ isn't found, nil is returned.
       #
       # ==== Examples
-      #   excerpt('This is an example', 'an', :radius => 5)
+      #   excerpt('This is an example', 'an', radius: 5)
       #   # => ...s is an exam...
       #
-      #   excerpt('This is an example', 'is', :radius => 5)
+      #   excerpt('This is an example', 'is', radius: 5)
       #   # => This is a...
       #
       #   excerpt('This is an example', 'is')
       #   # => This is an example
       #
-      #   excerpt('This next thing is an example', 'ex', :radius => 2)
+      #   excerpt('This next thing is an example', 'ex', radius: 2)
       #   # => ...next...
       #
-      #   excerpt('This is also an example', 'an', :radius => 8, :omission => '<chop> ')
+      #   excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ')
       #   # => <chop> is also an example
       #
       # You can still use <tt>excerpt</tt> with the old API that accepts the
@@ -159,7 +159,7 @@ module ActionView
           options[:radius] = args[0] || 100
           options[:omission] = args[1] || "..."
         end
-        options.reverse_merge!(:radius => 100, :omission => "...")
+        options.reverse_merge!(radius: 100, omission: "...")
 
         phrase = Regexp.escape(phrase)
         return unless found_pos = text.mb_chars =~ /(#{phrase})/i
@@ -205,10 +205,10 @@ module ActionView
       #   word_wrap('Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding a successor to the throne turned out to be more trouble than anyone could have imagined...')
       #   # => Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\n a successor to the throne turned out to be more trouble than anyone could have\n imagined...
       #
-      #   word_wrap('Once upon a time', :line_width => 8)
+      #   word_wrap('Once upon a time', line_width: 8)
       #   # => Once upon\na time
       #
-      #   word_wrap('Once upon a time', :line_width => 1)
+      #   word_wrap('Once upon a time', line_width: 1)
       #   # => Once\nupon\na\ntime
       #
       # You can still use <tt>word_wrap</tt> with the old API that accepts the
@@ -219,7 +219,7 @@ module ActionView
         unless args.blank?
           options[:line_width] = args[0] || 80
         end
-        options.reverse_merge!(:line_width => 80)
+        options.reverse_merge!(line_width: 80)
 
         text.split("\n").collect do |line|
           line.length > options[:line_width] ? line.gsub(/(.{1,#{options[:line_width]}})(\s+|$)/, "\\1\n").strip : line
@@ -249,10 +249,10 @@ module ActionView
       #   simple_format(more_text)
       #   # => "<p>We want to put a paragraph...</p>\n\n<p>...right there.</p>"
       #
-      #   simple_format("Look ma! A class!", :class => 'description')
+      #   simple_format("Look ma! A class!", class: 'description')
       #   # => "<p class='description'>Look ma! A class!</p>"
       #
-      #   simple_format("<span>I'm allowed!</span> It's true.", {}, :sanitize => false)
+      #   simple_format("<span>I'm allowed!</span> It's true.", {}, sanitize: false)
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options={}, options={})
         text = '' if text.nil?
@@ -289,15 +289,15 @@ module ActionView
       #
       #
       #   # Cycle CSS classes for rows, and text colors for values within each row
-      #   @items = x = [{:first => 'Robert', :middle => 'Daniel', :last => 'James'},
-      #                {:first => 'Emily', :middle => 'Shannon', :maiden => 'Pike', :last => 'Hicks'},
-      #               {:first => 'June', :middle => 'Dae', :last => 'Jones'}]
+      #   @items = x = [{first: 'Robert', middle: 'Daniel', last: 'James'},
+      #                {first: 'Emily', middle: 'Shannon', maiden: 'Pike', last: 'Hicks'},
+      #               {first: 'June', middle: 'Dae', last: 'Jones'}]
       #   <% @items.each do |item| %>
-      #     <tr class="<%= cycle("odd", "even", :name => "row_class") -%>">
+      #     <tr class="<%= cycle("odd", "even", name: "row_class") -%>">
       #       <td>
       #         <% item.values.each do |value| %>
       #           <%# Create a named cycle "colors" %>
-      #           <span style="color:<%= cycle("red", "green", "blue", :name => "colors") -%>">
+      #           <span style="color:<%= cycle("red", "green", "blue", name: "colors") -%>">
       #             <%= value %>
       #           </span>
       #         <% end %>
@@ -348,7 +348,7 @@ module ActionView
       #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("even", "odd") -%>">
       #         <% item.each do |value| %>
-      #           <span style="color:<%= cycle("#333", "#666", "#999", :name => "colors") -%>">
+      #           <span style="color:<%= cycle("#333", "#666", "#999", name: "colors") -%>">
       #             <%= value %>
       #           </span>
       #         <% end %>

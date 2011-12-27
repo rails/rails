@@ -132,7 +132,7 @@ class ReloaderTest < Test::Unit::TestCase
   def test_prepend_prepare_callback
     i = 10
     Reloader.to_prepare { i += 1 }
-    Reloader.to_prepare(:prepend => true) { i = 0 }
+    Reloader.to_prepare(prepend: true) { i = 0 }
 
     Reloader.prepare!
     assert_equal 1, i

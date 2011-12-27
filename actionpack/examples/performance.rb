@@ -88,57 +88,57 @@ class BasePostController < ActionController::Base
   end
 
   def index
-    render :text => ''
+    render text: ''
   end
 
-  $OBJECT = {:name => "Hello my name is omg", :address => "333 omg"}
+  $OBJECT = {name: "Hello my name is omg", address: "333 omg"}
 
   def partial
-    render :partial => "/collection", :object => $OBJECT
+    render partial: "/collection", object: $OBJECT
   end
 
   def partial_10
-    render :partial => "/ten_partials"
+    render partial: "/ten_partials"
   end
 
   def partial_100
-    render :partial => "/hundred_partials"
+    render partial: "/hundred_partials"
   end
 
   $COLLECTION1 = []
   10.times do |i|
-    $COLLECTION1 << { :name => "Hello my name is omg", :address => "333 omg" }
+    $COLLECTION1 << { name: "Hello my name is omg", address: "333 omg" }
   end
 
   def coll_10
-    render :partial => "/collection", :collection => $COLLECTION1
+    render partial: "/collection", collection: $COLLECTION1
   end
 
   $COLLECTION2 = []
   100.times do |i|
-    $COLLECTION2 << { :name => "Hello my name is omg", :address => "333 omg" }
+    $COLLECTION2 << { name: "Hello my name is omg", address: "333 omg" }
   end
 
   def coll_100
-    render :partial => "/collection", :collection => $COLLECTION2
+    render partial: "/collection", collection: $COLLECTION2
   end
 
   def uniq_100
-    render :partial => $COLLECTION2
+    render partial: $COLLECTION2
   end
 
   $COLLECTION3 = []
   50.times do |i|
-    $COLLECTION3 << {:name => "Hello my name is omg", :address => "333 omg"}
-    $COLLECTION3 << MyHash.new(:name => "Hello my name is omg", :address => "333 omg")
+    $COLLECTION3 << {name: "Hello my name is omg", address: "333 omg"}
+    $COLLECTION3 << MyHash.new(name: "Hello my name is omg", address: "333 omg")
   end
 
   def diff_100
-    render :partial => $COLLECTION3
+    render partial: $COLLECTION3
   end
 
   def template_1
-    render :template => "template"
+    render template: "template"
   end
 
   module Foo
