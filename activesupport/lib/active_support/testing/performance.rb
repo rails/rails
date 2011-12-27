@@ -161,8 +161,7 @@ module ActiveSupport
               end
             end
 
-            ruby = defined?(RUBY_ENGINE) ? RUBY_ENGINE : 'ruby'
-            ruby += "-#{RUBY_VERSION}.#{RUBY_PATCHLEVEL}"
+            ruby = "#{RUBY_ENGINE}-#{RUBY_VERSION}.#{RUBY_PATCHLEVEL}"
 
             @env = [app, rails, ruby, RUBY_PLATFORM] * ','
           end
@@ -259,7 +258,6 @@ module ActiveSupport
   end
 end
 
-RUBY_ENGINE = 'ruby' unless defined?(RUBY_ENGINE) # mri 1.8
 case RUBY_ENGINE
   when 'ruby'   then require 'active_support/testing/performance/ruby'
   when 'rbx'    then require 'active_support/testing/performance/rubinius'
