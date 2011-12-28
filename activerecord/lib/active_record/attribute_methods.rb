@@ -131,7 +131,7 @@ module ActiveRecord
       end
     rescue NoMethodError => ex
       message = ex.message
-      message <<  ", try running 'rake db:migrate' to resolve pending migrations" if ActiveRecord::Migrator.needs_migration?
+      message <<  ", try running 'bundle exec rake db:migrate' to resolve pending migrations" if ActiveRecord::Migrator.needs_migration?
       raise ex.exception(message)
     end
 
