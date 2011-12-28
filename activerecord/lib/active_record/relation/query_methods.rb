@@ -67,7 +67,6 @@ module ActiveRecord
     #
     #   >> Model.select(:field).first.other_field
     #   => ActiveModel::MissingAttributeError: missing attribute: other_field
-
     def select(value = Proc.new)
       if block_given?
         to_a.select {|*block_args| value.call(*block_args) }
