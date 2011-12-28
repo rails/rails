@@ -3,7 +3,7 @@ require "cases/helper"
 class MysqlConnectionTest < ActiveRecord::TestCase
   def setup
     super
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Model.connection
   end
 
   def test_no_automatic_reconnection_after_timeout
@@ -32,11 +32,11 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   private
 
   def run_without_connection
-    original_connection = ActiveRecord::Base.remove_connection
+    original_connection = ActiveRecord::Model.remove_connection
     begin
       yield original_connection
     ensure
-      ActiveRecord::Base.establish_connection(original_connection)
+      ActiveRecord::Model.establish_connection(original_connection)
     end
   end
 end
