@@ -378,9 +378,6 @@ module ActiveSupport
     module ClassMethods
       # Generate the internal runner method called by +run_callbacks+.
       def __define_runner(symbol) #:nodoc:
-        name = __callback_runner_name(nil, symbol)
-        undef_method(name) if method_defined?(name)
-
         runner_method = "_run_#{symbol}_callbacks" 
         unless private_method_defined?(runner_method)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
@@ -408,6 +405,11 @@ module ActiveSupport
         object.send(name, &blk)
       end
 
+      def __reset_runner(symbol)
+        name = __callback_runner_name(nil, symbol)
+        undef_method(name) if method_defined?(name)
+      end
+
       def __callback_runner_name(key, kind)
         "_run__#{self.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
       end
@@ -423,7 +425,7 @@ module ActiveSupport
         ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
           chain = target.send("_#{name}_callbacks")
           yield target, chain.dup, type, filters, options
-          target.__define_runner(name)
+          target.__reset_runner(name)
         end
       end
 
@@ -537,12 +539,12 @@ module ActiveSupport
           chain = target.send("_#{symbol}_callbacks").dup
           callbacks.each { |c| chain.delete(c) }
           target.send("_#{symbol}_callbacks=", chain)
-          target.__define_runner(symbol)
+          target.__reset_runner(symbol)
         end
 
         self.send("_#{symbol}_callbacks=", callbacks.dup.clear)
 
-        __define_runner(symbol)
+        __reset_runner(symbol)
       end
 
       # Define sets of events in the object lifecycle that support callbacks.
