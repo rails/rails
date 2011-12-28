@@ -598,6 +598,7 @@ ActiveRecord::Schema.define do
 
   create_table :teapots, :force => true do |t|
     t.string :name
+    t.string :type
     t.timestamps
   end
 

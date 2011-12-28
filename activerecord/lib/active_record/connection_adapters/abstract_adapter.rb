@@ -11,6 +11,7 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :Column
+    autoload :ConnectionSpecification
 
     autoload_under 'abstract' do
       autoload :IndexDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
@@ -26,7 +27,6 @@ module ActiveRecord
       autoload :ConnectionPool
       autoload :ConnectionHandler,       'active_record/connection_adapters/abstract/connection_pool'
       autoload :ConnectionManagement,    'active_record/connection_adapters/abstract/connection_pool'
-      autoload :ConnectionSpecification
 
       autoload :QueryCache
     end

@@ -22,6 +22,7 @@ module ActiveRecord
       include DynamicMatchers
       include CounterCache
       include Explain
+      include ConnectionHandling
     end
 
     def self.included(base)
@@ -40,6 +41,7 @@ module ActiveRecord
     extend ActiveModel::AttributeMethods::ClassMethods
     extend Callbacks::Register
     extend Explain
+    extend ConnectionHandling
 
     def self.extend(*modules)
       ClassMethods.send(:include, *modules)
@@ -64,6 +66,20 @@ module ActiveRecord
     include AutosaveAssociation, NestedAttributes
     include Aggregations, Transactions, Reflection, Serialization, Store
     include Core
+
+    class << self
+      def arel_engine
+        self
+      end
+
+      def abstract_class?
+        false
+      end
+
+      def inheritance_column
+        'type'
+      end
+    end
 
     module DeprecationProxy #:nodoc:
       class << self

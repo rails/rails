@@ -56,10 +56,13 @@ class InclusionUnitTest < ActiveRecord::TestCase
 
   def test_establish_connection
     assert @klass.respond_to?(:establish_connection)
+    assert ActiveRecord::Model.respond_to?(:establish_connection)
   end
 
   def test_adapter_connection
-    assert @klass.respond_to?("#{ActiveRecord::Base.connection_config[:adapter]}_connection")
+    name = "#{ActiveRecord::Base.connection_config[:adapter]}_connection"
+    assert @klass.respond_to?(name)
+    assert ActiveRecord::Model.respond_to?(name)
   end
 
   def test_connection_handler

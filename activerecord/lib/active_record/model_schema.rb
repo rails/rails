@@ -143,11 +143,7 @@ module ActiveRecord
 
       # The name of the column containing the object's class when Single Table Inheritance is used
       def inheritance_column
-        if self == Base
-          'type'
-        else
-          (@inheritance_column ||= nil) || active_record_super.inheritance_column
-        end
+        (@inheritance_column ||= nil) || active_record_super.inheritance_column
       end
 
       # Sets the value of inheritance_column

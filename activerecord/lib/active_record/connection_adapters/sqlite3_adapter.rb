@@ -4,7 +4,7 @@ gem 'sqlite3', '~> 1.3.5'
 require 'sqlite3'
 
 module ActiveRecord
-  module Core::ClassMethods
+  module ConnectionHandling
     # sqlite3 adapter reuses sqlite_connection.
     def sqlite3_connection(config) # :nodoc:
       # Require database.

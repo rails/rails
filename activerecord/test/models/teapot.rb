@@ -12,6 +12,9 @@ class Teapot
   include ActiveRecord::Model
 end
 
+class OtherTeapot < Teapot
+end
+
 class OMFGIMATEAPOT
   def aaahhh
     "mmm"

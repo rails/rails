@@ -370,7 +370,7 @@ connection.  For example: ActiveRecord::Base.connection.close
       def retrieve_connection_pool(klass)
         pool = @class_to_pool[klass.name]
         return pool if pool
-        return nil if ActiveRecord::Base == klass
+        return nil if ActiveRecord::Model == klass
         retrieve_connection_pool klass.active_record_super
       end
     end

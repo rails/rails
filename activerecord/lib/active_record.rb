@@ -59,6 +59,7 @@ module ActiveRecord
     autoload :Callbacks
     autoload :Core
     autoload :CounterCache
+    autoload :ConnectionHandling
     autoload :DynamicMatchers
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch

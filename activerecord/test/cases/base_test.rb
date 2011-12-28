@@ -23,6 +23,7 @@ require 'models/edge'
 require 'models/joke'
 require 'models/bulb'
 require 'models/bird'
+require 'models/teapot'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 require 'bcrypt'
@@ -1634,10 +1635,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_descends_from_active_record
-    # Tries to call Object.abstract_class?
-    assert_raise(NoMethodError) do
-      ActiveRecord::Base.descends_from_active_record?
-    end
+    assert !ActiveRecord::Base.descends_from_active_record?
 
     # Abstract subclass of AR::Base.
     assert LoosePerson.descends_from_active_record?
@@ -1660,6 +1658,10 @@ class BasicsTest < ActiveRecord::TestCase
 
     # Concrete subclasses an abstract class which has a type column.
     assert !SubStiPost.descends_from_active_record?
+
+    assert Teapot.descends_from_active_record?
+    assert !OtherTeapot.descends_from_active_record?
+    assert CoolTeapot.descends_from_active_record?
   end
 
   def test_find_on_abstract_base_class_doesnt_use_type_condition
@@ -1892,5 +1894,14 @@ class BasicsTest < ActiveRecord::TestCase
     scope = stub
     Bird.stubs(:scoped).returns(mock(:uniq => scope))
     assert_equal scope, Bird.uniq
+  end
+
+  def test_active_record_super
+    assert_equal ActiveRecord::Model, ActiveRecord::Base.active_record_super
+    assert_equal ActiveRecord::Base,  Topic.active_record_super
+    assert_equal Topic,               ImportantTopic.active_record_super
+    assert_equal ActiveRecord::Model, Teapot.active_record_super
+    assert_equal Teapot,              OtherTeapot.active_record_super
+    assert_equal ActiveRecord::Model, CoolTeapot.active_record_super
   end
 end
