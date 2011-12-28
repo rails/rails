@@ -1053,6 +1053,13 @@ module ActionDispatch
         #
         #   The above example will now change /posts/new to /posts/brand_new
         #
+        # [:path]
+        #   Allows you to change the path prefix for the resource.
+        #
+        #     resources :posts, :path => 'postings'
+        #
+        #   The resource and all segments will now route to /postings instead of /posts
+        #
         # [:only]
         #   Only generate routes for the given actions.
         #
