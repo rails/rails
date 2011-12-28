@@ -1,5 +1,4 @@
 require 'active_support/deprecation'
-require 'active_support/concern'
 
 module ActiveRecord
   # <tt>ActiveRecord::Model</tt> can be included into a class to add Active Record persistence.
