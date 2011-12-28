@@ -57,6 +57,16 @@ class HasManyAssociationsTestForCountDistinctWithFinderSql < ActiveRecord::TestC
   end
 end
 
+class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
+  fixtures :authors, :posts, :comments
+
+  def test_should_generate_valid_sql
+    author = authors(:david)
+    # this can fail on adapters which require ORDER BY expressions to be included in the SELECT expression
+    # if the reorder clauses are not correctly handled
+    assert author.posts_with_comments_sorted_by_comment_id.where('comments.id > 0').reorder('posts.comments_count DESC', 'posts.taggings_count DESC').last
+  end
+end
 
 
 class HasManyAssociationsTest < ActiveRecord::TestCase
