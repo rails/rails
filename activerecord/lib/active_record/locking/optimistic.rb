@@ -48,7 +48,10 @@ module ActiveRecord
     module Optimistic
       extend ActiveSupport::Concern
 
-      Configuration.define :lock_optimistically, true
+      included do
+        config_attribute :lock_optimistically, :global => true
+        self.lock_optimistically = true
+      end
 
       def locking_enabled? #:nodoc:
         self.class.locking_enabled?

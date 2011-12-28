@@ -5,16 +5,16 @@ module ActiveRecord
   module ModelSchema
     extend ActiveSupport::Concern
 
-    ##
-    # :singleton-method:
-    # Accessor for the prefix type that will be prepended to every primary key column name.
-    # The options are :table_name and :table_name_with_underscore. If the first is specified,
-    # the Product class will look for "productid" instead of "id" as the primary column. If the
-    # latter is specified, the Product class will look for "product_id" instead of "id". Remember
-    # that this is a global setting for all Active Records.
-    Configuration.define :primary_key_prefix_type
-
     included do
+      ##
+      # :singleton-method:
+      # Accessor for the prefix type that will be prepended to every primary key column name.
+      # The options are :table_name and :table_name_with_underscore. If the first is specified,
+      # the Product class will look for "productid" instead of "id" as the primary column. If the
+      # latter is specified, the Product class will look for "product_id" instead of "id". Remember
+      # that this is a global setting for all Active Records.
+      config_attribute :primary_key_prefix_type, :global => true
+
       ##
       # :singleton-method:
       # Accessor for the name of the prefix string to prepend to every table name. So if set
@@ -25,14 +25,14 @@ module ActiveRecord
       # If you are organising your models within modules you can add a prefix to the models within
       # a namespace by defining a singleton method in the parent module called table_name_prefix which
       # returns your chosen prefix.
-      class_attribute :table_name_prefix, :instance_writer => false
+      config_attribute :table_name_prefix
       self.table_name_prefix = ""
 
       ##
       # :singleton-method:
       # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
       # "people_basecamp"). By default, the suffix is the empty string.
-      class_attribute :table_name_suffix, :instance_writer => false
+      config_attribute :table_name_suffix
       self.table_name_suffix = ""
 
       ##
@@ -40,7 +40,7 @@ module ActiveRecord
       # Indicates whether table names should be the pluralized versions of the corresponding class names.
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.
-      class_attribute :pluralize_table_names, :instance_writer => false
+      config_attribute :pluralize_table_names
       self.pluralize_table_names = true
     end
 

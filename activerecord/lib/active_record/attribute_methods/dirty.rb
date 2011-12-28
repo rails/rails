@@ -13,7 +13,7 @@ module ActiveRecord
           raise "You cannot include Dirty after Timestamp"
         end
 
-        class_attribute :partial_updates
+        config_attribute :partial_updates
         self.partial_updates = true
       end
 

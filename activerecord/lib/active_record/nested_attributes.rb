@@ -12,7 +12,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :nested_attributes_options, :instance_writer => false
+      config_attribute :nested_attributes_options
       self.nested_attributes_options = {}
     end
 
