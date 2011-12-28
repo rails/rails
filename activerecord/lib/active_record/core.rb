@@ -71,8 +71,6 @@ module ActiveRecord
       # The connection handler
       config_attribute :connection_handler
       self.connection_handler = ConnectionAdapters::ConnectionHandler.new
-
-      #
     end
 
     module ClassMethods
