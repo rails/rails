@@ -29,10 +29,13 @@ module ActiveRecord
 
             if values.include?(nil)
               values = values.compact
-              if values.empty?
+              case values.length
+              when 0
                 array_predicates << attribute.eq(nil)
+              when 1
+                array_predicates << attribute.eq(values.first).or(attribute.eq(nil))
               else
-                array_predicates << attribute.in(values.compact).or(attribute.eq(nil))
+                array_predicates << attribute.in(values).or(attribute.eq(nil))
               end
             else
               array_predicates << attribute.in(values)
