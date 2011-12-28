@@ -407,7 +407,7 @@ module ActionView
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
       #   # => <input name='commit' type='submit' value='Save'
-      #         data-confirm="Are you sure?" />
+      #   #     data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
@@ -451,12 +451,12 @@ module ActionView
       #     content_tag(:strong, 'Ask me!')
       #   end
       #   # => <button name="button" type="button">
-      #          <strong>Ask me!</strong>
-      #        </button>
+      #   #     <strong>Ask me!</strong>
+      #   #    </button>
       #
       #   button_tag "Checkout", :disable_with => "Please wait..."
       #   # => <button data-disable-with="Please wait..." name="button"
-      #                type="submit">Checkout</button>
+      #   #            type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
