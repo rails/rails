@@ -1,4 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/statement_pool'
+require 'active_support/core_ext/string/encoding'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
@@ -14,7 +16,7 @@ module ActiveRecord
         end
 
         def binary_to_string(value)
-          if value.respond_to?(:force_encoding) && value.encoding != Encoding::ASCII_8BIT
+          if value.encoding != Encoding::ASCII_8BIT
             value = value.force_encoding(Encoding::ASCII_8BIT)
           end
 
@@ -47,10 +49,47 @@ module ActiveRecord
         end
       end
 
+      class StatementPool < ConnectionAdapters::StatementPool
+        def initialize(connection, max)
+          super
+          @cache = Hash.new { |h,pid| h[pid] = {} }
+        end
+
+        def each(&block); cache.each(&block); end
+        def key?(key);    cache.key?(key); end
+        def [](key);      cache[key]; end
+        def length;       cache.length; end
+
+        def []=(sql, key)
+          while @max <= cache.size
+            dealloc(cache.shift.last[:stmt])
+          end
+          cache[sql] = key
+        end
+
+        def clear
+          cache.values.each do |hash|
+            dealloc hash[:stmt]
+          end
+          cache.clear
+        end
+
+        private
+        def cache
+          @cache[$$]
+        end
+
+        def dealloc(stmt)
+          stmt.close unless stmt.closed?
+        end
+      end
+
       def initialize(connection, logger, config)
         super(connection, logger)
-        @statements = {}
+        @statements = StatementPool.new(@connection,
+                                        config.fetch(:statement_limit) { 1000 })
         @config = config
+        @visitor = Arel::Visitors::SQLite.new self
       end
 
       def adapter_name #:nodoc:
@@ -83,6 +122,11 @@ module ActiveRecord
         true
       end
 
+      # Returns true.
+      def supports_explain?
+        true
+      end
+
       def requires_reloading?
         true
       end
@@ -102,10 +146,6 @@ module ActiveRecord
 
       # Clears the prepared statements cache.
       def clear_cache!
-        @statements.values.map { |hash| hash[:stmt] }.each { |stmt|
-          stmt.close unless stmt.closed?
-        }
-
         @statements.clear
       end
 
@@ -117,6 +157,10 @@ module ActiveRecord
       # Returns true if SQLite version is '3.1.0' or greater, false otherwise.
       def supports_autoincrement? #:nodoc:
         sqlite_version >= '3.1.0'
+      end
+
+      def supports_index_sort_order?
+        sqlite_version >= '3.3.0'
       end
 
       def native_database_types #:nodoc:
@@ -144,7 +188,7 @@ module ActiveRecord
       end
 
       def quote_column_name(name) #:nodoc:
-        %Q("#{name}")
+        %Q("#{name.to_s.gsub('"', '""')}")
       end
 
       # Quote date/time values for use in SQL input. Includes microseconds
@@ -158,12 +202,38 @@ module ActiveRecord
       end
 
       def type_cast(value, column) # :nodoc:
-        return super unless BigDecimal === value
+        return value.to_f if BigDecimal === value
+        return super unless String === value
+        return super unless column && value
 
-        value.to_f
+        value = super
+        if column.type == :string && value.encoding == Encoding::ASCII_8BIT
+          @logger.error "Binary data inserted for `string` type on column `#{column.name}`"
+          value.encode! 'utf-8'
+        end
+        value
       end
 
       # DATABASE STATEMENTS ======================================
+
+      def explain(arel, binds = [])
+        sql = "EXPLAIN QUERY PLAN #{to_sql(arel)}"
+        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
+      end
+
+      class ExplainPrettyPrinter
+        # Pretty prints the result of a EXPLAIN QUERY PLAN in a way that resembles
+        # the output of the SQLite shell:
+        #
+        #   0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
+        #   0|1|1|SCAN TABLE posts (~100000 rows)
+        #
+        def pp(result) # :nodoc:
+          result.rows.map do |row|
+            row.join('|')
+          end.join("\n") + "\n"
+        end
+      end
 
       def exec_query(sql, name = nil, binds = [])
         log(sql, name, binds) do
@@ -238,29 +308,34 @@ module ActiveRecord
       end
 
       def begin_db_transaction #:nodoc:
-        @connection.transaction
+        log('begin transaction',nil) { @connection.transaction }
       end
 
       def commit_db_transaction #:nodoc:
-        @connection.commit
+        log('commit transaction',nil) { @connection.commit }
       end
 
       def rollback_db_transaction #:nodoc:
-        @connection.rollback
+        log('rollback transaction',nil) { @connection.rollback }
       end
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables(name = 'SCHEMA') #:nodoc:
+      def tables(name = 'SCHEMA', table_name = nil) #:nodoc:
         sql = <<-SQL
           SELECT name
           FROM sqlite_master
           WHERE type = 'table' AND NOT name = 'sqlite_sequence'
         SQL
+        sql << " AND name = #{quote_table_name(table_name)}" if table_name
 
         exec_query(sql, name).map do |row|
           row['name']
         end
+      end
+
+      def table_exists?(name)
+        name && tables('SCHEMA', name).any?
       end
 
       # Returns an array of +SQLiteColumn+ objects for the table specified by +table_name+.
@@ -360,6 +435,8 @@ module ActiveRecord
             self.limit   = options[:limit] if options.include?(:limit)
             self.default = options[:default] if include_default
             self.null    = options[:null] if options.include?(:null)
+            self.precision = options[:precision] if options.include?(:precision)
+            self.scale   = options[:scale] if options.include?(:scale)
           end
         end
       end
@@ -414,6 +491,7 @@ module ActiveRecord
 
               @definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
+                :precision => column.precision, :scale => column.scale,
                 :null => column.null)
             end
             @definition.primary_key(primary_key(from)) if primary_key(from)

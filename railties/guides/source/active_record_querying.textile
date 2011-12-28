@@ -8,12 +8,13 @@ This guide covers different ways to retrieve data from the database using Active
 * Use dynamic finders methods
 * Check for the existence of particular records
 * Perform various calculations on Active Record models
+* Run EXPLAIN on relations
 
 endprologue.
 
 WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in other versions of Rails.
 
-If you're used to using raw SQL to find database records then, generally, you will find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
+If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
 Code examples throughout this guide will refer to one or more of the following models:
 
@@ -69,28 +70,28 @@ The methods are:
 
 All of the above methods return an instance of <tt>ActiveRecord::Relation</tt>.
 
-Primary operation of <tt>Model.find(options)</tt> can be summarized as:
+The primary operation of <tt>Model.find(options)</tt> can be summarized as:
 
 * Convert the supplied options to an equivalent SQL query.
 * Fire the SQL query and retrieve the corresponding results from the database.
 * Instantiate the equivalent Ruby object of the appropriate model for every resulting row.
-* Run +after_find+ callbacks if any.
+* Run +after_find+ callbacks, if any.
 
 h4. Retrieving a Single Object
 
-Active Record lets you retrieve a single object using five different ways.
+Active Record provides five different ways of retrieving a single object.
 
 h5. Using a Primary Key
 
-Using <tt>Model.find(primary_key)</tt>, you can retrieve the object corresponding to the supplied _primary key_ and matching the supplied options (if any). For example:
+Using <tt>Model.find(primary_key)</tt>, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
 
 <ruby>
 # Find the client with primary key (id) 10.
 client = Client.find(10)
-=> #<Client id: 10, first_name: => "Ryan">
+# => #<Client id: 10, first_name: "Ryan">
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients WHERE (clients.id = 10)
@@ -100,14 +101,14 @@ SELECT * FROM clients WHERE (clients.id = 10)
 
 h5. +first+
 
-<tt>Model.first</tt> finds the first record matched by the supplied options. For example:
+<tt>Model.first</tt> finds the first record matched by the supplied options, if any. For example:
 
 <ruby>
 client = Client.first
-=> #<Client id: 1, first_name: "Lifo">
+# => #<Client id: 1, first_name: "Lifo">
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients LIMIT 1
@@ -121,10 +122,10 @@ h5. +last+
 
 <ruby>
 client = Client.last
-=> #<Client id: 221, first_name: "Russel">
+# => #<Client id: 221, first_name: "Russel">
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
@@ -132,16 +133,16 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 
 <tt>Model.last</tt> returns +nil+ if no matching record is found. No exception will be raised.
 
-h5. +first!+
+h5(#first_1). +first!+
 
 <tt>Model.first!</tt> finds the first record. For example:
 
 <ruby>
 client = Client.first!
-=> #<Client id: 1, first_name: "Lifo">
+# => #<Client id: 1, first_name: "Lifo">
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients LIMIT 1
@@ -149,16 +150,16 @@ SELECT * FROM clients LIMIT 1
 
 <tt>Model.first!</tt> raises +RecordNotFound+ if no matching record is found.
 
-h5. +last!+
+h5(#last_1). +last!+
 
 <tt>Model.last!</tt> finds the last record. For example:
 
 <ruby>
 client = Client.last!
-=> #<Client id: 221, first_name: "Russel">
+# => #<Client id: 221, first_name: "Russel">
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
@@ -170,15 +171,15 @@ h4. Retrieving Multiple Objects
 
 h5. Using Multiple Primary Keys
 
-<tt>Model.find(array_of_primary_key)</tt> also accepts an array of _primary keys_. An array of all the matching records for the supplied _primary keys_ is returned. For example:
+<tt>Model.find(array_of_primary_key)</tt> accepts an array of _primary keys_, returning an array containing all of the matching records for the supplied _primary keys_. For example:
 
 <ruby>
 # Find the clients with primary keys 1 and 10.
-client = Client.find(1, 10) # Or even Client.find([1, 10])
-=> [#<Client id: 1, first_name: => "Lifo">, #<Client id: 10, first_name: => "Ryan">]
+client = Client.find([1, 10]) # Or even Client.find(1, 10)
+# => [#<Client id: 1, first_name: "Lifo">, #<Client id: 10, first_name: "Ryan">]
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients WHERE (clients.id IN (1,10))
@@ -188,24 +189,26 @@ WARNING: <tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::
 
 h4. Retrieving Multiple Objects in Batches
 
-Sometimes you need to iterate over a large set of records. For example to send a newsletter to all users, to export some data, etc.
+We often need to iterate over a large set of records, as when we send a newsletter to a large set of users, or when we export data.
 
-The following may seem very straight forward at first:
+This may appear straightforward:
 
 <ruby>
-# Very inefficient when users table has thousands of rows.
+# This is very inefficient when the users table has thousands of rows.
 User.all.each do |user|
   NewsLetter.weekly_deliver(user)
 end
 </ruby>
 
-But if the total number of rows in the table is very large, the above approach may vary from being under performant to just plain impossible.
+But this approach becomes increasingly impractical as the table size increases, since +User.all.each+ instructs Active Record to fetch _the entire table_ in a single pass, build a model object per row, and then keep the entire array of model objects in memory. Indeed, if we have a large number of records, the entire collection may exceed the amount of memory available.
 
-This is because +User.all.each+ makes Active Record fetch _the entire table_, build a model object per row, and keep the entire array in the memory. Sometimes that is just too many objects and demands too much memory.
+Rails provides two methods that address this problem by dividing records into memory-friendly batches for processing. The first method, +find_each+, retrieves a batch of records and then yields _each_ record to the block individually as a model. The second method, +find_in_batches+, retrieves a batch of records and then yields _the entire batch_ to the block as an array of models.
+
+TIP: The +find_each+ and +find_in_batches+ methods are intended for use in the batch processing of a large number of records that wouldn't fit in memory all at once. If you just need to loop over a thousand records the regular find methods are the preferred option.
 
 h5. +find_each+
 
-To efficiently iterate over a large table, Active Record provides a batch finder method called +find_each+:
+The +find_each+ method retrieves a batch of records and then yields _each_ record to the block individually as a model. In the following example, +find_each+ will retrieve 1000 records (the current default for both +find_each+ and +find_in_batches+) and then yield each record individually to the block as a model. This process is repeated until all of the records have been processed:
 
 <ruby>
 User.find_each do |user|
@@ -213,11 +216,15 @@ User.find_each do |user|
 end
 </ruby>
 
-*Configuring the batch size*
+h6. Options for +find_each+
 
-Behind the scenes +find_each+ fetches rows in batches of +1000+ and yields them one by one. The size of the underlying batches is configurable via the +:batch_size+ option.
+The +find_each+ method accepts most of the options allowed by the regular +find+ method, except for +:order+ and +:limit+, which are reserved for internal use by +find_each+.
 
-To fetch +User+ records in batch size of +5000+:
+Two additional options, +:batch_size+ and +:start+, are available as well.
+
+*+:batch_size+*
+
+The +:batch_size+ option allows you to specify the number of records to be retrieved in each batch, before being passed individually to the block. For example, to retrieve records in batches of 5000:
 
 <ruby>
 User.find_each(:batch_size => 5000) do |user|
@@ -225,34 +232,38 @@ User.find_each(:batch_size => 5000) do |user|
 end
 </ruby>
 
-*Starting batch find from a specific primary key*
+*+:start+*
 
-Records are fetched in ascending order on the primary key, which must be an integer. The +:start+ option allows you to configure the first ID of the sequence if the lowest is not the one you need. This may be useful for example to be able to resume an interrupted batch process if it saves the last processed ID as a checkpoint.
+By default, records are fetched in ascending order of the primary key, which must be an integer. The +:start+ option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This would be useful, for example, if you wanted to resume an interrupted batch process, provided you saved the last processed ID as a checkpoint.
 
-To send newsletters only to users with the primary key starting from +2000+:
+For example, to send newsletters only to users with the primary key starting from 2000, and to retrieve them in batches of 5000:
 
 <ruby>
-User.find_each(:batch_size => 5000, :start => 2000) do |user|
+User.find_each(:start => 2000, :batch_size => 5000) do |user|
   NewsLetter.weekly_deliver(user)
 end
 </ruby>
 
-*Additional options*
+Another example would be if you wanted multiple workers handling the same processing queue. You could have each worker handle 10000 records by setting the appropriate <tt>:start</tt> option on each worker.
 
-+find_each+ accepts the same options as the regular +find+ method. However, +:order+ and +:limit+ are needed internally and hence not allowed to be passed explicitly.
+NOTE: The +:include+ option allows you to name associations that should be loaded alongside with the models.
 
 h5. +find_in_batches+
 
-You can also work by chunks instead of row by row using +find_in_batches+. This method is analogous to +find_each+, but it yields arrays of models instead:
+The +find_in_batches+ method is similar to +find_each+, since both retrieve batches of records. The difference is that +find_in_batches+ yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1000 invoices at a time, with the final block containing any remaining invoices:
 
 <ruby>
-# Works in chunks of 1000 invoices at a time.
+# Give add_invoices an array of 1000 invoices at a time
 Invoice.find_in_batches(:include => :invoice_lines) do |invoices|
   export.add_invoices(invoices)
 end
 </ruby>
 
-The above will yield the supplied block with +1000+ invoices every time.
+NOTE: The +:include+ option allows you to name associations that should be loaded alongside with the models.
+
+h6. Options for +find_in_batches+
+
+The +find_in_batches+ method accepts the same +:batch_size+ and +:start+ options as +find_each+, as well as most of the options allowed by the regular +find+ method, except for +:order+ and +:limit+, which are reserved for internal use by +find_in_batches+.
 
 h3. Conditions
 
@@ -266,7 +277,7 @@ WARNING: Building your own conditions as pure strings can leave you vulnerable t
 
 h4. Array Conditions
 
-Now what if that number could vary, say as an argument from somewhere? The find then becomes something like:
+Now what if that number could vary, say as an argument from somewhere? The find would then take the form:
 
 <ruby>
 Client.where("orders_count = ?", params[:orders])
@@ -274,7 +285,7 @@ Client.where("orders_count = ?", params[:orders])
 
 Active Record will go through the first element in the conditions value and any additional elements will replace the question marks +(?)+ in the first element.
 
-Or if you want to specify two conditions, you can do it like:
+If you want to specify multiple conditions:
 
 <ruby>
 Client.where("orders_count = ? AND locked = ?", params[:orders], false)
@@ -282,19 +293,19 @@ Client.where("orders_count = ? AND locked = ?", params[:orders], false)
 
 In this example, the first question mark will be replaced with the value in +params[:orders]+ and the second will be replaced with the SQL representation of +false+, which depends on the adapter.
 
-The reason for doing code like:
+This code is highly preferable:
 
 <ruby>
 Client.where("orders_count = ?", params[:orders])
 </ruby>
 
-instead of:
+to this code:
 
 <ruby>
 Client.where("orders_count = #{params[:orders]}")
 </ruby>
 
-is because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database *as-is*. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
+because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database *as-is*. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
 
 TIP: For more information on the dangers of SQL injection, see the "Ruby on Rails Security Guide":security.html#sql-injection.
 
@@ -425,10 +436,26 @@ ActiveModel::MissingAttributeError: missing attribute: <attribute>
 
 Where +&lt;attribute&gt;+ is the attribute you asked for. The +id+ method will not raise the +ActiveRecord::MissingAttributeError+, so just be careful when working with associations because they need the +id+ method to function properly.
 
-You can also call SQL functions within the select option. For example, if you would like to only grab a single record per unique value in a certain field by using the +DISTINCT+ function you can do it like this:
+If you would like to only grab a single record per unique value in a certain field, you can use +uniq+:
 
 <ruby>
-Client.select("DISTINCT(name)")
+Client.select(:name).uniq
+</ruby>
+
+This would generate SQL like:
+
+<sql>
+SELECT DISTINCT name FROM clients
+</sql>
+
+You can also remove the uniqueness constraint:
+
+<ruby>
+query = Client.select(:name).uniq
+# => Returns unique names
+
+query.uniq(false)
+# => Returns all names, even if there are duplicates
 </ruby>
 
 h3. Limit and Offset
@@ -560,6 +587,7 @@ Client.where("orders_count > 10").order(:name).reverse_order
 </ruby>
 
 The SQL that would be executed:
+
 <sql>
 SELECT * FROM clients WHERE orders_count > 10 ORDER BY name DESC
 </sql>
@@ -571,6 +599,7 @@ Client.where("orders_count > 10").reverse_order
 </ruby>
 
 The SQL that would be executed:
+
 <sql>
 SELECT * FROM clients WHERE orders_count > 10 ORDER BY clients.id DESC
 </sql>
@@ -614,14 +643,12 @@ c1.first_name = "Michael"
 c1.save
 
 c2.name = "should fail"
-c2.save # Raises a ActiveRecord::StaleObjectError
+c2.save # Raises an ActiveRecord::StaleObjectError
 </ruby>
 
 You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging, or otherwise apply the business logic needed to resolve the conflict.
 
 NOTE: You must ensure that your database schema defaults the +lock_version+ column to +0+.
-
-<br />
 
 This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
 
@@ -731,7 +758,7 @@ SELECT categories.* FROM categories
   INNER JOIN posts ON posts.category_id = categories.id
 </sql>
 
-Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use Category.joins(:post).select("distinct(categories.id)"). 
+Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use Category.joins(:post).select("distinct(categories.id)").
 
 h5. Joining Multiple Associations
 
@@ -911,14 +938,14 @@ end
 To call this +published+ scope we can call it on either the class:
 
 <ruby>
-Post.published => [published posts]
+Post.published # => [published posts]
 </ruby>
 
 Or on an association consisting of +Post+ objects:
 
 <ruby>
 category = Category.first
-category.posts.published => [published posts belonging to this category]
+category.posts.published # => [published posts belonging to this category]
 </ruby>
 
 h4. Working with times
@@ -939,7 +966,7 @@ When a +lambda+ is used for a +scope+, it can take arguments:
 
 <ruby>
 class Post < ActiveRecord::Base
-  scope :1_week_before, lambda { |time| where("created_at < ?", time)
+  scope :1_week_before, lambda { |time| where("created_at < ?", time) }
 end
 </ruby>
 
@@ -1014,27 +1041,90 @@ You can also use +find_last_by_*+ methods which will find the last record matchi
 
 You can specify an exclamation point (<tt>!</tt>) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!("Ryan")+
 
-If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields. For example, +Client.find_by_first_name_and_locked("Ryan", true)+.
+If you want to find both by name and locked, you can chain these finders together by simply typing "+and+" between the fields. For example, +Client.find_by_first_name_and_locked("Ryan", true)+.
 
 WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say <tt>Client.find_by_name_and_locked("Ryan")</tt>, the behavior is to pass +nil+ as the missing argument. This is *unintentional* and this behavior will be changed in Rails 3.2 to throw an +ArgumentError+.
 
-There's another set of dynamic finders that let you find or create/initialize objects if they aren't found. These work in a similar fashion to the other finders and can be used like +find_or_create_by_first_name(params[:first_name])+. Using this will first perform a find and then create if the find returns +nil+. The SQL looks like this for +Client.find_or_create_by_first_name("Ryan")+:
+h3. Find or build a new object
+
+It's common that you need to find a record or create it if it doesn't exist. You can do that with the +first_or_create+ and +first_or_create!+ methods.
+
+h4. +first_or_create+
+
+The +first_or_create+ method checks whether +first+ returns +nil+ or not. If it does return +nil+, then +create+ is called. This is very powerful when coupled with the +where+ method. Let's see an example.
+
+Suppose you want to find a client named 'Andy', and if there's none, create one and additionally set his +locked+ attribute to false. You can do so by running:
+
+<ruby>
+Client.where(:first_name => 'Andy').first_or_create(:locked => false)
+# => #<Client id: 1, first_name: "Andy", orders_count: 0, locked: false, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
+</ruby>
+
+The SQL generated by this method looks like this:
 
 <sql>
-SELECT * FROM clients WHERE (clients.first_name = 'Ryan') LIMIT 1
+SELECT * FROM clients WHERE (clients.first_name = 'Andy') LIMIT 1
 BEGIN
-INSERT INTO clients (first_name, updated_at, created_at, orders_count, locked)
-  VALUES('Ryan', '2008-09-28 15:39:12', '2008-09-28 15:39:12', 0, '0')
+INSERT INTO clients (created_at, first_name, locked, orders_count, updated_at) VALUES ('2011-08-30 05:22:57', 'Andy', 0, NULL, '2011-08-30 05:22:57')
 COMMIT
 </sql>
 
-+find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will act similarly to calling +new+ with the arguments you passed in. For example:
++first_or_create+ returns either the record that already exists or the new record. In our case, we didn't already have a client named Andy so the record is created and returned.
+
+The new record might not be saved to the database; that depends on whether validations passed or not (just like +create+).
+
+It's also worth noting that +first_or_create+ takes into account the arguments of the +where+ method. In the example above we didn't explicitly pass a +:first_name => 'Andy'+ argument to +first_or_create+. However, that was used when creating the new record because it was already passed before to the +where+ method.
+
+You can do the same with the +find_or_create_by+ method:
 
 <ruby>
-client = Client.find_or_initialize_by_first_name('Ryan')
+Client.find_or_create_by_first_name(:first_name => "Andy", :locked => false)
 </ruby>
 
-will either assign an existing client object with the name "Ryan" to the client local variable, or initialize a new object similar to calling +Client.new(:first_name => 'Ryan')+. From here, you can modify other fields in client by calling the attribute setters on it: +client.locked = true+ and when you want to write it to the database just call +save+ on it.
+This method still works, but it's encouraged to use +first_or_create+ because it's more explicit on which arguments are used to _find_ the record and which are used to _create_, resulting in less confusion overall.
+
+h4. +first_or_create!+
+
+You can also use +first_or_create!+ to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
+
+<ruby>
+validates :orders_count, :presence => true
+</ruby>
+
+to your +Client+ model. If you try to create a new +Client+ without passing an +orders_count+, the record will be invalid and an exception will be raised:
+
+<ruby>
+Client.where(:first_name => 'Andy').first_or_create!(:locked => false)
+# => ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
+</ruby>
+
+h4. +first_or_initialize+
+
+The +first_or_initialize+ method will work just like +first_or_create+ but it will not call +create+ but +new+. This means that a new model instance will be created in memory but won't be saved to the database. Continuing with the +first_or_create+ example, we now want the client named 'Nick':
+
+<ruby>
+nick = Client.where(:first_name => 'Nick').first_or_initialize(:locked => false)
+# => <Client id: nil, first_name: "Nick", orders_count: 0, locked: false, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
+
+nick.persisted?
+# => false
+
+nick.new_record?
+# => true
+</ruby>
+
+Because the object is not yet stored in the database, the SQL generated looks like this:
+
+<sql>
+SELECT * FROM clients WHERE (clients.first_name = 'Nick') LIMIT 1
+</sql>
+
+When you want to save it to the database, just call +save+:
+
+<ruby>
+nick.save
+# => true
+</ruby>
 
 h3. Finding by SQL
 
@@ -1054,6 +1144,30 @@ h3. +select_all+
 
 <ruby>
 Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
+</ruby>
+
+h3. +pluck+
+
+<tt>pluck</tt> can be used to query a single column from the underlying table of a model. It accepts a column name as argument and returns an array of values of the specified column with the corresponding data type.
+
+<ruby>
+Client.where(:active => true).pluck(:id)
+# SELECT id FROM clients WHERE active = 1
+
+Client.uniq.pluck(:role)
+# SELECT DISTINCT role FROM clients
+</ruby>
+
++pluck+ makes it possible to replace code like
+
+<ruby>
+Client.select(:id).map { |c| c.id }
+</ruby>
+
+with
+
+<ruby>
+Client.pluck(:id)
 </ruby>
 
 h3. Existence of Objects
@@ -1186,11 +1300,118 @@ Client.sum("orders_count")
 
 For options, please see the parent section, "Calculations":#calculations.
 
-h3. Changelog
+h3. Running EXPLAIN
 
-* June 26 2011: Added documentation for the +scoped+, +unscoped+ and +default+ methods. "Ryan Bigg":credits.html#radar
-* December 23 2010: Add documentation for the +scope+ method. "Ryan Bigg":credits.html#radar
-* April 7, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* February 3, 2010: Update to Rails 3 by "James Miller":credits.html#bensie
-* February 7, 2009: Second version by "Pratik":credits.html#lifo
-* December 29 2008: Initial version by "Ryan Bigg":credits.html#radar
+You can run EXPLAIN on the queries triggered by relations. For example,
+
+<ruby>
+User.where(:id => 1).joins(:posts).explain
+</ruby>
+
+may yield
+
+<plain>
+EXPLAIN for: SELECT `users`.* FROM `users` INNER JOIN `posts` ON `posts`.`user_id` = `users`.`id` WHERE `users`.`id` = 1
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
+| id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
+|  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
+|  1 | SIMPLE      | posts | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
+2 rows in set (0.00 sec)
+</plain>
+
+under MySQL.
+
+Active Record performs a pretty printing that emulates the one of the database
+shells. So, the same query running with the PostgreSQL adapter would yield instead
+
+<plain>
+EXPLAIN for: SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id" WHERE "users"."id" = 1
+                                  QUERY PLAN
+------------------------------------------------------------------------------
+ Nested Loop Left Join  (cost=0.00..37.24 rows=8 width=0)
+   Join Filter: (posts.user_id = users.id)
+   ->  Index Scan using users_pkey on users  (cost=0.00..8.27 rows=1 width=4)
+         Index Cond: (id = 1)
+   ->  Seq Scan on posts  (cost=0.00..28.88 rows=8 width=4)
+         Filter: (posts.user_id = 1)
+(6 rows)
+</plain>
+
+Eager loading may trigger more than one query under the hood, and some queries
+may need the results of previous ones. Because of that, +explain+ actually
+executes the query, and then asks for the query plans. For example,
+
+<ruby>
+User.where(:id => 1).includes(:posts).explain
+</ruby>
+
+yields
+
+<plain>
+EXPLAIN for: SELECT `users`.* FROM `users`  WHERE `users`.`id` = 1
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
+| id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra |
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
+|  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |       |
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
+1 row in set (0.00 sec)
+
+EXPLAIN for: SELECT `posts`.* FROM `posts`  WHERE `posts`.`user_id` IN (1)
+<plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
+| id | select_type | table | type | possible_keys | key  | key_len | ref  | rows | Extra       |
+<plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
+|  1 | SIMPLE      | posts | ALL  | NULL          | NULL | NULL    | NULL |    1 | Using where |
+<plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
+1 row in set (0.00 sec)
+</plain>
+
+under MySQL.
+
+h4. Automatic EXPLAIN
+
+Active Record is able to run EXPLAIN automatically on slow queries and log its
+output. This feature is controlled by the configuration parameter
+
+<ruby>
+config.active_record.auto_explain_threshold_in_seconds
+</ruby>
+
+If set to a number, any query exceeding those many seconds will have its EXPLAIN
+automatically triggered and logged. In the case of relations, the threshold is
+compared to the total time needed to fetch records. So, a relation is seen as a
+unit of work, no matter whether the implementation of eager loading involves
+several queries under the hood.
+
+A threshold of +nil+ disables automatic EXPLAINs.
+
+The default threshold in development mode is 0.5 seconds, and +nil+ in test and
+production modes.
+
+h5. Disabling Automatic EXPLAIN
+
+Automatic EXPLAIN can be selectively silenced with +ActiveRecord::Base.silence_auto_explain+:
+
+<ruby>
+ActiveRecord::Base.silence_auto_explain do
+  # no automatic EXPLAIN is triggered here
+end
+</ruby>
+
+That may be useful for queries you know are slow but fine, like a heavyweight
+report of an admin interface.
+
+As its name suggests, +silence_auto_explain+ only silences automatic EXPLAINs.
+Explicit calls to +ActiveRecord::Relation#explain+ run.
+
+h4. Interpreting EXPLAIN
+
+Interpretation of the output of EXPLAIN is beyond the scope of this guide. The
+following pointers may be helpful:
+
+* SQLite3: "EXPLAIN QUERY PLAN":http://www.sqlite.org/eqp.html
+
+* MySQL: "EXPLAIN Output Format":http://dev.mysql.com/doc/refman/5.6/en/explain-output.html
+
+* PostgreSQL: "Using EXPLAIN":http://www.postgresql.org/docs/current/static/using-explain.html

@@ -79,13 +79,28 @@ module ActionController
                 "expecting <?> but rendering with <?>",
                 options, rendered.keys.join(', '))
         assert_block(msg) do
-          if options.nil?
-            @templates.blank?
-          else
+          if options
             rendered.any? { |t,num| t.match(options) }
+          else
+            @templates.blank?
           end
         end
       when Hash
+        if expected_layout = options[:layout]
+          msg = build_message(message,
+                  "expecting layout <?> but action rendered <?>",
+                  expected_layout, @layouts.keys)
+
+          case expected_layout
+          when String
+            assert(@layouts.keys.include?(expected_layout), msg)
+          when Regexp
+            assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
+          when nil
+            assert(@layouts.empty?, msg)
+          end
+        end
+
         if expected_partial = options[:partial]
           if expected_locals = options[:locals]
             actual_locals = @locals[expected_partial.to_s.sub(/^_/,'')]
@@ -98,19 +113,6 @@ module ActionController
                     "expecting ? to be rendered ? time(s) but rendered ? time(s)",
                      expected_partial, expected_count, actual_count)
             assert(actual_count == expected_count.to_i, msg)
-          elsif options.key?(:layout)
-            msg = build_message(message,
-                    "expecting layout <?> but action rendered <?>",
-                    expected_layout, @layouts.keys)
-
-            case layout = options[:layout]
-            when String
-              assert(@layouts.include?(expected_layout), msg)
-            when Regexp
-              assert(@layouts.any? {|l| l =~ layout }, msg)
-            when nil
-              assert(@layouts.empty?, msg)
-            end
           else
             msg = build_message(message,
                     "expecting partial <?> but action rendered <?>",
@@ -180,7 +182,7 @@ module ActionController
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
       @symbolized_path_params = nil
       @method = @request_method = nil
-      @fullpath = @ip = @remote_ip = nil
+      @fullpath = @ip = @remote_ip = @protocol = nil
       @env['action_dispatch.request.query_parameters'] = {}
       @set_cookies ||= {}
       @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map{ |k,o| [k,o[:value]] }])
@@ -296,11 +298,11 @@ module ActionController
   #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
   #   assert flash.empty? # makes sure that there's nothing in the flash
   #
-  # For historic reasons, the assigns hash uses string-based keys. So assigns[:person] won't work, but assigns["person"] will. To
+  # For historic reasons, the assigns hash uses string-based keys. So <tt>assigns[:person]</tt> won't work, but <tt>assigns["person"]</tt> will. To
   # appease our yearning for symbols, though, an alternative accessor has been devised using a method call instead of index referencing.
-  # So assigns(:person) will work just like assigns["person"], but again, assigns[:person] will not work.
+  # So <tt>assigns(:person)</tt> will work just like <tt>assigns["person"]</tt>, but again, <tt>assigns[:person]</tt> will not work.
   #
-  # On top of the collections, you have the complete url that a given action redirected to available in redirect_to_url.
+  # On top of the collections, you have the complete url that a given action redirected to available in <tt>redirect_to_url</tt>.
   #
   # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
   # action call which can then be asserted against.
@@ -333,9 +335,21 @@ module ActionController
       module ClassMethods
 
         # Sets the controller class name. Useful if the name can't be inferred from test class.
-        # Expects +controller_class+ as a constant. Example: <tt>tests WidgetController</tt>.
+        # Normalizes +controller_class+ before using. Examples:
+        #
+        #   tests WidgetController
+        #   tests :widget
+        #   tests 'widget'
+        #
         def tests(controller_class)
-          self.controller_class = controller_class
+          case controller_class
+          when String, Symbol
+            self.controller_class = "#{controller_class.to_s.underscore}_controller".camelize.constantize
+          when Class
+            self.controller_class = controller_class
+          else
+            raise ArgumentError, "controller class must be a String, Symbol, or Class"
+          end
         end
 
         def controller_class=(new_class)
@@ -352,9 +366,7 @@ module ActionController
         end
 
         def determine_default_controller_class(name)
-          name.sub(/Test$/, '').constantize
-        rescue NameError
-          nil
+          name.sub(/Test$/, '').safe_constantize
         end
 
         def prepare_controller_class(new_class)
@@ -401,9 +413,7 @@ module ActionController
       def paramify_values(hash_or_array_or_value)
         case hash_or_array_or_value
         when Hash
-          hash_or_array_or_value.each do |key, value|
-            hash_or_array_or_value[key] = paramify_values(value)
-          end
+          Hash[hash_or_array_or_value.map{|key, value| [key, paramify_values(value)] }]
         when Array
           hash_or_array_or_value.map {|i| paramify_values(i)}
         when Rack::Test::UploadedFile
@@ -416,7 +426,7 @@ module ActionController
       def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
-        paramify_values(parameters)
+        parameters = paramify_values(parameters)
 
         # Sanity check for required instance variables so we can give an
         # understandable error message.
@@ -450,7 +460,7 @@ module ActionController
         @controller.params.merge!(parameters)
         build_request_uri(action, parameters)
         @controller.class.class_eval { include Testing }
-        @controller.recycle! 
+        @controller.recycle!
         @controller.process_with_new_base_test(@request, @response)
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
         @request.session.delete('flash') if @request.session['flash'].blank?

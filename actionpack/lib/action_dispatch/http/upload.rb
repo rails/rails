@@ -11,30 +11,19 @@ module ActionDispatch
         raise(ArgumentError, ':tempfile is required') unless @tempfile
       end
 
-      def open
-        @tempfile.open
-      end
-
-      def path
-        @tempfile.path
-      end
-
       def read(*args)
         @tempfile.read(*args)
       end
 
-      def rewind
-        @tempfile.rewind
-      end
-
-      def size
-        @tempfile.size
+      # Delegate these methods to the tempfile.
+      [:open, :path, :rewind, :size].each do |method|
+        class_eval "def #{method}; @tempfile.#{method}; end"
       end
       
       private
       def encode_filename(filename)
-        # Encode the filename in the utf8 encoding, unless it is nil or we're in 1.8
-        if "ruby".encoding_aware? && filename
+        # Encode the filename in the utf8 encoding, unless it is nil
+        if filename
           filename.force_encoding("UTF-8").encode!
         else
           filename

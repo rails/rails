@@ -34,8 +34,8 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_to_time
-    assert_equal Time.utc(2005, 2, 21, 10, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0, 0).to_time
-    assert_equal Time.utc_time(2039, 2, 21, 10, 11, 12), DateTime.new(2039, 2, 21, 10, 11, 12, 0, 0).to_time
+    assert_equal Time.utc(2005, 2, 21, 10, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time
+    assert_equal Time.utc_time(2039, 2, 21, 10, 11, 12), DateTime.new(2039, 2, 21, 10, 11, 12, 0).to_time
     # DateTimes with offsets other than 0 are returned unaltered
     assert_equal DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)), DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).to_time
     # Fractional seconds are preserved
@@ -52,6 +52,24 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal 60,DateTime.civil(2005,1,1,0,1,0).seconds_since_midnight
     assert_equal 3660,DateTime.civil(2005,1,1,1,1,0).seconds_since_midnight
     assert_equal 86399,DateTime.civil(2005,1,1,23,59,59).seconds_since_midnight
+  end
+
+  def test_days_to_week_start
+    assert_equal 0, Time.local(2011,11,01,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 1, Time.local(2011,11,02,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 2, Time.local(2011,11,03,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 3, Time.local(2011,11,04,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 4, Time.local(2011,11,05,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 5, Time.local(2011,11,06,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 6, Time.local(2011,11,07,0,0,0).days_to_week_start(:tuesday)
+
+    assert_equal 3, Time.local(2011,11,03,0,0,0).days_to_week_start(:monday)
+    assert_equal 3, Time.local(2011,11,04,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 3, Time.local(2011,11,05,0,0,0).days_to_week_start(:wednesday)
+    assert_equal 3, Time.local(2011,11,06,0,0,0).days_to_week_start(:thursday)
+    assert_equal 3, Time.local(2011,11,07,0,0,0).days_to_week_start(:friday)
+    assert_equal 3, Time.local(2011,11,8,0,0,0).days_to_week_start(:saturday)
+    assert_equal 3, Time.local(2011,11,9,0,0,0).days_to_week_start(:sunday)
   end
 
   def test_beginning_of_week
@@ -99,7 +117,7 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2005,5,1,10), DateTime.civil(2005,6,5,10,0,0).weeks_ago(5)
     assert_equal DateTime.civil(2005,4,24,10), DateTime.civil(2005,6,5,10,0,0).weeks_ago(6)
     assert_equal DateTime.civil(2005,2,27,10),  DateTime.civil(2005,6,5,10,0,0).weeks_ago(14)
-    assert_equal DateTime.civil(2004,12,25,10),  DateTime.civil(2005,1,1,10,0,0).weeks_ago(1)    
+    assert_equal DateTime.civil(2004,12,25,10),  DateTime.civil(2005,1,1,10,0,0).weeks_ago(1)
   end
 
   def test_months_ago

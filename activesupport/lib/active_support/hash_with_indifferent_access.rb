@@ -16,6 +16,10 @@ module ActiveSupport
       dup
     end
 
+    def nested_under_indifferent_access
+      self
+    end
+
     def initialize(constructor = {})
       if constructor.is_a?(Hash)
         super()
@@ -112,7 +116,7 @@ module ActiveSupport
       end
     end
 
-    # Merges the instantized and the specified hashes together, giving precedence to the values from the second hash
+    # Merges the instantized and the specified hashes together, giving precedence to the values from the second hash.
     # Does not overwrite the existing hash.
     def merge(hash)
       self.dup.update(hash)

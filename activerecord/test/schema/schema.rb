@@ -37,6 +37,7 @@ ActiveRecord::Schema.define do
 
   create_table :admin_users, :force => true do |t|
     t.string :name
+    t.text :settings
     t.references :account
   end
 
@@ -47,6 +48,7 @@ ActiveRecord::Schema.define do
   create_table :audit_logs, :force => true do |t|
     t.column :message, :string, :null=>false
     t.column :developer_id, :integer, :null=>false
+    t.integer :unvalidated_developer_id
   end
 
   create_table :authors, :force => true do |t|
@@ -156,6 +158,7 @@ ActiveRecord::Schema.define do
     t.string  :type
     t.integer :taggings_count, :default => 0
     t.integer :children_count, :default => 0
+    t.integer :parent_id
   end
 
   create_table :companies, :force => true do |t|
@@ -461,6 +464,7 @@ ActiveRecord::Schema.define do
   create_table :pirates, :force => true do |t|
     t.column :catchphrase, :string
     t.column :parrot_id, :integer
+    t.integer :non_validated_parrot_id
     t.column :created_on, :datetime
     t.column :updated_on, :datetime
   end
@@ -529,6 +533,7 @@ ActiveRecord::Schema.define do
   create_table :ships, :force => true do |t|
     t.string :name
     t.integer :pirate_id
+    t.integer :update_only_pirate_id
     t.datetime :created_at
     t.datetime :created_on
     t.datetime :updated_at
@@ -591,6 +596,12 @@ ActiveRecord::Schema.define do
     t.datetime :ending
   end
 
+  create_table :teapots, :force => true do |t|
+    t.string :name
+    t.string :type
+    t.timestamps
+  end
+
   create_table :topics, :force => true do |t|
     t.string   :title
     t.string   :author_name
@@ -602,8 +613,10 @@ ActiveRecord::Schema.define do
     # Oracle SELECT WHERE clause which causes many unit test failures
     if current_adapter?(:OracleAdapter)
       t.string   :content, :limit => 4000
+      t.string   :important, :limit => 4000
     else
       t.text     :content
+      t.text     :important
     end
     t.boolean  :approved, :default => true
     t.integer  :replies_count, :default => 0
@@ -663,7 +676,9 @@ ActiveRecord::Schema.define do
     t.string  :description
     t.integer :man_id
     t.integer :polymorphic_man_id
-    t.string :polymorphic_man_type
+    t.string  :polymorphic_man_type
+    t.integer :horrible_polymorphic_man_id
+    t.string  :horrible_polymorphic_man_type
   end
 
   create_table :interests, :force => true do |t|

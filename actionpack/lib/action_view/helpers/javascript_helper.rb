@@ -1,4 +1,5 @@
 require 'action_view/helpers/tag_helper'
+require 'active_support/core_ext/string/encoding'
 
 module ActionView
   module Helpers
@@ -10,15 +11,19 @@ module ActionView
         "\n"    => '\n',
         "\r"    => '\n',
         '"'     => '\\"',
-        "'"     => "\\'" }
+        "'"     => "\\'"
+      }
 
-      # Escape carrier returns and single and double quotes for JavaScript segments.
+      JS_ESCAPE_MAP["\342\200\250".force_encoding('UTF-8').encode!] = '&#x2028;'
+
+      # Escapes carriage returns and single and double quotes for JavaScript segments.
+      #
       # Also available through the alias j(). This is particularly helpful in JavaScript responses, like:
       #
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
-          result = javascript.gsub(/(\\|<\/|\r\n|[\n\r"'])/) {|match| JS_ESCAPE_MAP[match] }
+          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
           javascript.html_safe? ? result.html_safe : result
         else
           ''
@@ -85,7 +90,7 @@ module ActionView
       # If +html_options+ has an <tt>:onclick</tt>, that one is put before +function+. Once all
       # the JavaScript is set, the helper appends "; return false;".
       #
-      # The +href+ attribute of the tag is set to "#" unles +html_options+ has one.
+      # The +href+ attribute of the tag is set to "#" unless +html_options+ has one.
       #
       #   link_to_function "Greeting", "alert('Hello world!')", :class => "nav_link"
       #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>

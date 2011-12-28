@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/module/delegation'
 
 module ActiveRecord
   # = Active Record Relation
@@ -7,13 +7,9 @@ module ActiveRecord
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order]
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order, :uniq]
 
-    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
-
-    # These are explicitly delegated to improve performance (avoids method_missing)
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key, :connection, :column_hash,:to => :klass
+    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions, :default_scoped
@@ -68,7 +64,7 @@ module ActiveRecord
       end
 
       conn.insert(
-        im.to_sql,
+        im,
         'SQL',
         primary_key,
         primary_key_value,
@@ -94,24 +90,87 @@ module ActiveRecord
       scoping { @klass.create!(*args, &block) }
     end
 
-    def respond_to?(method, include_private = false)
-      arel.respond_to?(method, include_private)     ||
-        Array.method_defined?(method)               ||
-        @klass.respond_to?(method, include_private) ||
-        super
+    # Tries to load the first record; if it fails, then <tt>create</tt> is called with the same arguments as this method.
+    #
+    # Expects arguments in the same format as <tt>Base.create</tt>.
+    #
+    # ==== Examples
+    #   # Find the first user named Penélope or create a new one.
+    #   User.where(:first_name => 'Penélope').first_or_create
+    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
+    #
+    #   # Find the first user named Penélope or create a new one.
+    #   # We already have one so the existing record will be returned.
+    #   User.where(:first_name => 'Penélope').first_or_create
+    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
+    #
+    #   # Find the first user named Scarlett or create a new one with a particular last name.
+    #   User.where(:first_name => 'Scarlett').first_or_create(:last_name => 'Johansson')
+    #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
+    #
+    #   # Find the first user named Scarlett or create a new one with a different last name.
+    #   # We already have one so the existing record will be returned.
+    #   User.where(:first_name => 'Scarlett').first_or_create do |user|
+    #     user.last_name = "O'Hara"
+    #   end
+    #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
+    def first_or_create(attributes = nil, options = {}, &block)
+      first || create(attributes, options, &block)
+    end
+
+    # Like <tt>first_or_create</tt> but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
+    #
+    # Expects arguments in the same format as <tt>Base.create!</tt>.
+    def first_or_create!(attributes = nil, options = {}, &block)
+      first || create!(attributes, options, &block)
+    end
+
+    # Like <tt>first_or_create</tt> but calls <tt>new</tt> instead of <tt>create</tt>.
+    #
+    # Expects arguments in the same format as <tt>Base.new</tt>.
+    def first_or_initialize(attributes = nil, options = {}, &block)
+      first || new(attributes, options, &block)
+    end
+
+    # Runs EXPLAIN on the query or queries triggered by this relation and
+    # returns the result as a string. The string is formatted imitating the
+    # ones printed by the database shell.
+    #
+    # Note that this method actually runs the queries, since the results of some
+    # are needed by the next ones when eager loading is going on.
+    #
+    # Please see further details in the
+    # {Active Record Query Interface guide}[http://edgeguides.rubyonrails.org/active_record_querying.html#running-explain].
+    def explain
+      _, queries = collecting_queries_for_explain { exec_queries }
+      exec_explain(queries)
     end
 
     def to_a
+      # We monitor here the entire execution rather than individual SELECTs
+      # because from the point of view of the user fetching the records of a
+      # relation is a single unit of work. You want to know if this call takes
+      # too long, not if the individual queries take too long.
+      #
+      # It could be the case that none of the queries involved surpass the
+      # threshold, and at the same time the sum of them all does. The user
+      # should get a query plan logged in that case.
+      logging_query_plan do
+        exec_queries
+      end
+    end
+
+    def exec_queries
       return @records if loaded?
 
       default_scoped = with_default_scope
 
       if default_scoped.equal?(self)
         @records = if @readonly_value.nil? && !@klass.locking_enabled?
-          eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+          eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
         else
           IdentityMap.without do
-            eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+            eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
           end
         end
 
@@ -132,6 +191,7 @@ module ActiveRecord
       @loaded = true
       @records
     end
+    private :exec_queries
 
     def as_json(options = nil) #:nodoc:
       to_a.as_json(options)
@@ -177,7 +237,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      @klass.send(:with_scope, self, :overwrite) { yield }
+      @klass.with_scope(self, :overwrite) { yield }
     end
 
     # Updates all records with details given if they match a set of conditions supplied, limits and order can
@@ -216,15 +276,21 @@ module ActiveRecord
       if conditions || options.present?
         where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
       else
-        stmt = arel.compile_update(Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates)))
+        stmt = Arel::UpdateManager.new(arel.engine)
 
-        if limit = arel.limit
-          stmt.take limit
+        stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
+        stmt.table(table)
+        stmt.key = table[primary_key]
+
+        if joins_values.any?
+          @klass.connection.join_to_update(stmt, arel)
+        else
+          stmt.take(arel.limit)
+          stmt.order(*arel.orders)
+          stmt.wheres = arel.constraints
         end
 
-        stmt.order(*arel.orders)
-        stmt.key = table[primary_key]
-        @klass.connection.update stmt.to_sql, 'SQL', bind_values
+        @klass.connection.update stmt, 'SQL', bind_values
       end
     end
 
@@ -341,8 +407,7 @@ module ActiveRecord
         where(conditions).delete_all
       else
         statement = arel.compile_delete
-        affected = @klass.connection.delete(
-          statement.to_sql, 'SQL', bind_values)
+        affected = @klass.connection.delete(statement, 'SQL', bind_values)
 
         reset
         affected
@@ -388,7 +453,7 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= arel.to_sql
+      @to_sql ||= klass.connection.to_sql(arel)
     end
 
     def where_values_hash
@@ -440,20 +505,6 @@ module ActiveRecord
       end
     end
 
-    protected
-
-    def method_missing(method, *args, &block)
-      if Array.method_defined?(method)
-        to_a.send(method, *args, &block)
-      elsif @klass.respond_to?(method)
-        scoping { @klass.send(method, *args, &block) }
-      elsif arel.respond_to?(method)
-        arel.send(method, *args, &block)
-      else
-        super
-      end
-    end
-
     private
 
     def references_eager_loaded_tables?
@@ -479,6 +530,5 @@ module ActiveRecord
       # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
       string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map{ |s| s.downcase }.uniq - ['raw_sql_']
     end
-
   end
 end

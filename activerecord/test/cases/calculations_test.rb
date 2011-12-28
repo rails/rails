@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/company'
+require "models/contract"
 require 'models/topic'
 require 'models/edge'
 require 'models/club'
@@ -445,5 +446,36 @@ class CalculationsTest < ActiveRecord::TestCase
     # Count the number of distinct authors for approved Topics
     distinct_authors_for_approved_count = Topic.group(:approved).count(:author_name, :distinct => true)[true]
     assert_equal distinct_authors_for_approved_count, 2
+  end
+
+  def test_pluck
+    assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
+  end
+
+  def test_pluck_type_cast
+    topic = topics(:first)
+    relation = Topic.where(:id => topic.id)
+    assert_equal [ topic.approved ], relation.pluck(:approved)
+    assert_equal [ topic.last_read ], relation.pluck(:last_read)
+    assert_equal [ topic.written_on ], relation.pluck(:written_on)
+  end
+
+  def test_pluck_and_uniq
+    assert_equal [50, 53, 55, 60], Account.order(:credit_limit).uniq.pluck(:credit_limit)
+  end
+
+  def test_pluck_in_relation
+    company = Company.first
+    contract = company.contracts.create!
+    assert_equal [contract.id], company.contracts.pluck(:id)
+  end
+
+  def test_pluck_with_serialization
+    t = Topic.create!(:content => { :foo => :bar })
+    assert_equal [{:foo => :bar}], Topic.where(:id => t.id).pluck(:content)
+  end
+
+  def test_pluck_with_qualified_column_name
+    assert_equal [1,2,3,4], Topic.order(:id).pluck("topics.id")
   end
 end

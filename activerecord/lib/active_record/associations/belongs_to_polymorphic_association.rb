@@ -2,6 +2,11 @@ module ActiveRecord
   # = Active Record Belongs To Polymorphic Association
   module Associations
     class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
+      def klass
+        type = owner[reflection.foreign_type]
+        type.presence && type.constantize
+      end
+
       private
 
         def replace_keys(record)
@@ -15,11 +20,6 @@ module ActiveRecord
 
         def inverse_reflection_for(record)
           reflection.polymorphic_inverse_of(record.class)
-        end
-
-        def klass
-          type = owner[reflection.foreign_type]
-          type.presence && type.constantize
         end
 
         def raise_on_type_mismatch(record)

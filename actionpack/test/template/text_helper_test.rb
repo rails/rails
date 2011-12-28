@@ -1,10 +1,8 @@
 # encoding: utf-8
 require 'abstract_unit'
-require 'testing_sandbox'
 
 class TextHelperTest < ActionView::TestCase
   tests ActionView::Helpers::TextHelper
-  include TestingSandbox
 
   def setup
     super
@@ -82,25 +80,13 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 15, :separator => ' ')
   end
 
-  if RUBY_VERSION < '1.9.0'
-    def test_truncate_multibyte
-      with_kcode 'none' do
-        assert_equal "\354\225\210\353\205\225\355...", truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", :length => 10)
-      end
-      with_kcode 'u' do
-        assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...",
-          truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244", :length => 10)
-      end
-    end
-  else
-    def test_truncate_multibyte
-      # .mb_chars always returns a UTF-8 String.
-      # assert_equal "\354\225\210\353\205\225\355...",
-      #   truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", :length => 10)
+  def test_truncate_multibyte
+    # .mb_chars always returns a UTF-8 String.
+    # assert_equal "\354\225\210\353\205\225\355...",
+    #   truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", :length => 10)
 
-      assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
-        truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8'), :length => 10)
-    end
+    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
+      truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8'), :length => 10)
   end
 
   def test_highlight_should_be_html_safe
@@ -194,6 +180,10 @@ class TextHelperTest < ActionView::TestCase
       "<p>This is a <strong class=\"highlight\">beautiful</strong> <a href=\"http://example.com/beautiful#top?what=beautiful%20morning&amp;when=now+then\">morning</a>, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
       highlight("<p>This is a beautiful <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&when=now+then\">morning</a>, but also a beautiful day</p>", "beautiful")
     )
+    assert_equal(
+      "<div>abc <b>div</b></div>",
+      highlight("<div>abc div</div>", "div", :highlighter => '<b>\1</b>')
+    )
   end
 
   def test_excerpt
@@ -239,21 +229,10 @@ class TextHelperTest < ActionView::TestCase
     )
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_excerpt_with_utf8
-      with_kcode('u') do
-        assert_equal("...\357\254\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', 8))
-      end
-      with_kcode('none') do
-        assert_equal("...\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', 8))
-      end
-    end
-  else
-    def test_excerpt_with_utf8
-      assert_equal("...\357\254\203ciency could not be...".force_encoding('UTF-8'), excerpt("That's why e\357\254\203ciency could not be helped".force_encoding('UTF-8'), 'could', 8))
-      # .mb_chars always returns UTF-8, even in 1.9. This is not great, but it's how it works. Let's work this out.
-      # assert_equal("...\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped".force_encoding("BINARY"), 'could', 8))
-    end
+  def test_excerpt_with_utf8
+    assert_equal("...\357\254\203ciency could not be...".force_encoding('UTF-8'), excerpt("That's why e\357\254\203ciency could not be helped".force_encoding('UTF-8'), 'could', 8))
+    # .mb_chars always returns UTF-8, even in 1.9. This is not great, but it's how it works. Let's work this out.
+    # assert_equal("...\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped".force_encoding("BINARY"), 'could', 8))
   end
 
   def test_word_wrap

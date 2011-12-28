@@ -33,11 +33,30 @@ module RailsGuides
       body.gsub!('<plus>', '+')
     end
 
+    def brush_for(code_type)
+      case code_type
+        when 'ruby', 'sql', 'plain'
+          code_type
+        when 'erb'
+          'ruby; html-script: true'
+        when 'html'
+          'xml' # html is understood, but there are .xml rules in the CSS
+        else
+          'plain'
+      end
+    end
+
     def code(body)
       body.gsub!(%r{<(yaml|shell|ruby|erb|html|sql|plain)>(.*?)</\1>}m) do |m|
-        es = ERB::Util.h($2)
-        css_class = $1.in?(['erb', 'shell']) ? 'html' : $1
-        %{<notextile><div class="code_container"><code class="#{css_class}">#{es}</code></div></notextile>}
+        <<HTML
+<notextile>
+<div class="code_container">
+<pre class="brush: #{brush_for($1)}; gutter: false; toolbar: false">
+#{ERB::Util.h($2).strip}
+</pre>
+</div>
+</notextile>
+HTML
       end
     end
   end

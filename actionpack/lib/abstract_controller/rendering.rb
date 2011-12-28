@@ -35,7 +35,7 @@ module AbstractController
     include AbstractController::ViewPaths
 
     included do
-      config_accessor :protected_instance_variables, :instance_reader => false
+      class_attribute :protected_instance_variables
       self.protected_instance_variables = []
     end
 
@@ -59,19 +59,8 @@ module AbstractController
 
     attr_internal_writer :view_context_class
 
-    # Explicitly define protected_instance_variables so it can be
-    # inherited and overwritten by other modules if needed.
-    def protected_instance_variables
-      config.protected_instance_variables
-    end
-
     def view_context_class
-      @_view_context_class || self.class.view_context_class
-    end
-
-    def initialize(*)
-      @_view_context_class = nil
-      super
+      @_view_context_class ||= self.class.view_context_class
     end
 
     # An instance of a view class. The default view class is ActionView::Base
@@ -120,8 +109,6 @@ module AbstractController
       view_renderer.render(view_context, options)
     end
 
-    private
-
     DEFAULT_PROTECTED_INSTANCE_VARIABLES = %w(
       @_action_name @_response_body @_formats @_prefixes @_config
       @_view_context_class @_view_renderer @_lookup_context
@@ -138,6 +125,8 @@ module AbstractController
       variables.each { |name| hash[name.to_s[1, name.length]] = instance_variable_get(name) }
       hash
     end
+
+    private
 
     # Normalize args and options.
     # :api: private

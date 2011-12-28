@@ -2,21 +2,35 @@ require 'date'
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
-
-# TODO: Autoload these files
-require 'active_record/connection_adapters/column'
-require 'active_record/connection_adapters/abstract/schema_definitions'
-require 'active_record/connection_adapters/abstract/schema_statements'
-require 'active_record/connection_adapters/abstract/database_statements'
-require 'active_record/connection_adapters/abstract/quoting'
-require 'active_record/connection_adapters/abstract/connection_pool'
-require 'active_record/connection_adapters/abstract/connection_specification'
-require 'active_record/connection_adapters/abstract/query_cache'
-require 'active_record/connection_adapters/abstract/database_limits'
-require 'active_record/result'
+require 'active_support/deprecation'
+require 'active_record/connection_adapters/schema_cache'
+require 'monitor'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
+    extend ActiveSupport::Autoload
+
+    autoload :Column
+    autoload :ConnectionSpecification
+
+    autoload_under 'abstract' do
+      autoload :IndexDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
+      autoload :ColumnDefinition, 'active_record/connection_adapters/abstract/schema_definitions'
+      autoload :TableDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
+      autoload :Table,            'active_record/connection_adapters/abstract/schema_definitions'
+
+      autoload :SchemaStatements
+      autoload :DatabaseStatements
+      autoload :DatabaseLimits
+      autoload :Quoting
+
+      autoload :ConnectionPool
+      autoload :ConnectionHandler,       'active_record/connection_adapters/abstract/connection_pool'
+      autoload :ConnectionManagement,    'active_record/connection_adapters/abstract/connection_pool'
+
+      autoload :QueryCache
+    end
+
     # Active Record supports multiple database systems. AbstractAdapter and
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
@@ -35,16 +49,42 @@ module ActiveRecord
       include DatabaseLimits
       include QueryCache
       include ActiveSupport::Callbacks
+      include MonitorMixin
 
       define_callbacks :checkout, :checkin
 
-      def initialize(connection, logger = nil) #:nodoc:
-        @active = nil
-        @connection, @logger = connection, logger
+      attr_accessor :visitor, :pool
+      attr_reader :schema_cache, :last_use, :in_use
+      alias :in_use? :in_use
+
+      def initialize(connection, logger = nil, pool = nil) #:nodoc:
+        super()
+
+        @active              = nil
+        @connection          = connection
+        @in_use              = false
+        @instrumenter        = ActiveSupport::Notifications.instrumenter
+        @last_use            = false
+        @logger              = logger
+        @open_transactions   = 0
+        @pool                = pool
+        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
         @query_cache_enabled = false
-        @query_cache = Hash.new { |h,sql| h[sql] = {} }
-        @open_transactions = 0
-        @instrumenter = ActiveSupport::Notifications.instrumenter
+        @schema_cache        = SchemaCache.new self
+        @visitor             = nil
+      end
+
+      def lease
+        synchronize do
+          unless in_use
+            @in_use   = true
+            @last_use = Time.now
+          end
+        end
+      end
+
+      def expire
+        @in_use = false
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
@@ -94,6 +134,17 @@ module ActiveRecord
       # is called before each insert to set the record's primary key.
       # This is false for all adapters but Firebird.
       def prefetch_primary_key?(table_name = nil)
+        false
+      end
+
+      # Does this adapter support index sort order?
+      def supports_index_sort_order?
+        false
+      end
+
+      # Does this adapter support explain? As of this writing sqlite3,
+      # mysql2, and postgresql are the only ones that do.
+      def supports_explain?
         false
       end
 
@@ -205,8 +256,17 @@ module ActiveRecord
         node
       end
 
+      def case_insensitive_comparison(table, attribute, column, value)
+        table[attribute].lower.eq(table.lower(value))
+      end
+
       def current_savepoint_name
         "active_record_#{open_transactions}"
+      end
+
+      # Check the connection back in to the connection pool
+      def close
+        pool.checkin self
       end
 
       protected

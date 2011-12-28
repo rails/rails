@@ -26,11 +26,15 @@ module ActiveRecord
             join_table[reflection.association_foreign_key] => record.id
           )
 
-          owner.connection.insert stmt.to_sql
+          owner.connection.insert stmt
         end
 
         record
       end
+
+      # ActiveRecord::Relation#delete_all needs to support joins before we can use a
+      # SQL-only implementation.
+      alias delete_all_on_destroy delete_all
 
       private
 
@@ -46,7 +50,7 @@ module ActiveRecord
             stmt = relation.where(relation[reflection.foreign_key].eq(owner.id).
               and(relation[reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
             ).compile_delete
-            owner.connection.delete stmt.to_sql
+            owner.connection.delete stmt
           end
         end
 

@@ -106,7 +106,6 @@ routes.rb                   # NO
 RAILS_ROOT/config/routes.rb # NO
 </plain>
 
-
 h3. Fonts
 
 h4. Fixed-width Font
@@ -147,7 +146,7 @@ h3. Description Lists
 In lists of options, parameters, etc. use a hyphen between the item and its description (reads better than a colon because normally options are symbols):
 
 <ruby>
-# * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
+# * <tt>:allow_nil</tt> - Skip validation if attribute is <tt>nil</tt>.
 </ruby>
 
 The description starts in upper case and ends with a full stop—it's standard English.
@@ -184,8 +183,3 @@ self.class_eval %{
   end
 }
 </ruby>
-
-h3. Changelog
-
-* July 17, 2010: ported from the docrails wiki and revised by "Xavier Noria":credits.html#fxn
-

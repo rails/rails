@@ -8,6 +8,8 @@ class Topic < ActiveRecord::Base
   scope :approved, :conditions => {:approved => true}
   scope :rejected, :conditions => {:approved => false}
 
+  scope :scope_with_lambda, lambda { scoped }
+
   scope :by_lifo, :conditions => {:author_name => 'lifo'}
 
   scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
@@ -78,11 +80,12 @@ class Topic < ActiveRecord::Base
 
   after_initialize :set_email_address
 
+  def approved=(val)
+    @custom_approved = val
+    write_attribute(:approved, val)
+  end
+
   protected
-    def approved=(val)
-      @custom_approved = val
-      write_attribute(:approved, val)
-    end
 
     def default_written_on
       self.written_on = Time.now unless attribute_present?("written_on")
@@ -103,6 +106,10 @@ class Topic < ActiveRecord::Base
     def before_destroy_for_transaction; end
     def after_save_for_transaction; end
     def after_create_for_transaction; end
+end
+
+class ImportantTopic < Topic
+  serialize :important, Hash
 end
 
 module Web

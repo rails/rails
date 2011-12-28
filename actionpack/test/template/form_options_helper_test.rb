@@ -587,6 +587,42 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_empty
+    @post = Post.new
+    @post.category = ""
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n</select>",
+      select("post", "category", [], :prompt => true, :include_blank => true)
+    )
+  end
+
+  def test_select_with_nil
+    @post = Post.new
+    @post.category = "othervalue"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\"></option>\n<option value=\"othervalue\" selected=\"selected\">othervalue</option></select>",
+      select("post", "category", [nil, "othervalue"])
+    )
+  end
+
+  def test_select_with_fixnum
+    @post = Post.new
+    @post.category = ""
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"1\">1</option></select>",
+      select("post", "category", [1], :prompt => true, :include_blank => true)
+    )
+  end
+
+  def test_list_of_lists
+    @post = Post.new
+    @post.category = ""
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"number\">Number</option>\n<option value=\"text\">Text</option>\n<option value=\"boolean\">Yes/No</option></select>",
+      select("post", "category", [["Number", "number"], ["Text", "text"], ["Yes/No", "boolean"]], :prompt => true, :include_blank => true)
+    )
+  end
+
   def test_select_with_selected_value
     @post = Post.new
     @post.category = "<mus>"

@@ -341,6 +341,14 @@ h6 {
 	margin-top: 0.25em;
 }
 
+#mainCol dd.kindle, #subCol dd.kindle {
+	background: #d5e9f6 url(../images/tab_info.gif) no-repeat left top;
+	border: none;
+	padding: 1.25em 1em 1.25em 48px;
+	margin-left: 0;
+	margin-top: 0.25em;
+}
+
 #mainCol div.warning, #subCol dd.warning {
 	background: #f9d9d8 url(../images/tab_red.gif) no-repeat left top;
 	border: none;

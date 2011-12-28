@@ -112,12 +112,13 @@ module ActiveRecord
   #   a column but keeps the type and content.
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
-  # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named
-  #   +column_name+ from the table called +table_name+.
+  # * <tt>remove_column(table_name, column_names)</tt>: Removes the column listed in
+  #   +column_names+ from the table called +table_name+.
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
-  #   <tt>:name</tt> and <tt>:unique</tt> (e.g.
-  #   <tt>{ :name => "users_name_index", :unique => true }</tt>).
+  #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
+  #   <tt>{ :name => "users_name_index", :unique => true }</tt>) and <tt>:order</tt>
+  #   (e.g. { :order => {:name => :desc} }</tt>).
   # * <tt>remove_index(table_name, :column => column_name)</tt>: Removes the index
   #   specified by +column_name+.
   # * <tt>remove_index(table_name, :name => index_name)</tt>: Removes the index
@@ -301,7 +302,7 @@ module ActiveRecord
   #
   #   class TenderloveMigration < ActiveRecord::Migration
   #     def change
-  #       create_table(:horses) do
+  #       create_table(:horses) do |t|
   #         t.column :content, :text
   #         t.column :remind_at, :datetime
   #       end
@@ -442,6 +443,7 @@ module ActiveRecord
       say_with_time "#{method}(#{arg_list})" do
         unless arguments.empty? || method == :execute
           arguments[0] = Migrator.proper_table_name(arguments.first)
+          arguments[1] = Migrator.proper_table_name(arguments.second) if method == :rename_table
         end
         return super unless connection.respond_to?(method)
         connection.send(method, *arguments, &block)
@@ -455,26 +457,28 @@ module ActiveRecord
 
       destination_migrations = ActiveRecord::Migrator.migrations(destination)
       last = destination_migrations.last
-      sources.each do |name, path|
+      sources.each do |scope, path|
         source_migrations = ActiveRecord::Migrator.migrations(path)
 
         source_migrations.each do |migration|
           source = File.read(migration.filename)
-          source = "# This migration comes from #{name} (originally #{migration.version})\n#{source}"
+          source = "# This migration comes from #{scope} (originally #{migration.version})\n#{source}"
 
           if duplicate = destination_migrations.detect { |m| m.name == migration.name }
-            options[:on_skip].call(name, migration) if File.read(duplicate.filename) != source && options[:on_skip]
+            if options[:on_skip] && duplicate.scope != scope.to_s
+              options[:on_skip].call(scope, migration)
+            end
             next
           end
 
           migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
-          new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
+          new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{scope}.rb")
           old_path, migration.filename = migration.filename, new_path
           last = migration
 
-          FileUtils.cp(old_path, migration.filename)
+          File.open(migration.filename, "w") { |f| f.write source }
           copied << migration
-          options[:on_copy].call(name, migration, old_path) if options[:on_copy]
+          options[:on_copy].call(scope, migration, old_path) if options[:on_copy]
           destination_migrations << migration
         end
       end
@@ -493,9 +497,9 @@ module ActiveRecord
 
   # MigrationProxy is used to defer loading of the actual migration classes
   # until they are needed
-  class MigrationProxy < Struct.new(:name, :version, :filename)
+  class MigrationProxy < Struct.new(:name, :version, :filename, :scope)
 
-    def initialize(name, version, filename)
+    def initialize(name, version, filename, scope)
       super
       @migration = nil
     end
@@ -524,16 +528,16 @@ module ActiveRecord
       attr_writer :migrations_paths
       alias :migrations_path= :migrations_paths=
 
-      def migrate(migrations_paths, target_version = nil)
+      def migrate(migrations_paths, target_version = nil, &block)
         case
           when target_version.nil?
-            up(migrations_paths, target_version)
+            up(migrations_paths, target_version, &block)
           when current_version == 0 && target_version == 0
             []
           when current_version > target_version
-            down(migrations_paths, target_version)
+            down(migrations_paths, target_version, &block)
           else
-            up(migrations_paths, target_version)
+            up(migrations_paths, target_version, &block)
         end
       end
 
@@ -545,12 +549,12 @@ module ActiveRecord
         move(:up, migrations_paths, steps)
       end
 
-      def up(migrations_paths, target_version = nil)
-        self.new(:up, migrations_paths, target_version).migrate
+      def up(migrations_paths, target_version = nil, &block)
+        self.new(:up, migrations_paths, target_version).migrate(&block)
       end
 
-      def down(migrations_paths, target_version = nil)
-        self.new(:down, migrations_paths, target_version).migrate
+      def down(migrations_paths, target_version = nil, &block)
+        self.new(:down, migrations_paths, target_version).migrate(&block)
       end
 
       def run(direction, migrations_paths, target_version)
@@ -563,7 +567,7 @@ module ActiveRecord
 
       def get_all_versions
         table = Arel::Table.new(schema_migrations_table_name)
-        Base.connection.select_values(table.project(table['version']).to_sql).map{ |v| v.to_i }.sort
+        Base.connection.select_values(table.project(table['version'])).map{ |v| v.to_i }.sort
       end
 
       def current_version
@@ -590,15 +594,16 @@ module ActiveRecord
         migrations_paths.first
       end
 
-      def migrations(paths)
+      def migrations(paths, subdirectories = true)
         paths = Array.wrap(paths)
 
-        files = Dir[*paths.map { |p| "#{p}/[0-9]*_*.rb" }]
+        glob = subdirectories ? "**/" : ""
+        files = Dir[*paths.map { |p| "#{p}/#{glob}[0-9]*_*.rb" }]
 
         seen = Hash.new false
 
         migrations = files.map do |file|
-          version, name = file.scan(/([0-9]+)_([_a-z0-9]*).rb/).first
+          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
@@ -609,7 +614,7 @@ module ActiveRecord
 
           seen[version] = seen[name] = true
 
-          MigrationProxy.new(name, version, file)
+          MigrationProxy.new(name, version, file, scope)
         end
 
         migrations.sort_by(&:version)
@@ -652,7 +657,7 @@ module ActiveRecord
       end
     end
 
-    def migrate
+    def migrate(&block)
       current = migrations.detect { |m| m.version == current_version }
       target = migrations.detect { |m| m.version == @target_version }
 
@@ -669,6 +674,10 @@ module ActiveRecord
 
       ran = []
       runnable.each do |migration|
+        if block && !block.call(migration)
+          next
+        end
+
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         seen = migrated.include?(migration.version.to_i)
@@ -720,11 +729,11 @@ module ActiveRecord
         if down?
           @migrated_versions.delete(version)
           stmt = table.where(table["version"].eq(version.to_s)).compile_delete
-          Base.connection.delete stmt.to_sql
+          Base.connection.delete stmt
         else
           @migrated_versions.push(version).sort!
           stmt = table.compile_insert table["version"] => version.to_s
-          Base.connection.insert stmt.to_sql
+          Base.connection.insert stmt
         end
       end
 

@@ -166,6 +166,22 @@ module ActiveRecord
       0
     end
 
+    # This method is designed to perform select by a single column as direct SQL query
+    # Returns <tt>Array</tt> with values of the specified column name
+    # The values has same data type as column.
+    #
+    # Examples:
+    #
+    #   Person.pluck(:id) # SELECT people.id FROM people
+    #   Person.uniq.pluck(:role) # SELECT DISTINCT role FROM people
+    #   Person.where(:confirmed => true).limit(5).pluck(:id)
+    #
+    def pluck(column_name)
+      klass.connection.select_all(select(column_name).arel).map! do |attributes|
+        klass.type_cast_attribute(attributes.keys.first, klass.initialize_attributes(attributes))
+      end
+    end
+
     private
 
     def perform_calculation(operation, column_name, options = {})
@@ -223,7 +239,7 @@ module ActiveRecord
         query_builder = relation.arel
       end
 
-      type_cast_calculated_value(@klass.connection.select_value(query_builder.to_sql), column_for(column_name), operation)
+      type_cast_calculated_value(@klass.connection.select_value(query_builder), column_for(column_name), operation)
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -259,7 +275,7 @@ module ActiveRecord
       relation = except(:group).group(group.join(','))
       relation.select_values = select_values
 
-      calculated_data = @klass.connection.select_all(relation.to_sql)
+      calculated_data = @klass.connection.select_all(relation)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_aliases.first] }

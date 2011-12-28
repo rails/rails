@@ -30,7 +30,7 @@ class SourceAnnotationExtractor
 
   # Prints all annotations with tag +tag+ under the root directories +app+, +config+, +lib+,
   # +script+, and +test+ (recursively). Only filenames with extension 
-  # +.builder+, +.rb+, +.rxml+, +.rhtml+, or +.erb+ are taken into account. The +options+
+  # +.builder+, +.rb+, and +.erb+ are taken into account. The +options+
   # hash is passed to each annotation's +to_s+.
   #
   # This class method is the single entry point for the rake tasks.
@@ -46,16 +46,14 @@ class SourceAnnotationExtractor
   end
 
   # Returns a hash that maps filenames under +dirs+ (recursively) to arrays
-  # with their annotations. Only files with annotations are included, and only
-  # those with extension +.builder+, +.rb+, +.rxml+, +.rhtml+, and +.erb+
-  # are taken into account.
+  # with their annotations.
   def find(dirs=%w(app config lib script test))
     dirs.inject({}) { |h, dir| h.update(find_in(dir)) }
   end
 
   # Returns a hash that maps filenames under +dir+ (recursively) to arrays
   # with their annotations. Only files with annotations are included, and only
-  # those with extension +.builder+, +.rb+, +.rxml+, +.rhtml+, and +.erb+
+  # those with extension +.builder+, +.rb+, +.erb+, +.haml+ and +.slim+
   # are taken into account.
   def find_in(dir)
     results = {}
@@ -65,10 +63,14 @@ class SourceAnnotationExtractor
 
       if File.directory?(item)
         results.update(find_in(item))
-      elsif item =~ /\.(builder|(r(?:b|xml|js)))$/
+      elsif item =~ /\.(builder|rb)$/
         results.update(extract_annotations_from(item, /#\s*(#{tag}):?\s*(.*)$/))
-      elsif item =~ /\.(rhtml|erb)$/
+      elsif item =~ /\.erb$/
         results.update(extract_annotations_from(item, /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/))
+      elsif item =~ /\.haml$/
+        results.update(extract_annotations_from(item, /-\s*#\s*(#{tag}):?\s*(.*)$/))
+      elsif item =~ /\.slim$/
+        results.update(extract_annotations_from(item, /\/\s*\s*(#{tag}):?\s*(.*)$/))
       end
     end
 

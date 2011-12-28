@@ -144,8 +144,6 @@ end
 
 if RUBY_VERSION.between?('1.9.2', '2.0')
   require 'active_support/testing/performance/ruby/yarv'
-elsif RUBY_VERSION.between?('1.8.6', '1.9')
-  require 'active_support/testing/performance/ruby/mri'
 else
   $stderr.puts 'Update your ruby interpreter to be able to run benchmarks.'
   exit

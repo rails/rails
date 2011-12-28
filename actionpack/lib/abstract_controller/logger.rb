@@ -1,4 +1,3 @@
-require "active_support/core_ext/logger"
 require "active_support/benchmarkable"
 
 module AbstractController
@@ -7,7 +6,7 @@ module AbstractController
 
     included do
       config_accessor :logger
-      extend ActiveSupport::Benchmarkable
+      include ActiveSupport::Benchmarkable
     end
   end
 end

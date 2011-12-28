@@ -13,7 +13,7 @@ module ActiveRecord
         # access the aliased column on the join table
         def records_for(ids)
           scope = super
-          klass.connection.select_all(scope.arel.to_sql, 'SQL', scope.bind_values)
+          klass.connection.select_all(scope.arel, 'SQL', scope.bind_values)
         end
 
         def owner_key_name

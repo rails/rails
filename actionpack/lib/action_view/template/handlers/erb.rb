@@ -1,5 +1,5 @@
 require 'action_dispatch/http/mime_type'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/class/attribute'
 require 'erubis'
 
 module ActionView
@@ -67,23 +67,19 @@ module ActionView
         end
 
         def call(template)
-          if template.source.encoding_aware?
-            # First, convert to BINARY, so in case the encoding is
-            # wrong, we can still find an encoding tag
-            # (<%# encoding %>) inside the String using a regular
-            # expression
-            template_source = template.source.dup.force_encoding("BINARY")
+          # First, convert to BINARY, so in case the encoding is
+          # wrong, we can still find an encoding tag
+          # (<%# encoding %>) inside the String using a regular
+          # expression
+          template_source = template.source.dup.force_encoding("BINARY")
 
-            erb = template_source.gsub(ENCODING_TAG, '')
-            encoding = $2
+          erb = template_source.gsub(ENCODING_TAG, '')
+          encoding = $2
 
-            erb.force_encoding valid_encoding(template.source.dup, encoding)
+          erb.force_encoding valid_encoding(template.source.dup, encoding)
 
-            # Always make sure we return a String in the default_internal
-            erb.encode!
-          else
-            erb = template.source.dup
-          end
+          # Always make sure we return a String in the default_internal
+          erb.encode!
 
           self.class.erb_implementation.new(
             erb,

@@ -20,6 +20,10 @@ module ActiveRecord
 
       private
 
+        def find_target?
+          !loaded? && foreign_key_present? && klass
+        end
+
         def update_counters(record)
           counter_cache_name = reflection.counter_cache_column
 
@@ -41,7 +45,11 @@ module ActiveRecord
         end
 
         def replace_keys(record)
-          owner[reflection.foreign_key] = record && record[reflection.association_primary_key]
+          if record
+            owner[reflection.foreign_key] = record[reflection.association_primary_key(record.class)]
+          else
+            owner[reflection.foreign_key] = nil
+          end
         end
 
         def foreign_key_present?

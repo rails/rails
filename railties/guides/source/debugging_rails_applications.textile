@@ -465,7 +465,7 @@ Now you should know where you are in the running trace and be able to print the 
 
 Use +step+ (abbreviated +s+) to continue running your program until the next logical stopping point and return control to ruby-debug.
 
-TIP: You can also use +step+ _n_+ and +step- _n_+ to move forward or backward _n_ steps respectively.
+TIP: You can also use <tt>step<plus> n</tt> and <tt>step- n</tt> to move forward or backward +n+ steps respectively.
 
 You may also use +next+ which is similar to step, but function or method calls that appear within the line of code are executed without stopping. As with step, you may use plus sign to move _n_ steps.
 
@@ -712,10 +712,3 @@ h3. References
 * "ruby-debug cheat sheet":http://cheat.errtheblog.com/s/rdebug/
 * "Ruby on Rails Wiki: How to Configure Logging":http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging
 * "Bleak House Documentation":http://blog.evanweaver.com/files/doc/fauna/bleak_house/files/README.html
-
-h3. Changelog
-
-* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* November 3, 2008: Accepted for publication. Added RJS, memory leaks and plugins chapters by "Emilio Tagua":credits.html#miloops
-* October 19, 2008: Copy editing pass by "Mike Gunderloy":credits.html#mgunderloy
-* September 16, 2008: initial version by "Emilio Tagua":credits.html#miloops

@@ -70,6 +70,10 @@ module ActionDispatch
       end
     end
 
+    # Implementation detail: please do not change the signature of the
+    # FlashHash class. Doing that will likely affect all Rails apps in
+    # production as the FlashHash currently stored in their sessions will
+    # become invalid.
     class FlashHash
       include Enumerable
 
@@ -89,7 +93,6 @@ module ActionDispatch
       end
 
       def []=(k, v) #:nodoc:
-        raise ClosedError, :flash if closed?
         keep(k)
         @flashes[k] = v
       end
@@ -154,10 +157,6 @@ module ActionDispatch
       def now
         @now ||= FlashNow.new(self)
       end
-
-      attr_reader :closed
-      alias :closed? :closed
-      def close!; @closed = true; end
 
       # Keeps either the entire current flash or a specific flash entry available for the next action:
       #
@@ -254,7 +253,6 @@ module ActionDispatch
         end
 
         env[KEY] = new_hash
-        new_hash.close!
       end
 
       if session.key?('flash') && session['flash'].empty?

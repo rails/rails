@@ -1,7 +1,7 @@
 require "cases/helper"
 
 class CallbackDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   class << self
     def callback_string(callback_method)
@@ -48,7 +48,7 @@ class CallbackDeveloperWithFalseValidation < CallbackDeveloper
 end
 
 class ParentDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
   attr_accessor :after_save_called
   before_validation {|record| record.after_save_called = true}
 end
@@ -58,7 +58,7 @@ class ChildDeveloper < ParentDeveloper
 end
 
 class RecursiveCallbackDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   before_save :on_before_save
   after_save :on_after_save
@@ -79,7 +79,7 @@ class RecursiveCallbackDeveloper < ActiveRecord::Base
 end
 
 class ImmutableDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   validates_inclusion_of :salary, :in => 50000..200000
 
@@ -98,7 +98,7 @@ class ImmutableDeveloper < ActiveRecord::Base
 end
 
 class ImmutableMethodDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   validates_inclusion_of :salary, :in => 50000..200000
 
@@ -118,7 +118,7 @@ class ImmutableMethodDeveloper < ActiveRecord::Base
 end
 
 class OnCallbacksDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   before_validation { history << :before_validation }
   before_validation(:on => :create){ history << :before_validation_on_create }
@@ -138,7 +138,7 @@ class OnCallbacksDeveloper < ActiveRecord::Base
 end
 
 class CallbackCancellationDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   attr_reader   :after_save_called, :after_create_called, :after_update_called, :after_destroy_called
   attr_accessor :cancel_before_save, :cancel_before_create, :cancel_before_update, :cancel_before_destroy

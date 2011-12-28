@@ -4,7 +4,7 @@ require 'models/tagging'
 
 module Namespaced
   class Post < ActiveRecord::Base
-    set_table_name 'posts'
+    self.table_name = 'posts'
     has_one :tagging, :as => :taggable, :class_name => 'Tagging'
   end
 end

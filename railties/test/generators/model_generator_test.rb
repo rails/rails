@@ -113,6 +113,74 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_migration_with_attributes_and_with_index
+    run_generator ["product", "name:string:index", "supplier_id:integer:index", "user_id:integer:uniq", "order_id:uniq"]
+
+    assert_migration "db/migrate/create_products.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/create_table :products/, up)
+        assert_match(/t\.string :name/, up)
+        assert_match(/t\.integer :supplier_id/, up)
+        assert_match(/t\.integer :user_id/, up)
+        assert_match(/t\.string :order_id/, up)
+
+        assert_match(/add_index :products, :name/, up)
+        assert_match(/add_index :products, :supplier_id/, up)
+        assert_match(/add_index :products, :user_id, unique: true/, up)
+        assert_match(/add_index :products, :order_id, unique: true/, up)
+      end
+    end
+  end
+
+  def test_migration_with_attributes_and_with_wrong_index_declaration
+    run_generator ["product", "name:string", "supplier_id:integer:inex", "user_id:integer:unqu"]
+
+    assert_migration "db/migrate/create_products.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/create_table :products/, up)
+        assert_match(/t\.string :name/, up)
+        assert_match(/t\.integer :supplier_id/, up)
+        assert_match(/t\.integer :user_id/, up)
+
+        assert_no_match(/add_index :products, :name/, up)
+        assert_no_match(/add_index :products, :supplier_id/, up)
+        assert_no_match(/add_index :products, :user_id/, up)
+      end
+    end
+  end
+
+  def test_migration_with_missing_attribute_type_and_with_index
+    run_generator ["product", "name:index", "supplier_id:integer:index", "year:integer"]
+
+    assert_migration "db/migrate/create_products.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/create_table :products/, up)
+        assert_match(/t\.string :name/, up)
+        assert_match(/t\.integer :supplier_id/, up)
+        
+        assert_match(/add_index :products, :name/, up)
+        assert_match(/add_index :products, :supplier_id/, up)
+        assert_no_match(/add_index :products, :year/, up)
+      end
+    end
+  end
+
+  def test_add_migration_with_attributes_index_declaration_and_attribute_options
+    run_generator ["product", "title:string{40}:index", "content:string{255}", "price:decimal{5,2}:index", "discount:decimal{5,2}:uniq"]
+
+    assert_migration "db/migrate/create_products.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/create_table :products/, up)
+        assert_match(/t.string :title, limit: 40/, up)
+        assert_match(/t.string :content, limit: 255/, up)
+        assert_match(/t.decimal :price, precision: 5, scale: 2/, up)
+      end
+      assert_match(/add_index :products, :title/, content)
+      assert_match(/add_index :products, :price/, content)
+      assert_match(/add_index :products, :discount, unique: true/, content)
+    end
+  end
+  
   def test_migration_without_timestamps
     ActiveRecord::Base.timestamped_migrations = false
     run_generator ["account"]

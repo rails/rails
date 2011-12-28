@@ -100,12 +100,12 @@ module ActionMailer #:nodoc:
   # You can even use Action Pack helpers in these views. For example:
   #
   #   You got a new note!
-  #   <%= truncate(@note.body, 25) %>
+  #   <%= truncate(@note.body, :length => 25) %>
   #
   # If you need to access the subject, from or the recipients in the view, you can do that through message object:
   #
   #   You got a new note from <%= message.from %>!
-  #   <%= truncate(@note.body, 25) %>
+  #   <%= truncate(@note.body, :length => 25) %>
   #
   #
   # = Generating URLs
@@ -524,7 +524,7 @@ module ActionMailer #:nodoc:
     #
     # * <tt>:subject</tt> - The subject of the message, if this is omitted, Action Mailer will
     #   ask the Rails I18n class for a translated <tt>:subject</tt> in the scope of
-    #   <tt>[:actionmailer, mailer_scope, action_name]</tt> or if this is missing, will translate the
+    #   <tt>[mailer_scope, action_name]</tt> or if this is missing, will translate the
     #   humanized version of the <tt>action_name</tt>
     # * <tt>:to</tt> - Who the message is destined for, can be a string of addresses, or an array
     #   of addresses.
@@ -668,7 +668,7 @@ module ActionMailer #:nodoc:
       end
     end
 
-    # Translates the +subject+ using Rails I18n class under <tt>[:actionmailer, mailer_scope, action_name]</tt> scope.
+    # Translates the +subject+ using Rails I18n class under <tt>[mailer_scope, action_name]</tt> scope.
     # If it does not find a translation for the +subject+ under the specified scope it will default to a
     # humanized version of the <tt>action_name</tt>.
     def default_i18n_subject #:nodoc:
@@ -708,7 +708,7 @@ module ActionMailer #:nodoc:
 
     def each_template(paths, name, &block) #:nodoc:
       templates = lookup_context.find_all(name, Array.wrap(paths))
-      templates.uniq_by { |t| t.formats }.each(&block)
+      templates.uniq { |t| t.formats }.each(&block)
     end
 
     def create_parts_from_responses(m, responses) #:nodoc:

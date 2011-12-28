@@ -151,18 +151,18 @@ module ActiveRecord
         reset
       end
 
+      def interpolate(sql, record = nil)
+        if sql.respond_to?(:to_proc)
+          owner.send(:instance_exec, record, &sql)
+        else
+          sql
+        end
+      end
+
       private
 
         def find_target?
           !loaded? && (!owner.new_record? || foreign_key_present?) && klass
-        end
-
-        def interpolate(sql, record = nil)
-          if sql.respond_to?(:to_proc)
-            owner.send(:instance_exec, record, &sql)
-          else
-            sql
-          end
         end
 
         def creation_attributes
@@ -231,10 +231,7 @@ module ActiveRecord
 
         def build_record(attributes, options)
           reflection.build_association(attributes, options) do |record|
-            record.assign_attributes(
-              create_scope.except(*record.changed),
-              :without_protection => true
-            )
+            record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
           end
         end
     end

@@ -81,7 +81,7 @@ module Rails
       #
       #   assert_file "app/controller/products_controller.rb" do |controller|
       #     assert_instance_method :index, content do |index|
-      #       assert_match /Product\.all/, index
+      #       assert_match(/Product\.all/, index)
       #     end
       #   end
       #
@@ -148,7 +148,7 @@ module Rails
       #
       #   assert_migration "db/migrate/create_products.rb" do |migration|
       #     assert_class_method :up, migration do |up|
-      #       assert_match /create_table/, up
+      #       assert_match(/create_table/, up)
       #     end
       #   end
       #
@@ -161,7 +161,7 @@ module Rails
       #
       #   assert_file "app/controller/products_controller.rb" do |controller|
       #     assert_instance_method :index, content do |index|
-      #       assert_match /Product\.all/, index
+      #       assert_match(/Product\.all/, index)
       #     end
       #   end
       #
@@ -218,8 +218,8 @@ module Rails
       #
       #   create_generated_attribute(:string, 'name')
       #
-      def create_generated_attribute(attribute_type, name = 'test')
-        Rails::Generators::GeneratedAttribute.new(name, attribute_type.to_s)
+      def create_generated_attribute(attribute_type, name = 'test', index = nil)
+        Rails::Generators::GeneratedAttribute.parse([name, attribute_type, index].compact.join(':'))
       end
 
       protected

@@ -17,8 +17,13 @@ class TranslationHelperTest < ActiveSupport::TestCase
         :hello => '<a>Hello World</a>',
         :html => '<a>Hello World</a>',
         :hello_html => '<a>Hello World</a>',
+        :interpolated_html => '<a>Hello %{word}</a>',
         :array_html => %w(foo bar),
-        :array => %w(foo bar)
+        :array => %w(foo bar),
+        :count_html => {
+          :one   => '<a>One %{count}</a>',
+          :other => '<a>Other %{count}</a>'
+        }
       }
     )
     @view = ::ActionView::Base.new(ActionController::Base.view_paths, {})
@@ -81,6 +86,17 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translate_marks_translations_with_a_html_suffix_as_safe_html
     assert translate(:'translations.hello_html').html_safe?
+  end
+
+  def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
+    assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => '<World>')
+    assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => stub(:to_s => "<World>"))
+  end
+
+  def test_translate_with_html_count
+    assert_equal '<a>One 1</a>', translate(:'translations.count_html', :count => 1)
+    assert_equal '<a>Other 2</a>', translate(:'translations.count_html', :count => 2)
+    assert_equal '<a>Other &lt;One&gt;</a>', translate(:'translations.count_html', :count => '<One>')
   end
 
   def test_translation_returning_an_array_ignores_html_suffix

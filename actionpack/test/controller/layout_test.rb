@@ -79,7 +79,7 @@ class DefaultLayoutController < LayoutTest
 end
 
 class AbsolutePathLayoutController < LayoutTest
-  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test.erb')
+  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test')
 end
 
 class HasOwnLayoutController < LayoutTest
@@ -167,7 +167,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_is_picked_from_the_controller_instances_view_path
     @controller = PrependsViewPathController.new
     get :hello
-    assert_template :layout => /layouts\/alt\.\w+/
+    assert_template :layout => /layouts\/alt/
   end
 
   def test_absolute_pathed_layout
@@ -184,7 +184,7 @@ class RenderWithTemplateOptionController < LayoutTest
 end
 
 class SetsNonExistentLayoutFile < LayoutTest
-  layout "nofile.erb"
+  layout "nofile"
 end
 
 class LayoutExceptionRaised < ActionController::TestCase

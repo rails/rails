@@ -5,7 +5,6 @@ require 'test/unit'
 require 'fileutils'
 
 require 'active_support'
-require 'active_support/core_ext/logger'
 
 require 'action_controller'
 require 'rails/all'

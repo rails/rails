@@ -134,9 +134,9 @@ module ActionView
       # WARNING: content_for is ignored in caches. So you shouldn't use it
       # for elements that will be fragment cached.
       def content_for(name, content = nil, &block)
-        content = capture(&block) if block_given?
-        if content
-          @view_flow.append(name, content)
+        if content || block_given?
+          content = capture(&block) if block_given?
+          @view_flow.append(name, content) if content
           nil
         else
           @view_flow.get(name)
@@ -181,7 +181,7 @@ module ActionView
       def with_output_buffer(buf = nil) #:nodoc:
         unless buf
           buf = ActionView::OutputBuffer.new
-          buf.force_encoding(output_buffer.encoding) if output_buffer.respond_to?(:encoding) && buf.respond_to?(:force_encoding)
+          buf.force_encoding(output_buffer.encoding) if output_buffer
         end
         self.output_buffer, old_buffer = buf, output_buffer
         yield

@@ -195,12 +195,8 @@ module ActiveSupport
     # (GMT). Seconds were chosen as the offset unit because that is the unit that
     # Ruby uses to represent time zone offsets (see Time#utc_offset).
     def initialize(name, utc_offset = nil, tzinfo = nil)
-      begin
-        require 'tzinfo'
-      rescue LoadError => e
-        $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
-        raise e
-      end
+      self.class.send(:require_tzinfo)
+
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
@@ -337,7 +333,12 @@ module ActiveSupport
       end
 
       def zones_map
-        @zones_map ||= Hash[MAPPING.map { |place, _| [place, create(place)] }]
+        @zones_map ||= begin
+          new_zones_names = MAPPING.keys - lazy_zones_map.keys
+          new_zones       = Hash[new_zones_names.map { |place| [place, create(place)] }]
+
+          lazy_zones_map.merge(new_zones)
+        end
       end
 
       # Locate a specific time zone object. If the argument is a string, it
@@ -349,7 +350,7 @@ module ActiveSupport
         case arg
           when String
           begin
-            zones_map[arg] ||= lookup(arg).tap { |tz| tz.utc_offset }
+            lazy_zones_map[arg] ||= lookup(arg).tap { |tz| tz.utc_offset }
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
@@ -367,10 +368,27 @@ module ActiveSupport
         @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
       end
 
+      protected
+
+        def require_tzinfo
+          require 'tzinfo' unless defined?(::TZInfo)
+        rescue LoadError
+          $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
+          raise
+        end
+
       private
 
         def lookup(name)
           (tzinfo = find_tzinfo(name)) && create(tzinfo.name.freeze)
+        end
+
+        def lazy_zones_map
+          require_tzinfo
+
+          @lazy_zones_map ||= Hash.new do |hash, place|
+            hash[place] = create(place) if MAPPING.has_key?(place)
+          end
         end
     end
   end

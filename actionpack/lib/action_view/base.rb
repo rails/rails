@@ -4,12 +4,13 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/ordered_options'
 require 'action_view/log_subscriber'
+require 'active_support/core_ext/module/deprecation'
 
 module ActionView #:nodoc:
   # = Action View Base
   #
-  # Action View templates can be written in several ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb
-  # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> (or <tt>.rxml</tt>) extension then Jim Weirich's Builder::XmlMarkup library is used.
+  # Action View templates can be written in several ways. If the template file has a <tt>.erb</tt> extension then it uses a mixture of ERb
+  # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> extension then Jim Weirich's Builder::XmlMarkup library is used.
   #
   # == ERB
   #
@@ -93,10 +94,10 @@ module ActionView #:nodoc:
   #
   # Any method with a block will be treated as an XML markup tag with nested markup in the block. For example, the following:
   #
-  #   xml.div {
+  #   xml.div do
   #     xml.h1(@person.name)
   #     xml.p(@person.bio)
-  #   }
+  #   end
   #
   # would produce something like:
   #
@@ -115,7 +116,7 @@ module ActionView #:nodoc:
   #       xml.language "en-us"
   #       xml.ttl "40"
   #
-  #       for item in @recent_items
+  #       @recent_items.each do |item|
   #         xml.item do
   #           xml.title(item_title(item))
   #           xml.description(item_description(item)) if item_description(item)
@@ -161,6 +162,7 @@ module ActionView #:nodoc:
         value.is_a?(PathSet) ?
           value.dup : ActionView::PathSet.new(Array.wrap(value))
       end
+      deprecate :process_view_paths
 
       def xss_safe? #:nodoc:
         true

@@ -30,7 +30,7 @@ module ActionDispatch
 
       def generate_sid
         sid = SecureRandom.hex(16)
-        sid.encode!('UTF-8') if sid.respond_to?(:encode!)
+        sid.encode!('UTF-8')
         sid
       end
 
@@ -59,7 +59,10 @@ module ActionDispatch
             # Note that the regexp does not allow $1 to end with a ':'
             $1.constantize
           rescue LoadError, NameError => const_error
-            raise ActionDispatch::Session::SessionRestoreError, "Session contains objects whose class definition isn't available.\nRemember to require the classes for all objects kept in the session.\n(Original exception: #{const_error.message} [#{const_error.class}])\n"
+            raise ActionDispatch::Session::SessionRestoreError,
+              "Session contains objects whose class definition isn't available.\n" +
+              "Remember to require the classes for all objects kept in the session.\n" +
+              "(Original exception: #{const_error.message} [#{const_error.class}])\n"
           end
           retry
         else
@@ -71,10 +74,6 @@ module ActionDispatch
     class AbstractStore < Rack::Session::Abstract::ID
       include Compatibility
       include StaleSessionCheck
-
-      def destroy_session(env, sid, options)
-        raise '#destroy_session needs to be implemented.'
-      end
     end
   end
 end

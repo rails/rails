@@ -69,7 +69,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_default_value_for_type
-    att = Rails::Generators::GeneratedAttribute.new("type", "string")
+    att = Rails::Generators::GeneratedAttribute.parse("type:string")
     assert_equal("", att.default)
   end
 
@@ -121,5 +121,10 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   def test_blank_type_defaults_to_string_raises_exception
     assert_equal :string, create_generated_attribute(nil, 'title').type
     assert_equal :string, create_generated_attribute("", 'title').type
+  end
+
+  def test_handles_index_names_for_references
+    assert_equal "post", create_generated_attribute('string', 'post').index_name
+    assert_equal "post_id", create_generated_attribute('references', 'post').index_name
   end
 end

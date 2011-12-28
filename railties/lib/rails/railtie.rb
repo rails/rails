@@ -2,6 +2,7 @@ require 'rails/initializable'
 require 'rails/configuration'
 require 'active_support/inflector'
 require 'active_support/core_ext/module/introspection'
+require 'active_support/core_ext/module/delegation'
 
 module Rails
   # Railtie is the core of the Rails framework and provides several hooks to extend
@@ -180,7 +181,7 @@ module Rails
 
     def load_tasks(app=self)
       extend Rake::DSL if defined? Rake::DSL
-      self.class.rake_tasks.each { |block| block.call(app) }
+      self.class.rake_tasks.each { |block| self.instance_exec(app, &block) }
 
       # load also tasks from all superclasses
       klass = self.class.superclass
@@ -195,7 +196,7 @@ module Rails
     end
 
     def railtie_namespace
-      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:_railtie) }
+      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end
   end
 end

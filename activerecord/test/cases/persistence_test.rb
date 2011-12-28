@@ -202,9 +202,12 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_create_columns_not_equal_attributes
-    topic = Topic.new
-    topic.title = 'Another New Topic'
-    topic.send :write_attribute, 'does_not_exist', 'test'
+    topic = Topic.allocate.init_with(
+      'attributes' => {
+        'title'          => 'Another New Topic',
+        'does_not_exist' => 'test'
+      }
+    )
     assert_nothing_raised { topic.save }
   end
 
@@ -249,9 +252,11 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.title = "Still another topic"
     topic.save
 
-    topicReloaded = Topic.find(topic.id)
-    topicReloaded.title = "A New Topic"
-    topicReloaded.send :write_attribute, 'does_not_exist', 'test'
+    topicReloaded = Topic.allocate
+    topicReloaded.init_with(
+      'attributes' => topic.attributes.merge('does_not_exist' => 'test')
+    )
+    topicReloaded.title = 'A New Topic'
     assert_nothing_raised { topicReloaded.save }
   end
 

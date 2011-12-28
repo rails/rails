@@ -125,7 +125,7 @@ module SharedGeneratorTests
   def test_edge_option
     generator([destination_root], :edge => true).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
-    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$}
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("https://github.com/rails/rails.git")}["']$}
   end
 
   def test_skip_gemfile
@@ -191,11 +191,11 @@ module SharedCustomGeneratorTests
   end
 
   def test_builder_option_with_http
-    path = "http://gist.github.com/103208.txt"
+    url = "http://gist.github.com/103208.txt"
     template = "class #{builder_class}; end"
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator([destination_root], :builder => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
+    generator([destination_root], :builder => url).expects(:open).with(url, 'Accept' => 'application/x-thor-template').returns(template)
     quietly { generator.invoke_all }
 
     default_files.each{ |path| assert_no_file(path) }

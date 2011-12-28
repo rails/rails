@@ -6,7 +6,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   fixtures :topics
 
   class TopicWithCallbacks < ActiveRecord::Base
-    set_table_name :topics
+    self.table_name = :topics
 
     after_commit{|record| record.send(:do_after_commit, nil)}
     after_commit(:on => :create){|record| record.send(:do_after_commit, :create)}
@@ -252,7 +252,7 @@ class TransactionObserverCallbacksTest < ActiveRecord::TestCase
   fixtures :topics
 
   class TopicWithObserverAttached < ActiveRecord::Base
-    set_table_name :topics
+    self.table_name = :topics
     def history
       @history ||= []
     end

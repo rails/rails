@@ -14,6 +14,7 @@ module InflectorTestCases
     "fish"        => "fish",
     "jeans"       => "jeans",
     "funky jeans" => "funky jeans",
+    "my money"    => "my money",
 
     "category"    => "categories",
     "query"       => "queries",
@@ -103,7 +104,11 @@ module InflectorTestCases
     "edge"        => "edges",
 
     "cow"         => "kine",
-    "database"    => "databases"
+    "database"    => "databases",
+
+    # regression tests against improper inflection regexes
+    "|ice"        => "|ices",
+    "|ouse"       => "|ouses"
   }
 
   CamelToUnderscore = {

@@ -8,7 +8,7 @@ outside of Rails.
 
 == Download and installation
 
-The latest version of Active Support can be installed with Rubygems:
+The latest version of Active Support can be installed with RubyGems:
 
   % [sudo] gem install activesupport
 
@@ -19,7 +19,9 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 == License
 
-Active Support is released under the MIT license.
+Active Support is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
 
 
 == Support

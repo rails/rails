@@ -4,15 +4,12 @@ module ActiveSupport
       module Metrics
         class Base
           protected
-            # Ruby 1.9 with GC::Profiler
-            if defined?(GC::Profiler)
-              def with_gc_stats
-                GC::Profiler.enable
-                GC.start
-                yield
-              ensure
-                GC::Profiler.disable
-              end
+            def with_gc_stats
+              GC::Profiler.enable
+              GC.start
+              yield
+            ensure
+              GC::Profiler.disable
             end
         end
 
@@ -35,20 +32,14 @@ module ActiveSupport
         end
 
         class GcRuns < Amount
-          # Ruby 1.9
-          if GC.respond_to?(:count)
-            def measure
-              GC.count
-            end
+          def measure
+            GC.count
           end
         end
 
         class GcTime < Time
-          # Ruby 1.9 with GC::Profiler
-          if defined?(GC::Profiler) && GC::Profiler.respond_to?(:total_time)
-            def measure
-              GC::Profiler.total_time
-            end
+          def measure
+            GC::Profiler.total_time
           end
         end
       end

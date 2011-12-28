@@ -1,6 +1,6 @@
 TIMES = (ENV['N'] || 10000).to_i
 
-require 'rubygems'
+require File.expand_path('../../../load_paths', __FILE__)
 require "active_record"
 
 conn = { :adapter => 'sqlite3', :database => ':memory:' }
@@ -29,6 +29,14 @@ class Exhibit < ActiveRecord::Base
   def look; attributes end
   def feel; look; user.name end
 
+  def self.with_name
+    where("name IS NOT NULL")
+  end
+
+  def self.with_notes
+    where("notes IS NOT NULL")
+  end
+
   def self.look(exhibits) exhibits.each { |e| e.look } end
   def self.feel(exhibits) exhibits.each { |e| e.feel } end
 end
@@ -37,7 +45,14 @@ puts 'Generating data...'
 
 module ActiveRecord
   class Faker
-    LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse non aliquet diam. Curabitur vel urna metus, quis malesuada elit. Integer consequat tincidunt felis. Etiam non erat dolor. Vivamus imperdiet nibh sit amet diam eleifend id posuere diam malesuada. Mauris at accumsan sem. Donec id lorem neque. Fusce erat lorem, ornare eu congue vitae, malesuada quis neque. Maecenas vel urna a velit pretium fermentum. Donec tortor enim, tempor venenatis egestas a, tempor sed ipsum. Ut arcu justo, faucibus non imperdiet ac, interdum at diam. Pellentesque ipsum enim, venenatis ut iaculis vitae, varius vitae sem. Sed rutrum quam ac elit euismod bibendum. Donec ultricies ultricies magna, at lacinia libero mollis aliquam. Sed ac arcu in tortor elementum tincidunt vel interdum sem. Curabitur eget erat arcu. Praesent eget eros leo. Nam magna enim, sollicitudin vehicula scelerisque in, vulputate ut libero. Praesent varius tincidunt commodo".split
+    LOREM = %Q{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse non aliquet diam. Curabitur vel urna metus, quis malesuada elit.
+     Integer consequat tincidunt felis. Etiam non erat dolor. Vivamus imperdiet nibh sit amet diam eleifend id posuere diam malesuada. Mauris at accumsan sem.
+     Donec id lorem neque. Fusce erat lorem, ornare eu congue vitae, malesuada quis neque. Maecenas vel urna a velit pretium fermentum. Donec tortor enim,
+     tempor venenatis egestas a, tempor sed ipsum. Ut arcu justo, faucibus non imperdiet ac, interdum at diam. Pellentesque ipsum enim, venenatis ut iaculis vitae,
+     varius vitae sem. Sed rutrum quam ac elit euismod bibendum. Donec ultricies ultricies magna, at lacinia libero mollis aliquam. Sed ac arcu in tortor elementum
+     tincidunt vel interdum sem. Curabitur eget erat arcu. Praesent eget eros leo. Nam magna enim, sollicitudin vehicula scelerisque in, vulputate ut libero.
+     Praesent varius tincidunt commodo}.split
+
     def self.name
       LOREM.grep(/^\w*$/).sort_by { rand }.first(2).join ' '
     end
@@ -100,6 +115,10 @@ Benchmark.bm(46) do |x|
 
   x.report 'Model.first' do
     TIMES.times { Exhibit.first.look }
+  end
+
+  x.report 'Model.named_scope' do
+    TIMES.times { Exhibit.limit(10).with_name.with_notes }
   end
 
   x.report("Model.all limit(100) (x#{(TIMES / 10).ceil})") do

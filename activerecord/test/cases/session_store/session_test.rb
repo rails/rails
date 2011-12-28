@@ -5,10 +5,11 @@ require 'active_record/session_store'
 module ActiveRecord
   class SessionStore
     class SessionTest < ActiveRecord::TestCase
-      self.use_transactional_fixtures = false unless supports_savepoints? && ActiveRecord::Base.connection.supports_ddl_transactions?
+      self.use_transactional_fixtures = false
 
       def setup
         super
+        ActiveRecord::Base.connection.schema_cache.clear!
         Session.drop_table! if Session.table_exists?
       end
 
@@ -36,6 +37,7 @@ module ActiveRecord
       end
 
       def test_find_by_sess_id_compat
+        Session.reset_column_information
         klass = Class.new(Session) do
           def self.session_id_column
             'sessid'
@@ -53,6 +55,7 @@ module ActiveRecord
         assert_equal session.sessid, found.session_id
       ensure
         klass.drop_table!
+        Session.reset_column_information
       end
 
       def test_find_by_session_id

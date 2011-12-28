@@ -347,6 +347,17 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     client.save!
     assert_no_queries { assert_equal apple, client.firm }
   end
+
+  def test_validation_does_not_validate_stale_association_target
+    valid_developer   = Developer.create!(:name => "Dude", :salary => 50_000)
+    invalid_developer = Developer.new()
+
+    auditlog = AuditLog.new(:message => "foo")
+    auditlog.developer    = invalid_developer
+    auditlog.developer_id = valid_developer.id
+
+    assert auditlog.valid?
+  end
 end
 
 class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase

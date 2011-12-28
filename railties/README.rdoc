@@ -1,26 +1,37 @@
 = Railties -- Gluing the Engine to the Rails
 
-Railties is responsible to glue all frameworks together. Overall, it:
+Railties is responsible for gluing all frameworks together. Overall, it:
 
-* handles all the bootstrapping process for a Rails application;
+* handles the bootstrapping process for a Rails application;
 
-* manages rails command line interface;
+* manages the +rails+ command line interface;
 
-* provides Rails generators core;
+* and provides the Rails generators core.
 
 
 == Download
 
-The latest version of Railties can be installed with Rubygems:
+The latest version of Railties can be installed with RubyGems:
 
 * gem install railties
 
-Documentation can be found at
+Source code can be downloaded as part of the Rails project on GitHub
 
-* http://api.rubyonrails.org
-
+* https://github.com/rails/rails/tree/master/railties
 
 == License
 
-Railties is released under the MIT license.
+Railties is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
+
+== Support
+
+API documentation is at
+
+* http://api.rubyonrails.org
+
+Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+
+* https://github.com/rails/rails/issues
 

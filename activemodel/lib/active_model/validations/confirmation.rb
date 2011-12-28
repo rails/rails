@@ -58,6 +58,8 @@ module ActiveModel
       #   <tt>:unless => :skip_validation</tt>, or
       #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
+      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
       def validates_confirmation_of(*attr_names)
         validates_with ConfirmationValidator, _merge_attributes(attr_names)
       end
