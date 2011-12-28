@@ -81,13 +81,21 @@ class Class
             define_method(:#{name}) { val }
           end
 
+          if singleton_class?
+            class_eval do
+              remove_possible_method(:#{name})
+              def #{name}
+                defined?(@#{name}) ? @#{name} : singleton_class.#{name}
+              end
+            end
+          end
           val
         end
 
         if instance_reader
           remove_possible_method :#{name}
           def #{name}
-            defined?(@#{name}) ? @#{name} : singleton_class.#{name}
+            defined?(@#{name}) ? @#{name} : self.class.#{name}
           end
 
           def #{name}?
@@ -98,5 +106,10 @@ class Class
 
       attr_writer name if instance_writer
     end
+  end
+
+  private
+  def singleton_class?
+    !name || '' == name
   end
 end
