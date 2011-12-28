@@ -32,7 +32,7 @@ module ActiveRecord
               if values.empty?
                 array_predicates << attribute.eq(nil)
               else
-                array_predicates << attribute.in(values.compact).or(attribute.eq(nil))
+                array_predicates << attribute.in(values).or(attribute.eq(nil))
               end
             else
               array_predicates << attribute.in(values)
