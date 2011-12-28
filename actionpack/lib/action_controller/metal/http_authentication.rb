@@ -145,7 +145,7 @@ module ActionController
       end
 
       def encode_credentials(user_name, password)
-        "Basic #{ActiveSupport::Base64.encode64s("#{user_name}:#{password}")}"
+        "Basic #{ActiveSupport::Base64.strict_encode64("#{user_name}:#{password}")}"
       end
 
       def authentication_request(controller, realm)
@@ -289,7 +289,7 @@ module ActionController
         t = time.to_i
         hashed = [t, secret_key]
         digest = ::Digest::MD5.hexdigest(hashed.join(":"))
-        ActiveSupport::Base64.encode64("#{t}:#{digest}").gsub("\n", '')
+        ActiveSupport::Base64.strict_encode64("#{t}:#{digest}")
       end
 
       # Might want a shorter timeout depending on whether the request
