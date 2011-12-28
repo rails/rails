@@ -376,23 +376,23 @@ module ActionController
       end
 
       # Executes a request simulating GET HTTP method and set/volley the response
-      def get(action, parameters = nil, session = nil, flash = nil)
-        process(action, parameters, session, flash, "GET")
+      def get(action, *args)
+        process(action, "GET", *args)
       end
 
       # Executes a request simulating POST HTTP method and set/volley the response
-      def post(action, parameters = nil, session = nil, flash = nil)
-        process(action, parameters, session, flash, "POST")
+      def post(action, *args)
+        process(action, "POST", *args)
       end
 
       # Executes a request simulating PUT HTTP method and set/volley the response
-      def put(action, parameters = nil, session = nil, flash = nil)
-        process(action, parameters, session, flash, "PUT")
+      def put(action, *args)
+        process(action, "PUT", *args)
       end
 
       # Executes a request simulating DELETE HTTP method and set/volley the response
-      def delete(action, parameters = nil, session = nil, flash = nil)
-        process(action, parameters, session, flash, "DELETE")
+      def delete(action, *args)
+        process(action, "DELETE", *args)
       end
 
       # Executes a request simulating HEAD HTTP method and set/volley the response
@@ -423,7 +423,7 @@ module ActionController
         end
       end
 
-      def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
+      def process(action, http_method = 'GET', parameters = nil, session = nil, flash = nil)
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters)
