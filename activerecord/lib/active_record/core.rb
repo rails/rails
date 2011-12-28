@@ -119,13 +119,7 @@ module ActiveRecord
       end
 
       def arel_engine
-        @arel_engine ||= begin
-          if self == ActiveRecord::Base
-            ActiveRecord::Base
-          else
-            connection_handler.connection_pools[name] ? self : active_record_super.arel_engine
-          end
-        end
+        @arel_engine ||= connection_handler.connection_pools[name] ? self : active_record_super.arel_engine
       end
 
       private
@@ -302,6 +296,13 @@ module ActiveRecord
     # Marks this record as read only.
     def readonly!
       @readonly = true
+    end
+
+    # Returns the connection currently associated with the class. This can
+    # also be used to "borrow" the connection to do database work that isn't
+    # easily done without going straight to SQL.
+    def connection
+      self.class.connection
     end
 
     # Returns the contents of the record as a nicely formatted string.

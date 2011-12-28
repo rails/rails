@@ -331,5 +331,4 @@ module ActiveRecord #:nodoc:
   end
 end
 
-require 'active_record/connection_adapters/abstract/connection_specification'
 ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Model::DeprecationProxy)

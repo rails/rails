@@ -61,7 +61,7 @@ module ActiveRecord
           raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord"
         end
 
-        if active_record_super == Base
+        if [Base, Model].include?(active_record_super)
           super
         else
           # If B < A and A defines its own attribute method, then we don't want to overwrite that.

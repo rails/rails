@@ -17,8 +17,10 @@ module ActiveRecord
 
         if sup.abstract_class?
           sup.descends_from_active_record?
+        elsif self == Base
+          false
         else
-          sup == Base || !columns_hash.include?(inheritance_column)
+          [Base, Model].include?(sup) || !columns_hash.include?(inheritance_column)
         end
       end
 
@@ -81,18 +83,12 @@ module ActiveRecord
         instance
       end
 
-      # If this class includes ActiveRecord::Model then it won't have a
-      # superclass. So this provides a way to get to the 'root' (ActiveRecord::Base),
-      # through inheritance hierarchy, ending in Base, whether or not that is
-      # actually an ancestor of the class.
+      # For internal use.
       #
-      # Mainly for internal use.
+      # If this class includes ActiveRecord::Model then it won't have a
+      # superclass. So this provides a way to get to the 'root' (ActiveRecord::Model).
       def active_record_super #:nodoc:
-        if self == Base || superclass && superclass < Model
-          superclass
-        else
-          Base
-        end
+        superclass < Model ? superclass : Model
       end
 
       protected
@@ -105,7 +101,7 @@ module ActiveRecord
         end
 
         sup = klass.active_record_super
-        if klass == Base || sup == Base || sup.abstract_class?
+        if [Base, Model].include?(klass) || [Base, Model].include?(sup) || sup.abstract_class?
           klass
         else
           class_of_active_record_descendant(sup)

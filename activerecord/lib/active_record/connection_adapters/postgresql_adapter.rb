@@ -7,7 +7,7 @@ gem 'pg', '~> 0.11'
 require 'pg'
 
 module ActiveRecord
-  module Core::ClassMethods
+  module ConnectionHandling
     # Establishes a connection to the database that's used by all Active Record objects
     def postgresql_connection(config) # :nodoc:
       config = config.symbolize_keys

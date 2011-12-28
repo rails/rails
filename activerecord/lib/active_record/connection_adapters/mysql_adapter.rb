@@ -18,7 +18,7 @@ class Mysql
 end
 
 module ActiveRecord
-  module Core::ClassMethods
+  module ConnectionHandling
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql_connection(config) # :nodoc:
       config = config.symbolize_keys
