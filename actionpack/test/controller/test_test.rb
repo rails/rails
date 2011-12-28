@@ -171,6 +171,21 @@ XML
 
     assert_equal params.to_query, @response.body
   end
+  
+  def test_document_body_and_params_with_post
+    post :test_params, :id => 1
+    assert_equal("{\"id\"=>\"1\", \"controller\"=>\"test_test/test\", \"action\"=>\"test_params\"}", @response.body)
+  end
+  
+  def test_document_body_with_post
+    post :render_body, "document body"
+    assert_equal "document body", @response.body
+  end
+  
+  def test_document_body_with_put
+    put :render_body, "document body"
+    assert_equal "document body", @response.body
+  end
 
   def test_process_without_flash
     process :set_flash
@@ -178,12 +193,12 @@ XML
   end
 
   def test_process_with_flash
-    process :set_flash, nil, nil, { "test" => "value" }
+    process :set_flash, "GET", nil, nil, { "test" => "value" }
     assert_equal '>value<', flash['test']
   end
 
   def test_process_with_flash_now
-    process :set_flash_now, nil, nil, { "test_now" => "value_now" }
+    process :set_flash_now, "GET", nil, nil, { "test_now" => "value_now" }
     assert_equal '>value_now<', flash['test_now']
   end
 
@@ -196,7 +211,7 @@ XML
   end
 
   def test_process_with_session_arg
-    process :no_op, nil, { 'string' => 'value1', :symbol => 'value2' }
+    process :no_op, "GET", nil, { 'string' => 'value1', :symbol => 'value2' }
     assert_equal 'value1', session['string']
     assert_equal 'value1', session[:string]
     assert_equal 'value2', session['symbol']
@@ -227,18 +242,25 @@ XML
   end
 
   def test_process_with_request_uri_with_params
-    process :test_uri, :id => 7
+    process :test_uri, "GET", :id => 7
     assert_equal "/test_test/test/test_uri/7", @response.body
+  end
+  
+  def test_process_with_old_api
+    assert_deprecated do
+      process :test_uri, :id => 7
+      assert_equal "/test_test/test/test_uri/7", @response.body
+    end
   end
 
   def test_process_with_request_uri_with_params_with_explicit_uri
     @request.env['PATH_INFO'] = "/explicit/uri"
-    process :test_uri, :id => 7
+    process :test_uri, "GET", :id => 7
     assert_equal "/explicit/uri", @response.body
   end
 
   def test_process_with_query_string
-    process :test_query_string, :q => 'test'
+    process :test_query_string, "GET", :q => 'test'
     assert_equal "q=test", @response.body
   end
 
@@ -250,9 +272,9 @@ XML
   end
 
   def test_multiple_calls
-    process :test_only_one_param, :left => true
+    process :test_only_one_param, "GET", :left => true
     assert_equal "OK", @response.body
-    process :test_only_one_param, :right => true
+    process :test_only_one_param, "GET", :right => true
     assert_equal "OK", @response.body
   end
 
