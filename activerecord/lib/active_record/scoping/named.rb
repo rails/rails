@@ -118,16 +118,16 @@ module ActiveRecord
         # when they are used. For example, the following would be incorrect:
         #
         #   class Post < ActiveRecord::Base
-        #     scope :recent, where('published_at >= ?', Time.now - 1.week)
+        #     scope :recent, where('published_at >= ?', Time.current - 1.week)
         #   end
         #
-        # The example above would be 'frozen' to the <tt>Time.now</tt> value when the <tt>Post</tt>
+        # The example above would be 'frozen' to the <tt>Time.current</tt> value when the <tt>Post</tt>
         # class was defined, and so the resultant SQL query would always be the same. The correct
         # way to do this would be via a lambda, which will re-evaluate the scope each time
         # it is called:
         #
         #   class Post < ActiveRecord::Base
-        #     scope :recent, lambda { where('published_at >= ?', Time.now - 1.week) }
+        #     scope :recent, lambda { where('published_at >= ?', Time.current - 1.week) }
         #   end
         #
         # Named \scopes can also have extensions, just as with <tt>has_many</tt> declarations:
