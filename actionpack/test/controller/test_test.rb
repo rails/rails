@@ -172,6 +172,16 @@ XML
     assert_equal params.to_query, @response.body
   end
   
+  def test_document_body_with_post
+    post :render_body, "document body"
+    assert_equal "document body", @request.body.string
+  end
+  
+  def test_document_body_with_put
+    put :render_body, "document body"
+    assert_equal "document body", @request.body.string
+  end
+  
   def test_process_without_flash
     process :set_flash
     assert_equal '><', flash['test']

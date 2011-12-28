@@ -423,7 +423,13 @@ module ActionController
         end
       end
 
-      def process(action, http_method = 'GET', parameters = nil, session = nil, flash = nil)
+      def process(action, http_method = 'GET', *args)
+        if args.first.is_a?(String)
+          @request.env['RAW_POST_DATA'] = args.shift
+        end
+        
+        parameters, session, flash = args
+        
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters)
