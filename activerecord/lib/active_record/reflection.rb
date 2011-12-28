@@ -7,7 +7,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :reflections
+      extend ActiveModel::Configuration
+      config_attribute :reflections
       self.reflections = {}
     end
 

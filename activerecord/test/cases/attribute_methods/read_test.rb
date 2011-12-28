@@ -18,7 +18,6 @@ module ActiveRecord
           def self.active_record_super; Base; end
           def self.base_class; self; end
 
-          include ActiveRecord::Configuration
           include ActiveRecord::AttributeMethods
 
           def self.column_names

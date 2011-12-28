@@ -10,11 +10,13 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_accessible_attributes
-      class_attribute :_protected_attributes
-      class_attribute :_active_authorizer
+      extend ActiveModel::Configuration
 
-      class_attribute :_mass_assignment_sanitizer
+      config_attribute :_accessible_attributes
+      config_attribute :_protected_attributes
+      config_attribute :_active_authorizer
+
+      config_attribute :_mass_assignment_sanitizer
       self.mass_assignment_sanitizer = :logger
     end
 
@@ -56,7 +58,7 @@ module ActiveModel
     # You can specify your own sanitizer object eg. MySanitizer.new.
     # See <tt>ActiveModel::MassAssignmentSecurity::LoggerSanitizer</tt> for example implementation.
     #
-    # 
+    #
     module ClassMethods
       # Attributes named in this macro are protected from mass-assignment
       # whenever attributes are sanitized before assignment. A role for the
@@ -70,13 +72,13 @@ module ActiveModel
       #
       #   class Customer
       #     include ActiveModel::MassAssignmentSecurity
-      #   
+      #
       #     attr_accessor :name, :email, :logins_count
-      #   
+      #
       #     attr_protected :logins_count
       #     # Suppose that admin can not change email for customer
-      #     attr_protected :logins_count, :email, :as => :admin 
-      #   
+      #     attr_protected :logins_count, :email, :as => :admin
+      #
       #     def assign_attributes(values, options = {})
       #       sanitize_for_mass_assignment(values, options[:as]).each do |k, v|
       #         send("#{k}=", v)
@@ -99,7 +101,7 @@ module ActiveModel
       #   customer.name          # => "David"
       #   customer.email # => nil
       #   customer.logins_count    # => nil
-      #   
+      #
       #   customer.email = "c@d.com"
       #   customer.email # => "c@d.com"
       #

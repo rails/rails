@@ -6,7 +6,7 @@ module ActiveRecord
 
     included do
       # Determine whether to store the full constant name including namespace when using STI
-      class_attribute :store_full_sti_class
+      config_attribute :store_full_sti_class
       self.store_full_sti_class = true
     end
 
@@ -88,7 +88,7 @@ module ActiveRecord
       #
       # Mainly for internal use.
       def active_record_super #:nodoc:
-        if self == Base || superclass && superclass < Model::Tag
+        if self == Base || superclass && superclass < Model
           superclass
         else
           Base
@@ -100,7 +100,7 @@ module ActiveRecord
       # Returns the class descending directly from ActiveRecord::Base or an
       # abstract class, if any, in the inheritance hierarchy.
       def class_of_active_record_descendant(klass)
-        unless klass < Model::Tag
+        unless klass < Model
           raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
         end
 

@@ -1,4 +1,5 @@
 require 'active_support/deprecation'
+require 'active_support/concern'
 
 module ActiveRecord
   # <tt>ActiveRecord::Model</tt> can be included into a class to add Active Record persistence.
@@ -9,56 +10,60 @@ module ActiveRecord
   #     end
   #
   module Model
-    # So we can recognise an AR class even while self.included is being
-    # executed. (At that time, klass < Model == false.)
-    module Tag #:nodoc:
+    module ClassMethods #:nodoc:
+      include ActiveSupport::Callbacks::ClassMethods
+      include ActiveModel::Naming
+      include QueryCache::ClassMethods
+      include ActiveSupport::Benchmarkable
+      include ActiveSupport::DescendantsTracker
+
+      include Querying
+      include Translation
+      include DynamicMatchers
+      include CounterCache
+      include Explain
     end
 
     def self.included(base)
-      return if base < Tag
+      return if base.singleton_class < ClassMethods
 
       base.class_eval do
-        include Tag
-
-        include Configuration
-
-        include ActiveRecord::Persistence
-        extend ActiveModel::Naming
-        extend QueryCache::ClassMethods
-        extend ActiveSupport::Benchmarkable
-        extend ActiveSupport::DescendantsTracker
-
-        extend Querying
-        include ReadonlyAttributes
-        include ModelSchema
-        extend Translation
-        include Inheritance
-        include Scoping
-        extend DynamicMatchers
-        include Sanitization
-        include Integration
-        include AttributeAssignment
-        include ActiveModel::Conversion
-        include Validations
-        extend CounterCache
-        include Locking::Optimistic, Locking::Pessimistic
-        include AttributeMethods
-        include Callbacks, ActiveModel::Observing, Timestamp
-        include Associations
-        include IdentityMap
-        include ActiveModel::SecurePassword
-        extend Explain
-
-        # AutosaveAssociation needs to be included before Transactions, because we want
-        # #save_with_autosave_associations to be wrapped inside a transaction.
-        include AutosaveAssociation, NestedAttributes
-        include Aggregations, Transactions, Reflection, Serialization, Store
-
-        include Core
-
-        self.connection_handler = Base.connection_handler
+        extend ClassMethods
+        Callbacks::Register.setup(self)
+        initialize_generated_modules unless self == Base
       end
     end
+
+    extend ActiveModel::Configuration
+    extend ActiveModel::Callbacks
+    extend ActiveModel::MassAssignmentSecurity::ClassMethods
+    extend ActiveModel::AttributeMethods::ClassMethods
+    extend Callbacks::Register
+    extend Explain
+
+    def self.extend(*modules)
+      ClassMethods.send(:include, *modules)
+    end
+
+    include Persistence
+    include ReadonlyAttributes
+    include ModelSchema
+    include Inheritance
+    include Scoping
+    include Sanitization
+    include Integration
+    include AttributeAssignment
+    include ActiveModel::Conversion
+    include Validations
+    include Locking::Optimistic, Locking::Pessimistic
+    include AttributeMethods
+    include Callbacks, ActiveModel::Observing, Timestamp
+    include Associations
+    include IdentityMap
+    include ActiveModel::SecurePassword
+    include AutosaveAssociation, NestedAttributes
+    include Aggregations, Transactions, Reflection, Serialization, Store
+    include Core
 
     module DeprecationProxy #:nodoc:
       class << self

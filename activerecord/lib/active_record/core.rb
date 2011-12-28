@@ -4,70 +4,75 @@ module ActiveRecord
   module Core
     extend ActiveSupport::Concern
 
-    ##
-    # :singleton-method:
-    # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class,
-    # which is then passed on to any new database connections made and which can be retrieved on both
-    # a class and instance level by calling +logger+.
-    Configuration.define :logger
-
-    ##
-    # :singleton-method:
-    # Contains the database configuration - as is typically stored in config/database.yml -
-    # as a Hash.
-    #
-    # For example, the following database.yml...
-    #
-    #   development:
-    #     adapter: sqlite3
-    #     database: db/development.sqlite3
-    #
-    #   production:
-    #     adapter: sqlite3
-    #     database: db/production.sqlite3
-    #
-    # ...would result in ActiveRecord::Base.configurations to look like this:
-    #
-    #   {
-    #      'development' => {
-    #         'adapter'  => 'sqlite3',
-    #         'database' => 'db/development.sqlite3'
-    #      },
-    #      'production' => {
-    #         'adapter'  => 'sqlite3',
-    #         'database' => 'db/production.sqlite3'
-    #      }
-    #   }
-    Configuration.define :configurations, {}
-
-    ##
-    # :singleton-method:
-    # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling
-    # dates and times from the database. This is set to :local by default.
-    Configuration.define :default_timezone, :local
-
-    ##
-    # :singleton-method:
-    # Specifies the format to use when dumping the database schema with Rails'
-    # Rakefile. If :sql, the schema is dumped as (potentially database-
-    # specific) SQL statements. If :ruby, the schema is dumped as an
-    # ActiveRecord::Schema file which can be loaded into any database that
-    # supports migrations. Use :ruby if you want to have different database
-    # adapters for, e.g., your development and test environments.
-    Configuration.define :schema_format, :ruby
-
-    ##
-    # :singleton-method:
-    # Specify whether or not to use timestamps for migration versions
-    Configuration.define :timestamped_migrations, true
-
     included do
       ##
       # :singleton-method:
-      # The connection handler
-      class_attribute :connection_handler, :instance_writer => false
+      # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class,
+      # which is then passed on to any new database connections made and which can be retrieved on both
+      # a class and instance level by calling +logger+.
+      config_attribute :logger, :global => true
 
-      initialize_generated_modules unless self == Base
+      ##
+      # :singleton-method:
+      # Contains the database configuration - as is typically stored in config/database.yml -
+      # as a Hash.
+      #
+      # For example, the following database.yml...
+      #
+      #   development:
+      #     adapter: sqlite3
+      #     database: db/development.sqlite3
+      #
+      #   production:
+      #     adapter: sqlite3
+      #     database: db/production.sqlite3
+      #
+      # ...would result in ActiveRecord::Base.configurations to look like this:
+      #
+      #   {
+      #      'development' => {
+      #         'adapter'  => 'sqlite3',
+      #         'database' => 'db/development.sqlite3'
+      #      },
+      #      'production' => {
+      #         'adapter'  => 'sqlite3',
+      #         'database' => 'db/production.sqlite3'
+      #      }
+      #   }
+      config_attribute :configurations, :global => true
+      self.configurations = {}
+
+      ##
+      # :singleton-method:
+      # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling
+      # dates and times from the database. This is set to :local by default.
+      config_attribute :default_timezone, :global => true
+      self.default_timezone = :local
+
+      ##
+      # :singleton-method:
+      # Specifies the format to use when dumping the database schema with Rails'
+      # Rakefile. If :sql, the schema is dumped as (potentially database-
+      # specific) SQL statements. If :ruby, the schema is dumped as an
+      # ActiveRecord::Schema file which can be loaded into any database that
+      # supports migrations. Use :ruby if you want to have different database
+      # adapters for, e.g., your development and test environments.
+      config_attribute :schema_format, :global => true
+      self.schema_format = :ruby
+
+      ##
+      # :singleton-method:
+      # Specify whether or not to use timestamps for migration versions
+      config_attribute :timestamped_migrations, :global => true
+      self.timestamped_migrations = true
+
+      ##
+      # :singleton-method:
+      # The connection handler
+      config_attribute :connection_handler
+      self.connection_handler = ConnectionAdapters::ConnectionHandler.new
+
+      #
     end
 
     module ClassMethods
