@@ -63,10 +63,11 @@ module ActiveRecord
     #   => [#<Model field: "value", other_field: "value", and_one_more: "value">]
     #
     # Any attributes that do not have fields retrieved by a select
-    # will return `nil` when the getter method for that attribute is used:
+    # will raise a ActiveModel::MissingAttributeError when the getter method for that attribute is used:
     #
     #   >> Model.select(:field).first.other_field
-    #   => nil
+    #   => ActiveModel::MissingAttributeError: missing attribute: other_field
+
     def select(value = Proc.new)
       if block_given?
         to_a.select {|*block_args| value.call(*block_args) }
