@@ -197,6 +197,46 @@ class UrlOptionsTest < ActionController::TestCase
     rescue_action_in_public!
   end
 
+  def test_path_generation_priority
+    rs = ActionDispatch::Routing::RouteSet.new
+    rs.draw do
+      resources :models
+      match 'special' => 'model#new', :as => :new_model
+    end
+
+    url_params = {
+       :action     => "new",
+       :controller => "model",
+       :use_route  => "new_model",
+       :only_path  => true }
+
+    x = Struct.new(:rs, :params, :tc) {
+      include rs.named_routes.module
+      public :new_model_path
+
+      def url_for(*args)
+        tc.assert_equal([params], args)
+        rs.url_for(*args)
+      end
+    }.new(rs, url_params, self)
+  end
+
+  def test_url_for_params_priority
+    rs = ActionDispatch::Routing::RouteSet.new
+    rs.draw do
+      resources :models
+      match 'special' => 'model#new', :as => :new_model
+    end
+
+    url_params = {
+       :action     => "new",
+       :controller => "model",
+       :use_route  => "new_model",
+       :only_path  => true }
+
+    assert_equal '/special', rs.url_for(url_params)
+  end
+
   def test_url_options_override
     with_routing do |set|
       set.draw do
