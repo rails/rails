@@ -65,7 +65,7 @@ module ActiveRecord
     #   Post.update_counters [10, 15], :comment_count => 1
     #   # Executes the following SQL:
     #   # UPDATE posts
-    #   #    SET comment_count = COALESCE(comment_count, 0) + 1,
+    #   #    SET comment_count = COALESCE(comment_count, 0) + 1
     #   #  WHERE id IN (10, 15)
     def update_counters(id, counters)
       updates = counters.map do |counter_name, value|

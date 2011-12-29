@@ -356,7 +356,7 @@ module ActiveRecord
       end
     end
 
-    # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
+    # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
     # therefore all callbacks and filters are fired off before the object is deleted. This method is
     # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
     #
