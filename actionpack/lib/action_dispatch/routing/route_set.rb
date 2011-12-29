@@ -315,9 +315,10 @@ module ActionDispatch
             include UrlFor
 
             @_routes = routes
-            class << self
-              delegate :url_for, :to => '@_routes'
+            def self.url_for(options)
+              @_routes.url_for options
             end
+
             extend routes.named_routes.module
 
             # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
