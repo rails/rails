@@ -220,21 +220,6 @@ module CacheStoreBehavior
     assert_equal false, @cache.read('foo')
   end
 
-  def test_should_read_cached_numeric_from_previous_rails_versions
-    @old_cache = ActiveSupport::Cache::Entry.create( 1, Time.now )
-    assert_equal( 1, @old_cache.value )
-  end
-
-  def test_should_read_cached_hash_from_previous_rails_versions
-    @old_cache = ActiveSupport::Cache::Entry.create( {}, Time.now )
-    assert_equal( {}, @old_cache.value )
-  end
-
-  def test_should_read_cached_string_from_previous_rails_versions
-    @old_cache = ActiveSupport::Cache::Entry.create( 'string', Time.now )
-    assert_equal( 'string', @old_cache.value )
-  end
-
   def test_read_multi
     @cache.write('foo', 'bar')
     @cache.write('fu', 'baz')

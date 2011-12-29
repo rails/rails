@@ -578,17 +578,7 @@ module ActiveSupport
         # it is marshalled and eventually compressed. Both operations yield
         # strings.
         if @value
-          # In rails 3.1 and earlier values in entries did not marshaled without
-          # options[:compress] and if it's Numeric.
-          # But after commit a263f377978fc07515b42808ebc1f7894fafaa3a
-          # all values in entries are marshalled. And after that code below expects
-          # that all values in entries will be marshaled (and will be strings). 
-          # So here we need a check for old ones.
-          begin
-            Marshal.load(compressed? ? Zlib::Inflate.inflate(@value) : @value)
-          rescue
-            compressed? ? Zlib::Inflate.inflate(@value) : @value
-          end
+          Marshal.load(compressed? ? Zlib::Inflate.inflate(@value) : @value)
         end
       end
 
