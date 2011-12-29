@@ -28,7 +28,7 @@ module ActiveSupport
     end
 
     def silence(temporary_level = ERROR, &block)
-      @logger.silience(temporary_level, &block)
+      @logger.silence(temporary_level, &block)
     end
     deprecate :silence
 
