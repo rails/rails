@@ -78,7 +78,7 @@ module ActionDispatch
       include Enumerable
 
       def initialize #:nodoc:
-        @used    = Set.new
+        @discard = Set.new
         @closed  = false
         @flashes = {}
         @now     = nil
@@ -139,7 +139,7 @@ module ActionDispatch
       alias :merge! :update
 
       def replace(h) #:nodoc:
-        @used = Set.new
+        @discard = Set.new
         @flashes.replace h
         self
       end
@@ -163,7 +163,7 @@ module ActionDispatch
       #    flash.keep            # keeps the entire flash
       #    flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
       def keep(k = nil)
-        @used.subtract Array(k || keys)
+        @discard.subtract Array(k || keys)
         k ? self[k] : self
       end
 
@@ -172,7 +172,7 @@ module ActionDispatch
       #     flash.discard              # discard the entire flash at the end of the current action
       #     flash.discard(:warning)    # discard only the "warning" entry at the end of the current action
       def discard(k = nil)
-        @used.merge Array(k || keys)
+        @discard.merge Array(k || keys)
         k ? self[k] : self
       end
 
@@ -181,11 +181,11 @@ module ActionDispatch
       # This method is called automatically by filters, so you generally don't need to care about it.
       def sweep #:nodoc:
         keys.each do |k|
-          unless @used.include?(k)
-            @used << k
+          unless @discard.include?(k)
+            @discard << k
           else
             delete(k)
-            @used.delete(k)
+            @discard.delete(k)
           end
         end
       end
