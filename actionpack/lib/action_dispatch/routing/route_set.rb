@@ -124,9 +124,8 @@ module ActionDispatch
         end
 
         def install(destinations = [ActionController::Base, ActionView::Base])
-          destinations.each do |dest|
-            dest.__send__(:include, @module)
-          end
+          helper = @module
+          destinations.each { |d| d.module_eval { include helper } }
         end
 
         private
