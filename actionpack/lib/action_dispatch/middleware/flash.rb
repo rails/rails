@@ -214,7 +214,7 @@ module ActionDispatch
       protected
 
         def now_is_loaded?
-          !!@now
+          @now
         end
 
         # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
