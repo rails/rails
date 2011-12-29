@@ -93,7 +93,7 @@ module ActionDispatch
       end
 
       def []=(k, v) #:nodoc:
-        keep(k)
+        @discard.delete k
         @flashes[k] = v
       end
 
@@ -102,7 +102,7 @@ module ActionDispatch
       end
 
       def update(h) #:nodoc:
-        h.keys.each { |k| keep(k) }
+        @discard.subtract h.keys
         @flashes.update h
         self
       end
@@ -116,6 +116,7 @@ module ActionDispatch
       end
 
       def delete(key)
+        @discard.delete key
         @flashes.delete key
         self
       end
@@ -129,6 +130,7 @@ module ActionDispatch
       end
 
       def clear
+        @discard.clear
         @flashes.clear
       end
 
@@ -139,7 +141,7 @@ module ActionDispatch
       alias :merge! :update
 
       def replace(h) #:nodoc:
-        @discard = Set.new
+        @discard.clear
         @flashes.replace h
         self
       end
