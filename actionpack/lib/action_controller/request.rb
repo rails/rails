@@ -225,7 +225,7 @@ module ActionController
         not_trusted_addrs = remote_addr_list.reject {|addr| addr =~ TRUSTED_PROXIES}
         return not_trusted_addrs.first unless not_trusted_addrs.empty?
       end
-      remote_ips = @env['HTTP_X_FORWARDED_FOR'] && @env['HTTP_X_FORWARDED_FOR'].split(',')
+      remote_ips = @env['HTTP_X_FORWARDED_FOR'].present? && @env['HTTP_X_FORWARDED_FOR'].split(',')
 
       if @env.include? 'HTTP_CLIENT_IP'
         if ActionController::Base.ip_spoofing_check && remote_ips && !remote_ips.include?(@env['HTTP_CLIENT_IP'])
