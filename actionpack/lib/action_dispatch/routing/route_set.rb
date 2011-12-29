@@ -149,22 +149,23 @@ module ActionDispatch
           def define_hash_access(route, name, kind, options)
             selector = hash_access_name(name, kind)
 
-            # We use module_eval to avoid leaks
-            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_possible_method :#{selector}
-              def #{selector}(*args)
-                options = args.extract_options!
-                result = #{options.inspect}
+            @module.module_eval do
+              remove_possible_method selector
+
+              define_method(selector) do |*args|
+                inner_options = args.extract_options!
+                result = options.dup
 
                 if args.any?
                   result[:_positional_args] = args
-                  result[:_positional_keys] = #{route.segment_keys.inspect}
+                  result[:_positional_keys] = route.segment_keys
                 end
 
-                result.merge(options)
+                result.merge(inner_options)
               end
-              protected :#{selector}
-            END_EVAL
+
+              protected selector
+            end
             helpers << selector
           end
 
