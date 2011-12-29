@@ -307,33 +307,29 @@ module ActionDispatch
       end
 
       def url_helpers
-        @url_helpers ||= begin
-          routes = self
+        routes = self
 
-          helpers = Module.new do
-            extend ActiveSupport::Concern
-            include UrlFor
+        @url_helpers ||= Module.new {
+          extend ActiveSupport::Concern
+          include UrlFor
 
-            @_routes = routes
-            def self.url_for(options)
-              @_routes.url_for options
-            end
-
-            extend routes.named_routes.module
-
-            # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
-            # we can include?
-            # Yes plz - JP
-            included do
-              routes.install_helpers(self)
-              singleton_class.send(:redefine_method, :_routes) { routes }
-            end
-
-            define_method(:_routes) { @_routes || routes }
+          @_routes = routes
+          def self.url_for(options)
+            @_routes.url_for options
           end
 
-          helpers
-        end
+          extend routes.named_routes.module
+
+          # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
+          # we can include?
+          # Yes plz - JP
+          included do
+            routes.install_helpers(self)
+            singleton_class.send(:redefine_method, :_routes) { routes }
+          end
+
+          define_method(:_routes) { @_routes || routes }
+        }
       end
 
       def empty?
