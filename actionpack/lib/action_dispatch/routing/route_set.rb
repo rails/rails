@@ -83,7 +83,9 @@ module ActionDispatch
         attr_reader :routes, :helpers, :module
 
         def initialize
-          clear!
+          @routes  = {}
+          @helpers = []
+          @module  = Module.new
         end
 
         def helper_names
@@ -91,10 +93,8 @@ module ActionDispatch
         end
 
         def clear!
-          @routes = {}
-          @helpers = []
-
-          @module ||= Module.new
+          @routes.clear
+          @helpers.clear
         end
 
         def add(name, route)
