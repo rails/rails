@@ -163,7 +163,8 @@ module ActionDispatch
       #    flash.keep            # keeps the entire flash
       #    flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
       def keep(k = nil)
-        use(k, false)
+        @used.subtract Array(k || keys)
+        k ? self[k] : self
       end
 
       # Marks the entire flash or a single flash entry to be discarded by the end of the current action:
@@ -171,7 +172,8 @@ module ActionDispatch
       #     flash.discard              # discard the entire flash at the end of the current action
       #     flash.discard(:warning)    # discard only the "warning" entry at the end of the current action
       def discard(k = nil)
-        use(k)
+        @used.merge Array(k || keys)
+        k ? self[k] : self
       end
 
       # Mark for removal entries that were kept, and delete unkept ones.
@@ -214,19 +216,6 @@ module ActionDispatch
       protected
       def now_is_loaded?
         @now
-      end
-
-      private
-      # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
-      #     use()               # marks the entire flash as used
-      #     use('msg')          # marks the "msg" entry as used
-      #     use(nil, false)     # marks the entire flash as unused (keeps it around for one more action)
-      #     use('msg', false)   # marks the "msg" entry as unused (keeps it around for one more action)
-      # Returns the single value for the key you asked to be marked (un)used or the FlashHash itself
-      # if no key is passed.
-      def use(key = nil, used = true)
-        Array(key || keys).each { |k| used ? @used << k : @used.delete(k) }
-        return key ? self[key] : self
       end
     end
 
