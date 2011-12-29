@@ -104,6 +104,15 @@ module ActionDispatch
       assert_equal({'hello' => 'world', 'hi' => 'mom'}, @hash.to_hash)
     end
 
+    def test_update_delete_sweep
+      @hash['hello'] = 'world'
+      @hash.delete 'hello'
+      @hash.update({'hello' => 'mom'})
+
+      @hash.sweep
+      assert_equal({'hello' => 'mom'}, @hash.to_hash)
+    end
+
     def test_delete_sweep
       @hash['hello'] = 'world'
       @hash['hi']    = 'mom'
@@ -147,6 +156,16 @@ module ActionDispatch
 
       @hash.sweep
       assert_equal({'omg' => 'world', 'hello' => 'world'}, @hash.to_hash)
+    end
+
+    def test_double_sweep
+      @hash['hello'] = 'world'
+      @hash.sweep
+
+      assert_equal({'hello' => 'world'}, @hash.to_hash)
+
+      @hash.sweep
+      assert_equal({}, @hash.to_hash)
     end
   end
 end
