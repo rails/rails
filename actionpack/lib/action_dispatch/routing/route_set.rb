@@ -124,7 +124,7 @@ module ActionDispatch
         end
 
         def install(destinations = [ActionController::Base, ActionView::Base])
-          Array(destinations).each do |dest|
+          destinations.each do |dest|
             dest.__send__(:include, @module)
           end
         end
@@ -278,7 +278,7 @@ module ActionDispatch
       end
 
       def install_helpers(destinations = [ActionController::Base, ActionView::Base])
-        Array(destinations).each { |d| d.module_eval { include Helpers } }
+        destinations.each { |d| d.module_eval { include Helpers } }
         named_routes.install(destinations)
       end
 
@@ -324,7 +324,7 @@ module ActionDispatch
           # we can include?
           # Yes plz - JP
           included do
-            routes.install_helpers(self)
+            routes.install_helpers([self])
             singleton_class.send(:redefine_method, :_routes) { routes }
           end
 
