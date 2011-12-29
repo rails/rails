@@ -188,9 +188,6 @@ module ActionDispatch
             @used.delete(k)
           end
         end
-
-        # clean up after keys that could have been left over by calling reject! or shift on the flash
-        @used.subtract(@used - keys)
       end
 
       # Convenience accessor for flash[:alert]
