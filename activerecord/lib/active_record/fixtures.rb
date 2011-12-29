@@ -536,8 +536,7 @@ module ActiveRecord
 
     def initialize(connection, fixture_name, class_name, fixture_path)
       @fixtures     = ActiveSupport::OrderedHash.new
-      @name         = fixture_name.tr('/', '_') # preserve fixture base name
-                                                # TODO: see how it is used and if the substitution can be avoided
+      @name         = fixture_name
       @fixture_path = fixture_path
 
       @class_name   = class_name # TODO: this variable is not used, should it be removed?
@@ -810,9 +809,9 @@ module ActiveRecord
         fixture_names = Array.wrap(fixture_names || fixture_table_names)
         methods = Module.new do
           fixture_names.each do |fixture_name|
-            fixture_name = fixture_name.to_s.tr('./', '_') # TODO: use fixture_name variable for only one form of fixture names ("admin/users" for example)
+            accessor_name = fixture_name.tr('/', '_').to_sym
 
-            define_method(fixture_name) do |*fixtures|
+            define_method(accessor_name) do |*fixtures|
               force_reload = fixtures.pop if fixtures.last == true || fixtures.last == :reload
 
               @fixture_cache[fixture_name] ||= {}
@@ -825,13 +824,13 @@ module ActiveRecord
                     @fixture_cache[fixture_name][fixture] ||= @loaded_fixtures[fixture_name][fixture.to_s].find
                   end
                 else
-                  raise StandardError, "No fixture with name '#{fixture}' found for table '#{fixture_name}'"
+                  raise StandardError, "No entry named '#{fixture}' found for fixture collection '#{fixture_name}'"
                 end
               end
 
               instances.size == 1 ? instances.first : instances
             end
-            private fixture_name
+            private accessor_name
           end
         end
         include methods
