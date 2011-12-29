@@ -182,14 +182,8 @@ module ActionDispatch
       #
       # This method is called automatically by filters, so you generally don't need to care about it.
       def sweep #:nodoc:
-        keys.each do |k|
-          unless @discard.include?(k)
-            @discard << k
-          else
-            delete(k)
-            @discard.delete(k)
-          end
-        end
+        @discard.each { |k| @flashes.delete k }
+        @discard.replace @flashes.keys
       end
 
       # Convenience accessor for flash[:alert]
