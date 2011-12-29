@@ -212,22 +212,22 @@ module ActionDispatch
       end
 
       protected
+      def now_is_loaded?
+        @now
+      end
 
-        def now_is_loaded?
-          @now
-        end
-
-        # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
-        #     use()               # marks the entire flash as used
-        #     use('msg')          # marks the "msg" entry as used
-        #     use(nil, false)     # marks the entire flash as unused (keeps it around for one more action)
-        #     use('msg', false)   # marks the "msg" entry as unused (keeps it around for one more action)
-        # Returns the single value for the key you asked to be marked (un)used or the FlashHash itself
-        # if no key is passed.
-        def use(key = nil, used = true)
-          Array(key || keys).each { |k| used ? @used << k : @used.delete(k) }
-          return key ? self[key] : self
-        end
+      private
+      # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
+      #     use()               # marks the entire flash as used
+      #     use('msg')          # marks the "msg" entry as used
+      #     use(nil, false)     # marks the entire flash as unused (keeps it around for one more action)
+      #     use('msg', false)   # marks the "msg" entry as unused (keeps it around for one more action)
+      # Returns the single value for the key you asked to be marked (un)used or the FlashHash itself
+      # if no key is passed.
+      def use(key = nil, used = true)
+        Array(key || keys).each { |k| used ? @used << k : @used.delete(k) }
+        return key ? self[key] : self
+      end
     end
 
     def initialize(app)
