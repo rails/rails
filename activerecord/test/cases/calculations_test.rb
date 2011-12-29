@@ -49,11 +49,11 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_get_maximum_of_field_with_include
-    assert_equal 55, Account.maximum(:credit_limit, :include => :firm, :conditions => "companies.name != 'Summit'")
+    assert_equal 55, Account.eager_load(:firm).where("companies.name != 'Summit'").maximum(:credit_limit)
   end
 
   def test_should_get_maximum_of_field_with_scoped_include
-    Account.send :with_scope, :find => { :include => :firm, :conditions => "companies.name != 'Summit'" } do
+    Account.eager_load(:firm).where("companies.name != 'Summit'").scoping do
       assert_equal 55, Account.maximum(:credit_limit)
     end
   end
@@ -270,7 +270,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_not_modify_options_when_using_includes
-    options = {:conditions => 'companies.id > 1', :include => :firm}
+    options = {:include => :firm}
     options_copy = options.dup
 
     Account.count(:all, options)
@@ -334,7 +334,9 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_perform_joined_include_when_referencing_included_tables
-    joined_count = Account.includes(:firm).where(:companies => {:name => '37signals'}).count
+    joined_count = assert_deprecated do
+      Account.includes(:firm).where(:companies => {:name => '37signals'}).count
+    end
     assert_equal 1, joined_count
   end
 
