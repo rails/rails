@@ -94,9 +94,7 @@ module ActionDispatch
           @routes = {}
           @helpers = []
 
-          @module ||= Module.new do
-            instance_methods.each { |selector| remove_method(selector) }
-          end
+          @module ||= Module.new
         end
 
         def add(name, route)
