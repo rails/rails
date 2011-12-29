@@ -123,16 +123,7 @@ module ActionDispatch
           routes.length
         end
 
-        def reset!
-          old_routes = routes.dup
-          clear!
-          old_routes.each do |name, route|
-            add(name, route)
-          end
-        end
-
-        def install(destinations = [ActionController::Base, ActionView::Base], regenerate = false)
-          reset! if regenerate
+        def install(destinations = [ActionController::Base, ActionView::Base])
           Array(destinations).each do |dest|
             dest.__send__(:include, @module)
           end
@@ -285,9 +276,9 @@ module ActionDispatch
         @prepend.each { |blk| eval_block(blk) }
       end
 
-      def install_helpers(destinations = [ActionController::Base, ActionView::Base], regenerate_code = false)
+      def install_helpers(destinations = [ActionController::Base, ActionView::Base])
         Array(destinations).each { |d| d.module_eval { include Helpers } }
-        named_routes.install(destinations, regenerate_code)
+        named_routes.install(destinations)
       end
 
       module MountedHelpers
