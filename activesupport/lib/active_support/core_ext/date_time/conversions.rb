@@ -6,7 +6,7 @@ require 'active_support/values/time_zone'
 class DateTime
   # Ruby 1.9 has DateTime#to_time which internally relies on Time. We define our own #to_time which allows
   # DateTimes outside the range of what can be created with Time.
-  remove_method :to_time if instance_methods.include?(:to_time)
+  remove_method :to_time
 
   # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
   #
