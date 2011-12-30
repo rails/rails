@@ -41,6 +41,18 @@ module ActiveRecord
         sleep 0.0002
         assert_equal(count - 1, pool.connections.length)
       end
+
+      def test_pool_has_reaper
+        assert pool.reaper
+      end
+
+      def test_reaping_frequency_configuration
+        spec = ActiveRecord::Base.connection_pool.spec
+        spec = ConnectionSpecification.new(spec.config.dup, spec.adapter_method)
+        spec.config[:reaping_frequency] = 100
+        pool = ConnectionPool.new spec
+        assert_equal 100, pool.reaper.frequency
+      end
     end
   end
 end

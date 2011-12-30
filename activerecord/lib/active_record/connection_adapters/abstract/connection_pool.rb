@@ -64,6 +64,9 @@ module ActiveRecord
     # * +wait_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
     class ConnectionPool
+      # Every +frequency+ seconds, the reaper will call +reap+ on +pool+.
+      # A reaper instantiated with a nil frequency will never reap the
+      # connection pool.
       class Reaper
         attr_reader :pool, :frequency
 
@@ -86,7 +89,7 @@ module ActiveRecord
       include MonitorMixin
 
       attr_accessor :automatic_reconnect, :timeout
-      attr_reader :spec, :connections, :size
+      attr_reader :spec, :connections, :size, :reaper
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -103,6 +106,7 @@ module ActiveRecord
         @reserved_connections = {}
 
         @timeout = spec.config[:wait_timeout] || 5
+        @reaper  = Reaper.new self, spec.config[:reaping_frequency]
 
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
