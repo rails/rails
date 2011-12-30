@@ -47,7 +47,7 @@ module ActionView
       #   <% end -%>
       #   # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
       #
-      #  <%= form_tag('/posts', :remote => true) %>
+      #   <%= form_tag('/posts', :remote => true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
       #
       #   form_tag('http://far.away.com/form', :authenticity_token => false)
@@ -577,7 +577,7 @@ module ActionView
       #
       # ==== Examples
       #   number_field_tag 'quantity', nil, :in => 1...10
-      #   => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys
         options["type"] ||= "number"
