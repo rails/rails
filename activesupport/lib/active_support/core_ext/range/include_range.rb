@@ -9,7 +9,8 @@ class Range
   #  (5..9).include?(11) # => false
   def include_with_range?(value)
     if value.is_a?(::Range)
-      min <= value.min && max >= value.max
+      operator = exclude_end? && !value.exclude_end? ? :< : :<=
+      include_without_range?(value.first) && value.last.send(operator, last)
     else
       include_without_range?(value)
     end
