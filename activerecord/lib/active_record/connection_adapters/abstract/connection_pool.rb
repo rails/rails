@@ -155,7 +155,6 @@ module ActiveRecord
       # associated with stale threads.
       def verify_active_connections! #:nodoc:
         synchronize do
-          clear_stale_cached_connections!
           @connections.each do |connection|
             connection.verify!
           end
@@ -165,20 +164,8 @@ module ActiveRecord
       # Return any checked-out connections back to the pool by threads that
       # are no longer alive.
       def clear_stale_cached_connections!
-        keys = @reserved_connections.keys - Thread.list.find_all { |t|
-          t.alive?
-        }.map { |thread| thread.object_id }
-        keys.each do |key|
-          conn = @reserved_connections[key]
-          ActiveSupport::Deprecation.warn(<<-eowarn) if conn.in_use?
-Database connections will not be closed automatically, please close your
-database connection at the end of the thread by calling `close` on your
-connection.  For example: ActiveRecord::Base.connection.close
-          eowarn
-          checkin conn
-          @reserved_connections.delete(key)
-        end
       end
+      deprecate :clear_stale_cached_connections!
 
       # Check-out a database connection from the pool, indicating that you want
       # to use it. You should call #checkin when you no longer need this.
@@ -214,12 +201,9 @@ connection.  For example: ActiveRecord::Base.connection.close
               return conn
             end
 
-            @queue.wait(@timeout)
-
             if(active_connections.size < @connections.size)
               next
             else
-              clear_stale_cached_connections!
               if @size == active_connections.size
                 raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}. The max pool size is currently #{@size}; consider increasing it."
               end
