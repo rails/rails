@@ -4,6 +4,8 @@ module ActiveRecord
   module ConnectionAdapters
     class ConnectionPoolTest < ActiveRecord::TestCase
       def setup
+        super
+
         # Keep a duplicate pool so we do not bother others
         @pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
 
@@ -16,6 +18,23 @@ module ActiveRecord
             end
           end
         end
+      end
+
+      def teardown
+        super
+        @pool.connections.each(&:close)
+      end
+
+      def test_remove_connection
+        conn = @pool.checkout
+        assert conn.in_use?
+
+        length = @pool.connections.length
+        @pool.remove conn
+        assert conn.in_use?
+        assert_equal(length - 1, @pool.connections.length)
+      ensure
+        conn.close
       end
 
       def test_active_connection?
