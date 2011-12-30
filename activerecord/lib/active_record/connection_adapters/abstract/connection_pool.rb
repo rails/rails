@@ -222,6 +222,13 @@ module ActiveRecord
       def remove(conn)
         synchronize do
           @connections.delete conn
+
+          # FIXME: we might want to store the key on the connection so that removing
+          # from the reserved hash will be a little easier.
+          thread_id = @reserved_connections.keys.find { |k|
+            @reserved_connections[k] == conn
+          }
+          @reserved_connections.delete thread_id if thread_id
         end
       end
 

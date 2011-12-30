@@ -37,6 +37,14 @@ module ActiveRecord
         conn.close
       end
 
+      def test_remove_connection_for_thread
+        conn = @pool.connection
+        @pool.remove conn
+        assert_not_equal(conn, @pool.connection)
+      ensure
+        conn.close
+      end
+
       def test_active_connection?
         assert !@pool.active_connection?
         assert @pool.connection
