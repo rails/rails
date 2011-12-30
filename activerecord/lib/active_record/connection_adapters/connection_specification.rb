@@ -3,7 +3,7 @@ module ActiveRecord
     class ConnectionSpecification #:nodoc:
       attr_reader :config, :adapter_method
 
-      def initialize (config, adapter_method)
+      def initialize(config, adapter_method)
         @config, @adapter_method = config, adapter_method
       end
 
