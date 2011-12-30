@@ -232,6 +232,18 @@ module ActiveRecord
         end
       end
 
+      # Removes dead connections from the pool.  A dead connection can occur
+      # if a programmer forgets to close a connection at the end of a thread
+      # or a thread dies unexpectedly.
+      def reap
+        synchronize do
+          stale = Time.now - @timeout
+          connections.dup.each do |conn|
+            remove conn if conn.in_use? && stale > conn.last_use
+          end
+        end
+      end
+
       private
 
       def new_connection

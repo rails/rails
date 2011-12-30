@@ -25,6 +25,21 @@ module ActiveRecord
         @pool.connections.each(&:close)
       end
 
+      def test_reap
+        @pool.checkout
+        @pool.checkout
+        @pool.checkout
+        @pool.timeout = 0
+
+        connections = @pool.connections.dup
+
+        @pool.reap
+
+        assert_equal 0, @pool.connections.length
+      ensure
+        connections.map(&:close)
+      end
+
       def test_remove_connection
         conn = @pool.checkout
         assert conn.in_use?
