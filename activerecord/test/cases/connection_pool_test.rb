@@ -25,7 +25,7 @@ module ActiveRecord
         @pool.connections.each(&:close)
       end
 
-      def test_reap
+      def test_reap_and_active
         @pool.checkout
         @pool.checkout
         @pool.checkout
@@ -35,9 +35,25 @@ module ActiveRecord
 
         @pool.reap
 
+        assert_equal connections.length, @pool.connections.length
+      end
+
+      def test_reap_inactive
+        @pool.checkout
+        @pool.checkout
+        @pool.checkout
+        @pool.timeout = 0
+
+        connections = @pool.connections.dup
+        connections.each do |conn|
+          conn.extend(Module.new { def active?; false; end; })
+        end
+
+        @pool.reap
+
         assert_equal 0, @pool.connections.length
       ensure
-        connections.map(&:close)
+        connections.each(&:close)
       end
 
       def test_remove_connection

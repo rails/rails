@@ -239,7 +239,7 @@ module ActiveRecord
         synchronize do
           stale = Time.now - @timeout
           connections.dup.each do |conn|
-            remove conn if conn.in_use? && stale > conn.last_use
+            remove conn if conn.in_use? && stale > conn.last_use && !conn.active?
           end
         end
       end
