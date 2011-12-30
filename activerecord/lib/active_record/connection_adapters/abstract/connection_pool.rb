@@ -64,6 +64,25 @@ module ActiveRecord
     # * +wait_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
     class ConnectionPool
+      class Reaper
+        attr_reader :pool, :frequency
+
+        def initialize(pool, frequency)
+          @pool      = pool
+          @frequency = frequency
+        end
+
+        def start
+          return unless frequency
+          Thread.new(frequency, pool) { |t, p|
+            while true
+              sleep t
+              p.reap
+            end
+          }
+        end
+      end
+
       include MonitorMixin
 
       attr_accessor :automatic_reconnect, :timeout
