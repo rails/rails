@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Connections *must* be closed at the end of a thread.  If not, your
+    connection pool can fill and an exception will be raised.
+
 *   Added the `ActiveRecord::Model` module which can be included in a
     class as an alternative to inheriting from `ActiveRecord::Base`:
 

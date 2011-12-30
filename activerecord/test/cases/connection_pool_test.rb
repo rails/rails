@@ -35,27 +35,16 @@ module ActiveRecord
           threads << Thread.new(i) do |pool_count|
             connection = pool.connection
             assert_not_nil connection
+            connection.close
           end
         end
 
-        threads.each {|t| t.join}
+        threads.each(&:join)
 
         Thread.new do
-          threads.each do |t|
-            thread_ids = pool.instance_variable_get(:@reserved_connections).keys
-            assert thread_ids.include?(t.object_id)
-          end
-
-          assert_deprecated do
-            pool.connection
-          end
-          threads.each do |t|
-            thread_ids = pool.instance_variable_get(:@reserved_connections).keys
-            assert !thread_ids.include?(t.object_id)
-          end
+          assert pool.connection
           pool.connection.close
         end.join
-
       end
 
       def test_automatic_reconnect=
