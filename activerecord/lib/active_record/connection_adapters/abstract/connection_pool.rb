@@ -186,13 +186,14 @@ module ActiveRecord
       def checkout
         # Checkout an available connection
         synchronize do
+          # Try to find a connection that hasn't been leased
           conn = @connections.find { |c| c.lease }
 
-          unless conn
-            if @connections.size < @size
-              conn = checkout_new_connection
-              conn.lease
-            end
+          # If all connections were leased, and we have room to expand,
+          # create a new connection and lease it.
+          if !conn && @connections.size < @size
+            conn = checkout_new_connection
+            conn.lease
           end
 
           if conn
