@@ -107,6 +107,7 @@ module ActiveRecord
 
         @timeout = spec.config[:wait_timeout] || 5
         @reaper  = Reaper.new self, spec.config[:reaping_frequency]
+        @reaper.start
 
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
