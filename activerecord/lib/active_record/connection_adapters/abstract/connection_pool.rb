@@ -59,7 +59,7 @@ module ActiveRecord
     class ConnectionPool
       include MonitorMixin
 
-      attr_accessor :automatic_reconnect
+      attr_accessor :automatic_reconnect, :timeout
       attr_reader :spec, :connections
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
@@ -214,6 +214,14 @@ module ActiveRecord
           conn.run_callbacks :checkin do
             conn.expire
           end
+        end
+      end
+
+      # Remove a connection from the connection pool.  The connection will
+      # remain open and active but will no longer be managed by this pool.
+      def remove(conn)
+        synchronize do
+          @connections.delete conn
         end
       end
 
