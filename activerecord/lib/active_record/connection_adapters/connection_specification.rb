@@ -7,6 +7,10 @@ module ActiveRecord
         @config, @adapter_method = config, adapter_method
       end
 
+      def initialize_dup(original)
+        @config = original.config.dup
+      end
+
       ##
       # Builds a ConnectionSpecification from user input
       class Resolver # :nodoc:
