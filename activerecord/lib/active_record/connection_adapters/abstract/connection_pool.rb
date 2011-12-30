@@ -9,6 +9,13 @@ module ActiveRecord
   class ConnectionTimeoutError < ConnectionNotEstablished
   end
 
+  # Raised when a connection pool is full and another connection is requested
+  class PoolFullError < ConnectionNotEstablished
+    def initialize size, timeout
+      super("Connection pool of size #{size} and timeout #{timeout}s is full")
+    end
+  end
+
   module ConnectionAdapters
     # Connection pool base class for managing Active Record database
     # connections.
@@ -60,7 +67,7 @@ module ActiveRecord
       include MonitorMixin
 
       attr_accessor :automatic_reconnect, :timeout
-      attr_reader :spec, :connections
+      attr_reader :spec, :connections, :size
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -160,37 +167,33 @@ module ActiveRecord
         end
       end
 
-      # Return any checked-out connections back to the pool by threads that
-      # are no longer alive.
-      def clear_stale_cached_connections!
+      def clear_stale_cached_connections! # :nodoc:
       end
       deprecate :clear_stale_cached_connections!
 
       # Check-out a database connection from the pool, indicating that you want
       # to use it. You should call #checkin when you no longer need this.
       #
-      # This is done by either returning an existing connection, or by creating
-      # a new connection. If the maximum number of connections for this pool has
-      # already been reached, but the pool is empty (i.e. they're all being used),
-      # then this method will wait until a thread has checked in a connection.
-      # The wait time is bounded however: if no connection can be checked out
-      # within the timeout specified for this pool, then a ConnectionTimeoutError
-      # exception will be raised.
+      # This is done by either returning and leasing existing connection, or by
+      # creating a new connection and leasing it.
+      #
+      # If all connections are leased and the pool is at capacity (meaning the
+      # number of currently leased connections is greater than or equal to the
+      # size limit set), an ActiveRecord::PoolFullError exception will be raised.
       #
       # Returns: an AbstractAdapter object.
       #
       # Raises:
-      # - ConnectionTimeoutError: no connection can be obtained from the pool
-      #   within the timeout period.
+      # - PoolFullError: no connection can be obtained from the pool.
       def checkout
         # Checkout an available connection
         synchronize do
-          # Try to find a connection that hasn't been leased
-          conn = @connections.find { |c| c.lease }
+          # Try to find a connection that hasn't been leased, and lease it
+          conn = connections.find { |c| c.lease }
 
           # If all connections were leased, and we have room to expand,
           # create a new connection and lease it.
-          if !conn && @connections.size < @size
+          if !conn && connections.size < size
             conn = checkout_new_connection
             conn.lease
           end
@@ -198,9 +201,8 @@ module ActiveRecord
           if conn
             checkout_and_verify conn
           else
-            raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}. The max pool size is currently #{@size}; consider increasing it."
+            raise PoolFullError.new(size, timeout)
           end
-
         end
       end
 

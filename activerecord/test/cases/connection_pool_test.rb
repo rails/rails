@@ -25,6 +25,14 @@ module ActiveRecord
         @pool.connections.each(&:close)
       end
 
+      def test_full_pool_exception
+        assert_raises(PoolFullError) do
+          (@pool.size + 1).times do
+            @pool.checkout
+          end
+        end
+      end
+
       def test_reap_and_active
         @pool.checkout
         @pool.checkout
