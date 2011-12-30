@@ -165,7 +165,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
         match 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
         match ':controller/:action'
       end
-      set.install_helpers
+      set.install_helpers([ActionController::Base, ActionView::Base])
 
       process :redirect_to_named_route
       assert_redirected_to 'http://test.host/route_one'

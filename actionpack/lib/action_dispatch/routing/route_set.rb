@@ -276,7 +276,7 @@ module ActionDispatch
         @prepend.each { |blk| eval_block(blk) }
       end
 
-      def install_helpers(destinations = [ActionController::Base, ActionView::Base])
+      def install_helpers(destinations)
         destinations.each { |d| d.module_eval { include Helpers } }
         named_routes.install(destinations)
       end
