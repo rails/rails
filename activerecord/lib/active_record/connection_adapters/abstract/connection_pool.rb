@@ -76,7 +76,6 @@ module ActiveRecord
         # The cache of reserved connections mapped to threads
         @reserved_connections = {}
 
-        @queue = new_cond
         @timeout = spec.config[:wait_timeout] || 5
 
         # default max pool size to 5
@@ -214,7 +213,6 @@ module ActiveRecord
         synchronize do
           conn.run_callbacks :checkin do
             conn.expire
-            @queue.signal
           end
         end
       end
