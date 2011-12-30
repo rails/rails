@@ -186,30 +186,21 @@ module ActiveRecord
       def checkout
         # Checkout an available connection
         synchronize do
-          loop do
-            conn = @connections.find { |c| c.lease }
+          conn = @connections.find { |c| c.lease }
 
-            unless conn
-              if @connections.size < @size
-                conn = checkout_new_connection
-                conn.lease
-              end
+          unless conn
+            if @connections.size < @size
+              conn = checkout_new_connection
+              conn.lease
             end
-
-            if conn
-              checkout_and_verify conn
-              return conn
-            end
-
-            if(active_connections.size < @connections.size)
-              next
-            else
-              if @size == active_connections.size
-                raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}. The max pool size is currently #{@size}; consider increasing it."
-              end
-            end
-
           end
+
+          if conn
+            checkout_and_verify conn
+          else
+            raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}. The max pool size is currently #{@size}; consider increasing it."
+          end
+
         end
       end
 
