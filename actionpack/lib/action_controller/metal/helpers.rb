@@ -56,7 +56,7 @@ module ActionController
     include AbstractController::Helpers
 
     included do
-      config_accessor :helpers_path, :include_all_helpers
+      class_attribute :helpers_path, :include_all_helpers
       self.helpers_path ||= []
       self.include_all_helpers = true
     end

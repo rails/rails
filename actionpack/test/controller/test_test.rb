@@ -665,20 +665,15 @@ XML
 
   FILES_DIR = File.dirname(__FILE__) + '/../fixtures/multipart'
 
-  if RUBY_VERSION < '1.9'
-    READ_BINARY = 'rb'
-    READ_PLAIN = 'r'
-  else
-    READ_BINARY = 'rb:binary'
-    READ_PLAIN = 'r:binary'
-  end
+  READ_BINARY = 'rb:binary'
+  READ_PLAIN = 'r:binary'
 
   def test_test_uploaded_file
     filename = 'mona_lisa.jpg'
     path = "#{FILES_DIR}/#{filename}"
     content_type = 'image/png'
     expected = File.read(path)
-    expected.force_encoding(Encoding::BINARY) if expected.respond_to?(:force_encoding)
+    expected.force_encoding(Encoding::BINARY)
 
     file = Rack::Test::UploadedFile.new(path, content_type)
     assert_equal filename, file.original_filename

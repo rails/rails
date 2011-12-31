@@ -39,6 +39,7 @@ module ActiveRecord
     autoload :Aggregations
     autoload :Associations
     autoload :AttributeMethods
+    autoload :AttributeAssignment
     autoload :AutosaveAssociation
 
     autoload :Relation
@@ -50,30 +51,45 @@ module ActiveRecord
       autoload :PredicateBuilder
       autoload :SpawnMethods
       autoload :Batches
+      autoload :Explain
+      autoload :Delegation
     end
 
     autoload :Base
     autoload :Callbacks
+    autoload :Core
     autoload :CounterCache
+    autoload :ConnectionHandling
+    autoload :DynamicMatchers
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch
+    autoload :Explain
+    autoload :IdentityMap
+    autoload :Inheritance
+    autoload :Integration
     autoload :Migration
     autoload :Migrator, 'active_record/migration'
-    autoload :NamedScope
+    autoload :Model
+    autoload :ModelSchema
     autoload :NestedAttributes
     autoload :Observer
     autoload :Persistence
     autoload :QueryCache
+    autoload :Querying
+    autoload :ReadonlyAttributes
     autoload :Reflection
     autoload :Result
+    autoload :Sanitization
     autoload :Schema
     autoload :SchemaDumper
+    autoload :Scoping
     autoload :Serialization
     autoload :SessionStore
+    autoload :Store
     autoload :Timestamp
     autoload :Transactions
+    autoload :Translation
     autoload :Validations
-    autoload :IdentityMap
   end
 
   module Coders
@@ -91,6 +107,7 @@ module ActiveRecord
       autoload :Read
       autoload :TimeZoneConversion
       autoload :Write
+      autoload :Serialization
     end
   end
 
@@ -109,6 +126,15 @@ module ActiveRecord
     eager_autoload do
       autoload :AbstractAdapter
       autoload :ConnectionManagement, "active_record/connection_adapters/abstract/connection_pool"
+    end
+  end
+
+  module Scoping
+    extend ActiveSupport::Autoload
+
+    eager_autoload do
+      autoload :Named
+      autoload :Default
     end
   end
 

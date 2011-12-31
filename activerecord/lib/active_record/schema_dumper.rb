@@ -190,6 +190,9 @@ HEADER
             index_lengths = (index.lengths || []).compact
             statement_parts << (':length => ' + Hash[index.columns.zip(index.lengths)].inspect) unless index_lengths.empty?
 
+            index_orders = (index.orders || {})
+            statement_parts << (':order => ' + index.orders.inspect) unless index_orders.empty?
+
             '  ' + statement_parts.join(', ')
           end
 

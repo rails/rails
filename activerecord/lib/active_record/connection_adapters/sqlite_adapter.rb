@@ -16,7 +16,7 @@ module ActiveRecord
         end
 
         def binary_to_string(value)
-          if value.respond_to?(:force_encoding) && value.encoding != Encoding::ASCII_8BIT
+          if value.encoding != Encoding::ASCII_8BIT
             value = value.force_encoding(Encoding::ASCII_8BIT)
           end
 
@@ -89,10 +89,7 @@ module ActiveRecord
         @statements = StatementPool.new(@connection,
                                         config.fetch(:statement_limit) { 1000 })
         @config = config
-      end
-
-      def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::SQLite.new(pool)
+        @visitor = Arel::Visitors::SQLite.new self
       end
 
       def adapter_name #:nodoc:
@@ -122,6 +119,11 @@ module ActiveRecord
 
       # Returns true.
       def supports_primary_key? #:nodoc:
+        true
+      end
+
+      # Returns true.
+      def supports_explain?
         true
       end
 
@@ -155,6 +157,10 @@ module ActiveRecord
       # Returns true if SQLite version is '3.1.0' or greater, false otherwise.
       def supports_autoincrement? #:nodoc:
         sqlite_version >= '3.1.0'
+      end
+
+      def supports_index_sort_order?
+        sqlite_version >= '3.3.0'
       end
 
       def native_database_types #:nodoc:
@@ -195,28 +201,39 @@ module ActiveRecord
         end
       end
 
-      if "<3".encoding_aware?
-        def type_cast(value, column) # :nodoc:
-          return value.to_f if BigDecimal === value
-          return super unless String === value
-          return super unless column && value
+      def type_cast(value, column) # :nodoc:
+        return value.to_f if BigDecimal === value
+        return super unless String === value
+        return super unless column && value
 
-          value = super
-          if column.type == :string && value.encoding == Encoding::ASCII_8BIT
-            @logger.error "Binary data inserted for `string` type on column `#{column.name}`"
-            value.encode! 'utf-8'
-          end
-          value
+        value = super
+        if column.type == :string && value.encoding == Encoding::ASCII_8BIT
+          @logger.error "Binary data inserted for `string` type on column `#{column.name}`"
+          value.encode! 'utf-8'
         end
-      else
-        def type_cast(value, column) # :nodoc:
-          return super unless BigDecimal === value
-
-          value.to_f
-        end
+        value
       end
 
       # DATABASE STATEMENTS ======================================
+
+      def explain(arel, binds = [])
+        sql = "EXPLAIN QUERY PLAN #{to_sql(arel)}"
+        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
+      end
+
+      class ExplainPrettyPrinter
+        # Pretty prints the result of a EXPLAIN QUERY PLAN in a way that resembles
+        # the output of the SQLite shell:
+        #
+        #   0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
+        #   0|1|1|SCAN TABLE posts (~100000 rows)
+        #
+        def pp(result) # :nodoc:
+          result.rows.map do |row|
+            row.join('|')
+          end.join("\n") + "\n"
+        end
+      end
 
       def exec_query(sql, name = nil, binds = [])
         log(sql, name, binds) do
@@ -304,16 +321,21 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables(name = 'SCHEMA') #:nodoc:
+      def tables(name = 'SCHEMA', table_name = nil) #:nodoc:
         sql = <<-SQL
           SELECT name
           FROM sqlite_master
           WHERE type = 'table' AND NOT name = 'sqlite_sequence'
         SQL
+        sql << " AND name = #{quote_table_name(table_name)}" if table_name
 
         exec_query(sql, name).map do |row|
           row['name']
         end
+      end
+
+      def table_exists?(name)
+        name && tables('SCHEMA', name).any?
       end
 
       # Returns an array of +SQLiteColumn+ objects for the table specified by +table_name+.
@@ -413,6 +435,8 @@ module ActiveRecord
             self.limit   = options[:limit] if options.include?(:limit)
             self.default = options[:default] if include_default
             self.null    = options[:null] if options.include?(:null)
+            self.precision = options[:precision] if options.include?(:precision)
+            self.scale   = options[:scale] if options.include?(:scale)
           end
         end
       end
@@ -467,6 +491,7 @@ module ActiveRecord
 
               @definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
+                :precision => column.precision, :scale => column.scale,
                 :null => column.null)
             end
             @definition.primary_key(primary_key(from)) if primary_key(from)

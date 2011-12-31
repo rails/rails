@@ -53,6 +53,10 @@ class RangeTest < Test::Unit::TestCase
     assert !(2..8).include?(5..9)
   end
 
+  def test_should_include_identical_exclusive_with_floats
+    assert (1.0...10.0).include?(1.0...10.0)
+  end
+
   def test_blockless_step
     assert_equal [1,3,5,7,9], (1..10).step(2)
   end
@@ -63,15 +67,8 @@ class RangeTest < Test::Unit::TestCase
     assert_equal [1,3,5,7,9], array
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_cover
-      assert((1..3).cover?(2))
-      assert !(1..3).cover?(4)
-    end
-  else
-    def test_cover_is_not_override
-      range = (1..3)
-      assert range.method(:include?) != range.method(:cover?)
-    end
+  def test_cover_is_not_override
+    range = (1..3)
+    assert range.method(:include?) != range.method(:cover?)
   end
 end

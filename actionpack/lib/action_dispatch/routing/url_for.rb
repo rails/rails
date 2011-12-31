@@ -42,7 +42,7 @@ module ActionDispatch
     #   url_for(:controller => 'users',
     #           :action => 'new',
     #           :message => 'Welcome!',
-    #           :host => 'www.example.com')        # Changed this.
+    #           :host => 'www.example.com')
     #   # => "http://www.example.com/users/new?message=Welcome%21"
     #
     # By default, all controllers and views have access to a special version of url_for,
@@ -52,7 +52,7 @@ module ActionDispatch
     #
     # For convenience reasons, mailers provide a shortcut for ActionController::UrlFor#url_for.
     # So within mailers, you only have to type 'url_for' instead of 'ActionController::UrlFor#url_for'
-    # in full. However, mailers don't have hostname information, and what's why you'll still
+    # in full. However, mailers don't have hostname information, and that's why you'll still
     # have to specify the <tt>:host</tt> argument when generating URLs in mailers.
     #
     #
@@ -90,8 +90,7 @@ module ActionDispatch
           if respond_to?(:class_attribute)
             class_attribute :default_url_options
           else
-            mattr_accessor :default_url_options
-            remove_method :default_url_options
+            mattr_writer :default_url_options
           end
 
           self.default_url_options = {}
@@ -145,7 +144,7 @@ module ActionDispatch
         when String
           options
         when nil, Hash
-          _routes.url_for((options || {}).reverse_merge(url_options).symbolize_keys)
+          _routes.url_for((options || {}).symbolize_keys.reverse_merge!(url_options))
         else
           polymorphic_url(options)
         end

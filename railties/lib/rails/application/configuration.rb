@@ -1,5 +1,6 @@
 require 'active_support/core_ext/string/encoding'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/file_update_checker'
 require 'rails/engine/configuration'
 
 module Rails
@@ -7,11 +8,11 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets,
                     :cache_classes, :cache_store, :consider_all_requests_local,
-                    :dependency_loading, :filter_parameters,
-                    :force_ssl, :helpers_paths, :logger, :preload_frameworks,
-                    :reload_plugins, :secret_token, :serve_static_assets,
-                    :ssl_options, :static_cache_control, :session_options, 
-                    :time_zone, :whiny_nils
+                    :dependency_loading, :exceptions_app, :file_watcher, :filter_parameters,
+                    :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
+                    :railties_order, :relative_url_root, :reload_plugins, :secret_token,
+                    :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
+                    :time_zone, :reload_classes_only_on_change
 
       attr_writer :log_level
       attr_reader :encoding
@@ -19,22 +20,27 @@ module Rails
       def initialize(*)
         super
         self.encoding = "utf-8"
-        @allow_concurrency           = false
-        @consider_all_requests_local = false
-        @filter_parameters           = []
-        @helpers_paths               = []
-        @dependency_loading          = true
-        @serve_static_assets         = true
-        @static_cache_control        = nil
-        @force_ssl                   = false
-        @ssl_options                 = {}
-        @session_store               = :cookie_store
-        @session_options             = {}
-        @time_zone                   = "UTC"
-        @log_level                   = nil
-        @middleware                  = app_middleware
-        @generators                  = app_generators
-        @cache_store                 = [ :file_store, "#{root}/tmp/cache/" ]
+        @allow_concurrency             = false
+        @consider_all_requests_local   = false
+        @filter_parameters             = []
+        @helpers_paths                 = []
+        @dependency_loading            = true
+        @serve_static_assets           = true
+        @static_cache_control          = nil
+        @force_ssl                     = false
+        @ssl_options                   = {}
+        @session_store                 = :cookie_store
+        @session_options               = {}
+        @time_zone                     = "UTC"
+        @log_level                     = nil
+        @middleware                    = app_middleware
+        @generators                    = app_generators
+        @cache_store                   = [ :file_store, "#{root}/tmp/cache/" ]
+        @railties_order                = [:all]
+        @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
+        @reload_classes_only_on_change = true
+        @file_watcher                  = ActiveSupport::FileUpdateChecker
+        @exceptions_app                = nil
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false
@@ -59,17 +65,9 @@ module Rails
 
       def encoding=(value)
         @encoding = value
-        if "ruby".encoding_aware?
-          silence_warnings do
-            Encoding.default_external = value
-            Encoding.default_internal = value
-          end
-        else
-          $KCODE = value
-          if $KCODE == "NONE"
-            raise "The value you specified for config.encoding is " \
-                  "invalid. The possible values are UTF8, SJIS, or EUC"
-          end
+        silence_warnings do
+          Encoding.default_external = value
+          Encoding.default_internal = value
         end
       end
 
@@ -138,6 +136,11 @@ module Rails
           @session_store = args.shift
           @session_options = args.shift || {}
         end
+      end
+
+      def whiny_nils=(*)
+        ActiveSupport::Deprecation.warn "config.whiny_nils option " \
+          "is deprecated and no longer works", caller
       end
     end
   end

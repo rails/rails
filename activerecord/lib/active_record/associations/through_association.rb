@@ -44,7 +44,7 @@ module ActiveRecord
           join_attributes = {
             source_reflection.foreign_key =>
               records.map { |record|
-                record.send(source_reflection.association_primary_key)
+                record.send(source_reflection.association_primary_key(reflection.klass))
               }
           }
 

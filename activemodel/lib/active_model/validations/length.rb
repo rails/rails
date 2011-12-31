@@ -1,3 +1,5 @@
+require "active_support/core_ext/string/encoding"
+
 module ActiveModel
 
   # == Active Model Length Validator
@@ -6,14 +8,12 @@ module ActiveModel
       MESSAGES  = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }.freeze
       CHECKS    = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
 
-      DEFAULT_TOKENIZER = lambda { |value| value.split(//) }
       RESERVED_OPTIONS  = [:minimum, :maximum, :within, :is, :tokenizer, :too_short, :too_long]
 
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
           raise ArgumentError, ":in and :within must be a Range" unless range.is_a?(Range)
-          options[:minimum], options[:maximum] = range.begin, range.end
-          options[:maximum] -= 1 if range.exclude_end?
+          options[:minimum], options[:maximum] = range.min, range.max
         end
 
         super
@@ -23,7 +23,7 @@ module ActiveModel
         keys = CHECKS.keys & options.keys
 
         if keys.empty?
-          raise ArgumentError, 'Range unspecified. Specify the :within, :maximum, :minimum, or :is option.'
+          raise ArgumentError, 'Range unspecified. Specify the :in, :within, :maximum, :minimum, or :is option.'
         end
 
         keys.each do |key|
@@ -36,14 +36,11 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        value = (options[:tokenizer] || DEFAULT_TOKENIZER).call(value) if value.kind_of?(String)
+        value = tokenize(value)
+        value_length = value.respond_to?(:length) ? value.length : value.to_s.length
 
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
-
-          value ||= [] if key == :maximum
-
-          value_length = value.respond_to?(:length) ? value.length : value.to_s.length
           next if value_length.send(validity_check, check_value)
 
           errors_options = options.except(*RESERVED_OPTIONS)
@@ -54,6 +51,14 @@ module ActiveModel
 
           record.errors.add(attribute, MESSAGES[key], errors_options)
         end
+      end
+
+      private
+
+      def tokenize(value)
+        if options[:tokenizer] && value.kind_of?(String)
+          options[:tokenizer].call(value)
+        end || value
       end
     end
 
@@ -96,7 +101,7 @@ module ActiveModel
       # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string. (e.g. <tt>:tokenizer => lambda {|str| str.scan(/\w+/)}</tt> to
       #   count words as in above example.)
       #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+      # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)

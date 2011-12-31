@@ -116,9 +116,8 @@ module ActionController #:nodoc:
       def expire_action(options = {})
         return unless cache_configured?
 
-        actions = options[:action]
-        if actions.is_a?(Array)
-          actions.each {|action| expire_action(options.merge(:action => action)) }
+        if options.is_a?(Hash) && options[:action].is_a?(Array)
+          options[:action].each {|action| expire_action(options.merge(:action => action)) }
         else
           expire_fragment(ActionCachePath.new(self, options, false).path)
         end
@@ -175,7 +174,7 @@ module ActionController #:nodoc:
       private
         def normalize!(path)
           path << 'index' if path[-1] == ?/
-          path << ".#{extension}" if extension and !path.ends_with?(extension)
+          path << ".#{extension}" if extension and !path.split('?').first.ends_with?(".#{extension}")
           URI.parser.unescape(path)
         end
       end

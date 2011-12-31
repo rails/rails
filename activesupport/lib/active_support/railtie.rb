@@ -5,12 +5,6 @@ module ActiveSupport
   class Railtie < Rails::Railtie
     config.active_support = ActiveSupport::OrderedOptions.new
 
-    # Loads support for "whiny nil" (noisy warnings when methods are invoked
-    # on +nil+ values) if Configuration#whiny_nils is true.
-    initializer "active_support.initialize_whiny_nils" do |app|
-      require 'active_support/whiny_nil' if app.config.whiny_nils
-    end
-
     initializer "active_support.deprecation_behavior" do |app|
       if deprecation = app.config.active_support.deprecation
         ActiveSupport::Deprecation.behavior = deprecation

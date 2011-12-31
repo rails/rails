@@ -8,6 +8,8 @@ class Topic < ActiveRecord::Base
   scope :approved, :conditions => {:approved => true}
   scope :rejected, :conditions => {:approved => false}
 
+  scope :scope_with_lambda, lambda { scoped }
+
   scope :by_lifo, :conditions => {:author_name => 'lifo'}
 
   scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
@@ -104,6 +106,10 @@ class Topic < ActiveRecord::Base
     def before_destroy_for_transaction; end
     def after_save_for_transaction; end
     def after_create_for_transaction; end
+end
+
+class ImportantTopic < Topic
+  serialize :important, Hash
 end
 
 module Web

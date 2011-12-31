@@ -8,7 +8,7 @@ require 'models/parrot'
 require 'models/company'
 
 class ProtectedPerson < ActiveRecord::Base
-  set_table_name 'people'
+  self.table_name = 'people'
   attr_accessor :addon
   attr_protected :first_name
 end

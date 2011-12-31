@@ -65,7 +65,6 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_company_descends_from_active_record
-    assert_raise(NoMethodError) { ActiveRecord::Base.descends_from_active_record? }
     assert AbstractCompany.descends_from_active_record?, 'AbstractCompany should descend from ActiveRecord::Base'
     assert Company.descends_from_active_record?, 'Company should descend from ActiveRecord::Base'
     assert !Class.new(Company).descends_from_active_record?, 'Company subclass should not descend from ActiveRecord::Base'
@@ -236,11 +235,11 @@ class InheritanceTest < ActiveRecord::TestCase
         c.save
       end
       [ Company, Firm, Client].each { |klass| klass.reset_column_information }
-      Company.set_inheritance_column('ruby_type')
+      Company.inheritance_column = 'ruby_type'
     end
     def switch_to_default_inheritance_column
       [ Company, Firm, Client].each { |klass| klass.reset_column_information }
-      Company.set_inheritance_column('type')
+      Company.inheritance_column = 'type'
     end
 end
 

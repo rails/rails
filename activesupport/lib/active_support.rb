@@ -38,10 +38,12 @@ end
 
 require "active_support/dependencies/autoload"
 require "active_support/version"
+require "active_support/logger"
 
 module ActiveSupport
   extend ActiveSupport::Autoload
 
+  autoload :Concern
   autoload :DescendantsTracker
   autoload :FileUpdateChecker
   autoload :LogSubscriber
@@ -53,16 +55,13 @@ module ActiveSupport
     autoload :Base64
     autoload :BasicObject
     autoload :Benchmarkable
-    autoload :BufferedLogger
     autoload :Cache
     autoload :Callbacks
-    autoload :Concern
     autoload :Configurable
     autoload :Deprecation
     autoload :Gzip
     autoload :Inflector
     autoload :JSON
-    autoload :Memoizable
     autoload :MessageEncryptor
     autoload :MessageVerifier
     autoload :Multibyte
@@ -71,6 +70,7 @@ module ActiveSupport
     autoload :OrderedOptions
     autoload :Rescuable
     autoload :StringInquirer
+    autoload :TaggedLogging
     autoload :XmlMini
   end
 

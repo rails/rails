@@ -42,9 +42,9 @@ module ActiveModel
   #
   module Validations
     extend ActiveSupport::Concern
-    include ActiveSupport::Callbacks
 
     included do
+      extend ActiveModel::Callbacks
       extend ActiveModel::Translation
 
       extend  HelperMethods
@@ -53,7 +53,8 @@ module ActiveModel
       attr_accessor :validation_context
       define_callbacks :validate, :scope => :name
 
-      class_attribute :_validators
+      extend ActiveModel::Configuration
+      config_attribute :_validators
       self._validators = Hash.new { |h,k| h[k] = [] }
     end
 

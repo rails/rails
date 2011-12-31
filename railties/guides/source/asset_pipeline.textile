@@ -38,7 +38,7 @@ h4. Main Features
 
 The first feature of the pipeline is to concatenate assets. This is important in a production environment, as it reduces the number of requests that a browser must make to render a web page.
 
-While Rails already has a feature to concatenate these types of assets -- by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+ --, it has a series of limitations. For example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
+While Rails already has a feature to concatenate these types of assets by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+, it has a series of limitations. For example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
 
 The default behavior in Rails 3.1 and onward is to concatenate all files into one master file each for JS and CSS. However, you can separate files or groups of files if required (see below). In production, an MD5 fingerprint is inserted into each filename so that the file is cached by the web browser but can be invalidated if the fingerprint is altered.
 
@@ -120,7 +120,7 @@ All subdirectories that exist within these three locations are added to the sear
 You can add additional (fully qualified) paths to the pipeline in +config/application.rb+. For example:
 
 <ruby>
-config.assets.paths << "#{Rails.root}/app/assets/flash"
+config.assets.paths << Rails.root.join("app", "assets", "flash")
 </ruby>
 
 h4. Coding Links to Assets
@@ -232,7 +232,9 @@ There's also a default +app/assets/stylesheets/application.css+ file which conta
 
 The directives that work in the JavaScript files also work in stylesheets, obviously including stylesheets rather than JavaScript files. The +require_tree+ directive here works the same way as the JavaScript one, requiring all stylesheets from the current directory.
 
-In this example +require_self+ is used. This puts the CSS contained within the file (if any) at the top of any other CSS in this file unless +require_self+ is specified after another +require+ directive.
+In this example +require_self+ is used. This puts the CSS contained within the file (if any) at the precise location of the +require_self+ call. If +require_self+ is called more than once, only the last call is respected.
+
+NOTE. If you want to use multiple Sass files, use the "Sass +@import+ rule":http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import instead of the Sprockets directives. Using Sprockets directives all Sass files exist within their own scope, making variables or mixins only available within the document they were defined in.
 
 You can have as many manifest files as you need. For example the +admin.css+ and +admin.js+ manifest could contain the JS and CSS files that are used for the admin section of an application.
 
@@ -347,7 +349,7 @@ bundle exec rake assets:precompile
 </plain>
 
 For faster asset precompiles, you can partially load your application by setting
-+config.assets.initialize_on_precompile+ to false, though in that case templates
++config.assets.initialize_on_precompile+ to false in +config/application.rb+, though in that case templates
 cannot see application objects or methods. *Heroku requires this to be false.*
 
 WARNING: If you set +config.assets.initialize_on_precompile+ to false, be sure to
@@ -367,10 +369,10 @@ It is important that this folder is shared between deployments so that remotely 
 
 NOTE. If you are precompiling your assets locally, you can use +bundle install --without assets+ on the server to avoid installing the assets gems (the gems in the assets group in the Gemfile).
 
-The default matcher for compiling files includes +application.js+, +application.css+ and all files that do not end in +js+ or +css+:
+The default matcher for compiling files includes +application.js+, +application.css+ and all non-JS/CSS files (ie. +.coffee+ and +.scss+ files are *not* automatically included as they compile to JS/CSS):
 
 <ruby>
-[ /\w<plus>\.(?!js|css).<plus>/, /application.(css|js)$/ ]
+[ Proc.new{ |path| !File.extname(path).in?(['.js', '.css']) }, /application.(css|js)$/ ]
 </ruby>
 
 If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the +precompile+ array:
@@ -398,7 +400,7 @@ This can be changed with the +config.assets.manifest+ option. A fully specified 
 config.assets.manifest = '/path/to/some/other/location'
 </erb>
 
-NOTE: If there are missing precompiled files in production you will get an <tt>AssetNoPrecompiledError</tt> exception indicating the name of the missing file(s).
+NOTE: If there are missing precompiled files in production you will get an <tt>Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError</tt> exception indicating the name of the missing file(s).
 
 h5. Server Configuration
 
@@ -408,10 +410,6 @@ For Apache:
 
 <plain>
 <LocationMatch "^/assets/.*$">
-  # Some browsers still send conditional-GET requests if there's a
-  # Last-Modified header or an ETag header even if they haven't
-  # reached the expiry date sent in the Expires header.
-  Header unset Last-Modified
   Header unset ETag
   FileETag None
   # RFC says only cache for 1 year
@@ -427,46 +425,33 @@ location ~ ^/assets/ {
   expires 1y;
   add_header Cache-Control public;
 
-  # Some browsers still send conditional-GET requests if there's a
-  # Last-Modified header or an ETag header even if they haven't
-  # reached the expiry date sent in the Expires header.
-  add_header Last-Modified "";
   add_header ETag "";
   break;
 }
 </plain>
 
-When files are precompiled, Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disk. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the +public/assets+ folder. The following configuration options can be used:
+When files are precompiled, Sprockets also creates a "gzipped":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. Web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once, Sprockets uses the maximum compression ratio, thus reducing the size of the data transfer to the minimum. On the other hand, web servers can be configured to serve compressed content directly from disk, rather than deflating non-compressed files themselves.
 
-For Apache:
-
-<plain>
-<LocationMatch "^/assets/.*$">
-  # 2 lines to serve pre-gzipped version
-  RewriteCond %{REQUEST_FILENAME}.gz -s
-  RewriteRule ^(.+) $1.gz [L]
-</LocationMatch>
-
-# without these, Content-Type will be "application/x-gzip"
-<FilesMatch "^/assets/.*\.css.gz$">
-    ForceType text/css
-</FilesMatch>
-
-<FilesMatch "^/assets/.*\.js.gz$">
-    ForceType text/javascript
-</FilesMatch>
-</plain>
-
-For nginx:
+Nginx is able to do this automatically enabling +gzip_static+:
 
 <plain>
 location ~ ^/(assets)/  {
   root /path/to/public;
   gzip_static on; # to serve pre-gzipped version
   expires max;
-  add_header  Cache-Control public;
+  add_header Cache-Control public;
 }
 </plain>
+
+This directive is available if the core module that provides this feature was compiled with the web server. Ubuntu packages, even +nginx-light+ have the module compiled. Otherwise, you may need to perform a manual compilation:
+
+<plain>
+./configure --with-http_gzip_static_module
+</plain>
+
+If you're compiling nginx with Phusion Passenger you'll need to pass that option when prompted.
+
+Unfortunately, a robust configuration for Apache is possible but tricky, please Google around.
 
 h4. Live Compilation
 
@@ -584,7 +569,7 @@ TODO: Registering gems on "Tilt":https://github.com/rtomayko/tilt enabling Sproc
 
 h3. Upgrading from Old Versions of Rails
 
-There are two issues when upgrading. The first is moving the files to the new locations. See the section above for guidance on the correct locations for different file types.
+There are two issues when upgrading. The first is moving the files to the new locations. See "Asset Organization":#asset-organization above for guidance on the correct locations for different file types.
 
 The second is updating the various environment files with the correct default options. The following changes reflect the defaults in version 3.1.0.
 

@@ -20,7 +20,7 @@ module ActiveRecord
     end
 
     def test_single_values
-      assert_equal [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order].map(&:to_s).sort,
+      assert_equal [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order, :uniq].map(&:to_s).sort,
         Relation::SINGLE_VALUE_METHODS.map(&:to_s).sort
     end
 
@@ -134,6 +134,12 @@ module ActiveRecord
       relation = Relation.new :a, :b
       relation.eager_load_values << :b
       assert relation.eager_loading?
+    end
+
+    def test_apply_finder_options_supports_eager_load
+      relation = Relation.new :a, :b
+      relation = relation.apply_finder_options(:eager_load => :b)
+      assert_equal [:b], relation.eager_load_values
     end
   end
 end

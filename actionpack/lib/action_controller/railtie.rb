@@ -29,6 +29,7 @@ module ActionController
       # make sure readers methods get compiled
       options.asset_path           ||= app.config.asset_path
       options.asset_host           ||= app.config.asset_host
+      options.relative_url_root    ||= app.config.relative_url_root
 
       ActiveSupport.on_load(:action_controller) do
         include app.routes.mounted_helpers

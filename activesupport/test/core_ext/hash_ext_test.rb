@@ -27,11 +27,7 @@ class HashExtTest < Test::Unit::TestCase
     @symbols = { :a  => 1, :b  => 2 }
     @mixed   = { :a  => 1, 'b' => 2 }
     @fixnums = {  0  => 1,  1  => 2 }
-    if RUBY_VERSION < '1.9.0'
-      @illegal_symbols = { "\0" => 1, "" => 2, [] => 3 }
-    else
-      @illegal_symbols = { [] => 3 }
-    end
+    @illegal_symbols = { [] => 3 }
   end
 
   def test_methods
@@ -121,6 +117,9 @@ class HashExtTest < Test::Unit::TestCase
 
     foo = { "foo" => NonIndifferentHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
     assert_kind_of NonIndifferentHash, foo["foo"]
+
+    foo = { "foo" => IndifferentHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
+    assert_kind_of IndifferentHash, foo["foo"]
   end
 
   def test_indifferent_assorted

@@ -67,6 +67,31 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_associate_existing_record_twice_should_add_records_twice
+    post   = posts(:thinking)
+    person = people(:david)
+
+    assert_difference 'post.people.count', 2 do
+      post.people << person
+      post.people << person
+    end
+  end
+
+  def test_add_two_instance_and_then_deleting
+    post   = posts(:thinking)
+    person = people(:david)
+
+    post.people << person
+    post.people << person
+
+    counts = ['post.people.count', 'post.people.to_a.count', 'post.readers.count', 'post.readers.to_a.count']
+    assert_difference counts, -2 do
+      post.people.delete(person)
+    end
+
+    assert !post.people.reload.include?(person)
+  end
+
   def test_associating_new
     assert_queries(1) { posts(:thinking) }
     new_person = nil # so block binding catches it
@@ -503,6 +528,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome).id, posts(:authorless).id].sort, people(:michael).post_ids.sort
   end
 
+  def test_get_ids_for_has_many_through_with_conditions_should_not_preload
+    Tagging.create!(:taggable_type => 'Post', :taggable_id => posts(:welcome).id, :tag => tags(:misc))
+    ActiveRecord::Associations::Preloader.expects(:new).never
+    posts(:welcome).misc_tag_ids
+  end
+
   def test_get_ids_for_loaded_associations
     person = people(:michael)
     person.posts(true)
@@ -816,7 +847,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_preloading_empty_through_association_via_joins
     person = Person.create!(:first_name => "Gaga")
-    person = Person.where(:id => person.id).where('readers.id = 1 or 1=1').includes(:posts).to_a.first
+    person = Person.where(:id => person.id).where('readers.id = 1 or 1=1').eager_load(:posts).to_a.first
 
     assert person.posts.loaded?, 'person.posts should be loaded'
     assert_equal [], person.posts
@@ -824,5 +855,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_explicitly_joining_join_table
     assert_equal owners(:blackbeard).toys, owners(:blackbeard).toys.with_pet
+  end
+
+  def test_has_many_through_with_polymorphic_source
+    post = tags(:general).tagged_posts.create! :title => "foo", :body => "bar"
+    assert_equal [tags(:general)], post.reload.tags
   end
 end

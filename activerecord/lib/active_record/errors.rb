@@ -99,6 +99,16 @@ module ActiveRecord
   #
   # Read more about optimistic locking in ActiveRecord::Locking module RDoc.
   class StaleObjectError < ActiveRecordError
+    attr_reader :record, :attempted_action
+
+    def initialize(record, attempted_action)
+      @record = record
+      @attempted_action = attempted_action
+    end
+
+    def message
+      "Attempted to #{attempted_action} a stale object: #{record.class.name}"
+    end
   end
 
   # Raised when association is being configured improperly or
@@ -170,8 +180,7 @@ module ActiveRecord
     end
   end
 
-  # Raised when a model attempts to fetch its primary key from the database, but the table
-  # has no primary key declared.
+  # Raised when a primary key is needed, but there is not one specified in the schema or model.
   class UnknownPrimaryKey < ActiveRecordError
     attr_reader :model
 

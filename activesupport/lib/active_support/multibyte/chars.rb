@@ -38,16 +38,10 @@ module ActiveSupport #:nodoc:
       alias to_s wrapped_string
       alias to_str wrapped_string
 
-      if RUBY_VERSION >= "1.9"
-        # Creates a new Chars instance by wrapping _string_.
-        def initialize(string)
-          @wrapped_string = string
-          @wrapped_string.force_encoding(Encoding::UTF_8) unless @wrapped_string.frozen?
-        end
-      else
-        def initialize(string) #:nodoc:
-          @wrapped_string = string
-        end
+      # Creates a new Chars instance by wrapping _string_.
+      def initialize(string)
+        @wrapped_string = string
+        @wrapped_string.force_encoding(Encoding::UTF_8) unless @wrapped_string.frozen?
       end
 
       # Forward all undefined methods to the wrapped string.
@@ -94,151 +88,8 @@ module ActiveSupport #:nodoc:
         @wrapped_string <=> other.to_s
       end
 
-      if RUBY_VERSION < "1.9"
-        # Returns +true+ if the Chars class can and should act as a proxy for the string _string_. Returns
-        # +false+ otherwise.
-        def self.wants?(string)
-          $KCODE == 'UTF8' && consumes?(string)
-        end
-
-        # Returns a new Chars object containing the _other_ object concatenated to the string.
-        #
-        # Example:
-        #   ('Café'.mb_chars + ' périferôl').to_s # => "Café périferôl"
-        def +(other)
-          chars(@wrapped_string + other)
-        end
-
-        # Like <tt>String#=~</tt> only it returns the character offset (in codepoints) instead of the byte offset.
-        #
-        # Example:
-        #   'Café périferôl'.mb_chars =~ /ô/ # => 12
-        def =~(other)
-          translate_offset(@wrapped_string =~ other)
-        end
-
-        # Inserts the passed string at specified codepoint offsets.
-        #
-        # Example:
-        #   'Café'.mb_chars.insert(4, ' périferôl').to_s # => "Café périferôl"
-        def insert(offset, fragment)
-          unpacked = Unicode.u_unpack(@wrapped_string)
-          unless offset > unpacked.length
-            @wrapped_string.replace(
-              Unicode.u_unpack(@wrapped_string).insert(offset, *Unicode.u_unpack(fragment)).pack('U*')
-            )
-          else
-            raise IndexError, "index #{offset} out of string"
-          end
-          self
-        end
-
-        # Returns +true+ if contained string contains _other_. Returns +false+ otherwise.
-        #
-        # Example:
-        #   'Café'.mb_chars.include?('é') # => true
-        def include?(other)
-          # We have to redefine this method because Enumerable defines it.
-          @wrapped_string.include?(other)
-        end
-
-        # Returns the position _needle_ in the string, counting in codepoints. Returns +nil+ if _needle_ isn't found.
-        #
-        # Example:
-        #   'Café périferôl'.mb_chars.index('ô')   # => 12
-        #   'Café périferôl'.mb_chars.index(/\w/u) # => 0
-        def index(needle, offset=0)
-          wrapped_offset = first(offset).wrapped_string.length
-          index = @wrapped_string.index(needle, wrapped_offset)
-          index ? (Unicode.u_unpack(@wrapped_string.slice(0...index)).size) : nil
-        end
-
-        # Returns the position _needle_ in the string, counting in
-        # codepoints, searching backward from _offset_ or the end of the
-        # string. Returns +nil+ if _needle_ isn't found.
-        #
-        # Example:
-        #   'Café périferôl'.mb_chars.rindex('é')   # => 6
-        #   'Café périferôl'.mb_chars.rindex(/\w/u) # => 13
-        def rindex(needle, offset=nil)
-          offset ||= length
-          wrapped_offset = first(offset).wrapped_string.length
-          index = @wrapped_string.rindex(needle, wrapped_offset)
-          index ? (Unicode.u_unpack(@wrapped_string.slice(0...index)).size) : nil
-        end
-
-        # Returns the number of codepoints in the string
-        def size
-          Unicode.u_unpack(@wrapped_string).size
-        end
-        alias_method :length, :size
-
-        # Strips entire range of Unicode whitespace from the right of the string.
-        def rstrip
-          chars(@wrapped_string.gsub(Unicode::TRAILERS_PAT, ''))
-        end
-
-        # Strips entire range of Unicode whitespace from the left of the string.
-        def lstrip
-          chars(@wrapped_string.gsub(Unicode::LEADERS_PAT, ''))
-        end
-
-        # Strips entire range of Unicode whitespace from the right and left of the string.
-        def strip
-          rstrip.lstrip
-        end
-
-        # Returns the codepoint of the first character in the string.
-        #
-        # Example:
-        #   'こんにちは'.mb_chars.ord # => 12371
-        def ord
-          Unicode.u_unpack(@wrapped_string)[0]
-        end
-
-        # Works just like <tt>String#rjust</tt>, only integer specifies characters instead of bytes.
-        #
-        # Example:
-        #
-        #   "¾ cup".mb_chars.rjust(8).to_s
-        #   # => "   ¾ cup"
-        #
-        #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
-        #   # => "   ¾ cup"
-        def rjust(integer, padstr=' ')
-          justify(integer, :right, padstr)
-        end
-
-        # Works just like <tt>String#ljust</tt>, only integer specifies characters instead of bytes.
-        #
-        # Example:
-        #
-        #   "¾ cup".mb_chars.rjust(8).to_s
-        #   # => "¾ cup   "
-        #
-        #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
-        #   # => "¾ cup   "
-        def ljust(integer, padstr=' ')
-          justify(integer, :left, padstr)
-        end
-
-        # Works just like <tt>String#center</tt>, only integer specifies characters instead of bytes.
-        #
-        # Example:
-        #
-        #   "¾ cup".mb_chars.center(8).to_s
-        #   # => " ¾ cup  "
-        #
-        #   "¾ cup".mb_chars.center(8, " ").to_s # Use non-breaking whitespace
-        #   # => " ¾ cup  "
-        def center(integer, padstr=' ')
-          justify(integer, :center, padstr)
-        end
-
-      else
-        def =~(other)
-          @wrapped_string =~ other
-        end
+      def =~(other)
+        @wrapped_string =~ other
       end
 
       # Works just like <tt>String#split</tt>, with the exception that the items in the resulting list are Chars
@@ -431,9 +282,7 @@ module ActiveSupport #:nodoc:
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ''
 
-          if @wrapped_string.respond_to?(:force_encoding)
-            @wrapped_string = @wrapped_string.dup.force_encoding(Encoding::ASCII_8BIT)
-          end
+          @wrapped_string = @wrapped_string.dup.force_encoding(Encoding::ASCII_8BIT)
 
           begin
             @wrapped_string[0...byte_offset].unpack('U*').length

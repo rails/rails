@@ -187,11 +187,11 @@ module ActiveRecord
     def exists?(id = false)
       return false if id.nil?
 
-      id = id.id if ActiveRecord::Base === id
+      id = id.id if ActiveRecord::Model === id
 
       join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
-      relation = relation.except(:select).select("1").limit(1)
+      relation = relation.except(:select, :order).select("1").limit(1)
 
       case id
       when Array, Hash
@@ -249,7 +249,7 @@ module ActiveRecord
     end
 
     def construct_limited_ids_condition(relation)
-      orders = relation.order_values.map { |val| val.presence }.compact
+      orders = (relation.reorder_value || relation.order_values).map { |val| val.presence }.compact
       values = @klass.connection.distinct("#{@klass.connection.quote_table_name table_name}.#{primary_key}", orders)
 
       relation = relation.dup

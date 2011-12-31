@@ -35,6 +35,30 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert !t.attribute_present?("content")
   end
 
+  def test_attribute_present_with_booleans
+    b1 = Boolean.new
+    b1.value = false
+    assert b1.attribute_present?(:value)
+
+    b2 = Boolean.new
+    b2.value = true
+    assert b2.attribute_present?(:value)
+
+    b3 = Boolean.new
+    assert !b3.attribute_present?(:value)
+
+    b4 = Boolean.new
+    b4.value = false
+    b4.save!
+    assert Boolean.find(b4.id).attribute_present?(:value)
+  end
+
+  def test_caching_nil_primary_key
+    klass = Class.new(Minimalistic)
+    klass.expects(:reset_primary_key).returns(nil).once
+    2.times { klass.primary_key }
+  end
+
   def test_attribute_keys_on_new_instance
     t = Topic.new
     assert_equal nil, t.title, "The topics table has a title column, so it should be nil"
@@ -78,7 +102,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_respond_to?
     topic = Topic.find(1)
     assert_respond_to topic, "title"
-    assert_respond_to topic, "_title"
     assert_respond_to topic, "title?"
     assert_respond_to topic, "title="
     assert_respond_to topic, :title
@@ -95,9 +118,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_not_nil keyboard.key_number
     assert_equal keyboard.key_number, keyboard.id
     assert keyboard.respond_to?('key_number')
-    assert keyboard.respond_to?('_key_number')
     assert keyboard.respond_to?('id')
-    assert keyboard.respond_to?('_id')
   end
 
   # Syck calls respond_to? before actually calling initialize
@@ -489,6 +510,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_write_time_to_date_attributes
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+      record.last_read = Time.utc(2010, 1, 1, 10)
+      assert_equal Date.civil(2010, 1, 1), record.last_read
+    end
+  end
+
   def test_time_attributes_are_retrieved_in_current_time_zone
     in_time_zone "Pacific Time (US & Canada)" do
       utc_time = Time.utc(2008, 1, 1)
@@ -524,6 +553,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_setting_time_zone_aware_read_attribute
+    utc_time = Time.utc(2008, 1, 1)
+    cst_time = utc_time.in_time_zone("Central Time (US & Canada)")
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.create(:written_on => cst_time).reload
+      assert_equal utc_time, record[:written_on]
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record[:written_on].time_zone
+      assert_equal Time.utc(2007, 12, 31, 16), record[:written_on].time
+    end
+  end
+
   def test_setting_time_zone_aware_attribute_with_string
     utc_time = Time.utc(2008, 1, 1)
     (-11..13).each do |timezone_offset|
@@ -543,6 +583,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record   = @target.new
       record.written_on = ' '
       assert_nil record.written_on
+      assert_nil record[:written_on]
     end
   end
 
@@ -657,7 +698,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.new(:id => 5)
     topic.id = 5
 
-    topic.method(:id).owner.send(:remove_method, :id)
+    topic.method(:id).owner.send(:undef_method, :id)
 
     assert_deprecated do
       assert_equal 5, topic.id
@@ -666,17 +707,37 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Topic.undefine_attribute_methods
   end
 
+  def test_read_attribute_with_nil_should_not_asplode
+    assert_equal nil, Topic.new.read_attribute(nil)
+  end
+
+  # If B < A, and A defines an accessor for 'foo', we don't want to override
+  # that by defining a 'foo' method in the generated methods module for B.
+  # (That module will be inserted between the two, e.g. [B, <GeneratedAttributes>, A].)
+  def test_inherited_custom_accessors
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.abstract_class = true
+      def title; "omg"; end
+      def title=(val); self.author_name = val; end
+    end
+    subklass = Class.new(klass)
+    [klass, subklass].each(&:define_attribute_methods)
+
+    topic = subklass.find(1)
+    assert_equal "omg", topic.title
+
+    topic.title = "lol"
+    assert_equal "lol", topic.author_name
+  end
+
   private
   def cached_columns
-    @cached_columns ||= (time_related_columns_on_topic + serialized_columns_on_topic).map(&:name)
+    @cached_columns ||= time_related_columns_on_topic.map(&:name)
   end
 
   def time_related_columns_on_topic
     Topic.columns.select { |c| c.type.in?([:time, :date, :datetime, :timestamp]) }
-  end
-
-  def serialized_columns_on_topic
-    Topic.columns.select { |c| Topic.serialized_attributes.include?(c.name) }
   end
 
   def in_time_zone(zone)

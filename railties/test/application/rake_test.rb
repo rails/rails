@@ -63,26 +63,23 @@ module ApplicationTests
     def test_rake_test_error_output
       Dir.chdir(app_path){ `rake db:migrate` }
 
-      app_file "config/database.yml", <<-RUBY
-        development:
-      RUBY
-
       app_file "test/unit/one_unit_test.rb", <<-RUBY
+        raise 'unit'
       RUBY
 
       app_file "test/functional/one_functional_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'functional'
       RUBY
 
       app_file "test/integration/one_integration_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'integration'
       RUBY
 
       silence_stderr do
-        output = Dir.chdir(app_path){ `rake test` }
-        assert_match(/Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output)
-        assert_match(/Errors running test:functionals! #<RuntimeError/, output)
-        assert_match(/Errors running test:integration! #<RuntimeError/, output)
+        output = Dir.chdir(app_path) { `rake test 2>&1` }
+        assert_match 'unit', output
+        assert_match 'functional', output
+        assert_match 'integration', output
       end
     end
 
@@ -106,74 +103,6 @@ module ApplicationTests
 
       output = Dir.chdir(app_path){ `rake log_something RAILS_ENV=production && cat log/production.log` }
       assert_match "Sample log message", output
-    end
-
-    def test_model_and_migration_generator_with_change_syntax
-      Dir.chdir(app_path) do
-        `rails generate model user username:string password:string`
-        `rails generate migration add_email_to_users email:string`
-      end
-
-      output = Dir.chdir(app_path){ `rake db:migrate` }
-      assert_match(/create_table\(:users\)/, output)
-      assert_match(/CreateUsers: migrated/, output)
-      assert_match(/add_column\(:users, :email, :string\)/, output)
-      assert_match(/AddEmailToUsers: migrated/, output)
-
-      output = Dir.chdir(app_path){ `rake db:rollback STEP=2` }
-      assert_match(/drop_table\("users"\)/, output)
-      assert_match(/CreateUsers: reverted/, output)
-      assert_match(/remove_column\("users", :email\)/, output)
-      assert_match(/AddEmailToUsers: reverted/, output)
-    end
-
-    def test_migration_status_when_schema_migrations_table_is_not_present
-      output = Dir.chdir(app_path){ `rake db:migrate:status` }
-      assert_equal "Schema migrations table does not exist yet.\n", output
-    end
-
-    def test_migration_status
-      Dir.chdir(app_path) do
-        `rails generate model user username:string password:string`
-        `rails generate migration add_email_to_users email:string`
-      end
-
-      Dir.chdir(app_path) { `rake db:migrate`}
-      output = Dir.chdir(app_path) { `rake db:migrate:status` }
-
-      assert_match(/up\s+\d{14}\s+Create users/, output)
-      assert_match(/up\s+\d{14}\s+Add email to users/, output)
-
-      Dir.chdir(app_path) { `rake db:rollback STEP=1` }
-      output = Dir.chdir(app_path) { `rake db:migrate:status` }
-
-      assert_match(/up\s+\d{14}\s+Create users/, output)
-      assert_match(/down\s+\d{14}\s+Add email to users/, output)
-    end
-
-    def test_migration_status_after_rollback_and_redo
-      Dir.chdir(app_path) do
-        `rails generate model user username:string password:string`
-        `rails generate migration add_email_to_users email:string`
-      end
-
-      Dir.chdir(app_path) { `rake db:migrate`}
-      output = Dir.chdir(app_path) { `rake db:migrate:status` }
-
-      assert_match(/up\s+\d{14}\s+Create users/, output)
-      assert_match(/up\s+\d{14}\s+Add email to users/, output)
-
-      Dir.chdir(app_path) { `rake db:rollback STEP=2` }
-      output = Dir.chdir(app_path) { `rake db:migrate:status` }
-
-      assert_match(/down\s+\d{14}\s+Create users/, output)
-      assert_match(/down\s+\d{14}\s+Add email to users/, output)
-
-      Dir.chdir(app_path) { `rake db:migrate:redo` }
-      output = Dir.chdir(app_path) { `rake db:migrate:status` }
-
-      assert_match(/up\s+\d{14}\s+Create users/, output)
-      assert_match(/up\s+\d{14}\s+Add email to users/, output)
     end
 
     def test_loading_specific_fixtures
@@ -200,6 +129,14 @@ module ApplicationTests
       end
 
       assert_match(/7 tests, 10 assertions, 0 failures, 0 errors/, content)
+    end
+
+    def test_rake_dump_structure_should_respect_db_structure_env_variable
+      Dir.chdir(app_path) do
+        `bundle exec rake db:migrate` # ensure we have a schema_migrations table to dump
+        `bundle exec rake db:structure:dump DB_STRUCTURE=db/my_structure.sql`
+      end
+      assert File.exists?(File.join(app_path, 'db', 'my_structure.sql'))
     end
   end
 end

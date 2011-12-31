@@ -5,6 +5,12 @@ class ResponseTest < ActiveSupport::TestCase
     @response = ActionDispatch::Response.new
   end
 
+  def test_response_body_encoding
+    body = ["hello".encode('utf-8')]
+    response = ActionDispatch::Response.new 200, {}, body
+    assert_equal Encoding::UTF_8, response.body.encoding
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
@@ -129,6 +135,17 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal(Mime::XML, resp.content_type)
 
     assert_equal('application/xml; charset=utf-16', resp.headers['Content-Type'])
+  end
+
+  test "read content type without charset" do
+    original = ActionDispatch::Response.default_charset
+    begin
+      ActionDispatch::Response.default_charset = 'utf-16'
+      resp = ActionDispatch::Response.new(200, { "Content-Type" => "text/xml" })
+      assert_equal('utf-16', resp.charset)
+    ensure
+      ActionDispatch::Response.default_charset = original
+    end
   end
 end
 

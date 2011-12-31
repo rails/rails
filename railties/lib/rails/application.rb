@@ -1,5 +1,4 @@
 require 'active_support/core_ext/hash/reverse_merge'
-require 'active_support/file_update_checker'
 require 'fileutils'
 require 'rails/plugin'
 require 'rails/engine'
@@ -33,6 +32,25 @@ module Rails
   #
   # The Application is also responsible for building the middleware stack.
   #
+  # == Booting process
+  #
+  # The application is also responsible for setting up and executing the booting
+  # process. From the moment you require "config/application.rb" in your app,
+  # the booting process goes like this:
+  #
+  #   1)  require "config/boot.rb" to setup load paths
+  #   2)  require railties and engines
+  #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
+  #   4)  Run config.before_configuration callbacks
+  #   5)  Load config/environments/ENV.rb
+  #   6)  Run config.before_initialize callbacks
+  #   7)  Run Railtie#initializer defined by railties, engines and application.
+  #       One by one, each engine sets up its load paths, routes and runs its config/initializers/* files.
+  #   9)  Custom Railtie#initializers added by railties, engines and applications are executed
+  #   10) Build the middleware stack and run to_prepare callbacks
+  #   11) Run config.before_eager_load and eager_load if cache classes is true
+  #   12) Run config.after_initialize callbacks
+  #
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configuration,  'rails/application/configuration'
@@ -52,12 +70,14 @@ module Rails
 
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
+    attr_reader :reloaders
 
     delegate :default_url_options, :default_url_options=, :to => :routes
 
     def initialize
       super
       @initialized = false
+      @reloaders   = []
     end
 
     # This method is called just after an application inherits from Rails::Application,
@@ -83,57 +103,100 @@ module Rails
       require environment if environment
     end
 
+    # Reload application routes regardless if they changed or not.
     def reload_routes!
       routes_reloader.reload!
     end
 
-    def routes_reloader
+    def routes_reloader #:nodoc:
       @routes_reloader ||= RoutesReloader.new
     end
 
-    def initialize!(group=:default)
+    # Returns an array of file paths appended with a hash of directories-extensions
+    # suitable for ActiveSupport::FileUpdateChecker API.
+    def watchable_args
+      files = []
+      files.concat config.watchable_files
+
+      dirs = {}
+      dirs.merge! config.watchable_dirs
+      ActiveSupport::Dependencies.autoload_paths.each do |path|
+        dirs[path.to_s] = [:rb]
+      end
+
+      [files, dirs]
+    end
+
+    # Initialize the application passing the given group. By default, the
+    # group is :default but sprockets precompilation passes group equals
+    # to assets if initialize_on_precompile is false to avoid booting the
+    # whole app.
+    def initialize!(group=:default) #:nodoc:
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true
       self
     end
 
+    # Load the application and its railties tasks and invoke the registered hooks.
+    # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
     def load_tasks(app=self)
       initialize_tasks
       super
       self
     end
 
+    # Load the application console and invoke the registered hooks.
+    # Check <tt>Rails::Railtie.console</tt> for more info.
     def load_console(app=self)
       initialize_console
       super
       self
     end
 
-    # Rails.application.env_config stores some of the Rails initial environment parameters.
-    # Currently stores:
-    #
-    #   * action_dispatch.parameter_filter" => config.filter_parameters,
-    #   * action_dispatch.secret_token"     => config.secret_token,
-    #   * action_dispatch.show_exceptions"  => config.action_dispatch.show_exceptions
-    #
-    # These parameters will be used by middlewares and engines to configure themselves.
-    #
+    # Stores some of the Rails initial environment parameters which
+    # will be used by middlewares and engines to configure themselves.
     def env_config
       @env_config ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
         "action_dispatch.secret_token" => config.secret_token,
-        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions
+        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
+        "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
+        "action_dispatch.logger" => Rails.logger,
+        "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner
       })
     end
 
-    def initializers
+    # Returns the ordered railties for this application considering railties_order.
+    def ordered_railties #:nodoc:
+      @ordered_railties ||= begin
+        order = config.railties_order.map do |railtie|
+          if railtie == :main_app
+            self
+          elsif railtie.respond_to?(:instance)
+            railtie.instance
+          else
+            railtie
+          end
+        end
+
+        all = (railties.all - order)
+        all.push(self)   unless all.include?(self)
+        order.push(:all) unless order.include?(:all)
+
+        index = order.index(:all)
+        order[index] = all
+        order.reverse.flatten
+      end
+    end
+
+    def initializers #:nodoc:
       Bootstrap.initializers_for(self) +
       super +
       Finisher.initializers_for(self)
     end
 
-    def config
+    def config #:nodoc:
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
@@ -141,9 +204,22 @@ module Rails
       self
     end
 
+    def helpers_paths #:nodoc:
+      config.helpers_paths
+    end
+
+    def call(env)
+      env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
+      super(env)
+    end
+
   protected
 
     alias :build_middleware_stack :app
+
+    def reload_dependencies?
+      config.reload_classes_only_on_change != true || reloaders.map(&:updated?).any?
+    end
 
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
@@ -164,13 +240,21 @@ module Rails
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rack::MethodOverride
-        middleware.use ::Rails::Rack::Logger # must come after Rack::MethodOverride to properly log overridden methods
-        middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local
+        middleware.use ::ActionDispatch::RequestId
+        middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
+        middleware.use ::ActionDispatch::ShowExceptions, config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
+        middleware.use ::ActionDispatch::DebugExceptions
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
+
         if config.action_dispatch.x_sendfile_header.present?
           middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
         end
-        middleware.use ::ActionDispatch::Reloader unless config.cache_classes
+
+        unless config.cache_classes
+          app = self
+          middleware.use ::ActionDispatch::Reloader, lambda { app.reload_dependencies? }
+        end
+
         middleware.use ::ActionDispatch::Callbacks
         middleware.use ::ActionDispatch::Cookies
 
@@ -190,7 +274,7 @@ module Rails
       end
     end
 
-    def initialize_tasks
+    def initialize_tasks #:nodoc:
       self.class.rake_tasks do
         require "rails/tasks"
         task :environment do
@@ -200,10 +284,22 @@ module Rails
       end
     end
 
-    def initialize_console
+    def initialize_console #:nodoc:
       require "pp"
       require "rails/console/app"
       require "rails/console/helpers"
+    end
+
+    def build_original_fullpath(env)
+      path_info    = env["PATH_INFO"]
+      query_string = env["QUERY_STRING"]
+      script_name  = env["SCRIPT_NAME"]
+
+      if query_string.present?
+        "#{script_name}#{path_info}?#{query_string}"
+      else
+        "#{script_name}#{path_info}"
+      end
     end
   end
 end

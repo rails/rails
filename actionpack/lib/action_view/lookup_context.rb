@@ -20,7 +20,7 @@ module ActionView
 
     def self.register_detail(name, options = {}, &block)
       self.registered_details << name
-      initialize = registered_details.map { |n| "self.#{n} = details[:#{n}]" }
+      initialize = registered_details.map { |n| "@details[:#{n}] = details[:#{n}] || default_#{n}" }
 
       Accessors.send :define_method, :"default_#{name}", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -29,7 +29,7 @@ module ActionView
         end
 
         def #{name}=(value)
-          value = Array.wrap(value.presence || default_#{name})
+          value = value.present? ? Array.wrap(value) : default_#{name}
           _set_detail(:#{name}, value) if value != @details[:#{name}]
         end
 
@@ -44,7 +44,7 @@ module ActionView
     module Accessors #:nodoc:
     end
 
-    register_detail(:locale)  { [I18n.locale, I18n.default_locale] }
+    register_detail(:locale)  { [I18n.locale, I18n.default_locale].uniq }
     register_detail(:formats) { Mime::SET.symbols }
     register_detail(:handlers){ Template::Handlers.extensions }
 
@@ -56,7 +56,11 @@ module ActionView
       @details_keys = Hash.new
 
       def self.get(details)
-        @details_keys[details.freeze] ||= new
+        @details_keys[details] ||= new
+      end
+
+      def self.clear
+        @details_keys.clear
       end
 
       def initialize
@@ -85,9 +89,9 @@ module ActionView
     protected
 
       def _set_detail(key, value)
+        @details = @details.dup if @details_key
         @details_key = nil
-        @details = @details.dup if @details.frozen?
-        @details[key] = value.freeze
+        @details[key] = value
       end
     end
 
@@ -147,26 +151,16 @@ module ActionView
       # as well as incorrectly putting part of the path in the template
       # name instead of the prefix.
       def normalize_name(name, prefixes) #:nodoc:
-        name  = name.to_s.sub(handlers_regexp) do |match|
-          ActiveSupport::Deprecation.warn "Passing a template handler in the template name is deprecated. " \
-            "You can simply remove the handler name or pass render :handlers => [:#{match[1..-1]}] instead.", caller
-          ""
-        end
+        prefixes = nil if prefixes.blank?
+        parts    = name.to_s.split('/')
+        name     = parts.pop
 
-        parts = name.split('/')
-        name  = parts.pop
+        return name, prefixes || [""] if parts.empty?
 
-        prefixes = if prefixes.blank?
-          [parts.join('/')]
-        else
-          prefixes.map { |prefix| [prefix, *parts].compact.join('/') }
-        end
+        parts    = parts.join('/')
+        prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
-      end
-
-      def handlers_regexp #:nodoc:
-        @@handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
       end
     end
 
@@ -227,7 +221,6 @@ module ActionView
     end
 
     # A method which only uses the first format in the formats array for layout lookup.
-    # This method plays straight with instance variables for performance reasons.
     def with_layout_format
       if formats.size == 1
         yield

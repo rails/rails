@@ -1,4 +1,4 @@
-require 'journey/router'
+require 'journey'
 require 'forwardable'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
@@ -37,7 +37,7 @@ module ActionDispatch
 
         # If this is a default_controller (i.e. a controller specified by the user)
         # we should raise an error in case it's not found, because it usually means
-        # an user error. However, if the controller was retrieved through a dynamic
+        # a user error. However, if the controller was retrieved through a dynamic
         # segment, as in :controller(/:action), we should simply return nil and
         # delegate the control back to Rack cascade. Besides, if this is not a default
         # controller, it means we should respect the @scope[:module] parameter.
@@ -83,7 +83,9 @@ module ActionDispatch
         attr_reader :routes, :helpers, :module
 
         def initialize
-          clear!
+          @routes  = {}
+          @helpers = []
+          @module  = Module.new
         end
 
         def helper_names
@@ -91,12 +93,8 @@ module ActionDispatch
         end
 
         def clear!
-          @routes = {}
-          @helpers = []
-
-          @module ||= Module.new do
-            instance_methods.each { |selector| remove_method(selector) }
-          end
+          @routes.clear
+          @helpers.clear
         end
 
         def add(name, route)
@@ -125,19 +123,9 @@ module ActionDispatch
           routes.length
         end
 
-        def reset!
-          old_routes = routes.dup
-          clear!
-          old_routes.each do |name, route|
-            add(name, route)
-          end
-        end
-
-        def install(destinations = [ActionController::Base, ActionView::Base], regenerate = false)
-          reset! if regenerate
-          Array(destinations).each do |dest|
-            dest.__send__(:include, @module)
-          end
+        def install(destinations = [ActionController::Base, ActionView::Base])
+          helper = @module
+          destinations.each { |d| d.module_eval { include helper } }
         end
 
         private
@@ -160,22 +148,23 @@ module ActionDispatch
           def define_hash_access(route, name, kind, options)
             selector = hash_access_name(name, kind)
 
-            # We use module_eval to avoid leaks
-            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_possible_method :#{selector}
-              def #{selector}(*args)
-                options = args.extract_options!
-                result = #{options.inspect}
+            @module.module_eval do
+              remove_possible_method selector
+
+              define_method(selector) do |*args|
+                inner_options = args.extract_options!
+                result = options.dup
 
                 if args.any?
                   result[:_positional_args] = args
-                  result[:_positional_keys] = #{route.segment_keys.inspect}
+                  result[:_positional_keys] = route.segment_keys
                 end
 
-                result.merge(options)
+                result.merge(inner_options)
               end
-              protected :#{selector}
-            END_EVAL
+
+              protected selector
+            end
             helpers << selector
           end
 
@@ -287,9 +276,9 @@ module ActionDispatch
         @prepend.each { |blk| eval_block(blk) }
       end
 
-      def install_helpers(destinations = [ActionController::Base, ActionView::Base], regenerate_code = false)
-        Array(destinations).each { |d| d.module_eval { include Helpers } }
-        named_routes.install(destinations, regenerate_code)
+      def install_helpers(destinations)
+        destinations.each { |d| d.module_eval { include Helpers } }
+        named_routes.install(destinations)
       end
 
       module MountedHelpers
@@ -317,32 +306,29 @@ module ActionDispatch
       end
 
       def url_helpers
-        @url_helpers ||= begin
-          routes = self
+        routes = self
 
-          helpers = Module.new do
-            extend ActiveSupport::Concern
-            include UrlFor
+        @url_helpers ||= Module.new {
+          extend ActiveSupport::Concern
+          include UrlFor
 
-            @_routes = routes
-            class << self
-              delegate :url_for, :to => '@_routes'
-            end
-            extend routes.named_routes.module
-
-            # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
-            # we can include?
-            # Yes plz - JP
-            included do
-              routes.install_helpers(self)
-              singleton_class.send(:redefine_method, :_routes) { routes }
-            end
-
-            define_method(:_routes) { @_routes || routes }
+          @_routes = routes
+          def self.url_for(options)
+            @_routes.url_for options
           end
 
-          helpers
-        end
+          extend routes.named_routes.module
+
+          # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
+          # we can include?
+          # Yes plz - JP
+          included do
+            routes.install_helpers([self])
+            singleton_class.send(:redefine_method, :_routes) { routes }
+          end
+
+          define_method(:_routes) { @_routes || routes }
+        }
       end
 
       def empty?
@@ -356,7 +342,7 @@ module ActionDispatch
         conditions = build_conditions(conditions, valid_conditions, path.names.map { |x| x.to_sym })
 
         route = @set.add_route(app, path, conditions, defaults, name)
-        named_routes[name] = route if name
+        named_routes[name] = route if name && !named_routes[name]
         route
       end
 
@@ -394,10 +380,9 @@ module ActionDispatch
           if name == :controller
             value
           elsif value.is_a?(Array)
-            value.map { |v| Journey::Router::Utils.escape_uri(v.to_param) }.join('/')
-          else
-            return nil unless param = value.to_param
-            param.split('/').map { |v| Journey::Router::Utils.escape_uri(v) }.join("/")
+            value.map { |v| v.to_param }.join('/')
+          elsif param = value.to_param
+            param
           end
         end
 
@@ -558,7 +543,7 @@ module ActionDispatch
         path_addition, params = generate(path_options, path_segments || {})
         path << path_addition
 
-        ActionDispatch::Http::URL.url_for(options.merge({
+        ActionDispatch::Http::URL.url_for(options.merge!({
           :path => path,
           :params => params,
           :user => user,
@@ -585,7 +570,7 @@ module ActionDispatch
         @router.recognize(req) do |route, matches, params|
           params.each do |key, value|
             if value.is_a?(String)
-              value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?
+              value = value.dup.force_encoding(Encoding::BINARY)
               params[key] = URI.parser.unescape(value)
             end
           end

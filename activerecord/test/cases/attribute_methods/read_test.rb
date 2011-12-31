@@ -14,18 +14,17 @@ module ActiveRecord
 
       def setup
         @klass = Class.new do
+          def self.superclass; Base; end
+          def self.active_record_super; Base; end
+          def self.base_class; self; end
+
           include ActiveRecord::AttributeMethods
-          include ActiveRecord::AttributeMethods::Read
 
           def self.column_names
             %w{ one two three }
           end
 
           def self.primary_key
-          end
-
-          def self.primary_key?
-            false
           end
 
           def self.columns
@@ -37,9 +36,6 @@ module ActiveRecord
               [name, FakeColumn.new(name)]
             }]
           end
-
-          def self.serialized_attributes; {}; end
-          def self.base_class; self; end
         end
       end
 

@@ -6,7 +6,6 @@ module ActionView
     def render(context, options)
       @view    = context
       @details = extract_details(options)
-      extract_format(options[:file] || options[:template], @details)
       template = determine_template(options)
       freeze_formats(template.formats, true)
       render_template(template, options[:layout], options[:locals])
@@ -26,6 +25,8 @@ module ActionView
       elsif options.key?(:template)
         options[:template].respond_to?(:render) ?
           options[:template] : find_template(options[:template], options[:prefixes], false, keys, @details)
+      else
+        raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file or :text option."
       end
     end
 
@@ -58,14 +59,28 @@ module ActionView
     # context object. If no layout is found, it checks if at least a layout with
     # the given name exists across all details before raising the error.
     def find_layout(layout, keys)
-      begin
-        with_layout_format do
-          layout =~ /^\// ?
-            with_fallbacks { find_template(layout, nil, false, keys, @details) } : find_template(layout, nil, false, keys, @details)
+      with_layout_format { resolve_layout(layout, keys) }
+    end
+
+    def resolve_layout(layout, keys)
+      case layout
+      when String
+        begin
+          if layout =~ /^\//
+            with_fallbacks { find_template(layout, nil, false, keys, @details) }
+          else
+            find_template(layout, nil, false, keys, @details)
+          end
+        rescue ActionView::MissingTemplate
+          all_details = @details.merge(:formats => @lookup_context.default_formats)
+          raise unless template_exists?(layout, nil, false, keys, all_details)
         end
-      rescue ActionView::MissingTemplate
-        all_details = @details.merge(:formats => @lookup_context.default_formats)
-        raise unless template_exists?(layout, nil, false, keys, all_details)
+      when Proc
+        resolve_layout(layout.call, keys)
+      when FalseClass
+        nil
+      else
+        layout
       end
     end
   end

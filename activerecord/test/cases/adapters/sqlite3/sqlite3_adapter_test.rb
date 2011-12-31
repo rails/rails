@@ -5,6 +5,8 @@ require 'models/owner'
 module ActiveRecord
   module ConnectionAdapters
     class SQLite3AdapterTest < ActiveRecord::TestCase
+      self.use_transactional_fixtures = false
+
       class DualEncoding < ActiveRecord::Base
       end
 
@@ -21,8 +23,6 @@ module ActiveRecord
       end
 
       def test_column_types
-        return skip('only test encoding on 1.9') unless "<3".encoding_aware?
-
         owner = Owner.create!(:name => "hello".encode('ascii-8bit'))
         owner.reload
         select = Owner.columns.map { |c| "typeof(#{c.name})" }.join ', '
@@ -142,8 +142,6 @@ module ActiveRecord
       end
 
       def test_quote_binary_column_escapes_it
-        return unless "<3".respond_to?(:encode)
-
         DualEncoding.connection.execute(<<-eosql)
           CREATE TABLE dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
@@ -155,6 +153,9 @@ module ActiveRecord
         binary = DualEncoding.new :name => 'いただきます！', :data => str
         binary.save!
         assert_equal str, binary.data
+
+      ensure
+        DualEncoding.connection.drop_table('dual_encodings')
       end
 
       def test_execute

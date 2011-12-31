@@ -62,7 +62,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     respond_to do |format|
       if @<%= orm_instance.update_attributes("params[:#{singular_table_name}]") %>
         format.html { redirect_to @<%= singular_table_name %>, <%= key_value :notice, "'#{human_name} was successfully updated.'" %> }
-        format.json { head :ok }
+        format.json { head :no_content }
       else
         format.html { render <%= key_value :action, '"edit"' %> }
         format.json { render <%= key_value :json, "@#{orm_instance.errors}" %>, <%= key_value :status, ':unprocessable_entity' %> }
@@ -78,7 +78,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       format.html { redirect_to <%= index_helper %>_url }
-      format.json { head :ok }
+      format.json { head :no_content }
     end
   end
 end

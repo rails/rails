@@ -60,9 +60,6 @@ module Rails
 
         class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
                                           :desc => "Show this help message and quit"
-
-        class_option :old_style_hash,     :type => :boolean, :default => false,
-                                          :desc => "Force using old style hash (:foo => 'bar') on Ruby >= 1.9"
       end
 
       def initialize(*args)
@@ -138,19 +135,21 @@ module Rails
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'journey',   :path => '#{Rails::Generators::JOURNEY_DEV_PATH}'
+            gem 'journey',   :git => 'https://github.com/rails/journey.git'
+            gem 'arel',      :git => 'https://github.com/rails/arel.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
-            gem 'rails',     :git => 'git://github.com/rails/rails.git'
-            gem 'journey',   :git => 'git://github.com/rails/journey.git'
+            gem 'rails',     :git => 'https://github.com/rails/rails.git'
+            gem 'journey',   :git => 'https://github.com/rails/journey.git'
+            gem 'arel',      :git => 'https://github.com/rails/arel.git'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
-            # gem 'rails',     :git => 'git://github.com/rails/rails.git'
+            # gem 'rails', :git => 'https://github.com/rails/rails.git'
           GEMFILE
         end
       end
@@ -158,11 +157,11 @@ module Rails
       def gem_for_database
         # %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
-        when "oracle"     then "ruby-oci8"
-        when "postgresql" then "pg"
-        when "frontbase"  then "ruby-frontbase"
-        when "mysql"      then "mysql2"
-        when "sqlserver"  then "activerecord-sqlserver-adapter"
+        when "oracle"         then "ruby-oci8"
+        when "postgresql"     then "pg"
+        when "frontbase"      then "ruby-frontbase"
+        when "mysql"          then "mysql2"
+        when "sqlserver"      then "activerecord-sqlserver-adapter"
         when "jdbcmysql"      then "activerecord-jdbcmysql-adapter"
         when "jdbcsqlite3"    then "activerecord-jdbcsqlite3-adapter"
         when "jdbcpostgresql" then "activerecord-jdbcpostgresql-adapter"
@@ -183,34 +182,37 @@ module Rails
       end
 
       def ruby_debugger_gemfile_entry
-        if RUBY_VERSION < "1.9"
-          "gem 'ruby-debug'"
-        else
-          "gem 'ruby-debug19', :require => 'ruby-debug'"
-        end
-      end
-
-      def turn_gemfile_entry
-        unless RUBY_VERSION < "1.9.2" || options[:skip_test_unit]
-          <<-GEMFILE.strip_heredoc
-            group :test do
-              # Pretty printed test output
-              gem 'turn', :require => false
-            end
-          GEMFILE
-        end
+        "gem 'ruby-debug19', :require => 'ruby-debug'"
       end
 
       def assets_gemfile_entry
-        <<-GEMFILE.strip_heredoc
-          # Gems used only for assets and not required
-          # in production environments by default.
-          group :assets do
-            gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
-            gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
-            gem 'uglifier', '>= 1.0.3'
-          end
-        GEMFILE
+        return if options[:skip_sprockets]
+
+        gemfile = if options.dev? || options.edge?
+          <<-GEMFILE
+            # Gems used only for assets and not required
+            # in production environments by default.
+            group :assets do
+              gem 'sass-rails',   :git => 'https://github.com/rails/sass-rails.git'
+              gem 'coffee-rails', :git => 'https://github.com/rails/coffee-rails.git'
+              #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
+              gem 'uglifier', '>= 1.0.3'
+            end
+          GEMFILE
+        else
+          <<-GEMFILE
+            # Gems used only for assets and not required
+            # in production environments by default.
+            group :assets do
+              gem 'sass-rails',   '~> 4.0.0.beta'
+              gem 'coffee-rails', '~> 4.0.0.beta'
+              #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
+              gem 'uglifier', '>= 1.0.3'
+            end
+          GEMFILE
+        end
+
+        gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
       end
 
       def javascript_gemfile_entry
@@ -246,14 +248,9 @@ module Rails
         create_file("#{destination}/.gitkeep") unless options[:skip_git]
       end
 
-      # Returns Ruby 1.9 style key-value pair if current code is running on
-      # Ruby 1.9.x. Returns the old-style (with hash rocket) otherwise.
+      # Returns Ruby 1.9 style key-value pair.
       def key_value(key, value)
-        if options[:old_style_hash] || RUBY_VERSION < '1.9'
-          ":#{key} => #{value}"
-        else
-          "#{key}: #{value}"
-        end
+        "#{key}: #{value}"
       end
     end
   end

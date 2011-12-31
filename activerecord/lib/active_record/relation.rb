@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/module/delegation'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Relation
@@ -7,13 +8,9 @@ module ActiveRecord
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order]
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order, :uniq]
 
-    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
-
-    # These are explicitly delegated to improve performance (avoids method_missing)
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :table_name, :quoted_table_name, :primary_key, :primary_key?, :quoted_primary_key, :connection, :column_hash,:to => :klass
+    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions, :default_scoped
@@ -36,7 +33,7 @@ module ActiveRecord
     def insert(values)
       primary_key_value = nil
 
-      if primary_key? && Hash === values
+      if primary_key && Hash === values
         primary_key_value = values[values.keys.find { |k|
           k.name == primary_key
         }]
@@ -70,7 +67,7 @@ module ActiveRecord
       conn.insert(
         im,
         'SQL',
-        primary_key? && primary_key,
+        primary_key,
         primary_key_value,
         nil,
         binds)
@@ -136,14 +133,35 @@ module ActiveRecord
       first || new(attributes, options, &block)
     end
 
-    def respond_to?(method, include_private = false)
-      arel.respond_to?(method, include_private)     ||
-        Array.method_defined?(method)               ||
-        @klass.respond_to?(method, include_private) ||
-        super
+    # Runs EXPLAIN on the query or queries triggered by this relation and
+    # returns the result as a string. The string is formatted imitating the
+    # ones printed by the database shell.
+    #
+    # Note that this method actually runs the queries, since the results of some
+    # are needed by the next ones when eager loading is going on.
+    #
+    # Please see further details in the
+    # {Active Record Query Interface guide}[http://edgeguides.rubyonrails.org/active_record_querying.html#running-explain].
+    def explain
+      _, queries = collecting_queries_for_explain { exec_queries }
+      exec_explain(queries)
     end
 
     def to_a
+      # We monitor here the entire execution rather than individual SELECTs
+      # because from the point of view of the user fetching the records of a
+      # relation is a single unit of work. You want to know if this call takes
+      # too long, not if the individual queries take too long.
+      #
+      # It could be the case that none of the queries involved surpass the
+      # threshold, and at the same time the sum of them all does. The user
+      # should get a query plan logged in that case.
+      logging_query_plan do
+        exec_queries
+      end
+    end
+
+    def exec_queries
       return @records if loaded?
 
       default_scoped = with_default_scope
@@ -174,6 +192,7 @@ module ActiveRecord
       @loaded = true
       @records
     end
+    private :exec_queries
 
     def as_json(options = nil) #:nodoc:
       to_a.as_json(options)
@@ -219,7 +238,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      @klass.send(:with_scope, self, :overwrite) { yield }
+      @klass.with_scope(self, :overwrite) { yield }
     end
 
     # Updates all records with details given if they match a set of conditions supplied, limits and order can
@@ -337,7 +356,7 @@ module ActiveRecord
       end
     end
 
-    # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
+    # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
     # therefore all callbacks and filters are fired off before the object is deleted. This method is
     # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
     #
@@ -487,20 +506,6 @@ module ActiveRecord
       end
     end
 
-    protected
-
-    def method_missing(method, *args, &block)
-      if Array.method_defined?(method)
-        to_a.send(method, *args, &block)
-      elsif @klass.respond_to?(method)
-        scoping { @klass.send(method, *args, &block) }
-      elsif arel.respond_to?(method)
-        arel.send(method, *args, &block)
-      else
-        super
-      end
-    end
-
     private
 
     def references_eager_loaded_tables?
@@ -517,7 +522,18 @@ module ActiveRecord
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
 
-      (tables_in_string(to_sql) - joined_tables).any?
+      referenced_tables = (tables_in_string(to_sql) - joined_tables)
+      if referenced_tables.any?
+        ActiveSupport::Deprecation.warn(
+          "Your query appears to reference tables (#{referenced_tables.join(', ')}) that are not " \
+          "explicitly joined. This implicit joining is deprecated, so you must explicitly " \
+          "reference the tables. For example, instead of Author.includes(:posts).where(\"posts.name = 'foo'\"), " \
+          "you should write Author.eager_load(:posts).where(\"posts.name = 'foo'\")."
+        )
+        true
+      else
+        false
+      end
     end
 
     def tables_in_string(string)
@@ -526,6 +542,5 @@ module ActiveRecord
       # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
       string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map{ |s| s.downcase }.uniq - ['raw_sql_']
     end
-
   end
 end

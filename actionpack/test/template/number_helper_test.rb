@@ -27,6 +27,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("800 555 1212", number_to_phone(8005551212, {:delimiter => " "}))
     assert_equal("(800) 555-1212 x 123", number_to_phone(8005551212, {:area_code => true, :extension => 123}))
     assert_equal("800-555-1212", number_to_phone(8005551212, :extension => "  "))
+    assert_equal("555.1212", number_to_phone(5551212, :delimiter => '.'))
     assert_equal("800-555-1212", number_to_phone("8005551212"))
     assert_equal("+1-800-555-1212", number_to_phone(8005551212, :country_code => 1))
     assert_equal("+18005551212", number_to_phone(8005551212, :country_code => 1, :delimiter => ''))

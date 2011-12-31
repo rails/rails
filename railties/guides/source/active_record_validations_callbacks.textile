@@ -46,7 +46,7 @@ end
 
 We can see how it works by looking at some +rails console+ output:
 
-<shell>
+<ruby>
 >> p = Person.new(:name => "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, :updated_at: nil>
 >> p.new_record?
@@ -55,7 +55,7 @@ We can see how it works by looking at some +rails console+ output:
 => true
 >> p.new_record?
 => false
-</shell>
+</ruby>
 
 Creating and saving a new record will send an SQL +INSERT+ operation to the database. Updating an existing record will send an SQL +UPDATE+ operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not perform the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an invalid object in the database. You can choose to have specific validations run when an object is created, saved, or updated.
 
@@ -796,17 +796,9 @@ person.errors.size # => 0
 
 h3. Displaying Validation Errors in the View
 
-Rails maintains an official plugin, DynamicForm, that provides helpers to display the error messages of your models in your view templates. You can install it as a plugin or as a Gem.
+"DynamicForm":https://github.com/joelmoss/dynamic_form provides helpers to display the error messages of your models in your view templates.
 
-h4. Installing as a plugin
-
-<shell>
-$ rails plugin install git://github.com/joelmoss/dynamic_form.git
-</shell>
-
-h4. Installing as a Gem
-
-Add this line in your Gemfile:
+You can install it as a gem by adding this line to your Gemfile:
 
 <ruby>
 gem "dynamic_form"
@@ -880,7 +872,7 @@ The selectors used to customize the style of error messages are:
 * +#error_explanation p+ - Style for the paragraph holding the message that appears right below the header of the +div+ element.
 * +#error_explanation ul li+ - Style for the list items with individual error messages.
 
-If scaffolding was used, file +app/assets/stylesheets/scaffold.css.scss+ (which later compiles to +app/assets/stylesheets/scaffold.css+), will have been generated automatically. This file defines the red-based styles you saw in the examples above.
+If scaffolding was used, file +app/assets/stylesheets/scaffolds.css.scss+ will have been generated automatically. This file defines the red-based styles you saw in the examples above.
 
 The name of the class and the id can be changed with the +:class+ and +:id+ options, accepted by both helpers.
 
@@ -986,15 +978,15 @@ The +after_initialize+ callback will be called whenever an Active Record object 
 
 The +after_find+ callback will be called whenever Active Record loads a record from the database. +after_find+ is called before +after_initialize+ if both are defined.
 
-The +after_initialize+ and +after_find+ callbacks are a bit different from the others. They have no +before_*+ counterparts, and they are registered simply by defining them as regular methods with predefined names. If you try to register +after_initialize+ or +after_find+ using macro-style class methods, they will just be ignored. This behavior is due to performance reasons, since +after_initialize+ and +after_find+ will both be called for each record found in the database, which would otherwise significantly slow down the queries.
+The +after_initialize+ and +after_find+ callbacks have no +before_*+ counterparts, but they can be registered just like the other Active Record callbacks.
 
 <ruby>
 class User < ActiveRecord::Base
-  def after_initialize
+  after_initialize do |user|
     puts "You have initialized an object!"
   end
 
-  def after_find
+  after_find do |user|
     puts "You have found an object!"
   end
 end
@@ -1162,7 +1154,7 @@ class PictureFile < ActiveRecord::Base
 end
 </ruby>
 
-Note that we needed to instantiate a new +PictureFileCallbacks+ object, since we declared our callback as an instance method. This is particularly useful if the callbacks make use of the state of instantiated object. Often, however, it will make more sense to declare the callbacks as class methods:
+Note that we needed to instantiate a new +PictureFileCallbacks+ object, since we declared our callback as an instance method. This is particularly useful if the callbacks make use of the state of the instantiated object. Often, however, it will make more sense to declare the callbacks as class methods:
 
 <ruby>
 class PictureFileCallbacks

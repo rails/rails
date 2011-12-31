@@ -4,6 +4,13 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       class Column < ConnectionAdapters::Column # :nodoc:
+        attr_reader :collation
+
+        def initialize(name, default, sql_type = nil, null = true, collation = nil)
+          super(name, default, sql_type, null)
+          @collation = collation
+        end
+
         def extract_default(default)
           if sql_type =~ /blob/i || type == :text
             if default.blank?
@@ -26,6 +33,10 @@ module ActiveRecord
         # Must return the relevant concrete adapter
         def adapter
           raise NotImplementedError
+        end
+
+        def case_sensitive?
+          collation && !collation.match(/_ci$/)
         end
 
         private
@@ -116,10 +127,7 @@ module ActiveRecord
         super(connection, logger)
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
-      end
-
-      def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::MySQL.new(pool)
+        @visitor = Arel::Visitors::MySQL.new self
       end
 
       def adapter_name #:nodoc:
@@ -144,6 +152,12 @@ module ActiveRecord
         true
       end
 
+      # Technically MySQL allows to create indexes with the sort order syntax
+      # but at the moment (5.5) it doesn't yet implement them
+      def supports_index_sort_order?
+        true
+      end
+
       def native_database_types
         NATIVE_DATABASE_TYPES
       end
@@ -157,8 +171,8 @@ module ActiveRecord
       end
 
       # Overridden by the adapters to instantiate their specific Column type.
-      def new_column(field, default, type, null) # :nodoc:
-        Column.new(field, default, type, null)
+      def new_column(field, default, type, null, collation) # :nodoc:
+        Column.new(field, default, type, null, collation)
       end
 
       # Must return the Mysql error number from the exception, if the exception has an
@@ -298,11 +312,11 @@ module ActiveRecord
           sql = "SHOW TABLES"
         end
 
-        select_all(sql).map do |table|
+        select_all(sql).map { |table|
           table.delete('Table_type')
           sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
           exec_without_stmt(sql).first['Create Table'] + ";\n\n"
-        end.join("")
+        }.join
       end
 
       # Drops the database specified on the +name+ attribute
@@ -349,8 +363,10 @@ module ActiveRecord
         show_variable 'collation_database'
       end
 
-      def tables(name = nil, database = nil) #:nodoc:
-        sql = ["SHOW TABLES", database].compact.join(' IN ')
+      def tables(name = nil, database = nil, like = nil) #:nodoc:
+        sql = "SHOW TABLES "
+        sql << "IN #{database} " if database
+        sql << "LIKE #{quote(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
           result.collect { |field| field.first }
@@ -358,7 +374,8 @@ module ActiveRecord
       end
 
       def table_exists?(name)
-        return true if super
+        return false unless name
+        return true if tables(nil, nil, name).any?
 
         name          = name.to_s
         schema, table = name.split('.', 2)
@@ -368,7 +385,7 @@ module ActiveRecord
           schema = nil
         end
 
-        tables(nil, schema).include? table
+        tables(nil, schema, table).any?
       end
 
       # Returns an array of indexes for the given table.
@@ -393,10 +410,10 @@ module ActiveRecord
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
       def columns(table_name, name = nil)#:nodoc:
-        sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
+        sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
-            new_column(field[:Field], field[:Default], field[:Type], field[:Null] == "YES")
+            new_column(field[:Field], field[:Default], field[:Type], field[:Null] == "YES", field[:Collation])
           end
         end
       end
@@ -485,9 +502,14 @@ module ActiveRecord
 
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table)
-        execute_and_free("DESCRIBE #{quote_table_name(table)}", 'SCHEMA') do |result|
-          keys = each_hash(result).select { |row| row[:Key] == 'PRI' }.map { |row| row[:Field] }
-          keys.length == 1 ? [keys.first, nil] : nil
+        execute_and_free("SHOW CREATE TABLE #{quote_table_name(table)}", 'SCHEMA') do |result|
+          create_table = each_hash(result).first[:"Create Table"]
+          if create_table.to_s =~ /PRIMARY KEY\s+\((.+)\)/
+            keys = $1.split(",").map { |key| key.gsub(/`/, "") }
+            keys.length == 1 ? [keys.first, nil] : nil
+          else
+            nil
+          end
         end
       end
 
@@ -501,23 +523,43 @@ module ActiveRecord
         Arel::Nodes::Bin.new(node)
       end
 
+      def case_insensitive_comparison(table, attribute, column, value)
+        if column.case_sensitive?
+          super
+        else
+          table[attribute].eq(value)
+        end
+      end
+
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
         where_sql
       end
 
       protected
 
-      def quoted_columns_for_index(column_names, options = {})
-        length = options[:length] if options.is_a?(Hash)
-
-        case length
-        when Hash
-          column_names.map {|name| length[name] ? "#{quote_column_name(name)}(#{length[name]})" : quote_column_name(name) }
-        when Fixnum
-          column_names.map {|name| "#{quote_column_name(name)}(#{length})"}
-        else
-          column_names.map {|name| quote_column_name(name) }
+      def add_index_length(option_strings, column_names, options = {})
+        if options.is_a?(Hash) && length = options[:length]
+          case length
+          when Hash
+            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name)}
+          when Fixnum
+            column_names.each {|name| option_strings[name] += "(#{length})"}
+          end
         end
+
+        return option_strings
+      end
+
+      def quoted_columns_for_index(column_names, options = {})
+        option_strings = Hash[column_names.map {|name| [name, '']}]
+
+        # add index length
+        option_strings = add_index_length(option_strings, column_names, options)
+
+        # add index sort order
+        option_strings = add_index_sort_order(option_strings, column_names, options)
+
+        column_names.map {|name| quote_column_name(name) + option_strings[name]}
       end
 
       def translate_exception(exception, message)

@@ -177,19 +177,6 @@ end
 
 NOTE: Defined in +active_support/core_ext/object/try.rb+.
 
-h4. +singleton_class+
-
-The method +singleton_class+ returns the singleton class of the receiver:
-
-<ruby>
-String.singleton_class     # => #<Class:String>
-String.new.singleton_class # => #<Class:#<String:0x17a1d1c>>
-</ruby>
-
-WARNING: Fixnums and symbols have no singleton classes, +singleton_class+ raises +TypeError+ on them. Moreover, the singleton classes of +nil+, +true+, and +false+, are +NilClass+, +TrueClass+, and +FalseClass+, respectively.
-
-NOTE: Defined in +active_support/core_ext/kernel/singleton_class.rb+.
-
 h4. +class_eval(*args, &block)+
 
 You can evaluate code in the context of any object's singleton class using +class_eval+:
@@ -440,14 +427,16 @@ NOTE: Defined in +active_support/core_ext/kernel/reporting.rb+.
 
 h4. +in?+
 
-The predicate +in?+ tests if an object is included in another object. An +ArgumentError+ exception will be raised if the argument passed does not respond to +include?+.
+The predicate +in?+ tests if an object is included in another object or a list of objects. An +ArgumentError+ exception will be raised if a single argument is passed and it does not respond to +include?+.
 
 Examples of +in?+:
 
 <ruby>
+1.in?(1,2)          # => true
 1.in?([1,2])        # => true
 "lo".in?("hello")   # => true
 25.in?(30..50)      # => false
+1.in?(1)            # => ArgumentError
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/object/inclusion.rb+.
@@ -571,7 +560,7 @@ NOTE: Defined in +active_support/core_ext/module/attr_accessor_with_default.rb+.
 
 h5. Internal Attributes
 
-When you are defining an attribute in a class that is meant to be subclassed name collisions are a risk. That's remarkably important for libraries.
+When you are defining an attribute in a class that is meant to be subclassed, name collisions are a risk. That's remarkably important for libraries.
 
 Active Support defines the macros +attr_internal_reader+, +attr_internal_writer+, and +attr_internal_accessor+. They behave like their Ruby built-in +attr_*+ counterparts, except they name the underlying instance variable in a way that makes collisions less likely.
 
@@ -719,35 +708,69 @@ X.local_constants    # => ["X2", "X1", "Y"], assumes Ruby 1.8
 X::Y.local_constants # => ["X1", "Y1"], assumes Ruby 1.8
 </ruby>
 
-The names are returned as strings in Ruby 1.8, and as symbols in Ruby 1.9. The method +local_constant_names+ returns always strings.
+The names are returned as strings in Ruby 1.8, and as symbols in Ruby 1.9. The method +local_constant_names+ always returns strings.
 
-WARNING: This method is exact if running under Ruby 1.9. In previous versions it may miss some constants if their value in some ancestor stores the exact same object than in the receiver.
+WARNING: This method returns precise results in Ruby 1.9. In older versions of Ruby, however, it may miss some constants in case the same constant exists in the receiver module as well as in any of its ancestors and both constants point to the same object (objects are compared using +Object#object_id+).
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
-h4. Synchronization
+h5. Qualified Constant Names
 
-The +synchronize+ macro declares a method to be synchronized:
+The standard methods +const_defined?+, +const_get+ , and +const_set+ accept
+bare constant names. Active Support extends this API to be able to pass
+relative qualified constant names.
+
+The new methods are +qualified_const_defined?+, +qualified_const_get+, and
++qualified_const_set+. Their arguments are assumed to be qualified constant
+names relative to their receiver:
 
 <ruby>
-class Counter
-  @@mutex = Mutex.new
-  attr_reader :value
+Object.qualified_const_defined?("Math::PI")       # => true
+Object.qualified_const_get("Math::PI")            # => 3.141592653589793
+Object.qualified_const_set("Math::Phi", 1.618034) # => 1.618034
+</ruby>
 
-  def initialize
-    @value = 0
-  end
+Arguments may be bare constant names:
 
-  def incr
-    @value += 1 # non-atomic
+<ruby>
+Math.qualified_const_get("E") # => 2.718281828459045
+</ruby>
+
+These methods are analogous to their builtin counterparts. In particular,
++qualified_constant_defined?+ accepts an optional second argument in 1.9
+to be able to say whether you want the predicate to look in the ancestors.
+This flag is taken into account for each constant in the expression while
+walking down the path.
+
+For example, given
+
+<ruby>
+module M
+  X = 1
+end
+
+module N
+  class C
+    include M
   end
-  synchronize :incr, :with => '@@mutex'
 end
 </ruby>
 
-The method receives the name of an action, and a +:with+ option with code. The code is evaluated in the context of the receiver each time the method is invoked, and it should evaluate to a +Mutex+ instance or any other object that responds to +synchronize+ and accepts a block.
++qualified_const_defined?+ behaves this way:
 
-NOTE: Defined in +active_support/core_ext/module/synchronization.rb+.
+<ruby>
+N.qualified_const_defined?("C::X", false) # => false (1.9 only)
+N.qualified_const_defined?("C::X", true)  # => true (1.9 only)
+N.qualified_const_defined?("C::X")        # => false in 1.8, true in 1.9
+</ruby>
+
+As the last example implies, in 1.9 the second argument defaults to true,
+as in +const_defined?+.
+
+For coherence with the builtin methods only relative paths are accepted.
+Absolute qualified constant names like +::Math::PI+ raise +NameError+.
+
+NOTE: Defined in +active_support/core_ext/module/qualified_const.rb+.
 
 h4. Reachable
 
@@ -799,7 +822,7 @@ M.name # => "M"
 N = Module.new
 N.name # => "N"
 
-Module.new.name # => "" in 1.8, nil in 1.9
+Module.new.name # => nil
 </ruby>
 
 You can check whether a module has a name with the predicate +anonymous?+:
@@ -911,18 +934,6 @@ delegate :size, :to => :attachment, :prefix => :avatar
 In the previous example the macro generates +avatar_size+ rather than +size+.
 
 NOTE: Defined in +active_support/core_ext/module/delegation.rb+
-
-h4. Method Names
-
-The builtin methods +instance_methods+ and +methods+ return method names as strings or symbols depending on the Ruby version. Active Support defines +instance_method_names+ and +method_names+ to be equivalent to them, respectively, but always getting strings back.
-
-For example, +ActionView::Helpers::FormBuilder+ knows this array difference is going to work no matter the Ruby version:
-
-<ruby>
-self.field_helpers = (FormHelper.instance_method_names - ['form_for'])
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/module/method_names.rb+
 
 h4. Redefining Methods
 
@@ -1241,7 +1252,7 @@ NOTE: Defined in +active_support/core_ext/string/output_safety.rb+.
 
 h5. Transformation
 
-As a rule of thumb, except perhaps for concatenation as explained above, any method that may change a string gives you an unsafe string. These are +donwcase+, +gsub+, +strip+, +chomp+, +underscore+, etc.
+As a rule of thumb, except perhaps for concatenation as explained above, any method that may change a string gives you an unsafe string. These are +downcase+, +gsub+, +strip+, +chomp+, +underscore+, etc.
 
 In the case of in-place transformations like +gsub!+ the receiver itself becomes unsafe.
 
@@ -1426,6 +1437,14 @@ The method +pluralize+ returns the plural of its receiver:
 
 As the previous example shows, Active Support knows some irregular plurals and uncountable nouns. Built-in rules can be extended in +config/initializers/inflections.rb+. That file is generated by the +rails+ command and has instructions in comments.
 
++pluralize+ can also take an optional +count+ parameter.  If <tt>count == 1</tt> the singular form will be returned.  For any other value of +count+ the plural form will be returned:
+
+<ruby>
+"dude".pluralize(0) # => "dudes"
+"dude".pluralize(1) # => "dude"
+"dude".pluralize(2) # => "dudes"
+</ruby>
+
 Active Record uses this method to compute the default table name that corresponds to a model:
 
 <ruby>
@@ -1589,7 +1608,7 @@ NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
 h5. +demodulize+
 
-Given a string with a qualified constant reference expression, +demodulize+ returns the very constant name, that is, the rightmost part of it:
+Given a string with a qualified constant name, +demodulize+ returns the very constant name, that is, the rightmost part of it:
 
 <ruby>
 "Product".demodulize                        # => "Product"
@@ -1607,6 +1626,31 @@ def counter_cache_column
   elsif options[:counter_cache]
     options[:counter_cache]
   end
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +deconstantize+
+
+Given a string with a qualified constant reference expression, +deconstantize+ removes the rightmost segment, generally leaving the name of the constant's container:
+
+<ruby>
+"Product".deconstantize                        # => ""
+"Backoffice::UsersController".deconstantize    # => "Backoffice"
+"Admin::Hotel::ReservationUtils".deconstantize # => "Admin::Hotel"
+</ruby>
+
+Active Support for example uses this method in +Module#qualified_const_set+:
+
+<ruby>
+def qualified_const_set(path, value)
+  QualifiedConstUtils.raise_if_absolute(path)
+
+  const_name = path.demodulize
+  mod_name = path.deconstantize
+  mod = mod_name.empty? ? self : qualified_const_get(mod_name)
+  mod.const_set(const_name, value)
 end
 </ruby>
 
@@ -1758,43 +1802,6 @@ NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
 h4(#string-conversions). Conversions
 
-h5. +ord+
-
-Ruby 1.9 defines +ord+ to be the codepoint of the first character of the receiver. Active Support backports +ord+ for single-byte encondings like ASCII or ISO-8859-1 in Ruby 1.8:
-
-<ruby>
-"a".ord # => 97
-"à".ord # => 224, in ISO-8859-1
-</ruby>
-
-In Ruby 1.8 +ord+ doesn't work in general in UTF8 strings, use the multibyte support in Active Support for that:
-
-<ruby>
-"a".mb_chars.ord # => 97
-"à".mb_chars.ord # => 224, in UTF8
-</ruby>
-
-Note that the 224 is different in both examples. In ISO-8859-1 "à" is represented as a single byte, 224. Its single-character representattion in UTF8 has two bytes, namely 195 and 160, but its Unicode codepoint is 224. If we call +ord+ on the UTF8 string "à" the return value will be 195 in Ruby 1.8. That is not an error, because UTF8 is unsupported, the call itself would be bogus.
-
-INFO: +ord+ is equivalent to +getbyte(0)+.
-
-NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
-
-h5. +getbyte+
-
-Active Support backports +getbyte+ from Ruby 1.9:
-
-<ruby>
-"foo".getbyte(0)  # => 102, same as "foo".ord
-"foo".getbyte(1)  # => 111
-"foo".getbyte(9)  # => nil
-"foo".getbyte(-1) # => 111
-</ruby>
-
-INFO: +getbyte+ is equivalent to +[]+.
-
-NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
-
 h5. +to_date+, +to_time+, +to_datetime+
 
 The methods +to_date+, +to_time+, and +to_datetime+ are basically convenience wrappers around +Date._parse+:
@@ -1881,37 +1888,11 @@ The method +ordinalize+ returns the ordinal string corresponding to the receiver
 
 NOTE: Defined in +active_support/core_ext/integer/inflections.rb+.
 
-h3. Extensions to +Float+
-
-h4. +round+
-
-The built-in method +Float#round+ rounds a float to the nearest integer. In Ruby 1.9 this method takes an optional argument to let you specify a precision. Active Support adds that functionality to +round+ in previous versions of Ruby:
-
-<ruby>
-Math::E.round(4) # => 2.7183
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/float/rounding.rb+.
-
 h3. Extensions to +BigDecimal+
 
 ...
 
 h3. Extensions to +Enumerable+
-
-h4. +group_by+
-
-Active Support redefines +group_by+ in Ruby 1.8.7 so that it returns an ordered hash as in 1.9:
-
-<ruby>
-entries_by_surname_initial = address_book.group_by do |entry|
-  entry.surname.at(0).upcase
-end
-</ruby>
-
-Distinct block return values are added to the hash as they come, so that's the resulting order.
-
-NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
 h4. +sum+
 
@@ -1957,32 +1938,6 @@ def observed_subclasses
   observed_classes.sum([]) { |klass| klass.send(:subclasses) }
 end
 </ruby>
-
-NOTE: Defined in +active_support/core_ext/enumerable.rb+.
-
-h4. +each_with_object+
-
-The +inject+ method offers iteration with an accumulator:
-
-<ruby>
-[2, 3, 4].inject(1) {|product, i| product*i } # => 24
-</ruby>
-
-The block is expected to return the value for the accumulator in the next iteration, and this makes building mutable objects a bit cumbersome:
-
-<ruby>
-[1, 2].inject({}) {|h, i| h[i] = i**2; h} # => {1 => 1, 2 => 4}
-</ruby>
-
-See that spurious "+; h+"?
-
-Active Support backports +each_with_object+ from Ruby 1.9, which addresses that use case. It iterates over the collection, passes the accumulator, and returns the accumulator when done. You normally modify the accumulator in place. The example above would be written this way:
-
-<ruby>
-[1, 2].each_with_object({}) {|i, h| h[i] = i**2} # => {1 => 1, 2 => 4}
-</ruby>
-
-WARNING. Note that the item of the collection and the accumulator come in different order in +inject+ and +each_with_object+.
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
@@ -2056,20 +2011,6 @@ The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding el
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/array/access.rb+.
-
-h4. Random Access
-
-Active Support backports +sample+ from Ruby 1.9:
-
-<ruby>
-shape_type = [Circle, Square, Triangle].sample
-# => Square, for example
-
-shape_types = [Circle, Square, Triangle].sample(2)
-# => [Triangle, Circle], for example
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/array/random_access.rb+.
 
 h4. Adding Elements
 
@@ -2823,14 +2764,6 @@ WARNING: The original +Range#include?+ is still the one aliased to +Range#===+.
 
 NOTE: Defined in +active_support/core_ext/range/include_range.rb+.
 
-h4. +cover?+
-
-Ruby 1.9 provides +cover?+, and Active Support defines it for previous versions as an alias for +include?+.
-
-The method +include?+ in Ruby 1.9 is different from the one in 1.8 for non-numeric ranges: instead of being based on comparisons between the value and the range's endpoints, it walks the range with +succ+ looking for value. This works better for ranges with holes, but it has different complexity and may not finish in some other cases.
-
-In Ruby 1.9 the old behavior is still available in the new +cover?+, which Active Support backports for forward compatibility. For example, Rails uses +cover?+ for ranges in +validates_inclusion_of+.
-
 h4. +overlaps?+
 
 The method +Range#overlaps?+ says whether any two given ranges have non-void intersection:
@@ -2948,15 +2881,30 @@ Active Support defines these methods as well for Ruby 1.8.
 
 h6. +beginning_of_week+, +end_of_week+
 
-The methods +beginning_of_week+ and +end_of_week+ return the dates for the beginning and end of week, assuming weeks start on Monday:
+The methods +beginning_of_week+ and +end_of_week+ return the dates for the
+beginning and end of the week, respectively. Weeks are assumed to start on
+Monday, but that can be changed passing an argument.
 
 <ruby>
-d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
-d.beginning_of_week      # => Mon, 03 May 2010
-d.end_of_week            # => Sun, 09 May 2010
+d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
+d.beginning_of_week          # => Mon, 03 May 2010
+d.beginning_of_week(:sunday) # => Sun, 02 May 2010
+d.end_of_week                # => Sun, 09 May 2010
+d.end_of_week(:sunday)       # => Sat, 08 May 2010
 </ruby>
 
-+beginning_of_week+ is aliased to +monday+ and +at_beginning_of_week+. +end_of_week+ is aliased to +sunday+ and +at_end_of_week+.
++beginning_of_week+ is aliased to +at_beginning_of_week+ and +end_of_week+ is aliased to +at_end_of_week+.
+
+h6. +monday+, +sunday+
+
+The methods +monday+ and +sunday+ return the dates for the beginning and
+end of the week, respectively. Weeks are assumed to start on Monday.
+
+<ruby>
+d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
+d.monday                     # => Mon, 03 May 2010
+d.sunday                     # => Sun, 09 May 2010
+</ruby>
 
 h6. +prev_week+, +next_week+
 
@@ -3181,8 +3129,10 @@ The class +DateTime+ is a subclass of +Date+ so by loading +active_support/core_
 <ruby>
 yesterday
 tomorrow
-beginning_of_week (monday, at_beginning_of_week)
-end_on_week (at_end_of_week)
+beginning_of_week (at_beginning_of_week)
+end_of_week (at_end_of_week)
+monday
+sunday
 weeks_ago
 prev_week
 next_week
@@ -3355,8 +3305,10 @@ ago
 since (in)
 beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
-beginning_of_week (monday, at_beginning_of_week)
-end_on_week (at_end_of_week)
+beginning_of_week (at_beginning_of_week)
+end_of_week (at_end_of_week)
+monday
+sunday
 weeks_ago
 prev_week
 next_week
@@ -3480,12 +3432,6 @@ They translate to calls to +since+ or +advance+. For example here we get the cor
 Time.utc_time(1582, 10, 3) + 5.days
 # => Mon Oct 18 00:00:00 UTC 1582
 </ruby>
-
-h3. Extensions to +Process+
-
-h4. +daemon+
-
-Ruby 1.9 provides +Process.daemon+, and Active Support defines it for previous versions. It accepts the same two arguments, whether it should chdir to the root directory (default, true), and whether it should inherit the standard file descriptors from the parent (default, false).
 
 h3. Extensions to +File+
 

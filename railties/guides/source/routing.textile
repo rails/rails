@@ -596,6 +596,8 @@ match "/stories/:name" => redirect {|params| "/posts/#{params[:name].pluralize}"
 match "/stories" => redirect {|p, req| "/posts/#{req.subdomain}" }
 </ruby>
 
+Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
+
 In all of these cases, if you don't provide the leading host (+http://www.example.com+), Rails will take those details from the current request.
 
 h4. Routing to Rack Applications
@@ -618,7 +620,7 @@ You can specify what Rails should route +"/"+ to with the +root+ method:
 root :to => 'pages#main'
 </ruby>
 
-You should put the +root+ route at the end of the file. You also need to delete the +public/index.html+ file for the root route to take effect.
+You should put the +root+ route at the top of the file, because it is the most popular route and should be matched first. You also need to delete the +public/index.html+ file for the root route to take effect.
 
 h3. Customizing Resourceful Routes
 
@@ -653,7 +655,7 @@ You can use the +:constraints+ option to specify a required format on the implic
 resources :photos, :constraints => {:id => /[A-Z][A-Z][0-9]+/}
 </ruby>
 
-This declaration constraints the +:id+ parameter to match the supplied regular expression. So, in this case, the router would no longer match +/photos/1+ to this route. Instead, +/photos/RR27+ would match.
+This declaration constrains the +:id+ parameter to match the supplied regular expression. So, in this case, the router would no longer match +/photos/1+ to this route. Instead, +/photos/RR27+ would match.
 
 You can specify a single constraint to apply to a number of routes by using the block form:
 

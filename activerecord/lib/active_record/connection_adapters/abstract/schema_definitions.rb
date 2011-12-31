@@ -6,7 +6,7 @@ require 'bigdecimal/util'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
-    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths) #:nodoc:
+    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths, :orders) #:nodoc:
     end
 
     # Abstract representation of a column definition. Instances of this type
@@ -46,13 +46,13 @@ module ActiveRecord
     # +change_table+ is actually of this type:
     #
     #   class SomeMigration < ActiveRecord::Migration
-    #     def self.up
+    #     def up
     #       create_table :foo do |t|
     #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
     #       end
     #     end
     #
-    #     def self.down
+    #     def down
     #       ...
     #     end
     #   end
@@ -66,6 +66,7 @@ module ActiveRecord
 
       def initialize(base)
         @columns = []
+        @columns_hash = {}
         @base = base
       end
 
@@ -86,7 +87,7 @@ module ActiveRecord
 
       # Returns a ColumnDefinition for the column with name +name+.
       def [](name)
-        @columns.find {|column| column.name.to_s == name.to_s}
+        @columns_hash[name.to_s]
       end
 
       # Instantiates a new column for the table.
@@ -224,35 +225,38 @@ module ActiveRecord
       #     t.references :taggable, :polymorphic => { :default => 'Photo' }
       #   end
       def column(name, type, options = {})
-        column = self[name] || ColumnDefinition.new(@base, name, type)
-        if options[:limit]
-          column.limit = options[:limit]
-        elsif native[type.to_sym].is_a?(Hash)
-          column.limit = native[type.to_sym][:limit]
+        name = name.to_s
+        type = type.to_sym
+
+        column = self[name] || new_column_definition(@base, name, type)
+
+        limit = options.fetch(:limit) do
+          native[type][:limit] if native[type].is_a?(Hash)
         end
+
+        column.limit     = limit
         column.precision = options[:precision]
-        column.scale = options[:scale]
-        column.default = options[:default]
-        column.null = options[:null]
-        @columns << column unless @columns.include? column
+        column.scale     = options[:scale]
+        column.default   = options[:default]
+        column.null      = options[:null]
         self
       end
 
       %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{column_type}(*args)                                               # def string(*args)
-            options = args.extract_options!                                       #   options = args.extract_options!
-            column_names = args                                                   #   column_names = args
-                                                                                  #
-            column_names.each { |name| column(name, '#{column_type}', options) }  #   column_names.each { |name| column(name, 'string', options) }
-          end                                                                     # end
+          def #{column_type}(*args)                                   # def string(*args)
+            options = args.extract_options!                           #   options = args.extract_options!
+            column_names = args                                       #   column_names = args
+            type = :'#{column_type}'                                  #   type = :string
+            column_names.each { |name| column(name, type, options) }  #   column_names.each { |name| column(name, type, options) }
+          end                                                         # end
         EOV
       end
 
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
       # <tt>:updated_at</tt> to the table.
       def timestamps(*args)
-        options = args.extract_options!
+        options = { :null => false }.merge(args.extract_options!)
         column(:created_at, :datetime, options)
         column(:updated_at, :datetime, options)
       end
@@ -275,9 +279,16 @@ module ActiveRecord
       end
 
       private
-        def native
-          @base.native_database_types
-        end
+      def new_column_definition(base, name, type)
+        definition = ColumnDefinition.new base, name, type
+        @columns << definition
+        @columns_hash[name] = definition
+        definition
+      end
+
+      def native
+        @base.native_database_types
+      end
     end
 
     # Represents an SQL table in an abstract way for updating a table.
@@ -453,13 +464,13 @@ module ActiveRecord
           def #{column_type}(*args)                                          # def string(*args)
             options = args.extract_options!                                  #   options = args.extract_options!
             column_names = args                                              #   column_names = args
-                                                                             #
+            type = :'#{column_type}'                                         #   type = :string
             column_names.each do |name|                                      #   column_names.each do |name|
-              column = ColumnDefinition.new(@base, name, '#{column_type}')   #     column = ColumnDefinition.new(@base, name, 'string')
+              column = ColumnDefinition.new(@base, name.to_s, type)          #     column = ColumnDefinition.new(@base, name, type)
               if options[:limit]                                             #     if options[:limit]
                 column.limit = options[:limit]                               #       column.limit = options[:limit]
-              elsif native['#{column_type}'.to_sym].is_a?(Hash)              #     elsif native['string'.to_sym].is_a?(Hash)
-                column.limit = native['#{column_type}'.to_sym][:limit]       #       column.limit = native['string'.to_sym][:limit]
+              elsif native[type].is_a?(Hash)                                 #     elsif native[type].is_a?(Hash)
+                column.limit = native[type][:limit]                          #       column.limit = native[type][:limit]
               end                                                            #     end
               column.precision = options[:precision]                         #     column.precision = options[:precision]
               column.scale = options[:scale]                                 #     column.scale = options[:scale]
@@ -479,4 +490,3 @@ module ActiveRecord
 
   end
 end
-

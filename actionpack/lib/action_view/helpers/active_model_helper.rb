@@ -1,4 +1,3 @@
-require 'action_view/helpers/form_helper'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/object/blank'
@@ -46,10 +45,6 @@ module ActionView
       def tag_generate_errors?(options)
         options['type'] != 'hidden'
       end
-    end
-
-    class InstanceTag
-      include ActiveModelInstanceTag
     end
   end
 end

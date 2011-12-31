@@ -25,6 +25,8 @@ end
 class TestController < ActionController::Base
   protect_from_forgery
 
+  before_filter :set_variable_for_layout
+
   class LabellingFormBuilder < ActionView::Helpers::FormBuilder
   end
 
@@ -41,7 +43,7 @@ class TestController < ActionController::Base
   end
 
   def hello_world_file
-    render :file => File.expand_path("../../fixtures/hello.html", __FILE__)
+    render :file => File.expand_path("../../fixtures/hello", __FILE__), :formats => [:html]
   end
 
   def conditional_hello
@@ -50,8 +52,24 @@ class TestController < ActionController::Base
     end
   end
 
+  def conditional_hello_with_record
+    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
+    
+    if stale?(record)
+      render :action => 'hello_world'
+    end
+  end
+
   def conditional_hello_with_public_header
     if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
+      render :action => 'hello_world'
+    end
+  end
+
+  def conditional_hello_with_public_header_with_record
+    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
+
+    if stale?(record, :public => true)
       render :action => 'hello_world'
     end
   end
@@ -348,17 +366,14 @@ class TestController < ActionController::Base
   end
 
   def layout_test_with_different_layout
-    @variable_for_layout = nil
     render :action => "hello_world", :layout => "standard"
   end
 
   def layout_test_with_different_layout_and_string_action
-    @variable_for_layout = nil
     render "hello_world", :layout => "standard"
   end
 
   def layout_test_with_different_layout_and_symbol_action
-    @variable_for_layout = nil
     render :hello_world, :layout => "standard"
   end
 
@@ -367,7 +382,6 @@ class TestController < ActionController::Base
   end
 
   def layout_overriding_layout
-    @variable_for_layout = nil
     render :action => "hello_world", :layout => "standard"
   end
 
@@ -650,8 +664,11 @@ class TestController < ActionController::Base
 
   private
 
+    def set_variable_for_layout
+      @variable_for_layout = nil
+    end
+
     def determine_layout
-      @variable_for_layout ||= nil
       case action_name
         when "hello_world", "layout_test", "rendering_without_layout",
              "rendering_nothing_on_layout", "render_text_hello_world",
@@ -793,9 +810,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_render_file
-    assert_deprecated do
-      get :hello_world_file
-    end
+    get :hello_world_file
     assert_equal "Hello world!", @response.body
   end
 
@@ -1439,6 +1454,36 @@ class LastModifiedRenderTest < ActionController::TestCase
     assert_present @response.body
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
+
+
+  def test_responds_with_last_modified_with_record
+    get :conditional_hello_with_record
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_with_record
+    @request.if_modified_since = @last_modified
+    get :conditional_hello_with_record
+    assert_equal 304, @response.status.to_i
+    assert_blank @response.body
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_but_etag_differs_with_record
+    @request.if_modified_since = @last_modified
+    @request.if_none_match = "234"
+    get :conditional_hello_with_record
+    assert_response :success
+  end
+
+  def test_request_modified_with_record
+    @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
+    get :conditional_hello_with_record
+    assert_equal 200, @response.status.to_i
+    assert_present @response.body
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
 
   def test_request_with_bang_gets_last_modified
     get :conditional_hello_with_bangs

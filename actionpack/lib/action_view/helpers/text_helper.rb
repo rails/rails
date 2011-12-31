@@ -1,6 +1,5 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/filters'
-require 'action_view/helpers/tag_helper'
 
 module ActionView
   # = Action View Text Helpers
@@ -31,6 +30,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include SanitizeHelper
+      include TagHelper
       # The preferred method of outputting text in your views is to use the
       # <%= "text" %> eRuby syntax. The regular _puts_ and _print_ methods
       # do not operate as expected in an eRuby code block. If you absolutely must
@@ -120,7 +120,7 @@ module ActionView
           text
         else
           match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
-          text.gsub(/(#{match})(?!(?:[^<]*?)(?:["'])[^<>]*>)/i, options[:highlighter])
+          text.gsub(/(#{match})(?![^<]*?>)/i, options[:highlighter])
         end.html_safe
       end
 

@@ -10,16 +10,12 @@ module ActiveRecord
       module ClassMethods
         protected
           def define_method_attribute=(attr_name)
-            if attr_name =~ ActiveModel::AttributeMethods::COMPILABLE_REGEXP
+            if attr_name =~ ActiveModel::AttributeMethods::NAME_COMPILABLE_REGEXP
               generated_attribute_methods.module_eval("def #{attr_name}=(new_value); write_attribute('#{attr_name}', new_value); end", __FILE__, __LINE__)
             else
               generated_attribute_methods.send(:define_method, "#{attr_name}=") do |new_value|
                 write_attribute(attr_name, new_value)
               end
-            end
-
-            if primary_key? && attr_name == primary_key && attr_name != "id"
-              generated_attribute_methods.module_eval("alias :id= :'#{primary_key}='")
             end
           end
       end
@@ -32,10 +28,8 @@ module ActiveRecord
         @attributes_cache.delete(attr_name)
         column = column_for_attribute(attr_name)
 
-        if column && column.number?
-          @attributes[attr_name] = convert_number_column_value(value)
-        elsif column || @attributes.has_key?(attr_name)
-          @attributes[attr_name] = value
+        if column || @attributes.has_key?(attr_name)
+          @attributes[attr_name] = type_cast_attribute_for_write(column, value)
         else
           raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
         end
@@ -46,6 +40,26 @@ module ActiveRecord
         # Handle *= for method_missing.
         def attribute=(attribute_name, value)
           write_attribute(attribute_name, value)
+        end
+
+        def type_cast_attribute_for_write(column, value)
+          if column && column.number?
+            convert_number_column_value(value)
+          else
+            value
+          end
+        end
+
+        def convert_number_column_value(value)
+          if value == false
+            0
+          elsif value == true
+            1
+          elsif value.is_a?(String) && value.blank?
+            nil
+          else
+            value
+          end
         end
     end
   end

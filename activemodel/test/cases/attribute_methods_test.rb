@@ -133,24 +133,6 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.send(:'foo bar')
   end
 
-  test '#define_attr_method generates attribute method' do
-    ModelWithAttributes.define_attr_method(:bar, 'bar')
-
-    assert_respond_to ModelWithAttributes, :bar
-    assert_equal "original bar", ModelWithAttributes.original_bar
-    assert_equal "bar", ModelWithAttributes.bar
-    ModelWithAttributes.define_attr_method(:bar)
-    assert !ModelWithAttributes.bar
-  end
-
-  test '#define_attr_method generates attribute method with invalid identifier characters' do
-    ModelWithWeirdNamesAttributes.define_attr_method(:'c?d', 'c?d')
-
-    assert_respond_to ModelWithWeirdNamesAttributes, :'c?d'
-    assert_equal "original c?d", ModelWithWeirdNamesAttributes.send('original_c?d')
-    assert_equal "c?d", ModelWithWeirdNamesAttributes.send('c?d')
-  end
-
   test '#alias_attribute works with attributes with spaces in their names' do
     ModelWithAttributesWithSpaces.define_attribute_methods([:'foo bar'])
     ModelWithAttributesWithSpaces.alias_attribute(:'foo_bar', :'foo bar')

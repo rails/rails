@@ -13,7 +13,7 @@ module ActiveRecord
           raise "You cannot include Dirty after Timestamp"
         end
 
-        class_attribute :partial_updates
+        config_attribute :partial_updates
         self.partial_updates = true
       end
 
@@ -34,9 +34,9 @@ module ActiveRecord
           @previously_changed = changes
           @changed_attributes.clear
         end
-        rescue
-          IdentityMap.remove(self) if IdentityMap.enabled?
-          raise
+      rescue
+        IdentityMap.remove(self) if IdentityMap.enabled?
+        raise
       end
 
       # <tt>reload</tt> the record and clears changed attributes.

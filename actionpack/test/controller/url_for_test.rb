@@ -16,6 +16,10 @@ module AbstractController
         W.default_url_options[:host] = 'www.basecamphq.com'
       end
 
+      def add_numeric_host!
+        W.default_url_options[:host] = '127.0.0.1'
+      end
+
       def test_exception_is_thrown_without_host
         assert_raise ArgumentError do
           W.new.url_for :controller => 'c', :action => 'a', :id => 'i'
@@ -67,6 +71,14 @@ module AbstractController
         )
       end
 
+      def test_subdomain_may_be_object
+        model = mock(:to_param => 'api')
+        add_host!
+        assert_equal('http://api.basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => model, :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
       def test_subdomain_may_be_removed
         add_host!
         assert_equal('http://basecamphq.com/c/a/i',
@@ -78,6 +90,13 @@ module AbstractController
         W.default_url_options[:host] = 'mobile.www.api.basecamphq.com'
         assert_equal('http://basecamphq.com/c/a/i',
           W.new.url_for(:subdomain => false, :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
+      def test_subdomain_may_be_accepted_with_numeric_host
+        add_numeric_host!
+        assert_equal('http://127.0.0.1/c/a/i',
+          W.new.url_for(:subdomain => 'api', :controller => 'c', :action => 'a', :id => 'i')
         )
       end
 

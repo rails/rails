@@ -57,6 +57,16 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2005,11,28), Date.new(2005,12,04).beginning_of_week #sunday
   end
 
+  def test_monday
+    assert_equal Date.new(2005,11,28), Date.new(2005,11,28).monday
+    assert_equal Date.new(2005,11,28), Date.new(2005,12,01).monday
+  end
+
+  def test_sunday
+    assert_equal Date.new(2008,3,2), Date.new(2008,3,02).sunday
+    assert_equal Date.new(2008,3,2), Date.new(2008,2,29).sunday
+  end
+
   def test_beginning_of_week_in_calendar_reform
     assert_equal Date.new(1582,10,1), Date.new(1582,10,15).beginning_of_week #friday
   end
@@ -371,16 +381,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
         assert_match(/^1980-02-28T00:00:00-05:?00$/, Date.new(1980, 2, 28).xmlschema)
         assert_match(/^1980-06-28T00:00:00-04:?00$/, Date.new(1980, 6, 28).xmlschema)
       end
-    end
-  end
-
-  if RUBY_VERSION < '1.9'
-    def test_rfc3339
-      assert_equal('1980-02-28', Date.new(1980, 2, 28).rfc3339)
-    end
-
-    def test_iso8601
-      assert_equal('1980-02-28', Date.new(1980, 2, 28).iso8601)
     end
   end
 

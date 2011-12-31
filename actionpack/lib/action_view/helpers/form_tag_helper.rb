@@ -393,21 +393,17 @@ module ActionView
       #   submit_tag "Save edits", :disabled => true
       #   # => <input disabled="disabled" name="commit" type="submit" value="Save edits" />
       #
-      #
       #   submit_tag "Complete sale", :disable_with => "Please wait..."
-      #   # => <input name="commit" data-disable-with="Please wait..."
-      #   #    type="submit" value="Complete sale" />
+      #   # => <input name="commit" data-disable-with="Please wait..." type="submit" value="Complete sale" />
       #
       #   submit_tag nil, :class => "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
       #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit_button"
-      #   # => <input class="edit_button" data-disable_with="Editing..."
-      #   #    name="commit" type="submit" value="Edit" />
+      #   # => <input class="edit_button" data-disable_with="Editing..." name="commit" type="submit" value="Edit" />
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
-      #   # => <input name='commit' type='submit' value='Save'
-      #         data-confirm="Are you sure?" />
+      #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
@@ -451,12 +447,11 @@ module ActionView
       #     content_tag(:strong, 'Ask me!')
       #   end
       #   # => <button name="button" type="button">
-      #          <strong>Ask me!</strong>
-      #        </button>
+      #   #     <strong>Ask me!</strong>
+      #   #    </button>
       #
       #   button_tag "Checkout", :disable_with => "Please wait..."
-      #   # => <button data-disable-with="Please wait..." name="button"
-      #                type="submit">Checkout</button>
+      #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
@@ -582,7 +577,7 @@ module ActionView
       #
       # ==== Examples
       #   number_field_tag 'quantity', nil, :in => 1...10
-      #   => <input id="quantity" name="quantity" min="1" max="9" />
+      #   => <input id="quantity" name="quantity" min="1" max="9" type="number" />
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys
         options["type"] ||= "number"

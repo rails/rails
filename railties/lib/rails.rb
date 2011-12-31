@@ -5,7 +5,6 @@ require 'pathname'
 require 'active_support'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/logger'
 
 require 'rails/application'
 require 'rails/version'
@@ -13,19 +12,10 @@ require 'rails/version'
 require 'active_support/railtie'
 require 'action_dispatch/railtie'
 
-# For Ruby 1.8, this initialization sets $KCODE to 'u' to enable the
-# multibyte safe operations. Plugin authors supporting other encodings
-# should override this behavior and set the relevant +default_charset+
-# on ActionController::Base.
-#
 # For Ruby 1.9, UTF-8 is the default internal and external encoding.
-if RUBY_VERSION < '1.9'
-  $KCODE='u'
-else
-  silence_warnings do
-    Encoding.default_external = Encoding::UTF_8
-    Encoding.default_internal = Encoding::UTF_8
-  end
+silence_warnings do
+  Encoding.default_external = Encoding::UTF_8
+  Encoding.default_internal = Encoding::UTF_8
 end
 
 module Rails

@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'logger'
+require 'active_support/logger'
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 # Provide some controller to run the tests on.
@@ -142,7 +142,7 @@ class PerformActionTest < ActionController::TestCase
 
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
-    @controller.logger = Logger.new(nil)
+    @controller.logger = ActiveSupport::Logger.new(nil)
 
     @request     = ActionController::TestRequest.new
     @response    = ActionController::TestResponse.new

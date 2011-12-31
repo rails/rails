@@ -36,7 +36,7 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'REMOTE_ADDR' => '1.2.3.4',
       'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
-    assert_equal '1.2.3.4', request.remote_ip
+    assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'REMOTE_ADDR' => '127.0.0.1',
       'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
@@ -89,6 +89,11 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal '9.9.9.9', request.remote_ip
   end
 
+  test "remote ip when the remote ip middleware returns nil" do
+    request = stub_request 'REMOTE_ADDR' => '127.0.0.1'
+    assert_equal '127.0.0.1', request.remote_ip
+  end
+
   test "remote ip with user specified trusted proxies" do
     @trusted_proxies = /^67\.205\.106\.73$/i
 
@@ -106,7 +111,7 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'REMOTE_ADDR' => '67.205.106.74,172.16.0.1',
                            'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
-    assert_equal '67.205.106.74', request.remote_ip
+    assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,67.205.106.73'
     assert_equal 'unknown', request.remote_ip
@@ -611,6 +616,30 @@ class RequestTest < ActiveSupport::TestCase
 
     path = request.filtered_path
     assert_equal "/authenticate?secret", path
+  end
+
+  test "original_fullpath returns ORIGINAL_FULLPATH" do
+    request = stub_request('ORIGINAL_FULLPATH' => "/foo?bar")
+
+    path = request.original_fullpath
+    assert_equal "/foo?bar", path
+  end
+
+  test "original_url returns url built using ORIGINAL_FULLPATH" do
+    request = stub_request('ORIGINAL_FULLPATH' => "/foo?bar",
+                           'HTTP_HOST'         => "example.org",
+                           'rack.url_scheme'   => "http")
+
+    url = request.original_url
+    assert_equal "http://example.org/foo?bar", url
+  end
+
+  test "original_fullpath returns fullpath if ORIGINAL_FULLPATH is not present" do
+    request = stub_request('PATH_INFO'    => "/foo",
+                           'QUERY_STRING' => "bar")
+
+    path = request.original_fullpath
+    assert_equal "/foo?bar", path
   end
 
 protected

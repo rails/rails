@@ -103,8 +103,8 @@ module ActionView
         if host.respond_to?(:call)
           args = [source]
           arity = arity_of(host)
-          if arity > 1 && !has_request?
-            invalid_asset_host!("Remove the second argument to your asset_host Proc if you do not need the request.")
+          if (arity > 1 || arity < -2) && !has_request?
+            invalid_asset_host!("Remove the second argument to your asset_host Proc if you do not need the request, or make it optional.")
           end
           args << current_request if (arity > 1 || arity < 0) && has_request?
           host.call(*args)

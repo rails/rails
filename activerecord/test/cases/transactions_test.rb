@@ -563,6 +563,7 @@ if current_adapter?(:PostgreSQLAdapter)
               topic.approved = !topic.approved?
               topic.save!
             end
+            Topic.connection.close
           end
         end
 
@@ -598,6 +599,7 @@ if current_adapter?(:PostgreSQLAdapter)
               dev = Developer.find(1)
               assert_equal original_salary, dev.salary
             end
+            Developer.connection.close
           end
         end
 
@@ -610,6 +612,7 @@ if current_adapter?(:PostgreSQLAdapter)
               assert_equal original_salary, Developer.find(1).salary
             end
           end
+          Developer.connection.close
         end
 
         threads.each { |t| t.join }

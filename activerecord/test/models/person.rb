@@ -3,13 +3,13 @@ class Person < ActiveRecord::Base
   has_one  :reader
 
   has_many :posts, :through => :readers
-  has_many :posts_with_no_comments, :through => :readers, :source => :post, :include => :comments, :conditions => 'comments.id is null'
+  has_many :posts_with_no_comments, :through => :readers, :source => :post, :eager_load => :comments, :conditions => 'comments.id is null'
 
   has_many :references
   has_many :bad_references
   has_many :fixed_bad_references, :conditions => { :favourite => true }, :class_name => 'BadReference'
   has_one  :favourite_reference, :class_name => 'Reference', :conditions => ['favourite=?', true]
-  has_many :posts_with_comments_sorted_by_comment_id, :through => :readers, :source => :post, :include => :comments, :order => 'comments.id'
+  has_many :posts_with_comments_sorted_by_comment_id, :through => :readers, :source => :post, :eager_load => :comments, :order => 'comments.id'
 
   has_many :jobs, :through => :references
   has_many :jobs_with_dependent_destroy,    :source => :job, :through => :references, :dependent => :destroy
@@ -54,7 +54,7 @@ class LoosePerson < ActiveRecord::Base
   self.table_name = 'people'
   self.abstract_class = true
 
-  attr_protected :comments
+  attr_protected :comments, :best_friend_id, :best_friend_of_id
   attr_protected :as => :admin
 
   has_one    :best_friend,    :class_name => 'LoosePerson', :foreign_key => :best_friend_id

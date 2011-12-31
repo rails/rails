@@ -57,6 +57,11 @@ class FinderTest < ActiveRecord::TestCase
     assert Topic.first.replies.exists?
   end
 
+  # ensures +exists?+ runs valid SQL by excluding order value
+  def test_exists_with_order
+    assert Topic.order(:id).uniq.exists?
+  end
+
   def test_does_not_exist_with_empty_table_and_no_args_given
     Topic.delete_all
     assert !Topic.exists?
@@ -367,6 +372,10 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_on_hash_conditions_with_multiple_ranges
     assert_equal [1,2,3], Comment.find(:all, :conditions => { :id => 1..3, :post_id => 1..2 }).map(&:id).sort
     assert_equal [1], Comment.find(:all, :conditions => { :id => 1..1, :post_id => 1..10 }).map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_array_of_integers_and_ranges
+    assert_equal [1,2,3,5,6,7,8,9], Comment.find(:all, :conditions => {:id => [1..2, 3, 5, 6..8, 9]}).map(&:id).sort
   end
 
   def test_find_on_multiple_hash_conditions
@@ -1110,9 +1119,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
-    assert_equal 2, Post.find(:all, :include => { :authors => :author_address }, :order => ' author_addresses.id DESC ', :limit => 2).size
+    assert_equal 2, Post.find(:all, :eager_load => { :authors => :author_address }, :order => ' author_addresses.id DESC ', :limit => 2).size
 
-    assert_equal 3, Post.find(:all, :include => { :author => :author_address, :authors => :author_address},
+    assert_equal 3, Post.find(:all, :eager_load => { :author => :author_address, :authors => :author_address},
                               :order => ' author_addresses_authors.id DESC ', :limit => 3).size
   end
 
@@ -1140,7 +1149,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_with_limiting_with_custom_select
-    posts = Post.find(:all, :include => :author, :select => ' posts.*, authors.id as "author_id"', :limit => 3, :order => 'posts.id')
+    posts = Post.find(:all, :eager_load => :author, :select => ' posts.*, authors.id as "author_id"', :limit => 3, :order => 'posts.id')
     assert_equal 3, posts.size
     assert_equal [0, 1, 1], posts.map(&:author_id).sort
   end
@@ -1154,7 +1163,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_one_message_with_custom_primary_key
-    Toy.set_primary_key :name
+    Toy.primary_key = :name
     begin
       Toy.find 'Hello World!'
     rescue ActiveRecord::RecordNotFound => e

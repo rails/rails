@@ -8,6 +8,9 @@ module ActiveRecord
         @handler.establish_connection 'america', Base.connection_pool.spec
         @klass = Class.new do
           def self.name; 'america'; end
+          class << self
+            alias active_record_super superclass
+          end
         end
         @subklass = Class.new(@klass) do
           def self.name; 'north america'; end
@@ -40,8 +43,6 @@ module ActiveRecord
 
       def test_retrieve_connection_pool_uses_superclass_pool_after_subclass_establish_and_remove
         @handler.establish_connection 'north america', Base.connection_pool.spec
-        assert_not_same @handler.retrieve_connection_pool(@klass),
-          @handler.retrieve_connection_pool(@subklass)
 
         @handler.remove_connection @subklass
         assert_same @handler.retrieve_connection_pool(@klass),

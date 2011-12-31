@@ -6,7 +6,7 @@ require 'active_support/values/time_zone'
 class DateTime
   # Ruby 1.9 has DateTime#to_time which internally relies on Time. We define our own #to_time which allows
   # DateTimes outside the range of what can be created with Time.
-  remove_method :to_time if instance_methods.include?(:to_time)
+  remove_method :to_time
 
   # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
   #
@@ -66,7 +66,7 @@ class DateTime
   # Attempts to convert self to a Ruby Time object; returns self if out of range of Ruby Time class.
   # If self has an offset other than 0, self will just be returned unaltered, since there's no clean way to map it to a Time.
   def to_time
-    self.offset == 0 ? ::Time.utc_time(year, month, day, hour, min, sec, sec_fraction * (RUBY_VERSION < '1.9' ? 86400000000 : 1000000)) : self
+    self.offset == 0 ? ::Time.utc_time(year, month, day, hour, min, sec, sec_fraction * 1000000) : self
   end
 
   # To be able to keep Times, Dates and DateTimes interchangeable on conversions.

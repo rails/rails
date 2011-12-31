@@ -8,6 +8,7 @@ require 'models/reply'
 require 'models/category'
 require 'models/post'
 require 'models/author'
+require 'models/essay'
 require 'models/comment'
 require 'models/person'
 require 'models/reader'
@@ -41,12 +42,37 @@ class HasManyAssociationsTestForCountWithCountSql < ActiveRecord::TestCase
   end
 end
 
+class HasManyAssociationsTestForCountDistinctWithFinderSql < ActiveRecord::TestCase
+  class Invoice < ActiveRecord::Base
+    has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT DISTINCT line_items.amount from line_items"
+  end
+
+  def test_should_count_distinct_results
+    invoice = Invoice.new
+    invoice.custom_line_items << LineItem.new(:amount => 0)
+    invoice.custom_line_items << LineItem.new(:amount => 0)
+    invoice.save!
+
+    assert_equal 1, invoice.custom_line_items.count
+  end
+end
+
+class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
+  fixtures :authors, :posts, :comments
+
+  def test_should_generate_valid_sql
+    author = authors(:david)
+    # this can fail on adapters which require ORDER BY expressions to be included in the SELECT expression
+    # if the reorder clauses are not correctly handled
+    assert author.posts_with_comments_sorted_by_comment_id.where('comments.id > 0').reorder('posts.comments_count DESC', 'posts.taggings_count DESC').last
+  end
+end
 
 
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
-           :people, :posts, :readers, :taggings, :cars
+           :people, :posts, :readers, :taggings, :cars, :essays
 
   def setup
     Client.destroyed_client_ids.clear
@@ -1373,6 +1399,32 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_no_queries do
       firm.clients.first
       firm.clients.last
+    end
+  end
+  
+  def test_custom_primary_key_on_new_record_should_fetch_with_query
+    author = Author.new(:name => "David")
+    assert !author.essays.loaded?
+    
+    assert_queries 1 do 
+      assert_equal 1, author.essays.size
+    end
+    
+    assert_equal author.essays, Essay.find_all_by_writer_id("David")
+    
+  end
+  
+  def test_has_many_custom_primary_key
+    david = authors(:david)
+    assert_equal david.essays, Essay.find_all_by_writer_id("David")
+  end
+  
+  def test_blank_custom_primary_key_on_new_record_should_not_run_queries
+    author = Author.new
+    assert !author.essays.loaded?
+    
+    assert_queries 0 do 
+      assert_equal 0, author.essays.size
     end
   end
 

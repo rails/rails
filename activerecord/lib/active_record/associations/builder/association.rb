@@ -1,7 +1,7 @@
 module ActiveRecord::Associations::Builder
   class Association #:nodoc:
     class_attribute :valid_options
-    self.valid_options = [:class_name, :foreign_key, :select, :conditions, :include, :extend, :readonly, :validate]
+    self.valid_options = [:class_name, :foreign_key, :select, :conditions, :include, :eager_load, :extend, :readonly, :validate]
 
     # Set by subclasses
     class_attribute :macro
@@ -14,6 +14,10 @@ module ActiveRecord::Associations::Builder
 
     def initialize(model, name, options)
       @model, @name, @options = model, name, options
+    end
+
+    def mixin
+      @model.generated_feature_methods
     end
 
     def build
@@ -36,16 +40,14 @@ module ActiveRecord::Associations::Builder
 
       def define_readers
         name = self.name
-
-        model.redefine_method(name) do |*params|
+        mixin.redefine_method(name) do |*params|
           association(name).reader(*params)
         end
       end
 
       def define_writers
         name = self.name
-
-        model.redefine_method("#{name}=") do |value|
+        mixin.redefine_method("#{name}=") do |value|
           association(name).writer(value)
         end
       end

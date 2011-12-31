@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/company'
+require "models/contract"
 require 'models/topic'
 require 'models/edge'
 require 'models/club'
@@ -48,11 +49,11 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_get_maximum_of_field_with_include
-    assert_equal 55, Account.maximum(:credit_limit, :include => :firm, :conditions => "companies.name != 'Summit'")
+    assert_equal 55, Account.eager_load(:firm).where("companies.name != 'Summit'").maximum(:credit_limit)
   end
 
   def test_should_get_maximum_of_field_with_scoped_include
-    Account.send :with_scope, :find => { :include => :firm, :conditions => "companies.name != 'Summit'" } do
+    Account.eager_load(:firm).where("companies.name != 'Summit'").scoping do
       assert_equal 55, Account.maximum(:credit_limit)
     end
   end
@@ -269,7 +270,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_not_modify_options_when_using_includes
-    options = {:conditions => 'companies.id > 1', :include => :firm}
+    options = {:include => :firm}
     options_copy = options.dup
 
     Account.count(:all, options)
@@ -333,7 +334,9 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_perform_joined_include_when_referencing_included_tables
-    joined_count = Account.includes(:firm).where(:companies => {:name => '37signals'}).count
+    joined_count = assert_deprecated do
+      Account.includes(:firm).where(:companies => {:name => '37signals'}).count
+    end
     assert_equal 1, joined_count
   end
 
@@ -445,5 +448,36 @@ class CalculationsTest < ActiveRecord::TestCase
     # Count the number of distinct authors for approved Topics
     distinct_authors_for_approved_count = Topic.group(:approved).count(:author_name, :distinct => true)[true]
     assert_equal distinct_authors_for_approved_count, 2
+  end
+
+  def test_pluck
+    assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
+  end
+
+  def test_pluck_type_cast
+    topic = topics(:first)
+    relation = Topic.where(:id => topic.id)
+    assert_equal [ topic.approved ], relation.pluck(:approved)
+    assert_equal [ topic.last_read ], relation.pluck(:last_read)
+    assert_equal [ topic.written_on ], relation.pluck(:written_on)
+  end
+
+  def test_pluck_and_uniq
+    assert_equal [50, 53, 55, 60], Account.order(:credit_limit).uniq.pluck(:credit_limit)
+  end
+
+  def test_pluck_in_relation
+    company = Company.first
+    contract = company.contracts.create!
+    assert_equal [contract.id], company.contracts.pluck(:id)
+  end
+
+  def test_pluck_with_serialization
+    t = Topic.create!(:content => { :foo => :bar })
+    assert_equal [{:foo => :bar}], Topic.where(:id => t.id).pluck(:content)
+  end
+
+  def test_pluck_with_qualified_column_name
+    assert_equal [1,2,3,4], Topic.order(:id).pluck("topics.id")
   end
 end
