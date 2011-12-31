@@ -15,31 +15,37 @@ module ActiveRecord
         @pool.connections.each(&:close)
       end
 
+      class FakePool
+        attr_reader :reaped
+
+        def initialize
+          @reaped = false
+        end
+
+        def reap
+          @reaped = true
+        end
+      end
+
       # A reaper with nil time should never reap connections
       def test_nil_time
-        conn = pool.checkout
-        pool.timeout = 0
-
-        count = pool.connections.length
-        conn.extend(Module.new { def active?; false; end; })
-
-        reaper = ConnectionPool::Reaper.new(pool, nil)
-        reaper.start
-        sleep 0.0001
-        assert_equal count, pool.connections.length
+        fp = FakePool.new
+        assert !fp.reaped
+        reaper = ConnectionPool::Reaper.new(fp, nil)
+        reaper.run
+        assert !fp.reaped
       end
 
       def test_some_time
-        conn = pool.checkout
-        pool.timeout = 0
+        fp = FakePool.new
+        assert !fp.reaped
 
-        count = pool.connections.length
-        conn.extend(Module.new { def active?; false; end; })
-
-        reaper = ConnectionPool::Reaper.new(pool, 0.0001)
-        reaper.start
-        sleep 0.0002
-        assert_equal(count - 1, pool.connections.length)
+        reaper = ConnectionPool::Reaper.new(fp, 0.0001)
+        reaper.run
+        until fp.reaped
+          Thread.pass
+        end
+        assert fp.reaped
       end
 
       def test_pool_has_reaper
@@ -65,7 +71,9 @@ module ActiveRecord
 
         conn.extend(Module.new { def active?; false; end; })
 
-        sleep 0.0002
+        while count == pool.connections.length
+          Thread.pass
+        end
         assert_equal(count - 1, pool.connections.length)
       end
     end
