@@ -411,7 +411,7 @@ module ActiveRecord
       cache_for_connection(connection).update(fixtures_map)
     end
 
-    def self.instantiate_fixtures(object, fixture_name, fixtures, load_instances = true)
+    def self.instantiate_fixtures(object, fixtures, load_instances = true)
       if load_instances
         fixtures.each do |name, fixture|
           begin
@@ -424,8 +424,8 @@ module ActiveRecord
     end
 
     def self.instantiate_all_loaded_fixtures(object, load_instances = true)
-      all_loaded_fixtures.each do |table_name, fixtures|
-        ActiveRecord::Fixtures.instantiate_fixtures(object, table_name, fixtures, load_instances)
+      all_loaded_fixtures.each_value do |fixtures|
+        instantiate_fixtures(object, fixtures, load_instances)
       end
     end
 
@@ -901,8 +901,8 @@ module ActiveRecord
           ActiveRecord::Fixtures.instantiate_all_loaded_fixtures(self, load_instances?)
         else
           raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
-          @loaded_fixtures.each do |fixture_name, fixtures|
-            ActiveRecord::Fixtures.instantiate_fixtures(self, fixture_name, fixtures, load_instances?)
+          @loaded_fixtures.each_value do |fixtures|
+            ActiveRecord::Fixtures.instantiate_fixtures(self, fixtures, load_instances?)
           end
         end
       end
