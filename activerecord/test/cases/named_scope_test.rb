@@ -309,6 +309,11 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal 'lifo', topic.author_name
   end
 
+  def test_should_call_stabby_lambda_syntax
+    topic = Topic.by_name('lifo').build({})
+    assert_equal 'lifo', topic.author_name
+  end
+
   def test_find_all_should_behave_like_select
     assert_equal Topic.base.to_a.select(&:approved), Topic.base.to_a.find_all(&:approved)
   end
