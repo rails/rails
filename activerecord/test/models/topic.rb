@@ -12,6 +12,8 @@ class Topic < ActiveRecord::Base
 
   scope :by_lifo, :conditions => {:author_name => 'lifo'}
 
+  scope :by_name, ->(name) { where(:author_name => name) }
+
   scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
   scope 'approved_as_string', :conditions => {:approved => true}
   scope :replied, :conditions => ['replies_count > 0']
