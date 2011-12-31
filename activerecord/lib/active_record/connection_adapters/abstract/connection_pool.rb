@@ -67,6 +67,9 @@ module ActiveRecord
       # Every +frequency+ seconds, the reaper will call +reap+ on +pool+.
       # A reaper instantiated with a nil frequency will never reap the
       # connection pool.
+      #
+      # Configure the frequency by setting "reaping_frequency" in your
+      # database yaml file.
       class Reaper
         attr_reader :pool, :frequency
 
