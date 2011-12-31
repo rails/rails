@@ -83,7 +83,7 @@ The other problem is that when static assets are deployed with each new release 
 
 Fingerprinting fixes these problems by avoiding query strings, and by ensuring filenames are consistent based on their content.
 
-Fingerprinting is enabled by default for production and disabled for all the others environments. You can enable or disable it in your configuration through the +config.assets.digest+ option.
+Fingerprinting is enabled by default for production and disabled for all other environments. You can enable or disable it in your configuration through the +config.assets.digest+ option.
 
 More reading:
 
@@ -103,7 +103,7 @@ When a scaffold or controller is generated for the application, Rails also gener
 
 For example, if a +ProjectsController+ is generated, there will be a new file at +app/assets/javascripts/projects.js.coffee+ and another at +app/assets/stylesheets/projects.css.scss+. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as +<%= javascript_include_tag params[:controller] %>+ or +<%= stylesheet_link_tag params[:controller] %>+.
 
-NOTE: You will need a "ExecJS":https://github.com/sstephenson/execjs#readme supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
+NOTE: You will need an "ExecJS":https://github.com/sstephenson/execjs#readme supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
 
 h4. Asset Organization
 
@@ -194,7 +194,7 @@ $('#logo').attr({
 
 This writes the path to the particular asset being referenced.
 
-Similarly, you can use the +asset_path+ helper in CoffeeScript files with +erb+ extension (eg. +application.js.coffee.erb+):
+Similarly, you can use the +asset_path+ helper in CoffeeScript files with +erb+ extension (e.g., +application.js.coffee.erb+):
 
 <plain>
 $('#logo').attr src: "<%= asset_path('logo.png') %>"
@@ -253,15 +253,15 @@ h4. Preprocessing
 
 The file extensions used on an asset determine what preprocessing is applied. When a controller or a scaffold is generated with the default Rails gemset, a CoffeeScript file and a SCSS file are generated in place of a regular JavaScript and CSS file. The example used before was a controller called "projects", which generated an +app/assets/javascripts/projects.js.coffee+ and an +app/assets/stylesheets/projects.css.scss+ file.
 
-When these files are requested, they are processed by the processors provided by the +coffee-script+ and +sass-rails+ gems and then sent back to the browser as JavaScript and CSS respectively.
+When these files are requested, they are processed by the processors provided by the +coffee-script+ and +sass+ gems and then sent back to the browser as JavaScript and CSS respectively.
 
-Additional layers of preprocessing can be requested by adding other extensions, where each extension is processed in a right-to-left manner. These should be used in the order the processing should be applied. For example, a stylesheet called +app/assets/stylesheets/projects.css.scss.erb+ is first processed as ERB, then SCSS and finally served as CSS. The same applies to a JavaScript file -- +app/assets/javascripts/projects.js.coffee.erb+ is processed as ERB, CoffeeScript, and served as JavaScript.
+Additional layers of preprocessing can be requested by adding other extensions, where each extension is processed in a right-to-left manner. These should be used in the order the processing should be applied. For example, a stylesheet called +app/assets/stylesheets/projects.css.scss.erb+ is first processed as ERB, then SCSS, and finally served as CSS. The same applies to a JavaScript file -- +app/assets/javascripts/projects.js.coffee.erb+ is processed as ERB, then CoffeeScript, and served as JavaScript.
 
 Keep in mind that the order of these preprocessors is important. For example, if you called your JavaScript file +app/assets/javascripts/projects.js.erb.coffee+ then it would be processed with the CoffeeScript interpreter first, which wouldn't understand ERB and therefore you would run into problems.
 
 h3. In Development
 
-In development mode assets are served as separate files in the order they are specified in the manifest file.
+In development mode, assets are served as separate files in the order they are specified in the manifest file.
 
 This manifest +app/assets/javascripts/application.js+:
 
@@ -289,7 +289,7 @@ You can turn off debug mode by updating +config/environments/development.rb+ to 
 config.assets.debug = false
 </ruby>
 
-When debug mode is off Sprockets concatenates and runs the necessary preprocessors on all files. With debug mode turned off the manifest above would generate instead:
+When debug mode is off, Sprockets concatenates and runs the necessary preprocessors on all files. With debug mode turned off the manifest above would generate instead:
 
 <html>
 <script src="/assets/application.js" type="text/javascript"></script>
@@ -369,7 +369,7 @@ It is important that this folder is shared between deployments so that remotely 
 
 NOTE. If you are precompiling your assets locally, you can use +bundle install --without assets+ on the server to avoid installing the assets gems (the gems in the assets group in the Gemfile).
 
-The default matcher for compiling files includes +application.js+, +application.css+ and all non-JS/CSS files (ie. +.coffee+ and +.scss+ files are *not* automatically included as they compile to JS/CSS):
+The default matcher for compiling files includes +application.js+, +application.css+ and all non-JS/CSS files (i.e., +.coffee+ and +.scss+ files are *not* automatically included as they compile to JS/CSS):
 
 <ruby>
 [ Proc.new{ |path| !File.extname(path).in?(['.js', '.css']) }, /application.(css|js)$/ ]
@@ -451,7 +451,7 @@ This directive is available if the core module that provides this feature was co
 
 If you're compiling nginx with Phusion Passenger you'll need to pass that option when prompted.
 
-Unfortunately, a robust configuration for Apache is possible but tricky, please Google around.
+Unfortunately, a robust configuration for Apache is possible but tricky; please Google around.
 
 h4. Live Compilation
 
@@ -493,7 +493,7 @@ The +config.assets.compress+ must be set to +true+ to enable CSS compression.
 
 h4. JavaScript Compression
 
-Possible options for JavaScript compression are +:closure+, +:uglifier+ and +:yui+. These require the use of the +closure-compiler+, +uglifier+ or +yui-compressor+ gems respectively.
+Possible options for JavaScript compression are +:closure+, +:uglifier+ and +:yui+. These require the use of the +closure-compiler+, +uglifier+ or +yui-compressor+ gems, respectively.
 
 The default Gemfile includes "uglifier":https://github.com/lautis/uglifier. This gem wraps "UglifierJS":https://github.com/mishoo/UglifyJS (written for NodeJS) in Ruby. It compresses your code by removing white space and other magical things like changing your +if+ and +else+ statements to ternary operators where possible.
 
@@ -505,7 +505,7 @@ config.assets.js_compressor = :uglifier
 
 The +config.assets.compress+ must be set to +true+ to enable JavaScript compression
 
-NOTE: You will need a "ExecJS":https://github.com/sstephenson/execjs#readme supported runtime in order to use +uglifier+. If you are using Mac OS X or Windows you have installed a JavaScript runtime in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
+NOTE: You will need an "ExecJS":https://github.com/sstephenson/execjs#readme supported runtime in order to use +uglifier+. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
 
 h4. Using Your Own Compressor
 
@@ -540,7 +540,7 @@ This is a handy option if you have any existing project (pre Rails 3.1) that alr
 
 h4. X-Sendfile Headers
 
-The X-Sendfile header is a directive to the server to ignore the response from the application, and instead serve the file specified in the headers. This option is off by default, but can be enabled if your server supports it. When enabled, this passes responsibility for serving the file to the web server, which is faster.
+The X-Sendfile header is a directive to the web server to ignore the response from the application, and instead serve a specified file from disk. This option is off by default, but can be enabled if your server supports it. When enabled, this passes responsibility for serving the file to the web server, which is faster.
 
 Apache and nginx support this option which is enabled in <tt>config/environments/production.rb</tt>.
 
@@ -549,7 +549,7 @@ Apache and nginx support this option which is enabled in <tt>config/environments
 # config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect' # for nginx
 </erb>
 
-WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ (and not +application.rb+) and any other environment you define with production behavior.
+WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ and any other environments you define with production behavior (not +application.rb+).
 
 h3. How Caching Works
 
@@ -569,7 +569,7 @@ TODO: Registering gems on "Tilt":https://github.com/rtomayko/tilt enabling Sproc
 
 h3. Upgrading from Old Versions of Rails
 
-There are two issues when upgrading. The first is moving the files to the new locations. See "Asset Organization":#asset-organization above for guidance on the correct locations for different file types.
+There are two issues when upgrading. The first is moving the files from +public/+ to the new locations. See "Asset Organization":#asset-organization above for guidance on the correct locations for different file types.
 
 The second is updating the various environment files with the correct default options. The following changes reflect the defaults in version 3.1.0.
 
