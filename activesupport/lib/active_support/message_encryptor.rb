@@ -1,5 +1,5 @@
 require 'openssl'
-require 'active_support/base64'
+require 'base64'
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored somewhere
@@ -56,12 +56,12 @@ module ActiveSupport
       encrypted_data = cipher.update(@serializer.dump(value))
       encrypted_data << cipher.final
 
-      [encrypted_data, iv].map {|v| ActiveSupport::Base64.strict_encode64(v)}.join("--")
+      [encrypted_data, iv].map {|v| ::Base64.strict_encode64(v)}.join("--")
     end
 
     def _decrypt(encrypted_message)
       cipher = new_cipher
-      encrypted_data, iv = encrypted_message.split("--").map {|v| ActiveSupport::Base64.decode64(v)}
+      encrypted_data, iv = encrypted_message.split("--").map {|v| ::Base64.decode64(v)}
 
       cipher.decrypt
       cipher.key = @secret

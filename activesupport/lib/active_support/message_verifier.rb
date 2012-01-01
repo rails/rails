@@ -1,4 +1,4 @@
-require 'active_support/base64'
+require 'base64'
 require 'active_support/core_ext/object/blank'
 
 module ActiveSupport
@@ -37,14 +37,14 @@ module ActiveSupport
 
       data, digest = signed_message.split("--")
       if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
-        @serializer.load(ActiveSupport::Base64.decode64(data))
+        @serializer.load(::Base64.decode64(data))
       else
         raise InvalidSignature
       end
     end
 
     def generate(value)
-      data = ActiveSupport::Base64.strict_encode64(@serializer.dump(value))
+      data = ::Base64.strict_encode64(@serializer.dump(value))
       "#{data}--#{generate_digest(data)}"
     end
 
