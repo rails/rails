@@ -43,6 +43,8 @@ class TagHelperTest < ActionView::TestCase
                  content_tag(:p, '<script>evil_js</script>')
     assert_equal "<p><script>evil_js</script></p>",
                  content_tag(:p, '<script>evil_js</script>', nil, false)
+    assert_equal "<ul><li>1</li><li>2</li></ul>",
+                 content_tag(:ul, [1, 2].map{|i| content_tag(:li, i)})
   end
 
   def test_content_tag_with_block_in_erb
@@ -54,6 +56,12 @@ class TagHelperTest < ActionView::TestCase
     buffer = render_erb("<%= content_tag(:div, :class => 'green') do %>Hello world!<% end %>")
     assert_dom_equal %(<div class="green">Hello world!</div>), buffer
   end
+
+  def test_content_tag_safe_join_array
+    html = content_tag(:div) { [content_tag(:h1, 'Title'), content_tag(:p, 'text')] }
+    assert_equal %(<div><h1>Title</h1><p>text</p></div>), html
+  end
+
 
   def test_content_tag_with_block_and_options_out_of_erb
     assert_dom_equal %(<div class="green">Hello world!</div>), content_tag(:div, :class => "green") { "Hello world!" }

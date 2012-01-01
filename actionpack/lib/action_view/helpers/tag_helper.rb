@@ -85,6 +85,15 @@ module ActionView
       #     Hello world!
       #   <% end -%>
       #    # => <div class="strong">Hello world!</div>
+      #
+      #   # array will be joined via safe_join
+      #   content_tag :ul do
+      #     @posts.map{|post| content_tag(:li, post.title)}
+      #   end
+      #   # => <ul><li>title 1</li><li>title 2</li></ul>
+      #
+      #   content_tag(:ul, @posts.map{|post| content_tag(:li, post.title)})
+      #   # => <ul><li>title 1</li><li>title 2</li></ul>
       def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
@@ -125,7 +134,12 @@ module ActionView
 
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
-          "<#{name}#{tag_options}>#{escape ? ERB::Util.h(content) : content}</#{name}>".html_safe
+          if content.is_a?(Array)
+            content = escape ? safe_join(content) : content.join
+          else
+            content = escape ? ERB::Util.h(content) : content
+          end
+          "<#{name}#{tag_options}>#{content}</#{name}>".html_safe
         end
 
         def tag_options(options, escape = true)
