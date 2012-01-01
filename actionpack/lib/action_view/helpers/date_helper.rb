@@ -94,20 +94,27 @@ module ActionView
             when 43200..86399    then locale.t :about_x_months, :count => 1
             when 86400..525599   then locale.t :x_months,       :count => (distance_in_minutes.to_f / 43200.0).round
             else
-              fyear = from_time.year
-              fyear += 1 if from_time.month >= 3
-              tyear = to_time.year
-              tyear -= 1 if to_time.month < 3
-              leap_years = (fyear > tyear) ? 0 : (fyear..tyear).count{|x| Date.leap?(x)}
-              minute_offset_for_leap_year = leap_years * 1440
-              # Discount the leap year days when calculating year distance.
-              # e.g. if there are 20 leap year days between 2 dates having the same day
-              # and month then the based on 365 days calculation
-              # the distance in years will come out to over 80 years when in written
-              # english it would read better as about 80 years.
-              minutes_with_offset         = distance_in_minutes - minute_offset_for_leap_year
-              remainder                   = (minutes_with_offset % 525600)
-              distance_in_years           = (minutes_with_offset / 525600)
+              # check only from_time, because from_time and to_time should be both date/time or both integer
+              if from_time.is_a?(Time) || from_time.is_a?(DateTime)
+                fyear = from_time.year
+                fyear += 1 if from_time.month >= 3
+                tyear = to_time.year
+                tyear -= 1 if to_time.month < 3
+                leap_years = (fyear > tyear) ? 0 : (fyear..tyear).count{|x| Date.leap?(x)}
+                minute_offset_for_leap_year = leap_years * 1440
+                # Discount the leap year days when calculating year distance.
+                # e.g. if there are 20 leap year days between 2 dates having the same day
+                # and month then the based on 365 days calculation
+                # the distance in years will come out to over 80 years when in written
+                # english it would read better as about 80 years.
+                minutes_with_offset         = distance_in_minutes - minute_offset_for_leap_year
+                remainder                   = (minutes_with_offset % 525600)
+                distance_in_years           = (minutes_with_offset / 525600)
+              else
+                # 525960 = 365.25*24*60 (ActiveSupport years method use 365.25 days for one year duration also)
+                remainder                   = (distance_in_minutes % 525960)
+                distance_in_years           = (distance_in_minutes / 525960)
+              end
               if remainder < 131400
                 locale.t(:about_x_years,  :count => distance_in_years)
               elsif remainder < 394200
