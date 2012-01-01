@@ -252,6 +252,12 @@ module ActionController
   #     end
   #   end
   #
+  # You can also send a real document in the simulated HTTP request.
+  #
+  #   def test_create
+  #     json = {:book => { :title => "Love Hina" }}.to_json
+  #     post :create, json
+  #
   # == Special instance variables
   #
   # ActionController::TestCase will also automatically provide the following instance
