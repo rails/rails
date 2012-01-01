@@ -424,6 +424,8 @@ module ActionController
       end
 
       def process(action, http_method = 'GET', *args)
+        http_method, args = handle_old_process_api(http_method, args) 
+        
         if args.first.is_a?(String)
           @request.env['RAW_POST_DATA'] = args.shift
         end
@@ -502,6 +504,16 @@ module ActionController
       end
 
     private
+      def handle_old_process_api(http_method, args)
+        # 4.0: Remove this method.
+        if http_method.is_a?(Hash)
+          ActiveSupport::Deprecation.warn("TestCase#process now expects the HTTP method as second argument: process(action, http_method, params, session, flash)")
+          args.unshift(http_method)
+          http_method = args.last.is_a?(String) ? args.last : "GET"
+        end
+        
+        [http_method, args]
+      end
 
       def build_request_uri(action, parameters)
         unless @request.env["PATH_INFO"]
