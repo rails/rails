@@ -12,7 +12,7 @@ module Rails
         ::Debugger.settings[:autoeval] = true if ::Debugger.respond_to?(:settings)
         puts "=> Debugger enabled"
       rescue LoadError
-        puts "You need to install ruby-debug to run the server in debugging mode. With gems, use 'gem install ruby-debug'"
+        puts "You need to install ruby-debug19 to run the server in debugging mode. With gems, use 'gem install ruby-debug19'"
         exit
       end
 
