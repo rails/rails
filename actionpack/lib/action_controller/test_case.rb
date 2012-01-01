@@ -424,6 +424,7 @@ module ActionController
       end
 
       def process(action, http_method = 'GET', *args)
+        check_required_ivars
         http_method, args = handle_old_process_api(http_method, args) 
         
         if args.first.is_a?(String)
@@ -435,14 +436,6 @@ module ActionController
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters)
-
-        # Sanity check for required instance variables so we can give an
-        # understandable error message.
-        %w(@routes @controller @request @response).each do |iv_name|
-          if !(instance_variable_names.include?(iv_name) || instance_variable_names.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
-            raise "#{iv_name} is nil: make sure you set it in your test's setup method."
-          end
-        end
 
         @request.recycle!
         @response.recycle!
@@ -504,6 +497,16 @@ module ActionController
       end
 
     private
+      def check_required_ivars
+        # Sanity check for required instance variables so we can give an
+        # understandable error message.
+        %w(@routes @controller @request @response).each do |iv_name|
+          if !(instance_variable_names.include?(iv_name) || instance_variable_names.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
+            raise "#{iv_name} is nil: make sure you set it in your test's setup method."
+          end
+        end
+      end
+      
       def handle_old_process_api(http_method, args)
         # 4.0: Remove this method.
         if http_method.is_a?(Hash)
