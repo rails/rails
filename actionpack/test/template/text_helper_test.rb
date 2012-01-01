@@ -266,14 +266,14 @@ class TextHelperTest < ActionView::TestCase
 
   def test_cycle_class
     value = Cycle.new("one", 2, "3")
-    assert_equal("one", value.to_s)
-    assert_equal("2", value.to_s)
-    assert_equal("3", value.to_s)
-    assert_equal("one", value.to_s)
+    assert_equal("one", value.next!)
+    assert_equal("2", value.next!)
+    assert_equal("3", value.next!)
+    assert_equal("one", value.next!)
     value.reset
-    assert_equal("one", value.to_s)
-    assert_equal("2", value.to_s)
-    assert_equal("3", value.to_s)
+    assert_equal("one", value.next!)
+    assert_equal("2", value.next!)
+    assert_equal("3", value.next!)
   end
 
   def test_cycle_class_with_no_arguments
@@ -379,5 +379,11 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("blue", cycle("red", "blue"))
     assert_equal("red", cycle("red", "blue"))
     assert_equal(%w{Specialized Fuji Giant}, @cycles)
+  end
+
+  def test_cycle_with_nil_as_value
+    assert_equal("odd", cycle("odd", nil))
+    assert_equal(nil, cycle("odd", nil))
+    assert_equal(nil, current_cycle)
   end
 end
