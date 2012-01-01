@@ -75,7 +75,7 @@ class ActiveRecordTestCase < ActionController::TestCase
 
   # Set our fixture path
   if ActiveRecordTestConnector.able_to_connect
-    self.fixture_path = [FIXTURE_LOAD_PATH]
+    self.fixture_directory_path = [FIXTURE_LOAD_PATH]
     self.use_transactional_fixtures = false
   end
 

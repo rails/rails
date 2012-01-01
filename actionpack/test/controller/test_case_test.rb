@@ -793,7 +793,7 @@ XML
   end
 
   def test_fixture_path_is_accessed_from_self_instead_of_active_support_test_case
-    TestCaseTest.stubs(:fixture_path).returns(FILES_DIR)
+    TestCaseTest.stubs(:fixture_directory_path).returns(FILES_DIR)
 
     uploaded_file = fixture_file_upload('/mona_lisa.jpg', 'image/png')
     assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
