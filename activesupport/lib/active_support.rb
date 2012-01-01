@@ -52,7 +52,6 @@ module ActiveSupport
   # TODO: Narrow this list down
   eager_autoload do
     autoload :BacktraceCleaner
-    autoload :Base64
     autoload :BasicObject
     autoload :Benchmarkable
     autoload :Cache

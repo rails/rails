@@ -53,7 +53,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
-    assert_equal ["david", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["david", "test123"], ::Base64.decode64(authorization[1]).split(":")[0..1]
   end
 
   def test_authorization_header_with_username_but_no_password
@@ -62,7 +62,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
-    assert_equal ["david"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["david"], ::Base64.decode64(authorization[1]).split(":")[0..1]
   end
 
   def test_authorization_header_with_password_but_no_username
@@ -71,7 +71,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
-    assert_equal ["", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["", "test123"], ::Base64.decode64(authorization[1]).split(":")[0..1]
   end
 
   def test_authorization_header_with_decoded_credentials_from_url
@@ -80,7 +80,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
-    assert_equal ["my@email.com", "123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["my@email.com", "123"], ::Base64.decode64(authorization[1]).split(":")[0..1]
   end
 
   def test_authorization_header_explicitly_setting_username_and_password
@@ -92,7 +92,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
-    assert_equal ["david", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["david", "test123"], ::Base64.decode64(authorization[1]).split(":")[0..1]
   end
 
   def test_authorization_header_explicitly_setting_username_but_no_password
@@ -102,7 +102,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
-    assert_equal ["david"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["david"], ::Base64.decode64(authorization[1]).split(":")[0..1]
   end
 
   def test_authorization_header_explicitly_setting_password_but_no_username
@@ -112,7 +112,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
-    assert_equal ["", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["", "test123"], ::Base64.decode64(authorization[1]).split(":")[0..1]
   end
 
   def test_authorization_header_if_credentials_supplied_and_auth_type_is_basic
@@ -122,7 +122,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
-    assert_equal ["david", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["david", "test123"], ::Base64.decode64(authorization[1]).split(":")[0..1]
   end
 
   def test_authorization_header_if_credentials_supplied_and_auth_type_is_digest
