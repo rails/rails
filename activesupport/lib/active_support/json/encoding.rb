@@ -206,6 +206,10 @@ module Enumerable
   end
 end
 
+class Range
+  def as_json(options = nil) to_s end #:nodoc:
+end
+
 class Array
   def as_json(options = nil) #:nodoc:
     # use encoder as a proxy to call as_json on all elements, to protect from circular references
