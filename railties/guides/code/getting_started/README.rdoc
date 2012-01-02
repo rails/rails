@@ -191,7 +191,6 @@ The default directory structure of a generated Ruby on Rails application:
   `-- vendor
       |-- assets
           `-- stylesheets
-      `-- plugins
 
 app
   Holds all the code that's specific to this particular application.
@@ -256,6 +255,5 @@ test
   directory.
 
 vendor
-  External libraries that the application depends on. Also includes the plugins
-  subdirectory. If the app has frozen rails, those gems also go here, under
-  vendor/rails/. This directory is in the load path.
+  External libraries that the application depends on. If the app has frozen rails,
+  those gems also go here, under vendor/rails/. This directory is in the load path.

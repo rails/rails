@@ -1,6 +1,6 @@
 h2. Rails Application Templates
 
-Application templates are simple Ruby files containing DSL for adding plugins/gems/initializers etc. to your freshly created Rails project or an existing Rails project.
+Application templates are simple Ruby files containing DSL for adding gems/initializers etc. to your freshly created Rails project or an existing Rails project.
 
 By referring to this guide, you will be able to:
 
@@ -80,31 +80,6 @@ For example, if you need to source a gem from "http://code.whytheluckystiff.net"
 
 <ruby>
 add_source "http://code.whytheluckystiff.net"
-</ruby>
-
-h4. plugin(name, options = {})
-
-Installs a plugin to the generated application.
-
-Plugin can be installed from Git:
-
-<ruby>
-plugin 'authentication', :git => 'git://github.com/foor/bar.git'
-</ruby>
-
-You can even install plugins as git submodules:
-
-<ruby>
-plugin 'authentication', :git => 'git://github.com/foor/bar.git',
-                         :submodule => true
-</ruby>
-
-Please note that you need to +git :init+ before you can install a plugin as a submodule.
-
-Or use plain old SVN:
-
-<ruby>
-plugin 'usingsvn', :svn => 'svn://example.com/usingsvn/trunk'
 </ruby>
 
 h4. vendor/lib/file/initializer(filename, data = nil, &block)

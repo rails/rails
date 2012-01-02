@@ -406,22 +406,6 @@ The following are methods available for both generators and templates for Rails.
 
 NOTE: Methods provided by Thor are not covered this guide and can be found in "Thor's documentation":http://rdoc.info/github/wycats/thor/master/Thor/Actions.html
 
-h4. +plugin+
-
-+plugin+ will install a plugin into the current application.
-
-<ruby>
-plugin("dynamic-form", :git => "git://github.com/rails/dynamic-form.git")
-</ruby>
-
-Available options are:
-
-* +:git+ - Takes the path to the git repository where this plugin can be found.
-* +:branch+ - The name of the branch of the git repository where the plugin is found.
-* +:submodule+ - Set to +true+ for the plugin to be installed as a submodule. Defaults to +false+.
-* +:svn+ - Takes the path to the svn repository where this plugin can be found.
-* +:revision+ - The revision of the plugin in an SVN repository.
-
 h4. +gem+
 
 Specifies a gem dependency of the application.
