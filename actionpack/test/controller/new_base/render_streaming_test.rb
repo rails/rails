@@ -111,4 +111,4 @@ module RenderStreaming
       assert_equal cache, headers["Cache-Control"]
     end
   end
-end if defined?(Fiber)
+end

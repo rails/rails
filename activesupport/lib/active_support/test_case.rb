@@ -10,15 +10,9 @@ require 'active_support/core_ext/kernel/reporting'
 
 module ActiveSupport
   class TestCase < ::Test::Unit::TestCase
-    if defined? MiniTest
-      Assertion = MiniTest::Assertion
-      alias_method :method_name, :name if method_defined? :name
-      alias_method :method_name, :__name__ if method_defined? :__name__
-    else
-      Assertion = Test::Unit::AssertionFailedError
-
-      undef :default_test
-    end
+    Assertion = MiniTest::Assertion
+    alias_method :method_name, :name if method_defined? :name
+    alias_method :method_name, :__name__ if method_defined? :__name__
 
     $tags = {}
     def self.for_tag(tag)

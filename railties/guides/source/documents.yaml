@@ -84,7 +84,7 @@
       url: configuring.html
       description: This guide covers the basic configuration settings for a Rails application.
     - 
-      name: Rails Command Line Tools and Rake tasks
+      name: Rails Command Line Tools and Rake Tasks
       url: command_line.html
       description: This guide covers the command line tools and rake tasks provided by Rails.
     - 
