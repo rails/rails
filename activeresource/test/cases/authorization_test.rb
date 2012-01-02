@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/base64'
 
 class AuthorizationTest < Test::Unit::TestCase
   Response = Struct.new(:code)
