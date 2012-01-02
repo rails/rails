@@ -43,7 +43,8 @@ platforms :mri_18 do
 end
 
 # Add your own local bundler stuff
-instance_eval File.read '.Gemfile' if File.exists? '.Gemfile'
+local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
+instance_eval File.read local_gemfile if File.exists? local_gemfile
 
 platforms :mri do
   group :test do
