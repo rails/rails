@@ -811,8 +811,7 @@ and links. A few things to note in the view:
 
 NOTE. In previous versions of Rails, you had to use +&lt;%=h post.name %&gt;+ so
 that any HTML would be escaped before being inserted into the page. In Rails
-3.0+, this is now the default. To get unescaped HTML, you now use +&lt;%= raw
-post.name %&gt;+.
+3 and above, this is now the default. To get unescaped HTML, you now use <tt>&lt;%= raw post.name %&gt;</tt>.
 
 TIP: For more details on the rendering process, see "Layouts and Rendering in
 Rails":layouts_and_rendering.html.
@@ -825,7 +824,7 @@ Rails renders a view to the browser, it does so by putting the view's HTML into
 a layout's HTML. In previous versions of Rails, the +rails generate scaffold+
 command would automatically create a controller specific layout, like
 +app/views/layouts/posts.html.erb+, for the posts controller. However this has
-been changed in Rails 3.0+. An application specific +layout+ is used for all the
+been changed in Rails 3. An application specific +layout+ is used for all the
 controllers and can be found in +app/views/layouts/application.html.erb+. Open
 this layout in your editor and modify the +body+ tag to include the style directive
 below:
@@ -1870,7 +1869,6 @@ free to consult these support resources:
 * The "Ruby on Rails Tutorial":http://railstutorial.org/book
 * The "Ruby on Rails mailing list":http://groups.google.com/group/rubyonrails-talk
 * The "#rubyonrails":irc://irc.freenode.net/#rubyonrails channel on irc.freenode.net
-* The "Rails Wiki":http://wiki.rubyonrails.org/
 
 Rails also comes with built-in help that you can generate using the rake command-line utility:
 

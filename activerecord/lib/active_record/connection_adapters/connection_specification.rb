@@ -3,8 +3,12 @@ module ActiveRecord
     class ConnectionSpecification #:nodoc:
       attr_reader :config, :adapter_method
 
-      def initialize (config, adapter_method)
+      def initialize(config, adapter_method)
         @config, @adapter_method = config, adapter_method
+      end
+
+      def initialize_dup(original)
+        @config = original.config.dup
       end
 
       ##

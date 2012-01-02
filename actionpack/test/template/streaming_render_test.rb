@@ -106,4 +106,4 @@ class FiberedTest < ActiveSupport::TestCase
       buffered_render(:template => "test/nested_streaming", :layout => "layouts/streaming")
   end
 
-end if defined?(Fiber)
+end

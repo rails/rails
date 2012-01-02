@@ -124,9 +124,8 @@ module ActionDispatch
         end
 
         def install(destinations = [ActionController::Base, ActionView::Base])
-          Array(destinations).each do |dest|
-            dest.__send__(:include, @module)
-          end
+          helper = @module
+          destinations.each { |d| d.module_eval { include helper } }
         end
 
         private
@@ -149,22 +148,23 @@ module ActionDispatch
           def define_hash_access(route, name, kind, options)
             selector = hash_access_name(name, kind)
 
-            # We use module_eval to avoid leaks
-            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_possible_method :#{selector}
-              def #{selector}(*args)
-                options = args.extract_options!
-                result = #{options.inspect}
+            @module.module_eval do
+              remove_possible_method selector
+
+              define_method(selector) do |*args|
+                inner_options = args.extract_options!
+                result = options.dup
 
                 if args.any?
                   result[:_positional_args] = args
-                  result[:_positional_keys] = #{route.segment_keys.inspect}
+                  result[:_positional_keys] = route.segment_keys
                 end
 
-                result.merge(options)
+                result.merge(inner_options)
               end
-              protected :#{selector}
-            END_EVAL
+
+              protected selector
+            end
             helpers << selector
           end
 
@@ -276,8 +276,8 @@ module ActionDispatch
         @prepend.each { |blk| eval_block(blk) }
       end
 
-      def install_helpers(destinations = [ActionController::Base, ActionView::Base])
-        Array(destinations).each { |d| d.module_eval { include Helpers } }
+      def install_helpers(destinations)
+        destinations.each { |d| d.module_eval { include Helpers } }
         named_routes.install(destinations)
       end
 
@@ -306,32 +306,29 @@ module ActionDispatch
       end
 
       def url_helpers
-        @url_helpers ||= begin
-          routes = self
+        routes = self
 
-          helpers = Module.new do
-            extend ActiveSupport::Concern
-            include UrlFor
+        @url_helpers ||= Module.new {
+          extend ActiveSupport::Concern
+          include UrlFor
 
-            @_routes = routes
-            class << self
-              delegate :url_for, :to => '@_routes'
-            end
-            extend routes.named_routes.module
-
-            # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
-            # we can include?
-            # Yes plz - JP
-            included do
-              routes.install_helpers(self)
-              singleton_class.send(:redefine_method, :_routes) { routes }
-            end
-
-            define_method(:_routes) { @_routes || routes }
+          @_routes = routes
+          def self.url_for(options)
+            @_routes.url_for options
           end
 
-          helpers
-        end
+          extend routes.named_routes.module
+
+          # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
+          # we can include?
+          # Yes plz - JP
+          included do
+            routes.install_helpers([self])
+            singleton_class.send(:redefine_method, :_routes) { routes }
+          end
+
+          define_method(:_routes) { @_routes || routes }
+        }
       end
 
       def empty?
