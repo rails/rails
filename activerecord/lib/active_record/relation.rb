@@ -13,7 +13,7 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
-    attr_accessor :extensions, :default_scoped
+    attr_accessor :extensions, :default_scoped, :proxy_association
     alias :loaded? :loaded
     alias :default_scoped? :default_scoped
 

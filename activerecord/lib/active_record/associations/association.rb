@@ -84,7 +84,9 @@ module ActiveRecord
       end
 
       def scoped
-        target_scope.merge(association_scope)
+        scope = target_scope.merge(association_scope)
+        scope.proxy_association = self
+        scope
       end
 
       # The scope for this association.
