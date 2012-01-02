@@ -38,6 +38,10 @@ class TestJSONEncoding < Test::Unit::TestCase
   ArrayTests    = [[ ['a', 'b', 'c'],          %([\"a\",\"b\",\"c\"])          ],
                    [ [1, 'a', :b, nil, false], %([1,\"a\",\"b\",null,false]) ]]
 
+  RangeTests    = [[ 1..2,     %("1..2")],
+                   [ 1...2,    %("1...2")],
+                   [ 1.5..2.5, %("1.5..2.5")]]
+
   SymbolTests   = [[ :a,     %("a")    ],
                    [ :this,  %("this") ],
                    [ :"a b", %("a b")  ]]
