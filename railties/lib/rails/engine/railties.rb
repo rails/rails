@@ -7,16 +7,9 @@ module Rails
       end
 
       def all(&block)
-        @all ||= plugins
+        @all ||= []
         @all.each(&block) if block
         @all
-      end
-
-      def plugins
-        @plugins ||= begin
-          plugin_names = (@config.plugins || [:all]).map { |p| p.to_sym }
-          Plugin.all(plugin_names, @config.paths["vendor/plugins"].existent)
-        end
       end
 
       def self.railties

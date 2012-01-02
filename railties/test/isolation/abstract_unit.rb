@@ -178,20 +178,6 @@ module TestHelpers
       end
     end
 
-    def plugin(name, string = "")
-      dir = "#{app_path}/vendor/plugins/#{name}"
-      FileUtils.mkdir_p(dir)
-
-      File.open("#{dir}/init.rb", 'w') do |f|
-        f.puts "::#{name.upcase} = 'loaded'"
-        f.puts string
-      end
-
-      Bukkit.new(dir).tap do |bukkit|
-        yield bukkit if block_given?
-      end
-    end
-
     def engine(name)
       dir = "#{app_path}/random/#{name}"
       FileUtils.mkdir_p(dir)

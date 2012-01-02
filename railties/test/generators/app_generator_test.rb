@@ -32,7 +32,6 @@ DEFAULT_APP_FILES = %w(
   test/unit
   vendor
   vendor/assets
-  vendor/plugins
   tmp/cache
   tmp/cache/assets
 )

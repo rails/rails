@@ -539,7 +539,7 @@ end
 
 namespace :railties do
   namespace :install do
-    # desc "Copies missing migrations from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
+    # desc "Copies missing migrations from Railties (e.g. engines). You can specify Railties to use with FROM=railtie1,railtie2"
     task :migrations => :'db:load_config' do
       to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map {|n| n.strip }
       railties = ActiveSupport::OrderedHash.new
