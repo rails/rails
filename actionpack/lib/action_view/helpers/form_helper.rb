@@ -1270,7 +1270,7 @@ module ActionView
         @multipart = nil
       end
 
-      (field_helpers - %w(label check_box radio_button fields_for hidden_field file_field)).each do |selector|
+      (field_helpers - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field]).each do |selector|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})
             @template.send(                      #   @template.send(
