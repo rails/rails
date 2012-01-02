@@ -25,21 +25,21 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "mail() with from overwrites the class level default" do
-    email = BaseMailer.welcome(:from => 'someone@example.com',
-                               :to   => 'another@example.org')
+    email = BaseMailer.welcome(from: 'someone@example.com',
+                               to: 'another@example.org')
     assert_equal(['someone@example.com'], email.from)
     assert_equal(['another@example.org'], email.to)
   end
 
   test "mail() with bcc, cc, content_type, charset, mime_version, reply_to and date" do
     time  = Time.now.beginning_of_day.to_datetime
-    email = BaseMailer.welcome(:bcc => 'bcc@test.lindsaar.net',
-                               :cc  => 'cc@test.lindsaar.net',
-                               :content_type => 'multipart/mixed',
-                               :charset => 'iso-8559-1',
-                               :mime_version => '2.0',
-                               :reply_to => 'reply-to@test.lindsaar.net',
-                               :date => time)
+    email = BaseMailer.welcome(bcc: 'bcc@test.lindsaar.net',
+                               cc: 'cc@test.lindsaar.net',
+                               content_type: 'multipart/mixed',
+                               charset: 'iso-8559-1',
+                               mime_version: '2.0',
+                               reply_to: 'reply-to@test.lindsaar.net',
+                               date: time)
     assert_equal(['bcc@test.lindsaar.net'],             email.bcc)
     assert_equal(['cc@test.lindsaar.net'],              email.cc)
     assert_equal('multipart/mixed; charset=iso-8559-1', email.content_type)
@@ -55,7 +55,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "can pass in :body to the mail method hash" do
-    email = BaseMailer.welcome(:body => "Hello there")
+    email = BaseMailer.welcome(body: "Hello there")
     assert_equal("text/plain", email.mime_type)
     assert_equal("Hello there", email.body.encoded)
   end

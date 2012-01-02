@@ -15,24 +15,24 @@ end
 
 class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
   test "default smtp settings" do
-    settings = { :address              => "localhost",
-                 :port                 => 25,
-                 :domain               => 'localhost.localdomain',
-                 :user_name            => nil,
-                 :password             => nil,
-                 :authentication       => nil,
-                 :enable_starttls_auto => true }
+    settings = { address: "localhost",
+                 port: 25,
+                 domain: 'localhost.localdomain',
+                 user_name: nil,
+                 password: nil,
+                 authentication: nil,
+                 enable_starttls_auto: true }
     assert_equal settings, ActionMailer::Base.smtp_settings
   end
 
   test "default file delivery settings" do
-    settings = {:location => "#{Dir.tmpdir}/mails"}
+    settings = { location: "#{Dir.tmpdir}/mails" }
     assert_equal settings, ActionMailer::Base.file_settings
   end
 
   test "default sendmail settings" do
-    settings = {:location       => '/usr/sbin/sendmail',
-                :arguments      => '-i -t'}
+    settings = { location:  '/usr/sbin/sendmail',
+                 arguments: '-i -t' }
     assert_equal settings, ActionMailer::Base.sendmail_settings
   end
 end
@@ -56,7 +56,7 @@ class CustomDeliveryMethodsTest < ActiveSupport::TestCase
   end
 
   test "allow to customize custom settings" do
-    ActionMailer::Base.custom_settings = { :foo => :bar }
+    ActionMailer::Base.custom_settings = { foo: :bar }
     assert_equal Hash[:foo => :bar], ActionMailer::Base.custom_settings
   end
 
@@ -75,8 +75,8 @@ end
 class MailDeliveryTest < ActiveSupport::TestCase
   class DeliveryMailer < ActionMailer::Base
     DEFAULT_HEADERS = {
-      :to => 'mikel@test.lindsaar.net',
-      :from => 'jose@test.plataformatec.com'
+      to: 'mikel@test.lindsaar.net',
+      from: 'jose@test.plataformatec.com'
     }
 
     def welcome(hash={})
@@ -103,7 +103,7 @@ class MailDeliveryTest < ActiveSupport::TestCase
   test "delivery method can be customized per instance" do
     email = DeliveryMailer.welcome.deliver
     assert_instance_of Mail::SMTP, email.delivery_method
-    email = DeliveryMailer.welcome(:delivery_method => :test).deliver
+    email = DeliveryMailer.welcome(delivery_method: :test).deliver
     assert_instance_of Mail::TestMailer, email.delivery_method
   end
 
