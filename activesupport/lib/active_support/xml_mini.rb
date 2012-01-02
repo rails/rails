@@ -1,4 +1,5 @@
 require 'time'
+require 'active_support/base64'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/string/inflections'
 
