@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Add font_path helper method *Santiago Pastorino*
+
 *   Depends on rack ~> 1.4.0 *Santiago Pastorino*
 
 *   Add :gzip option to `caches_page`. The default option can be configured globally using `page_cache_compression` *Andrey Sitnik*

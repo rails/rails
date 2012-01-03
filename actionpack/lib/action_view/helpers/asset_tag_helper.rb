@@ -306,6 +306,20 @@ module ActionView
       end
       alias_method :path_to_audio, :audio_path # aliased to avoid conflicts with an audio_path named route
 
+      # Computes the path to a font asset in the public fonts directory.
+      # Full paths from the document root will be passed through.
+      #
+      # ==== Examples
+      #   font_path("font")                                           # => /fonts/font
+      #   font_path("font.ttf")                                       # => /fonts/font.ttf
+      #   font_path("dir/font.ttf")                                   # => /fonts/dir/font.ttf
+      #   font_path("/dir/font.ttf")                                  # => /dir/font.ttf
+      #   font_path("http://www.example.com/dir/font.ttf")            # => http://www.example.com/dir/font.ttf
+      def font_path(source)
+        asset_paths.compute_public_path(source, 'fonts')
+      end
+      alias_method :path_to_font, :font_path # aliased to avoid conflicts with an font_path named route
+
       # Returns an html image tag for the +source+. The +source+ can be a full
       # path or a file that exists in your public images directory.
       #
