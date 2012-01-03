@@ -13,7 +13,7 @@ module ActiveModel
       end
 
       def deny?(key)
-        raise NotImplementedError, "#deny?(key) suppose to be overwritten"
+        raise NotImplementedError, "#deny?(key) supposed to be overwritten"
       end
 
     protected
