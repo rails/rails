@@ -1,3 +1,7 @@
+## Rails 4.0.0 (unreleased) ##
+*   New applications enforce whitelist mode for mass assignment using `config.active_record.whitelist_attributes`
+    turned on by default in `config/application.rb`. *Sergey Nartimov*
+
 ## Rails 3.2.0 (unreleased) ##
 
 *   Guides are available as a single .mobi for the Kindle and free Kindle readers apps. *Michael Pearson & Xavier Noria*
