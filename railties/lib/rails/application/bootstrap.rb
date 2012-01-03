@@ -28,7 +28,7 @@ module Rails
             FileUtils.mkdir_p File.dirname path
           end
 
-          f = File.open path, 'w'
+          f = File.open path, 'a'
           f.binmode
           f.sync = !Rails.env.production? # make sure every write flushes
 
