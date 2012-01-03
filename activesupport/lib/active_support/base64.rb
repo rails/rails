@@ -30,18 +30,23 @@ unless Base64.respond_to?(:strict_encode64)
 end
 
 module ActiveSupport
-  Base64 = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('ActiveSupport::Base64', '::Base64')
-  
-  # *DEPRECATED*: Use +Base64.strict_encode64+ instead.
-  #
-  # Encodes the value as base64 without the newline breaks. This makes the base64 encoding readily usable as URL parameters
-  # or memcache keys without further processing.
-  #
-  #  ActiveSupport::Base64.encode64s("Original unencoded string")
-  #  # => "T3JpZ2luYWwgdW5lbmNvZGVkIHN0cmluZw=="
-  def Base64.encode64s(value)
-    ActiveSupport::Deprecation.warn "encode64s " \
-      "is deprecated. Use Base64.strict_encode64 instead", caller
-    encode64(value).gsub(/\n/, '')
+  module Base64
+    def self.encode64(value)
+      ActiveSupport::Deprecation.warn "ActiveSupport::Base64.encode64 " \
+        "is deprecated. Use Base64.encode64 instead", caller
+      ::Base64.encode64(value)
+    end
+
+    def self.decode64(value)
+      ActiveSupport::Deprecation.warn "ActiveSupport::Base64.decode64 " \
+        "is deprecated. Use Base64.decode64 instead", caller
+      ::Base64.encode64(value)
+    end
+
+    def self.encode64s(value)
+      ActiveSupport::Deprecation.warn "ActiveSupport::Base64.encode64s " \
+        "is deprecated. Use Base64.strict_encode64 instead", caller
+      ::Base64.strict_encode64(value)
+    end
   end
 end
