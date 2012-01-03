@@ -159,20 +159,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_equal @response.body, 'request method: GET'
   end
 
-  def test_redirect_to_named_route
-    with_routing do |set|
-      set.draw do
-        match 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
-        match ':controller/:action'
-      end
-      set.install_helpers([ActionController::Base, ActionView::Base])
-
-      process :redirect_to_named_route
-      assert_redirected_to 'http://test.host/route_one'
-      assert_redirected_to route_one_url
-    end
-  end
-
   def test_string_constraint
     with_routing do |set|
       set.draw do

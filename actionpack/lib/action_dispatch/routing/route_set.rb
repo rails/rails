@@ -123,11 +123,6 @@ module ActionDispatch
           routes.length
         end
 
-        def install(destinations = [ActionController::Base, ActionView::Base])
-          helper = @module
-          destinations.each { |d| d.module_eval { include helper } }
-        end
-
         private
           def url_helper_name(name, kind = :url)
             :"#{name}_#{kind}"
@@ -276,14 +271,15 @@ module ActionDispatch
         @prepend.each { |blk| eval_block(blk) }
       end
 
-      def install_helpers(destinations)
-        destinations.each { |d| d.module_eval { include Helpers } }
-        named_routes.install(destinations)
+      module MountedHelpers #:nodoc:
+        extend ActiveSupport::Concern
+        include UrlFor
       end
 
-      module MountedHelpers
-      end
-
+      # Contains all the mounted helpers accross different
+      # engines and the `main_app` helper for the application.
+      # You can include this in your classes if you want to
+      # access routes for other engines.
       def mounted_helpers
         MountedHelpers
       end
@@ -294,7 +290,7 @@ module ActionDispatch
         routes = self
         MountedHelpers.class_eval do
           define_method "_#{name}" do
-            RoutesProxy.new(routes, self._routes_context)
+            RoutesProxy.new(routes, _routes_context)
           end
         end
 
@@ -306,29 +302,40 @@ module ActionDispatch
       end
 
       def url_helpers
-        routes = self
+        @url_helpers ||= begin
+          routes = self
 
-        @url_helpers ||= Module.new {
-          extend ActiveSupport::Concern
-          include UrlFor
+          Module.new do
+            extend ActiveSupport::Concern
+            include UrlFor
 
-          @_routes = routes
-          def self.url_for(options)
-            @_routes.url_for options
+            # Define url_for in the singleton level so one can do:
+            # Rails.application.routes.url_helpers.url_for(args)
+            @_routes = routes
+            class << self
+              delegate :url_for, :to => '@_routes'
+            end
+
+            # Make named_routes available in the module singleton
+            # as well, so one can do:
+            # Rails.application.routes.url_helpers.posts_path
+            extend routes.named_routes.module
+
+            # Any class that includes this module will get all
+            # named routes...
+            include routes.named_routes.module
+
+            # plus a singleton class method called _routes ...
+            included do
+              singleton_class.send(:redefine_method, :_routes) { routes }
+            end
+
+            # And an instance method _routes. Note that
+            # UrlFor (included in this module) add extra
+            # conveniences for working with @_routes.
+            define_method(:_routes) { @_routes || routes }
           end
-
-          extend routes.named_routes.module
-
-          # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
-          # we can include?
-          # Yes plz - JP
-          included do
-            routes.install_helpers([self])
-            singleton_class.send(:redefine_method, :_routes) { routes }
-          end
-
-          define_method(:_routes) { @_routes || routes }
-        }
+        end
       end
 
       def empty?
