@@ -2,6 +2,8 @@
 *   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form. 
     This is a behavior change, previously the hidden tag had a value of the disabled checkbox. *Tadas Tamosauskas*
 
+*   Add font_path helper method *Santiago Pastorino*
+
 *   Depends on rack ~> 1.4.0 *Santiago Pastorino*
 
 *   Add :gzip option to `caches_page`. The default option can be configured globally using `page_cache_compression` *Andrey Sitnik*
