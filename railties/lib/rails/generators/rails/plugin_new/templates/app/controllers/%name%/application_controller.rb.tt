@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module <%= camelized %>
   class ApplicationController < ActionController::Base
   end

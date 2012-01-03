@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
 

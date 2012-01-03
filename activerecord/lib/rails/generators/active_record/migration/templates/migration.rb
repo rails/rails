@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class <%= migration_class_name %> < ActiveRecord::Migration
 <%- if migration_action == 'add' -%>
   def change

@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 <% if full? -%>
 require "<%= name %>/engine"
 
