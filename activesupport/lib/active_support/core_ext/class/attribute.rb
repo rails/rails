@@ -110,6 +110,6 @@ class Class
 
   private
   def singleton_class?
-    !name || '' == name
+    ancestors.first != self
   end
 end
