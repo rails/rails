@@ -144,6 +144,9 @@ class SprocketsHelperTest < ActionView::TestCase
 
   test "javascript_path" do
     assert_match %r{/assets/application-[0-9a-f]+.js},
+      javascript_path("application")
+
+    assert_match %r{/assets/application-[0-9a-f]+.js},
       javascript_path("application.js")
 
     assert_match %r{/assets/application-[0-9a-f]+.js},
@@ -151,6 +154,9 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "stylesheet_path" do
+    assert_match %r{/assets/application-[0-9a-f]+.css},
+      stylesheet_path("application")
+
     assert_match %r{/assets/application-[0-9a-f]+.css},
       stylesheet_path("application.css")
 
