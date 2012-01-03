@@ -170,6 +170,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       process :redirect_to_named_route
       assert_redirected_to 'http://test.host/route_one'
       assert_redirected_to route_one_url
+      assert_redirected_to %r(^http://test\.host)
     end
   end
 
@@ -197,6 +198,9 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       end
       assert_raise(ActiveSupport::TestCase::Assertion) do
         assert_redirected_to route_two_url
+      end
+      assert_raise(ActiveSupport::TestCase::Assertion) do
+        assert_redirected_to %r(#{route_two_url})
       end
     end
   end
@@ -226,6 +230,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       process :redirect_to_top_level_named_route
       # assert_redirected_to "http://test.host/action_pack_assertions/foo" would pass because of exact match early return
       assert_redirected_to "/action_pack_assertions/foo"
+      assert_redirected_to %r(/action_pack_assertions/foo)
     end
   end
 
