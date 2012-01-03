@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 <% if mountable? -%>
 <%= camelized %>::Engine.routes.draw do
 <% else -%>

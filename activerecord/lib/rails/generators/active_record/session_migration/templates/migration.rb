@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class <%= migration_class_name %> < ActiveRecord::Migration
   def change
     create_table :<%= session_table_name %> do |t|

@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 <% module_namespacing do -%>
 class <%= class_name %> < ActionMailer::Base
   default <%= key_value :from, '"from@example.com"' %>
