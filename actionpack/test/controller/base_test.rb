@@ -197,28 +197,36 @@ class UrlOptionsTest < ActionController::TestCase
     rescue_action_in_public!
   end
 
-  def test_path_generation_priority
+  ##
+  # When generating routes, the last defined named route wins.  This is in
+  # contrast to route recognition where the first recognized route wins.
+  # This behavior will not exist in Rails 4.0.
+  #
+  # See:
+  #
+  #   https://github.com/rails/rails/issues/4245
+  #   https://github.com/rails/rails/issues/4164
+  def test_last_named_route_wins
     rs = ActionDispatch::Routing::RouteSet.new
     rs.draw do
-      resources :models
-      match 'special' => 'model#new', :as => :new_model
+      resources :purchases
+      match 'purchase/:product_id' => 'purchases#new', :as => :new_purchase
+      match 'purchase/:product_id' => 'purchases#new', :as => :correct_new_purchase
     end
 
-    url_params = {
-       :action     => "new",
-       :controller => "model",
-       :use_route  => "new_model",
-       :only_path  => true }
-
-    x = Struct.new(:rs, :params, :tc) {
+    x = Struct.new(:rs, :tc) {
       include rs.named_routes.module
-      public :new_model_path
+      public :correct_new_purchase_url
+      public :new_purchase_url
 
-      def url_for(*args)
-        tc.assert_equal([params], args)
-        rs.url_for(*args)
+      def url_for(options)
+        options[:host] = 'example.org'
+        rs.url_for(options)
       end
-    }.new(rs, url_params, self)
+    }.new(rs, self)
+
+    assert_equal "http://example.org/purchase/1", x.correct_new_purchase_url(1)
+    assert_equal "http://example.org/purchase/1", x.new_purchase_url(1)
   end
 
   def test_url_for_params_priority
