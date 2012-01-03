@@ -77,8 +77,8 @@ module ActiveSupport
     #     save
     #   end
     #
-    def run_callbacks(kind, *args, &block)
-      send("_run_#{kind}_callbacks", *args, &block)
+    def run_callbacks(kind, key = nil, &block)
+      self.class.__run_callbacks(key, kind, self, &block)
     end
 
     private
@@ -376,40 +376,30 @@ module ActiveSupport
     end
 
     module ClassMethods
-      # Generate the internal runner method called by +run_callbacks+.
-      def __define_runner(symbol) #:nodoc:
-        body = send("_#{symbol}_callbacks").compile
-        runner_method = "_run_#{symbol}_callbacks" 
-
-        silence_warnings do
-          undef_method runner_method if method_defined?(runner_method)
-          class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{runner_method}(key = nil, &blk)
-              if key
-                self.class.__run_keyed_callback(key, :#{symbol}, self, &blk)
-              else
-                #{body}
-              end
-            end
-            private :#{runner_method}
-          RUBY_EVAL
-        end
-      end
 
       # This method calls the callback method for the given key.
       # If this called first time it creates a new callback method for the key, 
       # calculating which callbacks can be omitted because of per_key conditions.
       #
-      def __run_keyed_callback(key, kind, object, &blk) #:nodoc:
-        name = "_run__#{self.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
+      def __run_callbacks(key, kind, object, &blk) #:nodoc:
+        name = __callback_runner_name(key, kind)
         unless object.respond_to?(name)
-          str = send("_#{kind}_callbacks").compile(name, object)
+          str = send("_#{kind}_callbacks").compile(key, object)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{name}() #{str} end
             protected :#{name}
           RUBY_EVAL
         end
         object.send(name, &blk)
+      end
+
+      def __reset_runner(symbol)
+        name = __callback_runner_name(nil, symbol)
+        undef_method(name) if method_defined?(name)
+      end
+
+      def __callback_runner_name(key, kind)
+        "_run__#{self.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
       end
 
       # This is used internally to append, prepend and skip callbacks to the
@@ -423,7 +413,7 @@ module ActiveSupport
         ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
           chain = target.send("_#{name}_callbacks")
           yield target, chain.dup, type, filters, options
-          target.__define_runner(name)
+          target.__reset_runner(name)
         end
       end
 
@@ -537,12 +527,12 @@ module ActiveSupport
           chain = target.send("_#{symbol}_callbacks").dup
           callbacks.each { |c| chain.delete(c) }
           target.send("_#{symbol}_callbacks=", chain)
-          target.__define_runner(symbol)
+          target.__reset_runner(symbol)
         end
 
         self.send("_#{symbol}_callbacks=", callbacks.dup.clear)
 
-        __define_runner(symbol)
+        __reset_runner(symbol)
       end
 
       # Define sets of events in the object lifecycle that support callbacks.
@@ -616,7 +606,6 @@ module ActiveSupport
         callbacks.each do |callback|
           class_attribute "_#{callback}_callbacks"
           send("_#{callback}_callbacks=", CallbackChain.new(callback, config))
-          __define_runner(callback)
         end
       end
     end
