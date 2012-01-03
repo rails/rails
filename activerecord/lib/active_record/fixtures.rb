@@ -754,8 +754,9 @@ module ActiveRecord
 
       def fixtures(*fixture_names)
         if fixture_names.first == :all
-          fixture_names = Dir["#{fixture_path}/**/*.{yml}"]
-          fixture_names.map! { |f| f[(fixture_path.size + 1)..-5] }
+          fixture_names = Dir["#{fixture_path}/**/*.yml"].map { |f|
+            File.basename f, '.yml'
+          }
         else
           fixture_names = fixture_names.flatten.map { |n| n.to_s }
         end
