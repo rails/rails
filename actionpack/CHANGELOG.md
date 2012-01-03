@@ -155,7 +155,7 @@
 
 ## Rails 3.1.3 (unreleased) ##
 
-*   Fix using `tranlate` helper with a html translation which uses the `:count` option for
+*   Fix using `translate` helper with a html translation which uses the `:count` option for
     pluralization.
 
     *Jon Leighton*
@@ -204,23 +204,30 @@
 ## Rails 3.1.1 (unreleased) ##
 
 *   javascript_path and stylesheet_path now refer to /assets if asset pipelining
-    is on. [Santiago Pastorino]
+    is on. *Santiago Pastorino*
+
 *   button_to support form option. Now you're able to pass for example
-    'data-type' => 'json'. [ihower]
+    'data-type' => 'json'. *ihower*
+
 *   image_path and image_tag should use /assets if asset pipelining is turned
-    on. Closes #3126 [Santiago Pastorino and christos]
+    on. Closes #3126 *Santiago Pastorino and christos*
+
 *   Avoid use of existing precompiled assets during rake assets:precompile run.
-    Closes #3119 [Guillermo Iguaran]
+    Closes #3119 *Guillermo Iguaran*
+
 *   Copy assets to nondigested filenames too *Santiago Pastorino*
 
 *   Give precedence to `config.digest = false` over the existence of
-    manifest.yml asset digests [christos]
+    manifest.yml asset digests *christos*
+
 *   escape options for the stylesheet_link_tag method *Alexey Vakhov*
 
 *   Re-launch assets:precompile task using (Rake.)ruby instead of Kernel.exec so
-    it works on Windows [cablegram]
-*   env var passed to process shouldn't be modified in process method. [Santiago
-    Pastorino]
+    it works on Windows *cablegram*
+
+*   env var passed to process shouldn't be modified in process method. *Santiago
+    Pastorino*
+
 *   `rake assets:precompile` loads the application but does not initialize
     it.
     To the app developer, this means configuration add in
@@ -235,7 +242,8 @@
 *   Fix Hash#to_query edge case with html_safe strings. *brainopia*
 
 *   Allow asset tag helper methods to accept :digest => false option in order to completely avoid the digest generation.
-    Useful for linking assets from static html files or from emails when the user    could probably look at an older html email with an older asset. [Santiago Pastorino]
+    Useful for linking assets from static html files or from emails when the user could probably look at an older html email with an older asset. *Santiago Pastorino*
+
 *   Don't mount Sprockets server at config.assets.prefix if config.assets.compile is false. *Mark J. Titorenko*
 
 *   Set relative url root in assets when controller isn't available for Sprockets (eg. Sass files using asset_path). Fixes #2435 *Guillermo Iguaran*
@@ -392,6 +400,7 @@
 
 *   ActionDispatch::MiddlewareStack now uses composition over inheritance. It is
     no longer an array which means there may be methods missing that were not    tested.
+
 *   Add an :authenticity_token option to form_tag for custom handling or to omit the token (pass :authenticity_token => false).  *Jakub Kuźma, Igor Wiedler*
 
 *   HTML5 button_tag helper. *Rizwan Reza*
@@ -433,7 +442,7 @@
 *   No changes.
 
 
-*   Rails 3.0.6 (April 5, 2011)
+## Rails 3.0.6 (April 5, 2011) ##
 
 *   Fixed XSS vulnerability in `auto_link`.  `auto_link` no longer marks input as
     html safe.  Please make sure that calls to auto_link() are wrapped in a
@@ -622,7 +631,7 @@
 
 *   Added ActionDispatch::Request#authorization to access the http authentication header regardless of its proxy hiding *DHH*
 
-*   Added :alert, :notice, and :flash as options to ActionController::Base#redirect_to that'll automatically set the proper flash before the redirection [DHH]. Examples:
+*   Added :alert, :notice, and :flash as options to ActionController::Base#redirect_to that'll automatically set the proper flash before the redirection *DHH*. Examples:
 
         flash[:notice] = 'Post was created'
         redirect_to(@post)
@@ -632,7 +641,6 @@
         redirect_to(@post, :notice => 'Post was created')
 
 *   Added ActionController::Base#notice/= and ActionController::Base#alert/= as a convenience accessors in both the controller and the view for flash[:notice]/= and flash[:alert]/= *DHH*
-
 
 *   Introduce grouped_collection_select helper.  #1249 *Dan Codeape, Erik Ostrom*
 
@@ -673,19 +681,19 @@
 
 *   Make the form_for and fields_for helpers support the new Active Record nested update options.  #1202 *Eloy Duran*
 
-  		<% form_for @person do |person_form| %>
+      <% form_for @person do |person_form| %>
         ...
         <% person_form.fields_for :projects do |project_fields| %>
           <% if project_fields.object.active? %>
             Name: <%= project_fields.text_field :name %>
           <% end %>
         <% end %>
-  		<% end %>
+      <% end %>
 
 
 *   Added grouped_options_for_select helper method for wrapping option tags in optgroups. #977 *Jon Crawford*
 
-*   Implement HTTP Digest authentication. #1230 [Gregg Kellogg, Pratik Naik] Example :
+*   Implement HTTP Digest authentication. #1230 *Gregg Kellogg, Pratik Naik* Example :
 
     class DummyDigestController < ActionController::Base
         USERS = { "lifo" => 'world' }
@@ -723,7 +731,7 @@
 
 *   Fixed the AssetTagHelper cache to use the computed asset host as part of the cache key instead of just assuming the its a string #1299 *DHH*
 
-*   Make ActionController#render(string) work as a shortcut for render :file/:template/:action => string. [#1435] [Pratik Naik] Examples:
+*   Make ActionController#render(string) work as a shortcut for render :file/:template/:action => string. #1435 *Pratik Naik* Examples:
 
     \# Instead of render(:action => 'other_action')
     render('other_action') # argument has no '/'
@@ -755,7 +763,7 @@
 
 *   Remove deprecated ActionController::Base#assign_default_content_type_and_charset
 
-*   Changed the default of ActionView#render to assume partials instead of files when not given an options hash [David Heinemeier Hansson]. Examples:
+*   Changed the default of ActionView#render to assume partials instead of files when not given an options hash *DHH*. Examples:
 
         # Instead of <%= render :partial => "account" %>
         <%= render "account" %>
@@ -813,7 +821,7 @@
 
 *   Fix incorrect closing CDATA delimiter and that HTML::Node.parse would blow up on unclosed CDATA sections *packagethief*
 
-*   Added stale? and fresh_when methods to provide a layer of abstraction above request.fresh? and friends [David Heinemeier Hansson]. Example:
+*   Added stale? and fresh_when methods to provide a layer of abstraction above request.fresh? and friends *DHH*. Example:
 
         class ArticlesController < ApplicationController
           def show_with_respond_to_block
@@ -847,7 +855,7 @@
         end
 
 
-*   Added inline builder yield to atom_feed_helper tags where appropriate [Sam Ruby]. Example:
+*   Added inline builder yield to atom_feed_helper tags where appropriate *Sam Ruby*. Example:
 
         entry.summary :type => 'xhtml' do |xhtml|
           xhtml.p pluralize(order.line_items.count, "line item")
@@ -869,7 +877,7 @@
 
 *   Changed BenchmarkHelper#benchmark to report in milliseconds *David Heinemeier Hansson*
 
-*   Changed logging format to be millisecond based and skip misleading stats [David Heinemeier Hansson]. Went from:
+*   Changed logging format to be millisecond based and skip misleading stats *DHH*. Went from:
 
         Completed in 0.10000 (4 reqs/sec) | Rendering: 0.04000 (40%) | DB: 0.00400 (4%) | 200 OK [http://example.com]
 
@@ -953,7 +961,7 @@
 
 *   Deprecated TemplateHandler line offset *Josh Peek*
 
-*   Allow caches_action to accept cache store options. #416. [José Valim]. Example:
+*   Allow caches_action to accept cache store options. #416. *José Valim*. Example:
 
     caches_action :index, :redirected, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
 
@@ -983,7 +991,7 @@
 
 *   Replaced TemplateFinder abstraction with ViewLoadPaths *Josh Peek*
 
-*   Added block-call style to link_to [Sam Stephenson/David Heinemeier Hansson]. Example:
+*   Added block-call style to link_to *Sam Stephenson/David Heinemeier Hansson*. Example:
 
         <% link_to(@profile) do %>
           <strong><%= @profile.name %></strong> -- <span>Check it out!!</span>
@@ -1206,7 +1214,7 @@
 
 *   Added OPTIONS to list of default accepted HTTP methods #10449 *holoway*
 
-*   Added option to pass proc to ActionController::Base.asset_host for maximum configurability #10521 [Cheah Chu Yeow]. Example:
+*   Added option to pass proc to ActionController::Base.asset_host for maximum configurability #10521 *Cheah Chu Yeow*. Example:
 
         ActionController::Base.asset_host = Proc.new { |source|
           if source.starts_with?('/images')
@@ -1251,7 +1259,7 @@
 
 *   Update to Prototype -r8232.  *sam*
 
-*   Make sure the optimisation code for routes doesn't get used if :host, :anchor or :port are provided in the hash arguments. [pager, Michael Koziarski] #10292
+*   Make sure the optimisation code for routes doesn't get used if :host, :anchor or :port are provided in the hash arguments. *pager, Michael Koziarski* #10292
 
 *   Added protection from trailing slashes on page caching #10229 *devrieda*
 
@@ -1423,9 +1431,9 @@
 
 *   Don't warn when a path segment precedes a required segment. Closes #9615. *Nicholas Seckar*
 
-*   Fixed CaptureHelper#content_for to work with the optional content parameter instead of just the block #9434 [sandofsky/wildchild].
+*   Fixed CaptureHelper#content_for to work with the optional content parameter instead of just the block #9434 *sandofsky/wildchild*.
 
-*   Added Mime::Type.register_alias for dealing with different formats using the same mime type [David Heinemeier Hansson]. Example:
+*   Added Mime::Type.register_alias for dealing with different formats using the same mime type *DHH*. Example:
 
         class PostsController < ApplicationController
           before_filter :adjust_format_for_iphone
@@ -1448,7 +1456,7 @@
             end
         end
 
-*   Added that render :json will automatically call .to_json unless it's being passed a string [David Heinemeier Hansson].
+*   Added that render :json will automatically call .to_json unless it's being passed a string *DHH*.
 
 *   Autolink behaves well with emails embedded in URLs.  #7313 *Jeremy McAnally, Tarmo Tänav*
 
@@ -1472,7 +1480,7 @@
 
 *   Removed deprecated form of calling xml_http_request/xhr without the first argument being the http verb *David Heinemeier Hansson*
 
-*   Removed deprecated methods [David Heinemeier Hansson]:
+*   Removed deprecated methods *DHH*:
 
     - ActionController::Base#keep_flash (use flash.keep instead)
     - ActionController::Base#expire_matched_fragments (just call expire_fragment with a regular expression)
@@ -1588,7 +1596,7 @@
 
 *   Reduce file stat calls when checking for template changes.  #7736 *alex*
 
-*   Added custom path cache_page/expire_page parameters in addition to the options hashes [David Heinemeier Hansson]. Example:
+*   Added custom path cache_page/expire_page parameters in addition to the options hashes *DHH*. Example:
 
         def index
           caches_page(response.body, "/index.html")
@@ -1626,7 +1634,7 @@
 
 *   Update to Prototype 1.5.1.  *Sam Stephenson*
 
-*   Allow routes to be decalred under namespaces [Tobias Lütke]:
+*   Allow routes to be decalred under namespaces *Tobias Lütke*:
 
     map.namespace :admin do |admin|
         admin.root :controller => "products"
@@ -1641,7 +1649,7 @@
 
 *   select :include_blank option can be set to a string instead of true, which just uses an empty string.  #7664 *Wizard*
 
-*   Added url_for usage on render :location, which allows for record identification [David Heinemeier Hansson]. Example:
+*   Added url_for usage on render :location, which allows for record identification *DHH*. Example:
 
         render :xml => person, :status => :created, :location => person
 
@@ -1667,7 +1675,7 @@
         end
     end
 
-*   Added record identifications to FormHelper#form_for and PrototypeHelper#remote_form_for [David Heinemeier Hansson]. Examples:
+*   Added record identifications to FormHelper#form_for and PrototypeHelper#remote_form_for *DHH*. Examples:
 
         <% form_for(@post) do |f| %>
           ...
@@ -1693,7 +1701,7 @@
 
 *   Rationalize route path escaping according to RFC 2396 section 3.3.  #7544, #8307. *Jeremy Kemper, Chris Roos, begemot, jugend*
 
-*   Added record identification with polymorphic routes for ActionController::Base#url_for and ActionView::Base#url_for [David Heinemeier Hansson]. Examples:
+*   Added record identification with polymorphic routes for ActionController::Base#url_for and ActionView::Base#url_for *DHH*. Examples:
 
         redirect_to(post)         # => redirect_to(posts_url(post))         => Location: http://example.com/posts/1
         link_to(post.title, post) # => link_to(post.title, posts_url(post)) => <a href="/posts/1">Hello world</a>
@@ -1724,13 +1732,13 @@
 
 *   Update UrlWriter to accept :anchor parameter. Closes #6771. *Chris McGrath*
 
-*   Added RecordTagHelper for using RecordIdentifier conventions on divs and other container elements [David Heinemeier Hansson]. Example:
+*   Added RecordTagHelper for using RecordIdentifier conventions on divs and other container elements *DHH*. Example:
 
         <% div_for(post) do %>     <div id="post_45" class="post">
           <%= post.body %>           What a wonderful world!
         <% end %>                  </div>
 
-*   Added page[record] accessor to JavaScriptGenerator that relies on RecordIdentifier to find the right dom id [David Heinemeier Hansson]. Example:
+*   Added page[record] accessor to JavaScriptGenerator that relies on RecordIdentifier to find the right dom id *DHH*. Example:
 
         format.js do
           # Calls: new Effect.fade('post_45');
@@ -1757,7 +1765,7 @@
               :has_many   => [ :tags, :images, :variants ]
           end
 
-*   Added :name_prefix as standard for nested resources [David Heinemeier Hansson]. WARNING: May be backwards incompatible with your app
+*   Added :name_prefix as standard for nested resources *DHH*. WARNING: May be backwards incompatible with your app
 
         Before:
 
@@ -1789,7 +1797,7 @@
 
           map.resources :notes, :has_many => [ :comments, :attachments ], :has_one => :author
 
-*   Added that render :xml will try to call to_xml if it can [David Heinemeier Hansson]. Makes these work:
+*   Added that render :xml will try to call to_xml if it can *DHH*. Makes these work:
 
         render :xml => post
         render :xml => comments
@@ -1866,7 +1874,7 @@
 
 *   Allow array and hash query parameters. Array route parameters are converted/to/a/path as before.  #6765, #7047, #7462 *bgipsy, Jeremy McAnally, Dan Kubb, brendan*
 
-    \# Add a #dbman attr_reader for CGI::Session and make CGI::Session::CookieStore#generate_digest public so it's easy to generate digests    using the cookie store's secret. [Rick Olson]
+    \# Add a #dbman attr_reader for CGI::Session and make CGI::Session::CookieStore#generate_digest public so it's easy to generate digests    using the cookie store's secret. *Rick Olson*
 *   Added Request#url that returns the complete URL used for the request *David Heinemeier Hansson*
 
 *   Extract dynamic scaffolding into a plugin.  #7700 *Josh Peek*
@@ -1883,7 +1891,7 @@
 
 *   Allow send_file/send_data to use a registered mime type as the :type parameter #7620 *jonathan*
 
-*   Allow routing requirements on map.resource(s) #7633 [quixoten]. Example:
+*   Allow routing requirements on map.resource(s) #7633 *quixoten*. Example:
 
     map.resources :network_interfaces, :requirements => { :id => /^\d+\.\d+\.\d+\.\d+$/ }
 
@@ -1907,9 +1915,9 @@
           :secret => Proc.new { User.current.secret_key }
         }
 
-*   Added .erb and .builder as preferred aliases to the now deprecated .rhtml and .rxml extensions [Chad Fowler]. This is done to separate the renderer from the mime type. .erb templates are often used to render emails, atom, csv, whatever. So labeling them .rhtml doesn't make too much sense. The same goes for .rxml, which can be used to build everything from HTML to Atom to whatever. .rhtml and .rxml will continue to work until Rails 3.0, though. So this is a slow phasing out. All generators and examples will start using the new aliases, though.
+*   Added .erb and .builder as preferred aliases to the now deprecated .rhtml and .rxml extensions *Chad Fowler*. This is done to separate the renderer from the mime type. .erb templates are often used to render emails, atom, csv, whatever. So labeling them .rhtml doesn't make too much sense. The same goes for .rxml, which can be used to build everything from HTML to Atom to whatever. .rhtml and .rxml will continue to work until Rails 3.0, though. So this is a slow phasing out. All generators and examples will start using the new aliases, though.
 
-*   Added caching option to AssetTagHelper#stylesheet_link_tag and AssetTagHelper#javascript_include_tag [David Heinemeier Hansson]. Examples:
+*   Added caching option to AssetTagHelper#stylesheet_link_tag and AssetTagHelper#javascript_include_tag *DHH*. Examples:
 
         stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
           <link href="/stylesheets/style1.css"  media="screen" rel="Stylesheet" type="text/css" />
@@ -1948,7 +1956,7 @@
 *   Fix #render_file so that TemplateError is called with the correct params and you don't get the WSOD.  *Rick Olson*
 
 *   Fix issue with deprecation messing up #template_root= usage.  Add #prepend_view_path and #append_view_path to allow modification of a copy of the
-    superclass' view_paths.  [Rick Olson]
+    superclass' view_paths.  *Rick Olson*
 *   Allow Controllers to have multiple view_paths instead of a single template_root.  Closes #2754 *John Long*
 
 *   Add much-needed html-scanner tests.  Fixed CDATA parsing bug. *Rick Olson*
@@ -2100,13 +2108,13 @@
 
 *   Added map.root as an alias for map.connect '' *David Heinemeier Hansson*
 
-*   Added Request#format to return the format used for the request as a mime type. If no format is specified, the first Request#accepts type is used. This means you can stop using respond_to for anything else than responses [David Heinemeier Hansson]. Examples:
+*   Added Request#format to return the format used for the request as a mime type. If no format is specified, the first Request#accepts type is used. This means you can stop using respond_to for anything else than responses *DHH*. Examples:
 
         GET /posts/5.xml   | request.format => Mime::XML
         GET /posts/5.xhtml | request.format => Mime::HTML
         GET /posts/5       | request.format => request.accepts.first (usually Mime::HTML for browsers)
 
-*   Added the option for extension aliases to mime type registration [David Heinemeier Hansson]. Example (already in the default routes):
+*   Added the option for extension aliases to mime type registration *DHH*. Example (already in the default routes):
 
         Mime::Type.register "text/html", :html, %w( application/xhtml+xml ), %w( xhtml )
 
@@ -2173,7 +2181,7 @@
 
 *   Add a 0 margin/padding div around the hidden _method input tag that form_tag outputs.  *Rick Olson*
 
-*   Added block-usage to TagHelper#content_tag [David Heinemeier Hansson]. Example:
+*   Added block-usage to TagHelper#content_tag *DHH*. Example:
 
      <% content_tag :div, :class => "strong" %>
          Hello world!
@@ -2204,7 +2212,7 @@
 
 *   Fix deprecation warnings when rendering the template error template. *Nicholas Seckar*
 
-*   Fix routing to correctly determine when generation fails. Closes #6300. [psross].
+*   Fix routing to correctly determine when generation fails. Closes #6300. *psross*.
 
 *   Fix broken assert_generates when extra keys are being checked. *Jamis Buck*
 
@@ -2230,7 +2238,7 @@
 
 *   Fixed that FormHelper#radio_button didn't respect an :id being passed in #6266 *evansj*
 
-*   Added an html_options hash parameter to javascript_tag() and update_page_tag() helpers #6311 [tzaharia]. Example:
+*   Added an html_options hash parameter to javascript_tag() and update_page_tag() helpers #6311 *tzaharia*. Example:
 
         update_page_tag :defer => 'true' { |page| ... }
 
@@ -2254,13 +2262,13 @@
 
 *   Deprecation: @cookies, @headers, @request, @response will be removed after 1.2. Use the corresponding method instead.  *Jeremy Kemper*
 
-*   Make the :status parameter expand to the default message for that status code if it is an integer. Also support symbol statuses. [Jamis Buck]. Examples:
+*   Make the :status parameter expand to the default message for that status code if it is an integer. Also support symbol statuses. *Jamis Buck*. Examples:
 
         head :status => 404        # expands to "404 Not Found"
         head :status => :not_found # expands to "404 Not Found"
         head :status => :created   # expands to "201 Created"
 
-*   Add head(options = {}) for responses that have no body. [Jamis Buck]. Examples:
+*   Add head(options = {}) for responses that have no body. *Jamis Buck*. Examples:
 
         head :status => 404 # return an empty response with a 404 status
         head :location => person_path(@person), :status => 201
@@ -2281,7 +2289,7 @@
 
 *   Rescue Errno::ECONNRESET to handle an unexpectedly closed socket connection. Improves SCGI reliability.  #3368, #6226 *sdsykes, fhanshaw@vesaria.com*
 
-*   Added that respond_to blocks will automatically set the content type to be the same as is requested [David Heinemeier Hansson]. Examples:
+*   Added that respond_to blocks will automatically set the content type to be the same as is requested *DHH*. Examples:
 
         respond_to do |format|
           format.html { render :text => "I'm being sent as text/html" }
@@ -2291,7 +2299,7 @@
 
 *   Added utf-8 as the default charset for all renders. You can change this default using ActionController::Base.default_charset=(encoding) *David Heinemeier Hansson*
 
-*   Added proper getters and setters for content type and charset [David Heinemeier Hansson]. Example of what we used to do:
+*   Added proper getters and setters for content type and charset *DHH*. Example of what we used to do:
 
         response.headers["Content-Type"] = "application/atom+xml; charset=utf-8"
 
@@ -2336,7 +2344,7 @@
 
 *   Update UrlWriter to support :only_path. *Nicholas Seckar, Dave Thomas*
 
-*   Fixed JavaScriptHelper#link_to_function and JavaScriptHelper#button_to_function to have the script argument be optional [David Heinemeier Hansson]. So what used to require a nil, like this:
+*   Fixed JavaScriptHelper#link_to_function and JavaScriptHelper#button_to_function to have the script argument be optional *DHH*. So what used to require a nil, like this:
 
         link_to("Hider", nil, :class => "hider_link") { |p| p[:something].hide }
 
@@ -2348,7 +2356,7 @@
 
 *   Update to Prototype 1.5.0_rc1 *sam*
 
-*   Added access to nested attributes in RJS #4548 [richcollins@gmail.com]. Examples:
+*   Added access to nested attributes in RJS #4548 *richcollins@gmail.com*. Examples:
 
         page['foo']['style']                  # => $('foo').style;
         page['foo']['style']['color']         # => $('blank_slate').style.color;
@@ -2460,7 +2468,7 @@
 
 *   Fixed the new_#{resource}_url route and added named route tests for Simply Restful.  *Rick Olson*
 
-*   Added map.resources from the Simply Restful plugin [David Heinemeier Hansson]. Examples (the API has changed to use plurals!):
+*   Added map.resources from the Simply Restful plugin *DHH*. Examples (the API has changed to use plurals!):
 
         map.resources :messages
         map.resources :messages, :comments
@@ -2533,9 +2541,9 @@
 
 *   Added Mime::TEXT (text/plain) and Mime::ICS (text/calendar) as new default types *David Heinemeier Hansson*
 
-*   Added Mime::Type.register(string, symbol, synonyms = []) for adding new custom mime types [David Heinemeier Hansson]. Example: Mime::Type.register("image/gif", :gif)
+*   Added Mime::Type.register(string, symbol, synonyms = []) for adding new custom mime types *DHH*. Example: Mime::Type.register("image/gif", :gif)
 
-*   Added support for Mime objects in render :content_type option [David Heinemeier Hansson]. Example: render :text => some_atom, :content_type => Mime::ATOM
+*   Added support for Mime objects in render :content_type option *DHH*. Example: render :text => some_atom, :content_type => Mime::ATOM
 
 *   Add :status option to send_data and send_file. Defaults to '200 OK'.  #5243 *Manfred Stienstra <m.stienstra@fngtps.com>*
 
@@ -2549,7 +2557,7 @@
 
 *   Accept multipart PUT parameters. #5235 *guy.naor@famundo.com*
 
-*   Added interrogation of params[:format] to determine Accept type. If :format is specified and matches a declared extension, like "rss" or "xml", that mime type will be put in front of the accept handler. This means you can link to the same action from different extensions and use that fact to determine output [David Heinemeier Hansson]. Example:
+*   Added interrogation of params[:format] to determine Accept type. If :format is specified and matches a declared extension, like "rss" or "xml", that mime type will be put in front of the accept handler. This means you can link to the same action from different extensions and use that fact to determine output *DHH*. Example:
 
     class WeblogController < ActionController::Base
         def index
@@ -2817,7 +2825,7 @@
 
 *   Add a 0 margin/padding div around the hidden _method input tag that form_tag outputs.  *Rick Olson*
 
-*   Added block-usage to TagHelper#content_tag [David Heinemeier Hansson]. Example:
+*   Added block-usage to TagHelper#content_tag *DHH*. Example:
 
      <% content_tag :div, :class => "strong" %>
          Hello world!
@@ -2846,7 +2854,7 @@
 
 *   Fix double-escaped entities, such as &amp;amp;, &amp;#123;, etc. *Rick Olson*
 
-*   Fix routing to correctly determine when generation fails. Closes #6300. [psross].
+*   Fix routing to correctly determine when generation fails. Closes #6300. *psross*.
 
 *   Fix broken assert_generates when extra keys are being checked. *Jamis Buck*
 
@@ -2868,7 +2876,7 @@
 
 *   Fixed that FormHelper#radio_button didn't respect an :id being passed in #6266 *evansj*
 
-*   Added an html_options hash parameter to javascript_tag() and update_page_tag() helpers #6311 [tzaharia]. Example:
+*   Added an html_options hash parameter to javascript_tag() and update_page_tag() helpers #6311 *tzaharia*. Example:
 
         update_page_tag :defer => 'true' { |page| ... }
 
@@ -2892,13 +2900,13 @@
 
 *   Deprecation: @cookies, @headers, @request, @response will be removed after 1.2. Use the corresponding method instead.  *Jeremy Kemper*
 
-*   Make the :status parameter expand to the default message for that status code if it is an integer. Also support symbol statuses. [Jamis Buck]. Examples:
+*   Make the :status parameter expand to the default message for that status code if it is an integer. Also support symbol statuses. *Jamis Buck*. Examples:
 
         head :status => 404        # expands to "404 Not Found"
         head :status => :not_found # expands to "404 Not Found"
         head :status => :created   # expands to "201 Created"
 
-*   Add head(options = {}) for responses that have no body. [Jamis Buck]. Examples:
+*   Add head(options = {}) for responses that have no body. *Jamis Buck*. Examples:
 
         head :status => 404 # return an empty response with a 404 status
         head :location => person_path(@person), :status => 201
@@ -2917,7 +2925,7 @@
 
 *   Rescue Errno::ECONNRESET to handle an unexpectedly closed socket connection. Improves SCGI reliability.  #3368, #6226 *sdsykes, fhanshaw@vesaria.com*
 
-*   Added that respond_to blocks will automatically set the content type to be the same as is requested [David Heinemeier Hansson]. Examples:
+*   Added that respond_to blocks will automatically set the content type to be the same as is requested *DHH*. Examples:
 
         respond_to do |format|
           format.html { render :text => "I'm being sent as text/html" }
@@ -2927,7 +2935,7 @@
 
 *   Added utf-8 as the default charset for all renders. You can change this default using ActionController::Base.default_charset=(encoding) *David Heinemeier Hansson*
 
-*   Added proper getters and setters for content type and charset [David Heinemeier Hansson]. Example of what we used to do:
+*   Added proper getters and setters for content type and charset *DHH*. Example of what we used to do:
 
         response.headers["Content-Type"] = "application/atom+xml; charset=utf-8"
 
@@ -2964,7 +2972,7 @@
 
 *   Update UrlWriter to support :only_path. *Nicholas Seckar, Dave Thomas*
 
-*   Fixed JavaScriptHelper#link_to_function and JavaScriptHelper#button_to_function to have the script argument be optional [David Heinemeier Hansson]. So what used to require a nil, like this:
+*   Fixed JavaScriptHelper#link_to_function and JavaScriptHelper#button_to_function to have the script argument be optional *DHH*. So what used to require a nil, like this:
 
         link_to("Hider", nil, :class => "hider_link") { |p| p[:something].hide }
 
@@ -2972,7 +2980,7 @@
 
         link_to("Hider", :class => "hider_link") { |p| p[:something].hide }
 
-*   Added access to nested attributes in RJS #4548 [richcollins@gmail.com]. Examples:
+*   Added access to nested attributes in RJS #4548 *richcollins@gmail.com*. Examples:
 
         page['foo']['style']                  # => $('foo').style;
         page['foo']['style']['color']         # => $('blank_slate').style.color;
@@ -3059,7 +3067,7 @@
 
 *   Fixed the new_#{resource}_url route and added named route tests for Simply Restful.  *Rick Olson*
 
-*   Added map.resources from the Simply Restful plugin [David Heinemeier Hansson]. Examples (the API has changed to use plurals!):
+*   Added map.resources from the Simply Restful plugin *DHH*. Examples (the API has changed to use plurals!):
 
         map.resources :messages
         map.resources :messages, :comments
@@ -3126,9 +3134,9 @@
 
 *   Added Mime::TEXT (text/plain) and Mime::ICS (text/calendar) as new default types *David Heinemeier Hansson*
 
-*   Added Mime::Type.register(string, symbol, synonyms = []) for adding new custom mime types [David Heinemeier Hansson]. Example: Mime::Type.register("image/gif", :gif)
+*   Added Mime::Type.register(string, symbol, synonyms = []) for adding new custom mime types *DHH*. Example: Mime::Type.register("image/gif", :gif)
 
-*   Added support for Mime objects in render :content_type option [David Heinemeier Hansson]. Example: render :text => some_atom, :content_type => Mime::ATOM
+*   Added support for Mime objects in render :content_type option *DHH*. Example: render :text => some_atom, :content_type => Mime::ATOM
 
 *   Add :status option to send_data and send_file. Defaults to '200 OK'.  #5243 *Manfred Stienstra <m.stienstra@fngtps.com>*
 
@@ -3142,7 +3150,7 @@
 
 *   Accept multipart PUT parameters. #5235 *guy.naor@famundo.com*
 
-*   Added interrogation of params[:format] to determine Accept type. If :format is specified and matches a declared extension, like "rss" or "xml", that mime type will be put in front of the accept handler. This means you can link to the same action from different extensions and use that fact to determine output [David Heinemeier Hansson]. Example:
+*   Added interrogation of params[:format] to determine Accept type. If :format is specified and matches a declared extension, like "rss" or "xml", that mime type will be put in front of the accept handler. This means you can link to the same action from different extensions and use that fact to determine output *DHH*. Example:
 
     class WeblogController < ActionController::Base
         def index
@@ -3281,7 +3289,7 @@
 
 *   Applied Prototype $() performance patches (#4465, #4477) and updated script.aculo.us *Sam Stephenson, Thomas Fuchs*
 
-*   Added automated timestamping to AssetTagHelper methods for stylesheets, javascripts, and images when Action Controller is run under Rails [David Heinemeier Hansson]. Example:
+*   Added automated timestamping to AssetTagHelper methods for stylesheets, javascripts, and images when Action Controller is run under Rails *DHH*. Example:
 
         image_tag("rails.png") # => '<img alt="Rails" src="/images/rails.png?1143664135" />'
 
@@ -3335,7 +3343,7 @@
 
 *   Change url_for to escape the resulting URLs when called from a view. *Nicholas Seckar, coffee2code*
 
-*   Added easy support for testing file uploads with fixture_file_upload #4105 [turnip@turnipspatch.com]. Example:
+*   Added easy support for testing file uploads with fixture_file_upload #4105 *turnip@turnipspatch.com*. Example:
 
         # Looks in Test::Unit::TestCase.fixture_path + '/files/spongebob.png'
         post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')
@@ -3370,11 +3378,11 @@
 
 *   Added simple alert() notifications for RJS exceptions when config.action_view.debug_rjs = true. *Sam Stephenson*
 
-*   Added :content_type option to render, so you can change the content type on the fly [David Heinemeier Hansson]. Example: render :action => "atom.rxml", :content_type => "application/atom+xml"
+*   Added :content_type option to render, so you can change the content type on the fly *DHH*. Example: render :action => "atom.rxml", :content_type => "application/atom+xml"
 
 *   CHANGED DEFAULT: The default content type for .rxml is now application/xml instead of type/xml, see http://www.xml.com/pub/a/2004/07/21/dive.html for reason *David Heinemeier Hansson*
 
-*   Added option to render action/template/file of a specific extension (and here by template type). This means you can have multiple templates with the same name but a different extension [David Heinemeier Hansson]. Example:
+*   Added option to render action/template/file of a specific extension (and here by template type). This means you can have multiple templates with the same name but a different extension *DHH*. Example:
 
         class WeblogController < ActionController::Base
           def index
@@ -3388,7 +3396,7 @@
           end
         end
 
-*   Added better support for using the same actions to output for different sources depending on the Accept header [David Heinemeier Hansson]. Example:
+*   Added better support for using the same actions to output for different sources depending on the Accept header *DHH*. Example:
 
         class WeblogController < ActionController::Base
           def create
@@ -3409,7 +3417,7 @@
 
 *   Integration test's url_for now runs in the context of the last request (if any) so after post /products/show/1 url_for :action => 'new' will yield /product/new  *Tobias Lütke*
 
-*   Re-added mixed-in helper methods for the JavascriptGenerator.  Moved JavascriptGenerators methods to a module that is mixed in after the helpers are added.  Also fixed that variables set in the enumeration methods like #collect are set correctly.  Documentation added for the enumeration methods [Rick Olson].  Examples:
+*   Re-added mixed-in helper methods for the JavascriptGenerator.  Moved JavascriptGenerators methods to a module that is mixed in after the helpers are added.  Also fixed that variables set in the enumeration methods like #collect are set correctly.  Documentation added for the enumeration methods *Rick Olson*.  Examples:
 
         page.select('#items li').collect('items') do |element|
           element.hide
@@ -3427,7 +3435,7 @@
         # Assign the default XmlSimple to a new content type
         ActionController::Base.param_parsers['application/backpack+xml'] = :xml_simple
 
-    Default YAML web services were retired, ActionController::Base.param_parsers carries an example which shows how to get this functionality back. As part of this new plugin support, request.[formatted_post?, xml_post?, yaml_post? and post_format] were all deprecated in favor of request.content_type [Tobias Lütke]
+    Default YAML web services were retired, ActionController::Base.param_parsers carries an example which shows how to get this functionality back. As part of this new plugin support, request.[formatted_post?, xml_post?, yaml_post? and post_format] were all deprecated in favor of request.content_type *Tobias Lütke*
 *   Fixed Effect.Appear in effects.js to work with floats in Safari #3524, #3813, #3044 *Thomas Fuchs*
 
 *   Fixed that default image extension was not appended when using a full URL with AssetTagHelper#image_tag #4032, #3728 *rubyonrails@beautifulpixel.com*
@@ -3442,7 +3450,7 @@
 
 *   Added .rxml (and any non-rhtml template, really) supportfor CaptureHelper#content_for and CaptureHelper#capture #3287 *Brian Takita*
 
-*   Added script.aculo.us drag and drop helpers to RJS [Thomas Fuchs]. Examples:
+*   Added script.aculo.us drag and drop helpers to RJS *Thomas Fuchs*. Examples:
 
         page.draggable 'product-1'
         page.drop_receiving 'wastebasket', :url => { :action => 'delete' }
@@ -3460,7 +3468,7 @@
 
 *   Update script.aculo.us to V1.5.2 *Thomas Fuchs*
 
-*   Added element and collection proxies to RJS [David Heinemeier Hansson]. Examples:
+*   Added element and collection proxies to RJS *DHH*. Examples:
 
         page['blank_slate']                  # => $('blank_slate');
         page['blank_slate'].show             # => $('blank_slate').show();
@@ -3510,7 +3518,7 @@
 
 *   Ensure that the instance variables are copied to the template when performing render :update. *Nicholas Seckar*
 
-*   Add the ability to call JavaScriptGenerator methods from helpers called in update blocks. [Sam Stephenson]  Example:
+*   Add the ability to call JavaScriptGenerator methods from helpers called in update blocks. *Sam Stephenson*  Example:
     module ApplicationHelper
         def update_time
           page.replace_html 'time', Time.now.to_s(:db)
@@ -3544,7 +3552,7 @@
 
 *   Pass along blocks from render_to_string to render. *Sam Stephenson*
 
-*   Add render :update for inline RJS. [Sam Stephenson]  Example:
+*   Add render :update for inline RJS. *Sam Stephenson*  Example:
     class UserController < ApplicationController
         def refresh
           render :update do |page|
@@ -3594,7 +3602,7 @@
 
 *   Added :select option for JavaScriptMacroHelper#auto_complete_field that makes it easier to only use part of the auto-complete suggestion as the value for insertion *Thomas Fuchs*
 
-*   Added delayed execution of Javascript from within RJS #3264 [devslashnull@gmail.com]. Example:
+*   Added delayed execution of Javascript from within RJS #3264 *devslashnull@gmail.com*. Example:
 
         page.delay(20) do
           page.visual_effect :fade, 'notice'
@@ -3678,7 +3686,7 @@
 
 *   Handle cookie parsing irregularity for certain Nokia phones.  #2530 *zaitzow@gmail.com*
 
-*   Added PrototypeHelper::JavaScriptGenerator and PrototypeHelper#update_page for easily modifying multiple elements in an Ajax response. [Sam Stephenson]  Example:
+*   Added PrototypeHelper::JavaScriptGenerator and PrototypeHelper#update_page for easily modifying multiple elements in an Ajax response. *Sam Stephenson*  Example:
 
         update_page do |page|
           page.insert_html :bottom, 'list', '<li>Last item</li>'
@@ -3702,7 +3710,7 @@
 
 *   Only include builtin filters whose filenames match /^[a-z][a-z_]*_helper.rb$/ to avoid including operating system metadata such as ._foo_helper.rb.  #2855 *court3nay*
 
-*   Added FormHelper#form_for and FormHelper#fields_for that makes it easier to work with forms for single objects also if they don't reside in instance variables [David Heinemeier Hansson]. Examples:
+*   Added FormHelper#form_for and FormHelper#fields_for that makes it easier to work with forms for single objects also if they don't reside in instance variables *DHH*. Examples:
 
     <% form_for :person, @person, :url => { :action => "update" } do |f| %>
         First name: <%= f.text_field :first_name %>
@@ -3745,7 +3753,7 @@
 
 *   Added short-hand to assert_tag so assert_tag :tag => "span" can be written as assert_tag "span" *David Heinemeier Hansson*
 
-*   Added skip_before_filter/skip_after_filter for easier control of the filter chain in inheritance hierachies [David Heinemeier Hansson]. Example:
+*   Added skip_before_filter/skip_after_filter for easier control of the filter chain in inheritance hierachies *DHH*. Example:
 
         class ApplicationController < ActionController::Base
           before_filter :authenticate
@@ -3928,7 +3936,7 @@
 
 *   Fixed that number_to_currency(1000, {:precision => 0})) should return "$1,000", instead of "$1,000." #2122 *sd@notso.net*
 
-*   Allow link_to_remote to use any DOM-element as the parent of the form elements to be submitted #2137 [erik@ruby-lang.nl]. Example:
+*   Allow link_to_remote to use any DOM-element as the parent of the form elements to be submitted #2137 *erik@ruby-lang.nl*. Example:
 
         <tr id="row023">
           <td><input name="foo"/></td>
@@ -3955,7 +3963,7 @@
 
 *   Updated vendor copy of html-scanner to support better xml parsing
 
-*   Added :popup option to UrlHelper#link_to #1996 [gabriel.gironda@gmail.com]. Examples:
+*   Added :popup option to UrlHelper#link_to #1996 *gabriel.gironda@gmail.com*. Examples:
 
         link_to "Help", { :action => "help" }, :popup => true
         link_to "Busy loop", { :action => "busy" }, :popup => ['new_window', 'height=300,width=600']
@@ -4012,7 +4020,7 @@
 
 *   Added support for per-action session management #1763
 
-*   Improved rendering speed on complicated templates by up to 100% (the more complex the templates, the higher the speedup) #1234 [Stefan Kaes]. This did necessasitate a change to the internals of ActionView#render_template that now has four parameters. Developers of custom view handlers (like Amrita) need to update for that.
+*   Improved rendering speed on complicated templates by up to 100% (the more complex the templates, the higher the speedup) #1234 *Stefan Kaes*. This did necessasitate a change to the internals of ActionView#render_template that now has four parameters. Developers of custom view handlers (like Amrita) need to update for that.
 
 *   Added options hash as third argument to FormHelper#input, so you can do input('person', 'zip', :size=>10) #1719 *jeremye@bsa.ca.gov*
 
@@ -4087,7 +4095,7 @@
 
 *   Added :prompt option to FormOptions#select (and the users of it, like FormOptions#select_country etc) to create "Please select" style descriptors #1181 *Michael Schuerig*
 
-*   Added JavascriptHelper#update_element_function, which returns a Javascript function (or expression) that'll update a DOM element according to the options passed #933 [mortonda@dgrmm.net]. Examples:
+*   Added JavascriptHelper#update_element_function, which returns a Javascript function (or expression) that'll update a DOM element according to the options passed #933 *mortonda@dgrmm.net*. Examples:
 
         <%= update_element_function("products", :action => :insert, :position => :bottom, :content => "<p>New product!</p>") %>
 
@@ -4104,7 +4112,7 @@
 
 *   Removed the default option of wrap=virtual on FormHelper#text_area to ensure XHTML compatibility #1300 *thomas@columbus.rr.com*
 
-*   Adds the ability to include XML CDATA tags using Builder #1563 [Josh Knowles]. Example:
+*   Adds the ability to include XML CDATA tags using Builder #1563 *Josh Knowles*. Example:
 
         xml.cdata! "some text" # => <![CDATA[some text]]>
 
@@ -4116,7 +4124,7 @@
 
 *   Routes fail with leading slash #1540 *Nicholas Seckar*
 
-*   Added support for graceful error handling of Ajax calls #1217 [Jamis Buck/Thomas Fuchs]. Example:
+*   Added support for graceful error handling of Ajax calls #1217 *Jamis Buck/Thomas Fuchs*. Example:
 
         link_to_remote(
           "test",
@@ -4146,7 +4154,7 @@
 
 *   Added TextHelper#word_wrap(text, line_length = 80) #1449 *tuxie@dekadance.se*
 
-*   Added a fall-through action for form_remote_tag that'll be used in case Javascript is unavailable #1459 [Scott Barron]. Example:
+*   Added a fall-through action for form_remote_tag that'll be used in case Javascript is unavailable #1459 *Scott Barron*. Example:
 
         form_remote_tag :html => { :action => url_for(:controller => "some", :action => "place") }
 
@@ -4154,7 +4162,7 @@
 
 *   Added tag_options as a third parameter to AssetHelper#auto_discovery_link_tag to control options like the title of the link #1430 *Kevin Clark*
 
-*   Added option to pass in parameters to CaptureHelper#capture, so you can create more advanced view helper methods #1466 [duane.johnson@gmail.com]. Example:
+*   Added option to pass in parameters to CaptureHelper#capture, so you can create more advanced view helper methods #1466 *duane.johnson@gmail.com*. Example:
 
         <% show_calendar(:year => 2005, :month => 6) do |day, options| %>
           <% options[:bgcolor] = '#dfd' if 10..15.include? day %>
@@ -4167,7 +4175,7 @@
 
 *   Correct distance_of_time_in_words for integer arguments and make the second arg optional, treating the first arg as a duration in seconds.  #1458 *madrobby <thomas@fesch.at>*
 
-*   Fixed query parser to deal gracefully with equal signs inside keys and values #1345 [gorou].
+*   Fixed query parser to deal gracefully with equal signs inside keys and values #1345 *gorou*.
     Example: /?sig=abcdef=:foobar=&x=y will pass now.
 
 *   Added Cuba to country list #1351 *todd*
@@ -4180,7 +4188,7 @@
 
 *   Fixed image_tag so an exception is not thrown just because the image is missing and alt value can't be generated #1395 *Marcel Molina Jr.*
 
-*   Added a third parameter to TextHelper#auto_link called href_options for specifying additional tag options on the links generated #1401 [tyler.kovacs@gmail.com]. Example: auto_link(text, :all, { :target => "_blank" }) to have all the generated links open in a new window.
+*   Added a third parameter to TextHelper#auto_link called href_options for specifying additional tag options on the links generated #1401 *tyler.kovacs@gmail.com*. Example: auto_link(text, :all, { :target => "_blank" }) to have all the generated links open in a new window.
 
 *   Fixed TextHelper#highlight to return the text, not nil, if the phrase is blank #1409 *Patrick Lenz*
 
@@ -4366,7 +4374,7 @@
 
 ## 1.8.1 (20th April, 2005) ##
 
-*   Added xml_http_request/xhr method for simulating XMLHttpRequest in functional tests #1151 [Sam Stephenson]. Example:
+*   Added xml_http_request/xhr method for simulating XMLHttpRequest in functional tests #1151 *Sam Stephenson*. Example:
 
         xhr :post, :index
 
@@ -4388,18 +4396,18 @@
 *   Deprecated the majority of all the testing assertions and replaced them with a much smaller core and access to all the collections the old assertions relied on. That way the regular test/unit assertions can be used against these. Added documentation about how to use it all.
 
 *   Added a wide range of new Javascript effects:
-        * Effect.Puff zooms the element out and makes it smoothly transparent at the same time, giving a "puff" illusion #996 [thomas@fesch.at]
+        * Effect.Puff zooms the element out and makes it smoothly transparent at the same time, giving a "puff" illusion #996 *thomas@fesch.at*
           After the animation is completed, the display property will be set to none.
           This effect will work on relative and absolute positioned elements.
 
-        * Effect.Appear as the opposite of Effect.Fade #990 [thomas@fesch.at]
+        * Effect.Appear as the opposite of Effect.Fade #990 *thomas@fesch.at*
           You should return elements with style="display:none;" or a like class for this to work best and have no chance of flicker.
 
-        * Effect.Squish for scaling down an element and making it disappear at the end #972 [thomas@fesch.at]
+        * Effect.Squish for scaling down an element and making it disappear at the end #972 *thomas@fesch.at*
 
-        * Effect.Scale for smoothly scaling images or text up and down #972 [thomas@fesch.at]
+        * Effect.Scale for smoothly scaling images or text up and down #972 *thomas@fesch.at*
 
-        * Effect.Fade which smoothly turns opacity from 100 to 0 and then hides the element #960 [thomas@fesch.at]
+        * Effect.Fade which smoothly turns opacity from 100 to 0 and then hides the element #960 *thomas@fesch.at*
 
 *   Added Request#xml_http_request? (and an alias xhr?) to that'll return true when the request came from one of the Javascript helper methods (Ajax). This can be used to give one behavior for modern browsers supporting Ajax, another to old browsers #1127 *Sam Stephenson*
 
@@ -4537,7 +4545,7 @@
 
 *   Fixed routing and helpers to make Rails work on non-vhost setups #826 *Nicholas Seckar/Tobias Lütke*
 
-*   Added a much improved Flash module that allows for finer-grained control on expiration and allows you to flash the current action #839 [Caio Chassot]. Example of flash.now:
+*   Added a much improved Flash module that allows for finer-grained control on expiration and allows you to flash the current action #839 *Caio Chassot*. Example of flash.now:
 
         class SomethingController < ApplicationController
           def save
@@ -4554,7 +4562,7 @@
           end
         end
 
-*   Added to_param call for parameters when composing an url using url_for from something else than strings #812 [Sam Stephenson]. Example:
+*   Added to_param call for parameters when composing an url using url_for from something else than strings #812 *Sam Stephenson*. Example:
 
         class Page
           def initialize(number)
@@ -4583,7 +4591,7 @@
 
 *   Added that the html options disabled, readonly, and multiple can all be treated as booleans. So specifying <tt>disabled => :true</tt> will give <tt>disabled="disabled"</tt>. #809 *mindel*
 
-*   Added path collection syntax for Routes that will gobble up the rest of the url and pass it on to the controller #830 [rayners]. Example:
+*   Added path collection syntax for Routes that will gobble up the rest of the url and pass it on to the controller #830 *rayners*. Example:
 
         map.connect 'categories/*path_info', :controller => 'categories', :action => 'show'
 
@@ -4600,7 +4608,7 @@
 
 *   Removed the reliance on PATH_INFO as it was causing problems for caching and inhibited the new non-vhost support #822 *Nicholas Seckar*
 
-*   Added assigns shortcut for @response.template.assigns to controller test cases [Jeremy Kemper]. Example:
+*   Added assigns shortcut for @response.template.assigns to controller test cases *Jeremy Kemper*. Example:
 
     Before:
 
@@ -5012,7 +5020,7 @@
 
 *   Added that ActiveRecordHelper#form now calls url_for on the :action option.
 
-*   Added all the HTTP methods as alternatives to the generic "process" for functional testing #276 [Tobias Lütke]. Examples:
+*   Added all the HTTP methods as alternatives to the generic "process" for functional testing #276 *Tobias Lütke*. Examples:
 
         # Calls Controller#miletone with a GET request
         process :milestone
@@ -5185,7 +5193,7 @@
 *   Added assert_flash_equal(expected, key, message), assert_session_equal(expected, key, message),
     assert_assigned_equal(expected, key, message) to test the contents of flash, session, and template assigns.
 
-*   Improved the failure report on assert_success when the action triggered a redirection [alexey].
+*   Improved the failure report on assert_success when the action triggered a redirection *alexey*.
 
 *   Added "markdown" to accompany "textilize" as a TextHelper method for converting text to HTML using the Markdown syntax.
     BlueCloth must be installed in order for this method to become available.
@@ -5260,7 +5268,7 @@
 
     *Builder is created by Jim Weirich*
 
-*   Added much improved support for functional testing [what-a-day].
+*   Added much improved support for functional testing *what-a-day*.
 
         # Old style
         def test_failing_authenticate
@@ -5289,7 +5297,7 @@
     following the suggestion from Matz on:
     http://groups.google.com/groups?th=e3a4e68ba042f842&seekm=c3sioe%241qvm%241%40news.cybercity.dk#link14
 
-*   Added caching for compiled ERb templates. On Basecamp, it gave between 8.5% and 71% increase in performance [Andreas Schwarz].
+*   Added caching for compiled ERb templates. On Basecamp, it gave between 8.5% and 71% increase in performance *Andreas Schwarz*.
 
 *   Added implicit counter variable to render_collection_of_partials [Marcel Molina Jr.]. From the docs:
 
@@ -5316,7 +5324,7 @@
         :confirm => 'Are you sure?', the link will be guarded with a JS popup asking that question.
         If the user accepts, the link is processed, otherwise not.
 
-*   Added link_to_unless_current as a UrlHelper method [Sam Stephenson]. Documentation:
+*   Added link_to_unless_current as a UrlHelper method *Sam Stephenson*. Documentation:
 
         Creates a link tag of the given +name+ using an URL created by the set of +options+, unless the current
         controller, action, and id are the same as the link's, in which case only the name is returned (or the
@@ -5447,7 +5455,7 @@
         So this will render "advertiser/_ad.rhtml" and pass the local variable +ad+ for
         the template to display.
 
-*   Improved send_file by allowing a wide range of options to be applied [Jeremy Kemper]:
+*   Improved send_file by allowing a wide range of options to be applied *Jeremy Kemper*:
 
         Sends the file by streaming it 4096 bytes at a time. This way the
         whole file doesn't need to be read into memory at once.  This makes
@@ -5698,7 +5706,7 @@
 
 *   Fixed that exceptions raised during filters are now also caught by the default rescues
 
-*   Added new around_filter for doing before and after filtering with a single object [Florian Weber]:
+*   Added new around_filter for doing before and after filtering with a single object *Florian Weber*:
 
         class WeblogController < ActionController::Base
           around_filter BenchmarkingFilter.new
@@ -5724,7 +5732,7 @@
           end
         end
 
-*   Added the options for specifying a different name and id for the form helper methods than what is guessed [Florian Weber]:
+*   Added the options for specifying a different name and id for the form helper methods than what is guessed *Florian Weber*:
 
         text_field "post", "title"
           ...just gives: <input id="post_title" name="post[title]" size="30" type="text" value="" />
