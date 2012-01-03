@@ -589,7 +589,7 @@ class FasterFixturesTest < ActiveRecord::TestCase
 
     load_extra_fixture('posts')
     assert ActiveRecord::Fixtures.fixture_is_cached?(ActiveRecord::Base.connection, 'posts')
-    self.class.setup_fixture_accessors('posts')
+    self.class.setup_fixture_accessors :posts
     assert_equal 'Welcome to the weblog', posts(:welcome).title
   end
 end
