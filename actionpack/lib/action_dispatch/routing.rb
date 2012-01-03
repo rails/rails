@@ -284,10 +284,5 @@ module ActionDispatch
 
     SEPARATORS = %w( / . ? ) #:nodoc:
     HTTP_METHODS = [:get, :head, :post, :put, :delete, :options] #:nodoc:
-
-    # A helper module to hold URL related helpers.
-    module Helpers #:nodoc:
-      include PolymorphicRoutes
-    end
   end
 end

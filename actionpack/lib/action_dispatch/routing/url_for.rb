@@ -8,7 +8,8 @@ module ActionDispatch
     #
     # <b>Tip:</b> If you need to generate URLs from your models or some other place,
     # then ActionController::UrlFor is what you're looking for. Read on for
-    # an introduction.
+    # an introduction. In general, this module should not be included on its own,
+    # as it is usually included by url_helpers (as in Rails.application.routes.url_helpers).
     #
     # == URL generation from parameters
     #
@@ -84,7 +85,6 @@ module ActionDispatch
       include PolymorphicRoutes
 
       included do
-        # TODO: with_routing extends @controller with url_helpers, trickling down to including this module which overrides its default_url_options
         unless method_defined?(:default_url_options)
           # Including in a class uses an inheritable hash. Modules get a plain hash.
           if respond_to?(:class_attribute)
@@ -151,16 +151,17 @@ module ActionDispatch
       end
 
       protected
-        def _with_routes(routes)
-          old_routes, @_routes = @_routes, routes
-          yield
-        ensure
-          @_routes = old_routes
-        end
 
-        def _routes_context
-          self
-        end
+      def _with_routes(routes)
+        old_routes, @_routes = @_routes, routes
+        yield
+      ensure
+        @_routes = old_routes
+      end
+
+      def _routes_context
+        self
+      end
     end
   end
 end
