@@ -789,6 +789,7 @@ module ActiveRecord
         fixture_names = Array.wrap(fixture_names || fixture_table_names)
         methods = Module.new do
           fixture_names.each do |fixture_name|
+            fixture_name = fixture_name.to_s
             accessor_name = fixture_name.tr('/', '_').to_sym
 
             define_method(accessor_name) do |*fixtures|
