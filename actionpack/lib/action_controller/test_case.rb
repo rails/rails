@@ -252,6 +252,12 @@ module ActionController
   #     end
   #   end
   #
+  # You can also send a real document in the simulated HTTP request.
+  #
+  #   def test_create
+  #     json = {:book => { :title => "Love Hina" }}.to_json
+  #     post :create, json
+  #
   # == Special instance variables
   #
   # ActionController::TestCase will also automatically provide the following instance
@@ -376,23 +382,23 @@ module ActionController
       end
 
       # Executes a request simulating GET HTTP method and set/volley the response
-      def get(action, parameters = nil, session = nil, flash = nil)
-        process(action, parameters, session, flash, "GET")
+      def get(action, *args)
+        process(action, "GET", *args)
       end
 
       # Executes a request simulating POST HTTP method and set/volley the response
-      def post(action, parameters = nil, session = nil, flash = nil)
-        process(action, parameters, session, flash, "POST")
+      def post(action, *args)
+        process(action, "POST", *args)
       end
 
       # Executes a request simulating PUT HTTP method and set/volley the response
-      def put(action, parameters = nil, session = nil, flash = nil)
-        process(action, parameters, session, flash, "PUT")
+      def put(action, *args)
+        process(action, "PUT", *args)
       end
 
       # Executes a request simulating DELETE HTTP method and set/volley the response
-      def delete(action, parameters = nil, session = nil, flash = nil)
-        process(action, parameters, session, flash, "DELETE")
+      def delete(action, *args)
+        process(action, "DELETE", *args)
       end
 
       # Executes a request simulating HEAD HTTP method and set/volley the response
@@ -423,18 +429,19 @@ module ActionController
         end
       end
 
-      def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
+      def process(action, http_method = 'GET', *args)
+        check_required_ivars
+        http_method, args = handle_old_process_api(http_method, args) 
+        
+        if args.first.is_a?(String)
+          @request.env['RAW_POST_DATA'] = args.shift
+        end
+        
+        parameters, session, flash = args
+        
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters)
-
-        # Sanity check for required instance variables so we can give an
-        # understandable error message.
-        %w(@routes @controller @request @response).each do |iv_name|
-          if !(instance_variable_names.include?(iv_name) || instance_variable_names.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
-            raise "#{iv_name} is nil: make sure you set it in your test's setup method."
-          end
-        end
 
         @request.recycle!
         @response.recycle!
@@ -496,6 +503,26 @@ module ActionController
       end
 
     private
+      def check_required_ivars
+        # Sanity check for required instance variables so we can give an
+        # understandable error message.
+        %w(@routes @controller @request @response).each do |iv_name|
+          if !(instance_variable_names.include?(iv_name) || instance_variable_names.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
+            raise "#{iv_name} is nil: make sure you set it in your test's setup method."
+          end
+        end
+      end
+      
+      def handle_old_process_api(http_method, args)
+        # 4.0: Remove this method.
+        if http_method.is_a?(Hash)
+          ActiveSupport::Deprecation.warn("TestCase#process now expects the HTTP method as second argument: process(action, http_method, params, session, flash)")
+          args.unshift(http_method)
+          http_method = args.last.is_a?(String) ? args.last : "GET"
+        end
+        
+        [http_method, args]
+      end
 
       def build_request_uri(action, parameters)
         unless @request.env["PATH_INFO"]
