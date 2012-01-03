@@ -24,6 +24,7 @@ class SprocketsHelperTest < ActionView::TestCase
     @assets.append_path(FIXTURES.join("sprockets/app/javascripts"))
     @assets.append_path(FIXTURES.join("sprockets/app/stylesheets"))
     @assets.append_path(FIXTURES.join("sprockets/app/images"))
+    @assets.append_path(FIXTURES.join("sprockets/app/fonts"))
 
     application = Struct.new(:config, :assets).new(config, @assets)
     Rails.stubs(:application).returns(application)
@@ -147,6 +148,14 @@ class SprocketsHelperTest < ActionView::TestCase
       path_to_image("logo.png")
   end
 
+  test "font_path" do
+    assert_match %r{/assets/font-[0-9a-f]+.ttf},
+      font_path("font.ttf")
+
+    assert_match %r{/assets/font-[0-9a-f]+.ttf},
+      path_to_font("font.ttf")
+  end
+
   test "javascript_path" do
     assert_match %r{/assets/application-[0-9a-f]+.js},
       javascript_path("application.js")
@@ -184,6 +193,17 @@ class SprocketsHelperTest < ActionView::TestCase
     @config.relative_url_root = "/collaboration/hieraki"
     assert_equal "/collaboration/hieraki/images/logo.gif",
      asset_path("/images/logo.gif")
+  end
+
+  test "font path through asset_path" do
+    assert_match %r{/assets/font-[0-9a-f]+.ttf},
+      asset_path('font.ttf')
+
+    assert_match %r{/assets/dir/font-[0-9a-f]+.ttf},
+      asset_path("dir/font.ttf")
+
+    assert_equal "http://www.example.com/fonts/font.ttf",
+      asset_path("http://www.example.com/fonts/font.ttf")
   end
 
   test "javascript path through asset_path" do
