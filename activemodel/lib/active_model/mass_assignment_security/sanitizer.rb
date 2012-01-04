@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/delegation'
-
 module ActiveModel
   module MassAssignmentSecurity
     class Sanitizer
@@ -26,11 +24,13 @@ module ActiveModel
     end
 
     class LoggerSanitizer < Sanitizer
-      delegate :logger, :to => :@target
-
       def initialize(target)
         @target = target
         super
+      end
+
+      def logger
+        @target.logger
       end
 
       def logger?
