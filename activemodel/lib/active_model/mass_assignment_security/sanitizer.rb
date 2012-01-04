@@ -46,7 +46,7 @@ module ActiveModel
 
       def process_removed_attributes(attrs)
         return if (attrs - insensitive_attributes).empty?
-        raise ActiveModel::MassAssignmentSecurity::Error, "Can't mass-assign protected attributes: #{attrs.join(', ')}"
+        raise ActiveModel::MassAssignmentSecurity::Error.new(attrs)
       end
 
       def insensitive_attributes
@@ -55,6 +55,9 @@ module ActiveModel
     end
 
     class Error < StandardError
+      def initialize(attrs)
+        super("Can't mass-assign protected attributes: #{attrs.join(', ')}")
+      end
     end
   end
 end
