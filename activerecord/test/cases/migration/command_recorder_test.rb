@@ -67,6 +67,12 @@ module ActiveRecord
         assert_equal [:drop_table, [:system_settings]], drop_table
       end
 
+      def test_invert_create_table_with_options
+        @recorder.record :create_table, [:people_reminders, {:id => false}]
+        drop_table = @recorder.inverse.first
+        assert_equal [:drop_table, [:people_reminders]], drop_table
+      end
+
       def test_invert_rename_table
         @recorder.record :rename_table, [:old, :new]
         rename = @recorder.inverse.first
