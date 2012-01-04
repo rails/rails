@@ -1,4 +1,5 @@
-require "cases/helper"
+require 'psych'
+require 'cases/helper'
 require 'models/topic'
 
 class YamlSerializationTest < ActiveRecord::TestCase
@@ -36,22 +37,17 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal({'attributes' => topic.attributes}, coder)
   end
 
-  begin
-    require 'psych'
+  def test_psych_roundtrip
+    topic = Topic.first
+    assert topic
+    t = Psych.load Psych.dump topic
+    assert_equal topic, t
+  end
 
-    def test_psych_roundtrip
-      topic = Topic.first
-      assert topic
-      t = Psych.load Psych.dump topic
-      assert_equal topic, t
-    end
-
-    def test_psych_roundtrip_new_object
-      topic = Topic.new
-      assert topic
-      t = Psych.load Psych.dump topic
-      assert_equal topic.attributes, t.attributes
-    end
-  rescue LoadError
+  def test_psych_roundtrip_new_object
+    topic = Topic.new
+    assert topic
+    t = Psych.load Psych.dump topic
+    assert_equal topic.attributes, t.attributes
   end
 end

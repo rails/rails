@@ -1,10 +1,5 @@
 require 'erb'
-
-begin
-  require 'psych'
-rescue LoadError
-end
-
+require 'psych'
 require 'yaml'
 require 'zlib'
 require 'active_support/dependencies'
