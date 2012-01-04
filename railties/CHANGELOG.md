@@ -1,6 +1,6 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Rails::Plugin is deprecated and will be removed in Rails 4.0. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
+*   Rails 2.3-style plugins in vendor/plugins are deprecated and will be removed in Rails 4.0. Move them out of vendor/plugins and bundle them in your Gemfile, or fold them in to your app as lib/myplugin/* and config/initializers/myplugin.rb.  *Santiago Pastorino*
 
 *   Guides are available as a single .mobi for the Kindle and free Kindle readers apps. *Michael Pearson & Xavier Noria*
 
