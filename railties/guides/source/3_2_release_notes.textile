@@ -67,7 +67,6 @@ When running a multi-user, multi-account application, it's a great help to be ab
 
 h3. Railties
 
-* Rails::Plugin is deprecated and will be removed in Rails 4.0. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies.
 
 * Speed up development by only reloading classes if dependencies files changed. This can be turned off by setting <tt>config.reload_classes_only_on_change</tt> to false.
 
@@ -106,6 +105,10 @@ will create indexes for +title+ and +author+ with the latter being an unique ind
 * Remove old plugin generator +rails generate plugin+ in favor of +rails plugin new+ command.
 
 * Remove old <tt>config.paths.app.controller</tt> API in favor of <tt>config.paths["app/controller"]</tt>.
+
+h4. Deprecations
+
+* +Rails::Plugin+ is deprecated and will be removed in Rails 4.0. Instead of adding plugins to +vendor/plugins+ use gems or bundler with path or git dependencies.
 
 h3. Action Pack
 
@@ -226,6 +229,8 @@ content_tag_for(:li, @items) do |item|
   Title: <%= item.title %>
 end
 </ruby>
+
+* Added +font_path+ helper method that computes the path to a font asset in <tt>public/fonts</tt>.
 
 h5. Deprecations
 
@@ -415,6 +420,8 @@ Event.where(:created_at => Time.now.all_day)
 * Removed <tt>ActiveSupport::SecureRandom</tt> in favor of <tt>SecureRandom</tt> from the standard library.
 
 h4. Deprecations
+
+* +ActiveSupport::Base64+ is deprecated in favor of <tt>::Base64</tt>.
 
 * Deprecated <tt>ActiveSupport::Memoizable</tt> in favor of Ruby memoization pattern.
 
