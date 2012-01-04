@@ -1,4 +1,3 @@
-require 'psych'
 require 'cases/helper'
 require 'models/topic'
 

@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'psych'
 require 'active_support/core_ext/string/inflections'
 require 'yaml'
 
