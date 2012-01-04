@@ -1,4 +1,3 @@
-require 'psych'
 require 'erb'
 require 'yaml'
 

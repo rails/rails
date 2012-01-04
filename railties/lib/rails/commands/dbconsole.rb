@@ -1,5 +1,4 @@
 require 'erb'
-require 'psych'
 require 'yaml'
 require 'optparse'
 require 'rbconfig'

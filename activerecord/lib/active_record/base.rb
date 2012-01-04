@@ -1,4 +1,3 @@
-require 'psych'
 require 'yaml'
 require 'set'
 require 'active_support/benchmarkable'

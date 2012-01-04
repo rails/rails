@@ -1,5 +1,4 @@
 require 'erb'
-require 'psych'
 require 'yaml'
 require 'zlib'
 require 'active_support/dependencies'
