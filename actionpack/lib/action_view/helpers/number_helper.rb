@@ -127,6 +127,7 @@ module ActionView
 
         defaults  = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :default => {})
+        currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
 
         defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults).merge!(currency)
         defaults[:negative_format] = "-" + options[:format] if options[:format]
