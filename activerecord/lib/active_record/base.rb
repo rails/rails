@@ -1,8 +1,3 @@
-begin
-  require 'psych'
-rescue LoadError
-end
-
 require 'yaml'
 require 'set'
 require 'active_support/benchmarkable'

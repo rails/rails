@@ -1,9 +1,4 @@
 require 'abstract_unit'
-begin
-  require 'psych'
-rescue LoadError
-end
-
 require 'active_support/core_ext/string/inflections'
 require 'yaml'
 
