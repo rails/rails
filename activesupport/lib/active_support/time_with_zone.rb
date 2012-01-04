@@ -147,7 +147,7 @@ module ActiveSupport
     end
 
     def to_yaml(options = {})
-      return super if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
+      return super if !YAML::ENGINE.syck?
 
       utc.to_yaml(options)
     end
