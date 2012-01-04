@@ -30,7 +30,7 @@ module ActiveSupport
     end
 
     def to_yaml(opts = {})
-      if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?
+      if !YAML::ENGINE.syck?
         return super
       end
 

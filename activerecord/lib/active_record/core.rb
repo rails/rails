@@ -319,7 +319,7 @@ module ActiveRecord
 
     # Hackery to accomodate Syck. Remove for 4.0.
     def to_yaml(opts = {}) #:nodoc:
-      if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?
+      if !YAML::ENGINE.syck?
         super
       else
         coder = {}

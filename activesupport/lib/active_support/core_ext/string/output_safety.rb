@@ -137,7 +137,7 @@ module ActiveSupport #:nodoc:
     end
 
     def to_yaml(*args)
-      return super() if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
+      return super() if !YAML::ENGINE.syck?
       to_str.to_yaml(*args)
     end
 
