@@ -134,7 +134,7 @@ module ActiveRecord
     def last(*args)
       if args.any?
         if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
-          if order_values.empty? && reorder_value.nil?
+          if order_values.empty?
             order("#{primary_key} DESC").limit(*args).reverse
           else
             to_a.last(*args)
@@ -249,7 +249,7 @@ module ActiveRecord
     end
 
     def construct_limited_ids_condition(relation)
-      orders = (relation.reorder_value || relation.order_values).map { |val| val.presence }.compact
+      orders = relation.order_values.map { |val| val.presence }.compact
       values = @klass.connection.distinct("#{@klass.connection.quote_table_name table_name}.#{primary_key}", orders)
 
       relation = relation.dup
