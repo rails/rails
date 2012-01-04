@@ -1,9 +1,6 @@
 module ActiveModel
   module MassAssignmentSecurity
     class Sanitizer
-      def initialize(target=nil)
-      end
-
       # Returns all attributes not denied by the authorizer.
       def sanitize(attributes, authorizer)
         sanitized_attributes = attributes.reject { |key, value| authorizer.deny?(key) }
@@ -26,7 +23,7 @@ module ActiveModel
     class LoggerSanitizer < Sanitizer
       def initialize(target)
         @target = target
-        super
+        super()
       end
 
       def logger
@@ -43,6 +40,10 @@ module ActiveModel
     end
 
     class StrictSanitizer < Sanitizer
+      def initialize(target = nil)
+        super()
+      end
+
       def process_removed_attributes(attrs)
         return if (attrs - insensitive_attributes).empty?
         raise ActiveModel::MassAssignmentSecurity::Error, "Can't mass-assign protected attributes: #{attrs.join(', ')}"
