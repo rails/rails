@@ -65,8 +65,9 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_create_fixtures
-    ActiveRecord::Fixtures.create_fixtures(FIXTURES_ROOT, "parrots")
-    assert Parrot.find_by_name('Curious George'), 'George is in the database'
+    fixtures = ActiveRecord::Fixtures.create_fixtures(FIXTURES_ROOT, "parrots")
+    assert Parrot.find_by_name('Curious George'), 'George is not in the database'
+    assert fixtures.detect { |f| f.name == 'parrots' }, "no fixtures named 'parrots' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_multiple_clean_fixtures
@@ -74,6 +75,13 @@ class FixturesTest < ActiveRecord::TestCase
     assert_nothing_raised { fixtures_array = create_fixtures(*FIXTURES) }
     assert_kind_of(Array, fixtures_array)
     fixtures_array.each { |fixtures| assert_kind_of(ActiveRecord::Fixtures, fixtures) }
+  end
+
+  def test_create_symbol_fixtures
+    fixtures = ActiveRecord::Fixtures.create_fixtures(FIXTURES_ROOT, :collections, :collections => Course) { Course.connection }
+
+    assert Course.find_by_name('Collection'), 'course is not in the database'
+    assert fixtures.detect { |f| f.name == 'collections' }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_attributes

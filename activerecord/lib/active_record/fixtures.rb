@@ -445,7 +445,8 @@ module ActiveRecord
     self.all_loaded_fixtures = {}
 
     def self.create_fixtures(fixtures_directory, table_names, class_names = {})
-      table_names = [table_names].flatten.map { |n| n.to_s }
+      table_names = Array(table_names).map(&:to_s)
+      class_names = class_names.stringify_keys
 
       # FIXME: Apparently JK uses this.
       connection = block_given? ? yield : ActiveRecord::Base.connection
@@ -464,7 +465,7 @@ module ActiveRecord
             fixtures_map[fixture_name] = new( # ActiveRecord::Fixtures.new
               connection,
               fixture_name,
-              class_names[fixture_name] || default_fixture_model_name(fixture_name),
+              class_names[fixture_name.to_s] || default_fixture_model_name(fixture_name),
               ::File.join(fixtures_directory, path))
           end
 
@@ -728,6 +729,7 @@ module ActiveRecord
       self.pre_loaded_fixtures = false
 
       self.fixture_class_names = Hash.new do |h, fixture_name|
+        fixture_name = fixture_name.to_s
         h[fixture_name] = ActiveRecord::Fixtures.default_fixture_model_name(fixture_name)
       end
     end
