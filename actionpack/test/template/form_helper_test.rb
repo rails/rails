@@ -330,6 +330,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box
+    assert check_box("post", "secret").html_safe?
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
