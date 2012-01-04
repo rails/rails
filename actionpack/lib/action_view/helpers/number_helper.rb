@@ -38,8 +38,7 @@ module ActionView
       # * <tt>:extension</tt>     - Specifies an extension to add to the end of the
       #                             generated number.
       # * <tt>:country_code</tt>  - Sets the country code for the phone number.
-      # * <tt>:raise</tt>         - If +true+ InvalidNumberError is raised when an invalid
-      #                             number is given.
+      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
       #
@@ -52,7 +51,7 @@ module ActionView
       #  number_to_phone(1235551234, :country_code => 1)                    # => +1-123-555-1234
       #  number_to_phone("123a456")                                         # => 123a456
       #
-      #  number_to_phone("1234a567", :raise => true)                        # => raise InvalidNumberError
+      #  number_to_phone("1234a567", :raise => true)                        # => InvalidNumberError
       #
       #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
       #  # => +1.123.555.1234 x 1343
@@ -103,8 +102,7 @@ module ActionView
       #                                an hyphen to the formatted number given by <tt>:format</tt>).
       #                                Accepts the same fields than <tt>:format</tt>, except
       #                                <tt>%n</tt> is here the absolute value of the number.
-      # * <tt>:raise</tt>            - If +true+ InvalidNumberError is raised when an invalid
-      #                                number is given.
+      # * <tt>:raise</tt>            - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
       #
@@ -114,7 +112,7 @@ module ActionView
       #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,51 €
       #  number_to_currency("123a456")                        # => $123a456
       #
-      #  number_to_currency("123a456", :raise => true)        # => raise InvalidNumberError
+      #  number_to_currency("123a456", :raise => true)        # => InvalidNumberError
       #
       #  number_to_currency(-1234567890.50, :negative_format => "(%u%n)")
       #  # => ($1,234,567,890.50)
@@ -170,8 +168,7 @@ module ActionView
       # * <tt>:delimiter</tt>                   - Sets the thousands delimiter (defaults to "").
       # * <tt>:strip_insignificant_zeros</tt>   - If +true+ removes insignificant zeros after the decimal separator
       #                                           (defaults to +false+).
-      # * <tt>:raise</tt>                       - If +true+ InvalidNumberError is raised when an invalid
-      #                                           number is given.
+      # * <tt>:raise</tt>                       - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
       #
@@ -183,7 +180,7 @@ module ActionView
       #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
       #  number_to_percentage("98a")                                      # => 98a%
       #
-      #  number_to_percentage("98a", :raise => true)                      # => raise InvalidNumberError
+      #  number_to_percentage("98a", :raise => true)                      # => InvalidNumberError
       def number_to_percentage(number, options = {})
         return unless number
 
@@ -214,7 +211,7 @@ module ActionView
       # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to ",").
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
-      # * <tt>:raise</tt>      - If +true+ InvalidNumberError is raised when an invalid.                                           number is given.
+      # * <tt>:raise</tt>      - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
       #
