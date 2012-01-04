@@ -35,7 +35,7 @@ module ActiveModel
       end
 
       def process_removed_attributes(attrs)
-        logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}" if logger?
+        logger.warn "Can't mass-assign protected attributes: #{attrs.join(', ')}" if logger?
       end
     end
 
