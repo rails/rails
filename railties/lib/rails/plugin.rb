@@ -53,7 +53,7 @@ module Rails
     end
 
     def initialize(root)
-      ActiveSupport::Deprecation.warn "Plugins are deprecated and will be removed in Rails 4.0. Use gems instead or bundler with path or git dependencies."
+      ActiveSupport::Deprecation.warn "You have Rails 2.3-style plugins in vendor/plugins! Support for these plugins will be removed in Rails 4.0. Move them out and bundle them in your Gemfile, or fold them in to your app as lib/myplugin/* and config/initializers/myplugin.rb."
       @name = File.basename(root).to_sym
       config.root = root
     end
