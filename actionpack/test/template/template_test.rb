@@ -37,7 +37,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
 
     def logger
-      Logger.new(STDERR)
+      ActiveSupport::Logger.new(STDERR)
     end
 
     def my_buffer

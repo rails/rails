@@ -3,7 +3,6 @@ require 'multibyte_test_helpers'
 require 'stringio'
 require 'fileutils'
 require 'tempfile'
-require 'active_support/buffered_logger'
 require 'active_support/testing/deprecation'
 
 class BufferedLoggerTest < Test::Unit::TestCase

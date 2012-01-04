@@ -206,7 +206,7 @@ A short rundown of some of the major features:
 
     You specify a logger through a class method, such as:
 
-    ActionController::Base.logger = Logger.new("Application Log")
+    ActionController::Base.logger = ActiveSupport::Logger.new("Application Log")
     ActionController::Base.logger = Log4r::Logger.new("Application Log")
 
 
