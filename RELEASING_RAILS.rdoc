@@ -60,8 +60,6 @@ for today:
 
 === Is Sam Ruby happy?  If not, make him happy.
 
-=== Are the postgres tests green? If not, make them green
-
 === Contact the security team.  CVE emails must be sent on this day.
 
 === Create a release branch.
