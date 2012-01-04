@@ -60,11 +60,7 @@ platforms :ruby do
   gem 'sqlite3', '~> 1.3.5'
 
   group :db do
-    if RUBY_VERSION == '1.8.7'
-      gem 'pg', '0.11.0'
-    else
-      gem 'pg', '>= 0.11.0'
-    end
+    gem 'pg', '>= 0.11.0'
     gem 'mysql', '>= 2.8.1'
     gem 'mysql2', '>= 0.3.10'
   end
