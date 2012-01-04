@@ -11,7 +11,7 @@ require 'active_support/test_case'
 require 'setter_trap'
 
 require 'logger'
-ActiveResource::Base.logger = Logger.new("#{File.dirname(__FILE__)}/debug.log")
+ActiveResource::Base.logger = Logger.new("debug.log")
 
 def setup_response
   matz_hash = { 'person' => { :id => 1, :name => 'Matz' } }
