@@ -1,4 +1,4 @@
-require "active_support/values/time_zone"
+require 'active_support/values/time_zone'
 require 'active_support/core_ext/object/acts_like'
 require 'active_support/core_ext/object/inclusion'
 
@@ -144,12 +144,6 @@ module ActiveSupport
       else
         coder.represent_scalar(nil, utc.strftime("%Y-%m-%d %H:%M:%S.%9NZ"))
       end
-    end
-
-    def to_yaml(options = {})
-      return super if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
-
-      utc.to_yaml(options)
     end
 
     def httpdate

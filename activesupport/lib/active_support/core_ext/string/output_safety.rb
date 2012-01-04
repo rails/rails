@@ -136,11 +136,6 @@ module ActiveSupport #:nodoc:
       coder.represent_scalar nil, to_str
     end
 
-    def to_yaml(*args)
-      return super() if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
-      to_str.to_yaml(*args)
-    end
-
     UNSAFE_STRING_METHODS.each do |unsafe_method|
       if 'String'.respond_to?(unsafe_method)
         class_eval <<-EOT, __FILE__, __LINE__ + 1
