@@ -159,6 +159,10 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).prev_year
   end
 
+  def test_last_year
+    assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).last_year
+  end
+
   def test_next_year
     assert_equal DateTime.civil(2006,6,5,10), DateTime.civil(2005,6,5,10,0,0).next_year
   end
@@ -232,6 +236,14 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2006,11,15), DateTime.civil(2006,11,23,0,0,0).prev_week(:wednesday)
   end
 
+  def test_last_week
+    assert_equal DateTime.civil(2005,2,21), DateTime.civil(2005,3,1,15,15,10).last_week
+    assert_equal DateTime.civil(2005,2,22), DateTime.civil(2005,3,1,15,15,10).last_week(:tuesday)
+    assert_equal DateTime.civil(2005,2,25), DateTime.civil(2005,3,1,15,15,10).last_week(:friday)
+    assert_equal DateTime.civil(2006,10,30), DateTime.civil(2006,11,6,0,0,0).last_week
+    assert_equal DateTime.civil(2006,11,15), DateTime.civil(2006,11,23,0,0,0).last_week(:wednesday)
+  end
+
   def test_next_week
     assert_equal DateTime.civil(2005,2,28), DateTime.civil(2005,2,22,15,15,10).next_week
     assert_equal DateTime.civil(2005,3,4), DateTime.civil(2005,2,22,15,15,10).next_week(:friday)
@@ -245,6 +257,10 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_prev_month_on_31st
     assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).prev_month
+  end
+
+  def test_last_month_on_31st
+    assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).last_month
   end
 
   def test_xmlschema
