@@ -34,8 +34,8 @@ module ActiveSupport
            if defined?(Rails) && Rails.logger
              Rails.logger
            else
-             require 'logger'
-             Logger.new($stderr)
+             require 'active_support/logger'
+             ActiveSupport::Logger.new($stderr)
            end
          logger.warn message
          logger.debug callstack.join("\n  ") if debug
