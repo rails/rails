@@ -1093,7 +1093,7 @@ module ActionView
         end
         hidden = tag("input", "name" => options["name"], "type" => "hidden", "value" => unchecked_value, "disabled" => options["disabled"])
         checkbox = tag("input", options)
-        (hidden + checkbox).html_safe
+        hidden + checkbox
       end
 
       def to_boolean_select_tag(options = {})
