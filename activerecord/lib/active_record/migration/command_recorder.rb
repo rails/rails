@@ -59,7 +59,7 @@ module ActiveRecord
       private
 
       def invert_create_table(args)
-        [:drop_table, args]
+        [:drop_table, [args.first]]
       end
 
       def invert_rename_table(args)
