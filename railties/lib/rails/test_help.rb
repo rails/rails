@@ -25,8 +25,6 @@ if defined?(MiniTest)
 end
 
 if defined?(ActiveRecord::Base)
-  require 'active_record/test_case'
-
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
     self.fixture_path = "#{Rails.root}/test/fixtures/"
