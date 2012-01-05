@@ -80,26 +80,6 @@ else
     ENV.delete("CHILD")
 
     def setup
-      defined?(::MiniTest) ? parse_minitest : parse_testunit
-    end
-
-    def parse_testunit
-      @results = {}
-      OUTPUT[/Started\n\s*(.*)\s*\nFinished/mi, 1].to_s.split(/\s*\n\s*/).each do |result|
-        result =~ %r'^(\w+)\(\w+\):\s*(\.|E|F)$'
-        @results[$1] = { 'E' => :error, '.' => :success, 'F' => :failure }[$2]
-      end
-
-      # Extract the backtraces
-      @backtraces = {}
-      OUTPUT.scan(/^\s*\d+\).*?\n\n/m).each do |backtrace|
-        # \n  1) Error:\ntest_captures_errors(ChildIsolationTest):
-        backtrace =~ %r'\s*\d+\)\s*(Error|Failure):\n(\w+)'i
-        @backtraces[$2] = { :type => $1, :output => backtrace }
-      end
-    end
-
-    def parse_minitest
       @results = {}
       OUTPUT[/Started\n\s*(.*)\s*\nFinished/mi, 1].to_s.split(/\s*\n\s*/).each do |result|
         result =~ %r'^\w+#(\w+):.*:\s*(.*Assertion.*|.*RuntimeError.*|\.\s*)$'
@@ -115,7 +95,7 @@ else
       OUTPUT.scan(/^\s*\d+\).*?\n\n/m).each do |backtrace|
         # \n  1) Error:\ntest_captures_errors(ChildIsolationTest):
         backtrace =~ %r'\s*\d+\)\s*(Error|Failure):\n(\w+)'i
-        @backtraces[$2] = { :type => $1, :output => backtrace }
+        @backtraces[$2] = {:type => $1, :output => backtrace}
       end
     end
 
