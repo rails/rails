@@ -681,7 +681,7 @@ uses_memcached 'memcached backed store' do
       @data = @cache.instance_variable_get(:@data)
       @cache.clear
       @cache.silence!
-      @cache.logger = Logger.new("/dev/null")
+      @cache.logger = ActiveSupport::Logger.new("/dev/null")
     end
 
     include CacheStoreBehavior
@@ -786,7 +786,7 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
     @cache = ActiveSupport::Cache.lookup_store(:memory_store)
 
     @buffer = StringIO.new
-    @cache.logger = Logger.new(@buffer)
+    @cache.logger = ActiveSupport::Logger.new(@buffer)
   end
 
   def test_logging
