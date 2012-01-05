@@ -512,7 +512,7 @@ class MultibyteCharsExtrasTest < Test::Unit::TestCase
 
   def test_limit_should_work_on_a_multibyte_string
     example = chars(UNICODE_STRING)
-    bytesize = UNICODE_STRING.respond_to?(:bytesize) ? UNICODE_STRING.bytesize : UNICODE_STRING.size
+    bytesize = UNICODE_STRING.bytesize
 
     assert_equal UNICODE_STRING, example.limit(bytesize)
     assert_equal '', example.limit(0)

@@ -241,14 +241,10 @@ module ActiveSupport #:nodoc:
         chars(Unicode.tidy_bytes(@wrapped_string, force))
       end
 
-       %w(capitalize downcase lstrip reverse rstrip strip tidy_bytes upcase).each do |method|
-        # Only define a corresponding bang method for methods defined in the proxy; On 1.9 the proxy will
-        # exclude lstrip!, rstrip! and strip! because they are already work as expected on multibyte strings.
-        if public_method_defined?(method)
-          define_method("#{method}!") do |*args|
-            @wrapped_string = send(args.nil? ? method : method, *args).to_s
-            self
-          end
+      %w(capitalize downcase reverse tidy_bytes upcase).each do |method|
+        define_method("#{method}!") do |*args|
+          @wrapped_string = send(method, *args).to_s
+          self
         end
       end
 
@@ -258,10 +254,8 @@ module ActiveSupport #:nodoc:
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ''
 
-          @wrapped_string = @wrapped_string.dup.force_encoding(Encoding::ASCII_8BIT)
-
           begin
-            @wrapped_string[0...byte_offset].unpack('U*').length
+            @wrapped_string.byteslice(0...byte_offset).unpack('U*').length
           rescue ArgumentError
             byte_offset -= 1
             retry
