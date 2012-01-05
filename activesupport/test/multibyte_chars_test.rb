@@ -117,11 +117,6 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     end
   end
 
-  def test_indexed_insert_accepts_fixnums
-    @chars[2] = 32
-    assert_equal 'こに わ', @chars
-  end
-
   %w{capitalize downcase lstrip reverse rstrip upcase}.each do |method|
     class_eval(<<-EOTESTS)
       def test_#{method}_bang_should_return_self_when_modifying_wrapped_string

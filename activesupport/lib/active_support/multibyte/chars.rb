@@ -80,47 +80,6 @@ module ActiveSupport #:nodoc:
         @wrapped_string.split(*args).map { |i| i.mb_chars }
       end
 
-      # Like <tt>String#[]=</tt>, except instead of byte offsets you specify character offsets.
-      #
-      # Example:
-      #
-      #   s = "Müller"
-      #   s.mb_chars[2] = "e" # Replace character with offset 2
-      #   s
-      #   # => "Müeler"
-      #
-      #   s = "Müller"
-      #   s.mb_chars[1, 2] = "ö" # Replace 2 characters at character offset 1
-      #   s
-      #   # => "Möler"
-      def []=(*args)
-        replace_by = args.pop
-        # Indexed replace with regular expressions already works
-        if args.first.is_a?(Regexp)
-          @wrapped_string[*args] = replace_by
-        else
-          result = Unicode.u_unpack(@wrapped_string)
-          case args.first
-          when Fixnum
-            raise IndexError, "index #{args[0]} out of string" if args[0] >= result.length
-            min = args[0]
-            max = args[1].nil? ? min : (min + args[1] - 1)
-            range = Range.new(min, max)
-            replace_by = [replace_by].pack('U') if replace_by.is_a?(Fixnum)
-          when Range
-            raise RangeError, "#{args[0]} out of range" if args[0].min >= result.length
-            range = args[0]
-          else
-            needle = args[0].to_s
-            min = index(needle)
-            max = min + Unicode.u_unpack(needle).length - 1
-            range = Range.new(min, max)
-          end
-          result[range] = Unicode.u_unpack(replace_by)
-          @wrapped_string.replace(result.pack('U*'))
-        end
-      end
-
       def slice!(*args)
         chars(@wrapped_string.slice!(*args))
       end
