@@ -112,7 +112,7 @@ HEADER
 
             # AR has an optimization which handles zero-scale decimals as integers. This
             # code ensures that the dumper still dumps the column as a decimal.
-            spec[:type]      = if column.type == :integer && [/^numeric/, /^decimal/].any? { |e| e.match(column.sql_type) }
+            spec[:type]      = if column.type == :integer && /^(numeric|decimal)/ =~ column.sql_type
                                  'decimal'
                                else
                                  column.type.to_s
