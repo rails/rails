@@ -202,31 +202,6 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        def justify(integer, way, padstr=' ') #:nodoc:
-          raise ArgumentError, "zero width padding" if padstr.length == 0
-          padsize = integer - size
-          padsize = padsize > 0 ? padsize : 0
-          case way
-          when :right
-            result = @wrapped_string.dup.insert(0, padding(padsize, padstr))
-          when :left
-            result = @wrapped_string.dup.insert(-1, padding(padsize, padstr))
-          when :center
-            lpad = padding((padsize / 2.0).floor, padstr)
-            rpad = padding((padsize / 2.0).ceil, padstr)
-            result = @wrapped_string.dup.insert(0, lpad).insert(-1, rpad)
-          end
-          chars(result)
-        end
-
-        def padding(padsize, padstr=' ') #:nodoc:
-          if padsize != 0
-            chars(padstr * ((padsize / Unicode.u_unpack(padstr).size) + 1)).slice(0, padsize)
-          else
-            ''
-          end
-        end
-
         def chars(string) #:nodoc:
           self.class.new(string)
         end
