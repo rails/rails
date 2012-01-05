@@ -230,10 +230,13 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_polymorphic_destroy_with_dependencies_and_lock_version
     car = Car.create!
-    car.wheels << Wheel.create!
-    assert_equal 1, car.wheels.count
-    assert car.destroy
-    assert_equal 0, car.wheels.count
+    
+    assert_difference 'car.wheels.count'  do
+    	car.wheels << Wheel.create!
+    end 
+    assert_difference 'car.wheels.count', -1  do
+      car.destroy
+    end
     assert car.destroyed?
   end
 end
