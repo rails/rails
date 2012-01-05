@@ -123,7 +123,7 @@ module ActiveSupport
       # Example:
       #   Unicode.g_pack(Unicode.g_unpack('क्षि')) # => 'क्षि'
       def g_pack(unpacked)
-        (unpacked.flatten).pack('U*')
+        unpacked.flatten.pack('U*')
       end
 
       # Re-order codepoints so the string becomes canonical.
