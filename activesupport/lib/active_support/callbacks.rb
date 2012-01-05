@@ -166,19 +166,10 @@ module ActiveSupport
         RUBY_EVAL
       end
 
-      # This will supply contents for before and around filters, and no
-      # contents for after filters (for the forward pass).
-      def start(key=nil, object=nil)
-        return if key && !object.send("_one_time_conditions_valid_#{@callback_id}?")
-
-        # options[0] is the compiled form of supplied conditions
-        # options[1] is the "end" for the conditional
-        #
+      # Wraps code with filter
+      def apply(code, key=nil, object=nil)
         case @kind
         when :before
-          # if condition    # before_save :filter_name, :if => :condition
-          #   filter_name
-          # end
           <<-RUBY_EVAL
             if !halted && #{@compiled_options}
               # This double assignment is to prevent warnings in 1.9.3 as
@@ -190,61 +181,63 @@ module ActiveSupport
                 halted_callback_hook(#{@raw_filter.inspect.inspect})
               end
             end
+            #{code}
           RUBY_EVAL
-        when :around
-          # Compile around filters with conditions into proxy methods
-          # that contain the conditions.
-          #
-          # For `around_save :filter_name, :if => :condition':
-          #
-          # def _conditional_callback_save_17
-          #   if condition
-          #     filter_name do
-          #       yield self
-          #     end
-          #   else
-          #     yield self
-          #   end
-          # end
-          #
-          name = "_conditional_callback_#{@kind}_#{next_id}"
-          @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
-             def #{name}(halted)
-              if #{@compiled_options} && !halted
-                #{@filter} do
-                  yield self
-                end
-              else
-                yield self
-              end
-            end
-          RUBY_EVAL
-          "#{name}(halted) do"
-        end
-      end
-
-      # This will supply contents for around and after filters, but not
-      # before filters (for the backward pass).
-      def end(key=nil, object=nil)
-        return if key && !object.send("_one_time_conditions_valid_#{@callback_id}?")
-
-        case @kind
         when :after
-          # after_save :filter_name, :if => :condition
           <<-RUBY_EVAL
+          #{code}
           if #{@compiled_options}
             #{@filter}
           end
           RUBY_EVAL
         when :around
+          name = define_conditional_callback
           <<-RUBY_EVAL
+          #{name}(halted) do
+            #{code}
             value
           end
           RUBY_EVAL
         end
       end
 
+
+      def one_time_conditions_valid?(object)
+        object.send("_one_time_conditions_valid_#{@callback_id}?")
+      end
+
       private
+
+      # Compile around filters with conditions into proxy methods
+      # that contain the conditions.
+      #
+      # For `around_save :filter_name, :if => :condition':
+      #
+      # def _conditional_callback_save_17
+      #   if condition
+      #     filter_name do
+      #       yield self
+      #     end
+      #   else
+      #     yield self
+      #   end
+      # end
+      #
+      def define_conditional_callback
+        name = "_conditional_callback_#{@kind}_#{next_id}"
+        @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
+          def #{name}(halted)
+           if #{@compiled_options} && !halted
+             #{@filter} do
+               yield self
+             end
+           else
+             yield self
+           end
+         end
+        RUBY_EVAL
+        name
+      end
 
       # Options support the same options as filters themselves (and support
       # symbols, string, procs, and objects), so compile a conditional
@@ -348,10 +341,20 @@ module ActiveSupport
         method << "value = nil"
         method << "halted = false"
 
-        each do |callback|
-          method << callback.start(key, object)
+        callbacks = yielding
+        applicable_callbacks_for(key, object).reverse_each do |callback|
+          callbacks = callback.apply(callbacks, key, object)
         end
+        method << callbacks
 
+        method << "raise rescued_error if rescued_error" if config[:rescuable]
+        method << "halted ? false : (block_given? ? value : true)"
+        method.flatten.compact.join("\n")
+      end
+
+      # Returns part of method that evaluates the callback block
+      def yielding
+        method = []
         if config[:rescuable]
           method << "rescued_error = nil"
           method << "begin"
@@ -364,14 +367,15 @@ module ActiveSupport
           method << "rescued_error = e"
           method << "end"
         end
+        method.join("\n")
+      end
 
-        reverse_each do |callback|
-          method << callback.end(key, object)
+      # Selects callbacks that have valid <tt>:per_key</tt> condition
+      def applicable_callbacks_for(key, object)
+        return self unless key
+        select do |callback|
+          callback.one_time_conditions_valid?(object)
         end
-
-        method << "raise rescued_error if rescued_error" if config[:rescuable]
-        method << "halted ? false : (block_given? ? value : true)"
-        method.compact.join("\n")
       end
     end
 
