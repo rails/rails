@@ -16,6 +16,7 @@ module ActiveRecord
       conn_params = config.except(:statement_limit, :encoding, :min_messages,
                                   :schema_search_path, :schema_order,
                                   :adapter, :pool, :wait_timeout)
+      conn_params.delete_if { |k,v| v.nil? }
 
       # Map ActiveRecords param names to PGs.
       conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
