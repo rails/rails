@@ -696,7 +696,7 @@ class RenderTest < ActionController::TestCase
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
     super
-    @controller.logger = Logger.new(nil)
+    @controller.logger = ActiveSupport::Logger.new(nil)
 
     @request.host = "www.nextangle.com"
   end
@@ -907,7 +907,7 @@ class RenderTest < ActionController::TestCase
 
   def test_access_to_logger_in_view
     get :accessing_logger_in_template
-    assert_equal "Logger", @response.body
+    assert_equal "ActiveSupport::Logger", @response.body
   end
 
   # :ported:
