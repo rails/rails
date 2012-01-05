@@ -595,7 +595,7 @@ class MultibyteCharsExtrasTest < Test::Unit::TestCase
       else
         str = input
       end
-      assert_equal expected_length, chars(str).g_length
+      assert_equal expected_length, chars(str).grapheme_length
     end
   end
 

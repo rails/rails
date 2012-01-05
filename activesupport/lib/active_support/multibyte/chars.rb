@@ -168,8 +168,8 @@ module ActiveSupport #:nodoc:
       #
       # Example:
       #   'क्षि'.mb_chars.length   # => 4
-      #   'क्षि'.mb_chars.g_length # => 3
-      def g_length
+      #   'क्षि'.mb_chars.grapheme_length # => 3
+      def grapheme_length
         Unicode.unpack_graphemes(@wrapped_string).length
       end
 
