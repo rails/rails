@@ -162,15 +162,15 @@ module ActionView
         options.reverse_merge!(:radius => 100, :omission => "...")
 
         phrase = Regexp.escape(phrase)
-        return unless found_pos = text.mb_chars =~ /(#{phrase})/i
+        return unless found_pos = text =~ /(#{phrase})/i
 
         start_pos = [ found_pos - options[:radius], 0 ].max
-        end_pos   = [ [ found_pos + phrase.mb_chars.length + options[:radius] - 1, 0].max, text.mb_chars.length ].min
+        end_pos   = [ [ found_pos + phrase.length + options[:radius] - 1, 0].max, text.length ].min
 
         prefix  = start_pos > 0 ? options[:omission] : ""
-        postfix = end_pos < text.mb_chars.length - 1 ? options[:omission] : ""
+        postfix = end_pos < text.length - 1 ? options[:omission] : ""
 
-        prefix + text.mb_chars[start_pos..end_pos].strip + postfix
+        prefix + text[start_pos..end_pos].strip + postfix
       end
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
