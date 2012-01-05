@@ -90,7 +90,7 @@ module ActiveSupport #:nodoc:
       # Example:
       #   'Café'.mb_chars.reverse.to_s # => 'éfaC'
       def reverse
-        chars(Unicode.g_unpack(@wrapped_string).reverse.flatten.pack('U*'))
+        chars(Unicode.unpack_graphemes(@wrapped_string).reverse.flatten.pack('U*'))
       end
 
       # Limit the byte size of the string to a number of bytes without breaking characters. Usable
@@ -170,7 +170,7 @@ module ActiveSupport #:nodoc:
       #   'क्षि'.mb_chars.length   # => 4
       #   'क्षि'.mb_chars.g_length # => 3
       def g_length
-        Unicode.g_unpack(@wrapped_string).length
+        Unicode.unpack_graphemes(@wrapped_string).length
       end
 
       # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.

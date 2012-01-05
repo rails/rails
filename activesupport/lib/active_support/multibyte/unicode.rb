@@ -73,9 +73,9 @@ module ActiveSupport
       # Unpack the string at grapheme boundaries. Returns a list of character lists.
       #
       # Example:
-      #   Unicode.g_unpack('क्षि') # => [[2325, 2381], [2359], [2367]]
-      #   Unicode.g_unpack('Café') # => [[67], [97], [102], [233]]
-      def g_unpack(string)
+      #   Unicode.unpack_graphemes('क्षि') # => [[2325, 2381], [2359], [2367]]
+      #   Unicode.unpack_graphemes('Café') # => [[67], [97], [102], [233]]
+      def unpack_graphemes(string)
         codepoints = string.codepoints.to_a
         unpacked = []
         pos = 0
@@ -105,11 +105,11 @@ module ActiveSupport
         unpacked
       end
 
-      # Reverse operation of g_unpack.
+      # Reverse operation of unpack_graphemes.
       #
       # Example:
-      #   Unicode.g_pack(Unicode.g_unpack('क्षि')) # => 'क्षि'
-      def g_pack(unpacked)
+      #   Unicode.pack_graphemes(Unicode.unpack_graphemes('क्षि')) # => 'क्षि'
+      def pack_graphemes(unpacked)
         unpacked.flatten.pack('U*')
       end
 
