@@ -153,7 +153,7 @@ module ActiveSupport #:nodoc:
       #   'é'.length                         # => 2
       #   'é'.mb_chars.decompose.to_s.length # => 3
       def decompose
-        chars(Unicode.decompose(:canonical, Unicode.u_unpack(@wrapped_string)).pack('U*'))
+        chars(Unicode.decompose(:canonical, @wrapped_string.codepoints.to_a).pack('U*'))
       end
 
       # Performs composition on all the characters.
@@ -162,7 +162,7 @@ module ActiveSupport #:nodoc:
       #   'é'.length                       # => 3
       #   'é'.mb_chars.compose.to_s.length # => 2
       def compose
-        chars(Unicode.compose(Unicode.u_unpack(@wrapped_string)).pack('U*'))
+        chars(Unicode.compose(@wrapped_string.codepoints.to_a).pack('U*'))
       end
 
       # Returns the number of grapheme clusters in the string.

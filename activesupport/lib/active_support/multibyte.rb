@@ -3,7 +3,6 @@ require 'active_support/core_ext/module/attribute_accessors'
 
 module ActiveSupport #:nodoc:
   module Multibyte
-    autoload :EncodingError, 'active_support/multibyte/exceptions'
     autoload :Chars, 'active_support/multibyte/chars'
     autoload :Unicode, 'active_support/multibyte/unicode'
 

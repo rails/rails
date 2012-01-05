@@ -72,17 +72,6 @@ class MultibyteCharsTest < Test::Unit::TestCase
     assert !@proxy_class.consumes?(BYTE_STRING)
   end
 
-  def test_unpack_utf8_strings
-    assert_equal 4, ActiveSupport::Multibyte::Unicode.u_unpack(UNICODE_STRING).length
-    assert_equal 5, ActiveSupport::Multibyte::Unicode.u_unpack(ASCII_STRING).length
-  end
-
-  def test_unpack_raises_encoding_error_on_broken_strings
-    assert_raise(ActiveSupport::Multibyte::EncodingError) do
-      ActiveSupport::Multibyte::Unicode.u_unpack(BYTE_STRING)
-    end
-  end
-
   def test_concatenation_should_return_a_proxy_class_instance
     assert_equal ActiveSupport::Multibyte.proxy_class, ('a'.mb_chars + 'b').class
     assert_equal ActiveSupport::Multibyte.proxy_class, ('a'.mb_chars << 'b').class

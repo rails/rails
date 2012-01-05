@@ -61,19 +61,6 @@ module ActiveSupport
       TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
       LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u
 
-      # Unpack the string at codepoints boundaries. Raises an EncodingError when the encoding of the string isn't
-      # valid UTF-8.
-      #
-      # Example:
-      #   Unicode.u_unpack('Café') # => [67, 97, 102, 233]
-      def u_unpack(string)
-        begin
-          string.unpack 'U*'
-        rescue ArgumentError
-          raise EncodingError, 'malformed UTF-8 character'
-        end
-      end
-
       # Detect whether the codepoint is in a certain character class. Returns +true+ when it's in the specified
       # character class and +false+ otherwise. Valid character classes are: <tt>:cr</tt>, <tt>:lf</tt>, <tt>:l</tt>,
       # <tt>:v</tt>, <tt>:lv</tt>, <tt>:lvt</tt> and <tt>:t</tt>.
@@ -89,7 +76,7 @@ module ActiveSupport
       #   Unicode.g_unpack('क्षि') # => [[2325, 2381], [2359], [2367]]
       #   Unicode.g_unpack('Café') # => [[67], [97], [102], [233]]
       def g_unpack(string)
-        codepoints = u_unpack(string)
+        codepoints = string.codepoints.to_a
         unpacked = []
         pos = 0
         marker = 0
@@ -283,7 +270,7 @@ module ActiveSupport
       def normalize(string, form=nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1
-        codepoints = u_unpack(string)
+        codepoints = string.codepoints.to_a
         case form
           when :d
             reorder_characters(decompose(:canonical, codepoints))
@@ -299,7 +286,7 @@ module ActiveSupport
       end
 
       def apply_mapping(string, mapping) #:nodoc:
-        u_unpack(string).map do |codepoint|
+        string.each_codepoint.map do |codepoint|
           cp = database.codepoints[codepoint]
           if cp and (ncp = cp.send(mapping)) and ncp > 0
             ncp
