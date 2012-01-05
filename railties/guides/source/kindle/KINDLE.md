@@ -16,9 +16,8 @@
   5. Then type in `cd usr/local/bin`
   6. Then `open .`
   7. That will open the directory, just copy the kindlegen binary to it then close the window and that terminal window
-  8. Back in the other terminal window which should be in `rails/railties`
-  9. Then type `KINDLE=1 rake generate_guides`
-  10. It will then tell you where your .mobi is 
+  8. Back in the other terminal window which should be in `rails/railties` type `KINDLE=1 rake generate_guides`
+  9. It will then tell you where your .mobi is 
 
 ## Resources
 
