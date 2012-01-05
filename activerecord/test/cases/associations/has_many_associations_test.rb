@@ -71,7 +71,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal comment, post.comments.find_or_create_by_body('test comment body')
 
-    post.comments.find_or_create_by_body(:body => 'other test comment body', :type => 'test')
+    other_comment = post.comments.find_or_create_by_body(:body => 'other test comment body', :type => 'test')
+
+    assert_equal 'other test comment body', other_comment.body
     assert_equal 2, post.comments.count
     assert_equal 2, post.comments.length
     post.comments.find_or_create_by_body('other other test comment body', :type => 'test')
