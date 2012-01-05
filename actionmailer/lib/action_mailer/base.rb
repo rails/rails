@@ -1,6 +1,5 @@
 require 'mail'
 require 'action_mailer/collector'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/proc'
 require 'active_support/core_ext/string/inflections'
@@ -122,8 +121,8 @@ module ActionMailer #:nodoc:
   #
   #   <%= users_url(:host => "example.com") %>
   #
-  # You should use the <tt>named_route_url</tt> style (which generates absolute URLs) and avoid using the 
-  # <tt>named_route_path</tt> style (which generates relative URLs), since clients reading the mail will 
+  # You should use the <tt>named_route_url</tt> style (which generates absolute URLs) and avoid using the
+  # <tt>named_route_path</tt> style (which generates relative URLs), since clients reading the mail will
   # have no concept of a current URL from which to determine a relative path.
   #
   # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
@@ -132,7 +131,7 @@ module ActionMailer #:nodoc:
   #   config.action_mailer.default_url_options = { :host => "example.com" }
   #
   # When you decide to set a default <tt>:host</tt> for your mailers, then you need to make sure to use the
-  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper 
+  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper
   # will generate relative URLs by default when a <tt>:host</tt> option isn't explicitly provided, passing
   # <tt>:only_path => false</tt> will ensure that absolute URLs are generated.
   #
@@ -149,8 +148,8 @@ module ActionMailer #:nodoc:
   #
   # = Multipart Emails
   #
-  # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use 
-  # multipart templates, where each template is named after the name of the action, followed by the content 
+  # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use
+  # multipart templates, where each template is named after the name of the action, followed by the content
   # type. Each such detected template will be added as a separate part to the message.
   #
   # For example, if the following templates exist:
@@ -707,7 +706,7 @@ module ActionMailer #:nodoc:
     end
 
     def each_template(paths, name, &block) #:nodoc:
-      templates = lookup_context.find_all(name, Array.wrap(paths))
+      templates = lookup_context.find_all(name, Array(paths))
       templates.uniq { |t| t.formats }.each(&block)
     end
 
