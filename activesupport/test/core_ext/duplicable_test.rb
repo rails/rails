@@ -22,7 +22,7 @@ class DuplicableTest < Test::Unit::TestCase
     end
 
     RAISE_DUP.each do |v|
-      assert_raises(TypeError) do
+      assert_raises(TypeError, v.class.name) do
         v.dup
       end
     end
