@@ -558,7 +558,8 @@ module ActionView
           else
             selected = Array.wrap(selected)
             options = selected.extract_options!.symbolize_keys
-            [ options.include?(:selected) ? options[:selected] : selected, options[:disabled] ]
+            selected_items = options.include?(:selected) ? options[:selected] : selected
+            [ selected_items, options[:disabled] ]
           end
         end
 
