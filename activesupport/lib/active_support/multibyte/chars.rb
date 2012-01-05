@@ -35,6 +35,7 @@ module ActiveSupport #:nodoc:
     #
     #   ActiveSupport::Multibyte.proxy_class = CharsForUTF32
     class Chars
+      include Comparable
       attr_reader :wrapped_string
       alias to_s wrapped_string
       alias to_str wrapped_string
@@ -68,8 +69,6 @@ module ActiveSupport #:nodoc:
       def self.consumes?(string)
         string.encoding == Encoding::UTF_8
       end
-
-      include Comparable
 
       # Works just like <tt>String#split</tt>, with the exception that the items in the resulting list are Chars
       # instances instead of String. This makes chaining methods easier.
