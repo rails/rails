@@ -1,4 +1,3 @@
-require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/enumerable"
 
 module ActionView
@@ -30,7 +29,7 @@ module ActionView
 
     def initialize(paths, path, prefixes, partial, details, *)
       @path = path
-      prefixes = Array.wrap(prefixes)
+      prefixes = Array(prefixes)
       template_type = if partial
         "partial"
       elsif path =~ /layouts/i

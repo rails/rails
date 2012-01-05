@@ -17,7 +17,7 @@ module ActionView
       details = {}
       @lookup_context.registered_details.each do |key|
         next unless value = options[key]
-        details[key] = Array.wrap(value)
+        details[key] = Array(value)
       end
       details
     end

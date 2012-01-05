@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/module/remove_method'
 
@@ -29,7 +28,7 @@ module ActionView
         end
 
         def #{name}=(value)
-          value = value.present? ? Array.wrap(value) : default_#{name}
+          value = value.present? ? Array(value) : default_#{name}
           _set_detail(:#{name}, value) if value != @details[:#{name}]
         end
 

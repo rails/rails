@@ -322,8 +322,8 @@ module ActionView
       def options_for_select(container, selected = nil)
         return container if String === container
 
-        selected, disabled = extract_selected_and_disabled(selected).map do | r |
-           Array.wrap(r).map { |item| item.to_s }
+        selected, disabled = extract_selected_and_disabled(selected).map do |r|
+          Array(r).map { |item| item.to_s }
         end
 
         container.map do |element|
