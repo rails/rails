@@ -11,20 +11,20 @@ module ActiveRecord
     # Establishes a connection to the database that's used by all Active Record objects
     def postgresql_connection(config) # :nodoc:
       config = config.symbolize_keys
-      host     = config[:host]
-      port     = config[:port] || 5432
-      username = config[:username].to_s if config[:username]
-      password = config[:password].to_s if config[:password]
 
-      if config.key?(:database)
-        database = config[:database]
-      else
-        raise ArgumentError, "No database specified. Missing argument: database."
-      end
+      # Forward any unused config params to PGconn.connect.
+      conn_params = config.except(:statement_limit, :encoding, :min_messages,
+                                  :schema_search_path, :schema_order,
+                                  :adapter, :pool, :wait_timeout)
+      conn_params.delete_if { |k,v| v.nil? }
+
+      # Map ActiveRecords param names to PGs.
+      conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
+      conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
 
       # The postgres drivers don't allow the creation of an unconnected PGconn object,
       # so just pass a nil connection object for the time being.
-      ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, [host, port, nil, nil, database, username, password], config)
+      ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, conn_params, config)
     end
   end
 
@@ -226,22 +226,29 @@ module ActiveRecord
         end
     end
 
-    # The PostgreSQL adapter works both with the native C (http://ruby.scripting.ca/postgres/) and the pure
-    # Ruby (available both as gem and from http://rubyforge.org/frs/?group_id=234&release_id=1944) drivers.
+    # The PostgreSQL adapter works with the native C (https://bitbucket.org/ged/ruby-pg) driver.
     #
     # Options:
     #
-    # * <tt>:host</tt> - Defaults to "localhost".
+    # * <tt>:host</tt> - Defaults to a Unix-domain socket in /tmp. On machines without Unix-domain sockets,
+    #   the default is to connect to localhost.
     # * <tt>:port</tt> - Defaults to 5432.
-    # * <tt>:username</tt> - Defaults to nothing.
-    # * <tt>:password</tt> - Defaults to nothing.
-    # * <tt>:database</tt> - The name of the database. No default, must be provided.
+    # * <tt>:username</tt> - Defaults to be the same as the operating system name of the user running the application.
+    # * <tt>:password</tt> - Password to be used if the server demands password authentication.
+    # * <tt>:database</tt> - Defaults to be the same as the user name.
     # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given
     #   as a string of comma-separated schema names. This is backward-compatible with the <tt>:schema_order</tt> option.
     # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
+    #
+    # Any further options are used as connection parameters to libpq. See
+    # http://www.postgresql.org/docs/9.1/static/libpq-connect.html for the
+    # list of parameters.
+    #
+    # In addition, default connection parameters of libpq can be set per environment variables.
+    # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def xml(*args)
@@ -1200,7 +1207,7 @@ module ActiveRecord
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
         def connect
-          @connection = PGconn.connect(*@connection_parameters)
+          @connection = PGconn.connect(@connection_parameters)
 
           # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
           # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
