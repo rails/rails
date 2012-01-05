@@ -40,6 +40,8 @@ module ActiveModel
         attr_reader :password
 
         validates_confirmation_of :password
+        validates                 :password_confirmation, :presence => true,
+                                                          :if       => :password_digest_changed?
         validates_presence_of     :password_digest
 
         include InstanceMethodsOnActivation
