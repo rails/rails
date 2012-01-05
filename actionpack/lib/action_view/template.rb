@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/kernel/singleton_class'
@@ -122,7 +121,7 @@ module ActionView
       @locals            = details[:locals] || []
       @virtual_path      = details[:virtual_path]
       @updated_at        = details[:updated_at] || Time.now
-      @formats = Array.wrap(format).map { |f| f.is_a?(Mime::Type) ? f.ref : f }
+      @formats           = Array(format).map { |f| f.is_a?(Mime::Type) ? f.ref : f }
     end
 
     # Returns if the underlying handler supports streaming. If so,

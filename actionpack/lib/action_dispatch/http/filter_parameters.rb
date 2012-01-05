@@ -50,7 +50,7 @@ module ActionDispatch
       end
 
       def env_filter
-        parameter_filter_for(Array.wrap(@env["action_dispatch.parameter_filter"]) << /RAW_POST_DATA/)
+        parameter_filter_for(Array(@env["action_dispatch.parameter_filter"]) << /RAW_POST_DATA/)
       end
 
       def parameter_filter_for(filters)
