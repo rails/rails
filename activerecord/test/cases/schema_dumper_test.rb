@@ -3,6 +3,7 @@ require "cases/helper"
 
 class SchemaDumperTest < ActiveRecord::TestCase
   def setup
+    super
     @stream = StringIO.new
   end
 

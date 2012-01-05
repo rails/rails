@@ -53,5 +53,9 @@ module ActiveRecord
     ensure
       ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
     end
+
+    def sqlite3? connection
+      connection.class.name.split('::').last == "SQLite3Adapter"
+    end
   end
 end
