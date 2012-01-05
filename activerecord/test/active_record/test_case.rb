@@ -9,6 +9,10 @@ module ActiveRecord
       cleanup_identity_map
     end
 
+    def teardown
+      ActiveRecord::SQLCounter.log.clear
+    end
+
     def cleanup_identity_map
       ActiveRecord::IdentityMap.clear
     end
