@@ -9,7 +9,7 @@
 
 ## OS X step by step
 
-  1. Download `kindlegen` from the link below ([or click here](http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000234621) )
+  1. Download `kindlegen` from the link below ([or click here](http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000234621))
   2. In terminal cd to your projects directory and type `git clone https://github.com/rails/rails.git`
   3. Then type `cd rails/railties`
   4. Open a new terminal window and type `echo $PATH` and see if `usr/local/bin` is in it (it should be) if it is type `cd ../../`
