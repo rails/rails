@@ -80,6 +80,8 @@ module ActiveSupport #:nodoc:
         @wrapped_string.split(*args).map { |i| i.mb_chars }
       end
 
+      # Works like like <tt>String#slice!</tt>, but returns an instance of Chars, or nil if the string was not
+      # modified.
       def slice!(*args)
         chars(@wrapped_string.slice!(*args))
       end
