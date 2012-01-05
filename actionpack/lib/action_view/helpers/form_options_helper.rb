@@ -134,7 +134,7 @@ module ActionView
       #
       # ==== Gotcha
       #
-      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected 
+      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
       # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
       # if an +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
       # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
@@ -333,7 +333,6 @@ module ActionView
           disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
           %(<option value="#{ERB::Util.html_escape(value)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{ERB::Util.html_escape(text)}</option>)
         end.join("\n").html_safe
-
       end
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the
@@ -508,9 +507,9 @@ module ActionView
         convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones
-	        if priority_zones.is_a?(Regexp)
+          if priority_zones.is_a?(Regexp)
             priority_zones = model.all.find_all {|z| z =~ priority_zones}
-	        end
+          end
           zone_options += options_for_select(convert_zones[priority_zones], selected)
           zone_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
 
@@ -630,7 +629,7 @@ module ActionView
           add_default_name_and_id(html_options)
           select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
           if html_options["multiple"]
-            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select 
+            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select
           else
             select
           end
