@@ -150,34 +150,6 @@ module ActiveSupport #:nodoc:
         chars(Unicode.g_unpack(@wrapped_string).reverse.flatten.pack('U*'))
       end
 
-      # Implements Unicode-aware slice with codepoints. Slicing on one point returns the codepoints for that
-      # character.
-      #
-      # Example:
-      #   'こんにちは'.mb_chars.slice(2..3).to_s # => "にち"
-      def slice(*args)
-        if args.size > 2
-          raise ArgumentError, "wrong number of arguments (#{args.size} for 1)" # Do as if we were native
-        elsif (args.size == 2 && !(args.first.is_a?(Numeric) || args.first.is_a?(Regexp)))
-          raise TypeError, "cannot convert #{args.first.class} into Integer" # Do as if we were native
-        elsif (args.size == 2 && !args[1].is_a?(Numeric))
-          raise TypeError, "cannot convert #{args[1].class} into Integer" # Do as if we were native
-        elsif args[0].kind_of? Range
-          cps = Unicode.u_unpack(@wrapped_string).slice(*args)
-          result = cps.nil? ? nil : cps.pack('U*')
-        elsif args[0].kind_of? Regexp
-          result = @wrapped_string.slice(*args)
-        elsif args.size == 1 && args[0].kind_of?(Numeric)
-          character = Unicode.u_unpack(@wrapped_string)[args[0]]
-          result = character && [character].pack('U')
-        else
-          cps = Unicode.u_unpack(@wrapped_string).slice(*args)
-          result = cps && cps.pack('U*')
-        end
-        result && chars(result)
-      end
-      alias_method :[], :slice
-
       # Limit the byte size of the string to a number of bytes without breaking characters. Usable
       # when the storage for a string is limited for some reason.
       #
@@ -265,14 +237,10 @@ module ActiveSupport #:nodoc:
         chars(Unicode.tidy_bytes(@wrapped_string, force))
       end
 
-       %w(capitalize downcase lstrip reverse rstrip slice strip tidy_bytes upcase).each do |method|
-        # Only define a corresponding bang method for methods defined in the proxy; On 1.9 the proxy will
-        # exclude lstrip!, rstrip! and strip! because they are already work as expected on multibyte strings.
-        if public_method_defined?(method)
-          define_method("#{method}!") do |*args|
-            @wrapped_string = send(args.nil? ? method : method, *args).to_s
-            self
-          end
+      %w(capitalize downcase reverse slice tidy_bytes upcase).each do |method|
+        define_method("#{method}!") do |*args|
+          @wrapped_string = send(method, *args).to_s
+          self
         end
       end
 
@@ -282,10 +250,8 @@ module ActiveSupport #:nodoc:
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ''
 
-          @wrapped_string = @wrapped_string.dup.force_encoding(Encoding::ASCII_8BIT)
-
           begin
-            @wrapped_string[0...byte_offset].unpack('U*').length
+            @wrapped_string.byteslice(0...byte_offset).unpack('U*').length
           rescue ArgumentError
             byte_offset -= 1
             retry
