@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'active_support/core_ext/string/access'
 require 'active_support/core_ext/string/behavior'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveSupport #:nodoc:
   module Multibyte #:nodoc:
@@ -38,6 +39,8 @@ module ActiveSupport #:nodoc:
       alias to_s wrapped_string
       alias to_str wrapped_string
 
+      delegate :<=>, :=~, :acts_like_string?, :to => :wrapped_string
+
       # Creates a new Chars instance by wrapping _string_.
       def initialize(string)
         @wrapped_string = string
@@ -61,11 +64,6 @@ module ActiveSupport #:nodoc:
         super || @wrapped_string.respond_to?(method, include_private)
       end
 
-      # Enable more predictable duck-typing on String-like classes. See Object#acts_like?.
-      def acts_like_string?
-        true
-      end
-
       # Returns +true+ when the proxy class can handle the string. Returns +false+ otherwise.
       def self.consumes?(string)
         # Unpack is a little bit faster than regular expressions.
@@ -76,21 +74,6 @@ module ActiveSupport #:nodoc:
       end
 
       include Comparable
-
-      # Returns -1, 0, or 1, depending on whether the Chars object is to be sorted before,
-      # equal or after the object on the right side of the operation. It accepts any object
-      # that implements +to_s+:
-      #
-      #   'é'.mb_chars <=> 'ü'.mb_chars # => -1
-      #
-      # See <tt>String#<=></tt> for more details.
-      def <=>(other)
-        @wrapped_string <=> other.to_s
-      end
-
-      def =~(other)
-        @wrapped_string =~ other
-      end
 
       # Works just like <tt>String#split</tt>, with the exception that the items in the resulting list are Chars
       # instances instead of String. This makes chaining methods easier.
