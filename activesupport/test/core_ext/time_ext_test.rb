@@ -491,6 +491,11 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.utc(2013,10,17,20,22,19), Time.utc(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
   end
 
+  def test_advance_with_nsec
+    t = Time.at(0, Rational(108635108, 1000))
+    assert_equal t, t.advance(:months => 0)
+  end
+
   def test_prev_week
     with_env_tz 'US/Eastern' do
       assert_equal Time.local(2005,2,21), Time.local(2005,3,1,15,15,10).prev_week
