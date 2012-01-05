@@ -127,10 +127,14 @@ HEADER
           end.compact
 
           # find all migration keys used in this table
-          keys = [:name, :limit, :precision, :scale, :default, :null] & column_specs.map{ |k| k.keys }.flatten
+          keys = [:name, :limit, :precision, :scale, :default, :null] & column_specs.map(&:keys).flatten
 
           # figure out the lengths for each column based on above keys
-          lengths = keys.map{ |key| column_specs.map{ |spec| spec[key] ? spec[key].length + 2 : 0 }.max }
+          lengths = keys.map { |key|
+            column_specs.map { |spec|
+              spec[key] ? spec[key].length + 2 : 0
+            }.max
+          }
 
           # the string we're going to sprintf our values against, with standardized column widths
           format_string = lengths.map{ |len| "%-#{len}s" }
