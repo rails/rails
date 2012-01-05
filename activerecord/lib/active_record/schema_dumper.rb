@@ -127,7 +127,7 @@ HEADER
           end.compact
 
           # find all migration keys used in this table
-          keys = [:name, :limit, :precision, :scale, :default, :null] & column_specs.map(&:keys).flatten
+          keys = [:name, :limit, :precision, :scale, :default, :null]
 
           # figure out the lengths for each column based on above keys
           lengths = keys.map { |key|
