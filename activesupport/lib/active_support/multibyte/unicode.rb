@@ -10,7 +10,7 @@ module ActiveSupport
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = '5.2.0'
+      UNICODE_VERSION = '6.0.0'
 
       # The default normalization used for operations that require normalization. It can be set to any of the
       # normalizations in NORMALIZATION_FORMS.
@@ -61,19 +61,6 @@ module ActiveSupport
       TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
       LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u
 
-      # Unpack the string at codepoints boundaries. Raises an EncodingError when the encoding of the string isn't
-      # valid UTF-8.
-      #
-      # Example:
-      #   Unicode.u_unpack('Café') # => [67, 97, 102, 233]
-      def u_unpack(string)
-        begin
-          string.unpack 'U*'
-        rescue ArgumentError
-          raise EncodingError, 'malformed UTF-8 character'
-        end
-      end
-
       # Detect whether the codepoint is in a certain character class. Returns +true+ when it's in the specified
       # character class and +false+ otherwise. Valid character classes are: <tt>:cr</tt>, <tt>:lf</tt>, <tt>:l</tt>,
       # <tt>:v</tt>, <tt>:lv</tt>, <tt>:lvt</tt> and <tt>:t</tt>.
@@ -86,10 +73,10 @@ module ActiveSupport
       # Unpack the string at grapheme boundaries. Returns a list of character lists.
       #
       # Example:
-      #   Unicode.g_unpack('क्षि') # => [[2325, 2381], [2359], [2367]]
-      #   Unicode.g_unpack('Café') # => [[67], [97], [102], [233]]
-      def g_unpack(string)
-        codepoints = u_unpack(string)
+      #   Unicode.unpack_graphemes('क्षि') # => [[2325, 2381], [2359], [2367]]
+      #   Unicode.unpack_graphemes('Café') # => [[67], [97], [102], [233]]
+      def unpack_graphemes(string)
+        codepoints = string.codepoints.to_a
         unpacked = []
         pos = 0
         marker = 0
@@ -118,12 +105,12 @@ module ActiveSupport
         unpacked
       end
 
-      # Reverse operation of g_unpack.
+      # Reverse operation of unpack_graphemes.
       #
       # Example:
-      #   Unicode.g_pack(Unicode.g_unpack('क्षि')) # => 'क्षि'
-      def g_pack(unpacked)
-        (unpacked.flatten).pack('U*')
+      #   Unicode.pack_graphemes(Unicode.unpack_graphemes('क्षि')) # => 'क्षि'
+      def pack_graphemes(unpacked)
+        unpacked.flatten.pack('U*')
       end
 
       # Re-order codepoints so the string becomes canonical.
@@ -143,7 +130,7 @@ module ActiveSupport
       end
 
       # Decompose composed characters to the decomposed form.
-      def decompose_codepoints(type, codepoints)
+      def decompose(type, codepoints)
         codepoints.inject([]) do |decomposed, cp|
           # if it's a hangul syllable starter character
           if HANGUL_SBASE <= cp and cp < HANGUL_SLAST
@@ -156,7 +143,7 @@ module ActiveSupport
             decomposed.concat ncp
           # if the codepoint is decomposable in with the current decomposition type
           elsif (ncp = database.codepoints[cp].decomp_mapping) and (!database.codepoints[cp].decomp_type || type == :compatability)
-            decomposed.concat decompose_codepoints(type, ncp.dup)
+            decomposed.concat decompose(type, ncp.dup)
           else
             decomposed << cp
           end
@@ -164,7 +151,7 @@ module ActiveSupport
       end
 
       # Compose decomposed characters to the composed form.
-      def compose_codepoints(codepoints)
+      def compose(codepoints)
         pos = 0
         eoa = codepoints.length - 1
         starter_pos = 0
@@ -283,30 +270,27 @@ module ActiveSupport
       def normalize(string, form=nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1
-        codepoints = u_unpack(string)
+        codepoints = string.codepoints.to_a
         case form
           when :d
-            reorder_characters(decompose_codepoints(:canonical, codepoints))
+            reorder_characters(decompose(:canonical, codepoints))
           when :c
-            compose_codepoints(reorder_characters(decompose_codepoints(:canonical, codepoints)))
+            compose(reorder_characters(decompose(:canonical, codepoints)))
           when :kd
-            reorder_characters(decompose_codepoints(:compatability, codepoints))
+            reorder_characters(decompose(:compatability, codepoints))
           when :kc
-            compose_codepoints(reorder_characters(decompose_codepoints(:compatability, codepoints)))
+            compose(reorder_characters(decompose(:compatability, codepoints)))
           else
             raise ArgumentError, "#{form} is not a valid normalization variant", caller
         end.pack('U*')
       end
 
-      def apply_mapping(string, mapping) #:nodoc:
-        u_unpack(string).map do |codepoint|
-          cp = database.codepoints[codepoint]
-          if cp and (ncp = cp.send(mapping)) and ncp > 0
-            ncp
-          else
-            codepoint
-          end
-        end.pack('U*')
+      def downcase(string)
+        apply_mapping string, :lowercase_mapping
+      end
+
+      def upcase(string)
+        apply_mapping string, :uppercase_mapping
       end
 
       # Holds data about a codepoint in the Unicode database
@@ -373,6 +357,17 @@ module ActiveSupport
       end
 
       private
+
+      def apply_mapping(string, mapping) #:nodoc:
+        string.each_codepoint.map do |codepoint|
+          cp = database.codepoints[codepoint]
+          if cp and (ncp = cp.send(mapping)) and ncp > 0
+            ncp
+          else
+            codepoint
+          end
+        end.pack('U*')
+      end
 
       def tidy_byte(byte)
         if byte < 160

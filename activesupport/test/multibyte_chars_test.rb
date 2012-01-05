@@ -7,6 +7,7 @@ class String
   def __method_for_multibyte_testing_with_integer_result; 1; end
   def __method_for_multibyte_testing; 'result'; end
   def __method_for_multibyte_testing!; 'result'; end
+  def __method_for_multibyte_testing_that_returns_nil!; end
 end
 
 class MultibyteCharsTest < Test::Unit::TestCase
@@ -36,9 +37,13 @@ class MultibyteCharsTest < Test::Unit::TestCase
     assert_not_equal @chars.object_id, @chars.__method_for_multibyte_testing.object_id
   end
 
-  def test_forwarded_bang_method_calls_should_return_the_original_chars_instance
+  def test_forwarded_bang_method_calls_should_return_the_original_chars_instance_when_result_is_not_nil
     assert_kind_of @proxy_class, @chars.__method_for_multibyte_testing!
     assert_equal @chars.object_id, @chars.__method_for_multibyte_testing!.object_id
+  end
+
+  def test_forwarded_bang_method_calls_should_return_nil_when_result_is_nil
+    assert_nil @chars.__method_for_multibyte_testing_that_returns_nil!
   end
 
   def test_methods_are_forwarded_to_wrapped_string_for_byte_strings
@@ -65,17 +70,6 @@ class MultibyteCharsTest < Test::Unit::TestCase
     assert @proxy_class.consumes?(UNICODE_STRING)
     assert @proxy_class.consumes?(ASCII_STRING)
     assert !@proxy_class.consumes?(BYTE_STRING)
-  end
-
-  def test_unpack_utf8_strings
-    assert_equal 4, ActiveSupport::Multibyte::Unicode.u_unpack(UNICODE_STRING).length
-    assert_equal 5, ActiveSupport::Multibyte::Unicode.u_unpack(ASCII_STRING).length
-  end
-
-  def test_unpack_raises_encoding_error_on_broken_strings
-    assert_raise(ActiveSupport::Multibyte::EncodingError) do
-      ActiveSupport::Multibyte::Unicode.u_unpack(BYTE_STRING)
-    end
   end
 
   def test_concatenation_should_return_a_proxy_class_instance
@@ -112,15 +106,11 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     end
   end
 
-  def test_indexed_insert_accepts_fixnums
-    @chars[2] = 32
-    assert_equal 'こに わ', @chars
-  end
-
-  %w{capitalize downcase lstrip reverse rstrip strip upcase}.each do |method|
+  %w{capitalize downcase lstrip reverse rstrip upcase}.each do |method|
     class_eval(<<-EOTESTS)
-      def test_#{method}_bang_should_return_self
-        assert_equal @chars.object_id, @chars.send("#{method}!").object_id
+      def test_#{method}_bang_should_return_self_when_modifying_wrapped_string
+        chars = ' él piDió Un bUen café '
+        assert_equal chars.object_id, chars.send("#{method}!").object_id
       end
 
       def test_#{method}_bang_should_change_wrapped_string
@@ -419,7 +409,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   def test_slice_bang_removes_the_slice_from_the_receiver
     chars = 'úüù'.mb_chars
     chars.slice!(0,2)
-    assert_equal 'úü', chars
+    assert_equal 'ù', chars
   end
 
   def test_slice_should_throw_exceptions_on_invalid_arguments
@@ -506,7 +496,7 @@ class MultibyteCharsExtrasTest < Test::Unit::TestCase
 
   def test_limit_should_work_on_a_multibyte_string
     example = chars(UNICODE_STRING)
-    bytesize = UNICODE_STRING.respond_to?(:bytesize) ? UNICODE_STRING.bytesize : UNICODE_STRING.size
+    bytesize = UNICODE_STRING.bytesize
 
     assert_equal UNICODE_STRING, example.limit(bytesize)
     assert_equal '', example.limit(0)
@@ -605,7 +595,7 @@ class MultibyteCharsExtrasTest < Test::Unit::TestCase
       else
         str = input
       end
-      assert_equal expected_length, chars(str).g_length
+      assert_equal expected_length, chars(str).grapheme_length
     end
   end
 

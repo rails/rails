@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'active_support/core_ext/string/access'
 require 'active_support/core_ext/string/behavior'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveSupport #:nodoc:
   module Multibyte #:nodoc:
@@ -34,9 +35,12 @@ module ActiveSupport #:nodoc:
     #
     #   ActiveSupport::Multibyte.proxy_class = CharsForUTF32
     class Chars
+      include Comparable
       attr_reader :wrapped_string
       alias to_s wrapped_string
       alias to_str wrapped_string
+
+      delegate :<=>, :=~, :acts_like_string?, :to => :wrapped_string
 
       # Creates a new Chars instance by wrapping _string_.
       def initialize(string)
@@ -47,8 +51,8 @@ module ActiveSupport #:nodoc:
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
         if method.to_s =~ /!$/
-          @wrapped_string.__send__(method, *args, &block)
-          self
+          result = @wrapped_string.__send__(method, *args, &block)
+          self if result
         else
           result = @wrapped_string.__send__(method, *args, &block)
           result.kind_of?(String) ? chars(result) : result
@@ -61,35 +65,9 @@ module ActiveSupport #:nodoc:
         super || @wrapped_string.respond_to?(method, include_private)
       end
 
-      # Enable more predictable duck-typing on String-like classes. See Object#acts_like?.
-      def acts_like_string?
-        true
-      end
-
       # Returns +true+ when the proxy class can handle the string. Returns +false+ otherwise.
       def self.consumes?(string)
-        # Unpack is a little bit faster than regular expressions.
-        string.unpack('U*')
-        true
-      rescue ArgumentError
-        false
-      end
-
-      include Comparable
-
-      # Returns -1, 0, or 1, depending on whether the Chars object is to be sorted before,
-      # equal or after the object on the right side of the operation. It accepts any object
-      # that implements +to_s+:
-      #
-      #   'é'.mb_chars <=> 'ü'.mb_chars # => -1
-      #
-      # See <tt>String#<=></tt> for more details.
-      def <=>(other)
-        @wrapped_string <=> other.to_s
-      end
-
-      def =~(other)
-        @wrapped_string =~ other
+        string.encoding == Encoding::UTF_8
       end
 
       # Works just like <tt>String#split</tt>, with the exception that the items in the resulting list are Chars
@@ -101,45 +79,10 @@ module ActiveSupport #:nodoc:
         @wrapped_string.split(*args).map { |i| i.mb_chars }
       end
 
-      # Like <tt>String#[]=</tt>, except instead of byte offsets you specify character offsets.
-      #
-      # Example:
-      #
-      #   s = "Müller"
-      #   s.mb_chars[2] = "e" # Replace character with offset 2
-      #   s
-      #   # => "Müeler"
-      #
-      #   s = "Müller"
-      #   s.mb_chars[1, 2] = "ö" # Replace 2 characters at character offset 1
-      #   s
-      #   # => "Möler"
-      def []=(*args)
-        replace_by = args.pop
-        # Indexed replace with regular expressions already works
-        if args.first.is_a?(Regexp)
-          @wrapped_string[*args] = replace_by
-        else
-          result = Unicode.u_unpack(@wrapped_string)
-          case args.first
-          when Fixnum
-            raise IndexError, "index #{args[0]} out of string" if args[0] >= result.length
-            min = args[0]
-            max = args[1].nil? ? min : (min + args[1] - 1)
-            range = Range.new(min, max)
-            replace_by = [replace_by].pack('U') if replace_by.is_a?(Fixnum)
-          when Range
-            raise RangeError, "#{args[0]} out of range" if args[0].min >= result.length
-            range = args[0]
-          else
-            needle = args[0].to_s
-            min = index(needle)
-            max = min + Unicode.u_unpack(needle).length - 1
-            range = Range.new(min, max)
-          end
-          result[range] = Unicode.u_unpack(replace_by)
-          @wrapped_string.replace(result.pack('U*'))
-        end
+      # Works like like <tt>String#slice!</tt>, but returns an instance of Chars, or nil if the string was not
+      # modified.
+      def slice!(*args)
+        chars(@wrapped_string.slice!(*args))
       end
 
       # Reverses all characters in the string.
@@ -147,36 +90,8 @@ module ActiveSupport #:nodoc:
       # Example:
       #   'Café'.mb_chars.reverse.to_s # => 'éfaC'
       def reverse
-        chars(Unicode.g_unpack(@wrapped_string).reverse.flatten.pack('U*'))
+        chars(Unicode.unpack_graphemes(@wrapped_string).reverse.flatten.pack('U*'))
       end
-
-      # Implements Unicode-aware slice with codepoints. Slicing on one point returns the codepoints for that
-      # character.
-      #
-      # Example:
-      #   'こんにちは'.mb_chars.slice(2..3).to_s # => "にち"
-      def slice(*args)
-        if args.size > 2
-          raise ArgumentError, "wrong number of arguments (#{args.size} for 1)" # Do as if we were native
-        elsif (args.size == 2 && !(args.first.is_a?(Numeric) || args.first.is_a?(Regexp)))
-          raise TypeError, "cannot convert #{args.first.class} into Integer" # Do as if we were native
-        elsif (args.size == 2 && !args[1].is_a?(Numeric))
-          raise TypeError, "cannot convert #{args[1].class} into Integer" # Do as if we were native
-        elsif args[0].kind_of? Range
-          cps = Unicode.u_unpack(@wrapped_string).slice(*args)
-          result = cps.nil? ? nil : cps.pack('U*')
-        elsif args[0].kind_of? Regexp
-          result = @wrapped_string.slice(*args)
-        elsif args.size == 1 && args[0].kind_of?(Numeric)
-          character = Unicode.u_unpack(@wrapped_string)[args[0]]
-          result = character && [character].pack('U')
-        else
-          cps = Unicode.u_unpack(@wrapped_string).slice(*args)
-          result = cps && cps.pack('U*')
-        end
-        result && chars(result)
-      end
-      alias_method :[], :slice
 
       # Limit the byte size of the string to a number of bytes without breaking characters. Usable
       # when the storage for a string is limited for some reason.
@@ -192,7 +107,7 @@ module ActiveSupport #:nodoc:
       # Example:
       #   'Laurent, où sont les tests ?'.mb_chars.upcase.to_s # => "LAURENT, OÙ SONT LES TESTS ?"
       def upcase
-        chars(Unicode.apply_mapping @wrapped_string, :uppercase_mapping)
+        chars Unicode.upcase(@wrapped_string)
       end
 
       # Convert characters in the string to lowercase.
@@ -200,7 +115,7 @@ module ActiveSupport #:nodoc:
       # Example:
       #   'VĚDA A VÝZKUM'.mb_chars.downcase.to_s # => "věda a výzkum"
       def downcase
-        chars(Unicode.apply_mapping @wrapped_string, :lowercase_mapping)
+        chars Unicode.downcase(@wrapped_string)
       end
 
       # Converts the first character to uppercase and the remainder to lowercase.
@@ -217,7 +132,7 @@ module ActiveSupport #:nodoc:
       #   "ÉL QUE SE ENTERÓ".mb_chars.titleize    # => "Él Que Se Enteró"
       #   "日本語".mb_chars.titleize                 # => "日本語"
       def titleize
-        chars(downcase.to_s.gsub(/\b('?[\S])/u) { Unicode.apply_mapping $1, :uppercase_mapping })
+        chars(downcase.to_s.gsub(/\b('?[\S])/u) { Unicode.upcase($1)})
       end
       alias_method :titlecase, :titleize
 
@@ -237,7 +152,7 @@ module ActiveSupport #:nodoc:
       #   'é'.length                         # => 2
       #   'é'.mb_chars.decompose.to_s.length # => 3
       def decompose
-        chars(Unicode.decompose_codepoints(:canonical, Unicode.u_unpack(@wrapped_string)).pack('U*'))
+        chars(Unicode.decompose(:canonical, @wrapped_string.codepoints.to_a).pack('U*'))
       end
 
       # Performs composition on all the characters.
@@ -246,16 +161,16 @@ module ActiveSupport #:nodoc:
       #   'é'.length                       # => 3
       #   'é'.mb_chars.compose.to_s.length # => 2
       def compose
-        chars(Unicode.compose_codepoints(Unicode.u_unpack(@wrapped_string)).pack('U*'))
+        chars(Unicode.compose(@wrapped_string.codepoints.to_a).pack('U*'))
       end
 
       # Returns the number of grapheme clusters in the string.
       #
       # Example:
       #   'क्षि'.mb_chars.length   # => 4
-      #   'क्षि'.mb_chars.g_length # => 3
-      def g_length
-        Unicode.g_unpack(@wrapped_string).length
+      #   'क्षि'.mb_chars.grapheme_length # => 3
+      def grapheme_length
+        Unicode.unpack_graphemes(@wrapped_string).length
       end
 
       # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
@@ -265,14 +180,10 @@ module ActiveSupport #:nodoc:
         chars(Unicode.tidy_bytes(@wrapped_string, force))
       end
 
-       %w(capitalize downcase lstrip reverse rstrip slice strip tidy_bytes upcase).each do |method|
-        # Only define a corresponding bang method for methods defined in the proxy; On 1.9 the proxy will
-        # exclude lstrip!, rstrip! and strip! because they are already work as expected on multibyte strings.
-        if public_method_defined?(method)
-          define_method("#{method}!") do |*args|
-            @wrapped_string = send(args.nil? ? method : method, *args).to_s
-            self
-          end
+      %w(capitalize downcase reverse tidy_bytes upcase).each do |method|
+        define_method("#{method}!") do |*args|
+          @wrapped_string = send(method, *args).to_s
+          self
         end
       end
 
@@ -282,38 +193,11 @@ module ActiveSupport #:nodoc:
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ''
 
-          @wrapped_string = @wrapped_string.dup.force_encoding(Encoding::ASCII_8BIT)
-
           begin
-            @wrapped_string[0...byte_offset].unpack('U*').length
+            @wrapped_string.byteslice(0...byte_offset).unpack('U*').length
           rescue ArgumentError
             byte_offset -= 1
             retry
-          end
-        end
-
-        def justify(integer, way, padstr=' ') #:nodoc:
-          raise ArgumentError, "zero width padding" if padstr.length == 0
-          padsize = integer - size
-          padsize = padsize > 0 ? padsize : 0
-          case way
-          when :right
-            result = @wrapped_string.dup.insert(0, padding(padsize, padstr))
-          when :left
-            result = @wrapped_string.dup.insert(-1, padding(padsize, padstr))
-          when :center
-            lpad = padding((padsize / 2.0).floor, padstr)
-            rpad = padding((padsize / 2.0).ceil, padstr)
-            result = @wrapped_string.dup.insert(0, lpad).insert(-1, rpad)
-          end
-          chars(result)
-        end
-
-        def padding(padsize, padstr=' ') #:nodoc:
-          if padsize != 0
-            chars(padstr * ((padsize / Unicode.u_unpack(padstr).size) + 1)).slice(0, padsize)
-          else
-            ''
           end
         end
 
