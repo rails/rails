@@ -66,11 +66,7 @@ module ActiveSupport #:nodoc:
 
       # Returns +true+ when the proxy class can handle the string. Returns +false+ otherwise.
       def self.consumes?(string)
-        # Unpack is a little bit faster than regular expressions.
-        string.unpack('U*')
-        true
-      rescue ArgumentError
-        false
+        string.encoding == Encoding::UTF_8
       end
 
       include Comparable
