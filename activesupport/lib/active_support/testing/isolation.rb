@@ -38,41 +38,13 @@ module ActiveSupport
       end
 
       def self.included(base)
-        if defined?(::MiniTest) && base < ::MiniTest::Unit::TestCase
-          base.send :include, MiniTest
-        elsif defined?(Test::Unit)
-          base.send :include, TestUnit
-        end
+        base.send :include, MiniTest
       end
 
       def _run_class_setup      # class setup method should only happen in parent
         unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
           self.class.setup if self.class.respond_to?(:setup)
           @@ran_class_setup = true
-        end
-      end
-
-      module TestUnit
-        def run(result)
-          _run_class_setup
-
-          yield(Test::Unit::TestCase::STARTED, name)
-
-          @_result = result
-
-          serialized = run_in_isolation do |proxy|
-            begin
-              super(proxy) { }
-            rescue Exception => e
-              proxy.add_error(Test::Unit::Error.new(name, e))
-            end
-          end
-
-          retval, proxy = Marshal.load(serialized)
-          proxy.__replay__(@_result)
-
-          yield(Test::Unit::TestCase::FINISHED, name)
-          retval
         end
       end
 
