@@ -102,7 +102,7 @@ module ActionView
       # Whenever setting view paths, makes a copy so we can manipulate then in
       # instance objects as we wish.
       def view_paths=(paths)
-        @view_paths = ActionView::PathSet.new(Array.wrap(paths))
+        @view_paths = ActionView::PathSet.new(Array(paths))
       end
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})

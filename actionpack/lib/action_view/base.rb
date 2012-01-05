@@ -1,7 +1,6 @@
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/ordered_options'
 require 'action_view/log_subscriber'
 require 'active_support/core_ext/module/deprecation'
@@ -160,7 +159,7 @@ module ActionView #:nodoc:
 
       def process_view_paths(value)
         value.is_a?(PathSet) ?
-          value.dup : ActionView::PathSet.new(Array.wrap(value))
+          value.dup : ActionView::PathSet.new(Array(value))
       end
       deprecate :process_view_paths
 
