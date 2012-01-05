@@ -285,15 +285,12 @@ module ActiveSupport
         end.pack('U*')
       end
 
-      def apply_mapping(string, mapping) #:nodoc:
-        string.each_codepoint.map do |codepoint|
-          cp = database.codepoints[codepoint]
-          if cp and (ncp = cp.send(mapping)) and ncp > 0
-            ncp
-          else
-            codepoint
-          end
-        end.pack('U*')
+      def downcase(string)
+        apply_mapping string, :lowercase_mapping
+      end
+
+      def upcase(string)
+        apply_mapping string, :uppercase_mapping
       end
 
       # Holds data about a codepoint in the Unicode database
@@ -360,6 +357,17 @@ module ActiveSupport
       end
 
       private
+
+      def apply_mapping(string, mapping) #:nodoc:
+        string.each_codepoint.map do |codepoint|
+          cp = database.codepoints[codepoint]
+          if cp and (ncp = cp.send(mapping)) and ncp > 0
+            ncp
+          else
+            codepoint
+          end
+        end.pack('U*')
+      end
 
       def tidy_byte(byte)
         if byte < 160

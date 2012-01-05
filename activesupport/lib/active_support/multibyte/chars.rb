@@ -107,7 +107,7 @@ module ActiveSupport #:nodoc:
       # Example:
       #   'Laurent, où sont les tests ?'.mb_chars.upcase.to_s # => "LAURENT, OÙ SONT LES TESTS ?"
       def upcase
-        chars(Unicode.apply_mapping @wrapped_string, :uppercase_mapping)
+        chars Unicode.upcase(@wrapped_string)
       end
 
       # Convert characters in the string to lowercase.
@@ -115,7 +115,7 @@ module ActiveSupport #:nodoc:
       # Example:
       #   'VĚDA A VÝZKUM'.mb_chars.downcase.to_s # => "věda a výzkum"
       def downcase
-        chars(Unicode.apply_mapping @wrapped_string, :lowercase_mapping)
+        chars Unicode.downcase(@wrapped_string)
       end
 
       # Converts the first character to uppercase and the remainder to lowercase.
@@ -132,7 +132,7 @@ module ActiveSupport #:nodoc:
       #   "ÉL QUE SE ENTERÓ".mb_chars.titleize    # => "Él Que Se Enteró"
       #   "日本語".mb_chars.titleize                 # => "日本語"
       def titleize
-        chars(downcase.to_s.gsub(/\b('?[\S])/u) { Unicode.apply_mapping $1, :uppercase_mapping })
+        chars(downcase.to_s.gsub(/\b('?[\S])/u) { Unicode.upcase($1)})
       end
       alias_method :titlecase, :titleize
 
