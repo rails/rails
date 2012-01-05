@@ -419,7 +419,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   def test_slice_bang_removes_the_slice_from_the_receiver
     chars = 'úüù'.mb_chars
     chars.slice!(0,2)
-    assert_equal 'úü', chars
+    assert_equal 'ù', chars
   end
 
   def test_slice_should_throw_exceptions_on_invalid_arguments
