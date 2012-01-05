@@ -10,12 +10,14 @@ module ActiveRecord
   module ConnectionHandling
     # Establishes a connection to the database that's used by all Active Record objects
     def postgresql_connection(config) # :nodoc:
-      config = config.symbolize_keys
+      conn_params = config.symbolize_keys
 
       # Forward any unused config params to PGconn.connect.
-      conn_params = config.except(:statement_limit, :encoding, :min_messages,
-                                  :schema_search_path, :schema_order,
-                                  :adapter, :pool, :wait_timeout)
+      [:statement_limit, :encoding, :min_messages, :schema_search_path,
+       :schema_order, :adapter, :pool, :wait_timeout,
+       :reaping_frequency].each do |key|
+        conn_params.delete key
+      end
       conn_params.delete_if { |k,v| v.nil? }
 
       # Map ActiveRecords param names to PGs.
