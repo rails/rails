@@ -498,7 +498,7 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
     assert_equal "text/html", @response.content_type
   end
-  
+
   def test_invalid_format
     get :using_defaults, :format => "invalidformat"
     assert_equal " ", @response.body
@@ -541,6 +541,10 @@ class RespondWithController < ActionController::Base
 
   def using_resource_with_status_and_location
     respond_with(resource, :location => "http://test.host/", :status => :created)
+  end
+
+  def using_resource_with_custom_status
+    respond_with(resource, :location => "http://test.host/", :status => :conflict)
   end
 
   def using_invalid_resource_with_template
@@ -984,6 +988,16 @@ class RespondWithControllerTest < ActionController::TestCase
     @request.accept = "application/xml"
     get :using_resource_with_status_and_location
     assert_equal 201, @response.status
+  end
+
+  def test_using_resource_with_custom_status
+    @request.accept = "text/html"
+    post :using_resource_with_custom_status
+    assert_equal 409, @response.status
+
+    @request.accept = "application/xml"
+    get :using_resource_with_custom_status
+    assert_equal 409, @response.status
   end
 
   def test_using_resource_with_status_and_location_with_invalid_resource
