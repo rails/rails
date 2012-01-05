@@ -143,7 +143,7 @@ module ActiveSupport
       end
 
       # Decompose composed characters to the decomposed form.
-      def decompose_codepoints(type, codepoints)
+      def decompose(type, codepoints)
         codepoints.inject([]) do |decomposed, cp|
           # if it's a hangul syllable starter character
           if HANGUL_SBASE <= cp and cp < HANGUL_SLAST
@@ -156,7 +156,7 @@ module ActiveSupport
             decomposed.concat ncp
           # if the codepoint is decomposable in with the current decomposition type
           elsif (ncp = database.codepoints[cp].decomp_mapping) and (!database.codepoints[cp].decomp_type || type == :compatability)
-            decomposed.concat decompose_codepoints(type, ncp.dup)
+            decomposed.concat decompose(type, ncp.dup)
           else
             decomposed << cp
           end
@@ -164,7 +164,7 @@ module ActiveSupport
       end
 
       # Compose decomposed characters to the composed form.
-      def compose_codepoints(codepoints)
+      def compose(codepoints)
         pos = 0
         eoa = codepoints.length - 1
         starter_pos = 0
@@ -286,13 +286,13 @@ module ActiveSupport
         codepoints = u_unpack(string)
         case form
           when :d
-            reorder_characters(decompose_codepoints(:canonical, codepoints))
+            reorder_characters(decompose(:canonical, codepoints))
           when :c
-            compose_codepoints(reorder_characters(decompose_codepoints(:canonical, codepoints)))
+            compose(reorder_characters(decompose(:canonical, codepoints)))
           when :kd
-            reorder_characters(decompose_codepoints(:compatability, codepoints))
+            reorder_characters(decompose(:compatability, codepoints))
           when :kc
-            compose_codepoints(reorder_characters(decompose_codepoints(:compatability, codepoints)))
+            compose(reorder_characters(decompose(:compatability, codepoints)))
           else
             raise ArgumentError, "#{form} is not a valid normalization variant", caller
         end.pack('U*')
