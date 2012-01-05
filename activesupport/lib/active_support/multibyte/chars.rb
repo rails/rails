@@ -142,6 +142,10 @@ module ActiveSupport #:nodoc:
         end
       end
 
+      def slice!(*args)
+        chars(@wrapped_string.slice!(*args))
+      end
+
       # Reverses all characters in the string.
       #
       # Example:
