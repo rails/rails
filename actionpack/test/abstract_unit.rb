@@ -254,7 +254,7 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
   end
 
   def assert_body(body)
-    assert_equal body, Array.wrap(response.body).join
+    assert_equal body, Array(response.body).join
   end
 
   def assert_status(code)
@@ -262,7 +262,7 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
   end
 
   def assert_response(body, status = 200, headers = {})
-    assert_body   body
+    assert_body body
     assert_status status
     headers.each do |header, value|
       assert_header header, value
