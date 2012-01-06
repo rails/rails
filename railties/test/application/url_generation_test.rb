@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class UrlGenerationTest < Test::Unit::TestCase
+  class UrlGenerationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def app

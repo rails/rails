@@ -10,6 +10,7 @@ require 'fileutils'
 
 require 'test/unit'
 require 'rubygems'
+require 'active_support/test_case'
 
 # TODO: Remove setting this magic constant
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
@@ -256,7 +257,7 @@ module TestHelpers
   end
 end
 
-class Test::Unit::TestCase
+class ActiveSupport::TestCase
   include TestHelpers::Paths
   include TestHelpers::Rack
   include TestHelpers::Generation

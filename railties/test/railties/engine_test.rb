@@ -4,7 +4,7 @@ require "stringio"
 require "rack/test"
 
 module RailtiesTest
-  class EngineTest < Test::Unit::TestCase
+  class EngineTest < ActiveSupport::TestCase
 
     include ActiveSupport::Testing::Isolation
     include SharedTests

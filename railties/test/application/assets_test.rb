@@ -4,7 +4,7 @@ require 'active_support/core_ext/kernel/reporting'
 require 'rack/test'
 
 module ApplicationTests
-  class AssetsTest < Test::Unit::TestCase
+  class AssetsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 

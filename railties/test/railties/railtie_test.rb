@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module RailtiesTest
-  class RailtieTest < Test::Unit::TestCase
+  class RailtieTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

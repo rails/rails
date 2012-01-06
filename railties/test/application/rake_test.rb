@@ -2,7 +2,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class RakeTest < Test::Unit::TestCase
+  class RakeTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

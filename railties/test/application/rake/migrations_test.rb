@@ -2,7 +2,7 @@ require "isolation/abstract_unit"
 
 module ApplicationTests
   module RakeTests
-    class RakeMigrationsTest < Test::Unit::TestCase
+    class RakeMigrationsTest < ActiveSupport::TestCase
       def setup
         build_app
         boot_rails

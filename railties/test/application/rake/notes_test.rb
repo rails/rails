@@ -2,7 +2,7 @@ require "isolation/abstract_unit"
 
 module ApplicationTests
   module RakeTests
-    class RakeNotesTest < Test::Unit::TestCase
+    class RakeNotesTest < ActiveSupport::TestCase
       def setup 
         build_app
         require "rails/all"

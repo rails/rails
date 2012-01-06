@@ -1,6 +1,6 @@
 require 'isolation/abstract_unit'
 
-class LoadingTest < Test::Unit::TestCase
+class LoadingTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
 
   def setup

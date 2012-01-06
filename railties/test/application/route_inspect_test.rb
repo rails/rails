@@ -4,7 +4,7 @@ require 'action_controller'
 require 'rails/engine'
 
 module ApplicationTests
-  class RouteInspectTest < Test::Unit::TestCase
+  class RouteInspectTest < ActiveSupport::TestCase
     def setup
       @set = ActionDispatch::Routing::RouteSet.new
       @inspector = Rails::Application::RouteInspector.new
