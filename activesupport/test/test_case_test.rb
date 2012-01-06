@@ -20,6 +20,10 @@ module ActiveSupport
 
     def test_callback_with_exception
       tc = Class.new(TestCase) do
+        def self.name
+          nil
+        end
+
         setup :bad_callback
         def bad_callback; raise 'oh noes' end
         def test_true; assert true end
@@ -39,6 +43,10 @@ module ActiveSupport
 
     def test_teardown_callback_with_exception
       tc = Class.new(TestCase) do
+        def self.name
+          nil
+        end
+
         teardown :bad_callback
         def bad_callback; raise 'oh noes' end
         def test_true; assert true end
