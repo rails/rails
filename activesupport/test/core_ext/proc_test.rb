@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/proc'
 
-class ProcTests < Test::Unit::TestCase
+class ProcTests < ActiveSupport::TestCase
   def test_bind_returns_method_with_changed_self
     block = Proc.new { self }
     assert_equal self, block.call

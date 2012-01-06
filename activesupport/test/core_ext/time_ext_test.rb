@@ -834,7 +834,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
 end
 
-class TimeExtMarshalingTest < Test::Unit::TestCase
+class TimeExtMarshalingTest < ActiveSupport::TestCase
   def test_marshaling_with_utc_instance
     t = Time.utc(2000)
     unmarshaled = Marshal.load(Marshal.dump(t))

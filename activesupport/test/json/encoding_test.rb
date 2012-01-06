@@ -3,7 +3,7 @@ require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
 
-class TestJSONEncoding < Test::Unit::TestCase
+class TestJSONEncoding < ActiveSupport::TestCase
   class Foo
     def initialize(a, b)
       @a, @b = a, b

@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/file'
 
-class AtomicWriteTest < Test::Unit::TestCase
+class AtomicWriteTest < ActiveSupport::TestCase
   def test_atomic_write_without_errors
     contents = "Atomic Text"
     File.atomic_write(file_name, Dir.pwd) do |file|

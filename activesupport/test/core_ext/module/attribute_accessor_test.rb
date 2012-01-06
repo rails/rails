@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/module/attribute_accessors'
 
-class ModuleAttributeAccessorTest < Test::Unit::TestCase
+class ModuleAttributeAccessorTest < ActiveSupport::TestCase
   def setup
     m = @module = Module.new do
       mattr_accessor :foo

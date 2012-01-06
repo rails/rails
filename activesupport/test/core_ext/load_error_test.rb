@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/load_error'
 
-class TestMissingSourceFile < Test::Unit::TestCase
+class TestMissingSourceFile < ActiveSupport::TestCase
   def test_with_require
     assert_raise(MissingSourceFile) { require 'no_this_file_don\'t_exist' }
   end
@@ -16,7 +16,7 @@ class TestMissingSourceFile < Test::Unit::TestCase
   end
 end
 
-class TestLoadError < Test::Unit::TestCase
+class TestLoadError < ActiveSupport::TestCase
   def test_with_require
     assert_raise(LoadError) { require 'no_this_file_don\'t_exist' }
   end

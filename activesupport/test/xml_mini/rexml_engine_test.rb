@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/xml_mini'
 
-class REXMLEngineTest < Test::Unit::TestCase
+class REXMLEngineTest < ActiveSupport::TestCase
   include ActiveSupport
 
   def test_default_is_rexml

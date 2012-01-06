@@ -4,7 +4,7 @@ require 'active_support/descendants_tracker'
 require 'active_support/dependencies'
 require 'descendants_tracker_test_cases'
 
-class DescendantsTrackerWithAutoloadingTest < Test::Unit::TestCase
+class DescendantsTrackerWithAutoloadingTest < ActiveSupport::TestCase
   include DescendantsTrackerTestCases
 
   def test_clear_with_autoloaded_parent_children_and_granchildren

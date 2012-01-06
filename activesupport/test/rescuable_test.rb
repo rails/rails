@@ -70,7 +70,7 @@ class CoolStargate < Stargate
 end
 
 
-class RescuableTest < Test::Unit::TestCase
+class RescuableTest < ActiveSupport::TestCase
   def setup
     @stargate = Stargate.new
     @cool_stargate = CoolStargate.new

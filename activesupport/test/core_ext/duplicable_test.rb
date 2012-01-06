@@ -3,7 +3,7 @@ require 'bigdecimal'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/numeric/time'
 
-class DuplicableTest < Test::Unit::TestCase
+class DuplicableTest < ActiveSupport::TestCase
   RAISE_DUP  = [nil, false, true, :symbol, 1, 2.3, BigDecimal.new('4.56'), 5.seconds]
   YES = ['1', Object.new, /foo/, [], {}, Time.now]
   NO = [Class.new, Module.new]

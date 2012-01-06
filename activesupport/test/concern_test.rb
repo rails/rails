@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/concern'
 
-class ConcernTest < Test::Unit::TestCase
+class ConcernTest < ActiveSupport::TestCase
   module Baz
     extend ActiveSupport::Concern
 

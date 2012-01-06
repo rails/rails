@@ -105,7 +105,7 @@ end
 class CountingChild < CountingParent
 end
 
-class BasicCallbacksTest < Test::Unit::TestCase
+class BasicCallbacksTest < ActiveSupport::TestCase
   def setup
     @index    = GrandParent.new("index").dispatch
     @update   = GrandParent.new("update").dispatch
@@ -126,7 +126,7 @@ class BasicCallbacksTest < Test::Unit::TestCase
   end
 end
 
-class InheritedCallbacksTest < Test::Unit::TestCase
+class InheritedCallbacksTest < ActiveSupport::TestCase
   def setup
     @index    = Parent.new("index").dispatch
     @update   = Parent.new("update").dispatch
@@ -147,7 +147,7 @@ class InheritedCallbacksTest < Test::Unit::TestCase
   end
 end
 
-class InheritedCallbacksTest2 < Test::Unit::TestCase
+class InheritedCallbacksTest2 < ActiveSupport::TestCase
   def setup
     @update1 = Child.new("update", :open).dispatch
     @update2 = Child.new("update", :closed).dispatch
@@ -162,7 +162,7 @@ class InheritedCallbacksTest2 < Test::Unit::TestCase
   end
 end
 
-class DynamicInheritedCallbacks < Test::Unit::TestCase
+class DynamicInheritedCallbacks < ActiveSupport::TestCase
   def test_callbacks_looks_to_the_superclass_before_running
     child = EmptyChild.new.dispatch
     assert !child.performed?

@@ -14,7 +14,7 @@ module ModuleWithConstant
   InheritedConstant = "Hello"
 end
 
-class DependenciesTest < Test::Unit::TestCase
+class DependenciesTest < ActiveSupport::TestCase
   def teardown
     ActiveSupport::Dependencies.clear
   end
@@ -413,7 +413,7 @@ class DependenciesTest < Test::Unit::TestCase
     assert ActiveSupport::Dependencies.qualified_const_defined?("Object")
     assert ActiveSupport::Dependencies.qualified_const_defined?("::Object")
     assert ActiveSupport::Dependencies.qualified_const_defined?("::Object::Kernel")
-    assert ActiveSupport::Dependencies.qualified_const_defined?("::Test::Unit::TestCase")
+    assert ActiveSupport::Dependencies.qualified_const_defined?("::ActiveSupport::TestCase")
   end
 
   def test_qualified_const_defined_should_not_call_const_missing

@@ -5,7 +5,7 @@ require 'fileutils'
 require 'tempfile'
 require 'active_support/testing/deprecation'
 
-class BufferedLoggerTest < Test::Unit::TestCase
+class BufferedLoggerTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
   include ActiveSupport::Testing::Deprecation
 

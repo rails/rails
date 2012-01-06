@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 
-class DateTimeExtCalculationsTest < Test::Unit::TestCase
+class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
     assert_equal "2005-02-21 14:30:00",               datetime.to_s(:db)

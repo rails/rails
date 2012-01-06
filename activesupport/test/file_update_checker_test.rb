@@ -4,7 +4,7 @@ require 'fileutils'
 
 MTIME_FIXTURES_PATH = File.expand_path("../fixtures", __FILE__)
 
-class FileUpdateCheckerWithEnumerableTest < Test::Unit::TestCase
+class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
   FILES = %w(1.txt 2.txt 3.txt)
 
   def setup

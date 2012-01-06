@@ -10,7 +10,7 @@ class String
   def __method_for_multibyte_testing_that_returns_nil!; end
 end
 
-class MultibyteCharsTest < Test::Unit::TestCase
+class MultibyteCharsTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
   def setup
@@ -90,7 +90,7 @@ class MultibyteCharsTest < Test::Unit::TestCase
 
 end
 
-class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
+class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
   def setup
@@ -457,7 +457,7 @@ end
 # The default Multibyte Chars proxy has more features than the normal string implementation. Tests
 # for the implementation of these features should run on all Ruby versions and shouldn't be tested
 # through the proxy methods.
-class MultibyteCharsExtrasTest < Test::Unit::TestCase
+class MultibyteCharsExtrasTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
   def test_upcase_should_be_unicode_aware

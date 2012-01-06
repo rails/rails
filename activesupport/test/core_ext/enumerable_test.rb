@@ -7,7 +7,7 @@ class SummablePayment < Payment
   def +(p) self.class.new(price + p.price) end
 end
 
-class EnumerableTests < Test::Unit::TestCase
+class EnumerableTests < ActiveSupport::TestCase
   Enumerator = [].each.class
 
   class GenericEnumerable

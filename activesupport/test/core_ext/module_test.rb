@@ -68,7 +68,7 @@ class Name
   end
 end
 
-class ModuleTest < Test::Unit::TestCase
+class ModuleTest < ActiveSupport::TestCase
   def setup
     @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
   end
@@ -245,7 +245,7 @@ module BarMethods
   end
 end
 
-class MethodAliasingTest < Test::Unit::TestCase
+class MethodAliasingTest < ActiveSupport::TestCase
   def setup
     Object.const_set :FooClassWithBarMethod, Class.new { def bar() 'bar' end }
     @instance = FooClassWithBarMethod.new

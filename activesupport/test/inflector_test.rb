@@ -4,7 +4,7 @@ require 'active_support/inflector'
 require 'inflector_test_cases'
 require 'constantize_test_cases'
 
-class InflectorTest < Test::Unit::TestCase
+class InflectorTest < ActiveSupport::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
 

@@ -3,7 +3,7 @@ require 'active_support/json'
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/hash/indifferent_access'
 
-class OrderedHashTest < Test::Unit::TestCase
+class OrderedHashTest < ActiveSupport::TestCase
   def setup
     @keys =   %w( blue   green  red    pink   orange )
     @values = %w( 000099 009900 aa0000 cc0066 cc6633 )

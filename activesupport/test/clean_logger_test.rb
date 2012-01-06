@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'stringio'
 require 'active_support/logger'
 
-class CleanLoggerTest < Test::Unit::TestCase
+class CleanLoggerTest < ActiveSupport::TestCase
   def setup
     @out = StringIO.new
     @logger = ActiveSupport::Logger.new(@out)
