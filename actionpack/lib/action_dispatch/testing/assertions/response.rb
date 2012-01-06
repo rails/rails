@@ -62,9 +62,8 @@ module ActionDispatch
         redirect_is       = normalize_argument_to_redirection(@response.location)
         redirect_expected = normalize_argument_to_redirection(options)
 
-        if redirect_is != redirect_expected
-          flunk "Expected response to be a redirect to <#{redirect_expected}> but was a redirect to <#{redirect_is}>"
-        end
+        message ||= "Expected response to be a redirect to <#{redirect_expected}> but was a redirect to <#{redirect_is}>"
+        assert_equal redirect_expected, redirect_is, message
       end
 
       private
