@@ -867,6 +867,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_remote_without_html
     @post.persisted = false
+    def @post.id; nil; end
     form_for(@post, :remote => true) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
@@ -1016,6 +1017,7 @@ class FormHelperTest < ActionView::TestCase
     old_locale, I18n.locale = I18n.locale, :submit
 
     @post.persisted = false
+    def @post.id; nil; end
     form_for(@post) do |f|
       concat f.submit
     end
