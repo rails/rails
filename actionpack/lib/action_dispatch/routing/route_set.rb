@@ -533,7 +533,6 @@ module ActionDispatch
       end
 
       def url_for(options)
-        finalize!
         options = (options || {}).reverse_merge!(default_url_options)
 
         handle_positional_args(options)
@@ -559,7 +558,6 @@ module ActionDispatch
       end
 
       def call(env)
-        finalize!
         @router.call(env)
       end
 

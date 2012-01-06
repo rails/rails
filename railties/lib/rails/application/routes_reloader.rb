@@ -42,7 +42,7 @@ module Rails
 
       def finalize!
         route_sets.each do |routes|
-          ActiveSupport.on_load(:action_controller) { routes.finalize! }
+          routes.finalize!
         end
       end
 
