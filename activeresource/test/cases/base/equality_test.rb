@@ -2,7 +2,7 @@ require 'abstract_unit'
 require "fixtures/person"
 require "fixtures/street_address"
 
-class BaseEqualityTest < Test::Unit::TestCase
+class BaseEqualityTest < ActiveSupport::TestCase
   def setup
     @new = Person.new
     @one = Person.new(:id => 1)

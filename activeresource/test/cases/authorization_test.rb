@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class AuthorizationTest < Test::Unit::TestCase
+class AuthorizationTest < ActiveSupport::TestCase
   Response = Struct.new(:code)
 
   def setup

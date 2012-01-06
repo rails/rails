@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require "fixtures/person"
 
-class BaseErrorsTest < Test::Unit::TestCase
+class BaseErrorsTest < ActiveSupport::TestCase
   def setup
     ActiveResource::HttpMock.respond_to do |mock|
       mock.post "/people.xml", {}, %q(<?xml version="1.0" encoding="UTF-8"?><errors><error>Age can't be blank</error><error>Name can't be blank</error><error>Name must start with a letter</error><error>Person quota full for today.</error></errors>), 422, {'Content-Type' => 'application/xml; charset=utf-8'}

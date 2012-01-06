@@ -6,7 +6,7 @@ require "fixtures/beast"
 require "fixtures/proxy"
 require 'active_support/core_ext/hash/conversions'
 
-class FinderTest < Test::Unit::TestCase
+class FinderTest < ActiveSupport::TestCase
   def setup
     setup_response # find me in abstract_unit
   end
