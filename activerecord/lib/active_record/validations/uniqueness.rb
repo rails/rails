@@ -52,7 +52,7 @@ module ActiveRecord
 
       def build_relation(klass, table, attribute, value) #:nodoc:
         column = klass.columns_hash[attribute.to_s]
-        value = column.limit ? value.to_s[0, column.limit] : value.to_s if value && column.text?
+        value = column.limit ? value.to_s[0, column.limit] : value.to_s if column.text?
 
         if !options[:case_sensitive] && value && column.text?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
