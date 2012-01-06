@@ -293,9 +293,17 @@ module ActiveSupport
         apply_mapping string, :uppercase_mapping
       end
 
+      def swapcase(string)
+        apply_mapping string, :swapcase_mapping
+      end
+
       # Holds data about a codepoint in the Unicode database
       class Codepoint
         attr_accessor :code, :combining_class, :decomp_type, :decomp_mapping, :uppercase_mapping, :lowercase_mapping
+
+        def swapcase_mapping
+          uppercase_mapping > 0 ? uppercase_mapping : lowercase_mapping
+        end
       end
 
       # Holds static data from the Unicode database

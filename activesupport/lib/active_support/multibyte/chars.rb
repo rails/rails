@@ -118,6 +118,14 @@ module ActiveSupport #:nodoc:
         chars Unicode.downcase(@wrapped_string)
       end
 
+      # Converts characters in the string to the opposite case.
+      #
+      # Example:
+      #    'El Cañón".mb_chars.swapcase.to_s # => "eL cAÑÓN"
+      def swapcase
+        chars Unicode.swapcase(@wrapped_string)
+      end
+
       # Converts the first character to uppercase and the remainder to lowercase.
       #
       # Example:
