@@ -374,6 +374,14 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_check_box_with_nil_unchecked_value
+    @post.secret = "on"
+    assert_dom_equal(
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" />',
+      check_box("post", "secret", {}, "on", nil)
+    )
+  end
+
   def test_check_box_with_multiple_behavior
     @post.comment_ids = [2,3]
     assert_dom_equal(
