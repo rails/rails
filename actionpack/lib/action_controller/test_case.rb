@@ -73,9 +73,8 @@ module ActionController
       when NilClass, String, Symbol
         options = options.to_s if Symbol === options
         rendered = @templates
-        msg = build_message(message,
-                "expecting <?> but rendering with <?>",
-                options, rendered.keys.join(', '))
+        msg = message || sprintf("expecting <%s> but rendering with <%s>",
+                options, rendered.keys)
         assert_block(msg) do
           if options
             rendered.any? { |t,num| t.match(options) }
@@ -85,8 +84,7 @@ module ActionController
         end
       when Hash
         if expected_layout = options[:layout]
-          msg = build_message(message,
-                  "expecting layout <?> but action rendered <?>",
+          msg = message || sprintf("expecting layout <%s> but action rendered <%s>",
                   expected_layout, @layouts.keys)
 
           case expected_layout
@@ -107,13 +105,11 @@ module ActionController
             end
           elsif expected_count = options[:count]
             actual_count = @partials[expected_partial]
-            msg = build_message(message,
-                    "expecting ? to be rendered ? time(s) but rendered ? time(s)",
+            msg = message || sprintf("expecting %s to be rendered %s time(s) but rendered %s time(s)",
                      expected_partial, expected_count, actual_count)
             assert(actual_count == expected_count.to_i, msg)
           else
-            msg = build_message(message,
-                    "expecting partial <?> but action rendered <?>",
+            msg = message || sprintf("expecting partial <%s> but action rendered <%s>",
                     options[:partial], @partials.keys)
             assert_includes @partials, expected_partial, msg
           end
