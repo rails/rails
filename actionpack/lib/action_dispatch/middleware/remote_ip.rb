@@ -33,8 +33,8 @@ module ActionDispatch
 
     class GetIp
       def initialize(env, middleware)
-        @env          = env
-        @middleware   = middleware
+        @env           = env
+        @middleware    = middleware
         @calculated_ip = false
       end
 

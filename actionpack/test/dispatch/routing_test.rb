@@ -1443,10 +1443,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_nested_optional_path_shorthand
     with_test_routes do
       get '/registrations/new'
-      assert @request.params[:locale].nil?
+      assert_nil @request.params[:locale]
 
       get '/en/registrations/new'
-      assert 'en', @request.params[:locale]
+      assert_equal 'en', @request.params[:locale]
     end
   end
 
