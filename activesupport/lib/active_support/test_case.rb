@@ -1,4 +1,4 @@
-require 'minitest/unit'
+require 'minitest/spec'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'

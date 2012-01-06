@@ -21,7 +21,7 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'abstract_controller'
 require 'action_controller'
 require 'action_view'

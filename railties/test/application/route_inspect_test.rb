@@ -1,4 +1,4 @@
-require 'test/unit'
+require 'minitest/autorun'
 require 'rails/application/route_inspector'
 require 'action_controller'
 require 'rails/engine'

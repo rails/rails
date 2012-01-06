@@ -23,7 +23,7 @@ end
 lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'action_mailer'
 require 'action_mailer/test_case'
 

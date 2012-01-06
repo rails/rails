@@ -18,7 +18,7 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'empty_bool'
 
 silence_warnings { require 'mocha' }

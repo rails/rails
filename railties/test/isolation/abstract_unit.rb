@@ -8,8 +8,8 @@
 # Rails booted up.
 require 'fileutils'
 
-require 'test/unit'
 require 'rubygems'
+require 'minitest/autorun'
 require 'active_support/test_case'
 
 # TODO: Remove setting this magic constant

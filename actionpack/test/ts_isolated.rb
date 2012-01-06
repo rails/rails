@@ -1,7 +1,7 @@
 $:.unshift(File.dirname(__FILE__))
 $:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'rbconfig'
 require 'active_support/core_ext/kernel/reporting'
 require 'abstract_unit'
