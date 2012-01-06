@@ -117,13 +117,3 @@ module ActiveSupport
     end
   end
 end
-
-# Only in subprocess for windows / jruby.
-if ENV['ISOLATION_TEST']
-  require "test/unit/collector/objectspace"
-  class Test::Unit::Collector::ObjectSpace
-    def include?(test)
-      super && test.method_name == ENV['ISOLATION_TEST']
-    end
-  end
-end
