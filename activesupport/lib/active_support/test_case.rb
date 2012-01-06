@@ -36,6 +36,7 @@ module ActiveSupport
     alias :assert_not_nil :refute_nil
     alias :assert_not_equal :refute_equal
     alias :assert_no_match :refute_match
+    alias :assert_not_same :refute_same
 
     def assert_nothing_raised(*args)
       yield
