@@ -81,13 +81,9 @@ module ActionView
       #    <li id="person_123" class="person bar">...
       #
       def content_tag_for(tag_name, single_or_multiple_records, prefix = nil, options = nil, &block)
-        if single_or_multiple_records.respond_to?(:to_ary)
-          single_or_multiple_records.to_ary.map do |single_record|
-            capture { content_tag_for_single_record(tag_name, single_record, prefix, options, &block) }
-          end.join("\n").html_safe
-        else
-          content_tag_for_single_record(tag_name, single_or_multiple_records, prefix, options, &block)
-        end
+        Array.wrap(single_or_multiple_records).map do |single_record|
+          capture { content_tag_for_single_record(tag_name, single_record, prefix, options, &block) }
+        end.join("\n").html_safe
       end
 
       private
