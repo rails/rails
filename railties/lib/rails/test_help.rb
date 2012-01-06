@@ -7,16 +7,14 @@ require 'active_support/test_case'
 require 'action_controller/test_case'
 require 'action_dispatch/testing/integration'
 
-if defined?(MiniTest)
-  # Enable turn if it is available
-  begin
-    require 'turn'
+# Enable turn if it is available
+begin
+  require 'turn'
 
-    if MiniTest::Unit.respond_to?(:use_natural_language_case_names=)
-      MiniTest::Unit.use_natural_language_case_names = true
-    end
-  rescue LoadError
+  if MiniTest::Unit.respond_to?(:use_natural_language_case_names=)
+    MiniTest::Unit.use_natural_language_case_names = true
   end
+rescue LoadError
 end
 
 if defined?(ActiveRecord::Base)
