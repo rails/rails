@@ -128,7 +128,7 @@ module ApplicationTests
         `bundle exec rake db:migrate db:test:clone test`
       end
 
-      assert_match(/7 tests, 10 assertions, 0 failures, 0 errors/, content)
+      assert_match(/\d+ tests, \d+ assertions, 0 failures, 0 errors/, content)
     end
 
     def test_rake_dump_structure_should_respect_db_structure_env_variable
