@@ -1,6 +1,7 @@
 $:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
 
 require 'test/unit'
+require 'active_support/test_case'
 require 'rbconfig'
 require 'active_support/core_ext/kernel/reporting'
 
