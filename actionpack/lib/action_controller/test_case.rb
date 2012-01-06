@@ -326,6 +326,12 @@ module ActionController
   #
   #  assert_redirected_to page_url(:title => 'foo')
   class TestCase < ActiveSupport::TestCase
+
+    # Use AS::TestCase for the base class when describing a model
+    register_spec_type(self) do |desc|
+      desc < ActionController::Base
+    end
+
     module Behavior
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess

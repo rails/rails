@@ -9,7 +9,13 @@ require 'active_support/testing/mochaing'
 require 'active_support/core_ext/kernel/reporting'
 
 module ActiveSupport
-  class TestCase < ::MiniTest::Unit::TestCase
+  class TestCase < ::MiniTest::Spec
+
+    # Use AS::TestCase for the base class when describing a model
+    register_spec_type(self) do |desc|
+      desc < ActiveRecord::Model
+    end
+
     Assertion = MiniTest::Assertion
     alias_method :method_name, :name if method_defined? :name
     alias_method :method_name, :__name__ if method_defined? :__name__
