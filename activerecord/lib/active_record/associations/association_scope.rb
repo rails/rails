@@ -15,7 +15,7 @@ module ActiveRecord
 
       def scope
         scope = klass.unscoped
-        scope = scope.extending(*Array.wrap(options[:extend]))
+        scope = scope.extending(*Array(options[:extend]))
 
         # It's okay to just apply all these like this. The options will only be present if the
         # association supports that option; this is enforced by the association builder.
