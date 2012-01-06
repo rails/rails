@@ -29,11 +29,11 @@ module ActionDispatch
         validate_request!
 
         if type.in?([:success, :missing, :redirect, :error]) && @response.send("#{type}?")
-          assert_block("") { true } # to count the assertion
+          assert true # to count the assertion
         elsif type.is_a?(Fixnum) && @response.response_code == type
-          assert_block("") { true } # to count the assertion
+          assert true # to count the assertion
         elsif type.is_a?(Symbol) && @response.response_code == Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
-          assert_block("") { true } # to count the assertion
+          assert true # to count the assertion
         else
           flunk "Expected response to be a <#{type}>, but was <#{@response.response_code}>"
         end
