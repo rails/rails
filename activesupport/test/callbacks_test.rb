@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'test/unit'
 
 module CallbacksTest
   class Phone

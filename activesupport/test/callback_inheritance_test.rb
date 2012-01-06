@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'test/unit'
 
 class GrandParent
   include ActiveSupport::Callbacks
