@@ -3,7 +3,7 @@ require 'abstract_unit'
 # class TranslatingController < ActionController::Base
 # end
 
-class TranslationControllerTest < Test::Unit::TestCase
+class TranslationControllerTest < ActiveSupport::TestCase
   def setup
     @controller = ActionController::Base.new
   end

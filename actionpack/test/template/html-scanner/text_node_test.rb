@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class TextNodeTest < Test::Unit::TestCase
+class TextNodeTest < ActiveSupport::TestCase
   def setup
     @node = HTML::Text.new(nil, 0, 0, "hello, howdy, aloha, annyeong")
   end

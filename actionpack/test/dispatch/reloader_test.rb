@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class ReloaderTest < Test::Unit::TestCase
+class ReloaderTest < ActiveSupport::TestCase
   Reloader = ActionDispatch::Reloader
 
   def test_prepare_callbacks

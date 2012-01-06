@@ -106,7 +106,7 @@ class ControllerClassTests < ActiveSupport::TestCase
   end
 end
 
-class ControllerInstanceTests < Test::Unit::TestCase
+class ControllerInstanceTests < ActiveSupport::TestCase
   def setup
     @empty = EmptyController.new
     @contained = Submodule::ContainedEmptyController.new

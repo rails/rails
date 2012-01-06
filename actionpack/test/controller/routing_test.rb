@@ -12,7 +12,7 @@ end
 ROUTING = ActionDispatch::Routing
 
 # See RFC 3986, section 3.3 for allowed path characters.
-class UriReservedCharactersRoutingTest < Test::Unit::TestCase
+class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
   include RoutingTestHelpers
 
   def setup
@@ -72,7 +72,7 @@ class MockController
   end
 end
 
-class LegacyRouteSetTests < Test::Unit::TestCase
+class LegacyRouteSetTests < ActiveSupport::TestCase
   include RoutingTestHelpers
 
   attr_reader :rs

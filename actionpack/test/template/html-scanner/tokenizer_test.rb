@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class TokenizerTest < Test::Unit::TestCase
+class TokenizerTest < ActiveSupport::TestCase
 
   def test_blank
     tokenize ""

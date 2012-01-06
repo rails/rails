@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class TagNodeTest < Test::Unit::TestCase
+class TagNodeTest < ActiveSupport::TestCase
   def test_open_without_attributes
     node = tag("<tag>")
     assert_equal "tag", node.name
