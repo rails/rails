@@ -19,7 +19,7 @@ module ActiveSupport
 
     def tagged(*new_tags)
       tags     = current_tags
-      new_tags = Array.wrap(new_tags).flatten.reject(&:blank?)
+      new_tags = Array(new_tags).flatten.reject(&:blank?)
       tags.concat new_tags
       yield
     ensure

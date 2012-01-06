@@ -1,5 +1,4 @@
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/except'
@@ -133,7 +132,7 @@ module ActiveModel
         options = args.extract_options!
         if options.key?(:on)
           options = options.dup
-          options[:if] = Array.wrap(options[:if])
+          options[:if] = Array(options[:if])
           options[:if].unshift("validation_context == :#{options[:on]}")
         end
         args << options

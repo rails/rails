@@ -1,5 +1,3 @@
-require 'active_support/core_ext/array/wrap'
-
 module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator
@@ -25,7 +23,7 @@ module ActiveRecord
         relation = build_relation(finder_class, table, attribute, value)
         relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.send(:id))) if record.persisted?
 
-        Array.wrap(options[:scope]).each do |scope_item|
+        Array(options[:scope]).each do |scope_item|
           scope_value = record.send(scope_item)
           relation = relation.and(table[scope_item].eq(scope_value))
         end
@@ -81,7 +79,7 @@ module ActiveRecord
       #
       #   class Person < ActiveRecord::Base
       #     validates_uniqueness_of :user_name, :scope => :account_id
-      #   end 
+      #   end
       #
       # Or even multiple scope parameters. For example, making sure that a teacher can only be on the schedule once
       # per semester for a particular class.
