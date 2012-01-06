@@ -1,6 +1,5 @@
 require 'active_support/concern'
 require 'active_support/descendants_tracker'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
@@ -121,12 +120,12 @@ module ActiveSupport
       end
 
       def normalize_options!(options)
-        options[:if] = Array.wrap(options[:if])
-        options[:unless] = Array.wrap(options[:unless])
+        options[:if] = Array(options[:if])
+        options[:unless] = Array(options[:unless])
 
         options[:per_key] ||= {}
-        options[:per_key][:if] = Array.wrap(options[:per_key][:if])
-        options[:per_key][:unless] = Array.wrap(options[:per_key][:unless])
+        options[:per_key][:if] = Array(options[:per_key][:if])
+        options[:per_key][:unless] = Array(options[:per_key][:unless])
       end
 
       def name
@@ -246,11 +245,11 @@ module ActiveSupport
         conditions = ["true"]
 
         unless options[:if].empty?
-          conditions << Array.wrap(_compile_filter(options[:if]))
+          conditions << Array(_compile_filter(options[:if]))
         end
 
         unless options[:unless].empty?
-          conditions << Array.wrap(_compile_filter(options[:unless])).map {|f| "!#{f}"}
+          conditions << Array(_compile_filter(options[:unless])).map {|f| "!#{f}"}
         end
 
         conditions.flatten.join(" && ")
@@ -295,7 +294,7 @@ module ActiveSupport
           @klass.send(:define_method, "#{method_name}_object") { filter }
 
           _normalize_legacy_filter(kind, filter)
-          scopes = Array.wrap(chain.config[:scope])
+          scopes = Array(chain.config[:scope])
           method_to_call = scopes.map{ |s| s.is_a?(Symbol) ? send(s) : s }.join("_")
 
           @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1

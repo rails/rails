@@ -5,7 +5,6 @@ require 'active_support/ordered_hash'
 
 require 'bigdecimal'
 require 'active_support/core_ext/big_decimal/conversions' # for #to_s
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/instance_variables'
@@ -228,9 +227,9 @@ class Hash
     # create a subset of the hash by applying :only or :except
     subset = if options
       if attrs = options[:only]
-        slice(*Array.wrap(attrs))
+        slice(*Array(attrs))
       elsif attrs = options[:except]
-        except(*Array.wrap(attrs))
+        except(*Array(attrs))
       else
         self
       end
