@@ -7,6 +7,18 @@
   2. Run `KINDLE=1 rake generate_guides` to generate the guides and compile the `.mobi` file
   3. Copy `output/kindle/rails_guides.mobi` to your Kindle
 
+## OS X step by step
+
+  1. Download `kindlegen` from the link below ([or click here](http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000234621))
+  2. In terminal cd to your projects directory and type `git clone https://github.com/rails/rails.git`
+  3. Then type `cd rails/railties`
+  4. Open a new terminal window and type `echo $PATH` and see if `usr/local/bin` is in it (it should be) if it is type `cd ../../`
+  5. Then type in `cd usr/local/bin`
+  6. Then `open .`
+  7. That will open the directory, just copy the kindlegen binary to it then close the window and that terminal window
+  8. Back in the other terminal window which should be in `rails/railties` type `KINDLE=1 rake generate_guides`
+  9. It will then tell you where your `.mobi` is.
+
 ## Resources
 
   * [StackOverflow: Kindle Periodical Format](http://stackoverflow.com/questions/5379565/kindle-periodical-format)
