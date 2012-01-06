@@ -39,9 +39,11 @@ module ActiveModel
 
     # Returns an Enumerable of all key attributes if any is set, regardless
     # if the object is persisted or not.
+    #
+    # Note the default implementation uses persisted? just because all objects
+    # in Ruby 1.8.x responds to <tt>:id</tt>.
     def to_key
-      key = respond_to?(:id) && id
-      key ? [key] : nil
+      persisted? ? [id] : nil
     end
 
     # Returns a string representing the object's key suitable for use in URLs,
