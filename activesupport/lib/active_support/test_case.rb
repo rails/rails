@@ -19,6 +19,12 @@ module ActiveSupport
       yield if $tags[tag]
     end
 
+    # FIXME: we have tests that depend on run order, we should fix that and
+    # remove this method.
+    def self.test_order # :nodoc:
+      :sorted
+    end
+
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation

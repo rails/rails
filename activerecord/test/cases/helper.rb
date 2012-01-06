@@ -2,7 +2,7 @@ require File.expand_path('../../../../load_paths', __FILE__)
 
 require 'config'
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'stringio'
 require 'mocha'
 
