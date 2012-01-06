@@ -1,3 +1,4 @@
+$:.unshift(File.dirname(__FILE__))
 $:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
 
 require 'test/unit'
