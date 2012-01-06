@@ -84,7 +84,7 @@ module ActiveRecord
       # only one level deep in the +associations+ argument, i.e. it's not passed
       # to the child associations when +associations+ is a Hash.
       def initialize(records, associations, options = {})
-        @records      = Array.wrap(records).compact.uniq
+        @records      = Array(records).compact.uniq
         @associations = Array.wrap(associations)
         @options      = options
       end
