@@ -93,7 +93,7 @@ module ActiveSupport #:nodoc:
         chars(Unicode.unpack_graphemes(@wrapped_string).reverse.flatten.pack('U*'))
       end
 
-      # Limit the byte size of the string to a number of bytes without breaking characters. Usable
+      # Limits the byte size of the string to a number of bytes without breaking characters. Usable
       # when the storage for a string is limited for some reason.
       #
       # Example:
@@ -102,7 +102,7 @@ module ActiveSupport #:nodoc:
         slice(0...translate_offset(limit))
       end
 
-      # Convert characters in the string to uppercase.
+      # Converts characters in the string to uppercase.
       #
       # Example:
       #   'Laurent, où sont les tests ?'.mb_chars.upcase.to_s # => "LAURENT, OÙ SONT LES TESTS ?"
@@ -110,12 +110,20 @@ module ActiveSupport #:nodoc:
         chars Unicode.upcase(@wrapped_string)
       end
 
-      # Convert characters in the string to lowercase.
+      # Converts characters in the string to lowercase.
       #
       # Example:
       #   'VĚDA A VÝZKUM'.mb_chars.downcase.to_s # => "věda a výzkum"
       def downcase
         chars Unicode.downcase(@wrapped_string)
+      end
+
+      # Converts characters in the string to the opposite case.
+      #
+      # Example:
+      #    'El Cañón".mb_chars.swapcase.to_s # => "eL cAÑÓN"
+      def swapcase
+        chars Unicode.swapcase(@wrapped_string)
       end
 
       # Converts the first character to uppercase and the remainder to lowercase.

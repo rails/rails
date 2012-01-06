@@ -106,7 +106,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     end
   end
 
-  %w{capitalize downcase lstrip reverse rstrip upcase}.each do |method|
+  %w{capitalize downcase lstrip reverse rstrip swapcase upcase}.each do |method|
     class_eval(<<-EOTESTS)
       def test_#{method}_bang_should_return_self_when_modifying_wrapped_string
         chars = ' él piDió Un bUen café '
@@ -161,6 +161,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert chars('').decompose.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars('').compose.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars('').tidy_bytes.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').swapcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
   end
 
   def test_should_be_equal_to_the_wrapped_string
@@ -432,6 +433,11 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal 'abc', 'aBc'.mb_chars.downcase
   end
 
+  def test_swapcase_should_swap_ascii_characters
+    assert_equal '', ''.mb_chars.swapcase
+    assert_equal 'AbC', 'aBc'.mb_chars.swapcase
+  end
+
   def test_capitalize_should_work_on_ascii_characters
     assert_equal '', ''.mb_chars.capitalize
     assert_equal 'Abc', 'abc'.mb_chars.capitalize
@@ -466,8 +472,13 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
   end
 
   def test_downcase_should_be_unicode_aware
-    assert_equal "абвгд\0f", chars("аБвгд\0f").downcase
+    assert_equal "абвгд\0f", chars("аБвгд\0F").downcase
     assert_equal 'こにちわ', chars('こにちわ').downcase
+  end
+
+  def test_swapcase_should_be_unicode_aware
+    assert_equal "аaéÜ\0f", chars("АAÉü\0F").swapcase
+    assert_equal 'こにちわ', chars('こにちわ').swapcase
   end
 
   def test_capitalize_should_be_unicode_aware
