@@ -26,8 +26,6 @@ module ActionDispatch
       #   assert_response 401
       #
       def assert_response(type, message = nil)
-        validate_request!
-
         if type.in?([:success, :missing, :redirect, :error]) && @response.send("#{type}?")
           assert true # to count the assertion
         elsif type.is_a?(Fixnum) && @response.response_code == type
@@ -84,12 +82,6 @@ module ActionDispatch
           else
             @controller.url_for(fragment)
           end.gsub(/[\r\n]/, '')
-        end
-
-        def validate_request!
-          unless @request.is_a?(ActionDispatch::Request)
-            raise ArgumentError, "@request must be an ActionDispatch::Request"
-          end
         end
     end
   end

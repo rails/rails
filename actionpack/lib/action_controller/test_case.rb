@@ -69,8 +69,6 @@ module ActionController
     #   assert_template :partial => '_customer', :locals => { :customer => @customer }
     #
     def assert_template(options = {}, message = nil)
-      validate_request!
-
       case options
       when NilClass, String, Symbol
         options = options.to_s if Symbol === options
