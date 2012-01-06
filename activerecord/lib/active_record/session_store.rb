@@ -116,7 +116,7 @@ module ActiveRecord
               define_method(:session_id)  { sessid }
               define_method(:session_id=) { |session_id| self.sessid = session_id }
             else
-              class << self; remove_method :find_by_session_id; end
+              class << self; remove_possible_method :find_by_session_id; end
 
               def self.find_by_session_id(session_id)
                 find :first, :conditions => {:session_id=>session_id}
