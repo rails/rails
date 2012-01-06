@@ -35,7 +35,7 @@ module ActionDispatch
         elsif type.is_a?(Symbol) && @response.response_code == Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
           assert_block("") { true } # to count the assertion
         else
-          flunk(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code))
+          flunk "Expected response to be a <#{type}>, but was <#{@response.response_code}>"
         end
       end
 
