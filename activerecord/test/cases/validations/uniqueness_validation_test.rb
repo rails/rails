@@ -45,6 +45,18 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t2.save, "Should now save t2 as unique"
   end
 
+  def test_validates_uniqueness_with_nil_value
+    Topic.validates_uniqueness_of(:title)
+
+    t = Topic.new("title" => nil)
+    assert t.save, "Should save t as unique"
+
+    t2 = Topic.new("title" => nil)
+    assert !t2.valid?, "Shouldn't be valid"
+    assert !t2.save, "Shouldn't save t2 as unique"
+    assert_equal ["has already been taken"], t2.errors[:title]
+  end
+
   def test_validates_uniqueness_with_validates
     Topic.validates :title, :uniqueness => true
     Topic.create!('title' => 'abc')
