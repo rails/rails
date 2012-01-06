@@ -120,7 +120,7 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.warn 'abc'
       ActiveSupport::Deprecation.warn 'def'
     end
-  rescue Test::Unit::AssertionFailedError
+  rescue MiniTest::Assertion
     flunk 'assert_deprecated should match any warning in block, not just the last one'
   end
 
