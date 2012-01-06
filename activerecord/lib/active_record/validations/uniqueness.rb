@@ -79,7 +79,7 @@ module ActiveRecord
       #
       #   class Person < ActiveRecord::Base
       #     validates_uniqueness_of :user_name, :scope => :account_id
-      #   end 
+      #   end
       #
       # Or even multiple scope parameters. For example, making sure that a teacher can only be on the schedule once
       # per semester for a particular class.
