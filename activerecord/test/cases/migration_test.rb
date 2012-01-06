@@ -151,14 +151,30 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Person.connection.index_exists?(:people, :primary_contact_id, :name => :symbol_index_name)
     end
 
+    def test_auto_index_name_truncates
+      index_name_length = Person.connection.index_name_length
+      columns = (['x']*index_name_length) << 'x' # length + 1 columns
+      long_index_name = Person.connection.index_name('people', :column => columns)
+      long_index_name_truncated = "index_people_on_#{columns.join('_and_')}"[0...index_name_length]
+      assert long_index_name == long_index_name_truncated, 'auto-named index_name should have been truncated'
+    end
+
+    def test_user_index_name_raises_exception
+      index_name_length = Person.connection.index_name_length
+      name = 'x'*(index_name_length+1)
+      assert_raise(ArgumentError) { Person.connection.index_name('people', {:column => [:first_name], :name => name}) }
+    end
+
     def test_add_index_length_limit
       good_index_name = 'x' * Person.connection.index_name_length
       too_long_index_name = good_index_name + 'x'
-      assert_raise(ArgumentError)  { Person.connection.add_index("people", "first_name", :name => too_long_index_name) }
-      assert !Person.connection.index_name_exists?("people", too_long_index_name, false)
-      assert_nothing_raised { Person.connection.add_index("people", "first_name", :name => good_index_name) }
-      assert Person.connection.index_name_exists?("people", good_index_name, false)
-      Person.connection.remove_index("people", :name => good_index_name)
+
+      assert_nothing_raised { Person.connection.add_index('people', 'first_name', :name => good_index_name) }
+      assert Person.connection.index_name_exists?('people', good_index_name, false)
+      Person.connection.remove_index('people', :name => good_index_name)
+
+      assert_raise(ArgumentError) { Person.connection.add_index('people', 'first_name', :name => too_long_index_name) }
+      assert !Person.connection.index_name_exists?('people', too_long_index_name, false)
     end
 
     def test_remove_nonexistent_index

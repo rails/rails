@@ -374,18 +374,22 @@ module ActiveRecord
         add_index(table_name, old_index_def.columns, :name => new_name, :unique => old_index_def.unique)
       end
 
-      def index_name(table_name, options) #:nodoc:
-        if Hash === options # legacy support
-          if options[:column]
-            "index_#{table_name}_on_#{Array.wrap(options[:column]) * '_and_'}"
-          elsif options[:name]
-            options[:name]
-          else
-            raise ArgumentError, "You must specify the index name"
-          end
-        else
-          index_name(table_name, :column => options)
+      def index_name(table_name, options = {}) #:nodoc:
+        return index_name(table_name, :column => options) unless Hash === options # legacy support
+        
+        raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long for the current adapter!" unless options[:column] || options[:name]
+        the_index_name = "index_#{table_name}_on_#{Array.wrap(options[:column]) * '_and_'}" if options[:column]
+        the_index_name = options[:name] if options[:name]
+        this_index_name = the_index_name.to_s if RUBY_VERSION < '1.9'
+        
+        if the_index_name.length > index_name_length
+          raise ArgumentError, "Index name '#{the_index_name}' on table '#{table_name}' is too long for the current adapter!" if options[:name]
+          
+          the_index_name = the_index_name[0...index_name_length]
+          warn("warning: index name was too long for the current adapter. It has been shortened to '#{the_index_name}'")
         end
+        
+        the_index_name
       end
 
       # Verify the existence of an index with a given name.
@@ -552,19 +556,16 @@ module ActiveRecord
 
         def add_index_options(table_name, column_name, options = {})
           column_names = Array.wrap(column_name)
-          index_name   = index_name(table_name, :column => column_names)
+          index_name   = index_name(table_name, :column => column_names, :name => options[:name])
 
           if Hash === options # legacy support, since this param was a string
             index_type = options[:unique] ? "UNIQUE" : ""
-            index_name = options[:name].to_s if options.key?(:name)
           else
             index_type = options
           end
-
-          if index_name.length > index_name_length
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
-          end
+          
           if index_name_exists?(table_name, index_name, false)
+            # raise an exception if the index already exists
             raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
           end
           index_columns = quoted_columns_for_index(column_names, options).join(", ")
