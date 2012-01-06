@@ -52,7 +52,7 @@ module ActiveRecord
 
       def initialize(association)
         @association = association
-        Array.wrap(association.options[:extend]).each { |ext| proxy_extend(ext) }
+        Array(association.options[:extend]).each { |ext| proxy_extend(ext) }
       end
 
       alias_method :new, :build

@@ -1,6 +1,5 @@
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/class/attribute_accessors"
-require "active_support/core_ext/array/wrap"
 
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
@@ -587,7 +586,7 @@ module ActiveRecord
       def migrations_paths
         @migrations_paths ||= ['db/migrate']
         # just to not break things if someone uses: migration_path = some_string
-        Array.wrap(@migrations_paths)
+        Array(@migrations_paths)
       end
 
       def migrations_path
@@ -595,7 +594,7 @@ module ActiveRecord
       end
 
       def migrations(paths, subdirectories = true)
-        paths = Array.wrap(paths)
+        paths = Array(paths)
 
         glob = subdirectories ? "**/" : ""
         files = Dir[*paths.map { |p| "#{p}/#{glob}[0-9]*_*.rb" }]

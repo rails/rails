@@ -2,7 +2,6 @@ require 'erb'
 require 'yaml'
 require 'zlib'
 require 'active_support/dependencies'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/ordered_hash'
 require 'active_record/fixtures/file'
@@ -783,7 +782,7 @@ module ActiveRecord
       end
 
       def setup_fixture_accessors(fixture_names = nil)
-        fixture_names = Array.wrap(fixture_names || fixture_table_names)
+        fixture_names = Array(fixture_names || fixture_table_names)
         methods = Module.new do
           fixture_names.each do |fixture_name|
             fixture_name = fixture_name.to_s
