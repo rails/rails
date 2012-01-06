@@ -93,7 +93,7 @@ module ActionController
 
           case expected_layout
           when String
-            assert(@layouts.keys.include?(expected_layout), msg)
+            assert_includes @layouts.keys, expected_layout, msg
           when Regexp
             assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
           when nil
@@ -117,7 +117,7 @@ module ActionController
             msg = build_message(message,
                     "expecting partial <?> but action rendered <?>",
                     options[:partial], @partials.keys)
-            assert(@partials.include?(expected_partial), msg)
+            assert_includes @partials, expected_partial, msg
           end
         else
           assert @partials.empty?,
