@@ -4,7 +4,6 @@ require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/inclusion'
 require 'active_support/core_ext/object/try'
 require 'rack/test'
-require 'test/unit/assertions'
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -127,7 +126,7 @@ module ActionDispatch
     class Session
       DEFAULT_HOST = "www.example.com"
 
-      include Test::Unit::Assertions
+      include MiniTest::Assertions
       include TestProcess, RequestHelpers, Assertions
 
       %w( status status_message headers body redirect? ).each do |method|
