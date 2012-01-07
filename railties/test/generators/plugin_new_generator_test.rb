@@ -241,7 +241,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test"
   end
-  
+
   def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
     FileUtils.cd(Rails.root)
     run_generator([destination_root, "--dummy_path", "spec/dummy" "--skip-test-unit"])
@@ -262,6 +262,37 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-gemspec"]
     assert_no_file "bukkits.gemspec"
   end
+
+  def test_creating_plugin_in_app_directory_adds_gemfile_entry
+    # simulate application existance
+    gemfile_path = "#{Rails.root}/Gemfile"
+    Object.const_set('APP_PATH', Rails.root)
+    FileUtils.touch gemfile_path
+
+    run_generator [destination_root]
+
+    assert_file gemfile_path, /gem 'bukkits', :path => '.\/tmp\/bukkits'/
+  ensure
+    Object.send(:remove_const, 'APP_PATH')
+    FileUtils.rm gemfile_path
+  end
+
+  def test_skipping_gemfile_entry
+    # simulate application existance
+    gemfile_path = "#{Rails.root}/Gemfile"
+    Object.const_set('APP_PATH', Rails.root)
+    FileUtils.touch gemfile_path
+
+    run_generator [destination_root, "--skip-gemfile-entry"]
+
+    assert_file gemfile_path do |contents|
+      assert_no_match(/gem 'bukkits', :path => '.\/tmp\/bukkits'/, contents)
+    end
+  ensure
+    Object.send(:remove_const, 'APP_PATH')
+    FileUtils.rm gemfile_path
+  end
+
 
 protected
 
