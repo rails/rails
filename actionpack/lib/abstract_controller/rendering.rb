@@ -121,7 +121,7 @@ module AbstractController
       variables  = instance_variables
       variables -= protected_instance_variables
       variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
-      variables.each { |name| hash[name.to_s[1, name.length]] = instance_variable_get(name) }
+      variables.each { |name| hash[name[1..-1]] = instance_variable_get(name) }
       hash
     end
 
