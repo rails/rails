@@ -104,6 +104,18 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert !r2.valid?, "Saving r2 first time"
   end
 
+  def test_validate_uniqueness_with_object_arg
+    Reply.validates_uniqueness_of(:topic)
+
+    t = Topic.create("title" => "I'm unique!")
+
+    r1 = t.replies.create "title" => "r1", "content" => "hello world"
+    assert r1.valid?, "Saving r1"
+
+    r2 = t.replies.create "title" => "r2", "content" => "hello world"
+    assert !r2.valid?, "Saving r2 first time"
+  end
+
   def test_validate_uniqueness_scoped_to_defining_class
     t = Topic.create("title" => "What, me worry?")
 

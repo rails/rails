@@ -56,7 +56,15 @@ module ActiveRecord
       end
 
       def build_relation(klass, table, attribute, value) #:nodoc:
-        column = klass.columns_hash[attribute.to_s]
+        reflection = klass.reflect_on_association(attribute)
+        column = nil
+        if(reflection)
+          column = klass.columns_hash[reflection.foreign_key]
+          attribute = reflection.foreign_key
+          value = value.attributes[reflection.primary_key_column.name]
+        else
+          column = klass.columns_hash[attribute.to_s]
+        end
         value = column.limit ? value.to_s[0, column.limit] : value.to_s if !value.nil? && column.text?
 
         if !options[:case_sensitive] && value && column.text?
