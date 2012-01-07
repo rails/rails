@@ -2097,8 +2097,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_new_object
     post = Post.new
     post.persisted = false
-    def post.to_key; nil; end
-
+    post.stubs(:to_key).returns(nil)
     form_for(post) do |f| end
 
     expected = whole_form("/posts", "new_post", "new_post")
