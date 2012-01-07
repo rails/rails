@@ -875,7 +875,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_remote_without_html
     @post.persisted = false
-    def @post.to_key; nil; end
+    @post.stubs(:to_key).returns(nil)
     form_for(@post, :remote => true) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
@@ -1025,7 +1025,7 @@ class FormHelperTest < ActionView::TestCase
     old_locale, I18n.locale = I18n.locale, :submit
 
     @post.persisted = false
-    def @post.to_key; nil; end
+    @post.stubs(:to_key).returns(nil)
     form_for(@post) do |f|
       concat f.submit
     end
