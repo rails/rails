@@ -82,7 +82,7 @@ module ActionView
       #
       def content_tag_for(tag_name, single_or_multiple_records, prefix = nil, options = nil, &block)
         Array.wrap(single_or_multiple_records).map do |single_record|
-          capture { content_tag_for_single_record(tag_name, single_record, prefix, options, &block) }
+          content_tag_for_single_record tag_name, single_record, prefix, options, &block
         end.join("\n").html_safe
       end
 
