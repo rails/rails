@@ -139,7 +139,7 @@ class ErrorsTest < ActiveModel::TestCase
   test 'to_hash should return an ordered hash' do
     person = Person.new
     person.errors.add(:name, "can not be blank")
-    assert_instance_of ActiveSupport::OrderedHash, person.errors.to_hash
+    assert_instance_of Hash, person.errors.to_hash
   end
 
   test 'full_messages should return an array of error messages, with the attribute name included' do
