@@ -11,6 +11,12 @@ require 'active_support/core_ext/kernel/reporting'
 module ActiveSupport
   class TestCase < ::MiniTest::Spec
 
+    if MiniTest::Unit::VERSION < '2.6.1'
+      class << self
+        alias :name :to_s
+      end
+    end
+
     # Use AS::TestCase for the base class when describing a model
     register_spec_type(self) do |desc|
       desc < ActiveRecord::Model
