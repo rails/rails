@@ -271,7 +271,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
 
-    assert_file gemfile_path, /gem 'bukkits', :path => '.\/tmp\/bukkits'/
+    assert_file gemfile_path, /gem 'bukkits', :path => 'tmp\/bukkits'/
   ensure
     Object.send(:remove_const, 'APP_PATH')
     FileUtils.rm gemfile_path
@@ -286,7 +286,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-gemfile-entry"]
 
     assert_file gemfile_path do |contents|
-      assert_no_match(/gem 'bukkits', :path => '.\/tmp\/bukkits'/, contents)
+      assert_no_match(/gem 'bukkits', :path => 'tmp\/bukkits'/, contents)
     end
   ensure
     Object.send(:remove_const, 'APP_PATH')
