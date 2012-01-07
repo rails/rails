@@ -80,6 +80,11 @@ class Topic < ActiveRecord::Base
 
   after_initialize :set_email_address
 
+  class_attribute :after_initialize_called
+  after_initialize do
+    self.class.after_initialize_called = true
+  end
+
   def approved=(val)
     @custom_approved = val
     write_attribute(:approved, val)
