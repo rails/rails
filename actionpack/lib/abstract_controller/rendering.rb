@@ -1,6 +1,5 @@
 require "abstract_controller/base"
 require "action_view"
-require "active_support/core_ext/object/instance_variables"
 
 module AbstractController
   class DoubleRenderError < Error
@@ -109,17 +108,17 @@ module AbstractController
       view_renderer.render(view_context, options)
     end
 
-    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %w(
-      @_action_name @_response_body @_formats @_prefixes @_config
-      @_view_context_class @_view_renderer @_lookup_context
-    )
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = [
+      :@_action_name, :@_response_body, :@_formats, :@_prefixes, :@_config,
+      :@_view_context_class, :@_view_renderer, :@_lookup_context
+    ]
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
     # :api: public
     def view_assigns
       hash = {}
-      variables  = instance_variable_names
+      variables  = instance_variables
       variables -= protected_instance_variables
       variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
       variables.each { |name| hash[name.to_s[1, name.length]] = instance_variable_get(name) }
