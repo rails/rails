@@ -68,12 +68,12 @@ module AbstractController
 
       test "after_filter works" do
         @controller.process(:index)
-        assert_equal "Goodbye", @controller.instance_variable_get("@second")
+        assert_equal "Goodbye", @controller.instance_variable_get(:@second)
       end
 
       test "around_filter works" do
         @controller.process(:index)
-        assert_equal "FIRSTSECOND", @controller.instance_variable_get("@aroundz")
+        assert_equal "FIRSTSECOND", @controller.instance_variable_get(:@aroundz)
       end
 
       test "before_filter with overwritten condition" do
@@ -85,11 +85,11 @@ module AbstractController
 
     class Callback3 < ControllerWithCallbacks
       before_filter do |c|
-        c.instance_variable_set("@text", "Hello world")
+        c.instance_variable_set(:@text, "Hello world")
       end
 
       after_filter do |c|
-        c.instance_variable_set("@second", "Goodbye")
+        c.instance_variable_set(:@second, "Goodbye")
       end
 
       def index
@@ -109,7 +109,7 @@ module AbstractController
 
       test "after_filter works with procs" do
         @controller.process(:index)
-        assert_equal "Goodbye", @controller.instance_variable_get("@second")
+        assert_equal "Goodbye", @controller.instance_variable_get(:@second)
       end
     end
 
@@ -153,7 +153,7 @@ module AbstractController
 
       test "when :except is specified, an after filter is not triggered on that action" do
         @controller.process(:index)
-        assert !@controller.instance_variable_defined?("@authenticated")
+        assert !@controller.instance_variable_defined?(:@authenticated)
       end
     end
 
@@ -197,7 +197,7 @@ module AbstractController
 
       test "when :except is specified with an array, an after filter is not triggered on that action" do
         @controller.process(:index)
-        assert !@controller.instance_variable_defined?("@authenticated")
+        assert !@controller.instance_variable_defined?(:@authenticated)
       end
     end
 
