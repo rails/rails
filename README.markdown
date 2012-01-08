@@ -1,4 +1,4 @@
-# ARel
+# ARel [![Build Status](https://secure.travis-ci.org/rails/arel.png)](http://travis-ci.org/rails/arel) [![Dependency Status](https://gemnasium.com/rails/arel.png)](https://gemnasium.com/rails/arel)
 
 * http://github.com/rails/arel
 
