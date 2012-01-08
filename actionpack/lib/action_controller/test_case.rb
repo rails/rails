@@ -431,7 +431,7 @@ module ActionController
 
       def process(action, http_method = 'GET', *args)
         check_required_ivars
-        http_method, args = handle_old_process_api(http_method, args) 
+        http_method, args = handle_old_process_api(http_method, args)
 
         if args.first.is_a?(String)
           @request.env['RAW_POST_DATA'] = args.shift
