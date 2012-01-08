@@ -625,7 +625,7 @@ XML
   def test_header_properly_reset_after_get_request
     get :test_params
     @request.recycle!
-    assert_nil @request.instance_variable_get("@request_method")
+    assert_nil @request.instance_variable_get(:@request_method)
   end
 
   def test_params_reset_after_post_request

@@ -187,15 +187,15 @@ class FilterTest < ActionController::TestCase
   end
 
   class OnlyConditionProcController < ConditionalFilterController
-    before_filter(:only => :show) {|c| c.instance_variable_set(:"@ran_proc_filter", true) }
+    before_filter(:only => :show) {|c| c.instance_variable_set(:@ran_proc_filter, true) }
   end
 
   class ExceptConditionProcController < ConditionalFilterController
-    before_filter(:except => :show_without_filter) {|c| c.instance_variable_set(:"@ran_proc_filter", true) }
+    before_filter(:except => :show_without_filter) {|c| c.instance_variable_set(:@ran_proc_filter, true) }
   end
 
   class ConditionalClassFilter
-    def self.filter(controller) controller.instance_variable_set(:"@ran_class_filter", true) end
+    def self.filter(controller) controller.instance_variable_set(:@ran_class_filter, true) end
   end
 
   class OnlyConditionClassController < ConditionalFilterController
@@ -207,7 +207,7 @@ class FilterTest < ActionController::TestCase
   end
 
   class AnomolousYetValidConditionController < ConditionalFilterController
-    before_filter(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.instance_variable_set(:"@ran_proc_filter1", true)}, :except => :show_without_filter) { |c| c.instance_variable_set(:"@ran_proc_filter2", true)}
+    before_filter(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.instance_variable_set(:@ran_proc_filter1, true)}, :except => :show_without_filter) { |c| c.instance_variable_set(:@ran_proc_filter2, true)}
   end
 
   class ConditionalOptionsFilter < ConditionalFilterController
@@ -303,16 +303,16 @@ class FilterTest < ActionController::TestCase
   end
 
   class ProcController < PrependingController
-    before_filter(proc { |c| c.instance_variable_set(:"@ran_proc_filter", true) })
+    before_filter(proc { |c| c.instance_variable_set(:@ran_proc_filter, true) })
   end
 
   class ImplicitProcController < PrependingController
-    before_filter { |c| c.instance_variable_set(:"@ran_proc_filter", true) }
+    before_filter { |c| c.instance_variable_set(:@ran_proc_filter, true) }
   end
 
   class AuditFilter
     def self.filter(controller)
-      controller.instance_variable_set(:"@was_audited", true)
+      controller.instance_variable_set(:@was_audited, true)
     end
   end
 
@@ -320,12 +320,12 @@ class FilterTest < ActionController::TestCase
     def before(controller)
       @execution_log = "before"
       controller.class.execution_log << " before aroundfilter " if controller.respond_to? :execution_log
-      controller.instance_variable_set(:"@before_ran", true)
+      controller.instance_variable_set(:@before_ran, true)
     end
 
     def after(controller)
-      controller.instance_variable_set(:"@execution_log", @execution_log + " and after")
-      controller.instance_variable_set(:"@after_ran", true)
+      controller.instance_variable_set(:@execution_log, @execution_log + " and after")
+      controller.instance_variable_set(:@after_ran, true)
       controller.class.execution_log << " after aroundfilter " if controller.respond_to? :execution_log
     end
   end
@@ -537,7 +537,7 @@ class FilterTest < ActionController::TestCase
 
   def test_non_yielding_around_filters_not_returning_false_do_not_raise
     controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", true
+    controller.instance_variable_set :@filter_return_value, true
     assert_nothing_raised do
       test_process(controller, "index")
     end
@@ -545,7 +545,7 @@ class FilterTest < ActionController::TestCase
 
   def test_non_yielding_around_filters_returning_false_do_not_raise
     controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", false
+    controller.instance_variable_set :@filter_return_value, false
     assert_nothing_raised do
       test_process(controller, "index")
     end
@@ -553,14 +553,14 @@ class FilterTest < ActionController::TestCase
 
   def test_after_filters_are_not_run_if_around_filter_returns_false
     controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", false
+    controller.instance_variable_set :@filter_return_value, false
     test_process(controller, "index")
     assert_equal ["filter_one", "it didn't yield"], controller.assigns['filters']
   end
 
   def test_after_filters_are_not_run_if_around_filter_does_not_yield
     controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", true
+    controller.instance_variable_set :@filter_return_value, true
     test_process(controller, "index")
     assert_equal ["filter_one", "it didn't yield"], controller.assigns['filters']
   end
@@ -767,9 +767,9 @@ class FilterTest < ActionController::TestCase
     assert_equal %w( ensure_login find_user ), assigns["ran_filter"]
 
     test_process(ConditionalSkippingController, "login")
-    assert !@controller.instance_variable_defined?("@ran_after_filter")
+    assert !@controller.instance_variable_defined?(:@ran_after_filter)
     test_process(ConditionalSkippingController, "change_password")
-    assert_equal %w( clean_up ), @controller.instance_variable_get("@ran_after_filter")
+    assert_equal %w( clean_up ), @controller.instance_variable_get(:@ran_after_filter)
   end
 
   def test_conditional_skipping_of_filters_when_parent_filter_is_also_conditional
@@ -911,9 +911,9 @@ end
 
 class ControllerWithProcFilter < PostsController
   around_filter(:only => :no_raise) do |c,b|
-    c.instance_variable_set(:"@before", true)
+    c.instance_variable_set(:@before, true)
     b.call
-    c.instance_variable_set(:"@after", true)
+    c.instance_variable_set(:@after, true)
   end
 end
 

@@ -57,6 +57,6 @@ class TestRequestTest < ActiveSupport::TestCase
 
   private
     def assert_cookies(expected, cookie_jar)
-      assert_equal(expected, cookie_jar.instance_variable_get("@cookies"))
+      assert_equal(expected, cookie_jar.instance_variable_get(:@cookies))
     end
 end
