@@ -175,7 +175,7 @@ module ActiveRecord
 
       def initialize(macro, name, options, active_record)
         super
-        @collection = macro.in?([:has_many, :has_and_belongs_to_many])
+        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
       end
 
       # Returns a new, unsaved instance of the associated class. +options+ will
