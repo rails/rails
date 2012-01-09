@@ -672,7 +672,11 @@ module ActionMailer #:nodoc:
     # humanized version of the <tt>action_name</tt>.
     def default_i18n_subject #:nodoc:
       mailer_scope = self.class.mailer_name.gsub('/', '.')
-      I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
+      begin
+        I18n.t!(:subject, :scope => [:actionmailer, mailer_scope, action_name])
+      rescue I18n::MissingTranslationData
+        I18n.t(:subject, :scope => [mailer_scope, action_name], :default => action_name.humanize)
+      end
     end
 
     def collect_responses_and_parts_order(headers) #:nodoc:
