@@ -171,20 +171,29 @@ XML
 
     assert_equal params.to_query, @response.body
   end
-  
+
   def test_document_body_and_params_with_post
     post :test_params, :id => 1
     assert_equal("{\"id\"=>\"1\", \"controller\"=>\"test_test/test\", \"action\"=>\"test_params\"}", @response.body)
   end
-  
+
   def test_document_body_with_post
     post :render_body, "document body"
     assert_equal "document body", @response.body
   end
-  
+
   def test_document_body_with_put
     put :render_body, "document body"
     assert_equal "document body", @response.body
+  end
+
+  def test_head
+    head :test_params
+    assert_equal 200, @response.status
+  end
+
+  def test_head_params_as_sting
+    assert_raise(NoMethodError) { head :test_params, "document body", :id => 10 }
   end
 
   def test_process_without_flash
@@ -245,7 +254,7 @@ XML
     process :test_uri, "GET", :id => 7
     assert_equal "/test_test/test/test_uri/7", @response.body
   end
-  
+
   def test_process_with_old_api
     assert_deprecated do
       process :test_uri, :id => 7
