@@ -5,6 +5,8 @@ require 'active_support/core_ext/hash/indifferent_access'
 
 class OrderedHashTest < ActiveSupport::TestCase
   def setup
+    ActiveSupport::Deprecation.silenced, @deprecation_silenced = true, ActiveSupport::Deprecation.silenced
+
     @keys =   %w( blue   green  red    pink   orange )
     @values = %w( 000099 009900 aa0000 cc0066 cc6633 )
     @hash = Hash.new
@@ -14,6 +16,16 @@ class OrderedHashTest < ActiveSupport::TestCase
       @hash[key] = @values[index]
       @ordered_hash[key] = @values[index]
     end
+  end
+
+  def teardown
+    ActiveSupport::Deprecation.silenced = @deprecation_silenced
+  end
+
+  def test_deprecated
+    ActiveSupport::Deprecation.silenced = false
+    assert_deprecated { ActiveSupport::OrderedHash.new }
+    assert_deprecated { ActiveSupport::OrderedHash['a', 'b'] }
   end
 
   def test_order

@@ -2,7 +2,6 @@ require 'abstract_unit'
 require 'active_support/core_ext/hash'
 require 'bigdecimal'
 require 'active_support/core_ext/string/access'
-require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/conversions'
 require 'active_support/inflections'
 
@@ -550,7 +549,7 @@ class HashExtToParamTests < ActiveSupport::TestCase
   end
 
   def test_to_param_orders_by_key_in_ascending_order
-    assert_equal 'a=2&b=1&c=0', ActiveSupport::OrderedHash[*%w(b 1 c 0 a 2)].to_param
+    assert_equal 'a=2&b=1&c=0', Hash[*%w(b 1 c 0 a 2)].to_param
   end
 end
 

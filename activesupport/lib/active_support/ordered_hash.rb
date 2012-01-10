@@ -1,8 +1,10 @@
 require 'yaml'
 
 YAML.add_builtin_type("omap") do |type, val|
-  ActiveSupport::OrderedHash[val.map{ |v| v.to_a.first }]
+  Hash[val.map { |v| v.to_a.first }]
 end
+
+require 'active_support/deprecation'
 
 module ActiveSupport
   # The order of iteration over hashes in Ruby 1.8 is undefined. For example, you do not know the
@@ -16,6 +18,18 @@ module ActiveSupport
   #
   # <tt>ActiveSupport::OrderedHash</tt> is namespaced to prevent conflicts with other implementations.
   class OrderedHash < ::Hash
+    def initialize(*, &_)
+      ActiveSupport::Deprecation.warn 'ActiveSupport::OrderedHash is deprecated, ' \
+        'use Hash instead as it is ordered in Ruby 1.9', caller
+      super
+    end
+
+    def self.[](*)
+      ActiveSupport::Deprecation.warn 'ActiveSupport::OrderedHash is deprecated, ' \
+        'use Hash instead as it is ordered in Ruby 1.9', caller
+      super
+    end
+
     def to_yaml_type
       "!tag:yaml.org,2002:omap"
     end

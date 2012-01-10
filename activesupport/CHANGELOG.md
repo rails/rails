@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    ActiveSupport::OrderedHash is deprecated in favor of Hash
+     as it is ordered in Ruby 1.9. *Sergey Nartimov*
+
 *    Deletes the compatibility method Module#method_names,
      use Module#methods from now on (which returns symbols). *fxn*
 

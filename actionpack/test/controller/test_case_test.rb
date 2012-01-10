@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
-require 'active_support/ordered_hash'
 
 class TestTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -158,14 +157,14 @@ XML
   end
 
   def test_raw_post_handling
-    params = ActiveSupport::OrderedHash[:page, {:name => 'page name'}, 'some key', 123]
+    params = {:page => {:name => 'page name'}, 'some key' => 123}
     post :render_raw_post, params.dup
 
     assert_equal params.to_query, @response.body
   end
 
   def test_body_stream
-    params = ActiveSupport::OrderedHash[:page, { :name => 'page name' }, 'some key', 123]
+    params = {:page => {:name => 'page name'}, 'some key' => 123}
 
     post :render_body, params.dup
 
