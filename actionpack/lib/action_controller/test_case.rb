@@ -403,7 +403,7 @@ module ActionController
 
       # Executes a request simulating HEAD HTTP method and set/volley the response
       def head(action, parameters = nil, session = nil, flash = nil)
-        process(action, parameters, session, flash, "HEAD")
+        process(action, "HEAD", parameters, session, flash)
       end
 
       def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
@@ -433,7 +433,7 @@ module ActionController
         check_required_ivars
         http_method, args = handle_old_process_api(http_method, args)
 
-        if args.first.is_a?(String)
+        if args.first.is_a?(String) && http_method != 'HEAD'
           @request.env['RAW_POST_DATA'] = args.shift
         end
 
