@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Support for the `schema_info` table has been dropped.  Please
+    switch to `schema_migrations`.
+
 *   Connections *must* be closed at the end of a thread.  If not, your
     connection pool can fill and an exception will be raised.
 

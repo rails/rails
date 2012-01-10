@@ -419,18 +419,6 @@ module ActiveRecord
           end
           add_index sm_table, :version, :unique => true,
             :name => "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
-
-          # Backwards-compatibility: if we find schema_info, assume we've
-          # migrated up to that point:
-          si_table = Base.table_name_prefix + 'schema_info' + Base.table_name_suffix
-
-          if table_exists?(si_table)
-            ActiveRecord::Deprecation.warn "Usage of the schema table `#{si_table}` is deprecated. Please switch to using `schema_migrations` table"
-
-            old_version = select_value("SELECT version FROM #{quote_table_name(si_table)}").to_i
-            assume_migrated_upto_version(old_version)
-            drop_table(si_table)
-          end
         end
       end
 
