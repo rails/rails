@@ -427,6 +427,12 @@ module ApplicationTests
       assert_equal "NoPost;\n", File.read("#{app_path}/public/assets/application.js")
     end
 
+    test "initialization on the assets group should set assets_dir" do
+      require "#{app_path}/config/application"
+      Rails.application.initialize!(:assets)
+      assert_not_nil Rails.application.config.action_controller.assets_dir
+    end
+
     test "enhancements to assets:precompile should only run once" do
       app_file "lib/tasks/enhance.rake", "Rake::Task['assets:precompile'].enhance { puts 'enhancement' }"
       output = precompile!
