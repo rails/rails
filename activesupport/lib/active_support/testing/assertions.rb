@@ -52,8 +52,19 @@ module ActiveSupport
       #     post :delete, :id => ...
       #   end
       def assert_difference(expression, differences = 1, message = nil, &block)
-        expressions = Array.wrap expression
-        differences = Array.wrap differences
+        expressions = []
+        if expression.is_a? Hash
+          message = expression.delete(:message){nil}
+
+          # can we count on ordering here, or do we need to do something
+          # along the lines of expressions.each {|k,v| differences << v;
+          # expressions << k }
+          expressions = expression.keys
+          differences = expression.values
+        else
+          expressions = Array.wrap expression
+          differences = Array.wrap differences
+        end
 
         unless differences.size == 1 || differences.size == expressions.count
           raise "The number of differences passed should either be one, or equal to the number of expressions you passed. You passed #{differences.count}."
