@@ -65,6 +65,20 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { t.title2 }
   end
 
+  def test_custom_migration_error_message_on_method
+    t = Topic.new
+    ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
+    exception = assert_raise(NoMethodError) { t.title2 }
+    assert exception.message.include?("rake db:migrate")
+  end
+
+  def test_default_error_message_on_method
+    t = Topic.new
+    ActiveRecord::Migrator.stubs(:needs_migration?).returns(false)
+    exception = assert_raise(NoMethodError) { t.title2 }
+    assert !exception.message.include?("rake db:migrate")
+  end
+
   def test_boolean_attributes
     assert ! Topic.find(1).approved?
     assert Topic.find(2).approved?
@@ -651,10 +665,24 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_bulk_update_respects_access_control
     privatize("title=(value)")
-
     assert_raise(ActiveRecord::UnknownAttributeError) { @target.new(:title => "Rants about pants") }
     assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
   end
+
+  def test_custom_migration_error_message_on_attribute
+    privatize("title=(value)")
+    ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
+    exception = assert_raise(ActiveRecord::UnknownAttributeError) { @target.new(:title => "Rants about pants") }
+    assert exception.message.include?("rake db:migrate")
+  end
+
+  def test_default_error_message_on_attribute
+    privatize("title=(value)")
+    ActiveRecord::Migrator.stubs(:needs_migration?).returns(false)
+    exception = assert_raise(ActiveRecord::UnknownAttributeError) { @target.new(:title => "Rants about pants") }
+    assert !exception.message.include?("rake db:migrate")
+  end
+
 
   def test_read_attribute_overwrites_private_method_not_considered_implemented
     # simulate a model with a db column that shares its name an inherited
