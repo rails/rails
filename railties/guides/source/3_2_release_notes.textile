@@ -15,6 +15,35 @@ h3. Upgrading to Rails 3.2
 
 If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.1 in case you haven't and make sure your application still runs as expected before attempting to update to Rails 3.2. Then take heed of the following changes:
 
+h4. What to update in your apps
+
+* Update your Gemfile to depend on rails = 3.2.0
+* Update your Gemfile to depend on sass-rails ~> 3.2.3
+* Update your Gemfile to depend on coffee-rails ~> 3.2.1
+
+Start moving any remaining Rails 2.3-style vendor/plugins/==*==. These are finally deprecated!
+Extract your vendor/plugins to their own gems and bundle them in your Gemfile. If they're tiny, not worthy of the own gem, fold it into your app as lib/myplugin/==*== and config/initializers/myplugin.rb.
+
+* Add to your config files:
+
+config/environments/development.rb
+
+<ruby>
+# Raise exception on mass assignment protection for ActiveRecord models
+config.active_record.mass_assignment_sanitizer = :strict
+
+# Log the query plan for queries taking more than this (works
+# with SQLite, MySQL, and PostgreSQL)
+config.active_record.auto_explain_threshold_in_seconds = 0.5
+</ruby>
+
+config/environments/test.rb
+
+<ruby>
+# Raise exception on mass assignment protection for ActiveRecord models
+config.active_record.mass_assignment_sanitizer = :strict
+</ruby>
+
 h4. Rails 3.2 requires at least Ruby 1.8.7
 
 Rails 3.2 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.2 is also compatible with Ruby 1.9.2.
