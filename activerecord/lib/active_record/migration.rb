@@ -610,18 +610,10 @@ module ActiveRecord
         migrations_paths.first
       end
 
-      def migrations(paths, *args)
-        if args.empty?
-          subdirectories = true
-        else
-          subdirectories = args.first
-          ActiveSupport::Deprecation.warn "The `subdirectories` argument to `migrations` is deprecated"
-        end
-
+      def migrations(paths)
         paths = Array(paths)
 
-        glob = subdirectories ? "**/" : ""
-        files = Dir[*paths.map { |p| "#{p}/#{glob}[0-9]*_*.rb" }]
+        files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
 
         seen = Hash.new false
 
