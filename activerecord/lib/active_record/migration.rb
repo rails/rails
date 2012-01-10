@@ -1,10 +1,7 @@
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/class/attribute_accessors"
-<<<<<<< HEAD
 require "active_support/core_ext/array/wrap"
-=======
 require 'active_support/deprecation'
->>>>>>> f00491b... deprecate the subdirectories parameter to `migrations`
 
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
