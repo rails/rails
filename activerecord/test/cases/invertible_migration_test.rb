@@ -88,5 +88,17 @@ module ActiveRecord
       LegacyMigration.down
       assert !ActiveRecord::Base.connection.table_exists?("horses"), "horses should not exist"
     end
+
+    def test_migrate_down_with_table_name_prefix
+      ActiveRecord::Base.table_name_prefix = 'p_'
+      ActiveRecord::Base.table_name_suffix = '_s'
+      migration = InvertibleMigration.new
+      migration.migrate(:up)
+      assert_nothing_raised { migration.migrate(:down) }
+      assert !ActiveRecord::Base.connection.table_exists?("p_horses_s"), "p_horses_s should not exist"
+    ensure
+      ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ''
+    end
+
   end
 end
