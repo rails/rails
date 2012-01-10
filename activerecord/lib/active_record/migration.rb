@@ -1,5 +1,6 @@
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/class/attribute_accessors"
+require 'active_support/deprecation'
 
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
@@ -523,7 +524,7 @@ module ActiveRecord
       File.basename(filename)
     end
 
-    delegate :migrate, :announce, :write, :to=>:migration
+    delegate :migrate, :announce, :write, :to => :migration
 
     private
 
@@ -609,7 +610,14 @@ module ActiveRecord
         migrations_paths.first
       end
 
-      def migrations(paths, subdirectories = true)
+      def migrations(paths, *args)
+        if args.empty?
+          subdirectories = true
+        else
+          subdirectories = args.first
+          ActiveSupport::Deprecation.warn "The `subdirectories` argument to `migrations` is deprecated"
+        end
+
         paths = Array(paths)
 
         glob = subdirectories ? "**/" : ""
