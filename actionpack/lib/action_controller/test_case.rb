@@ -433,7 +433,7 @@ module ActionController
         check_required_ivars
         http_method, args = handle_old_process_api(http_method, args)
 
-        if args.first.is_a?(String)
+        if args.first.is_a?(String) && http_method != 'HEAD'
           @request.env['RAW_POST_DATA'] = args.shift
         end
 
