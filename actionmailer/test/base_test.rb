@@ -196,7 +196,18 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
-  test "subject gets default from I18n" do
+  test "subject gets default from I18n with prefix" do
+    BaseMailer.default :subject => nil
+    email = BaseMailer.welcome(:subject => nil)
+    assert_equal "Welcome", email.subject
+
+    I18n.backend.store_translations('en', :actionmailer => {:base_mailer => {:welcome => {:subject => "New Subject!"}}})
+    email = BaseMailer.welcome(:subject => nil)
+    assert_equal "New Subject!", email.subject
+  end
+
+  test "subject gets default from I18n without prefix" do
+    I18n.backend.send(:translations)[:en].delete(:actionmailer)
     BaseMailer.default :subject => nil
     email = BaseMailer.welcome(:subject => nil)
     assert_equal "Welcome", email.subject
