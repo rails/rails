@@ -4,6 +4,8 @@
 
 ## Rails 3.2.0 (unreleased) ##
 
+*   Rails initialization with initialize_on_precompile = false should set assets_dir *Santiago Pastorino*
+
 *   Add font_path helper method *Santiago Pastorino*
 
 *   Depends on rack ~> 1.4.0 *Santiago Pastorino*
