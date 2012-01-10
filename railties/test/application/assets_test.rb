@@ -17,10 +17,6 @@ module ApplicationTests
       teardown_app
     end
 
-    def app
-      @app ||= Rails.application
-    end
-
     def precompile!
       quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
