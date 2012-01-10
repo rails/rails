@@ -171,17 +171,17 @@ XML
 
     assert_equal params.to_query, @response.body
   end
-  
+
   def test_document_body_and_params_with_post
     post :test_params, :id => 1
     assert_equal("{\"id\"=>\"1\", \"controller\"=>\"test_test/test\", \"action\"=>\"test_params\"}", @response.body)
   end
-  
+
   def test_document_body_with_post
     post :render_body, "document body"
     assert_equal "document body", @response.body
   end
-  
+
   def test_document_body_with_put
     put :render_body, "document body"
     assert_equal "document body", @response.body
@@ -250,7 +250,7 @@ XML
     process :test_uri, "GET", :id => 7
     assert_equal "/test_test/test/test_uri/7", @response.body
   end
-  
+
   def test_process_with_old_api
     assert_deprecated do
       process :test_uri, :id => 7
