@@ -90,7 +90,7 @@ Queries that take more than half a second to run are *automatically* explained i
 
 h4. Tagged Logging
 
-When running a multi-user, multi-account application, it's a great help to be able to filter the log by who did what. TaggedLogging in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging of such applications.
+When running a multi-user, multi-account application, it's a great help to be able to filter the log by who did what. TaggedLogging in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
 
 h3. Railties
 
@@ -112,7 +112,7 @@ config.railties_order = [Blog::Engine, :main_app, :all]
 
 * Scaffold returns 204 No Content for API requests without content. This makes scaffold work with jQuery out of the box.
 
-* Update Rails::Rack::Logger middleware to apply any tags set in config.log_tags to the newly ActiveSupport::TaggedLogging Rails.logger. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications
+* Update <tt>Rails::Rack::Logger</tt> middleware to apply any tags set in <tt>config.log_tags</tt> to <tt>ActiveSupport::TaggedLogging</tt>. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications.
 
 * Default options to +rails new+ can be set in <tt>~/.railsrc</tt>.
 
@@ -225,7 +225,7 @@ h4. Action View
 <% end %>
 </ruby>
 
-* Date helpers accept a new option <tt>:use_two_digit_numbers => true</tt>, that renders select boxes for months and days with a leading zero without changing the respective values. For example, this is useful for displaying ISO8601-style dates such as '2011-08-01'.
+* Date helpers accept a new option <tt>:use_two_digit_numbers => true</tt>, that renders select boxes for months and days with a leading zero without changing the respective values. For example, this is useful for displaying ISO 8601-style dates such as '2011-08-01'.
 
 * You can provide a namespace for your form to ensure uniqueness of id attributes on form elements. The namespace attribute will be prefixed with underscore on the generated HTML id.
 
@@ -268,7 +268,7 @@ h3. Active Record
 
 * Implements <tt>AR::Base.silence_auto_explain</tt> which allows the user to selectively disable automatic EXPLAINs within a block.
 
-* Implements automatic EXPLAIN logging for slow queries. A new configuration parameter +config.active_record.auto_explain_threshold_in_seconds+ determines what's to be considered a slow query. Setting that to nil disables this feature. Defaults are 0.5 in development mode, and nil in test and production modes. As of this writing there's support for SQLite, MySQL (mysql2 adapter), and PostgreSQL.
+* Implements automatic EXPLAIN logging for slow queries. A new configuration parameter +config.active_record.auto_explain_threshold_in_seconds+ determines what's to be considered a slow query. Setting that to nil disables this feature. Defaults are 0.5 in development mode, and nil in test and production modes. Rails 3.2 supports this feature in SQLite, MySQL (mysql2 adapter), and PostgreSQL.
 
 * Added <tt>ActiveRecord::Base.store</tt> for declaring simple single-column key/value stores.
 
@@ -455,7 +455,7 @@ h4. Deprecations
 
 * Deprecated <tt>ActiveSupport::MessageEncryptor#encrypt</tt> and <tt>ActiveSupport::MessageEncryptor#decrypt</tt>.
 
-*  <tt>ActiveSupport::BufferedLogger#silence</tt> is deprecated. If you want to squelch logs for a certain block, change the log level for that block.
+* <tt>ActiveSupport::BufferedLogger#silence</tt> is deprecated. If you want to squelch logs for a certain block, change the log level for that block.
 
 * <tt>ActiveSupport::BufferedLogger#open_log</tt> is deprecated. This method should not have been public in the first place.
 
