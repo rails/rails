@@ -526,5 +526,15 @@ module ApplicationTests
       assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
       assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
     end
+
+    test "config.sync_log" do
+      add_to_config <<-RUBY
+        config.sync_log = false
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert !Rails.logger.instance_variable_get("@logger").instance_variable_get("@logdev").dev.sync
+    end
+
   end
 end
