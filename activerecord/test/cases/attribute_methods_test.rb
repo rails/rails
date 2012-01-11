@@ -258,8 +258,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic.send(:write_attribute, :title, "Still another topic")
     assert_equal "Still another topic", topic.title
 
-    topic.send(:write_attribute, "title", "Still another topic: part 2")
+    topic[:title] = "Still another topic: part 2"
     assert_equal "Still another topic: part 2", topic.title
+
+    topic.send(:write_attribute, "title", "Still another topic: part 3")
+    assert_equal "Still another topic: part 3", topic.title
+
+    topic["title"] = "Still another topic: part 4"
+    assert_equal "Still another topic: part 4", topic.title
   end
 
   def test_read_attribute
