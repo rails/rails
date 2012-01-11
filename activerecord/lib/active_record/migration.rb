@@ -1,6 +1,7 @@
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/class/attribute_accessors"
 require 'active_support/deprecation'
+require 'active_record/schema_migration'
 
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
@@ -582,12 +583,11 @@ module ActiveRecord
       end
 
       def schema_migrations_table_name
-        Base.table_name_prefix + 'schema_migrations' + Base.table_name_suffix
+        SchemaMigration.table_name
       end
 
       def get_all_versions
-        table = Arel::Table.new(schema_migrations_table_name)
-        Base.connection.select_values(table.project(table['version'])).map{ |v| v.to_i }.sort
+        SchemaMigration.all.map { |x| x.version.to_i }.sort
       end
 
       def current_version
