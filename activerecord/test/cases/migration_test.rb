@@ -874,19 +874,21 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal(0, ActiveRecord::Migrator.current_version)
   end
 
-  if ActiveRecord::Base.connection.supports_ddl_transactions?
-    def test_migrator_one_up_with_exception_and_rollback
-      assert !Person.column_methods_hash.include?(:last_name)
-
-      e = assert_raise(StandardError) do
-        ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/broken", 100)
-      end
-
-      assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
-
-      Person.reset_column_information
-      assert !Person.column_methods_hash.include?(:last_name)
+  def test_migrator_one_up_with_exception_and_rollback
+    unless ActiveRecord::Base.connection.supports_ddl_transactions?
+      skip "not supported on #{ActiveRecord::Base.connection.class}"
     end
+
+    assert !Person.column_methods_hash.include?(:last_name)
+
+    e = assert_raise(StandardError) do
+      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/broken", 100)
+    end
+
+    assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
+
+    Person.reset_column_information
+    assert !Person.column_methods_hash.include?(:last_name)
   end
 
   def test_finds_migrations
