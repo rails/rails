@@ -21,7 +21,7 @@ def options
   options
 end
 
-class BenchmarkerTest < ActionDispatch::PerformanceTest
+class BenchmarkerTest < ActionDispatch::PerformanceTest #:nodoc:
   self.profile_options = options
 
   ARGV.each do |expression|
