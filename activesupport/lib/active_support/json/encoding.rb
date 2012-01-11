@@ -148,8 +148,8 @@ class Object
   end
 end
 
-class Struct
-  def as_json(options = nil) #:nodoc:
+class Struct #:nodoc:
+  def as_json(options = nil)
     Hash[members.zip(values)]
   end
 end
