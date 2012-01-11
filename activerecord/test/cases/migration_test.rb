@@ -87,21 +87,21 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_rename_index
-    unless current_adapter?(:OpenBaseAdapter)
-      # keep the names short to make Oracle and similar behave
-      Person.connection.add_index('people', [:first_name], :name => 'old_idx')
-      assert_nothing_raised { Person.connection.rename_index('people', 'old_idx', 'new_idx') }
-      # if the adapter doesn't support the indexes call, pick defaults that let the test pass
-      assert !Person.connection.index_name_exists?('people', 'old_idx', false)
-      assert Person.connection.index_name_exists?('people', 'new_idx', true)
-    end
+    skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
+
+    # keep the names short to make Oracle and similar behave
+    Person.connection.add_index('people', [:first_name], :name => 'old_idx')
+    assert_nothing_raised { Person.connection.rename_index('people', 'old_idx', 'new_idx') }
+    # if the adapter doesn't support the indexes call, pick defaults that let the test pass
+    assert !Person.connection.index_name_exists?('people', 'old_idx', false)
+    assert Person.connection.index_name_exists?('people', 'new_idx', true)
   end
 
   def test_double_add_index
-    unless current_adapter?(:OpenBaseAdapter)
-      Person.connection.add_index('people', [:first_name], :name => 'some_idx')
-      assert_raise(ArgumentError) { Person.connection.add_index('people', [:first_name], :name => 'some_idx') }
-    end
+    skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
+
+    Person.connection.add_index('people', [:first_name], :name => 'some_idx')
+    assert_raise(ArgumentError) { Person.connection.add_index('people', [:first_name], :name => 'some_idx') }
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
@@ -182,37 +182,39 @@ class MigrationTest < ActiveRecord::TestCase
   # Test SQLite adapter specifically for decimal types with precision and scale
   # attributes, since these need to be maintained in schema but aren't actually
   # used in SQLite itself
-  if current_adapter?(:SQLite3Adapter)
-    def test_change_column_with_new_precision_and_scale
-      Person.delete_all
-      Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
-      Person.reset_column_information
+  def test_change_column_with_new_precision_and_scale
+    skip "only on sqlite3" unless current_adapter?(:SQLite3Adapter)
 
-      Person.connection.change_column 'people', 'wealth', :decimal, :precision => 12, :scale => 8
-      Person.reset_column_information
+    Person.delete_all
+    Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
+    Person.reset_column_information
 
-      wealth_column = Person.columns_hash['wealth']
-      assert_equal 12, wealth_column.precision
-      assert_equal 8, wealth_column.scale
-    end
+    Person.connection.change_column 'people', 'wealth', :decimal, :precision => 12, :scale => 8
+    Person.reset_column_information
 
-    def test_change_column_preserve_other_column_precision_and_scale
-      Person.delete_all
-      Person.connection.add_column 'people', 'last_name', :string
-      Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
-      Person.reset_column_information
+    wealth_column = Person.columns_hash['wealth']
+    assert_equal 12, wealth_column.precision
+    assert_equal 8, wealth_column.scale
+  end
 
-      wealth_column = Person.columns_hash['wealth']
-      assert_equal 9, wealth_column.precision
-      assert_equal 7, wealth_column.scale
+  def test_change_column_preserve_other_column_precision_and_scale
+    skip "only on sqlite3" unless current_adapter?(:SQLite3Adapter)
 
-      Person.connection.change_column 'people', 'last_name', :string, :null => false
-      Person.reset_column_information
+    Person.delete_all
+    Person.connection.add_column 'people', 'last_name', :string
+    Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
+    Person.reset_column_information
 
-      wealth_column = Person.columns_hash['wealth']
-      assert_equal 9, wealth_column.precision
-      assert_equal 7, wealth_column.scale
-    end
+    wealth_column = Person.columns_hash['wealth']
+    assert_equal 9, wealth_column.precision
+    assert_equal 7, wealth_column.scale
+
+    Person.connection.change_column 'people', 'last_name', :string, :null => false
+    Person.reset_column_information
+
+    wealth_column = Person.columns_hash['wealth']
+    assert_equal 9, wealth_column.precision
+    assert_equal 7, wealth_column.scale
   end
 
   def test_native_types
@@ -288,16 +290,16 @@ class MigrationTest < ActiveRecord::TestCase
     assert_kind_of BigDecimal, bob.wealth
   end
 
-  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
-    def test_unabstracted_database_dependent_types
-      Person.delete_all
+  def test_unabstracted_database_dependent_types
+    skip "not supported" unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 
-      ActiveRecord::Migration.add_column :people, :intelligence_quotient, :tinyint
-      Person.reset_column_information
-      assert_match(/tinyint/, Person.columns_hash['intelligence_quotient'].sql_type)
-    ensure
-      ActiveRecord::Migration.remove_column :people, :intelligence_quotient rescue nil
-    end
+    Person.delete_all
+
+    ActiveRecord::Migration.add_column :people, :intelligence_quotient, :tinyint
+    Person.reset_column_information
+    assert_match(/tinyint/, Person.columns_hash['intelligence_quotient'].sql_type)
+  ensure
+    ActiveRecord::Migration.remove_column :people, :intelligence_quotient rescue nil
   end
 
   def test_add_remove_single_field_using_string_arguments
@@ -472,29 +474,29 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:SQLite3Adapter)
-    def test_rename_table_for_sqlite_should_work_with_reserved_words
-      begin
-        assert_nothing_raised do
-          ActiveRecord::Base.connection.rename_table :references, :old_references
-          ActiveRecord::Base.connection.create_table :octopuses do |t|
-            t.column :url, :string
-          end
+  def test_rename_table_for_sqlite_should_work_with_reserved_words
+    skip "not supported" unless current_adapter?(:SQLite3Adapter)
+
+    begin
+      assert_nothing_raised do
+        ActiveRecord::Base.connection.rename_table :references, :old_references
+        ActiveRecord::Base.connection.create_table :octopuses do |t|
+          t.column :url, :string
         end
-
-        assert_nothing_raised { ActiveRecord::Base.connection.rename_table :octopuses, :references }
-
-        # Using explicit id in insert for compatibility across all databases
-        con = ActiveRecord::Base.connection
-        assert_nothing_raised do
-          con.execute "INSERT INTO 'references' (#{con.quote_column_name('id')}, #{con.quote_column_name('url')}) VALUES (1, 'http://rubyonrails.com')"
-        end
-        assert_equal 'http://rubyonrails.com', ActiveRecord::Base.connection.select_value("SELECT url FROM 'references' WHERE id=1")
-
-      ensure
-        ActiveRecord::Base.connection.drop_table :references
-        ActiveRecord::Base.connection.rename_table :old_references, :references
       end
+
+      assert_nothing_raised { ActiveRecord::Base.connection.rename_table :octopuses, :references }
+
+      # Using explicit id in insert for compatibility across all databases
+      con = ActiveRecord::Base.connection
+      assert_nothing_raised do
+        con.execute "INSERT INTO 'references' (#{con.quote_column_name('id')}, #{con.quote_column_name('url')}) VALUES (1, 'http://rubyonrails.com')"
+      end
+      assert_equal 'http://rubyonrails.com', ActiveRecord::Base.connection.select_value("SELECT url FROM 'references' WHERE id=1")
+
+    ensure
+      ActiveRecord::Base.connection.drop_table :references
+      ActiveRecord::Base.connection.rename_table :old_references, :references
     end
   end
 
@@ -1138,7 +1140,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_create_table_with_custom_sequence_name
-    return unless current_adapter? :OracleAdapter
+    skip "not supported" unless current_adapter? :OracleAdapter
 
     # table name is 29 chars, the standard sequence name will
     # be 33 chars and should be shortened
