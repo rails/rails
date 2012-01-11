@@ -380,9 +380,9 @@ Now you need to get other people to look at your patch, just as you've looked at
 
 h4. Iterate as Necessary
 
-It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a plugin.
+It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a gem.
 
-And then...think about your next contribution!
+And then ... think about your next contribution!
 
 h3. Rails Contributors
 

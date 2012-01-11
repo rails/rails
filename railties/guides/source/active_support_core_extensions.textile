@@ -376,7 +376,7 @@ NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
 h5. +instance_values+
 
 The method +instance_values+ returns a hash that maps instance variable names without "@" to their
-corresponding values. Keys are strings both in Ruby 1.8 and 1.9:
+corresponding values. Keys are strings:
 
 <ruby>
 class C
@@ -704,13 +704,11 @@ module X
   end
 end
 
-X.local_constants    # => ["X2", "X1", "Y"], assumes Ruby 1.8
-X::Y.local_constants # => ["X1", "Y1"], assumes Ruby 1.8
+X.local_constants    # => [:X1, :X2, :Y]
+X::Y.local_constants # => [:Y1, :X1]
 </ruby>
 
-The names are returned as strings in Ruby 1.8, and as symbols in Ruby 1.9. The method +local_constant_names+ always returns strings.
-
-WARNING: This method returns precise results in Ruby 1.9. In older versions of Ruby, however, it may miss some constants in case the same constant exists in the receiver module as well as in any of its ancestors and both constants point to the same object (objects are compared using +Object#object_id+).
+The names are returned as symbols. The method +local_constant_names+ always returns strings.
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
@@ -737,8 +735,8 @@ Math.qualified_const_get("E") # => 2.718281828459045
 </ruby>
 
 These methods are analogous to their builtin counterparts. In particular,
-+qualified_constant_defined?+ accepts an optional second argument in 1.9
-to be able to say whether you want the predicate to look in the ancestors.
++qualified_constant_defined?+ accepts an optional second argument to be
+able to say whether you want the predicate to look in the ancestors.
 This flag is taken into account for each constant in the expression while
 walking down the path.
 
@@ -759,12 +757,12 @@ end
 +qualified_const_defined?+ behaves this way:
 
 <ruby>
-N.qualified_const_defined?("C::X", false) # => false (1.9 only)
-N.qualified_const_defined?("C::X", true)  # => true (1.9 only)
-N.qualified_const_defined?("C::X")        # => false in 1.8, true in 1.9
+N.qualified_const_defined?("C::X", false) # => false
+N.qualified_const_defined?("C::X", true)  # => true
+N.qualified_const_defined?("C::X")        # => true
 </ruby>
 
-As the last example implies, in 1.9 the second argument defaults to true,
+As the last example implies, the second argument defaults to true,
 as in +const_defined?+.
 
 For coherence with the builtin methods only relative paths are accepted.
@@ -2238,9 +2236,6 @@ The last point is particularly worth comparing for some enumerables:
 <ruby>
 Array.wrap(:foo => :bar) # => [{:foo => :bar}]
 Array(:foo => :bar)      # => [[:foo, :bar]]
-
-Array.wrap("foo\nbar")   # => ["foo\nbar"]
-Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
 </ruby>
 
 There's also a related idiom that uses the splat operator:

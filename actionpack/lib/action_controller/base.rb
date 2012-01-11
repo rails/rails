@@ -121,7 +121,7 @@ module ActionController
   #
   #   def search
   #     @results = Search.find(params[:query])
-  #     case @results
+  #     case @results.count
   #       when 0 then render :action => "no_results"
   #       when 1 then render :action => "show"
   #       when 2..10 then render :action => "show_many"

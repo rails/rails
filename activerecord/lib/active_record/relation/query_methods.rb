@@ -93,6 +93,16 @@ module ActiveRecord
       relation
     end
 
+    # Replaces any existing order defined on the relation with the specified order.
+    #
+    #   User.order('email DESC').reorder('id ASC') # generated SQL has 'ORDER BY id ASC'
+    #
+    # Subsequent calls to order on the same relation will be appended. For example:
+    #
+    #   User.order('email DESC').reorder('id ASC').order('name ASC')
+    #
+    # generates a query with 'ORDER BY id ASC, name ASC'.
+    #
     def reorder(*args)
       return self if args.blank?
 
