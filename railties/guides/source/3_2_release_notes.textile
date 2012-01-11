@@ -15,13 +15,20 @@ h3. Upgrading to Rails 3.2
 
 If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.1 in case you haven't and make sure your application still runs as expected before attempting an update to Rails 3.2. Then take heed of the following changes:
 
+h4. Rails 3.2 requires at least Ruby 1.8.7
+
+Rails 3.2 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.2 is also compatible with Ruby 1.9.2.
+
+TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump on to 1.9.2 or 1.9.3 for smooth sailing.
+
 h4. What to update in your apps
 
-* Update your Gemfile to depend on rails = 3.2.0
-* Update your Gemfile to depend on sass-rails ~> 3.2.3
-* Update your Gemfile to depend on coffee-rails ~> 3.2.1
+* Update your Gemfile to depend on
+** <tt>rails = 3.2.0</tt>
+** <tt>sass-rails ~> 3.2.3</tt>
+** <tt>coffee-rails ~> 3.2.1</tt>
 
-* Start moving any remaining Rails 2.3-style vendor/plugins/==*==. These have been finally deprecated and will be removed in Rails 4.0. Instead, extract your vendor/plugins to their own gems and bundle them in your Gemfile. If you think they're not worthy of being a gem, move them into lib/my_plugin/==*==. You'll also need to add an appropriate initializer in config/initializers/my_plugin.rb.
+* Rails 3.2 deprecates <tt>vendor/plugins</tt> and Rails 4.0 will remove them completely. You can start replacing these plugins by extracting them as gems and adding them in your Gemfile. If you choose not to make them gems, you can move them into, say, <tt>lib/my_plugin/*</tt> and add an appropriate initializer in <tt>config/initializers/my_plugin.rb</tt>.
 
 * There are a couple of new configuration changes you'd want to add in <tt>config/environments/development.rb</tt>:
 
@@ -34,18 +41,12 @@ config.active_record.mass_assignment_sanitizer = :strict
 config.active_record.auto_explain_threshold_in_seconds = 0.5
 </ruby>
 
-The last configuration from above also needs to be added in <tt>config/environments/test.rb</tt>:
+The <tt>mass_assignment_sanitizer</tt> config also needs to be added in <tt>config/environments/test.rb</tt>:
 
 <ruby>
 # Raise exception on mass assignment protection for Active Record models
 config.active_record.mass_assignment_sanitizer = :strict
 </ruby>
-
-h4. Rails 3.2 requires at least Ruby 1.8.7
-
-Rails 3.2 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.2 is also compatible with Ruby 1.9.2.
-
-TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump on to 1.9.2 or 1.9.3 for smooth sailing.
 
 h3. Creating a Rails 3.2 application
 
@@ -59,7 +60,7 @@ h4. Vendoring Gems
 
 Rails now uses a +Gemfile+ in the application root to determine the gems you require for your application to start. This +Gemfile+ is processed by the "Bundler":https://github.com/carlhuda/bundler gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: - "Bundler homepage":http://gembundler.com
+More information: "Bundler homepage":http://gembundler.com
 
 h4. Living on the Edge
 
@@ -92,7 +93,6 @@ h4. Tagged Logging
 When running a multi-user, multi-account application, it's a great help to be able to filter the log by who did what. TaggedLogging in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging of such applications.
 
 h3. Railties
-
 
 * Speed up development by only reloading classes if dependencies files changed. This can be turned off by setting <tt>config.reload_classes_only_on_change</tt> to false.
 
