@@ -62,69 +62,6 @@ class MigrationTest < ActiveRecord::TestCase
     Person.reset_column_information
   end
 
-  def test_add_index
-    # Limit size of last_name and key columns to support Firebird index limitations
-    Person.connection.add_column "people", "last_name", :string, :limit => 100
-    Person.connection.add_column "people", "key", :string, :limit => 100
-    Person.connection.add_column "people", "administrator", :boolean
-
-    assert_nothing_raised { Person.connection.add_index("people", "last_name") }
-    assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
-
-    # Orcl nds shrt indx nms.  Sybs 2.
-    # OpenBase does not have named indexes.  You must specify a single column name
-    unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
-      assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-      assert_nothing_raised { Person.connection.remove_index("people", :column => ["last_name", "first_name"]) }
-      # Oracle adapter cannot have specified index name larger than 30 characters
-      # Oracle adapter is shortening index name when just column list is given
-      unless current_adapter?(:OracleAdapter)
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.remove_index("people", :name => :index_people_on_last_name_and_first_name) }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
-      end
-      assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-      assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
-      assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :length => 10) }
-      assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
-      assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :length => {:last_name => 10}) }
-      assert_nothing_raised { Person.connection.remove_index("people", ["last_name"]) }
-      assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :length => 10) }
-      assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
-      assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :length => {:last_name => 10, :first_name => 20}) }
-      assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
-    end
-
-    # quoting
-    # Note: changed index name from "key" to "key_idx" since "key" is a Firebird reserved word
-    # OpenBase does not have named indexes.  You must specify a single column name
-    unless current_adapter?(:OpenBaseAdapter)
-      Person.update_all "#{Person.connection.quote_column_name 'key'}=#{Person.connection.quote_column_name 'id'}" #some databases (including sqlite2 won't add a unique index if existing data non unique)
-      assert_nothing_raised { Person.connection.add_index("people", ["key"], :name => "key_idx", :unique => true) }
-      assert_nothing_raised { Person.connection.remove_index("people", :name => "key_idx", :unique => true) }
-    end
-
-    # Sybase adapter does not support indexes on :boolean columns
-    # OpenBase does not have named indexes.  You must specify a single column
-    unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
-      assert_nothing_raised { Person.connection.add_index("people", %w(last_name first_name administrator), :name => "named_admin") }
-      assert_nothing_raised { Person.connection.remove_index("people", :name => "named_admin") }
-    end
-
-    # Selected adapters support index sort order
-    if current_adapter?(:SQLite3Adapter, :MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
-      assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :order => {:last_name => :desc}) }
-      assert_nothing_raised { Person.connection.remove_index("people", ["last_name"]) }
-      assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :order => {:last_name => :desc}) }
-      assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
-      assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :order => {:last_name => :desc, :first_name => :asc}) }
-      assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
-      assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :order => :desc) }
-      assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
-    end
-  end
-
   def test_index_symbol_names
     assert_nothing_raised { Person.connection.add_index :people, :primary_contact_id, :name => :symbol_index_name }
     assert Person.connection.index_exists?(:people, :primary_contact_id, :name => :symbol_index_name)
