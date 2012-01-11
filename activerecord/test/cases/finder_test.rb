@@ -1171,6 +1171,13 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_finder_with_offset_string
+    sql_query =  Topic.send(:construct_finder_arel, {:offset => "3"}).to_sql
+    results = Topic.connection.select_values(sql_query)
+
+    assert_equal 1, results.count
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
