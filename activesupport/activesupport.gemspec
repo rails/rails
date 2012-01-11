@@ -16,6 +16,8 @@ Gem::Specification.new do |s|
   s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*']
   s.require_path = 'lib'
 
+  s.rdoc_options.concat ['--encoding',  'UTF-8']
+
   s.add_dependency('i18n',       '~> 0.6')
   s.add_dependency('multi_json', '~> 1.0')
 end
