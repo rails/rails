@@ -318,6 +318,39 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     # puts ""
   end
 
+  def test_overridden_write_attribute
+    topic = Topic.new
+    def topic.write_attribute(attr_name, value)
+      super(attr_name, value.downcase)
+    end
+
+    topic.send(:write_attribute, :title, "Yet another topic")
+    assert_equal "yet another topic", topic.title
+
+    topic[:title] = "Yet another topic: part 2"
+    assert_equal "yet another topic: part 2", topic.title
+
+    topic.send(:write_attribute, "title", "Yet another topic: part 3")
+    assert_equal "yet another topic: part 3", topic.title
+
+    topic["title"] = "Yet another topic: part 4"
+    assert_equal "yet another topic: part 4", topic.title
+  end
+
+  def test_overridden_read_attribute
+    topic = Topic.new
+    topic.title = "Stop changing the topic"
+    def topic.read_attribute(attr_name)
+      super(attr_name).upcase
+    end
+
+    assert_equal "STOP CHANGING THE TOPIC", topic.send(:read_attribute, "title")
+    assert_equal "STOP CHANGING THE TOPIC", topic["title"]
+
+    assert_equal "STOP CHANGING THE TOPIC", topic.send(:read_attribute, :title)
+    assert_equal "STOP CHANGING THE TOPIC", topic[:title]
+  end
+
   def test_read_overridden_attribute
     topic = Topic.new(:title => 'a')
     def topic.title() 'b' end
