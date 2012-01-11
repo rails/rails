@@ -7,13 +7,13 @@ Highlights in Rails 3.2:
 * Automatic Query Explains
 * Tagged Logging
 
-These release notes cover the major changes, but don't include every little bug fix and change. If you want to see everything, check out the "list of commits":https://github.com/rails/rails/commits/3-2-stable in the main Rails repository on GitHub.
+These release notes cover the major changes, but do not include each bug-fix and changes. If you want to see everything, check out the "list of commits":https://github.com/rails/rails/commits/3-2-stable in the main Rails repository on GitHub.
 
 endprologue.
 
 h3. Upgrading to Rails 3.2
 
-If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.1 in case you haven't and make sure your application still runs as expected before attempting to update to Rails 3.2. Then take heed of the following changes:
+If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.1 in case you haven't and make sure your application still runs as expected before attempting an update to Rails 3.2. Then take heed of the following changes:
 
 h4. What to update in your apps
 
@@ -21,15 +21,12 @@ h4. What to update in your apps
 * Update your Gemfile to depend on sass-rails ~> 3.2.3
 * Update your Gemfile to depend on coffee-rails ~> 3.2.1
 
-Start moving any remaining Rails 2.3-style vendor/plugins/==*==. These are finally deprecated!
-Extract your vendor/plugins to their own gems and bundle them in your Gemfile. If they're tiny, not worthy of the own gem, fold it into your app as lib/myplugin/==*== and config/initializers/myplugin.rb.
+* Start moving any remaining Rails 2.3-style vendor/plugins/==*==. These have been finally deprecated and will be removed in Rails 4.0. Instead, extract your vendor/plugins to their own gems and bundle them in your Gemfile. If you think they're not worthy of being a gem, move them into lib/my_plugin/==*==. You'll also need to add an appropriate initializer in config/initializers/my_plugin.rb.
 
-* Add to your config files:
-
-config/environments/development.rb
+* There are a couple of new configuration changes you'd want to add in <tt>config/environments/development.rb</tt>:
 
 <ruby>
-# Raise exception on mass assignment protection for ActiveRecord models
+# Raise exception on mass assignment protection for Active Record models
 config.active_record.mass_assignment_sanitizer = :strict
 
 # Log the query plan for queries taking more than this (works
@@ -37,10 +34,10 @@ config.active_record.mass_assignment_sanitizer = :strict
 config.active_record.auto_explain_threshold_in_seconds = 0.5
 </ruby>
 
-config/environments/test.rb
+The last configuration from above also needs to be added in <tt>config/environments/test.rb</tt>:
 
 <ruby>
-# Raise exception on mass assignment protection for ActiveRecord models
+# Raise exception on mass assignment protection for Active Record models
 config.active_record.mass_assignment_sanitizer = :strict
 </ruby>
 
@@ -48,7 +45,7 @@ h4. Rails 3.2 requires at least Ruby 1.8.7
 
 Rails 3.2 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.2 is also compatible with Ruby 1.9.2.
 
-TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition have these fixed since release 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump on 1.9.2 or 1.9.3 for smooth sailing.
+TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump on to 1.9.2 or 1.9.3 for smooth sailing.
 
 h3. Creating a Rails 3.2 application
 
