@@ -546,14 +546,14 @@ module ActiveRecord
 
       def migrate(migrations_paths, target_version = nil, &block)
         case
-          when target_version.nil?
-            up(migrations_paths, target_version, &block)
-          when current_version == 0 && target_version == 0
-            []
-          when current_version > target_version
-            down(migrations_paths, target_version, &block)
-          else
-            up(migrations_paths, target_version, &block)
+        when target_version.nil?
+          up(migrations_paths, target_version, &block)
+        when current_version == 0 && target_version == 0
+          []
+        when current_version > target_version
+          down(migrations_paths, target_version, &block)
+        else
+          up(migrations_paths, target_version, &block)
         end
       end
 
@@ -566,15 +566,19 @@ module ActiveRecord
       end
 
       def up(migrations_paths, target_version = nil, &block)
-        self.new(:up, migrations_paths, target_version).migrate(&block)
+        self.new(:up, migrations(migrations_paths), target_version).migrate(&block)
       end
 
       def down(migrations_paths, target_version = nil, &block)
-        self.new(:down, migrations_paths, target_version).migrate(&block)
+        self.new(:down, migrations(migrations_paths), target_version).migrate(&block)
       end
 
       def run(direction, migrations_paths, target_version)
-        self.new(direction, migrations_paths, target_version).run
+        self.new(direction, migrations(migrations_paths), target_version).run
+      end
+
+      def open(migrations_paths)
+        self.new(:up, migrations(migrations_paths), nil)
       end
 
       def schema_migrations_table_name
@@ -638,7 +642,7 @@ module ActiveRecord
       private
 
       def move(direction, migrations_paths, steps)
-        migrator = self.new(direction, migrations_paths)
+        migrator = self.new(direction, migrations(migrations_paths))
         start_index = migrator.migrations.index(migrator.current_migration)
 
         if start_index
@@ -649,10 +653,20 @@ module ActiveRecord
       end
     end
 
-    def initialize(direction, migrations_paths, target_version = nil)
+    def initialize(direction, migrations, target_version = nil)
       raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
       Base.connection.initialize_schema_migrations_table
-      @direction, @migrations_paths, @target_version = direction, migrations_paths, target_version
+
+      @direction        = direction
+
+      if Array(migrations).grep(String).empty?
+        @migrations = migrations
+      else
+        ActiveSupport::Deprecation.warn "instantiate this class with a list of migrations"
+        @migrations = self.class.migrations(migrations)
+      end
+
+      @target_version   = target_version
     end
 
     def current_version
@@ -721,10 +735,7 @@ module ActiveRecord
     end
 
     def migrations
-      @migrations ||= begin
-        migrations = self.class.migrations(@migrations_paths)
-        down? ? migrations.reverse : migrations
-      end
+      down? ? @migrations.reverse : @migrations
     end
 
     def pending_migrations
