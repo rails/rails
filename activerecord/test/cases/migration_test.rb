@@ -879,16 +879,20 @@ class MigrationTest < ActiveRecord::TestCase
       skip "not supported on #{ActiveRecord::Base.connection.class}"
     end
 
-    assert !Person.column_methods_hash.include?(:last_name)
+    refute Person.column_methods_hash.include?(:last_name)
 
-    e = assert_raise(StandardError) do
-      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/broken", 100)
-    end
+    migration = Struct.new(:name, :version) {
+      def migrate(x); raise 'Something broke'; end
+    }.new('zomg', 100)
+
+    migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+
+    e = assert_raise(StandardError) { migrator.migrate }
 
     assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
 
     Person.reset_column_information
-    assert !Person.column_methods_hash.include?(:last_name)
+    refute Person.column_methods_hash.include?(:last_name)
   end
 
   def test_finds_migrations
