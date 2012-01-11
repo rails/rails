@@ -1238,19 +1238,6 @@ class MigrationTest < ActiveRecord::TestCase
     ensure
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
     end
-
-end
-
-class MigrationLoggerTest < ActiveRecord::TestCase
-  def test_migration_should_be_run_without_logger
-    previous_logger = ActiveRecord::Base.logger
-    ActiveRecord::Base.logger = nil
-    assert_nothing_raised do
-      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
-    end
-  ensure
-    ActiveRecord::Base.logger = previous_logger
-  end
 end
 
 class InterleavedMigrationsTest < ActiveRecord::TestCase
