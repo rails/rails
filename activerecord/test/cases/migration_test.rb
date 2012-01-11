@@ -80,10 +80,10 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_remove_nonexistent_index
+    skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
+
     # we do this by name, so OpenBase is a wash as noted above
-    unless current_adapter?(:OpenBaseAdapter)
-      assert_raise(ArgumentError) { Person.connection.remove_index("people", "no_such_index") }
-    end
+    assert_raise(ArgumentError) { Person.connection.remove_index("people", "no_such_index") }
   end
 
   def test_rename_index
