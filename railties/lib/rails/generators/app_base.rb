@@ -195,7 +195,7 @@ module Rails
             group :assets do
               gem 'sass-rails',   :git => 'https://github.com/rails/sass-rails.git'
               gem 'coffee-rails', :git => 'https://github.com/rails/coffee-rails.git'
-              #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
+              #{required_javascript_runtime}
               gem 'uglifier', '>= 1.0.3'
             end
           GEMFILE
@@ -206,7 +206,7 @@ module Rails
             group :assets do
               gem 'sass-rails',   '~> 4.0.0.beta'
               gem 'coffee-rails', '~> 4.0.0.beta'
-              #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
+              #{required_javascript_runtime}
               gem 'uglifier', '>= 1.0.3'
             end
           GEMFILE
@@ -252,6 +252,45 @@ module Rails
       def key_value(key, value)
         "#{key}: #{value}"
       end
+    
+    private
+
+      def required_javascript_runtime
+        # The execjs gem requires a Javascript runtime to be present on the 
+        # system. This can either be a gem or a system executable. Windows and
+        # Mac will have one, Linux typically does not unless node.js is 
+        # installed.  This will add the required gem if a runtime is not on the
+        # system
+        if defined?(JRUBY_VERSION)
+          "gem 'therubyrhino'\n"  
+        else
+          runtime_executables = [
+            "nodejs", "node",  # NodeJS
+            "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/jsc", # Mac JavaScriptCore
+            "js", # Mozilla Spidermonkey
+            "cscript" # Windows scripting host
+          ] 
+
+          found = runtime_executables.find do |cmd|
+            if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|windows|cygwin/i && 
+               File.extname(cmd) == ""
+              cmd << ".exe"
+            end
+
+            if File.executable? cmd
+              true
+            else
+              path = ENV['PATH'].split(File::PATH_SEPARATOR).find { |p|
+                full_path = File.join(p, cmd)
+                File.executable?(full_path) && File.file?(full_path)
+              }
+              path && File.expand_path(cmd, path)
+            end
+          end
+          found.nil? ? "gem 'therubyracer'\n" : ""
+        end
+      end
+
     end
   end
 end
