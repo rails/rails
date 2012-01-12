@@ -371,10 +371,6 @@ module ActiveSupport #:nodoc:
       Object.qualified_const_defined?(path.sub(/^::/, ''), false)
     end
 
-    def local_const_defined?(mod, const) #:nodoc:
-      mod.const_defined?(const, false)
-    end
-
     # Given +path+, a filesystem path to a ruby file, return an array of constant
     # paths which would cause Dependencies to attempt to load this file.
     def loadable_constants_for_path(path, bases = autoload_paths)
@@ -475,7 +471,7 @@ module ActiveSupport #:nodoc:
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 
-      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if local_const_defined?(from_mod, const_name)
+      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name, false)
 
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
@@ -484,12 +480,12 @@ module ActiveSupport #:nodoc:
 
       if file_path && ! loaded.include?(File.expand_path(file_path)) # We found a matching file to load
         require_or_load file_path
-        raise LoadError, "Expected #{file_path} to define #{qualified_name}" unless local_const_defined?(from_mod, const_name)
+        raise LoadError, "Expected #{file_path} to define #{qualified_name}" unless from_mod.const_defined?(const_name, false)
         return from_mod.const_get(const_name)
       elsif mod = autoload_module!(from_mod, const_name, qualified_name, path_suffix)
         return mod
       elsif (parent = from_mod.parent) && parent != from_mod &&
-            ! from_mod.parents.any? { |p| local_const_defined?(p, const_name) }
+            ! from_mod.parents.any? { |p| p.const_defined?(const_name, false) }
         # If our parents do not have a constant named +const_name+ then we are free
         # to attempt to load upwards. If they do have such a constant, then this
         # const_missing must be due to from_mod::const_name, which should not
