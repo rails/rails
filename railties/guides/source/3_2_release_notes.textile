@@ -92,6 +92,10 @@ h4. Tagged Logging
 
 When running a multi-user, multi-account application, it's a great help to be able to filter the log by who did what. TaggedLogging in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
 
+h3. Documentation
+
+From Rails 3.2, the Rails guides are available for the Kindle and free Kindle Reading Apps for the iPad, iPhone, Mac, Android, etc.
+
 h3. Railties
 
 * Speed up development by only reloading classes if dependencies files changed. This can be turned off by setting <tt>config.reload_classes_only_on_change</tt> to false.
