@@ -60,5 +60,16 @@ module ActiveRecord
         ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/interleaved/pass_2")
       end
     end
+
+    def test_relative_migrations
+      list = Dir.chdir(MIGRATIONS_ROOT) do
+        ActiveRecord::Migrator.migrations("valid/")
+      end
+
+      migration_proxy = list.find { |item|
+        item.name == 'ValidPeopleHaveLastNames'
+      }
+      assert migration_proxy, 'should find pending migration'
+    end
   end
 end

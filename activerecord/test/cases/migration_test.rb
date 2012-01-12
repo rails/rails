@@ -329,17 +329,6 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal migrations[0].name, 'InterleavedInnocentJointable'
   end
 
-  def test_relative_migrations
-    list = Dir.chdir(MIGRATIONS_ROOT) do
-      ActiveRecord::Migrator.up("valid/", 1)
-    end
-
-    migration_proxy = list.find { |item|
-      item.name == 'ValidPeopleHaveLastNames'
-    }
-    assert migration_proxy, 'should find pending migration'
-  end
-
   def test_only_loads_pending_migrations
     # migrate up to 1
     ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
