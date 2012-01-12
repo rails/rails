@@ -5,6 +5,8 @@ class ERB
   module Util
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
+    HTML_ESCAPE_ONCE_REGEXP = /[\"><]|&(?!([a-zA-Z]+|(#\d+));)/
+    JSON_ESCAPE_REGEXP = /[&"><]/
 
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
@@ -42,7 +44,7 @@ class ERB
     #   html_escape_once("&lt;&lt; Accept & Checkout")
     #   # => "&lt;&lt; Accept &amp; Checkout"
     def html_escape_once(s)
-      result = s.to_s.gsub(/[\"><]|&(?!([a-zA-Z]+|(#\d+));)/) { |special| HTML_ESCAPE[special] }
+      result = s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP) { |special| HTML_ESCAPE[special] }
       s.html_safe? ? result.html_safe : result
     end
 
@@ -66,7 +68,7 @@ class ERB
     #   <%=j @person.to_json %>
     #
     def json_escape(s)
-      result = s.to_s.gsub(/[&"><]/) { |special| JSON_ESCAPE[special] }
+      result = s.to_s.gsub(JSON_ESCAPE_REGEXP) { |special| JSON_ESCAPE[special] }
       s.html_safe? ? result.html_safe : result
     end
 
