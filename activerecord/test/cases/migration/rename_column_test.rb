@@ -48,6 +48,69 @@ module ActiveRecord
         assert TestModel.column_names.include?("nick_name")
         assert_equal ['foo'], TestModel.find(:all).map(&:nick_name)
       end
+
+      def test_rename_column_preserves_default_value_not_null
+        add_column 'test_models', 'salary', :integer, :default => 70000
+
+        default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
+        assert_equal 70000, default_before
+
+        rename_column "test_models", "salary", "anual_salary"
+
+        assert TestModel.column_names.include?("anual_salary")
+        default_after = connection.columns("test_models").find { |c| c.name == "anual_salary" }.default
+        assert_equal 70000, default_after
+      end
+
+      def test_rename_nonexistent_column
+        exception = if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
+                      ActiveRecord::StatementInvalid
+                    else
+                      ActiveRecord::ActiveRecordError
+                    end
+        assert_raise(exception) do
+          rename_column "test_models", "nonexistent", "should_fail"
+        end
+      end
+
+      def test_rename_column_with_sql_reserved_word
+        add_column 'test_models', 'first_name', :string
+        rename_column "test_models", "first_name", "group"
+
+        assert TestModel.column_names.include?("group")
+      end
+
+      def test_rename_column_with_an_index
+        add_column "test_models", :hat_name, :string
+        add_index :test_models, :hat_name
+
+        # FIXME: we should test that the index goes away
+        rename_column "test_models", "hat_name", "name"
+      end
+
+      def test_remove_column_with_index
+        add_column "test_models", :hat_name, :string
+        add_index :test_models, :hat_name
+
+        # FIXME: we should test that the index goes away
+        remove_column("test_models", "hat_size")
+      end
+
+      def test_remove_column_with_multi_column_index
+        add_column "test_models", :hat_size, :integer
+        add_column "test_models", :hat_style, :string, :limit => 100
+        add_index "test_models", ["hat_style", "hat_size"], :unique => true
+
+        # FIXME: we should test that the index goes away
+        remove_column("test_models", "hat_size")
+      end
+
+      # FIXME: we need to test that these calls do something
+      def test_change_type_of_not_null_column
+        change_column "test_models", "updated_at", :datetime, :null => false
+        change_column "test_models", "updated_at", :datetime, :null => false
+        change_column "test_models", "updated_at", :datetime, :null => true
+      end
     end
   end
 end

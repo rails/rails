@@ -36,6 +36,14 @@ module ActiveRecord
       def rename_column(*args)
         connection.rename_column(*args)
       end
+
+      def add_index(*args)
+        connection.add_index(*args)
+      end
+
+      def change_column(*args)
+        connection.change_column(*args)
+      end
     end
   end
 end
