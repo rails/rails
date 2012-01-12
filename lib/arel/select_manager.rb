@@ -49,7 +49,7 @@ module Arel
 
     def where_clauses
       if $VERBOSE
-        warn "(#{caller.first}) where_clauses is deprecated and will be removed in arel 3.0.0 with no replacement"
+        warn "(#{caller.first}) where_clauses is deprecated and will be removed in arel 4.0.0 with no replacement"
       end
       to_sql = Visitors::ToSql.new @engine.connection
       @ctx.wheres.map { |c| to_sql.accept c }
@@ -160,7 +160,7 @@ module Arel
     end
 
     def wheres
-      warn "#{caller[0]}: SelectManager#wheres is deprecated and will be removed in ARel 3.0.0 with no replacement"
+      warn "#{caller[0]}: SelectManager#wheres is deprecated and will be removed in ARel 4.0.0 with no replacement"
       Compatibility::Wheres.new @engine.connection, @ctx.wheres
     end
 
@@ -238,7 +238,7 @@ module Arel
 
     def joins manager
       if $VERBOSE
-        warn "joins is deprecated and will be removed in 3.0.0"
+        warn "joins is deprecated and will be removed in 4.0.0"
         warn "please remove your call to joins from #{caller.first}"
       end
       manager.join_sql
@@ -266,7 +266,7 @@ module Arel
     def insert values
       if $VERBOSE
         warn <<-eowarn
-insert (#{caller.first}) is deprecated and will be removed in ARel 3.0.0. Please
+insert (#{caller.first}) is deprecated and will be removed in ARel 4.0.0. Please
 switch to `compile_insert`
         eowarn
       end
