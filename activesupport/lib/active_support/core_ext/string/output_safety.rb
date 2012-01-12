@@ -33,6 +33,21 @@ class ERB
     singleton_class.send(:remove_method, :html_escape)
     module_function :html_escape
 
+    # Returns an escaped version of +html+ without affecting existing escaped entities.
+    #
+    # ==== Examples
+    #   html_escape_once("1 < 2 &amp; 3")
+    #   # => "1 &lt; 2 &amp; 3"
+    #
+    #   html_escape_once("&lt;&lt; Accept & Checkout")
+    #   # => "&lt;&lt; Accept &amp; Checkout"
+    def html_escape_once(s)
+      result = s.to_s.gsub(/[\"><]|&(?!([a-zA-Z]+|(#\d+));)/) { |special| HTML_ESCAPE[special] }
+      s.html_safe? ? result.html_safe : result
+    end
+
+    module_function :html_escape_once
+
     # A utility method for escaping HTML entities in JSON strings
     # using \uXXXX JavaScript escape sequences for string literals:
     #
