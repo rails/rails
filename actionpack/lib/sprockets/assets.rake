@@ -62,11 +62,11 @@ namespace :assets do
       ruby_rake_task("assets:precompile:nondigest", false) if Rails.application.config.assets.digest
     end
 
-    task :primary => ["assets:environment", "tmp:cache:clear"] do
+    task :primary => ["assets:cache:clean"] do
       internal_precompile
     end
 
-    task :nondigest => ["assets:environment", "tmp:cache:clear"] do
+    task :nondigest => ["assets:cache:clean"] do
       internal_precompile(false)
     end
   end
@@ -77,10 +77,16 @@ namespace :assets do
   end
 
   namespace :clean do
-    task :all => ["assets:environment", "tmp:cache:clear"] do
+    task :all => ["assets:cache:clean"] do
       config = Rails.application.config
       public_asset_path = File.join(Rails.public_path, config.assets.prefix)
       rm_rf public_asset_path, :secure => true
+    end
+  end
+
+  namespace :cache do
+    task :clean => ["assets:environment"] do
+      Rails.application.assets.cache.clear
     end
   end
 

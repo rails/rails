@@ -314,7 +314,7 @@ module ApplicationTests
         Dir.chdir(app_path){ `bundle exec rake assets:clean` }
       end
 
-      files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/*"]
+      files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/assets/*"]
       assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
     end
 
@@ -490,6 +490,18 @@ module ApplicationTests
       precompile!
 
       assert_match 'src="/sub/uri/assets/rails.png"', File.read("#{app_path}/public/assets/app.js")
+    end
+
+    test "assets:cache:clean should clean cache" do
+      ENV["RAILS_ENV"] = "production"
+      precompile!
+
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:cache:clean` }
+      end
+
+      require "#{app_path}/config/environment"
+      assert_equal 0, Dir.entries(Rails.application.assets.cache.cache_path).size - 2 # reject [".", ".."]
     end
 
     private
