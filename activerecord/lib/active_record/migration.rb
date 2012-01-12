@@ -761,8 +761,7 @@ module ActiveRecord
         Base.connection.delete stmt
       else
         @migrated_versions.push(version).sort!
-        stmt = table.compile_insert table["version"] => version.to_s
-        Base.connection.insert stmt
+        ActiveRecord::SchemaMigration.create!(:version => version.to_s)
       end
     end
 
