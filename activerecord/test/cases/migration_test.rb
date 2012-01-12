@@ -27,6 +27,17 @@ class ActiveRecord::Migration
   end
 end
 
+module ActiveRecord
+  class MigrationTest < ActiveRecord::TestCase
+    attr_reader :connection
+
+    def setup
+      super
+      @connection = Base.connection
+    end
+  end
+end
+
 class MigrationTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
@@ -78,93 +89,6 @@ class MigrationTest < ActiveRecord::TestCase
     end
   ensure
     Person.connection.drop_table :testings2 rescue nil
-  end
-
-  def test_unabstracted_database_dependent_types
-    skip "not supported" unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
-
-    Person.delete_all
-
-    ActiveRecord::Migration.add_column :people, :intelligence_quotient, :tinyint
-    Person.reset_column_information
-    assert_match(/tinyint/, Person.columns_hash['intelligence_quotient'].sql_type)
-  ensure
-    ActiveRecord::Migration.remove_column :people, :intelligence_quotient rescue nil
-  end
-
-  def test_add_remove_single_field_using_string_arguments
-    assert !Person.column_methods_hash.include?(:last_name)
-
-    ActiveRecord::Migration.add_column 'people', 'last_name', :string
-
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-
-    ActiveRecord::Migration.remove_column 'people', 'last_name'
-
-    Person.reset_column_information
-    assert !Person.column_methods_hash.include?(:last_name)
-  end
-
-  def test_add_remove_single_field_using_symbol_arguments
-    assert !Person.column_methods_hash.include?(:last_name)
-
-    ActiveRecord::Migration.add_column :people, :last_name, :string
-
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-
-    ActiveRecord::Migration.remove_column :people, :last_name
-
-    Person.reset_column_information
-    assert !Person.column_methods_hash.include?(:last_name)
-  end
-
-  def test_add_rename
-    Person.delete_all
-
-    begin
-      Person.connection.add_column "people", "girlfriend", :string
-      Person.reset_column_information
-      Person.create :girlfriend => 'bobette'
-
-      Person.connection.rename_column "people", "girlfriend", "exgirlfriend"
-
-      Person.reset_column_information
-      bob = Person.find(:first)
-
-      assert_equal "bobette", bob.exgirlfriend
-    ensure
-      Person.connection.remove_column("people", "girlfriend") rescue nil
-      Person.connection.remove_column("people", "exgirlfriend") rescue nil
-    end
-
-  end
-
-  def test_rename_column_using_symbol_arguments
-    begin
-      names_before = Person.find(:all).map(&:first_name)
-      Person.connection.rename_column :people, :first_name, :nick_name
-      Person.reset_column_information
-      assert Person.column_names.include?("nick_name")
-      assert_equal names_before, Person.find(:all).map(&:nick_name)
-    ensure
-      Person.connection.remove_column("people","nick_name")
-      Person.connection.add_column("people","first_name", :string)
-    end
-  end
-
-  def test_rename_column
-    begin
-      names_before = Person.find(:all).map(&:first_name)
-      Person.connection.rename_column "people", "first_name", "nick_name"
-      Person.reset_column_information
-      assert Person.column_names.include?("nick_name")
-      assert_equal names_before, Person.find(:all).map(&:nick_name)
-    ensure
-      Person.connection.remove_column("people","nick_name")
-      Person.connection.add_column("people","first_name", :string)
-    end
   end
 
   def test_rename_column_preserves_default_value_not_null

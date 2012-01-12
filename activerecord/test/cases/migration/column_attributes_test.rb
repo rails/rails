@@ -1,29 +1,47 @@
-require "cases/helper"
+require "cases/migration/helper"
 
 module ActiveRecord
   class Migration
     class ColumnAttributesTest < ActiveRecord::TestCase
+      include ActiveRecord::Migration::TestHelper
+
       self.use_transactional_fixtures = false
 
-      class TestModel < ActiveRecord::Base
-        self.table_name = 'test_models'
-      end
+      def test_add_remove_single_field_using_string_arguments
+        refute TestModel.column_methods_hash.key?(:last_name)
 
-      attr_reader :connection, :table_name
-
-      def setup
-        super
-        @connection = ActiveRecord::Base.connection
-        connection.create_table :test_models do |t|
-          t.timestamps
-        end
+        add_column 'test_models', 'last_name', :string
 
         TestModel.reset_column_information
+
+        assert TestModel.column_methods_hash.key?(:last_name)
+
+        remove_column 'test_models', 'last_name'
+
+        TestModel.reset_column_information
+        refute TestModel.column_methods_hash.key?(:last_name)
       end
 
-      def teardown
-        super
-        connection.drop_table :test_models rescue nil
+      def test_add_remove_single_field_using_symbol_arguments
+        refute TestModel.column_methods_hash.key?(:last_name)
+
+        add_column :test_models, :last_name, :string
+
+        TestModel.reset_column_information
+        assert TestModel.column_methods_hash.key?(:last_name)
+
+        remove_column :test_models, :last_name
+
+        TestModel.reset_column_information
+        refute TestModel.column_methods_hash.key?(:last_name)
+      end
+
+      def test_unabstracted_database_dependent_types
+        skip "not supported" unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+
+        add_column :test_models, :intelligence_quotient, :tinyint
+        TestModel.reset_column_information
+        assert_match(/tinyint/, TestModel.columns_hash['intelligence_quotient'].sql_type)
       end
 
       # We specifically do a manual INSERT here, and then test only the SELECT
@@ -164,10 +182,6 @@ module ActiveRecord
 
         assert_instance_of TrueClass, bob.male?
         assert_kind_of BigDecimal, bob.wealth
-      end
-
-      def add_column(*args)
-        connection.add_column(*args)
       end
     end
   end
