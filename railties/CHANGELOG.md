@@ -1,5 +1,9 @@
 ## Rails 3.1.4 (unreleased) ##
 
+*   Setting config.force_ssl also marks the session cookie as secure.
+
+    *José Valim*
+
 *   Add therubyrhino to Gemfile in new applications when running under JRuby.
 
     *Guillermo Iguaran*
@@ -34,6 +38,8 @@
 
     Plugins developers need to special case their initializers that are
     meant to be run in the assets group by adding :group => :assets.
+
+    *José Valim*
 
 
 ## Rails 3.1.0 (August 30, 2011) ##
