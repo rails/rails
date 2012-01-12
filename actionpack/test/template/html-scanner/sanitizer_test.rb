@@ -138,11 +138,18 @@ class SanitizerTest < ActionController::TestCase
       assert sanitizer.send(:contains_bad_protocols?, 'src', "#{proto}://bad")
     end
   end
-  
+
   def test_should_accept_good_protocols_ignoring_case
     sanitizer = HTML::WhiteListSanitizer.new
     HTML::WhiteListSanitizer.allowed_protocols.each do |proto|
       assert !sanitizer.send(:contains_bad_protocols?, 'src', "#{proto.capitalize}://good")
+    end
+  end
+
+  def test_should_accept_good_protocols_ignoring_space
+    sanitizer = HTML::WhiteListSanitizer.new
+    HTML::WhiteListSanitizer.allowed_protocols.each do |proto|
+      assert !sanitizer.send(:contains_bad_protocols?, 'src', " #{proto}://good")
     end
   end
 
