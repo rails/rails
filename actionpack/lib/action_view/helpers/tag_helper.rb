@@ -125,7 +125,8 @@ module ActionView
 
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
-          "<#{name}#{tag_options}>#{escape ? ERB::Util.h(content) : content}</#{name}>".html_safe
+          content     = ERB::Util.h(content) if escape
+          "<#{name}#{tag_options}>#{content}</#{name}>".html_safe
         end
 
         def tag_options(options, escape = true)
@@ -147,10 +148,8 @@ module ActionView
         end
 
         def data_tag_option(k, v, escape)
-          if !v.is_a?(String) && !v.is_a?(Symbol)
-            v = v.to_json
-          end
-          v = ERB::Util.html_escape(v) if escape
+          v = v.to_json if !v.is_a?(String) && !v.is_a?(Symbol)
+          v = ERB::Util.h(v) if escape
           %(data-#{k.to_s.dasherize}="#{v}")
         end
 
@@ -159,9 +158,9 @@ module ActionView
         end
 
         def tag_option(key, value, escape)
-          final_value = value.is_a?(Array) ? value.join(" ") : value
-          final_value = ERB::Util.html_escape(final_value) if escape
-          %(#{key}="#{final_value}")
+          value = value.join(" ") if value.is_a?(Array)
+          value = ERB::Util.h(value) if escape
+          %(#{key}="#{value}")
         end
     end
   end
