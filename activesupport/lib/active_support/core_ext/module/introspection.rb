@@ -61,9 +61,19 @@ class Module
     constants(false)
   end
 
-  # Returns the names of the constants defined locally rather than the
-  # constants themselves. See <tt>local_constants</tt>.
+  # *DEPRECATED*: Use +local_constants+ instead.
+  #
+  # Returns the names of the constants defined locally as strings.
+  #
+  #   module M
+  #     X = 1
+  #   end
+  #   M.local_constant_names # => ["X"]
+  #
+  # This method is useful for forward compatibility, since Ruby 1.8 returns
+  # constant names as strings, whereas 1.9 returns them as symbols.
   def local_constant_names
+    ActiveSupport::Deprecation.warn('Module#local_constant_names is deprecated, use Module#local_constants instead', caller)
     local_constants.map { |c| c.to_s }
   end
 end

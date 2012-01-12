@@ -212,6 +212,12 @@ class ModuleTest < ActiveSupport::TestCase
   def test_local_constants
     assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
   end
+
+  def test_local_constant_names
+    ActiveSupport::Deprecation.silence do
+      assert_equal %w(Constant1 Constant3), Ab.local_constant_names
+    end
+  end
 end
 
 module BarMethodAliaser
