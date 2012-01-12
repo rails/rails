@@ -134,22 +134,34 @@ module ActionView
             options.each_pair do |key, value|
               if key.to_s == 'data' && value.is_a?(Hash)
                 value.each do |k, v|
-                  if !v.is_a?(String) && !v.is_a?(Symbol)
-                    v = v.to_json
-                  end
-                  v = ERB::Util.html_escape(v) if escape
-                  attrs << %(data-#{k.to_s.dasherize}="#{v}")
+                  attrs << data_tag_option(k, v, escape)
                 end
               elsif BOOLEAN_ATTRIBUTES.include?(key)
-                attrs << %(#{key}="#{key}") if value
+                attrs << boolean_tag_option(key, value) if value
               elsif !value.nil?
-                final_value = value.is_a?(Array) ? value.join(" ") : value
-                final_value = ERB::Util.html_escape(final_value) if escape
-                attrs << %(#{key}="#{final_value}")
+                attrs << tag_option(key, value, escape)
               end
             end
             " #{attrs.sort * ' '}".html_safe unless attrs.empty?
           end
+        end
+
+        def data_tag_option(k, v, escape)
+          if !v.is_a?(String) && !v.is_a?(Symbol)
+            v = v.to_json
+          end
+          v = ERB::Util.html_escape(v) if escape
+          %(data-#{k.to_s.dasherize}="#{v}")
+        end
+
+        def boolean_tag_option(key, value)
+          %(#{key}="#{key}")
+        end
+
+        def tag_option(key, value, escape)
+          final_value = value.is_a?(Array) ? value.join(" ") : value
+          final_value = ERB::Util.html_escape(final_value) if escape
+          %(#{key}="#{final_value}")
         end
     end
   end
