@@ -342,9 +342,9 @@ module ActiveRecord
 
     attr_accessor :name, :version
 
-    def initialize
-      @name       = self.class.name
-      @version    = nil
+    def initialize(name = self.class.name, version = nil)
+      @name       = name
+      @version    = version
       @connection = nil
       @reverting  = false
     end
@@ -619,19 +619,12 @@ module ActiveRecord
 
         files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
 
-        seen = Hash.new false
-
         migrations = files.map do |file|
           version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
           name = name.camelize
-
-          raise DuplicateMigrationVersionError.new(version) if seen[version]
-          raise DuplicateMigrationNameError.new(name) if seen[name]
-
-          seen[version] = seen[name] = true
 
           MigrationProxy.new(name, version, file, scope)
         end
@@ -655,9 +648,9 @@ module ActiveRecord
 
     def initialize(direction, migrations, target_version = nil)
       raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
-      Base.connection.initialize_schema_migrations_table
 
       @direction        = direction
+      @target_version   = target_version
 
       if Array(migrations).grep(String).empty?
         @migrations = migrations
@@ -666,7 +659,9 @@ module ActiveRecord
         @migrations = self.class.migrations(migrations)
       end
 
-      @target_version   = target_version
+      validate(@migrations)
+
+      Base.connection.initialize_schema_migrations_table
     end
 
     def current_version
@@ -748,36 +743,44 @@ module ActiveRecord
     end
 
     private
-      def record_version_state_after_migrating(version)
-        table = Arel::Table.new(self.class.schema_migrations_table_name)
+    def validate(migrations)
+      name ,= migrations.group_by(&:name).find { |_,v| v.length > 1 }
+      raise DuplicateMigrationNameError.new(name) if name
 
-        @migrated_versions ||= []
-        if down?
-          @migrated_versions.delete(version)
-          stmt = table.where(table["version"].eq(version.to_s)).compile_delete
-          Base.connection.delete stmt
-        else
-          @migrated_versions.push(version).sort!
-          stmt = table.compile_insert table["version"] => version.to_s
-          Base.connection.insert stmt
-        end
-      end
+      version ,= migrations.group_by(&:version).find { |_,v| v.length > 1 }
+      raise DuplicateMigrationVersionError.new(version) if version
+    end
 
-      def up?
-        @direction == :up
-      end
+    def record_version_state_after_migrating(version)
+      table = Arel::Table.new(self.class.schema_migrations_table_name)
 
-      def down?
-        @direction == :down
+      @migrated_versions ||= []
+      if down?
+        @migrated_versions.delete(version)
+        stmt = table.where(table["version"].eq(version.to_s)).compile_delete
+        Base.connection.delete stmt
+      else
+        @migrated_versions.push(version).sort!
+        stmt = table.compile_insert table["version"] => version.to_s
+        Base.connection.insert stmt
       end
+    end
 
-      # Wrap the migration in a transaction only if supported by the adapter.
-      def ddl_transaction(&block)
-        if Base.connection.supports_ddl_transactions?
-          Base.transaction { block.call }
-        else
-          block.call
-        end
+    def up?
+      @direction == :up
+    end
+
+    def down?
+      @direction == :down
+    end
+
+    # Wrap the migration in a transaction only if supported by the adapter.
+    def ddl_transaction(&block)
+      if Base.connection.supports_ddl_transactions?
+        Base.transaction { block.call }
+      else
+        block.call
       end
+    end
   end
 end

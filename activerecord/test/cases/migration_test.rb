@@ -601,24 +601,6 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :binary_testings rescue nil
   end
 
-  def test_migrator_with_duplicates
-    assert_raise(ActiveRecord::DuplicateMigrationVersionError) do
-      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/duplicate", nil)
-    end
-  end
-
-  def test_migrator_with_duplicate_names
-    assert_raise(ActiveRecord::DuplicateMigrationNameError, "Multiple migrations have the name Chunky") do
-      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/duplicate_names", nil)
-    end
-  end
-
-  def test_migrator_with_missing_version_numbers
-    assert_raise(ActiveRecord::UnknownMigrationVersionError) do
-      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/missing", 500)
-    end
-  end
-
   def test_create_table_with_custom_sequence_name
     skip "not supported" unless current_adapter? :OracleAdapter
 
