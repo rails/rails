@@ -97,12 +97,12 @@ module ActionView
       #   <%= url_for(:back) %>
       #   # if request.env["HTTP_REFERER"] is not set or is blank
       #   # => javascript:history.back()
-      def url_for(options = {})
-        options ||= {}
+      def url_for(options = nil)
         case options
         when String
           options
-        when Hash
+        when nil, Hash
+          options ||= {}
           options = options.symbolize_keys.reverse_merge!(:only_path => options[:host].nil?)
           super
         when :back
@@ -301,7 +301,7 @@ module ActionView
       #   #      <div><input value="Create" type="submit" /></div>
       #   #    </form>"
       #
-      #      
+      #
       #   <%= button_to "Delete Image", { :action => "delete", :id => @image.id },
       #             :confirm => "Are you sure?", :method => :delete %>
       #   # => "<form method="post" action="/images/delete/1" class="button_to">
@@ -333,9 +333,9 @@ module ActionView
         form_method = method.to_s == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
         form_options[:class] ||= html_options.delete('form_class') || 'button_to'
-        
+
         remote = html_options.delete('remote')
-        
+
         request_token_tag = ''
         if form_method == 'post' && protect_against_forgery?
           request_token_tag = tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
@@ -350,7 +350,7 @@ module ActionView
 
         form_options.merge!(:method => form_method, :action => url)
         form_options.merge!("data-remote" => "true") if remote
-        
+
         "#{tag(:form, form_options, true)}<div>#{method_tag}#{tag("input", html_options)}#{request_token_tag}</div></form>".html_safe
       end
 
@@ -624,7 +624,7 @@ module ActionView
 
             html_options["data-disable-with"] = disable_with if disable_with
             html_options["data-confirm"] = confirm if confirm
-            add_method_to_attributes!(html_options, method)   if method
+            add_method_to_attributes!(html_options, method) if method
 
             html_options
           else
