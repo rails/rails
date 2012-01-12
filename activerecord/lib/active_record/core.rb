@@ -210,7 +210,7 @@ module ActiveRecord
 
       @attributes = cloned_attributes
 
-      _run_initialize_callbacks if _initialize_callbacks.any?
+      run_callbacks(:initialize) if _initialize_callbacks.any?
 
       @changed_attributes = {}
       self.class.column_defaults.each do |attr, orig_value|
