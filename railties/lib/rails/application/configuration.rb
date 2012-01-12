@@ -91,10 +91,10 @@ module Rails
       # after boot, and disables reloading code on every request, as these are
       # fundamentally incompatible with thread safety.
       def threadsafe!
-        self.preload_frameworks = true
-        self.cache_classes = true
-        self.dependency_loading = false
-        self.allow_concurrency = true
+        @preload_frameworks = true
+        @cache_classes = true
+        @dependency_loading = false
+        @allow_concurrency = true
         self
       end
 
