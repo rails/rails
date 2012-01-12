@@ -23,7 +23,7 @@ module ActionDispatch
         end
 
         def url_for(options = {})
-          unless options[:host].present? || options[:only_path].present?
+          if options[:host].blank? && options[:only_path].blank?
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
           end
 
@@ -54,7 +54,7 @@ module ActionDispatch
         private
 
         def named_host?(host)
-          !(host.nil? || IP_HOST_REGEXP.match(host))
+          host && IP_HOST_REGEXP !~ host
         end
 
         def rewrite_authentication(options)
