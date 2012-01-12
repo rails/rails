@@ -259,35 +259,16 @@ module Rails
         # The execjs gem requires a Javascript runtime to be present on the 
         # system. This can either be a gem or a system executable. Windows and
         # Mac will have one, Linux typically does not unless node.js is 
-        # installed.  This will add the required gem if a runtime is not on the
-        # system
+        # installed.  Install therubyracer on Linux.  Jruby should always use
+        # therubyrhino so everything is through the JVM
         if defined?(JRUBY_VERSION)
-          "gem 'therubyrhino'\n"  
+          "gem 'therubyrhino'  # Javascript runtime, required by execjs gem when using JRuby"  
         else
-          runtime_executables = [
-            "nodejs", "node",  # NodeJS
-            "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/jsc", # Mac JavaScriptCore
-            "js", # Mozilla Spidermonkey
-            "cscript" # Windows scripting host
-          ] 
-
-          found = runtime_executables.find do |cmd|
-            if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|windows|cygwin/i && 
-               File.extname(cmd) == ""
-              cmd << ".exe"
-            end
-
-            if File.executable? cmd
-              true
-            else
-              path = ENV['PATH'].split(File::PATH_SEPARATOR).find { |p|
-                full_path = File.join(p, cmd)
-                File.executable?(full_path) && File.file?(full_path)
-              }
-              path && File.expand_path(cmd, path)
-            end
+          if RbConfig::CONFIG['host_os'].match(/mswin|mingw|windows|darwin|mac/i).nil? 
+            "gem 'therubyracer'  # Javascript runtime, required by execjs gem on everything except Mac and Windows and when node.js is installed"
+          else 
+            ""
           end
-          found.nil? ? "gem 'therubyracer'\n" : ""
         end
       end
 
