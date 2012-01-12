@@ -68,6 +68,10 @@ module ActiveSupport
   # Sometimes you do not want to subscribe to an event for the entire life of
   # the application. There are two ways to unsubscribe.
   #
+  # WARNING: The instrumentation framework is designed for long-running subscribers,
+  # use this feature sparingly because it wipes some internal caches and that has
+  # a negative impact on performance.
+  #
   # === Subscribe While a Block Runs
   #
   # You can subscribe to some event temporarily while some block runs. For
