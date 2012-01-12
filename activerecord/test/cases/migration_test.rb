@@ -91,10 +91,6 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :testings2 rescue nil
   end
 
-  def test_remove_column_no_second_parameter_raises_exception
-    assert_raise(ArgumentError) { Person.connection.remove_column("funny") }
-  end
-
   def test_add_table
     assert !Reminder.table_exists?
 
@@ -315,8 +311,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_finds_migrations
-    list = ActiveRecord::Migrator.migrations(MIGRATIONS_ROOT + "/valid")
-    migrations = ActiveRecord::Migrator.new(:up, list).migrations
+    migrations = ActiveRecord::Migrator.migrations(MIGRATIONS_ROOT + "/valid")
 
     [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
       assert_equal migrations[i].version, pair.first
