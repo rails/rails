@@ -264,7 +264,7 @@ h5. Deprecations
 
 h3. Active Record
 
-* 'on' and 'ON' boolean columns values are type casted to true
+* Boolean columns with 'on' and 'ON' values are type casted to true.
 
 * Implemented <tt>ActiveRecord::Relation#explain</tt>.
 
