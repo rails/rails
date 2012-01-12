@@ -21,6 +21,8 @@ module ActiveRecord
 
       def teardown
         super
+        TestModel.reset_table_name
+        TestModel.reset_sequence_name
         connection.drop_table :test_models rescue nil
       end
 
@@ -43,6 +45,10 @@ module ActiveRecord
 
       def change_column(*args)
         connection.change_column(*args)
+      end
+
+      def rename_table(*args)
+        connection.rename_table(*args)
       end
     end
   end
