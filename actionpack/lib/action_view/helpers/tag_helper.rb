@@ -138,7 +138,7 @@ module ActionView
                 attrs << data_tag_option(k, v, escape)
               end
             elsif BOOLEAN_ATTRIBUTES.include?(key)
-              attrs << boolean_tag_option(key, value) if value
+              attrs << boolean_tag_option(key) if value
             elsif !value.nil?
               attrs << tag_option(key, value, escape)
             end
@@ -152,7 +152,7 @@ module ActionView
           %(data-#{k.to_s.dasherize}="#{v}")
         end
 
-        def boolean_tag_option(key, value)
+        def boolean_tag_option(key)
           %(#{key}="#{key}")
         end
 
