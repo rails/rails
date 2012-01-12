@@ -93,7 +93,7 @@ module ActiveRecord
         add_index :test_models, :hat_name
 
         # FIXME: we should test that the index goes away
-        remove_column("test_models", "hat_size")
+        remove_column("test_models", "hat_name")
       end
 
       def test_remove_column_with_multi_column_index
