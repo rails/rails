@@ -139,10 +139,14 @@ module ActiveRecord
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
-        if superclass.abstract_class?
+        if abstract_class?
+          self.table_name = if superclass == Base || superclass.abstract_class?
+                              nil
+                            else
+                              superclass.table_name
+                            end
+        elsif superclass.abstract_class?
           self.table_name = superclass.table_name || compute_table_name
-        elsif abstract_class?
-          self.table_name = superclass == Base ? nil : superclass.table_name
         else
           self.table_name = compute_table_name
         end

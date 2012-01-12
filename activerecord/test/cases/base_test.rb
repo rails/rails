@@ -27,6 +27,13 @@ require 'rexml/document'
 require 'active_support/core_ext/exception'
 require 'bcrypt'
 
+class FirstAbstractClass < ActiveRecord::Base
+  self.abstract_class = true
+end
+class SecondAbstractClass < FirstAbstractClass
+  self.abstract_class = true
+end
+class Photo < SecondAbstractClass; end
 class Category < ActiveRecord::Base; end
 class Categorization < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
@@ -2087,5 +2094,9 @@ class BasicsTest < ActiveRecord::TestCase
     scope = stub
     Bird.stubs(:scoped).returns(mock(:uniq => scope))
     assert_equal scope, Bird.uniq
+  end
+
+  def test_table_name_with_2_abstract_subclasses
+    assert_equal "photos", Photo.table_name
   end
 end
