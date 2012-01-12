@@ -130,21 +130,20 @@ module ActionView
         end
 
         def tag_options(options, escape = true)
-          unless options.blank?
-            attrs = []
-            options.each_pair do |key, value|
-              if key.to_s == 'data' && value.is_a?(Hash)
-                value.each do |k, v|
-                  attrs << data_tag_option(k, v, escape)
-                end
-              elsif BOOLEAN_ATTRIBUTES.include?(key)
-                attrs << boolean_tag_option(key, value) if value
-              elsif !value.nil?
-                attrs << tag_option(key, value, escape)
+          return if options.blank?
+          attrs = []
+          options.each_pair do |key, value|
+            if key.to_s == 'data' && value.is_a?(Hash)
+              value.each do |k, v|
+                attrs << data_tag_option(k, v, escape)
               end
+            elsif BOOLEAN_ATTRIBUTES.include?(key)
+              attrs << boolean_tag_option(key, value) if value
+            elsif !value.nil?
+              attrs << tag_option(key, value, escape)
             end
-            " #{attrs.sort * ' '}".html_safe unless attrs.empty?
           end
+          " #{attrs.sort * ' '}".html_safe unless attrs.empty?
         end
 
         def data_tag_option(k, v, escape)
