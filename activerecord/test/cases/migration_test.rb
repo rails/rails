@@ -62,24 +62,6 @@ class MigrationTest < ActiveRecord::TestCase
     Person.reset_column_information
   end
 
-  def test_rename_index
-    skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
-
-    # keep the names short to make Oracle and similar behave
-    Person.connection.add_index('people', [:first_name], :name => 'old_idx')
-    assert_nothing_raised { Person.connection.rename_index('people', 'old_idx', 'new_idx') }
-    # if the adapter doesn't support the indexes call, pick defaults that let the test pass
-    assert !Person.connection.index_name_exists?('people', 'old_idx', false)
-    assert Person.connection.index_name_exists?('people', 'new_idx', true)
-  end
-
-  def test_double_add_index
-    skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
-
-    Person.connection.add_index('people', [:first_name], :name => 'some_idx')
-    assert_raise(ArgumentError) { Person.connection.add_index('people', [:first_name], :name => 'some_idx') }
-  end
-
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     if Person.connection.table_exists?(:testings2)
       Person.connection.drop_table :testings2
