@@ -147,7 +147,6 @@ class MigrationTest < ActiveRecord::TestCase
 
     Person.delete_all
     Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
-    Person.reset_column_information
 
     Person.connection.change_column 'people', 'wealth', :decimal, :precision => 12, :scale => 8
     Person.reset_column_information
