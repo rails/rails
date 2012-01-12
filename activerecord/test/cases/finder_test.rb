@@ -1172,10 +1172,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_finder_with_offset_string
-    sql_query =  Topic.send(:construct_finder_arel, {:offset => "3"}).to_sql
-    results = Topic.connection.select_values(sql_query)
-
-    assert_equal 1, results.count
+    assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.find(:all, :offset => "3") }
   end
 
   protected
