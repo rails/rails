@@ -310,40 +310,6 @@ class MigrationTest < ActiveRecord::TestCase
     refute Person.column_methods_hash.include?(:last_name)
   end
 
-  def test_finds_migrations
-    migrations = ActiveRecord::Migrator.migrations(MIGRATIONS_ROOT + "/valid")
-
-    [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
-      assert_equal migrations[i].version, pair.first
-      assert_equal migrations[i].name, pair.last
-    end
-  end
-
-  def test_finds_migrations_in_subdirectories
-    list = ActiveRecord::Migrator.migrations(MIGRATIONS_ROOT + "/valid_with_subdirectories")
-    migrations = ActiveRecord::Migrator.new(:up, list).migrations
-
-    [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
-      assert_equal migrations[i].version, pair.first
-      assert_equal migrations[i].name, pair.last
-    end
-  end
-
-  def test_finds_migrations_from_two_directories
-    directories = [MIGRATIONS_ROOT + '/valid_with_timestamps', MIGRATIONS_ROOT + '/to_copy_with_timestamps']
-    list = ActiveRecord::Migrator.migrations directories
-    migrations = ActiveRecord::Migrator.new(:up, list).migrations
-
-    [[20090101010101, "PeopleHaveHobbies"],
-     [20090101010202, "PeopleHaveDescriptions"],
-     [20100101010101, "ValidWithTimestampsPeopleHaveLastNames"],
-     [20100201010101, "ValidWithTimestampsWeNeedReminders"],
-     [20100301010101, "ValidWithTimestampsInnocentJointable"]].each_with_index do |pair, i|
-      assert_equal pair.first, migrations[i].version
-      assert_equal pair.last, migrations[i].name
-    end
-  end
-
   def test_dump_schema_information_outputs_lexically_ordered_versions
     migration_path = MIGRATIONS_ROOT + '/valid_with_timestamps'
     ActiveRecord::Migrator.run(:up, migration_path, 20100301010101)
@@ -361,12 +327,6 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal 1, migrations.size
     assert_equal migrations[0].version, 3
     assert_equal migrations[0].name, 'InterleavedInnocentJointable'
-  end
-
-  def test_deprecated_constructor
-    assert_deprecated do
-      ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/interleaved/pass_2")
-    end
   end
 
   def test_relative_migrations
