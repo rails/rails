@@ -142,19 +142,6 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_change_column_nullability
-    Person.delete_all
-    Person.connection.add_column "people", "funny", :boolean
-    Person.reset_column_information
-    assert Person.columns_hash["funny"].null, "Column 'funny' must initially allow nulls"
-    Person.connection.change_column "people", "funny", :boolean, :null => false, :default => true
-    Person.reset_column_information
-    assert !Person.columns_hash["funny"].null, "Column 'funny' must *not* allow nulls at this point"
-    Person.connection.change_column "people", "funny", :boolean, :null => true
-    Person.reset_column_information
-    assert Person.columns_hash["funny"].null, "Column 'funny' must allow nulls again at this point"
-  end
-
   def test_rename_table_with_an_index
     begin
       ActiveRecord::Base.connection.create_table :octopuses do |t|
@@ -176,64 +163,6 @@ class MigrationTest < ActiveRecord::TestCase
       ActiveRecord::Base.connection.drop_table :octopuses rescue nil
       ActiveRecord::Base.connection.drop_table :octopi rescue nil
     end
-  end
-
-  def test_change_column
-    Person.connection.add_column 'people', 'age', :integer
-    label = "test_change_column Columns"
-    old_columns = Person.connection.columns(Person.table_name, label)
-    assert old_columns.find { |c| c.name == 'age' and c.type == :integer }
-
-    assert_nothing_raised { Person.connection.change_column "people", "age", :string }
-
-    new_columns = Person.connection.columns(Person.table_name, label)
-    assert_nil new_columns.find { |c| c.name == 'age' and c.type == :integer }
-    assert new_columns.find { |c| c.name == 'age' and c.type == :string }
-
-    old_columns = Topic.connection.columns(Topic.table_name, label)
-    assert old_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
-    assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => false }
-    new_columns = Topic.connection.columns(Topic.table_name, label)
-    assert_nil new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
-    assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
-    assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => true }
-  end
-
-  def test_change_column_with_nil_default
-    Person.connection.add_column "people", "contributor", :boolean, :default => true
-    Person.reset_column_information
-    assert Person.new.contributor?
-
-    assert_nothing_raised { Person.connection.change_column "people", "contributor", :boolean, :default => nil }
-    Person.reset_column_information
-    assert !Person.new.contributor?
-    assert_nil Person.new.contributor
-  ensure
-    Person.connection.remove_column("people", "contributor") rescue nil
-  end
-
-  def test_change_column_with_new_default
-    Person.connection.add_column "people", "administrator", :boolean, :default => true
-    Person.reset_column_information
-    assert Person.new.administrator?
-
-    assert_nothing_raised { Person.connection.change_column "people", "administrator", :boolean, :default => false }
-    Person.reset_column_information
-    assert !Person.new.administrator?
-  ensure
-    Person.connection.remove_column("people", "administrator") rescue nil
-  end
-
-  def test_change_column_default
-    Person.connection.change_column_default "people", "first_name", "Tester"
-    Person.reset_column_information
-    assert_equal "Tester", Person.new.first_name
-  end
-
-  def test_change_column_default_to_null
-    Person.connection.change_column_default "people", "first_name", nil
-    Person.reset_column_information
-    assert_nil Person.new.first_name
   end
 
   def test_add_table
