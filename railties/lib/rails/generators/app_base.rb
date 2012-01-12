@@ -195,7 +195,7 @@ module Rails
             group :assets do
               gem 'sass-rails',   :git => 'https://github.com/rails/sass-rails.git'
               gem 'coffee-rails', :git => 'https://github.com/rails/coffee-rails.git'
-              #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
+              #{required_javascript_runtime}
               gem 'uglifier', '>= 1.0.3'
             end
           GEMFILE
@@ -206,7 +206,7 @@ module Rails
             group :assets do
               gem 'sass-rails',   '~> 4.0.0.beta'
               gem 'coffee-rails', '~> 4.0.0.beta'
-              #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
+              #{required_javascript_runtime}
               gem 'uglifier', '>= 1.0.3'
             end
           GEMFILE
@@ -252,6 +252,26 @@ module Rails
       def key_value(key, value)
         "#{key}: #{value}"
       end
+    
+    private
+
+      def required_javascript_runtime
+        # The execjs gem requires a Javascript runtime to be present on the 
+        # system. This can either be a gem or a system executable. Windows and
+        # Mac will have one, Linux typically does not unless node.js is 
+        # installed.  Install therubyracer on Linux.  Jruby should always use
+        # therubyrhino so everything is through the JVM
+        if defined?(JRUBY_VERSION)
+          "gem 'therubyrhino'  # Javascript runtime, required by execjs gem when using JRuby"  
+        else
+          if RbConfig::CONFIG['host_os'].match(/mswin|mingw|windows|darwin|mac/i).nil? 
+            "gem 'therubyracer'  # Javascript runtime, required by execjs gem on everything except Mac and Windows and when node.js is installed"
+          else 
+            ""
+          end
+        end
+      end
+
     end
   end
 end
