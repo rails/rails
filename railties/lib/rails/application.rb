@@ -266,6 +266,9 @@ module Rails
         middleware.use ::ActionDispatch::Cookies
 
         if config.session_store
+          if config.force_ssl && !config.session_options.key?(:secure)
+            config.session_options[:secure] = true
+          end
           middleware.use config.session_store, config.session_options
           middleware.use ::ActionDispatch::Flash
         end
