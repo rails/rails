@@ -56,14 +56,14 @@ module ActionController #:nodoc:
     #
     #     caches_page :public
     #
-    #     caches_action :index, :if => proc do
+    #     caches_action :index, :if => Proc.new do
     #       !request.format.json?  # cache if is not a JSON request
     #     end
     #
     #     caches_action :show, :cache_path => { :project => 1 },
     #       :expires_in => 1.hour
     #
-    #     caches_action :feed, :cache_path => proc do
+    #     caches_action :feed, :cache_path => Proc.new do
     #       if params[:user_id]
     #         user_list_url(params[:user_id, params[:id])
     #       else
