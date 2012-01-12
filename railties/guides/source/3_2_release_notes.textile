@@ -73,7 +73,7 @@ $ rails new myapp --edge
 If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the +--dev+ flag:
 
 <shell>
-$ ruby /path/to/rails/bin/rails new myapp --dev
+$ ruby /path/to/rails/railties/bin/rails new myapp --dev
 </shell>
 
 h3. Major Features
