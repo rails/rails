@@ -134,7 +134,7 @@ module ActionView
           attrs = []
           options.each_pair do |key, value|
             if key.to_s == 'data' && value.is_a?(Hash)
-              value.each do |k, v|
+              value.each_pair do |k, v|
                 attrs << data_tag_option(k, v, escape)
               end
             elsif BOOLEAN_ATTRIBUTES.include?(key)
@@ -146,10 +146,11 @@ module ActionView
           " #{attrs.sort * ' '}".html_safe unless attrs.empty?
         end
 
-        def data_tag_option(k, v, escape)
-          v = v.to_json if !v.is_a?(String) && !v.is_a?(Symbol)
-          v = ERB::Util.h(v) if escape
-          %(data-#{k.to_s.dasherize}="#{v}")
+        def data_tag_option(key, value, escape)
+          key   = "data-#{key.to_s.dasherize}"
+          value = value.to_json if !value.is_a?(String) && !value.is_a?(Symbol)
+
+          tag_option(key, value, escape)
         end
 
         def boolean_tag_option(key)
