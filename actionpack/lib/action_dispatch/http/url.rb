@@ -1,6 +1,8 @@
 module ActionDispatch
   module Http
     module URL
+      IP_HOST_REGEXP = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
+
       mattr_accessor :tld_length
       self.tld_length = 1
 
@@ -21,7 +23,7 @@ module ActionDispatch
         end
 
         def url_for(options = {})
-          unless options[:host].present? || options[:only_path].present?
+          if options[:host].blank? && options[:only_path].blank?
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
           end
 
@@ -52,7 +54,7 @@ module ActionDispatch
         private
 
         def named_host?(host)
-          !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
+          host && IP_HOST_REGEXP !~ host
         end
 
         def rewrite_authentication(options)
@@ -167,7 +169,7 @@ module ActionDispatch
       # such as 2 to catch <tt>"www"</tt> instead of <tt>"www.rubyonrails"</tt>
       # in "www.rubyonrails.co.uk".
       def subdomain(tld_length = @@tld_length)
-        subdomains(tld_length).join(".")
+        ActionDispatch::Http::URL.extract_subdomain(host, tld_length)
       end
     end
   end
