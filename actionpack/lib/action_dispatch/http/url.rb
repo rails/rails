@@ -169,7 +169,7 @@ module ActionDispatch
       # such as 2 to catch <tt>"www"</tt> instead of <tt>"www.rubyonrails"</tt>
       # in "www.rubyonrails.co.uk".
       def subdomain(tld_length = @@tld_length)
-        subdomains(tld_length).join(".")
+        ActionDispatch::Http::URL.extract_subdomain(host, tld_length)
       end
     end
   end
