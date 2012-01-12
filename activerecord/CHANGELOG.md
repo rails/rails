@@ -40,6 +40,9 @@
 
 ## Rails 3.2.0 (unreleased) ##
 
+*   'on' and 'ON' boolean columns values are type casted to true
+    *Santiago Pastorino*
+
 *   Added ability to run migrations only for given scope, which allows
     to run migrations only from one engine (for example to revert changes
     from engine that you want to remove).

@@ -264,6 +264,8 @@ h5. Deprecations
 
 h3. Active Record
 
+* 'on' and 'ON' boolean columns values are type casted to true
+
 * Implemented <tt>ActiveRecord::Relation#explain</tt>.
 
 * Implements <tt>AR::Base.silence_auto_explain</tt> which allows the user to selectively disable automatic EXPLAINs within a block.
