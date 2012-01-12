@@ -29,6 +29,7 @@ module ActionController
           if !request.ssl? && !Rails.env.development?
             redirect_options = {:protocol => 'https://', :status => :moved_permanently}
             redirect_options.merge!(:host => host) if host
+            flash.keep
             redirect_to redirect_options
           end
         end
