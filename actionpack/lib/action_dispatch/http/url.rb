@@ -1,6 +1,8 @@
 module ActionDispatch
   module Http
     module URL
+      IP_HOST_REGEXP = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
+
       mattr_accessor :tld_length
       self.tld_length = 1
 
@@ -52,7 +54,7 @@ module ActionDispatch
         private
 
         def named_host?(host)
-          !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
+          !(host.nil? || IP_HOST_REGEXP.match(host))
         end
 
         def rewrite_authentication(options)
