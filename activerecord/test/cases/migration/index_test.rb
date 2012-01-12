@@ -13,6 +13,11 @@ module ActiveRecord
         connection.create_table table_name do |t|
           t.column :foo, :string, :limit => 100
           t.column :bar, :string, :limit => 100
+
+          t.string :first_name
+          t.string :last_name, :limit => 100
+          t.string :key,       :limit => 100
+          t.boolean :administrator
         end
       end
 
@@ -97,6 +102,69 @@ module ActiveRecord
 
         assert connection.index_exists?(:testings, :foo, :name => "custom_index_name")
       end
+
+      def test_add_index
+        connection.add_index("testings", "last_name")
+        connection.remove_index("testings", "last_name")
+
+        # Orcl nds shrt indx nms.  Sybs 2.
+        # OpenBase does not have named indexes.  You must specify a single column name
+        unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
+          connection.add_index("testings", ["last_name", "first_name"])
+          connection.remove_index("testings", :column => ["last_name", "first_name"])
+
+          # Oracle adapter cannot have specified index name larger than 30 characters
+          # Oracle adapter is shortening index name when just column list is given
+          unless current_adapter?(:OracleAdapter)
+            connection.add_index("testings", ["last_name", "first_name"])
+            connection.remove_index("testings", :name => :index_testings_on_last_name_and_first_name)
+            connection.add_index("testings", ["last_name", "first_name"])
+            connection.remove_index("testings", "last_name_and_first_name")
+          end
+          connection.add_index("testings", ["last_name", "first_name"])
+          connection.remove_index("testings", ["last_name", "first_name"])
+
+          connection.add_index("testings", ["last_name"], :length => 10)
+          connection.remove_index("testings", "last_name")
+
+          connection.add_index("testings", ["last_name"], :length => {:last_name => 10})
+          connection.remove_index("testings", ["last_name"])
+
+          connection.add_index("testings", ["last_name", "first_name"], :length => 10)
+          connection.remove_index("testings", ["last_name", "first_name"])
+
+          connection.add_index("testings", ["last_name", "first_name"], :length => {:last_name => 10, :first_name => 20})
+          connection.remove_index("testings", ["last_name", "first_name"])
+        end
+
+        # quoting
+        # Note: changed index name from "key" to "key_idx" since "key" is a Firebird reserved word
+        # OpenBase does not have named indexes.  You must specify a single column name
+        unless current_adapter?(:OpenBaseAdapter)
+          connection.add_index("testings", ["key"], :name => "key_idx", :unique => true)
+          connection.remove_index("testings", :name => "key_idx", :unique => true)
+        end
+
+        # Sybase adapter does not support indexes on :boolean columns
+        # OpenBase does not have named indexes.  You must specify a single column
+        unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
+          connection.add_index("testings", %w(last_name first_name administrator), :name => "named_admin")
+          connection.remove_index("testings", :name => "named_admin")
+        end
+
+        # Selected adapters support index sort order
+        if current_adapter?(:SQLite3Adapter, :MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+          connection.add_index("testings", ["last_name"], :order => {:last_name => :desc})
+          connection.remove_index("testings", ["last_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :order => {:last_name => :desc})
+          connection.remove_index("testings", ["last_name", "first_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :order => {:last_name => :desc, :first_name => :asc})
+          connection.remove_index("testings", ["last_name", "first_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :order => :desc)
+          connection.remove_index("testings", ["last_name", "first_name"])
+        end
+      end
+
     end
   end
 end
