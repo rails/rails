@@ -1,5 +1,6 @@
 require 'active_support/core_ext/enumerable'
 require 'active_support/deprecation'
+require 'thread'
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -35,10 +36,16 @@ module ActiveRecord
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods
-        return if attribute_methods_generated?
-        superclass.define_attribute_methods unless self == base_class
-        super(column_names)
-        @attribute_methods_generated = true
+        # Use a mutex; we don't want two thread simaltaneously trying to define
+        # attribute methods.
+        @attribute_methods_mutex ||= Mutex.new
+
+        @attribute_methods_mutex.synchronize do
+          return if attribute_methods_generated?
+          superclass.define_attribute_methods unless self == base_class
+          super(column_names)
+          @attribute_methods_generated = true
+        end
       end
 
       def attribute_methods_generated?
