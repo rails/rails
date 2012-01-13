@@ -2,7 +2,7 @@ class Category < ActiveRecord::Base
   has_and_belongs_to_many :posts
   has_and_belongs_to_many :special_posts, :class_name => "Post"
   has_and_belongs_to_many :other_posts, :class_name => "Post"
-  has_and_belongs_to_many :posts_with_authors_sorted_by_author_id, :class_name => "Post", :eager_load => :authors, :order => "authors.id"
+  has_and_belongs_to_many :posts_with_authors_sorted_by_author_id, :class_name => "Post", :include => :authors, :order => "authors.id"
 
   has_and_belongs_to_many(:select_testing_posts,
                           :class_name => 'Post',

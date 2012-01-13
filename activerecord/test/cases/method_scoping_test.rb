@@ -103,7 +103,7 @@ class MethodScopingTest < ActiveRecord::TestCase
 
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
-    scoped_developers = Developer.send(:with_scope, :find => { :eager_load => :projects }) do
+    scoped_developers = Developer.send(:with_scope, :find => { :include => :projects }) do
       Developer.find(:all, :conditions => 'projects.id = 2')
     end
     assert scoped_developers.include?(developers(:david))
@@ -203,7 +203,7 @@ class MethodScopingTest < ActiveRecord::TestCase
 
   def test_scoped_count_include
     # with the include, will retrieve only developers for the given project
-    Developer.send(:with_scope, :find => { :eager_load => :projects }) do
+    Developer.send(:with_scope, :find => { :include => :projects }) do
       assert_equal 1, Developer.count(:conditions => 'projects.id = 2')
     end
   end
@@ -268,7 +268,7 @@ class MethodScopingTest < ActiveRecord::TestCase
 end
 
 class NestedScopingTest < ActiveRecord::TestCase
-  fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
+  fixtures :authors, :developers, :projects, :comments, :posts
 
   def test_merge_options
     Developer.send(:with_scope, :find => { :conditions => 'salary = 80000' }) do
@@ -338,7 +338,7 @@ class NestedScopingTest < ActiveRecord::TestCase
   end
 
   def test_nested_scoped_find_include
-    Developer.send(:with_scope, :find => { :eager_load => :projects }) do
+    Developer.send(:with_scope, :find => { :include => :projects }) do
       Developer.send(:with_scope, :find => { :conditions => "projects.id = 2" }) do
         assert_nothing_raised { Developer.find(1) }
         assert_equal('David', Developer.find(:first).name)
@@ -350,47 +350,23 @@ class NestedScopingTest < ActiveRecord::TestCase
     # :include's remain unique and don't "double up" when merging
     Developer.send(:with_scope, :find => { :include => :projects, :conditions => "projects.id = 2" }) do
       Developer.send(:with_scope, :find => { :include => :projects }) do
-        assert_deprecated do
-          assert_equal 1, Developer.scoped.includes_values.uniq.length
-          assert_equal 'David', Developer.find(:first).name
-        end
+        assert_equal 1, Developer.scoped.includes_values.uniq.length
+        assert_equal 'David', Developer.find(:first).name
       end
     end
 
     # the nested scope doesn't remove the first :include
     Developer.send(:with_scope, :find => { :include => :projects, :conditions => "projects.id = 2" }) do
       Developer.send(:with_scope, :find => { :include => [] }) do
-        assert_deprecated do
-          assert_equal 1, Developer.scoped.includes_values.uniq.length
-          assert_equal('David', Developer.find(:first).name)
-        end
+        assert_equal 1, Developer.scoped.includes_values.uniq.length
+        assert_equal('David', Developer.find(:first).name)
       end
     end
 
     # mixing array and symbol include's will merge correctly
     Developer.send(:with_scope, :find => { :include => [:projects], :conditions => "projects.id = 2" }) do
       Developer.send(:with_scope, :find => { :include => :projects }) do
-        assert_deprecated do
-          assert_equal 1, Developer.scoped.includes_values.uniq.length
-          assert_equal('David', Developer.find(:first).name)
-        end
-      end
-    end
-  end
-
-  def test_nested_scoped_find_merged_eager_load
-    # :include's remain unique and don't "double up" when merging
-    Developer.send(:with_scope, :find => { :eager_load => :projects, :conditions => "projects.id = 2" }) do
-      Developer.send(:with_scope, :find => { :eager_load => :projects }) do
-        assert_equal 1, Developer.scoped.eager_load_values.uniq.length
-        assert_equal 'David', Developer.find(:first).name
-      end
-    end
-
-    # mixing array and symbol include's will merge correctly
-    Developer.send(:with_scope, :find => { :eager_load => [:projects], :conditions => "projects.id = 2" }) do
-      Developer.send(:with_scope, :find => { :eager_load => :projects }) do
-        assert_equal 1, Developer.scoped.eager_load_values.uniq.length
+        assert_equal 1, Developer.scoped.includes_values.uniq.length
         assert_equal('David', Developer.find(:first).name)
       end
     end

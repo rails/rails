@@ -362,7 +362,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     end
 
     assert_raise ActiveRecord::EagerLoadPolymorphicError do
-      tags(:general).taggings.eager_load(:taggable).where('bogus_table.column = 1').to_a
+      tags(:general).taggings.find(:all, :include => :taggable, :conditions => 'bogus_table.column = 1')
     end
   end
 
@@ -419,7 +419,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_many_through_has_many
-    author = Author.where('name = ?', 'David').eager_load(:comments).order('comments.id').first
+    author = Author.find :first, :conditions => ['name = ?', 'David'], :include => :comments, :order => 'comments.id'
     SpecialComment.new; VerySpecialComment.new
     assert_no_queries do
       assert_equal [1,2,3,5,6,7,8,9,10,12], author.comments.collect(&:id)

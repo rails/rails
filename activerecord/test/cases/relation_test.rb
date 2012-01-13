@@ -135,11 +135,5 @@ module ActiveRecord
       relation.eager_load_values << :b
       assert relation.eager_loading?
     end
-
-    def test_apply_finder_options_supports_eager_load
-      relation = Relation.new :a, :b
-      relation = relation.apply_finder_options(:eager_load => :b)
-      assert_equal [:b], relation.eager_load_values
-    end
   end
 end

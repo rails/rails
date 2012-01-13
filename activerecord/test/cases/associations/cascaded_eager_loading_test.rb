@@ -61,31 +61,15 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_cascaded_eager_association_loading_with_duplicated_includes
-    categories = Category.includes(:categorizations).includes(:categorizations => :author)
-    assert_nothing_raised do
-      assert_equal Category.count, categories.count
-      assert_equal Category.count, categories.all.size
-    end
-  end
-
-  def test_cascaded_eager_association_loading_with_twice_includes_edge_cases
-    categories = Category.includes(:categorizations => :author).includes(:categorizations => :post)
-    assert_nothing_raised do
-      assert_equal Category.count, categories.count
-      assert_equal Category.count, categories.all.size
-    end
-  end
-
-  def test_cascaded_eager_association_loading_with_duplicated_eager_load
-    categories = Category.eager_load(:categorizations).eager_load(:categorizations => :author).where("categorizations.id is not null")
+    categories = Category.includes(:categorizations).includes(:categorizations => :author).where("categorizations.id is not null")
     assert_nothing_raised do
       assert_equal 3, categories.count
       assert_equal 3, categories.all.size
     end
   end
 
-  def test_cascaded_eager_association_loading_with_twice_eager_load_edge_cases
-    categories = Category.eager_load(:categorizations => :author).eager_load(:categorizations => :post).where("posts.id is not null")
+  def test_cascaded_eager_association_loading_with_twice_includes_edge_cases
+    categories = Category.includes(:categorizations => :author).includes(:categorizations => :post).where("posts.id is not null")
     assert_nothing_raised do
       assert_equal 3, categories.count
       assert_equal 3, categories.all.size
@@ -143,7 +127,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     silly.parent_id = 1
     assert silly.save
 
-    topics = Topic.eager_load(:replies).order('topics.id, replies_topics.id').to_a
+    topics = Topic.find(:all, :include => :replies, :order => 'topics.id, replies_topics.id')
     assert_no_queries do
       assert_equal 2, topics[0].replies.size
       assert_equal 0, topics[1].replies.size
@@ -158,9 +142,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_multiple_stis_and_order
-    author = Author.eager_load(:posts => [ :special_comments , :very_special_comment ]).
-                    order('authors.name', 'comments.body', 'very_special_comments_posts.body').
-                    where('posts.id = 4').first
+    author = Author.find(:first, :include => { :posts => [ :special_comments , :very_special_comment ] }, :order => ['authors.name', 'comments.body', 'very_special_comments_posts.body'], :conditions => 'posts.id = 4')
     assert_equal authors(:david), author
     assert_no_queries do
       author.posts.first.special_comments
@@ -169,9 +151,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_of_stis_with_multiple_references
-    authors = Author.eager_load(:posts => { :special_comments => { :post => [ :special_comments, :very_special_comment ] } }).
-                     order('comments.body, very_special_comments_posts.body').
-                     where('posts.id = 4')
+    authors = Author.find(:all, :include => { :posts => { :special_comments => { :post => [ :special_comments, :very_special_comment ] } } }, :order => 'comments.body, very_special_comments_posts.body', :conditions => 'posts.id = 4')
     assert_equal [authors(:david)], authors
     assert_no_queries do
       authors.first.posts.first.special_comments.first.post.special_comments

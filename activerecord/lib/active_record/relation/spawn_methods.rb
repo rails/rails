@@ -122,7 +122,7 @@ module ActiveRecord
       result
     end
 
-    VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset, :extend, :eager_load,
+    VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset, :extend,
                            :order, :select, :readonly, :group, :having, :from, :lock ]
 
     def apply_finder_options(options)
@@ -133,7 +133,7 @@ module ActiveRecord
       finders = options.dup
       finders.delete_if { |key, value| value.nil? && key != :limit }
 
-      ([:joins, :select, :group, :order, :having, :limit, :offset, :from, :lock, :readonly, :eager_load] & finders.keys).each do |finder|
+      ([:joins, :select, :group, :order, :having, :limit, :offset, :from, :lock, :readonly] & finders.keys).each do |finder|
         relation = relation.send(finder, finders[finder])
       end
 

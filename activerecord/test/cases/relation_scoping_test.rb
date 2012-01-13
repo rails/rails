@@ -105,7 +105,7 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
-    scoped_developers = Developer.eager_load(:projects).scoping do
+    scoped_developers = Developer.includes(:projects).scoping do
       Developer.where('projects.id = 2').all
     end
     assert scoped_developers.include?(developers(:david))
@@ -528,7 +528,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     d = DeveloperWithIncludes.create!
     d.audit_logs.create! :message => 'foo'
 
-    assert_equal 1, DeveloperWithIncludes.eager_load(:audit_logs).where(:audit_logs => { :message => 'foo' }).count
+    assert_equal 1, DeveloperWithIncludes.where(:audit_logs => { :message => 'foo' }).count
   end
 
   def test_default_scope_is_threadsafe

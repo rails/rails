@@ -100,7 +100,6 @@ module ActiveRecord
 
           scope = scope.select(preload_options[:select] || options[:select] || table[Arel.star])
           scope = scope.includes(preload_options[:include] || options[:include])
-          scope = scope.eager_load(preload_options[:eager_load] || options[:eager_load])
 
           if options[:as]
             scope = scope.where(

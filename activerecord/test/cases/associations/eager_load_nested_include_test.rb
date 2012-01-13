@@ -123,7 +123,7 @@ class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
     assert_nothing_raised do
       # @davey_mcdave doesn't have any author_favorites
       includes = {:posts => :comments, :categorizations => :category, :author_favorites => :favorite_author }
-      Author.all :eager_load => includes, :conditions => {:authors => {:name => @davey_mcdave.name}}, :order => 'categories.name'
+      Author.all :include => includes, :conditions => {:authors => {:name => @davey_mcdave.name}}, :order => 'categories.name'
     end
   end
 end

@@ -53,7 +53,6 @@ module ActiveRecord
           else
             if options[:conditions]
               through_options[:include]    = options[:include] || options[:source]
-              through_options[:eager_load] = options[:eager_load] || options[:source]
               through_options[:conditions] = options[:conditions]
             end
 

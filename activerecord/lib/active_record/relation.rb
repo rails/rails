@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 require 'active_support/core_ext/object/blank'
-require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Relation
@@ -522,18 +521,7 @@ module ActiveRecord
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
 
-      referenced_tables = (tables_in_string(to_sql) - joined_tables)
-      if referenced_tables.any?
-        ActiveSupport::Deprecation.warn(
-          "Your query appears to reference tables (#{referenced_tables.join(', ')}) that are not " \
-          "explicitly joined. This implicit joining is deprecated, so you must explicitly " \
-          "reference the tables. For example, instead of Author.includes(:posts).where(\"posts.name = 'foo'\"), " \
-          "you should write Author.eager_load(:posts).where(\"posts.name = 'foo'\")."
-        )
-        true
-      else
-        false
-      end
+      (tables_in_string(to_sql) - joined_tables).any?
     end
 
     def tables_in_string(string)

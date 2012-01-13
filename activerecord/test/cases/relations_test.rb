@@ -16,6 +16,7 @@ require 'models/engine'
 require 'models/tyre'
 require 'models/minivan'
 
+
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :tags, :taggings, :cars, :minivans
@@ -176,19 +177,19 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_cross_table_order_and_limit
-    tags = Tag.eager_load(:taggings).
+    tags = Tag.includes(:taggings).
               order("tags.name asc", "taggings.taggable_id asc", "REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").
               limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order_and_limit
-    tags = Tag.eager_load(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
+    tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order
-    tags = Tag.eager_load(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
+    tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
     assert_equal 3, tags.length
   end
 
@@ -1103,9 +1104,7 @@ class RelationTest < ActiveRecord::TestCase
       )
     )
 
-    assert_deprecated do
-      assert scope.eager_loading?
-    end
+    assert scope.eager_loading?
   end
 
   def test_ordering_with_extra_spaces
@@ -1164,20 +1163,5 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal ['Foo'], query.uniq(true).map(&:name)
     end
     assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
-  end
-
-  def test_deprecated_references_eager_loaded_tables
-    expected = tags(:general)
-    tagging  = taggings(:welcome_general)
-    tag = assert_queries 1 do
-      assert_deprecated do
-        Tag.includes(:taggings).where(:taggings => { :id => tagging.id }).to_a.first
-      end
-    end
-
-    assert_equal expected, tag
-    assert_no_queries do
-      tag.taggings.to_a
-    end
   end
 end

@@ -72,7 +72,7 @@ class ModulesTest < ActiveRecord::TestCase
     clients = []
 
     assert_nothing_raised NameError, "Should be able to resolve all class constants via reflection" do
-      clients << MyApplication::Business::Client.find(3, :eager_load => {:firm => :account}, :conditions => 'accounts.id IS NOT NULL')
+      clients << MyApplication::Business::Client.find(3, :include => {:firm => :account}, :conditions => 'accounts.id IS NOT NULL')
       clients << MyApplication::Business::Client.find(3, :include => {:firm => :account})
     end
 

@@ -3,7 +3,7 @@ class Author < ActiveRecord::Base
   has_many :very_special_comments, :through => :posts
   has_many :posts_with_comments, :include => :comments, :class_name => "Post"
   has_many :popular_grouped_posts, :include => :comments, :class_name => "Post", :group => "type", :having => "SUM(comments_count) > 1", :select => "type"
-  has_many :posts_with_comments_sorted_by_comment_id, :eager_load => :comments, :class_name => "Post", :order => 'comments.id'
+  has_many :posts_with_comments_sorted_by_comment_id, :include => :comments, :class_name => "Post", :order => 'comments.id'
   has_many :posts_sorted_by_id_limited, :class_name => "Post", :order => 'posts.id', :limit => 1
   has_many :posts_with_categories, :include => :categories, :class_name => "Post"
   has_many :posts_with_comments_and_categories, :include => [ :comments, :categories ], :order => "posts.id", :class_name => "Post"
@@ -54,7 +54,7 @@ class Author < ActiveRecord::Base
 
   has_many :hello_posts, :class_name => "Post", :conditions => "posts.body = 'hello'"
   has_many :hello_post_comments, :through => :hello_posts, :source => :comments
-  has_many :posts_with_no_comments, :class_name => 'Post', :conditions => 'comments.id is null', :eager_load => :comments
+  has_many :posts_with_no_comments, :class_name => 'Post', :conditions => 'comments.id is null', :include => :comments
 
   has_many :hello_posts_with_hash_conditions, :class_name => "Post",
 :conditions => {:body => 'hello'}

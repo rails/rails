@@ -515,7 +515,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_nested_has_many_through_with_conditions_on_source_associations_preload
-    authors = assert_queries(2) { Author.includes(:misc_post_first_blue_tags_2).to_a.sort_by(&:id) }
+    authors = assert_queries(4) { Author.includes(:misc_post_first_blue_tags_2).to_a.sort_by(&:id) }
     blue = tags(:blue)
 
     assert_no_queries do
@@ -560,7 +560,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
       actual = assert_queries(1) { query.joins(association).to_a.uniq }
       assert_equal expected, actual
 
-      actual = assert_queries(1) { query.eager_load(association).to_a.uniq }
+      actual = assert_queries(1) { query.includes(association).to_a.uniq }
       assert_equal expected, actual
     end
 end

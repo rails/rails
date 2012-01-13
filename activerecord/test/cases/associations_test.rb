@@ -29,7 +29,7 @@ class AssociationsTest < ActiveRecord::TestCase
     molecule.electrons.create(:name => 'electron_1')
     molecule.electrons.create(:name => 'electron_2')
 
-    liquids = Liquid.eager_load(:molecules => :electrons).where('molecules.id is not null')
+    liquids = Liquid.includes(:molecules => :electrons).where('molecules.id is not null')
     assert_equal 1, liquids[0].molecules.length
   end
 

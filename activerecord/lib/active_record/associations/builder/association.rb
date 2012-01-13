@@ -1,7 +1,7 @@
 module ActiveRecord::Associations::Builder
   class Association #:nodoc:
     class_attribute :valid_options
-    self.valid_options = [:class_name, :foreign_key, :select, :conditions, :include, :eager_load, :extend, :readonly, :validate]
+    self.valid_options = [:class_name, :foreign_key, :select, :conditions, :include, :extend, :readonly, :validate]
 
     # Set by subclasses
     class_attribute :macro
