@@ -643,22 +643,6 @@ module ActionView
           html_options["data-method"] = method
         end
 
-        def options_for_javascript(options)
-          if options.empty?
-            '{}'
-          else
-            "{#{options.keys.map { |k| "#{k}:#{options[k]}" }.sort.join(', ')}}"
-          end
-        end
-
-        def array_or_string_for_javascript(option)
-          if option.kind_of?(Array)
-            "['#{option.join('\',\'')}']"
-          elsif !option.nil?
-            "'#{option}'"
-          end
-        end
-
         # Processes the +html_options+ hash, converting the boolean
         # attributes from true/false form into the form required by
         # HTML/XHTML. (An attribute is considered to be boolean if
