@@ -566,12 +566,18 @@ module ActiveRecord
         move(:up, migrations_paths, steps)
       end
 
-      def up(migrations_paths, target_version = nil, &block)
-        self.new(:up, migrations(migrations_paths), target_version).migrate(&block)
+      def up(migrations_paths, target_version = nil)
+        migrations = migrations(migrations_paths)
+        migrations.select! { |m| yield m } if block_given?
+
+        self.new(:up, migrations, target_version).migrate
       end
 
       def down(migrations_paths, target_version = nil, &block)
-        self.new(:down, migrations(migrations_paths), target_version).migrate(&block)
+        migrations = migrations(migrations_paths)
+        migrations.select! { |m| yield m } if block_given?
+
+        self.new(:down, migrations, target_version).migrate
       end
 
       def run(direction, migrations_paths, target_version)
@@ -681,16 +687,21 @@ module ActiveRecord
       end
     end
 
-    def migrate(&block)
+    def migrate
       if !target && @target_version && @target_version > 0
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
-      runnable.each do |migration|
-        if block && !block.call(migration)
-          next
-        end
+      running = runnable
 
+      if block_given?
+        ActiveSupport::Deprecation.warn(<<-eomsg)
+block argument to migrate is deprecated, please filter migrations before constructing the migrator
+        eomsg
+        running.select! { |m| yield m }
+      end
+
+      running.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         begin
