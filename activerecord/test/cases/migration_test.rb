@@ -319,16 +319,6 @@ class MigrationTest < ActiveRecord::TestCase
     assert_match(/20100201010101.*20100301010101/m, schema_info)
   end
 
-  def test_finds_pending_migrations
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2", 1)
-    migration_list = ActiveRecord::Migrator.migrations(MIGRATIONS_ROOT + "/interleaved/pass_2")
-    migrations = ActiveRecord::Migrator.new(:up, migration_list).pending_migrations
-
-    assert_equal 1, migrations.size
-    assert_equal migrations[0].version, 3
-    assert_equal migrations[0].name, 'InterleavedInnocentJointable'
-  end
-
   def test_only_loads_pending_migrations
     # migrate up to 1
     ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)

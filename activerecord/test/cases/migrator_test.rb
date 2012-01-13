@@ -71,5 +71,14 @@ module ActiveRecord
       }
       assert migration_proxy, 'should find pending migration'
     end
+
+    def test_finds_pending_migrations
+      ActiveRecord::SchemaMigration.create!(:version => '1')
+      migration_list = [ Migration.new('foo', 1), Migration.new('bar', 3) ]
+      migrations = ActiveRecord::Migrator.new(:up, migration_list).pending_migrations
+
+      assert_equal 1, migrations.size
+      assert_equal migration_list.last, migrations.first
+    end
   end
 end
