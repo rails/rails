@@ -41,6 +41,7 @@ module ApplicationTests
     test "assets do not require compressors until it is used" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
       add_to_env_config "production", "config.assets.compile = true"
+      add_to_env_config "production", "config.assets.js_compressor = :uglifier"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
@@ -54,6 +55,7 @@ module ApplicationTests
     test "precompile creates the file, gives it the original asset's content and run in production as default" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
+      add_to_env_config "production", "config.assets.js_compressor = :uglifier"
 
       ENV["RAILS_ENV"] = nil
       precompile!
