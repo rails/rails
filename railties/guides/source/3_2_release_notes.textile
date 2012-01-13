@@ -118,7 +118,7 @@ config.railties_order = [Blog::Engine, :main_app, :all]
 
 * Update <tt>Rails::Rack::Logger</tt> middleware to apply any tags set in <tt>config.log_tags</tt> to <tt>ActiveSupport::TaggedLogging</tt>. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications.
 
-* Default options to +rails new+ can be set in <tt>~/.railsrc</tt>.
+* Default options to +rails new+ can be set in <tt>~/.railsrc</tt>. You can specify extra command-line arguments to be used every time 'rails new' runs in the <tt>.railsrc</tt> configuration file in your home directory.
 
 * Add an alias +d+ for +destroy+. This works for engines too.
 
@@ -131,6 +131,8 @@ rails g scaffold Post title:string:index author:uniq price:decimal{7,2}
 </ruby>
 
 will create indexes for +title+ and +author+ with the latter being an unique index. Some types such as decimal accept custom options. In the example, +price+ will be a decimal column with precision and scale set to 7 and 2 respectively.
+
+* Turn gem has been removed from default Gemfile.
 
 * Remove old plugin generator +rails generate plugin+ in favor of +rails plugin new+ command.
 
