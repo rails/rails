@@ -310,15 +310,6 @@ class MigrationTest < ActiveRecord::TestCase
     refute Person.column_methods_hash.include?(:last_name)
   end
 
-  def test_dump_schema_information_outputs_lexically_ordered_versions
-    migration_path = MIGRATIONS_ROOT + '/valid_with_timestamps'
-    ActiveRecord::Migrator.run(:up, migration_path, 20100301010101)
-    ActiveRecord::Migrator.run(:up, migration_path, 20100201010101)
-
-    schema_info = ActiveRecord::Base.connection.dump_schema_information
-    assert_match(/20100201010101.*20100301010101/m, schema_info)
-  end
-
   def test_only_loads_pending_migrations
     # migrate up to 1
     ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)

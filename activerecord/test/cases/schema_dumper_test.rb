@@ -14,6 +14,16 @@ class SchemaDumperTest < ActiveRecord::TestCase
     @stream.string
   end
 
+  def test_dump_schema_information_outputs_lexically_ordered_versions
+    versions = %w{ 20100101010101 20100201010101 20100301010101 }
+    versions.reverse.each do |v|
+      ActiveRecord::SchemaMigration.create!(:version => v)
+    end
+
+    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    assert_match(/20100201010101.*20100301010101/m, schema_info)
+  end
+
   def test_magic_comment
     assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
   end
