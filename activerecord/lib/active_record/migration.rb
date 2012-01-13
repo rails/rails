@@ -752,13 +752,10 @@ module ActiveRecord
     end
 
     def record_version_state_after_migrating(version)
-      table = Arel::Table.new(self.class.schema_migrations_table_name)
-
       @migrated_versions ||= []
       if down?
         @migrated_versions.delete(version)
-        stmt = table.where(table["version"].eq(version.to_s)).compile_delete
-        Base.connection.delete stmt
+        ActiveRecord::SchemaMigration.where(:version => version.to_s).delete_all
       else
         @migrated_versions.push(version).sort!
         ActiveRecord::SchemaMigration.create!(:version => version.to_s)
