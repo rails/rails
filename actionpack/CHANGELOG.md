@@ -1,9 +1,20 @@
+## Rails 3.1.4 (unreleased) ##
+
+*   Skip assets group in Gemfile and all assets configurations options
+    when the application is generated with --skip-sprockets option.
+
+    *Guillermo Iguaran*
+
+*   Use ProcessedAsset#pathname in Sprockets helpers when debugging is on. Closes #3333 #3348 #3361.
+
+    *Guillermo Iguaran*
+
 *   Allow to use asset_path on named_routes aliasing RailsHelper's
     asset_path to path_to_asset *Adrian Pike*
 
 *   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
 
-## Rails 3.1.3 (unreleased) ##
+## Rails 3.1.3 (November 20, 2011) ##
 
 *   Downgrade sprockets to ~> 2.0.3. Using 2.1.0 caused regressions.
 
@@ -12,7 +23,7 @@
 
     *Jon Leighton*
 
-## Rails 3.1.2 (unreleased) ##
+## Rails 3.1.2 (November 18, 2011) ##
 
 *   Fix XSS security vulnerability in the `translate` helper method. When using interpolation
     in combination with HTML-safe translations, the interpolated input would not get HTML
