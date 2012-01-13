@@ -944,6 +944,54 @@ module ActionView
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("range", options)
       end
 
+      # Returns an input tag of type "datetime".
+      #
+      # ==== Options
+      # * Accepts same options as datetime_field_tag
+      def datetime_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("datetime", options)
+      end
+
+      # Returns an input tag of type "datetime-local".
+      #
+      # ==== Options
+      # * Accepts same options as datetime_local_field_tag
+      def datetime_local_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("datetime-local", options)
+      end
+
+      # Returns an input tag of type "date".
+      #
+      # ==== Options
+      # * Accepts same options as date_field_tag
+      def date_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("date", options)
+      end
+
+      # Returns an input tag of type "month".
+      #
+      # ==== Options
+      # * Accepts same options as month_field_tag
+      def month_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("month", options)
+      end
+
+      # Returns an input tag of type "week".
+      #
+      # ==== Options
+      # * Accepts same options as week_field_tag
+      def week_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("week", options)
+      end
+
+      # Returns an input tag of type "time".
+      #
+      # ==== Options
+      # * Accepts same options as time_field_tag
+      def time_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("time", options)
+      end
+
       private
 
         def instantiate_builder(record_name, record_object, options, &block)

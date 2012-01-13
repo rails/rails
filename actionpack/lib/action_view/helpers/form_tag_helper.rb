@@ -565,6 +565,54 @@ module ActionView
         text_field_tag(name, value, options.stringify_keys.update("type" => "email"))
       end
 
+      # Creates a text field of type "datetime".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def datetime_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "datetime"))
+      end
+
+      # Creates a text field of type "datetime-local".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def datetime_local_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "datetime-local"))
+      end
+
+      # Creates a text field of type "date".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def date_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
+      end
+
+      # Creates a text field of type "month".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def month_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "month"))
+      end
+
+      # Creates a text field of type "week".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def week_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "week"))
+      end
+
+      # Creates a text field of type "time".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def time_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "time"))
+      end
+
       # Creates a number field.
       #
       # ==== Options

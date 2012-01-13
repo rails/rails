@@ -511,6 +511,36 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, range_field("hifi", "volume", :size => 30, :in => 0..11, :step => 0.1))
   end
 
+  def test_datetime_field
+    expected = %{<input id="event_start_at" size="30" name="event[start_at]" type="datetime" />}
+    assert_dom_equal(expected, datetime_field("event", "start_at"))
+  end
+
+  def test_datetime_local_field
+    expected = %{<input id="event_start_at" size="30" name="event[start_at]" type="datetime-local" />}
+    assert_dom_equal(expected, datetime_local_field("event", "start_at"))
+  end
+
+  def test_date_field
+    expected = %{<input id="user_birthday" size="30" name="user[birthday]" type="date" />}
+    assert_dom_equal(expected, date_field("user", "birthday"))
+  end
+
+  def test_month_field
+    expected = %{<input id="report_term" size="30" name="report[term]" type="month" />}
+    assert_dom_equal(expected, month_field("report", "term"))
+  end
+
+  def test_week_field
+    expected = %{<input id="report_term" size="30" name="report[term]" type="week" />}
+    assert_dom_equal(expected, week_field("report", "term"))
+  end
+
+  def test_time_field
+    expected = %{<input id="alarm_ring_at" size="30" name="alarm[ring_at]" type="time" />}
+    assert_dom_equal(expected, time_field("alarm", "ring_at"))
+  end
+
   def test_explicit_name
     assert_dom_equal(
       '<input id="post_title" name="dont guess" size="30" type="text" value="Hello World" />', text_field("post", "title", "name" => "dont guess")

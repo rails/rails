@@ -482,6 +482,36 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, range_field_tag("volume", nil, :in => 0..11, :step => 0.1))
   end
 
+  def test_datetime_input_tag
+    expected = %{<input name="start_at" id="start_at" type="datetime" />}
+    assert_dom_equal(expected, datetime_field_tag("start_at"))
+  end
+
+  def test_datetime_local_input_tag
+    expected = %{<input name="start_at" id="start_at" type="datetime-local" />}
+    assert_dom_equal(expected, datetime_local_field_tag("start_at"))
+  end
+
+  def test_date_input_tag
+    expected = %{<input name="birthday" id="birthday" type="date" />}
+    assert_dom_equal(expected, date_field_tag("birthday"))
+  end
+
+  def test_month_input_tag
+    expected = %{<input name="period" id="period" type="month" />}
+    assert_dom_equal(expected, month_field_tag("period"))
+  end
+
+  def test_week_input_tag
+    expected = %{<input name="report" id="period" type="week" />}
+    assert_dom_equal(expected, week_field_tag("period"))
+  end
+
+  def test_time_input_tag
+    expected = %{<input name="ring_at" id="ring_at" type="range" />}
+    assert_dom_equal(expected, range_field_tag("ring_at"))
+  end
+
   def test_pass
     assert_equal 1, 1
   end
