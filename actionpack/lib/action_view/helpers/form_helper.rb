@@ -365,7 +365,7 @@ module ActionView
         else
           object      = record.is_a?(Array) ? record.last : record
           object_name = options[:as] || ActiveModel::Naming.param_key(object)
-          apply_form_for_options!(record, options)
+          apply_form_for_options!(record, object, options)
         end
 
         options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
@@ -380,8 +380,7 @@ module ActionView
         output.safe_concat('</form>')
       end
 
-      def apply_form_for_options!(object_or_array, options) #:nodoc:
-        object = object_or_array.is_a?(Array) ? object_or_array.last : object_or_array
+      def apply_form_for_options!(record, object, options) #:nodoc:
         object = convert_to_model(object)
 
         as = options[:as]
@@ -392,7 +391,7 @@ module ActionView
           :method => method
         )
 
-        options[:url] ||= polymorphic_path(object_or_array, :format => options.delete(:format))
+        options[:url] ||= polymorphic_path(record, :format => options.delete(:format))
       end
       private :apply_form_for_options!
 
