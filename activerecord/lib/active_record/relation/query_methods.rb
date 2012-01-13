@@ -10,7 +10,7 @@ module ActiveRecord
                   :where_values, :having_values, :bind_values,
                   :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value,
                   :from_value, :reordering_value, :reverse_order_value,
-                  :uniq_value
+                  :uniq_value, :references_values
 
     def includes(*args)
       args.reject! {|a| a.blank? }
@@ -35,6 +35,24 @@ module ActiveRecord
 
       relation = clone
       relation.preload_values += args
+      relation
+    end
+
+    # Used to indicate that an association is referenced by an SQL string, and should
+    # therefore be JOINed in any query rather than loaded separately.
+    #
+    # For example:
+    #
+    #   User.includes(:posts).where("posts.name = 'foo'")
+    #   # => Doesn't JOIN the posts table, resulting in an error.
+    #
+    #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
+    #   # => Query now knows the string references posts, so adds a JOIN
+    def references(*args)
+      return self if args.blank?
+
+      relation = clone
+      relation.references_values = (references_values + args).uniq
       relation
     end
 
