@@ -572,27 +572,6 @@ class MigrationTest < ActiveRecord::TestCase
     end
 end
 
-class InterleavedMigrationsTest < ActiveRecord::TestCase
-  def test_migrator_interleaved_migrations
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_1")
-
-    assert_nothing_raised do
-      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2")
-    end
-
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-
-    assert_nothing_raised do
-      proxies = ActiveRecord::Migrator.down(
-        MIGRATIONS_ROOT + "/interleaved/pass_3")
-      names = proxies.map(&:name)
-      assert names.include?('InterleavedPeopleHaveLastNames')
-      assert names.include?('InterleavedInnocentJointable')
-    end
-  end
-end
-
 class ReservedWordsMigrationTest < ActiveRecord::TestCase
   def test_drop_index_from_table_named_values
     connection = Person.connection

@@ -2,6 +2,31 @@ require "cases/helper"
 
 module ActiveRecord
   class MigratorTest < ActiveRecord::TestCase
+    # Use this class to sense if migrations have gone
+    # up or down.
+    class Sensor < ActiveRecord::Migration
+      attr_reader :went_up, :went_down
+
+      def initialize name, version
+        super
+        @went_up  = false
+        @went_down = false
+      end
+
+      def up; @went_up = true; end
+      def down; @went_down = true; end
+    end
+
+    def setup
+      super
+      ActiveRecord::SchemaMigration.delete_all rescue nil
+    end
+
+    def teardown
+      super
+      ActiveRecord::SchemaMigration.delete_all rescue nil
+    end
+
     def test_migrator_with_duplicate_names
       assert_raises(ActiveRecord::DuplicateMigrationNameError, "Multiple migrations have the name Chunky") do
         list = [Migration.new('Chunky'), Migration.new('Chunky')]
@@ -57,7 +82,7 @@ module ActiveRecord
 
     def test_deprecated_constructor
       assert_deprecated do
-        ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/interleaved/pass_2")
+        ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid")
       end
     end
 
@@ -79,6 +104,29 @@ module ActiveRecord
 
       assert_equal 1, migrations.size
       assert_equal migration_list.last, migrations.first
+    end
+
+    def test_migrator_interleaved_migrations
+      pass_one = [Sensor.new('One', 1)]
+
+      ActiveRecord::Migrator.new(:up, pass_one).migrate
+      assert pass_one.first.went_up
+      refute pass_one.first.went_down
+
+      pass_two = [Sensor.new('One', 1), Sensor.new('Three', 3)]
+      ActiveRecord::Migrator.new(:up, pass_two).migrate
+      refute pass_two[0].went_up
+      assert pass_two[1].went_up
+      assert pass_two.all? { |x| !x.went_down }
+
+      pass_three = [Sensor.new('One', 1),
+                    Sensor.new('Two', 2),
+                    Sensor.new('Three', 3)]
+
+      ActiveRecord::Migrator.new(:down, pass_three).migrate
+      assert pass_three[0].went_down
+      refute pass_three[1].went_down
+      assert pass_three[2].went_down
     end
   end
 end
