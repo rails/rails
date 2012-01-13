@@ -682,21 +682,10 @@ module ActiveRecord
     end
 
     def migrate(&block)
-      current = migrations.detect { |m| m.version == current_version }
-      target = migrations.detect { |m| m.version == @target_version }
-
-      if target.nil? && @target_version && @target_version > 0
+      if !target && @target_version && @target_version > 0
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
-      start = up? ? 0 : (migrations.index(current) || 0)
-      finish = migrations.index(target) || migrations.size - 1
-      runnable = migrations[start..finish]
-
-      # skip the last migration if we're headed down, but not ALL the way down
-      runnable.pop if down? && target
-
-      ran = []
       runnable.each do |migration|
         if block && !block.call(migration)
           next
@@ -704,29 +693,27 @@ module ActiveRecord
 
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
-        seen = migrated.include?(migration.version.to_i)
-
-        # On our way up, we skip migrating the ones we've already migrated
-        next if up? && seen
-
-        # On our way down, we skip reverting the ones we've never migrated
-        if down? && !seen
-          migration.announce 'never migrated, skipping'; migration.write
-          next
-        end
-
         begin
           ddl_transaction do
             migration.migrate(@direction)
             record_version_state_after_migrating(migration.version)
           end
-          ran << migration
         rescue => e
           canceled_msg = Base.connection.supports_ddl_transactions? ? "this and " : ""
           raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
         end
       end
-      ran
+    end
+
+    def runnable
+      runnable = migrations[start..finish]
+      if up?
+        runnable.reject { |m| ran?(m) }
+      else
+        # skip the last migration if we're headed down, but not ALL the way down
+        runnable.pop if target
+        runnable.find_all { |m| ran?(m) }
+      end
     end
 
     def migrations
@@ -743,6 +730,26 @@ module ActiveRecord
     end
 
     private
+    def ran?(migration)
+      migrated.include?(migration.version.to_i)
+    end
+
+    def current
+      migrations.detect { |m| m.version == current_version }
+    end
+
+    def target
+      migrations.detect { |m| m.version == @target_version }
+    end
+
+    def finish
+      migrations.index(target) || migrations.size - 1
+    end
+
+    def start
+      up? ? 0 : (migrations.index(current) || 0)
+    end
+
     def validate(migrations)
       name ,= migrations.group_by(&:name).find { |_,v| v.length > 1 }
       raise DuplicateMigrationNameError.new(name) if name

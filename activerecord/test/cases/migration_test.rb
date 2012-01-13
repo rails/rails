@@ -312,7 +312,7 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_only_loads_pending_migrations
     # migrate up to 1
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
+    ActiveRecord::SchemaMigration.create!(:version => '1')
 
     proxies = ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", nil)
 
