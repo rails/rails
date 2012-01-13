@@ -4,6 +4,8 @@
 
 ## Rails 3.2.0 (unreleased) ##
 
+*   Turn gem has been removed from default Gemfile. We still looking for a best presentation for tests output. *Guillermo Iguaran*
+
 *   Rails::Plugin is deprecated and will be removed in Rails 4.0. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
 
 *   Guides are available as a single .mobi for the Kindle and free Kindle readers apps. *Michael Pearson & Xavier Noria*
@@ -29,7 +31,8 @@
 
 *   Update Rails::Rack::Logger middleware to apply any tags set in config.log_tags to the newly ActiveSupport::TaggedLogging Rails.logger. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications *DHH*
 
-*   Default options to `rails new` can be set in ~/.railsrc *Guillermo Iguaran*
+*   Default options to `rails new` can be set in ~/.railsrc. You can specify extra command-line arguments to be used every time
+    'rails new' runs in the .railsrc configuration file in your home directory. *Guillermo Iguaran*
 
 *   Add destroy alias to Rails engines *Guillermo Iguaran*
 
@@ -52,7 +55,7 @@
     *GH 2564*
 
     *José Valim*
-    
+
 ## Rails 3.1.1 (October 07, 2011) ##
 
 *   Add jquery-rails to Gemfile of plugins, test/dummy app needs it. Closes #3091. *Santiago Pastorino*
