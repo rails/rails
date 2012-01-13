@@ -215,6 +215,8 @@ In the example above, Posts controller will no longer automatically look up for 
 
 h4. Action Dispatch
 
+* Use a BodyProxy instead of including a Module that responds to close. Closes #4441 if Active Record is disabled assets are delivered correctly.
+
 * Added <tt>ActionDispatch::RequestId</tt> middleware that'll make a unique X-Request-Id header available to the response and enables the <tt>ActionDispatch::Request#uuid</tt> method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog.
 
 * The <tt>ShowExceptions</tt> middleware now accepts a exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in +env["action_dispatch.exception"]+ and with the <tt>PATH_INFO</tt> rewritten to the status code.
