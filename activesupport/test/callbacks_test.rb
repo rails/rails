@@ -452,7 +452,7 @@ module CallbacksTest
     set_callback :save, :before, :first
     set_callback :save, :before, :second
     set_callback :save, :around, :around_it
-    set_callback :save, :before, :third
+    set_callback :save, :before, :third, :if => :third_if
     set_callback :save, :after, :first
     set_callback :save, :around, :around_it
     set_callback :save, :after, :second
@@ -482,6 +482,10 @@ module CallbacksTest
 
     def third
       @history << "third"
+    end
+
+    def third_if
+      @history << "third_if"
     end
 
     def save
