@@ -503,7 +503,7 @@ module ActionView
 
         extras = %w{ cc bcc body subject }.map { |item|
           option = html_options.delete(item) || next
-          "#{item}=#{Rack::Utils.escape(option).gsub("+", "%20")}"
+          "#{item}=#{Rack::Utils.escape_path(option)}"
         }.compact
         extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
 
@@ -641,22 +641,6 @@ module ActionView
             html_options["rel"] = "#{html_options["rel"]} nofollow".strip
           end
           html_options["data-method"] = method
-        end
-
-        def options_for_javascript(options)
-          if options.empty?
-            '{}'
-          else
-            "{#{options.keys.map { |k| "#{k}:#{options[k]}" }.sort.join(', ')}}"
-          end
-        end
-
-        def array_or_string_for_javascript(option)
-          if option.kind_of?(Array)
-            "['#{option.join('\',\'')}']"
-          elsif !option.nil?
-            "'#{option}'"
-          end
         end
 
         # Processes the +html_options+ hash, converting the boolean
