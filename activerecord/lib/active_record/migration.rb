@@ -2,6 +2,7 @@ require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/class/attribute_accessors"
 require 'active_support/deprecation'
 require 'active_record/schema_migration'
+require 'set'
 
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
@@ -655,8 +656,9 @@ module ActiveRecord
     def initialize(direction, migrations, target_version = nil)
       raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
 
-      @direction        = direction
-      @target_version   = target_version
+      @direction         = direction
+      @target_version    = target_version
+      @migrated_versions = nil
 
       if Array(migrations).grep(String).empty?
         @migrations = migrations
@@ -671,12 +673,13 @@ module ActiveRecord
     end
 
     def current_version
-      migrated.last || 0
+      migrated.sort.last || 0
     end
 
     def current_migration
       migrations.detect { |m| m.version == current_version }
     end
+    alias :current :current_migration
 
     def run
       target = migrations.detect { |m| m.version == @target_version }
@@ -728,25 +731,21 @@ block argument to migrate is deprecated, please filter migrations before constru
     end
 
     def migrations
-      down? ? @migrations.reverse : @migrations
+      down? ? @migrations.reverse : @migrations.sort_by(&:version)
     end
 
     def pending_migrations
       already_migrated = migrated
-      migrations.reject { |m| already_migrated.include?(m.version.to_i) }
+      migrations.reject { |m| already_migrated.include?(m.version) }
     end
 
     def migrated
-      @migrated_versions ||= self.class.get_all_versions
+      @migrated_versions ||= Set.new(self.class.get_all_versions)
     end
 
     private
     def ran?(migration)
       migrated.include?(migration.version.to_i)
-    end
-
-    def current
-      migrations.detect { |m| m.version == current_version }
     end
 
     def target
@@ -770,12 +769,11 @@ block argument to migrate is deprecated, please filter migrations before constru
     end
 
     def record_version_state_after_migrating(version)
-      @migrated_versions ||= []
       if down?
-        @migrated_versions.delete(version)
+        migrated.delete(version)
         ActiveRecord::SchemaMigration.where(:version => version.to_s).delete_all
       else
-        @migrated_versions.push(version).sort!
+        migrated << version
         ActiveRecord::SchemaMigration.create!(:version => version.to_s)
       end
     end
@@ -789,11 +787,11 @@ block argument to migrate is deprecated, please filter migrations before constru
     end
 
     # Wrap the migration in a transaction only if supported by the adapter.
-    def ddl_transaction(&block)
+    def ddl_transaction
       if Base.connection.supports_ddl_transactions?
-        Base.transaction { block.call }
+        Base.transaction { yield }
       else
-        block.call
+        yield
       end
     end
   end

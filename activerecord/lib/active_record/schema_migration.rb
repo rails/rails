@@ -7,5 +7,9 @@ module ActiveRecord
     def self.table_name
       Base.table_name_prefix + 'schema_migrations' + Base.table_name_suffix
     end
+
+    def version
+      super.to_i
+    end
   end
 end
