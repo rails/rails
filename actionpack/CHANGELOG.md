@@ -4,6 +4,10 @@
 
 ## Rails 3.2.0 (unreleased) ##
 
+*   Use a BodyProxy instead of including a Module that responds to
+    close. Closes #4441 if Active Record is disabled assets are delivered
+    correctly *Santiago Pastorino*
+
 *   Rails initialization with initialize_on_precompile = false should set assets_dir *Santiago Pastorino*
 
 *   Add font_path helper method *Santiago Pastorino*

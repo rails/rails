@@ -1,3 +1,5 @@
+require 'action_dispatch/middleware/body_proxy'
+
 module ActionDispatch
   # ActionDispatch::Reloader provides prepare and cleanup callbacks,
   # intended to assist with code reloading during development.
@@ -61,7 +63,7 @@ module ActionDispatch
       @validated = @condition.call
       prepare!
       response = @app.call(env)
-      response[2].extend(module_hook)
+      response[2] = ActionDispatch::BodyProxy.new(response[2]) { cleanup! }
       response
     rescue Exception
       cleanup!
@@ -82,19 +84,6 @@ module ActionDispatch
 
     def validated? #:nodoc:
       @validated
-    end
-
-    def module_hook #:nodoc:
-      middleware = self
-      Module.new do
-        define_method :close do
-          begin
-            super() if defined?(super)
-          ensure
-            middleware.cleanup!
-          end
-        end
-      end
     end
   end
 end
