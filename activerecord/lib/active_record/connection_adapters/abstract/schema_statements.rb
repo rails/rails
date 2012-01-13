@@ -414,15 +414,7 @@ module ActiveRecord
       # Should not be called normally, but this operation is non-destructive.
       # The migrations module handles this automatically.
       def initialize_schema_migrations_table
-        sm_table = ActiveRecord::Migrator.schema_migrations_table_name
-
-        unless table_exists?(sm_table)
-          create_table(sm_table, :id => false) do |schema_migrations_table|
-            schema_migrations_table.column :version, :string, :null => false
-          end
-          add_index sm_table, :version, :unique => true,
-            :name => "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
-        end
+        ActiveRecord::SchemaMigration.create_table
       end
 
       def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)

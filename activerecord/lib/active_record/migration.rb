@@ -669,7 +669,7 @@ module ActiveRecord
 
       validate(@migrations)
 
-      Base.connection.initialize_schema_migrations_table
+      ActiveRecord::SchemaMigration.create_table
     end
 
     def current_version

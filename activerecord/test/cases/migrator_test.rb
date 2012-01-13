@@ -19,6 +19,7 @@ module ActiveRecord
 
     def setup
       super
+      ActiveRecord::SchemaMigration.create_table
       ActiveRecord::SchemaMigration.delete_all rescue nil
     end
 
