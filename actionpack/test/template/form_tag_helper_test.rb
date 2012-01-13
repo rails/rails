@@ -482,10 +482,6 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, range_field_tag("volume", nil, :in => 0..11, :step => 0.1))
   end
 
-  def test_pass
-    assert_equal 1, 1
-  end
-
   def test_field_set_tag_in_erb
     output_buffer = render_erb("<%= field_set_tag('Your details') do %>Hello world!<% end %>")
 
