@@ -23,7 +23,7 @@ module ActiveSupport
       end
 
       def clear(options = nil)
-        root_dirs = Dir.entries(cache_path).reject{|f| f.in?(EXCLUDED_DIRS)}
+        root_dirs = Dir.entries(cache_path).reject{|f| f.in?(EXCLUDED_DIRS + [".gitkeep"])}
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       end
 
