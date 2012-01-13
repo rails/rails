@@ -503,7 +503,7 @@ module ActionView
 
         extras = %w{ cc bcc body subject }.map { |item|
           option = html_options.delete(item) || next
-          "#{item}=#{Rack::Utils.escape(option).gsub("+", "%20")}"
+          "#{item}=#{Rack::Utils.escape_path(option)}"
         }.compact
         extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
 
