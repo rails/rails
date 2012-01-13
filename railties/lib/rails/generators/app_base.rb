@@ -276,7 +276,7 @@ module Rails
         if defined?(JRUBY_VERSION)
           "gem 'therubyrhino'  # Javascript runtime, required by execjs gem when using JRuby"  
         else
-          if RbConfig::CONFIG['host_os'].match(/mswin|mingw|windows|darwin|mac/i).nil? 
+          if !(RbConfig::CONFIG['host_os'] =~ /mswin|mingw|windows|darwin|mac/i)
             "gem 'therubyracer'  # Javascript runtime, required by execjs gem unless node.js is installed"
           else 
             ""
