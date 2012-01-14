@@ -90,8 +90,11 @@ module ActiveRecord
 
             scope = scope.joins(join(foreign_table, constraint))
 
-            unless conditions.empty?
-              scope = scope.where(sanitize(conditions, table))
+            conditions.each do |condition|
+              condition = interpolate(condition)
+              condition = { (table.table_alias || table.name) => condition } unless i == 0
+
+              scope = scope.where(condition)
             end
           end
         end
