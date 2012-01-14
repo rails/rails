@@ -20,8 +20,7 @@ module ActiveRecord
 
     def self.drop_table
       if connection.table_exists?(table_name)
-        connection.remove_index table_name, :version, :unique => true,
-          :name => "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
+        connection.remove_index table_name, :name => "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
         connection.drop_table(table_name)
       end
     end

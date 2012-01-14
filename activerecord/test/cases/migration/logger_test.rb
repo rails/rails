@@ -9,6 +9,17 @@ module ActiveRecord
         end
       end
 
+      def setup
+        super
+        ActiveRecord::SchemaMigration.create_table
+        ActiveRecord::SchemaMigration.delete_all
+      end
+
+      def teardown
+        super
+        ActiveRecord::SchemaMigration.drop_table
+      end
+
       def test_migration_should_be_run_without_logger
         previous_logger = ActiveRecord::Base.logger
         ActiveRecord::Base.logger = nil
