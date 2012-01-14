@@ -106,8 +106,14 @@ module ActiveRecord
     def order(*args)
       return self if args.blank?
 
+      args       = args.flatten
+      references = args.reject { |arg| Arel::Node === arg }
+                       .map { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }
+                       .compact
+
       relation = clone
-      relation.order_values += args.flatten
+      relation = relation.references(references) if references.any?
+      relation.order_values += args
       relation
     end
 

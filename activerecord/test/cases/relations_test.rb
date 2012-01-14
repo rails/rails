@@ -1176,17 +1176,37 @@ class RelationTest < ActiveRecord::TestCase
     assert !scope.eager_loading?
   end
 
-  def test_automatically_added_references
+  def test_automatically_added_where_references
     scope = Post.where(:comments => { :body => "Bla" })
     assert_equal ['comments'], scope.references_values
 
     scope = Post.where('comments.body' => 'Bla')
     assert_equal ['comments'], scope.references_values
+  end
 
+  def test_automatically_added_having_references
     scope = Post.having(:comments => { :body => "Bla" })
     assert_equal ['comments'], scope.references_values
 
     scope = Post.having('comments.body' => 'Bla')
     assert_equal ['comments'], scope.references_values
+  end
+
+  def test_automatically_added_order_references
+    scope = Post.order('comments.body')
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.order('comments.body', 'yaks.body')
+    assert_equal ['comments', 'yaks'], scope.references_values
+
+    # Don't infer yaks, let's not go down that road again...
+    scope = Post.order('comments.body, yaks.body')
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.order('comments.body asc')
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.order('foo(comments.body)')
+    assert_equal [], scope.references_values
   end
 end
