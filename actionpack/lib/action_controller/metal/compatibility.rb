@@ -4,9 +4,6 @@ module ActionController
 
     # Temporary hax
     included do
-      ::ActionController::UnknownAction = ::AbstractController::ActionNotFound
-      ::ActionController::DoubleRenderError = ::AbstractController::DoubleRenderError
-
       # ROUTES TODO: This should be handled by a middleware and route generation
       # should be able to handle SCRIPT_NAME
       self.config.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']

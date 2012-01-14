@@ -183,8 +183,8 @@ class PerformActionTest < ActionController::TestCase
 
   def test_get_on_hidden_should_fail
     use_controller NonEmptyController
-    assert_raise(ActionController::UnknownAction) { get :hidden_action }
-    assert_raise(ActionController::UnknownAction) { get :another_hidden_action }
+    assert_raise(AbstractController::ActionNotFound) { get :hidden_action }
+    assert_raise(AbstractController::ActionNotFound) { get :another_hidden_action }
   end
 end
 
