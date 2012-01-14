@@ -41,7 +41,7 @@ module ActionDispatch # :nodoc:
     alias_method :headers,  :header
 
     delegate :[], :[]=, :to => :@header
-    delegate :each, :to => :@body
+    delegate :each, :map, :to => :@body
 
     # Sets the HTTP response's content MIME type. For example, in the controller
     # you could write this:
@@ -56,7 +56,7 @@ module ActionDispatch # :nodoc:
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
     LOCATION     = "Location".freeze
- 
+
     cattr_accessor(:default_charset) { "utf-8" }
 
     include Rack::Response::Helpers
@@ -111,9 +111,7 @@ module ActionDispatch # :nodoc:
     end
 
     def body
-      strings = []
-      each { |part| strings << part.to_s }
-      strings.join
+      map(&:to_s).join
     end
 
     EMPTY = " "
