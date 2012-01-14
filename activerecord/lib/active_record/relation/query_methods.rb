@@ -52,7 +52,7 @@ module ActiveRecord
       return self if args.blank?
 
       relation = clone
-      relation.references_values = (references_values + args).flatten.uniq
+      relation.references_values = (references_values + args.flatten.map(&:to_s)).uniq
       relation
     end
 

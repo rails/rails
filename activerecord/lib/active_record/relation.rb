@@ -522,7 +522,7 @@ module ActiveRecord
       joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
 
       (tables_in_string(to_sql) - joined_tables).any? ||
-      (includes_values & references_values).any?
+      (references_values - joined_tables).any?
     end
 
     def tables_in_string(string)

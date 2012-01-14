@@ -1178,15 +1178,15 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_automatically_added_references
     scope = Post.where(:comments => { :body => "Bla" })
-    assert_equal [:comments], scope.references_values
+    assert_equal ['comments'], scope.references_values
 
     scope = Post.where('comments.body' => 'Bla')
-    assert_equal [:comments], scope.references_values
+    assert_equal ['comments'], scope.references_values
 
     scope = Post.having(:comments => { :body => "Bla" })
-    assert_equal [:comments], scope.references_values
+    assert_equal ['comments'], scope.references_values
 
     scope = Post.having('comments.body' => 'Bla')
-    assert_equal [:comments], scope.references_values
+    assert_equal ['comments'], scope.references_values
   end
 end

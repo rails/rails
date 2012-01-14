@@ -140,13 +140,13 @@ module ActiveRecord
       relation = Relation.new :a, :b
       assert_equal [], relation.references_values
       relation = relation.references(:foo).references(:omg, :lol)
-      assert_equal [:foo, :omg, :lol], relation.references_values
+      assert_equal ['foo', 'omg', 'lol'], relation.references_values
     end
 
     def test_references_values_dont_duplicate
       relation = Relation.new :a, :b
       relation = relation.references(:foo).references(:foo)
-      assert_equal [:foo], relation.references_values
+      assert_equal ['foo'], relation.references_values
     end
   end
 end
