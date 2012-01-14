@@ -28,10 +28,6 @@ module ActionController
       end
     end
 
-    # For old tests
-    def initialize_template_class(*) end
-    def assign_shortcuts(*) end
-
     def _normalize_options(options)
       options[:text] = nil if options.delete(:nothing) == true
       options[:text] = " " if options.key?(:text) && options[:text].nil?
