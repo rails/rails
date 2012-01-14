@@ -52,7 +52,7 @@ module ActiveRecord
       return self if args.blank?
 
       relation = clone
-      relation.references_values = (references_values + args).uniq
+      relation.references_values = (references_values + args).flatten.uniq
       relation
     end
 
@@ -151,6 +151,7 @@ module ActiveRecord
       return self if opts.blank?
 
       relation = clone
+      relation = relation.references(PredicateBuilder.references(opts)) if Hash === opts
       relation.where_values += build_where(opts, rest)
       relation
     end
@@ -159,6 +160,7 @@ module ActiveRecord
       return self if opts.blank?
 
       relation = clone
+      relation = relation.references(PredicateBuilder.references(opts)) if Hash === opts
       relation.having_values += build_where(opts, rest)
       relation
     end

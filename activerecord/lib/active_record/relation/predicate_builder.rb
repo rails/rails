@@ -21,6 +21,18 @@ module ActiveRecord
       predicates.flatten
     end
 
+    def self.references(attributes)
+      references = attributes.map do |key, value|
+        if value.is_a?(Hash)
+          key
+        else
+          key = key.to_s
+          key.split('.').first.to_sym if key.include?('.')
+        end
+      end
+      references.compact
+    end
+
     private
       def self.build(attribute, value)
         case value
