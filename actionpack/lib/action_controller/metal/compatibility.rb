@@ -2,9 +2,6 @@ module ActionController
   module Compatibility
     extend ActiveSupport::Concern
 
-    class ::ActionController::ActionControllerError < StandardError #:nodoc:
-    end
-
     # Temporary hax
     included do
       ::ActionController::UnknownAction = ::AbstractController::ActionNotFound
