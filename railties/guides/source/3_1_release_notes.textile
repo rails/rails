@@ -46,11 +46,18 @@ gem 'jquery-rails'
 
 h5. config/application.rb
 
-The asset pipeline requires the following additions:
+* The asset pipeline requires the following additions:
 
 <ruby>
 config.assets.enabled = true
 config.assets.version = '1.0'
+</ruby>
+
+* If your application is using the "/assets" route for a resource you may want change the prefix used for assets to avoid conflicts:
+
+<ruby>
+# Defaults to '/assets'
+config.assets.prefix = '/asset-files'
 </ruby>
 
 h5. config/environments/development.rb
