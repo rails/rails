@@ -8,6 +8,11 @@ module ApplicationTests
     def setup
       @set = ActionDispatch::Routing::RouteSet.new
       @inspector = Rails::Application::RouteInspector.new
+      app = ActiveSupport::OrderedOptions.new
+      app.config = ActiveSupport::OrderedOptions.new
+      app.config.assets = ActiveSupport::OrderedOptions.new
+      app.config.assets.prefix = '/sprockets'
+      Rails.stubs(:application).returns(app)
     end
 
     def test_displaying_routes_for_engines
@@ -143,6 +148,15 @@ module ApplicationTests
 
       output = @inspector.format @set.routes
       assert_equal ["  /foo #{RackApp.name} {:constraint=>( my custom constraint )}"], output
+    end
+
+    def test_rake_routes_dont_show_app_mounted_in_assets_prefix
+      @set.draw do
+        match '/sprockets' => RackApp
+      end
+      output = @inspector.format @set.routes
+      assert_no_match(/RackApp/, output.first)
+      assert_no_match(/\/sprockets/, output.first)
     end
   end
 end
