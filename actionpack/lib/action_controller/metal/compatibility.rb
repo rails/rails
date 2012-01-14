@@ -16,10 +16,6 @@ module ActionController
         :@_status, :@_headers, :@_params, :@_env, :@_response, :@_request,
         :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout
       ]
-
-      def rescue_action(env)
-        raise env["action_dispatch.rescue.exception"]
-      end
     end
 
     def _normalize_options(options)

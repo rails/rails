@@ -28,8 +28,6 @@ class CaptureController < ActionController::Base
   def proper_block_detection
     @todo = "some todo"
   end
-
-  def rescue_action(e) raise end
 end
 
 class CaptureTest < ActionController::TestCase

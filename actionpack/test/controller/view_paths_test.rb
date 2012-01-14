@@ -3,7 +3,6 @@ require 'abstract_unit'
 class ViewLoadPathsTest < ActionController::TestCase
   class TestController < ActionController::Base
     def self.controller_path() "test" end
-    def rescue_action(e) raise end
 
     before_filter :add_view_path, :only => :hello_world_at_request_time
 

@@ -48,8 +48,6 @@ class OldContentTypeController < ActionController::Base
       format.rss  { render :text   => "hello world!", :content_type => Mime::XML }
     end
   end
-
-  def rescue_action(e) raise end
 end
 
 class ContentTypeTest < ActionController::TestCase

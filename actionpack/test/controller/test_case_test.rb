@@ -124,9 +124,6 @@ XML
     end
 
     private
-      def rescue_action(e)
-        raise e
-      end
 
       def generate_url(opts)
         url_for(opts.merge(:action => "test_uri"))

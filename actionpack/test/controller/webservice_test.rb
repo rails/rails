@@ -18,8 +18,6 @@ class WebServiceTest < ActionDispatch::IntegrationTest
         s << "#{k}#{value}"
       end
     end
-
-    def rescue_action(e) raise end
   end
 
   def setup

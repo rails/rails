@@ -6,7 +6,6 @@ require 'active_support/core_ext/object/with_options'
 class MilestonesController < ActionController::Base
   def index() head :ok end
   alias_method :show, :index
-  def rescue_action(e) raise e end
 end
 
 ROUTING = ActionDispatch::Routing

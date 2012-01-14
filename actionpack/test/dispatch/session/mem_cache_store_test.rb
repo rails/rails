@@ -31,8 +31,6 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
       session[:bar] = "baz"
       head :ok
     end
-
-    def rescue_action(e) raise end
   end
 
   begin

@@ -649,10 +649,6 @@ class TestController < ActionController::Base
     render :action => "calling_partial_with_layout", :layout => "layouts/partial_with_layout"
   end
 
-  def rescue_action(e)
-    raise
-  end
-
   before_filter :only => :render_with_filters do
     request.format = :xml
   end

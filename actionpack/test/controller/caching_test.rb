@@ -793,10 +793,6 @@ class FunctionalCachingController < CachingController
       format.xml
     end
   end
-
-  def rescue_action(e)
-    raise e
-  end
 end
 
 class FunctionalFragmentCachingTest < ActionController::TestCase
