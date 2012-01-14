@@ -182,13 +182,7 @@ module ActionController
     end
 
     def response_body=(val)
-      body = if val.is_a?(String)
-        [val]
-      elsif val.nil? || val.respond_to?(:each)
-        val
-      else
-        [val]
-      end
+      body = (val.nil? || val.respond_to?(:each)) ? val : [val]
       super body
     end
 
