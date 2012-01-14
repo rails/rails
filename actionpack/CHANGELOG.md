@@ -1,3 +1,20 @@
+## Rails 4.0.0 (unreleased) ##
+*   Deprecated ActionController::Integration in favour of ActionDispatch::Integration
+
+*   Deprecated ActionController::IntegrationTest in favour of ActionDispatch::IntegrationTest
+
+*   Deprecated ActionController::PerformanceTest in favour of ActionDispatch::PerformanceTest
+
+*   Deprecated ActionController::AbstractRequest in favour of ActionDispatch::Request
+
+*   Deprecated ActionController::Request in favour of ActionDispatch::Request
+
+*   Deprecated ActionController::AbstractResponse in favour of ActionDispatch::Response
+
+*   Deprecated ActionController::Response in favour of ActionDispatch::Response
+
+*   Deprecated ActionController::Routing in favour of ActionDispatch::Routing
+
 *   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form.
     This is a behavior change, previously the hidden tag had a value of the disabled checkbox.
     *Tadas Tamosauskas*
