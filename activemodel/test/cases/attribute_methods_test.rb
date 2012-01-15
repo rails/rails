@@ -76,13 +76,13 @@ private
   end
 end
 
-class ModelWithouAttributesMethod
+class ModelWithoutAttributesMethod
   include ActiveModel::AttributeMethods
 end
 
 class AttributeMethodsTest < ActiveModel::TestCase
   test 'method missing works correctly even if attributes method is not defined' do
-    assert_raises(NoMethodError) { ModelWithouAttributesMethod.new.foo }
+    assert_raises(NoMethodError) { ModelWithoutAttributesMethod.new.foo }
   end
 
   test 'unrelated classes should not share attribute method matchers' do
