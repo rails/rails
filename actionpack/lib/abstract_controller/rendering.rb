@@ -165,6 +165,9 @@ module AbstractController
         options[:prefixes] ||= _prefixes
       end
 
+      options[:text] = nil if options.delete(:nothing) == true
+      options[:text] = " " if options.key?(:text) && options[:text].nil?
+
       options[:template] ||= (options[:action] || action_name).to_s
       options
     end

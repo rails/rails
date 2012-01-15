@@ -14,12 +14,6 @@ module ActionController
       ]
     end
 
-    def _normalize_options(options)
-      options[:text] = nil if options.delete(:nothing) == true
-      options[:text] = " " if options.key?(:text) && options[:text].nil?
-      super
-    end
-
     def render_to_body(options)
       super || " "
     end
@@ -30,10 +24,6 @@ module ActionController
 
     def method_for_action(action_name)
       super || (respond_to?(:method_missing) && "_handle_method_missing")
-    end
-
-    def performed?
-      response_body
     end
   end
 end
