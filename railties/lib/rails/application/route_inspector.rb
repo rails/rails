@@ -42,7 +42,7 @@ module Rails
         end
 
         # Skip the route if it's internal info route
-        routes.reject { |r| r[:path] =~ %r{/rails/info/properties|^/assets} }
+        routes.reject { |r| r[:path] =~ %r{/rails/info/properties|^#{Rails.application.config.assets.prefix}} }
       end
 
       def collect_engine_routes(name, rack_app)
