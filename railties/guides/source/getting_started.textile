@@ -450,11 +450,11 @@ start a web server on your development machine. You can do this by running:
 $ rails server
 </shell>
 
-TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and 
-the absence of a runtime will give you an +execjs+ error. Usually Mac OS X 
+TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and
+the absence of a runtime will give you an +execjs+ error. Usually Mac OS X
 and Windows come with a JavaScript runtime installed. +therubyracer+ gem is
 added commented to Gemfile for new apps and you can uncomment if you need it.
-+therubyrhino+ is the recommended runtime for JRuby users and is added by default 
++therubyrhino+ is the recommended runtime for JRuby users and is added by default
 to Gemfile in apps generated under JRuby. You can investigate about all the
 supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
 
@@ -1698,10 +1698,10 @@ class Post < ActiveRecord::Base
 end
 </ruby>
 
-The +:allow_destroy+ option on the nested attribute declaration tells Rails to
-display a "remove" checkbox on the view that you'll build shortly. The
-+:reject_if+ option prevents saving new tags that do not have any attributes
-filled in.
+The +:allow_destroy+ option tells Rails to enable destroying tags through the
+nested attributes (you'll handle that by displaying a "remove" checkbox on the
+view that you'll build shortly). The +:reject_if+ option prevents saving new
+tags that do not have any attributes filled in.
 
 We will modify +views/posts/_form.html.erb+ to render a partial to make a tag:
 
