@@ -4,10 +4,6 @@ module ActionController
 
     # Temporary hax
     included do
-      # ROUTES TODO: This should be handled by a middleware and route generation
-      # should be able to handle SCRIPT_NAME
-      self.config.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
-
       class << self
         delegate :default_charset=, :to => "ActionDispatch::Response"
       end
