@@ -114,11 +114,8 @@ module Rails
     # Returns an array of file paths appended with a hash of directories-extensions
     # suitable for ActiveSupport::FileUpdateChecker API.
     def watchable_args
-      files = []
-      files.concat config.watchable_files
+      files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
-      dirs = {}
-      dirs.merge! config.watchable_dirs
       ActiveSupport::Dependencies.autoload_paths.each do |path|
         dirs[path.to_s] = [:rb]
       end
@@ -293,15 +290,7 @@ module Rails
     end
 
     def build_original_fullpath(env)
-      path_info    = env["PATH_INFO"]
-      query_string = env["QUERY_STRING"]
-      script_name  = env["SCRIPT_NAME"]
-
-      if query_string.present?
-        "#{script_name}#{path_info}?#{query_string}"
-      else
-        "#{script_name}#{path_info}"
-      end
+      ["#{env["SCRIPT_NAME"]}#{env["PATH_INFO"]}", env["QUERY_STRING"]].reject(&:blank?).join("?")
     end
   end
 end
