@@ -63,7 +63,7 @@ class LoadingTest < ActiveSupport::TestCase
     assert ::AppTemplate::Application.config.loaded
   end
 
-  test "descendants are cleaned on each request without cache classes" do
+  test "descendants loaded after framework initialization are cleaned on each request without cache classes" do
     add_to_config <<-RUBY
       config.cache_classes = false
       config.reload_classes_only_on_change = false
@@ -87,11 +87,11 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    assert_equal [], ActiveRecord::Base.descendants
+    assert_equal [ActiveRecord::SchemaMigration], ActiveRecord::Base.descendants
     get "/load"
-    assert_equal [Post], ActiveRecord::Base.descendants
+    assert_equal [ActiveRecord::SchemaMigration, Post], ActiveRecord::Base.descendants
     get "/unload"
-    assert_equal [], ActiveRecord::Base.descendants
+    assert_equal [ActiveRecord::SchemaMigration], ActiveRecord::Base.descendants
   end
 
   test "initialize_cant_be_called_twice" do
