@@ -18,7 +18,7 @@ module Rails
           # if user provided "name:index" instead of "name:string:index"
           # type should be set blank so GeneratedAttribute's constructor
           # could set it to :string
-          has_index, type = type, nil if UNIQ_INDEX_OPTIONS.include?(type)
+          has_index, type = type, nil if INDEX_OPTIONS.include?(type)
 
           type, attr_options = *parse_type_and_options(type)
           new(name, type, has_index, attr_options)
