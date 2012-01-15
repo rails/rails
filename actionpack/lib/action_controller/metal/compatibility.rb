@@ -21,7 +21,6 @@ module ActionController
     end
 
     def render_to_body(options)
-      options[:template].sub!(/^\//, '') if options.key?(:template)
       super || " "
     end
 
