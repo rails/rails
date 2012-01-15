@@ -1017,7 +1017,7 @@ by its id value. After finding the record, Rails displays it by using
 +app/views/posts/show.html.erb+:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1284,7 +1284,7 @@ So first, we'll wire up the Post show template
 (+/app/views/posts/show.html.erb+) to let us make a new comment:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1350,7 +1350,7 @@ template. This is where we want the comment to show, so let's add that to the
 +app/views/posts/show.html.erb+.
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1432,7 +1432,7 @@ Then you can change +app/views/posts/show.html.erb+ to look like the
 following:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1503,7 +1503,7 @@ create a file +app/views/comments/_form.html.erb+ containing:
 Then you make the +app/views/posts/show.html.erb+ look like the following:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1774,7 +1774,7 @@ Finally, we will edit the <tt>app/views/posts/show.html.erb</tt> template to
 show our tags.
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1834,7 +1834,7 @@ Now you can edit the view in <tt>app/views/posts/show.html.erb</tt> to look like
 this:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
