@@ -44,6 +44,10 @@ module ActionController
         options[:text] = options[:text].to_text
       end
 
+      if options.delete(:nothing) || (options.key?(:text) && options[:text].nil?)
+        options[:text] = " "
+      end
+
       if options[:status]
         options[:status] = Rack::Utils.status_code(options[:status])
       end
