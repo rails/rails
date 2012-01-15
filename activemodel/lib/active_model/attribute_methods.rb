@@ -434,7 +434,7 @@ module ActiveModel
 
     protected
       def attribute_method?(attr_name)
-        attributes.include?(attr_name)
+        respond_to_without_attributes?(:attributes) && attributes.include?(attr_name)
       end
 
     private
