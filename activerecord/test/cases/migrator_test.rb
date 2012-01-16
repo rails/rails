@@ -274,7 +274,7 @@ module ActiveRecord
 
     def sensors(count)
       calls = []
-      migrations = 3.times.map { |i|
+      migrations = count.times.map { |i|
         m(nil, i) { |c,migration|
           calls << [c, migration.version]
         }
