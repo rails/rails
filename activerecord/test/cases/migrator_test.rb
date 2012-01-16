@@ -2,12 +2,14 @@ require "cases/helper"
 
 module ActiveRecord
   class MigratorTest < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+
     # Use this class to sense if migrations have gone
     # up or down.
     class Sensor < ActiveRecord::Migration
       attr_reader :went_up, :went_down
 
-      def initialize name, version
+      def initialize name = self.class.name, version = nil
         super
         @went_up  = false
         @went_down = false
@@ -128,6 +130,29 @@ module ActiveRecord
       assert pass_three[0].went_down
       refute pass_three[1].went_down
       assert pass_three[2].went_down
+    end
+
+    def test_up_calls_up
+      migrations = [Sensor.new(nil, 0), Sensor.new(nil, 1), Sensor.new(nil, 2)]
+      ActiveRecord::Migrator.new(:up, migrations).migrate
+      assert migrations.all? { |m| m.went_up }
+      assert migrations.all? { |m| !m.went_down }
+      assert_equal 2, ActiveRecord::Migrator.current_version
+    end
+
+    def test_down_calls_down
+      test_up_calls_up
+
+      migrations = [Sensor.new(nil, 0), Sensor.new(nil, 1), Sensor.new(nil, 2)]
+      ActiveRecord::Migrator.new(:down, migrations).migrate
+      assert migrations.all? { |m| !m.went_up }
+      assert migrations.all? { |m| m.went_down }
+      assert_equal 0, ActiveRecord::Migrator.current_version
+    end
+
+    def test_current_version
+      ActiveRecord::SchemaMigration.create!(:version => '1000')
+      assert_equal 1000, ActiveRecord::Migrator.current_version
     end
   end
 end
