@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
     module Tags
-      class LabelTag < BaseTag
+      class Label < Base #:nodoc:
         def initialize(object_name, method_name, template_object, content_or_options = nil, options = nil)
           content_is_options = content_or_options.is_a?(Hash)
           if content_is_options

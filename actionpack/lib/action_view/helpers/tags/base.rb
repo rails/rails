@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
     module Tags
-      class BaseTag
+      class Base #:nodoc:
         include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
 
         DEFAULT_FIELD_OPTIONS = { "size" => 30 }

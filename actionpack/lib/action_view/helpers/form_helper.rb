@@ -655,7 +655,7 @@ module ActionView
       #     'Accept <a href="/terms">Terms</a>.'.html_safe
       #   end
       def label(object_name, method, content_or_options = nil, options = nil, &block)
-        ActionView::Helpers::Tags::LabelTag.new(object_name, method, self, content_or_options, options).render(&block)
+        ActionView::Helpers::Tags::Label.new(object_name, method, self, content_or_options, options).render(&block)
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -677,7 +677,7 @@ module ActionView
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
       #
       def text_field(object_name, method, options = {})
-        ActionView::Helpers::Tags::TextFieldTag.new(object_name, method, self, options).render
+        ActionView::Helpers::Tags::TextField.new(object_name, method, self, options).render
       end
 
       # Returns an input tag of the "password" type tailored for accessing a specified attribute (identified by +method+) on an object

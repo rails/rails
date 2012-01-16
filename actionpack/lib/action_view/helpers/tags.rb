@@ -1,9 +1,9 @@
 module ActionView
   module Helpers
     module Tags
-      autoload :BaseTag,      'action_view/helpers/tags/base_tag'
-      autoload :LabelTag,     'action_view/helpers/tags/label_tag'
-      autoload :TextFieldTag, 'action_view/helpers/tags/text_field_tag'
+      autoload :Base,      'action_view/helpers/tags/base'
+      autoload :Label,     'action_view/helpers/tags/label'
+      autoload :TextField, 'action_view/helpers/tags/text_field'
     end
   end
 end
