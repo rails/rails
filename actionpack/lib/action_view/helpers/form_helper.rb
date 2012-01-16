@@ -828,7 +828,7 @@ module ActionView
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
       #
       def check_box(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_check_box_tag(options, checked_value, unchecked_value)
+        ActionView::Helpers::Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options).render
       end
 
       # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
@@ -1009,28 +1009,6 @@ module ActionView
         tag("input", options)
       end
 
-      def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
-        options = options.stringify_keys
-        options["type"]     = "checkbox"
-        options["value"]    = checked_value
-        if options.has_key?("checked")
-          cv = options.delete "checked"
-          checked = cv == true || cv == "checked"
-        else
-          checked = self.class.check_box_checked?(value(object), checked_value)
-        end
-        options["checked"] = "checked" if checked
-        if options["multiple"]
-          add_default_name_and_id_for_value(checked_value, options)
-          options.delete("multiple")
-        else
-          add_default_name_and_id(options)
-        end
-        hidden = unchecked_value ? tag("input", "name" => options["name"], "type" => "hidden", "value" => unchecked_value, "disabled" => options["disabled"]) : ""
-        checkbox = tag("input", options)
-        hidden + checkbox
-      end
-
       def to_boolean_select_tag(options = {})
         options = options.stringify_keys
         add_default_name_and_id(options)
@@ -1086,23 +1064,6 @@ module ActionView
             object.respond_to?(method_name + "_before_type_cast") ?
             object.send(method_name + "_before_type_cast") :
             object.send(method_name)
-          end
-        end
-
-        def check_box_checked?(value, checked_value)
-          case value
-          when TrueClass, FalseClass
-            value
-          when NilClass
-            false
-          when Integer
-            value != 0
-          when String
-            value == checked_value
-          when Array
-            value.include?(checked_value)
-          else
-            value.to_i != 0
           end
         end
 
