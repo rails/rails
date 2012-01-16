@@ -318,6 +318,16 @@ module ActiveRecord
       assert_equal(3, ActiveRecord::Migrator.current_version)
     end
 
+    def test_only_loads_pending_migrations
+      # migrate up to 1
+      ActiveRecord::SchemaMigration.create!(:version => '1')
+
+      calls, migrator = migrator_class(3)
+      migrator.migrate("valid", nil)
+
+      assert_equal [[:up, 2], [:up, 3]], calls
+    end
+
     private
     def m(name, version, &block)
       x = Sensor.new name, version

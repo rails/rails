@@ -233,18 +233,6 @@ class MigrationTest < ActiveRecord::TestCase
     refute Person.column_methods_hash.include?(:last_name)
   end
 
-  def test_only_loads_pending_migrations
-    # migrate up to 1
-    ActiveRecord::SchemaMigration.create!(:version => '1')
-
-    proxies = ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", nil)
-
-    names = proxies.map(&:name)
-    assert !names.include?('ValidPeopleHaveLastNames')
-    assert names.include?('WeNeedReminders')
-    assert names.include?('InnocentJointable')
-  end
-
   def test_get_all_versions
     ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
     assert_equal([1,2,3], ActiveRecord::Migrator.get_all_versions)
