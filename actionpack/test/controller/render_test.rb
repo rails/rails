@@ -54,7 +54,7 @@ class TestController < ActionController::Base
 
   def conditional_hello_with_record
     record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
-    
+
     if stale?(record)
       render :action => 'hello_world'
     end
