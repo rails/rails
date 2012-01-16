@@ -10,8 +10,10 @@
     flawed idea unless we write an SQL parser, which we do not wish to
     do.
 
-    Therefore, you must explicitly state which tables you reference,
-    when using SQL snippets:
+    Therefore, it is now deprecated.
+
+    To avoid deprecation warnings and for future compatibility, you must
+    explicitly state which tables you reference, when using SQL snippets:
 
         Post.includes(:comments)
             .where("comments.name = 'foo'")
