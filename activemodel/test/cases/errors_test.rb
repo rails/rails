@@ -31,7 +31,7 @@ class ErrorsTest < ActiveModel::TestCase
     errors = ActiveModel::Errors.new(self)
     errors[:foo] = 'omg'
     errors.delete(:foo)
-    assert_empty errors[:foo]
+    assert errors[:foo].empty?
   end
 
   def test_include?
