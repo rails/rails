@@ -452,8 +452,8 @@ $ rails server
 
 TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and
 the absence of a runtime will give you an +execjs+ error. Usually Mac OS X
-and Windows come with a JavaScript runtime installed. +therubyracer+ gem is
-added commented to Gemfile for new apps and you can uncomment if you need it.
+and Windows come with a JavaScript runtime installed. Rails adds the +therubyracer+ gem
+to Gemfile in a commented line for new apps and you can uncomment if you need it.
 +therubyrhino+ is the recommended runtime for JRuby users and is added by default
 to Gemfile in apps generated under JRuby. You can investigate about all the
 supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
