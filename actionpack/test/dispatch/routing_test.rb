@@ -524,6 +524,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         "GET"
       end
 
+      def ip
+        "127.0.0.1"
+      end
+
       def x_header
         @env["HTTP_X_HEADER"] || ""
       end
