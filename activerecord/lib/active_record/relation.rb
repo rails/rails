@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'active_support/core_ext/object/blank'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Relation
@@ -520,9 +521,30 @@ module ActiveRecord
 
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
+      string_tables = tables_in_string(to_sql)
 
-      (tables_in_string(to_sql) - joined_tables).any? ||
-      (references_values - joined_tables).any?
+      if (references_values - joined_tables).any?
+        true
+      elsif (string_tables - joined_tables).any?
+        ActiveSupport::Deprecation.warn(
+          "It looks like you are eager loading table(s) (one of: #{string_tables.join(', ')}) " \
+          "that are referenced in a string SQL snippet. For example: \n" \
+          "\n" \
+          "    Post.includes(:comments).where(\"comments.title = 'foo'\")\n" \
+          "\n" \
+          "Currently, Active Record recognises the table in the string, and knows to JOIN the " \
+          "comments table to the query, rather than loading comments in a separate query. " \
+          "However, doing this without writing a full-blown SQL parser is inherently flawed. " \
+          "Since we don't want to write an SQL parser, we are removing this functionality. " \
+          "From now on, you must explicitly tell Active Record when you are referencing a table " \
+          "from a string:\n" \
+          "\n" \
+          "    Post.includes(:comments).where(\"comments.title = 'foo'\").references(:comments)\n\n"
+        )
+        true
+      else
+        false
+      end
     end
 
     def tables_in_string(string)

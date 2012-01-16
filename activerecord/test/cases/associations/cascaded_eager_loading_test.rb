@@ -61,7 +61,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_cascaded_eager_association_loading_with_duplicated_includes
-    categories = Category.includes(:categorizations).includes(:categorizations => :author).where("categorizations.id is not null")
+    categories = Category.includes(:categorizations).includes(:categorizations => :author).where("categorizations.id is not null").references(:categorizations)
     assert_nothing_raised do
       assert_equal 3, categories.count
       assert_equal 3, categories.all.size
@@ -69,7 +69,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_cascaded_eager_association_loading_with_twice_includes_edge_cases
-    categories = Category.includes(:categorizations => :author).includes(:categorizations => :post).where("posts.id is not null")
+    categories = Category.includes(:categorizations => :author).includes(:categorizations => :post).where("posts.id is not null").references(:posts)
     assert_nothing_raised do
       assert_equal 3, categories.count
       assert_equal 3, categories.all.size
@@ -127,7 +127,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     silly.parent_id = 1
     assert silly.save
 
-    topics = Topic.find(:all, :include => :replies, :order => 'topics.id, replies_topics.id')
+    topics = Topic.find(:all, :include => :replies, :order => ['topics.id', 'replies_topics.id'])
     assert_no_queries do
       assert_equal 2, topics[0].replies.size
       assert_equal 0, topics[1].replies.size

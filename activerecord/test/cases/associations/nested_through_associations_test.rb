@@ -505,7 +505,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_nested_has_many_through_with_conditions_on_through_associations_preload_via_joins
     # Pointless condition to force single-query loading
     assert_includes_and_joins_equal(
-      Author.where('tags.id = tags.id'),
+      Author.where('tags.id = tags.id').references(:tags),
       [authors(:bob)], :misc_post_first_blue_tags
     )
   end
@@ -526,7 +526,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_nested_has_many_through_with_conditions_on_source_associations_preload_via_joins
     # Pointless condition to force single-query loading
     assert_includes_and_joins_equal(
-      Author.where('tags.id = tags.id'),
+      Author.where('tags.id = tags.id').references(:tags),
       [authors(:bob)], :misc_post_first_blue_tags_2
     )
   end

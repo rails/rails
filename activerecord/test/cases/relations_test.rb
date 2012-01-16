@@ -184,12 +184,12 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_complex_order_and_limit
-    tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
+    tags = Tag.includes(:taggings).references(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order
-    tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
+    tags = Tag.includes(:taggings).references(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
     assert_equal 3, tags.length
   end
 
@@ -1104,7 +1104,9 @@ class RelationTest < ActiveRecord::TestCase
       )
     )
 
-    assert scope.eager_loading?
+    assert_deprecated do
+      assert scope.eager_loading?
+    end
   end
 
   def test_ordering_with_extra_spaces

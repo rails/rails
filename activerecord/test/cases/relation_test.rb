@@ -148,5 +148,11 @@ module ActiveRecord
       relation = relation.references(:foo).references(:foo)
       assert_equal ['foo'], relation.references_values
     end
+
+    def test_apply_finder_options_takes_references
+      relation = Relation.new :a, :b
+      relation = relation.apply_finder_options(:references => :foo)
+      assert_equal ['foo'], relation.references_values
+    end
   end
 end

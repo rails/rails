@@ -1,5 +1,35 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   In previous releases, the following would generate a single query with
+    an `OUTER JOIN comments`, rather than two separate queries:
+
+        Post.includes(:comments)
+            .where("comments.name = 'foo'")
+
+    This behaviour relies on matching SQL string, which is an inherently
+    flawed idea unless we write an SQL parser, which we do not wish to
+    do.
+
+    Therefore, you must explicitly state which tables you reference,
+    when using SQL snippets:
+
+        Post.includes(:comments)
+            .where("comments.name = 'foo'")
+            .references(:comments)
+
+    Note that you do not need to explicitly specify references in the
+    following cases, as they can be automatically inferred:
+
+        Post.where(comments: { name: 'foo' })
+        Post.where('comments.name' => 'foo')
+        Post.order('comments.name')
+
+    You also do not need to worry about this unless you are doing eager
+    loading. Basically, don't worry unless you see a deprecation warning
+    or (in future releases) an SQL error due to a missing JOIN.
+
+    [Jon Leighton]
+
 *   Support for the `schema_info` table has been dropped.  Please
     switch to `schema_migrations`.
 

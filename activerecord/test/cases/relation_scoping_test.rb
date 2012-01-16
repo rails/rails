@@ -106,7 +106,7 @@ class RelationScopingTest < ActiveRecord::TestCase
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
     scoped_developers = Developer.includes(:projects).scoping do
-      Developer.where('projects.id = 2').all
+      Developer.where('projects.id' => 2).all
     end
     assert scoped_developers.include?(developers(:david))
     assert !scoped_developers.include?(developers(:jamis))
