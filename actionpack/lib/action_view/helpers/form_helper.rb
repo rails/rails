@@ -766,7 +766,7 @@ module ActionView
       #   #      #{@entry.body}
       #   #    </textarea>
       def text_area(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_text_area_tag(options)
+        ActionView::Helpers::Tags::TextArea.new(object_name, method, self, options).render
       end
 
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -960,7 +960,6 @@ module ActionView
 
       DEFAULT_FIELD_OPTIONS     = { "size" => 30 }
       DEFAULT_RADIO_OPTIONS     = { }
-      DEFAULT_TEXT_AREA_OPTIONS = { "cols" => 40, "rows" => 20 }
 
       def initialize(object_name, method_name, template_object, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
@@ -1008,17 +1007,6 @@ module ActionView
         options["checked"]  = "checked" if checked
         add_default_name_and_id_for_value(tag_value, options)
         tag("input", options)
-      end
-
-      def to_text_area_tag(options = {})
-        options = DEFAULT_TEXT_AREA_OPTIONS.merge(options.stringify_keys)
-        add_default_name_and_id(options)
-
-        if size = options.delete("size")
-          options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
-        end
-
-        content_tag("textarea", ERB::Util.html_escape(options.delete('value') || value_before_type_cast(object)), options)
       end
 
       def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")

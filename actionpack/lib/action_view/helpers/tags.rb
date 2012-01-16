@@ -7,6 +7,7 @@ module ActionView
       autoload :PasswordField, 'action_view/helpers/tags/password_field'
       autoload :HiddenField,   'action_view/helpers/tags/hidden_field'
       autoload :FileField,     'action_view/helpers/tags/file_field'
+      autoload :TextArea,      'action_view/helpers/tags/text_area'
     end
   end
 end
