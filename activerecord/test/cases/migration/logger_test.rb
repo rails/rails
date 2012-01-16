@@ -9,7 +9,7 @@ module ActiveRecord
         end
       end
 
-      def setup
+      def initialize(*args)
         super
         ActiveRecord::SchemaMigration.create_table
         ActiveRecord::SchemaMigration.delete_all
@@ -31,3 +31,4 @@ module ActiveRecord
     end
   end
 end
+
