@@ -91,16 +91,25 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :testings2 rescue nil
   end
 
-  def test_add_table
-    assert !Reminder.table_exists?
+  def connection
+    ActiveRecord::Base.connection
+  end
 
-    WeNeedReminders.up
+  def test_migration_instance_has_connection
+    migration = Class.new(ActiveRecord::Migration).new
+    assert_equal connection, migration.connection
+  end
 
-    assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
+  def test_method_missing_delegates_to_connection
+    migration = Class.new(ActiveRecord::Migration) {
+      def connection
+        Class.new {
+          def create_table; "hi mom!"; end
+        }.new
+      end
+    }.new
 
-    WeNeedReminders.down
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_equal "hi mom!", migration.method_missing(:create_table)
   end
 
   def test_add_table_with_decimals
