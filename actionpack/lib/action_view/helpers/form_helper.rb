@@ -699,7 +699,7 @@ module ActionView
       #   # => <input type="password" id="account_pin" name="account[pin]" size="20" class="form_input" />
       #
       def password_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("password", { :value => nil }.merge!(options))
+        ActionView::Helpers::Tags::PasswordField.new(object_name, method, self, options).render
       end
 
       # Returns a hidden input tag tailored for accessing a specified attribute (identified by +method+) on an object
