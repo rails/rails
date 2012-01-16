@@ -81,9 +81,9 @@ class MigrationTest < ActiveRecord::TestCase
     # using a copy as we need the drop_table method to
     # continue to work for the ensure block of the test
     temp_conn = Person.connection.dup
-    temp_conn.extend(Module.new {
-      def drop_table; raise "no"; end
-    })
+
+    assert_not_equal temp_conn, Person.connection
+
     temp_conn.create_table :testings2, :force => true do |t|
       t.column :foo, :string
     end
