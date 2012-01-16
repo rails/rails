@@ -173,26 +173,6 @@ class MigrationTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StatementInvalid) { BigNumber.find(:first) }
   end
 
-  def test_migrator
-    assert !Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid")
-
-    assert_equal 3, ActiveRecord::Migrator.current_version
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-    assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
-
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
-
-    assert_equal 0, ActiveRecord::Migrator.current_version
-    Person.reset_column_information
-    assert !Person.column_methods_hash.include?(:last_name)
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
-  end
-
   def test_filtering_migrations
     assert !Person.column_methods_hash.include?(:last_name)
     assert !Reminder.table_exists?
@@ -247,55 +227,6 @@ class MigrationTest < ActiveRecord::TestCase
     migration.migrate :down
     assert !migration.went_up, 'have gone up'
     assert migration.went_down, 'have not gone down'
-  end
-
-  def test_migrator_one_up
-    assert !Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 2)
-
-    assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
-  end
-
-  def test_migrator_one_down
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid")
-
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 1)
-
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-  end
-
-  def test_migrator_one_up_one_down
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-
-    assert !Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-  end
-
-  def test_migrator_double_up
-    assert_equal(0, ActiveRecord::Migrator.current_version)
-    ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1)
-    assert_nothing_raised { ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1) }
-    assert_equal(1, ActiveRecord::Migrator.current_version)
-  end
-
-  def test_migrator_double_down
-    assert_equal(0, ActiveRecord::Migrator.current_version)
-    ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1)
-    ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 1)
-    assert_nothing_raised { ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 1) }
-    assert_equal(0, ActiveRecord::Migrator.current_version)
   end
 
   def test_migrator_one_up_with_exception_and_rollback

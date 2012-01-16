@@ -154,5 +154,89 @@ module ActiveRecord
       ActiveRecord::SchemaMigration.create!(:version => '1000')
       assert_equal 1000, ActiveRecord::Migrator.current_version
     end
+
+    def test_migrator_one_up
+      calls, migrations = sensors(3)
+
+      ActiveRecord::Migrator.new(:up, migrations, 1).migrate
+      assert_equal [[:up, 0], [:up, 1]], calls
+      calls.clear
+
+      ActiveRecord::Migrator.new(:up, migrations, 2).migrate
+      assert_equal [[:up, 2]], calls
+    end
+
+    def test_migrator_one_down
+      calls, migrations = sensors(3)
+
+      ActiveRecord::Migrator.new(:up, migrations).migrate
+      assert_equal [[:up, 0], [:up, 1], [:up, 2]], calls
+      calls.clear
+
+      ActiveRecord::Migrator.new(:down, migrations, 1).migrate
+
+      assert_equal [[:down, 2]], calls
+    end
+
+    def test_migrator_one_up_one_down
+      calls, migrations = sensors(3)
+
+      ActiveRecord::Migrator.new(:up, migrations, 1).migrate
+      assert_equal [[:up, 0], [:up, 1]], calls
+      calls.clear
+
+      ActiveRecord::Migrator.new(:down, migrations, 0).migrate
+      assert_equal [[:down, 1]], calls
+    end
+
+    def test_migrator_double_up
+      calls, migrations = sensors(3)
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+
+      ActiveRecord::Migrator.new(:up, migrations, 1).migrate
+      assert_equal [[:up, 0], [:up, 1]], calls
+      calls.clear
+
+      ActiveRecord::Migrator.new(:up, migrations, 1).migrate
+      assert_equal [], calls
+    end
+
+    def test_migrator_double_down
+      calls, migrations = sensors(3)
+
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+
+      ActiveRecord::Migrator.new(:up, migrations, 1).run
+      assert_equal [[:up, 1]], calls
+      calls.clear
+
+      ActiveRecord::Migrator.new(:down, migrations, 1).run
+      assert_equal [[:down, 1]], calls
+      calls.clear
+
+      ActiveRecord::Migrator.new(:down, migrations, 1).run
+      assert_equal [], calls
+
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+    end
+
+    private
+    def m(name, version, &block)
+      x = Sensor.new name, version
+      x.extend(Module.new {
+        define_method(:up) { block.call(:up, x); super() }
+        define_method(:down) { block.call(:down, x); super() }
+      }) if block_given?
+    end
+
+    def sensors(count)
+      calls = []
+      migrations = 3.times.map { |i|
+        m(nil, i) { |c,migration|
+          calls << [c, migration.version]
+        }
+      }
+      [calls, migrations]
+    end
   end
 end
