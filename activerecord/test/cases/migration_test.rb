@@ -245,18 +245,6 @@ class MigrationTest < ActiveRecord::TestCase
     assert names.include?('InnocentJointable')
   end
 
-  def test_target_version_zero_should_run_only_once
-    # migrate up to 1
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 1)
-
-    # migrate down to 0
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
-
-    # migrate down to 0 again
-    proxies = ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
-    assert_equal [], proxies
-  end
-
   def test_migrator_db_has_no_schema_migrations_table
     # Oracle adapter raises error if semicolon is present as last character
     if current_adapter?(:OracleAdapter)

@@ -245,6 +245,24 @@ module ActiveRecord
       assert_equal 0, ActiveRecord::Migration.message_count
     end
 
+    def test_target_version_zero_should_run_only_once
+      calls, migrations = sensors(3)
+
+      # migrate up to 1
+      ActiveRecord::Migrator.new(:up, migrations, 1).migrate
+      assert_equal [[:up, 0], [:up, 1]], calls
+      calls.clear
+
+      # migrate down to 0
+      ActiveRecord::Migrator.new(:down, migrations, 0).migrate
+      assert_equal [[:down, 1]], calls
+      calls.clear
+
+      # migrate down to 0 again
+      ActiveRecord::Migrator.new(:down, migrations, 0).migrate
+      assert_equal [], calls
+    end
+
     private
     def m(name, version, &block)
       x = Sensor.new name, version
