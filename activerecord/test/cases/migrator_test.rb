@@ -328,6 +328,22 @@ module ActiveRecord
       assert_equal [[:up, 2], [:up, 3]], calls
     end
 
+    def test_get_all_versions
+      _, migrator = migrator_class(3)
+
+      migrator.migrate("valid")
+      assert_equal([1,2,3], ActiveRecord::Migrator.get_all_versions)
+
+      migrator.rollback("valid")
+      assert_equal([1,2], ActiveRecord::Migrator.get_all_versions)
+
+      migrator.rollback("valid")
+      assert_equal([1], ActiveRecord::Migrator.get_all_versions)
+
+      migrator.rollback("valid")
+      assert_equal([], ActiveRecord::Migrator.get_all_versions)
+    end
+
     private
     def m(name, version, &block)
       x = Sensor.new name, version
