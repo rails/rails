@@ -245,61 +245,6 @@ class MigrationTest < ActiveRecord::TestCase
     assert names.include?('InnocentJointable')
   end
 
-  def test_migrator_db_has_no_schema_migrations_table
-    # Oracle adapter raises error if semicolon is present as last character
-    if current_adapter?(:OracleAdapter)
-      ActiveRecord::Base.connection.execute("DROP TABLE schema_migrations")
-    else
-      ActiveRecord::Base.connection.execute("DROP TABLE schema_migrations;")
-    end
-    assert_nothing_raised do
-      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 1)
-    end
-  end
-
-  def test_migrator_going_down_due_to_version_target
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
-
-    assert !Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
-
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-    assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
-  end
-
-  def test_migrator_rollback
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
-    assert_equal(3, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal(2, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal(1, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal(0, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal(0, ActiveRecord::Migrator.current_version)
-  end
-
-  def test_migrator_forward
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 1)
-    assert_equal(1, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.forward(MIGRATIONS_ROOT + "/valid", 2)
-    assert_equal(3, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.forward(MIGRATIONS_ROOT + "/valid")
-    assert_equal(3, ActiveRecord::Migrator.current_version)
-  end
-
   def test_get_all_versions
     ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
     assert_equal([1,2,3], ActiveRecord::Migrator.get_all_versions)

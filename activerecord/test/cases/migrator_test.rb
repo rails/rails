@@ -160,34 +160,34 @@ module ActiveRecord
       calls, migrations = sensors(3)
 
       ActiveRecord::Migrator.new(:up, migrations, 1).migrate
-      assert_equal [[:up, 0], [:up, 1]], calls
+      assert_equal [[:up, 1], [:up, 2]], calls
       calls.clear
 
       ActiveRecord::Migrator.new(:up, migrations, 2).migrate
-      assert_equal [[:up, 2]], calls
+      assert_equal [[:up, 3]], calls
     end
 
     def test_migrator_one_down
       calls, migrations = sensors(3)
 
       ActiveRecord::Migrator.new(:up, migrations).migrate
-      assert_equal [[:up, 0], [:up, 1], [:up, 2]], calls
+      assert_equal [[:up, 1], [:up, 2], [:up, 3]], calls
       calls.clear
 
       ActiveRecord::Migrator.new(:down, migrations, 1).migrate
 
-      assert_equal [[:down, 2]], calls
+      assert_equal [[:down, 3]], calls
     end
 
     def test_migrator_one_up_one_down
       calls, migrations = sensors(3)
 
       ActiveRecord::Migrator.new(:up, migrations, 1).migrate
-      assert_equal [[:up, 0], [:up, 1]], calls
+      assert_equal [[:up, 1], [:up, 2]], calls
       calls.clear
 
       ActiveRecord::Migrator.new(:down, migrations, 0).migrate
-      assert_equal [[:down, 1]], calls
+      assert_equal [[:down, 2]], calls
     end
 
     def test_migrator_double_up
@@ -195,7 +195,7 @@ module ActiveRecord
       assert_equal(0, ActiveRecord::Migrator.current_version)
 
       ActiveRecord::Migrator.new(:up, migrations, 1).migrate
-      assert_equal [[:up, 0], [:up, 1]], calls
+      assert_equal [[:up, 1], [:up, 2]], calls
       calls.clear
 
       ActiveRecord::Migrator.new(:up, migrations, 1).migrate
@@ -208,11 +208,11 @@ module ActiveRecord
       assert_equal(0, ActiveRecord::Migrator.current_version)
 
       ActiveRecord::Migrator.new(:up, migrations, 1).run
-      assert_equal [[:up, 1]], calls
+      assert_equal [[:up, 2]], calls
       calls.clear
 
       ActiveRecord::Migrator.new(:down, migrations, 1).run
-      assert_equal [[:down, 1]], calls
+      assert_equal [[:down, 2]], calls
       calls.clear
 
       ActiveRecord::Migrator.new(:down, migrations, 1).run
@@ -250,17 +250,72 @@ module ActiveRecord
 
       # migrate up to 1
       ActiveRecord::Migrator.new(:up, migrations, 1).migrate
-      assert_equal [[:up, 0], [:up, 1]], calls
+      assert_equal [[:up, 1], [:up, 2]], calls
       calls.clear
 
       # migrate down to 0
       ActiveRecord::Migrator.new(:down, migrations, 0).migrate
-      assert_equal [[:down, 1]], calls
+      assert_equal [[:down, 2]], calls
       calls.clear
 
       # migrate down to 0 again
       ActiveRecord::Migrator.new(:down, migrations, 0).migrate
       assert_equal [], calls
+    end
+
+    def test_migrator_going_down_due_to_version_target
+      calls, migrator = migrator_class(3)
+
+      migrator.up("valid", 1)
+      assert_equal [[:up, 1], [:up, 2]], calls
+      calls.clear
+
+      migrator.migrate("valid", 0)
+      assert_equal [[:down, 2]], calls
+      calls.clear
+
+      migrator.migrate("valid")
+      assert_equal [[:up, 2], [:up, 3]], calls
+    end
+
+    def test_migrator_rollback
+      _, migrator = migrator_class(4)
+
+      migrator.migrate("valid")
+      assert_equal(3, ActiveRecord::Migrator.current_version)
+
+      migrator.rollback("valid")
+      assert_equal(2, ActiveRecord::Migrator.current_version)
+
+      migrator.rollback("valid")
+      assert_equal(1, ActiveRecord::Migrator.current_version)
+
+      migrator.rollback("valid")
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+
+      migrator.rollback("valid")
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+    end
+
+    def test_migrator_db_has_no_schema_migrations_table
+      _, migrator = migrator_class(3)
+
+      ActiveRecord::Base.connection.execute("DROP TABLE schema_migrations")
+      refute ActiveRecord::Base.connection.table_exists?('schema_migrations')
+      migrator.migrate("valid", 1)
+      assert ActiveRecord::Base.connection.table_exists?('schema_migrations')
+    end
+
+    def test_migrator_forward
+      _, migrator = migrator_class(3)
+      migrator.migrate("/valid", 1)
+      assert_equal(1, ActiveRecord::Migrator.current_version)
+
+      migrator.forward("/valid", 2)
+      assert_equal(3, ActiveRecord::Migrator.current_version)
+
+      migrator.forward("/valid")
+      assert_equal(3, ActiveRecord::Migrator.current_version)
     end
 
     private
@@ -276,10 +331,21 @@ module ActiveRecord
       calls = []
       migrations = count.times.map { |i|
         m(nil, i) { |c,migration|
-          calls << [c, migration.version]
+          calls << [c, migration.version + 1]
         }
       }
       [calls, migrations]
+    end
+
+    def migrator_class(count)
+      calls, migrations = sensors(count)
+
+      migrator = Class.new(Migrator).extend(Module.new {
+        define_method(:migrations) { |paths|
+          migrations
+        }
+      })
+      [calls, migrator]
     end
   end
 end
