@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class CookiesTest < Test::Unit::TestCase
+  class CookiesTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def new_app

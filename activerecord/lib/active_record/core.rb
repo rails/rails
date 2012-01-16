@@ -210,7 +210,7 @@ module ActiveRecord
 
       @attributes = cloned_attributes
 
-      _run_after_initialize_callbacks if respond_to?(:_run_after_initialize_callbacks)
+      run_callbacks(:initialize) if _initialize_callbacks.any?
 
       @changed_attributes = {}
       self.class.column_defaults.each do |attr, orig_value|
@@ -315,26 +315,6 @@ module ActiveRecord
                      "not initialized"
                    end
       "#<#{self.class} #{inspection}>"
-    end
-
-    # Hackery to accomodate Syck. Remove for 4.0.
-    def to_yaml(opts = {}) #:nodoc:
-      if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?
-        super
-      else
-        coder = {}
-        encode_with(coder)
-        YAML.quick_emit(self, opts) do |out|
-          out.map(taguri, to_yaml_style) do |map|
-            coder.each { |k, v| map.add(k, v) }
-          end
-        end
-      end
-    end
-
-    # Hackery to accomodate Syck. Remove for 4.0.
-    def yaml_initialize(tag, coder) #:nodoc:
-      init_with(coder)
     end
 
     private

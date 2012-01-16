@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class FrameworksTest < Test::Unit::TestCase
+  class FrameworksTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

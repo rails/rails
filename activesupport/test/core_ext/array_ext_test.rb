@@ -6,7 +6,7 @@ require 'active_support/core_ext/object/conversions'
 require 'active_support/core_ext' # FIXME: pulling in all to_xml extensions
 require 'active_support/hash_with_indifferent_access'
 
-class ArrayExtAccessTests < Test::Unit::TestCase
+class ArrayExtAccessTests < ActiveSupport::TestCase
   def test_from
     assert_equal %w( a b c d ), %w( a b c d ).from(0)
     assert_equal %w( c d ), %w( a b c d ).from(2)
@@ -30,7 +30,7 @@ class ArrayExtAccessTests < Test::Unit::TestCase
   end
 end
 
-class ArrayExtToParamTests < Test::Unit::TestCase
+class ArrayExtToParamTests < ActiveSupport::TestCase
   class ToParam < String
     def to_param
       "#{self}1"
@@ -52,7 +52,7 @@ class ArrayExtToParamTests < Test::Unit::TestCase
   end
 end
 
-class ArrayExtToSentenceTests < Test::Unit::TestCase
+class ArrayExtToSentenceTests < ActiveSupport::TestCase
   def test_plain_array_to_sentence
     assert_equal "", [].to_sentence
     assert_equal "one", ['one'].to_sentence
@@ -92,7 +92,7 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
   end
 end
 
-class ArrayExtToSTests < Test::Unit::TestCase
+class ArrayExtToSTests < ActiveSupport::TestCase
   def test_to_s_db
     collection = [
       Class.new { def id() 1 end }.new,
@@ -105,7 +105,7 @@ class ArrayExtToSTests < Test::Unit::TestCase
   end
 end
 
-class ArrayExtGroupingTests < Test::Unit::TestCase
+class ArrayExtGroupingTests < ActiveSupport::TestCase
   def test_in_groups_of_with_perfect_fit
     groups = []
     ('a'..'i').to_a.in_groups_of(3) do |group|
@@ -188,7 +188,7 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
   end
 end
 
-class ArraySplitTests < Test::Unit::TestCase
+class ArraySplitTests < ActiveSupport::TestCase
   def test_split_with_empty_array
     assert_equal [[]], [].split(0)
   end
@@ -209,7 +209,7 @@ class ArraySplitTests < Test::Unit::TestCase
   end
 end
 
-class ArrayToXmlTests < Test::Unit::TestCase
+class ArrayToXmlTests < ActiveSupport::TestCase
   def test_to_xml
     xml = [
       { :name => "David", :age => 26, :age_in_millis => 820497600000 },
@@ -299,7 +299,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
   end
 end
 
-class ArrayExtractOptionsTests < Test::Unit::TestCase
+class ArrayExtractOptionsTests < ActiveSupport::TestCase
   class HashSubclass < Hash
   end
 
@@ -341,7 +341,7 @@ class ArrayExtractOptionsTests < Test::Unit::TestCase
   end
 end
 
-class ArrayUniqByTests < Test::Unit::TestCase
+class ArrayUniqByTests < ActiveSupport::TestCase
   def test_uniq_by
     ActiveSupport::Deprecation.silence do
       assert_equal [1,2], [1,2,3,4].uniq_by { |i| i.odd? }
@@ -371,7 +371,7 @@ class ArrayUniqByTests < Test::Unit::TestCase
   end
 end
 
-class ArrayWrapperTests < Test::Unit::TestCase
+class ArrayWrapperTests < ActiveSupport::TestCase
   class FakeCollection
     def to_ary
       ["foo", "bar"]
@@ -446,7 +446,7 @@ class ArrayWrapperTests < Test::Unit::TestCase
   end
 end
 
-class ArrayPrependAppendTest < Test::Unit::TestCase
+class ArrayPrependAppendTest < ActiveSupport::TestCase
   def test_append
     assert_equal [1, 2], [1].append(2)
   end

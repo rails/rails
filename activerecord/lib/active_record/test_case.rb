@@ -9,6 +9,10 @@ module ActiveRecord
       cleanup_identity_map
     end
 
+    def teardown
+      ActiveRecord::SQLCounter.log.clear
+    end
+
     def cleanup_identity_map
       ActiveRecord::IdentityMap.clear
     end
@@ -48,6 +52,10 @@ module ActiveRecord
       assert_queries(0, &block)
     ensure
       ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
+    end
+
+    def sqlite3? connection
+      connection.class.name.split('::').last == "SQLite3Adapter"
     end
   end
 end

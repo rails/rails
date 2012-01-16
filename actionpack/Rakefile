@@ -16,7 +16,7 @@ Rake::TestTask.new(:test_action_pack) do |t|
 
   # make sure we include the tests in alphabetical order as on some systems
   # this will not happen automatically and the tests (as a whole) will error
-  t.test_files = Dir.glob('test/{abstract,controller,dispatch,template}/**/*_test.rb').sort
+  t.test_files = Dir.glob('test/{abstract,controller,dispatch,template,assertions}/**/*_test.rb').sort
 
   t.warning = true
   t.verbose = true

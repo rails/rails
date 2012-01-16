@@ -45,9 +45,11 @@ module ActionDispatch
         extras.each_key { |key| expected_options.delete key } unless extras.nil?
 
         expected_options.stringify_keys!
-        msg = build_message(message, "The recognized options <?> did not match <?>, difference: <?>",
+
+        # FIXME: minitest does object diffs, do we need to have our own?
+        message ||= sprintf("The recognized options <%s> did not match <%s>, difference: <%s>",
             request.path_parameters, expected_options, expected_options.diff(request.path_parameters))
-        assert_equal(expected_options, request.path_parameters, msg)
+        assert_equal(expected_options, request.path_parameters, message)
       end
 
       # Asserts that the provided options can be used to generate the provided path. This is the inverse of +assert_recognizes+.
@@ -84,10 +86,10 @@ module ActionDispatch
         generated_path, extra_keys = @routes.generate_extras(options, defaults)
         found_extras = options.reject {|k, v| ! extra_keys.include? k}
 
-        msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
+        msg = message || sprintf("found extras <%s>, not <%s>", found_extras, extras)
         assert_equal(extras, found_extras, msg)
 
-        msg = build_message(message, "The generated path <?> did not match <?>", generated_path,
+        msg = message || sprintf("The generated path <%s> did not match <%s>", generated_path,
             expected_path)
         assert_equal(expected_path, generated_path, msg)
       end

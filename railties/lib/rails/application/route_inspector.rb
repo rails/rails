@@ -51,7 +51,7 @@ module Rails
       end
 
       def internal?
-        path =~ %r{/rails/info/properties|^/assets}
+        path =~ %r{/rails/info/properties|^#{Rails.application.config.assets.prefix}}
       end
 
       def engine?

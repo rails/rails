@@ -13,9 +13,7 @@ module ActionDispatch
       def assert_dom_equal(expected, actual, message = "")
         expected_dom = HTML::Document.new(expected).root
         actual_dom   = HTML::Document.new(actual).root
-        full_message = build_message(message, "<?> expected to be == to\n<?>.", expected_dom.to_s, actual_dom.to_s)
-
-        assert_block(full_message) { expected_dom == actual_dom }
+        assert_equal expected_dom, actual_dom
       end
 
       # The negated form of +assert_dom_equivalent+.
@@ -28,9 +26,7 @@ module ActionDispatch
       def assert_dom_not_equal(expected, actual, message = "")
         expected_dom = HTML::Document.new(expected).root
         actual_dom   = HTML::Document.new(actual).root
-        full_message = build_message(message, "<?> expected to be != to\n<?>.", expected_dom.to_s, actual_dom.to_s)
-
-        assert_block(full_message) { expected_dom != actual_dom }
+        refute_equal expected_dom, actual_dom
       end
     end
   end

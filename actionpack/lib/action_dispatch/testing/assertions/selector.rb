@@ -270,7 +270,7 @@ module ActionDispatch
             end
             text.strip! unless NO_STRIP.include?(match.name)
             unless match_with.is_a?(Regexp) ? (text =~ match_with) : (text == match_with.to_s)
-              content_mismatch ||= build_message(message, "<?> expected but was\n<?>.", match_with, text)
+              content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, text)
               true
             end
           end
@@ -279,7 +279,7 @@ module ActionDispatch
             html = match.children.map(&:to_s).join
             html.strip! unless NO_STRIP.include?(match.name)
             unless match_with.is_a?(Regexp) ? (html =~ match_with) : (html == match_with.to_s)
-              content_mismatch ||= build_message(message, "<?> expected but was\n<?>.", match_with, html)
+              content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, html)
               true
             end
           end
@@ -289,12 +289,15 @@ module ActionDispatch
         message ||= content_mismatch if matches.empty?
         # Test minimum/maximum occurrence.
         min, max, count = equals[:minimum], equals[:maximum], equals[:count]
+
+        # FIXME: minitest provides messaging when we use assert_operator,
+        # so is this custom message really needed?
         message = message || %(Expected #{count_description(min, max, count)} matching "#{selector.to_s}", found #{matches.size}.)
         if count
-          assert matches.size == count, message
+          assert_equal matches.size, count, message
         else
-          assert matches.size >= min, message if min
-          assert matches.size <= max, message if max
+          assert_operator matches.size, :>=, min, message if min
+          assert_operator matches.size, :<=, max, message if max
         end
 
         # If a block is given call that block. Set @selected to allow

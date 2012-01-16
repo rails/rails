@@ -45,6 +45,18 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t2.save, "Should now save t2 as unique"
   end
 
+  def test_validates_uniqueness_with_nil_value
+    Topic.validates_uniqueness_of(:title)
+
+    t = Topic.new("title" => nil)
+    assert t.save, "Should save t as unique"
+
+    t2 = Topic.new("title" => nil)
+    assert !t2.valid?, "Shouldn't be valid"
+    assert !t2.save, "Shouldn't save t2 as unique"
+    assert_equal ["has already been taken"], t2.errors[:title]
+  end
+
   def test_validates_uniqueness_with_validates
     Topic.validates :title, :uniqueness => true
     Topic.create!('title' => 'abc')
@@ -78,6 +90,30 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     t2 = Topic.create("title" => "I'm unique too!")
     r3 = t2.replies.create "title" => "r3", "content" => "hello world"
     assert r3.valid?, "Saving r3"
+  end
+
+  def test_validate_uniqueness_with_object_scope
+    Reply.validates_uniqueness_of(:content, :scope => :topic)
+
+    t = Topic.create("title" => "I'm unique!")
+
+    r1 = t.replies.create "title" => "r1", "content" => "hello world"
+    assert r1.valid?, "Saving r1"
+
+    r2 = t.replies.create "title" => "r2", "content" => "hello world"
+    assert !r2.valid?, "Saving r2 first time"
+  end
+
+  def test_validate_uniqueness_with_object_arg
+    Reply.validates_uniqueness_of(:topic)
+
+    t = Topic.create("title" => "I'm unique!")
+
+    r1 = t.replies.create "title" => "r1", "content" => "hello world"
+    assert r1.valid?, "Saving r1"
+
+    r2 = t.replies.create "title" => "r2", "content" => "hello world"
+    assert !r2.valid?, "Saving r2 first time"
   end
 
   def test_validate_uniqueness_scoped_to_defining_class

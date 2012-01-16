@@ -12,7 +12,7 @@ require 'active_support/ordered_hash'
 require 'active_support/core_ext/hash/conversions'
 require 'mocha'
 
-class BaseTest < Test::Unit::TestCase
+class BaseTest < ActiveSupport::TestCase
   def setup
     setup_response # find me in abstract_unit
     @original_person_site = Person.site

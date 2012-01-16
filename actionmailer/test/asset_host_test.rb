@@ -9,7 +9,7 @@ class AssetHostMailer < ActionMailer::Base
   end
 end
 
-class AssetHostTest < Test::Unit::TestCase
+class AssetHostTest < ActiveSupport::TestCase
   def setup
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true

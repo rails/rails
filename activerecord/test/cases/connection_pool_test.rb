@@ -22,7 +22,7 @@ module ActiveRecord
 
       def teardown
         super
-        @pool.connections.each(&:close)
+        @pool.disconnect!
       end
 
       def test_full_pool_exception
@@ -81,7 +81,7 @@ module ActiveRecord
         @pool.remove conn
         assert_not_equal(conn, @pool.connection)
       ensure
-        conn.close
+        conn.close if conn
       end
 
       def test_active_connection?

@@ -1,11 +1,6 @@
-require 'active_support/core_ext/module/delegation'
-
 module ActiveModel
   module MassAssignmentSecurity
     class Sanitizer
-      def initialize(target=nil)
-      end
-
       # Returns all attributes not denied by the authorizer.
       def sanitize(attributes, authorizer)
         sanitized_attributes = attributes.reject { |key, value| authorizer.deny?(key) }
@@ -26,11 +21,13 @@ module ActiveModel
     end
 
     class LoggerSanitizer < Sanitizer
-      delegate :logger, :to => :@target
-
       def initialize(target)
         @target = target
-        super
+        super()
+      end
+
+      def logger
+        @target.logger
       end
 
       def logger?
@@ -38,14 +35,18 @@ module ActiveModel
       end
 
       def process_removed_attributes(attrs)
-        logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}" if logger?
+        logger.warn "Can't mass-assign protected attributes: #{attrs.join(', ')}" if logger?
       end
     end
 
     class StrictSanitizer < Sanitizer
+      def initialize(target = nil)
+        super()
+      end
+
       def process_removed_attributes(attrs)
         return if (attrs - insensitive_attributes).empty?
-        raise ActiveModel::MassAssignmentSecurity::Error, "Can't mass-assign protected attributes: #{attrs.join(', ')}"
+        raise ActiveModel::MassAssignmentSecurity::Error.new(attrs)
       end
 
       def insensitive_attributes
@@ -54,6 +55,9 @@ module ActiveModel
     end
 
     class Error < StandardError
+      def initialize(attrs)
+        super("Can't mass-assign protected attributes: #{attrs.join(', ')}")
+      end
     end
   end
 end

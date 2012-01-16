@@ -133,6 +133,16 @@ task :default => :test
       end
       chmod "script", 0755, :verbose => false
     end
+
+    def gemfile_entry
+      return unless inside_application?
+
+      gemfile_in_app_path = File.join(rails_app_path, "Gemfile")
+      if File.exist? gemfile_in_app_path
+        entry = "gem '#{name}', :path => '#{relative_path}'"
+        append_file gemfile_in_app_path, entry
+      end
+    end
   end
 
   module Generators
@@ -152,6 +162,10 @@ task :default => :test
 
       class_option :skip_gemspec, :type => :boolean, :default => false,
                                   :desc => "Skip gemspec file"
+
+      class_option :skip_gemfile_entry, :type => :boolean, :default => false,
+                                        :desc => "If creating plugin in application's directory " +
+                                                 "skip adding entry to Gemfile"
 
       def initialize(*args)
         raise Error, "Options should be given after the plugin name. For details run: rails plugin --help" if args[0].blank?
@@ -206,6 +220,10 @@ task :default => :test
       def create_test_dummy_files
         return if options[:skip_test_unit] && options[:dummy_path] == 'test/dummy'
         create_dummy_app
+      end
+
+      def update_gemfile
+        build(:gemfile_entry) unless options[:skip_gemfile_entry]
       end
 
       def finish_template
@@ -312,6 +330,19 @@ end
 
       def mute(&block)
         shell.mute(&block)
+      end
+
+      def rails_app_path
+        APP_PATH.sub("/config/application", "") if defined?(APP_PATH)
+      end
+
+      def inside_application?
+        rails_app_path && app_path =~ /^#{rails_app_path}/
+      end
+
+      def relative_path
+        return unless inside_application?
+        app_path.sub(/^#{rails_app_path}\//, '')
       end
     end
   end

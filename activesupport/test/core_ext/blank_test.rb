@@ -3,7 +3,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/blank'
 
-class BlankTest < Test::Unit::TestCase
+class BlankTest < ActiveSupport::TestCase
   BLANK = [ EmptyTrue.new, nil, false, '', '   ', "  \n\t  \r ", '　', [], {} ]
   NOT   = [ EmptyFalse.new, Object.new, true, 0, 1, 'a', [nil], { nil => 0 } ]
 

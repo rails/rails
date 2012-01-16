@@ -7,10 +7,13 @@ module ActiveRecord
     class SessionTest < ActiveRecord::TestCase
       self.use_transactional_fixtures = false
 
+      attr_reader :session_klass
+
       def setup
         super
         ActiveRecord::Base.connection.schema_cache.clear!
         Session.drop_table! if Session.table_exists?
+        @session_klass = Class.new(Session)
       end
 
       def test_data_column_name
@@ -61,8 +64,8 @@ module ActiveRecord
       def test_find_by_session_id
         Session.create_table!
         session_id = "10"
-        s = Session.create!(:data => 'world', :session_id => session_id)
-        t = Session.find_by_session_id(session_id)
+        s = session_klass.create!(:data => 'world', :session_id => session_id)
+        t = session_klass.find_by_session_id(session_id)
         assert_equal s, t
         assert_equal s.data, t.data
         Session.drop_table!

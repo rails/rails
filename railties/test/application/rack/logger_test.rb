@@ -4,7 +4,7 @@ require "rack/test"
 
 module ApplicationTests
   module RackTests
-    class LoggerTest < Test::Unit::TestCase
+    class LoggerTest < ActiveSupport::TestCase
       include ActiveSupport::LogSubscriber::TestHelper
       include Rack::Test::Methods
 

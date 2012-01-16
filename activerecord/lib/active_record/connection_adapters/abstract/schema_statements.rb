@@ -1,5 +1,5 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/deprecation/reporting'
+require 'active_record/schema_migration'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -42,7 +42,7 @@ module ActiveRecord
       #  # Check an index with a custom name exists
       #  index_exists?(:suppliers, :company_id, :name => "idx_company_id"
       def index_exists?(table_name, column_name, options = {})
-        column_names = Array.wrap(column_name)
+        column_names = Array(column_name)
         index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, :column => column_names)
         if options[:unique]
           indexes(table_name).any?{ |i| i.unique && i.name == index_name }
@@ -377,7 +377,7 @@ module ActiveRecord
       def index_name(table_name, options) #:nodoc:
         if Hash === options # legacy support
           if options[:column]
-            "index_#{table_name}_on_#{Array.wrap(options[:column]) * '_and_'}"
+            "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
           elsif options[:name]
             options[:name]
           else
@@ -405,38 +405,20 @@ module ActiveRecord
 
       def dump_schema_information #:nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
-        migrated = select_values("SELECT version FROM #{sm_table} ORDER BY version")
-        migrated.map { |v| "INSERT INTO #{sm_table} (version) VALUES ('#{v}');" }.join("\n\n")
+
+        ActiveRecord::SchemaMigration.order('version').all.map { |sm|
+          "INSERT INTO #{sm_table} (version) VALUES ('#{sm.version}');"
+        }.join "\n\n"
       end
 
       # Should not be called normally, but this operation is non-destructive.
       # The migrations module handles this automatically.
       def initialize_schema_migrations_table
-        sm_table = ActiveRecord::Migrator.schema_migrations_table_name
-
-        unless table_exists?(sm_table)
-          create_table(sm_table, :id => false) do |schema_migrations_table|
-            schema_migrations_table.column :version, :string, :null => false
-          end
-          add_index sm_table, :version, :unique => true,
-            :name => "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
-
-          # Backwards-compatibility: if we find schema_info, assume we've
-          # migrated up to that point:
-          si_table = Base.table_name_prefix + 'schema_info' + Base.table_name_suffix
-
-          if table_exists?(si_table)
-            ActiveRecord::Deprecation.warn "Usage of the schema table `#{si_table}` is deprecated. Please switch to using `schema_migrations` table"
-
-            old_version = select_value("SELECT version FROM #{quote_table_name(si_table)}").to_i
-            assume_migrated_upto_version(old_version)
-            drop_table(si_table)
-          end
-        end
+        ActiveRecord::SchemaMigration.create_table
       end
 
       def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)
-        migrations_paths = Array.wrap(migrations_paths)
+        migrations_paths = Array(migrations_paths)
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
@@ -551,7 +533,7 @@ module ActiveRecord
         end
 
         def add_index_options(table_name, column_name, options = {})
-          column_names = Array.wrap(column_name)
+          column_names = Array(column_name)
           index_name   = index_name(table_name, :column => column_names)
 
           if Hash === options # legacy support, since this param was a string

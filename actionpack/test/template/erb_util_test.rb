@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/inclusion'
 
-class ErbUtilTest < Test::Unit::TestCase
+class ErbUtilTest < ActiveSupport::TestCase
   include ERB::Util
 
   ERB::Util::HTML_ESCAPE.each do |given, expected|

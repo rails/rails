@@ -1,6 +1,5 @@
 require 'active_support/core_ext/hash/reverse_merge'
 require 'fileutils'
-require 'rails/plugin'
 require 'rails/engine'
 
 module Rails
@@ -9,7 +8,7 @@ module Rails
   #
   # == Initialization
   #
-  # Rails::Application is responsible for executing all railties, engines and plugin
+  # Rails::Application is responsible for executing all railties and engines
   # initializers. It also executes some bootstrap initializers (check
   # Rails::Application::Bootstrap) and finishing initializers, after all the others
   # are executed (check Rails::Application::Finisher).
@@ -19,7 +18,7 @@ module Rails
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
   # "allow_concurrency", "cache_classes", "consider_all_requests_local", "filter_parameters",
-  # "logger", "reload_plugins" and so forth.
+  # "logger" and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
   #
@@ -115,11 +114,8 @@ module Rails
     # Returns an array of file paths appended with a hash of directories-extensions
     # suitable for ActiveSupport::FileUpdateChecker API.
     def watchable_args
-      files = []
-      files.concat config.watchable_files
+      files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
-      dirs = {}
-      dirs.merge! config.watchable_dirs
       ActiveSupport::Dependencies.autoload_paths.each do |path|
         dirs[path.to_s] = [:rb]
       end
@@ -259,6 +255,9 @@ module Rails
         middleware.use ::ActionDispatch::Cookies
 
         if config.session_store
+          if config.force_ssl && !config.session_options.key?(:secure)
+            config.session_options[:secure] = true
+          end
           middleware.use config.session_store, config.session_options
           middleware.use ::ActionDispatch::Flash
         end
@@ -291,15 +290,7 @@ module Rails
     end
 
     def build_original_fullpath(env)
-      path_info    = env["PATH_INFO"]
-      query_string = env["QUERY_STRING"]
-      script_name  = env["SCRIPT_NAME"]
-
-      if query_string.present?
-        "#{script_name}#{path_info}?#{query_string}"
-      else
-        "#{script_name}#{path_info}"
-      end
+      ["#{env["SCRIPT_NAME"]}#{env["PATH_INFO"]}", env["QUERY_STRING"]].reject(&:blank?).join("?")
     end
   end
 end

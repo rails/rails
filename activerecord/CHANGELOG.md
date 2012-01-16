@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Support for the `schema_info` table has been dropped.  Please
+    switch to `schema_migrations`.
+
 *   Connections *must* be closed at the end of a thread.  If not, your
     connection pool can fill and an exception will be raised.
 
@@ -36,6 +39,9 @@
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
 ## Rails 3.2.0 (unreleased) ##
+
+*   'on' and 'ON' boolean columns values are type casted to true
+    *Santiago Pastorino*
 
 *   Added ability to run migrations only for given scope, which allows
     to run migrations only from one engine (for example to revert changes
@@ -184,7 +190,7 @@
 
     *Aaron Christy*
 
-## Rails 3.1.3 (unreleased) ##
+## Rails 3.1.3 (November 20, 2011) ##
 
 *   Perf fix: If we're deleting all records in an association, don't add a IN(..) clause
     to the query. *GH 3672*
@@ -197,7 +203,7 @@
 
     *Christos Zisopoulos and Kenny J*
 
-## Rails 3.1.2 (unreleased) ##
+## Rails 3.1.2 (November 18, 2011) ##
 
 *   Fix bug with PostgreSQLAdapter#indexes. When the search path has multiple schemas, spaces
     were not being stripped from the schema names after the first.

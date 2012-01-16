@@ -738,7 +738,6 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 |+rake test:benchmark+           |Benchmark the performance tests|
 |+rake test:functionals+         |Runs all the functional tests from +test/functional+|
 |+rake test:integration+         |Runs all the integration tests from +test/integration+|
-|+rake test:plugins+             |Run all the plugin tests from +vendor/plugins/*/**/test+ (or specify with +PLUGIN=_name_+)|
 |+rake test:profile+             |Profile the performance tests|
 |+rake test:recent+              |Tests recent changes|
 |+rake test:uncommitted+         |Runs all the tests which are uncommitted. Supports Subversion and Git|

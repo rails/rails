@@ -16,9 +16,11 @@ class ViewLoadPathsTest < ActionController::TestCase
       end
   end
 
-  class Test::SubController < ActionController::Base
-    layout 'test/sub'
-    def hello_world; render(:template => 'test/hello_world'); end
+  module Test
+    class SubController < ActionController::Base
+      layout 'test/sub'
+      def hello_world; render(:template => 'test/hello_world'); end
+    end
   end
 
   def setup

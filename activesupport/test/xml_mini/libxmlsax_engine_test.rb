@@ -8,7 +8,7 @@ rescue LoadError
   # Skip libxml tests
 else
 
-class LibXMLSAXEngineTest < Test::Unit::TestCase
+class LibXMLSAXEngineTest < ActiveSupport::TestCase
   include ActiveSupport
 
   def setup

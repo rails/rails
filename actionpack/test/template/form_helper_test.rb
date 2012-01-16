@@ -65,7 +65,7 @@ class FormHelperTest < ActionView::TestCase
         def full_messages() [ "Author name can't be empty" ] end
       }.new
     end
-    def @post.id; 123; end
+    def @post.to_key; [123]; end
     def @post.id_before_type_cast; 123; end
     def @post.to_param; '123'; end
 
@@ -330,6 +330,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box
+    assert check_box("post", "secret").html_safe?
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
@@ -373,6 +374,14 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_check_box_with_nil_unchecked_value
+    @post.secret = "on"
+    assert_dom_equal(
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" />',
+      check_box("post", "secret", {}, "on", nil)
+    )
+  end
+
   def test_check_box_with_multiple_behavior
     @post.comment_ids = [2,3]
     assert_dom_equal(
@@ -385,11 +394,10 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
-
-  def test_checkbox_disabled_still_submits_checked_value
+  def test_checkbox_disabled_disables_hidden_field
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="1" /><input checked="checked" disabled="disabled" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      check_box("post", "secret", { :disabled => :true })
+      '<input name="post[secret]" type="hidden" value="0" disabled="disabled"/><input checked="checked" disabled="disabled" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      check_box("post", "secret", { :disabled => true })
     )
   end
 
@@ -628,7 +636,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_auto_index
-    pid = @post.id
+    pid = 123
     assert_dom_equal(
       "<label for=\"post_#{pid}_title\">Title</label>",
       label("post[]", "title")
@@ -654,7 +662,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_auto_index_with_nil_id
-    pid = @post.id
+    pid = 123
     assert_dom_equal(
       "<input name=\"post[#{pid}][title]\" size=\"30\" type=\"text\" value=\"Hello World\" />",
       text_field("post[]","title", :id => nil)
@@ -867,6 +875,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_remote_without_html
     @post.persisted = false
+    @post.stubs(:to_key).returns(nil)
     form_for(@post, :remote => true) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
@@ -1016,6 +1025,7 @@ class FormHelperTest < ActionView::TestCase
     old_locale, I18n.locale = I18n.locale, :submit
 
     @post.persisted = false
+    @post.stubs(:to_key).returns(nil)
     form_for(@post) do |f|
       concat f.submit
     end
@@ -2087,7 +2097,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_new_object
     post = Post.new
     post.persisted = false
-    def post.id() nil end
+    def post.to_key; nil; end
 
     form_for(post) do |f| end
 

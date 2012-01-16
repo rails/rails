@@ -1,9 +1,4 @@
 require 'abstract_unit'
-begin
-  require 'psych'
-rescue LoadError
-end
-
 require 'active_support/core_ext/string/inflections'
 require 'yaml'
 
@@ -96,13 +91,20 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert !@buffer.dup.html_safe?
   end
 
+  test "Should return safe buffer when added with another safe buffer" do
+    clean = "<script>".html_safe
+    result_buffer = @buffer + clean
+    assert result_buffer.html_safe?
+    assert_equal "<script>", result_buffer
+  end
+
   test "Should raise an error when safe_concat is called on dirty buffers" do
     @buffer.gsub!('', '<>')
     assert_raise ActiveSupport::SafeBuffer::SafeConcatError do
       @buffer.safe_concat "BUSTED"
     end
   end
-  
+
   test "should not fail if the returned object is not a string" do
     assert_kind_of NilClass, @buffer.slice("chipchop")
   end

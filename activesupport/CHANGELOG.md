@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Deprecates the compatibility method Module#local_constant_names,
+     use Module#local_constants instead (which returns symbols). *fxn*
+
 *    Deletes the compatibility method Module#method_names,
      use Module#methods from now on (which returns symbols). *fxn*
 

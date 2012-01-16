@@ -25,12 +25,6 @@ for Rails.  You can check the status of his tests here:
 
 Do not release with Red AWDwR tests.
 
-=== Are the postgres tests green? If not, make them green
-
-Currently Travis CI doesn't run the Active Record postgres tests. They are
-working to resolve this, but in the mean time, it is crucial to ensure that
-the tests are still green before release.
-
 === Do we have any git dependencies?  If so, contact those authors.
 
 Having git dependencies indicates that we depend on unreleased code.
@@ -65,8 +59,6 @@ for today:
 === Is the CI green?  If not, make it green.
 
 === Is Sam Ruby happy?  If not, make him happy.
-
-=== Are the postgres tests green? If not, make them green
 
 === Contact the security team.  CVE emails must be sent on this day.
 

@@ -42,7 +42,7 @@ h4. Rails General Configuration
 
 These configuration methods are to be called on a +Rails::Railtie+ object, such as a subclass of +Rails::Engine+ or +Rails::Application+.
 
-* +config.after_initialize+ takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, plugins, engines, and all the application's initializers in +config/initializers+. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
+* +config.after_initialize+ takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, engines, and all the application's initializers in +config/initializers+. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
 
 <ruby>
 config.after_initialize do
@@ -98,13 +98,9 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.middleware+ allows you to configure the application's middleware. This is covered in depth in the "Configuring Middleware":#configuring-middleware section below.
 
-* +config.plugins+ accepts the list of plugins to load. The default is +nil+ in which case all plugins will be loaded. If this is set to +[]+, no plugins will be loaded. Otherwise, plugins will be loaded in the order specified. This option lets you enforce some particular loading order, useful when dependencies between plugins require it. For that use case, put first the plugins you want to be loaded in a certain order, and then the special symbol +:all+ to have the rest loaded without the need to specify them.
-
 * +config.preload_frameworks+ enables or disables preloading all frameworks at startup. Enabled by +config.threadsafe!+. Defaults to +nil+, so is disabled.
 
 * +config.reload_classes_only_on_change+ enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to true. If +config.cache_classes+ is true, this option is ignored.
-
-* +config.reload_plugins+ enables or disables plugin reloading. Defaults to false.
 
 * +config.secret_token+ used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get +config.secret_token+ initialized to a random key in +config/initializers/secret_token.rb+.
 
@@ -462,7 +458,7 @@ Some parts of Rails can also be configured externally by supplying environment v
 
 h3. Using Initializer Files
 
-After loading the framework and any gems and plugins in your application, Rails turns to loading initializers. An initializer is any Ruby file stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks, plugins and gems are loaded, such as options to configure settings for these parts.
+After loading the framework and any gems in your application, Rails turns to loading initializers. An initializer is any Ruby file stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and gems are loaded, such as options to configure settings for these parts.
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
 
@@ -617,7 +613,7 @@ The error occurred while evaluating nil.each
 
 *+prepend_helpers_path+* Adds the directory +app/helpers+ from the application, railties and engines to the lookup path for helpers for the application.
 
-*+load_config_initializers+* Loads all Ruby files from +config/initializers+ in the application, railties and engines. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
+*+load_config_initializers+* Loads all Ruby files from +config/initializers+ in the application, railties and engines. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks are loaded.
 
 *+engines_blank_point+* Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are ran.
 

@@ -2,7 +2,7 @@ require 'abstract_unit'
 require "fixtures/person"
 require "fixtures/street_address"
 
-class FormatTest < Test::Unit::TestCase
+class FormatTest < ActiveSupport::TestCase
   def setup
     @matz  = { :id => 1, :name => 'Matz' }
     @david = { :id => 2, :name => 'David' }

@@ -3,7 +3,7 @@ require 'stringio'
 require 'rack/test'
 
 module ApplicationTests
-  class MiddlewareTest < Test::Unit::TestCase
+  class MiddlewareTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

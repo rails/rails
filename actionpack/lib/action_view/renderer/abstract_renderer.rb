@@ -12,16 +12,16 @@ module ActionView
     end
 
     protected
-    
+
     def extract_details(options)
       details = {}
       @lookup_context.registered_details.each do |key|
         next unless value = options[key]
-        details[key] = Array.wrap(value)
+        details[key] = Array(value)
       end
       details
     end
-    
+
     def instrument(name, options={})
       ActiveSupport::Notifications.instrument("render_#{name}.action_view", options){ yield }
     end

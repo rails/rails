@@ -10,7 +10,7 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local,
                     :dependency_loading, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
-                    :railties_order, :relative_url_root, :reload_plugins, :secret_token,
+                    :railties_order, :relative_url_root, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change
 
@@ -91,10 +91,10 @@ module Rails
       # after boot, and disables reloading code on every request, as these are
       # fundamentally incompatible with thread safety.
       def threadsafe!
-        self.preload_frameworks = true
-        self.cache_classes = true
-        self.dependency_loading = false
-        self.allow_concurrency = true
+        @preload_frameworks = true
+        @cache_classes = true
+        @dependency_loading = false
+        @allow_concurrency = true
         self
       end
 

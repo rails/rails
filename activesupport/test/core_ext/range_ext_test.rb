@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'active_support/time'
 require 'active_support/core_ext/range'
 
-class RangeTest < Test::Unit::TestCase
+class RangeTest < ActiveSupport::TestCase
   def test_to_s_from_dates
     date_range = Date.new(2005, 12, 10)..Date.new(2005, 12, 12)
     assert_equal "BETWEEN '2005-12-10' AND '2005-12-12'", date_range.to_s(:db)

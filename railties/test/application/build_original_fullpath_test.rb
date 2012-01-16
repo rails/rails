@@ -1,7 +1,7 @@
 require "abstract_unit"
 
 module ApplicationTests
-  class BuildOriginalPathTest < Test::Unit::TestCase
+  class BuildOriginalPathTest < ActiveSupport::TestCase
     def test_include_original_PATH_info_in_ORIGINAL_FULLPATH
       env = { 'PATH_INFO' => '/foo/' }
       assert_equal "/foo/", Rails.application.send(:build_original_fullpath, env)

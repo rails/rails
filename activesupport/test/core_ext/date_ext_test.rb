@@ -444,7 +444,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
 end
 
-class DateExtBehaviorTest < Test::Unit::TestCase
+class DateExtBehaviorTest < ActiveSupport::TestCase
   def test_date_acts_like_date
     assert Date.new.acts_like_date?
   end

@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'action_controller/vendor/html-scanner'
 
-class SessionTest < Test::Unit::TestCase
+class SessionTest < ActiveSupport::TestCase
   StubApp = lambda { |env|
     [200, {"Content-Type" => "text/html", "Content-Length" => "13"}, ["Hello, World!"]]
   }
@@ -165,7 +165,7 @@ class SessionTest < Test::Unit::TestCase
   end
 end
 
-class IntegrationTestTest < Test::Unit::TestCase
+class IntegrationTestTest < ActiveSupport::TestCase
   def setup
     @test = ::ActionDispatch::IntegrationTest.new(:app)
     @test.class.stubs(:fixture_table_names).returns([])

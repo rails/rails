@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 
 module ActionController
@@ -94,7 +93,7 @@ module ActionController
 
       def all_helpers_from_path(path)
         helpers = []
-        Array.wrap(path).each do |_path|
+        Array(path).each do |_path|
           extract  = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
           helpers += Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
         end

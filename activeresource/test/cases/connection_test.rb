@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class ConnectionTest < Test::Unit::TestCase
+class ConnectionTest < ActiveSupport::TestCase
   ResponseCodeStub = Struct.new(:code)
   RedirectResponseStub = Struct.new(:code, :Location)
 

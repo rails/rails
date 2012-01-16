@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/module/attr_internal'
 
-class AttrInternalTest < Test::Unit::TestCase
+class AttrInternalTest < ActiveSupport::TestCase
   def setup
     @target = Class.new
     @instance = @target.new

@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
+class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
   include ActionView::Helpers::DateHelper
   attr_reader :request
 
@@ -71,7 +71,7 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
   end
 end
 
-class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
+class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
   include ActionView::Helpers::DateHelper
   attr_reader :request
 

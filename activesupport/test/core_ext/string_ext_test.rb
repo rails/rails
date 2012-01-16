@@ -17,7 +17,7 @@ module Ace
   end
 end
 
-class StringInflectionsTest < Test::Unit::TestCase
+class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
 
@@ -297,7 +297,7 @@ class StringInflectionsTest < Test::Unit::TestCase
   end
 end
 
-class StringBehaviourTest < Test::Unit::TestCase
+class StringBehaviourTest < ActiveSupport::TestCase
   def test_acts_like_string
     assert 'Bambi'.acts_like_string?
   end

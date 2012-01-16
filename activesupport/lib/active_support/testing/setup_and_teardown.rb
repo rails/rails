@@ -10,7 +10,6 @@ module ActiveSupport
         include ActiveSupport::Callbacks
         define_callbacks :setup, :teardown
 
-        include ForMiniTest
       end
 
       module ClassMethods
@@ -23,24 +22,22 @@ module ActiveSupport
         end
       end
 
-      module ForMiniTest
-        def run(runner)
-          result = '.'
+      def run(runner)
+        result = '.'
+        begin
+          run_callbacks :setup do
+            result = super
+          end
+        rescue Exception => e
+          result = runner.puke(self.class, method_name, e)
+        ensure
           begin
-            run_callbacks :setup do
-              result = super
-            end
+            run_callbacks :teardown
           rescue Exception => e
             result = runner.puke(self.class, method_name, e)
-          ensure
-            begin
-              run_callbacks :teardown
-            rescue Exception => e
-              result = runner.puke(self.class, method_name, e)
-            end
           end
-          result
         end
+        result
       end
 
     end

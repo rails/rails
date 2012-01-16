@@ -78,7 +78,7 @@ class Time
       options[:hour]  || hour,
       options[:min]   || (options[:hour] ? 0 : min),
       options[:sec]   || ((options[:hour] || options[:min]) ? 0 : sec),
-      options[:usec]  || ((options[:hour] || options[:min] || options[:sec]) ? 0 : usec)
+      options[:usec]  || ((options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
     )
   end
 

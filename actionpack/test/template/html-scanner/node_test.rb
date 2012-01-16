@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class NodeTest < Test::Unit::TestCase
+class NodeTest < ActiveSupport::TestCase
 
   class MockNode
     def initialize(matched, value)

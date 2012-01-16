@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'test/unit'
 
 module CallbacksTest
   class Phone
@@ -158,7 +157,7 @@ module CallbacksTest
     end
   end
 
-  class OneTimeCompileTest < Test::Unit::TestCase
+  class OneTimeCompileTest < ActiveSupport::TestCase
     def test_optimized_first_compile
       around = OneTimeCompile.new
       around.save
@@ -177,7 +176,7 @@ module CallbacksTest
     end
   end
 
-  class AfterSaveConditionalPersonCallbackTest < Test::Unit::TestCase
+  class AfterSaveConditionalPersonCallbackTest < ActiveSupport::TestCase
     def test_after_save_runs_in_the_reverse_order
       person = AfterSaveConditionalPerson.new
       person.save
@@ -345,7 +344,7 @@ module CallbacksTest
     end
   end
 
-  class AroundCallbacksTest < Test::Unit::TestCase
+  class AroundCallbacksTest < ActiveSupport::TestCase
     def test_save_around
       around = AroundPerson.new
       around.save
@@ -364,7 +363,7 @@ module CallbacksTest
     end
   end
   
-  class AroundCallbackResultTest < Test::Unit::TestCase
+  class AroundCallbackResultTest < ActiveSupport::TestCase
     def test_save_around
       around = AroundPersonResult.new
       around.save
@@ -372,7 +371,7 @@ module CallbacksTest
     end
   end
 
-  class SkipCallbacksTest < Test::Unit::TestCase
+  class SkipCallbacksTest < ActiveSupport::TestCase
     def test_skip_person
       person = PersonSkipper.new
       assert_equal [], person.history
@@ -391,7 +390,7 @@ module CallbacksTest
     end
   end
 
-  class CallbacksTest < Test::Unit::TestCase
+  class CallbacksTest < ActiveSupport::TestCase
     def test_save_phone
       phone = Phone.new
       assert_raise RuntimeError do
@@ -419,7 +418,7 @@ module CallbacksTest
     end
   end
 
-  class ConditionalCallbackTest < Test::Unit::TestCase
+  class ConditionalCallbackTest < ActiveSupport::TestCase
     def test_save_conditional_person
       person = ConditionalPerson.new
       person.save
@@ -437,7 +436,7 @@ module CallbacksTest
 
 
 
-  class ResetCallbackTest < Test::Unit::TestCase
+  class ResetCallbackTest < ActiveSupport::TestCase
     def test_save_conditional_person
       person = CleanPerson.new
       person.save
@@ -567,7 +566,7 @@ module CallbacksTest
     end
   end
 
-  class UsingObjectTest < Test::Unit::TestCase
+  class UsingObjectTest < ActiveSupport::TestCase
     def test_before_object
       u = UsingObjectBefore.new
       u.save
@@ -592,7 +591,7 @@ module CallbacksTest
     end
   end
 
-  class CallbackTerminatorTest < Test::Unit::TestCase
+  class CallbackTerminatorTest < ActiveSupport::TestCase
     def test_termination
       terminator = CallbackTerminator.new
       terminator.save
@@ -612,7 +611,7 @@ module CallbacksTest
     end
   end
 
-  class HyphenatedKeyTest < Test::Unit::TestCase
+  class HyphenatedKeyTest < ActiveSupport::TestCase
     def test_save
       obj = HyphenatedCallbacks.new
       obj.save
@@ -625,7 +624,7 @@ module CallbacksTest
     skip_callback :save, :before, :before_save_method, :if => lambda {self.age > 21}
   end
 
-  class WriterCallbacksTest < Test::Unit::TestCase
+  class WriterCallbacksTest < ActiveSupport::TestCase
     def test_skip_writer
       writer = WriterSkipper.new
       writer.age = 18

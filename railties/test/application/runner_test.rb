@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class RunnerTest < Test::Unit::TestCase
+  class RunnerTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

@@ -365,7 +365,7 @@ module ActionView
         else
           object      = record.is_a?(Array) ? record.last : record
           object_name = options[:as] || ActiveModel::Naming.param_key(object)
-          apply_form_for_options!(record, options)
+          apply_form_for_options!(record, object, options)
         end
 
         options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
@@ -380,8 +380,7 @@ module ActionView
         output.safe_concat('</form>')
       end
 
-      def apply_form_for_options!(object_or_array, options) #:nodoc:
-        object = object_or_array.is_a?(Array) ? object_or_array.last : object_or_array
+      def apply_form_for_options!(record, object, options) #:nodoc:
         object = convert_to_model(object)
 
         as = options[:as]
@@ -392,7 +391,7 @@ module ActionView
           :method => method
         )
 
-        options[:url] ||= polymorphic_path(object_or_array, :format => options.delete(:format))
+        options[:url] ||= polymorphic_path(record, :format => options.delete(:format))
       end
       private :apply_form_for_options!
 
@@ -1091,9 +1090,9 @@ module ActionView
         else
           add_default_name_and_id(options)
         end
-        hidden = tag("input", "name" => options["name"], "type" => "hidden", "value" => options['disabled'] && checked ? checked_value : unchecked_value)
+        hidden = unchecked_value ? tag("input", "name" => options["name"], "type" => "hidden", "value" => unchecked_value, "disabled" => options["disabled"]) : ""
         checkbox = tag("input", options)
-        (hidden + checkbox).html_safe
+        hidden + checkbox
       end
 
       def to_boolean_select_tag(options = {})
@@ -1270,7 +1269,7 @@ module ActionView
         @multipart = nil
       end
 
-      (field_helpers - %w(label check_box radio_button fields_for hidden_field file_field)).each do |selector|
+      (field_helpers - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field]).each do |selector|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})
             @template.send(                      #   @template.send(

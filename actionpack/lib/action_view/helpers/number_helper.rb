@@ -32,22 +32,29 @@ module ActionView
       # in the +options+ hash.
       #
       # ==== Options
-      # * <tt>:area_code</tt>  - Adds parentheses around the area code.
-      # * <tt>:delimiter</tt>  - Specifies the delimiter to use (defaults to "-").
-      # * <tt>:extension</tt>  - Specifies an extension to add to the end of the
-      #   generated number.
+      #
+      # * <tt>:area_code</tt>     - Adds parentheses around the area code.
+      # * <tt>:delimiter</tt>     - Specifies the delimiter to use (defaults to "-").
+      # * <tt>:extension</tt>     - Specifies an extension to add to the end of the
+      #                             generated number.
       # * <tt>:country_code</tt>  - Sets the country code for the phone number.
+      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
+      #
       #  number_to_phone(5551234)                                           # => 555-1234
+      #  number_to_phone("5551234")                                         # => 555-1234
       #  number_to_phone(1235551234)                                        # => 123-555-1234
       #  number_to_phone(1235551234, :area_code => true)                    # => (123) 555-1234
       #  number_to_phone(1235551234, :delimiter => " ")                     # => 123 555 1234
       #  number_to_phone(1235551234, :area_code => true, :extension => 555) # => (123) 555-1234 x 555
       #  number_to_phone(1235551234, :country_code => 1)                    # => +1-123-555-1234
+      #  number_to_phone("123a456")                                         # => 123a456
+      #
+      #  number_to_phone("1234a567", :raise => true)                        # => InvalidNumberError
       #
       #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
-      #  => +1.123.555.1234 x 1343
+      #  # => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
         return unless number
 
@@ -82,6 +89,7 @@ module ActionView
       # in the +options+ hash.
       #
       # ==== Options
+      #
       # * <tt>:locale</tt>           - Sets the locale to be used for formatting (defaults to current locale).
       # * <tt>:precision</tt>        - Sets the level of precision (defaults to 2).
       # * <tt>:unit</tt>             - Sets the denomination of the currency (defaults to "$").
@@ -94,12 +102,17 @@ module ActionView
       #                                an hyphen to the formatted number given by <tt>:format</tt>).
       #                                Accepts the same fields than <tt>:format</tt>, except
       #                                <tt>%n</tt> is here the absolute value of the number.
+      # * <tt>:raise</tt>            - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
+      #
       #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
       #  number_to_currency(1234567890.506)                   # => $1,234,567,890.51
       #  number_to_currency(1234567890.506, :precision => 3)  # => $1,234,567,890.506
       #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,51 €
+      #  number_to_currency("123a456")                        # => $123a456
+      #
+      #  number_to_currency("123a456", :raise => true)        # => InvalidNumberError
       #
       #  number_to_currency(-1234567890.50, :negative_format => "(%u%n)")
       #  # => ($1,234,567,890.50)
@@ -114,6 +127,7 @@ module ActionView
 
         defaults  = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :default => {})
+        currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
 
         defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults).merge!(currency)
         defaults[:negative_format] = "-" + options[:format] if options[:format]
@@ -141,23 +155,33 @@ module ActionView
 
       end
 
-      # Formats a +number+ as a percentage string (e.g., 65%). You can customize the
-      # format in the +options+ hash.
+      # Formats a +number+ as a percentage string (e.g., 65%). You can customize the format in the +options+ hash.
       #
       # ==== Options
-      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:precision</tt>  - Sets the precision of the number (defaults to 3).
-      # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +false+)
-      # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
-      # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +false+)
+      #
+      # * <tt>:locale</tt>                      - Sets the locale to be used for formatting (defaults to current
+      #                                           locale).
+      # * <tt>:precision</tt>                   - Sets the precision of the number (defaults to 3).
+      # * <tt>:significant</tt>                 - If +true+, precision will be the # of significant_digits. If +false+,
+      #                                           the # of fractional digits (defaults to +false+).
+      # * <tt>:separator</tt>                   - Sets the separator between the fractional and integer digits (defaults
+      #                                           to ".").
+      # * <tt>:delimiter</tt>                   - Sets the thousands delimiter (defaults to "").
+      # * <tt>:strip_insignificant_zeros</tt>   - If +true+ removes insignificant zeros after the decimal separator
+      #                                           (defaults to +false+).
+      # * <tt>:raise</tt>                       - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
+      #
       #  number_to_percentage(100)                                        # => 100.000%
+      #  number_to_percentage("98")                                       # => 98.000%
       #  number_to_percentage(100, :precision => 0)                       # => 100%
       #  number_to_percentage(1000, :delimiter => '.', :separator => ',') # => 1.000,000%
       #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
       #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
+      #  number_to_percentage("98a")                                      # => 98a%
+      #
+      #  number_to_percentage("98a", :raise => true)                      # => InvalidNumberError
       def number_to_percentage(number, options = {})
         return unless number
 
@@ -184,19 +208,26 @@ module ActionView
       # customize the format in the +options+ hash.
       #
       # ==== Options
+      #
       # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to ",").
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
+      # * <tt>:raise</tt>      - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
+      #
       #  number_with_delimiter(12345678)                        # => 12,345,678
+      #  number_with_delimiter("123456")                        # => 123,456
       #  number_with_delimiter(12345678.05)                     # => 12,345,678.05
       #  number_with_delimiter(12345678, :delimiter => ".")     # => 12.345.678
       #  number_with_delimiter(12345678, :delimiter => ",")     # => 12,345,678
       #  number_with_delimiter(12345678.05, :separator => " ")  # => 12,345,678 05
       #  number_with_delimiter(12345678.05, :locale => :fr)     # => 12 345 678,05
+      #  number_with_delimiter("112a")                          # => 112a
       #  number_with_delimiter(98765432.98, :delimiter => " ", :separator => ",")
       #  # => 98 765 432,98
+      #
+      #  number_with_delimiter("112a", :raise => true)          # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})
         options.symbolize_keys!
 
@@ -224,12 +255,15 @@ module ActionView
       # You can customize the format in the +options+ hash.
       #
       # ==== Options
-      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:precision</tt>  - Sets the precision of the number (defaults to 3).
-      # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +false+)
-      # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
-      # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +false+)
+      # * <tt>:locale</tt>                     - Sets the locale to be used for formatting (defaults to current locale).
+      # * <tt>:precision</tt>                  - Sets the precision of the number (defaults to 3).
+      # * <tt>:significant</tt>                - If +true+, precision will be the # of significant_digits. If +false+,
+      #                                          the # of fractional digits (defaults to +false+).
+      # * <tt>:separator</tt>                  - Sets the separator between the fractional and integer digits (defaults
+      #                                          to ".").
+      # * <tt>:delimiter</tt>                  - Sets the thousands delimiter (defaults to "").
+      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator
+      #                                          (defaults to +false+).
       #
       # ==== Examples
       #  number_with_precision(111.2345)                                            # => 111.235
@@ -240,8 +274,10 @@ module ActionView
       #  number_with_precision(111.2345, :precision => 1, :significant => true)     # => 100
       #  number_with_precision(13, :precision => 5, :significant => true)           # => 13.000
       #  number_with_precision(111.234, :locale => :fr)                             # => 111,234
+      #
       #  number_with_precision(13, :precision => 5, :significant => true, :strip_insignificant_zeros => true)
       #  # => 13
+      #
       #  number_with_precision(389.32314, :precision => 4, :significant => true)    # => 389.3
       #  number_with_precision(1111.2345, :precision => 2, :separator => ',', :delimiter => '.')
       #  # => 1.111,23

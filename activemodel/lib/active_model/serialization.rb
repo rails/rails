@@ -73,15 +73,15 @@ module ActiveModel
 
       attribute_names = attributes.keys.sort
       if only = options[:only]
-        attribute_names &= Array.wrap(only).map(&:to_s)
+        attribute_names &= Array(only).map(&:to_s)
       elsif except = options[:except]
-        attribute_names -= Array.wrap(except).map(&:to_s)
+        attribute_names -= Array(except).map(&:to_s)
       end
 
       hash = {}
       attribute_names.each { |n| hash[n] = read_attribute_for_serialization(n) }
 
-      method_names = Array.wrap(options[:methods]).select { |n| respond_to?(n) }
+      method_names = Array(options[:methods]).select { |n| respond_to?(n) }
       method_names.each { |n| hash[n] = send(n) }
 
       serializable_add_includes(options) do |association, records, opts|

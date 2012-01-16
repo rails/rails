@@ -1,8 +1,3 @@
-begin
-  require 'psych'
-rescue LoadError
-end
-
 require 'yaml'
 require 'set'
 require 'active_support/benchmarkable'
@@ -12,7 +7,6 @@ require 'active_support/time'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/delegating_attributes'
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/indifferent_access'

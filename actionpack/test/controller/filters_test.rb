@@ -16,7 +16,7 @@ class ActionController::Base
 
   def assigns(key = nil)
     assigns = {}
-    instance_variable_names.each do |ivar|
+    instance_variables.each do |ivar|
       next if ActionController::Base.protected_instance_variables.include?(ivar)
       assigns[ivar[1..-1]] = instance_variable_get(ivar)
     end

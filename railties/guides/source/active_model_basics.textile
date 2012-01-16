@@ -56,7 +56,7 @@ class Person
   before_update :reset_me
 
   def update
-    _run_update_callbacks do
+    run_callbacks(:update) do
       # This will call when we are trying to call update on object.
     end
   end

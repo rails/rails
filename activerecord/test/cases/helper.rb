@@ -2,11 +2,12 @@ require File.expand_path('../../../../load_paths', __FILE__)
 
 require 'config'
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'stringio'
 require 'mocha'
 
 require 'active_record'
+require 'active_record/test_case'
 require 'active_support/dependencies'
 require 'active_support/logger'
 
@@ -71,8 +72,8 @@ module ActiveRecord
 
     attr_reader :ignore
 
-    def initialize(ignore = self.class.ignored_sql)
-      @ignore   = ignore
+    def initialize(ignore = Regexp.union(self.class.ignored_sql))
+      @ignore = ignore
     end
 
     def call(name, start, finish, message_id, values)
@@ -80,7 +81,7 @@ module ActiveRecord
 
       # FIXME: this seems bad. we should probably have a better way to indicate
       # the query was cached
-      return if 'CACHE' == values[:name] || ignore.any? { |x| x =~ sql }
+      return if 'CACHE' == values[:name] || ignore =~ sql
       self.class.log << sql
     end
   end

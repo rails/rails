@@ -421,6 +421,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_order_after_reorder_combines_orders
+    expected = Developer.order('name DESC, id DESC').collect { |dev| [dev.name, dev.id] }
+    received = Developer.order('name ASC').reorder('name DESC').order('id DESC').collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
   def test_nested_exclusive_scope
     expected = Developer.find(:all, :limit => 100).collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.send(:with_exclusive_scope, :find => { :limit => 100 }) do
@@ -527,7 +533,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_is_threadsafe
     if in_memory_db?
-      return skip "in memory db can't share a db between threads"
+      skip "in memory db can't share a db between threads"
     end
 
     threads = []
