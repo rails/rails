@@ -13,9 +13,5 @@ module ActionController
         :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout
       ]
     end
-
-    def render_to_body(options)
-      super || " "
-    end
   end
 end

@@ -29,6 +29,10 @@ module ActionController
       self.response_body = nil
     end
 
+    def render_to_body(*)
+      super || " "
+    end
+
     private
 
     # Normalize arguments by catching blocks and setting them on :update.

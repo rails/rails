@@ -233,10 +233,8 @@ module ActionView
           super
         end
       end
-
     end
 
     include Behavior
-
   end
 end

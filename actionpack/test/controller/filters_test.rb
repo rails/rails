@@ -815,8 +815,6 @@ class FilterTest < ActionController::TestCase
     end
 end
 
-
-
 class PostsController < ActionController::Base
   module AroundExceptions
     class Error < StandardError ; end
