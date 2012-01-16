@@ -3,6 +3,7 @@ require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
 require 'action_view/helpers/active_model_helper'
+require 'action_view/helpers/tags'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
@@ -654,16 +655,7 @@ module ActionView
       #     'Accept <a href="/terms">Terms</a>.'.html_safe
       #   end
       def label(object_name, method, content_or_options = nil, options = nil, &block)
-        content_is_options = content_or_options.is_a?(Hash)
-        if content_is_options || block_given?
-          options = content_or_options if content_is_options
-          text = nil
-        else
-          text = content_or_options
-        end
-
-        options ||= {}
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_label_tag(text, options, &block)
+        ActionView::Helpers::Tags::LabelTag.new(object_name, method, self, content_or_options, options).render(&block)
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -977,50 +969,6 @@ module ActionView
         @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
         @object = retrieve_object(object)
         @auto_index = retrieve_autoindex(Regexp.last_match.pre_match) if Regexp.last_match
-      end
-
-      def to_label_tag(text = nil, options = {}, &block)
-        options = options.stringify_keys
-        tag_value = options.delete("value")
-        name_and_id = options.dup
-
-        if name_and_id["for"]
-          name_and_id["id"] = name_and_id["for"]
-        else
-          name_and_id.delete("id")
-        end
-
-        add_default_name_and_id_for_value(tag_value, name_and_id)
-        options.delete("index")
-        options.delete("namespace")
-        options["for"] ||= name_and_id["id"]
-
-        if block_given?
-          @template_object.label_tag(name_and_id["id"], options, &block)
-        else
-          content = if text.blank?
-            object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
-            method_and_value = tag_value.present? ? "#{method_name}.#{tag_value}" : method_name
-
-            if object.respond_to?(:to_model)
-              key = object.class.model_name.i18n_key
-              i18n_default = ["#{key}.#{method_and_value}".to_sym, ""]
-            end
-
-            i18n_default ||= ""
-            I18n.t("#{object_name}.#{method_and_value}", :default => i18n_default, :scope => "helpers.label").presence
-          else
-            text.to_s
-          end
-
-          content ||= if object && object.class.respond_to?(:human_attribute_name)
-            object.class.human_attribute_name(method_name)
-          end
-
-          content ||= method_name.humanize
-
-          label_tag(name_and_id["id"], content, options)
-        end
       end
 
       def to_input_field_tag(field_type, options = {})
