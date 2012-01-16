@@ -572,7 +572,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_should_append_to_association_order
     ordered_developers = projects(:active_record).developers.order('projects.id')
-    assert_equal ['developers.name desc, developers.id desc', 'projects.id'], ordered_developers.order_values
+    assert_equal ['projects.id', 'developers.name desc, developers.id desc' ], ordered_developers.order_values
   end
 
   def test_dynamic_find_all_should_respect_association_limit

@@ -89,7 +89,7 @@ module ActiveRecord
       return self if args.blank?
 
       relation = clone
-      relation.order_values += args.flatten
+      relation.order_values = args.flatten + relation.order_values
       relation
     end
 

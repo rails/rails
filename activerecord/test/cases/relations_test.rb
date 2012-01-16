@@ -157,7 +157,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_order_concatenated
-    topics = Topic.order('author_name').order('title')
+    topics = Topic.order('title').order('author_name')
     assert_equal 4, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
   end

@@ -1525,8 +1525,8 @@ class BasicsTest < ActiveRecord::TestCase
       Developer.find(:all, :order => 'salary DESC')
     end
     # Test scope order + find order, order has priority
-    scoped_developers = Developer.send(:with_scope, :find => { :limit => 3, :order => 'id DESC' }) do
-      Developer.find(:all, :order => 'salary ASC')
+    scoped_developers = Developer.send(:with_scope, :find => { :limit => 3, :order => 'salary ASC' }) do
+      Developer.find(:all, :order => 'id DESC')
     end
     assert scoped_developers.include?(developers(:poor_jamis))
     assert ! scoped_developers.include?(developers(:david))
