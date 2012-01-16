@@ -109,21 +109,73 @@ NOTE: You must have an "ExecJS":https://github.com/sstephenson/execjs#readme sup
 
 h4. Asset Organization
 
-Assets that must be precompiled can be placed inside an application in one of three locations: +app/assets+, +lib/assets+ or +vendor/assets+.
+Pipeline assets can be placed inside an application in one of three locations: +app/assets+, +lib/assets+ or +vendor/assets+.
 
 +app/assets+ is for assets that are owned by the application, such as custom images, JavaScript files or stylesheets.
 
 +lib/assets+ is for your own libraries' code that doesn't really fit into the scope of the application or those libraries which are shared across applications.
 
-+vendor/assets+ is for assets that are owned by outside entities, such as code for JavaScript plugins.
++vendor/assets+ is for assets that are owned by outside entities, such as code for JavaScript plugins and CSS frameworks.
 
-All subdirectories that exist within these three locations are added to the search path for Sprockets. You can see this search path by inspecting +Rails.application.config.assets.paths+ in the Rails console. When a client requests an asset, these paths are traversed (in the order that they occur in the search path) to see if they contain an asset matching the name specified. If an asset is found, it's processed by Sprockets and served.
+h5. Search paths
 
-You can add additional (fully qualified) paths to the pipeline in +config/application.rb+. For example:
+When a file is referenced from a manifest or a helper, Sprockets searches the three default asset locations for it.
+
+The default locations are: +app/assets/images+ and the subdirectories +javascripts+ and +stylesheets+ in all three asset locations.
+
+For example, these files:
+
+<plain>
+app/assets/javascripts/home.js
+lib/assets/javascripts/moovinator.js
+vendor/assets/javascript/slider.js
+</plain>
+
+would be referenced in a manifest like this:
+
+<plain>
+//= require home
+//= require moovinator
+//= require slider
+</plain>
+
+Assets inside subdirectories can also be accessed.
+
+<plain>
+app/assets/javascripts/sub/something.js
+</plain>
+
+is referenced as:
+
+<plain>
+//= require sub/something
+</plain>
+
+You can view the search path by inspecting +Rails.application.config.assets.paths+ in the Rails console.
+
+Additional (fully qualified) paths can be added to the pipeline in +config/application.rb+. For example:
 
 <ruby>
 config.assets.paths << Rails.root.join("app", "assets", "flash")
 </ruby>
+
+Paths are traversed in the order that they occur in the search path.
+
+It is important to note that files you want to reference outside a manifest must be added to the precompile array or they will not be available in the production environment.
+
+h5. Using index files
+
+Sprockets uses files named +index+ (with the relevant extensions) for a special purpose.
+
+For example, if you have a jQuery library with many modules, which is stored in +lib/assets/library_name+, the file +lib/assets/library_name/index.js+ serves as the manifest for all files in this library. This file could include a list of all the required files in order, or a simple <tt>require_tree</tt> directive.
+
+The library as a whole can be accessed in the site's application manifest like so:
+
+<plain>
+//= require library_name
+</plain>
+
+This simplifies maintenance and keeps things clean by allowing related code to be grouped before inclusion elsewhere.
 
 h4. Coding Links to Assets
 

@@ -447,7 +447,13 @@ start a web server on your development machine. You can do this by running:
 $ rails server
 </shell>
 
-TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an +execjs+ error. Usually Mac OS X and Windows come with a JavaScript runtime installed. +therubyracer+ and +therubyrhino+ are the commonly used runtimes for Ruby and JRuby respectively. You can also investigate a list of runtimes at "ExecJS":https://github.com/sstephenson/execjs.
+TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and
+the absence of a runtime will give you an +execjs+ error. Usually Mac OS X
+and Windows come with a JavaScript runtime installed. Rails adds the +therubyracer+ gem
+to Gemfile in a commented line for new apps and you can uncomment if you need it.
++therubyrhino+ is the recommended runtime for JRuby users and is added by default
+to Gemfile in apps generated under JRuby. You can investigate about all the
+supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
 
 This will fire up an instance of the WEBrick web server by default (Rails can
 also use several other web servers). To see your application in action, open a
@@ -838,7 +844,7 @@ below:
   <%= javascript_include_tag "application" %>
   <%= csrf_meta_tags %>
 </head>
-<body style="background: #EEEEEE;">
+<body style="background-color: #EEEEEE;">
 
 <%= yield %>
 
@@ -1008,7 +1014,7 @@ by its id value. After finding the record, Rails displays it by using
 +app/views/posts/show.html.erb+:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1275,7 +1281,7 @@ So first, we'll wire up the Post show template
 (+/app/views/posts/show.html.erb+) to let us make a new comment:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1341,7 +1347,7 @@ template. This is where we want the comment to show, so let's add that to the
 +app/views/posts/show.html.erb+.
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1423,7 +1429,7 @@ Then you can change +app/views/posts/show.html.erb+ to look like the
 following:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1494,7 +1500,7 @@ create a file +app/views/comments/_form.html.erb+ containing:
 Then you make the +app/views/posts/show.html.erb+ look like the following:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1689,10 +1695,10 @@ class Post < ActiveRecord::Base
 end
 </ruby>
 
-The +:allow_destroy+ option on the nested attribute declaration tells Rails to
-display a "remove" checkbox on the view that you'll build shortly. The
-+:reject_if+ option prevents saving new tags that do not have any attributes
-filled in.
+The +:allow_destroy+ option tells Rails to enable destroying tags through the
+nested attributes (you'll handle that by displaying a "remove" checkbox on the
+view that you'll build shortly). The +:reject_if+ option prevents saving new
+tags that do not have any attributes filled in.
 
 We will modify +views/posts/_form.html.erb+ to render a partial to make a tag:
 
@@ -1765,7 +1771,7 @@ Finally, we will edit the <tt>app/views/posts/show.html.erb</tt> template to
 show our tags.
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1825,7 +1831,7 @@ Now you can edit the view in <tt>app/views/posts/show.html.erb</tt> to look like
 this:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
