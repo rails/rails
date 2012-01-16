@@ -99,6 +99,11 @@ module ActiveModel
       messages[key] = value
     end
 
+    # Delete messages for +key+
+    def delete(key)
+      messages.delete(key)
+    end
+
     # When passed a symbol or a name of a method, returns an array of errors
     # for the method.
     #
