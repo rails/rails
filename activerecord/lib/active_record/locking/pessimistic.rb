@@ -38,6 +38,18 @@ module ActiveRecord
     #     account2.save!
     #   end
     #
+    # You can start a transaction and acquire the lock in one go by calling
+    # <tt>lock!</tt> with a block. The block is called from within
+    # a transaction, the object is already locked. Example:
+    #
+    #   account = Account.first
+    #   account.lock! do
+    #     # This block is called within a transaction,
+    #     # account is already locked.
+    #     account.balance -= 100
+    #     account.save!
+    #   end
+    #
     # Database-specific information on row locking:
     #   MySQL: http://dev.mysql.com/doc/refman/5.1/en/innodb-locking-reads.html
     #   PostgreSQL: http://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
@@ -46,9 +58,19 @@ module ActiveRecord
       # lock. Pass an SQL locking clause to append the end of the SELECT statement
       # or pass true for "FOR UPDATE" (the default, an exclusive row lock). Returns
       # the locked record.
+      #
+      # If a block is given, it's called from within a transaction, with the
+      # object already locked.
       def lock!(lock = true)
-        reload(:lock => lock) if persisted?
-        self
+        if block_given?
+          transaction do
+            lock!(lock)
+            yield
+          end
+        else
+          reload(:lock => lock) if persisted?
+          self
+        end
       end
     end
   end
