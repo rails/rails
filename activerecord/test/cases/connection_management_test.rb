@@ -1,4 +1,5 @@
 require "cases/helper"
+require "rack"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -80,9 +81,10 @@ module ActiveRecord
 
       test "proxy is polite to it's body and responds to it" do
         body = Class.new(String) { def to_path; "/path"; end }.new
-        proxy = ConnectionManagement::Proxy.new(body)
-        assert proxy.respond_to?(:to_path)
-        assert_equal proxy.to_path, "/path"
+        app = lambda { |_| [200, {}, body] }
+        response_body = ConnectionManagement.new(app).call(@env)[2]
+        assert response_body.respond_to?(:to_path)
+        assert_equal response_body.to_path, "/path"
       end
     end
   end
