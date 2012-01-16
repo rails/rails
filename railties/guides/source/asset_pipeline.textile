@@ -121,16 +121,17 @@ h5. Search paths
 
 When a file is referenced from a manifest or a helper, Sprockets searches the three default asset locations for it.
 
-The default locations are: The subdirectory +images+ under +app/assets+, and the subdirectories +javascripts+ and +stylsheets+ in all three asset locations.
+The default locations are: +app/assets/images+ and the subdirectories +javascripts+ and +stylesheets+ in all three asset locations.
 
 For example, these files:
+
 <plain>
 app/assets/javascripts/home.js
 lib/assets/javascripts/moovinator.js
 vendor/assets/javascript/slider.js
 </plain>
 
-would be referenced in a manfest like this:
+would be referenced in a manifest like this:
 
 <plain>
 //= require home
@@ -138,7 +139,7 @@ would be referenced in a manfest like this:
 //= require slider
 </plain>
 
-Asset in subdirectories can also be accessed.
+Assets inside subdirectories can also be accessed.
 
 <plain>
 app/assets/javascripts/sub/something.js
@@ -166,9 +167,7 @@ h5. Using index files
 
 Sprockets uses files named +index+ (with the relevant extensions) for a special purpose.
 
-To explain by example, if you have a jQuery library with many modules this can be stored in +lib/assets/library_name+.
-
-The file +lib/assets/library_name/index.js+ serves as the manifest for all files in this library. This file could include a list of all the required files in order, or a simple require_tree directive.
+For example, if you have a jQuery library with many modules, which is stored in +lib/assets/library_name+, the file +lib/assets/library_name/index.js+ serves as the manifest for all files in this library. This file could include a list of all the required files in order, or a simple <tt>require_tree</tt> directive.
 
 The library as a whole can be accessed in the site's application manifest like so:
 
@@ -176,7 +175,7 @@ The library as a whole can be accessed in the site's application manifest like s
 //= require library_name
 </plain>
 
-This simplifies maintainance and keeps things clean by allowing related code to be grouped before inclusion elsewhere.
+This simplifies maintenance and keeps things clean by allowing related code to be grouped before inclusion elsewhere.
 
 h4. Coding Links to Assets
 
