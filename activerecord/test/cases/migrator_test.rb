@@ -1,4 +1,5 @@
 require "cases/helper"
+require "cases/migration/helper"
 
 module ActiveRecord
   class MigratorTest < ActiveRecord::TestCase

@@ -1,4 +1,5 @@
 require "cases/helper"
+require "cases/migration/helper"
 require 'bigdecimal/util'
 
 require 'models/person'
@@ -15,28 +16,6 @@ class BigNumber < ActiveRecord::Base; end
 class Reminder < ActiveRecord::Base; end
 
 class Thing < ActiveRecord::Base; end
-
-class ActiveRecord::Migration
-  class << self
-    attr_accessor :message_count
-  end
-
-  def puts(text="")
-    ActiveRecord::Migration.message_count ||= 0
-    ActiveRecord::Migration.message_count += 1
-  end
-end
-
-module ActiveRecord
-  class MigrationTest < ActiveRecord::TestCase
-    attr_reader :connection
-
-    def setup
-      super
-      @connection = Base.connection
-    end
-  end
-end
 
 class MigrationTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
