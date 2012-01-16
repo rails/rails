@@ -221,6 +221,30 @@ module ActiveRecord
       assert_equal(0, ActiveRecord::Migrator.current_version)
     end
 
+    def test_migrator_verbosity
+      _, migrations = sensors(3)
+
+      ActiveRecord::Migrator.new(:up, migrations, 1).migrate
+      assert_not_equal 0, ActiveRecord::Migration.message_count
+
+      ActiveRecord::Migration.message_count = 0
+
+      ActiveRecord::Migrator.new(:down, migrations, 0).migrate
+      assert_not_equal 0, ActiveRecord::Migration.message_count
+      ActiveRecord::Migration.message_count = 0
+    end
+
+    def test_migrator_verbosity_off
+      _, migrations = sensors(3)
+
+      ActiveRecord::Migration.message_count = 0
+      ActiveRecord::Migration.verbose = false
+      ActiveRecord::Migrator.new(:up, migrations, 1).migrate
+      assert_equal 0, ActiveRecord::Migration.message_count
+      ActiveRecord::Migrator.new(:down, migrations, 0).migrate
+      assert_equal 0, ActiveRecord::Migration.message_count
+    end
+
     private
     def m(name, version, &block)
       x = Sensor.new name, version

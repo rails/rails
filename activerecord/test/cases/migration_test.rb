@@ -269,24 +269,6 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_migrator_verbosity
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-    assert_not_equal 0, ActiveRecord::Migration.message_count
-    ActiveRecord::Migration.message_count = 0
-
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-    assert_not_equal 0, ActiveRecord::Migration.message_count
-    ActiveRecord::Migration.message_count = 0
-  end
-
-  def test_migrator_verbosity_off
-    ActiveRecord::Migration.verbose = false
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-    assert_equal 0, ActiveRecord::Migration.message_count
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-    assert_equal 0, ActiveRecord::Migration.message_count
-  end
-
   def test_migrator_going_down_due_to_version_target
     ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
     ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)

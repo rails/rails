@@ -341,14 +341,13 @@ module ActiveRecord
 
     cattr_accessor :verbose
 
-    attr_accessor :name, :version, :verbose
+    attr_accessor :name, :version
 
     def initialize(name = self.class.name, version = nil)
       @name       = name
       @version    = version
       @connection = nil
       @reverting  = false
-      @verbose    = self.class.verbose
     end
 
     # instantiate the delegate object after initialize is defined
