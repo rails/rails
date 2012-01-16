@@ -406,35 +406,6 @@ module ActiveRecord
     end
 
     class ConnectionManagement
-      class Proxy # :nodoc:
-        attr_reader :body, :testing
-
-        def initialize(body, testing = false)
-          @body    = body
-          @testing = testing
-        end
-
-        def method_missing(method_sym, *arguments, &block)
-          @body.send(method_sym, *arguments, &block)
-        end
-
-        def respond_to?(method_sym, include_private = false)
-          super || @body.respond_to?(method_sym)
-        end
-
-        def each(&block)
-          body.each(&block)
-        end
-
-        def close
-          body.close if body.respond_to?(:close)
-
-          # Don't return connection (and perform implicit rollback) if
-          # this request is a part of integration test
-          ActiveRecord::Base.clear_active_connections! unless testing
-        end
-      end
-
       def initialize(app)
         @app = app
       end
@@ -442,9 +413,12 @@ module ActiveRecord
       def call(env)
         testing = env.key?('rack.test')
 
-        status, headers, body = @app.call(env)
+        response = @app.call(env)
+        response[2] = ::Rack::BodyProxy.new(response[2]) do
+          ActiveRecord::Base.clear_active_connections! unless testing
+        end
 
-        [status, headers, Proxy.new(body, testing)]
+        response
       rescue
         ActiveRecord::Base.clear_active_connections! unless testing
         raise
