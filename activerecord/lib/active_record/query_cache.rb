@@ -27,47 +27,22 @@ module ActiveRecord
       @app = app
     end
 
-    class BodyProxy # :nodoc:
-      def initialize(original_cache_value, target, connection_id)
-        @original_cache_value = original_cache_value
-        @target               = target
-        @connection_id        = connection_id
-      end
-
-      def method_missing(method_sym, *arguments, &block)
-        @target.send(method_sym, *arguments, &block)
-      end
-
-      def respond_to?(method_sym, include_private = false)
-        super || @target.respond_to?(method_sym)
-      end
-
-      def each(&block)
-        @target.each(&block)
-      end
-
-      def close
-        @target.close if @target.respond_to?(:close)
-      ensure
-        ActiveRecord::Base.connection_id = @connection_id
-        ActiveRecord::Base.connection.clear_query_cache
-        unless @original_cache_value
-          ActiveRecord::Base.connection.disable_query_cache!
-        end
-      end
-    end
-
     def call(env)
-      old = ActiveRecord::Base.connection.query_cache_enabled
+      enabled       = ActiveRecord::Base.connection.query_cache_enabled
+      connection_id = ActiveRecord::Base.connection_id
       ActiveRecord::Base.connection.enable_query_cache!
 
-      status, headers, body = @app.call(env)
-      [status, headers, BodyProxy.new(old, body, ActiveRecord::Base.connection_id)]
+      response = @app.call(env)
+      response[2] = Rack::BodyProxy.new(response[2]) do
+        ActiveRecord::Base.connection_id = connection_id
+        ActiveRecord::Base.connection.clear_query_cache
+        ActiveRecord::Base.connection.disable_query_cache! unless enabled
+      end
+
+      response
     rescue Exception => e
       ActiveRecord::Base.connection.clear_query_cache
-      unless old
-        ActiveRecord::Base.connection.disable_query_cache!
-      end
+      ActiveRecord::Base.connection.disable_query_cache! unless enabled
       raise e
     end
   end

@@ -2,6 +2,8 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'rack', :git => 'git://github.com/rack/rack.git'
+
 if ENV['AREL']
   gem 'arel', :path => ENV['AREL']
 else

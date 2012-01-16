@@ -1,4 +1,5 @@
 require "cases/helper"
+require "rack"
 
 module ActiveRecord
   module IdentityMap
@@ -19,6 +20,7 @@ module ActiveRecord
         called = false
         mw = Middleware.new lambda { |env|
           called = true
+          [200, {}, nil]
         }
         mw.call({})
         assert called, 'middleware delegated'
@@ -27,6 +29,7 @@ module ActiveRecord
       def test_im_enabled_during_delegation
         mw = Middleware.new lambda { |env|
           assert IdentityMap.enabled?, 'identity map should be enabled'
+          [200, {}, nil]
         }
         mw.call({})
       end

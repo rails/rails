@@ -2,6 +2,8 @@ source 'https://rubygems.org'
 
 <%= rails_gemfile_entry -%>
 
+gem 'rack', :git => 'https://github.com/rack/rack.git'
+
 <%= database_gemfile_entry -%>
 
 <%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
