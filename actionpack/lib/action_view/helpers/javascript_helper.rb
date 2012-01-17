@@ -18,7 +18,7 @@ module ActionView
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #
-      # Also available through the alias j(). This is particularly helpful in JavaScript responses, like:
+      # This is particularly helpful in JavaScript responses, like:
       #
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
