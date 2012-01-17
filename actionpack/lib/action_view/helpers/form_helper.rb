@@ -876,20 +876,7 @@ module ActionView
       #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" size="30" type="search" />
       #
       def search_field(object_name, method, options = {})
-        options = options.stringify_keys
-
-        if options["autosave"]
-          if options["autosave"] == true
-            options["autosave"] = request.host.split(".").reverse.join(".")
-          end
-          options["results"] ||= 10
-        end
-
-        if options["onsearch"]
-          options["incremental"] = true unless options.has_key?("incremental")
-        end
-
-        InstanceTag.new(object_name, method, self, options.delete("object")).to_input_field_tag("search", options)
+        ActionView::Helpers::Tags::SearchField.new(object_name, method, self, options).render
       end
 
       # Returns a text_field of type "tel".
