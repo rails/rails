@@ -9,8 +9,8 @@ module ActionController
 
     # Temporary hax
     included do
-      ::ActionController::UnknownAction = ::AbstractController::ActionNotFound
-      ::ActionController::DoubleRenderError = ::AbstractController::DoubleRenderError
+      ::ActionController::UnknownAction = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('ActionController::UnknownAction', '::AbstractController::ActionNotFound')
+      ::ActionController::DoubleRenderError = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('ActionController::DoubleRenderError', '::AbstractController::DoubleRenderError')
 
       # ROUTES TODO: This should be handled by a middleware and route generation
       # should be able to handle SCRIPT_NAME

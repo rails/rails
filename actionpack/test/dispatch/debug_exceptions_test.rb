@@ -24,7 +24,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/pass"
         [404, { "X-Cascade" => "pass" }, self]
       when "/not_found"
-        raise ActionController::UnknownAction
+        raise AbstractController::ActionNotFound
       when "/runtime_error"
         raise RuntimeError
       when "/method_not_allowed"
@@ -83,7 +83,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 404
-    assert_match(/#{ActionController::UnknownAction.name}/, body)
+    assert_match(/#{AbstractController::ActionNotFound.name}/, body)
 
     get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 405
