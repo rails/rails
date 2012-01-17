@@ -80,7 +80,7 @@ module ActiveModel
       #   validates :password, :presence => true, :confirmation => true, :if => :password_required?
       #
       def validates(*attributes)
-        defaults = attributes.extract_options!
+        defaults = attributes.extract_options!.dup
         validations = defaults.slice!(*_validates_default_keys)
 
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
