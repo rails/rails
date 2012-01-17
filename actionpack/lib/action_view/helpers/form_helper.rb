@@ -920,7 +920,7 @@ module ActionView
       # ==== Options
       # * Accepts same options as range_field_tag
       def range_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("range", options)
+        ActionView::Helpers::Tags::RangeField.new(object_name, method, self, options).render
       end
 
       private
@@ -968,16 +968,6 @@ module ActionView
         options["value"] &&= ERB::Util.html_escape(options["value"])
         add_default_name_and_id(options)
         tag("input", options)
-      end
-
-      def to_number_field_tag(field_type, options = {})
-        options = options.stringify_keys
-        options['size'] ||= nil
-
-        if range = options.delete("in") || options.delete("within")
-          options.update("min" => range.min, "max" => range.max)
-        end
-        to_input_field_tag(field_type, options)
       end
 
       def to_boolean_select_tag(options = {})
