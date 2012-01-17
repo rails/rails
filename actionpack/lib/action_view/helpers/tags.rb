@@ -16,6 +16,7 @@ module ActionView
       autoload :TextArea,      'action_view/helpers/tags/text_area'
       autoload :CheckBox,      'action_view/helpers/tags/check_box'
       autoload :RadioButton,   'action_view/helpers/tags/radio_button'
+      autoload :Select,        'action_view/helpers/tags/select'
     end
   end
 end

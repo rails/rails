@@ -154,7 +154,7 @@ module ActionView
       # key in the query string, that works for ordinary forms.
       #
       def select(object, method, choices, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, options.delete(:object)).to_select_tag(choices, options, html_options)
+        ActionView::Helpers::Tags::Select.new(object, method, self, choices, options, html_options).render
       end
 
       # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
@@ -575,23 +575,6 @@ module ActionView
 
     class InstanceTag #:nodoc:
       include FormOptionsHelper
-
-      def to_select_tag(choices, options, html_options)
-        selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
-
-        # Grouped choices look like this:
-        #
-        #   [nil, []]
-        #   { nil => [] }
-        #
-        if !choices.empty? && choices.first.respond_to?(:last) && Array === choices.first.last
-          option_tags = grouped_options_for_select(choices, :selected => selected_value, :disabled => options[:disabled])
-        else
-          option_tags = options_for_select(choices, :selected => selected_value, :disabled => options[:disabled])
-        end
-
-        select_content_tag(option_tags, options, html_options)
-      end
 
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)
         selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
