@@ -34,10 +34,6 @@ module ActionView
 
         private
 
-        def value(object)
-          object.send @method_name if object
-        end
-
         def check_box_checked?(value)
           case value
           when TrueClass, FalseClass

@@ -9,6 +9,7 @@ module ActionView
       autoload :FileField,     'action_view/helpers/tags/file_field'
       autoload :TextArea,      'action_view/helpers/tags/text_area'
       autoload :CheckBox,      'action_view/helpers/tags/check_box'
+      autoload :RadioButton,   'action_view/helpers/tags/radio_button'
     end
   end
 end

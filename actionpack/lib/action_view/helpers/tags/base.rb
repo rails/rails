@@ -24,6 +24,10 @@ module ActionView
 
         private
 
+        def value(object)
+          object.send @method_name if object
+        end
+
         def value_before_type_cast(object)
           unless object.nil?
             object.respond_to?(@method_name + "_before_type_cast") ?

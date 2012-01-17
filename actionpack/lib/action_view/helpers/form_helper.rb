@@ -850,7 +850,7 @@ module ActionView
       #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
       #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked" />
       def radio_button(object_name, method, tag_value, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_radio_button_tag(tag_value, options)
+        ActionView::Helpers::Tags::RadioButton.new(object_name, method, self, tag_value, options).render
       end
 
       # Returns an input of type "search" for accessing a specified attribute (identified by +method+) on an object
@@ -959,7 +959,6 @@ module ActionView
       attr_reader :object, :method_name, :object_name
 
       DEFAULT_FIELD_OPTIONS     = { "size" => 30 }
-      DEFAULT_RADIO_OPTIONS     = { }
 
       def initialize(object_name, method_name, template_object, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
@@ -992,21 +991,6 @@ module ActionView
           options.update("min" => range.min, "max" => range.max)
         end
         to_input_field_tag(field_type, options)
-      end
-
-      def to_radio_button_tag(tag_value, options = {})
-        options = DEFAULT_RADIO_OPTIONS.merge(options.stringify_keys)
-        options["type"]     = "radio"
-        options["value"]    = tag_value
-        if options.has_key?("checked")
-          cv = options.delete "checked"
-          checked = cv == true || cv == "checked"
-        else
-          checked = self.class.radio_button_checked?(value(object), tag_value)
-        end
-        options["checked"]  = "checked" if checked
-        add_default_name_and_id_for_value(tag_value, options)
-        tag("input", options)
       end
 
       def to_boolean_select_tag(options = {})
@@ -1065,10 +1049,6 @@ module ActionView
             object.send(method_name + "_before_type_cast") :
             object.send(method_name)
           end
-        end
-
-        def radio_button_checked?(value, checked_value)
-          value.to_s == checked_value.to_s
         end
       end
 
