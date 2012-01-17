@@ -91,29 +91,23 @@ module ActiveSupport
     class Callback #:nodoc:#
       @@_callback_sequence = 0
 
-      attr_accessor :chain, :filter, :kind, :options, :per_key, :klass, :raw_filter
+      attr_accessor :chain, :filter, :kind, :options, :klass, :raw_filter
 
       def initialize(chain, filter, kind, options, klass)
         @chain, @kind, @klass = chain, kind, klass
         normalize_options!(options)
 
-        @per_key              = options.delete(:per_key)
         @raw_filter, @options = filter, options
         @filter               = _compile_filter(filter)
         @compiled_options     = _compile_options(options)
         @callback_id          = next_id
-
-        _compile_per_key_options
       end
 
       def clone(chain, klass)
         obj                  = super()
         obj.chain            = chain
         obj.klass            = klass
-        obj.per_key          = @per_key.dup
         obj.options          = @options.dup
-        obj.per_key[:if]     = @per_key[:if].dup
-        obj.per_key[:unless] = @per_key[:unless].dup
         obj.options[:if]     = @options[:if].dup
         obj.options[:unless] = @options[:unless].dup
         obj
@@ -124,8 +118,9 @@ module ActiveSupport
         options[:unless] = Array(options[:unless])
 
         options[:per_key] ||= {}
-        options[:per_key][:if] = Array(options[:per_key][:if])
-        options[:per_key][:unless] = Array(options[:per_key][:unless])
+
+        options[:if] += Array(options[:per_key][:if])
+        options[:unless] += Array(options[:per_key][:unless])
       end
 
       def name
@@ -147,22 +142,11 @@ module ActiveSupport
 
       def recompile!(_options, _per_key)
         _update_filter(self.options, _options)
-        _update_filter(self.per_key, _per_key)
+        _update_filter(self.options, _per_key)
 
         @callback_id      = next_id
         @filter           = _compile_filter(@raw_filter)
         @compiled_options = _compile_options(@options)
-                            _compile_per_key_options
-      end
-
-      def _compile_per_key_options
-        key_options  = _compile_options(@per_key)
-
-        @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-          def _one_time_conditions_valid_#{@callback_id}?
-            true if #{key_options}
-          end
-        RUBY_EVAL
       end
 
       # Wraps code with filter
@@ -198,11 +182,6 @@ module ActiveSupport
           end
           RUBY_EVAL
         end
-      end
-
-
-      def one_time_conditions_valid?(object)
-        object.send("_one_time_conditions_valid_#{@callback_id}?")
       end
 
       private
@@ -341,7 +320,7 @@ module ActiveSupport
         method << "halted = false"
 
         callbacks = yielding
-        applicable_callbacks_for(key, object).reverse_each do |callback|
+        reverse_each do |callback|
           callbacks = callback.apply(callbacks, key, object)
         end
         method << callbacks
@@ -369,13 +348,6 @@ module ActiveSupport
         method.join("\n")
       end
 
-      # Selects callbacks that have valid <tt>:per_key</tt> condition
-      def applicable_callbacks_for(key, object)
-        return self unless key
-        select do |callback|
-          callback.one_time_conditions_valid?(object)
-        end
-      end
     end
 
     module ClassMethods
@@ -402,7 +374,7 @@ module ActiveSupport
       end
 
       def __callback_runner_name(key, kind)
-        "_run__#{self.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
+        "_run__#{self.name.hash.abs}__#{kind}__callbacks"
       end
 
       # This is used internally to append, prepend and skip callbacks to the
