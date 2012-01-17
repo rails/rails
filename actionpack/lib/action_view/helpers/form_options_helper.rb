@@ -188,9 +188,8 @@ module ActionView
       #     <option value="3">M. Clark</option>
       #   </select>
       def collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, options.delete(:object)).to_collection_select_tag(collection, value_method, text_method, options, html_options)
+        ActionView::Helpers::Tags::CollectionSelect.new(object, method, self, collection, value_method, text_method, options, html_options).render
       end
-
 
       # Returns <tt><select></tt>, <tt><optgroup></tt> and <tt><option></tt> tags for the collection of existing return values of
       # +method+ for +object+'s class. The value returned from calling +method+ on the instance +object+ will
@@ -575,13 +574,6 @@ module ActionView
 
     class InstanceTag #:nodoc:
       include FormOptionsHelper
-
-      def to_collection_select_tag(collection, value_method, text_method, options, html_options)
-        selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
-        select_content_tag(
-          options_from_collection_for_select(collection, value_method, text_method, :selected => selected_value, :disabled => options[:disabled]), options, html_options
-        )
-      end
 
       def to_grouped_collection_select_tag(collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options)
         select_content_tag(
