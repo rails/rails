@@ -70,12 +70,16 @@ class ContentTypeTest < ActionController::TestCase
   end
 
   def test_render_changed_charset_default
-    OldContentTypeController.default_charset = "utf-16"
-    get :render_defaults
-    assert_equal "utf-16", @response.charset
-    assert_equal Mime::HTML, @response.content_type
-  ensure
-    OldContentTypeController.default_charset = "utf-8"
+    assert_deprecated /Setting default charset at controller.*config\.action_dispatch\.default_charset/ do
+      begin
+        OldContentTypeController.default_charset = "utf-16"
+        get :render_defaults
+        assert_equal "utf-16", @response.charset
+        assert_equal Mime::HTML, @response.content_type
+      ensure
+        OldContentTypeController.default_charset = "utf-8"
+      end
+    end
   end
 
   # :ported:
@@ -107,12 +111,16 @@ class ContentTypeTest < ActionController::TestCase
   end
 
   def test_nil_default_for_erb
-    OldContentTypeController.default_charset = nil
-    get :render_default_for_erb
-    assert_equal Mime::HTML, @response.content_type
-    assert_nil @response.charset, @response.headers.inspect
-  ensure
-    OldContentTypeController.default_charset = "utf-8"
+    assert_deprecated /Setting default charset at controller.*config\.action_dispatch\.default_charset/ do
+      begin
+        OldContentTypeController.default_charset = nil
+        get :render_default_for_erb
+        assert_equal Mime::HTML, @response.content_type
+        assert_nil @response.charset, @response.headers.inspect
+      ensure
+        OldContentTypeController.default_charset = "utf-8"
+      end
+    end
   end
 
   def test_default_for_erb

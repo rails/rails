@@ -16,8 +16,10 @@ module ActionController
       # should be able to handle SCRIPT_NAME
       self.config.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
 
-      class << self
-        delegate :default_charset=, :to => "ActionDispatch::Response"
+      def self.default_charset=(new_charset)
+        ActiveSupport::Deprecation.warn "Setting default charset at controller level" \
+          " is deprecated, please use `config.action_dispatch.default_charset` instead", caller
+        ActionDispatch::Response.default_charset = new_charset
       end
 
       self.protected_instance_variables = %w(
