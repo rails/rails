@@ -904,7 +904,7 @@ module ActionView
       #   # => <input id="user_address" size="30" name="user[address]" type="email" />
       #
       def email_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("email", options)
+        ActionView::Helpers::Tags::EmailField.new(object_name, method, self, options).render
       end
 
       # Returns an input tag of type "number".
