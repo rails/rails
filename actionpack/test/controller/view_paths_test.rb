@@ -22,16 +22,9 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def setup
-    # TestController.view_paths = nil
-
     @request  = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
-
     @controller = TestController.new
-    # Following is needed in order to setup @controller.template object properly
-    @controller.send :assign_shortcuts, @request, @response
-    @controller.send :initialize_template_class, @response
-
     @paths = TestController.view_paths
   end
 
