@@ -21,7 +21,7 @@ module Sprockets
       require 'sprockets'
 
       app.assets = Sprockets::Environment.new(app.root.to_s) do |env|
-        env.logger  = ::Rails.logger
+        env.logger  = config.assets.logger || ::Rails.logger
         env.version = ::Rails.env + "-#{config.assets.version}"
 
         if config.assets.cache_store != false
