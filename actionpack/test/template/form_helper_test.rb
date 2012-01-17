@@ -232,6 +232,10 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal('<label for="post_title">The title, please:</label>', label(:post, :title) { "The title, please:" })
   end
 
+  def test_label_with_block_and_options
+    assert_dom_equal('<label for="my_for">The title, please:</label>', label(:post, :title, "for" => "my_for") { "The title, please:" })
+  end
+
   def test_label_with_block_in_erb
     assert_equal "<label for=\"post_message\">\n  Message\n  <input id=\"post_message\" name=\"post[message]\" size=\"30\" type=\"text\" />\n</label>", view.render("test/label_with_block")
   end

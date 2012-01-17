@@ -154,7 +154,7 @@ module ActionView
       # key in the query string, that works for ordinary forms.
       #
       def select(object, method, choices, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, options.delete(:object)).to_select_tag(choices, options, html_options)
+        Tags::Select.new(object, method, self, choices, options, html_options).render
       end
 
       # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
@@ -188,9 +188,8 @@ module ActionView
       #     <option value="3">M. Clark</option>
       #   </select>
       def collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, options.delete(:object)).to_collection_select_tag(collection, value_method, text_method, options, html_options)
+        Tags::CollectionSelect.new(object, method, self, collection, value_method, text_method, options, html_options).render
       end
-
 
       # Returns <tt><select></tt>, <tt><optgroup></tt> and <tt><option></tt> tags for the collection of existing return values of
       # +method+ for +object+'s class. The value returned from calling +method+ on the instance +object+ will
@@ -240,7 +239,7 @@ module ActionView
       #   </select>
       #
       def grouped_collection_select(object, method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, options.delete(:object)).to_grouped_collection_select_tag(collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options)
+        Tags::GroupedCollectionSelect.new(object, method, self, collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options).render
       end
 
       # Return select and option tags for the given object and method, using
@@ -274,7 +273,7 @@ module ActionView
       #
       #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, :model => ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
-        InstanceTag.new(object, method, self,  options.delete(:object)).to_time_zone_select_tag(priority_zones, options, html_options)
+        Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
       end
 
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
@@ -569,69 +568,6 @@ module ActionView
             end.compact
           else
             selected
-          end
-        end
-    end
-
-    class InstanceTag #:nodoc:
-      include FormOptionsHelper
-
-      def to_select_tag(choices, options, html_options)
-        selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
-
-        # Grouped choices look like this:
-        #
-        #   [nil, []]
-        #   { nil => [] }
-        #
-        if !choices.empty? && choices.first.respond_to?(:last) && Array === choices.first.last
-          option_tags = grouped_options_for_select(choices, :selected => selected_value, :disabled => options[:disabled])
-        else
-          option_tags = options_for_select(choices, :selected => selected_value, :disabled => options[:disabled])
-        end
-
-        select_content_tag(option_tags, options, html_options)
-      end
-
-      def to_collection_select_tag(collection, value_method, text_method, options, html_options)
-        selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
-        select_content_tag(
-          options_from_collection_for_select(collection, value_method, text_method, :selected => selected_value, :disabled => options[:disabled]), options, html_options
-        )
-      end
-
-      def to_grouped_collection_select_tag(collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options)
-        select_content_tag(
-          option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, value(object)), options, html_options
-        )
-      end
-
-      def to_time_zone_select_tag(priority_zones, options, html_options)
-        select_content_tag(
-            time_zone_options_for_select(value(object) || options[:default], priority_zones, options[:model] || ActiveSupport::TimeZone), options, html_options
-        )
-      end
-
-      private
-        def add_options(option_tags, options, value = nil)
-          if options[:include_blank]
-            option_tags = "<option value=\"\">#{ERB::Util.html_escape(options[:include_blank]) if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
-          end
-          if value.blank? && options[:prompt]
-            prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = "<option value=\"\">#{ERB::Util.html_escape(prompt)}</option>\n" + option_tags
-          end
-          option_tags.html_safe
-        end
-
-        def select_content_tag(option_tags, options, html_options)
-          html_options = html_options.stringify_keys
-          add_default_name_and_id(html_options)
-          select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
-          if html_options["multiple"]
-            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select
-          else
-            select
           end
         end
     end

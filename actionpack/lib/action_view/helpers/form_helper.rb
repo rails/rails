@@ -3,6 +3,7 @@ require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
 require 'action_view/helpers/active_model_helper'
+require 'action_view/helpers/tags'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
@@ -654,16 +655,7 @@ module ActionView
       #     'Accept <a href="/terms">Terms</a>.'.html_safe
       #   end
       def label(object_name, method, content_or_options = nil, options = nil, &block)
-        content_is_options = content_or_options.is_a?(Hash)
-        if content_is_options || block_given?
-          options = content_or_options if content_is_options
-          text = nil
-        else
-          text = content_or_options
-        end
-
-        options ||= {}
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_label_tag(text, options, &block)
+        Tags::Label.new(object_name, method, self, content_or_options, options).render(&block)
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -685,7 +677,7 @@ module ActionView
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
       #
       def text_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("text", options)
+        Tags::TextField.new(object_name, method, self, options).render
       end
 
       # Returns an input tag of the "password" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -707,7 +699,7 @@ module ActionView
       #   # => <input type="password" id="account_pin" name="account[pin]" size="20" class="form_input" />
       #
       def password_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("password", { :value => nil }.merge!(options))
+        Tags::PasswordField.new(object_name, method, self, options).render
       end
 
       # Returns a hidden input tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -725,7 +717,7 @@ module ActionView
       #   hidden_field(:user, :token)
       #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
       def hidden_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("hidden", options)
+        Tags::HiddenField.new(object_name, method, self, options).render
       end
 
       # Returns a file upload input tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -746,7 +738,7 @@ module ActionView
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       #
       def file_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("file", options.update({:size => nil}))
+        Tags::FileField.new(object_name, method, self, options).render
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
@@ -774,7 +766,7 @@ module ActionView
       #   #      #{@entry.body}
       #   #    </textarea>
       def text_area(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_text_area_tag(options)
+        Tags::TextArea.new(object_name, method, self, options).render
       end
 
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -836,7 +828,7 @@ module ActionView
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
       #
       def check_box(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_check_box_tag(options, checked_value, unchecked_value)
+        Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options).render
       end
 
       # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
@@ -858,7 +850,7 @@ module ActionView
       #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
       #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked" />
       def radio_button(object_name, method, tag_value, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_radio_button_tag(tag_value, options)
+        Tags::RadioButton.new(object_name, method, self, tag_value, options).render
       end
 
       # Returns an input of type "search" for accessing a specified attribute (identified by +method+) on an object
@@ -884,20 +876,7 @@ module ActionView
       #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" size="30" type="search" />
       #
       def search_field(object_name, method, options = {})
-        options = options.stringify_keys
-
-        if options["autosave"]
-          if options["autosave"] == true
-            options["autosave"] = request.host.split(".").reverse.join(".")
-          end
-          options["results"] ||= 10
-        end
-
-        if options["onsearch"]
-          options["incremental"] = true unless options.has_key?("incremental")
-        end
-
-        InstanceTag.new(object_name, method, self, options.delete("object")).to_input_field_tag("search", options)
+        Tags::SearchField.new(object_name, method, self, options).render
       end
 
       # Returns a text_field of type "tel".
@@ -906,7 +885,7 @@ module ActionView
       #   # => <input id="user_phone" name="user[phone]" size="30" type="tel" />
       #
       def telephone_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("tel", options)
+        Tags::TelField.new(object_name, method, self, options).render
       end
       alias phone_field telephone_field
 
@@ -916,7 +895,7 @@ module ActionView
       #   # => <input id="user_homepage" size="30" name="user[homepage]" type="url" />
       #
       def url_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("url", options)
+        Tags::UrlField.new(object_name, method, self, options).render
       end
 
       # Returns a text_field of type "email".
@@ -925,7 +904,7 @@ module ActionView
       #   # => <input id="user_address" size="30" name="user[address]" type="email" />
       #
       def email_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("email", options)
+        Tags::EmailField.new(object_name, method, self, options).render
       end
 
       # Returns an input tag of type "number".
@@ -933,7 +912,7 @@ module ActionView
       # ==== Options
       # * Accepts same options as number_field_tag
       def number_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("number", options)
+        Tags::NumberField.new(object_name, method, self, options).render
       end
 
       # Returns an input tag of type "range".
@@ -941,7 +920,7 @@ module ActionView
       # ==== Options
       # * Accepts same options as range_field_tag
       def range_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("range", options)
+        Tags::RangeField.new(object_name, method, self, options).render
       end
 
       private
@@ -958,272 +937,6 @@ module ActionView
 
           builder = options[:builder] || ActionView::Base.default_form_builder
           builder.new(object_name, object, self, options, block)
-        end
-    end
-
-    class InstanceTag
-      include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
-
-      attr_reader :object, :method_name, :object_name
-
-      DEFAULT_FIELD_OPTIONS     = { "size" => 30 }
-      DEFAULT_RADIO_OPTIONS     = { }
-      DEFAULT_TEXT_AREA_OPTIONS = { "cols" => 40, "rows" => 20 }
-
-      def initialize(object_name, method_name, template_object, object = nil)
-        @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
-        @template_object = template_object
-
-        @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
-        @object = retrieve_object(object)
-        @auto_index = retrieve_autoindex(Regexp.last_match.pre_match) if Regexp.last_match
-      end
-
-      def to_label_tag(text = nil, options = {}, &block)
-        options = options.stringify_keys
-        tag_value = options.delete("value")
-        name_and_id = options.dup
-
-        if name_and_id["for"]
-          name_and_id["id"] = name_and_id["for"]
-        else
-          name_and_id.delete("id")
-        end
-
-        add_default_name_and_id_for_value(tag_value, name_and_id)
-        options.delete("index")
-        options.delete("namespace")
-        options["for"] ||= name_and_id["id"]
-
-        if block_given?
-          @template_object.label_tag(name_and_id["id"], options, &block)
-        else
-          content = if text.blank?
-            object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
-            method_and_value = tag_value.present? ? "#{method_name}.#{tag_value}" : method_name
-
-            if object.respond_to?(:to_model)
-              key = object.class.model_name.i18n_key
-              i18n_default = ["#{key}.#{method_and_value}".to_sym, ""]
-            end
-
-            i18n_default ||= ""
-            I18n.t("#{object_name}.#{method_and_value}", :default => i18n_default, :scope => "helpers.label").presence
-          else
-            text.to_s
-          end
-
-          content ||= if object && object.class.respond_to?(:human_attribute_name)
-            object.class.human_attribute_name(method_name)
-          end
-
-          content ||= method_name.humanize
-
-          label_tag(name_and_id["id"], content, options)
-        end
-      end
-
-      def to_input_field_tag(field_type, options = {})
-        options = options.stringify_keys
-        options["size"] = options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"] unless options.key?("size")
-        options = DEFAULT_FIELD_OPTIONS.merge(options)
-        if field_type == "hidden"
-          options.delete("size")
-        end
-        options["type"]  ||= field_type
-        options["value"] = options.fetch("value"){ value_before_type_cast(object) } unless field_type == "file"
-        options["value"] &&= ERB::Util.html_escape(options["value"])
-        add_default_name_and_id(options)
-        tag("input", options)
-      end
-
-      def to_number_field_tag(field_type, options = {})
-        options = options.stringify_keys
-        options['size'] ||= nil
-
-        if range = options.delete("in") || options.delete("within")
-          options.update("min" => range.min, "max" => range.max)
-        end
-        to_input_field_tag(field_type, options)
-      end
-
-      def to_radio_button_tag(tag_value, options = {})
-        options = DEFAULT_RADIO_OPTIONS.merge(options.stringify_keys)
-        options["type"]     = "radio"
-        options["value"]    = tag_value
-        if options.has_key?("checked")
-          cv = options.delete "checked"
-          checked = cv == true || cv == "checked"
-        else
-          checked = self.class.radio_button_checked?(value(object), tag_value)
-        end
-        options["checked"]  = "checked" if checked
-        add_default_name_and_id_for_value(tag_value, options)
-        tag("input", options)
-      end
-
-      def to_text_area_tag(options = {})
-        options = DEFAULT_TEXT_AREA_OPTIONS.merge(options.stringify_keys)
-        add_default_name_and_id(options)
-
-        if size = options.delete("size")
-          options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
-        end
-
-        content_tag("textarea", ERB::Util.html_escape(options.delete('value') || value_before_type_cast(object)), options)
-      end
-
-      def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
-        options = options.stringify_keys
-        options["type"]     = "checkbox"
-        options["value"]    = checked_value
-        if options.has_key?("checked")
-          cv = options.delete "checked"
-          checked = cv == true || cv == "checked"
-        else
-          checked = self.class.check_box_checked?(value(object), checked_value)
-        end
-        options["checked"] = "checked" if checked
-        if options["multiple"]
-          add_default_name_and_id_for_value(checked_value, options)
-          options.delete("multiple")
-        else
-          add_default_name_and_id(options)
-        end
-        hidden = unchecked_value ? tag("input", "name" => options["name"], "type" => "hidden", "value" => unchecked_value, "disabled" => options["disabled"]) : ""
-        checkbox = tag("input", options)
-        hidden + checkbox
-      end
-
-      def to_boolean_select_tag(options = {})
-        options = options.stringify_keys
-        add_default_name_and_id(options)
-        value = value(object)
-        tag_text = "<select"
-        tag_text << tag_options(options)
-        tag_text << "><option value=\"false\""
-        tag_text << " selected" if value == false
-        tag_text << ">False</option><option value=\"true\""
-        tag_text << " selected" if value
-        tag_text << ">True</option></select>"
-      end
-
-      def to_content_tag(tag_name, options = {})
-        content_tag(tag_name, value(object), options)
-      end
-
-      def retrieve_object(object)
-        if object
-          object
-        elsif @template_object.instance_variable_defined?("@#{@object_name}")
-          @template_object.instance_variable_get("@#{@object_name}")
-        end
-      rescue NameError
-        # As @object_name may contain the nested syntax (item[subobject]) we need to fallback to nil.
-        nil
-      end
-
-      def retrieve_autoindex(pre_match)
-        object = self.object || @template_object.instance_variable_get("@#{pre_match}")
-        if object && object.respond_to?(:to_param)
-          object.to_param
-        else
-          raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
-        end
-      end
-
-      def value(object)
-        self.class.value(object, @method_name)
-      end
-
-      def value_before_type_cast(object)
-        self.class.value_before_type_cast(object, @method_name)
-      end
-
-      class << self
-        def value(object, method_name)
-          object.send method_name if object
-        end
-
-        def value_before_type_cast(object, method_name)
-          unless object.nil?
-            object.respond_to?(method_name + "_before_type_cast") ?
-            object.send(method_name + "_before_type_cast") :
-            object.send(method_name)
-          end
-        end
-
-        def check_box_checked?(value, checked_value)
-          case value
-          when TrueClass, FalseClass
-            value
-          when NilClass
-            false
-          when Integer
-            value != 0
-          when String
-            value == checked_value
-          when Array
-            value.include?(checked_value)
-          else
-            value.to_i != 0
-          end
-        end
-
-        def radio_button_checked?(value, checked_value)
-          value.to_s == checked_value.to_s
-        end
-      end
-
-      private
-        def add_default_name_and_id_for_value(tag_value, options)
-          unless tag_value.nil?
-            pretty_tag_value = tag_value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase
-            specified_id = options["id"]
-            add_default_name_and_id(options)
-            options["id"] += "_#{pretty_tag_value}" if specified_id.blank? && options["id"].present?
-          else
-            add_default_name_and_id(options)
-          end
-        end
-
-        def add_default_name_and_id(options)
-          if options.has_key?("index")
-            options["name"] ||= tag_name_with_index(options["index"])
-            options["id"] = options.fetch("id"){ tag_id_with_index(options["index"]) }
-            options.delete("index")
-          elsif defined?(@auto_index)
-            options["name"] ||= tag_name_with_index(@auto_index)
-            options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
-          else
-            options["name"] ||= tag_name + (options['multiple'] ? '[]' : '')
-            options["id"] = options.fetch("id"){ tag_id }
-          end
-          options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
-        end
-
-        def tag_name
-          "#{@object_name}[#{sanitized_method_name}]"
-        end
-
-        def tag_name_with_index(index)
-          "#{@object_name}[#{index}][#{sanitized_method_name}]"
-        end
-
-        def tag_id
-          "#{sanitized_object_name}_#{sanitized_method_name}"
-        end
-
-        def tag_id_with_index(index)
-          "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
-        end
-
-        def sanitized_object_name
-          @sanitized_object_name ||= @object_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
-        end
-
-        def sanitized_method_name
-          @sanitized_method_name ||= @method_name.sub(/\?$/,"")
         end
     end
 
