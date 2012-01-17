@@ -14,7 +14,6 @@ module ActiveSupport
   class TaggedLogging
     def initialize(logger)
       @logger = logger
-      @tags   = Hash.new { |h,k| h[k] = [] }
     end
 
     def tagged(*new_tags)
@@ -39,7 +38,7 @@ module ActiveSupport
     end
 
     def flush
-      @tags.delete(Thread.current)
+      current_tags.clear
       @logger.flush if @logger.respond_to?(:flush)
     end
 
@@ -57,7 +56,7 @@ module ActiveSupport
     end
 
     def current_tags
-      @tags[Thread.current]
+      Thread.current[:activesupport_tagged_logging_tags] ||= []
     end
   end
 end
