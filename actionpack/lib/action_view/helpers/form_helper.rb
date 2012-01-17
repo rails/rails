@@ -885,7 +885,7 @@ module ActionView
       #   # => <input id="user_phone" name="user[phone]" size="30" type="tel" />
       #
       def telephone_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("tel", options)
+        ActionView::Helpers::Tags::TelField.new(object_name, method, self, options).render
       end
       alias phone_field telephone_field
 
