@@ -201,4 +201,26 @@ module RenderTemplate
       assert_status 200
     end
   end
+
+  module Compatibility
+    class WithoutLayoutController < ActionController::Base
+      self.view_paths = [ActionView::FixtureResolver.new(
+        "test/basic.html.erb" => "Hello from basic.html.erb",
+        "shared.html.erb"     => "Elastica"
+      )]
+
+      def with_forward_slash
+        render :template => "/test/basic"
+      end
+    end
+
+    class TestTemplateRenderWithForwardSlash < Rack::TestCase
+      test "rendering a normal template with full path starting with a leading slash" do
+        get "/render_template/compatibility/without_layout/with_forward_slash"
+
+        assert_body "Hello from basic.html.erb"
+        assert_status 200
+      end
+    end
+  end
 end
