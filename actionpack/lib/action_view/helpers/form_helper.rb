@@ -945,8 +945,6 @@ module ActionView
 
       attr_reader :object, :method_name, :object_name
 
-      DEFAULT_FIELD_OPTIONS     = { "size" => 30 }
-
       def initialize(object_name, method_name, template_object, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
         @template_object = template_object
@@ -977,77 +975,8 @@ module ActionView
       end
 
       def value(object)
-        self.class.value(object, @method_name)
+        object.send @method_name if object
       end
-
-      def value_before_type_cast(object)
-        self.class.value_before_type_cast(object, @method_name)
-      end
-
-      class << self
-        def value(object, method_name)
-          object.send method_name if object
-        end
-
-        def value_before_type_cast(object, method_name)
-          unless object.nil?
-            object.respond_to?(method_name + "_before_type_cast") ?
-            object.send(method_name + "_before_type_cast") :
-            object.send(method_name)
-          end
-        end
-      end
-
-      private
-        def add_default_name_and_id_for_value(tag_value, options)
-          unless tag_value.nil?
-            pretty_tag_value = tag_value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase
-            specified_id = options["id"]
-            add_default_name_and_id(options)
-            options["id"] += "_#{pretty_tag_value}" if specified_id.blank? && options["id"].present?
-          else
-            add_default_name_and_id(options)
-          end
-        end
-
-        def add_default_name_and_id(options)
-          if options.has_key?("index")
-            options["name"] ||= tag_name_with_index(options["index"])
-            options["id"] = options.fetch("id"){ tag_id_with_index(options["index"]) }
-            options.delete("index")
-          elsif defined?(@auto_index)
-            options["name"] ||= tag_name_with_index(@auto_index)
-            options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
-          else
-            options["name"] ||= tag_name + (options['multiple'] ? '[]' : '')
-            options["id"] = options.fetch("id"){ tag_id }
-          end
-          options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
-        end
-
-        def tag_name
-          "#{@object_name}[#{sanitized_method_name}]"
-        end
-
-        def tag_name_with_index(index)
-          "#{@object_name}[#{index}][#{sanitized_method_name}]"
-        end
-
-        def tag_id
-          "#{sanitized_object_name}_#{sanitized_method_name}"
-        end
-
-        def tag_id_with_index(index)
-          "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
-        end
-
-        def sanitized_object_name
-          @sanitized_object_name ||= @object_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
-        end
-
-        def sanitized_method_name
-          @sanitized_method_name ||= @method_name.sub(/\?$/,"")
-        end
     end
 
     class FormBuilder
