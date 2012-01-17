@@ -12,21 +12,15 @@ module ActionView
           options = @options.stringify_keys
           options["type"]     = "checkbox"
           options["value"]    = @checked_value
+          options["checked"] = "checked" if input_checked?(object, options)
 
-          if options.has_key?("checked")
-            cv = options.delete "checked"
-            checked = cv == true || cv == "checked"
-          else
-            checked = check_box_checked?(value(object))
-          end
-
-          options["checked"] = "checked" if checked
           if options["multiple"]
             add_default_name_and_id_for_value(@checked_value, options)
             options.delete("multiple")
           else
             add_default_name_and_id(options)
           end
+
           hidden = @unchecked_value ? tag("input", "name" => options["name"], "type" => "hidden", "value" => @unchecked_value, "disabled" => options["disabled"]) : ""
           checkbox = tag("input", options)
           hidden + checkbox
@@ -34,7 +28,7 @@ module ActionView
 
         private
 
-        def check_box_checked?(value)
+        def checked?(value)
           case value
           when TrueClass, FalseClass
             value
