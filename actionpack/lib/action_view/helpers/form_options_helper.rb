@@ -154,7 +154,7 @@ module ActionView
       # key in the query string, that works for ordinary forms.
       #
       def select(object, method, choices, options = {}, html_options = {})
-        ActionView::Helpers::Tags::Select.new(object, method, self, choices, options, html_options).render
+        Tags::Select.new(object, method, self, choices, options, html_options).render
       end
 
       # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
@@ -188,7 +188,7 @@ module ActionView
       #     <option value="3">M. Clark</option>
       #   </select>
       def collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
-        ActionView::Helpers::Tags::CollectionSelect.new(object, method, self, collection, value_method, text_method, options, html_options).render
+        Tags::CollectionSelect.new(object, method, self, collection, value_method, text_method, options, html_options).render
       end
 
       # Returns <tt><select></tt>, <tt><optgroup></tt> and <tt><option></tt> tags for the collection of existing return values of
@@ -239,7 +239,7 @@ module ActionView
       #   </select>
       #
       def grouped_collection_select(object, method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
-        ActionView::Helpers::Tags::GroupedCollectionSelect.new(object, method, self, collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options).render
+        Tags::GroupedCollectionSelect.new(object, method, self, collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options).render
       end
 
       # Return select and option tags for the given object and method, using
@@ -273,7 +273,7 @@ module ActionView
       #
       #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, :model => ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
-        ActionView::Helpers::Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
+        Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
       end
 
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
