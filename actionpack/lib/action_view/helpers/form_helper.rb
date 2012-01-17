@@ -895,7 +895,7 @@ module ActionView
       #   # => <input id="user_homepage" size="30" name="user[homepage]" type="url" />
       #
       def url_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("url", options)
+        ActionView::Helpers::Tags::UrlField.new(object_name, method, self, options).render
       end
 
       # Returns a text_field of type "email".
