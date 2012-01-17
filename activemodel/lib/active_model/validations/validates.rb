@@ -59,7 +59,7 @@ module ActiveModel
       #
       #   validates :name, :'film/title' => true
       #
-      # The validators hash can also handle regular expressions, ranges, 
+      # The validators hash can also handle regular expressions, ranges,
       # arrays and strings in shortcut form, e.g.
       #
       #   validates :email, :format => /@/
@@ -70,7 +70,7 @@ module ActiveModel
       # validator's initializer as +options[:in]+ while other types including
       # regular expressions and strings are passed as +options[:with]+
       #
-      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+ and +:strict+ 
+      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+ and +:strict+
       # can be given to one specific validator, as a hash:
       #
       #   validates :password, :presence => { :if => :password_required? }, :confirmation => true
@@ -80,7 +80,7 @@ module ActiveModel
       #   validates :password, :presence => true, :confirmation => true, :if => :password_required?
       #
       def validates(*attributes)
-        defaults = attributes.extract_options!
+        defaults = attributes.extract_options!.dup
         validations = defaults.slice!(*_validates_default_keys)
 
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
@@ -102,7 +102,7 @@ module ActiveModel
       end
 
       # This method is used to define validation that can not be corrected by end user
-      # and is considered exceptional. 
+      # and is considered exceptional.
       # So each validator defined with bang or <tt>:strict</tt> option set to <tt>true</tt>
       # will always raise <tt>ActiveModel::InternalValidationFailed</tt> instead of adding error
       # when validation fails
