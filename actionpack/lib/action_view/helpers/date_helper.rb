@@ -287,7 +287,7 @@ module ActionView
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       def datetime_select(object_name, method, options = {}, html_options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_datetime_select_tag(options, html_options)
+        ActionView::Helpers::Tags::DatetimeSelect.new(object_name, method, self, options, html_options).render
       end
 
       # Returns a set of html select-tags (one for year, month, day, hour, minute, and second) pre-selected with the
@@ -972,58 +972,6 @@ module ActionView
               @options[:include_seconds] ? @options[:time_separator] : ""
           end
         end
-    end
-
-    module DateHelperInstanceTag
-      def to_datetime_select_tag(options = {}, html_options = {})
-        datetime_selector(options, html_options).select_datetime.html_safe
-      end
-
-      private
-        def datetime_selector(options, html_options)
-          datetime = value(object) || default_datetime(options)
-          @auto_index ||= nil
-
-          options = options.dup
-          options[:field_name]           = @method_name
-          options[:include_position]     = true
-          options[:prefix]             ||= @object_name
-          options[:index]                = @auto_index if @auto_index && !options.has_key?(:index)
-
-          DateTimeSelector.new(datetime, options, html_options)
-        end
-
-        def default_datetime(options)
-          return if options[:include_blank] || options[:prompt]
-
-          case options[:default]
-            when nil
-              Time.current
-            when Date, Time
-              options[:default]
-            else
-              default = options[:default].dup
-
-              # Rename :minute and :second to :min and :sec
-              default[:min] ||= default[:minute]
-              default[:sec] ||= default[:second]
-
-              time = Time.current
-
-              [:year, :month, :day, :hour, :min, :sec].each do |key|
-                default[key] ||= time.send(key)
-              end
-
-              Time.utc_time(
-                default[:year], default[:month], default[:day],
-                default[:hour], default[:min], default[:sec]
-              )
-          end
-        end
-    end
-
-    class InstanceTag #:nodoc:
-      include DateHelperInstanceTag
     end
 
     class FormBuilder
