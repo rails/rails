@@ -21,6 +21,7 @@ module ActionView
       autoload :GroupedCollectionSelect, 'action_view/helpers/tags/grouped_collection_select'
       autoload :TimeZoneSelect,          'action_view/helpers/tags/time_zone_select'
       autoload :DateSelect,              'action_view/helpers/tags/date_select'
+      autoload :TimeSelect,              'action_view/helpers/tags/time_select'
     end
   end
 end

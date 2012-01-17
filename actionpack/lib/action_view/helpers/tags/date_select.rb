@@ -9,10 +9,14 @@ module ActionView
         end
 
         def render
-          error_wrapping(datetime_selector(@options, @html_options).select_date.html_safe)
+          error_wrapping(datetime_selector(@options, @html_options).send("select_#{select_type}").html_safe)
         end
 
         private
+
+        def select_type
+          self.class.name.split("::").last.sub("Select", "").downcase
+        end
 
         def datetime_selector(options, html_options)
           datetime = value(object) || default_datetime(options)
