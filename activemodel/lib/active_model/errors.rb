@@ -78,6 +78,11 @@ module ActiveModel
       @messages = ActiveSupport::OrderedHash.new
     end
 
+    def initialize_dup(other)
+      @messages = other.messages.dup
+      super
+    end
+
     # Clear the messages
     def clear
       messages.clear
