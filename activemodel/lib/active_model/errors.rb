@@ -123,7 +123,7 @@ module ActiveModel
     #   p.errors[:name] = "must be set"
     #   p.errors[:name] # => ['must be set']
     def []=(attribute, error)
-      self[attribute.to_sym] << error
+      self[attribute] << error
     end
 
     # Iterates through each error key, value pair in the error messages hash.
