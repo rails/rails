@@ -1,5 +1,32 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Accept a block passed to pessimistic `lock!`, which automatically
+    wraps the block in a transaction, locks the object and yields to
+    the block.
+
+    Before:
+
+        class Order < ActiveRecord::Base
+          def cancel!
+            transaction do
+              lock!
+              # ... cancelling logic
+            end
+          end
+        end
+
+    After:
+
+        class Order < ActiveRecord::Base
+          def cancel!
+            lock! do
+              # ... cancelling logic
+            end
+          end
+        end
+
+    *Olek Janiszewski*
+
 *   'on' and 'ON' boolean columns values are type casted to true
     *Santiago Pastorino*
 
@@ -10,7 +37,7 @@
     Example:
       rake db:migrate SCOPE=blog
 
-   *Piotr Sarnacki*
+    *Piotr Sarnacki*
 
 *   Migrations copied from engines are now scoped with engine's name,
     for example 01_create_posts.blog.rb. *Piotr Sarnacki*
