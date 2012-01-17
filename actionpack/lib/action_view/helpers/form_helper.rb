@@ -956,37 +956,6 @@ module ActionView
         @auto_index = retrieve_autoindex(Regexp.last_match.pre_match) if Regexp.last_match
       end
 
-      def to_input_field_tag(field_type, options = {})
-        options = options.stringify_keys
-        options["size"] = options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"] unless options.key?("size")
-        options = DEFAULT_FIELD_OPTIONS.merge(options)
-        if field_type == "hidden"
-          options.delete("size")
-        end
-        options["type"]  ||= field_type
-        options["value"] = options.fetch("value"){ value_before_type_cast(object) } unless field_type == "file"
-        options["value"] &&= ERB::Util.html_escape(options["value"])
-        add_default_name_and_id(options)
-        tag("input", options)
-      end
-
-      def to_boolean_select_tag(options = {})
-        options = options.stringify_keys
-        add_default_name_and_id(options)
-        value = value(object)
-        tag_text = "<select"
-        tag_text << tag_options(options)
-        tag_text << "><option value=\"false\""
-        tag_text << " selected" if value == false
-        tag_text << ">False</option><option value=\"true\""
-        tag_text << " selected" if value
-        tag_text << ">True</option></select>"
-      end
-
-      def to_content_tag(tag_name, options = {})
-        content_tag(tag_name, value(object), options)
-      end
-
       def retrieve_object(object)
         if object
           object
