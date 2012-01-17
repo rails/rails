@@ -239,7 +239,7 @@ module ActionView
       #   </select>
       #
       def grouped_collection_select(object, method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, options.delete(:object)).to_grouped_collection_select_tag(collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options)
+        ActionView::Helpers::Tags::GroupedCollectionSelect.new(object, method, self, collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options).render
       end
 
       # Return select and option tags for the given object and method, using
@@ -574,12 +574,6 @@ module ActionView
 
     class InstanceTag #:nodoc:
       include FormOptionsHelper
-
-      def to_grouped_collection_select_tag(collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options)
-        select_content_tag(
-          option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, value(object)), options, html_options
-        )
-      end
 
       def to_time_zone_select_tag(priority_zones, options, html_options)
         select_content_tag(
