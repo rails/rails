@@ -940,45 +940,6 @@ module ActionView
         end
     end
 
-    class InstanceTag
-      include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
-
-      attr_reader :object, :method_name, :object_name
-
-      def initialize(object_name, method_name, template_object, object = nil)
-        @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
-        @template_object = template_object
-
-        @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
-        @object = retrieve_object(object)
-        @auto_index = retrieve_autoindex(Regexp.last_match.pre_match) if Regexp.last_match
-      end
-
-      def retrieve_object(object)
-        if object
-          object
-        elsif @template_object.instance_variable_defined?("@#{@object_name}")
-          @template_object.instance_variable_get("@#{@object_name}")
-        end
-      rescue NameError
-        # As @object_name may contain the nested syntax (item[subobject]) we need to fallback to nil.
-        nil
-      end
-
-      def retrieve_autoindex(pre_match)
-        object = self.object || @template_object.instance_variable_get("@#{pre_match}")
-        if object && object.respond_to?(:to_param)
-          object.to_param
-        else
-          raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
-        end
-      end
-
-      def value(object)
-        object.send @method_name if object
-      end
-    end
-
     class FormBuilder
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
