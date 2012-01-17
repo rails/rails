@@ -6,7 +6,6 @@ require 'active_support/core_ext/object/inclusion'
 class ResourcesController < ActionController::Base
   def index() render :nothing => true end
   alias_method :show, :index
-  def rescue_action(e) raise e end
 end
 
 class ThreadsController  < ResourcesController; end

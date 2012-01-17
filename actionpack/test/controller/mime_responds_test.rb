@@ -151,10 +151,6 @@ class RespondToController < ActionController::Base
     end
   end
 
-  def rescue_action(e)
-    raise
-  end
-
   protected
     def set_layout
       if action_name.in?(["all_types_with_layout", "iphone_with_html_response_type"])
@@ -498,7 +494,7 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
     assert_equal "text/html", @response.content_type
   end
-  
+
   def test_invalid_format
     get :using_defaults, :format => "invalidformat"
     assert_equal " ", @response.body

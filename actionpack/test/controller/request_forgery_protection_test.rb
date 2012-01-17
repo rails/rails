@@ -36,8 +36,6 @@ module RequestForgeryProtectionActions
   def form_for_without_protection
     render :inline => "<%= form_for(:some_resource, :authenticity_token => false ) {} %>"
   end
-
-  def rescue_action(e) raise e end
 end
 
 # sample controllers

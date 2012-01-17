@@ -686,8 +686,6 @@ class FragmentCachingTest < ActionController::TestCase
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
-    @controller.send(:initialize_template_class, @response)
-    @controller.send(:assign_shortcuts, @request, @response)
   end
 
   def test_fragment_cache_key
@@ -794,10 +792,6 @@ class FunctionalCachingController < CachingController
       format.html
       format.xml
     end
-  end
-
-  def rescue_action(e)
-    raise e
   end
 end
 
