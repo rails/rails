@@ -273,7 +273,7 @@ module ActionView
       #
       #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, :model => ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
-        InstanceTag.new(object, method, self,  options.delete(:object)).to_time_zone_select_tag(priority_zones, options, html_options)
+        ActionView::Helpers::Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
       end
 
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
@@ -568,39 +568,6 @@ module ActionView
             end.compact
           else
             selected
-          end
-        end
-    end
-
-    class InstanceTag #:nodoc:
-      include FormOptionsHelper
-
-      def to_time_zone_select_tag(priority_zones, options, html_options)
-        select_content_tag(
-            time_zone_options_for_select(value(object) || options[:default], priority_zones, options[:model] || ActiveSupport::TimeZone), options, html_options
-        )
-      end
-
-      private
-        def add_options(option_tags, options, value = nil)
-          if options[:include_blank]
-            option_tags = "<option value=\"\">#{ERB::Util.html_escape(options[:include_blank]) if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
-          end
-          if value.blank? && options[:prompt]
-            prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = "<option value=\"\">#{ERB::Util.html_escape(prompt)}</option>\n" + option_tags
-          end
-          option_tags.html_safe
-        end
-
-        def select_content_tag(option_tags, options, html_options)
-          html_options = html_options.stringify_keys
-          add_default_name_and_id(html_options)
-          select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
-          if html_options["multiple"]
-            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select
-          else
-            select
           end
         end
     end
