@@ -48,15 +48,6 @@ module ActionView
           nil
         end
 
-        def input_checked?(object, options)
-          if options.has_key?("checked")
-            checked = options.delete "checked"
-            checked == true || checked == "checked"
-          else
-            checked?(value(object))
-          end
-        end
-
         def retrieve_autoindex(pre_match)
           object = self.object || @template_object.instance_variable_get("@#{pre_match}")
           if object && object.respond_to?(:to_param)

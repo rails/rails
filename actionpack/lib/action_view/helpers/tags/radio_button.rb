@@ -1,7 +1,11 @@
+require 'action_view/helpers/tags/checkable'
+
 module ActionView
   module Helpers
     module Tags
       class RadioButton < Base #:nodoc:
+        include Checkable
+
         def initialize(object_name, method_name, template_object, tag_value, options)
           @tag_value = tag_value
           super(object_name, method_name, template_object, options)
