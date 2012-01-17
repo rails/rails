@@ -156,6 +156,8 @@ Rails 3.1, by default, is set up to use the +sprockets+ gem to manage assets wit
 
 * +config.assets.compile+ is a boolean that can be used to turn on live Sprockets compilation in production.
 
+* +config.assets.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby +Logger+ class. Defaults to the same configured at +config.logger+.
+
 
 h4. Configuring Generators
 

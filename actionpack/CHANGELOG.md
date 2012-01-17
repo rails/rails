@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Add config.assets.logger to configure Sprockets logger *Rafael França*
+
 *   Use a BodyProxy instead of including a Module that responds to
     close. Closes #4441 if Active Record is disabled assets are delivered
     correctly *Santiago Pastorino*
