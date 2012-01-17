@@ -14,7 +14,7 @@ module ActionController
     end
 
     initializer "action_controller.initialize_framework_caches" do
-      ActiveSupport.on_load(:action_controller) { self.cache_store ||= RAILS_CACHE }
+      ActiveSupport.on_load(:action_controller) { self.cache_store ||= Rails.cache }
     end
 
     initializer "action_controller.assets_config", :group => :all do |app|

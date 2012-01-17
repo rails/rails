@@ -533,7 +533,7 @@ Serves as a placeholder so that +:load_environment_config+ can be defined to run
 
 *+initialize_logger+* Initializes the logger (an +ActiveSupport::BufferedLogger+ object) for the application and makes it accessible at +Rails.logger+, provided that no initializer inserted before this point has defined +Rails.logger+.
 
-*+initialize_cache+* If +RAILS_CACHE+ isn't set yet, initializes the cache by referencing the value in +config.cache_store+ and stores the outcome as +RAILS_CACHE+. If this object responds to the +middleware+ method, its middleware is inserted before +Rack::Runtime+ in the middleware stack.
+*+initialize_cache+* If +Rails.cache+ isn't set yet, initializes the cache by referencing the value in +config.cache_store+ and stores the outcome as +Rails.cache+. If this object responds to the +middleware+ method, its middleware is inserted before +Rack::Runtime+ in the middleware stack.
 
 *+set_clear_dependencies_hook+* Provides a hook for +active_record.set_dispatch_hooks+ to use, which will run before this initializer. This initializer -- which runs only if +cache_classes+ is set to +false+ -- uses +ActionDispatch::Callbacks.after+ to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
 
@@ -571,7 +571,7 @@ The error occurred while evaluating nil.each
 
 *+action_controller.logger+* Sets +ActionController::Base.logger+ -- if it's not already set -- to +Rails.logger+.
 
-*+action_controller.initialize_framework_caches+* Sets +ActionController::Base.cache_store+ -- if it's not already set -- to +RAILS_CACHE+.
+*+action_controller.initialize_framework_caches+* Sets +ActionController::Base.cache_store+ -- if it's not already set -- to +Rails.cache+.
 
 *+action_controller.set_configs+* Sets up Action Controller by using the settings in +config.action_controller+ by +send+'ing the method names as setters to +ActionController::Base+ and passing the values through.
 
