@@ -216,7 +216,7 @@ module ActionController #:nodoc:
       end
     end
 
-    # Call render_to_body if we are streaming instead of usual +render+.
+    # Call render_body if we are streaming instead of usual +render+.
     def _render_template(options) #:nodoc:
       if options.delete(:stream)
         Rack::Chunked::Body.new view_renderer.render_body(view_context, options)

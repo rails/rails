@@ -165,8 +165,6 @@ class FilterTest < ActionController::TestCase
         @ran_filter ||= []
         @ran_filter << "clean_up_tmp"
       end
-
-      def rescue_action(e) raise(e) end
   end
 
   class ConditionalCollectionFilterController < ConditionalFilterController
@@ -454,11 +452,6 @@ class FilterTest < ActionController::TestCase
     def show
       raise ErrorToRescue.new("Something made the bad noise.")
     end
-
-  private
-    def rescue_action(exception)
-      raise exception
-    end
   end
 
   class NonYieldingAroundFilterController < ActionController::Base
@@ -471,9 +464,6 @@ class FilterTest < ActionController::TestCase
     def index
       render :inline => "index"
     end
-
-    #make sure the controller complains
-    def rescue_action(e); raise e; end
 
     private
 
@@ -825,11 +815,7 @@ class FilterTest < ActionController::TestCase
     end
 end
 
-
-
 class PostsController < ActionController::Base
-  def rescue_action(e); raise e; end
-
   module AroundExceptions
     class Error < StandardError ; end
     class Before < Error ; end

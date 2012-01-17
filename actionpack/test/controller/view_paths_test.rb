@@ -3,7 +3,6 @@ require 'abstract_unit'
 class ViewLoadPathsTest < ActionController::TestCase
   class TestController < ActionController::Base
     def self.controller_path() "test" end
-    def rescue_action(e) raise end
 
     before_filter :add_view_path, :only => :hello_world_at_request_time
 
@@ -24,16 +23,9 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def setup
-    # TestController.view_paths = nil
-
     @request  = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
-
     @controller = TestController.new
-    # Following is needed in order to setup @controller.template object properly
-    @controller.send :assign_shortcuts, @request, @response
-    @controller.send :initialize_template_class, @response
-
     @paths = TestController.view_paths
   end
 

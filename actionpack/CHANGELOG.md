@@ -21,6 +21,21 @@
 
 ## Rails 3.2.0 (unreleased) ##
 
+*   Add `config.action_dispatch.default_charset` to configure default charset for ActionDispatch::Response. *Carlos Antonio da Silva*
+
+*   Deprecate setting default charset at controller level, use the new `config.action_dispatch.default_charset` instead. *Carlos Antonio da Silva*
+
+*   Deprecate ActionController::UnknownAction in favour of AbstractController::ActionNotFound. *Carlos Antonio da Silva*
+
+*   Deprecate ActionController::DoubleRenderError in favour of AbstractController::DoubleRenderError. *Carlos Antonio da Silva*
+
+*   Deprecate method_missing handling for not found actions, use action_missing instead. *Carlos Antonio da Silva*
+
+*   Deprecate ActionController#performed?, check for response_body presence instead. *Carlos Antonio da Silva*
+
+*   Deprecate ActionController#rescue_action, ActionController#initialize_template_class, and ActionController#assign_shortcuts.
+    These methods were not being used internally anymore and are going to be removed in Rails 4. *Carlos Antonio da Silva*
+
 *   Use a BodyProxy instead of including a Module that responds to
     close. Closes #4441 if Active Record is disabled assets are delivered
     correctly *Santiago Pastorino*
@@ -45,7 +60,7 @@
           <%= f.button %>
         <% end %>
 
-*   Date helpers accept a new option, `:use_two_digit_numbers = true`, that renders select boxes for months and days with a leading zero without changing the respective values. 
+*   Date helpers accept a new option, `:use_two_digit_numbers = true`, that renders select boxes for months and days with a leading zero without changing the respective values.
     For example, this is useful for displaying ISO8601-style dates such as '2011-08-01'. *Lennart Fridén and Kim Persson*
 
 *   Make ActiveSupport::Benchmarkable a default module for ActionController::Base, so the #benchmark method is once again available in the controller context like it used to be *DHH*

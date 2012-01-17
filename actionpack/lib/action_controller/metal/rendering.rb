@@ -29,6 +29,10 @@ module ActionController
       self.response_body = nil
     end
 
+    def render_to_body(*)
+      super || " "
+    end
+
     private
 
     # Normalize arguments by catching blocks and setting them on :update.
@@ -42,6 +46,10 @@ module ActionController
     def _normalize_options(options) #:nodoc:
       if options.key?(:text) && options[:text].respond_to?(:to_text)
         options[:text] = options[:text].to_text
+      end
+
+      if options.delete(:nothing) || (options.key?(:text) && options[:text].nil?)
+        options[:text] = " "
       end
 
       if options[:status]

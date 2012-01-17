@@ -287,6 +287,14 @@ module ApplicationTests
       assert_equal Rails.application, ActionDispatch.test_app
     end
 
+    test "sets ActionDispatch::Response.default_charset" do
+      make_basic_app do |app|
+        app.config.action_dispatch.default_charset = "utf-16"
+      end
+
+      assert_equal "utf-16", ActionDispatch::Response.default_charset
+    end
+
     test "sets all Active Record models to whitelist all attributes by default" do
       add_to_config <<-RUBY
         config.active_record.whitelist_attributes = true
