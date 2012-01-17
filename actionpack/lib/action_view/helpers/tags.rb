@@ -11,6 +11,7 @@ module ActionView
       autoload :TelField,      'action_view/helpers/tags/tel_field'
       autoload :UrlField,      'action_view/helpers/tags/url_field'
       autoload :EmailField,    'action_view/helpers/tags/email_field'
+      autoload :NumberField,   'action_view/helpers/tags/number_field'
       autoload :TextArea,      'action_view/helpers/tags/text_area'
       autoload :CheckBox,      'action_view/helpers/tags/check_box'
       autoload :RadioButton,   'action_view/helpers/tags/radio_button'

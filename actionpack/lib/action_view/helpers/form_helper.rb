@@ -912,7 +912,7 @@ module ActionView
       # ==== Options
       # * Accepts same options as number_field_tag
       def number_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("number", options)
+        ActionView::Helpers::Tags::NumberField.new(object_name, method, self, options).render
       end
 
       # Returns an input tag of type "range".
