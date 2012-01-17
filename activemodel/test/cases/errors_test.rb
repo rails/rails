@@ -40,6 +40,14 @@ class ErrorsTest < ActiveModel::TestCase
     assert errors.include?(:foo), 'errors should include :foo'
   end
 
+  def test_dup
+    errors = ActiveModel::Errors.new(self)
+    errors[:foo] = 'bar'
+    errors_dup = errors.dup
+    errors_dup[:bar] = 'omg'
+    assert_not_same errors_dup.messages, errors.messages
+  end
+
   test "should return true if no errors" do
     person = Person.new
     person.errors[:foo]
