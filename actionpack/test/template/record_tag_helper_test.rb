@@ -100,4 +100,10 @@ class RecordTagHelperTest < ActionView::TestCase
     result = content_tag_for(:li, [post_1, post_2]) { |post| concat post.body }
     assert result.html_safe?
   end
+
+  def test_content_tag_for_does_not_change_options_hash
+    options = { :class => "important" }
+    result  = content_tag_for(:li, @post, options) { }
+    assert_equal({ :class => "important" }, options)
+  end
 end

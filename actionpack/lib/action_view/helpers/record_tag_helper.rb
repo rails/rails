@@ -96,8 +96,8 @@ module ActionView
         # for each record.
         def content_tag_for_single_record(tag_name, record, prefix, options, &block)
           options, prefix = prefix, nil if prefix.is_a?(Hash)
-          options ||= {}
-          options.merge!({ :class => "#{dom_class(record, prefix)} #{options[:class]}".strip, :id => dom_id(record, prefix) })
+          options = options ? options.dup : {}
+          options.merge!(:class => "#{dom_class(record, prefix)} #{options[:class]}".strip, :id => dom_id(record, prefix))
           if block.arity == 0
             content_tag(tag_name, capture(&block), options)
           else
