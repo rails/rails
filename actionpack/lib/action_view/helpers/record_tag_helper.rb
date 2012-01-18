@@ -83,8 +83,8 @@ module ActionView
       def content_tag_for(tag_name, single_or_multiple_records, prefix = nil, options = nil, &block)
         options, prefix = prefix, nil if prefix.is_a?(Hash)
 
-        Array.wrap(single_or_multiple_records).map do |single_record|
-          content_tag_for_single_record tag_name, single_record, prefix, options, &block
+        Array(single_or_multiple_records).map do |single_record|
+          content_tag_for_single_record(tag_name, single_record, prefix, options, &block)
         end.join("\n").html_safe
       end
 
