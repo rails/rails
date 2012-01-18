@@ -11,6 +11,9 @@ class UrlHelperTest < ActiveSupport::TestCase
   # In those cases, we'll set up a simple mock
   attr_accessor :controller, :request
 
+  cattr_accessor :request_forgery
+  self.request_forgery = false
+
   routes = ActionDispatch::Routing::RouteSet.new
   routes.draw do
     match "/" => "foo#bar"
@@ -49,9 +52,20 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal 'javascript:history.back()', url_for(:back)
   end
 
-  # todo: missing test cases
+  # TODO: missing test cases
   def test_button_to_with_straight_url
     assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com")
+  end
+
+  def test_button_to_with_straight_url_and_request_forgery
+    self.request_forgery = true
+
+    assert_dom_equal(
+      %{<form method="post" action="http://www.example.com" class="button_to"><div><input type="submit" value="Hello" /><input name="form_token" type="hidden" value="secret" /></div></form>},
+      button_to("Hello", "http://www.example.com")
+    )
+  ensure
+    self.request_forgery = false
   end
 
   def test_button_to_with_form_class
@@ -435,9 +449,16 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert mail_to("me@domain.com", "My email", :encode => "hex").html_safe?
   end
 
-  # TODO: button_to looks at this ... why?
   def protect_against_forgery?
-    false
+    self.request_forgery
+  end
+
+  def form_authenticity_token
+    "secret"
+  end
+
+  def request_forgery_protection_token
+    "form_token"
   end
 
   private
