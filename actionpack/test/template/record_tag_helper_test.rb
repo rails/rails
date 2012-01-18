@@ -33,8 +33,8 @@ class RecordTagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_for
-    expected = %(<li class="post bar" id="post_45"></li>)
-    actual = content_tag_for(:li, @post, :class => 'bar') { }
+    expected = %(<li class="post" id="post_45"></li>)
+    actual = content_tag_for(:li, @post) { }
     assert_dom_equal expected, actual
   end
 
@@ -44,9 +44,15 @@ class RecordTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
-  def test_content_tag_for_with_extra_html_tags
+  def test_content_tag_for_with_extra_html_options
     expected = %(<tr class="post bar" id="post_45" style='background-color: #f0f0f0'></tr>)
-    actual = content_tag_for(:tr, @post, {:class => "bar", :style => "background-color: #f0f0f0"}) { }
+    actual = content_tag_for(:tr, @post, :class => "bar", :style => "background-color: #f0f0f0") { }
+    assert_dom_equal expected, actual
+  end
+
+  def test_content_tag_for_with_prefix_and_extra_html_options
+    expected = %(<tr class="archived_post bar" id="archived_post_45" style='background-color: #f0f0f0'></tr>)
+    actual = content_tag_for(:tr, @post, :archived, :class => "bar", :style => "background-color: #f0f0f0") { }
     assert_dom_equal expected, actual
   end
 
