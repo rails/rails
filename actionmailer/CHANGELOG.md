@@ -1,3 +1,10 @@
+## Rails 3.2.0 (unreleased) ##
+
+*   Upgrade mail version to 2.4.0 *ML*
+
+*   Remove Old ActionMailer API *Josh Kalderimis*
+
+
 ## Rails 3.1.0 (August 30, 2011) ##
 
 *   No changes
@@ -8,7 +15,7 @@
 *   remove AM delegating register_observer and register_interceptor to Mail *Josh Kalderimis*
 
 
-*   Rails 3.0.6 (April 5, 2011)
+##   Rails 3.0.6 (April 5, 2011) ##
 
 *   Don't allow i18n to change the minor version, version now set to ~> 0.5.0 *Santiago Pastorino*
 
