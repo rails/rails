@@ -81,6 +81,8 @@ module ActionView
       #    <li id="person_123" class="person bar">...
       #
       def content_tag_for(tag_name, single_or_multiple_records, prefix = nil, options = nil, &block)
+        options, prefix = prefix, nil if prefix.is_a?(Hash)
+
         Array.wrap(single_or_multiple_records).map do |single_record|
           content_tag_for_single_record tag_name, single_record, prefix, options, &block
         end.join("\n").html_safe
@@ -91,14 +93,11 @@ module ActionView
         # Called by <tt>content_tag_for</tt> internally to render a content tag
         # for each record.
         def content_tag_for_single_record(tag_name, record, prefix, options, &block)
-          options, prefix = prefix, nil if prefix.is_a?(Hash)
           options = options ? options.dup : {}
-          options.merge!(:class => "#{dom_class(record, prefix)} #{options[:class]}".strip, :id => dom_id(record, prefix))
-          if block.arity == 0
-            content_tag(tag_name, capture(&block), options)
-          else
-            content_tag(tag_name, capture(record, &block), options)
-          end
+          options.merge!(:class => "#{dom_class(record, prefix)} #{options[:class]}".rstrip, :id => dom_id(record, prefix))
+
+          content = block.arity == 0 ? capture(&block) : capture(record, &block)
+          content_tag(tag_name, content, options)
         end
     end
   end
