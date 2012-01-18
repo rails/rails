@@ -72,6 +72,33 @@
 
 ## Rails 3.2.0 (unreleased) ##
 
+*   Added a `with_lock` method to ActiveRecord objects, which starts
+    a transaction, locks the object (pessimistically) and yields to the block.
+    The method takes one (optional) parameter and passes it to `lock!`.
+
+    Before:
+
+        class Order < ActiveRecord::Base
+          def cancel!
+            transaction do
+              lock!
+              # ... cancelling logic
+            end
+          end
+        end
+
+    After:
+
+        class Order < ActiveRecord::Base
+          def cancel!
+            with_lock do
+              # ... cancelling logic
+            end
+          end
+        end
+
+    *Olek Janiszewski*
+
 *   'on' and 'ON' boolean columns values are type casted to true
     *Santiago Pastorino*
 
@@ -82,7 +109,7 @@
     Example:
       rake db:migrate SCOPE=blog
 
-   *Piotr Sarnacki*
+    *Piotr Sarnacki*
 
 *   Migrations copied from engines are now scoped with engine's name,
     for example 01_create_posts.blog.rb. *Piotr Sarnacki*
