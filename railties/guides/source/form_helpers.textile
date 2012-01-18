@@ -630,10 +630,10 @@ action for a Person model, +params[:model]+ would usually be a hash of all the a
 
 Fundamentally HTML forms don't know about any sort of structured data, all they generate is name–value pairs, where pairs are just plain strings. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.
 
-TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example,
+TIP: You may find you can try out examples in this section faster by using the console to directly invoke Racks' parameter parser. For example,
 
 <ruby>
-ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789"
+Rack::Utils.parse_query "name=fred&phone=0123456789"
 # => {"name"=>"fred", "phone"=>"0123456789"}
 </ruby>
 
