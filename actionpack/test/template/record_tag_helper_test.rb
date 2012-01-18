@@ -1,26 +1,15 @@
 require 'abstract_unit'
-require 'controller/fake_models'
 
 class Post
   extend ActiveModel::Naming
   include ActiveModel::Conversion
-  attr_writer :id, :body
+  attr_accessor :id, :body
 
   def initialize
-    @id = nil
-    @body = nil
-    super
+    @id   = 45
+    @body = "What a wonderful world!"
 
-    @persisted = true
     yield self if block_given?
-  end
-
-  def id
-     @id || 45
-  end
-
-  def body
-    super || @body || "What a wonderful world!"
   end
 end
 
@@ -59,7 +48,7 @@ class RecordTagHelperTest < ActionView::TestCase
   end
 
   def test_block_not_in_erb_multiple_calls
-    expected = %(<div class="post bar" id="post_45">#{@post.body}</div>)
+    expected = %(<div class="post bar" id="post_45">What a wonderful world!</div>)
     actual = div_for(@post, :class => "bar") { @post.body }
     assert_dom_equal expected, actual
     actual = div_for(@post, :class => "bar") { @post.body }
@@ -67,13 +56,13 @@ class RecordTagHelperTest < ActionView::TestCase
   end
 
   def test_block_works_with_content_tag_for_in_erb
-    expected = %(<tr class="post" id="post_45">#{@post.body}</tr>)
+    expected = %(<tr class="post" id="post_45">What a wonderful world!</tr>)
     actual = render_erb("<%= content_tag_for(:tr, @post) do %><%= @post.body %><% end %>")
     assert_dom_equal expected, actual
   end
 
   def test_div_for_in_erb
-    expected = %(<div class="post bar" id="post_45">#{@post.body}</div>)
+    expected = %(<div class="post bar" id="post_45">What a wonderful world!</div>)
     actual = render_erb("<%= div_for(@post, :class => 'bar') do %><%= @post.body %><% end %>")
     assert_dom_equal expected, actual
   end
