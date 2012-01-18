@@ -11,6 +11,7 @@ class Post
     @body = nil
     super
 
+    @persisted = true
     yield self if block_given?
   end
 
@@ -31,7 +32,6 @@ class RecordTagHelperTest < ActionView::TestCase
   def setup
     super
     @post = Post.new
-    @post.persisted = true
   end
 
   def test_content_tag_for
@@ -79,16 +79,16 @@ class RecordTagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_for_collection
-    post_1 = Post.new { |post| post.id = 101; post.body = "Hello!"; post.persisted = true }
-    post_2 = Post.new { |post| post.id = 102; post.body = "World!"; post.persisted = true }
+    post_1 = Post.new { |post| post.id = 101; post.body = "Hello!" }
+    post_2 = Post.new { |post| post.id = 102; post.body = "World!" }
     expected = %(<li class="post" id="post_101">Hello!</li>\n<li class="post" id="post_102">World!</li>)
     actual = content_tag_for(:li, [post_1, post_2]) { |post| post.body }
     assert_dom_equal expected, actual
   end
 
   def test_div_for_collection
-    post_1 = Post.new { |post| post.id = 101; post.body = "Hello!"; post.persisted = true }
-    post_2 = Post.new { |post| post.id = 102; post.body = "World!"; post.persisted = true }
+    post_1 = Post.new { |post| post.id = 101; post.body = "Hello!" }
+    post_2 = Post.new { |post| post.id = 102; post.body = "World!" }
     expected = %(<div class="post" id="post_101">Hello!</div>\n<div class="post" id="post_102">World!</div>)
     actual = div_for([post_1, post_2]) { |post| post.body }
     assert_dom_equal expected, actual
@@ -100,8 +100,8 @@ class RecordTagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_for_collection_is_html_safe
-    post_1 = Post.new { |post| post.id = 101; post.body = "Hello!"; post.persisted = true }
-    post_2 = Post.new { |post| post.id = 102; post.body = "World!"; post.persisted = true }
+    post_1 = Post.new { |post| post.id = 101; post.body = "Hello!" }
+    post_2 = Post.new { |post| post.id = 102; post.body = "World!" }
     result = content_tag_for(:li, [post_1, post_2]) { |post| post.body }
     assert result.html_safe?
   end
