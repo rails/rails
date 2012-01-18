@@ -8,7 +8,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def setup
     super
-    @old_logger = ActionController::Base.logger
     @controller = Object.new
     @controller.stubs(:_prefixes).returns(%w(test))
     @view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
@@ -19,11 +18,10 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   def teardown
     super
     ActiveSupport::LogSubscriber.log_subscribers.clear
-    ActionController::Base.logger = @old_logger
   end
 
   def set_logger(logger)
-    ActionController::Base.logger = logger
+    ActionView::Base.logger = logger
   end
 
   def test_render_file_template
