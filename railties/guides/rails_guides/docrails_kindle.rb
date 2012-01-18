@@ -48,6 +48,7 @@ module RailsGuides
         }
 
         puts "=> Making one section for all frontmatter."
+
         html = frontmatter.map {|x|
           Nokogiri::HTML(File.open(x)).at("body").inner_html
         }.join("\n")
@@ -68,6 +69,7 @@ module RailsGuides
         html_pages.unshift "frontmatter.html"
 
         puts "=> Making one section folder per original HTML file"
+        FileUtils::rm_rf("sections/")
 
         html_pages.each_with_index { |page, section_idx|
           FileUtils::mkdir_p("sections/%03d" % section_idx)
