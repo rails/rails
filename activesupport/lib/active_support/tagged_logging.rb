@@ -22,7 +22,7 @@ module ActiveSupport
       tags.concat new_tags
       yield
     ensure
-      new_tags.size.times { tags.pop }
+      tags.pop(new_tags.size)
     end
 
     def add(severity, message = nil, progname = nil, &block)
@@ -51,7 +51,7 @@ module ActiveSupport
     def tags_text
       tags = current_tags
       if tags.any?
-        tags.collect { |tag| "[#{tag}]" }.join(" ") + " "
+        tags.collect { |tag| "[#{tag}] " }.join
       end
     end
 
