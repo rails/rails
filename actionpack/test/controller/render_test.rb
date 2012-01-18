@@ -692,7 +692,8 @@ class RenderTest < ActionController::TestCase
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
     super
-    @controller.logger = ActiveSupport::Logger.new(nil)
+    @controller.logger      = ActiveSupport::Logger.new(nil)
+    ActionView::Base.logger = ActiveSupport::Logger.new(nil)
 
     @request.host = "www.nextangle.com"
   end
