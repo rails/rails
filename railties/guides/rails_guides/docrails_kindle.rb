@@ -56,11 +56,7 @@ module RailsGuides
 
         # need to turn author h3's into h4's
         fdoc.search("h3").each { |h3|
-          if h3[:class] != 'section'
-            h3.name = 'h4'
-          else # add an id
-            h3['id'] = h3.inner_text.gsub(/\s/, '-')
-          end
+          h3.name = 'h4'
         }
         fdoc.search("h2").each { |h2| 
           h2.name = 'h3'
