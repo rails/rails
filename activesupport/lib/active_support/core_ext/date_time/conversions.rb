@@ -58,31 +58,16 @@ class DateTime
   alias_method :default_inspect, :inspect
   alias_method :inspect, :readable_inspect
 
-  # Converts self to a Ruby Date object; time portion is discarded.
-  def to_date
-    ::Date.new(year, month, day)
-  end unless instance_methods(false).include?(:to_date)
-
   # Attempts to convert self to a Ruby Time object; returns self if out of range of Ruby Time class.
   # If self has an offset other than 0, self will just be returned unaltered, since there's no clean way to map it to a Time.
   def to_time
     self.offset == 0 ? ::Time.utc_time(year, month, day, hour, min, sec, sec_fraction * 1000000) : self
   end
 
-  # To be able to keep Times, Dates and DateTimes interchangeable on conversions.
-  def to_datetime
-    self
-  end unless instance_methods(false).include?(:to_datetime)
-
   def self.civil_from_format(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0)
     offset = utc_or_local.to_sym == :local ? local_offset : 0
     civil(year, month, day, hour, min, sec, offset)
   end
-
-  # Converts datetime to an appropriate format for use in XML.
-  def xmlschema
-    strftime("%Y-%m-%dT%H:%M:%S%Z")
-  end unless instance_methods(false).include?(:xmlschema)
 
   # Converts self to a floating-point number of seconds since the Unix epoch.
   def to_f
