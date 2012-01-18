@@ -57,6 +57,7 @@ module Rails
         @assets.js_compressor            = nil
         @assets.css_compressor           = nil
         @assets.initialize_on_precompile = true
+        @assets.logger                   = nil
       end
 
       def compiled_asset_path
