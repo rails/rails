@@ -646,15 +646,6 @@ module ActionView
           output.safe_concat("</form>")
         end
 
-        def token_tag(token)
-          if token == false || !protect_against_forgery?
-            ''
-          else
-            token ||= form_authenticity_token
-            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
-          end
-        end
-
         # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
           name.to_s.gsub(']','').gsub(/[^-a-zA-Z0-9:.]/, "_")
