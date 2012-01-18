@@ -636,13 +636,12 @@ module ActionView
 
         def form_tag_html(html_options)
           extra_tags = extra_tags_for_form(html_options)
-          (tag(:form, html_options, true) + extra_tags).html_safe
+          tag(:form, html_options, true) + extra_tags
         end
 
         def form_tag_in_block(html_options, &block)
           content = capture(&block)
-          output = ActiveSupport::SafeBuffer.new
-          output.safe_concat(form_tag_html(html_options))
+          output = form_tag_html(html_options)
           output << content
           output.safe_concat("</form>")
         end
