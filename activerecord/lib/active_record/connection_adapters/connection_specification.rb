@@ -1,3 +1,5 @@
+require 'active_support/core_ext/uri'
+
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionSpecification #:nodoc:
@@ -61,7 +63,7 @@ module ActiveRecord
         end
 
         def connection_url_to_hash(url) # :nodoc:
-          config = URI.parse url
+          config = URI.parser.parse url
           adapter = config.scheme
           adapter = "postgresql" if adapter == "postgres"
           spec = { :adapter  => adapter,

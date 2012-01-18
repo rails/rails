@@ -1,4 +1,5 @@
 require 'action_dispatch/http/request'
+require 'active_support/core_ext/uri'
 
 module ActionDispatch
   module Routing
@@ -13,7 +14,7 @@ module ActionDispatch
       def call(env)
         req = Request.new(env)
 
-        uri = URI.parse(path(req.symbolized_path_parameters, req))
+        uri = URI.parser.parse(path(req.symbolized_path_parameters, req))
         uri.scheme ||= req.scheme
         uri.host   ||= req.host
         uri.port   ||= req.port unless req.standard_port?
