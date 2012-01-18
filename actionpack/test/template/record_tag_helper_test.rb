@@ -97,7 +97,7 @@ class RecordTagHelperTest < ActionView::TestCase
 
   def test_content_tag_for_does_not_change_options_hash
     options = { :class => "important" }
-    result  = content_tag_for(:li, @post, options) { }
+    content_tag_for(:li, @post, options) { }
     assert_equal({ :class => "important" }, options)
   end
 end
