@@ -80,7 +80,7 @@ class RecordTagHelperTest < ActionView::TestCase
     post_1 = Post.new.tap { |post| post.id = 101; post.body = "Hello!"; post.persisted = true }
     post_2 = Post.new.tap { |post| post.id = 102; post.body = "World!"; post.persisted = true }
     expected = %(<li class="post" id="post_101">Hello!</li>\n<li class="post" id="post_102">World!</li>)
-    actual = content_tag_for(:li, [post_1, post_2]) { |post| concat post.body }
+    actual = content_tag_for(:li, [post_1, post_2]) { |post| post.body }
     assert_dom_equal expected, actual
   end
 
@@ -88,19 +88,19 @@ class RecordTagHelperTest < ActionView::TestCase
     post_1 = Post.new.tap { |post| post.id = 101; post.body = "Hello!"; post.persisted = true }
     post_2 = Post.new.tap { |post| post.id = 102; post.body = "World!"; post.persisted = true }
     expected = %(<div class="post" id="post_101">Hello!</div>\n<div class="post" id="post_102">World!</div>)
-    actual = div_for([post_1, post_2]) { |post| concat post.body }
+    actual = div_for([post_1, post_2]) { |post| post.body }
     assert_dom_equal expected, actual
   end
 
   def test_content_tag_for_single_record_is_html_safe
-    result = div_for(@post, :class => "bar") { concat @post.body }
+    result = div_for(@post, :class => "bar") { @post.body }
     assert result.html_safe?
   end
 
   def test_content_tag_for_collection_is_html_safe
     post_1 = Post.new.tap { |post| post.id = 101; post.body = "Hello!"; post.persisted = true }
     post_2 = Post.new.tap { |post| post.id = 102; post.body = "World!"; post.persisted = true }
-    result = content_tag_for(:li, [post_1, post_2]) { |post| concat post.body }
+    result = content_tag_for(:li, [post_1, post_2]) { |post| post.body }
     assert result.html_safe?
   end
 end
