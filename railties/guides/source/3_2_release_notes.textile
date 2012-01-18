@@ -144,9 +144,9 @@ h4. Deprecations
 
 h3. Action Mailer
 
-* Upgraded mail version to 2.4.0
+* Upgraded <tt>mail</tt> version to 2.4.0.
 
-* Removed Old Action Mailer API. The Old API was deprecated since Rails 3.0 release.
+* Removed the old Action Mailer API which was deprecated since Rails 3.0.
 
 h3. Action Pack
 
