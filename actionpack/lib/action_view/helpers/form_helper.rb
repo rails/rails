@@ -373,7 +373,7 @@ module ActionView
         options[:html][:method] = options.delete(:method) if options.has_key?(:method)
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
 
-        builder = options[:parent_builder] = instantiate_builder(object_name, object, options, &proc)
+        builder = options[:parent_builder] = instantiate_builder(object_name, object, options)
         fields_for = fields_for(object_name, object, options, &proc)
         default_options = builder.multipart? ? { :multipart => true } : {}
         default_options.merge!(options.delete(:html))
@@ -601,7 +601,7 @@ module ActionView
       #     ...
       #   <% end %>
       def fields_for(record_name, record_object = nil, options = {}, &block)
-        builder = instantiate_builder(record_name, record_object, options, &block)
+        builder = instantiate_builder(record_name, record_object, options)
         output = capture(builder, &block)
         output.concat builder.hidden_field(:id) if output && options[:hidden_field_id] && !builder.emitted_hidden_id?
         output
@@ -925,7 +925,7 @@ module ActionView
 
       private
 
-        def instantiate_builder(record_name, record_object, options, &block)
+        def instantiate_builder(record_name, record_object, options)
           case record_name
           when String, Symbol
             object = record_object
@@ -936,7 +936,7 @@ module ActionView
           end
 
           builder = options[:builder] || ActionView::Base.default_form_builder
-          builder.new(object_name, object, self, options, block)
+          builder.new(object_name, object, self, options)
         end
     end
 
@@ -967,9 +967,9 @@ module ActionView
         self
       end
 
-      def initialize(object_name, object, template, options, proc)
+      def initialize(object_name, object, template, options)
         @nested_child_index = {}
-        @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc
+        @object_name, @object, @template, @options = object_name, object, template, options
         @parent_builder = options[:parent_builder]
         @default_options = @options ? @options.slice(:index, :namespace) : {}
         if @object_name.to_s.match(/\[\]$/)
@@ -1183,9 +1183,6 @@ module ActionView
   end
 
   ActiveSupport.on_load(:action_view) do
-    class ActionView::Base
-      cattr_accessor :default_form_builder
-      @@default_form_builder = ::ActionView::Helpers::FormBuilder
-    end
+    cattr_accessor(:default_form_builder) { ::ActionView::Helpers::FormBuilder }
   end
 end

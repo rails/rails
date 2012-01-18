@@ -9,7 +9,7 @@ module Fun
     end
 
     def nested_partial_with_form_builder
-      render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {}, Proc.new {})
+      render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
     end
   end
 end
@@ -558,11 +558,11 @@ class TestController < ActionController::Base
   end
 
   def partial_with_form_builder
-    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {}, Proc.new {})
+    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
   end
 
   def partial_with_form_builder_subclass
-    render :partial => LabellingFormBuilder.new(:post, nil, view_context, {}, Proc.new {})
+    render :partial => LabellingFormBuilder.new(:post, nil, view_context, {})
   end
 
   def partial_collection
