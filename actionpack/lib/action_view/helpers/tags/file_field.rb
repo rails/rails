@@ -2,7 +2,7 @@ module ActionView
   module Helpers
     module Tags
       class FileField < TextField #:nodoc:
-        def render
+        def to_s
           @options.update(:size => nil)
           super
         end

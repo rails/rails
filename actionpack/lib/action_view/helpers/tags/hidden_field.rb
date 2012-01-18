@@ -2,7 +2,7 @@ module ActionView
   module Helpers
     module Tags
       class HiddenField < TextField #:nodoc:
-        def render
+        def to_s
           @options.update(:size => nil)
           super
         end

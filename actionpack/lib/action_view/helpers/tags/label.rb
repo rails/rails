@@ -16,7 +16,7 @@ module ActionView
           super(object_name, method_name, template_object, options)
         end
 
-        def render(&block)
+        def to_s(&block)
           options = @options.stringify_keys
           tag_value = options.delete("value")
           name_and_id = options.dup

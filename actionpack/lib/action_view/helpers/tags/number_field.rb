@@ -2,7 +2,7 @@ module ActionView
   module Helpers
     module Tags
       class NumberField < TextField #:nodoc:
-        def render
+        def to_s
           options = @options.stringify_keys
           options['size'] ||= nil
 

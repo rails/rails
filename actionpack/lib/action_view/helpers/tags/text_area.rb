@@ -4,7 +4,7 @@ module ActionView
       class TextArea < Base #:nodoc:
         DEFAULT_TEXT_AREA_OPTIONS = { "cols" => 40, "rows" => 20 }
 
-        def render
+        def to_s
           options = DEFAULT_TEXT_AREA_OPTIONS.merge(@options.stringify_keys)
           add_default_name_and_id(options)
 

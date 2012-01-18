@@ -2,7 +2,7 @@ module ActionView
   module Helpers
     module Tags
       class TextField < Base #:nodoc:
-        def render
+        def to_s
           options = @options.stringify_keys
           options["size"] = options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"] unless options.key?("size")
           options = DEFAULT_FIELD_OPTIONS.merge(options)
