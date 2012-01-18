@@ -327,7 +327,7 @@ module ActionView
 
         method_tag = ''
         if (method = html_options.delete('method')) && %w{put delete}.include?(method.to_s)
-          method_tag = tag('input', :type => 'hidden', :name => '_method', :value => method.to_s)
+          method_tag = method_tag(method)
         end
 
         form_method = method.to_s == 'get' ? 'get' : 'post'
@@ -675,6 +675,10 @@ module ActionView
             token ||= form_authenticity_token
             tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
           end
+        end
+
+        def method_tag(method)
+          tag('input', :type => 'hidden', :name => '_method', :value => method.to_s)
         end
     end
   end

@@ -627,7 +627,7 @@ module ActionView
               token_tag(authenticity_token)
             else
               html_options["method"] = "post"
-              tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag(authenticity_token)
+              method_tag(method) + token_tag(authenticity_token)
           end
 
           tags = utf8_enforcer_tag << method_tag
