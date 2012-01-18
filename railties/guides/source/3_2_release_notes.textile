@@ -213,15 +213,29 @@ end
 
 In the example above, Posts controller will no longer automatically look up for a posts layout. If you need this functionality you could either remove <tt>layout "application"</tt> from +ApplicationController+ or explicitly set it to +nil+ in +PostsController+.
 
+* Deprecated <tt>ActionController::UnknownAction</tt> in favour of <tt>AbstractController::ActionNotFound</tt>.
+
+* Deprecated <tt>ActionController::DoubleRenderError</tt> in favour of <tt>AbstractController::DoubleRenderError</tt>.
+
+* Deprecated <tt>method_missing</tt> in favour of +action_missing+ for missing actions.
+
+* Deprecated <tt>ActionController#performed?</tt> in favour of checking for the presence of <tt>response_body</tt>.
+
+* Deprecated <tt>ActionController#rescue_action</tt>, <tt>ActionController#initialize_template_class</tt> and <tt>ActionController#assign_shortcuts</tt>.
+
 h4. Action Dispatch
 
-* Use a BodyProxy instead of including a Module that responds to close. Closes #4441 if Active Record is disabled assets are delivered correctly.
+* Add <tt>config.action_dispatch.default_charset</tt> to configure default charset for <tt>ActionDispatch::Response</tt>.
 
 * Added <tt>ActionDispatch::RequestId</tt> middleware that'll make a unique X-Request-Id header available to the response and enables the <tt>ActionDispatch::Request#uuid</tt> method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog.
 
 * The <tt>ShowExceptions</tt> middleware now accepts a exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in +env["action_dispatch.exception"]+ and with the <tt>PATH_INFO</tt> rewritten to the status code.
 
 * Allow rescue responses to be configured through a railtie as in <tt>config.action_dispatch.rescue_responses</tt>.
+
+h5. Deprecations
+
+* Deprecated the ability to set a default charset at the controller level, use the new <tt>config.action_dispatch.default_charset</tt> instead.
 
 h4. Action View
 
@@ -269,6 +283,10 @@ end
 h5. Deprecations
 
 * Passing formats or handlers to render :template and friends like <tt>render :template => "foo.html.erb"</tt> is deprecated. Instead, you can provide :handlers and :formats directly as an options: <tt> render :template => "foo", :formats => [:html, :js], :handlers => :erb</tt>.
+
+h3. Sprockets
+
+* Adds a configuration option <tt>config.assets.logger</tt> to control Sprockets logging. Set it to +false+ to turn off logging and to +nil+ to default to +Rails.logger+.
 
 h3. Active Record
 
