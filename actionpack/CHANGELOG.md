@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Setting config.assets.logger to false turn off Sprockets logger *Guillermo Iguaran*
+
 *   Add `config.action_dispatch.default_charset` to configure default charset for ActionDispatch::Response. *Carlos Antonio da Silva*
 
 *   Deprecate setting default charset at controller level, use the new `config.action_dispatch.default_charset` instead. *Carlos Antonio da Silva*
