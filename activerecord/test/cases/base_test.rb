@@ -992,10 +992,9 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "b", duped_topic.title
 
     # test if the attribute values have been duped
-    topic.title = {"a" => "b"}
     duped_topic = topic.dup
-    duped_topic.title["a"] = "c"
-    assert_equal "b", topic.title["a"]
+    duped_topic.title.replace "c"
+    assert_equal "a", topic.title
 
     # test if attributes set as part of after_initialize are duped correctly
     assert_equal topic.author_email_address, duped_topic.author_email_address
@@ -1006,8 +1005,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal duped_topic.id, topic.id
 
     duped_topic.reload
-    # FIXME: I think this is poor behavior, and will fix it with #5686
-    assert_equal({'a' => 'c'}.to_yaml, duped_topic.title)
+    assert_equal("c", duped_topic.title)
   end
 
   def test_dup_with_aggregate_of_same_name_as_attribute
