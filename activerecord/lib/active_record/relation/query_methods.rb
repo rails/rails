@@ -187,6 +187,15 @@ module ActiveRecord
       relation.from_value = value
       relation
     end
+    
+    # Returns a chainable empty relation with zero records. It uses an 
+    # imposible condition to create a query that returns no records.
+    # 
+    # Any subsequent condition chained to the relation will continue
+    # generating an empty relation.
+    def none
+      where("33<3")
+    end
 
     # Specifies whether the records should be unique or not. For example:
     #
