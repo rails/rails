@@ -298,6 +298,8 @@ h3. Active Record
 
 * Boolean columns with 'on' and 'ON' values are type casted to true.
 
+* When the +timestamps+ method creates the +created_at+ and +updated_at+ columns, it makes them non-nullable by default.
+
 * Implemented <tt>ActiveRecord::Relation#explain</tt>.
 
 * Implements <tt>AR::Base.silence_auto_explain</tt> which allows the user to selectively disable automatic EXPLAINs within a block.
@@ -370,8 +372,6 @@ has_many :clients, :class_name => :Client # Note that the symbol need to be capi
 <ruby>
 User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson")
 </ruby>
-
-* +timestamps+ will add non-null constraint as default.
 
 h4. Deprecations
 
