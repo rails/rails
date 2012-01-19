@@ -27,6 +27,7 @@ h4. What to update in your apps
 ** <tt>rails = 3.2.0</tt>
 ** <tt>sass-rails ~> 3.2.3</tt>
 ** <tt>coffee-rails ~> 3.2.1</tt>
+** <tt>uglifier >= 1.0.3</tt>
 
 * Rails 3.2 deprecates <tt>vendor/plugins</tt> and Rails 4.0 will remove them completely. You can start replacing these plugins by extracting them as gems and adding them in your Gemfile. If you choose not to make them gems, you can move them into, say, <tt>lib/my_plugin/*</tt> and add an appropriate initializer in <tt>config/initializers/my_plugin.rb</tt>.
 
