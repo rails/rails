@@ -39,14 +39,14 @@ module ActiveResource
 
     # Set URI for remote service.
     def site=(site)
-      @site = site.is_a?(URI) ? site : URI.parser.parse(site)
+      @site = site.is_a?(URI) ? site : URI.parse(site)
       @user = URI.parser.unescape(@site.user) if @site.user
       @password = URI.parser.unescape(@site.password) if @site.password
     end
 
     # Set the proxy for remote service.
     def proxy=(proxy)
-      @proxy = proxy.is_a?(URI) ? proxy : URI.parser.parse(proxy)
+      @proxy = proxy.is_a?(URI) ? proxy : URI.parse(proxy)
     end
 
     # Sets the user for remote service.
