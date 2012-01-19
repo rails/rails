@@ -93,6 +93,12 @@ class ControllerInstanceTests < ActiveSupport::TestCase
                               Submodule::ContainedNonEmptyController.new]
   end
 
+  def test_performed?
+    assert !@empty.performed?
+    @empty.response_body = ["sweet"]
+    assert @empty.performed?
+  end
+
   def test_action_methods
     @empty_controllers.each do |c|
       assert_equal Set.new, c.class.action_methods, "#{c.controller_path} should be empty!"
