@@ -371,6 +371,8 @@ has_many :clients, :class_name => :Client # Note that the symbol need to be capi
 User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson")
 </ruby>
 
+* +timestamps+ will add non-null constraint as default.
+
 h4. Deprecations
 
 * Automatic closure of connections in threads is deprecated. For example the following code is deprecated:
