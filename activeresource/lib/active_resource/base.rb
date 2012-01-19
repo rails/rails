@@ -939,12 +939,12 @@ module ActiveResource
 
         # Accepts a URI and creates the site URI from that.
         def create_site_uri_from(site)
-          site.is_a?(URI) ? site.dup : URI.parser.parse(site)
+          site.is_a?(URI) ? site.dup : URI.parse(site)
         end
 
         # Accepts a URI and creates the proxy URI from that.
         def create_proxy_uri_from(proxy)
-          proxy.is_a?(URI) ? proxy.dup : URI.parser.parse(proxy)
+          proxy.is_a?(URI) ? proxy.dup : URI.parse(proxy)
         end
 
         # contains a set of the current prefix parameters.
