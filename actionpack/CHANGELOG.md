@@ -1,4 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
+
 *   Add `config.action_view.logger` to configure logger for ActionView. *Rafael França*
 
 *   Deprecated ActionController::Integration in favour of ActionDispatch::Integration
@@ -32,8 +33,6 @@
 *   Deprecate ActionController::DoubleRenderError in favour of AbstractController::DoubleRenderError. *Carlos Antonio da Silva*
 
 *   Deprecate method_missing handling for not found actions, use action_missing instead. *Carlos Antonio da Silva*
-
-*   Deprecate ActionController#performed?, check for response_body presence instead. *Carlos Antonio da Silva*
 
 *   Deprecate ActionController#rescue_action, ActionController#initialize_template_class, and ActionController#assign_shortcuts.
     These methods were not being used internally anymore and are going to be removed in Rails 4. *Carlos Antonio da Silva*
