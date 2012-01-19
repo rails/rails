@@ -12,8 +12,6 @@
 
 *   Deprecate method_missing handling for not found actions, use action_missing instead. *Carlos Antonio da Silva*
 
-*   Deprecate ActionController#performed?, check for response_body presence instead. *Carlos Antonio da Silva*
-
 *   Deprecate ActionController#rescue_action, ActionController#initialize_template_class, and ActionController#assign_shortcuts.
     These methods were not being used internally anymore and are going to be removed in Rails 4. *Carlos Antonio da Silva*
 
