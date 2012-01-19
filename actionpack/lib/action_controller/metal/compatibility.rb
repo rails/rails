@@ -60,11 +60,5 @@ module ActionController
     def method_for_action(action_name)
       super || (respond_to?(:method_missing) && "_handle_method_missing")
     end
-
-    def performed?
-      ActiveSupport::Deprecation.warn "Calling `performed?` is deprecated and will " \
-        "be removed in Rails 4.0. Please check for `response_body` presence instead.", caller
-      response_body
-    end
   end
 end

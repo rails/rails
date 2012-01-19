@@ -192,6 +192,10 @@ module ActionController
       super body
     end
 
+    def performed?
+      response_body
+    end
+
     def dispatch(name, request) #:nodoc:
       @_request = request
       @_env = request.env
