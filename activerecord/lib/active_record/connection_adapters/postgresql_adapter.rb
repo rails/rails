@@ -171,15 +171,15 @@ module ActiveRecord
 
         # Extracts the value from a PostgreSQL column default definition.
         def self.extract_value_from_default(default)
+          # This is a performance optimization for Ruby 1.9.2 in development.
+          # If the value is nil, we return nil straight away without checking
+          # the regular expressions. If we check each regular expression,
+          # Regexp#=== will call NilClass#to_str, which will trigger
+          # method_missing (defined by whiny nil in ActiveSupport) which
+          # makes this method very very slow.
+          return default unless default
+
           case default
-            # This is a performance optimization for Ruby 1.9.2 in development.
-            # If the value is nil, we return nil straight away without checking
-            # the regular expressions. If we check each regular expression,
-            # Regexp#=== will call NilClass#to_str, which will trigger
-            # method_missing (defined by whiny nil in ActiveSupport) which
-            # makes this method very very slow.
-            when NilClass
-              nil
             # Numeric types
             when /\A\(?(-?\d+(\.\d*)?\)?)\z/
               $1
