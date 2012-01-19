@@ -70,9 +70,9 @@ module ActiveRecord
           assert_equal bd.to_f, @conn.type_cast(bd, nil)
         end
 
-        def test_type_cast_unknown
+        def test_type_cast_unknown_should_raise_error
           obj = Class.new.new
-          assert_equal YAML.dump(obj), @conn.type_cast(obj, nil)
+          assert_raise(TypeError) { @conn.type_cast(obj, nil) }
         end
 
         def test_quoted_id
