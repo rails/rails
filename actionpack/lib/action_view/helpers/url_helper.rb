@@ -327,7 +327,7 @@ module ActionView
 
         method_tag = ''
         if (method = html_options.delete('method')) && %w{put delete}.include?(method.to_s)
-          method_tag = tag('input', :type => 'hidden', :name => '_method', :value => method.to_s)
+          method_tag = method_tag(method)
         end
 
         form_method = method.to_s == 'get' ? 'get' : 'post'
@@ -336,10 +336,7 @@ module ActionView
 
         remote = html_options.delete('remote')
 
-        request_token_tag = ''
-        if form_method == 'post' && protect_against_forgery?
-          request_token_tag = tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
-        end
+        request_token_tag = form_method == 'post' ? token_tag : ''
 
         url = options.is_a?(String) ? options : self.url_for(options)
         name ||= url
@@ -669,6 +666,19 @@ module ActionView
         def convert_boolean_attributes!(html_options, bool_attrs)
           bool_attrs.each { |x| html_options[x] = x if html_options.delete(x) }
           html_options
+        end
+
+        def token_tag(token=nil)
+          if token == false || !protect_against_forgery?
+            ''
+          else
+            token ||= form_authenticity_token
+            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
+          end
+        end
+
+        def method_tag(method)
+          tag('input', :type => 'hidden', :name => '_method', :value => method.to_s)
         end
     end
   end
