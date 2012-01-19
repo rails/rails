@@ -298,6 +298,8 @@ h3. Active Record
 
 * Boolean columns with 'on' and 'ON' values are type casted to true.
 
+* When the +timestamps+ method creates the +created_at+ and +updated_at+ columns, it makes them non-nullable by default.
+
 * Implemented <tt>ActiveRecord::Relation#explain</tt>.
 
 * Implements <tt>AR::Base.silence_auto_explain</tt> which allows the user to selectively disable automatic EXPLAINs within a block.

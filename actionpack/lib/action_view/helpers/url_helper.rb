@@ -473,7 +473,7 @@ module ActionView
       #   string given as the value.
       # * <tt>:subject</tt> - Preset the subject line of the email.
       # * <tt>:body</tt> - Preset the body of the email.
-      # * <tt>:cc</tt> - Carbon Copy addition recipients on the email.
+      # * <tt>:cc</tt> - Carbon Copy additional recipients on the email.
       # * <tt>:bcc</tt> - Blind Carbon Copy additional recipients on the email.
       #
       # ==== Examples
