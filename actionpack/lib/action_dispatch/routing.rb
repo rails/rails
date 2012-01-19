@@ -280,6 +280,5 @@ module ActionDispatch
     autoload :PolymorphicRoutes, 'action_dispatch/routing/polymorphic_routes'
 
     SEPARATORS = %w( / . ? ) #:nodoc:
-    HTTP_METHODS = [:get, :head, :post, :put, :delete, :options] #:nodoc:
   end
 end
