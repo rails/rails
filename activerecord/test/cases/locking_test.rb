@@ -388,6 +388,26 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
       end
     end
 
+    def test_with_lock_commits_transaction
+      person = Person.find 1
+      person.with_lock do
+        person.first_name = 'fooman'
+        person.save!
+      end
+      assert_equal 'fooman', person.reload.first_name
+    end
+
+    def test_with_lock_rolls_back_transaction
+      person = Person.find 1
+      old = person.first_name
+      person.with_lock do
+        person.first_name = 'fooman'
+        person.save!
+        raise 'oops'
+      end rescue nil
+      assert_equal old, person.reload.first_name
+    end
+
     if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
       def test_no_locks_no_wait
         first, second = duel { Person.find 1 }

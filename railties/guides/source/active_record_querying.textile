@@ -692,6 +692,17 @@ Item.transaction do
 end
 </ruby>
 
+If you already have an instance of your model, you can start a transaction and acquire the lock in one go using the following code:
+
+<ruby>
+item = Item.first
+item.with_lock do
+  # This block is called within a transaction,
+  # item is already locked.
+  item.increment!(:views)
+end
+</ruby>
+
 h3. Joining Tables
 
 Active Record provides a finder method called +joins+ for specifying +JOIN+ clauses on the resulting SQL. There are multiple ways to use the +joins+ method.
