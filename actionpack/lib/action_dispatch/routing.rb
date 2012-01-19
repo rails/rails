@@ -1,6 +1,3 @@
-require 'active_support/core_ext/object/to_param'
-require 'active_support/core_ext/regexp'
-
 module ActionDispatch
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
