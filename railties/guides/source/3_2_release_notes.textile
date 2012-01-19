@@ -138,7 +138,7 @@ will create indexes for +title+ and +author+ with the latter being an unique ind
 
 * Remove old <tt>config.paths.app.controller</tt> API in favor of <tt>config.paths["app/controller"]</tt>.
 
-h4. Deprecations
+h4(#railties_deprecations). Deprecations
 
 * +Rails::Plugin+ is deprecated and will be removed in Rails 4.0. Instead of adding plugins to +vendor/plugins+ use gems or bundler with path or git dependencies.
 
@@ -204,7 +204,7 @@ We now no longer write out HTTP_COOKIE and the cookie jar is persistent between 
 
 * Assets should use the request protocol by default or default to relative if no request is available.
 
-h5. Deprecations
+h5(#actioncontroller_deprecations). Deprecations
 
 * Deprecated implied layout lookup in controllers whose parent had a explicit layout set:
 
@@ -239,7 +239,7 @@ h4. Action Dispatch
 
 * Allow rescue responses to be configured through a railtie as in <tt>config.action_dispatch.rescue_responses</tt>.
 
-h5. Deprecations
+h5(#actiondispatch_deprecations). Deprecations
 
 * Deprecated the ability to set a default charset at the controller level, use the new <tt>config.action_dispatch.default_charset</tt> instead.
 
@@ -286,7 +286,7 @@ end
 
 * Added +font_path+ helper method that computes the path to a font asset in <tt>public/fonts</tt>.
 
-h5. Deprecations
+h5(#actionview_deprecations). Deprecations
 
 * Passing formats or handlers to render :template and friends like <tt>render :template => "foo.html.erb"</tt> is deprecated. Instead, you can provide :handlers and :formats directly as an options: <tt> render :template => "foo", :formats => [:html, :js], :handlers => :erb</tt>.
 
@@ -400,7 +400,7 @@ class Order < ActiveRecord::Base
 end
 </ruby>
 
-h4. Deprecations
+h4(#activerecord_deprecations). Deprecations
 
 * Automatic closure of connections in threads is deprecated. For example the following code is deprecated:
 
@@ -448,7 +448,7 @@ h3. Active Model
 
 * Provide mass_assignment_sanitizer as an easy API to replace the sanitizer behavior. Also support both :logger (default) and :strict sanitizer behavior.
 
-h4. Deprecations
+h4(#activemodel_deprecations). Deprecations
 
 * Deprecated <tt>define_attr_method</tt> in <tt>ActiveModel::AttributeMethods</tt> because this only existed to support methods like +set_table_name+ in Active Record, which are themselves being deprecated.
 
@@ -508,7 +508,7 @@ Event.where(:created_at => Time.now.all_day)
 
 * Removed <tt>ActiveSupport::SecureRandom</tt> in favor of <tt>SecureRandom</tt> from the standard library.
 
-h4. Deprecations
+h4(#activesupport_deprecations). Deprecations
 
 * +ActiveSupport::Base64+ is deprecated in favor of <tt>::Base64</tt>.
 
