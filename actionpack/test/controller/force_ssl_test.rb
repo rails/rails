@@ -39,9 +39,7 @@ class ForceSSLFlash < ForceSSLController
     @flashy = flash["that"]
     render :inline => "hello"
   end
-
 end
-
 
 class ForceSSLControllerLevelTest < ActionController::TestCase
   tests ForceSSLControllerLevel
@@ -135,5 +133,4 @@ class ForceSSLFlashTest < ActionController::TestCase
     assert_equal "hello", assigns["flash_copy"]["that"]
     assert_equal "hello", assigns["flashy"]
   end
-
 end
