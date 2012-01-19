@@ -228,7 +228,7 @@ module Rails
   #     resources :articles
   #   end
   #
-  # The routes above will automatically point to <tt>MyEngine::ApplicationController</tt>. Furthermore, you don't
+  # The routes above will automatically point to <tt>MyEngine::ArticlesController</tt>. Furthermore, you don't
   # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you should simply use
   # <tt>articles_path</tt> as you would do with your application.
   #
