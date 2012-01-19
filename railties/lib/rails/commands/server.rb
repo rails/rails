@@ -89,6 +89,7 @@ module Rails
     def default_options
       super.merge({
         :Port        => 3000,
+        :DoNotReverseLookup => true,
         :environment => (ENV['RAILS_ENV'] || "development").dup,
         :daemonize   => false,
         :debugger    => false,
