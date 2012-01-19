@@ -1,39 +1,18 @@
-require "active_support/string_inquirer"
-require "active_support/basic_object"
+require 'active_support/deprecation/proxy_wrappers'
 
 module Rails
-  module Initializer
-    def self.run(&block)
-      klass = Class.new(Rails::Application)
-      klass.instance_exec(klass.config, &block)
-      klass.initialize!
-    end
-  end
-
-  class DeprecatedConstant < ActiveSupport::BasicObject
-    def self.deprecate(old, new)
-      constant = self.new(old, new)
+  class DeprecatedConstant < ActiveSupport::Deprecation::DeprecatedConstantProxy
+    def self.deprecate(old, current)
+      constant = new(old, current)
       eval "::#{old} = constant"
     end
 
-    def initialize(old, new)
-      @old, @new = old, new
-      @target = ::Kernel.eval "proc { #{@new} }"
-      @warned = false
-    end
+    private
 
-    def method_missing(meth, *args, &block)
-      ::ActiveSupport::Deprecation.warn("#{@old} is deprecated. Please use #{@new}") unless @warned
-      @warned = true
-
-      target = @target.call
-      if target.respond_to?(meth)
-        target.send(meth, *args, &block)
-      else
-        super
-      end
+    def target
+      ::Kernel.eval @new_const.to_s
     end
   end
 
-  DeprecatedConstant.deprecate("RAILS_CACHE", "::Rails.cache")
+  DeprecatedConstant.deprecate('RAILS_CACHE', '::Rails.cache')
 end
