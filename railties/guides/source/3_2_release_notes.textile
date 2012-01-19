@@ -226,8 +226,6 @@ In the example above, Posts controller will no longer automatically look up for 
 
 * Deprecated <tt>method_missing</tt> in favour of +action_missing+ for missing actions.
 
-* Deprecated <tt>ActionController#performed?</tt> in favour of checking for the presence of <tt>response_body</tt>.
-
 * Deprecated <tt>ActionController#rescue_action</tt>, <tt>ActionController#initialize_template_class</tt> and <tt>ActionController#assign_shortcuts</tt>.
 
 h4. Action Dispatch
