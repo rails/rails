@@ -581,7 +581,7 @@ module ActionDispatch
           end
 
           dispatcher = route.app
-          while dispatcher.is_a?(Mapper::Constraints) && dispatcher.matches?(env) do
+          while dispatcher.is_a?(Constraints) && dispatcher.matches?(env) do
             dispatcher = dispatcher.app
           end
 

@@ -14,7 +14,7 @@ module Rails
       def rack_app(app = self.app)
         @rack_app ||= begin
           class_name = app.class.name.to_s
-          if class_name == "ActionDispatch::Routing::Mapper::Constraints"
+          if class_name == "ActionDispatch::Routing::Constraints"
             rack_app(app.app)
           elsif class_name !~ /^ActionDispatch::Routing/
             app
