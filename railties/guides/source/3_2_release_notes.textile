@@ -373,6 +373,33 @@ has_many :clients, :class_name => :Client # Note that the symbol need to be capi
 User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson")
 </ruby>
 
+* Added a <tt>with_lock</tt> method to Active Record objects, which starts a transaction, locks the object (pessimistically) and yields to the block. The method takes one (optional) parameter and passes it to +lock!+.
+
+This makes it possible to write the following:
+
+<ruby>
+class Order < ActiveRecord::Base
+  def cancel!
+    transaction do
+      lock!
+      # ... cancelling logic
+    end
+  end
+end
+</ruby>
+
+as:
+
+<ruby>
+class Order < ActiveRecord::Base
+  def cancel!
+    with_lock do
+      # ... cancelling logic
+    end
+  end
+end
+</ruby>
+
 h4. Deprecations
 
 * Automatic closure of connections in threads is deprecated. For example the following code is deprecated:
