@@ -57,9 +57,9 @@ module ActiveRecord
     # array, it actually returns a relation object and can have other query
     # methods appended to it, such as the other methods in ActiveRecord::QueryMethods.
     #
-    # This method will also take multiple parameters:
+    # The argument to the method can also be an array of fields.
     #
-    #   >> Model.select(:field, :other_field, :and_one_more)
+    #   >> Model.select([:field, :other_field, :and_one_more])
     #   => [#<Model field: "value", other_field: "value", and_one_more: "value">]
     #
     # Any attributes that do not have fields retrieved by a select
