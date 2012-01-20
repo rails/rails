@@ -734,7 +734,7 @@ module ActionView
 
       def select_day
         if @options[:use_hidden] || @options[:discard_day]
-          build_hidden(:day, day)
+          build_hidden(:day, day || 1)
         else
           build_options_and_select(:day, day, :start => 1, :end => 31, :leading_zeros => false, :use_two_digit_numbers => @options[:use_two_digit_numbers])
         end
