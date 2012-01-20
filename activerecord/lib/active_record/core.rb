@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'thread'
 
 module ActiveRecord
   module Core
@@ -80,6 +81,8 @@ module ActiveRecord
       end
 
       def initialize_generated_modules
+        @attribute_methods_mutex = Mutex.new
+
         # force attribute methods to be higher in inheritance hierarchy than other generated methods
         generated_attribute_methods
         generated_feature_methods
