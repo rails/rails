@@ -137,11 +137,11 @@ class RescueController < ActionController::Base
   end
 
   def io_error_in_view
-    raise ActionView::TemplateError.new(nil, {}, IOError.new('this is io error'))
+    raise ActionView::TemplateError.new(nil, IOError.new('this is io error'))
   end
 
   def zero_division_error_in_view
-    raise ActionView::TemplateError.new(nil, {}, ZeroDivisionError.new('this is zero division error'))
+    raise ActionView::TemplateError.new(nil, ZeroDivisionError.new('this is zero division error'))
   end
 
   protected

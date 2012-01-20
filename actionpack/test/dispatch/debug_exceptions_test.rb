@@ -34,7 +34,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/unprocessable_entity"
         raise ActionController::InvalidAuthenticityToken
       when "/not_found_original_exception"
-        raise ActionView::Template::Error.new('template', {}, AbstractController::ActionNotFound.new)
+        raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
       else
         raise "puke!"
       end
