@@ -504,7 +504,7 @@ module ActionDispatch
               ActiveSupport::Deprecation.warn <<-eowarn
 The method signature of #{method}() is changing to:
 
-    #{method}(path, options = {})
+    #{method}(path, options = {}, &block)
 
 Calling with multiple paths is deprecated.
               eowarn
