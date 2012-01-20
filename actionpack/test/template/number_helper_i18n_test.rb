@@ -70,6 +70,15 @@ class NumberHelperTest < ActionView::TestCase
 
   end
 
+  def test_number_with_empty_i18n_store
+    I18n.backend.store_translations 'empty', {}
+
+    #Precision should be defaulted to 3, separator to ".", delimiter to ""
+    assert_equal("123456789.123", number_with_precision(123456789.123456789, :locale => 'empty'))
+    #Significant and strip_insignificant_zeros should be defaulted to false
+    assert_equal("1.000", number_with_precision(1.0000, :locale => 'empty'))
+  end
+
   def test_number_with_i18n_delimiter
     #Delimiter "," and separator "."
     assert_equal("1,000,000.234", number_with_delimiter(1000000.234, :locale => 'ts'))

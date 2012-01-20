@@ -16,6 +16,9 @@ module ActionView
     # unchanged if can't be converted into a valid number.
     module NumberHelper
 
+      DEFAULT_NUMBER_VALUES = { :precision => 3, :separator => ".", :delimiter => "", :significant => false, :strip_insignificant_zeros => false }
+
+
       DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :negative_format => "-%u%n", :unit => "$", :separator => ".", :delimiter => ",",
                                   :precision => 2, :significant => false, :strip_insignificant_zeros => false }
 
@@ -302,7 +305,7 @@ module ActionView
 
         defaults           = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         precision_defaults = I18n.translate(:'number.precision.format', :locale => options[:locale], :default => {})
-        defaults           = defaults.merge(precision_defaults)
+        defaults           = DEFAULT_NUMBER_VALUES.merge(defaults).merge(precision_defaults)
 
         options = options.reverse_merge(defaults)  # Allow the user to unset default values: Eg.: :significant => false
         precision = options.delete :precision
