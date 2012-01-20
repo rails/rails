@@ -205,8 +205,7 @@ module ActionView
           if options[:raise]
             raise
           else
-            formatted_number = e.number.to_s.html_safe? ? format.gsub(/%n/, e.number).html_safe : format.gsub(/%n/, e.number)
-            formatted_number.html_safe? ? formatted_number.html_safe : formatted_number
+            e.number.to_s.html_safe? ? format.gsub(/%n/, e.number).html_safe : format.gsub(/%n/, e.number)
           end
         end
       end

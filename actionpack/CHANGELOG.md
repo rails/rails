@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `:format` option to number_to_percentage *Rodrigo Flores*
+
 *   Add `config.action_view.logger` to configure logger for ActionView. *Rafael França*
 
 *   Deprecated ActionController::Integration in favour of ActionDispatch::Integration
