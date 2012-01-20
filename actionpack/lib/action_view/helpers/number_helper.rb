@@ -169,6 +169,8 @@ module ActionView
       # * <tt>:delimiter</tt>                   - Sets the thousands delimiter (defaults to "").
       # * <tt>:strip_insignificant_zeros</tt>   - If +true+ removes insignificant zeros after the decimal separator
       #                                           (defaults to +false+).
+      # * <tt>:format</tt>                      - Specifies the format of the percentage string
+      #                                           The number field is <tt>%n</tt> (defaults to "%n%").
       # * <tt>:raise</tt>                       - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
@@ -180,6 +182,7 @@ module ActionView
       #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
       #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
       #  number_to_percentage("98a")                                      # => 98a%
+      #  number_to_percentage(100, :format => "%n  %")                    # => 100  %
       #
       #  number_to_percentage("98a", :raise => true)                      # => InvalidNumberError
       def number_to_percentage(number, options = {})
@@ -193,13 +196,17 @@ module ActionView
 
         options = options.reverse_merge(defaults)
 
+        format = options[:format] || "%n%"
+
         begin
-          "#{number_with_precision(number, options.merge(:raise => true))}%".html_safe
+          value = number_with_precision(number, options.merge(:raise => true))
+          format.gsub(/%n/, value).html_safe
         rescue InvalidNumberError => e
           if options[:raise]
             raise
           else
-            e.number.to_s.html_safe? ? "#{e.number}%".html_safe : "#{e.number}%"
+            formatted_number = e.number.to_s.html_safe? ? format.gsub(/%n/, e.number).html_safe : format.gsub(/%n/, e.number)
+            formatted_number.html_safe? ? formatted_number.html_safe : formatted_number
           end
         end
       end

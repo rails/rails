@@ -37,6 +37,7 @@
         # precision:
         # significant: false
         # strip_insignificant_zeros: false
+        format: "%n%"
 
     # Used in number_to_precision()
     precision:
