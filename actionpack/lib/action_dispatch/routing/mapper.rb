@@ -464,7 +464,7 @@ module ActionDispatch
         #
         # get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
-          map_method(:get, *args, &block)
+          map_method(:get, args, &block)
         end
 
         # Define a route that only recognizes HTTP POST.
@@ -474,7 +474,7 @@ module ActionDispatch
         #
         # post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
-          map_method(:post, *args, &block)
+          map_method(:post, args, &block)
         end
 
         # Define a route that only recognizes HTTP PUT.
@@ -484,7 +484,7 @@ module ActionDispatch
         #
         # put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
-          map_method(:put, *args, &block)
+          map_method(:put, args, &block)
         end
 
         # Define a route that only recognizes HTTP PUT.
@@ -494,15 +494,14 @@ module ActionDispatch
         #
         # delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
-          map_method(:delete, *args, &block)
+          map_method(:delete, args, &block)
         end
 
         private
-          def map_method(method, *args, &block)
+          def map_method(method, args, &block)
             options = args.extract_options!
             options[:via] = method
-            args.push(options)
-            match(*args, &block)
+            match(*args, options, &block)
             self
           end
       end
