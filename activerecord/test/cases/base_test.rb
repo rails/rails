@@ -187,6 +187,31 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_previously_changed
+    topic = Topic.find :first
+    topic.title = '<3<3<3'
+    assert_equal({}, topic.previous_changes)
+
+    topic.save!
+    expected = ["The First Topic", "<3<3<3"]
+    assert_equal(expected, topic.previous_changes['title'])
+  end
+
+  def test_previously_changed_dup
+    topic = Topic.find :first
+    topic.title = '<3<3<3'
+    topic.save!
+
+    t2 = topic.dup
+
+    assert_equal(topic.previous_changes, t2.previous_changes)
+
+    topic.title = "lolwut"
+    topic.save!
+
+    assert_not_equal(topic.previous_changes, t2.previous_changes)
+  end
+
   def test_preserving_time_objects
     assert_kind_of(
       Time, Topic.find(1).bonus_time,
