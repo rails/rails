@@ -39,8 +39,7 @@ module ActiveRecord
     console do |app|
       require "active_record/railties/console_sandbox" if app.sandbox?
       console = ActiveSupport::Logger.new(STDERR)
-      logger = ActiveSupport::BroadcastLogger.new [Rails.logger, console]
-      ActiveRecord::Base.logger = logger
+      Rails.logger.extend ActiveSupport::Logger.broadcast console
     end
 
     initializer "active_record.initialize_timezone" do

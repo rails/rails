@@ -6,7 +6,8 @@ module ActiveSupport
     def setup
       @log1 = FakeLogger.new
       @log2 = FakeLogger.new
-      @logger = BroadcastLogger.new [log1, log2]
+      @log1.extend Logger.broadcast @log2
+      @logger = @log1
     end
 
     def test_debug
@@ -59,6 +60,10 @@ module ActiveSupport
         @level     = nil
         @progname  = nil
         @formatter = nil
+      end
+
+      def debug msg, &block
+        add(:omg, nil, msg, &block)
       end
 
       def << x

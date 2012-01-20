@@ -1,54 +1,42 @@
 require 'logger'
 
 module ActiveSupport
-  # Broadcasts logs to multiple loggers
-  class BroadcastLogger < ::Logger # :nodoc:
-    attr_reader :logs
-
-    def initialize(logs)
-      super(nil)
-      @logs = logs
-    end
-
-    def progname
-      logs.first.progname
-    end
-
-    def progname=(name)
-      logs.each { |x| x.progname = name }
-    end
-
-    def formatter
-      logs.first.formatter
-    end
-
-    def formatter=(formatter)
-      logs.each { |x| x.formatter = formatter }
-    end
-
-    def level
-      logs.first.level
-    end
-
-    def level=(level)
-      logs.each { |x| x.level = level }
-    end
-
-    def add(severity, message = nil, progname = nil, &block)
-      super
-      logs.each { |l| l.add(severity, message, progname, &block) }
-    end
-
-    def <<(x)
-      logs.each { |l| l << x }
-    end
-
-    def close
-      logs.each(&:close)
-    end
-  end
-
   class Logger < ::Logger
+    # Broadcasts logs to multiple loggers
+    def self.broadcast(logger) # :nodoc:
+      Module.new do
+        define_method(:add) do |*args, &block|
+          logger.add(*args, &block)
+          super(*args, &block)
+        end
+
+        define_method(:<<) do |x|
+          logger << x
+          super(x)
+        end
+
+        define_method(:close) do
+          logger.close
+          super()
+        end
+
+        define_method(:progname=) do |name|
+          logger.progname = name
+          super(name)
+        end
+
+        define_method(:formatter=) do |formatter|
+          logger.formatter = formatter
+          super(formatter)
+        end
+
+        define_method(:level=) do |level|
+          logger.level = level
+          super(level)
+        end
+      end
+    end
+
     def initialize(*args)
       super
       @formatter = SimpleFormatter.new
