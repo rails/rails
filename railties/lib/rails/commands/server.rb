@@ -67,6 +67,13 @@ module Rails
         FileUtils.mkdir_p(Rails.root.join('tmp', dir_to_make))
       end
 
+      unless options[:daemonize]
+        wrapped_app # touch the app so the logger is set up
+
+        console = ActiveSupport::Logger.new($stdout)
+        Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+      end
+
       super
     ensure
       # The '-h' option calls exit before @options is set.
@@ -76,7 +83,6 @@ module Rails
 
     def middleware
       middlewares = []
-      middlewares << [Rails::Rack::LogTailer, log_path] unless options[:daemonize]
       middlewares << [Rails::Rack::Debugger]  if options[:debugger]
       middlewares << [::Rack::ContentLength]
       Hash.new(middlewares)
