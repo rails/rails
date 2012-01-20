@@ -10,6 +10,30 @@ module ActiveSupport
       @logs = logs
     end
 
+    def progname
+      logs.first.progname
+    end
+
+    def progname=(name)
+      logs.each { |x| x.progname = name }
+    end
+
+    def formatter
+      logs.first.formatter
+    end
+
+    def formatter=(formatter)
+      logs.each { |x| x.formatter = formatter }
+    end
+
+    def level
+      logs.first.level
+    end
+
+    def level=(level)
+      logs.each { |x| x.level = level }
+    end
+
     def add(severity, message = nil, progname = nil, &block)
       super
       logs.each { |l| l.add(severity, message, progname, &block) }
