@@ -39,7 +39,7 @@ module Arel
       def each &block
         return enum_for(:each) unless block_given?
 
-        Visitors::DepthFirst.new(block).accept self
+        ::Arel::Visitors::DepthFirst.new(block).accept self
       end
     end
   end
