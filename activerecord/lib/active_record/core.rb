@@ -152,16 +152,8 @@ module ActiveRecord
     #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
     def initialize(attributes = nil, options = {})
       @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
-      @association_cache = {}
-      @aggregation_cache = {}
-      @attributes_cache = {}
-      @new_record = true
-      @readonly = false
-      @destroyed = false
-      @marked_for_destruction = false
-      @previously_changed = {}
-      @changed_attributes = {}
-      @relation = nil
+
+      init_internals
 
       ensure_proper_type
 
@@ -185,13 +177,11 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes = self.class.initialize_attributes(coder['attributes'])
-      @relation = nil
 
-      @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
-      @association_cache = {}
-      @aggregation_cache = {}
-      @readonly = @destroyed = @marked_for_destruction = false
+      init_internals
+
       @new_record = false
+
       run_callbacks :find
       run_callbacks :initialize
 
@@ -219,7 +209,8 @@ module ActiveRecord
 
       @aggregation_cache = {}
       @association_cache = {}
-      @attributes_cache = {}
+      @attributes_cache  = {}
+
       @new_record  = true
 
       ensure_proper_type
@@ -329,6 +320,19 @@ module ActiveRecord
     # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary/
     def to_ary # :nodoc:
       nil
+    end
+
+    def init_internals
+      @relation               = nil
+      @aggregation_cache      = {}
+      @association_cache      = {}
+      @attributes_cache       = {}
+      @previously_changed     = {}
+      @changed_attributes     = {}
+      @readonly               = false
+      @destroyed              = false
+      @marked_for_destruction = false
+      @new_record             = true
     end
   end
 end
