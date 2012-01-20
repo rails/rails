@@ -55,9 +55,9 @@ module ActionView
 
       attr_reader :original_exception, :backtrace
 
-      def initialize(template, assigns, original_exception)
+      def initialize(template, original_exception)
         super(original_exception.message)
-        @template, @assigns, @original_exception = template, assigns.dup, original_exception
+        @template, @original_exception = template, original_exception
         @sub_templates = nil
         @backtrace = original_exception.backtrace
       end
