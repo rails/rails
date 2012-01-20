@@ -1,4 +1,4 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   Rails 2.3-style plugins in vendor/plugins are deprecated and will be removed in Rails 4.0. Move them out of vendor/plugins and bundle them in your Gemfile, or fold them in to your app as lib/myplugin/* and config/initializers/myplugin.rb.  *Santiago Pastorino*
 

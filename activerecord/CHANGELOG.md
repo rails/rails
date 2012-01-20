@@ -1,4 +1,4 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   Added a `with_lock` method to ActiveRecord objects, which starts
     a transaction, locks the object (pessimistically) and yields to the block.
