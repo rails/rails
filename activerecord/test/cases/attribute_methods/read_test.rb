@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'active_support/core_ext/object/inclusion'
+require 'thread'
 
 module ActiveRecord
   module AttributeMethods
@@ -19,6 +20,13 @@ module ActiveRecord
           def self.base_class; self; end
 
           include ActiveRecord::AttributeMethods
+
+          def self.define_attribute_methods
+            # Created in the inherited/included hook for "proper" ARs
+            @attribute_methods_mutex ||= Mutex.new
+
+            super
+          end
 
           def self.column_names
             %w{ one two three }
