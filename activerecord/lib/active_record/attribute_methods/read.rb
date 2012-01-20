@@ -126,10 +126,7 @@ module ActiveRecord
         self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
       end
 
-      private
-        def attribute(attribute_name)
-          read_attribute(attribute_name)
-        end
+      alias :attribute :read_attribute
     end
   end
 end
