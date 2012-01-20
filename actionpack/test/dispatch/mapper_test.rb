@@ -38,7 +38,7 @@ module ActionDispatch
 
       def test_mapping_requirements
         options = { :controller => 'foo', :action => 'bar' }
-        m = Mapper::Mapping.new FakeSet.new, {}, '/store/:name(*rest)', options
+        m = Mapping.new FakeSet.new, {}, '/store/:name(*rest)', options
         _, _, requirements, _ = m.to_route
         assert_equal(/.+?/, requirements[:rest])
       end
