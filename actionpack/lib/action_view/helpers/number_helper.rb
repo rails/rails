@@ -237,14 +237,8 @@ module ActionView
       def number_with_delimiter(number, options = {})
         options.symbolize_keys!
 
-        begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
+        parse_float_number(number, options[:raise]) do
+          return number
         end
 
         defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
@@ -253,7 +247,6 @@ module ActionView
         parts = number.to_s.to_str.split('.')
         parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
         parts.join(options[:separator]).html_safe
-
       end
 
       # Formats a +number+ with the specified level of <tt>:precision</tt> (e.g., 112.32 has a precision
@@ -291,14 +284,8 @@ module ActionView
       def number_with_precision(number, options = {})
         options.symbolize_keys!
 
-        number = begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
+        number = parse_float_number(number, options[:raise]) do
+          return number
         end
 
         defaults           = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
@@ -330,7 +317,6 @@ module ActionView
         else
           formatted_number
         end
-
       end
 
       STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb].freeze
@@ -369,14 +355,8 @@ module ActionView
       def number_to_human_size(number, options = {})
         options.symbolize_keys!
 
-        number = begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
+        number = parse_float_number(number, options[:raise]) do
+          return number
         end
 
         defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
@@ -489,14 +469,8 @@ module ActionView
       def number_to_human(number, options = {})
         options.symbolize_keys!
 
-        number = begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
+        number = parse_float_number(number, options[:raise]) do
+          return number
         end
 
         defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
@@ -539,6 +513,17 @@ module ActionView
         decimal_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).strip.html_safe
       end
 
+      private
+
+      def parse_float_number(number, raise_error)
+        Float(number)
+      rescue ArgumentError, TypeError
+        if raise_error
+          raise InvalidNumberError, number
+        else
+          yield
+        end
+      end
     end
   end
 end
