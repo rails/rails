@@ -100,9 +100,9 @@ module ActiveSupport
 
     %w(info debug warn error fatal unknown).each do |level|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{level}(*args, &block)
+        def #{level}(progname = nil, &block)
           return unless logger
-          logger.#{level}(*args, &block)
+          logger.#{level}(progname, &block)
         end
       METHOD
     end
