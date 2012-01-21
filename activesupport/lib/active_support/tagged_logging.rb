@@ -27,7 +27,7 @@ module ActiveSupport
       new_tags.size.times { tags.pop }
     end
 
-    def silence(temporary_level = ERROR, &block)
+    def silence(temporary_level = Logger::ERROR, &block)
       @logger.silence(temporary_level, &block)
     end
     deprecate :silence
