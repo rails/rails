@@ -409,7 +409,7 @@ module ActionMailer #:nodoc:
       # and passing a Mail::Message will do nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
-          self.set_payload_for_mail(payload, mail)
+          set_payload_for_mail(payload, mail)
           yield # Let Mail do the delivery actions
         end
       end
@@ -612,7 +612,8 @@ module ActionMailer #:nodoc:
       parts_order  = headers[:parts_order]
 
       # Call all the procs (if any)
-      default_values = self.class.default.merge(self.class.default) do |k,v|
+      class_default = self.class.default
+      default_values = class_default.merge(class_default) do |k,v|
         v.respond_to?(:call) ? v.bind(self).call : v
       end
 
