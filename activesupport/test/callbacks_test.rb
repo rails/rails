@@ -298,7 +298,7 @@ module CallbacksTest
       end
     end
   end
-  
+
   class AroundPersonResult < MySuper
     attr_reader :result
 
@@ -309,7 +309,7 @@ module CallbacksTest
     def tweedle_dum
       @result = yield
     end
-    
+
     def tweedle_1
       :tweedle_1
     end
@@ -317,7 +317,7 @@ module CallbacksTest
     def tweedle_2
       :tweedle_2
     end
-    
+
     def save
       run_callbacks :save do
         :running
@@ -345,6 +345,55 @@ module CallbacksTest
     end
   end
 
+
+  module ExtendModule
+    def self.extended(base)
+      base.class_eval do
+        set_callback :save, :before, :record3
+      end
+    end
+    def record3
+      @recorder << 3
+    end
+  end
+
+  module IncludeModule
+    def self.included(base)
+      base.class_eval do
+        set_callback :save, :before, :record2
+      end
+    end
+    def record2
+      @recorder << 2
+    end
+  end
+
+  class ExtendCallbacks
+
+    include ActiveSupport::Callbacks
+
+    define_callbacks :save
+    set_callback :save, :before, :record1
+
+    include IncludeModule
+
+    def save
+      run_callbacks :save
+    end
+
+    attr_reader :recorder
+
+    def initialize
+      @recorder = []
+    end
+
+    private
+
+      def record1
+        @recorder << 1
+      end
+  end
+
   class AroundCallbacksTest < Test::Unit::TestCase
     def test_save_around
       around = AroundPerson.new
@@ -363,7 +412,7 @@ module CallbacksTest
       ], around.history
     end
   end
-  
+
   class AroundCallbackResultTest < Test::Unit::TestCase
     def test_save_around
       around = AroundPersonResult.new
@@ -643,6 +692,14 @@ module CallbacksTest
         [:after_save, :string],
         [:after_save, :symbol]
       ], writer.history
+    end
+  end
+
+  class ExtendCallbacksTest < Test::Unit::TestCase
+    def test_save
+      model = ExtendCallbacks.new.extend ExtendModule
+      model.save
+      assert_equal [1, 2, 3], model.recorder
     end
   end
 

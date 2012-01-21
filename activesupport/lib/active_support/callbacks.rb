@@ -396,7 +396,7 @@ module ActiveSupport
       def __run_callback(key, kind, object, &blk) #:nodoc:
         name = __callback_runner_name(key, kind)
         unless object.respond_to?(name)
-          str = send("_#{kind}_callbacks").compile(key, object)
+          str = object.send("_#{kind}_callbacks").compile(key, object)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{name}() #{str} end
             protected :#{name}
