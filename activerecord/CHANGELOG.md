@@ -72,7 +72,7 @@
 
 ## Rails 3.2.0 (unreleased) ##
 
-*   'on' and 'ON' boolean columns values are type cast to true
+*   'on' and 'ON' boolean columns values are type casted to true
     *Santiago Pastorino*
 
 *   Added ability to run migrations only for given scope, which allows
@@ -667,7 +667,7 @@
     *Andrew White*
 
 *   Fix performance bug with attribute accessors which only occurred on Ruby 1.8.7, and ensure we
-    cache type-cast values when the column returned from the db contains non-standard chars.
+    cache type-casted values when the column returned from the db contains non-standard chars.
     *Jon Leighton*
 
 *   Fix a performance regression introduced here 86acbf1cc050c8fa8c74a10c735e467fb6fd7df8
@@ -1011,7 +1011,7 @@
 
 *   Ensure indices don't flip order in schema.rb #1266 *Jordi Bunster*
 
-*   Fixed that serialized strings should never be type-cast (i.e. turning "Yes" to a boolean) #857 *Andreas Korth*
+*   Fixed that serialized strings should never be type-casted (i.e. turning "Yes" to a boolean) #857 *Andreas Korth*
 
 
 ## 2.2.0 RC1 (October 24th, 2008) ##
@@ -5804,7 +5804,7 @@
 
 *   Added scope option to validation_uniqueness #349 *Kent Sibilev*
 
-*   Added respondence to *_before_type_cast for all attributes to return their string-state before they were type cast by the column type.
+*   Added respondence to *_before_type_cast for all attributes to return their string-state before they were type casted by the column type.
     This is helpful for getting "100,000" back on a integer-based validation where the value would normally be "100".
 
 *   Added allow_nil options to validates_inclusion_of so that validation is only triggered if the attribute is not nil *what-a-day*
@@ -6632,7 +6632,7 @@
         # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
         # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
         # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
-        # parenteses to have the parameters type cast before they're used in the constructor. Use i for Fixnum, f for Float,
+        # parenteses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum, f for Float,
         # s for String, and a for Array.
 
     This is incredibly useful for assigning dates from HTML drop-downs of month, year, and day.
