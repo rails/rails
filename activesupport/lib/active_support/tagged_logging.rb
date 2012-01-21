@@ -4,10 +4,10 @@ require 'logger'
 module ActiveSupport
   # Wraps any standard Logger object to provide tagging capabilities. Examples:
   #
-  #   LOGGER = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
-  #   LOGGER.tagged("BCX") { LOGGER.info "Stuff" }                            # Logs "[BCX] Stuff"
-  #   LOGGER.tagged("BCX", "Jason") { LOGGER.info "Stuff" }                   # Logs "[BCX] [Jason] Stuff"
-  #   LOGGER.tagged("BCX") { LOGGER.tagged("Jason") { LOGGER.info "Stuff" } } # Logs "[BCX] [Jason] Stuff"
+  #   logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+  #   logger.tagged("BCX") { logger.info "Stuff" }                            # Logs "[BCX] Stuff"
+  #   logger.tagged("BCX", "Jason") { logger.info "Stuff" }                   # Logs "[BCX] [Jason] Stuff"
+  #   logger.tagged("BCX") { logger.tagged("Jason") { logger.info "Stuff" } } # Logs "[BCX] [Jason] Stuff"
   #
   # This is used by the default Rails.logger as configured by Railties to make it easy to stamp log lines
   # with subdomains, request ids, and anything else to aid debugging of multi-user production applications.
