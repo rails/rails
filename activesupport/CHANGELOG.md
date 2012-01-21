@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Remove ActiveSupport::TestCase#pending method, use `skip` instead. *Carlos Antonio da Silva*
+
 *    Deprecates the compatibility method Module#local_constant_names,
      use Module#local_constants instead (which returns symbols). *fxn*
 
