@@ -380,7 +380,7 @@ module ActionMailer #:nodoc:
       alias :controller_path :mailer_name
 
       def default(value = nil)
-        self.default_params = default_params.merge(value).freeze unless value.blank?
+        self.default_params = default_params.merge(value).freeze if value
         default_params
       end
 
@@ -676,7 +676,7 @@ module ActionMailer #:nodoc:
       I18n.t(:subject, :scope => [mailer_scope, action_name], :default => action_name.humanize)
     end
 
-    def collect_responses_and_parts_order(headers,&block) #:nodoc:
+    def collect_responses_and_parts_order(headers) #:nodoc:
       responses, parts_order = [], nil
 
       if block_given?
