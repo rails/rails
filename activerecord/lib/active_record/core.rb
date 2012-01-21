@@ -45,10 +45,10 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling
-      # dates and times from the database. This is set to :local by default.
+      # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
+      # dates and times from the database. This is set to :utc by default.
       config_attribute :default_timezone, :global => true
-      self.default_timezone = :local
+      self.default_timezone = :utc
 
       ##
       # :singleton-method:

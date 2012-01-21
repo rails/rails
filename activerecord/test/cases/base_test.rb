@@ -689,7 +689,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
+    assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on
   end
 
   def test_multiparameter_attributes_on_time_with_no_date
@@ -938,7 +938,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
+    assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
   end
 
   def test_boolean
