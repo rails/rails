@@ -125,11 +125,10 @@ module ActionView
 
         options.symbolize_keys!
 
-        defaults  = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :default => {})
+        currency = translations_for('currency', options[:locale])
         currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
 
-        defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults).merge!(currency)
+        defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults_translations(options[:locale])).merge!(currency)
         defaults[:negative_format] = "-" + options[:format] if options[:format]
         options   = defaults.merge!(options)
 
@@ -152,7 +151,6 @@ module ActionView
             e.number.to_s.html_safe? ? formatted_number.html_safe : formatted_number
           end
         end
-
       end
 
       # Formats a +number+ as a percentage string (e.g., 65%). You can customize the format in the +options+ hash.
@@ -190,9 +188,7 @@ module ActionView
 
         options.symbolize_keys!
 
-        defaults   = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        percentage = I18n.translate(:'number.percentage.format', :locale => options[:locale], :default => {})
-        defaults  = defaults.merge(percentage)
+        defaults = defaults_translations(options[:locale]).merge(translations_for('percentage', options[:locale]))
 
         options = options.reverse_merge(defaults)
 
@@ -237,23 +233,15 @@ module ActionView
       def number_with_delimiter(number, options = {})
         options.symbolize_keys!
 
-        begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
+        parse_float_number(number, options[:raise]) do
+          return number
         end
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        options = options.reverse_merge(defaults)
+        options = options.reverse_merge(defaults_translations(options[:locale]))
 
         parts = number.to_s.to_str.split('.')
         parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
         parts.join(options[:separator]).html_safe
-
       end
 
       # Formats a +number+ with the specified level of <tt>:precision</tt> (e.g., 112.32 has a precision
@@ -290,19 +278,11 @@ module ActionView
       def number_with_precision(number, options = {})
         options.symbolize_keys!
 
-        number = begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
+        number = parse_float_number(number, options[:raise]) do
+          return number
         end
 
-        defaults           = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        precision_defaults = I18n.translate(:'number.precision.format', :locale => options[:locale], :default => {})
-        defaults           = defaults.merge(precision_defaults)
+        defaults = defaults_translations(options[:locale]).merge(translations_for('precision', options[:locale]))
 
         options = options.reverse_merge(defaults)  # Allow the user to unset default values: Eg.: :significant => false
         precision = options.delete :precision
@@ -329,7 +309,6 @@ module ActionView
         else
           formatted_number
         end
-
       end
 
       STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb].freeze
@@ -367,19 +346,11 @@ module ActionView
       def number_to_human_size(number, options = {})
         options.symbolize_keys!
 
-        number = begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
+        number = parse_float_number(number, options[:raise]) do
+          return number
         end
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
-        defaults = defaults.merge(human)
+        defaults = defaults_translations(options[:locale]).merge(translations_for('human', options[:locale]))
 
         options = options.reverse_merge(defaults)
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
@@ -486,19 +457,11 @@ module ActionView
       def number_to_human(number, options = {})
         options.symbolize_keys!
 
-        number = begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
+        number = parse_float_number(number, options[:raise]) do
+          return number
         end
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
-        defaults = defaults.merge(human)
+        defaults = defaults_translations(options[:locale]).merge(translations_for('human', options[:locale]))
 
         options = options.reverse_merge(defaults)
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
@@ -536,6 +499,25 @@ module ActionView
         decimal_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).strip.html_safe
       end
 
+      private
+
+      def defaults_translations(locale)
+        I18n.translate(:'number.format', :locale => locale, :default => {})
+      end
+
+      def translations_for(namespace, locale)
+        I18n.translate(:"number.#{namespace}.format", :locale => locale, :default => {})
+      end
+
+      def parse_float_number(number, raise_error)
+        Float(number)
+      rescue ArgumentError, TypeError
+        if raise_error
+          raise InvalidNumberError, number
+        else
+          yield
+        end
+      end
     end
   end
 end
