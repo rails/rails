@@ -66,6 +66,8 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   end
 
   test "silence" do
-    assert_nothing_raised { @logger.silence {} }
+    assert_deprecated do
+      assert_nothing_raised { @logger.silence {} }
+    end
   end
 end
