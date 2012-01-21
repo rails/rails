@@ -258,6 +258,7 @@ module ActionView
       # * <tt>:delimiter</tt>                  - Sets the thousands delimiter (defaults to "").
       # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator
       #                                          (defaults to +false+).
+      # * <tt>:raise</tt>                      - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
       #  number_with_precision(111.2345)                                            # => 111.235
@@ -328,6 +329,7 @@ module ActionView
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
       # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +true+)
       # * <tt>:prefix</tt>  - If +:si+ formats the number using the SI prefix (defaults to :binary)
+      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
       # ==== Examples
       #  number_to_human_size(123)                                          # => 123 Bytes
       #  number_to_human_size(1234)                                         # => 1.21 KB
@@ -401,6 +403,7 @@ module ActionView
       #   * *integers*: <tt>:unit</tt>, <tt>:ten</tt>, <tt>:hundred</tt>, <tt>:thousand</tt>,  <tt>:million</tt>,  <tt>:billion</tt>, <tt>:trillion</tt>, <tt>:quadrillion</tt>
       #   * *fractionals*: <tt>:deci</tt>, <tt>:centi</tt>, <tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>, <tt>:pico</tt>, <tt>:femto</tt>
       # * <tt>:format</tt> - Sets the format of the output string (defaults to "%n %u"). The field types are:
+      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       #     %u  The quantifier (ex.: 'thousand')
       #     %n  The number
