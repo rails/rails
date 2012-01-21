@@ -2,7 +2,7 @@ require 'active_support/core_ext/object/blank'
 require 'logger'
 
 module ActiveSupport
-  # Wraps any standard Logger class to provide tagging capabilities. Examples:
+  # Wraps any standard Logger object to provide tagging capabilities. Examples:
   #
   #   LOGGER = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
   #   LOGGER.tagged("BCX") { LOGGER.info "Stuff" }                            # Logs "[BCX] Stuff"
