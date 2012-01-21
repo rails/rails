@@ -30,8 +30,9 @@ module ActiveSupport #:nodoc:
     end
 
     def method_missing(name, *args)
-      if name.to_s =~ /(.*)=$/
-        self[$1] = args.first
+      name_string = name.to_s
+      if name_string.chomp!('=')
+        self[name_string] = args.first
       else
         self[name]
       end
