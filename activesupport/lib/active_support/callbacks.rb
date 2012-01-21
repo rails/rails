@@ -357,7 +357,7 @@ module ActiveSupport
       # calculating which callbacks can be omitted because of per_key conditions.
       #
       def __run_callbacks(key, kind, object, &blk) #:nodoc:
-        name = __callback_runner_name(key, kind)
+        name = __callback_runner_name(kind)
         unless object.respond_to?(name)
           str = send("_#{kind}_callbacks").compile(key, object)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
@@ -369,11 +369,11 @@ module ActiveSupport
       end
 
       def __reset_runner(symbol)
-        name = __callback_runner_name(nil, symbol)
+        name = __callback_runner_name(symbol)
         undef_method(name) if method_defined?(name)
       end
 
-      def __callback_runner_name(key, kind)
+      def __callback_runner_name(kind)
         "_run__#{self.name.hash.abs}__#{kind}__callbacks"
       end
 
