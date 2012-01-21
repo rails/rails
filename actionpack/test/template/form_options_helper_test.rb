@@ -144,6 +144,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_range_options_for_select
+    assert_dom_equal(
+      "<option value=\"1\">1</option>\n<option value=\"2\">2</option>\n<option value=\"3\">3</option>",
+      options_for_select(1..3)
+    )
+  end
+
   def test_array_options_for_string_include_in_other_string_bug_fix
       assert_dom_equal(
         "<option value=\"ruby\">ruby</option>\n<option value=\"rubyonrails\" selected=\"selected\">rubyonrails</option>",
@@ -668,6 +675,15 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\" disabled=\"disabled\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\" disabled=\"disabled\">hest</option></select>",
       select("post", "category", %w( abe <mus> hest ), :disabled => ['hest', 'abe'])
+    )
+  end
+
+  def test_select_with_range
+    @post = Post.new
+    @post.category = 0
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"1\">1</option>\n<option value=\"2\">2</option>\n<option value=\"3\">3</option></select>",
+      select("post", "category", 1..3)
     )
   end
 
