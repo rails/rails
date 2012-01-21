@@ -188,9 +188,8 @@ module ActionView
 
         options.symbolize_keys!
 
-        defaults = defaults_translations(options[:locale]).merge(translations_for('percentage', options[:locale]))
-
-        options = options.reverse_merge(defaults)
+        defaults = format_translations('percentage', options[:locale])
+        options  = defaults.merge!(options)
 
         format = options[:format] || "%n%"
 
@@ -237,7 +236,7 @@ module ActionView
           return number
         end
 
-        options = options.reverse_merge(defaults_translations(options[:locale]))
+        options = defaults_translations(options[:locale]).merge(options)
 
         parts = number.to_s.to_str.split('.')
         parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
@@ -283,9 +282,9 @@ module ActionView
           return number
         end
 
-        defaults = defaults_translations(options[:locale]).merge(translations_for('precision', options[:locale]))
+        defaults = format_translations('precision', options[:locale])
+        options  = defaults.merge!(options)
 
-        options = options.reverse_merge(defaults)  # Allow the user to unset default values: Eg.: :significant => false
         precision = options.delete :precision
         significant = options.delete :significant
         strip_insignificant_zeros = options.delete :strip_insignificant_zeros
@@ -352,9 +351,9 @@ module ActionView
           return number
         end
 
-        defaults = defaults_translations(options[:locale]).merge(translations_for('human', options[:locale]))
+        defaults = format_translations('human', options[:locale])
+        options  = defaults.merge!(options)
 
-        options = options.reverse_merge(defaults)
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
@@ -464,9 +463,9 @@ module ActionView
           return number
         end
 
-        defaults = defaults_translations(options[:locale]).merge(translations_for('human', options[:locale]))
+        defaults = format_translations('human', options[:locale])
+        options  = defaults.merge!(options)
 
-        options = options.reverse_merge(defaults)
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
@@ -503,6 +502,10 @@ module ActionView
       end
 
       private
+
+      def format_translations(namespace, locale)
+        defaults_translations(locale).merge(translations_for(namespace, locale))
+      end
 
       def defaults_translations(locale)
         I18n.translate(:'number.format', :locale => locale, :default => {})
