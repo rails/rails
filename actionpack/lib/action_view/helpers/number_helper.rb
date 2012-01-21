@@ -57,15 +57,11 @@ module ActionView
       #  # => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
         return unless number
+        options.symbolize_keys!
 
-        begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          raise InvalidNumberError, number
-        end if options[:raise]
+        parse_float(number, true) if options[:raise]
 
         number       = number.to_s.strip
-        options      = options.symbolize_keys
         area_code    = options[:area_code]
         delimiter    = options[:delimiter] || "-"
         extension    = options[:extension]
@@ -75,7 +71,7 @@ module ActionView
           number.gsub!(/(\d{1,3})(\d{3})(\d{4}$)/,"(\\1) \\2#{delimiter}\\3")
         else
           number.gsub!(/(\d{0,3})(\d{3})(\d{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
-          number.slice!(0, 1) if number.starts_with?(delimiter) && !delimiter.blank?
+          number.slice!(0, 1) if number.start_with?(delimiter) && !delimiter.blank?
         end
 
         str = []
@@ -232,9 +228,7 @@ module ActionView
       def number_with_delimiter(number, options = {})
         options.symbolize_keys!
 
-        parse_float_number(number, options[:raise]) do
-          return number
-        end
+        parse_float(number, options[:raise]) or return number
 
         options = defaults_translations(options[:locale]).merge(options)
 
@@ -278,9 +272,7 @@ module ActionView
       def number_with_precision(number, options = {})
         options.symbolize_keys!
 
-        number = parse_float_number(number, options[:raise]) do
-          return number
-        end
+        number = (parse_float(number, options[:raise]) or return number)
 
         defaults = format_translations('precision', options[:locale])
         options  = defaults.merge!(options)
@@ -347,9 +339,7 @@ module ActionView
       def number_to_human_size(number, options = {})
         options.symbolize_keys!
 
-        number = parse_float_number(number, options[:raise]) do
-          return number
-        end
+        number = (parse_float(number, options[:raise]) or return number)
 
         defaults = format_translations('human', options[:locale])
         options  = defaults.merge!(options)
@@ -459,9 +449,7 @@ module ActionView
       def number_to_human(number, options = {})
         options.symbolize_keys!
 
-        number = parse_float_number(number, options[:raise]) do
-          return number
-        end
+        number = (parse_float(number, options[:raise]) or return number)
 
         defaults = format_translations('human', options[:locale])
         options  = defaults.merge!(options)
@@ -515,14 +503,10 @@ module ActionView
         I18n.translate(:"number.#{namespace}.format", :locale => locale, :default => {})
       end
 
-      def parse_float_number(number, raise_error)
+      def parse_float(number, raise_error)
         Float(number)
       rescue ArgumentError, TypeError
-        if raise_error
-          raise InvalidNumberError, number
-        else
-          yield
-        end
+        raise InvalidNumberError, number if raise_error
       end
     end
   end
