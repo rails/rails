@@ -380,7 +380,7 @@ module ActionMailer #:nodoc:
       alias :controller_path :mailer_name
 
       def default(value = nil)
-        self.default_params = default_params.merge(value).freeze if value
+        self.default_params = default_params.merge(value).freeze unless value.blank?
         default_params
       end
 
@@ -409,7 +409,7 @@ module ActionMailer #:nodoc:
       # and passing a Mail::Message will do nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
-          self.set_payload_for_mail(payload, mail)
+          set_payload_for_mail(payload, mail)
           yield # Let Mail do the delivery actions
         end
       end
@@ -612,7 +612,8 @@ module ActionMailer #:nodoc:
       parts_order  = headers[:parts_order]
 
       # Call all the procs (if any)
-      default_values = self.class.default.merge(self.class.default) do |k,v|
+      class_default = self.class.default
+      default_values = class_default.merge(class_default) do |k,v|
         v.respond_to?(:call) ? v.bind(self).call : v
       end
 
@@ -675,7 +676,7 @@ module ActionMailer #:nodoc:
       I18n.t(:subject, :scope => [mailer_scope, action_name], :default => action_name.humanize)
     end
 
-    def collect_responses_and_parts_order(headers) #:nodoc:
+    def collect_responses_and_parts_order(headers,&block) #:nodoc:
       responses, parts_order = [], nil
 
       if block_given?
