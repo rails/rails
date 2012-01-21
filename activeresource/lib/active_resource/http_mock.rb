@@ -4,7 +4,7 @@ require 'active_support/core_ext/object/inclusion'
 module ActiveResource
   class InvalidRequestError < StandardError; end #:nodoc:
 
-  # One thing that has always been a pain with remote web services is testing.  The HttpMock
+  # One thing that has always been a pain with remote web services is testing. The HttpMock
   # class makes it easy to test your Active Resource models by creating a set of mock responses to specific
   # requests.
   #
@@ -15,17 +15,17 @@ module ActiveResource
   #
   #   mock.http_method(path, request_headers = {}, body = nil, status = 200, response_headers = {})
   #
-  # * <tt>http_method</tt> - The HTTP method to listen for.  This can be +get+, +post+, +put+, +delete+ or
+  # * <tt>http_method</tt> - The HTTP method to listen for. This can be +get+, +post+, +put+, +delete+ or
   #   +head+.
   # * <tt>path</tt> - A string, starting with a "/", defining the URI that is expected to be
   #   called.
-  # * <tt>request_headers</tt> - Headers that are expected along with the request.  This argument uses a
-  #   hash format, such as <tt>{ "Content-Type" => "application/json" }</tt>.  This mock will only trigger
+  # * <tt>request_headers</tt> - Headers that are expected along with the request. This argument uses a
+  #   hash format, such as <tt>{ "Content-Type" => "application/json" }</tt>. This mock will only trigger
   #   if your tests sends a request with identical headers.
-  # * <tt>body</tt> - The data to be returned.  This should be a string of Active Resource parseable content,
+  # * <tt>body</tt> - The data to be returned. This should be a string of Active Resource parseable content,
   #   such as Json.
   # * <tt>status</tt> - The HTTP response code, as an integer, to return with the response.
-  # * <tt>response_headers</tt> - Headers to be returned with the response.  Uses the same hash format as
+  # * <tt>response_headers</tt> - Headers to be returned with the response. Uses the same hash format as
   #   <tt>request_headers</tt> listed above.
   #
   # In order for a mock to deliver its content, the incoming request must match by the <tt>http_method</tt>,

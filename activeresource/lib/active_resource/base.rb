@@ -25,7 +25,7 @@ module ActiveResource
   #
   # == Automated mapping
   #
-  # Active Resource objects represent your RESTful resources as manipulatable Ruby objects.  To map resources
+  # Active Resource objects represent your RESTful resources as manipulatable Ruby objects. To map resources
   # to Ruby objects, Active Resource only needs a class name that corresponds to the resource name (e.g., the class
   # Person maps to the resources people, very similarly to Active Record) and a +site+ value, which holds the
   # URI of the resources.
@@ -115,7 +115,7 @@ module ActiveResource
   # == Authentication
   #
   # Many REST APIs will require authentication, usually in the form of basic
-  # HTTP authentication.  Authentication can be specified by:
+  # HTTP authentication. Authentication can be specified by:
   #
   # === HTTP Basic Authentication
   # * putting the credentials in the URL for the +site+ variable.
@@ -135,8 +135,8 @@ module ActiveResource
   # For obvious security reasons, it is probably best if such services are available
   # over HTTPS.
   #
-  # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses
-  # as usernames.  In those situations you should use the separate user and password option.
+  # Note: Some values cannot be provided in the URL passed to site. e.g. email addresses
+  # as usernames. In those situations you should use the separate user and password option.
   #
   # === Certificate Authentication
   #
@@ -154,7 +154,7 @@ module ActiveResource
   # == Errors & Validation
   #
   # Error handling and validation is handled in much the same manner as you're used to seeing in
-  # Active Record.  Both the response code in the HTTP response and the body of the response are used to
+  # Active Record. Both the response code in the HTTP response and the body of the response are used to
   # indicate that an error occurred.
   #
   # === Resource errors
@@ -185,7 +185,7 @@ module ActiveResource
   # * Other - ActiveResource::ConnectionError
   #
   # These custom exceptions allow you to deal with resource errors more naturally and with more precision
-  # rather than returning a general HTTP error.  For example:
+  # rather than returning a general HTTP error. For example:
   #
   #   begin
   #     ryan = Person.find(my_id)
@@ -208,8 +208,8 @@ module ActiveResource
   # === Validation errors
   #
   # Active Resource supports validations on resources and will return errors if any of these validations fail
-  # (e.g., "First name can not be blank" and so on).  These types of errors are denoted in the response by
-  # a response code of <tt>422</tt> and an XML or JSON representation of the validation errors.  The save operation will
+  # (e.g., "First name can not be blank" and so on). These types of errors are denoted in the response by
+  # a response code of <tt>422</tt> and an XML or JSON representation of the validation errors. The save operation will
   # then fail (with a <tt>false</tt> return value) and the validation errors can be accessed on the resource in question.
   #
   #   ryan = Person.find(1)
@@ -383,7 +383,7 @@ module ActiveResource
         @known_attributes ||= []
       end
 
-      # Gets the URI of the REST resources to map for this class.  The site variable is required for
+      # Gets the URI of the REST resources to map for this class. The site variable is required for
       # Active Resource's mapping to work.
       def site
         # Not using superclass_delegating_reader because don't want subclasses to modify superclass instance
@@ -592,7 +592,7 @@ module ActiveResource
         prefix(options)
       end
 
-      # An attribute reader for the source string for the resource path \prefix.  This
+      # An attribute reader for the source string for the resource path \prefix. This
       # method is regenerated at runtime based on what the \prefix is set to.
       def prefix_source
         prefix # generate #prefix and #prefix_source methods first
@@ -625,7 +625,7 @@ module ActiveResource
       alias_method :set_element_name, :element_name=  #:nodoc:
       alias_method :set_collection_name, :collection_name=  #:nodoc:
 
-      # Gets the element path for the given ID in +id+.  If the +query_options+ parameter is omitted, Rails
+      # Gets the element path for the given ID in +id+. If the +query_options+ parameter is omitted, Rails
       # will split from the \prefix options.
       #
       # ==== Options
@@ -677,7 +677,7 @@ module ActiveResource
         "#{prefix(prefix_options)}#{collection_name}/new.#{format.extension}"
       end
 
-      # Gets the collection path for the REST resources.  If the +query_options+ parameter is omitted, Rails
+      # Gets the collection path for the REST resources. If the +query_options+ parameter is omitted, Rails
       # will split from the +prefix_options+.
       #
       # ==== Options
@@ -725,8 +725,8 @@ module ActiveResource
       #   ryan = Person.new(:first => 'ryan')
       #   ryan.save
       #
-      # Returns the newly created resource.  If a failure has occurred an
-      # exception will be raised (see <tt>save</tt>).  If the resource is invalid and
+      # Returns the newly created resource. If a failure has occurred an
+      # exception will be raised (see <tt>save</tt>). If the resource is invalid and
       # has not been saved then <tt>valid?</tt> will return <tt>false</tt>,
       # while <tt>new?</tt> will still return <tt>true</tt>.
       #
@@ -747,11 +747,11 @@ module ActiveResource
         self.new(attributes).tap { |resource| resource.save }
       end
 
-      # Core method for finding resources.  Used similarly to Active Record's +find+ method.
+      # Core method for finding resources. Used similarly to Active Record's +find+ method.
       #
       # ==== Arguments
-      # The first argument is considered to be the scope of the query.  That is, how many
-      # resources are returned from the request.  It can be one of the following.
+      # The first argument is considered to be the scope of the query. That is, how many
+      # resources are returned from the request. It can be one of the following.
       #
       # * <tt>:one</tt> - Returns a single resource.
       # * <tt>:first</tt> - Returns the first resource found.
@@ -834,7 +834,7 @@ module ActiveResource
         find(:last, *args)
       end
 
-      # This is an alias for find(:all).  You can pass in all the same
+      # This is an alias for find(:all). You can pass in all the same
       # arguments to this method as you can to <tt>find(:all)</tt>
       def all(*args)
         find(:all, *args)
@@ -1015,7 +1015,7 @@ module ActiveResource
     #   not_ryan.new?  # => true
     #
     # Any active resource member attributes will NOT be cloned, though all other
-    # attributes are.  This is to prevent the conflict between any +prefix_options+
+    # attributes are. This is to prevent the conflict between any +prefix_options+
     # that refer to the original parent resource and the newly cloned parent
     # resource that does not exist.
     #
@@ -1031,7 +1031,7 @@ module ActiveResource
       # Clone all attributes except the pk and any nested ARes
       cloned = Hash[attributes.reject {|k,v| k == self.class.primary_key || v.is_a?(ActiveResource::Base)}.map { |k, v| [k, v.clone] }]
       # Form the new resource - bypass initialize of resource with 'new' as that will call 'load' which
-      # attempts to convert hashes into member objects and arrays into collections of objects.  We want
+      # attempts to convert hashes into member objects and arrays into collections of objects. We want
       # the raw objects to be cloned so we bypass load by directly setting the attributes hash.
       resource = self.class.new({})
       resource.prefix_options = self.prefix_options
@@ -1083,7 +1083,7 @@ module ActiveResource
       attributes[self.class.primary_key] = id
     end
 
-    # Test for equality.  Resource are equal if and only if +other+ is the same object or
+    # Test for equality. Resource are equal if and only if +other+ is the same object or
     # is an instance of the same class, is not <tt>new?</tt>, and has the same +id+.
     #
     # ==== Examples
@@ -1139,7 +1139,7 @@ module ActiveResource
       end
     end
 
-    # Saves (+POST+) or \updates (+PUT+) a resource.  Delegates to +create+ if the object is \new,
+    # Saves (+POST+) or \updates (+PUT+) a resource. Delegates to +create+ if the object is \new,
     # +update+ if it exists. If the response to the \save includes a body, it will be assumed that this body
     # is Json for the final object as it looked after the \save (which would include attributes like +created_at+
     # that weren't part of the original submit).
@@ -1190,7 +1190,7 @@ module ActiveResource
     end
 
     # Evaluates to <tt>true</tt> if this resource is not <tt>new?</tt> and is
-    # found on the remote service.  Using this method, you can check for
+    # found on the remote service. Using this method, you can check for
     # resources that may have been deleted between the object's instantiation
     # and actions on it.
     #
@@ -1232,7 +1232,7 @@ module ActiveResource
     end
 
     # A method to manually load attributes from a \hash. Recursively loads collections of
-    # resources.  This method is called in +initialize+ and +create+ when a \hash of attributes
+    # resources. This method is called in +initialize+ and +create+ when a \hash of attributes
     # is provided.
     #
     # ==== Examples
@@ -1289,12 +1289,12 @@ module ActiveResource
     #
     # Note: Unlike ActiveRecord::Base.update_attribute, this method <b>is</b>
     # subject to normal validation routines as an update sends the whole body
-    # of the resource in the request.  (See Validations).
+    # of the resource in the request. (See Validations).
     #
     # As such, this method is equivalent to calling update_attributes with a single attribute/value pair.
     #
     # If the saving fails because of a connection or remote service error, an
-    # exception will be raised.  If saving fails because the resource is
+    # exception will be raised. If saving fails because the resource is
     # invalid then <tt>false</tt> will be returned.
     def update_attribute(name, value)
       self.send("#{name}=".to_sym, value)
@@ -1305,7 +1305,7 @@ module ActiveResource
     # and requests that the record be saved.
     #
     # If the saving fails because of a connection or remote service error, an
-    # exception will be raised.  If saving fails because the resource is
+    # exception will be raised. If saving fails because the resource is
     # invalid then <tt>false</tt> will be returned.
     #
     # Note: Though this request can be made with a partial set of the
