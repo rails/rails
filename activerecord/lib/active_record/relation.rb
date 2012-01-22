@@ -166,7 +166,10 @@ module ActiveRecord
 
       default_scoped = with_default_scope
 
-      if default_scoped.equal?(self)
+      if where_values.include?(false)
+        @records = []
+        
+      elsif default_scoped.equal?(self)
         @records = if @readonly_value.nil? && !@klass.locking_enabled?
           eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
         else

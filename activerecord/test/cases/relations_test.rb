@@ -483,6 +483,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, authors.all.length
   end
 
+  def test_none_with_ar_object
+    author = Author.first
+    authors = Author.scoped.none
+    assert_equal 0, authors.all.length
+  end
+
+  def test_chained_none_with_ar_object
+    author = Author.first
+    authors = Author.scoped.none.where(:id => author)
+    assert_equal 0, authors.all.length
+  end
+
   def test_find_with_list_of_ar
     author = Author.first
     authors = Author.find([author])

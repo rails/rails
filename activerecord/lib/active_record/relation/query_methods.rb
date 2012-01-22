@@ -153,6 +153,12 @@ module ActiveRecord
       relation
     end
 
+    def none
+      relation = clone
+      relation.where_values += build_where(false)
+      relation
+    end
+
     def where(opts, *rest)
       return self if opts.blank?
 
