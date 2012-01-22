@@ -1893,7 +1893,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal [], NonExistentTable.attribute_names
   end
 
-  def test_attribtue_names_on_abstract_class
+  def test_attribute_names_on_abstract_class
     assert_equal [], AbstractCompany.attribute_names
   end
 
