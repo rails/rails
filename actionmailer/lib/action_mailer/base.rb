@@ -602,9 +602,6 @@ module ActionMailer #:nodoc:
     #   end
     #
     def mail(headers={}, &block)
-      # Guard flag to prevent both the old and the new API from firing
-      # Should be removed when old API is removed
-      @mail_was_called = true
       m = @_message
 
       # At the beginning, do not consider class default for parts order neither content_type
