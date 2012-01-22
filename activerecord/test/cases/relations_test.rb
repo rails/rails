@@ -484,9 +484,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_none_with_ar_object
-    author = Author.first
-    authors = Author.scoped.none
-    assert_equal 0, authors.all.length
+    assert_equal 0, Author.scoped.none.length
   end
 
   def test_chained_none_with_ar_object
