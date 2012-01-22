@@ -31,7 +31,7 @@ module ActiveModel
       end
 
       def logger?
-        @target.respond_to?(:logger) && @target.logger
+        @target.respond_to?(:logger) && logger
       end
 
       def process_removed_attributes(attrs)
@@ -40,9 +40,6 @@ module ActiveModel
     end
 
     class StrictSanitizer < Sanitizer
-      def initialize(target = nil)
-        super()
-      end
 
       def process_removed_attributes(attrs)
         return if (attrs - insensitive_attributes).empty?

@@ -13,7 +13,7 @@ class SanitizerTest < ActiveModel::TestCase
 
   def setup
     @logger_sanitizer = ActiveModel::MassAssignmentSecurity::LoggerSanitizer.new(self)
-    @strict_sanitizer = ActiveModel::MassAssignmentSecurity::StrictSanitizer.new(self)
+    @strict_sanitizer = ActiveModel::MassAssignmentSecurity::StrictSanitizer.new
     @authorizer = Authorizer.new
   end
 
