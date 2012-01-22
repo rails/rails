@@ -836,7 +836,15 @@ module ActionView
         end
 
         def translated_date_order
-          I18n.translate(:'date.order', :locale => @options[:locale]) || []
+          date_order = I18n.translate(:'date.order', :locale => @options[:locale]) || []
+
+          forbidden_elements = date_order - [:year, :month, :day]
+          if forbidden_elements.any?
+            raise StandardError,
+              "#{@options[:locale]}.date.order only accepts :year, :month and :day"
+          end
+
+          date_order
         end
 
         # Build full select tag from date type and options.
