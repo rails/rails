@@ -326,8 +326,7 @@ module ActiveModel
       defaults << :"errors.attributes.#{attribute}.#{type}"
       defaults << :"errors.messages.#{type}"
 
-      defaults.compact!
-      defaults.flatten!
+      defaults.compact!.flatten!
 
       key = defaults.shift
       value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
