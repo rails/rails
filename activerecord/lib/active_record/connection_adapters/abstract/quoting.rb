@@ -71,7 +71,7 @@ module ActiveRecord
         when Date, Time then quoted_date(value)
         when Symbol     then value.to_s
         else
-          YAML.dump(value)
+          raise TypeError, "can't cast #{value.class} to #{column.type}"
         end
       end
 
