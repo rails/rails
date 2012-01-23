@@ -40,7 +40,7 @@ module ActiveSupport
     def self.decode64(value)
       ActiveSupport::Deprecation.warn "ActiveSupport::Base64.decode64 " \
         "is deprecated. Use Base64.decode64 instead", caller
-      ::Base64.encode64(value)
+      ::Base64.decode64(value)
     end
 
     def self.encode64s(value)
