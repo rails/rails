@@ -115,6 +115,14 @@ class FormHelperTest < ActionView::TestCase
     super
   end
 
+  class FooTag < ActionView::Helpers::Tags::Base
+    def initialize; end
+  end
+
+  def test_tags_base_child_without_render_method
+    assert_raise(NotImplementedError) { FooTag.new.render }
+  end
+
   def test_label
     assert_dom_equal('<label for="post_title">Title</label>', label("post", "title"))
     assert_dom_equal('<label for="post_title">The title goes here</label>', label("post", "title", "The title goes here"))

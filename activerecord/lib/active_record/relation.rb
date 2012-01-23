@@ -496,6 +496,10 @@ module ActiveRecord
       to_a.inspect
     end
 
+    def pretty_print(q)
+      q.pp(self.to_a)
+    end
+
     def with_default_scope #:nodoc:
       if default_scoped? && default_scope = klass.send(:build_default_scope)
         default_scope = default_scope.merge(self)

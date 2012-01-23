@@ -13,10 +13,16 @@ module ActionView
           tag("input", options)
         end
 
+        class << self
+          def field_type
+            @field_type ||= self.name.split("::").last.sub("Field", "").downcase
+          end
+        end
+
         private
 
         def field_type
-          @field_type ||= self.class.name.split("::").last.sub("Field", "").downcase
+          self.class.field_type
         end
       end
     end

@@ -156,7 +156,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
 
         resources :posts do
-          get  :archive, :toggle_view, :on => :collection
+          get :archive, :on => :collection
+          get :toggle_view, :on => :collection
           post :preview, :on => :member
 
           resource :subscription
