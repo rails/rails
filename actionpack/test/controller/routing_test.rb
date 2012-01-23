@@ -73,23 +73,14 @@ end
 
 class LegacyRouteSetTests < ActiveSupport::TestCase
   include RoutingTestHelpers
+  include ActionDispatch::RoutingVerbs
 
   attr_reader :rs
+  alias :routes :rs
 
   def setup
     @rs       = ::ActionDispatch::Routing::RouteSet.new
     @response = nil
-  end
-
-  def get(uri_or_host, path = nil, port = nil)
-    host = uri_or_host.host unless path
-    path ||= uri_or_host.path
-
-    params = {'PATH_INFO'      => path,
-              'REQUEST_METHOD' => 'GET',
-              'HTTP_HOST'      => host}
-
-    @rs.call(params)[2].join
   end
 
   def test_regexp_precidence
