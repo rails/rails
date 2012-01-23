@@ -223,9 +223,7 @@ module ActiveModel
     # If +message+ is a proc, it will be called, allowing for things like <tt>Time.now</tt> to be used within an error.
     def add(attribute, message = nil, options = {})
       message = normalize_message(attribute, message, options)
-      if options[:strict]
-        raise ActiveModel::StrictValidationFailed,  message
-      end
+      raise ActiveModel::StrictValidationFailed,  message if options[:strict]
 
       self[attribute] << message
     end
