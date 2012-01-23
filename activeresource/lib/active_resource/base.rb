@@ -157,10 +157,14 @@ module ActiveResource
   #
   #    class Person < ActiveResource::Base
   #      self.site = "https://secure.api.people.com/"
-  #      self.ssl_options = {:cert         => OpenSSL::X509::Certificate.new(File.open(pem_file))
-  #                          :key          => OpenSSL::PKey::RSA.new(File.open(pem_file)),
-  #                          :ca_path      => "/path/to/OpenSSL/formatted/CA_Certs",
-  #                          :verify_mode  => OpenSSL::SSL::VERIFY_PEER}
+  #
+  #      File.open(pem_file_path, 'rb') do |pem_file|
+  #        self.ssl_options = {
+  #          cert:        OpenSSL::X509::Certificate.new(pem_file),
+  #          key:         OpenSSL::PKey::RSA.new(pem_file),
+  #          ca_path:     "/path/to/OpenSSL/formatted/CA_Certs",
+  #          verify_mode: OpenSSL::SSL::VERIFY_PEER }
+  #      end
   #    end
   #
   #
