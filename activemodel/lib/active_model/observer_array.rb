@@ -127,15 +127,9 @@ module ActiveModel
           observers.each do |obs|
             klass = observer_class_for(obs)
 
-            unless klass < ActiveModel::Observer
-              raise ArgumentError.new("#{obs} does not refer to a valid observer")
-            end
+            raise ArgumentError.new("#{obs} does not refer to a valid observer")  unless klass < ActiveModel::Observer
 
-            if enabled
-              disabled_observers.delete(klass)
-            else
-              disabled_observers << klass
-            end
+            enabled ? disabled_observers.delete(klass) : disabled_observers << klass
           end
 
           each_subclass_array do |array|
