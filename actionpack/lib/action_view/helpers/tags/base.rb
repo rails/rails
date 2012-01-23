@@ -19,8 +19,9 @@ module ActionView
           @auto_index = retrieve_autoindex(Regexp.last_match.pre_match) if Regexp.last_match
         end
 
-        def render(&block)
-          raise "Abstract Method called"
+        # This is what child classes implement.
+        def render
+          raise NotImplementedError, "Subclasses must implement a render method"
         end
 
         private
