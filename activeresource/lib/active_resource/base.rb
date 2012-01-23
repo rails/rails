@@ -114,33 +114,46 @@ module ActiveResource
   #
   # == Authentication
   #
-  # Many REST APIs will require authentication, usually in the form of basic
-  # HTTP authentication. Authentication can be specified by:
+  # Many REST APIs require authentication. The HTTP spec describes two ways to
+  # make requests with a username and password (see RFC 2617).
   #
-  # === HTTP Basic Authentication
-  # * putting the credentials in the URL for the +site+ variable.
+  # Basic authentication simply sends a username and password along with HTTP
+  # requests. These sensitive credentials are sent unencrypted, visible to
+  # any onlooker, so this scheme should only be used with SSL.
+  #
+  # Digest authentication sends a crytographic hash of the username, password,
+  # HTTP method, URI, and a single-use secret key provided by the server.
+  # Sensitive credentials aren't visible to onlookers, so digest authentication
+  # doesn't require SSL. However, this doesn't mean the connection is secure!
+  # Just the username and password.
+  #
+  # (You really, really want to use SSL. There's little reason not to.)
+  #
+  # === Picking an authentication scheme
+  #
+  # Basic authentication is the default. To switch to digest authentication,
+  # set +auth_type+ to +:digest+:
   #
   #    class Person < ActiveResource::Base
-  #      self.site = "http://ryan:password@api.people.com:3000/"
+  #      self.auth_type = :digest
   #    end
   #
-  # * defining +user+ and/or +password+ variables
+  # === Setting the username and password
+  #
+  # Set +user+ and +password+ on the class, or include them in the +site+ URL.
   #
   #    class Person < ActiveResource::Base
-  #      self.site = "http://api.people.com:3000/"
+  #      # Set user and password directly:
   #      self.user = "ryan"
   #      self.password = "password"
+  #
+  #      # Or include them in the site:
+  #      self.site = "https://ryan:password@api.people.com"
   #    end
-  #
-  # For obvious security reasons, it is probably best if such services are available
-  # over HTTPS.
-  #
-  # Note: Some values cannot be provided in the URL passed to site. e.g. email addresses
-  # as usernames. In those situations you should use the separate user and password option.
   #
   # === Certificate Authentication
   #
-  # * End point uses an X509 certificate for authentication. <tt>See ssl_options=</tt> for all options.
+  # You can also authenticate using an X509 certificate. <tt>See ssl_options=</tt> for all options.
   #
   #    class Person < ActiveResource::Base
   #      self.site = "https://secure.api.people.com/"
