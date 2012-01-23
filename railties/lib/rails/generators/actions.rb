@@ -1,5 +1,6 @@
 require 'open-uri'
 require 'rbconfig'
+require 'active_support/core_ext/array/wrap'
 
 module Rails
   module Generators
