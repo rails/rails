@@ -245,6 +245,17 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=; path=/beaten; expires=Thu, 01-Jan-1970 00:00:00 GMT"
   end
 
+  def test_deleted_cookie_predicate
+    cookies.delete("user_name")
+    assert cookies.deleted?("user_name")
+    assert_equal false, cookies.deleted?("another")
+  end
+
+  def test_deleted_cookie_predicate_with_mismatching_options
+    cookies.delete("user_name", :path => "/path")
+    assert_equal false, cookies.deleted?("user_name", :path => "/different")
+  end
+
   def test_cookies_persist_throughout_request
     response = get :authenticate
     assert response.headers["Set-Cookie"] =~ /user_name=david/
