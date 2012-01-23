@@ -62,9 +62,7 @@ module ActiveModel
       # The new observer needs to respond to 'update', otherwise it
       # raises an +ArgumentError+ exception.
       def add_observer(observer)
-        unless observer.respond_to? :update
-          raise ArgumentError, "observer needs to respond to `update'"
-        end
+        raise ArgumentError, "observer needs to respond to 'update'" unless observer.respond_to?(:update)
         observer_instances << observer
       end
 
