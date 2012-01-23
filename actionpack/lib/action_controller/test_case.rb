@@ -460,7 +460,6 @@ module ActionController
 
         @request.session = ActionController::TestSession.new(session) if session
         @request.session["flash"] = @request.flash.update(flash || {})
-        @request.session["flash"].sweep
 
         @controller.request = @request
         build_request_uri(action, parameters)

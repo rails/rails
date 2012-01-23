@@ -4,7 +4,7 @@ module ActionDispatch
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.
     def flash
-      @env[Flash::KEY] ||= (session["flash"] || Flash::FlashHash.new)
+      @env[Flash::KEY] ||= (session["flash"] || Flash::FlashHash.new).tap(&:sweep)
     end
   end
 
@@ -235,10 +235,6 @@ module ActionDispatch
     end
 
     def call(env)
-      if (session = env['rack.session']) && (flash = session['flash'])
-        flash.sweep
-      end
-
       @app.call(env)
     ensure
       session    = env['rack.session'] || {}
@@ -255,7 +251,8 @@ module ActionDispatch
         env[KEY] = new_hash
       end
 
-      if session.key?('flash') && session['flash'].empty?
+      if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
+         session.key?('flash') && session['flash'].empty?
         session.delete('flash')
       end
     end
