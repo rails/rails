@@ -10,7 +10,7 @@ module ActiveRecord
                   :where_values, :having_values, :bind_values,
                   :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value,
                   :from_value, :reordering_value, :reverse_order_value,
-                  :uniq_value, :references_values
+                  :uniq_value, :references_values, :none_value
 
     def includes(*args)
       args.reject! {|a| a.blank? }
@@ -193,6 +193,17 @@ module ActiveRecord
         relation.lock_value = false
       end
 
+      relation
+    end
+
+    # Returns a chainable empty relation with zero records. It prevents the
+    # execution of the query.
+    #
+    # Any subsequent condition chained to the relation will continue
+    # generating an empty relation and will not fire any query to the database.
+    def none
+      relation = clone
+      relation.none_value = true
       relation
     end
 
