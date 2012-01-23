@@ -31,23 +31,23 @@ module ActiveResource
   # URI of the resources.
   #
   #   class Person < ActiveResource::Base
-  #     self.site = "http://api.people.com:3000/"
+  #     self.site = "https://api.people.com"
   #   end
   #
-  # Now the Person class is mapped to RESTful resources located at <tt>http://api.people.com:3000/people/</tt>, and
+  # Now the Person class is mapped to RESTful resources located at <tt>https://api.people.com/people/</tt>, and
   # you can now use Active Resource's life cycle methods to manipulate resources. In the case where you already have
   # an existing model with the same name as the desired RESTful resource you can set the +element_name+ value.
   #
   #   class PersonResource < ActiveResource::Base
-  #     self.site = "http://api.people.com:3000/"
+  #     self.site = "https://api.people.com"
   #     self.element_name = "person"
   #   end
   #
   # If your Active Resource object is required to use an HTTP proxy you can set the +proxy+ value which holds a URI.
   #
   #   class PersonResource < ActiveResource::Base
-  #     self.site = "http://api.people.com:3000/"
-  #     self.proxy = "http://user:password@proxy.people.com:8080"
+  #     self.site = "https://api.people.com"
+  #     self.proxy = "https://user:password@proxy.people.com:8080"
   #   end
   #
   #
@@ -103,7 +103,7 @@ module ActiveResource
   # You can validate resources client side by overriding validation methods in the base class.
   #
   #   class Person < ActiveResource::Base
-  #      self.site = "http://api.people.com:3000/"
+  #      self.site = "https://api.people.com"
   #      protected
   #        def validate
   #          errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
@@ -176,7 +176,7 @@ module ActiveResource
   # response code will be returned from the server which will raise an ActiveResource::ResourceNotFound
   # exception.
   #
-  #   # GET http://api.people.com:3000/people/999.json
+  #   # GET https://api.people.com/people/999.json
   #   ryan = Person.find(999) # 404, raises ActiveResource::ResourceNotFound
   #
   #
@@ -212,7 +212,7 @@ module ActiveResource
   # an ActiveResource::MissingPrefixParam will be raised.
   #
   #  class Comment < ActiveResource::Base
-  #    self.site = "http://someip.com/posts/:post_id/"
+  #    self.site = "https://someip.com/posts/:post_id"
   #  end
   #
   #  Comment.find(1)
@@ -230,9 +230,9 @@ module ActiveResource
   #   ryan.save  # => false
   #
   #   # When
-  #   # PUT http://api.people.com:3000/people/1.json
+  #   # PUT https://api.people.com/people/1.json
   #   # or
-  #   # PUT http://api.people.com:3000/people/1.json
+  #   # PUT https://api.people.com/people/1.json
   #   # is requested with invalid values, the response is:
   #   #
   #   # Response (422):
@@ -253,7 +253,7 @@ module ActiveResource
   # amount of time before Active Resource times out with the +timeout+ variable.
   #
   #   class Person < ActiveResource::Base
-  #     self.site = "http://api.people.com:3000/"
+  #     self.site = "https://api.people.com"
   #     self.timeout = 5
   #   end
   #
@@ -403,15 +403,15 @@ module ActiveResource
         #
         # With superclass_delegating_reader
         #
-        #   Parent.site = 'http://anonymous@test.com'
-        #   Subclass.site # => 'http://anonymous@test.com'
+        #   Parent.site = 'https://anonymous@test.com'
+        #   Subclass.site # => 'https://anonymous@test.com'
         #   Subclass.site.user = 'david'
-        #   Parent.site # => 'http://david@test.com'
+        #   Parent.site # => 'https://david@test.com'
         #
         # Without superclass_delegating_reader (expected behavior)
         #
-        #   Parent.site = 'http://anonymous@test.com'
-        #   Subclass.site # => 'http://anonymous@test.com'
+        #   Parent.site = 'https://anonymous@test.com'
+        #   Subclass.site # => 'https://anonymous@test.com'
         #   Subclass.site.user = 'david' # => TypeError: can't modify frozen object
         #
         if defined?(@site)
@@ -651,7 +651,7 @@ module ActiveResource
       #   # => /posts/1.json
       #
       #   class Comment < ActiveResource::Base
-      #     self.site = "http://37s.sunrise.i/posts/:post_id/"
+      #     self.site = "https://37s.sunrise.com/posts/:post_id"
       #   end
       #
       #   Comment.element_path(1, :post_id => 5)
@@ -681,7 +681,7 @@ module ActiveResource
       #   # => /posts/new.json
       #
       #   class Comment < ActiveResource::Base
-      #     self.site = "http://37s.sunrise.i/posts/:post_id/"
+      #     self.site = "https://37s.sunrise.com/posts/:post_id"
       #   end
       #
       #   Comment.collection_path(:post_id => 5)

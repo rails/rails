@@ -20,7 +20,7 @@ module ActiveResource
   # standard methods.
   #
   #   class Person < ActiveResource::Base
-  #     self.site = "http://37s.sunrise.i:3000"
+  #     self.site = "https://37s.sunrise.com"
   #   end
   #
   #   Person.new(:name => 'Ryan').post(:register)  # POST /people/new/register.json
