@@ -578,6 +578,7 @@ module ActionView
 
       def to_select_tag(choices, options, html_options)
         selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
+        choices = choices.to_a if choices.is_a?(Range)
 
         # Grouped choices look like this:
         #

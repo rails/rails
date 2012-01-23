@@ -64,4 +64,10 @@ class TaggedLoggingTest < ActiveSupport::TestCase
 
     assert_equal "[BCX] [Jason] Funky time\n[BCX] Junky time!\n", @output.string
   end
+
+  test "silence" do
+    assert_deprecated do
+      assert_nothing_raised { @logger.silence {} }
+    end
+  end
 end

@@ -1,4 +1,4 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   Setting config.assets.logger to false turn off Sprockets logger *Guillermo Iguaran*
 

@@ -5,6 +5,7 @@ end
 
 require 'yaml'
 require 'set'
+require 'thread'
 require 'active_support/benchmarkable'
 require 'active_support/dependencies'
 require 'active_support/descendants_tracker'
@@ -390,10 +391,16 @@ module ActiveRecord #:nodoc:
 
     class << self # Class methods
       def inherited(child_class) #:nodoc:
-        # force attribute methods to be higher in inheritance hierarchy than other generated methods
-        child_class.generated_attribute_methods
-        child_class.generated_feature_methods
+        child_class.initialize_generated_modules
         super
+      end
+
+      def initialize_generated_modules #:nodoc:
+        @attribute_methods_mutex = Mutex.new
+
+        # force attribute methods to be higher in inheritance hierarchy than other generated methods
+        generated_attribute_methods
+        generated_feature_methods
       end
 
       def generated_feature_methods

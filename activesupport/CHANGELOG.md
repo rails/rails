@@ -1,4 +1,4 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   ActiveSupport::Base64 is deprecated in favor of ::Base64. *Sergey Nartimov*
 
