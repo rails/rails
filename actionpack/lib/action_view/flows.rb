@@ -22,11 +22,8 @@ module ActionView
     def append(key, value)
       @content[key] << value
     end
+    alias_method :append!, :append
 
-    # Called by provide
-    def append!(key, value)
-      @content[key] << value
-    end
   end
 
   class StreamingFlow < OutputFlow #:nodoc:
