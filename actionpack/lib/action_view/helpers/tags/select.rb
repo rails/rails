@@ -10,7 +10,7 @@ module ActionView
           super(object_name, method_name, template_object, options)
         end
 
-        def render
+        def to_s
           selected_value = @options.has_key?(:selected) ? @options[:selected] : value(@object)
 
           # Grouped choices look like this:

@@ -655,7 +655,7 @@ module ActionView
       #     'Accept <a href="/terms">Terms</a>.'.html_safe
       #   end
       def label(object_name, method, content_or_options = nil, options = nil, &block)
-        Tags::Label.new(object_name, method, self, content_or_options, options).render(&block)
+        Tags::Label.new(object_name, method, self, content_or_options, options).to_s(&block)
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -677,7 +677,7 @@ module ActionView
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
       #
       def text_field(object_name, method, options = {})
-        Tags::TextField.new(object_name, method, self, options).render
+        Tags::TextField.new(object_name, method, self, options).to_s
       end
 
       # Returns an input tag of the "password" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -699,7 +699,7 @@ module ActionView
       #   # => <input type="password" id="account_pin" name="account[pin]" size="20" class="form_input" />
       #
       def password_field(object_name, method, options = {})
-        Tags::PasswordField.new(object_name, method, self, options).render
+        Tags::PasswordField.new(object_name, method, self, options).to_s
       end
 
       # Returns a hidden input tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -717,7 +717,7 @@ module ActionView
       #   hidden_field(:user, :token)
       #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
       def hidden_field(object_name, method, options = {})
-        Tags::HiddenField.new(object_name, method, self, options).render
+        Tags::HiddenField.new(object_name, method, self, options).to_s
       end
 
       # Returns a file upload input tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -738,7 +738,7 @@ module ActionView
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       #
       def file_field(object_name, method, options = {})
-        Tags::FileField.new(object_name, method, self, options).render
+        Tags::FileField.new(object_name, method, self, options).to_s
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
@@ -766,7 +766,7 @@ module ActionView
       #   #      #{@entry.body}
       #   #    </textarea>
       def text_area(object_name, method, options = {})
-        Tags::TextArea.new(object_name, method, self, options).render
+        Tags::TextArea.new(object_name, method, self, options).to_s
       end
 
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -828,7 +828,7 @@ module ActionView
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
       #
       def check_box(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
-        Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options).render
+        Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options).to_s
       end
 
       # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
@@ -850,7 +850,7 @@ module ActionView
       #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
       #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked" />
       def radio_button(object_name, method, tag_value, options = {})
-        Tags::RadioButton.new(object_name, method, self, tag_value, options).render
+        Tags::RadioButton.new(object_name, method, self, tag_value, options).to_s
       end
 
       # Returns an input of type "search" for accessing a specified attribute (identified by +method+) on an object
@@ -876,7 +876,7 @@ module ActionView
       #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" size="30" type="search" />
       #
       def search_field(object_name, method, options = {})
-        Tags::SearchField.new(object_name, method, self, options).render
+        Tags::SearchField.new(object_name, method, self, options).to_s
       end
 
       # Returns a text_field of type "tel".
@@ -885,7 +885,7 @@ module ActionView
       #   # => <input id="user_phone" name="user[phone]" size="30" type="tel" />
       #
       def telephone_field(object_name, method, options = {})
-        Tags::TelField.new(object_name, method, self, options).render
+        Tags::TelField.new(object_name, method, self, options).to_s
       end
       alias phone_field telephone_field
 
@@ -895,7 +895,7 @@ module ActionView
       #   # => <input id="user_homepage" size="30" name="user[homepage]" type="url" />
       #
       def url_field(object_name, method, options = {})
-        Tags::UrlField.new(object_name, method, self, options).render
+        Tags::UrlField.new(object_name, method, self, options).to_s
       end
 
       # Returns a text_field of type "email".
@@ -904,7 +904,7 @@ module ActionView
       #   # => <input id="user_address" size="30" name="user[address]" type="email" />
       #
       def email_field(object_name, method, options = {})
-        Tags::EmailField.new(object_name, method, self, options).render
+        Tags::EmailField.new(object_name, method, self, options).to_s
       end
 
       # Returns an input tag of type "number".
@@ -912,7 +912,7 @@ module ActionView
       # ==== Options
       # * Accepts same options as number_field_tag
       def number_field(object_name, method, options = {})
-        Tags::NumberField.new(object_name, method, self, options).render
+        Tags::NumberField.new(object_name, method, self, options).to_s
       end
 
       # Returns an input tag of type "range".
@@ -920,7 +920,7 @@ module ActionView
       # ==== Options
       # * Accepts same options as range_field_tag
       def range_field(object_name, method, options = {})
-        Tags::RangeField.new(object_name, method, self, options).render
+        Tags::RangeField.new(object_name, method, self, options).to_s
       end
 
       private
