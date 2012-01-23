@@ -1668,7 +1668,7 @@ right in the form where you create the post. First, create a new model to hold
 the tags:
 
 <shell>
-$ rails generate model tag name:string post:references
+$ rails generate model Tag name:string post:references
 </shell>
 
 Again, run the migration to create the database table:
