@@ -19,7 +19,7 @@ module ActiveRecord
       counters.each do |association|
         has_many_association = reflect_on_association(association.to_sym)
 
-        expected_name = if has_many_association.options[:as]
+        if has_many_association.options[:as]
           has_many_association.options[:as].to_s.classify
         else
           self.name
