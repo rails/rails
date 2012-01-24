@@ -541,7 +541,7 @@ module ActiveRecord
         if options.is_a?(Hash) && length = options[:length]
           case length
           when Hash
-            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name)}
+            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
           when Fixnum
             column_names.each {|name| option_strings[name] += "(#{length})"}
           end
