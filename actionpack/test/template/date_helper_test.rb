@@ -1620,9 +1620,6 @@ class DateHelperTest < ActionView::TestCase
   def test_date_select_with_nil_and_blank_and_discard_year
     @post = Post.new
 
-    start_year = Time.now.year-5
-    end_year   = Time.now.year+5
-
     expected = '<input id="post_written_on_1i" name="post[written_on(1i)]" type="hidden" value="1" />' + "\n"
 
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
