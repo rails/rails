@@ -598,7 +598,8 @@ module ActionDispatch
               params[key] = URI.parser.unescape(value)
             end
           end
-
+          old_params = env[::ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+          env[::ActionDispatch::Routing::RouteSet::PARAMETERS_KEY] = (old_params || {}).merge(params)
           dispatcher = route.app
           while dispatcher.is_a?(Mapper::Constraints) && dispatcher.matches?(env) do
             dispatcher = dispatcher.app
