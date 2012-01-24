@@ -1,7 +1,11 @@
+require 'active_support/deprecation'
+
 class DateTime
   class << self
-    # DateTimes aren't aware of DST rules, so use a consistent non-DST offset when creating a DateTime with an offset in the local zone
+    # *DEPRECATED*: Use +DateTime.civil_from_format+ directly.
     def local_offset
+      ActiveSupport::Deprecation.warn 'DateTime.local_offset is deprecated. ' \
+        'Use DateTime.civil_from_format directly.', caller
       ::Time.local(2012).utc_offset.to_r / 86400
     end
 
