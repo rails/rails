@@ -742,7 +742,7 @@ module ActionView
 
       def select_month
         if @options[:use_hidden] || @options[:discard_month]
-          build_hidden(:month, month)
+          build_hidden(:month, month || 1)
         else
           month_options = []
           1.upto(12) do |month_number|
@@ -756,7 +756,7 @@ module ActionView
 
       def select_year
         if !@datetime || @datetime == 0
-          val = ''
+          val = '1'
           middle_year = Date.today.year
         else
           val = middle_year = year
