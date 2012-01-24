@@ -2132,6 +2132,18 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, datetime_select("post", "updated_at", { :date_separator => " / ", :datetime_separator => " , ", :time_separator => " - ", :include_seconds => true })
   end
 
+  def test_datetime_select_with_integer
+    @post = Post.new
+    @post.updated_at = 3
+    datetime_select("post", "updated_at")
+  end
+
+  def test_datetime_select_with_infinity # Float
+    @post = Post.new
+    @post.updated_at = (-1.0/0)
+    datetime_select("post", "updated_at")
+  end
+
   def test_datetime_select_with_default_prompt
     @post = Post.new
     @post.updated_at = nil
