@@ -1380,7 +1380,20 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
   end
-
+  
+  def test_route_with_subdomain_and_constraints_must_receive_params
+    name_param = nil
+    set.draw do
+      match 'page/:name' => 'pages#show', :constraints => lambda {|request|
+        name_param = request.params[:name]
+        return true
+      }
+    end
+    assert_equal({:controller => 'pages', :action => 'show', :name => 'mypage'},
+      set.recognize_path('http://subdomain.example.org/page/mypage'))
+    assert_equal(name_param, 'mypage')
+  end
+  
   def test_route_requirement_recognize_with_ignore_case
     set.draw do
       match 'page/:name' => 'pages#show',
