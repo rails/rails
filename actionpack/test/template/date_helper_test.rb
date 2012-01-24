@@ -1587,7 +1587,7 @@ class DateHelperTest < ActionView::TestCase
     start_year = Time.now.year-5
     end_year   = Time.now.year+5
 
-    expected = '<input name="post[written_on(3i)]" type="hidden" id="post_written_on_3i"/>' + "\n"
+    expected = '<input name="post[written_on(3i)]" type="hidden" id="post_written_on_3i" value="1"/>' + "\n"
     expected <<   %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
     expected << "<option value=\"\"></option>\n"
     start_year.upto(end_year) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
@@ -1599,6 +1599,43 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", :order=>[:year, :month], :include_blank=>true)
+  end
+
+  def test_date_select_with_nil_and_blank_and_discard_month
+    @post = Post.new
+
+    start_year = Time.now.year-5
+    end_year   = Time.now.year+5
+
+    expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << "<option value=\"\"></option>\n"
+    start_year.upto(end_year) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    expected << "</select>\n"
+    expected << '<input name="post[written_on(2i)]" type="hidden" id="post_written_on_2i" value="1"/>' + "\n"
+    expected << '<input name="post[written_on(3i)]" type="hidden" id="post_written_on_3i" value="1"/>' + "\n"
+
+    assert_dom_equal expected, date_select("post", "written_on", :discard_month => true, :include_blank=>true)
+  end
+
+  def test_date_select_with_nil_and_blank_and_discard_year
+    @post = Post.new
+
+    start_year = Time.now.year-5
+    end_year   = Time.now.year+5
+
+    expected = '<input id="post_written_on_1i" name="post[written_on(1i)]" type="hidden" value="1" />' + "\n"
+
+    expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
+    expected << "<option value=\"\"></option>\n"
+    1.upto(12) { |i| expected << %(<option value="#{i}">#{Date::MONTHNAMES[i]}</option>\n) }
+    expected << "</select>\n"
+
+    expected << %{<select id="post_written_on_3i" name="post[written_on(3i)]">\n}
+    expected << "<option value=\"\"></option>\n"
+    1.upto(31) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    expected << "</select>\n"
+
+    assert_dom_equal expected, date_select("post", "written_on", :discard_year => true, :include_blank=>true)
   end
 
   def test_date_select_cant_override_discard_hour
