@@ -83,6 +83,68 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     @response = nil
   end
 
+  def test_symbols_with_dashes
+    rs.draw do
+      match '/:artist/:song-omg', :to => lambda { |env|
+        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = JSON.load get(URI('http://example.org/journey/faithfully-omg'))
+    assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
+  end
+
+  def test_id_with_dash
+    rs.draw do
+      match '/journey/:id', :to => lambda { |env|
+        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = JSON.load get(URI('http://example.org/journey/faithfully-omg'))
+    assert_equal({"id"=>"faithfully-omg"}, hash)
+  end
+
+  def test_dash_with_custom_regexp
+    rs.draw do
+      match '/:artist/:song-omg', :constraints => { :song => /\d+/ }, :to => lambda { |env|
+        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = JSON.load get(URI('http://example.org/journey/123-omg'))
+    assert_equal({"artist"=>"journey", "song"=>"123"}, hash)
+    assert_equal 'Not Found', get(URI('http://example.org/journey/faithfully-omg'))
+  end
+
+  def test_pre_dash
+    rs.draw do
+      match '/:artist/omg-:song', :to => lambda { |env|
+        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = JSON.load get(URI('http://example.org/journey/omg-faithfully'))
+    assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
+  end
+
+  def test_pre_dash_with_custom_regexp
+    rs.draw do
+      match '/:artist/omg-:song', :constraints => { :song => /\d+/ }, :to => lambda { |env|
+        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = JSON.load get(URI('http://example.org/journey/omg-123'))
+    assert_equal({"artist"=>"journey", "song"=>"123"}, hash)
+    assert_equal 'Not Found', get(URI('http://example.org/journey/omg-faithfully'))
+  end
+
   def test_regexp_precidence
     @rs.draw do
       match '/whois/:domain', :constraints => {
