@@ -1,3 +1,7 @@
+require 'active_support/deprecation'
+require 'active_support/test_case'
+
+ActiveSupport::Deprecation.warn('ActiveRecord::TestCase is deprecated, please use ActiveSupport::TestCase')
 module ActiveRecord
   # = Active Record Test Case
   #
