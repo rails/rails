@@ -37,10 +37,6 @@ module ActiveSupport
         !ENV["NO_FORK"] && ((RbConfig::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
       end
 
-      def self.included(base)
-        base.send :include, MiniTest
-      end
-
       def _run_class_setup      # class setup method should only happen in parent
         unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
           self.class.setup if self.class.respond_to?(:setup)
@@ -48,18 +44,16 @@ module ActiveSupport
         end
       end
 
-      module MiniTest
-        def run(runner)
-          _run_class_setup
+      def run(runner)
+        _run_class_setup
 
-          serialized = run_in_isolation do |isolated_runner|
-            super(isolated_runner)
-          end
-
-          retval, proxy = Marshal.load(serialized)
-          proxy.__replay__(runner)
-          retval
+        serialized = run_in_isolation do |isolated_runner|
+          super(isolated_runner)
         end
+
+        retval, proxy = Marshal.load(serialized)
+        proxy.__replay__(runner)
+        retval
       end
 
       module Forking
