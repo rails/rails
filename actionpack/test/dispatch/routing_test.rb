@@ -502,6 +502,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
 
+      get '/songs/:artist/:songl-yrics', :to => 'songs#show'
+      get '/events/events-in-:area', :to => 'events#in_future'
+
       scope '/italians' do
         match '/writers', :to => 'italians#writers', :constraints => ::TestRoutingMapper::IpRestrictor
         match '/sculptors', :to => 'italians#sculptors'
@@ -2387,6 +2390,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get "/posts/1/admin"
     assert_equal "admin/index#index", @response.body
     assert_equal "/posts/1/admin", post_admin_root_path(:post_id => '1')
+  end
+
+  def test_routes_with_appended_dashes
+    get '/songs/journey/anyway-lyrics'
+    assert_equal "songs#show", @response.body
+    assert_equal "journey", @request.params[:artist]
+    assert_equal "anyway", @request.params[:song]
+  end
+
+  def test_routes_with_prepended_dashes
+    get '/events/events-in-brazil'
+    assert_equal "events#in_future", @response.body
+    assert_equal "brazil", @request.params[:area]
   end
 
 private
