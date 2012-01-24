@@ -1,7 +1,5 @@
 module ActionMailer
   module TestHelper
-    extend ActiveSupport::Concern
-
     # Asserts that the number of emails sent matches the given number.
     #
     #   def test_emails
