@@ -291,12 +291,9 @@ module ActiveResource
       if resp_cls && !resp_cls.body_permitted?
         @body = nil
       end
-
-      if @body.nil?
-        self['Content-Length'] = "0"
-      else
-        self['Content-Length'] = body.size.to_s
-      end
+      
+      self['Content-Length'] = @body.nil? ? "0" : body.size.to_s
+      
     end
 
     # Returns true if code is 2xx,
