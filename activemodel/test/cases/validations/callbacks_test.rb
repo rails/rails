@@ -5,11 +5,10 @@ class Dog
   include ActiveModel::Validations
   include ActiveModel::Validations::Callbacks
 
-  attr_accessor :name
-  attr_writer   :history
+  attr_accessor :name, :history
 
-  def history
-    @history ||= []
+  def initialize
+    @history = []
   end
 end
 
