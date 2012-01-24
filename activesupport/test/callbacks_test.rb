@@ -344,6 +344,54 @@ module CallbacksTest
     end
   end
 
+  module ExtendModule
+    def self.extended(base)
+      base.class_eval do
+        set_callback :save, :before, :record3
+      end
+    end
+    def record3
+      @recorder << 3
+    end
+  end
+
+  module IncludeModule
+    def self.included(base)
+      base.class_eval do
+        set_callback :save, :before, :record2
+      end
+    end
+    def record2
+      @recorder << 2
+    end
+  end
+
+  class ExtendCallbacks
+
+    include ActiveSupport::Callbacks
+
+    define_callbacks :save
+    set_callback :save, :before, :record1
+
+    include IncludeModule
+
+    def save
+      run_callbacks :save
+    end
+
+    attr_reader :recorder
+
+    def initialize
+      @recorder = []
+    end
+
+    private
+
+      def record1
+        @recorder << 1
+      end
+  end
+
   class AroundCallbacksTest < ActiveSupport::TestCase
     def test_save_around
       around = AroundPerson.new
@@ -645,4 +693,12 @@ module CallbacksTest
     end
   end
 
+  class ExtendCallbacksTest < ActiveSupport::TestCase
+    def test_save
+      model = ExtendCallbacks.new.extend ExtendModule
+      model.save
+      assert_equal [1, 2, 3], model.recorder
+    end
+  end
+ 
 end
