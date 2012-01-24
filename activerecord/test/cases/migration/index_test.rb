@@ -55,7 +55,7 @@ module ActiveRecord
         assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
       end
 
-      def test_add_index_length_limit
+      def test_add_index_name_length_limit
         good_index_name = 'x' * connection.index_name_length
         too_long_index_name = good_index_name + 'x'
 
@@ -101,6 +101,12 @@ module ActiveRecord
         connection.add_index :testings, :foo, :name => "custom_index_name"
 
         assert connection.index_exists?(:testings, :foo, :name => "custom_index_name")
+      end
+
+      def test_add_index_attribute_length_limit
+        connection.add_index :testings, [:foo, :bar], :length => {:foo => 10, :bar => nil}
+
+        assert connection.index_exists?(:testings, [:foo, :bar])
       end
 
       def test_add_index
