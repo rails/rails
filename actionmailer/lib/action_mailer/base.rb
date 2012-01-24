@@ -1,7 +1,6 @@
 require 'mail'
 require 'action_mailer/collector'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/proc'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'action_mailer/log_subscriber'
@@ -611,7 +610,7 @@ module ActionMailer #:nodoc:
       # Call all the procs (if any)
       class_default = self.class.default
       default_values = class_default.merge(class_default) do |k,v|
-        v.respond_to?(:call) ? v.bind(self).call : v
+        v.respond_to?(:to_proc) ? instance_eval(&v) : v
       end
 
       # Handle defaults
