@@ -55,6 +55,7 @@ module ActionDispatch
 
         def initialize(set, scope, path, options)
           @set, @scope = set, scope
+          @segment_keys = nil
           @options = (@scope[:options] || {}).merge(options)
           @path = normalize_path(path)
           normalize_options!
@@ -214,7 +215,9 @@ module ActionDispatch
           end
 
           def segment_keys
-            @segment_keys ||= Journey::Path::Pattern.new(
+            return @segment_keys if @segment_keys
+
+            @segment_keys = Journey::Path::Pattern.new(
               Journey::Router::Strexp.compile(@path, requirements, SEPARATORS)
             ).names
           end
