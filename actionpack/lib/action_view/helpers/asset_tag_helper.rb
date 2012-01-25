@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/hash/keys'
 require 'action_view/helpers/asset_tag_helpers/javascript_tag_helpers'
 require 'action_view/helpers/asset_tag_helpers/stylesheet_tag_helpers'
 require 'action_view/helpers/asset_tag_helpers/asset_paths'
@@ -407,12 +409,15 @@ module ActionView
       #    <video src="/trailers/hd.avi" width="16" height="16" />
       #  video_tag("/trailers/hd.avi", :height => '32', :width => '32') # =>
       #    <video height="32" src="/trailers/hd.avi" width="32" />
+      #  video_tag("trailer.ogg", "trailer.flv") # =>
+      #    <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       #  video_tag(["trailer.ogg", "trailer.flv"]) # =>
-      #    <video><source src="trailer.ogg" /><source src="trailer.ogg" /><source src="trailer.flv" /></video>
+      #    <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       #  video_tag(["trailer.ogg", "trailer.flv"] :size => "160x120") # =>
-      #    <video height="120" width="160"><source src="trailer.ogg" /><source src="trailer.flv" /></video>
-      def video_tag(sources, options = {})
-        options.symbolize_keys!
+      #    <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      def video_tag(*sources)
+        options = sources.extract_options!.symbolize_keys!
+        sources.flatten!
 
         options[:poster] = path_to_image(options[:poster]) if options[:poster]
 
@@ -420,12 +425,12 @@ module ActionView
           options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
         end
 
-        if sources.is_a?(Array)
+        if sources.size > 1
           content_tag("video", options) do
-            sources.map { |source| tag("source", :src => path_to_video(source)) }.join.html_safe
+            safe_join sources.map { |source| tag("source", :src => path_to_video(source)) }
           end
         else
-          options[:src] = path_to_video(sources)
+          options[:src] = path_to_video(sources.first)
           tag("video", options)
         end
       end
@@ -441,15 +446,18 @@ module ActionView
       #    <audio src="/audios/sound.wav" />
       #  audio_tag("sound.wav", :autoplay => true, :controls => true)  # =>
       #    <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
-      def audio_tag(sources, options = {})
-        options.symbolize_keys!
+      #  audio_tag("sound.wav", "sound.mid")  # =>
+      #    <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
+      def audio_tag(*sources)
+        options = sources.extract_options!.symbolize_keys!
+        sources.flatten!
 
-        if sources.is_a?(Array)
+        if sources.size > 1
           content_tag("audio", options) do
-            sources.collect { |source| tag("source", :src => path_to_audio(source)) }.join.html_safe
+            safe_join sources.collect { |source| tag("source", :src => path_to_audio(source)) }
           end
         else
-          options[:src] = path_to_audio(sources)
+          options[:src] = path_to_audio(sources.first)
           tag("audio", options)
         end
       end
