@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'erb'
 require 'abstract_unit'
 require 'controller/fake_controllers'
@@ -2542,5 +2543,24 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
   test 'unescapes recognized path splat' do
     get '/a%20b/c+d'
     assert_equal 'a b/c+d', @response.body
+  end
+end
+
+class TestUnicodePaths < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      match "/#{Rack::Utils.escape("ほげ")}" => lambda { |env|
+        path_params = env['action_dispatch.request.path_parameters']
+        [200, { 'Content-Type' => 'text/plain' }, []]
+      }, :as => :unicode_path
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  test 'recognizes unicode path' do
+    get "/#{Rack::Utils.escape("ほげ")}"
+    assert_equal "200", @response.code
   end
 end
