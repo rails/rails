@@ -956,6 +956,7 @@ h4. Creating an Object
 * +before_validation+
 * +after_validation+
 * +before_save+
+* +around_save+
 * +before_create+
 * +around_create+
 * +after_create+
@@ -966,6 +967,7 @@ h4. Updating an Object
 * +before_validation+
 * +after_validation+
 * +before_save+
+* +around_save+
 * +before_update+
 * +around_update+
 * +after_update+
@@ -974,8 +976,8 @@ h4. Updating an Object
 h4. Destroying an Object
 
 * +before_destroy+
-* +after_destroy+
 * +around_destroy+
+* +after_destroy+
 
 WARNING. +after_save+ runs both on create and update, but always _after_ the more specific callbacks +after_create+ and +after_update+, no matter the order in which the macro calls were executed.
 
@@ -1020,7 +1022,7 @@ The following methods trigger callbacks:
 * +increment!+
 * +save+
 * +save!+
-* +save(false)+
+* +save(:validate => false)+
 * +toggle!+
 * +update+
 * +update_attribute+
