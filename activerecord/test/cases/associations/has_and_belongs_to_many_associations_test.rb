@@ -101,6 +101,17 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 't1', record[1]
   end
 
+  def test_should_set_the_timestamp_columns
+    setup_data_for_habtm_case
+
+    con = ActiveRecord::Base.connection
+    sql = 'select updated_at, created_at from countries_treaties'
+    record = con.select_rows(sql).last
+    assert_not_nil record[0]
+    assert_not_nil record[1]
+    assert_equal record[0], record[1]
+  end
+
   def test_proper_usage_of_primary_keys_and_join_table
     setup_data_for_habtm_case
 
