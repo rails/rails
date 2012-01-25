@@ -268,6 +268,31 @@ class NumberHelperTest < ActionView::TestCase
     assert_nil number_to_human(nil)
   end
 
+  def test_number_helpers_do_not_mutate_options_hash
+    options = { 'raise' => true }
+
+    number_to_phone(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_to_currency(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_to_percentage(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_with_delimiter(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_with_precision(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_to_human_size(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_to_human(1, options)
+    assert_equal({ 'raise' => true }, options)
+  end
+
   def test_number_helpers_should_return_non_numeric_param_unchanged
     assert_equal("+1-x x 123", number_to_phone("x", :country_code => 1, :extension => 123))
     assert_equal("x", number_to_phone("x"))
