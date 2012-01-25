@@ -853,7 +853,7 @@ below:
 </erb>
 
 Now when you refresh the +/posts+ page, you'll see a gray background to the
-page. This same gray background will be used throughout all the views for blog application.
+page. This same gray background will be used throughout all the views.
 
 h4. Creating New Posts
 
