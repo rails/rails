@@ -92,11 +92,7 @@ module ActiveRecord
         end
 
         def internal_attribute_access_code(attr_name, cast_code)
-          if attr_name == primary_key
-            access_code = "v = @attributes[attr_name];"
-          else
-            access_code = "v = @attributes.fetch(attr_name) { missing_attribute(attr_name, caller) };"
-          end
+          access_code = "v = @attributes.fetch(attr_name) { missing_attribute(attr_name, caller) };"
 
           access_code << "v && #{cast_code};"
 

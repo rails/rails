@@ -202,6 +202,7 @@ module ActiveRecord
       cloned_attributes.delete(self.class.primary_key)
 
       @attributes = cloned_attributes
+      @attributes[self.class.primary_key] = nil
 
       run_callbacks(:initialize) if _initialize_callbacks.any?
 
@@ -326,6 +327,10 @@ module ActiveRecord
     end
 
     def init_internals
+      pk = self.class.primary_key
+
+      @attributes[pk] = nil unless @attributes.key?(pk)
+
       @relation               = nil
       @aggregation_cache      = {}
       @association_cache      = {}

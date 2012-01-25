@@ -13,7 +13,8 @@ class SerializationTest < ActiveRecord::TestCase
       :created_at     => Time.utc(2006, 8, 1),
       :awesome        => false,
       :preferences    => { :gem => '<strong>ruby</strong>' },
-      :alternative_id => nil
+      :alternative_id => nil,
+      :id             => nil
     }
   end
 

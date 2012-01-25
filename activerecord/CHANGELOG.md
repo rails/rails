@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* The primary key is always initialized in the @attributes hash to nil (unless
+  another value has been specified).
+
 *   In previous releases, the following would generate a single query with
     an `OUTER JOIN comments`, rather than two separate queries:
 

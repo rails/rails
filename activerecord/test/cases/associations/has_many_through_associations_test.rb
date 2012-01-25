@@ -738,7 +738,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_select_chosen_fields_only
     author = authors(:david)
-    assert_equal ['body'], author.comments.select('comments.body').first.attributes.keys
+    assert_equal ['body', 'id'].sort, author.comments.select('comments.body').first.attributes.keys.sort
   end
 
   def test_get_has_many_through_belongs_to_ids_with_conditions
