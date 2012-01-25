@@ -445,6 +445,12 @@ class AssetTagHelperTest < ActionView::TestCase
     ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_image_tag_does_not_modify_options
+    options = {:size => '16x10'}
+    image_tag('icon', options)
+    assert_equal({:size => '16x10'}, options)
+  end
+
   def test_favicon_link_tag
     FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end

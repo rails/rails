@@ -355,8 +355,8 @@ module ActionView
       #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
       #  image_tag("mouse.png", :mouseover => image_path("mouse_over.png")) # =>
       #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
-      def image_tag(source, options = {})
-        options.symbolize_keys!
+      def image_tag(source, options={})
+        options = options.dup.symbolize_keys!
 
         src = options[:src] = path_to_image(source)
 
