@@ -41,7 +41,7 @@ module ActiveResource
   # Module to support validation and errors with Active Resource objects. The module overrides
   # Base#save to rescue ActiveResource::ResourceInvalid exceptions and parse the errors returned
   # in the web service response. The module also adds an +errors+ collection that mimics the interface
-  # of the errors provided by ActiveRecord::Errors.
+  # of the errors provided by ActiveModel::Errors.
   #
   # ==== Example
   #
