@@ -58,66 +58,68 @@ module ActiveRecord
         end
 
         protected
-          # We want to generate the methods via module_eval rather than define_method,
-          # because define_method is slower on dispatch and uses more memory (because it
-          # creates a closure).
-          #
-          # But sometimes the database might return columns with characters that are not
-          # allowed in normal method names (like 'my_column(omg)'. So to work around this
-          # we first define with the __temp__ identifier, and then use alias method to
-          # rename it to what we want.
-          def define_method_attribute(attr_name)
-            cast_code = attribute_cast_code(attr_name)
+        # We want to generate the methods via module_eval rather than define_method,
+        # because define_method is slower on dispatch and uses more memory (because it
+        # creates a closure).
+        #
+        # But sometimes the database might return columns with characters that are not
+        # allowed in normal method names (like 'my_column(omg)'. So to work around this
+        # we first define with the __temp__ identifier, and then use alias method to
+        # rename it to what we want.
+        def define_method_attribute(attr_name)
+          cast_code = attribute_cast_code(attr_name)
 
-            generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-              def __temp__
-                #{internal_attribute_access_code(attr_name, cast_code)}
-              end
-              alias_method '#{attr_name}', :__temp__
-              undef_method :__temp__
-            STR
+          generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
+            def __temp__
+              #{internal_attribute_access_code(attr_name, cast_code)}
+            end
+            alias_method '#{attr_name}', :__temp__
+            undef_method :__temp__
+          STR
 
-            generated_external_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-              def __temp__(v, attributes, attributes_cache, attr_name)
-                #{external_attribute_access_code(attr_name, cast_code)}
-              end
-              alias_method '#{attr_name}', :__temp__
-              undef_method :__temp__
-            STR
-          end
+          generated_external_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
+            def __temp__(v, attributes, attributes_cache, attr_name)
+              #{external_attribute_access_code(attr_name, cast_code)}
+            end
+            alias_method '#{attr_name}', :__temp__
+            undef_method :__temp__
+          STR
+        end
 
         private
-          def cacheable_column?(column)
-            attribute_types_cached_by_default.include?(column.type)
+        def cacheable_column?(column)
+          attribute_types_cached_by_default.include?(column.type)
+        end
+
+        def internal_attribute_access_code(attr_name, cast_code)
+          if attr_name == primary_key
+            access_code = "v = @attributes[attr_name];"
+          else
+            access_code = "v = @attributes.fetch(attr_name) { missing_attribute(attr_name, caller) };"
           end
 
-          def internal_attribute_access_code(attr_name, cast_code)
-            access_code = "(v=@attributes[attr_name]) && #{cast_code}"
+          access_code << "v && #{cast_code};"
 
-            unless attr_name == primary_key
-              access_code.insert(0, "missing_attribute(attr_name, caller) unless @attributes.has_key?(attr_name); ")
-            end
-
-            if cache_attribute?(attr_name)
-              access_code = "@attributes_cache[attr_name] ||= (#{access_code})"
-            end
-
-            "attr_name = '#{attr_name}'; #{access_code}"
+          if cache_attribute?(attr_name)
+            access_code = "@attributes_cache[attr_name] ||= (#{access_code})"
           end
 
-          def external_attribute_access_code(attr_name, cast_code)
-            access_code = "v && #{cast_code}"
+          "attr_name = '#{attr_name}'; #{access_code}"
+        end
 
-            if cache_attribute?(attr_name)
-              access_code = "attributes_cache[attr_name] ||= (#{access_code})"
-            end
+        def external_attribute_access_code(attr_name, cast_code)
+          access_code = "v && #{cast_code}"
 
-            access_code
+          if cache_attribute?(attr_name)
+            access_code = "attributes_cache[attr_name] ||= (#{access_code})"
           end
 
-          def attribute_cast_code(attr_name)
-            columns_hash[attr_name].type_cast_code('v')
-          end
+          access_code
+        end
+
+        def attribute_cast_code(attr_name)
+          columns_hash[attr_name].type_cast_code('v')
+        end
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
