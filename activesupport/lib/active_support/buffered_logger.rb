@@ -30,7 +30,7 @@ module ActiveSupport
     def silence(temporary_level = ERROR)
       if silencer
         begin
-          logger = self.class.new @log_dest, temporary_level
+          logger = self.class.new @log_dest.dup, temporary_level
           yield logger
         ensure
           logger.close
