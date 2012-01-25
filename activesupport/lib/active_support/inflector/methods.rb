@@ -42,10 +42,10 @@ module ActiveSupport
     # +camelize+ will also convert '/' to '::' which is useful for converting paths to namespaces.
     #
     # Examples:
-    #   "active_record".camelize                # => "ActiveRecord"
-    #   "active_record".camelize(:lower)        # => "activeRecord"
-    #   "active_record/errors".camelize         # => "ActiveRecord::Errors"
-    #   "active_record/errors".camelize(:lower) # => "activeRecord::Errors"
+    #   "active_model".camelize                # => "ActiveModel"
+    #   "active_model".camelize(:lower)        # => "activeModel"
+    #   "active_model/errors".camelize         # => "ActiveModel::Errors"
+    #   "active_model/errors".camelize(:lower) # => "activeModel::Errors"
     #
     # As a rule of thumb you can think of +camelize+ as the inverse of +underscore+,
     # though there are cases where that does not hold:
@@ -66,8 +66,8 @@ module ActiveSupport
     # Changes '::' to '/' to convert namespaces to paths.
     #
     # Examples:
-    #   "ActiveRecord".underscore         # => "active_record"
-    #   "ActiveRecord::Errors".underscore # => active_record/errors
+    #   "ActiveModel".underscore         # => "active_model"
+    #   "ActiveModel::Errors".underscore # => "active_model/errors"
     #
     # As a rule of thumb you can think of +underscore+ as the inverse of +camelize+,
     # though there are cases where that does not hold:

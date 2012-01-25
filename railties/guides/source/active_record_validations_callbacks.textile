@@ -671,7 +671,7 @@ h3. Working with Validation Errors
 
 In addition to the +valid?+ and +invalid?+ methods covered earlier, Rails provides a number of methods for working with the +errors+ collection and inquiring about the validity of objects.
 
-The following is a list of the most commonly used methods. Please refer to the +ActiveRecord::Errors+ documentation for a list of all the available methods.
+The following is a list of the most commonly used methods. Please refer to the +ActiveModel::Errors+ documentation for a list of all the available methods.
 
 h4(#working_with_validation_errors-errors). +errors+
 
