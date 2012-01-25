@@ -334,7 +334,7 @@ module ActionView
         end.join("\n").html_safe
       end
 
-      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the
+      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning 
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
       # Example:
       #   options_from_collection_for_select(@people, 'id', 'name')

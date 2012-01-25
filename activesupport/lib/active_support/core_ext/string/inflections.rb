@@ -100,8 +100,8 @@ class String
   #
   # +underscore+ will also change '::' to '/' to convert namespaces to paths.
   #
-  #   "ActiveRecord".underscore         # => "active_record"
-  #   "ActiveRecord::Errors".underscore # => active_record/errors
+  #   "ActiveModel".underscore         # => "active_model"
+  #   "ActiveModel::Errors".underscore # => "active_model/errors"
   def underscore
     ActiveSupport::Inflector.underscore(self)
   end

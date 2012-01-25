@@ -142,6 +142,8 @@ module ActionView
       # ==== Options
       # * <tt>:use_month_numbers</tt> - Set to true if you want to use month numbers rather than month names (e.g.
       #   "2" instead of "February").
+      # * <tt>:use_two_digit_numbers</tt> - Set to true if you want to display two digit month and day numbers (e.g.
+      #   "02" instead of "February" and "08" instead of "8").
       # * <tt>:use_short_month</tt>   - Set to true if you want to use abbreviated month names instead of full
       #   month names (e.g. "Feb" instead of "February").
       # * <tt>:add_month_numbers</tt>  - Set to true if you want to use both month numbers and month names (e.g.
@@ -188,6 +190,10 @@ module ActionView
       #   # and without a day select box.
       #   date_select("article", "written_on", :start_year => 1995, :use_month_numbers => true,
       #                                     :discard_day => true, :include_blank => true)
+      #
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute,
+      #   # with two digit numbers used for months and days.
+      #   date_select("article", "written_on", :use_two_digit_numbers => true)
       #
       #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
       #   # with the fields ordered as day, month, year rather than month, day, year.
@@ -502,6 +508,7 @@ module ActionView
 
       # Returns a select tag with options for each of the days 1 through 31 with the current day selected.
       # The <tt>date</tt> can also be substituted for a day number.
+      # If you want to display days with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.      
       # Override the field name using the <tt>:field_name</tt> option, 'day' by default.
       #
       # ==== Examples
@@ -512,6 +519,9 @@ module ActionView
       #
       #   # Generates a select field for days that defaults to the number given.
       #   select_day(5)
+      #
+      #   # Generates a select field for days that defaults to the number given, but displays it with two digits.
+      #   select_day(5, :use_two_digit_numbers => true)
       #
       #   # Generates a select field for days that defaults to the day for the date in my_date
       #   # that is named 'due' rather than 'day'.
@@ -532,6 +542,7 @@ module ActionView
       # want both numbers and names, set the <tt>:add_month_numbers</tt> key in +options+ to true. If you would prefer
       # to show month names as abbreviations, set the <tt>:use_short_month</tt> key in +options+ to true. If you want
       # to use your own month names, set the <tt>:use_month_names</tt> key in +options+ to an array of 12 month names.
+      # If you want to display months with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.
       # Override the field name using the <tt>:field_name</tt> option, 'month' by default.
       #
       # ==== Examples
@@ -558,6 +569,10 @@ module ActionView
       #   # Generates a select field for months that defaults to the current month that
       #   # will use keys like "Januar", "Marts."
       #   select_month(Date.today, :use_month_names => %w(Januar Februar Marts ...))
+      #
+      #   # Generates a select field for months that defaults to the current month that
+      #   # will use keys with two digit numbers like "01", "03".
+      #   select_month(Date.today, :use_two_digit_numbers => true)
       #
       #   # Generates a select field for months with a custom prompt. Use <tt>:prompt => true</tt> for a
       #   # generic prompt.
@@ -817,6 +832,9 @@ module ActionView
         # If <tt>:use_month_numbers</tt> option is passed
         #  month_name(1) => 1
         #
+        # If <tt>:use_two_month_numbers</tt> option is passed
+        #  month_name(1) => '01'
+        #
         # If <tt>:add_month_numbers</tt> option is passed
         #  month_name(1) => "1 - January"
         def month_name(number)
@@ -857,6 +875,12 @@ module ActionView
         #  => "<option value="1">1</option>
         #      <option value="2">2</option>
         #      <option value="3">3</option>..."
+        #
+        # If <tt>:use_two_digit_numbers => true</tt> option is passed
+        #  build_options(15, :start => 1, :end => 31, :use_two_digit_numbers => true)
+        #  => "<option value="1">01</option>
+        #      <option value="2">02</option>
+        #      <option value="3">03</option>..."
         #
         # If <tt>:step</tt> options is passed
         #  build_options(15, :start => 1, :end => 31, :step => 2)

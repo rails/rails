@@ -853,7 +853,7 @@ below:
 </erb>
 
 Now when you refresh the +/posts+ page, you'll see a gray background to the
-page. This same gray background will be used throughout all the views for posts.
+page. This same gray background will be used throughout all the views.
 
 h4. Creating New Posts
 
@@ -1668,7 +1668,7 @@ right in the form where you create the post. First, create a new model to hold
 the tags:
 
 <shell>
-$ rails generate model tag name:string post:references
+$ rails generate model Tag name:string post:references
 </shell>
 
 Again, run the migration to create the database table:
