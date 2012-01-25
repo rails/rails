@@ -505,30 +505,7 @@ This directive is available if the core module that provides this feature was co
 
 If you're compiling nginx with Phusion Passenger you'll need to pass that option when prompted.
 
-For Apache:
-
-Using the Apache config tricks found on the Crave DIY blog, the following rewrite rules check the client's header to see if gzip is supported, then checks the filesystem to ensure a gzipped version exists, finally serving the gzipped file and forcing a the appropriate type.
-
-<plain>
-# Turn on the Rewrite engine
-RewriteEngine On
-# Check the client headers to see if they accept gzips
-RewriteCond %{HTTP:Accept-Encoding} gzip
-# Confirm the file exists in gzip format
-RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME}.gz -f
-# Rewrite url to us gzip file
-RewriteRule (.*\.(js|css))$ $1\.gz [L]
-
-# If we've rewritten to a .css.gz file, force text/css
-<FilesMatch .*\.css.gz>
-  ForceType text/css
-</FilesMatch>
-
-# If we've rewritten to a .js.gz file, force application/x-javascript
-<FilesMatch .*\.js.gz>
-  ForceType application/x-javascript
-</FilesMatch>
-</plain>
+A robust configuration for Apache is possible but tricky; please Google around. (Or help update this Guide if you have a good example configuration for Apache.)
 
 h4. Live Compilation
 
