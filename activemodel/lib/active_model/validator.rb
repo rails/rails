@@ -104,7 +104,7 @@ module ActiveModel #:nodoc:
     #   UniquenessValidator.kind # => :uniqueness
     #
     def self.kind
-      @kind ||= name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?
+      name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?
     end
 
     # Accepts options that will be made available through the +options+ reader.
