@@ -134,10 +134,6 @@ module Rails
     def vendor_stylesheets
       empty_directory_with_gitkeep "vendor/assets/stylesheets"
     end
-
-    def vendor_plugins
-      empty_directory_with_gitkeep "vendor/plugins"
-    end
   end
 
   module Generators
