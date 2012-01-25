@@ -24,7 +24,7 @@ module ActiveSupport
     OpenSSLCipherError = OpenSSL::Cipher.const_defined?(:CipherError) ? OpenSSL::Cipher::CipherError : OpenSSL::CipherError
 
     def initialize(secret, options = {})
-      @secret = secret
+      @secret = OpenSSL::Digest::SHA512.new(secret).digest
       @cipher = options[:cipher] || 'aes-256-cbc'
       @verifier = MessageVerifier.new(@secret, :serializer => NullSerializer)
       @serializer = options[:serializer] || Marshal
