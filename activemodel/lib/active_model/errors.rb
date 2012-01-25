@@ -219,7 +219,7 @@ module ActiveModel
     # +attribute+.
     # If no +message+ is supplied, <tt>:invalid</tt> is assumed.
     #
-    # If +message+ is a symbol, it will be translated using the appropriate scope (see +translate_error+).
+    # If +message+ is a symbol, it will be translated using the appropriate scope (see +generate_message+).
     # If +message+ is a proc, it will be called, allowing for things like <tt>Time.now</tt> to be used within an error.
     def add(attribute, message = nil, options = {})
       message = normalize_message(attribute, message, options)
