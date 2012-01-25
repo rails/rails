@@ -11,20 +11,29 @@ module ActionView
         end
 
         def render
-          selected_value = @options.has_key?(:selected) ? @options[:selected] : value(@object)
+          option_tags_options = {
+            :selected => @options.fetch(:selected) { value(@object) },
+            :disabled => @options[:disabled]
+          }
 
-          # Grouped choices look like this:
-          #
-          #   [nil, []]
-          #   { nil => [] }
-          #
-          if !@choices.empty? && @choices.first.respond_to?(:last) && Array === @choices.first.last
-            option_tags = grouped_options_for_select(@choices, :selected => selected_value, :disabled => @options[:disabled])
+          option_tags = if grouped_choices?
+            grouped_options_for_select(@choices, option_tags_options)
           else
-            option_tags = options_for_select(@choices, :selected => selected_value, :disabled => @options[:disabled])
+            options_for_select(@choices, option_tags_options)
           end
 
           select_content_tag(option_tags, @options, @html_options)
+        end
+
+        private
+
+        # Grouped choices look like this:
+        #
+        #   [nil, []]
+        #   { nil => [] }
+        #
+        def grouped_choices?
+          !@choices.empty? && @choices.first.respond_to?(:last) && Array === @choices.first.last
         end
       end
     end

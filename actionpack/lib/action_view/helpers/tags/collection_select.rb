@@ -12,9 +12,14 @@ module ActionView
         end
 
         def render
-          selected_value = @options.has_key?(:selected) ? @options[:selected] : value(@object)
+          option_tags_options = {
+            :selected => @options.fetch(:selected) { value(@object) },
+            :disabled => @options[:disabled]
+          }
+
           select_content_tag(
-            options_from_collection_for_select(@collection, @value_method, @text_method, :selected => selected_value, :disabled => @options[:disabled]), @options, @html_options
+            options_from_collection_for_select(@collection, @value_method, @text_method, option_tags_options),
+            @options, @html_options
           )
         end
       end
