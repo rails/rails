@@ -334,7 +334,7 @@ module ActionView
         end.join("\n").html_safe
       end
 
-      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning 
+      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
       # Example:
       #   options_from_collection_for_select(@people, 'id', 'name')
@@ -418,9 +418,9 @@ module ActionView
       # wrap the output in an appropriate <tt><select></tt> tag.
       def option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, selected_key = nil)
         collection.map do |group|
-          group_label_string = eval("group.#{group_label_method}")
+          group_label_string = group.send(group_label_method)
           "<optgroup label=\"#{ERB::Util.html_escape(group_label_string)}\">" +
-            options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key) +
+            options_from_collection_for_select(group.send(group_method), option_key_method, option_value_method, selected_key) +
             '</optgroup>'
         end.join.html_safe
       end
