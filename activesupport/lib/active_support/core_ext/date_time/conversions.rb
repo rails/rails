@@ -64,8 +64,18 @@ class DateTime
     self.offset == 0 ? ::Time.utc_time(year, month, day, hour, min, sec, sec_fraction * 1000000) : self
   end
 
+  # Returns DateTime with local offset for given year if format is local else offset is zero
+  #
+  #   DateTime.civil_from_format :local, 2012
+  #   # => Sun, 01 Jan 2012 00:00:00 +0300
+  #   DateTime.civil_from_format :local, 2012, 12, 17
+  #   # => Mon, 17 Dec 2012 00:00:00 +0000
   def self.civil_from_format(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0)
-    offset = utc_or_local.to_sym == :local ? local_offset : 0
+    if utc_or_local.to_sym == :local
+      offset = ::Time.local(year, month, day).utc_offset.to_r / 86400
+    else
+      offset = 0
+    end
     civil(year, month, day, hour, min, sec, offset)
   end
 
