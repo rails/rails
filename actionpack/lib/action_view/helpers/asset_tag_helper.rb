@@ -422,7 +422,7 @@ module ActionView
 
         if sources.is_a?(Array)
           content_tag("video", options) do
-            sources.map { |source| tag("source", :src => source) }.join.html_safe
+            sources.map { |source| tag("source", :src => path_to_video(source)) }.join.html_safe
           end
         else
           options[:src] = path_to_video(sources)
@@ -441,10 +441,17 @@ module ActionView
       #    <audio src="/audios/sound.wav" />
       #  audio_tag("sound.wav", :autoplay => true, :controls => true)  # =>
       #    <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
-      def audio_tag(source, options = {})
+      def audio_tag(sources, options = {})
         options.symbolize_keys!
-        options[:src] = path_to_audio(source)
-        tag("audio", options)
+
+        if sources.is_a?(Array)
+          content_tag("audio", options) do
+            sources.collect { |source| tag("source", :src => path_to_audio(source)) }.join.html_safe
+          end
+        else
+          options[:src] = path_to_audio(sources)
+          tag("audio", options)
+        end
       end
 
       private
