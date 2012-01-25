@@ -57,7 +57,7 @@ module ActionView
       #  # => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
         return unless number
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
         parse_float(number, true) if options[:raise]
 
@@ -118,8 +118,7 @@ module ActionView
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
         return unless number
-
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
         currency = translations_for('currency', options[:locale])
         currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
@@ -181,8 +180,7 @@ module ActionView
       #  number_to_percentage("98a", :raise => true)                      # => InvalidNumberError
       def number_to_percentage(number, options = {})
         return unless number
-
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
         defaults = format_translations('percentage', options[:locale])
         options  = defaults.merge!(options)
@@ -227,7 +225,7 @@ module ActionView
       #
       #  number_with_delimiter("112a", :raise => true)          # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
         parse_float(number, options[:raise]) or return number
 
@@ -271,7 +269,7 @@ module ActionView
       #  number_with_precision(1111.2345, :precision => 2, :separator => ',', :delimiter => '.')
       #  # => 1.111,23
       def number_with_precision(number, options = {})
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
         number = (parse_float(number, options[:raise]) or return number)
 
@@ -338,7 +336,7 @@ module ActionView
       #  number_to_human_size(1234567890123, :precision => 5)        # => "1.1229 TB"
       #  number_to_human_size(524288000, :precision => 5)            # => "500 MB"
       def number_to_human_size(number, options = {})
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
         number = (parse_float(number, options[:raise]) or return number)
 
@@ -448,7 +446,7 @@ module ActionView
       #  number_to_human(0.34, :units => :distance)                                # => "34 centimeters"
       #
       def number_to_human(number, options = {})
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
         number = (parse_float(number, options[:raise]) or return number)
 
