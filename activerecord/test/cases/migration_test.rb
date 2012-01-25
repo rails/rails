@@ -944,4 +944,35 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   ensure
     clear
   end
+
+  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+    def test_text_column_with_limits
+      assert_nothing_raised do
+        Person.connection.create_table :testings do |t|
+          t.column :tinytext,   :text, :limit => 0xff
+          t.column :text      , :text, :limit => 0xffff
+          t.column :text_default, :text
+          t.column :mediumtext, :text, :limit => 0xffffff
+          t.column :longtext,   :text, :limit => 0xffffffff
+        end
+      end
+
+      columns = Person.connection.columns(:testings)
+
+      tiny         = columns.detect { |c| c.name == "tinytext"     }
+      text         = columns.detect { |c| c.name == "text"         }
+      text_default = columns.detect { |c| c.name == "text_default" }
+      medium       = columns.detect { |c| c.name == "mediumtext"   }
+      long         = columns.detect { |c| c.name == "longtext"     }
+
+      assert_match 'tinytext',   tiny.sql_type
+      assert_match 'text',       text.sql_type
+      assert_match 'text',       text_default.sql_type
+      assert_match 'mediumtext', medium.sql_type
+      assert_match 'longtext',   long.sql_type
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+  end
+
 end
