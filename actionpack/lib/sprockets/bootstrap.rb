@@ -7,30 +7,34 @@ module Sprockets
     # TODO: Get rid of config.assets.enabled
     def run
       app, config = @app, @app.config
-      return unless app.assets
 
-      config.assets.paths.each { |path| app.assets.append_path(path) }
+      app_assets = app.assets
+      config_assets = config.assets
 
-      if config.assets.compress
+      return unless app_assets
+
+      config_assets.paths.each { |path| app_assets.append_path(path) }
+
+      if config_assets.compress
         # temporarily hardcode default JS compressor to uglify. Soon, it will work
         # the same as SCSS, where a default plugin sets the default.
-        unless config.assets.js_compressor == false
-          app.assets.js_compressor = LazyCompressor.new { Sprockets::Compressors.registered_js_compressor(config.assets.js_compressor || :uglifier) }
+        unless config_assets.js_compressor == false
+          app_assets.js_compressor = LazyCompressor.new { Sprockets::Compressors.registered_js_compressor(config_assets.js_compressor || :uglifier) }
         end
 
-        unless config.assets.css_compressor == false
-          app.assets.css_compressor = LazyCompressor.new { Sprockets::Compressors.registered_css_compressor(config.assets.css_compressor) }
+        unless config_assets.css_compressor == false
+          app_assets.css_compressor = LazyCompressor.new { Sprockets::Compressors.registered_css_compressor(config_assets.css_compressor) }
         end
       end
 
-      if config.assets.compile
+      if config_assets.compile
         app.routes.prepend do
-          mount app.assets => config.assets.prefix
+          mount app_assets => config_assets.prefix
         end
       end
 
-      if config.assets.digest
-        app.assets = app.assets.index
+      if config_assets.digest
+        app.assets = app_assets.index
       end
     end
   end
