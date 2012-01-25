@@ -494,6 +494,14 @@ class AssetTagHelperTest < ActionView::TestCase
     AudioLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_video_audio_tag_does_not_modify_options
+    options = {:autoplay => true}
+    video_tag('video', options)
+    assert_equal({:autoplay => true}, options)
+    audio_tag('audio', options)
+    assert_equal({:autoplay => true}, options)
+  end
+
   def test_timebased_asset_id
     expected_time = File.mtime(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).to_i.to_s
     assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
