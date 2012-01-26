@@ -58,8 +58,7 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.valid?
 
-    errors = []
-    r.errors.each {|attr, messages| errors << [attr.to_s, messages] }
+    errors = r.errors.collect {|attr, messages| [attr.to_s, messages]}
 
     assert errors.include?(["title", "is Empty"])
     assert errors.include?(["content", "is Empty"])
