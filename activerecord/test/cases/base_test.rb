@@ -1446,6 +1446,11 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_set_table_name_symbol_converted_to_string
+    Joke.table_name = :cold_jokes
+    assert_equal 'cold_jokes', Joke.table_name
+  end
+
   def test_quoted_table_name_after_set_table_name
     klass = Class.new(ActiveRecord::Base)
 
