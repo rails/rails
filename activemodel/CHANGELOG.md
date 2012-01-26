@@ -1,6 +1,6 @@
 ## Rails 3.2.1 (January 26, 2012) ##
 
-* No changes.
+*   No changes.
 
 
 ## Rails 3.2.0 (January 20, 2012) ##
