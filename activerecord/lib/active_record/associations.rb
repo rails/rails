@@ -93,15 +93,6 @@ module ActiveRecord
     end
   end
 
-  # This error is raised when trying to destroy a parent instance in N:1 or 1:1 associations
-  # (has_many, has_one) when there is at least 1 child associated instance.
-  # ex: if @project.tasks.size > 0, DeleteRestrictionError will be raised when trying to destroy @project
-  class DeleteRestrictionError < ActiveRecordError #:nodoc:
-    def initialize(name)
-      super("Cannot delete record because of dependent #{name}")
-    end
-  end
-
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:
     extend ActiveSupport::Concern
@@ -1097,8 +1088,7 @@ module ActiveRecord
       #   alongside this object by calling their +destroy+ method. If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their +destroy+ method. If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
-      #   <tt>:restrict</tt> this object raises an <tt>ActiveRecord::DeleteRestrictionError</tt> exception and
-      #   cannot be deleted if it has any associated objects.
+      #   <tt>:restrict</tt> this object cannot be deleted if it has any associated objects.
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
@@ -1251,8 +1241,7 @@ module ActiveRecord
       #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
       #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
       #   If set to <tt>:nullify</tt>, the associated object's foreign key is set to +NULL+.
-      #   Also, association is assigned. If set to <tt>:restrict</tt> this object raises an
-      #   <tt>ActiveRecord::DeleteRestrictionError</tt> exception and cannot be deleted if it has any associated object.
+      #   If set to <tt>:restrict</tt>, this object cannot be deleted if it has any associated object.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association
