@@ -341,6 +341,8 @@ module ActiveRecord
 
       @attributes[pk] = nil unless @attributes.key?(pk)
 
+      @columns_hash = self.class.columns_hash.dup
+
       @relation               = nil
       @aggregation_cache      = {}
       @association_cache      = {}

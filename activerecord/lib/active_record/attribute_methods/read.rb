@@ -92,6 +92,8 @@ module ActiveRecord
         end
 
         def internal_attribute_access_code(attr_name, cast_code)
+          cast_code = instance_cast_code(attr_name)
+
           access_code = "v = @attributes.fetch(attr_name) { missing_attribute(attr_name, caller) };"
 
           access_code << "v && #{cast_code};"
@@ -116,6 +118,10 @@ module ActiveRecord
         def attribute_cast_code(attr_name)
           columns_hash[attr_name].type_cast_code('v')
         end
+
+        def instance_cast_code(attr_name)
+          "@columns_hash[attr_name].type_cast(v)"
+        end
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
@@ -124,10 +130,11 @@ module ActiveRecord
         self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
       end
 
+
       private
-        def attribute(attribute_name)
-          read_attribute(attribute_name)
-        end
+      def attribute(attribute_name)
+        read_attribute(attribute_name)
+      end
     end
   end
 end
