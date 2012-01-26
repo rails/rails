@@ -1,9 +1,13 @@
-## Rails 3.2.1 (unreleased) ##
+## Rails 3.2.1 (January 26, 2012) ##
 
 *   The threshold for auto EXPLAIN is ignored if there's no logger. *fxn*
 
+*   Call `to_s` on the value passed to `table_name=`, in particular symbols
+    are supported (regression). *Sergey Nartimov*
+
 *   Fix possible race condition when two threads try to define attribute
-    methods for the same class.
+    methods for the same class. *Jon Leighton*
+
 
 ## Rails 3.2.0 (January 20, 2012) ##
 

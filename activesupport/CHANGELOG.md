@@ -1,3 +1,15 @@
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   Documentation fixes and improvements.
+
+*   Update time zone offset information. *Ravil Bayramgalin*
+
+*   The deprecated `ActiveSupport::Base64.decode64` calls `::Base64.decode64`
+    now. *Jonathan Viney*
+
+*   Fixes uninitialized constant `ActiveSupport::TaggedLogging::ERROR`. *kennyj*
+
+
 ## Rails 3.2.0 (January 20, 2012) ##
 
 *   ActiveSupport::Base64 is deprecated in favor of ::Base64. *Sergey Nartimov*

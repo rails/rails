@@ -1,3 +1,8 @@
+## Rails 3.2.1 (January 26, 2012) ##
+
+* Documentation fixes.
+
+
 ## Rails 3.2.0 (January 20, 2012) ##
 
 *   Redirect responses: 303 See Other and 307 Temporary Redirect now behave like

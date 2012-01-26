@@ -1,3 +1,12 @@
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   Documentation improvements.
+
+*   Allow `form.select` to accept ranges (regression). *Jeremy Walker*
+
+*   `datetime_select` works with -/+ infinity dates. *Joe Van Dyk*
+
+
 ## Rails 3.2.0 (January 20, 2012) ##
 
 *   Setting config.assets.logger to false turn off Sprockets logger *Guillermo Iguaran*
