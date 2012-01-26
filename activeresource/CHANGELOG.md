@@ -1,4 +1,4 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   Redirect responses: 303 See Other and 307 Temporary Redirect now behave like
     301 Moved Permanently and 302 Found.  GH #3302.

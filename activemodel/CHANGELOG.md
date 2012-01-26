@@ -1,4 +1,4 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   Deprecated `define_attr_method` in `ActiveModel::AttributeMethods`, because this only existed to
     support methods like `set_table_name` in Active Record, which are themselves being deprecated.

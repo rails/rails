@@ -14,7 +14,7 @@
 *    BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger
      from Ruby stdlib.
 
-## Rails 3.2.0 (unreleased) ##
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   Add ActiveSupport::Cache::NullStore for use in development and testing. *Brian Durand*
 
