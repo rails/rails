@@ -1140,16 +1140,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nil companies(:leetsoft).reload.client_of
     assert_nil companies(:jadedpixel).reload.client_of
 
-
     assert_equal num_accounts, Account.count
   end
 
   def test_restrict
-    firm = RestrictedFirm.new(:name => 'restrict')
-    firm.save!
+    firm = RestrictedFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
+
     assert !firm.companies.empty?
-    assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
+
+    firm.destroy
+
+    assert !firm.errors.empty?
+    assert_equal "Cannot delete record because dependent companies exist", firm.errors[:base].first
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.companies.exists?(:name => 'child')
   end
 
   def test_included_in_collection

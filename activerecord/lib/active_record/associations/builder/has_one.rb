@@ -55,7 +55,10 @@ module ActiveRecord::Associations::Builder
       def define_restrict_dependency_method
         name = self.name
         mixin.redefine_method(dependency_method_name) do
-          raise ActiveRecord::DeleteRestrictionError.new(name) unless send(name).nil?
+          unless send(name).nil?
+            self.errors.add(:base, "Cannot delete record because dependent #{name} exists")
+            return false
+          end
         end
       end
   end
