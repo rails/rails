@@ -2,7 +2,7 @@ module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator
       def initialize(options)
-        super(options.reverse_merge(:case_sensitive => true))
+        super(options.reverse_merge(case_sensitive: true))
       end
 
       # Unfortunately, we have to tie Uniqueness validators to a class.
@@ -34,7 +34,7 @@ module ActiveRecord
         end
 
         if finder_class.unscoped.where(relation).exists?
-          record.errors.add(attribute, :taken, options.except(:case_sensitive, :scope).merge(:value => value))
+          record.errors.add(attribute, :taken, options.except(:case_sensitive, :scope).merge(value: value))
         end
       end
 
@@ -91,14 +91,14 @@ module ActiveRecord
       # It can also validate whether the value of the specified attributes are unique based on a scope parameter:
       #
       #   class Person < ActiveRecord::Base
-      #     validates_uniqueness_of :user_name, :scope => :account_id
+      #     validates_uniqueness_of :user_name, scope: :account_id
       #   end
       #
       # Or even multiple scope parameters. For example, making sure that a teacher can only be on the schedule once
       # per semester for a particular class.
       #
       #   class TeacherSchedule < ActiveRecord::Base
-      #     validates_uniqueness_of :teacher_id, :scope => [:semester_id, :class_id]
+      #     validates_uniqueness_of :teacher_id, scope: [:semester_id, :class_id]
       #   end
       #
       # When the record is created, a check is performed to make sure that no record exists in the database
@@ -112,11 +112,11 @@ module ActiveRecord
       # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
       # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).
+      #   occur (e.g. <tt>if: :allow_validation</tt>, or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>).
       #   The method, proc or string should return or evaluate to a true or false value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or
-      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The method, proc or string should
+      #   not occur (e.g. <tt>unless: :skip_validation</tt>, or
+      #   <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The method, proc or string should
       #   return or evaluate to a true or false value.
       #
       # === Concurrency and integrity

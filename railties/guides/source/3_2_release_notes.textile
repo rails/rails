@@ -161,7 +161,7 @@ h4. Action Controller
 
 <ruby>
 class CarsController
-  layout 'single_car', :only => :show
+  layout 'single_car', only: :show
 end
 </ruby>
 
@@ -252,12 +252,12 @@ h4. Action View
 <% end %>
 </ruby>
 
-* Date helpers accept a new option <tt>:use_two_digit_numbers => true</tt>, that renders select boxes for months and days with a leading zero without changing the respective values. For example, this is useful for displaying ISO 8601-style dates such as '2011-08-01'.
+* Date helpers accept a new option <tt>use_two_digit_numbers: true</tt>, that renders select boxes for months and days with a leading zero without changing the respective values. For example, this is useful for displaying ISO 8601-style dates such as '2011-08-01'.
 
 * You can provide a namespace for your form to ensure uniqueness of id attributes on form elements. The namespace attribute will be prefixed with underscore on the generated HTML id.
 
 <ruby>
-<%= form_for(@offer, :namespace => 'namespace') do |f| %>
+<%= form_for(@offer, namespace: 'namespace') do |f| %>
   <%= f.label :version, 'Version' %>:
   <%= f.text_field :version %>
 <% end %>
@@ -287,7 +287,7 @@ end
 
 h5(#actionview_deprecations). Deprecations
 
-* Passing formats or handlers to render :template and friends like <tt>render :template => "foo.html.erb"</tt> is deprecated. Instead, you can provide :handlers and :formats directly as an options: <tt> render :template => "foo", :formats => [:html, :js], :handlers => :erb</tt>.
+* Passing formats or handlers to render :template and friends like <tt>render template: "foo.html.erb"</tt> is deprecated. Instead, you can provide :handlers and :formats directly as an options: <tt> render template: "foo", formats: [:html, :js], handlers: :erb</tt>.
 
 h4. Sprockets
 
@@ -328,7 +328,7 @@ rake db:migrate SCOPE=blog
 * Implemented <tt>ActiveRecord::Relation#pluck</tt> method that returns an array of column values directly from the underlying table. This also works with serialized attributes.
 
 <ruby>
-Client.where(:active => true).pluck(:id)
+Client.where(active: true).pluck(:id)
 # SELECT id from clients where active = 1
 </ruby>
 
@@ -357,7 +357,7 @@ Client.select(:name).uniq.uniq(false)
 * Allow the +:class_name+ option for associations to take a symbol in addition to a string. This is to avoid confusing newbies, and to be consistent with the fact that other options like :foreign_key already allow a symbol or a string.
 
 <ruby>
-has_many :clients, :class_name => :Client # Note that the symbol need to be capitalized
+has_many :clients, class_name: :Client # Note that the symbol need to be capitalized
 </ruby>
 
 * In development mode, <tt>db:drop</tt> also drops the test database in order to be symmetric with <tt>db:create</tt>.
@@ -369,7 +369,7 @@ has_many :clients, :class_name => :Client # Note that the symbol need to be capi
 * Add +first_or_create+, +first_or_create!+, +first_or_initialize+ methods to Active Record. This is a better approach over the old +find_or_create_by+ dynamic methods because it's clearer which arguments are used to find the record and which are used to create it.
 
 <ruby>
-User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson")
+User.where(first_name: "Scarlett").first_or_create!(last_name: "Johansson")
 </ruby>
 
 * Added a <tt>with_lock</tt> method to Active Record objects, which starts a transaction, locks the object (pessimistically) and yields to the block. The method takes one (optional) parameter and passes it to +lock!+.
@@ -495,8 +495,8 @@ Logger.tagged("BCX") { Logger.tagged("Jason") { Logger.info "Stuff" } }
 * Added <tt>Time#all_day</tt>, <tt>Time#all_week</tt>, <tt>Time#all_quarter</tt> and <tt>Time#all_year</tt> as a way of generating ranges.
 
 <ruby>
-Event.where(:created_at => Time.now.all_week)
-Event.where(:created_at => Time.now.all_day)
+Event.where(created_at: Time.now.all_week)
+Event.where(created_at: Time.now.all_day)
 </ruby>
 
 * Added <tt>instance_accessor: false</tt> as an option to <tt>Class#cattr_accessor</tt> and friends.

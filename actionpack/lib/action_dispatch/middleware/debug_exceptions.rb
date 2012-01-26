@@ -35,15 +35,15 @@ module ActionDispatch
 
       if env['action_dispatch.show_detailed_exceptions']
         template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
-          :request => Request.new(env),
-          :exception => wrapper.exception,
-          :application_trace => wrapper.application_trace,
-          :framework_trace => wrapper.framework_trace,
-          :full_trace => wrapper.full_trace
+          request: Request.new(env),
+          exception: wrapper.exception,
+          application_trace: wrapper.application_trace,
+          framework_trace: wrapper.framework_trace,
+          full_trace: wrapper.full_trace
         )
 
         file = "rescues/#{wrapper.rescue_template}"
-        body = template.render(:template => file, :layout => 'rescues/layout')
+        body = template.render(template: file, layout: 'rescues/layout')
         render(wrapper.status_code, body)
       else
         raise exception

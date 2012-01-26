@@ -56,7 +56,7 @@ module ActiveResource
   # Active Resource exposes methods for creating, finding, updating, and deleting resources
   # from REST web services.
   #
-  #   ryan = Person.new(:first => 'Ryan', :last => 'Daigle')
+  #   ryan = Person.new(first: 'Ryan', last: 'Daigle')
   #   ryan.save                # => true
   #   ryan.id                  # => 2
   #   Person.exists?(ryan.id)  # => true
@@ -81,16 +81,16 @@ module ActiveResource
   # name to invoke.
   #
   #   # POST to the custom 'register' REST method, i.e. POST /people/new/register.json.
-  #   Person.new(:name => 'Ryan').post(:register)
-  #   # => { :id => 1, :name => 'Ryan', :position => 'Clerk' }
+  #   Person.new(name: 'Ryan').post(:register)
+  #   # => { id: 1, name: 'Ryan', position: 'Clerk' }
   #
   #   # PUT an update by invoking the 'promote' REST method, i.e. PUT /people/1/promote.json?position=Manager.
-  #   Person.find(1).put(:promote, :position => 'Manager')
-  #   # => { :id => 1, :name => 'Ryan', :position => 'Manager' }
+  #   Person.find(1).put(:promote, position: 'Manager')
+  #   # => { id: 1, name: 'Ryan', position: 'Manager' }
   #
   #   # GET all the positions available, i.e. GET /people/positions.json.
   #   Person.get(:positions)
-  #   # => [{:name => 'Manager'}, {:name => 'Clerk'}]
+  #   # => [{name: 'Manager'}, {name: 'Clerk'}]
   #
   #   # DELETE to 'fire' a person, i.e. DELETE /people/1/fire.json.
   #   Person.find(1).delete(:fire)
@@ -207,9 +207,9 @@ module ActiveResource
   #   begin
   #     ryan = Person.find(my_id)
   #   rescue ActiveResource::ResourceNotFound
-  #     redirect_to :action => 'not_found'
+  #     redirect_to action: 'not_found'
   #   rescue ActiveResource::ResourceConflict, ActiveResource::ResourceInvalid
-  #     redirect_to :action => 'new'
+  #     redirect_to action: 'new'
   #   end
   #
   # When a GET is requested for a nested resource and you don't provide the prefix_param
@@ -646,7 +646,7 @@ module ActiveResource
       # will split from the \prefix options.
       #
       # ==== Options
-      # +prefix_options+ - A \hash to add a \prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
+      # +prefix_options+ - A \hash to add a \prefix to the request for nested URLs (e.g., <tt>account_id: 19</tt>
       #                    would yield a URL like <tt>/accounts/19/purchases.json</tt>).
       # +query_options+ - A \hash to add items to the query string for the request.
       #
@@ -658,13 +658,13 @@ module ActiveResource
       #     self.site = "https://37s.sunrise.com/posts/:post_id"
       #   end
       #
-      #   Comment.element_path(1, :post_id => 5)
+      #   Comment.element_path(1, post_id: 5)
       #   # => /posts/5/comments/1.json
       #
-      #   Comment.element_path(1, :post_id => 5, :active => 1)
+      #   Comment.element_path(1, post_id: 5, active: 1)
       #   # => /posts/5/comments/1.json?active=1
       #
-      #   Comment.element_path(1, {:post_id => 5}, {:active => 1})
+      #   Comment.element_path(1, {post_id: 5}, {active: 1})
       #   # => /posts/5/comments/1.json?active=1
       #
       def element_path(id, prefix_options = {}, query_options = nil)
@@ -677,7 +677,7 @@ module ActiveResource
       # Gets the new element path for REST resources.
       #
       # ==== Options
-      # * +prefix_options+ - A hash to add a prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
+      # * +prefix_options+ - A hash to add a prefix to the request for nested URLs (e.g., <tt>account_id: 19</tt>
       #   would yield a URL like <tt>/accounts/19/purchases/new.json</tt>).
       #
       # ==== Examples
@@ -688,7 +688,7 @@ module ActiveResource
       #     self.site = "https://37s.sunrise.com/posts/:post_id"
       #   end
       #
-      #   Comment.collection_path(:post_id => 5)
+      #   Comment.collection_path(post_id: 5)
       #   # => /posts/5/comments/new.json
       def new_element_path(prefix_options = {})
         "#{prefix(prefix_options)}#{collection_name}/new.#{format.extension}"
@@ -698,7 +698,7 @@ module ActiveResource
       # will split from the +prefix_options+.
       #
       # ==== Options
-      # * +prefix_options+ - A hash to add a prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
+      # * +prefix_options+ - A hash to add a prefix to the request for nested URLs (e.g., <tt>account_id: 19</tt>
       #   would yield a URL like <tt>/accounts/19/purchases.json</tt>).
       # * +query_options+ - A hash to add items to the query string for the request.
       #
@@ -706,13 +706,13 @@ module ActiveResource
       #   Post.collection_path
       #   # => /posts.json
       #
-      #   Comment.collection_path(:post_id => 5)
+      #   Comment.collection_path(post_id: 5)
       #   # => /posts/5/comments.json
       #
-      #   Comment.collection_path(:post_id => 5, :active => 1)
+      #   Comment.collection_path(post_id: 5, active: 1)
       #   # => /posts/5/comments.json?active=1
       #
-      #   Comment.collection_path({:post_id => 5}, {:active => 1})
+      #   Comment.collection_path({post_id: 5}, {active: 1})
       #   # => /posts/5/comments.json?active=1
       #
       def collection_path(prefix_options = {}, query_options = nil)
@@ -739,7 +739,7 @@ module ActiveResource
       # Creates a new resource instance and makes a request to the remote service
       # that it be saved, making it equivalent to the following simultaneous calls:
       #
-      #   ryan = Person.new(:first => 'ryan')
+      #   ryan = Person.new(first: 'ryan')
       #   ryan.save
       #
       # Returns the newly created resource. If a failure has occurred an
@@ -748,16 +748,16 @@ module ActiveResource
       # while <tt>new?</tt> will still return <tt>true</tt>.
       #
       # ==== Examples
-      #   Person.create(:name => 'Jeremy', :email => 'myname@nospam.com', :enabled => true)
+      #   Person.create(name: 'Jeremy', email: 'myname@nospam.com', enabled: true)
       #   my_person = Person.find(:first)
       #   my_person.email # => myname@nospam.com
       #
-      #   dhh = Person.create(:name => 'David', :email => 'dhh@nospam.com', :enabled => true)
+      #   dhh = Person.create(name: 'David', email: 'dhh@nospam.com', enabled: true)
       #   dhh.valid? # => true
       #   dhh.new?   # => false
       #
       #   # We'll assume that there's a validation that requires the name attribute
-      #   that_guy = Person.create(:name => '', :email => 'thatguy@nospam.com', :enabled => true)
+      #   that_guy = Person.create(name: '', email: 'thatguy@nospam.com', enabled: true)
       #   that_guy.valid? # => false
       #   that_guy.new?   # => true
       def create(attributes = {})
@@ -787,28 +787,28 @@ module ActiveResource
       #   Person.find(:all)
       #   # => GET /people.json
       #
-      #   Person.find(:all, :params => { :title => "CEO" })
+      #   Person.find(:all, params: { title: "CEO" })
       #   # => GET /people.json?title=CEO
       #
-      #   Person.find(:first, :from => :managers)
+      #   Person.find(:first, from: :managers)
       #   # => GET /people/managers.json
       #
-      #   Person.find(:last, :from => :managers)
+      #   Person.find(:last, from: :managers)
       #   # => GET /people/managers.json
       #
-      #   Person.find(:all, :from => "/companies/1/people.json")
+      #   Person.find(:all, from: "/companies/1/people.json")
       #   # => GET /companies/1/people.json
       #
-      #   Person.find(:one, :from => :leader)
+      #   Person.find(:one, from: :leader)
       #   # => GET /people/leader.json
       #
-      #   Person.find(:all, :from => :developers, :params => { :language => 'ruby' })
+      #   Person.find(:all, from: :developers, params: { language: 'ruby' })
       #   # => GET /people/developers.json?language=ruby
       #
-      #   Person.find(:one, :from => "/companies/1/manager.json")
+      #   Person.find(:one, from: "/companies/1/manager.json")
       #   # => GET /companies/1/manager.json
       #
-      #   StreetAddress.find(1, :params => { :person_id => 1 })
+      #   StreetAddress.find(1, params: { person_id: 1 })
       #   # => GET /people/1/street_addresses/1.json
       #
       # == Failure or missing data
@@ -866,7 +866,7 @@ module ActiveResource
       # ==== Examples
       #   Event.delete(2) # sends DELETE /events/2
       #
-      #   Event.create(:name => 'Free Concert', :location => 'Community Center')
+      #   Event.create(name: 'Free Concert', location: 'Community Center')
       #   my_event = Event.find(:first) # let's assume this is event with ID 7
       #   Event.delete(my_event.id) # sends DELETE /events/7
       #
@@ -879,7 +879,7 @@ module ActiveResource
       # Asserts the existence of a resource, returning <tt>true</tt> if the resource is found.
       #
       # ==== Examples
-      #   Note.create(:title => 'Hello, world.', :body => 'Nothing more for now...')
+      #   Note.create(title: 'Hello, world.', body: 'Nothing more for now...')
       #   Note.exists?(1) # => true
       #
       #   Note.exists(1349) # => false
@@ -1015,7 +1015,7 @@ module ActiveResource
     #   my_course.lecturer = "Don Trotter"
     #   my_course.save
     #
-    #   my_other_course = Course.new(:name => "Philosophy: Reason and Being", :lecturer => "Ralph Cling")
+    #   my_other_course = Course.new(name: "Philosophy: Reason and Being", lecturer: "Ralph Cling")
     #   my_other_course.save
     def initialize(attributes = {}, persisted = false)
       @attributes     = {}.with_indifferent_access
@@ -1037,13 +1037,13 @@ module ActiveResource
     # resource that does not exist.
     #
     #   ryan = Person.find(1)
-    #   ryan.address = StreetAddress.find(1, :person_id => ryan.id)
-    #   ryan.hash = {:not => "an ARes instance"}
+    #   ryan.address = StreetAddress.find(1, person_id: ryan.id)
+    #   ryan.hash = {not: "an ARes instance"}
     #
     #   not_ryan = ryan.clone
     #   not_ryan.new?            # => true
     #   not_ryan.address         # => NoMethodError
-    #   not_ryan.hash            # => {:not => "an ARes instance"}
+    #   not_ryan.hash            # => {not: "an ARes instance"}
     def clone
       # Clone all attributes except the pk and any nested ARes
       cloned = Hash[attributes.reject {|k,v| k == self.class.primary_key || v.is_a?(ActiveResource::Base)}.map { |k, v| [k, v.clone] }]
@@ -1060,10 +1060,10 @@ module ActiveResource
     # Returns +true+ if this object hasn't yet been saved, otherwise, returns +false+.
     #
     # ==== Examples
-    #   not_new = Computer.create(:brand => 'Apple', :make => 'MacBook', :vendor => 'MacMall')
+    #   not_new = Computer.create(brand: 'Apple', make: 'MacBook', vendor: 'MacMall')
     #   not_new.new? # => false
     #
-    #   is_new = Computer.new(:brand => 'IBM', :make => 'Thinkpad', :vendor => 'IBM')
+    #   is_new = Computer.new(brand: 'IBM', make: 'Thinkpad', vendor: 'IBM')
     #   is_new.new? # => true
     #
     #   is_new.save
@@ -1077,10 +1077,10 @@ module ActiveResource
     # Returns +true+ if this object has been saved, otherwise returns +false+.
     #
     # ==== Examples
-    #   persisted = Computer.create(:brand => 'Apple', :make => 'MacBook', :vendor => 'MacMall')
+    #   persisted = Computer.create(brand: 'Apple', make: 'MacBook', vendor: 'MacMall')
     #   persisted.persisted? # => true
     #
-    #   not_persisted = Computer.new(:brand => 'IBM', :make => 'Thinkpad', :vendor => 'IBM')
+    #   not_persisted = Computer.new(brand: 'IBM', make: 'Thinkpad', vendor: 'IBM')
     #   not_persisted.persisted? # => false
     #
     #   not_persisted.save
@@ -1104,17 +1104,17 @@ module ActiveResource
     # is an instance of the same class, is not <tt>new?</tt>, and has the same +id+.
     #
     # ==== Examples
-    #   ryan = Person.create(:name => 'Ryan')
-    #   jamie = Person.create(:name => 'Jamie')
+    #   ryan = Person.create(name: 'Ryan')
+    #   jamie = Person.create(name: 'Jamie')
     #
     #   ryan == jamie
     #   # => false (Different name attribute and id)
     #
-    #   ryan_again = Person.new(:name => 'Ryan')
+    #   ryan_again = Person.new(name: 'Ryan')
     #   ryan == ryan_again
     #   # => false (ryan_again is new?)
     #
-    #   ryans_clone = Person.create(:name => 'Ryan')
+    #   ryans_clone = Person.create(name: 'Ryan')
     #   ryan == ryans_clone
     #   # => false (Different id attributes)
     #
@@ -1140,7 +1140,7 @@ module ActiveResource
     # Duplicates the current resource without saving it.
     #
     # ==== Examples
-    #   my_invoice = Invoice.create(:customer => 'That Company')
+    #   my_invoice = Invoice.create(customer: 'That Company')
     #   next_invoice = my_invoice.dup
     #   next_invoice.new? # => true
     #
@@ -1162,7 +1162,7 @@ module ActiveResource
     # that weren't part of the original submit).
     #
     # ==== Examples
-    #   my_company = Company.new(:name => 'RoleModel Software', :owner => 'Ken Auer', :size => 2)
+    #   my_company = Company.new(name: 'RoleModel Software', owner: 'Ken Auer', size: 2)
     #   my_company.new? # => true
     #   my_company.save # sends POST /companies/ (create)
     #
@@ -1198,7 +1198,7 @@ module ActiveResource
     #   my_person.destroy
     #   Person.find(my_id) # 404 (Resource Not Found)
     #
-    #   new_person = Person.create(:name => 'James')
+    #   new_person = Person.create(name: 'James')
     #   new_id = new_person.id # => 7
     #   new_person.destroy
     #   Person.find(new_id) # 404 (Resource Not Found)
@@ -1212,18 +1212,18 @@ module ActiveResource
     # and actions on it.
     #
     # ==== Examples
-    #   Person.create(:name => 'Theodore Roosevelt')
+    #   Person.create(name: 'Theodore Roosevelt')
     #   that_guy = Person.find(:first)
     #   that_guy.exists? # => true
     #
-    #   that_lady = Person.new(:name => 'Paul Bean')
+    #   that_lady = Person.new(name: 'Paul Bean')
     #   that_lady.exists? # => false
     #
     #   guys_id = that_guy.id
     #   Person.delete(guys_id)
     #   that_guy.exists? # => false
     def exists?
-      !new? && self.class.exists?(to_param, :params => prefix_options)
+      !new? && self.class.exists?(to_param, params: prefix_options)
     end
 
     # Returns the serialized string representation of the resource in the configured
@@ -1245,7 +1245,7 @@ module ActiveResource
     #   my_branch.reload
     #   my_branch.name # => "Wilson Road"
     def reload
-      self.load(self.class.find(to_param, :params => @prefix_options).attributes)
+      self.load(self.class.find(to_param, params: @prefix_options).attributes)
     end
 
     # A method to manually load attributes from a \hash. Recursively loads collections of
@@ -1253,8 +1253,8 @@ module ActiveResource
     # is provided.
     #
     # ==== Examples
-    #   my_attrs = {:name => 'J&J Textiles', :industry => 'Cloth and textiles'}
-    #   my_attrs = {:name => 'Marty', :colors => ["red", "green", "blue"]}
+    #   my_attrs = {name: 'J&J Textiles', industry: 'Cloth and textiles'}
+    #   my_attrs = {name: 'Marty', colors: ["red", "green", "blue"]}
     #
     #   the_supplier = Supplier.find(:first)
     #   the_supplier.name # => 'J&M Textiles'
@@ -1354,11 +1354,11 @@ module ActiveResource
     end
 
     def to_json(options={})
-      super({ :root => self.class.element_name }.merge(options))
+      super({ root: self.class.element_name }.merge(options))
     end
 
     def to_xml(options={})
-      super({ :root => self.class.element_name }.merge(options))
+      super({ root: self.class.element_name }.merge(options))
     end
 
     protected

@@ -17,7 +17,7 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
 
   def test_create_table_with_custom_sequence_name
     assert_nothing_raised do
-      @connection.create_table(:foo, :sequence => 'foo_custom_seq') do |f|
+      @connection.create_table(:foo, sequence: 'foo_custom_seq') do |f|
         f.column :bar, :string
       end
     end
@@ -32,7 +32,7 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
 
   def test_create_table_without_sequence
     assert_nothing_raised do
-      @connection.create_table(:foo, :sequence => false) do |f|
+      @connection.create_table(:foo, sequence: false) do |f|
         f.column :bar, :string
       end
     end
@@ -40,7 +40,7 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
     assert_nothing_raised { @connection.drop_table :foo }
 
     assert_nothing_raised do
-      @connection.create_table(:foo, :id => false) do |f|
+      @connection.create_table(:foo, id: false) do |f|
         f.column :bar, :string
       end
     end
@@ -83,7 +83,7 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
 
   def test_rename_table_with_data_and_index
     @connection.create_table :foo do |f|
-      f.column :baz, :string, :limit => 50
+      f.column :baz, :string, limit: 50
     end
     100.times { |i| @connection.execute "INSERT INTO foo VALUES (GEN_ID(foo_seq, 1), 'record #{i+1}')" }
     @connection.add_index :foo, :baz

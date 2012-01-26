@@ -10,11 +10,11 @@ module ActiveSupport
     module Performance
       DEFAULTS.merge!(
         if ARGV.include?('--benchmark')
-          { :metrics => [:wall_time, :memory, :objects, :gc_runs, :gc_time] }
+          { metrics: [:wall_time, :memory, :objects, :gc_runs, :gc_time] }
         else
-          { :min_percent => 0.01,
-            :metrics => [:process_time, :memory, :objects],
-            :formats => [:flat, :graph_html, :call_tree, :call_stack] }
+          { min_percent: 0.01,
+            metrics: [:process_time, :memory, :objects],
+            formats: [:flat, :graph_html, :call_tree, :call_stack] }
         end).freeze
 
       protected

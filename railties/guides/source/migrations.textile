@@ -63,7 +63,7 @@ bad data in the database or populate new fields:
 class AddReceiveNewsletterToUsers < ActiveRecord::Migration
   def up
     change_table :users do |t|
-      t.boolean :receive_newsletter, :default => false
+      t.boolean :receive_newsletter, default: false
     end
     User.update_all ["receive_newsletter = ?", true]
   end
@@ -210,7 +210,7 @@ for example
 
 <ruby>
 create_table :products do |t|
-  t.column :name, 'polygon', :null => false
+  t.column :name, 'polygon', null: false
 end
 </ruby>
 
@@ -354,7 +354,7 @@ are two ways of doing it. The first (traditional) form looks like
 
 <ruby>
 create_table :products do |t|
-  t.column :name, :string, :null => false
+  t.column :name, :string, null: false
 end
 </ruby>
 
@@ -364,20 +364,20 @@ of that type. Subsequent parameters are the same.
 
 <ruby>
 create_table :products do |t|
-  t.string :name, :null => false
+  t.string :name, null: false
 end
 </ruby>
 
 By default, +create_table+ will create a primary key called +id+. You can change
 the name of the primary key with the +:primary_key+ option (don't forget to
 update the corresponding model) or, if you don't want a primary key at all (for
-example for a HABTM join table), you can pass the option +:id => false+. If you
+example for a HABTM join table), you can pass the option +id: false+. If you
 need to pass database specific options you can place an SQL fragment in the
 +:options+ option. For example,
 
 <ruby>
-create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
-  t.string :name, :null => false
+create_table :products, options: "ENGINE=BLACKHOLE" do |t|
+  t.string :name, null: false
 end
 </ruby>
 
@@ -440,7 +440,7 @@ of the columns required:
 
 <ruby>
 create_table :products do |t|
-  t.references :attachment, :polymorphic => {:default => 'Photo'}
+  t.references :attachment, polymorphic: {default: 'Photo'}
 end
 </ruby>
 
@@ -698,7 +698,7 @@ class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
     Product.all.each do |product|
-      product.update_attributes!(:flag => 'false')
+      product.update_attributes!(flag: 'false')
     end
   end
 end
@@ -708,7 +708,7 @@ end
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :presence => true
+  validates :flag, presence: true
 end
 </ruby>
 
@@ -723,7 +723,7 @@ class AddFuzzToProduct < ActiveRecord::Migration
   def change
     add_column :products, :fuzz, :string
     Product.all.each do |product|
-      product.update_attributes! :fuzz => 'fuzzy'
+      product.update_attributes! fuzz: 'fuzzy'
     end
   end
 end
@@ -733,7 +733,7 @@ end
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :fuzz, :presence => true
+  validates :flag, :fuzz, presence: true
 end
 </ruby>
 
@@ -777,7 +777,7 @@ class AddFlagToProduct < ActiveRecord::Migration
     add_column :products, :flag, :integer
     Product.reset_column_information
     Product.all.each do |product|
-      product.update_attributes!(:flag => false)
+      product.update_attributes!(flag: false)
     end
   end
 end
@@ -794,7 +794,7 @@ class AddFuzzToProduct < ActiveRecord::Migration
     add_column :products, :fuzz, :string
     Product.reset_column_information
     Product.all.each do |product|
-      product.update_attributes!(:fuzz => 'fuzzy')
+      product.update_attributes!(fuzz: 'fuzzy')
     end
   end
 end
@@ -835,14 +835,14 @@ If +:ruby+ is selected then the schema is stored in +db/schema.rb+. If you look
 at this file you'll find that it looks an awful lot like one very big migration:
 
 <ruby>
-ActiveRecord::Schema.define(:version => 20080906171750) do
-  create_table "authors", :force => true do |t|
+ActiveRecord::Schema.define(version: 20080906171750) do
+  create_table "authors", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  create_table "products", :force => true do |t|
+  create_table "products", force: true do |t|
     t.string   "name"
     t.text "description"
     t.datetime "created_at"
@@ -886,7 +886,7 @@ the database. As such, features such as triggers or foreign key constraints,
 which push some of that intelligence back into the database, are not heavily
 used.
 
-Validations such as +validates :foreign_key, :uniqueness => true+ are one way in
+Validations such as +validates :foreign_key, uniqueness: true+ are one way in
 which models can enforce data integrity. The +:dependent+ option on associations
 allows models to automatically destroy child objects when the parent is
 destroyed. Like anything which operates at the application level, these cannot

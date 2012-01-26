@@ -32,13 +32,13 @@ Here's a summary of the rack-related changes:
 * +CGI::Session::MemCacheStore+ has been replaced by +ActionController::Session::MemCacheStore+.
 * +CGI::Session::ActiveRecordStore+ has been replaced by +ActiveRecord::SessionStore+.
 * You can still change your session store with +ActionController::Base.session_store = :active_record_store+.
-* Default sessions options are still set with +ActionController::Base.session = { :key => "..." }+. However, the +:session_domain+ option has been renamed to +:domain+.
+* Default sessions options are still set with +ActionController::Base.session = { key: "..." }+. However, the +:session_domain+ option has been renamed to +:domain+.
 * The mutex that normally wraps your entire request has been moved into middleware, +ActionController::Lock+.
 * +ActionController::AbstractRequest+ and +ActionController::Request+ have been unified. The new +ActionController::Request+ inherits from +Rack::Request+. This affects access to +response.headers['type']+ in test requests. Use +response.content_type+ instead.
 * +ActiveRecord::QueryCache+ middleware is automatically inserted onto the middleware stack if +ActiveRecord+ has been loaded. This middleware sets up and flushes the per-request Active Record query cache.
 * The Rails router and controller classes follow the Rack spec. You can call a controller directly with +SomeController.call(env)+. The router stores the routing parameters in +rack.routing_args+.
 * +ActionController::Request+ inherits from +Rack::Request+.
-* Instead of +config.action_controller.session = { :session_key => 'foo', ...+ use  +config.action_controller.session = { :key => 'foo', ...+.
+* Instead of +config.action_controller.session = { session_key: 'foo', ...+ use  +config.action_controller.session = { key: 'foo', ...+.
 * Using the +ParamsParser+ middleware preprocesses any XML, JSON, or YAML requests so they can be read normally with any +Rack::Request+ object after it.
 
 h4. Renewed Support for Rails Engines
@@ -78,7 +78,7 @@ You can also specify requirements for any new records that are added via nested 
 
 <ruby>
 accepts_nested_attributes_for :author,
-  :reject_if => proc { |attributes| attributes['name'].blank? }
+  reject_if: proc { |attributes| attributes['name'].blank? }
 </ruby>
 
 * Lead Contributor: "Eloy Duran":http://superalloy.nl/
@@ -90,9 +90,9 @@ Active Record now supports nested transactions, a much-requested feature. Now yo
 
 <ruby>
 User.transaction do
-    User.create(:username => 'Admin')
-    User.transaction(:requires_new => true) do
-      User.create(:username => 'Regular')
+    User.create(username: 'Admin')
+    User.transaction(requires_new: true) do
+      User.create(username: 'Regular')
       raise ActiveRecord::Rollback
     end
   end
@@ -111,7 +111,7 @@ You know about dynamic finders in Rails (which allow you to concoct methods like
 <ruby>
 Order.scoped_by_customer_id(12)
 Order.scoped_by_customer_id(12).find(:all,
-  :conditions => "status = 'open'")
+  conditions: "status = 'open'")
 Order.scoped_by_customer_id(12).scoped_by_status("open")
 </ruby>
 
@@ -122,7 +122,7 @@ There's nothing to define to use dynamic scopes: they just work.
 
 h4. Default Scopes
 
-Rails 2.3 will introduce the notion of _default scopes_ similar to named scopes, but applying to all named scopes or find methods within the model. For example, you can write +default_scope :order => 'name ASC'+ and any time you retrieve records from that model they'll come out sorted by name (unless you override the option, of course).
+Rails 2.3 will introduce the notion of _default scopes_ similar to named scopes, but applying to all named scopes or find methods within the model. For example, you can write +default_scope order: 'name ASC'+ and any time you retrieve records from that model they'll come out sorted by name (unless you override the option, of course).
 
 * Lead Contributor: Paweł Kondzior
 * More Information: "What's New in Edge Rails: Default Scoping":http://ryandaigle.com/articles/2008/11/18/what-s-new-in-edge-rails-default-scoping
@@ -132,7 +132,7 @@ h4. Batch Processing
 You can now process large numbers of records from an ActiveRecord model with less pressure on memory by using +find_in_batches+:
 
 <ruby>
-Customer.find_in_batches(:conditions => {:active => true}) do |customer_group|
+Customer.find_in_batches(conditions: {active: true}) do |customer_group|
   customer_group.each { |customer| customer.update_account_balance! }
 end
 </ruby>
@@ -158,8 +158,8 @@ h4. Multiple Conditions for Callbacks
 When using Active Record callbacks, you can now combine +:if+ and +:unless+ options on the same callback, and supply multiple conditions as an array:
 
 <ruby>
-before_save :update_credit_rating, :if => :active,
-  :unless => [:admin, :cash_only]
+before_save :update_credit_rating, if: :active,
+  unless: [:admin, :cash_only]
 </ruby>
 * Lead Contributor: L. Caviola
 
@@ -168,8 +168,8 @@ h4. Find with having
 Rails now has a +:having+ option on find (as well as on +has_many+ and +has_and_belongs_to_many+ associations) for filtering records in grouped finds. As those with heavy SQL backgrounds know, this allows filtering based on grouped results:
 
 <ruby>
-developers =  Developer.find(:all, :group => "salary",
-  :having => "sum(salary) >  10000", :select => "salary")
+developers =  Developer.find(:all, group: "salary",
+  having: "sum(salary) >  10000", select: "salary")
 </ruby>
 
 * Lead Contributor: "Emilio Tagua":http://github.com/miloops
@@ -188,13 +188,13 @@ h4. Other Active Record Changes
 * An extra +AS+ was removed from the generated SQL for +has_and_belongs_to_many+ preloading, making it work better for some databases.
 * +ActiveRecord::Base#new_record?+ now returns +false+ rather than +nil+ when confronted with an existing record.
 * A bug in quoting table names in some +has_many :through+ associations was fixed.
-* You can now specify a particular timestamp for +updated_at+ timestamps: +cust = Customer.create(:name => "ABC Industries", :updated_at => 1.day.ago)+
+* You can now specify a particular timestamp for +updated_at+ timestamps: +cust = Customer.create(name: "ABC Industries", updated_at: 1.day.ago)+
 * Better error messages on failed +find_by_attribute!+ calls.
 * Active Record's +to_xml+ support gets just a little bit more flexible with the addition of a +:camelize+ option.
 * A bug in canceling callbacks from +before_update+ or +before_create+ was fixed.
 * Rake tasks for testing databases via JDBC have been added.
 * +validates_length_of+ will use a custom error message with the +:in+ or +:within+ options (if one is supplied).
-* Counts on scoped selects now work properly, so you can do things like +Account.scoped(:select => "DISTINCT credit_limit").count+.
+* Counts on scoped selects now work properly, so you can do things like +Account.scoped(select: "DISTINCT credit_limit").count+.
 * +ActiveRecord::Base#invalid?+ now works as the opposite of +ActiveRecord::Base#valid?+.
 
 h3. Action Controller
@@ -206,9 +206,9 @@ h4. Unified Rendering
 +ActionController::Base#render+ is a lot smarter about deciding what to render. Now you can just tell it what to render and expect to get the right results. In older versions of Rails, you often need to supply explicit information to render:
 
 <ruby>
-render :file => '/tmp/random_file.erb'
-render :template => 'other_controller/action'
-render :action => 'show'
+render file: '/tmp/random_file.erb'
+render template: 'other_controller/action'
+render action: 'show'
 </ruby>
 
 Now in Rails 2.3, you can just supply what you want to render:
@@ -239,7 +239,7 @@ class PostsController < ApplicationController
   before_filter :authenticate
 
   def secret
-    render :text => "Password Required!"
+    render text: "Password Required!"
   end
 
   private
@@ -308,7 +308,7 @@ h4. Other Action Controller Changes
 * The fact that Rails checks for IP spoofing can be a nuisance for sites that do heavy traffic with cell phones, because their proxies don't generally set things up right. If that's you, you can now set +ActionController::Base.ip_spoofing_check = false+ to disable the check entirely.
 * +ActionController::Dispatcher+ now implements its own middleware stack, which you can see by running +rake middleware+.
 * Cookie sessions now have persistent session identifiers, with API compatibility with the server-side stores.
-* You can now use symbols for the +:type+ option of +send_file+ and +send_data+, like this: +send_file("fabulous.png", :type => :png)+.
+* You can now use symbols for the +:type+ option of +send_file+ and +send_data+, like this: +send_file("fabulous.png", type: :png)+.
 * The +:only+ and +:except+ options for +map.resources+ are no longer inherited by nested resources.
 * The bundled memcached client has been updated to version 1.6.4.99.
 * The +expires_in+, +stale?+, and +fresh_when+ methods now accept a +:public+ option to make them work well with proxy caching.
@@ -328,7 +328,7 @@ Provided the parent model accepts nested attributes for the child objects (as di
 class Customer < ActiveRecord::Base
   has_many :orders
 
-  accepts_nested_attributes_for :orders, :allow_destroy => true
+  accepts_nested_attributes_for :orders, allow_destroy: true
 end
 </ruby>
 
@@ -376,12 +376,12 @@ h4. Smart Rendering of Partials
 The render method has been getting smarter over the years, and it's even smarter now. If you have an object or a collection and an appropriate partial, and the naming matches up, you can now just render the object and things will work. For example, in Rails 2.3, these render calls will work in your view (assuming sensible naming):
 
 <ruby>
-# Equivalent of render :partial => 'articles/_article',
-# :object => @article
+# Equivalent of render partial: 'articles/_article',
+# object: @article
 render @article
 
-# Equivalent of render :partial => 'articles/_article',
-# :collection => @articles
+# Equivalent of render partial: 'articles/_article',
+# collection: @articles
 render @articles
 </ruby>
 
@@ -392,14 +392,14 @@ h4. Prompts for Date Select Helpers
 In Rails 2.3, you can supply custom prompts for the various date select helpers (+date_select+, +time_select+, and +datetime_select+), the same way you can with collection select helpers. You can supply a prompt string or a hash of individual prompt strings for the various components. You can also just set +:prompt+ to +true+ to use the custom generic prompt:
 
 <ruby>
-select_datetime(DateTime.now, :prompt => true)
+select_datetime(DateTime.now, prompt: true)
 
-select_datetime(DateTime.now, :prompt => "Choose date and time")
+select_datetime(DateTime.now, prompt: "Choose date and time")
 
-select_datetime(DateTime.now, :prompt =>
-  {:day => 'Choose day', :month => 'Choose month',
-   :year => 'Choose year', :hour => 'Choose hour',
-   :minute => 'Choose minute'})
+select_datetime(DateTime.now, prompt:
+  {day: 'Choose day', month: 'Choose month',
+   year: 'Choose year', hour: 'Choose hour',
+   minute: 'Choose minute'})
 </ruby>
 
 * Lead Contributor: "Sam Oliver":http://samoliver.com/
@@ -438,7 +438,7 @@ h4. Disabled Option Tags for Form Select Helpers
 The form select helpers (such as +select+ and +options_for_select+) now support a +:disabled+ option, which can take a single value or an array of values to be disabled in the resulting tags:
 
 <ruby>
-select(:post, :category, Post::CATEGORIES, :disabled => ‘private‘)
+select(:post, :category, Post::CATEGORIES, disabled: ‘private‘)
 </ruby>
 
 returns
@@ -455,7 +455,7 @@ returns
 You can also use an anonymous function to determine at runtime which options from collections will be selected and/or disabled:
 
 <ruby>
-options_from_collection_for_select(@product.sizes, :name, :id, :disabled => lambda{|size| size.out_of_stock?})
+options_from_collection_for_select(@product.sizes, :name, :id, disabled: lambda{|size| size.out_of_stock?})
 </ruby>
 
 * Lead Contributor: "Tekin Suleyman":http://tekin.co.uk/

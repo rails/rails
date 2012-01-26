@@ -20,7 +20,7 @@ module Rails
         @engines ||= ::Rails::Engine.subclasses.map(&:instance)
       end
 
-      delegate :railties, :engines, :to => "self.class"
+      delegate :railties, :engines, to: "self.class"
     end
   end
 end

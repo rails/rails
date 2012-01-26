@@ -71,7 +71,7 @@ module Rails
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders
 
-    delegate :default_url_options, :default_url_options=, :to => :routes
+    delegate :default_url_options, :default_url_options=, to: :routes
 
     def initialize
       super

@@ -56,7 +56,7 @@ module ActionView #:nodoc:
   #
   # You can pass local variables to sub templates by using a hash with the variable names as keys and the objects as values:
   #
-  #   <%= render "shared/header", { :headline => "Welcome", :person => person } %>
+  #   <%= render "shared/header", { headline: "Welcome", person: person } %>
   #
   # These can now be accessed in <tt>shared/header</tt> with:
   #
@@ -146,7 +146,7 @@ module ActionView #:nodoc:
     class_attribute :logger
 
     class << self
-      delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
+      delegate :erb_trim_mode=, to: 'ActionView::Template::Handlers::ERB'
 
       def cache_template_loading
         ActionView::Resolver.caching?
@@ -180,8 +180,8 @@ module ActionView #:nodoc:
     attr_accessor :view_renderer
     attr_internal :config, :assigns
 
-    delegate :lookup_context, :to => :view_renderer
-    delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
+    delegate :lookup_context, to: :view_renderer
+    delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
 
     def assign(new_assigns) # :nodoc:
       @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }

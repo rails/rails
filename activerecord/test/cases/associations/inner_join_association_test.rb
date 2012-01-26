@@ -20,7 +20,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations
     assert_nothing_raised do
-      sql = Person.joins(:agents => {:agents => :agents}).joins(:agents => {:agents => {:primary_contact => :agents}}).to_sql
+      sql = Person.joins(agents: {agents: :agents}).joins(agents: {agents: {primary_contact: :agents}}).to_sql
       assert_match(/agents_people_4/i, sql)
     end
   end
@@ -42,7 +42,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_join_conditions_allow_nil_associations
-    authors = Author.includes(:essays).where(:essays => {:id => nil})
+    authors = Author.includes(:essays).where(essays: {id: nil})
     assert_equal 2, authors.count
   end
 
@@ -72,22 +72,22 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_count_honors_implicit_inner_joins
     real_count = Author.scoped.to_a.sum{|a| a.posts.count }
-    assert_equal real_count, Author.count(:joins => :posts), "plain inner join count should match the number of referenced posts records"
+    assert_equal real_count, Author.count(joins: :posts), "plain inner join count should match the number of referenced posts records"
   end
 
   def test_calculate_honors_implicit_inner_joins
     real_count = Author.scoped.to_a.sum{|a| a.posts.count }
-    assert_equal real_count, Author.calculate(:count, 'authors.id', :joins => :posts), "plain inner join count should match the number of referenced posts records"
+    assert_equal real_count, Author.calculate(:count, 'authors.id', joins: :posts), "plain inner join count should match the number of referenced posts records"
   end
 
   def test_calculate_honors_implicit_inner_joins_and_distinct_and_conditions
     real_count = Author.scoped.to_a.select {|a| a.posts.any? {|p| p.title =~ /^Welcome/} }.length
-    authors_with_welcoming_post_titles = Author.calculate(:count, 'authors.id', :joins => :posts, :distinct => true, :conditions => "posts.title like 'Welcome%'")
+    authors_with_welcoming_post_titles = Author.calculate(:count, 'authors.id', joins: :posts, distinct: true, conditions: "posts.title like 'Welcome%'")
     assert_equal real_count, authors_with_welcoming_post_titles, "inner join and conditions should have only returned authors posting titles starting with 'Welcome'"
   end
 
   def test_find_with_sti_join
-    scope = Post.joins(:special_comments).where(:id => posts(:sti_comments).id)
+    scope = Post.joins(:special_comments).where(id: posts(:sti_comments).id)
 
     # The join should match SpecialComment and its subclasses only
     assert scope.where("comments.type" => "Comment").empty?
@@ -97,11 +97,11 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_find_with_conditions_on_reflection
     assert !posts(:welcome).comments.empty?
-    assert Post.joins(:nonexistant_comments).where(:id => posts(:welcome).id).empty? # [sic!]
+    assert Post.joins(:nonexistant_comments).where(id: posts(:welcome).id).empty? # [sic!]
   end
 
   def test_find_with_conditions_on_through_reflection
     assert !posts(:welcome).tags.empty?
-    assert Post.joins(:misc_tags).where(:id => posts(:welcome).id).empty?
+    assert Post.joins(:misc_tags).where(id: posts(:welcome).id).empty?
   end
 end

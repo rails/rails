@@ -41,9 +41,9 @@ A short rundown of some of the major features:
       def update
         @customer = find_customer
         if @customer.update_attributes(params[:customer])
-          redirect_to :action => "show"
+          redirect_to action: "show"
         else
-          render :action => "edit"
+          render action: "edit"
         end
       end
 
@@ -129,8 +129,8 @@ A short rundown of some of the major features:
 * Helpers for forms, dates, action links, and text
 
     <%= text_field_tag "post", "title", "size" => 30 %>
-    <%= link_to "New post", :controller => "post", :action => "new" %>
-    <%= truncate(post.title, :length => 25) %>
+    <%= link_to "New post", controller: "post", action: "new" %>
+    <%= truncate(post.title, length: 25) %>
 
   {Learn more}[link:classes/ActionView/Helpers.html]
 
@@ -165,10 +165,10 @@ A short rundown of some of the major features:
 
     From that action, you can write the redirect in a number of ways:
 
-    redirect_to(:action => "edit") =>
+    redirect_to(action: "edit") =>
       /clients/37signals/basecamp/project/edit
 
-    redirect_to(:client_name => "nextangle", :project_name => "rails") =>
+    redirect_to(client_name: "nextangle", project_name: "rails") =>
       /clients/nextangle/rails/project/index
 
   {Learn more}[link:classes/ActionDispatch/Routing.html]
@@ -178,9 +178,9 @@ A short rundown of some of the major features:
 
     class LoginControllerTest < ActionController::TestCase
       def test_failing_authenticate
-        process :authenticate, :user_name => "nop", :password => ""
+        process :authenticate, user_name: "nop", password: ""
         assert flash.has_key?(:alert)
-        assert_redirected_to :action => "index"
+        assert_redirected_to action: "index"
       end
     end
 
@@ -229,9 +229,9 @@ A short rundown of some of the major features:
 
       def update
         List.update(params[:list][:id], params[:list])
-        expire_page   :action => "show", :id => params[:list][:id]
-        expire_action :action => "account"
-        redirect_to   :action => "show", :id => params[:list][:id]
+        expire_page   action: "show", id: params[:list][:id]
+        expire_action action: "account"
+        redirect_to   action: "show", id: params[:list][:id]
       end
     end
 
@@ -274,7 +274,7 @@ methods:
 
     def create
       @post = Post.create(params[:post])
-      redirect_to :action => "show", :id => @post.id
+      redirect_to action: "show", id: @post.id
     end
   end
 
@@ -294,7 +294,7 @@ And the templates look like this:
 
   weblog/index.html.erb:
     <% @posts.each do |post| %>
-      <p><%= link_to(post.title, :action => "show", :id => post.id) %></p>
+      <p><%= link_to(post.title, action: "show", id: post.id) %></p>
     <% end %>
 
   weblog/show.html.erb:

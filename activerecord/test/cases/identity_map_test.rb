@@ -79,15 +79,15 @@ class IdentityMapTest < ActiveRecord::TestCase
 
   def test_find_first_id
     assert_same(
-      Client.find(:first, :conditions => {:id => 1}),
-      Client.find(:first, :conditions => {:id => 1})
+      Client.find(:first, conditions: {id: 1}),
+      Client.find(:first, conditions: {id: 1})
     )
   end
 
   def test_find_first_pkey
     assert_same(
-      Subscriber.find(:first, :conditions => {:nick => 'swistak'}),
-      Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+      Subscriber.find(:first, conditions: {nick: 'swistak'}),
+      Subscriber.find(:first, conditions: {nick: 'swistak'})
     )
   end
 
@@ -135,7 +135,7 @@ class IdentityMapTest < ActiveRecord::TestCase
 
   def test_inherited_without_type_attribute_without_identity_map
     ActiveRecord::IdentityMap.without do
-      p1 = DestructivePirate.create!(:catchphrase => "I'm not a regular Pirate")
+      p1 = DestructivePirate.create!(catchphrase: "I'm not a regular Pirate")
       p2 = Pirate.find(p1.id)
       assert_not_same(p1, p2)
     end
@@ -151,7 +151,7 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_inherited_without_type_attribute
-    p1 = DestructivePirate.create!(:catchphrase => "I'm not a regular Pirate")
+    p1 = DestructivePirate.create!(catchphrase: "I'm not a regular Pirate")
     p2 = Pirate.find(p1.id)
     assert_not_same(p1, p2)
   end
@@ -168,7 +168,7 @@ class IdentityMapTest < ActiveRecord::TestCase
   ##############################################################################
 
   def test_loading_new_instance_should_not_update_dirty_attributes
-    swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+    swistak = Subscriber.find(:first, conditions: {nick: 'swistak'})
     swistak.name = "Swistak Sreberkowiec"
     assert_equal(["name"], swistak.changed)
     assert_equal({"name" => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
@@ -178,22 +178,22 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_loading_new_instance_should_change_dirty_attribute_original_value
-    swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+    swistak = Subscriber.find(:first, conditions: {nick: 'swistak'})
     swistak.name = "Swistak Sreberkowiec"
 
-    Subscriber.update_all({:name => "Raczkowski Marcin"}, {:name => "Marcin Raczkowski"})
+    Subscriber.update_all({name: "Raczkowski Marcin"}, {name: "Marcin Raczkowski"})
 
     assert_equal({"name"=>["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
     assert_equal("Swistak Sreberkowiec", swistak.name)
   end
 
   def test_loading_new_instance_should_remove_dirt
-    swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+    swistak = Subscriber.find(:first, conditions: {nick: 'swistak'})
     swistak.name = "Swistak Sreberkowiec"
 
     assert_equal({"name" => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
 
-    Subscriber.update_all({:name => "Swistak Sreberkowiec"}, {:name => "Marcin Raczkowski"})
+    Subscriber.update_all({name: "Swistak Sreberkowiec"}, {name: "Marcin Raczkowski"})
 
     assert_equal("Swistak Sreberkowiec", swistak.name)
     assert_equal({"name"=>["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
@@ -201,15 +201,15 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_has_many_associations
-    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
-    pirate.birds.create!(:name => 'Posideons Killer')
-    pirate.birds.create!(:name => 'Killer bandita Dionne')
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    pirate.birds.create!(name: 'Posideons Killer')
+    pirate.birds.create!(name: 'Killer bandita Dionne')
 
     posideons, _ = pirate.birds
 
     pirate.reload
 
-    pirate.birds_attributes = [{ :id => posideons.id, :name => 'Grace OMalley' }]
+    pirate.birds_attributes = [{ id: posideons.id, name: 'Grace OMalley' }]
     assert_equal 'Grace OMalley', pirate.birds.to_a.find { |r| r.id == posideons.id }.name
   end
 
@@ -298,34 +298,34 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_joined_table_preloads
-    posts = Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+    posts = Post.find(:all, select: 'distinct posts.*', include: :author, joins: [:comments], conditions: "comments.body like 'Thank you%'", order: 'posts.id')
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
     assert_same posts.first.author, Author.first
 
-    posts = Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+    posts = Post.find(:all, select: 'distinct posts.*', include: :author, joins: [:comments], conditions: "comments.body like 'Thank you%'", order: 'posts.id')
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
     assert_same posts.first.author, Author.first
 
-    posts = Post.find(:all, :include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'", :order => 'posts.id')
+    posts = Post.find(:all, include: :author, joins: {taggings: :tag}, conditions: "tags.name = 'General'", order: 'posts.id')
     assert_equal posts(:welcome, :thinking), posts
     assert_same posts.first.author, Author.first
 
-    posts = Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2", :order => 'posts.id')
+    posts = Post.find(:all, include: :author, joins: {taggings: {tag: :taggings}}, conditions: "taggings_tags.super_tag_id=2", order: 'posts.id')
     assert_equal posts(:welcome, :thinking), posts
     assert_same posts.first.author, Author.first
   end
 
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
     posts = assert_queries(2) do
-      Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => "INNER JOIN comments on comments.post_id = posts.id", :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+      Post.find(:all, select: 'distinct posts.*', include: :author, joins: "INNER JOIN comments on comments.post_id = posts.id", conditions: "comments.body like 'Thank you%'", order: 'posts.id')
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
     posts = assert_queries(1) do
-      Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => ["INNER JOIN comments on comments.post_id = posts.id"], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+      Post.find(:all, select: 'distinct posts.*', include: :author, joins: ["INNER JOIN comments on comments.post_id = posts.id"], conditions: "comments.body like 'Thank you%'", order: 'posts.id')
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
@@ -365,7 +365,7 @@ class IdentityMapTest < ActiveRecord::TestCase
     developer = Developer.first
     developer.salary = 0
 
-    assert !developer.update_attributes(:salary => 0)
+    assert !developer.update_attributes(salary: 0)
 
     same_developer = Developer.first
 

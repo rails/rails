@@ -433,7 +433,7 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  { :singulars => :singular, :plurals => :plural, :uncountables => :uncountable, :humans => :human }.each do |scope, method|
+  { singulars: :singular, plurals: :plural, uncountables: :uncountable, humans: :human }.each do |scope, method|
     ActiveSupport::Inflector.inflections do |inflect|
       define_method("test_clear_inflections_with_#{scope}") do
         # save the inflections

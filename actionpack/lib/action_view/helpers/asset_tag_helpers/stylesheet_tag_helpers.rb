@@ -17,7 +17,7 @@ module ActionView
 
         def asset_tag(source, options)
           # We force the :request protocol here to avoid a double-download bug in IE7 and IE8
-          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => path_to_asset(source, :protocol => :request) }.merge(options))
+          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => path_to_asset(source, protocol: :request) }.merge(options))
         end
 
         def custom_dir
@@ -35,7 +35,7 @@ module ActionView
           # to be called from plugin initialization to register stylesheet files
           # that the plugin installed in <tt>public/stylesheets</tt>.
           #
-          #   ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
+          #   ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion monkey: ["head", "body", "tail"]
           #
           #   stylesheet_link_tag :monkey # =>
           #     <link href="/stylesheets/head.css"  media="screen" rel="stylesheet" type="text/css" />
@@ -61,7 +61,7 @@ module ActionView
         #   stylesheet_path "http://www.example.com/css/style"       # => http://www.example.com/css/style
         #   stylesheet_path "http://www.example.com/css/style.css"   # => http://www.example.com/css/style.css
         def stylesheet_path(source)
-          asset_paths.compute_public_path(source, 'stylesheets', :ext => 'css', :protocol => :request)
+          asset_paths.compute_public_path(source, 'stylesheets', ext: 'css', protocol: :request)
         end
         alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
 
@@ -82,10 +82,10 @@ module ActionView
         #   stylesheet_link_tag "http://www.example.com/style.css" # =>
         #     <link href="http://www.example.com/style.css" media="screen" rel="stylesheet" type="text/css" />
         #
-        #   stylesheet_link_tag "style", :media => "all" # =>
+        #   stylesheet_link_tag "style", media: "all" # =>
         #     <link href="/stylesheets/style.css" media="all" rel="stylesheet" type="text/css" />
         #
-        #   stylesheet_link_tag "style", :media => "print" # =>
+        #   stylesheet_link_tag "style", media: "print" # =>
         #     <link href="/stylesheets/style.css" media="print" rel="stylesheet" type="text/css" />
         #
         #   stylesheet_link_tag "random.styles", "/css/stylish" # =>
@@ -101,7 +101,7 @@ module ActionView
         #
         # If you want Rails to search in all the subdirectories under stylesheets, you should explicitly set <tt>:recursive</tt>:
         #
-        #   stylesheet_link_tag :all, :recursive => true
+        #   stylesheet_link_tag :all, recursive: true
         #
         # == Caching multiple stylesheets into one
         #
@@ -111,30 +111,30 @@ module ActionView
         # environment). Examples:
         #
         # ==== Examples
-        #   stylesheet_link_tag :all, :cache => true # when config.perform_caching is false =>
+        #   stylesheet_link_tag :all, cache: true # when config.perform_caching is false =>
         #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />
         #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" type="text/css" />
         #     <link href="/stylesheets/styleX2.css" media="screen" rel="stylesheet" type="text/css" />
         #
-        #   stylesheet_link_tag :all, :cache => true # when config.perform_caching is true =>
+        #   stylesheet_link_tag :all, cache: true # when config.perform_caching is true =>
         #     <link href="/stylesheets/all.css"  media="screen" rel="stylesheet" type="text/css" />
         #
-        #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when config.perform_caching is false =>
+        #   stylesheet_link_tag "shop", "cart", "checkout", cache: "payment" # when config.perform_caching is false =>
         #     <link href="/stylesheets/shop.css"  media="screen" rel="stylesheet" type="text/css" />
         #     <link href="/stylesheets/cart.css"  media="screen" rel="stylesheet" type="text/css" />
         #     <link href="/stylesheets/checkout.css" media="screen" rel="stylesheet" type="text/css" />
         #
-        #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when config.perform_caching is true =>
+        #   stylesheet_link_tag "shop", "cart", "checkout", cache: "payment" # when config.perform_caching is true =>
         #     <link href="/stylesheets/payment.css"  media="screen" rel="stylesheet" type="text/css" />
         #
         # The <tt>:recursive</tt> option is also available for caching:
         #
-        #   stylesheet_link_tag :all, :cache => true, :recursive => true
+        #   stylesheet_link_tag :all, cache: true, recursive: true
         #
         # To force concatenation (even in development mode) set <tt>:concat</tt> to true. This is useful if
         # you have too many stylesheets for IE to load.
         #
-        #   stylesheet_link_tag :all, :concat => true
+        #   stylesheet_link_tag :all, concat: true
         #
         def stylesheet_link_tag(*sources)
           @stylesheet_include ||= StylesheetIncludeTag.new(config, asset_paths)

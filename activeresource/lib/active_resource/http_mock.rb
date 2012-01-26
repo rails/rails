@@ -35,7 +35,7 @@ module ActiveResource
   #
   # ==== Example
   #   def setup
-  #     @matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
+  #     @matz  = { person: { id: 1, name: "Matz" } }.to_json
   #     ActiveResource::HttpMock.respond_to do |mock|
   #       mock.post   "/people.json",   {}, @matz, 201, "Location" => "/people/1.json"
   #       mock.get    "/people/1.json", {}, @matz
@@ -85,7 +85,7 @@ module ActiveResource
       #
       # ==== Example
       #   def setup
-      #     @matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
+      #     @matz  = { person: { id: 1, name: "Matz" } }.to_json
       #     ActiveResource::HttpMock.respond_to do |mock|
       #       mock.get "/people/1.json", {}, @matz
       #     end
@@ -117,7 +117,7 @@ module ActiveResource
       #
       # === Example
       #
-      #   @matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
+      #   @matz  = { person: { id: 1, name: "Matz" } }.to_json
       #   ActiveResource::HttpMock.respond_to do |mock|
       #     mock.post   "/people.json",   {}, @matz, 201, "Location" => "/people/1.json"
       #     mock.get    "/people/1.json", {}, @matz
@@ -135,7 +135,7 @@ module ActiveResource
       #
       # Request.new(:#{method}, path, nil, request_headers)
       #
-      #   @matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
+      #   @matz  = { person: { id: 1, name: "Matz" } }.to_json
       #
       #   create_matz      = ActiveResource::Request.new(:post, '/people.json', @matz, {})
       #   created_response = ActiveResource::Response.new("", 201, {"Location" => "/people/1.json"})

@@ -29,13 +29,13 @@ module ActionController #:nodoc:
       # <tt>:except</tt> with an array of actions or a single action:
       #
       #   respond_to :html
-      #   respond_to :xml, :json, :except => [ :edit ]
+      #   respond_to :xml, :json, except: [ :edit ]
       #
       # This specifies that all actions respond to <tt>:html</tt>
       # and all actions except <tt>:edit</tt> respond to <tt>:xml</tt> and
       # <tt>:json</tt>.
       #
-      #   respond_to :json, :only => :create
+      #   respond_to :json, only: :create
       #
       # This specifies that the <tt>:create</tt> action and no other responds
       # to <tt>:json</tt>.
@@ -76,7 +76,7 @@ module ActionController #:nodoc:
     #
     #     respond_to do |format|
     #       format.html
-    #       format.xml { render :xml => @people.to_xml }
+    #       format.xml { render xml: @people.to_xml }
     #     end
     #   end
     #
@@ -104,7 +104,7 @@ module ActionController #:nodoc:
     #     respond_to do |format|
     #       format.html { redirect_to(person_list_url) }
     #       format.js
-    #       format.xml  { render :xml => @person.to_xml(:include => @company) }
+    #       format.xml  { render xml: @person.to_xml(include: @company) }
     #     end
     #   end
     #
@@ -168,11 +168,11 @@ module ActionController #:nodoc:
     #
     # In the example above, if the format is xml, it will render:
     #
-    #   render :xml => @people
+    #   render xml: @people
     #
     # Or if the format is json:
     #
-    #   render :json => @people
+    #   render json: @people
     #
     # Since this is a common pattern, you can use the class method respond_to
     # with the respond_with method to have the same results:
@@ -234,7 +234,7 @@ module ActionController #:nodoc:
 
       if response = retrieve_response_from_mimes(&block)
         options = resources.size == 1 ? {} : resources.extract_options!
-        options.merge!(:default_response => response)
+        options.merge!(default_response: response)
         (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
     end

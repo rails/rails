@@ -158,7 +158,7 @@ module ActiveRecord
         end
       end
 
-      # Called when the association is declared as :dependent => :delete_all. This is
+      # Called when the association is declared as dependent: :delete_all. This is
       # an optimised version which avoids loading the records into memory. Not really
       # for public consumption.
       def delete_all_on_destroy
@@ -200,7 +200,7 @@ module ActiveRecord
           if options[:uniq]
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name ||= reflection.klass.primary_key
-            count_options.merge!(:distinct => true)
+            count_options.merge!(distinct: true)
           end
 
           value = scoped.count(column_name, count_options)

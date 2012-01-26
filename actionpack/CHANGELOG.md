@@ -20,7 +20,7 @@
 
 *   Deprecated ActionController::Routing in favour of ActionDispatch::Routing
 
-*   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form.
+*   check_box helper with disabled: true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form.
     This is a behavior change, previously the hidden tag had a value of the disabled checkbox.
     *Tadas Tamosauskas*
 
@@ -86,7 +86,7 @@
     For example, consider this snippet:
 
         class CarsController
-          layout 'single_car', :only => :show
+          layout 'single_car', only: :show
         end
 
     Rails will use 'layouts/single_car' when a request comes in `:show` action, and use 'layouts/application' (or 'layouts/cars', if exists) when a request comes in for any other actions.
@@ -95,11 +95,11 @@
 
     Before:
 
-        form_for(@user, :as => 'client') # => "<form class="client_new">..."
+        form_for(@user, as: 'client') # => "<form class="client_new">..."
 
     Now:
 
-        form_for(@user, :as => 'client') # => "<form class="new_client">..."
+        form_for(@user, as: 'client') # => "<form class="new_client">..."
 
     *Vasiliy Ermolovich*
 
@@ -116,7 +116,7 @@
 
     Example:
 
-        <%= form_for(@offer, :namespace => 'namespace') do |f| %>
+        <%= form_for(@offer, namespace: 'namespace') do |f| %>
           <%= f.label :version, 'Version' %>:
           <%= f.text_field :version %>
         <% end %>
@@ -137,10 +137,10 @@
 
 *   Passing formats or handlers to render :template and friends is deprecated. For example: *Nick Sutterer & José Valim*
 
-        render :template => "foo.html.erb"
+        render template: "foo.html.erb"
 
     Instead, you can provide :handlers and :formats directly as option:
-             render :template => "foo", :formats => [:html, :js], :handlers => :erb
+             render template: "foo", formats: [:html, :js], handlers: :erb
 
 *   Changed log level of warning for missing CSRF token from :debug to :warn. *Mike Dillon*
 
@@ -215,11 +215,11 @@
 
     Before:
 
-        translate('foo_html', :something => '<script>') # => "...<script>..."
+        translate('foo_html', something: '<script>') # => "...<script>..."
 
     After:
 
-        translate('foo_html', :something => '<script>') # => "...&lt;script&gt;..."
+        translate('foo_html', something: '<script>') # => "...&lt;script&gt;..."
 
     *Sergey Nartimov*
 
@@ -280,7 +280,7 @@
     To the app developer, this means configuration add in
     config/initializers/* will not be executed.
     Plugins developers need to special case their initializers that are
-    meant to be run in the assets group by adding :group => :assets. *José Valim*
+    meant to be run in the assets group by adding group: :assets. *José Valim*
 
 *   Sprockets uses config.assets.prefix for asset_path *asee*
 
@@ -288,7 +288,7 @@
 
 *   Fix Hash#to_query edge case with html_safe strings. *brainopia*
 
-*   Allow asset tag helper methods to accept :digest => false option in order to completely avoid the digest generation.
+*   Allow asset tag helper methods to accept digest: false option in order to completely avoid the digest generation.
     Useful for linking assets from static html files or from emails when the user could probably look at an older html email with an older asset. *Santiago Pastorino*
 
 *   Don't mount Sprockets server at config.assets.prefix if config.assets.compile is false. *Mark J. Titorenko*
@@ -367,7 +367,7 @@
 *   Added streaming support, you can enable it with: *José Valim*
 
         class PostsController < ActionController::Base
-          stream :only => :index
+          stream only: :index
         end
 
     Please read the docs at `ActionController::Streaming` for more information.
@@ -390,23 +390,23 @@
 
         match '*pages' => 'pages#show'
 
-    by requesting '/foo/bar.json', your `params[:pages]` will be equals to "foo/bar" with the request format of JSON. If you want the old 3.0.x behavior back, you could supply `:format => false` like this:
+    by requesting '/foo/bar.json', your `params[:pages]` will be equals to "foo/bar" with the request format of JSON. If you want the old 3.0.x behavior back, you could supply `format: false` like this:
 
-        match '*pages' => 'pages#show', :format => false
+        match '*pages' => 'pages#show', format: false
 
 *   Added Base.http_basic_authenticate_with to do simple http basic authentication with a single class method call *DHH*
 
         class PostsController < ApplicationController
           USER_NAME, PASSWORD = "dhh", "secret"
 
-          before_filter :authenticate, :except => [ :index ]
+          before_filter :authenticate, except: [ :index ]
 
           def index
-            render :text => "Everyone can see me!"
+            render text: "Everyone can see me!"
           end
 
           def edit
-            render :text => "I'm only accessible if you know the password"
+            render text: "I'm only accessible if you know the password"
           end
 
           private
@@ -420,14 +420,14 @@
     ..can now be written as
 
         class PostsController < ApplicationController
-          http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
+          http_basic_authenticate_with name: "dhh", password: "secret", except: :index
 
           def index
-            render :text => "Everyone can see me!"
+            render text: "Everyone can see me!"
           end
 
           def edit
-            render :text => "I'm only accessible if you know the password"
+            render text: "I'm only accessible if you know the password"
           end
         end
 
@@ -448,7 +448,7 @@
 *   ActionDispatch::MiddlewareStack now uses composition over inheritance. It is
     no longer an array which means there may be methods missing that were not    tested.
 
-*   Add an :authenticity_token option to form_tag for custom handling or to omit the token (pass :authenticity_token => false).  *Jakub Kuźma, Igor Wiedler*
+*   Add an :authenticity_token option to form_tag for custom handling or to omit the token (pass authenticity_token: false).  *Jakub Kuźma, Igor Wiedler*
 
 *   HTML5 button_tag helper. *Rizwan Reza*
 
@@ -464,7 +464,7 @@
 
 *   Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a :data hash of options:
 
-        tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
+        tag("div", data: {name: 'Stephen', city_state: %w(Chicago IL)})
         # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
 
     Keys are dasherized. Values are JSON-encoded, except for strings and symbols. *Stephen Celis*
@@ -477,11 +477,11 @@
 
 *   Rely on Rack::Session stores API for more compatibility across the Ruby world. This is backwards incompatible since Rack::Session expects #get_session to accept 4 arguments and requires #destroy_session instead of simply #destroy. *José Valim*
 
-*   file_field automatically adds :multipart => true to the enclosing form. *Santiago Pastorino*
+*   file_field automatically adds multipart: true to the enclosing form. *Santiago Pastorino*
 
 *   Renames csrf_meta_tag -> csrf_meta_tags, and aliases csrf_meta_tag for backwards compatibility. *fxn*
 
-*   Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply to the browser only. *Yehuda Katz, Carl Lerche*
+*   Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with public: true. Otherwise, the caching rules will apply to the browser only. *Yehuda Katz, Carl Lerche*
 
 
 ## Rails 3.0.7 (April 18, 2011) ##
@@ -547,7 +547,7 @@
 
 ## Rails 3.0.0 (August 29, 2010) ##
 
-*   password_field renders with nil value by default making the use of passwords secure by default, if you want to render you should do for instance f.password_field(:password, :value => @user.password) *Santiago Pastorino*
+*   password_field renders with nil value by default making the use of passwords secure by default, if you want to render you should do for instance f.password_field(:password, value: @user.password) *Santiago Pastorino*
 
 *   Symbols and strings in routes should yield the same behavior. Note this may break existing apps that were using symbols with the new routes API. *José Valim*
 
@@ -598,7 +598,7 @@
 
 *   Fixed inconsistencies in form builder and view helpers #4432 *Neeraj Singh*
 
-*   Both :xml and :json renderers now forwards the given options to the model, allowing you to invoke them as render :xml => @projects, :include => :tasks *José Valim, Yehuda Katz*
+*   Both :xml and :json renderers now forwards the given options to the model, allowing you to invoke them as render xml: @projects, include: :tasks *José Valim, Yehuda Katz*
 
 *   Renamed the field error CSS class from fieldWithErrors to field_with_errors for consistency.  *Jeremy Kemper*
 
@@ -606,7 +606,7 @@
 
 *   Changed translate helper so that it doesn’t mark every translation as safe HTML. Only keys with a "_html" suffix and keys named "html" are considered to be safe HTML. All other translations are left untouched. *Craig Davey*
 
-*   New option :as added to form_for allows to change the object name. The old <% form_for :client, @post %> becomes <% form_for @post, :as => :client %> *spastorino*
+*   New option :as added to form_for allows to change the object name. The old <% form_for :client, @post %> becomes <% form_for @post, as: :client %> *spastorino*
 
 *   Removed verify method in controllers. *JV*
     It's now available as a plugin at http://github.com/rails/verification
@@ -617,7 +617,7 @@
 *   Routes can be scoped by controller module. *Jeremy Kemper*
 
         # /session => Auth::SessionsController
-        scope :module => 'auth' do
+        scope module: 'auth' do
           resource :session
         end
 
@@ -685,7 +685,7 @@
 
     ...becomes:
 
-        redirect_to(@post, :notice => 'Post was created')
+        redirect_to(@post, notice: 'Post was created')
 
 *   Added ActionController::Base#notice/= and ActionController::Base#alert/= as a convenience accessors in both the controller and the view for flash[:notice]/= and flash[:alert]/= *DHH*
 
@@ -714,7 +714,7 @@
 
 *   Don't check authenticity tokens for any AJAX requests *Ross Kaffenberger/Bryan Helmkamp*
 
-*   Added ability to pass in :public => true to fresh_when, stale?, and expires_in to make the request proxy cachable #2095 *Gregg Pollack*
+*   Added ability to pass in public: true to fresh_when, stale?, and expires_in to make the request proxy cachable #2095 *Gregg Pollack*
 
 *   Fixed that passing a custom form builder would be forwarded to nested fields_for calls #2023 *Eloy Duran/Nate Wiger*
 
@@ -748,7 +748,7 @@
         before_filter :authenticate
 
         def index
-          render :text => "Hello Secret"
+          render text: "Hello Secret"
         end
 
         private
@@ -778,16 +778,16 @@
 
 *   Fixed the AssetTagHelper cache to use the computed asset host as part of the cache key instead of just assuming the its a string #1299 *DHH*
 
-*   Make ActionController#render(string) work as a shortcut for render :file/:template/:action => string. #1435 *Pratik Naik* Examples:
+*   Make ActionController#render(string) work as a shortcut for render :file/:template/action: string. #1435 *Pratik Naik* Examples:
 
-    \# Instead of render(:action => 'other_action')
+    \# Instead of render(action: 'other_action')
     render('other_action') # argument has no '/'
     render(:other_action)
 
-    \# Instead of render(:template => 'controller/action')
+    \# Instead of render(template: 'controller/action')
     render('controller/action') # argument must not begin with a '/', but contain a '/'
 
-    \# Instead of render(:file => '/Users/lifo/home.html.erb')
+    \# Instead of render(file: '/Users/lifo/home.html.erb')
     render('/Users/lifo/home.html.erb') # argument must begin with a '/'
 
 *   Add :prompt option to date/time select helpers. #561 *Sam Oliver*
@@ -812,18 +812,18 @@
 
 *   Changed the default of ActionView#render to assume partials instead of files when not given an options hash *DHH*. Examples:
 
-        # Instead of <%= render :partial => "account" %>
+        # Instead of <%= render partial: "account" %>
         <%= render "account" %>
 
-        # Instead of <%= render :partial => "account", :locals => { :account => @buyer } %>
-        <%= render "account", :account => @buyer %>
+        # Instead of <%= render partial: "account", locals: { account: @buyer } %>
+        <%= render "account", account: @buyer %>
 
         # @account is an Account instance, so it uses the RecordIdentifier to replace
-        # <%= render :partial => "accounts/account", :locals => { :account => @account } %>
+        # <%= render partial: "accounts/account", locals: { account: @account } %>
         <%= render(@account) %>
 
         # @posts is an array of Post instances, so it uses the RecordIdentifier to replace
-        # <%= render :partial => "posts/post", :collection => @posts %>
+        # <%= render partial: "posts/post", collection: @posts %>
         <%= render(@posts) %>
 
 *   Remove deprecated render_component. Please use the plugin from http://github.com/rails/render_component/tree/master *Pratik Naik*
@@ -841,8 +841,8 @@
 
 *   Added :only and :except to map.resources to let people cut down on the number of redundant routes in an application. Typically only useful for huge routesets.  #1215 *Tom Stuart*
 
-     map.resources :products, :only => :show do |product|
-         product.resources :images, :except => :destroy
+     map.resources :products, only: :show do |product|
+         product.resources :images, except: :destroy
      end
 
 *   Added render :js for people who want to render inline JavaScript replies without using RJS *David Heinemeier Hansson*
@@ -883,7 +883,7 @@
             # not triggered. Instead the default render will occur, which will check the last-modified
             # and etag headers and conclude that it only needs to send a "304 Not Modified" instead
             # of rendering the template.
-            if stale?(:last_modified => @article.published_at.utc, :etag => @article)
+            if stale?(last_modified: @article.published_at.utc, etag: @article)
               respond_to do |wants|
                 # normal response processing
               end
@@ -897,14 +897,14 @@
             # (i.e. no match of either etag or last-modified), then the default render of the template happens.
             # If the request is fresh, then the default render will return a "304 Not Modified"
             # instead of rendering the template.
-            fresh_when(:last_modified => @article.published_at.utc, :etag => @article)
+            fresh_when(last_modified: @article.published_at.utc, etag: @article)
           end
         end
 
 
 *   Added inline builder yield to atom_feed_helper tags where appropriate *Sam Ruby*. Example:
 
-        entry.summary :type => 'xhtml' do |xhtml|
+        entry.summary type: 'xhtml' do |xhtml|
           xhtml.p pluralize(order.line_items.count, "line item")
           xhtml.p "Shipped to #{order.address}"
           xhtml.p "Paid by #{order.pay_type}"
@@ -936,7 +936,7 @@
 
     Example :
 
-    map.resources :users, :shallow => true do |user|
+    map.resources :users, shallow: true do |user|
         user.resources :posts
     end
 
@@ -951,8 +951,8 @@
 *   Deprecate render_component. Please use render_component plugin from http://github.com/rails/render_component/tree/master *Pratik Naik*
 
 *   Routes may be restricted to lists of HTTP methods instead of a single method or :any.  #407 *Brennan Dunn, Gaius Centus Novus*
-        map.resource :posts, :collection => { :search => [:get, :post] }
-        map.session 'session', :requirements => { :method => [:get, :post, :delete] }
+        map.resource :posts, collection: { search: [:get, :post] }
+        map.session 'session', requirements: { method: [:get, :post, :delete] }
 
 *   Deprecated implicit local assignments when rendering partials *Josh Peek*
 
@@ -1010,7 +1010,7 @@
 
 *   Allow caches_action to accept cache store options. #416. *José Valim*. Example:
 
-    caches_action :index, :redirected, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
+    caches_action :index, :redirected, if: Proc.new { |c| !c.request.format.json? }, expires_in: 1.hour
 
 *   Remove define_javascript_functions, javascript_include_tag and friends are far superior. *Michael Koziarski*
 
@@ -1018,7 +1018,7 @@
 
 *   Add :as option to render a collection of partials with a custom local variable name. #509 *Simon Jefford, Pratik Naik*
 
-    render :partial => 'other_people', :collection => @people, :as => :person
+    render partial: 'other_people', collection: @people, as: :person
 
     This will let you access objects of @people as 'person' local variable inside 'other_people' partial template.
 
@@ -1111,7 +1111,7 @@
 
 *   Ensure RJS redirect_to doesn't html-escapes string argument. Closes #8546 *Josh Peek, eventualbuddha, Pratik Naik*
 
-*   Support render :partial => collection of heterogeneous elements.  #11491 *Zach Dennis*
+*   Support render partial: collection of heterogeneous elements.  #11491 *Zach Dennis*
 
 *   Avoid remote_ip spoofing.  *Brian Candler*
 
@@ -1187,12 +1187,12 @@
 
 *   Introduce the :index option for form_for and fields_for to simplify multi-model forms (see http://railscasts.com/episodes/75).  #9883 *rmm5t*
 
-*   Introduce map.resources :cards, :as => 'tarjetas' to use a custom resource name in the URL: cards_path == '/tarjetas'.  #10578 *blj*
+*   Introduce map.resources :cards, as: 'tarjetas' to use a custom resource name in the URL: cards_path == '/tarjetas'.  #10578 *blj*
 
 *   TestSession supports indifferent access.  #7372 *tamc, Arsen7, mhackett, julik, jean.helou*
 
 *   Make assert_routing aware of the HTTP method used.  #8039 *mpalmer*
-    e.g. assert_routing({ :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" })
+    e.g. assert_routing({ method: 'put', path: '/product/321' }, { controller: "product", action: "update", id: "321" })
 
 *   Make map.root accept a single symbol as an argument to declare an alias.  #10818 *bscofield*
 
@@ -1211,7 +1211,7 @@
 
 *   Allow users to declare other namespaces when using the atom feed helpers. #10304 *david.calavera*
 
-*   Introduce send_file :x_sendfile => true to send an X-Sendfile response header.  *Jeremy Kemper*
+*   Introduce send_file x_sendfile: true to send an X-Sendfile response header.  *Jeremy Kemper*
 
 *   Fixed ActionView::Helpers::ActiveRecordHelper::form for when protect_from_forgery is used #10739 *Jeremy Evans*
 
@@ -1221,7 +1221,7 @@
 
 *   The asset_host block takes the controller request as an optional second argument. Example: use a single asset host for SSL requests.  #10549 *Cheah Chu Yeow, Peter B, Tom Taylor*
 
-*   Support render :text => nil.  #6684 *tjennings, PotatoSalad, Cheah Chu Yeow*
+*   Support render text: nil.  #6684 *tjennings, PotatoSalad, Cheah Chu Yeow*
 
 *   assert_response failures include the exception message.  #10688 *Seth Rasmussen*
 
@@ -1380,7 +1380,7 @@
         $ cat login_session.rb
         get_with_redirect '/'
         say "GET / => #{path}"
-        post_with_redirect '/sessions', :username => 'john', :password => 'doe'
+        post_with_redirect '/sessions', username: 'john', password: 'doe'
         say "POST /sessions => #{path}"
         $ ./script/performance/request -n 10 login_session.rb
 
@@ -1410,7 +1410,7 @@
 
 *   Extracted sanitization methods from TextHelper to SanitizeHelper *David Heinemeier Hansson*
 
-*   rescue_from accepts :with => lambda { |exception| ... } or a normal block.  #9827 *Pratik Naik*
+*   rescue_from accepts with: lambda { |exception| ... } or a normal block.  #9827 *Pratik Naik*
 
 *   Add :status to redirect_to allowing users to choose their own response code without manually setting headers. #8297 *Coda Hale, chasgrundy*
 
@@ -1418,7 +1418,7 @@
 
 *   error_messages_for and friends also work with local variables.  #9699 *Frederick Cheung*
 
-*   Fix url_for, redirect_to, etc. with :controller => :symbol instead of 'string'.  #8562, #9525 *Justin Lynn, Tarmo Tänav, shoe*
+*   Fix url_for, redirect_to, etc. with controller: :symbol instead of 'string'.  #8562, #9525 *Justin Lynn, Tarmo Tänav, shoe*
 
 *   Use #require_library_or_gem to load the memcache library for the MemCache session and fragment cache stores.  Closes #8662. *Rick Olson*
 
@@ -1587,7 +1587,7 @@
 
 *   Allow you to render views with periods in the name.  Closes #8076 *Norbert Crombach*
 
-    render :partial => 'show.html.erb'
+    render partial: 'show.html.erb'
 
 *   Improve capture helper documentation.  #8796 *Chris Kampmeier*
 
@@ -1684,8 +1684,8 @@
 *   Allow routes to be decalred under namespaces *Tobias Lütke*:
 
     map.namespace :admin do |admin|
-        admin.root :controller => "products"
-        admin.feed 'feed.xml', :controller => 'products', :action => 'feed', :format => 'xml'
+        admin.root controller: "products"
+        admin.feed 'feed.xml', controller: 'products', action: 'feed', format: 'xml'
     end
 
 *   Update to script.aculo.us 1.7.1_beta3.  *Thomas Fuchs*
@@ -1698,7 +1698,7 @@
 
 *   Added url_for usage on render :location, which allows for record identification *DHH*. Example:
 
-        render :xml => person, :status => :created, :location => person
+        render xml: person, status: :created, location: person
 
     ...expands the location to person_url(person).
 
@@ -1718,7 +1718,7 @@
           # _foo.html.erb
           # _foo.erb
           # _foo.rhtml
-          page.replace :foo, :partial => 'foo'
+          page.replace :foo, partial: 'foo'
         end
     end
 
@@ -1730,7 +1730,7 @@
 
     This will expand to be the same as:
 
-        <% form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
+        <% form_for :post, @post, url: post_path(@post), html: { method: :put, class: "edit_post", id: "edit_post_45" } do |f| %>
           ...
         <% end %>
 
@@ -1742,7 +1742,7 @@
 
     This will expand to be the same as:
 
-        <% form_for :post, @post, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
+        <% form_for :post, @post, url: posts_path, html: { class: "new_post", id: "new_post" } do |f| %>
           ...
         <% end %>
 
@@ -1798,18 +1798,18 @@
 
         Before:
 
-          map.resources :products, :path_prefix => "admin", :controller => "admin/products", :collection => { :inventory => :get }, :member => { :duplicate => :post }
-          map.resources :tags, :name_prefix => 'admin_product_', :path_prefix => "admin/products/:product_id", :controller => "admin/product_tags"
-          map.resources :images, :name_prefix => 'admin_product_', :path_prefix => "admin/products/:product_id", :controller => "admin/product_images"
-          map.resources :variants, :name_prefix => 'admin_product_', :path_prefix => "admin/products/:product_id", :controller => "admin/product_variants"
+          map.resources :products, path_prefix: "admin", controller: "admin/products", collection: { inventory: :get }, member: { duplicate: :post }
+          map.resources :tags, name_prefix: 'admin_product_', path_prefix: "admin/products/:product_id", controller: "admin/product_tags"
+          map.resources :images, name_prefix: 'admin_product_', path_prefix: "admin/products/:product_id", controller: "admin/product_images"
+          map.resources :variants, name_prefix: 'admin_product_', path_prefix: "admin/products/:product_id", controller: "admin/product_variants"
 
         After:
 
           map.namespace(:admin) do |admin|
             admin.resources :products,
-              :collection => { :inventory => :get },
-              :member     => { :duplicate => :post },
-              :has_many   => [ :tags, :images, :variants ]
+              collection: { inventory: :get },
+              member:     { duplicate: :post },
+              has_many:   [ :tags, :images, :variants ]
           end
 
 *   Added :name_prefix as standard for nested resources *DHH*. WARNING: May be backwards incompatible with your app
@@ -1817,8 +1817,8 @@
         Before:
 
           map.resources :emails do |emails|
-            emails.resources :comments,    :name_prefix => "email_"
-            emails.resources :attachments, :name_prefix => "email_"
+            emails.resources :comments,    name_prefix: "email_"
+            emails.resources :attachments, name_prefix: "email_"
           end
 
         After:
@@ -1842,16 +1842,16 @@
 
         After:
 
-          map.resources :notes, :has_many => [ :comments, :attachments ], :has_one => :author
+          map.resources :notes, has_many: [ :comments, :attachments ], has_one: :author
 
 *   Added that render :xml will try to call to_xml if it can *DHH*. Makes these work:
 
-        render :xml => post
-        render :xml => comments
+        render xml: post
+        render xml: comments
 
 *   Added :location option to render so that the common pattern of rendering a response after creating a new resource is now a 1-liner *David Heinemeier Hansson*
 
-        render :xml => post.to_xml, :status => :created, :location => post_url(post)
+        render xml: post.to_xml, status: :created, location: post_url(post)
 
 *   Ensure that render_text only adds string content to the body of the response *David Heinemeier Hansson*
 
@@ -1874,7 +1874,7 @@
 
         respond_to do |format|
           format.xml do
-            render :action => "#{action_name}.rxml"
+            render action: "#{action_name}.rxml"
           end
         end
 
@@ -1899,7 +1899,7 @@
 *   Allow configuration of the default action cache path for #caches_action calls.  *Rick Olson*
 
     class ListsController < ApplicationController
-        caches_action :index, :cache_path => Proc.new { |controller|
+        caches_action :index, cache_path: Proc.new { |controller|
           controller.params[:user_id] ?
             controller.send(:user_lists_url, c.params[:user_id]) :
             controller.send(:lists_url) }
@@ -1909,7 +1909,7 @@
 
 *   Cookie session store: ensure that new sessions doesn't reuse data from a deleted session in the same request.  *Jeremy Kemper*
 
-*   Deprecation: verification with :redirect_to => :named_route shouldn't be deprecated.  #7525 *Justin French*
+*   Deprecation: verification with redirect_to: :named_route shouldn't be deprecated.  #7525 *Justin French*
 
 *   Cookie session store: raise ArgumentError when :session_key is blank.  *Jeremy Kemper*
 
@@ -1940,7 +1940,7 @@
 
 *   Allow routing requirements on map.resource(s) #7633 *quixoten*. Example:
 
-    map.resources :network_interfaces, :requirements => { :id => /^\d+\.\d+\.\d+\.\d+$/ }
+    map.resources :network_interfaces, requirements: { id: /^\d+\.\d+\.\d+\.\d+$/ }
 
 *   Cookie session store: empty and unchanged sessions don't write a cookie.  *Jeremy Kemper*
 
@@ -1954,24 +1954,24 @@
 
     Example config/environment.rb:
         # Use an application-wide secret key and the default SHA1 message digest.
-        config.action_controller.session = { :secret => "can't touch this" }
+        config.action_controller.session = { secret: "can't touch this" }
 
         # Store a secret key per user and employ a stronger message digest.
         config.action_controller.session = {
-          :digest => 'SHA512',
-          :secret => Proc.new { User.current.secret_key }
+          digest: 'SHA512',
+          secret: Proc.new { User.current.secret_key }
         }
 
 *   Added .erb and .builder as preferred aliases to the now deprecated .rhtml and .rxml extensions *Chad Fowler*. This is done to separate the renderer from the mime type. .erb templates are often used to render emails, atom, csv, whatever. So labeling them .rhtml doesn't make too much sense. The same goes for .rxml, which can be used to build everything from HTML to Atom to whatever. .rhtml and .rxml will continue to work until Rails 3.0, though. So this is a slow phasing out. All generators and examples will start using the new aliases, though.
 
 *   Added caching option to AssetTagHelper#stylesheet_link_tag and AssetTagHelper#javascript_include_tag *DHH*. Examples:
 
-        stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
+        stylesheet_link_tag :all, cache: true # when ActionController::Base.perform_caching is false =>
           <link href="/stylesheets/style1.css"  media="screen" rel="Stylesheet" type="text/css" />
           <link href="/stylesheets/styleB.css"  media="screen" rel="Stylesheet" type="text/css" />
           <link href="/stylesheets/styleX2.css" media="screen" rel="Stylesheet" type="text/css" />
 
-        stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
+        stylesheet_link_tag :all, cache: true # when ActionController::Base.perform_caching is true =>
           <link href="/stylesheets/all.css"  media="screen" rel="Stylesheet" type="text/css" />
 
     ...when caching is on, all.css is the concatenation of style1.css, styleB.css, and styleX2.css.
@@ -1992,11 +1992,11 @@
 
     \# ActionController sample usage:
     \# the session will be disabled for non html/ajax requests
-    session :off, :if => Proc.new { |req| !(req.format.html? || req.format.js?) }
+    session :off, if: Proc.new { |req| !(req.format.html? || req.format.js?) }
 
 *   Performance: patch cgi/session to require digest/md5 once rather than per #create_new_id.  *Stefan Kaes*
 
-*   Add a :url_based_filename => true option to ActionController::Streaming::send_file, which allows URL-based filenames.  *Thomas Fuchs*
+*   Add a url_based_filename: true option to ActionController::Streaming::send_file, which allows URL-based filenames.  *Thomas Fuchs*
 
 *   Fix that FormTagHelper#submit_tag using :disable_with should trigger the onsubmit handler of its form if available *David Heinemeier Hansson*
 
@@ -2018,19 +2018,19 @@
 
 *   Added FormBuilder#submit as a delegate for FormTagHelper#submit_tag *David Heinemeier Hansson*
 
-*   Allow Routes to generate all urls for a set of options by specifying :generate_all => true. Allows caching to properly set or expire all paths for a resource. References #1739. *Nicholas Seckar*
+*   Allow Routes to generate all urls for a set of options by specifying generate_all: true. Allows caching to properly set or expire all paths for a resource. References #1739. *Nicholas Seckar*
 
 *   Change the query parser to map empty GET params to "" rather than nil. Closes #5694. *Nicholas Seckar*
 
 *   date_select and datetime_select take a :default option.  #7052 *Nik Wakelin*
-        date_select "post", "written_on", :default => 3.days.from_now
-        date_select "credit_card", "bill_due", :default => { :day => 20 }
+        date_select "post", "written_on", default: 3.days.from_now
+        date_select "credit_card", "bill_due", default: { day: 20 }
 
-*   select :multiple => true suffixes the attribute name with [] unless already suffixed.  #6977 *nik.kakelin, ben, julik*
+*   select multiple: true suffixes the attribute name with [] unless already suffixed.  #6977 *nik.kakelin, ben, julik*
 
 *   Improve routes documentation.  #7095 *zackchandler*
 
-*   mail_to :encode => 'hex' also encodes the mailto: part of the href attribute as well as the linked email when no name is given.  #2061 *Jarkko Laine, pfc.pille@gmx.net*
+*   mail_to encode: 'hex' also encodes the mailto: part of the href attribute as well as the linked email when no name is given.  #2061 *Jarkko Laine, pfc.pille@gmx.net*
 
 *   Resource member routes require :id, eliminating the ambiguous overlap with collection routes.  #7229 *dkubb*
 
@@ -2094,7 +2094,7 @@
 
 *   Make sure html_document is reset between integration test requests. *ctm*
 
-*   Set session to an empty hash if :new_session => false and no session cookie or param is present. CGI::Session was raising an unrescued ArgumentError.  *Josh Susser*
+*   Set session to an empty hash if new_session: false and no session cookie or param is present. CGI::Session was raising an unrescued ArgumentError.  *Josh Susser*
 
 *   Routing uses URI escaping for path components and CGI escaping for query parameters.  *darix, Jeremy Kemper*
 
@@ -2110,7 +2110,7 @@
 
 *   Add a 'referer' attribute to TestRequest. *Jamis Buck*
 
-*   Ensure render :json => ... skips the layout.  Closes #6808 *Josh Peek*
+*   Ensure render json: ... skips the layout.  Closes #6808 *Josh Peek*
 
 *   Fix HTML::Node to output double quotes instead of single quotes.  Closes #6845 *mitreandy*
 
@@ -2131,10 +2131,10 @@
     UPDATE /account
     DELETE /account
 
-*   respond_to recognizes JSON. render :json => @person.to_json automatically sets the content type and takes a :callback option to specify a client-side function to call using the rendered JSON as an argument.  #4185 *Scott Raymond, eventualbuddha*
+*   respond_to recognizes JSON. render json: @person.to_json automatically sets the content type and takes a :callback option to specify a client-side function to call using the rendered JSON as an argument.  #4185 *Scott Raymond, eventualbuddha*
         # application/json response with body 'Element.show({:name: "David"})'
         respond_to do |format|
-          format.json { render :json => { :name => "David" }.to_json, :callback => 'Element.show' }
+          format.json { render json: { name: "David" }.to_json, callback: 'Element.show' }
         end
 
 *   Makes :discard_year work without breaking multi-attribute parsing in AR.  #1260, #3800 *sean@ardismg.com, jmartin@desertflood.com, stephen@touset.org, Bob Silva*
@@ -2230,14 +2230,14 @@
 
 *   Added block-usage to TagHelper#content_tag *DHH*. Example:
 
-     <% content_tag :div, :class => "strong" %>
+     <% content_tag :div, class: "strong" %>
          Hello world!
      <% end %>
 
     Will output:
         <div class="strong">Hello world!</div>
 
-*   Deprecated UrlHelper#link_to_image and UrlHelper#link_to :post => true #6409 *Bob Silva*
+*   Deprecated UrlHelper#link_to_image and UrlHelper#link_to post: true #6409 *Bob Silva*
 
 *   Upgraded NumberHelper with number_to_phone support international formats to comply with ITU E.123 by supporting area codes with less than 3 digits, added precision argument to number_to_human_size (defaults to 1) #6421 *Bob Silva*
 
@@ -2287,7 +2287,7 @@
 
 *   Added an html_options hash parameter to javascript_tag() and update_page_tag() helpers #6311 *tzaharia*. Example:
 
-        update_page_tag :defer => 'true' { |page| ... }
+        update_page_tag defer: 'true' { |page| ... }
 
     Gives:
 
@@ -2311,14 +2311,14 @@
 
 *   Make the :status parameter expand to the default message for that status code if it is an integer. Also support symbol statuses. *Jamis Buck*. Examples:
 
-        head :status => 404        # expands to "404 Not Found"
-        head :status => :not_found # expands to "404 Not Found"
-        head :status => :created   # expands to "201 Created"
+        head status: 404        # expands to "404 Not Found"
+        head status: :not_found # expands to "404 Not Found"
+        head status: :created   # expands to "201 Created"
 
 *   Add head(options = {}) for responses that have no body. *Jamis Buck*. Examples:
 
-        head :status => 404 # return an empty response with a 404 status
-        head :location => person_path(@person), :status => 201
+        head status: 404 # return an empty response with a 404 status
+        head location: person_path(@person), status: 201
 
 *   Fix bug that kept any before_filter except the first one from being able to halt the before_filter chain.  *Rick Olson*
 
@@ -2332,16 +2332,16 @@
 
 *   Update CGI process to allow sessions to contain namespaced models. Closes #4638. *dfelstead@site5.com*
 
-*   Fix routing to respect user provided requirements and defaults when assigning default routing options (such as :action => 'index'). Closes #5950. *Nicholas Seckar*
+*   Fix routing to respect user provided requirements and defaults when assigning default routing options (such as action: 'index'). Closes #5950. *Nicholas Seckar*
 
 *   Rescue Errno::ECONNRESET to handle an unexpectedly closed socket connection. Improves SCGI reliability.  #3368, #6226 *sdsykes, fhanshaw@vesaria.com*
 
 *   Added that respond_to blocks will automatically set the content type to be the same as is requested *DHH*. Examples:
 
         respond_to do |format|
-          format.html { render :text => "I'm being sent as text/html" }
-          format.rss  { render :text => "I'm being sent as application/rss+xml" }
-          format.atom { render :text => "I'm being sent as application/xml", :content_type => Mime::XML }
+          format.html { render text: "I'm being sent as text/html" }
+          format.rss  { render text: "I'm being sent as application/rss+xml" }
+          format.atom { render text: "I'm being sent as application/xml", content_type: Mime::XML }
         end
 
 *   Added utf-8 as the default charset for all renders. You can change this default using ActionController::Base.default_charset=(encoding) *David Heinemeier Hansson*
@@ -2383,7 +2383,7 @@
 
 *   Skip params with empty names, such as the &=Save query string from <input type="submit"/>.  #2569 *Manfred Stienstra, raphinou@yahoo.com*
 
-*   Fix assert_tag so that :content => "foo" does not match substrings, but only exact strings. Use :content => /foo/ to match substrings. #2799 *Eric Hodel*
+*   Fix assert_tag so that content: "foo" does not match substrings, but only exact strings. Use content: /foo/ to match substrings. #2799 *Eric Hodel*
 
 *   Add descriptive messages to the exceptions thrown by cgi_methods. #6091, #6103 *Nicholas Seckar, Bob Silva*
 
@@ -2393,11 +2393,11 @@
 
 *   Fixed JavaScriptHelper#link_to_function and JavaScriptHelper#button_to_function to have the script argument be optional *DHH*. So what used to require a nil, like this:
 
-        link_to("Hider", nil, :class => "hider_link") { |p| p[:something].hide }
+        link_to("Hider", nil, class: "hider_link") { |p| p[:something].hide }
 
     ...can be written like this:
 
-        link_to("Hider", :class => "hider_link") { |p| p[:something].hide }
+        link_to("Hider", class: "hider_link") { |p| p[:something].hide }
 
 *   Update to script.aculo.us 1.6.3 *Thomas Fuchs*
 
@@ -2509,7 +2509,7 @@
 
 *   Restrict Request Method hacking with ?_method to POST requests.  *Rick Olson*
 
-*   Fix bug when passing multiple options to SimplyRestful, like :new => { :preview => :get, :draft => :get }.  *Rick Olson, Josh Susser, Lars Pind*
+*   Fix bug when passing multiple options to SimplyRestful, like new: { preview: :get, draft: :get }.  *Rick Olson, Josh Susser, Lars Pind*
 
 *   Dup the options passed to map.resources so that multiple resources get the same options.  *Rick Olson*
 
@@ -2519,7 +2519,7 @@
 
         map.resources :messages
         map.resources :messages, :comments
-        map.resources :messages, :new => { :preview => :post }
+        map.resources :messages, new: { preview: :post }
 
 *   Fixed that integration simulation of XHRs should set Accept header as well *Edward Frederick*
 
@@ -2542,7 +2542,7 @@
 
 *   Update documentation for erb trim syntax. #5651 *matt@mattmargolis.net*
 
-*   Pass :id => nil or :class => nil to error_messages_for to supress that html attribute. #3586 *olivier_ansaldi@yahoo.com*
+*   Pass id: nil or class: nil to error_messages_for to supress that html attribute. #3586 *olivier_ansaldi@yahoo.com*
 
 *   Reset @html_document between requests so assert_tag works. #4810 *Jarkko Laine, easleydp@gmail.com*
 
@@ -2590,15 +2590,15 @@
 
 *   Added Mime::Type.register(string, symbol, synonyms = []) for adding new custom mime types *DHH*. Example: Mime::Type.register("image/gif", :gif)
 
-*   Added support for Mime objects in render :content_type option *DHH*. Example: render :text => some_atom, :content_type => Mime::ATOM
+*   Added support for Mime objects in render :content_type option *DHH*. Example: render text: some_atom, content_type: Mime::ATOM
 
 *   Add :status option to send_data and send_file. Defaults to '200 OK'.  #5243 *Manfred Stienstra <m.stienstra@fngtps.com>*
 
 *   Routing rewrite. Simpler, faster, easier to understand. The published API for config/routes.rb is unchanged, but nearly everything else is different, so expect breakage in plugins and libs that try to fiddle with routes. *Nicholas Seckar, Jamis Buck*
 
-    map.connect '/foo/:id', :controller => '...', :action => '...'
-    map.connect '/foo/:id.:format', :controller => '...', :action => '...'
-    map.connect '/foo/:id', ..., :conditions => { :method => :get }
+    map.connect '/foo/:id', controller: '...', action: '...'
+    map.connect '/foo/:id.:format', controller: '...', action: '...'
+    map.connect '/foo/:id', ..., conditions: { method: :get }
 
 *   Cope with missing content type and length headers. Parse parameters from multipart and urlencoded request bodies only. *Jeremy Kemper*
 
@@ -2612,8 +2612,8 @@
 
           respond_to do |format|
             format.html
-            format.xml { render :xml => @posts.to_xml }
-            format.rss { render :action => "feed.rxml" }
+            format.xml { render xml: @posts.to_xml }
+            format.rss { render action: "feed.rxml" }
           end
         end
     end
@@ -2639,7 +2639,7 @@
 
 *   Expanded :method option in FormTagHelper#form_tag, FormHelper#form_for, PrototypeHelper#remote_form_for, PrototypeHelper#remote_form_tag, and PrototypeHelper#link_to_remote to allow for verbs other than GET and POST by automatically creating a hidden form field named _method, which will simulate the other verbs over post *David Heinemeier Hansson*
 
-*   Added :method option to UrlHelper#link_to, which allows for using other verbs than GET for the link. This replaces the :post option, which is now deprecated. Example: link_to "Destroy", person_url(:id => person), :method => :delete *David Heinemeier Hansson*
+*   Added :method option to UrlHelper#link_to, which allows for using other verbs than GET for the link. This replaces the :post option, which is now deprecated. Example: link_to "Destroy", person_url(id: person), method: :delete *David Heinemeier Hansson*
 
 *   follow_redirect doesn't complain about being redirected to the same controller. #5153 *dymo@mk.ukrtelecom.ua*
 
@@ -2649,13 +2649,13 @@
 
 *   Fix flip flopped logic in docs for url_for's :only_path option. Closes #4998. *esad@esse.at*
 
-*   form.text_area handles the :size option just like the original text_area (:size => '60x10' becomes cols="60" rows="10").  *Jeremy Kemper*
+*   form.text_area handles the :size option just like the original text_area (size: '60x10' becomes cols="60" rows="10").  *Jeremy Kemper*
 
 *   Excise ingrown code from FormOptionsHelper#options_for_select. #5008 *anonymous*
 
 *   Small fix in routing to allow dynamic routes (broken after [4242]) *Rick Olson*
 
-        map.connect '*path', :controller => 'files', :action => 'show'
+        map.connect '*path', controller: 'files', action: 'show'
 
 *   Replace alias method chaining with Module#alias_method_chain. *Marcel Molina Jr.*
 
@@ -2673,7 +2673,7 @@
 
 *   Allow error_messages_for to report errors for multiple objects, as well as support for customizing the name of the object in the error summary header. Closes #4186. *andrew@redlinesoftware.com, Marcel Molina Jr.*
 
-    error_messages_for :account, :user, :subscription, :object_name => :account
+    error_messages_for :account, :user, :subscription, object_name: :account
 
 *   Enhance documentation for setting headers in integration tests. Skip auto HTTP prepending when its already there. Closes #4079. *Rick Olson*
 
@@ -2689,15 +2689,15 @@
 
 *   Fix assert_redirected_to tests according to real-world usage.  Also, don't fail if you add an extra :controller option: *Rick Olson*
 
-        redirect_to :action => 'new'
-        assert_redirected_to :controller => 'monkeys', :action => 'new'
+        redirect_to action: 'new'
+        assert_redirected_to controller: 'monkeys', action: 'new'
 
 *   Cache CgiRequest#request_parameters so that multiple calls don't re-parse multipart data. *Rick Olson*
 
 *   Diff compared routing options.  Allow #assert_recognizes to take a second arg as a hash to specify optional request method *Rick Olson*
 
-        assert_recognizes({:controller => 'users', :action => 'index'}, 'users')
-        assert_recognizes({:controller => 'users', :action => 'create'}, {:path => 'users', :method => :post})
+        assert_recognizes({controller: 'users', action: 'index'}, 'users')
+        assert_recognizes({controller: 'users', action: 'create'}, {path: 'users', method: :post})
 
 *   Diff compared options with #assert_redirected_to *Rick Olson*
 
@@ -2707,12 +2707,12 @@
 
 *   Fixed that remote_form_for can leave out the object parameter and default to the instance variable of the object_name, just like form_for *David Heinemeier Hansson*
 
-*   Modify routing so that you can say :require => { :method => :post } for a route, and the route will never be selected unless the request method is POST. Only works for route recognition, not for route generation. *Jamis Buck*
+*   Modify routing so that you can say require: { method: :post } for a route, and the route will never be selected unless the request method is POST. Only works for route recognition, not for route generation. *Jamis Buck*
 
 *   Added :add_headers option to verify which merges a hash of name/value pairs into the response's headers hash if the prerequisites cannot be satisfied. *Sam Stephenson*
-    ex. verify :only => :speak, :method => :post,
-                 :render => { :status => 405, :text => "Must be post" },
-                 :add_headers => { "Allow" => "POST" }
+    ex. verify only: :speak, method: :post,
+                 render: { status: 405, text: "Must be post" },
+                 add_headers: { "Allow" => "POST" }
 
 *   Added ActionController.filter_parameter_logging that makes it easy to remove passwords, credit card numbers, and other sensitive information from being logged when a request is handled #1897 *jeremye@bsa.ca.gov*
 
@@ -2738,7 +2738,7 @@
 
 *   Add singleton resources from trunk *Rick Olson*
 
-*   select :multiple => true suffixes the attribute name with [] unless already suffixed.  #6977 *nik.kakelin, ben, julik*
+*   select multiple: true suffixes the attribute name with [] unless already suffixed.  #6977 *nik.kakelin, ben, julik*
 
 *   Improve routes documentation.  #7095 *zackchandler*
 
@@ -2788,11 +2788,11 @@
 
 *   Make sure html_document is reset between integration test requests. *ctm*
 
-*   Set session to an empty hash if :new_session => false and no session cookie or param is present. CGI::Session was raising an unrescued ArgumentError.  *Josh Susser*
+*   Set session to an empty hash if new_session: false and no session cookie or param is present. CGI::Session was raising an unrescued ArgumentError.  *Josh Susser*
 
 *   Fix assert_redirected_to bug where redirecting from a nested to to a top-level controller incorrectly added the current controller's nesting.  Closes #6128.  *Rick Olson*
 
-*   Ensure render :json => ... skips the layout.  #6808 *Josh Peek*
+*   Ensure render json: ... skips the layout.  #6808 *Josh Peek*
 
 *   Silence log_error deprecation warnings from inspecting deprecated instance variables.  *Nate Wiger*
 
@@ -2800,10 +2800,10 @@
 
 *   Correctly report which filter halted the chain.  #6699 *Martin Emde*
 
-*   respond_to recognizes JSON. render :json => @person.to_json automatically sets the content type and takes a :callback option to specify a client-side function to call using the rendered JSON as an argument.  #4185 *Scott Raymond, eventualbuddha*
+*   respond_to recognizes JSON. render json: @person.to_json automatically sets the content type and takes a :callback option to specify a client-side function to call using the rendered JSON as an argument.  #4185 *Scott Raymond, eventualbuddha*
         # application/json response with body 'Element.show({:name: "David"})'
         respond_to do |format|
-          format.json { render :json => { :name => "David" }.to_json, :callback => 'Element.show' }
+          format.json { render json: { name: "David" }.to_json, callback: 'Element.show' }
         end
 
 *   Makes :discard_year work without breaking multi-attribute parsing in AR.  #1260, #3800 *sean@ardismg.com, jmartin@desertflood.com, stephen@touset.org, Bob Silva*
@@ -2874,14 +2874,14 @@
 
 *   Added block-usage to TagHelper#content_tag *DHH*. Example:
 
-     <% content_tag :div, :class => "strong" %>
+     <% content_tag :div, class: "strong" %>
          Hello world!
      <% end %>
 
     Will output:
         <div class="strong">Hello world!</div>
 
-*   Deprecated UrlHelper#link_to_image and UrlHelper#link_to :post => true #6409 *Bob Silva*
+*   Deprecated UrlHelper#link_to_image and UrlHelper#link_to post: true #6409 *Bob Silva*
 
 *   Upgraded NumberHelper with number_to_phone support international formats to comply with ITU E.123 by supporting area codes with less than 3 digits, added precision argument to number_to_human_size (defaults to 1) #6421 *Bob Silva*
 
@@ -2925,7 +2925,7 @@
 
 *   Added an html_options hash parameter to javascript_tag() and update_page_tag() helpers #6311 *tzaharia*. Example:
 
-        update_page_tag :defer => 'true' { |page| ... }
+        update_page_tag defer: 'true' { |page| ... }
 
     Gives:
 
@@ -2949,14 +2949,14 @@
 
 *   Make the :status parameter expand to the default message for that status code if it is an integer. Also support symbol statuses. *Jamis Buck*. Examples:
 
-        head :status => 404        # expands to "404 Not Found"
-        head :status => :not_found # expands to "404 Not Found"
-        head :status => :created   # expands to "201 Created"
+        head status: 404        # expands to "404 Not Found"
+        head status: :not_found # expands to "404 Not Found"
+        head status: :created   # expands to "201 Created"
 
 *   Add head(options = {}) for responses that have no body. *Jamis Buck*. Examples:
 
-        head :status => 404 # return an empty response with a 404 status
-        head :location => person_path(@person), :status => 201
+        head status: 404 # return an empty response with a 404 status
+        head location: person_path(@person), status: 201
 
 *   Fix bug that kept any before_filter except the first one from being able to halt the before_filter chain.  *Rick Olson*
 
@@ -2968,16 +2968,16 @@
 
 *   Update CGI process to allow sessions to contain namespaced models. Closes #4638. *dfelstead@site5.com*
 
-*   Fix routing to respect user provided requirements and defaults when assigning default routing options (such as :action => 'index'). Closes #5950. *Nicholas Seckar*
+*   Fix routing to respect user provided requirements and defaults when assigning default routing options (such as action: 'index'). Closes #5950. *Nicholas Seckar*
 
 *   Rescue Errno::ECONNRESET to handle an unexpectedly closed socket connection. Improves SCGI reliability.  #3368, #6226 *sdsykes, fhanshaw@vesaria.com*
 
 *   Added that respond_to blocks will automatically set the content type to be the same as is requested *DHH*. Examples:
 
         respond_to do |format|
-          format.html { render :text => "I'm being sent as text/html" }
-          format.rss  { render :text => "I'm being sent as application/rss+xml" }
-          format.atom { render :text => "I'm being sent as application/xml", :content_type => Mime::XML }
+          format.html { render text: "I'm being sent as text/html" }
+          format.rss  { render text: "I'm being sent as application/rss+xml" }
+          format.atom { render text: "I'm being sent as application/xml", content_type: Mime::XML }
         end
 
 *   Added utf-8 as the default charset for all renders. You can change this default using ActionController::Base.default_charset=(encoding) *David Heinemeier Hansson*
@@ -3013,7 +3013,7 @@
 
 *   Skip params with empty names, such as the &=Save query string from <input type="submit"/>.  #2569 *Manfred Stienstra, raphinou@yahoo.com*
 
-*   Fix assert_tag so that :content => "foo" does not match substrings, but only exact strings. Use :content => /foo/ to match substrings. #2799 *Eric Hodel*
+*   Fix assert_tag so that content: "foo" does not match substrings, but only exact strings. Use content: /foo/ to match substrings. #2799 *Eric Hodel*
 
 *   Update JavaScriptGenerator#show/hide/toggle/remove to new Prototype syntax for multiple ids,  #6068 *petermichaux@gmail.com*
 
@@ -3021,11 +3021,11 @@
 
 *   Fixed JavaScriptHelper#link_to_function and JavaScriptHelper#button_to_function to have the script argument be optional *DHH*. So what used to require a nil, like this:
 
-        link_to("Hider", nil, :class => "hider_link") { |p| p[:something].hide }
+        link_to("Hider", nil, class: "hider_link") { |p| p[:something].hide }
 
     ...can be written like this:
 
-        link_to("Hider", :class => "hider_link") { |p| p[:something].hide }
+        link_to("Hider", class: "hider_link") { |p| p[:something].hide }
 
 *   Added access to nested attributes in RJS #4548 *richcollins@gmail.com*. Examples:
 
@@ -3118,7 +3118,7 @@
 
         map.resources :messages
         map.resources :messages, :comments
-        map.resources :messages, :new => { :preview => :post }
+        map.resources :messages, new: { preview: :post }
 
 *   Fixed that integration simulation of XHRs should set Accept header as well *Edward Frederick*
 
@@ -3139,7 +3139,7 @@
 
 *   Provide support for decimal columns to form helpers. Closes #5672. *Dave Thomas*
 
-*   Pass :id => nil or :class => nil to error_messages_for to supress that html attribute. #3586 *olivier_ansaldi@yahoo.com*
+*   Pass id: nil or class: nil to error_messages_for to supress that html attribute. #3586 *olivier_ansaldi@yahoo.com*
 
 *   Reset @html_document between requests so assert_tag works. #4810 *Jarkko Laine, easleydp@gmail.com*
 
@@ -3183,15 +3183,15 @@
 
 *   Added Mime::Type.register(string, symbol, synonyms = []) for adding new custom mime types *DHH*. Example: Mime::Type.register("image/gif", :gif)
 
-*   Added support for Mime objects in render :content_type option *DHH*. Example: render :text => some_atom, :content_type => Mime::ATOM
+*   Added support for Mime objects in render :content_type option *DHH*. Example: render text: some_atom, content_type: Mime::ATOM
 
 *   Add :status option to send_data and send_file. Defaults to '200 OK'.  #5243 *Manfred Stienstra <m.stienstra@fngtps.com>*
 
 *   Routing rewrite. Simpler, faster, easier to understand. The published API for config/routes.rb is unchanged, but nearly everything else is different, so expect breakage in plugins and libs that try to fiddle with routes. *Nicholas Seckar, Jamis Buck*
 
-    map.connect '/foo/:id', :controller => '...', :action => '...'
-    map.connect '/foo/:id.:format', :controller => '...', :action => '...'
-    map.connect '/foo/:id', ..., :conditions => { :method => :get }
+    map.connect '/foo/:id', controller: '...', action: '...'
+    map.connect '/foo/:id.:format', controller: '...', action: '...'
+    map.connect '/foo/:id', ..., conditions: { method: :get }
 
 *   Cope with missing content type and length headers. Parse parameters from multipart and urlencoded request bodies only. *Jeremy Kemper*
 
@@ -3205,8 +3205,8 @@
 
           respond_to do |format|
             format.html
-            format.xml { render :xml => @posts.to_xml }
-            format.rss { render :action => "feed.rxml" }
+            format.xml { render xml: @posts.to_xml }
+            format.rss { render action: "feed.rxml" }
           end
         end
     end
@@ -3232,7 +3232,7 @@
 
 *   Expanded :method option in FormTagHelper#form_tag, FormHelper#form_for, PrototypeHelper#remote_form_for, PrototypeHelper#remote_form_tag, and PrototypeHelper#link_to_remote to allow for verbs other than GET and POST by automatically creating a hidden form field named _method, which will simulate the other verbs over post *David Heinemeier Hansson*
 
-*   Added :method option to UrlHelper#link_to, which allows for using other verbs than GET for the link. This replaces the :post option, which is now deprecated. Example: link_to "Destroy", person_url(:id => person), :method => :delete *David Heinemeier Hansson*
+*   Added :method option to UrlHelper#link_to, which allows for using other verbs than GET for the link. This replaces the :post option, which is now deprecated. Example: link_to "Destroy", person_url(id: person), method: :delete *David Heinemeier Hansson*
 
 *   follow_redirect doesn't complain about being redirected to the same controller. #5153 *dymo@mk.ukrtelecom.ua*
 
@@ -3240,29 +3240,29 @@
 
 *   Fix NoMethodError when parsing params like &&. *Adam Greenfield*
 
-*   form.text_area handles the :size option just like the original text_area (:size => '60x10' becomes cols="60" rows="10").  *Jeremy Kemper*
+*   form.text_area handles the :size option just like the original text_area (size: '60x10' becomes cols="60" rows="10").  *Jeremy Kemper*
 
 *   Excise ingrown code from FormOptionsHelper#options_for_select. #5008 *anonymous*
 
 *   Small fix in routing to allow dynamic routes (broken after [4242]) *Rick Olson*
 
-        map.connect '*path', :controller => 'files', :action => 'show'
+        map.connect '*path', controller: 'files', action: 'show'
 
 *   Use #flush between switching from #write to #syswrite. Closes #4907. *Blair Zajac <blair@orcaware.com>*
 
 *   Allow error_messages_for to report errors for multiple objects, as well as support for customizing the name of the object in the error summary header. Closes #4186. *andrew@redlinesoftware.com, Marcel Molina Jr.*
 
-    error_messages_for :account, :user, :subscription, :object_name => :account
+    error_messages_for :account, :user, :subscription, object_name: :account
 
 *   Fix assert_redirected_to tests according to real-world usage.  Also, don't fail if you add an extra :controller option: *Rick Olson*
 
-        redirect_to :action => 'new'
-        assert_redirected_to :controller => 'monkeys', :action => 'new'
+        redirect_to action: 'new'
+        assert_redirected_to controller: 'monkeys', action: 'new'
 
 *   Diff compared routing options.  Allow #assert_recognizes to take a second arg as a hash to specify optional request method *Rick Olson*
 
-        assert_recognizes({:controller => 'users', :action => 'index'}, 'users')
-        assert_recognizes({:controller => 'users', :action => 'create'}, {:path => 'users', :method => :post})
+        assert_recognizes({controller: 'users', action: 'index'}, 'users')
+        assert_recognizes({controller: 'users', action: 'create'}, {path: 'users', method: :post})
 
 *   Diff compared options with #assert_redirected_to *Rick Olson*
 
@@ -3270,12 +3270,12 @@
 
 *   Change link_to_function and button_to_function to (optionally) take an update_page block instead of a JavaScript string. Closes #4804. *zraii@comcast.net, Sam Stephenson*
 
-*   Modify routing so that you can say :require => { :method => :post } for a route, and the route will never be selected unless the request method is POST. Only works for route recognition, not for route generation. *Jamis Buck*
+*   Modify routing so that you can say require: { method: :post } for a route, and the route will never be selected unless the request method is POST. Only works for route recognition, not for route generation. *Jamis Buck*
 
 *   Added :add_headers option to verify which merges a hash of name/value pairs into the response's headers hash if the prerequisites cannot be satisfied. *Sam Stephenson*
-    ex. verify :only => :speak, :method => :post,
-                 :render => { :status => 405, :text => "Must be post" },
-                 :add_headers => { "Allow" => "POST" }
+    ex. verify only: :speak, method: :post,
+                 render: { status: 405, text: "Must be post" },
+                 add_headers: { "Allow" => "POST" }
 
 
 ## 1.12.5 (August 10th, 2006) ##
@@ -3358,17 +3358,17 @@
 
 *   Change #form_for and #fields_for so that the second argument is not required *Dave Thomas*
 
-        <% form_for :post, @post, :url => { :action => 'create' } do |f| -%>
+        <% form_for :post, @post, url: { action: 'create' } do |f| -%>
 
     becomes...
 
-        <% form_for :post, :url => { :action => 'create' } do |f| -%>
+        <% form_for :post, url: { action: 'create' } do |f| -%>
 
 *   Update to script.aculo.us 1.6 *Thomas Fuchs*
 
 *   Enable application/x-yaml processing by default *Jamis Buck*
 
-*   Fix double url escaping of remote_function. Add :escape => false option to ActionView's url_for. *Nicholas Seckar*
+*   Fix double url escaping of remote_function. Add escape: false option to ActionView's url_for. *Nicholas Seckar*
 
 *   Add :script option to in_place_editor to support evalScripts (closes #4194) *Cody Fauser*
 
@@ -3378,11 +3378,11 @@
 
 *   Added nicer message for assert_redirected_to (closes #4294) *court3nay*
 
-        assert_redirected_to :action => 'other_host', :only_path => false
+        assert_redirected_to action: 'other_host', only_path: false
 
     when it was expecting...
 
-        redirected_to :action => 'other_host', :only_path => true, :host => 'other.test.host'
+        redirected_to action: 'other_host', only_path: true, host: 'other.test.host'
 
     gives the error message...
 
@@ -3393,13 +3393,13 @@
 *   Added easy support for testing file uploads with fixture_file_upload #4105 *turnip@turnipspatch.com*. Example:
 
         # Looks in Test::Unit::TestCase.fixture_path + '/files/spongebob.png'
-        post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')
+        post :change_avatar, avatar: fixture_file_upload('/files/spongebob.png', 'image/png')
 
 *   Fixed UrlHelper#current_page? to behave even when url-escaped entities are present #3929 *jeremy@planetargon.com*
 
 *   Add ability for relative_url_root to be specified via an environment variable RAILS_RELATIVE_URL_ROOT. *isaac@reuben.com, Nicholas Seckar*
 
-*   Fixed link_to "somewhere", :post => true to produce valid XHTML by using the parentnode instead of document.body for the instant form #3007 *Bob Silva*
+*   Fixed link_to "somewhere", post: true to produce valid XHTML by using the parentnode instead of document.body for the instant form #3007 *Bob Silva*
 
 *   Added :function option to PrototypeHelper#observe_field/observe_form that allows you to call a function instead of submitting an ajax call as the trigger #4268 *jonathan@daikini.com*
 
@@ -3425,7 +3425,7 @@
 
 *   Added simple alert() notifications for RJS exceptions when config.action_view.debug_rjs = true. *Sam Stephenson*
 
-*   Added :content_type option to render, so you can change the content type on the fly *DHH*. Example: render :action => "atom.rxml", :content_type => "application/atom+xml"
+*   Added :content_type option to render, so you can change the content type on the fly *DHH*. Example: render action: "atom.rxml", content_type: "application/atom+xml"
 
 *   CHANGED DEFAULT: The default content type for .rxml is now application/xml instead of type/xml, see http://www.xml.com/pub/a/2004/07/21/dive.html for reason *David Heinemeier Hansson*
 
@@ -3437,8 +3437,8 @@
 
             respond_to do |type|
               type.html # using defaults, which will render weblog/index.rhtml
-              type.xml  { render :action => "index.rxml" }
-              type.js   { render :action => "index.rjs" }
+              type.xml  { render action: "index.rxml" }
+              type.js   { render action: "index.rjs" }
             end
           end
         end
@@ -3451,18 +3451,18 @@
 
             respond_to do |type|
               type.js   { render }  # renders create.rjs
-              type.html { redirect_to :action => "index" }
+              type.html { redirect_to action: "index" }
               type.xml  do
-                headers["Location"] = url_for(:action => "show", :id => @post)
-                render(:nothing, :status => "201 Created")
+                headers["Location"] = url_for(action: "show", id: @post)
+                render(:nothing, status: "201 Created")
               end
             end
           end
         end
 
-*   Added Base#render(:xml => xml) that works just like Base#render(:text => text), but sets the content-type to text/xml and the charset to UTF-8 *David Heinemeier Hansson*
+*   Added Base#render(xml: xml) that works just like Base#render(text: text), but sets the content-type to text/xml and the charset to UTF-8 *David Heinemeier Hansson*
 
-*   Integration test's url_for now runs in the context of the last request (if any) so after post /products/show/1 url_for :action => 'new' will yield /product/new  *Tobias Lütke*
+*   Integration test's url_for now runs in the context of the last request (if any) so after post /products/show/1 url_for action: 'new' will yield /product/new  *Tobias Lütke*
 
 *   Re-added mixed-in helper methods for the JavascriptGenerator.  Moved JavascriptGenerators methods to a module that is mixed in after the helpers are added.  Also fixed that variables set in the enumeration methods like #collect are set correctly.  Documentation added for the enumeration methods *Rick Olson*.  Examples:
 
@@ -3500,8 +3500,8 @@
 *   Added script.aculo.us drag and drop helpers to RJS *Thomas Fuchs*. Examples:
 
         page.draggable 'product-1'
-        page.drop_receiving 'wastebasket', :url => { :action => 'delete' }
-        page.sortable 'todolist', :url => { action => 'change_order' }
+        page.drop_receiving 'wastebasket', url: { action: 'delete' }
+        page.sortable 'todolist', url: { action => 'change_order' }
 
 *   Fixed that form elements would strip the trailing [] from the first parameter #3545 *ruby@bobsilva.com*
 
@@ -3551,7 +3551,7 @@
 
 *   Fix Routing tests. Fix routing where failing to match a controller would prevent the rest of routes from being attempted. *Nicholas Seckar*
 
-*   Add :builder => option to form_for and friends. *Nicholas Seckar, Rick Olson*
+*   Add builder: option to form_for and friends. *Nicholas Seckar, Rick Olson*
 
 *   Fix controller resolution to avoid accidentally inheriting a controller from a parent module. *Nicholas Seckar*
 
@@ -3593,7 +3593,7 @@
 
 *   Treat timestamps like datetimes for scaffolding purposes #3388 *Maik Schmidt*
 
-*   Fix IE bug with link_to "something", :post => true #3443 *Justin Palmer*
+*   Fix IE bug with link_to "something", post: true #3443 *Justin Palmer*
 
 *   Extract Test::Unit::TestCase test process behavior into an ActionController::TestProcess module. *Sam Stephenson*
 
@@ -3603,7 +3603,7 @@
     class UserController < ApplicationController
         def refresh
           render :update do |page|
-            page.replace_html  'user_list', :partial => 'user', :collection => @users
+            page.replace_html  'user_list', partial: 'user', collection: @users
             page.visual_effect :highlight, 'user_list'
           end
         end
@@ -3687,7 +3687,7 @@
 
 *   Change form_for and fields_for method signatures to take object name and object as separate arguments rather than as a Hash. *David Heinemeier Hansson*
 
-*   Introduce :selected option to the select helper.  Allows you to specify a selection other than the current value of object.method.  Specify :selected => nil to leave all options unselected.  #2991 *Jonathan Viney <jonathan@bluewire.net.nz>*
+*   Introduce :selected option to the select helper.  Allows you to specify a selection other than the current value of object.method.  Specify selected: nil to leave all options unselected.  #2991 *Jonathan Viney <jonathan@bluewire.net.nz>*
 
 *   Initialize @optional in routing code to avoid warnings about uninitialized access to an instance variable. *Nicholas Seckar*
 
@@ -3759,18 +3759,18 @@
 
 *   Added FormHelper#form_for and FormHelper#fields_for that makes it easier to work with forms for single objects also if they don't reside in instance variables *DHH*. Examples:
 
-    <% form_for :person, @person, :url => { :action => "update" } do |f| %>
+    <% form_for :person, @person, url: { action: "update" } do |f| %>
         First name: <%= f.text_field :first_name %>
         Last name : <%= f.text_field :last_name %>
         Biography : <%= f.text_area :biography %>
         Admin?    : <%= f.check_box :admin %>
     <% end %>
 
-    <% form_for :person, person, :url => { :action => "update" } do |person_form| %>
+    <% form_for :person, person, url: { action: "update" } do |person_form| %>
         First name: <%= person_form.text_field :first_name %>
         Last name : <%= person_form.text_field :last_name %>
 
-        <% fields_for :permission => person.permission do |permission_fields| %>
+        <% fields_for permission: person.permission do |permission_fields| %>
           Admin?  : <%= permission_fields.check_box :admin %>
         <% end %>
     <% end %>
@@ -3798,7 +3798,7 @@
 
 *   Added action_pack.rb stub so that ActionPack::Version loads properly *Sam Stephenson*
 
-*   Added short-hand to assert_tag so assert_tag :tag => "span" can be written as assert_tag "span" *David Heinemeier Hansson*
+*   Added short-hand to assert_tag so assert_tag tag: "span" can be written as assert_tag "span" *David Heinemeier Hansson*
 
 *   Added skip_before_filter/skip_after_filter for easier control of the filter chain in inheritance hierachies *DHH*. Example:
 
@@ -3981,15 +3981,15 @@
 
 *   Fixed that TextHelper#auto_link_urls would include punctuation in the links #2166, #1671 *eigentone*
 
-*   Fixed that number_to_currency(1000, {:precision => 0})) should return "$1,000", instead of "$1,000." #2122 *sd@notso.net*
+*   Fixed that number_to_currency(1000, {precision: 0})) should return "$1,000", instead of "$1,000." #2122 *sd@notso.net*
 
 *   Allow link_to_remote to use any DOM-element as the parent of the form elements to be submitted #2137 *erik@ruby-lang.nl*. Example:
 
         <tr id="row023">
           <td><input name="foo"/></td>
           <td><input name="bar"/></td>
-          <td><%= link_to_remote 'Save', :update => "row023",
-                :submit => "row023", :url => {:action => 'save_row'} %></td>
+          <td><%= link_to_remote 'Save', update: "row023",
+                submit: "row023", url: {action: 'save_row'} %></td>
         </tr>
 
 *   Fixed that render :partial would fail when :object was a Hash (due to backwards compatibility issues) #2148 *Sam Stephenson*
@@ -4012,8 +4012,8 @@
 
 *   Added :popup option to UrlHelper#link_to #1996 *gabriel.gironda@gmail.com*. Examples:
 
-        link_to "Help", { :action => "help" }, :popup => true
-        link_to "Busy loop", { :action => "busy" }, :popup => ['new_window', 'height=300,width=600']
+        link_to "Help", { action: "help" }, popup: true
+        link_to "Busy loop", { action: "busy" }, popup: ['new_window', 'height=300,width=600']
 
 *   Drop trailing \000 if present on RAW_POST_DATA (works around bug in Safari Ajax implementation) #918
 
@@ -4027,7 +4027,7 @@
 
 *   Yield @content_for_ variables to templates #2058 *Sam Stephenson*
 
-*   Make rendering an empty partial collection behave like :nothing => true #2080 *Sam Stephenson*
+*   Make rendering an empty partial collection behave like nothing: true #2080 *Sam Stephenson*
 
 *   Add option to specify the singular name used by pagination.
 
@@ -4037,7 +4037,7 @@
 
 *   Rewrote compiled templates to decrease code complexity. Removed template load caching in favour of compiled caching. Fixed template error messages. *Nicholas Seckar*
 
-*   Fix Routing to handle :some_param => nil better. *Nicholas Seckar, Luminas*
+*   Fix Routing to handle some_param: nil better. *Nicholas Seckar, Luminas*
 
 *   Add support for :include with pagination (subject to existing constraints for :include with :limit and :offset) #1478 *Michael Schubert*
 
@@ -4049,7 +4049,7 @@
 
 *   Make assert_redirected_to properly check URL's passed as strings #1910 *Scott Barron*
 
-*   Make sure :layout => false is always used when rendering inside a layout
+*   Make sure layout: false is always used when rendering inside a layout
 
 *   Use raise instead of assert_not_nil in Test::Unit::TestCase#process to ensure that the test variables (controller, request, response) have been set
 
@@ -4081,7 +4081,7 @@
 
 *   Added named_route method to RouteSet instances so that RouteSet instance methods do not prevent certain names from being used. *Nicholas Seckar*
 
-*   Fixed routes so that routes which do not specify :action in the path or in the requirements have a default of :action => 'index', In addition, fixed url generation so that :action => 'index' does not need to be provided for such urls. *Nicholas Seckar, Markjuh*
+*   Fixed routes so that routes which do not specify :action in the path or in the requirements have a default of action: 'index', In addition, fixed url generation so that action: 'index' does not need to be provided for such urls. *Nicholas Seckar, Markjuh*
 
 *   Worked around a Safari bug where it wouldn't pass headers through if the response was zero length by having render :nothing return ' ' instead of ''
 
@@ -4094,7 +4094,7 @@
 
 *   Fixed that Action View should always use the included Builder, never attempt to require the gem, to ensure compatibility
 
-*   Added that nil options are not included in tags, so tag("p", :ignore => nil) now returns <p /> not <p ignore="" />  but that tag("p", :ignore => "") still includes it #1465 *Michael Schuerig*
+*   Added that nil options are not included in tags, so tag("p", ignore: nil) now returns <p /> not <p ignore="" />  but that tag("p", ignore: "") still includes it #1465 *Michael Schuerig*
 
 *   Fixed that UrlHelper#link_to_unless/link_to_if used html_escape on the name if no link was to be applied. This is unnecessary and breaks its use with images #1649 *joergd@pobox.com*
 
@@ -4144,9 +4144,9 @@
 
 *   Added JavascriptHelper#update_element_function, which returns a Javascript function (or expression) that'll update a DOM element according to the options passed #933 *mortonda@dgrmm.net*. Examples:
 
-        <%= update_element_function("products", :action => :insert, :position => :bottom, :content => "<p>New product!</p>") %>
+        <%= update_element_function("products", action: :insert, position: :bottom, content: "<p>New product!</p>") %>
 
-        <% update_element_function("products", :action => :replace, :binding => binding) do %>
+        <% update_element_function("products", action: :replace, binding: binding) do %>
           <p>Product 1</p>
           <p>Product 2</p>
         <% end %>
@@ -4175,11 +4175,11 @@
 
         link_to_remote(
           "test",
-          :url => { :action => "faulty" },
-          :update => { :success => "good", :failure => "bad" },
+          url: { action: "faulty" },
+          update: { success: "good", failure: "bad" },
           403 => "alert('Forbidden- got ya!')",
           404 => "alert('Nothing there...?')",
-          :failure => "alert('Unkown error ' + request.status)")
+          failure: "alert('Unkown error ' + request.status)")
 
 *   Attempt to explicitly flush the output at the end of CgiProcess#out
 
@@ -4203,15 +4203,15 @@
 
 *   Added a fall-through action for form_remote_tag that'll be used in case Javascript is unavailable #1459 *Scott Barron*. Example:
 
-        form_remote_tag :html => { :action => url_for(:controller => "some", :action => "place") }
+        form_remote_tag html: { action: url_for(controller: "some", action: "place") }
 
-*   Added :xhr => true/false option to verify so you can ensure that a request is coming from an Ajax call or not #1464 *Thomas Fuchs*
+*   Added xhr: true/false option to verify so you can ensure that a request is coming from an Ajax call or not #1464 *Thomas Fuchs*
 
 *   Added tag_options as a third parameter to AssetHelper#auto_discovery_link_tag to control options like the title of the link #1430 *Kevin Clark*
 
 *   Added option to pass in parameters to CaptureHelper#capture, so you can create more advanced view helper methods #1466 *duane.johnson@gmail.com*. Example:
 
-        <% show_calendar(:year => 2005, :month => 6) do |day, options| %>
+        <% show_calendar(year: 2005, month: 6) do |day, options| %>
           <% options[:bgcolor] = '#dfd' if 10..15.include? day %>
           [<%= day %>]
         <% end %>
@@ -4235,7 +4235,7 @@
 
 *   Fixed image_tag so an exception is not thrown just because the image is missing and alt value can't be generated #1395 *Marcel Molina Jr.*
 
-*   Added a third parameter to TextHelper#auto_link called href_options for specifying additional tag options on the links generated #1401 *tyler.kovacs@gmail.com*. Example: auto_link(text, :all, { :target => "_blank" }) to have all the generated links open in a new window.
+*   Added a third parameter to TextHelper#auto_link called href_options for specifying additional tag options on the links generated #1401 *tyler.kovacs@gmail.com*. Example: auto_link(text, :all, { target: "_blank" }) to have all the generated links open in a new window.
 
 *   Fixed TextHelper#highlight to return the text, not nil, if the phrase is blank #1409 *Patrick Lenz*
 
@@ -4265,17 +4265,17 @@
 
 *   Arrays, hashes sent via multipart posts are converted to strings #1032 *dj@omelia.org, me@julik.nl*
 
-*   render(:layout => true) is a synonym for render(:layout => nil)
+*   render(layout: true) is a synonym for render(layout: nil)
 
 *   Make sure the benchmarking render method always returns the output of the render.
 
-*   render(:action), render(:template) and render() are the only three calls that default to using a layout. All other render calls assume :layout => false. This also fixes send_file, which was applying a layout if one existed for the current action.
+*   render(:action), render(:template) and render() are the only three calls that default to using a layout. All other render calls assume layout: false. This also fixes send_file, which was applying a layout if one existed for the current action.
 
 *   verify with :redirect_to won't redirect if a redirect or render has already been performed #1350
 
-*   render(:partial => true) is identical to the behavior of the deprecated render_partial()
+*   render(partial: true) is identical to the behavior of the deprecated render_partial()
 
-*   Fixed render(:partial => "...") to use an empty Hash for the local assigns #1365
+*   Fixed render(partial: "...") to use an empty Hash for the local assigns #1365
 
 *   Fixed Caching::Fragments::FileStore.delete to not raise an exception if the delete fails.
 
@@ -4284,13 +4284,13 @@
         +---------------------------------------------------------------+-------------------------------------------------------+
         | BEFORE                                                        | AFTER                                                 |
         +---------------------------------------------------------------+-------------------------------------------------------+
-        | render_with_layout "weblog/show", "200 OK", "layouts/dialog"  | render :action => "show", :layout => "dialog"         |
-        | render_without_layout "weblog/show"                           | render :action => "show", :layout => false            |
-        | render_action "error", "404 Not Found"                        | render :action => "error", :status => "404 Not Found" |
-        | render_template "xml.div('stuff')", "200 OK", :rxml           | render :inline => "xml.div('stuff')", :type => :rxml  |
-        | render_text "hello world!"                                    | render :text => "hello world!"                        |
-        | render_partial_collection "person", @people, nil, :a => 1     | render :partial => "person", :collection => @people,  |
-        |                                                               |        :locals => { :a => 1 }                         |
+        | render_with_layout "weblog/show", "200 OK", "layouts/dialog"  | render action: "show", layout: "dialog"         |
+        | render_without_layout "weblog/show"                           | render action: "show", layout: false            |
+        | render_action "error", "404 Not Found"                        | render action: "error", status: "404 Not Found" |
+        | render_template "xml.div('stuff')", "200 OK", :rxml           | render inline: "xml.div('stuff')", type: :rxml  |
+        | render_text "hello world!"                                    | render text: "hello world!"                        |
+        | render_partial_collection "person", @people, nil, a: 1     | render partial: "person", collection: @people,  |
+        |                                                               |        locals: { a: 1 }                         |
         +---------------------------------------------------------------+-------------------------------------------------------+
 
 *   Deprecated redirect_to_path and redirect_to_url in favor of letting redirect_to do the right thing when passed either a path or url.
@@ -4307,7 +4307,7 @@
 
 *   Fixed that compute_public_path should recognize external URLs, so image_tag("http://www.example.com/images/icon.gif") is not prefixed with the relative url path #1254 *victor-ronr-trac@carotena.net*
 
-*   Added support for descending year values in DateHelper#select_year, like select_year(Date.today, :start_year => 2005, :end_year => 1900), which would count down from 2005 to 1900 instead of the other way #1274 *nwoods@mail.com*
+*   Added support for descending year values in DateHelper#select_year, like select_year(Date.today, start_year: 2005, end_year: 1900), which would count down from 2005 to 1900 instead of the other way #1274 *nwoods@mail.com*
 
 *   Fixed that FormHelper#checkbox should return a checked checkbox if the value is the same as checked_value #1286 *Florian Weber*
 
@@ -4357,7 +4357,7 @@
 
 *   Fixed handling of requests coming from unknown HTTP methods not to kill the server
 
-*   Added that both AssetHelper#stylesheet_link_tag and AssetHelper#javascript_include_tag now accept an option hash as the last parameter, so you can do stuff like: stylesheet_link_tag "style", :media => "all"
+*   Added that both AssetHelper#stylesheet_link_tag and AssetHelper#javascript_include_tag now accept an option hash as the last parameter, so you can do stuff like: stylesheet_link_tag "style", media: "all"
 
 *   Added FormTagHelper#image_submit_tag for making submit buttons that uses images
 
@@ -4367,7 +4367,7 @@
 
 *   Fixed missing id uniqueness in FormTag#radio_button #1207 *Jarkko Laine*
 
-*   Fixed assert_redirected_to to work with :only_path => false #1204 *Alisdair McDiarmid*
+*   Fixed assert_redirected_to to work with only_path: false #1204 *Alisdair McDiarmid*
 
 *   Fixed render_partial_collection to output an empty string instead of nil when handed an empty array #1202 *Ryan Carver*
 
@@ -4390,18 +4390,18 @@
         end
 
         def filter(controller)
-          controller.expire_page(:controller => "lists", :action => %w( show public feed ), :id => @list.id)
-          controller.expire_action(:controller => "lists", :action => "all")
-          @list.shares.each { |share| controller.expire_page(:controller => "lists", :action => "show", :id => share.url_key) }
+          controller.expire_page(controller: "lists", action: %w( show public feed ), id: @list.id)
+          controller.expire_action(controller: "lists", action: "all")
+          @list.shares.each { |share| controller.expire_page(controller: "lists", action: "show", id: share.url_key) }
         end
 
     ..after:
 
         def after_save(record)
           list = record.is_a?(List) ? record : record.list
-          expire_page(:controller => "lists", :action => %w( show public feed ), :id => list.id)
-          expire_action(:controller => "lists", :action => "all")
-          list.shares.each { |share| expire_page(:controller => "lists", :action => "show", :id => share.url_key) }
+          expire_page(controller: "lists", action: %w( show public feed ), id: list.id)
+          expire_action(controller: "lists", action: "all")
+          list.shares.each { |share| expire_page(controller: "lists", action: "show", id: share.url_key) }
         end
 
     The new sweepers can also observe on the actions themselves by implementing methods according to (before|after)_$controller_$action. Example of a callback that'll be called after PagesController#update_title has been performed:
@@ -4464,9 +4464,9 @@
 
     ...to:
 
-        <%= render_partial "account", :account => person, :rules => regulations.rules %>
+        <%= render_partial "account", account: person, rules: regulations.rules %>
 
-    The old API will still work, though, and render_partial "account" will still assume :account => @account.
+    The old API will still work, though, and render_partial "account" will still assume account: @account.
 
 *   Added support for web servers that use PATH_INFO instead of REQUEST_URI like IIS #1014 *BradG/Nicholas Seckar*
 
@@ -4563,7 +4563,7 @@
 
 *   Added fourth option to process in test cases to specify the content of the flash #949 *Jamis Buck*
 
-*   Added Verifications that allows you to specify preconditions to actions in form of statements like <tt>verify :only => :update_post, :params => "admin_privileges", :redirect_to => { :action => "settings" }</tt>, which ensure that the update_post action is only called if admin_privileges is available as a parameter -- otherwise the user is redirected to settings. #897 *Jamis Buck*
+*   Added Verifications that allows you to specify preconditions to actions in form of statements like <tt>verify only: :update_post, params: "admin_privileges", redirect_to: { action: "settings" }</tt>, which ensure that the update_post action is only called if admin_privileges is available as a parameter -- otherwise the user is redirected to settings. #897 *Jamis Buck*
 
 *   Fixed Form.Serialize for the JavascriptHelper to also seriliaze password fields #934 *dweitzman@gmail.com*
 
@@ -4600,7 +4600,7 @@
             if @something.save
               # will redirect, use flash
               flash[:message] = 'Save successful'
-              redirect_to :action => 'list'
+              redirect_to action: 'list'
             else
               # no redirect, message is for current action, use flash.now
               flash.now[:message] = 'Save failed, review'
@@ -4640,7 +4640,7 @@
 
 *   Added path collection syntax for Routes that will gobble up the rest of the url and pass it on to the controller #830 *rayners*. Example:
 
-        map.connect 'categories/*path_info', :controller => 'categories', :action => 'show'
+        map.connect 'categories/*path_info', controller: 'categories', action: 'show'
 
     A request for /categories/top-level-cat, would give @params[:path_info] with "top-level-cat".
     A request for /categories/top-level-cat/level-1-cat, would give @params[:path_info] with "top-level-cat/level-1-cat" and so forth.
@@ -4692,7 +4692,7 @@
 
 *   Fixed that single quote was not escaped in a UrlHelper#link_to javascript confirm #549 *Scott Barron*
 
-*   Removed the default border on link_image_to (it broke xhtml strict) -- can be specified with :border => 0 #517 *?/caleb*
+*   Removed the default border on link_image_to (it broke xhtml strict) -- can be specified with border: 0 #517 *?/caleb*
 
 *   Fixed that form helpers would treat string and symbol keys differently in html_options (and possibly create duplicate entries) #112 *Jeremy Kemper*
 
@@ -4731,8 +4731,8 @@
 
 *   Added :order option for date_select that allows control over the order in which the date dropdowns is used and which of them should be used #619 [Tim Bates]. Examples:
 
-        date_select("post", "written_on", :order => [:day, :month, :year])
-        date_select("user", "birthday",   :order => [:month, :day])
+        date_select("post", "written_on", order: [:day, :month, :year])
+        date_select("user", "birthday",   order: [:month, :day])
 
 *   Added ActionView::Base.register_template_handler for easy integration of an alternative template language to ERb and Builder. See test/controller/custom_handler_test.rb for a usage example #656 *Jamis Buck*
 
@@ -4764,7 +4764,7 @@
 
         def test_create_post
           post :create, "post" => { "title" => "Exciting!" }
-          assert_redirected_to :action => "show"
+          assert_redirected_to action: "show"
 
           follow_redirect
           assert_rendered_file "post/show"
@@ -4790,9 +4790,9 @@
 *   Added support for automatic id-based indexing for lists of items #532 [dblack]. Example:
 
         <% @students.each do |@student| %>
-          <%= text_field "student[]", "first_name", :size => "20" %>
+          <%= text_field "student[]", "first_name", size: "20" %>
           <%= text_field "student[]", "last_name" %>
-          <%= text_field "student[]", "grade", :size => "5" %>
+          <%= text_field "student[]", "grade", size: "5" %>
         <% end %>
 
     ...would produce, for say David Black with id 123 and a grace of C+:
@@ -4818,7 +4818,7 @@
 *   Fixed that all redirect and render calls now return true, so you can use the pattern of "do and return". Example:
 
         def show
-          redirect_to(:action => "login") and return unless @person.authenticated?
+          redirect_to(action: "login") and return unless @person.authenticated?
           render_text "I won't happen unless the person is authenticated"
         end
 
@@ -4836,7 +4836,7 @@
 *   Added that only one render or redirect can happen per action. The first call wins and subsequent calls are ignored. Example:
 
         def do_something
-          redirect_to :action => "elsewhere"
+          redirect_to action: "elsewhere"
           render_action "overthere"
         end
 
@@ -4859,14 +4859,14 @@
 
 *   Added the option of passing a block to ActiveRecordHelper#form in order to add more to the auto-generated form #469 *dom@sisna.com*
 
-        form("entry", :action => "sign") do |form|
+        form("entry", action: "sign") do |form|
           form << content_tag("b", "Department")
           form << collection_select("department", "id", @departments, "id", "name")
         end
 
 *   Added arrays as a value option for params in url_for and friends #467 [Eric Anderson]. Example:
 
-        url_for(:controller => 'user', :action => 'delete', :params => { 'username' =>  %( paul john steve ) } )
+        url_for(controller: 'user', action: 'delete', params: { 'username' =>  %( paul john steve ) } )
         # => /user/delete?username[]=paul&username[]=john&username[]=steve
 
 *   Fixed that controller tests can now assert on the use of cookies #466 *Alexey*
@@ -4875,7 +4875,7 @@
 
 *   Fixed url rewriter confusion when the controller or action name was a substring of the controller_prefix or action_prefix
 
-*   Added conditional layouts like <tt>layout "weblog_standard", :except => :rss</tt> #452 *Marcel Molina Jr.*
+*   Added conditional layouts like <tt>layout "weblog_standard", except: :rss</tt> #452 *Marcel Molina Jr.*
 
 *   Fixed that MemCacheStore wasn't included by default and added default MemCache object pointing to localhost #447 *Lucas Carlson*
 
@@ -4903,21 +4903,21 @@
     Before:
         def authenticate
           unless @session[:authenticated]
-            redirect_to :controller => "account", :action => "login"
+            redirect_to controller: "account", action: "login"
             return false
           end
         end
 
     After:
         def authenticate
-          redirect_to(:controller => "account", :action => "login") unless @session[:authenticated]
+          redirect_to(controller: "account", action: "login") unless @session[:authenticated]
         end
 
 *   Added conditional filters #431 [Marcel Molina Jr.]. Example:
 
         class JournalController < ActionController::Base
           # only require authentication if the current action is edit or delete
-          before_filter :authorize, :only_on => [ :edit, :delete ]
+          before_filter :authorize, only_on: [ :edit, :delete ]
 
           private
             def authorize
@@ -5119,7 +5119,7 @@
 
 *   Upgraded to Builder 1.2.1
 
-*   Added :module as an alias for :controller_prefix to url_for and friends, so you can do redirect_to(:module => "shop", :controller => "purchases")
+*   Added :module as an alias for :controller_prefix to url_for and friends, so you can do redirect_to(module: "shop", controller: "purchases")
     and go to /shop/purchases/
 
 *   Added support for controllers in modules through @params["module"].
@@ -5334,7 +5334,7 @@
         def test_failing_authenticate
           process :authenticate, "user_name" => "nop", "password" => ""
           assert_flash_has 'alert'
-          assert_redirected_to :action => "index"
+          assert_redirected_to action: "index"
         end
 
     See a full example on http://codepaste.org/view/paste/334
@@ -5368,7 +5368,7 @@
 *   Added JavaScript confirm feature to link_to. Documentation:
 
         The html_options have a special feature for creating javascript confirm alerts where if you pass
-        :confirm => 'Are you sure?', the link will be guarded with a JS popup asking that question.
+        confirm: 'Are you sure?', the link will be guarded with a JS popup asking that question.
         If the user accepts, the link is processed, otherwise not.
 
 *   Added link_to_unless_current as a UrlHelper method *Sam Stephenson*. Documentation:
@@ -5531,7 +5531,7 @@
           send_file '/path/to.zip'
 
         Show a JPEG in browser:
-          send_file '/path/to.jpeg', :type => 'image/jpeg', :disposition => 'inline'
+          send_file '/path/to.jpeg', type: 'image/jpeg', disposition: 'inline'
 
         Read about the other Content-* HTTP headers if you'd like to
         provide the user with more information (such as Content-Description).
@@ -5614,12 +5614,12 @@
     ...that's usually not terribly interesting (unless you have a lot of options already in a hash), but it
     gives way for more specific tags, like the new form tag:
 
-        form_tag({ :controller => "weblog", :action => "update" }, { :multipart => "true", "style" => "width: 200px"}) =>
+        form_tag({ controller: "weblog", action: "update" }, { multipart: "true", "style" => "width: 200px"}) =>
           <form action="/weblog/update" enctype="multipart/formdata" style="width: 200px">
 
     There's even a "pretty" version for people who don't like to open tags in code and close them in HTML:
 
-        <%= start_form_tag :action => "update" %>
+        <%= start_form_tag action: "update" %>
           # all the input fields
         <%= end_form_tag %>
 
@@ -5635,11 +5635,11 @@
 
 *   Changed the URL rewriter so controller_prefix and action_prefix can be used in isolation. You can now do:
 
-        url_for(:controller_prefix => "clients")
+        url_for(controller_prefix: "clients")
 
     ...or:
 
-        url_for(:action_prefix => "category/messages")
+        url_for(action_prefix: "category/messages")
 
     Neither would have worked in isolation before (:controller_prefix required a :controller and :action_prefix required an :action)
 
@@ -5666,7 +5666,7 @@
 
 *   The UrlHelper methods url_for and link_to will now by default only return paths, not complete URIs.
     That should make it easier to fit a Rails application behind a proxy or load-balancer.
-    You can overwrite this by passing :only_path => false as part of the options. *Suggested by U235*
+    You can overwrite this by passing only_path: false as part of the options. *Suggested by U235*
 
 *   Fixed bug with having your own layout for use with scaffolding *Kevin Radloff*
 
@@ -5706,9 +5706,9 @@
           protected
             def dashboard_url
               if @project.active?
-                url_for :controller => "project", :action => "dashboard"
+                url_for controller: "project", action: "dashboard"
               else
-                url_for :controller => "account", :action => "dashboard"
+                url_for controller: "account", action: "dashboard"
               end
             end
         end
@@ -5720,7 +5720,7 @@
         url_for directly. Example:
 
           def default_url_options(options)
-            { :controller_prefix => @project.active? ? "projects/" : "accounts/" }
+            { controller_prefix: @project.active? ? "projects/" : "accounts/" }
           end
 
         As you can infer from the example, this is mostly useful for situations where you want to
@@ -5731,13 +5731,13 @@
 *   Changed url_for so that an "id" passed in the :params is not treated special. You need to use the dedicated :id to get
     the special auto path-params treatment. Considering the url http://localhost:81/friends/list
 
-        url_for(:action => "show", :params => { "id" => 5 })
+        url_for(action: "show", params: { "id" => 5 })
           ...used to give http://localhost:81/friends/show/5
           ......now gives http://localhost:81/friends/show?id=5
 
         If you want the automated id behavior, do:
 
-        url_for(:action => "show", :id => 5 )
+        url_for(action: "show", id: 5 )
           ....which gives http://localhost:81/friends/show/5
 
 
@@ -5794,7 +5794,7 @@
 
 *   Fixed redirects on https setups *Andreas*
 
-*   Fixed scaffolding problem on the edit action when using :suffix => true *Scott*
+*   Fixed scaffolding problem on the edit action when using suffix: true *Scott*
 
 *   Fixed scaffolding problem where implementing list.rhtml wouldn't work for the index action
 
@@ -5816,17 +5816,17 @@
 
 *   Fixed three bugs with the url_for/redirect_to/link_to handling. Considering the url http://localhost:81/friends/show/1
 
-        url_for(:action => "list")
+        url_for(action: "list")
           ...used to give http://localhost:81/friends/list/1
           ......now gives http://localhost:81/friends/list
 
-        url_for(:controller => "friends", :action => "destroy", :id => 5)
+        url_for(controller: "friends", action: "destroy", id: 5)
           ...used to give http://localhost:81/friends/destroy
           ......now gives http://localhost:81/friends/destroy/5
 
     Considering the url http://localhost:81/teachers/show/t
 
-        url_for(:action => "list", :id => 5)
+        url_for(action: "list", id: 5)
           ...used to give http://localhost:81/5eachers/list/t
           ......now gives http://localhost:81/teachers/list/5
 

@@ -14,7 +14,7 @@ module ActiveRecord
     def initialize(record)
       @record = record
       errors = @record.errors.full_messages.join(", ")
-      super(I18n.t("activerecord.errors.messages.record_invalid", :errors => errors))
+      super(I18n.t("activerecord.errors.messages.record_invalid", errors: errors))
     end
   end
 
@@ -44,7 +44,7 @@ module ActiveRecord
       end
     end
 
-    # The validation process on save can be skipped by passing <tt>:validate => false</tt>. The regular Base#save method is
+    # The validation process on save can be skipped by passing <tt>validate: false</tt>. The regular Base#save method is
     # replaced with this when the validations module is mixed in, which it is by default.
     def save(options={})
       perform_validations(options) ? super : false

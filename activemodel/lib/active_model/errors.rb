@@ -203,7 +203,7 @@ module ActiveModel
     #   #    <error>name must be specified</error>
     #   #  </errors>
     def to_xml(options={})
-      to_a.to_xml options.reverse_merge(:root => "errors", :skip_types => true)
+      to_a.to_xml options.reverse_merge(root: "errors", skip_types: true)
     end
 
     # Returns an ActiveSupport::OrderedHash that can be used as the JSON representation for this object.
@@ -260,10 +260,10 @@ module ActiveModel
     #
     #   class Company
     #     validates_presence_of :name, :address, :email
-    #     validates_length_of :name, :in => 5..30
+    #     validates_length_of :name, in: 5..30
     #   end
     #
-    #   company = Company.create(:address => '123 First St.')
+    #   company = Company.create(address: '123 First St.')
     #   company.errors.full_messages # =>
     #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     def full_messages
@@ -277,11 +277,11 @@ module ActiveModel
     def full_message(attribute, message)
       return message if attribute == :base
       attr_name = attribute.to_s.gsub('.', '_').humanize
-      attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+      attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
       I18n.t(:"errors.format", {
-        :default   => "%{attribute} %{message}",
-        :attribute => attr_name,
-        :message   => message
+        default:   "%{attribute} %{message}",
+        attribute: attr_name,
+        message:   message
       })
     end
 
@@ -333,10 +333,10 @@ module ActiveModel
       value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
 
       options = {
-        :default => defaults,
-        :model => @base.class.model_name.human,
-        :attribute => @base.class.human_attribute_name(attribute),
-        :value => value
+        default: defaults,
+        model: @base.class.model_name.human,
+        attribute: @base.class.human_attribute_name(attribute),
+        value: value
       }.merge(options)
 
       I18n.translate(key, options)

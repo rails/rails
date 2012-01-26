@@ -17,18 +17,18 @@ class Mess < ActiveRecord::Base
 end
 class Crisis < ActiveRecord::Base
   has_and_belongs_to_many :messes
-  has_many :analyses, :dependent => :destroy
-  has_many :successes, :through => :analyses
-  has_many :dresses, :dependent => :destroy
-  has_many :compresses, :through => :dresses
+  has_many :analyses, dependent: :destroy
+  has_many :successes, through: :analyses
+  has_many :dresses, dependent: :destroy
+  has_many :compresses, through: :dresses
 end
 class Analysis < ActiveRecord::Base
   belongs_to :crisis
   belongs_to :success
 end
 class Success < ActiveRecord::Base
-  has_many :analyses, :dependent => :destroy
-  has_many :crises, :through => :analyses
+  has_many :analyses, dependent: :destroy
+  has_many :crises, through: :analyses
 end
 class Dress < ActiveRecord::Base
   belongs_to :crisis
@@ -57,7 +57,7 @@ class EagerSingularizationTest < ActiveRecord::TestCase
       ActiveRecord::Base.connection.create_table :buses do |t|
         t.column :name, :string
       end
-      ActiveRecord::Base.connection.create_table :crises_messes, :id => false do |t|
+      ActiveRecord::Base.connection.create_table :crises_messes, id: false do |t|
         t.column :crisis_id, :integer
         t.column :mess_id, :integer
       end
@@ -103,43 +103,43 @@ class EagerSingularizationTest < ActiveRecord::TestCase
   def test_eager_no_extra_singularization_belongs_to
     return unless @have_tables
     assert_nothing_raised do
-      Virus.find(:all, :include => :octopus)
+      Virus.find(:all, include: :octopus)
     end
   end
 
   def test_eager_no_extra_singularization_has_one
     return unless @have_tables
     assert_nothing_raised do
-      Octopus.find(:all, :include => :virus)
+      Octopus.find(:all, include: :virus)
     end
   end
 
   def test_eager_no_extra_singularization_has_many
     return unless @have_tables
     assert_nothing_raised do
-      Bus.find(:all, :include => :passes)
+      Bus.find(:all, include: :passes)
     end
   end
 
   def test_eager_no_extra_singularization_has_and_belongs_to_many
     return unless @have_tables
     assert_nothing_raised do
-      Crisis.find(:all, :include => :messes)
-      Mess.find(:all, :include => :crises)
+      Crisis.find(:all, include: :messes)
+      Mess.find(:all, include: :crises)
     end
   end
 
   def test_eager_no_extra_singularization_has_many_through_belongs_to
     return unless @have_tables
     assert_nothing_raised do
-      Crisis.find(:all, :include => :successes)
+      Crisis.find(:all, include: :successes)
     end
   end
 
   def test_eager_no_extra_singularization_has_many_through_has_many
     return unless @have_tables
     assert_nothing_raised do
-      Crisis.find(:all, :include => :compresses)
+      Crisis.find(:all, include: :compresses)
     end
   end
 end

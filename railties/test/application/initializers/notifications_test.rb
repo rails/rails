@@ -33,7 +33,7 @@ module ApplicationTests
       ActiveRecord::Base.logger = logger
 
       # Mimic Active Record notifications
-      instrument "sql.active_record", :name => "SQL", :sql => "SHOW tables"
+      instrument "sql.active_record", name: "SQL", sql: "SHOW tables"
       wait
 
       assert_equal 1, logger.logged(:debug).size

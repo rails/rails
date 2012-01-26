@@ -16,7 +16,7 @@ module ActiveRecord
       #
       #   class Article < ActiveRecord::Base
       #     def self.create_with_scope
-      #       with_scope(:find => where(:blog_id => 1), :create => { :blog_id => 1 }) do
+      #       with_scope(find: where(blog_id: 1), create: { blog_id: 1 }) do
       #         find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
       #         a = create(1)
       #         a.blog_id # => 1
@@ -33,11 +33,11 @@ module ActiveRecord
       #
       #   class Article < ActiveRecord::Base
       #     def self.find_with_scope
-      #       with_scope(:find => where(:blog_id => 1).limit(1), :create => { :blog_id => 1 }) do
-      #         with_scope(:find => limit(10)) do
+      #       with_scope(find: where(blog_id: 1).limit(1), create: { blog_id: 1 }) do
+      #         with_scope(find: limit(10)) do
       #           all # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
       #         end
-      #         with_scope(:find => where(:author_id => 3)) do
+      #         with_scope(find: where(author_id: 3)) do
       #           all # => SELECT * from articles WHERE blog_id = 1 AND author_id = 3 LIMIT 1
       #         end
       #       end
@@ -48,8 +48,8 @@ module ActiveRecord
       #
       #   class Article < ActiveRecord::Base
       #     def self.find_with_exclusive_scope
-      #       with_scope(:find => where(:blog_id => 1).limit(1)) do
-      #         with_exclusive_scope(:find => limit(10)) do
+      #       with_scope(find: where(blog_id: 1).limit(1)) do
+      #         with_exclusive_scope(find: limit(10)) do
       #           all # => SELECT * from articles LIMIT 10
       #         end
       #       end
@@ -109,12 +109,12 @@ module ActiveRecord
           raise ArgumentError, <<-MSG
   New finder API can not be used with_exclusive_scope. You can either call unscoped to get an anonymous scope not bound to the default_scope:
 
-  User.unscoped.where(:active => true)
+  User.unscoped.where(active: true)
 
   Or call unscoped with a block:
 
   User.unscoped do
-  User.where(:active => true).all
+  User.where(active: true).all
   end
 
   MSG

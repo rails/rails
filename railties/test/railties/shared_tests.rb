@@ -27,7 +27,7 @@ module RailtiesTest
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
         load 'rails/tasks/engine.rake'
-        task :foo => :environment do
+        task foo: :environment do
           puts "Task ran"
         end
       RUBY
@@ -196,7 +196,7 @@ module RailtiesTest
         end
 
         Rails.application.routes.draw do
-          match "/sprokkit", :to => Sprokkit
+          match "/sprokkit", to: Sprokkit
         end
       RUBY
 
@@ -212,29 +212,29 @@ module RailtiesTest
       controller "foo", <<-RUBY
         class FooController < ActionController::Base
           def index
-            render :text => "foo"
+            render text: "foo"
           end
         end
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match 'foo', :to => 'foo#index'
+          match 'foo', to: 'foo#index'
         end
       RUBY
 
       @plugin.write "app/controllers/bar_controller.rb", <<-RUBY
         class BarController < ActionController::Base
           def index
-            render :text => "bar"
+            render text: "bar"
           end
         end
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          match 'foo', :to => 'bar#index'
-          match 'bar', :to => 'bar#index'
+          match 'foo', to: 'bar#index'
+          match 'bar', to: 'bar#index'
         end
       RUBY
 
@@ -314,7 +314,7 @@ YAML
         Rails.application.routes.draw do
           namespace :admin do
             namespace :foo do
-              match "bar", :to => "bar#index"
+              match "bar", to: "bar#index"
             end
           end
         end
@@ -323,7 +323,7 @@ YAML
       @plugin.write "app/controllers/admin/foo/bar_controller.rb", <<-RUBY
         class Admin::Foo::BarController < ApplicationController
           def index
-            render :text => "Rendered from namespace"
+            render text: "Rendered from namespace"
           end
         end
       RUBY

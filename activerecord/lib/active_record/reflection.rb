@@ -83,19 +83,19 @@ module ActiveRecord
     class MacroReflection
       # Returns the name of the macro.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:balance</tt>
+      # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>:balance</tt>
       # <tt>has_many :clients</tt> returns <tt>:clients</tt>
       attr_reader :name
 
       # Returns the macro type.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:composed_of</tt>
+      # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>:composed_of</tt>
       # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
       attr_reader :macro
 
       # Returns the hash of options used for the macro.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>{ :class_name => "Money" }</tt>
+      # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>{ class_name: "Money" }</tt>
       # <tt>has_many :clients</tt> returns +{}+
       attr_reader :options
 
@@ -114,7 +114,7 @@ module ActiveRecord
 
       # Returns the class for the macro.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns the Money class
+      # <tt>composed_of :balance, class_name: 'Money'</tt> returns the Money class
       # <tt>has_many :clients</tt> returns the Client class
       def klass
         @klass ||= class_name.constantize
@@ -122,7 +122,7 @@ module ActiveRecord
 
       # Returns the class name for the macro.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>'Money'</tt>
+      # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>'Money'</tt>
       # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
       def class_name
         @class_name ||= (options[:class_name] || derive_class_name).to_s
@@ -307,10 +307,10 @@ module ActiveRecord
       # the parent's validation.
       #
       # Unless you explicitly disable validation with
-      # <tt>:validate => false</tt>, validation will take place when:
+      # <tt>validate: false</tt>, validation will take place when:
       #
-      # * you explicitly enable validation; <tt>:validate => true</tt>
-      # * you use autosave; <tt>:autosave => true</tt>
+      # * you explicitly enable validation; <tt>validate: true</tt>
+      # * you use autosave; <tt>autosave: true</tt>
       # * the association is a +has_many+ association
       def validate?
         !options[:validate].nil? ? options[:validate] : (options[:autosave] == true || macro == :has_many)
@@ -372,14 +372,14 @@ module ActiveRecord
     # in the Active Record class.
     class ThroughReflection < AssociationReflection #:nodoc:
       delegate :foreign_key, :foreign_type, :association_foreign_key,
-               :active_record_primary_key, :type, :to => :source_reflection
+               :active_record_primary_key, :type, to: :source_reflection
 
       # Gets the source of the through reflection. It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
       #   class Post < ActiveRecord::Base
       #     has_many :taggings
-      #     has_many :tags, :through => :taggings
+      #     has_many :tags, through: :taggings
       #   end
       #
       def source_reflection
@@ -391,7 +391,7 @@ module ActiveRecord
       #
       #   class Post < ActiveRecord::Base
       #     has_many :taggings
-      #     has_many :tags, :through => :taggings
+      #     has_many :tags, through: :taggings
       #   end
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
@@ -419,12 +419,12 @@ module ActiveRecord
       #
       #   class Person
       #     has_many :articles
-      #     has_many :comment_tags, :through => :articles
+      #     has_many :comment_tags, through: :articles
       #   end
       #
       #   class Article
       #     has_many :comments
-      #     has_many :comment_tags, :through => :comments, :source => :tags
+      #     has_many :comment_tags, through: :comments, source: :tags
       #   end
       #
       #   class Comment

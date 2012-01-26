@@ -8,9 +8,9 @@ module ActionController #:nodoc:
     #
     #     def after_save(record)
     #       list = record.is_a?(List) ? record : record.list
-    #       expire_page(:controller => "lists", :action => %w( show public feed ), :id => list.id)
-    #       expire_action(:controller => "lists", :action => "all")
-    #       list.shares.each { |share| expire_page(:controller => "lists", :action => "show", :id => share.url_key) }
+    #       expire_page(controller: "lists", action: %w( show public feed ), id: list.id)
+    #       expire_action(controller: "lists", action: "all")
+    #       list.shares.each { |share| expire_page(controller: "lists", action: "show", id: share.url_key) }
     #     end
     #   end
     #
@@ -18,7 +18,7 @@ module ActionController #:nodoc:
     #
     #   class ListsController < ApplicationController
     #     caches_action :index, :show, :public, :feed
-    #     cache_sweeper :list_sweeper, :only => [ :edit, :destroy, :share ]
+    #     cache_sweeper :list_sweeper, only: [ :edit, :destroy, :share ]
     #   end
     #
     # In the example above, four actions are cached and three actions are responsible for expiring those caches.
@@ -27,7 +27,7 @@ module ActionController #:nodoc:
     #
     #   class ListsController < ApplicationController
     #     caches_action :index, :show, :public, :feed
-    #     cache_sweeper OpenBar::Sweeper, :only => [ :edit, :destroy, :share ]
+    #     cache_sweeper OpenBar::Sweeper, only: [ :edit, :destroy, :share ]
     #   end
     module Sweeping
       extend ActiveSupport::Concern
@@ -41,9 +41,9 @@ module ActionController #:nodoc:
             sweeper_instance = (sweeper.is_a?(Symbol) ? Object.const_get(sweeper.to_s.classify) : sweeper).instance
 
             if sweeper_instance.is_a?(Sweeper)
-              around_filter(sweeper_instance, :only => configuration[:only])
+              around_filter(sweeper_instance, only: configuration[:only])
             else
-              after_filter(sweeper_instance, :only => configuration[:only])
+              after_filter(sweeper_instance, only: configuration[:only])
             end
           end
         end

@@ -12,11 +12,11 @@ module ActiveResource
   # services.
   class Connection
 
-    HTTP_FORMAT_HEADER_NAMES = {  :get => 'Accept',
-      :put => 'Content-Type',
-      :post => 'Content-Type',
-      :delete => 'Accept',
-      :head => 'Accept'
+    HTTP_FORMAT_HEADER_NAMES = {  get: 'Accept',
+      put: 'Content-Type',
+      post: 'Content-Type',
+      delete: 'Accept',
+      head: 'Accept'
     }
 
     attr_reader :site, :user, :password, :auth_type, :timeout, :proxy, :ssl_options

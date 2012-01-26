@@ -27,8 +27,8 @@ module ActionController #:nodoc:
     #   class WeblogController < ActionController::Base
     #     def update
     #       List.update(params[:list][:id], params[:list])
-    #       expire_page :action => "show", :id => params[:list][:id]
-    #       redirect_to :action => "show", :id => params[:list][:id]
+    #       expire_page action: "show", id: params[:list][:id]
+    #       redirect_to action: "show", id: params[:list][:id]
     #     end
     #   end
     #
@@ -99,10 +99,10 @@ module ActionController #:nodoc:
         #   caches_page :index
         #
         #   # cache the index action except for JSON requests
-        #   caches_page :index, :if => Proc.new { |c| !c.request.format.json? }
+        #   caches_page :index, if: Proc.new { |c| !c.request.format.json? }
         #
         #   # don't gzip images
-        #   caches_page :image, :gzip => false
+        #   caches_page :image, gzip: false
         def caches_page(*actions)
           return unless perform_caching
           options = actions.extract_options!
@@ -119,7 +119,7 @@ module ActionController #:nodoc:
             Zlib::BEST_COMPRESSION
           end
 
-          after_filter({:only => actions}.merge(options)) do |c|
+          after_filter({only: actions}.merge(options)) do |c|
             c.cache_page(nil, nil, gzip_level)
           end
         end
@@ -138,22 +138,22 @@ module ActionController #:nodoc:
           end
 
           def instrument_page_cache(name, path)
-            ActiveSupport::Notifications.instrument("#{name}.action_controller", :path => path){ yield }
+            ActiveSupport::Notifications.instrument("#{name}.action_controller", path: path){ yield }
           end
       end
 
       # Expires the page that was cached with the +options+ as a key. Example:
-      #   expire_page :controller => "lists", :action => "show"
+      #   expire_page controller: "lists", action: "show"
       def expire_page(options = {})
         return unless self.class.perform_caching
 
         if options.is_a?(Hash)
           if options[:action].is_a?(Array)
             options[:action].each do |action|
-              self.class.expire_page(url_for(options.merge(:only_path => true, :action => action)))
+              self.class.expire_page(url_for(options.merge(only_path: true, action: action)))
             end
           else
-            self.class.expire_page(url_for(options.merge(:only_path => true)))
+            self.class.expire_page(url_for(options.merge(only_path: true)))
           end
         else
           self.class.expire_page(options)
@@ -162,13 +162,13 @@ module ActionController #:nodoc:
 
       # Manually cache the +content+ in the key determined by +options+. If no content is provided, the contents of response.body is used.
       # If no options are provided, the url of the current request being handled is used. Example:
-      #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
+      #   cache_page "I'm the cached content", controller: "lists", action: "show"
       def cache_page(content = nil, options = nil, gzip = Zlib::BEST_COMPRESSION)
         return unless self.class.perform_caching && caching_allowed?
 
         path = case options
           when Hash
-            url_for(options.merge(:only_path => true, :format => params[:format]))
+            url_for(options.merge(only_path: true, format: params[:format]))
           when String
             options
           else

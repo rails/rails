@@ -8,7 +8,7 @@ module AbstractController
     include ActiveSupport::Callbacks
 
     included do
-      define_callbacks :process_action, :terminator => "response_body"
+      define_callbacks :process_action, terminator: "response_body"
     end
 
     # Override AbstractController::Base's process_action to run the
@@ -22,8 +22,8 @@ module AbstractController
     module ClassMethods
       # If :only or :except are used, convert the options into the
       # primitive form (:per_key) used by ActiveSupport::Callbacks.
-      # The basic idea is that :only => :index gets converted to
-      # :if => proc {|c| c.action_name == "index" }, but that the
+      # The basic idea is that only: :index gets converted to
+      # if: proc {|c| c.action_name == "index" }, but that the
       # proc is only evaluated once per action for the lifetime of
       # a Rails process.
       #
@@ -33,11 +33,11 @@ module AbstractController
       def _normalize_callback_options(options)
         if only = options[:only]
           only = Array(only).map {|o| "action_name == '#{o}'"}.join(" || ")
-          options[:per_key] = {:if => only}
+          options[:per_key] = {if: only}
         end
         if except = options[:except]
           except = Array(except).map {|e| "action_name == '#{e}'"}.join(" || ")
-          options[:per_key] = {:unless => except}
+          options[:per_key] = {unless: except}
         end
       end
 
@@ -177,7 +177,7 @@ module AbstractController
           def prepend_#{filter}_filter(*names, &blk)                                            # def prepend_before_filter(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|                                    #   _insert_callbacks(names, blk) do |name, options|
               options[:if] = (Array(options[:if]) << "!halted") if #{filter == :after}          #     options[:if] = (Array(options[:if]) << "!halted") if false
-              set_callback(:process_action, :#{filter}, name, options.merge(:prepend => true))  #     set_callback(:process_action, :before, name, options.merge(:prepend => true))
+              set_callback(:process_action, :#{filter}, name, options.merge(prepend: true))  #     set_callback(:process_action, :before, name, options.merge(prepend: true))
             end                                                                                 #   end
           end                                                                                   # end
 

@@ -350,7 +350,7 @@ Proc.new { |html_tag, instance| %Q(<div class="field_with_errors">#{html_tag}</d
 * +config.action_view.javascript_expansions+ is a hash containing expansions that can be used for the JavaScript include tag. By default, this is defined as:
 
 <ruby>
-config.action_view.javascript_expansions = { :defaults => %w(jquery jquery_ujs) }
+config.action_view.javascript_expansions = { defaults: %w(jquery jquery_ujs) }
 </ruby>
 
 However, you may add to this by defining others:
@@ -399,10 +399,10 @@ There are a number of settings available on +config.action_mailer+:
 
 * +config.action_mailer.default+ configures Action Mailer defaults. These default to:
 <ruby>
-:mime_version => "1.0",
-:charset      => "UTF-8",
-:content_type => "text/plain",
-:parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+mime_version: "1.0",
+charset:      "UTF-8",
+content_type: "text/plain",
+parts_order:  [ "text/plain", "text/enriched", "text/html" ]
 </ruby>
 
 * +config.action_mailer.observers+ registers observers which will be notified when mail is delivered.

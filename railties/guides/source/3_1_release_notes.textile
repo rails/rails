@@ -119,7 +119,7 @@ h5. config/initializers/wrap_parameters.rb
 
 # Enable parameter wrapping for JSON. You can disable this by setting :format to an empty array.
 ActiveSupport.on_load(:action_controller) do
-  wrap_parameters :format => [:json]
+  wrap_parameters format: [:json]
 end
 
 # Disable root element in JSON by default.
@@ -234,14 +234,14 @@ h4. Action Controller
 class PostsController < ApplicationController
   USER_NAME, PASSWORD = "dhh", "secret"
 
-  before_filter :authenticate, :except => [ :index ]
+  before_filter :authenticate, except: [ :index ]
 
   def index
-    render :text => "Everyone can see me!"
+    render text: "Everyone can see me!"
   end
 
   def edit
-    render :text => "I'm only accessible if you know the password"
+    render text: "I'm only accessible if you know the password"
   end
 
   private
@@ -257,14 +257,14 @@ end
 
 <ruby>
 class PostsController < ApplicationController
-  http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
+  http_basic_authenticate_with name: "dhh", password: "secret", except: :index
 
   def index
-    render :text => "Everyone can see me!"
+    render text: "Everyone can see me!"
   end
 
   def edit
-    render :text => "I'm only accessible if you know the password"
+    render text: "I'm only accessible if you know the password"
   end
 end
 </ruby>
@@ -299,7 +299,7 @@ h4. Action Dispatch
 
 h4. Action View
 
-* Added an +:authenticity_token+ option to +form_tag+ for custom handling or to omit the token by passing <tt>:authenticity_token => false</tt>.
+* Added an +:authenticity_token+ option to +form_tag+ for custom handling or to omit the token by passing <tt>authenticity_token: false</tt>.
 
 * Created <tt>ActionView::Renderer</tt> and specified an API for <tt>ActionView::Context</tt>.
 
@@ -307,12 +307,12 @@ h4. Action View
 
 * Added HTML5 +button_tag+ helper.
 
-* +file_field+ automatically adds <tt>:multipart => true</tt> to the enclosing form.
+* +file_field+ automatically adds <tt>multipart: true</tt> to the enclosing form.
 
 * Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a +:data+ hash of options:
 
 <plain>
-tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
+tag("div", data: {name: 'Stephen', city_state: %w(Chicago IL)})
 # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
 </plain>
 
@@ -364,10 +364,10 @@ user.build_account{ |a| a.credit_limit = 100.0 }
 <ruby>
 class Post < ActiveRecord::Base
   attr_accessible :title
-  attr_accessible :title, :published_at, :as => :admin
+  attr_accessible :title, :published_at, as: :admin
 end
 
-Post.new(params[:post], :as => :admin)
+Post.new(params[:post], as: :admin)
 </ruby>
 
 * +default_scope+ can now take a block, lambda, or any other object which responds to call for lazy evaluation.
@@ -405,10 +405,10 @@ People.limit(1).offset(1).count # => 'SELECT COUNT(*) FROM people LIMIT 1 OFFSET
 
 * Note that this change is backwards-incompatible to an extent, but there is unfortunately no way to 'deprecate' it before changing it. The change is being made in order to have consistency as to the meaning of 'destroy' or 'delete' across the different types of associations. If you wish to destroy the records themselves, you can do <tt>records.association.each(&:destroy)</tt>.
 
-* Add <tt>:bulk => true</tt> option to +change_table+ to make all the schema changes defined in a block using a single ALTER statement.
+* Add <tt>bulk: true</tt> option to +change_table+ to make all the schema changes defined in a block using a single ALTER statement.
 
 <ruby>
-change_table(:users, :bulk => true) do |t|
+change_table(:users, bulk: true) do |t|
   t.string :company_name
   t.change :birthdate, :datetime
 end
@@ -446,8 +446,8 @@ end
 * Removed support for interpolating string SQL conditions on associations. Instead, a proc should be used.
 
 <ruby>
-has_many :things, :conditions => 'foo = #{bar}'          # before
-has_many :things, :conditions => proc { "foo = #{bar}" } # after
+has_many :things, conditions: 'foo = #{bar}'          # before
+has_many :things, conditions: proc { "foo = #{bar}" } # after
 </ruby>
 
 Inside the proc, +self+ is the object which is the owner of the association, unless you are eager loading the association, in which case +self+ is the class which the association is within.
@@ -455,7 +455,7 @@ Inside the proc, +self+ is the object which is the owner of the association, unl
 You can have any "normal" conditions inside the proc, so the following will work too:
 
 <ruby>
-has_many :things, :conditions => proc { ["foo = ?", bar] }
+has_many :things, conditions: proc { ["foo = ?", bar] }
 </ruby>
 
 * Previously +:insert_sql+ and +:delete_sql+ on +has_and_belongs_to_many+ association allowed you to call 'record' to get the record being inserted or deleted. This is now passed as an argument to the proc.

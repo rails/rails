@@ -83,7 +83,7 @@ class Hash
   # A hash is blank if it's empty:
   #
   #   {}.blank?                # => true
-  #   {:key => 'value'}.blank? # => false
+  #   {key: 'value'}.blank? # => false
   #
   alias_method :blank?, :empty?
 end

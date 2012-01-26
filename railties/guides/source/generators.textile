@@ -158,7 +158,7 @@ Rails own generators are flexible enough to let you customize scaffolding. They 
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, :fixture => true
+  g.test_framework  :test_unit, fixture: true
 end
 </ruby>
 
@@ -200,7 +200,7 @@ Our first customization on the workflow will be to stop generating stylesheets a
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, :fixture => false
+  g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
 end
 </ruby>
@@ -247,7 +247,7 @@ Which is what we expected. We can now tell scaffold to use our new helper genera
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, :fixture => false
+  g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
   g.helper          :my_helper
 end
@@ -286,7 +286,7 @@ Now, when the helper generator is invoked and TestUnit is configured as the test
 
 <ruby>
 # Search for :helper instead of :my_helper
-hook_for :test_framework, :as => :helper
+hook_for :test_framework, as: :helper
 </ruby>
 
 And now you can re-run scaffold for another resource and see it generating tests as well!
@@ -309,7 +309,7 @@ and revert the last change in +config/application.rb+:
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, :fixture => false
+  g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
 end
 </ruby>
@@ -326,7 +326,7 @@ We can easily simulate this behavior by changing our +config/application.rb+ onc
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :shoulda, :fixture => false
+  g.test_framework  :shoulda, fixture: false
   g.stylesheets     false
 
   # Add a fallback!
@@ -370,8 +370,8 @@ h3. Application Templates
 Now that you've seen how generators can be used _inside_ an application, did you know they can also be used to _generate_ applications too? This kind of generator is referred as a "template".
 
 <ruby>
-gem("rspec-rails", :group => "test")
-gem("cucumber-rails", :group => "test")
+gem("rspec-rails", group: "test")
+gem("cucumber-rails", group: "test")
 
 if yes?("Would you like to install Devise?")
   gem("devise")
@@ -411,7 +411,7 @@ h4. +gem+
 Specifies a gem dependency of the application.
 
 <ruby>
-gem("rspec", :group => "test", :version => "2.1.0")
+gem("rspec", group: "test", version: "2.1.0")
 gem("devise", "1.1.5")
 </ruby>
 
@@ -424,13 +424,13 @@ Available options are:
 Any additional options passed to this method are put on the end of the line:
 
 <ruby>
-gem("devise", :git => "git://github.com/plataformatec/devise", :branch => "master")
+gem("devise", git: "git://github.com/plataformatec/devise", branch: "master")
 </ruby>
 
 The above code will put the following line into +Gemfile+:
 
 <ruby>
-gem "devise", :git => "git://github.com/plataformatec/devise", :branch => "master"
+gem "devise", git: "git://github.com/plataformatec/devise", branch: "master"
 </ruby>
 
 h4. +gem_group+
@@ -472,7 +472,7 @@ Available options are:
 * +:env+ - Specify an environment for this configuration option. If you wish to use this option with the block syntax the recommended syntax is as follows:
 
 <ruby>
-application(nil, :env => "development") do
+application(nil, env: "development") do
   "config.asset_host = 'http://localhost:3000'"
 end
 </ruby>
@@ -483,9 +483,9 @@ Runs the specified git command:
 
 <ruby>
 git :init
-git :add => "."
-git :commit => "-m First commit!"
-git :add => "onefile.rb", :rm => "badfile.cxx"
+git add: "."
+git commit: "-m First commit!"
+git add: "onefile.rb", rm: "badfile.cxx"
 </ruby>
 
 The values of the hash here being the arguments or options passed to the specific git command. As per the final example shown here, multiple git commands can be specified at a time, but the order of their running is not guaranteed to be the same as the order that they were specified in.
@@ -535,7 +535,7 @@ This method also takes a block:
 <ruby>
 rakefile("test.rake") do
   %Q{
-    task :rock => :environment do
+    task rock: :environment do
       puts "Rockin'"
     end
   }

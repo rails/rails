@@ -4,7 +4,7 @@ module ActiveModel
   module Validations
     class AcceptanceValidator < EachValidator
       def initialize(options)
-        super(options.reverse_merge(:allow_nil => true, :accept => "1"))
+        super(options.reverse_merge(allow_nil: true, accept: "1"))
       end
 
       def validate_each(record, attribute, value)
@@ -27,7 +27,7 @@ module ActiveModel
       #
       #   class Person < ActiveRecord::Base
       #     validates_acceptance_of :terms_of_service
-      #     validates_acceptance_of :eula, :message => "must be abided"
+      #     validates_acceptance_of :eula, message: "must be abided"
       #   end
       #
       # If the database column does not exist, the +terms_of_service+ attribute
@@ -48,14 +48,14 @@ module ActiveModel
       #   a database column, since the attribute is typecast from "1" to +true+
       #   before validation.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
-      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The
+      #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
+      #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false
       #   value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to
       #   determine if the validation should not occur (for example,
-      #   <tt>:unless => :skip_validation</tt>, or
-      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).
+      #   <tt>unless: :skip_validation</tt>, or
+      #   <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>).
       #   The method, proc or string should return or evaluate to a true or
       #   false value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict. 

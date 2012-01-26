@@ -28,7 +28,7 @@ class TestERBTemplate < ActiveSupport::TestCase
         "<%= @virtual_path %>",
         "partial",
         ERBHandler,
-        :virtual_path => "partial"
+        virtual_path: "partial"
       )
     end
 
@@ -46,7 +46,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def new_template(body = "<%= hello %>", details = {})
-    ActionView::Template.new(body, "hello template", ERBHandler, {:virtual_path => "hello"}.merge!(details))
+    ActionView::Template.new(body, "hello template", ERBHandler, {virtual_path: "hello"}.merge!(details))
   end
 
   def render(locals = {})
@@ -69,7 +69,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_template_does_not_lose_its_source_after_rendering_if_it_does_not_have_a_virtual_path
-    @template = new_template("Hello", :virtual_path => nil)
+    @template = new_template("Hello", virtual_path: nil)
     render
     assert_equal "Hello", @template.source
   end
@@ -77,7 +77,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_locals
     @template = new_template("<%= my_local %>")
     @template.locals = [:my_local]
-    assert_equal "I'm a local", render(:my_local => "I'm a local")
+    assert_equal "I'm a local", render(my_local: "I'm a local")
   end
 
   def test_restores_buffer
@@ -94,21 +94,21 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_refresh_with_templates
-    @template = new_template("Hello", :virtual_path => "test/foo/bar")
+    @template = new_template("Hello", virtual_path: "test/foo/bar")
     @template.locals = [:key]
     @context.lookup_context.expects(:find_template).with("bar", %w(test/foo), false, [:key]).returns("template")
     assert_equal "template", @template.refresh(@context)
   end
 
   def test_refresh_with_partials
-    @template = new_template("Hello", :virtual_path => "test/_foo")
+    @template = new_template("Hello", virtual_path: "test/_foo")
     @template.locals = [:key]
     @context.lookup_context.expects(:find_template).with("foo", %w(test), true, [:key]).returns("partial")
     assert_equal "partial", @template.refresh(@context)
   end
 
   def test_refresh_raises_an_error_without_virtual_path
-    @template = new_template("Hello", :virtual_path => nil)
+    @template = new_template("Hello", virtual_path: nil)
     assert_raise RuntimeError do
       @template.refresh(@context)
     end
@@ -147,14 +147,14 @@ class TestERBTemplate < ActiveSupport::TestCase
   # inside Rails.
   def test_lying_with_magic_comment
     assert_raises(ActionView::Template::Error) do
-      @template = new_template("# encoding: UTF-8\nhello \xFCmlat", :virtual_path => nil)
+      @template = new_template("# encoding: UTF-8\nhello \xFCmlat", virtual_path: nil)
       render
     end
   end
 
   def test_encoding_can_be_specified_with_magic_comment_in_erb
     with_external_encoding Encoding::UTF_8 do
-      @template = new_template("<%# encoding: ISO-8859-1 %>hello \xFCmlat", :virtual_path => nil)
+      @template = new_template("<%# encoding: ISO-8859-1 %>hello \xFCmlat", virtual_path: nil)
       assert_equal Encoding::UTF_8, render.encoding
       assert_equal "hello \u{fc}mlat", render
     end
@@ -162,7 +162,7 @@ class TestERBTemplate < ActiveSupport::TestCase
 
   def test_error_when_template_isnt_valid_utf8
     assert_raises(ActionView::Template::Error, /\xFC/) do
-      @template = new_template("hello \xFCmlat", :virtual_path => nil)
+      @template = new_template("hello \xFCmlat", virtual_path: nil)
       render
     end
   end

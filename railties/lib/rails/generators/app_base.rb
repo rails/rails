@@ -16,50 +16,50 @@ module Rails
       attr_accessor :rails_template
       add_shebang_option!
 
-      argument :app_path,               :type => :string
+      argument :app_path,               type: :string
 
       def self.add_shared_options_for(name)
-        class_option :builder,            :type => :string, :aliases => "-b",
-                                          :desc => "Path to a #{name} builder (can be a filesystem path or URL)"
+        class_option :builder,            type: :string, aliases: "-b",
+                                          desc: "Path to a #{name} builder (can be a filesystem path or URL)"
 
-        class_option :template,           :type => :string, :aliases => "-m",
-                                          :desc => "Path to an #{name} template (can be a filesystem path or URL)"
+        class_option :template,           type: :string, aliases: "-m",
+                                          desc: "Path to an #{name} template (can be a filesystem path or URL)"
 
-        class_option :skip_gemfile,       :type => :boolean, :default => false,
-                                          :desc => "Don't create a Gemfile"
+        class_option :skip_gemfile,       type: :boolean, default: false,
+                                          desc: "Don't create a Gemfile"
 
-        class_option :skip_bundle,        :type => :boolean, :default => false,
-                                          :desc => "Don't run bundle install"
+        class_option :skip_bundle,        type: :boolean, default: false,
+                                          desc: "Don't run bundle install"
 
-        class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
-                                          :desc => "Skip Git ignores and keeps"
+        class_option :skip_git,           type: :boolean, aliases: "-G", default: false,
+                                          desc: "Skip Git ignores and keeps"
 
-        class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
-                                          :desc => "Skip Active Record files"
+        class_option :skip_active_record, type: :boolean, aliases: "-O", default: false,
+                                          desc: "Skip Active Record files"
 
-        class_option :skip_sprockets,     :type => :boolean, :aliases => "-S", :default => false,
-                                          :desc => "Skip Sprockets files"
+        class_option :skip_sprockets,     type: :boolean, aliases: "-S", default: false,
+                                          desc: "Skip Sprockets files"
 
-        class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
-                                          :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+        class_option :database,           type: :string, aliases: "-d", default: "sqlite3",
+                                          desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :javascript,         :type => :string, :aliases => '-j', :default => 'jquery',
-                                          :desc => 'Preconfigure for selected JavaScript library'
+        class_option :javascript,         type: :string, aliases: '-j', default: 'jquery',
+                                          desc: 'Preconfigure for selected JavaScript library'
 
-        class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
-                                          :desc => "Skip JavaScript files"
+        class_option :skip_javascript,    type: :boolean, aliases: "-J", default: false,
+                                          desc: "Skip JavaScript files"
 
-        class_option :dev,                :type => :boolean, :default => false,
-                                          :desc => "Setup the #{name} with Gemfile pointing to your Rails checkout"
+        class_option :dev,                type: :boolean, default: false,
+                                          desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
 
-        class_option :edge,               :type => :boolean, :default => false,
-                                          :desc => "Setup the #{name} with Gemfile pointing to Rails repository"
+        class_option :edge,               type: :boolean, default: false,
+                                          desc: "Setup the #{name} with Gemfile pointing to Rails repository"
 
-        class_option :skip_test_unit,     :type => :boolean, :aliases => "-T", :default => false,
-                                          :desc => "Skip Test::Unit files"
+        class_option :skip_test_unit,     type: :boolean, aliases: "-T", default: false,
+                                          desc: "Skip Test::Unit files"
 
-        class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
-                                          :desc => "Show this help message and quit"
+        class_option :help,               type: :boolean, aliases: "-h", group: :rails,
+                                          desc: "Show this help message and quit"
       end
 
       def initialize(*args)
@@ -134,22 +134,22 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           <<-GEMFILE.strip_heredoc
-            gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'journey',   :git => 'https://github.com/rails/journey.git'
-            gem 'arel',      :git => 'https://github.com/rails/arel.git'
+            gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
+            gem 'journey',   git: 'https://github.com/rails/journey.git'
+            gem 'arel',      git: 'https://github.com/rails/arel.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
-            gem 'rails',     :git => 'https://github.com/rails/rails.git'
-            gem 'journey',   :git => 'https://github.com/rails/journey.git'
-            gem 'arel',      :git => 'https://github.com/rails/arel.git'
+            gem 'rails',     git: 'https://github.com/rails/rails.git'
+            gem 'journey',   git: 'https://github.com/rails/journey.git'
+            gem 'arel',      git: 'https://github.com/rails/arel.git'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
-            # gem 'rails', :git => 'https://github.com/rails/rails.git'
+            # gem 'rails', git: 'https://github.com/rails/rails.git'
           GEMFILE
         end
       end
@@ -182,7 +182,7 @@ module Rails
       end
 
       def ruby_debugger_gemfile_entry
-        "gem 'ruby-debug19', :require => 'ruby-debug'"
+        "gem 'ruby-debug19', require: 'ruby-debug'"
       end
 
       def assets_gemfile_entry
@@ -193,8 +193,8 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sass-rails',   :git => 'https://github.com/rails/sass-rails.git'
-              gem 'coffee-rails', :git => 'https://github.com/rails/coffee-rails.git'
+              gem 'sass-rails',   git: 'https://github.com/rails/sass-rails.git'
+              gem 'coffee-rails', git: 'https://github.com/rails/coffee-rails.git'
 
               # See https://github.com/sstephenson/execjs#readme for more supported runtimes
               #{javascript_runtime_gemfile_entry}

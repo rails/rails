@@ -60,10 +60,10 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
       klass = Class.new(ActiveRecord::Base)
       klass.table_name = 'test_mysql_text_not_null_defaults'
       klass.connection.create_table klass.table_name do |t|
-        t.column :non_null_text, :text, :null => false
-        t.column :non_null_blob, :blob, :null => false
-        t.column :null_text, :text, :null => true
-        t.column :null_blob, :blob, :null => true
+        t.column :non_null_text, :text, null: false
+        t.column :non_null_blob, :blob, null: false
+        t.column :null_text, :text, null: true
+        t.column :null_blob, :blob, null: true
       end
       assert_equal '', klass.columns_hash['non_null_blob'].default
       assert_equal '', klass.columns_hash['non_null_text'].default
@@ -88,8 +88,8 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
       klass = Class.new(ActiveRecord::Base)
       klass.table_name = 'test_integer_not_null_default_zero'
       klass.connection.create_table klass.table_name do |t|
-        t.column :zero, :integer, :null => false, :default => 0
-        t.column :omit, :integer, :null => false
+        t.column :zero, :integer, null: false, default: 0
+        t.column :omit, :integer, null: false
       end
 
       assert_equal 0, klass.columns_hash['zero'].default
@@ -101,7 +101,7 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
       assert_raise(ActiveRecord::StatementInvalid) { klass.create! }
 
       assert_nothing_raised do
-        instance = klass.create!(:omit => 1)
+        instance = klass.create!(omit: 1)
         assert_equal 0, instance.zero
         assert_equal 1, instance.omit
       end

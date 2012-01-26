@@ -76,9 +76,9 @@ module ActiveModel
     class ClassAttribute < Attribute
       def define
         if options[:global]
-          host.cattr_accessor name, :instance_writer => instance_writer?
+          host.cattr_accessor name, instance_writer: instance_writer?
         else
-          host.class_attribute name, :instance_writer => instance_writer?
+          host.class_attribute name, instance_writer: instance_writer?
         end
       end
     end

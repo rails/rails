@@ -57,7 +57,7 @@ module ActionView
           # to be called from plugin initialization to register javascript files
           # that the plugin installed in <tt>public/javascripts</tt>.
           #
-          #   ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
+          #   ActionView::Helpers::AssetTagHelper.register_javascript_expansion monkey: ["head", "body", "tail"]
           #
           #   javascript_include_tag :monkey # =>
           #     <script type="text/javascript" src="/javascripts/head.js"></script>
@@ -83,7 +83,7 @@ module ActionView
         #   javascript_path "http://www.example.com/js/xmlhr"    # => http://www.example.com/js/xmlhr
         #   javascript_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
         def javascript_path(source)
-          asset_paths.compute_public_path(source, 'javascripts', :ext => 'js')
+          asset_paths.compute_public_path(source, 'javascripts', ext: 'js')
         end
         alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
@@ -146,7 +146,7 @@ module ActionView
         # If you want Rails to search in all the subdirectories under <tt>public/javascripts</tt>, you should
         # explicitly set <tt>:recursive</tt>:
         #
-        #   javascript_include_tag :all, :recursive => true
+        #   javascript_include_tag :all, recursive: true
         #
         # == Caching multiple JavaScripts into one
         #
@@ -158,7 +158,7 @@ module ActionView
         # ==== Examples
         #
         #   # assuming config.perform_caching is false
-        #   javascript_include_tag :all, :cache => true
+        #   javascript_include_tag :all, cache: true
         #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>
         #   #    <script type="text/javascript" src="/javascripts/rails.js?1284139606"></script>
         #   #    <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
@@ -166,22 +166,22 @@ module ActionView
         #   #    <script type="text/javascript" src="/javascripts/checkout.js?1284139606"></script>
         #
         #   # assuming config.perform_caching is true
-        #   javascript_include_tag :all, :cache => true
+        #   javascript_include_tag :all, cache: true
         #   # => <script type="text/javascript" src="/javascripts/all.js?1344139789"></script>
         #
         #   # assuming config.perform_caching is false
-        #   javascript_include_tag "jquery", "cart", "checkout", :cache => "shop"
+        #   javascript_include_tag "jquery", "cart", "checkout", cache: "shop"
         #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>
         #   #    <script type="text/javascript" src="/javascripts/cart.js?1289139157"></script>
         #   #    <script type="text/javascript" src="/javascripts/checkout.js?1299139816"></script>
         #
         #   # assuming config.perform_caching is true
-        #   javascript_include_tag "jquery", "cart", "checkout", :cache => "shop"
+        #   javascript_include_tag "jquery", "cart", "checkout", cache: "shop"
         #   # => <script type="text/javascript" src="/javascripts/shop.js?1299139816"></script>
         #
         # The <tt>:recursive</tt> option is also available for caching:
         #
-        #   javascript_include_tag :all, :cache => true, :recursive => true
+        #   javascript_include_tag :all, cache: true, recursive: true
         def javascript_include_tag(*sources)
           @javascript_include ||= JavascriptIncludeTag.new(config, asset_paths)
           @javascript_include.include_tag(*sources)

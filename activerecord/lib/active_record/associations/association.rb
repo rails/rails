@@ -20,7 +20,7 @@ module ActiveRecord
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
 
-      delegate :options, :to => :reflection
+      delegate :options, to: :reflection
 
       def initialize(owner, reflection)
         reflection.check_validity!
@@ -231,7 +231,7 @@ module ActiveRecord
 
         def build_record(attributes, options)
           reflection.build_association(attributes, options) do |record|
-            record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
+            record.assign_attributes(create_scope.except(*record.changed), without_protection: true)
           end
         end
     end

@@ -110,7 +110,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_lock_new
-    p1 = Person.new(:first_name => 'anika')
+    p1 = Person.new(first_name: 'anika')
     assert_equal 0, p1.lock_version
 
     p1.first_name = 'anika2'
@@ -129,7 +129,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_lock_exception_record
-    p1 = Person.new(:first_name => 'mira')
+    p1 = Person.new(first_name: 'mira')
     assert_equal 0, p1.lock_version
 
     p1.first_name = 'mira2'
@@ -147,7 +147,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_lock_new_with_nil
-    p1 = Person.new(:first_name => 'anika')
+    p1 = Person.new(first_name: 'anika')
     p1.save!
     p1.lock_version = nil # simulate bad fixture or column with no default
     p1.save!
@@ -178,7 +178,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_lock_column_is_mass_assignable
-    p1 = Person.create(:first_name => 'bianca')
+    p1 = Person.create(first_name: 'bianca')
     assert_equal 0, p1.lock_version
     assert_equal p1.lock_version, Person.new(p1.attributes).lock_version
 
@@ -201,11 +201,11 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_readonly_attributes
     assert_equal Set.new([ 'first_name' ]), ReadonlyFirstNamePerson.readonly_attributes
 
-    p = ReadonlyFirstNamePerson.create(:first_name => "unchangeable name")
+    p = ReadonlyFirstNamePerson.create(first_name: "unchangeable name")
     p.reload
     assert_equal "unchangeable name", p.first_name
 
-    p.update_attributes(:first_name => "changed name")
+    p.update_attributes(first_name: "changed name")
     p.reload
     assert_equal "unchangeable name", p.first_name
   end
@@ -220,7 +220,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   # is nothing else being updated.
   def test_update_without_attributes_does_not_only_update_lock_version
     assert_nothing_raised do
-      p1 = Person.create!(:first_name => 'anika')
+      p1 = Person.create!(first_name: 'anika')
       lock_version = p1.lock_version
       p1.save
       p1.reload
@@ -249,7 +249,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   # of a test (see test_increment_counter_*).
   self.use_transactional_fixtures = false
 
-  { :lock_version => Person, :custom_lock_version => LegacyThing }.each do |name, model|
+  { lock_version: Person, custom_lock_version: LegacyThing }.each do |name, model|
     define_method("test_increment_counter_updates_#{name}") do
       counter_test model, 1 do |id|
         model.increment_counter :test_count, id
@@ -264,7 +264,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
 
     define_method("test_update_counters_updates_#{name}") do
       counter_test model, 1 do |id|
-        model.update_counters id, :test_count => 1
+        model.update_counters id, test_count: 1
       end
     end
   end
@@ -276,16 +276,16 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     LegacyThing.connection.add_column LegacyThing.table_name, 'person_id', :integer
     LegacyThing.reset_column_information
     LegacyThing.class_eval do
-      belongs_to :person, :counter_cache => true
+      belongs_to :person, counter_cache: true
     end
     Person.class_eval do
-      has_many :legacy_things, :dependent => :destroy
+      has_many :legacy_things, dependent: :destroy
     end
 
     # Make sure that counter incrementing doesn't cause problems
-    p1 = Person.new(:first_name => 'fjord')
+    p1 = Person.new(first_name: 'fjord')
     p1.save!
-    t = LegacyThing.new(:person => p1)
+    t = LegacyThing.new(person: p1)
     t.save!
     p1.reload
     assert_equal 1, p1.legacy_things_count
@@ -300,7 +300,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   private
 
     def add_counter_column_to(model, col='test_count')
-      model.connection.add_column model.table_name, col, :integer, :null => false, :default => 0
+      model.connection.add_column model.table_name, col, :integer, null: false, default: 0
       model.reset_column_information
       # OpenBase does not set a value to existing rows when adding a not null default column
       model.update_all(col => 0) if current_adapter?(:OpenBaseAdapter)
@@ -348,7 +348,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
     def test_sane_find_with_lock
       assert_nothing_raised do
         Person.transaction do
-          Person.find 1, :lock => true
+          Person.find 1, lock: true
         end
       end
     end
@@ -357,7 +357,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
     def test_sane_find_with_scoped_lock
       assert_nothing_raised do
         Person.transaction do
-          Person.send(:with_scope, :find => { :lock => true }) do
+          Person.send(:with_scope, find: { lock: true }) do
             Person.find 1
           end
         end
@@ -370,7 +370,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
       def test_eager_find_with_lock
         assert_nothing_raised do
           Person.transaction do
-            Person.find 1, :include => :readers, :lock => true
+            Person.find 1, include: :readers, lock: true
           end
         end
       end

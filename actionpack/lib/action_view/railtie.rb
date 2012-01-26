@@ -6,7 +6,7 @@ module ActionView
   class Railtie < Rails::Railtie
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.stylesheet_expansions = {}
-    config.action_view.javascript_expansions = { :defaults => %w(jquery jquery_ujs) }
+    config.action_view.javascript_expansions = { defaults: %w(jquery jquery_ujs) }
 
     initializer "action_view.logger" do
       ActiveSupport.on_load(:action_view) { self.logger ||= Rails.logger }

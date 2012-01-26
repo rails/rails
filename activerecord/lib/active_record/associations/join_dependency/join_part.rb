@@ -13,7 +13,7 @@ module ActiveRecord
         # association.
         attr_reader :active_record
 
-        delegate :table_name, :column_names, :primary_key, :reflections, :arel_engine, :to => :active_record
+        delegate :table_name, :column_names, :primary_key, :reflections, :arel_engine, to: :active_record
 
         def initialize(active_record)
           @active_record = active_record

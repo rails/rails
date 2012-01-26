@@ -13,7 +13,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
   repair_validations(Topic, Reply, Owner)
 
   def test_validates_size_of_association
-    assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
+    assert_nothing_raised { Owner.validates_size_of :pets, minimum: 1 }
     o = Owner.new('name' => 'nopets')
     assert !o.save
     assert o.errors[:pets].any?
@@ -22,7 +22,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_size_of_association_using_within
-    assert_nothing_raised { Owner.validates_size_of :pets, :within => 1..2 }
+    assert_nothing_raised { Owner.validates_size_of :pets, within: 1..2 }
     o = Owner.new('name' => 'nopets')
     assert !o.save
     assert o.errors[:pets].any?
@@ -51,7 +51,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_associated_one
-    Reply.validates :topic, :associated => true
+    Reply.validates :topic, associated: true
     Topic.validates_presence_of( :content )
     r = Reply.new("title" => "A reply", "content" => "with content!")
     r.topic = Topic.create("title" => "uhohuhoh")
@@ -91,7 +91,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_size_of_association_utf8
-    assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
+    assert_nothing_raised { Owner.validates_size_of :pets, minimum: 1 }
     o = Owner.new('name' => 'あいうえおかきくけこ')
     assert !o.save
     assert o.errors[:pets].any?
@@ -103,8 +103,8 @@ class AssociationValidationTest < ActiveRecord::TestCase
     repair_validations(Interest) do
       # Note that Interest and Man have the :inverse_of option set
       Interest.validates_presence_of(:man)
-      man = Man.new(:name => 'John')
-      interest = man.interests.build(:topic => 'Airplanes')
+      man = Man.new(name: 'John')
+      interest = man.interests.build(topic: 'Airplanes')
       assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a man object associated"
     end
   end
@@ -112,16 +112,16 @@ class AssociationValidationTest < ActiveRecord::TestCase
   def test_validates_presence_of_belongs_to_association__existing_parent
     repair_validations(Interest) do
       Interest.validates_presence_of(:man)
-      man = Man.create!(:name => 'John')
-      interest = man.interests.build(:topic => 'Airplanes')
+      man = Man.create!(name: 'John')
+      interest = man.interests.build(topic: 'Airplanes')
       assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a man object associated"
     end
   end
 
   def test_validates_associated_models_in_the_same_context
-    Topic.validates_presence_of :title, :on => :custom_context
+    Topic.validates_presence_of :title, on: :custom_context
     Topic.validates_associated :replies
-    Reply.validates_presence_of :title, :on => :custom_context
+    Reply.validates_presence_of :title, on: :custom_context
 
     t = Topic.new('title' => '')
     r = t.replies.new('title' => '')

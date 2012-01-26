@@ -31,82 +31,82 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_request_via_redirect_uses_given_method
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.expects(:process).with(:put, path, args, headers)
     @session.stubs(:redirect?).returns(false)
     @session.request_via_redirect(:put, path, args, headers)
   end
 
   def test_request_via_redirect_follows_redirects
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.stubs(:redirect?).returns(true, true, false)
     @session.expects(:follow_redirect!).times(2)
     @session.request_via_redirect(:get, path, args, headers)
   end
 
   def test_request_via_redirect_returns_status
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.stubs(:redirect?).returns(false)
     @session.stubs(:status).returns(200)
     assert_equal 200, @session.request_via_redirect(:get, path, args, headers)
   end
 
   def test_get_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:get, path, args, headers)
     @session.get_via_redirect(path, args, headers)
   end
 
   def test_post_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:post, path, args, headers)
     @session.post_via_redirect(path, args, headers)
   end
 
   def test_put_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:put, path, args, headers)
     @session.put_via_redirect(path, args, headers)
   end
 
   def test_delete_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:delete, path, args, headers)
     @session.delete_via_redirect(path, args, headers)
   end
 
   def test_get
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:get,path,params,headers)
     @session.get(path,params,headers)
   end
 
   def test_post
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:post,path,params,headers)
     @session.post(path,params,headers)
   end
 
   def test_put
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:put,path,params,headers)
     @session.put(path,params,headers)
   end
 
   def test_delete
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:delete,path,params,headers)
     @session.delete(path,params,headers)
   end
 
   def test_head
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:head,path,params,headers)
     @session.head(path,params,headers)
   end
 
   def test_xml_http_request_get
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -116,7 +116,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_post
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -126,7 +126,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_put
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -136,7 +136,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_delete
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -146,7 +146,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_head
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -156,7 +156,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_override_accept
-    path = "/index"; params = "blah"; headers = {:location => 'blah', "HTTP_ACCEPT" => "application/xml"}
+    path = "/index"; params = "blah"; headers = {location: 'blah', "HTTP_ACCEPT" => "application/xml"}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
     )
@@ -222,27 +222,27 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   class IntegrationController < ActionController::Base
     def get
       respond_to do |format|
-        format.html { render :text => "OK", :status => 200 }
-        format.js { render :text => "JS OK", :status => 200 }
+        format.html { render text: "OK", status: 200 }
+        format.js { render text: "JS OK", status: 200 }
       end
     end
 
     def get_with_params
-      render :text => "foo: #{params[:foo]}", :status => 200
+      render text: "foo: #{params[:foo]}", status: 200
     end
 
     def post
-      render :text => "Created", :status => 201
+      render text: "Created", status: 201
     end
 
     def method
-      render :text => "method: #{request.method.downcase}"
+      render text: "method: #{request.method.downcase}"
     end
 
     def cookie_monster
       cookies["cookie_1"] = nil
       cookies["cookie_3"] = "chocolate"
-      render :text => "Gone", :status => 410
+      render text: "Gone", status: 410
     end
 
     def set_cookie
@@ -251,11 +251,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 
     def get_cookie
-      render :text => cookies["foo"]
+      render text: cookies["foo"]
     end
 
     def redirect
-      redirect_to :action => "get"
+      redirect_to action: "get"
     end
   end
 
@@ -383,7 +383,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   def test_get_with_parameters
     with_test_route_set do
-      get '/get_with_params', :foo => "bar"
+      get '/get_with_params', foo: "bar"
       assert_equal '/get_with_params', request.env["PATH_INFO"]
       assert_equal '/get_with_params', request.path_info
       assert_equal 'foo=bar', request.env["QUERY_STRING"]
@@ -416,7 +416,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   end
 
   def test_generate_url_with_controller
-    assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
+    assert_equal 'http://www.example.com/foo', url_for(controller: "foo")
   end
 
   private
@@ -428,8 +428,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
-          match ':action', :to => controller
-          get 'get/:action', :to => controller
+          match ':action', to: controller
+          get 'get/:action', to: controller
         end
 
         self.singleton_class.send(:include, set.url_helpers)
@@ -472,14 +472,14 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   def test_generate_url_without_controller
-    assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
+    assert_equal 'http://www.example.com/foo', url_for(controller: "foo")
   end
 end
 
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def index
-      render :text => "index"
+      render text: "index"
     end
   end
 
@@ -492,10 +492,10 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    match '',    :to => 'application_integration_test/test#index', :as => :empty_string
+    match '',    to: 'application_integration_test/test#index', as: :empty_string
 
-    match 'foo', :to => 'application_integration_test/test#index', :as => :foo
-    match 'bar', :to => 'application_integration_test/test#index', :as => :bar
+    match 'foo', to: 'application_integration_test/test#index', as: :foo
+    match 'bar', to: 'application_integration_test/test#index', as: :bar
   end
 
   def app

@@ -60,7 +60,7 @@ Let's assume your application has the following controller and model:
 
 <ruby>
 # routes.rb
-root :to => 'home#index'
+root to: 'home#index'
 resources :posts
 
 # home_controller.rb
@@ -116,7 +116,7 @@ class PostPerformanceTest < ActionDispatch::PerformanceTest
   end
 
   def test_creating_new_post
-    post '/posts', :post => { :body => 'lifo is fooling you' }
+    post '/posts', post: { body: 'lifo is fooling you' }
   end
 end
 </ruby>
@@ -135,7 +135,7 @@ require 'rails/performance_test_help'
 
 class PostModelTest < ActionDispatch::PerformanceTest
   def test_creation
-    Post.create :body => 'still fooling you', :cost => '100'
+    Post.create body: 'still fooling you', cost: '100'
   end
 
   def test_slow_method
@@ -319,8 +319,8 @@ require 'rails/performance_test_help'
 
 # Profiling results for each test method are written to tmp/performance.
 class BrowsingTest < ActionDispatch::PerformanceTest
-  self.profile_options = { :runs => 5,
-                           :metrics => [:wall_time, :memory] }
+  self.profile_options = { runs: 5,
+                           metrics: [:wall_time, :memory] }
 
   def test_homepage
     get '/'
@@ -447,7 +447,7 @@ h4. Using Ruby-Prof on MRI and REE
 Add Ruby-Prof to your applications' Gemfile if you want to benchmark/profile under MRI or REE:
 
 <ruby>
-gem 'ruby-prof', :git => 'git://github.com/wycats/ruby-prof.git'
+gem 'ruby-prof', git: 'git://github.com/wycats/ruby-prof.git'
 </ruby>
 
 Now run +bundle install+ and you're ready to go.

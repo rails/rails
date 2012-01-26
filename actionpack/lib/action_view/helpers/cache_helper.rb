@@ -14,7 +14,7 @@ module ActionView
       # If you want to cache a navigation menu, you can do following:
       #
       #   <% cache do %>
-      #     <%= render :partial => "menu" %>
+      #     <%= render partial: "menu" %>
       #   <% end %>
       #
       # You can also cache static content:
@@ -28,7 +28,7 @@ module ActionView
       #
       #    <% cache do %>
       #      Topics:
-      #      <%= render :partial => "topics", :collection => @topic_list %>
+      #      <%= render partial: "topics", collection: @topic_list %>
       #      <i>Topics listed alphabetically</i>
       #    <% end %>
       def cache(name = {}, options = nil, &block)

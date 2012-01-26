@@ -10,9 +10,9 @@ class Array
   # * <tt>:last_word_connector</tt> - The sign or word used to join the last element in arrays with three or more elements (default: ", and ")
   def to_sentence(options = {})
     if defined?(I18n)
-      default_words_connector     = I18n.translate(:'support.array.words_connector',     :locale => options[:locale])
-      default_two_words_connector = I18n.translate(:'support.array.two_words_connector', :locale => options[:locale])
-      default_last_word_connector = I18n.translate(:'support.array.last_word_connector', :locale => options[:locale])
+      default_words_connector     = I18n.translate(:'support.array.words_connector',     locale: options[:locale])
+      default_two_words_connector = I18n.translate(:'support.array.two_words_connector', locale: options[:locale])
+      default_last_word_connector = I18n.translate(:'support.array.last_word_connector', locale: options[:locale])
     else
       default_words_connector     = ", "
       default_two_words_connector = " and "
@@ -20,7 +20,7 @@ class Array
     end
 
     options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
-    options.reverse_merge! :words_connector => default_words_connector, :two_words_connector => default_two_words_connector, :last_word_connector => default_last_word_connector
+    options.reverse_merge! words_connector: default_words_connector, two_words_connector: default_two_words_connector, last_word_connector: default_last_word_connector
 
     case length
       when 0
@@ -88,7 +88,7 @@ class Array
   #
   # Otherwise the root element is "records":
   #
-  #   [{:foo => 1, :bar => 2}, {:baz => 3}].to_xml
+  #   [{foo: 1, bar: 2}, {baz: 3}].to_xml
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <records type="array">
@@ -110,7 +110,7 @@ class Array
   #
   # To ensure a meaningful root element use the <tt>:root</tt> option:
   #
-  #   customer_with_no_projects.projects.to_xml(:root => "projects")
+  #   customer_with_no_projects.projects.to_xml(root: "projects")
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <projects type="array"/>
@@ -120,7 +120,7 @@ class Array
   #
   # The +options+ hash is passed downwards:
   #
-  #   Message.all.to_xml(:skip_types => true)
+  #   Message.all.to_xml(skip_types: true)
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <messages>
@@ -138,7 +138,7 @@ class Array
 
     options = options.dup
     options[:indent]  ||= 2
-    options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    options[:builder] ||= Builder::XmlMarkup.new(indent: options[:indent])
     options[:root]    ||= if first.class.to_s != "Hash" && all? { |e| e.is_a?(first.class) }
       underscored = ActiveSupport::Inflector.underscore(first.class.name)
       ActiveSupport::Inflector.pluralize(underscored).tr('/', '_')
@@ -152,7 +152,7 @@ class Array
     root = ActiveSupport::XmlMini.rename_key(options[:root].to_s, options)
     children = options.delete(:children) || root.singularize
 
-    attributes = options[:skip_types] ? {} : {:type => "array"}
+    attributes = options[:skip_types] ? {} : {type: "array"}
     return builder.tag!(root, attributes) if empty?
 
     builder.__send__(:method_missing, root, attributes) do

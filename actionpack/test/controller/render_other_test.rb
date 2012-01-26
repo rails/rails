@@ -8,7 +8,7 @@ end
 class RenderOtherTest < ActionController::TestCase
   class TestController < ActionController::Base
     def render_simon_says
-      render :simon => "foo"
+      render simon: "foo"
     end
   end
 

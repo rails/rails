@@ -37,13 +37,13 @@ module ActiveRecord
       #  index_exists?(:suppliers, [:company_id, :company_type])
       #
       #  # Check a unique index exists
-      #  index_exists?(:suppliers, :company_id, :unique => true)
+      #  index_exists?(:suppliers, :company_id, unique: true)
       #
       #  # Check an index with a custom name exists
-      #  index_exists?(:suppliers, :company_id, :name => "idx_company_id"
+      #  index_exists?(:suppliers, :company_id, name: "idx_company_id"
       def index_exists?(table_name, column_name, options = {})
         column_names = Array(column_name)
-        index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, :column => column_names)
+        index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, column: column_names)
         if options[:unique]
           indexes(table_name).any?{ |i| i.unique && i.name == index_name }
         else
@@ -65,7 +65,7 @@ module ActiveRecord
       #  column_exists?(:suppliers, :name, :string)
       #
       #  # Check a column exists with a specific definition
-      #  column_exists?(:suppliers, :name, :string, :limit => 100)
+      #  column_exists?(:suppliers, :name, :string, limit: 100)
       def column_exists?(table_name, column_name, type = nil, options = {})
         columns(table_name).any?{ |c| c.name == column_name.to_s &&
                                       (!type                 || c.type == type) &&
@@ -86,14 +86,14 @@ module ActiveRecord
       #  # table.
       #
       #  create_table(:suppliers) do |t|
-      #    t.column :name, :string, :limit => 60
+      #    t.column :name, :string, limit: 60
       #    # Other fields here
       #  end
       #
       # === Block form, with shorthand
       #  # You can also use the column types as method calls, rather than calling the column method.
       #  create_table(:suppliers) do |t|
-      #    t.string :name, :limit => 60
+      #    t.string :name, limit: 60
       #    # Other fields here
       #  end
       #
@@ -101,7 +101,7 @@ module ActiveRecord
       #  # Creates a table called 'suppliers' with no columns.
       #  create_table(:suppliers)
       #  # Add a column to 'suppliers'.
-      #  add_column(:suppliers, :name, :string, {:limit => 60})
+      #  add_column(:suppliers, :name, :string, {limit: 60})
       #
       # The +options+ hash can include the following keys:
       # [<tt>:id</tt>]
@@ -125,15 +125,15 @@ module ActiveRecord
       #
       # ===== Examples
       # ====== Add a backend specific option to the generated SQL (MySQL)
-      #  create_table(:suppliers, :options => 'ENGINE=InnoDB DEFAULT CHARSET=utf8')
+      #  create_table(:suppliers, options: 'ENGINE=InnoDB DEFAULT CHARSET=utf8')
       # generates:
       #  CREATE TABLE suppliers (
       #    id int(11) DEFAULT NULL auto_increment PRIMARY KEY
       #  ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
       # ====== Rename the primary key column
-      #  create_table(:objects, :primary_key => 'guid') do |t|
-      #    t.column :name, :string, :limit => 80
+      #  create_table(:objects, primary_key: 'guid') do |t|
+      #    t.column :name, :string, limit: 80
       #  end
       # generates:
       #  CREATE TABLE objects (
@@ -142,7 +142,7 @@ module ActiveRecord
       #  )
       #
       # ====== Do not add a primary key column
-      #  create_table(:categories_suppliers, :id => false) do |t|
+      #  create_table(:categories_suppliers, id: false) do |t|
       #    t.column :category_id, :integer
       #    t.column :supplier_id, :integer
       #  end
@@ -175,7 +175,7 @@ module ActiveRecord
       # === Example
       #  # change_table() yields a Table instance
       #  change_table(:suppliers) do |t|
-      #    t.column :name, :string, :limit => 60
+      #    t.column :name, :string, limit: 60
       #    # Other column alterations here
       #  end
       #
@@ -189,12 +189,12 @@ module ActiveRecord
       # ===== Examples
       # ====== Add a column
       #  change_table(:suppliers) do |t|
-      #    t.column :name, :string, :limit => 60
+      #    t.column :name, :string, limit: 60
       #  end
       #
       # ====== Add 2 integer columns
       #  change_table(:suppliers) do |t|
-      #    t.integer :width, :height, :null => false, :default => 0
+      #    t.integer :width, :height, null: false, default: 0
       #  end
       #
       # ====== Add created_at/updated_at columns
@@ -211,7 +211,7 @@ module ActiveRecord
       #
       # ====== Add a polymorphic foreign key column
       #  change_table(:suppliers) do |t|
-      #    t.belongs_to :company, :polymorphic => true
+      #    t.belongs_to :company, polymorphic: true
       #  end
       #
       # Creates <tt>company_type(varchar)</tt> and <tt>company_id(integer)</tt> columns
@@ -276,7 +276,7 @@ module ActiveRecord
       # Changes the column's definition according to the new options.
       # See TableDefinition#column for details of the options you can use.
       # ===== Examples
-      #  change_column(:suppliers, :name, :string, :limit => 80)
+      #  change_column(:suppliers, :name, :string, limit: 80)
       #  change_column(:accounts, :description, :text)
       def change_column(table_name, column_name, type, options = {})
         raise NotImplementedError, "change_column is not implemented"
@@ -312,28 +312,28 @@ module ActiveRecord
       #  CREATE INDEX suppliers_name_index ON suppliers(name)
       #
       # ====== Creating a unique index
-      #  add_index(:accounts, [:branch_id, :party_id], :unique => true)
+      #  add_index(:accounts, [:branch_id, :party_id], unique: true)
       # generates
       #  CREATE UNIQUE INDEX accounts_branch_id_party_id_index ON accounts(branch_id, party_id)
       #
       # ====== Creating a named index
-      #  add_index(:accounts, [:branch_id, :party_id], :unique => true, :name => 'by_branch_party')
+      #  add_index(:accounts, [:branch_id, :party_id], unique: true, name: 'by_branch_party')
       # generates
       #  CREATE UNIQUE INDEX by_branch_party ON accounts(branch_id, party_id)
       #
       # ====== Creating an index with specific key length
-      #  add_index(:accounts, :name, :name => 'by_name', :length => 10)
+      #  add_index(:accounts, :name, name: 'by_name', length: 10)
       # generates
       #  CREATE INDEX by_name ON accounts(name(10))
       #
-      #  add_index(:accounts, [:name, :surname], :name => 'by_name_surname', :length => {:name => 10, :surname => 15})
+      #  add_index(:accounts, [:name, :surname], name: 'by_name_surname', length: {name: 10, surname: 15})
       # generates
       #  CREATE INDEX by_name_surname ON accounts(name(10), surname(15))
       #
       # Note: SQLite doesn't support index length
       #
       # ====== Creating an index with a sort order (desc or asc, asc is the default)
-      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :part_id => :asc})
+      #  add_index(:accounts, [:branch_id, :party_id, :surname], order: {branch_id: :desc, part_id: :asc})
       # generates
       #  CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
       #
@@ -349,11 +349,11 @@ module ActiveRecord
       # Remove the index_accounts_on_column in the accounts table.
       #   remove_index :accounts, :column
       # Remove the index named index_accounts_on_branch_id in the accounts table.
-      #   remove_index :accounts, :column => :branch_id
+      #   remove_index :accounts, column: :branch_id
       # Remove the index named index_accounts_on_branch_id_and_party_id in the accounts table.
-      #   remove_index :accounts, :column => [:branch_id, :party_id]
+      #   remove_index :accounts, column: [:branch_id, :party_id]
       # Remove the index named by_branch_party in the accounts table.
-      #   remove_index :accounts, :name => :by_branch_party
+      #   remove_index :accounts, name: :by_branch_party
       def remove_index(table_name, options = {})
         remove_index!(table_name, index_name_for_remove(table_name, options))
       end
@@ -370,8 +370,8 @@ module ActiveRecord
         # this is a naive implementation; some DBs may support this more efficiently (Postgres, for instance)
         old_index_def = indexes(table_name).detect { |i| i.name == old_name }
         return unless old_index_def
-        remove_index(table_name, :name => old_name)
-        add_index(table_name, old_index_def.columns, :name => new_name, :unique => old_index_def.unique)
+        remove_index(table_name, name: old_name)
+        add_index(table_name, old_index_def.columns, name: new_name, unique: old_index_def.unique)
       end
 
       def index_name(table_name, options) #:nodoc:
@@ -384,7 +384,7 @@ module ActiveRecord
             raise ArgumentError, "You must specify the index name"
           end
         else
-          index_name(table_name, :column => options)
+          index_name(table_name, column: options)
         end
       end
 
@@ -490,8 +490,8 @@ module ActiveRecord
       # ===== Examples
       #  add_timestamps(:suppliers)
       def add_timestamps(table_name)
-        add_column table_name, :created_at, :datetime, :null => false
-        add_column table_name, :updated_at, :datetime, :null => false
+        add_column table_name, :created_at, :datetime, null: false
+        add_column table_name, :updated_at, :datetime, null: false
       end
 
       # Removes the timestamp columns (created_at and updated_at) from the table definition.
@@ -534,7 +534,7 @@ module ActiveRecord
 
         def add_index_options(table_name, column_name, options = {})
           column_names = Array(column_name)
-          index_name   = index_name(table_name, :column => column_names)
+          index_name   = index_name(table_name, column: column_names)
 
           if Hash === options # legacy support, since this param was a string
             index_type = options[:unique] ? "UNIQUE" : ""

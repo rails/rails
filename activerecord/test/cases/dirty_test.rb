@@ -28,7 +28,7 @@ end
 class DirtyTest < ActiveRecord::TestCase
   # Dummy to force column loads so query counts are clean.
   def setup
-    Person.create :first_name => 'foo'
+    Person.create first_name: 'foo'
   end
 
   def test_attribute_changes
@@ -151,7 +151,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_reset_attribute!
-    pirate = Pirate.create!(:catchphrase => 'Yar!')
+    pirate = Pirate.create!(catchphrase: 'Yar!')
     pirate.catchphrase = 'Ahoy!'
 
     pirate.reset_catchphrase!
@@ -248,7 +248,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_attribute_will_change!
-    pirate = Pirate.create!(:catchphrase => 'arr')
+    pirate = Pirate.create!(catchphrase: 'arr')
 
     pirate.catchphrase << ' matey'
     assert !pirate.catchphrase_changed?
@@ -263,8 +263,8 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_association_assignment_changes_foreign_key
-    pirate = Pirate.create!(:catchphrase => 'jarl')
-    pirate.parrot = Parrot.create!(:name => 'Lorre')
+    pirate = Pirate.create!(catchphrase: 'jarl')
+    pirate.parrot = Parrot.create!(name: 'Lorre')
     assert pirate.changed?
     assert_equal %w(parrot_id), pirate.changed
   end
@@ -275,7 +275,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert !topic.approved_changed?
 
     # Coming from web form.
-    params = {:topic => {:approved => 1}}
+    params = {topic: {approved: 1}}
     # In the controller.
     topic.attributes = params[:topic]
     assert topic.approved?
@@ -283,12 +283,12 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_partial_update
-    pirate = Pirate.new(:catchphrase => 'foo')
+    pirate = Pirate.new(catchphrase: 'foo')
     old_updated_on = 1.hour.ago.beginning_of_day
 
     with_partial_updates Pirate, false do
       assert_queries(2) { 2.times { pirate.save! } }
-      Pirate.update_all({ :updated_on => old_updated_on }, :id => pirate.id)
+      Pirate.update_all({ updated_on: old_updated_on }, id: pirate.id)
     end
 
     with_partial_updates Pirate, true do
@@ -301,12 +301,12 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_partial_update_with_optimistic_locking
-    person = Person.new(:first_name => 'foo')
+    person = Person.new(first_name: 'foo')
     old_lock_version = 1
 
     with_partial_updates Person, false do
       assert_queries(2) { 2.times { person.save! } }
-      Person.update_all({ :first_name => 'baz' }, :id => person.id)
+      Person.update_all({ first_name: 'baz' }, id: person.id)
     end
 
     with_partial_updates Person, true do
@@ -331,7 +331,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_reload_should_clear_changed_attributes
-    pirate = Pirate.create!(:catchphrase => "shiver me timbers")
+    pirate = Pirate.create!(catchphrase: "shiver me timbers")
     pirate.catchphrase = "*hic*"
     assert pirate.changed?
     pirate.reload
@@ -339,7 +339,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_dup_objects_should_not_copy_dirty_flag_from_creator
-    pirate = Pirate.create!(:catchphrase => "shiver me timbers")
+    pirate = Pirate.create!(catchphrase: "shiver me timbers")
     pirate_dup = pirate.dup
     pirate_dup.reset_catchphrase!
     pirate.catchphrase = "I love Rum"
@@ -349,7 +349,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_reverted_changes_are_not_dirty
     phrase = "shiver me timbers"
-    pirate = Pirate.create!(:catchphrase => phrase)
+    pirate = Pirate.create!(catchphrase: phrase)
     pirate.catchphrase = "*hic*"
     assert pirate.changed?
     pirate.catchphrase = phrase
@@ -358,7 +358,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_reverted_changes_are_not_dirty_after_multiple_changes
     phrase = "shiver me timbers"
-    pirate = Pirate.create!(:catchphrase => phrase)
+    pirate = Pirate.create!(catchphrase: phrase)
     10.times do |i|
       pirate.catchphrase = "*hic*" * i
       assert pirate.changed?
@@ -370,7 +370,7 @@ class DirtyTest < ActiveRecord::TestCase
 
 
   def test_reverted_changes_are_not_dirty_going_from_nil_to_value_and_back
-    pirate = Pirate.create!(:catchphrase => "Yar!")
+    pirate = Pirate.create!(catchphrase: "Yar!")
 
     pirate.parrot_id = 1
     assert pirate.changed?
@@ -385,7 +385,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_save_should_store_serialized_attributes_even_with_partial_updates
     with_partial_updates(Topic) do
-      topic = Topic.create!(:content => {:a => "a"})
+      topic = Topic.create!(content: {a: "a"})
       topic.content[:b] = "b"
       #assert topic.changed? # Known bug, will fail
       topic.save!
@@ -397,7 +397,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_save_always_should_update_timestamps_when_serialized_attributes_are_present
     with_partial_updates(Topic) do
-      topic = Topic.create!(:content => {:a => "a"})
+      topic = Topic.create!(content: {a: "a"})
       topic.save!
 
       updated_at = topic.updated_at
@@ -411,7 +411,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_save_should_not_save_serialized_attribute_with_partial_updates_if_not_present
     with_partial_updates(Topic) do
-      Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
+      Topic.create!(author_name: 'Bill', content: {a: "a"})
       topic = Topic.select('id, author_name').first
       topic.update_column :author_name, 'John'
       topic = Topic.first
@@ -477,7 +477,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('created_on')
 
     pirate = Pirate.find_by_catchphrase("Thar She Blows!")
-    pirate.update_attributes(:catchphrase => "Ahoy!")
+    pirate.update_attributes(catchphrase: "Ahoy!")
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Thar She Blows!", "Ahoy!"], pirate.previous_changes['catchphrase']

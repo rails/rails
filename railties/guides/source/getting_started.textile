@@ -526,10 +526,10 @@ Blog::Application.routes.draw do
   #...
   # You can have the root of your site routed with "root"
   # just remember to delete public/index.html.
-  root :to => "home#index"
+  root to: "home#index"
 </ruby>
 
-The +root :to => "home#index"+ tells Rails to map the root action to the home
+The +root to: "home#index"+ tells Rails to map the root action to the home
 controller's index action.
 
 Now if you navigate to "http://localhost:3000":http://localhost:3000 in your
@@ -698,9 +698,9 @@ Open the +app/models/post.rb+ file and edit it:
 
 <ruby>
 class Post < ActiveRecord::Base
-  validates :name,  :presence => true
-  validates :title, :presence => true,
-                    :length => { :minimum => 5 }
+  validates :name,  presence: true
+  validates :title, presence: true,
+                    length: { minimum: 5 }
 end
 </ruby>
 
@@ -727,7 +727,7 @@ open a console that will roll back any changes you make by using <tt>rails conso
 After the console loads, you can use it to work with your application's models:
 
 <shell>
->> p = Post.new(:content => "A new post")
+>> p = Post.new(content: "A new post")
 => #<Post id: nil, name: nil, title: nil,
      content: "A new post", created_at: nil,
      updated_at: nil>
@@ -760,7 +760,7 @@ def index
 
   respond_to do |format|
     format.html  # index.html.erb
-    format.json  { render :json => @posts }
+    format.json  { render json: @posts }
   end
 end
 </ruby>
@@ -798,8 +798,8 @@ Here's +app/views/posts/index.html.erb+:
     <td><%= post.content %></td>
     <td><%= link_to 'Show', post %></td>
     <td><%= link_to 'Edit', edit_post_path(post) %></td>
-    <td><%= link_to 'Destroy', post, :confirm => 'Are you sure?',
-                                     :method => :delete %></td>
+    <td><%= link_to 'Destroy', post, confirm: 'Are you sure?',
+                                     method: :delete %></td>
   </tr>
 <% end %>
 </table>
@@ -866,7 +866,7 @@ def new
 
   respond_to do |format|
     format.html  # new.html.erb
-    format.json  { render :json => @post }
+    format.json  { render json: @post }
   end
 end
 </ruby>
@@ -959,13 +959,13 @@ def create
   respond_to do |format|
     if @post.save
       format.html  { redirect_to(@post,
-                    :notice => 'Post was successfully created.') }
-      format.json  { render :json => @post,
-                    :status => :created, :location => @post }
+                    notice: 'Post was successfully created.') }
+      format.json  { render json: @post,
+                    status: :created, location: @post }
     else
-      format.html  { render :action => "new" }
-      format.json  { render :json => @post.errors,
-                    :status => :unprocessable_entity }
+      format.html  { render action: "new" }
+      format.json  { render json: @post.errors,
+                    status: :unprocessable_entity }
     end
   end
 end
@@ -1004,7 +1004,7 @@ def show
 
   respond_to do |format|
     format.html  # show.html.erb
-    format.json  { render :json => @post }
+    format.json  { render json: @post }
   end
 end
 </ruby>
@@ -1074,12 +1074,12 @@ def update
   respond_to do |format|
     if @post.update_attributes(params[:post])
       format.html  { redirect_to(@post,
-                    :notice => 'Post was successfully updated.') }
+                    notice: 'Post was successfully updated.') }
       format.json  { head :no_content }
     else
-      format.html  { render :action => "edit" }
-      format.json  { render :json => @post.errors,
-                    :status => :unprocessable_entity }
+      format.html  { render action: "edit" }
+      format.json  { render json: @post.errors,
+                    status: :unprocessable_entity }
     end
   end
 end
@@ -1215,9 +1215,9 @@ You'll need to edit the +post.rb+ file to add the other side of the association:
 
 <ruby>
 class Post < ActiveRecord::Base
-  validates :name,  :presence => true
-  validates :title, :presence => true,
-                    :length => { :minimum => 5 }
+  validates :name,  presence: true
+  validates :title, presence: true,
+                    length: { minimum: 5 }
 
   has_many :comments
 end
@@ -1559,8 +1559,8 @@ So first, let's add the delete link in the
 
 <p>
   <%= link_to 'Destroy Comment', [comment.post, comment],
-               :confirm => 'Are you sure?',
-               :method => :delete %>
+               confirm: 'Are you sure?',
+               method: :delete %>
 </p>
 </erb>
 
@@ -1602,10 +1602,10 @@ model, +app/models/post.rb+, as follows:
 
 <ruby>
 class Post < ActiveRecord::Base
-  validates :name,  :presence => true
-  validates :title, :presence => true,
-                    :length => { :minimum => 5 }
-  has_many :comments, :dependent => :destroy
+  validates :name,  presence: true
+  validates :title, presence: true,
+                    length: { minimum: 5 }
+  has_many :comments, dependent: :destroy
 end
 </ruby>
 
@@ -1629,7 +1629,7 @@ action, except for +index+ and +show+, so we write that:
 <ruby>
 class PostsController < ApplicationController
 
-  http_basic_authenticate_with :name => "dhh", :password => "secret", :except => [:index, :show]
+  http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
 
   # GET /posts
   # GET /posts.json
@@ -1645,7 +1645,7 @@ We also only want to allow authenticated users to delete comments, so in the
 <ruby>
 class CommentsController < ApplicationController
 
-  http_basic_authenticate_with :name => "dhh", :password => "secret", :only => :destroy
+  http_basic_authenticate_with name: "dhh", password: "secret", only: :destroy
 
   def create
     @post = Post.find(params[:post_id])
@@ -1683,15 +1683,15 @@ edit tags via posts:
 
 <ruby>
 class Post < ActiveRecord::Base
-  validates :name,  :presence => true
-  validates :title, :presence => true,
-                    :length => { :minimum => 5 }
+  validates :name,  presence: true
+  validates :title, presence: true,
+                    length: { minimum: 5 }
 
-  has_many :comments, :dependent => :destroy
+  has_many :comments, dependent: :destroy
   has_many :tags
 
-  accepts_nested_attributes_for :tags, :allow_destroy => :true,
-    :reject_if => proc { |attrs| attrs.all? { |k, v| v.blank? } }
+  accepts_nested_attributes_for :tags, allow_destroy: :true,
+    reject_if: proc { |attrs| attrs.all? { |k, v| v.blank? } }
 end
 </ruby>
 
@@ -1729,8 +1729,8 @@ We will modify +views/posts/_form.html.erb+ to render a partial to make a tag:
     <%= post_form.text_area :content %>
   </div>
   <h2>Tags</h2>
-  <%= render :partial => 'tags/form',
-             :locals => {:form => post_form} %>
+  <%= render partial: 'tags/form',
+             locals: {form: post_form} %>
   <div class="actions">
     <%= post_form.submit %>
   </div>

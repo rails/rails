@@ -54,22 +54,22 @@ module ActiveModel
       # The <tt>:only</tt> and <tt>:except</tt> options can be used to limit the attributes
       # included, and work similar to the +attributes+ method. For example:
       #
-      #   user.as_json(:only => [ :id, :name ])
+      #   user.as_json(only: [ :id, :name ])
       #   # => {"id": 1, "name": "Konata Izumi"}
       #
-      #   user.as_json(:except => [ :id, :created_at, :age ])
+      #   user.as_json(except: [ :id, :created_at, :age ])
       #   # => {"name": "Konata Izumi", "awesome": true}
       #
       # To include the result of some method calls on the model use <tt>:methods</tt>:
       #
-      #   user.as_json(:methods => :permalink)
+      #   user.as_json(methods: :permalink)
       #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
       #         "created_at": "2006/08/01", "awesome": true,
       #         "permalink": "1-konata-izumi"}
       #
       # To include associations use <tt>:include</tt>:
       #
-      #   user.as_json(:include => :posts)
+      #   user.as_json(include: :posts)
       #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
       #         "created_at": "2006/08/01", "awesome": true,
       #         "posts": [{"id": 1, "author_id": 1, "title": "Welcome to the weblog"},
@@ -77,10 +77,10 @@ module ActiveModel
       #
       # Second level and higher order associations work as well:
       #
-      #   user.as_json(:include => { :posts => {
-      #                                  :include => { :comments => {
-      #                                                :only => :body } },
-      #                                  :only => :title } })
+      #   user.as_json(include: { posts: {
+      #                                  include: { comments: {
+      #                                                only: :body } },
+      #                                  only: :title } })
       #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
       #         "created_at": "2006/08/01", "awesome": true,
       #         "posts": [{"comments": [{"body": "1st post!"}, {"body": "Second!"}],

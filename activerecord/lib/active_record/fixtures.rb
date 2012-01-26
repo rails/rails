@@ -254,7 +254,7 @@ module ActiveRecord
   #
   #   ### in fruit.rb
   #
-  #   belongs_to :eater, :polymorphic => true
+  #   belongs_to :eater, polymorphic: true
   #
   #   ### in fruits.yml
   #
@@ -464,7 +464,7 @@ module ActiveRecord
 
           all_loaded_fixtures.update(fixtures_map)
 
-          connection.transaction(:requires_new => true) do
+          connection.transaction(requires_new: true) do
             fixture_files.each do |ff|
               conn = ff.model_class.respond_to?(:connection) ? ff.model_class.connection : connection
               table_rows = ff.table_rows
@@ -732,7 +732,7 @@ module ActiveRecord
       #
       # Examples:
       #
-      #   set_fixture_class :some_fixture        => SomeModel,
+      #   set_fixture_class some_fixture:        SomeModel,
       #                     'namespaced/fixture' => Another::Model
       #
       # The keys must be the fixture names, that coincide with the short paths to the fixture files.

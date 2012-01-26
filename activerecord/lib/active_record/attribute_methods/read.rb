@@ -6,7 +6,7 @@ module ActiveRecord
       ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
 
       included do
-        config_attribute :attribute_types_cached_by_default, :global => true
+        config_attribute :attribute_types_cached_by_default, global: true
         self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
       end
 

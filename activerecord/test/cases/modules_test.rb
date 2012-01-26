@@ -39,7 +39,7 @@ class ModulesTest < ActiveRecord::TestCase
   end
 
   def test_associations_spanning_cross_modules
-    account = MyApplication::Billing::Account.find(:first, :order => 'id')
+    account = MyApplication::Billing::Account.find(:first, order: 'id')
     assert_kind_of MyApplication::Business::Firm, account.firm
     assert_kind_of MyApplication::Billing::Firm, account.qualified_billing_firm
     assert_kind_of MyApplication::Billing::Firm, account.unqualified_billing_firm
@@ -48,7 +48,7 @@ class ModulesTest < ActiveRecord::TestCase
   end
 
   def test_find_account_and_include_company
-    account = MyApplication::Billing::Account.find(1, :include => :firm)
+    account = MyApplication::Billing::Account.find(1, include: :firm)
     assert_kind_of MyApplication::Business::Firm, account.firm
   end
 
@@ -72,8 +72,8 @@ class ModulesTest < ActiveRecord::TestCase
     clients = []
 
     assert_nothing_raised NameError, "Should be able to resolve all class constants via reflection" do
-      clients << MyApplication::Business::Client.find(3, :include => {:firm => :account}, :conditions => 'accounts.id IS NOT NULL', :references => :accounts)
-      clients << MyApplication::Business::Client.find(3, :include => {:firm => :account})
+      clients << MyApplication::Business::Client.find(3, include: {firm: :account}, conditions: 'accounts.id IS NOT NULL', references: :accounts)
+      clients << MyApplication::Business::Client.find(3, include: {firm: :account})
     end
 
     clients.each do |client|

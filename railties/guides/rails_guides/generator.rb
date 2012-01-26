@@ -199,19 +199,19 @@ module RailsGuides
       layout = kindle? ? 'kindle/layout' : 'layout'
 
       File.open(output_path, 'w') do |f|
-        view = ActionView::Base.new(source_dir, :edge => @edge, :version => @version, :mobi => "kindle/#{mobi}")
+        view = ActionView::Base.new(source_dir, edge: @edge, version: @version, mobi: "kindle/#{mobi}")
         view.extend(Helpers)
 
         if guide =~ /\.(\w+)\.erb$/
           # Generate the special pages like the home.
           # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
-          result = view.render(:layout => layout, :formats => [$1], :file => $`)
+          result = view.render(layout: layout, formats: [$1], file: $`)
         else
           body = File.read(File.join(source_dir, guide))
           body = set_header_section(body, view)
           body = set_index(body, view)
 
-          result = view.render(:layout => layout, :text => textile(body))
+          result = view.render(layout: layout, text: textile(body))
 
           warn_about_broken_links(result) if @warnings
         end
@@ -246,11 +246,11 @@ module RailsGuides
 
       # Set index for 2 levels
       i.level_hash.each do |key, value|
-        link = view.content_tag(:a, :href => key[:id]) { textile(key[:title], true).html_safe }
+        link = view.content_tag(:a, href: key[:id]) { textile(key[:title], true).html_safe }
 
         children = value.keys.map do |k|
           view.content_tag(:li,
-            view.content_tag(:a, :href => k[:id]) { textile(k[:title], true).html_safe })
+            view.content_tag(:a, href: k[:id]) { textile(k[:title], true).html_safe })
         end
 
         children_ul = children.empty? ? "" : view.content_tag(:ul, children.join(" ").html_safe)

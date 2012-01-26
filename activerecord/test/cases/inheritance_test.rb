@@ -57,7 +57,7 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_different_namespace_subclass_should_load_correctly_with_store_full_sti_class_option
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = true
-    item = Namespaced::Company.create :name => "Wolverine 2"
+    item = Namespaced::Company.create name: "Wolverine 2"
     assert_not_nil Company.find(item.id)
     assert_not_nil Namespaced::Company.find(item.id)
   ensure
@@ -98,7 +98,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_find_all
-    companies = Company.find(:all, :order => 'id')
+    companies = Company.find(:all, order: 'id')
     assert_kind_of Firm, companies[0], "37signals should be a firm"
     assert_kind_of Client, companies[1], "Summit should be a client"
   end
@@ -151,7 +151,7 @@ class InheritanceTest < ActiveRecord::TestCase
     Client.update_all "name = 'I am a client'"
     assert_equal "I am a client", Client.find(:all).first.name
     # Order by added as otherwise Oracle tests were failing because of different order of results
-    assert_equal "37signals", Firm.find(:all, :order => "id").first.name
+    assert_equal "37signals", Firm.find(:all, order: "id").first.name
   end
 
   def test_alt_update_all_within_inheritance
@@ -173,9 +173,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_find_first_within_inheritance
-    assert_kind_of Firm, Company.find(:first, :conditions => "name = '37signals'")
-    assert_kind_of Firm, Firm.find(:first, :conditions => "name = '37signals'")
-    assert_nil Client.find(:first, :conditions => "name = '37signals'")
+    assert_kind_of Firm, Company.find(:first, conditions: "name = '37signals'")
+    assert_kind_of Firm, Firm.find(:first, conditions: "name = '37signals'")
+    assert_nil Client.find(:first, conditions: "name = '37signals'")
   end
 
   def test_alt_find_first_within_inheritance
@@ -187,10 +187,10 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_complex_inheritance
     very_special_client = VerySpecialClient.create("name" => "veryspecial")
     assert_equal very_special_client, VerySpecialClient.where("name = 'veryspecial'").first
-    assert_equal very_special_client, SpecialClient.find(:first, :conditions => "name = 'veryspecial'")
-    assert_equal very_special_client, Company.find(:first, :conditions => "name = 'veryspecial'")
-    assert_equal very_special_client, Client.find(:first, :conditions => "name = 'veryspecial'")
-    assert_equal 1, Client.find(:all, :conditions => "name = 'Summit'").size
+    assert_equal very_special_client, SpecialClient.find(:first, conditions: "name = 'veryspecial'")
+    assert_equal very_special_client, Company.find(:first, conditions: "name = 'veryspecial'")
+    assert_equal very_special_client, Client.find(:first, conditions: "name = 'veryspecial'")
+    assert_equal 1, Client.find(:all, conditions: "name = 'Summit'").size
     assert_equal very_special_client, Client.find(very_special_client.id)
   end
 
@@ -201,14 +201,14 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_belongs_to_something_inherited
-    account = Account.find(1, :include => :firm)
+    account = Account.find(1, include: :firm)
     assert account.association_cache.key?(:firm), "nil proves eager load failed"
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
     assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} IN \(1\)/) do
-      Account.find(1, :include => :firm)
+      Account.find(1, include: :firm)
     end
   end
 
@@ -230,7 +230,7 @@ class InheritanceTest < ActiveRecord::TestCase
   private
     def switch_to_alt_inheritance_column
       # we don't want misleading test results, so get rid of the values in the type column
-      Company.find(:all, :order => 'id').each do |c|
+      Company.find(:all, order: 'id').each do |c|
         c['type'] = nil
         c.save
       end

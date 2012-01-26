@@ -61,7 +61,7 @@ module Rails
       append_file "Rakefile", <<-EOF
 #{rakefile_test_tasks}
 
-task :default => :test
+task default: :test
       EOF
       if full?
         template "test/integration/navigation_test.rb"
@@ -82,10 +82,10 @@ task :default => :test
     end
 
     def test_dummy_config
-      template "rails/boot.rb", "#{dummy_path}/config/boot.rb", :force => true
-      template "rails/application.rb", "#{dummy_path}/config/application.rb", :force => true
+      template "rails/boot.rb", "#{dummy_path}/config/boot.rb", force: true
+      template "rails/application.rb", "#{dummy_path}/config/application.rb", force: true
       if mountable?
-        template "rails/routes.rb", "#{dummy_path}/config/routes.rb", :force => true
+        template "rails/routes.rb", "#{dummy_path}/config/routes.rb", force: true
       end
     end
 
@@ -128,10 +128,10 @@ task :default => :test
     def script(force = false)
       return unless full?
 
-      directory "script", :force => force do |content|
+      directory "script", force: force do |content|
         "#{shebang}\n" + content
       end
-      chmod "script", 0755, :verbose => false
+      chmod "script", 0755, verbose: false
     end
 
     def gemfile_entry
@@ -139,7 +139,7 @@ task :default => :test
 
       gemfile_in_app_path = File.join(rails_app_path, "Gemfile")
       if File.exist? gemfile_in_app_path
-        entry = "gem '#{name}', :path => '#{relative_path}'"
+        entry = "gem '#{name}', path: '#{relative_path}'"
         append_file gemfile_in_app_path, entry
       end
     end
@@ -151,20 +151,20 @@ task :default => :test
 
       alias_method :plugin_path, :app_path
 
-      class_option :dummy_path,   :type => :string, :default => "test/dummy",
-                                  :desc => "Create dummy application at given path"
+      class_option :dummy_path,   type: :string, default: "test/dummy",
+                                  desc: "Create dummy application at given path"
 
-      class_option :full,         :type => :boolean, :default => false,
-                                  :desc => "Generate rails engine with integration tests"
+      class_option :full,         type: :boolean, default: false,
+                                  desc: "Generate rails engine with integration tests"
 
-      class_option :mountable,    :type => :boolean, :default => false,
-                                  :desc => "Generate mountable isolated application"
+      class_option :mountable,    type: :boolean, default: false,
+                                  desc: "Generate mountable isolated application"
 
-      class_option :skip_gemspec, :type => :boolean, :default => false,
-                                  :desc => "Skip gemspec file"
+      class_option :skip_gemspec, type: :boolean, default: false,
+                                  desc: "Skip gemspec file"
 
-      class_option :skip_gemfile_entry, :type => :boolean, :default => false,
-                                        :desc => "If creating plugin in application's directory " +
+      class_option :skip_gemfile_entry, type: :boolean, default: false,
+                                        desc: "If creating plugin in application's directory " +
                                                  "skip adding entry to Gemfile"
 
       def initialize(*args)

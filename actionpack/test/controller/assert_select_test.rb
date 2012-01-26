@@ -15,16 +15,16 @@ class AssertSelectTest < ActionController::TestCase
 
   class AssertSelectMailer < ActionMailer::Base
     def test(html)
-      mail :body => html, :content_type => "text/html",
-        :subject => "Test e-mail", :from => "test@test.host", :to => "test <test@test.host>"
+      mail body: html, content_type: "text/html",
+        subject: "Test e-mail", from: "test@test.host", to: "test <test@test.host>"
     end
   end
 
   class AssertMultipartSelectMailer < ActionMailer::Base
     def test(options)
-      mail :subject => "Test e-mail", :from => "test@test.host", :to => "test <test@test.host>" do |format|
-        format.text { render :text => options[:text] }
-        format.html { render :text => options[:html] }
+      mail subject: "Test e-mail", from: "test@test.host", to: "test <test@test.host>" do |format|
+        format.text { render text: options[:text] }
+        format.html { render text: options[:html] }
       end
     end
   end
@@ -207,7 +207,7 @@ class AssertSelectTest < ActionController::TestCase
       assert_nothing_raised    { assert_select "div", "foo" }
       assert_nothing_raised    { assert_select "div", "bar" }
       assert_nothing_raised    { assert_select "div", /\w*/ }
-      assert_nothing_raised    { assert_select "div", :text => /\w*/, :count=>2 }
+      assert_nothing_raised    { assert_select "div", text: /\w*/, :count=>2 }
       assert_raise(Assertion)  { assert_select "div", :text=>"foo", :count=>2 }
       assert_nothing_raised    { assert_select "div", :html=>"<span>bar</span>" }
       assert_nothing_raised    { assert_select "div", :html=>"<span>bar</span>" }
@@ -319,7 +319,7 @@ EOF
   end
 
   def test_assert_select_email_multipart
-    AssertMultipartSelectMailer.test(:html => "<div><p>foo</p><p>bar</p></div>", :text => 'foo bar').deliver
+    AssertMultipartSelectMailer.test(html: "<div><p>foo</p><p>bar</p></div>", text: 'foo bar').deliver
     assert_select_email do
       assert_select "div:root" do
         assert_select "p:first-child", "foo"

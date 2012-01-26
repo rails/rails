@@ -4,12 +4,12 @@ require 'rake/packagetask'
 require 'rubygems/package_task'
 
 desc "Default Task"
-task :default => :test
+task default: :test
 
 # Run the unit tests
 
 desc "Run all unit tests"
-task :test => [:test_action_pack, :test_active_record_integration]
+task test: [:test_action_pack, :test_active_record_integration]
 
 Rake::TestTask.new(:test_action_pack) do |t|
   t.libs << 'test'
@@ -46,7 +46,7 @@ Gem::PackageTask.new(spec) do |p|
 end
 
 desc "Release to gemcutter"
-task :release => :package do
+task release: :package do
   require 'rake/gemcutter'
   Rake::Gemcutter::Tasks.new(spec).define
   Rake::Task['gem:push'].invoke

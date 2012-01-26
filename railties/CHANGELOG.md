@@ -69,7 +69,7 @@
     config/initializers/* will not be executed.
 
     Plugins developers need to special case their initializers that are
-    meant to be run in the assets group by adding :group => :assets.
+    meant to be run in the assets group by adding group: :assets.
 
 ## Rails 3.1.0 (August 30, 2011) ##
 
@@ -120,7 +120,7 @@
 
     So instead of creating something like:
 
-        redirect_to users_path, :notice => "User has been created"
+        redirect_to users_path, notice: "User has been created"
 
     it will now be like this:
 
@@ -220,7 +220,7 @@
 
 *   Session store configuration has changed *Yehuda Katz, Carl Lerche*
 
-        config.session_store :cookie_store, {:key => "..."}
+        config.session_store :cookie_store, {key: "..."}
         config.cookie_secret = "fdsfhisdghfidugnfdlg"
 
 *   railtie_name and engine_name are deprecated. You can now add any object to
@@ -295,8 +295,8 @@
             # template.rb
 
             # Install plugins from git or svn
-            plugin "will-paginate", :git => "git://github.com/mislav/will_paginate.git"
-            plugin "old-restful-auth", :svn => "http://svn.techno-weenie.net/projects/plugins/restful_authentication/"
+            plugin "will-paginate", git: "git://github.com/mislav/will_paginate.git"
+            plugin "old-restful-auth", svn: "http://svn.techno-weenie.net/projects/plugins/restful_authentication/"
 
             # Add gems to environment.rb
             gem "jeremymcanally-context"
@@ -454,8 +454,8 @@
     ActionController::Base.send :include, OpenIdAuthentication
 
     \# NEW
-    config.gem "ruby-openid", :lib => "openid", :version => "1.1.4"
-    config.gem "ruby-yadis",  :lib => "yadis",  :version => "0.3.4"
+    config.gem "ruby-openid", lib: "openid", version: "1.1.4"
+    config.gem "ruby-yadis",  lib: "yadis",  version: "0.3.4"
 
     config.after_initialize do
         ActionController::Base.send :include, OpenIdAuthentication
@@ -465,8 +465,8 @@
 
     Rails::Initializer.run do |config|
         config.gem "bj"
-        config.gem "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
-        config.gem "aws-s3", :lib => "aws/s3"
+        config.gem "hpricot", version: '0.6', source: "http://code.whytheluckystiff.net"
+        config.gem "aws-s3", lib: "aws/s3"
     end
 
     \# List required gems.
@@ -837,7 +837,7 @@
 
 *   Remove temporary crutch to help ApplicationController be unloaded. Closes #6496. *Nicholas Seckar*
 
-*   scaffold_resource generator uses _path named routes and head instead of render :nothing => true.  #6545 *Josh Susser*
+*   scaffold_resource generator uses _path named routes and head instead of render nothing: true.  #6545 *Josh Susser*
 
 *   Generator can show diff on file collision to help you decide whether to skip or overwrite.  #6364 *jeffw, Jeremy Kemper*
 
@@ -986,7 +986,7 @@
 
     Also note that script/process/reaper is Mongrel capable. So the combination of spawner and reaper is a built-in alternative to something like mongrel_cluster.
 
-*   Update scaffolding functional tests to use :id => people(:first) instead of :id => 1. #5612 *evan@protest.net*
+*   Update scaffolding functional tests to use id: people(:first) instead of id: 1. #5612 *evan@protest.net*
 
 *   db:test:clone should remove existing tables before reloading the schema. #5607 *sveit@tradeharbor.com*
 
@@ -1132,7 +1132,7 @@
 
 *   Rake: use absolute paths to load lib and vendor tasks so they may be run outside of RAILS_ROOT.  #6584 *jchris*
 
-*   scaffold_resource generator uses _path named routes and head instead of render :nothing => true.  #6545 *Josh Susser*
+*   scaffold_resource generator uses _path named routes and head instead of render nothing: true.  #6545 *Josh Susser*
 
 *   Generator can show diff on file collision to help you decide whether to skip or overwrite.  #6364 *jeffw, Jeremy Kemper*
 
@@ -1269,7 +1269,7 @@
 
     Also note that script/process/reaper is Mongrel capable. So the combination of spawner and reaper is a built-in alternative to something like mongrel_cluster.
 
-*   Update scaffolding functional tests to use :id => people(:first) instead of :id => 1. #5612 *evan@protest.net*
+*   Update scaffolding functional tests to use id: people(:first) instead of id: 1. #5612 *evan@protest.net*
 
 *   db:test:clone should remove existing tables before reloading the schema. #5607 *sveit@tradeharbor.com*
 
@@ -1509,8 +1509,8 @@
 
 *   Added collision option to template generation in generators #3329 [anna@wota.jp]. Examples:
 
-        m.template "stuff.config" , "config/stuff.config" , :collision => :skip
-        m.template "auto-stamping", "config/generator.log", :collision => :force
+        m.template "stuff.config" , "config/stuff.config" , collision: :skip
+        m.template "auto-stamping", "config/generator.log", collision: :force
 
 *   Added more information to script/plugin's doings to ease debugging #3755 *Rick Olson*
 

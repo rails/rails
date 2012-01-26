@@ -7,7 +7,7 @@
 
 *   Add ActiveModel::Errors#added? to check if a specific error has been added *Martin Svalin*
 
-*   Add ability to define strict validation(with :strict => true option) that always raises exception when fails *Bogdan Gusiev*
+*   Add ability to define strict validation(with strict: true option) that always raises exception when fails *Bogdan Gusiev*
 
 *   Deprecate "Model.model_name.partial_path" in favor of "model.to_partial_path" *Grant Hutchins, Peter Jaros*
 
@@ -79,7 +79,7 @@
 
 *   Added ActiveModel::MassAssignmentSecurity *Eric Chapweske, Josh Kalderimis*
 
-*   JSON supports a custom root option: to_json(:root => 'custom')  #4515 *Jatinder Singh*
+*   JSON supports a custom root option: to_json(root: 'custom')  #4515 *Jatinder Singh*
 
 *   #new_record? and #destroyed? were removed from ActiveModel::Lint. Use
     persisted? instead. A model is persisted if it's not a new_record? and it was
@@ -105,11 +105,11 @@
 
 *   Change the ActiveModel::Base.include_root_in_json default to true for Rails 3 *DHH*
 
-*   Add validates_format_of :without => /regexp/ option. #430 *Elliot Winkler, Peer Allan*
+*   Add validates_format_of without: /regexp/ option. #430 *Elliot Winkler, Peer Allan*
 
     Example :
 
-          validates_format_of :subdomain, :without => /www|admin|mail/
+          validates_format_of :subdomain, without: /www|admin|mail/
 
 *   Introduce validates_with to encapsulate attribute validations in a class.  #2630 *Jeff Dean*
 

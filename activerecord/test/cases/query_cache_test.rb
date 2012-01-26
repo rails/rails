@@ -179,7 +179,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     Post.find(1)
 
     # change the column definition
-    Post.connection.change_column :posts, :title, :string, :limit => 80
+    Post.connection.change_column :posts, :title, :string, limit: 80
     assert_nothing_raised { Post.find(1) }
 
     # restore the old definition

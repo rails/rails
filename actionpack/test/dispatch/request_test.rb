@@ -3,28 +3,28 @@ require 'abstract_unit'
 class RequestTest < ActiveSupport::TestCase
 
   def url_for(options = {})
-    options.reverse_merge!(:host => 'www.example.com')
+    options.reverse_merge!(host: 'www.example.com')
     ActionDispatch::Http::URL.url_for(options)
   end
 
   test "url_for class method" do
-    e = assert_raise(ArgumentError) { url_for(:host => nil) }
+    e = assert_raise(ArgumentError) { url_for(host: nil) }
     assert_match(/Please provide the :host parameter/, e.message)
 
-    assert_equal '/books', url_for(:only_path => true, :path => '/books')
+    assert_equal '/books', url_for(only_path: true, path: '/books')
 
     assert_equal 'http://www.example.com',  url_for
-    assert_equal 'http://api.example.com',  url_for(:subdomain => 'api')
-    assert_equal 'http://example.com',      url_for(:subdomain => false)
-    assert_equal 'http://www.ror.com',      url_for(:domain => 'ror.com')
-    assert_equal 'http://api.ror.co.uk',    url_for(:host => 'www.ror.co.uk', :subdomain => 'api', :tld_length => 2)
-    assert_equal 'http://www.example.com:8080',   url_for(:port => 8080)
-    assert_equal 'https://www.example.com',       url_for(:protocol => 'https')
-    assert_equal 'http://www.example.com/docs',   url_for(:path => '/docs')
-    assert_equal 'http://www.example.com#signup', url_for(:anchor => 'signup')
-    assert_equal 'http://www.example.com/',       url_for(:trailing_slash => true)
-    assert_equal 'http://dhh:supersecret@www.example.com', url_for(:user => 'dhh', :password => 'supersecret')
-    assert_equal 'http://www.example.com?search=books',    url_for(:params => { :search => 'books' })
+    assert_equal 'http://api.example.com',  url_for(subdomain: 'api')
+    assert_equal 'http://example.com',      url_for(subdomain: false)
+    assert_equal 'http://www.ror.com',      url_for(domain: 'ror.com')
+    assert_equal 'http://api.ror.co.uk',    url_for(host: 'www.ror.co.uk', subdomain: 'api', tld_length: 2)
+    assert_equal 'http://www.example.com:8080',   url_for(port: 8080)
+    assert_equal 'https://www.example.com',       url_for(protocol: 'https')
+    assert_equal 'http://www.example.com/docs',   url_for(path: '/docs')
+    assert_equal 'http://www.example.com#signup', url_for(anchor: 'signup')
+    assert_equal 'http://www.example.com/',       url_for(trailing_slash: true)
+    assert_equal 'http://dhh:supersecret@www.example.com', url_for(user: 'dhh', password: 'supersecret')
+    assert_equal 'http://www.example.com?search=books',    url_for(params: { search: 'books' })
   end
 
   test "remote ip" do
@@ -82,7 +82,7 @@ class RequestTest < ActiveSupport::TestCase
     # HTTP_CLIENT_IP/HTTP_X_FORWARDED_FOR headers properly.
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '1.1.1.1',
                            'HTTP_CLIENT_IP'       => '2.2.2.2',
-                           :ip_spoofing_check => false
+                           ip_spoofing_check: false
     assert_equal '2.2.2.2', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, 9.9.9.9'
@@ -127,7 +127,7 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk"
     assert_equal "rubyonrails.co.uk", request.domain(2)
 
-    request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk", :tld_length => 2
+    request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk", tld_length: 2
     assert_equal "rubyonrails.co.uk", request.domain
 
     request = stub_request 'HTTP_HOST' => "192.168.1.200"
@@ -153,7 +153,7 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal %w( dev www ), request.subdomains(2)
     assert_equal "dev.www", request.subdomain(2)
 
-    request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk", :tld_length => 2
+    request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk", tld_length: 2
     assert_equal %w( dev www ), request.subdomains
     assert_equal "dev.www", request.subdomain
 
@@ -351,7 +351,7 @@ class RequestTest < ActiveSupport::TestCase
   test "restrict method hacking" do
     [:get, :put, :delete].each do |method|
       request = stub_request 'REQUEST_METHOD' => method.to_s.upcase,
-        'action_dispatch.request.request_parameters' => { :_method => 'put' }
+        'action_dispatch.request.request_parameters' => { _method: 'put' }
       assert_equal method.to_s.upcase, request.method
     end
   end
@@ -373,19 +373,19 @@ class RequestTest < ActiveSupport::TestCase
 
   test "xml format" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => 'xml' })
+    request.expects(:parameters).at_least_once.returns({ format: 'xml' })
     assert_equal Mime::XML, request.format
   end
 
   test "xhtml format" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => 'xhtml' })
+    request.expects(:parameters).at_least_once.returns({ format: 'xhtml' })
     assert_equal Mime::HTML, request.format
   end
 
   test "txt format" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => 'txt' })
+    request.expects(:parameters).at_least_once.returns({ format: 'txt' })
     assert_equal Mime::TEXT, request.format
   end
 
@@ -405,11 +405,11 @@ class RequestTest < ActiveSupport::TestCase
 
   test "can override format with parameter" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => :txt })
+    request.expects(:parameters).at_least_once.returns({ format: :txt })
     assert !request.format.xml?
 
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => :xml })
+    request.expects(:parameters).at_least_once.returns({ format: :xml })
     assert request.format.xml?
   end
 
@@ -466,11 +466,11 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal with_set(Mime::XML), request.formats
 
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => :txt })
+    request.expects(:parameters).at_least_once.returns({ format: :txt })
     assert_equal with_set(Mime::TEXT), request.formats
 
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => :unknown })
+    request.expects(:parameters).at_least_once.returns({ format: :unknown })
     assert request.formats.empty?
   end
 
@@ -507,7 +507,7 @@ class RequestTest < ActiveSupport::TestCase
 
       request = stub_request 'HTTP_ACCEPT' => 'application/xml',
                              'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
-      request.expects(:parameters).at_least_once.returns({:format => :json})
+      request.expects(:parameters).at_least_once.returns({format: :json})
       assert_equal [ Mime::JSON ], request.formats
     ensure
       ActionDispatch::Request.ignore_accept_header = false

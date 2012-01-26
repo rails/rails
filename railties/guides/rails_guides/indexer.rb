@@ -40,8 +40,8 @@ module RailsGuides
             raise "Parsing Fail" unless @result.sub!(matched, "h#{level}(#{idx}). #{index} #{title}")
 
             key = {
-              :title => title,
-              :id => idx
+              title: title,
+              id: idx
             }
             # Recurse
             counters << 1

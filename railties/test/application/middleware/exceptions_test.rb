@@ -108,7 +108,7 @@ module ApplicationTests
         end
       RUBY
 
-      post '/foo', :utf8 => '✓'
+      post '/foo', utf8: '✓'
       assert_match(/boooom/, last_response.body)
       assert_match(/測試テスト시험/, last_response.body)
     end

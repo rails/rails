@@ -3,9 +3,9 @@ require 'active_support/core_ext/module/delegation'
 module ActiveRecord
   module Delegation
     # Set up common delegations for performance (avoids method_missing)
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :to => :to_a
+    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, to: :to_a
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
-             :connection, :columns_hash, :auto_explain_threshold_in_seconds, :to => :klass
+             :connection, :columns_hash, :auto_explain_threshold_in_seconds, to: :klass
 
     def self.delegate_to_scoped_klass(method)
       if method.to_s =~ /\A[a-zA-Z_]\w*[!?]?\z/
@@ -33,13 +33,13 @@ module ActiveRecord
 
     def method_missing(method, *args, &block)
       if Array.method_defined?(method)
-        ::ActiveRecord::Delegation.delegate method, :to => :to_a
+        ::ActiveRecord::Delegation.delegate method, to: :to_a
         to_a.send(method, *args, &block)
       elsif @klass.respond_to?(method)
         ::ActiveRecord::Delegation.delegate_to_scoped_klass(method)
         scoping { @klass.send(method, *args, &block) }
       elsif arel.respond_to?(method)
-        ::ActiveRecord::Delegation.delegate method, :to => :arel
+        ::ActiveRecord::Delegation.delegate method, to: :arel
         arel.send(method, *args, &block)
       else
         super

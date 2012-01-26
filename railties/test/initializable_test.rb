@@ -43,17 +43,17 @@ module InitializableTests
   class Child < Parent
     include Rails::Initializable
 
-    initializer :three, :before => :one do
+    initializer :three, before: :one do
       $arr << 3
     end
 
-    initializer :four, :after => :one, :before => :two do
+    initializer :four, after: :one, before: :two do
       $arr << 4
     end
   end
 
   class Parent
-    initializer :five, :before => :one do
+    initializer :five, before: :one do
       $arr << 5
     end
   end
@@ -61,7 +61,7 @@ module InitializableTests
   class Instance
     include Rails::Initializable
 
-    initializer :one, :group => :assets do
+    initializer :one, group: :assets do
       $arr << 1
     end
 
@@ -69,7 +69,7 @@ module InitializableTests
       $arr << 2
     end
 
-    initializer :three, :group => :all do
+    initializer :three, group: :all do
       $arr << 3
     end
 
@@ -90,11 +90,11 @@ module InitializableTests
     class MoreInitializers
       include Rails::Initializable
 
-      initializer :startup, :before => :last do
+      initializer :startup, before: :last do
         $arr << 3
       end
 
-      initializer :terminate, :after => :first, :before => :startup do
+      initializer :terminate, after: :first, before: :startup do
         $arr << two
       end
 
@@ -134,11 +134,11 @@ module InitializableTests
     class PluginB
       include Rails::Initializable
 
-      initializer "plugin_b.startup", :after => "plugin_a.startup" do
+      initializer "plugin_b.startup", after: "plugin_a.startup" do
         $arr << 2
       end
 
-      initializer "plugin_b.terminate", :before => "plugin_a.terminate" do
+      initializer "plugin_b.terminate", before: "plugin_a.terminate" do
         $arr << 3
       end
     end

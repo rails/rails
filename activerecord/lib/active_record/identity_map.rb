@@ -26,7 +26,7 @@ module ActiveRecord
   # post association when the association is nullified. This may cause side effects, as
   # in the situation below, if Identity Map is enabled:
   #
-  #   Post.has_many :comments, :dependent => :destroy
+  #   Post.has_many :comments, dependent: :destroy
   #
   #   comment = @post.comments.first
   #   comment.post = nil
@@ -79,9 +79,9 @@ module ActiveRecord
 
         if record.is_a?(klass)
           ActiveSupport::Notifications.instrument("identity.active_record",
-            :line => "From Identity Map (id: #{primary_key})",
-            :name => "#{klass} Loaded",
-            :connection_id => object_id)
+            line: "From Identity Map (id: #{primary_key})",
+            name: "#{klass} Loaded",
+            connection_id: object_id)
 
           record
         else

@@ -21,7 +21,7 @@ def run_without_aborting(*tasks)
 end
 
 desc 'Run mysql, mysql2, sqlite, and postgresql tests by default'
-task :default => :test
+task default: :test
 
 desc 'Run mysql, mysql2, sqlite, and postgresql tests'
 task :test do
@@ -64,8 +64,8 @@ end
   end
 
   namespace adapter do
-    task :test => "test_#{adapter}"
-    task :isolated_test => "isolated_test_#{adapter}"
+    task test: "test_#{adapter}"
+    task isolated_test: "isolated_test_#{adapter}"
 
     # Set the connection environment for the adapter
     task(:env) { ENV['ARCONN'] = adapter }
@@ -80,7 +80,7 @@ rule '.sqlite3' do |t|
   sh %Q{sqlite3 "#{t.name}" "create table a (a integer); drop table a;"}
 end
 
-task :test_sqlite3 => [
+task test_sqlite3: [
   'test/fixtures/fixture_database.sqlite3',
   'test/fixtures/fixture_database_2.sqlite3'
 ]
@@ -101,12 +101,12 @@ namespace :mysql do
   end
 
   desc 'Rebuild the MySQL test databases'
-  task :rebuild_databases => [:drop_databases, :build_databases]
+  task rebuild_databases: [:drop_databases, :build_databases]
 end
 
-task :build_mysql_databases => 'mysql:build_databases'
-task :drop_mysql_databases => 'mysql:drop_databases'
-task :rebuild_mysql_databases => 'mysql:rebuild_databases'
+task build_mysql_databases: 'mysql:build_databases'
+task drop_mysql_databases: 'mysql:drop_databases'
+task rebuild_mysql_databases: 'mysql:rebuild_databases'
 
 
 namespace :postgresql do
@@ -125,17 +125,17 @@ namespace :postgresql do
   end
 
   desc 'Rebuild the PostgreSQL test databases'
-  task :rebuild_databases => [:drop_databases, :build_databases]
+  task rebuild_databases: [:drop_databases, :build_databases]
 end
 
-task :build_postgresql_databases => 'postgresql:build_databases'
-task :drop_postgresql_databases => 'postgresql:drop_databases'
-task :rebuild_postgresql_databases => 'postgresql:rebuild_databases'
+task build_postgresql_databases: 'postgresql:build_databases'
+task drop_postgresql_databases: 'postgresql:drop_databases'
+task rebuild_postgresql_databases: 'postgresql:rebuild_databases'
 
 
 namespace :frontbase do
   desc 'Build the FrontBase test databases'
-  task :build_databases => :rebuild_frontbase_databases
+  task build_databases: :rebuild_frontbase_databases
 
   desc 'Rebuild the FrontBase test databases'
   task :rebuild_databases do
@@ -175,8 +175,8 @@ namespace :frontbase do
   end
 end
 
-task :build_frontbase_databases => 'frontbase:build_databases'
-task :rebuild_frontbase_databases => 'frontbase:rebuild_databases'
+task build_frontbase_databases: 'frontbase:build_databases'
+task rebuild_frontbase_databases: 'frontbase:rebuild_databases'
 
 spec = eval(File.read('activerecord.gemspec'))
 
@@ -212,7 +212,7 @@ end
 # Publishing ------------------------------------------------------
 
 desc "Release to gemcutter"
-task :release => :package do
+task release: :package do
   require 'rake/gemcutter'
   Rake::Gemcutter::Tasks.new(spec).define
   Rake::Task['gem:push'].invoke

@@ -74,7 +74,7 @@ class HttpMockTest < ActiveSupport::TestCase
   end
 
   test "allows you to send in pairs directly to the respond_to method" do
-    matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
+    matz  = { person: { id: 1, name: "Matz" } }.to_json
 
     create_matz = ActiveResource::Request.new(:post, '/people.json', matz, {})
     created_response = ActiveResource::Response.new("", 201, { "Location" => "/people/1.json" })
@@ -107,7 +107,7 @@ class HttpMockTest < ActiveSupport::TestCase
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 
-    matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
+    matz  = { person: { id: 1, name: "Matz" } }.to_json
     get_matz = ActiveResource::Request.new(:get, '/people/1.json', nil)
     ok_response = ActiveResource::Response.new(matz, 200, {})
     ActiveResource::HttpMock.respond_to({get_matz => ok_response})
@@ -133,7 +133,7 @@ class HttpMockTest < ActiveSupport::TestCase
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 
-    matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
+    matz  = { person: { id: 1, name: "Matz" } }.to_json
     get_matz = ActiveResource::Request.new(:get, '/people/1.json', nil)
     ok_response = ActiveResource::Response.new(matz, 200, {})
     ActiveResource::HttpMock.respond_to({get_matz => ok_response}, false)
@@ -159,7 +159,7 @@ class HttpMockTest < ActiveSupport::TestCase
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 
-    matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
+    matz  = { person: { id: 1, name: "Matz" } }.to_json
     get_matz = ActiveResource::Request.new(:get, '/people/1', nil)
     ok_response = ActiveResource::Response.new(matz, 200, {})
 

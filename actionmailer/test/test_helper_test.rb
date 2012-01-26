@@ -3,9 +3,9 @@ require 'abstract_unit'
 class TestHelperMailer < ActionMailer::Base
   def test
     @world = "Earth"
-    mail :body => render(:inline => "Hello, <%= @world %>"),
-      :to => "test@example.com",
-      :from => "tester@example.com"
+    mail body: render(inline: "Hello, <%= @world %>"),
+      to: "test@example.com",
+      from: "tester@example.com"
   end
 end
 

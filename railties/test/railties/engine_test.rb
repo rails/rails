@@ -101,14 +101,14 @@ module RailtiesTest
       controller "foo", <<-RUBY
         class FooController < ActionController::Base
           def index
-            render :text => params[:username]
+            render text: params[:username]
           end
         end
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          root :to => "foo#index"
+          root to: "foo#index"
         end
       RUBY
 
@@ -214,14 +214,14 @@ module RailtiesTest
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match "/bar" => "bar#index", :as => "bar"
-          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
+          match "/bar" => "bar#index", as: "bar"
+          mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          match "/foo" => "foo#index", :as => "foo"
+          match "/foo" => "foo#index", as: "foo"
           match "/foo/show" => "foo#show"
           match "/from_app" => "foo#from_app"
           match "/routes_helpers_in_view" => "foo#routes_helpers_in_view"
@@ -249,23 +249,23 @@ module RailtiesTest
       @plugin.write "app/controllers/bukkits/foo_controller.rb", <<-RUBY
         class Bukkits::FooController < ActionController::Base
           def index
-            render :inline => "<%= help_the_engine %>"
+            render inline: "<%= help_the_engine %>"
           end
 
           def show
-            render :text => foo_path
+            render text: foo_path
           end
 
           def from_app
-            render :inline => "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
+            render inline: "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
           end
 
           def routes_helpers_in_view
-            render :inline => "<%= foo_path %>, <%= main_app.bar_path %>"
+            render inline: "<%= foo_path %>, <%= main_app.bar_path %>"
           end
 
           def polymorphic_path_without_namespace
-            render :text => polymorphic_path(Post.new)
+            render text: polymorphic_path(Post.new)
           end
         end
       RUBY
@@ -332,7 +332,7 @@ module RailtiesTest
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
+          mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
 
@@ -376,7 +376,7 @@ module RailtiesTest
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          mount Bukkits::Awesome::Engine => "/bukkits", :as => "bukkits"
+          mount Bukkits::Awesome::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
 
@@ -389,7 +389,7 @@ module RailtiesTest
       @plugin.write "app/controllers/bukkits/awesome/foo_controller.rb", <<-RUBY
         class Bukkits::Awesome::FooController < ActionController::Base
           def index
-            render :text => "ok"
+            render text: "ok"
           end
         end
       RUBY
@@ -648,11 +648,11 @@ module RailtiesTest
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render :inline => '<%= render :partial => "shared/foo" %>'
+            render inline: '<%= render partial: "shared/foo" %>'
           end
 
           def bar
-            render :inline => '<%= render :partial => "shared/bar" %>'
+            render inline: '<%= render partial: "shared/bar" %>'
           end
         end
       RUBY
@@ -725,7 +725,7 @@ module RailtiesTest
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render :inline => '<%= render :partial => "shared/foo" %>'
+            render inline: '<%= render partial: "shared/foo" %>'
           end
         end
       RUBY

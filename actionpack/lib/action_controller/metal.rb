@@ -7,7 +7,7 @@ module ActionController
   # allowing the following syntax in controllers:
   #
   #   class PostsController < ApplicationController
-  #     use AuthenticationMiddleware, :except => [:index, :show]
+  #     use AuthenticationMiddleware, except: [:index, :show]
   #   end
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
@@ -58,7 +58,7 @@ module ActionController
   # And then to route requests to your metal controller, you would add
   # something like this to <tt>config/routes.rb</tt>:
   #
-  #   match 'hello', :to => HelloController.action(:index)
+  #   match 'hello', to: HelloController.action(:index)
   #
   # The +action+ method returns a valid Rack application for the \Rails
   # router to dispatch to.
@@ -129,7 +129,7 @@ module ActionController
     # environment and response manually for performance reasons.
 
     attr_internal :headers, :response, :request
-    delegate :session, :to => "@_request"
+    delegate :session, to: "@_request"
 
     def initialize
       @_headers = {"Content-Type" => "text/html"}

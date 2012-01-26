@@ -342,7 +342,7 @@ module ActiveRecord
           stmt = @connection.prepare(sql)
         else
           cache = @statements[sql] ||= {
-            :stmt => @connection.prepare(sql)
+            stmt: @connection.prepare(sql)
           }
           stmt = cache[:stmt]
         end

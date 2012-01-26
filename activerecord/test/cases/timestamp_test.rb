@@ -114,7 +114,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_a_specific_attribute_the_parent_should_update_that_attribute
-    Pet.belongs_to :owner, :touch => :happy_at
+    Pet.belongs_to :owner, touch: :happy_at
 
     pet   = Pet.first
     owner = pet.owner
@@ -125,11 +125,11 @@ class TimestampTest < ActiveRecord::TestCase
 
     assert_not_equal previously_owner_happy_at, pet.owner.happy_at
   ensure
-    Pet.belongs_to :owner, :touch => true
+    Pet.belongs_to :owner, touch: true
   end
 
   def test_touching_a_record_with_a_belongs_to_that_uses_a_counter_cache_should_update_the_parent
-    Pet.belongs_to :owner, :counter_cache => :use_count, :touch => true
+    Pet.belongs_to :owner, counter_cache: :use_count, touch: true
 
     pet = Pet.first
     owner = pet.owner
@@ -141,12 +141,12 @@ class TimestampTest < ActiveRecord::TestCase
 
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
   ensure
-    Pet.belongs_to :owner, :touch => true
+    Pet.belongs_to :owner, touch: true
   end
 
   def test_touching_a_record_touches_parent_record_and_grandparent_record
-    Toy.belongs_to :pet, :touch => true
-    Pet.belongs_to :owner, :touch => true
+    Toy.belongs_to :pet, touch: true
+    Pet.belongs_to :owner, touch: true
 
     toy = Toy.first
     pet = toy.pet

@@ -46,11 +46,11 @@ module ApplicationTests
 
       Rails.env = "development"
       assert_equal [:default, "development"], Rails.groups
-      assert_equal [:default, "development", :assets], Rails.groups(:assets => [:development])
-      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, :assets => %w(development))
+      assert_equal [:default, "development", :assets], Rails.groups(assets: [:development])
+      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, assets: %w(development))
 
       Rails.env = "test"
-      assert_equal [:default, "test"], Rails.groups(:assets => [:development])
+      assert_equal [:default, "test"], Rails.groups(assets: [:development])
 
       ENV["RAILS_GROUPS"] = "javascripts,stylesheets"
       assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
@@ -225,7 +225,7 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           cookies.signed[:some_key] = "some_value"
-          render :text => env["action_dispatch.secret_token"]
+          render text: env["action_dispatch.secret_token"]
         end
       end
 
@@ -238,7 +238,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render :inline => "<%= csrf_meta_tags %>"
+          render inline: "<%= csrf_meta_tags %>"
         end
       end
 
@@ -253,7 +253,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render :inline => "<%= csrf_meta_tags %>"
+          render inline: "<%= csrf_meta_tags %>"
         end
       end
 
@@ -272,7 +272,7 @@ module ApplicationTests
         caches_action :index
         def index
           @@count += 1
-          render :text => @@count
+          render text: @@count
         end
       end
 
@@ -392,7 +392,7 @@ module ApplicationTests
         caches_action :index
         def index
           @@count += 1
-          render :text => @@count
+          render text: @@count
         end
       end
 
@@ -409,7 +409,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render :inline => "<%= image_path('foo.jpg') %>"
+          render inline: "<%= image_path('foo.jpg') %>"
         end
       end
 
@@ -462,7 +462,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render :text => env["action_dispatch.show_exceptions"]
+          render text: env["action_dispatch.show_exceptions"]
         end
       end
 
@@ -472,7 +472,7 @@ module ApplicationTests
 
     test "config.action_controller.wrap_parameters is set in ActionController::Base" do
       app_file 'config/initializers/wrap_parameters.rb', <<-RUBY
-        ActionController::Base.wrap_parameters :format => [:json]
+        ActionController::Base.wrap_parameters format: [:json]
       RUBY
 
       app_file 'app/models/post.rb', <<-RUBY
@@ -486,7 +486,7 @@ module ApplicationTests
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ApplicationController
         def create
-          render :text => params[:post].inspect
+          render text: params[:post].inspect
         end
       end
       RUBY
@@ -511,8 +511,8 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           respond_to do |format|
-            format.html { render :text => "HTML" }
-            format.xml { render :text => "XML" }
+            format.html { render text: "HTML" }
+            format.xml { render text: "XML" }
           end
         end
       end
@@ -520,7 +520,7 @@ module ApplicationTests
       get "/", {}, "HTTP_ACCEPT" => "application/xml"
       assert_equal 'HTML', last_response.body
 
-      get "/", { :format => :xml }, "HTTP_ACCEPT" => "application/xml"
+      get "/", { format: :xml }, "HTTP_ACCEPT" => "application/xml"
       assert_equal 'XML', last_response.body
     end
 

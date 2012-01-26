@@ -49,7 +49,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        config_attribute :lock_optimistically, :global => true
+        config_attribute :lock_optimistically, global: true
         self.lock_optimistically = true
       end
 

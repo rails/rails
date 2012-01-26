@@ -109,7 +109,7 @@ class TransactionTest < ActiveRecord::TestCase
     author = Author.find(1)
     posts_count = author.posts.size
     assert posts_count > 0
-    status = author.update_attributes(:name => nil, :post_ids => [])
+    status = author.update_attributes(name: nil, post_ids: [])
     assert !status
     assert_equal posts_count, author.posts(true).size
   end
@@ -119,7 +119,7 @@ class TransactionTest < ActiveRecord::TestCase
     posts_count = author.posts.size
     assert posts_count > 0
     assert_raise(ActiveRecord::RecordInvalid) do
-      author.update_attributes!(:name => nil, :post_ids => [])
+      author.update_attributes!(name: nil, post_ids: [])
     end
     assert_equal posts_count, author.posts(true).size
   end
@@ -174,14 +174,14 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_callback_rollback_in_create
     new_topic = Topic.new(
-      :title => "A new topic",
-      :author_name => "Ben",
-      :author_email_address => "ben@example.com",
-      :written_on => "2003-07-16t15:28:11.2233+01:00",
-      :last_read => "2004-04-15",
-      :bonus_time => "2005-01-30t15:28:00.00+01:00",
-      :content => "Have a nice day",
-      :approved => false)
+      title: "A new topic",
+      author_name: "Ben",
+      author_email_address: "ben@example.com",
+      written_on: "2003-07-16t15:28:11.2233+01:00",
+      last_read: "2004-04-15",
+      bonus_time: "2005-01-30t15:28:00.00+01:00",
+      content: "Have a nice day",
+      approved: false)
     new_record_snapshot = !new_topic.persisted?
     id_present = new_topic.has_attribute?(Topic.primary_key)
     id_snapshot = new_topic.id
@@ -237,7 +237,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_invalid_keys_for_transaction
     assert_raise ArgumentError do
-      Topic.transaction :nested => true do
+      Topic.transaction nested: true do
       end
     end
   end
@@ -250,7 +250,7 @@ class TransactionTest < ActiveRecord::TestCase
       @second.save!
 
       begin
-        Topic.transaction :requires_new => true do
+        Topic.transaction requires_new: true do
           @first.happy = false
           @first.save!
           raise
@@ -271,7 +271,7 @@ class TransactionTest < ActiveRecord::TestCase
       @second.save!
 
       begin
-        @second.transaction :requires_new => true do
+        @second.transaction requires_new: true do
           @first.happy = false
           @first.save!
           raise
@@ -311,17 +311,17 @@ class TransactionTest < ActiveRecord::TestCase
       @first.save!
 
       begin
-        Topic.transaction :requires_new => true do
+        Topic.transaction requires_new: true do
           @first.content = "Two"
           @first.save!
 
           begin
-            Topic.transaction :requires_new => true do
+            Topic.transaction requires_new: true do
               @first.content = "Three"
               @first.save!
 
               begin
-                Topic.transaction :requires_new => true do
+                Topic.transaction requires_new: true do
                   @first.content = "Four"
                   @first.save!
                   raise
@@ -363,8 +363,8 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
-    topic_1 = Topic.new(:title => 'test_1')
-    topic_2 = Topic.new(:title => 'test_2')
+    topic_1 = Topic.new(title: 'test_1')
+    topic_2 = Topic.new(title: 'test_2')
     Topic.transaction do
       assert topic_1.save
       assert topic_2.save

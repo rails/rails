@@ -9,13 +9,13 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     self.table_name = :topics
 
     after_commit{|record| record.send(:do_after_commit, nil)}
-    after_commit(:on => :create){|record| record.send(:do_after_commit, :create)}
-    after_commit(:on => :update){|record| record.send(:do_after_commit, :update)}
-    after_commit(:on => :destroy){|record| record.send(:do_after_commit, :destroy)}
+    after_commit(on: :create){|record| record.send(:do_after_commit, :create)}
+    after_commit(on: :update){|record| record.send(:do_after_commit, :update)}
+    after_commit(on: :destroy){|record| record.send(:do_after_commit, :destroy)}
     after_rollback{|record| record.send(:do_after_rollback, nil)}
-    after_rollback(:on => :create){|record| record.send(:do_after_rollback, :create)}
-    after_rollback(:on => :update){|record| record.send(:do_after_rollback, :update)}
-    after_rollback(:on => :destroy){|record| record.send(:do_after_rollback, :destroy)}
+    after_rollback(on: :create){|record| record.send(:do_after_rollback, :create)}
+    after_rollback(on: :update){|record| record.send(:do_after_rollback, :update)}
+    after_rollback(on: :destroy){|record| record.send(:do_after_rollback, :destroy)}
 
     def history
       @history ||= []
@@ -81,7 +81,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_commit_on_create_after_transaction_commits_for_new_record
-    @new_record = TopicWithCallbacks.new(:title => "New topic", :written_on => Date.today)
+    @new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
     @new_record.after_commit_block(:create){|r| r.history << :commit_on_create}
     @new_record.after_commit_block(:update){|r| r.history << :commit_on_update}
     @new_record.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
@@ -138,7 +138,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_rollback_on_create_after_transaction_rollsback_for_new_record
-    @new_record = TopicWithCallbacks.new(:title => "New topic", :written_on => Date.today)
+    @new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
     @new_record.after_commit_block(:create){|r| r.history << :commit_on_create}
     @new_record.after_commit_block(:update){|r| r.history << :commit_on_update}
     @new_record.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
@@ -185,7 +185,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     Topic.transaction do
       @first.save!
-      Topic.transaction(:requires_new => true) do
+      Topic.transaction(requires_new: true) do
         @second.save!
         raise ActiveRecord::Rollback
       end
@@ -206,11 +206,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     Topic.transaction do
       @first.save
-      Topic.transaction(:requires_new => true) do
+      Topic.transaction(requires_new: true) do
         @first.save!
         raise ActiveRecord::Rollback
       end
-      Topic.transaction(:requires_new => true) do
+      Topic.transaction(requires_new: true) do
         @first.save!
         raise ActiveRecord::Rollback
       end

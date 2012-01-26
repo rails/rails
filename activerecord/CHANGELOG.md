@@ -243,12 +243,12 @@
     better approach over the old find_or_create_by dynamic methods because it's clearer which
     arguments are used to find the record and which are used to create it:
 
-        User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson")
+        User.where(first_name: "Scarlett").first_or_create!(last_name: "Johansson")
 
     *Andrés Mejía*
 
 *   Fix nested attributes bug where _destroy parameter is taken into account
-    during :reject_if => :all_blank (fixes #2937)
+    during reject_if: :all_blank (fixes #2937)
 
     *Aaron Christy*
 
@@ -411,10 +411,10 @@
 
         class Post < ActiveRecord::Base
           attr_accessible :title
-          attr_accessible :title, :published_at, :as => :admin
+          attr_accessible :title, :published_at, as: :admin
         end
 
-        Post.new(params[:post], :as => :admin)
+        Post.new(params[:post], as: :admin)
 
     assign_attributes() with similar API was also added and attributes=(params, guard) was deprecated.
 
@@ -450,7 +450,7 @@
 
         class Post < ActiveRecord::Base
           def self.default_scope
-            where(:published => true).where(:hidden => false)
+            where(published: true).where(hidden: false)
           end
         end
 
@@ -505,21 +505,21 @@
 
     class Post < ActiveRecord::Base
         has_many :taggings
-        has_many :tags, :through => :taggings
+        has_many :tags, through: :taggings
     end
 
     class Tagging < ActiveRecord::Base
         belongs_to :post
-        belongs_to :tag, :inverse_of => :tagging # :inverse_of must be set!
+        belongs_to :tag, inverse_of: :tagging # :inverse_of must be set!
     end
 
     class Tag < ActiveRecord::Base
         has_many :taggings
-        has_many :posts, :through => :taggings
+        has_many :posts, through: :taggings
     end
 
     post = Post.first
-    tag = post.tags.build :name => "ruby"
+    tag = post.tags.build name: "ruby"
     tag.save # will save a Taggable linking to the post
 
     *Jon Leighton*
@@ -551,11 +551,11 @@
 
     *Jon Leighton*
 
-*   Add :bulk => true option to change_table to make all the schema changes defined in change_table block using a single ALTER statement. *Pratik Naik*
+*   Add bulk: true option to change_table to make all the schema changes defined in change_table block using a single ALTER statement. *Pratik Naik*
 
     Example:
 
-    change_table(:users, :bulk => true) do |t|
+    change_table(:users, bulk: true) do |t|
         t.string :company_name
         t.change :birthdate, :datetime
     end
@@ -579,18 +579,18 @@
 
     Before:
 
-        has_many :things, :conditions => 'foo = #{bar}'
+        has_many :things, conditions: 'foo = #{bar}'
 
     After:
 
-        has_many :things, :conditions => proc { "foo = #{bar}" }
+        has_many :things, conditions: proc { "foo = #{bar}" }
 
     Inside the proc, 'self' is the object which is the owner of the association, unless you are
     eager loading the association, in which case 'self' is the class which the association is within.
 
     You can have any "normal" conditions inside the proc, so the following will work too:
 
-        has_many :things, :conditions => proc { ["foo = ?", bar] }
+        has_many :things, conditions: proc { ["foo = ?", bar] }
 
     Previously :insert_sql and :delete_sql on has_and_belongs_to_many association allowed you to call
     'record' to get the record being inserted or deleted. This is now passed as an argument to
@@ -603,7 +603,7 @@
           has_secure_password
         end
 
-        user = User.new(:name => "david", :password => "", :password_confirmation => "nomatch")
+        user = User.new(name: "david", password: "", password_confirmation: "nomatch")
         user.save                                                      # => false, password required
         user.password = "mUc3m00RsqyRe"
         user.save                                                      # => false, confirmation doesn't match
@@ -724,28 +724,28 @@
 
 ## Rails 3.0.5 (February 26, 2011) ##
 
-*   Model.where(:column => 1).where(:column => 2) will always produce an AND
+*   Model.where(column: 1).where(column: 2) will always produce an AND
     query.
     *Aaron Patterson*
 
-*   Deprecated support for interpolated association conditions in the form of :conditions => 'foo = #{bar}'.
+*   Deprecated support for interpolated association conditions in the form of conditions: 'foo = #{bar}'.
 
     Instead, you should use a proc, like so:
 
     Before:
 
-        has_many :things, :conditions => 'foo = #{bar}'
+        has_many :things, conditions: 'foo = #{bar}'
 
     After:
 
-        has_many :things, :conditions => proc { "foo = #{bar}" }
+        has_many :things, conditions: proc { "foo = #{bar}" }
 
     Inside the proc, 'self' is the object which is the owner of the association, unless you are
     eager loading the association, in which case 'self' is the class which the association is within.
 
     You can have any "normal" conditions inside the proc, so the following will work too:
 
-        has_many :things, :conditions => proc { ["foo = ?", bar] }
+        has_many :things, conditions: proc { ["foo = ?", bar] }
 
     Previously :insert_sql and :delete_sql on has_and_belongs_to_many association allowed you to call
     'record' to get the record being inserted or deleted. This is now passed as an argument to
@@ -763,7 +763,7 @@
 
 ## Rails 3.0.3 (November 16, 2010) ##
 
-*   Support find by class like this: Post.where(:name => Post)
+*   Support find by class like this: Post.where(name: Post)
 
 
 ## Rails 3.0.2 (November 15, 2010) ##
@@ -821,10 +821,10 @@
 
     Example:
 
-        add_index(:accounts, :name, :name => 'by_name', :length => 10)
+        add_index(:accounts, :name, name: 'by_name', length: 10)
         => CREATE INDEX by_name ON accounts(name(10))
 
-        add_index(:accounts, [:name, :surname], :name => 'by_name_surname', :length => {:name => 10, :surname => 15})
+        add_index(:accounts, [:name, :surname], name: 'by_name_surname', length: {name: 10, surname: 15})
         => CREATE INDEX by_name_surname ON accounts(name(10), surname(15))
 
 *   find_or_create_by_attr(value, ...) works when attr is protected.  #4457 *Santiago Pastorino, Marc-André Lafortune*
@@ -841,11 +841,11 @@
 
 *   Add Relation extensions. *Pratik Naik*
 
-    users = User.where(:admin => true).extending(User::AdminPowers)
+    users = User.where(admin: true).extending(User::AdminPowers)
 
     latest_users = User.order('created_at DESC') do
         def posts_count
-          Post.count(:user_id => to_a.map(&:id))
+          Post.count(user_id: to_a.map(&:id))
         end
     end
 
@@ -858,7 +858,7 @@
 *   Allow relations to be used as scope.
 
     class Item
-        scope :red, where(:colour => 'red')
+        scope :red, where(colour: 'red')
     end
 
     Item.red.limit(10) # Ten red items
@@ -869,12 +869,12 @@
 
 *   Add Relation#except. *Pratik Naik*
 
-    one_red_item = Item.where(:colour => 'red').limit(1)
+    one_red_item = Item.where(colour: 'red').limit(1)
     all_items = one_red_item.except(:where, :limit)
 
 *   Add Relation#delete_all. *Pratik Naik*
 
-    Item.where(:colour => 'red').delete_all
+    Item.where(colour: 'red').delete_all
 
 *   Add Model.having and Relation#having. *Pratik Naik*
 
@@ -884,7 +884,7 @@
 
     legends = People.where("age > 100")
     legends.count
-    legends.count(:age, :distinct => true)
+    legends.count(:age, distinct: true)
     legends.select('id').count
 
 *   Add Model.readonly and association_collection#readonly finder method. *Pratik Naik*
@@ -894,7 +894,7 @@
 
 *   Add .lock finder method *Pratik Naik*
 
-    User.lock.where(:name => 'lifo').to_a
+    User.lock.where(name: 'lifo').to_a
 
     old_items = Item.where("age > 100")
     old_items.lock.each {|i| .. }
@@ -911,7 +911,7 @@
 
 *   Add relation.exists? *Pratik Naik*
 
-    red_items = Item.where(:colours => 'red')
+    red_items = Item.where(colours: 'red')
     red_items.exists?
     red_items.exists?(1)
 
@@ -928,7 +928,7 @@
     end
 
     user = User.first
-    user.items.where(:items => {:colour => 'red'})
+    user.items.where(items: {colour: 'red'})
     user.items.select('items.id')
 
 *   Add relation.reload to force reloading the records. *Pratik Naik*
@@ -942,11 +942,11 @@
 *   Rename Model.conditions and relation.conditions to .where. *Pratik Naik*
 
     Before :
-        User.conditions(:name => 'lifo')
+        User.conditions(name: 'lifo')
         User.select('id').conditions(["age > ?", 21])
 
     Now :
-        User.where(:name => 'lifo')
+        User.where(name: 'lifo')
         User.select('id').where(["age > ?", 21])
 
 *   Add Model.select/group/order/limit/joins/conditions/preload/eager_load class methods returning a lazy relation. *Pratik Naik*
@@ -968,7 +968,7 @@
 
         # post.comments sets each comment's post without needing to :include
         class Post < ActiveRecord::Base
-          has_many :comments, :inverse_of => :post
+          has_many :comments, inverse_of: :post
         end
 
 *   MySQL: add_ and change_column support positioning.  #3286 *Ben Marini*
@@ -985,7 +985,7 @@
 
 *   Added :primary_key option to belongs_to associations.  #765 *Szymon Nowak, Philip Hallstrom, Noel Rocha*
         # employees.company_name references companies.name
-        Employee.belongs_to :company, :primary_key => 'name', :foreign_key => 'company_name'
+        Employee.belongs_to :company, primary_key: 'name', foreign_key: 'company_name'
 
 *   Implement #many? for NamedScope and AssociationCollection using #size. #1500 *Chris Kampmeier*
 
@@ -1026,15 +1026,15 @@
 *   Added default_scope to Base #1381 [Paweł Kondzior]. Example:
 
         class Person < ActiveRecord::Base
-          default_scope :order => 'last_name, first_name'
+          default_scope order: 'last_name, first_name'
         end
 
         class Company < ActiveRecord::Base
           has_many :people
         end
 
-        Person.all             # => Person.find(:all, :order => 'last_name, first_name')
-        Company.find(1).people # => Person.find(:all, :order => 'last_name, first_name', :conditions => { :company_id => 1 })
+        Person.all             # => Person.find(:all, order: 'last_name, first_name')
+        Company.find(1).people # => Person.find(:all, order: 'last_name, first_name', conditions: { company_id: 1 })
 
 
 ## 2.2.1 RC2 (November 14th, 2008) ##
@@ -1079,12 +1079,12 @@
 *   Add :tokenizer option to validates_length_of to specify how to split up the attribute string. #507. [David Lowenfels] Example :
 
     \# Ensure essay contains at least 100 words.
-    validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least %d words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
+    validates_length_of :essay, minimum: 100, too_short: "Your essay must be at least %d words."), tokenizer: lambda {|str| str.scan(/\w+/) }
 
 *   Allow conditions on multiple tables to be specified using hash. [Pratik Naik]. Example:
 
-    User.all :joins => :items, :conditions => { :age => 10, :items => { :color => 'black' } }
-    Item.first :conditions => { :items => { :color => 'red' } }
+    User.all joins: :items, conditions: { age: 10, items: { color: 'black' } }
+    Item.first conditions: { items: { color: 'red' } }
 
 *   Always treat integer :limit as byte length.  #420 *Tarmo Tänav*
 
@@ -1094,7 +1094,7 @@
 
 *   db:migrate:down and :up update schema_migrations.  #369 *Michael Raidel, RaceCondition*
 
-*   PostgreSQL: support :conditions => [':foo::integer', { :foo => 1 }] without treating the ::integer typecast as a bind variable.  *Tarmo Tänav*
+*   PostgreSQL: support conditions: [':foo::integer', { foo: 1 }] without treating the ::integer typecast as a bind variable.  *Tarmo Tänav*
 
 *   MySQL: rename_column preserves column defaults.  #466 *Diego Algorta*
 
@@ -1130,7 +1130,7 @@
         change_table :videos do |t|
           t.timestamps                          # adds created_at, updated_at
           t.belongs_to :goat                    # adds goat_id integer
-          t.string :name, :email, :limit => 20  # adds name and email both with a 20 char limit
+          t.string :name, :email, limit: 20  # adds name and email both with a 20 char limit
           t.remove :name, :email                # removes the name and email columns
         end
 
@@ -1140,7 +1140,7 @@
 
 *   Fixed that pessimistic locking you reference the quoted table name (Josh Susser) *#67*
 
-*   Fixed that change_column should be able to use :null => true on a field that formerly had false [Nate Wiger] *#26*
+*   Fixed that change_column should be able to use null: true on a field that formerly had false [Nate Wiger] *#26*
 
 *   Added that the MySQL adapter should map integer to either smallint, int, or bigint depending on the :limit just like PostgreSQL *David Heinemeier Hansson*
 
@@ -1201,14 +1201,14 @@
 *   Merge the has_finder gem, renamed as 'named_scope'.  #11404 *nkallen*
 
     class Article < ActiveRecord::Base
-        named_scope :published, :conditions => {:published => true}
-        named_scope :popular, :conditions => ...
+        named_scope :published, conditions: {published: true}
+        named_scope :popular, conditions: ...
     end
 
-    Article.published.paginate(:page => 1)
+    Article.published.paginate(page: 1)
     Article.published.popular.count
     Article.popular.find(:first)
-    Article.popular.find(:all, :conditions => {...})
+    Article.popular.find(:all, conditions: {...})
 
     See http://pivots.pivotallabs.com/users/nick/blog/articles/284-hasfinder-it-s-now-easier-than-ever-to-create-complex-re-usable-sql-queries
 
@@ -1264,7 +1264,7 @@
 
 *   MySQL: omit text/blob defaults from the schema instead of using an empty string.  #10963 *mdeiters*
 
-*   belongs_to supports :dependent => :destroy and :delete.  #10592 *Jonathan Viney*
+*   belongs_to supports dependent: :destroy and :delete.  #10592 *Jonathan Viney*
 
 *   Introduce preload query strategy for eager :includes.  #9640 *Frederick Cheung, Aliaksey Kandratsenka, codafoo*
 
@@ -1339,7 +1339,7 @@
 
 *   Added ActiveRecord::Base#becomes to turn a record into one of another class (mostly relevant for STIs) [David Heinemeier Hansson]. Example:
 
-        render :partial => @client.becomes(Company) # renders companies/company instead of clients/client
+        render partial: @client.becomes(Company) # renders companies/company instead of clients/client
 
 *   Fixed that to_xml should not automatically pass :procs to associations included with :include #10162 *Cheah Chu Yeow*
 
@@ -1385,10 +1385,10 @@
 
 *   Introduce finder :joins with associations. Same :include syntax but with inner rather than outer joins.  #10012 *RubyRedRick*
         # Find users with an avatar
-        User.find(:all, :joins => :avatar)
+        User.find(:all, joins: :avatar)
 
         # Find posts with a high-rated comment.
-        Post.find(:all, :joins => :comments, :conditions => 'comments.rating > 3')
+        Post.find(:all, joins: :comments, conditions: 'comments.rating > 3')
 
 *   Associations: speedup duplicate record check.  #10011 *Pratik Naik*
 
@@ -1428,7 +1428,7 @@
 *   Complete the assimilation of Sexy Migrations from ErrFree *Chris Wanstrath, PJ Hyett*
     http://errtheblog.com/post/2381
 
-*   Qualified column names work in hash conditions, like :conditions => { 'comments.created_at' => ... }.  #9733 *Jack Danger Canty*
+*   Qualified column names work in hash conditions, like conditions: { 'comments.created_at' => ... }.  #9733 *Jack Danger Canty*
 
 *   Fix regression where the association would not construct new finder SQL on save causing bogus queries for "WHERE owner_id = NULL" even after owner was saved.  #8713 *Bryan Helmkamp*
 
@@ -1473,7 +1473,7 @@
 
     class Comment < ActiveRecord::Base
         # Automatically sets Article#comments_count as readonly.
-        belongs_to :article, :counter_cache => :comments_count
+        belongs_to :article, counter_cache: :comments_count
     end
 
     class Article < ActiveRecord::Base
@@ -1521,7 +1521,7 @@
 
 *   Fixed that altering join tables in migrations would fail w/ sqlite3 #7453 *TimoMihaljov/brandon*
 
-*   Fix association writer with :dependent => :nullify.  #7314 *Jonathan Viney*
+*   Fix association writer with dependent: :nullify.  #7314 *Jonathan Viney*
 
 *   OpenBase: update for new lib and latest Rails. Support migrations.  #8748 *dcsesq*
 
@@ -1558,9 +1558,9 @@
           !identity_url.blank?
         end
 
-        validates_presence_of :identity_url, :if => using_open_id?
-        validates_presence_of :username, :unless => using_open_id?
-        validates_presence_of :password, :unless => using_open_id?
+        validates_presence_of :identity_url, if: using_open_id?
+        validates_presence_of :username, unless: using_open_id?
+        validates_presence_of :password, unless: using_open_id?
 
 *   Fix #count on a has_many :through association so that it recognizes the :uniq option.  Closes #8801 *Pratik Naik*
 
@@ -1571,10 +1571,10 @@
 *   Change belongs_to so that the foreign_key assumption is taken from the association name, not the class name.  Closes #8992 *Josh Susser*
 
     OLD
-        belongs_to :visitor, :class_name => 'User' # => inferred foreign_key is user_id
+        belongs_to :visitor, class_name: 'User' # => inferred foreign_key is user_id
 
     NEW
-        belongs_to :visitor, :class_name => 'User' # => inferred foreign_key is visitor_id
+        belongs_to :visitor, class_name: 'User' # => inferred foreign_key is visitor_id
 
 *   Remove spurious tests from deprecated_associations_test, most of these aren't deprecated, and are duplicated in associations_test.  Closes #8987 *Pratik Naik*
 
@@ -1640,7 +1640,7 @@
 
 *   Load database adapters on demand. Eliminates config.connection_adapters and RAILS_CONNECTION_ADAPTERS. Add your lib directory to the $LOAD_PATH and put your custom adapter in lib/active_record/connection_adapters/adaptername_adapter.rb. This way you can provide custom adapters as plugins or gems without modifying Rails. *Jeremy Kemper*
 
-*   Ensure that associations with :dependent => :delete_all respect :conditions option.  Closes #8034 *Jack Danger Canty, Josh Peek, Rick Olson*
+*   Ensure that associations with dependent: :delete_all respect :conditions option.  Closes #8034 *Jack Danger Canty, Josh Peek, Rick Olson*
 
 *   belongs_to assignment creates a new proxy rather than modifying its target in-place.  #8412 *mmangino@elevatedrails.com*
 
@@ -1673,8 +1673,8 @@
         create_table "products" do |t|
           t.column "shop_id",    :integer
           t.column "creator_id", :integer
-          t.column "name",       :string,   :default => "Untitled"
-          t.column "value",      :string,   :default => "Untitled"
+          t.column "name",       :string,   default: "Untitled"
+          t.column "value",      :string,   default: "Untitled"
           t.column "created_at", :datetime
           t.column "updated_at", :datetime
         end
@@ -1683,7 +1683,7 @@
 
         create_table :products do |t|
           t.integer :shop_id, :creator_id
-          t.string  :name, :value, :default => "Untitled"
+          t.string  :name, :value, default: "Untitled"
           t.timestamps
         end
 
@@ -1711,7 +1711,7 @@
 
 *   PostgreSQL: remove DateTime -> Time downcast. Warning: do not enable translate_results for the C bindings if you have timestamps outside Time's domain.  *Jeremy Kemper*
 
-*   find_or_create_by_* takes a hash so you can create with more attributes than are in the method name. For example, Person.find_or_create_by_name(:name => 'Henry', :comments => 'Hi new user!') is equivalent to Person.find_by_name('Henry') || Person.create(:name => 'Henry', :comments => 'Hi new user!').  #7368 *Josh Susser*
+*   find_or_create_by_* takes a hash so you can create with more attributes than are in the method name. For example, Person.find_or_create_by_name(name: 'Henry', comments: 'Hi new user!') is equivalent to Person.find_by_name('Henry') || Person.create(name: 'Henry', comments: 'Hi new user!').  #7368 *Josh Susser*
 
 *   Make sure with_scope takes both :select and :joins into account when setting :readonly.  Allows you to save records you retrieve using method_missing on a has_many :through associations.  *Michael Koziarski*
 
@@ -1792,7 +1792,7 @@
 
 *   [DOC] clear up some ambiguity with the way has_and_belongs_to_many creates the default join table name.  #7072 *Jeremy McAnally*
 
-*   change_column accepts :default => nil. Skip column options for primary keys.  #6956, #7048 *Dan Manges, Jeremy Kemper*
+*   change_column accepts default: nil. Skip column options for primary keys.  #6956, #7048 *Dan Manges, Jeremy Kemper*
 
 *   MySQL, PostgreSQL: change_column_default quotes the default value and doesn't lose column type information.  #3987, #6664 *Jonathan Viney, Manfred Stienstra, altano@bigfoot.com*
 
@@ -1809,7 +1809,7 @@
 *   PostgreSQL, Oracle: correctly perform eager finds with :limit and :order.  #4668, #7021 *eventualbuddha, Michael Schoen*
 
 *   Pass a range in :conditions to use the SQL BETWEEN operator.  #6974 *Dan Manges*
-        Student.find(:all, :conditions => { :grade => 9..12 })
+        Student.find(:all, conditions: { grade: 9..12 })
 
 *   Fix the Oracle adapter for serialized attributes stored in CLOBs.  Closes #6825 *mschoen, tdfowler*
 
@@ -1867,8 +1867,8 @@
 
 *   Find with :include respects scoped :order.  #5850
 
-*   Support nil and Array in :conditions => { attr => value } hashes.  #6548 *Assaf, Jeremy Kemper*
-        find(:all, :conditions => { :topic_id => [1, 2, 3], :last_read => nil }
+*   Support nil and Array in conditions: { attr => value } hashes.  #6548 *Assaf, Jeremy Kemper*
+        find(:all, conditions: { topic_id: [1, 2, 3], last_read: nil }
 
 *   Consistently use LOWER() for uniqueness validations (rather than mixing with UPPER()) so the database can always use a functional index on the lowercased column.  #6495 *Si*
 
@@ -1880,7 +1880,7 @@
 
 *   Deprecation: object transactions warning.  *Jeremy Kemper*
 
-*   has_one :dependent => :nullify ignores nil associates.  #4848, #6528 *bellis@deepthought.org, janovetz, Jeremy Kemper*
+*   has_one dependent: :nullify ignores nil associates.  #4848, #6528 *bellis@deepthought.org, janovetz, Jeremy Kemper*
 
 *   Oracle: resolve test failures, use prefetched primary key for inserts, check for null defaults, fix limited id selection for eager loading. Factor out some common methods from all adapters.  #6515 *Michael Schoen*
 
@@ -1940,9 +1940,9 @@
 
 *   Fixed the Ruby/MySQL adapter we ship with Active Record to work with the new authentication handshake that was introduced in MySQL 4.1, along with the other protocol changes made at that time #5723 *jimw@mysql.com*
 
-*   Deprecation: use :dependent => :delete_all rather than :exclusively_dependent => true.  #6024 *Josh Susser*
+*   Deprecation: use dependent: :delete_all rather than exclusively_dependent: true.  #6024 *Josh Susser*
 
-*   Document validates_presences_of behavior with booleans: you probably want validates_inclusion_of :attr, :in => [true, false].  #2253 *Bob Silva*
+*   Document validates_presences_of behavior with booleans: you probably want validates_inclusion_of :attr, in: [true, false].  #2253 *Bob Silva*
 
 *   Optimistic locking: gracefully handle nil versions, treat as zero.  #5908 *Tom Ward*
 
@@ -1958,7 +1958,7 @@
 
 *   Fix spurious newlines and spaces in AR::Base#to_xml output *Jamis Buck*
 
-*   has_one supports the :dependent => :delete option which skips the typical callback chain and deletes the associated object directly from the database.  #5927 *Chris Mear, Jonathan Viney*
+*   has_one supports the dependent: :delete option which skips the typical callback chain and deletes the associated object directly from the database.  #5927 *Chris Mear, Jonathan Viney*
 
 *   Nested subclasses are not prefixed with the parent class' table_name since they should always use the base class' table_name.  #5911 *Jonathan Viney*
 
@@ -1982,12 +1982,12 @@
 
         # Create a tagging to associate the post and tag.
         post.tags << Tag.find_by_name('old')
-        post.tags.create! :name => 'general'
+        post.tags.create! name: 'general'
 
         # Would have been:
-        post.taggings.create!(:tag => Tag.find_by_name('finally')
+        post.taggings.create!(tag: Tag.find_by_name('finally')
         transaction do
-          post.taggings.create!(:tag => Tag.create!(:name => 'general'))
+          post.taggings.create!(tag: Tag.create!(name: 'general'))
         end
 
 *   Cache nil results for :included has_one associations also.  #5787 *Michael Schoen*
@@ -2044,8 +2044,8 @@
 
 *   Added support for conditions on Base.exists? #5689 [Josh Peek]. Examples:
 
-        assert (Topic.exists?(:author_name => "David"))
-         assert (Topic.exists?(:author_name => "Mary", :approved => true))
+        assert (Topic.exists?(author_name: "David"))
+         assert (Topic.exists?(author_name: "Mary", approved: true))
          assert (Topic.exists?(["parent_id = ?", 1]))
 
 *   Schema dumper quotes date :default values. *Dave Thomas*
@@ -2058,7 +2058,7 @@
 
 *   Allow #count through a has_many association to accept :include.  *Dan Peterson*
 
-*   create_table rdoc: suggest :id => false for habtm join tables. *Zed Shaw*
+*   create_table rdoc: suggest id: false for habtm join tables. *Zed Shaw*
 
 *   PostgreSQL: return array fields as strings. #4664 *Robby Russell*
 
@@ -2102,11 +2102,11 @@
 
 *   Added find_or_initialize_by_X which works like find_or_create_by_X but doesn't save the newly instantiated record. *Sam Stephenson*
 
-*   Row locking. Provide a locking clause with the :lock finder option or true for the default "FOR UPDATE". Use the #lock! method to obtain a row lock on a single record (reloads the record with :lock => true). *Shugo Maeda*
+*   Row locking. Provide a locking clause with the :lock finder option or true for the default "FOR UPDATE". Use the #lock! method to obtain a row lock on a single record (reloads the record with lock: true). *Shugo Maeda*
         # Obtain an exclusive lock on person 1 so we can safely increment visits.
         Person.transaction do
           # select * from people where id=1 for update
-          person = Person.find(1, :lock => true)
+          person = Person.find(1, lock: true)
           person.visits += 1
           person.save!
         end
@@ -2123,10 +2123,10 @@
 
 *   Added simple hash conditions to find that'll just convert hash to an AND-based condition string #5143 [Hampton Catlin]. Example:
 
-        Person.find(:all, :conditions => { :last_name => "Catlin", :status => 1 }, :limit => 2)
+        Person.find(:all, conditions: { last_name: "Catlin", status: 1 }, limit: 2)
 
     ...is the same as:
-        Person.find(:all, :conditions => [ "last_name = ? and status = ?", "Catlin", 1 ], :limit => 2)
+        Person.find(:all, conditions: [ "last_name = ? and status = ?", "Catlin", 1 ], limit: 2)
 
     This makes it easier to pass in the options from a form or otherwise outside.
 
@@ -2148,10 +2148,10 @@
 *   PostgreSQL: don't ignore port when host is nil since it's often used to label the domain socket.  #5247 *shimbo@is.naist.jp*
 
 *   Records and arrays of records are bound as quoted ids. *Jeremy Kemper*
-        Foo.find(:all, :conditions => ['bar_id IN (?)', bars])
-        Foo.find(:first, :conditions => ['bar_id = ?', bar])
+        Foo.find(:all, conditions: ['bar_id IN (?)', bars])
+        Foo.find(:first, conditions: ['bar_id = ?', bar])
 
-*   Fixed that Base.find :all, :conditions => [ "id IN (?)", collection ] would fail if collection was empty *David Heinemeier Hansson*
+*   Fixed that Base.find :all, conditions: [ "id IN (?)", collection ] would fail if collection was empty *David Heinemeier Hansson*
 
 *   Add a list of regexes assert_queries skips in the ActiveRecord test suite.  *Rick Olson*
 
@@ -2182,7 +2182,7 @@
 
 *   Dates and times interpret empty strings as nil rather than 2000-01-01. #4830 *kajism@yahoo.com*
 
-*   Allow :uniq => true with has_many :through associations. *Jeremy Kemper*
+*   Allow uniq: true with has_many :through associations. *Jeremy Kemper*
 
 *   Ensure that StringIO is always available for the Schema dumper. *Marcel Molina Jr.*
 
@@ -2227,7 +2227,7 @@
 *   Raise error when trying to add to a has_many :through association.  Use the Join Model instead. *Rick Olson*
 
         @post.tags << @tag                  # BAD
-        @post.taggings.create(:tag => @tag) # GOOD
+        @post.taggings.create(tag: @tag) # GOOD
 
 *   Allow all calculations to take the :include option, not just COUNT (closes #4840) *Rick Olson*
 
@@ -2250,13 +2250,13 @@
 *   Add :case_sensitive option to validates_uniqueness_of (closes #3090) *Rick Olson*
 
         class Account < ActiveRecord::Base
-          validates_uniqueness_of :email, :case_sensitive => false
+          validates_uniqueness_of :email, case_sensitive: false
         end
 
 *   Allow multiple association extensions with :extend option (closes #4666) *Josh Susser*
 
         class Account < ActiveRecord::Base
-          has_many :people, :extend => [FindOrCreateByNameExtension, FindRecentExtension]
+          has_many :people, extend: [FindOrCreateByNameExtension, FindRecentExtension]
         end
 
         *1.15.3* (March 12th, 2007)
@@ -2273,7 +2273,7 @@
 ## 1.15.2 (February 5th, 2007) ##
 
 *   Pass a range in :conditions to use the SQL BETWEEN operator.  #6974 *Dan Manges*
-        Student.find(:all, :conditions => { :grade => 9..12 })
+        Student.find(:all, conditions: { grade: 9..12 })
 
 *   Don't create instance writer methods for class attributes. *Rick Olson*
 
@@ -2299,7 +2299,7 @@
 
 *   [DOC] clear up some ambiguity with the way has_and_belongs_to_many creates the default join table name.  #7072 *Jeremy McAnally*
 
-*   change_column accepts :default => nil. Skip column options for primary keys.  #6956, #7048 *Dan Manges, Jeremy Kemper*
+*   change_column accepts default: nil. Skip column options for primary keys.  #6956, #7048 *Dan Manges, Jeremy Kemper*
 
 *   MySQL, PostgreSQL: change_column_default quotes the default value and doesn't lose column type information.  #3987, #6664 *Jonathan Viney, Manfred Stienstra, altano@bigfoot.com*
 
@@ -2329,8 +2329,8 @@
 
 *   find supports :lock with :include. Check whether your database allows SELECT ... FOR UPDATE with outer joins before using.  #6764 *vitaly, Jeremy Kemper*
 
-*   Support nil and Array in :conditions => { attr => value } hashes.  #6548 *Assaf, Jeremy Kemper*
-        find(:all, :conditions => { :topic_id => [1, 2, 3], :last_read => nil }
+*   Support nil and Array in conditions: { attr => value } hashes.  #6548 *Assaf, Jeremy Kemper*
+        find(:all, conditions: { topic_id: [1, 2, 3], last_read: nil }
 
 *   Quote ActiveSupport::Multibyte::Chars.  #6653 *Julian Tarkhanov*
 
@@ -2350,7 +2350,7 @@
 
 *   Deprecation: object transactions warning.  *Jeremy Kemper*
 
-*   has_one :dependent => :nullify ignores nil associates.  #6528 *janovetz, Jeremy Kemper*
+*   has_one dependent: :nullify ignores nil associates.  #6528 *janovetz, Jeremy Kemper*
 
 *   Oracle: resolve test failures, use prefetched primary key for inserts, check for null defaults, fix limited id selection for eager loading. Factor out some common methods from all adapters.  #6515 *Michael Schoen*
 
@@ -2410,7 +2410,7 @@
 
 *   Fixed the Ruby/MySQL adapter we ship with Active Record to work with the new authentication handshake that was introduced in MySQL 4.1, along with the other protocol changes made at that time #5723 *jimw@mysql.com*
 
-*   Deprecation: use :dependent => :delete_all rather than :exclusively_dependent => true.  #6024 *Josh Susser*
+*   Deprecation: use dependent: :delete_all rather than exclusively_dependent: true.  #6024 *Josh Susser*
 
 *   Optimistic locking: gracefully handle nil versions, treat as zero.  #5908 *Tom Ward*
 
@@ -2420,7 +2420,7 @@
 
 *   Fix spurious newlines and spaces in AR::Base#to_xml output *Jamis Buck*
 
-*   has_one supports the :dependent => :delete option which skips the typical callback chain and deletes the associated object directly from the database.  #5927 *Chris Mear, Jonathan Viney*
+*   has_one supports the dependent: :delete option which skips the typical callback chain and deletes the associated object directly from the database.  #5927 *Chris Mear, Jonathan Viney*
 
 *   Nested subclasses are not prefixed with the parent class' table_name since they should always use the base class' table_name.  #5911 *Jonathan Viney*
 
@@ -2442,12 +2442,12 @@
 
         # Create a tagging to associate the post and tag.
         post.tags << Tag.find_by_name('old')
-        post.tags.create! :name => 'general'
+        post.tags.create! name: 'general'
 
         # Would have been:
-        post.taggings.create!(:tag => Tag.find_by_name('finally')
+        post.taggings.create!(tag: Tag.find_by_name('finally')
         transaction do
-          post.taggings.create!(:tag => Tag.create!(:name => 'general'))
+          post.taggings.create!(tag: Tag.create!(name: 'general'))
         end
 
 *   Cache nil results for :included has_one associations also.  #5787 *Michael Schoen*
@@ -2500,8 +2500,8 @@
 
 *   Added support for conditions on Base.exists? #5689 [Josh Peek]. Examples:
 
-        assert (Topic.exists?(:author_name => "David"))
-         assert (Topic.exists?(:author_name => "Mary", :approved => true))
+        assert (Topic.exists?(author_name: "David"))
+         assert (Topic.exists?(author_name: "Mary", approved: true))
          assert (Topic.exists?(["parent_id = ?", 1]))
 
 *   Schema dumper quotes date :default values. *Dave Thomas*
@@ -2514,7 +2514,7 @@
 
 *   Allow #count through a has_many association to accept :include.  *Dan Peterson*
 
-*   create_table rdoc: suggest :id => false for habtm join tables. *Zed Shaw*
+*   create_table rdoc: suggest id: false for habtm join tables. *Zed Shaw*
 
 *   PostgreSQL: return array fields as strings. #4664 *Robby Russell*
 
@@ -2554,11 +2554,11 @@
 
 *   Added find_or_initialize_by_X which works like find_or_create_by_X but doesn't save the newly instantiated record. *Sam Stephenson*
 
-*   Row locking. Provide a locking clause with the :lock finder option or true for the default "FOR UPDATE". Use the #lock! method to obtain a row lock on a single record (reloads the record with :lock => true). *Shugo Maeda*
+*   Row locking. Provide a locking clause with the :lock finder option or true for the default "FOR UPDATE". Use the #lock! method to obtain a row lock on a single record (reloads the record with lock: true). *Shugo Maeda*
         # Obtain an exclusive lock on person 1 so we can safely increment visits.
         Person.transaction do
           # select * from people where id=1 for update
-          person = Person.find(1, :lock => true)
+          person = Person.find(1, lock: true)
           person.visits += 1
           person.save!
         end
@@ -2575,10 +2575,10 @@
 
 *   Added simple hash conditions to find that'll just convert hash to an AND-based condition string #5143 [Hampton Catlin]. Example:
 
-        Person.find(:all, :conditions => { :last_name => "Catlin", :status => 1 }, :limit => 2)
+        Person.find(:all, conditions: { last_name: "Catlin", status: 1 }, limit: 2)
 
     ...is the same as:
-        Person.find(:all, :conditions => [ "last_name = ? and status = ?", "Catlin", 1 ], :limit => 2)
+        Person.find(:all, conditions: [ "last_name = ? and status = ?", "Catlin", 1 ], limit: 2)
 
     This makes it easier to pass in the options from a form or otherwise outside.
 
@@ -2600,10 +2600,10 @@
 *   PostgreSQL: don't ignore port when host is nil since it's often used to label the domain socket.  #5247 *shimbo@is.naist.jp*
 
 *   Records and arrays of records are bound as quoted ids. *Jeremy Kemper*
-        Foo.find(:all, :conditions => ['bar_id IN (?)', bars])
-        Foo.find(:first, :conditions => ['bar_id = ?', bar])
+        Foo.find(:all, conditions: ['bar_id IN (?)', bars])
+        Foo.find(:first, conditions: ['bar_id = ?', bar])
 
-*   Fixed that Base.find :all, :conditions => [ "id IN (?)", collection ] would fail if collection was empty *David Heinemeier Hansson*
+*   Fixed that Base.find :all, conditions: [ "id IN (?)", collection ] would fail if collection was empty *David Heinemeier Hansson*
 
 *   Add a list of regexes assert_queries skips in the ActiveRecord test suite.  *Rick Olson*
 
@@ -2634,7 +2634,7 @@
 
 *   Dates and times interpret empty strings as nil rather than 2000-01-01. #4830 *kajism@yahoo.com*
 
-*   Allow :uniq => true with has_many :through associations. *Jeremy Kemper*
+*   Allow uniq: true with has_many :through associations. *Jeremy Kemper*
 
 *   Ensure that StringIO is always available for the Schema dumper. *Marcel Molina Jr.*
 
@@ -2667,7 +2667,7 @@
 *   Raise error when trying to add to a has_many :through association.  Use the Join Model instead. *Rick Olson*
 
         @post.tags << @tag                  # BAD
-        @post.taggings.create(:tag => @tag) # GOOD
+        @post.taggings.create(tag: @tag) # GOOD
 
 *   Allow all calculations to take the :include option, not just COUNT (closes #4840) *Rick Olson*
 
@@ -2684,13 +2684,13 @@
 *   Add :case_sensitive option to validates_uniqueness_of (closes #3090) *Rick Olson*
 
         class Account < ActiveRecord::Base
-          validates_uniqueness_of :email, :case_sensitive => false
+          validates_uniqueness_of :email, case_sensitive: false
         end
 
 *   Allow multiple association extensions with :extend option (closes #4666) *Josh Susser*
 
         class Account < ActiveRecord::Base
-          has_many :people, :extend => [FindOrCreateByNameExtension, FindRecentExtension]
+          has_many :people, extend: [FindOrCreateByNameExtension, FindRecentExtension]
         end
 
 
@@ -2740,23 +2740,23 @@
 *   Added support for eagerly including polymorphic has_one associations. (closes #4525) *Rick Olson*
 
         class Post < ActiveRecord::Base
-          has_one :tagging, :as => :taggable
+          has_one :tagging, as: :taggable
         end
 
-        Post.find :all, :include => :tagging
+        Post.find :all, include: :tagging
 
 *   Added descriptive error messages for invalid has_many :through associations: going through :has_one or :has_and_belongs_to_many *Rick Olson*
 
 *   Added support for going through a polymorphic has_many association: (closes #4401) *Rick Olson*
 
         class PhotoCollection < ActiveRecord::Base
-          has_many :photos, :as => :photographic
+          has_many :photos, as: :photographic
           belongs_to :firm
         end
 
         class Firm < ActiveRecord::Base
           has_many :photo_collections
-          has_many :photos, :through => :photo_collections
+          has_many :photos, through: :photo_collections
         end
 
 *   Multiple fixes and optimizations in PostgreSQL adapter, allowing ruby-postgres gem to work properly. *ruben.nine@gmail.com*
@@ -2805,22 +2805,22 @@
 
         class Channel < ActiveRecord::Base
           has_many :connections
-          has_many :contacts, :through => :connections, :class_name => 'User' # OLD
-          has_many :contacts, :through => :connections, :source => :user      # NEW
+          has_many :contacts, through: :connections, class_name: 'User' # OLD
+          has_many :contacts, through: :connections, source: :user      # NEW
         end
 
 *   Fixed DB2 adapter so nullable columns will be determines correctly now and quotes from column default values will be removed #4350 *contact@maik-schmidt.de*
 
 *   Allow overriding of find parameters in scoped has_many :through calls *Rick Olson*
 
-    In this example, :include => false disables the default eager association from loading.  :select changes the standard
+    In this example, include: false disables the default eager association from loading.  :select changes the standard
     select clause.  :joins specifies a join that is added to the end of the has_many :through query.
 
         class Post < ActiveRecord::Base
-          has_many :tags, :through => :taggings, :include => :tagging do
+          has_many :tags, through: :taggings, include: :tagging do
             def add_joins_and_select
-              find :all, :select => 'tags.*, authors.id as author_id', :include => false,
-                :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
+              find :all, select: 'tags.*, authors.id as author_id', include: false,
+                joins: 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
             end
           end
         end
@@ -2833,13 +2833,13 @@
 
 *   Allow has_many :through associations to find the source association by setting a custom class (closes #4307) *Jonathan Viney*
 
-*   Eager Loading support added for has_many :through => :has_many associations (see below).  *Rick Olson*
+*   Eager Loading support added for has_many through: :has_many associations (see below).  *Rick Olson*
 
 *   Allow has_many :through to work on has_many associations (closes #3864) [sco@scottraymond.net]  Example:
 
         class Firm < ActiveRecord::Base
           has_many :clients
-          has_many :invoices, :through => :clients
+          has_many :invoices, through: :clients
         end
 
         class Client < ActiveRecord::Base
@@ -2863,7 +2863,7 @@
 
 *   Rework table aliasing to account for truncated table aliases.  Add smarter table aliasing when doing eager loading of STI associations. This allows you to use the association name in the order/where clause. [Jonathan Viney / Rick Olson] #4108 Example (SpecialComment is using STI):
 
-        Author.find(:all, :include => { :posts => :special_comments }, :order => 'special_comments.body')
+        Author.find(:all, include: { posts: :special_comments }, order: 'special_comments.body')
 
 *   Add AbstractAdapter#table_alias_for to create table aliases according to the rules of the current adapter. *Rick Olson*
 
@@ -2883,7 +2883,7 @@
 
     This statement would normally error because the projects_developers table is joined twice, and therefore joined_on would be ambiguous.
 
-        Developer.find(:all, :include => {:projects => :developers}, :conditions => 'join_project_developers.joined_on IS NOT NULL')
+        Developer.find(:all, include: {projects: :developers}, conditions: 'join_project_developers.joined_on IS NOT NULL')
 
 *   Oracle adapter gets some love #4230 *Michael Schoen*
 
@@ -2917,7 +2917,7 @@
 *   Allow :dependent options to be used with polymorphic joins. #3820 *Rick Olson*
 
         class Foo < ActiveRecord::Base
-          has_many :attachments, :as => :attachable, :dependent => :delete_all
+          has_many :attachments, as: :attachable, dependent: :delete_all
         end
 
 *   Nicer error message on has_many :through when :through reflection can not be found. #4042 *court3nay*
@@ -2955,7 +2955,7 @@
 
     ...and you can configure with:
 
-        topic.to_xml(:skip_instruct => true, :except => [ :id, bonus_time, :written_on, replies_count ])
+        topic.to_xml(skip_instruct: true, except: [ :id, bonus_time, :written_on, replies_count ])
 
     ...that'll return:
 
@@ -2971,7 +2971,7 @@
 
     You can even do load first-level associations as part of the document:
 
-        firm.to_xml :include => [ :account, :clients ]
+        firm.to_xml include: [ :account, :clients ]
 
     ...that'll return something like:
 
@@ -3013,11 +3013,11 @@
         * The first time a table is referenced in a join, no alias is used.
         * After that, the parent class name and the reflection name are used.
 
-            Tree.find(:all, :include => :children) # LEFT OUTER JOIN trees AS tree_children ...
+            Tree.find(:all, include: :children) # LEFT OUTER JOIN trees AS tree_children ...
 
         * Any additional join references get a numerical suffix like '_2', '_3', etc.
 
-*   Fixed eager loading problems with single-table inheritance #3580 [Rick Olson]. Post.find(:all, :include => :special_comments) now returns all posts, and any special comments that the posts may have. And made STI work with has_many :through and polymorphic belongs_to.
+*   Fixed eager loading problems with single-table inheritance #3580 [Rick Olson]. Post.find(:all, include: :special_comments) now returns all posts, and any special comments that the posts may have. And made STI work with has_many :through and polymorphic belongs_to.
 
 *   Added cascading eager loading that allows for queries like Author.find(:all, :include=> { :posts=> :comments }), which will fetch all authors, their posts, and the comments belonging to those posts in a single query (using LEFT OUTER JOIN) #3913 [anna@wota.jp]. Examples:
 
@@ -3083,16 +3083,16 @@
 
 *   Added support for nested scopes #3407 [anna@wota.jp]. Examples:
 
-        Developer.with_scope(:find => { :conditions => "salary > 10000", :limit => 10 }) do
+        Developer.with_scope(find: { conditions: "salary > 10000", limit: 10 }) do
           Developer.find(:all)     # => SELECT * FROM developers WHERE (salary > 10000) LIMIT 10
 
           # inner rule is used. (all previous parameters are ignored)
-          Developer.with_exclusive_scope(:find => { :conditions => "name = 'Jamis'" }) do
+          Developer.with_exclusive_scope(find: { conditions: "name = 'Jamis'" }) do
             Developer.find(:all)   # => SELECT * FROM developers WHERE (name = 'Jamis')
           end
 
           # parameters are merged
-          Developer.with_scope(:find => { :conditions => "name = 'Jamis'" }) do
+          Developer.with_scope(find: { conditions: "name = 'Jamis'" }) do
             Developer.find(:all)   # => SELECT * FROM developers WHERE (( salary > 10000 ) AND ( name = 'Jamis' )) LIMIT 10
           end
         end
@@ -3108,7 +3108,7 @@
         Person.average :age
         Person.minimum :age
         Person.maximum :age
-        Person.sum :salary, :group => :last_name
+        Person.sum :salary, group: :last_name
 
 *   Renamed Errors#count to Errors#size but kept an alias for the old name (and included an alias for length too) #3920 *Luke Redpath*
 
@@ -3128,7 +3128,7 @@
 
 *   SQLServer: more compatible limit/offset emulation.  #3779 *Tom Ward*
 
-*   Polymorphic join support for has_one associations (has_one :foo, :as => :bar)  #3785 *Rick Olson*
+*   Polymorphic join support for has_one associations (has_one :foo, as: :bar)  #3785 *Rick Olson*
 
 *   PostgreSQL: correctly parse negative integer column defaults.  #3776 *bellis@deepthought.org*
 
@@ -3205,12 +3205,12 @@
 *   Added option inheritance for find calls on has_and_belongs_to_many and has_many assosociations [David Heinemeier Hansson]. Example:
 
         class Post
-          has_many :recent_comments, :class_name => "Comment", :limit => 10, :include => :author
+          has_many :recent_comments, class_name: "Comment", limit: 10, include: :author
         end
 
         post.recent_comments.find(:all) # Uses LIMIT 10 and includes authors
-        post.recent_comments.find(:all, :limit => nil) # Uses no limit but include authors
-        post.recent_comments.find(:all, :limit => nil, :include => nil) # Uses no limit and doesn't include authors
+        post.recent_comments.find(:all, limit: nil) # Uses no limit but include authors
+        post.recent_comments.find(:all, limit: nil, include: nil) # Uses no limit and doesn't include authors
 
 *   Added option to specify :group, :limit, :offset, and :select options from find on has_and_belongs_to_many and has_many assosociations *David Heinemeier Hansson*
 
@@ -3326,7 +3326,7 @@
 
 *   Destroy associated has_and_belongs_to_many records after all before_destroy callbacks but before destroy.  This allows you to act on the habtm association as you please while preserving referential integrity.  #2065 *larrywilliams1@gmail.com, sam.kirchmeier@gmail.com, elliot@townx.org, Jeremy Kemper*
 
-*   Deprecate the old, confusing :exclusively_dependent option in favor of :dependent => :delete_all.  *Jeremy Kemper*
+*   Deprecate the old, confusing :exclusively_dependent option in favor of dependent: :delete_all.  *Jeremy Kemper*
 
 *   More compatible Oracle column reflection.  #2771 *Ryan Davis <ryand-ruby@zenspider.com>, Michael Schoen <schoenm@earthlink.net>*
 
@@ -3337,24 +3337,24 @@
 
 *   Added :include as an option for association declarations [David Heinemeier Hansson]. Example:
 
-        has_many :posts, :include => [ :author, :comments ]
+        has_many :posts, include: [ :author, :comments ]
 
 *   Rename Base.constrain to Base.with_scope so it doesn't conflict with existing concept of database constraints.  Make scoping more robust: uniform method => parameters, validated method names and supported finder parameters, raise exception on nested scopes.  [Jeremy Kemper]  Example:
 
-        Comment.with_scope(:find => { :conditions => 'active=true' }, :create => { :post_id => 5 }) do
+        Comment.with_scope(find: { conditions: 'active=true' }, create: { post_id: 5 }) do
           # Find where name = ? and active=true
-          Comment.find :all, :conditions => ['name = ?', name]
+          Comment.find :all, conditions: ['name = ?', name]
           # Create comment associated with :post_id
-          Comment.create :body => "Hello world"
+          Comment.create body: "Hello world"
         end
 
 *   Fixed that SQL Server should ignore :size declarations on anything but integer and string in the agnostic schema representation #2756 *Ryan Tomayko*
 
 *   Added constrain scoping for creates using a hash of attributes bound to the :creation key [David Heinemeier Hansson]. Example:
 
-        Comment.constrain(:creation => { :post_id => 5 }) do
+        Comment.constrain(creation: { post_id: 5 }) do
           # Associated with :post_id
-          Comment.create :body => "Hello world"
+          Comment.create body: "Hello world"
         end
 
     This is rarely used directly, but allows for find_or_create on associations. So you can do:
@@ -3365,7 +3365,7 @@
 *   Added find_or_create_by_X as a second type of dynamic finder that'll create the record if it doesn't already exist [David Heinemeier Hansson]. Example:
 
         # No 'Summer' tag exists
-        Tag.find_or_create_by_name("Summer") # equal to Tag.create(:name => "Summer")
+        Tag.find_or_create_by_name("Summer") # equal to Tag.create(name: "Summer")
 
         # Now the 'Summer' tag does exist
         Tag.find_or_create_by_name("Summer") # equal to Tag.find_by_name("Summer")
@@ -3414,7 +3414,7 @@
 *   Use AR::Base.silence rather than AR::Base.logger.silence in fixtures to preserve Log4r compatibility.  #2618 *dansketcher@gmail.com*
 
 *   Constraints are cloned so they can't be inadvertently modified while they're
-    in effect.  Added :readonly finder constraint.  Calling an association collection's class method (Part.foobar via item.parts.foobar) constrains :readonly => false since the collection's :joins constraint would otherwise force it to true.  [Jeremy Kemper <rails@bitsweat.net>]
+    in effect.  Added :readonly finder constraint.  Calling an association collection's class method (Part.foobar via item.parts.foobar) constrains readonly: false since the collection's :joins constraint would otherwise force it to true.  [Jeremy Kemper <rails@bitsweat.net>]
 *   Added :offset and :limit to the kinds of options that Base.constrain can use #2466 *duane.johnson@gmail.com*
 
 *   Fixed handling of nil number columns on Oracle and cleaned up tests for Oracle in general #2555 *Michael Schoen*
@@ -3458,7 +3458,7 @@
 
 *   :dependent now accepts :nullify option. Sets the foreign key of the related objects to NULL instead of deleting them. #2015 *Robby Russell <robby@planetargon.com>*
 
-*   Introduce read-only records.  If you call object.readonly! then it will mark the object as read-only and raise ReadOnlyRecord if you call object.save.  object.readonly? reports whether the object is read-only.  Passing :readonly => true to any finder method will mark returned records as read-only.  The :joins option now implies :readonly, so if you use this option, saving the same record will now fail.  Use find_by_sql to work around.
+*   Introduce read-only records.  If you call object.readonly! then it will mark the object as read-only and raise ReadOnlyRecord if you call object.save.  object.readonly? reports whether the object is read-only.  Passing readonly: true to any finder method will mark returned records as read-only.  The :joins option now implies :readonly, so if you use this option, saving the same record will now fail.  Use find_by_sql to work around.
 
 *   Avoid memleak in dev mode when using fcgi
 
@@ -3510,7 +3510,7 @@
 
 *   Use foreign_key inflection uniformly.  #2156 *Blair Zajac <blair@orcaware.com>*
 
-*   model.association.clear should destroy associated objects if :dependent => true instead of nullifying their foreign keys.  #2221 *joergd@pobox.com, ObieFernandez <obiefernandez@gmail.com>*
+*   model.association.clear should destroy associated objects if dependent: true instead of nullifying their foreign keys.  #2221 *joergd@pobox.com, ObieFernandez <obiefernandez@gmail.com>*
 
 *   Returning false from before_destroy should cancel the action.  #1829 *Jeremy Huffman*
 
@@ -3608,7 +3608,7 @@
 
         class Comment < AR:B
           def self.search(q)
-            find(:all, :conditions => ["body = ?", q])
+            find(:all, conditions: ["body = ?", q])
           end
         end
 
@@ -3631,7 +3631,7 @@
 
 *   Fixed incompatibility in DB2 adapter with the new limit/offset approach #1718 *Maik Schmidt*
 
-*   Added :select option to find which can specify a different value than the default *, like find(:all, :select => "first_name, last_name"), if you either only want to select part of the columns or exclude columns otherwise included from a join #1338 *Stefan Kaes*
+*   Added :select option to find which can specify a different value than the default *, like find(:all, select: "first_name, last_name"), if you either only want to select part of the columns or exclude columns otherwise included from a join #1338 *Stefan Kaes*
 
 
 ## 1.11.1 (11 July, 2005) ##
@@ -3664,7 +3664,7 @@
 *   Added callback hooks to association collections #1549 [Florian Weber]. Example:
 
         class Project
-          has_and_belongs_to_many :developers, :before_add => :evaluate_velocity
+          has_and_belongs_to_many :developers, before_add: :evaluate_velocity
 
           def evaluate_velocity(developer)
             ...
@@ -3700,14 +3700,14 @@
 
 *   Fixed Base#find to honor the documentation on how :joins work and make them consistent with Base#count #1405 [pritchie@gmail.com]. What used to be:
 
-        Developer.find :all, :joins => 'developers_projects', :conditions => 'id=developer_id AND project_id=1'
+        Developer.find :all, joins: 'developers_projects', conditions: 'id=developer_id AND project_id=1'
 
     ...should instead be:
 
         Developer.find(
           :all,
-          :joins => 'LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id',
-          :conditions => 'project_id=1'
+          joins: 'LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id',
+          conditions: 'project_id=1'
         )
 
 *   Fixed that validations didn't respecting custom setting for too_short, too_long messages #1437 *Marcel Molina Jr.*
@@ -3772,13 +3772,13 @@
 *   Added the :if option to all validations that can either use a block or a method pointer to determine whether the validation should be run or not. #1324 [Duane Johnson/jhosteny]. Examples:
 
     Conditional validations such as the following are made possible:
-        validates_numericality_of :income, :if => :employed?
+        validates_numericality_of :income, if: :employed?
 
     Conditional validations can also solve the salted login generator problem:
-        validates_confirmation_of :password, :if => :new_password?
+        validates_confirmation_of :password, if: :new_password?
 
     Using blocks:
-        validates_presence_of :username, :if => Proc.new { |user| user.signup_step > 1 }
+        validates_presence_of :username, if: Proc.new { |user| user.signup_step > 1 }
 
 *   Fixed use of construct_finder_sql when using :join #1288 *dwlt@dwlt.net*
 
@@ -3834,7 +3834,7 @@
 
 *   Added eager loading of associations as a way to solve the N+1 problem more gracefully without piggy-back queries. Example:
 
-        for post in Post.find(:all, :limit => 100)
+        for post in Post.find(:all, limit: 100)
           puts "Post:            " + post.title
           puts "Written by:      " + post.author.name
           puts "Last comment on: " + post.comments.first.created_on
@@ -3842,17 +3842,17 @@
 
     This used to generate 301 database queries if all 100 posts had both author and comments. It can now be written as:
 
-        for post in Post.find(:all, :limit => 100, :include => [ :author, :comments ])
+        for post in Post.find(:all, limit: 100, include: [ :author, :comments ])
 
     ...and the number of database queries needed is now 1.
 
 *   Added new unified Base.find API and deprecated the use of find_first and find_all. See the documentation for Base.find. Examples:
 
-        Person.find(1, :conditions => "administrator = 1", :order => "created_on DESC")
-        Person.find(1, 5, 6, :conditions => "administrator = 1", :order => "created_on DESC")
-        Person.find(:first, :order => "created_on DESC", :offset => 5)
-        Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
-        Person.find(:all, :offset => 10, :limit => 10)
+        Person.find(1, conditions: "administrator = 1", order: "created_on DESC")
+        Person.find(1, 5, 6, conditions: "administrator = 1", order: "created_on DESC")
+        Person.find(:first, order: "created_on DESC", offset: 5)
+        Person.find(:all, conditions: [ "category IN (?)", categories], limit: 50)
+        Person.find(:all, offset: 10, limit: 10)
 
 *   Added acts_as_nested_set #1000 [wschenk]. Introduction:
 
@@ -3952,7 +3952,7 @@
 
 *   Added that all types of after_find/after_initialized callbacks are triggered if the explicit implementation is present, not only the explicit implementation itself
 
-*   Fixed that symbols can be used on attribute assignment, like page.emails.create(:subject => data.subject, :body => data.body)
+*   Fixed that symbols can be used on attribute assignment, like page.emails.create(subject: data.subject, body: data.body)
 
 
 ## 1.8.0 (7th March, 2005) ##
@@ -3976,7 +3976,7 @@
 *   Added destruction of dependent objects in has_one associations when a new assignment happens #742 [mindel]. Example:
 
         class Account < ActiveRecord::Base
-          has_one :credit_card, :dependent => true
+          has_one :credit_card, dependent: true
         end
         class CreditCard < ActiveRecord::Base
           belongs_to :account
@@ -3994,7 +3994,7 @@
         <tt>/^[\+\-]?\d+$/</tt> (if <tt>integer</tt> is set to true).
 
           class Person < ActiveRecord::Base
-            validates_numericality_of :value, :on => :create
+            validates_numericality_of :value, on: :create
           end
 
         Configuration options:
@@ -4005,7 +4005,7 @@
 
 *   Fixed that HasManyAssociation#count was using :finder_sql rather than :counter_sql if it was available #445 *Scott Barron*
 
-*   Added better defaults for composed_of, so statements like composed_of :time_zone, :mapping => %w( time_zone time_zone ) can be written without the mapping part (it's now assumed)
+*   Added better defaults for composed_of, so statements like composed_of :time_zone, mapping: %w( time_zone time_zone ) can be written without the mapping part (it's now assumed)
 
 *   Added MacroReflection#macro which will return a symbol describing the macro used (like :composed_of or :has_many) #718, #248 *james@slashetc.com*
 
@@ -4253,23 +4253,23 @@
 *   Added support for eagerly including polymorphic has_one associations. (closes #4525) *Rick Olson*
 
         class Post < ActiveRecord::Base
-          has_one :tagging, :as => :taggable
+          has_one :tagging, as: :taggable
         end
 
-        Post.find :all, :include => :tagging
+        Post.find :all, include: :tagging
 
 *   Added descriptive error messages for invalid has_many :through associations: going through :has_one or :has_and_belongs_to_many *Rick Olson*
 
 *   Added support for going through a polymorphic has_many association: (closes #4401) *Rick Olson*
 
         class PhotoCollection < ActiveRecord::Base
-          has_many :photos, :as => :photographic
+          has_many :photos, as: :photographic
           belongs_to :firm
         end
 
         class Firm < ActiveRecord::Base
           has_many :photo_collections
-          has_many :photos, :through => :photo_collections
+          has_many :photos, through: :photo_collections
         end
 
 *   Multiple fixes and optimizations in PostgreSQL adapter, allowing ruby-postgres gem to work properly. *ruben.nine@gmail.com*
@@ -4318,22 +4318,22 @@
 
         class Channel < ActiveRecord::Base
           has_many :connections
-          has_many :contacts, :through => :connections, :class_name => 'User' # OLD
-          has_many :contacts, :through => :connections, :source => :user      # NEW
+          has_many :contacts, through: :connections, class_name: 'User' # OLD
+          has_many :contacts, through: :connections, source: :user      # NEW
         end
 
 *   Fixed DB2 adapter so nullable columns will be determines correctly now and quotes from column default values will be removed #4350 *contact@maik-schmidt.de*
 
 *   Allow overriding of find parameters in scoped has_many :through calls *Rick Olson*
 
-    In this example, :include => false disables the default eager association from loading.  :select changes the standard
+    In this example, include: false disables the default eager association from loading.  :select changes the standard
     select clause.  :joins specifies a join that is added to the end of the has_many :through query.
 
         class Post < ActiveRecord::Base
-          has_many :tags, :through => :taggings, :include => :tagging do
+          has_many :tags, through: :taggings, include: :tagging do
             def add_joins_and_select
-              find :all, :select => 'tags.*, authors.id as author_id', :include => false,
-                :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
+              find :all, select: 'tags.*, authors.id as author_id', include: false,
+                joins: 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
             end
           end
         end
@@ -4346,13 +4346,13 @@
 
 *   Allow has_many :through associations to find the source association by setting a custom class (closes #4307) *Jonathan Viney*
 
-*   Eager Loading support added for has_many :through => :has_many associations (see below).  *Rick Olson*
+*   Eager Loading support added for has_many through: :has_many associations (see below).  *Rick Olson*
 
 *   Allow has_many :through to work on has_many associations (closes #3864) [sco@scottraymond.net]  Example:
 
         class Firm < ActiveRecord::Base
           has_many :clients
-          has_many :invoices, :through => :clients
+          has_many :invoices, through: :clients
         end
 
         class Client < ActiveRecord::Base
@@ -4376,7 +4376,7 @@
 
 *   Rework table aliasing to account for truncated table aliases.  Add smarter table aliasing when doing eager loading of STI associations. This allows you to use the association name in the order/where clause. [Jonathan Viney / Rick Olson] #4108 Example (SpecialComment is using STI):
 
-        Author.find(:all, :include => { :posts => :special_comments }, :order => 'special_comments.body')
+        Author.find(:all, include: { posts: :special_comments }, order: 'special_comments.body')
 
 *   Add AbstractAdapter#table_alias_for to create table aliases according to the rules of the current adapter. *Rick Olson*
 
@@ -4396,7 +4396,7 @@
 
     This statement would normally error because the projects_developers table is joined twice, and therefore joined_on would be ambiguous.
 
-        Developer.find(:all, :include => {:projects => :developers}, :conditions => 'join_project_developers.joined_on IS NOT NULL')
+        Developer.find(:all, include: {projects: :developers}, conditions: 'join_project_developers.joined_on IS NOT NULL')
 
 *   Oracle adapter gets some love #4230 *Michael Schoen*
 
@@ -4430,7 +4430,7 @@
 *   Allow :dependent options to be used with polymorphic joins. #3820 *Rick Olson*
 
         class Foo < ActiveRecord::Base
-          has_many :attachments, :as => :attachable, :dependent => :delete_all
+          has_many :attachments, as: :attachable, dependent: :delete_all
         end
 
 *   Nicer error message on has_many :through when :through reflection can not be found. #4042 *court3nay*
@@ -4468,7 +4468,7 @@
 
     ...and you can configure with:
 
-        topic.to_xml(:skip_instruct => true, :except => [ :id, bonus_time, :written_on, replies_count ])
+        topic.to_xml(skip_instruct: true, except: [ :id, bonus_time, :written_on, replies_count ])
 
     ...that'll return:
 
@@ -4484,7 +4484,7 @@
 
     You can even do load first-level associations as part of the document:
 
-        firm.to_xml :include => [ :account, :clients ]
+        firm.to_xml include: [ :account, :clients ]
 
     ...that'll return something like:
 
@@ -4526,11 +4526,11 @@
         * The first time a table is referenced in a join, no alias is used.
         * After that, the parent class name and the reflection name are used.
 
-            Tree.find(:all, :include => :children) # LEFT OUTER JOIN trees AS tree_children ...
+            Tree.find(:all, include: :children) # LEFT OUTER JOIN trees AS tree_children ...
 
         * Any additional join references get a numerical suffix like '_2', '_3', etc.
 
-*   Fixed eager loading problems with single-table inheritance #3580 [Rick Olson]. Post.find(:all, :include => :special_comments) now returns all posts, and any special comments that the posts may have. And made STI work with has_many :through and polymorphic belongs_to.
+*   Fixed eager loading problems with single-table inheritance #3580 [Rick Olson]. Post.find(:all, include: :special_comments) now returns all posts, and any special comments that the posts may have. And made STI work with has_many :through and polymorphic belongs_to.
 
 *   Added cascading eager loading that allows for queries like Author.find(:all, :include=> { :posts=> :comments }), which will fetch all authors, their posts, and the comments belonging to those posts in a single query (using LEFT OUTER JOIN) #3913 [anna@wota.jp]. Examples:
 
@@ -4596,16 +4596,16 @@
 
 *   Added support for nested scopes #3407 [anna@wota.jp]. Examples:
 
-        Developer.with_scope(:find => { :conditions => "salary > 10000", :limit => 10 }) do
+        Developer.with_scope(find: { conditions: "salary > 10000", limit: 10 }) do
           Developer.find(:all)     # => SELECT * FROM developers WHERE (salary > 10000) LIMIT 10
 
           # inner rule is used. (all previous parameters are ignored)
-          Developer.with_exclusive_scope(:find => { :conditions => "name = 'Jamis'" }) do
+          Developer.with_exclusive_scope(find: { conditions: "name = 'Jamis'" }) do
             Developer.find(:all)   # => SELECT * FROM developers WHERE (name = 'Jamis')
           end
 
           # parameters are merged
-          Developer.with_scope(:find => { :conditions => "name = 'Jamis'" }) do
+          Developer.with_scope(find: { conditions: "name = 'Jamis'" }) do
             Developer.find(:all)   # => SELECT * FROM developers WHERE (( salary > 10000 ) AND ( name = 'Jamis' )) LIMIT 10
           end
         end
@@ -4621,7 +4621,7 @@
         Person.average :age
         Person.minimum :age
         Person.maximum :age
-        Person.sum :salary, :group => :last_name
+        Person.sum :salary, group: :last_name
 
 *   Renamed Errors#count to Errors#size but kept an alias for the old name (and included an alias for length too) #3920 *Luke Redpath*
 
@@ -4641,7 +4641,7 @@
 
 *   SQLServer: more compatible limit/offset emulation.  #3779 *Tom Ward*
 
-*   Polymorphic join support for has_one associations (has_one :foo, :as => :bar)  #3785 *Rick Olson*
+*   Polymorphic join support for has_one associations (has_one :foo, as: :bar)  #3785 *Rick Olson*
 
 *   PostgreSQL: correctly parse negative integer column defaults.  #3776 *bellis@deepthought.org*
 
@@ -4718,12 +4718,12 @@
 *   Added option inheritance for find calls on has_and_belongs_to_many and has_many assosociations [David Heinemeier Hansson]. Example:
 
         class Post
-          has_many :recent_comments, :class_name => "Comment", :limit => 10, :include => :author
+          has_many :recent_comments, class_name: "Comment", limit: 10, include: :author
         end
 
         post.recent_comments.find(:all) # Uses LIMIT 10 and includes authors
-        post.recent_comments.find(:all, :limit => nil) # Uses no limit but include authors
-        post.recent_comments.find(:all, :limit => nil, :include => nil) # Uses no limit and doesn't include authors
+        post.recent_comments.find(:all, limit: nil) # Uses no limit but include authors
+        post.recent_comments.find(:all, limit: nil, include: nil) # Uses no limit and doesn't include authors
 
 *   Added option to specify :group, :limit, :offset, and :select options from find on has_and_belongs_to_many and has_many assosociations *David Heinemeier Hansson*
 
@@ -4839,7 +4839,7 @@
 
 *   Destroy associated has_and_belongs_to_many records after all before_destroy callbacks but before destroy.  This allows you to act on the habtm association as you please while preserving referential integrity.  #2065 *larrywilliams1@gmail.com, sam.kirchmeier@gmail.com, elliot@townx.org, Jeremy Kemper*
 
-*   Deprecate the old, confusing :exclusively_dependent option in favor of :dependent => :delete_all.  *Jeremy Kemper*
+*   Deprecate the old, confusing :exclusively_dependent option in favor of dependent: :delete_all.  *Jeremy Kemper*
 
 *   More compatible Oracle column reflection.  #2771 *Ryan Davis <ryand-ruby@zenspider.com>, Michael Schoen <schoenm@earthlink.net>*
 
@@ -4850,24 +4850,24 @@
 
 *   Added :include as an option for association declarations [David Heinemeier Hansson]. Example:
 
-        has_many :posts, :include => [ :author, :comments ]
+        has_many :posts, include: [ :author, :comments ]
 
 *   Rename Base.constrain to Base.with_scope so it doesn't conflict with existing concept of database constraints.  Make scoping more robust: uniform method => parameters, validated method names and supported finder parameters, raise exception on nested scopes.  [Jeremy Kemper]  Example:
 
-        Comment.with_scope(:find => { :conditions => 'active=true' }, :create => { :post_id => 5 }) do
+        Comment.with_scope(find: { conditions: 'active=true' }, create: { post_id: 5 }) do
           # Find where name = ? and active=true
-          Comment.find :all, :conditions => ['name = ?', name]
+          Comment.find :all, conditions: ['name = ?', name]
           # Create comment associated with :post_id
-          Comment.create :body => "Hello world"
+          Comment.create body: "Hello world"
         end
 
 *   Fixed that SQL Server should ignore :size declarations on anything but integer and string in the agnostic schema representation #2756 *Ryan Tomayko*
 
 *   Added constrain scoping for creates using a hash of attributes bound to the :creation key [David Heinemeier Hansson]. Example:
 
-        Comment.constrain(:creation => { :post_id => 5 }) do
+        Comment.constrain(creation: { post_id: 5 }) do
           # Associated with :post_id
-          Comment.create :body => "Hello world"
+          Comment.create body: "Hello world"
         end
 
     This is rarely used directly, but allows for find_or_create on associations. So you can do:
@@ -4878,7 +4878,7 @@
 *   Added find_or_create_by_X as a second type of dynamic finder that'll create the record if it doesn't already exist [David Heinemeier Hansson]. Example:
 
         # No 'Summer' tag exists
-        Tag.find_or_create_by_name("Summer") # equal to Tag.create(:name => "Summer")
+        Tag.find_or_create_by_name("Summer") # equal to Tag.create(name: "Summer")
 
         # Now the 'Summer' tag does exist
         Tag.find_or_create_by_name("Summer") # equal to Tag.find_by_name("Summer")
@@ -4927,7 +4927,7 @@
 *   Use AR::Base.silence rather than AR::Base.logger.silence in fixtures to preserve Log4r compatibility.  #2618 *dansketcher@gmail.com*
 
 *   Constraints are cloned so they can't be inadvertently modified while they're
-    in effect.  Added :readonly finder constraint.  Calling an association collection's class method (Part.foobar via item.parts.foobar) constrains :readonly => false since the collection's :joins constraint would otherwise force it to true.  [Jeremy Kemper <rails@bitsweat.net>]
+    in effect.  Added :readonly finder constraint.  Calling an association collection's class method (Part.foobar via item.parts.foobar) constrains readonly: false since the collection's :joins constraint would otherwise force it to true.  [Jeremy Kemper <rails@bitsweat.net>]
 *   Added :offset and :limit to the kinds of options that Base.constrain can use #2466 *duane.johnson@gmail.com*
 
 *   Fixed handling of nil number columns on Oracle and cleaned up tests for Oracle in general #2555 *Michael Schoen*
@@ -4971,7 +4971,7 @@
 
 *   :dependent now accepts :nullify option. Sets the foreign key of the related objects to NULL instead of deleting them. #2015 *Robby Russell <robby@planetargon.com>*
 
-*   Introduce read-only records.  If you call object.readonly! then it will mark the object as read-only and raise ReadOnlyRecord if you call object.save.  object.readonly? reports whether the object is read-only.  Passing :readonly => true to any finder method will mark returned records as read-only.  The :joins option now implies :readonly, so if you use this option, saving the same record will now fail.  Use find_by_sql to work around.
+*   Introduce read-only records.  If you call object.readonly! then it will mark the object as read-only and raise ReadOnlyRecord if you call object.save.  object.readonly? reports whether the object is read-only.  Passing readonly: true to any finder method will mark returned records as read-only.  The :joins option now implies :readonly, so if you use this option, saving the same record will now fail.  Use find_by_sql to work around.
 
 *   Avoid memleak in dev mode when using fcgi
 
@@ -5023,7 +5023,7 @@
 
 *   Use foreign_key inflection uniformly.  #2156 *Blair Zajac <blair@orcaware.com>*
 
-*   model.association.clear should destroy associated objects if :dependent => true instead of nullifying their foreign keys.  #2221 *joergd@pobox.com, ObieFernandez <obiefernandez@gmail.com>*
+*   model.association.clear should destroy associated objects if dependent: true instead of nullifying their foreign keys.  #2221 *joergd@pobox.com, ObieFernandez <obiefernandez@gmail.com>*
 
 *   Returning false from before_destroy should cancel the action.  #1829 *Jeremy Huffman*
 
@@ -5121,7 +5121,7 @@
 
         class Comment < AR:B
           def self.search(q)
-            find(:all, :conditions => ["body = ?", q])
+            find(:all, conditions: ["body = ?", q])
           end
         end
 
@@ -5144,7 +5144,7 @@
 
 *   Fixed incompatibility in DB2 adapter with the new limit/offset approach #1718 *Maik Schmidt*
 
-*   Added :select option to find which can specify a different value than the default *, like find(:all, :select => "first_name, last_name"), if you either only want to select part of the columns or exclude columns otherwise included from a join #1338 *Stefan Kaes*
+*   Added :select option to find which can specify a different value than the default *, like find(:all, select: "first_name, last_name"), if you either only want to select part of the columns or exclude columns otherwise included from a join #1338 *Stefan Kaes*
 
 
 ## 1.11.1 (11 July, 2005) ##
@@ -5177,7 +5177,7 @@
 *   Added callback hooks to association collections #1549 [Florian Weber]. Example:
 
         class Project
-          has_and_belongs_to_many :developers, :before_add => :evaluate_velocity
+          has_and_belongs_to_many :developers, before_add: :evaluate_velocity
 
           def evaluate_velocity(developer)
             ...
@@ -5213,14 +5213,14 @@
 
 *   Fixed Base#find to honor the documentation on how :joins work and make them consistent with Base#count #1405 [pritchie@gmail.com]. What used to be:
 
-        Developer.find :all, :joins => 'developers_projects', :conditions => 'id=developer_id AND project_id=1'
+        Developer.find :all, joins: 'developers_projects', conditions: 'id=developer_id AND project_id=1'
 
     ...should instead be:
 
         Developer.find(
           :all,
-          :joins => 'LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id',
-          :conditions => 'project_id=1'
+          joins: 'LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id',
+          conditions: 'project_id=1'
         )
 
 *   Fixed that validations didn't respecting custom setting for too_short, too_long messages #1437 *Marcel Molina Jr.*
@@ -5285,13 +5285,13 @@
 *   Added the :if option to all validations that can either use a block or a method pointer to determine whether the validation should be run or not. #1324 [Duane Johnson/jhosteny]. Examples:
 
     Conditional validations such as the following are made possible:
-        validates_numericality_of :income, :if => :employed?
+        validates_numericality_of :income, if: :employed?
 
     Conditional validations can also solve the salted login generator problem:
-        validates_confirmation_of :password, :if => :new_password?
+        validates_confirmation_of :password, if: :new_password?
 
     Using blocks:
-        validates_presence_of :username, :if => Proc.new { |user| user.signup_step > 1 }
+        validates_presence_of :username, if: Proc.new { |user| user.signup_step > 1 }
 
 *   Fixed use of construct_finder_sql when using :join #1288 *dwlt@dwlt.net*
 
@@ -5347,7 +5347,7 @@
 
 *   Added eager loading of associations as a way to solve the N+1 problem more gracefully without piggy-back queries. Example:
 
-        for post in Post.find(:all, :limit => 100)
+        for post in Post.find(:all, limit: 100)
           puts "Post:            " + post.title
           puts "Written by:      " + post.author.name
           puts "Last comment on: " + post.comments.first.created_on
@@ -5355,17 +5355,17 @@
 
     This used to generate 301 database queries if all 100 posts had both author and comments. It can now be written as:
 
-        for post in Post.find(:all, :limit => 100, :include => [ :author, :comments ])
+        for post in Post.find(:all, limit: 100, include: [ :author, :comments ])
 
     ...and the number of database queries needed is now 1.
 
 *   Added new unified Base.find API and deprecated the use of find_first and find_all. See the documentation for Base.find. Examples:
 
-        Person.find(1, :conditions => "administrator = 1", :order => "created_on DESC")
-        Person.find(1, 5, 6, :conditions => "administrator = 1", :order => "created_on DESC")
-        Person.find(:first, :order => "created_on DESC", :offset => 5)
-        Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
-        Person.find(:all, :offset => 10, :limit => 10)
+        Person.find(1, conditions: "administrator = 1", order: "created_on DESC")
+        Person.find(1, 5, 6, conditions: "administrator = 1", order: "created_on DESC")
+        Person.find(:first, order: "created_on DESC", offset: 5)
+        Person.find(:all, conditions: [ "category IN (?)", categories], limit: 50)
+        Person.find(:all, offset: 10, limit: 10)
 
 *   Added acts_as_nested_set #1000 [wschenk]. Introduction:
 
@@ -5465,7 +5465,7 @@
 
 *   Added that all types of after_find/after_initialized callbacks are triggered if the explicit implementation is present, not only the explicit implementation itself
 
-*   Fixed that symbols can be used on attribute assignment, like page.emails.create(:subject => data.subject, :body => data.body)
+*   Fixed that symbols can be used on attribute assignment, like page.emails.create(subject: data.subject, body: data.body)
 
 
 ## 1.8.0 (7th March, 2005) ##
@@ -5489,7 +5489,7 @@
 *   Added destruction of dependent objects in has_one associations when a new assignment happens #742 [mindel]. Example:
 
         class Account < ActiveRecord::Base
-          has_one :credit_card, :dependent => true
+          has_one :credit_card, dependent: true
         end
         class CreditCard < ActiveRecord::Base
           belongs_to :account
@@ -5507,7 +5507,7 @@
         <tt>/^[\+\-]?\d+$/</tt> (if <tt>integer</tt> is set to true).
 
           class Person < ActiveRecord::Base
-            validates_numericality_of :value, :on => :create
+            validates_numericality_of :value, on: :create
           end
 
         Configuration options:
@@ -5518,7 +5518,7 @@
 
 *   Fixed that HasManyAssociation#count was using :finder_sql rather than :counter_sql if it was available #445 *Scott Barron*
 
-*   Added better defaults for composed_of, so statements like composed_of :time_zone, :mapping => %w( time_zone time_zone ) can be written without the mapping part (it's now assumed)
+*   Added better defaults for composed_of, so statements like composed_of :time_zone, mapping: %w( time_zone time_zone ) can be written without the mapping part (it's now assumed)
 
 *   Added MacroReflection#macro which will return a symbol describing the macro used (like :composed_of or :has_many) #718, #248 *james@slashetc.com*
 
@@ -5893,7 +5893,7 @@
 *   Added acts_as_list that can decorates an existing class with methods like move_higher/lower, move_to_top/bottom. [Tobias Lütke] Example:
 
         class TodoItem < ActiveRecord::Base
-          acts_as_list :scope => :todo_list_id
+          acts_as_list scope: :todo_list_id
           belongs_to :todo_list
         end
 
@@ -5939,7 +5939,7 @@
     it against the regular expression provided. *Marcel Molina Jr.*
 
         class Person < ActiveRecord::Base
-          validates_format_of :email, :with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/, :on => :create
+          validates_format_of :email, with: /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/, on: :create
         end
 
 *   Added Base.validates_length_of that delegates to add_on_boundary_breaking #312 [Tobias Lütke]. Example:
@@ -5956,7 +5956,7 @@
           class Person < ActiveRecord::Base
             validates_length_of :first_name, :maximum=>30
             validates_length_of :last_name, :maximum=>30, :message=>"less than %d if you don't mind"
-            validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
+            validates_length_of :user_name, within: 6..20, too_long: "pick a shorter name", too_short: "pick a longer name"
             validates_length_of :fav_bra_size, :minimum=>1, :too_short=>"please enter at least %d character"
             validates_length_of :smurf_leader, :is=>4, :message=>"papa is spelled with %d characters... don't play me."
           end
@@ -6036,7 +6036,7 @@
 
 *   Added named bind-style variable interpolation #281 [Michael Koziarski]. Example:
 
-        Person.find(["id = :id and first_name = :first_name", { :id => 5, :first_name = "bob' or 1=1" }])
+        Person.find(["id = :id and first_name = :first_name", { id: 5, :first_name = "bob' or 1=1" }])
 
 *   Added bind-style variable interpolation for the condition arrays that uses the adapter's quote method *Michael Koziarski*
 
@@ -6150,7 +6150,7 @@
     between post and category. The added attributes will automatically be injected into objects retrieved through the association similar to the piggy-back
     approach:
 
-        post.categories.push_with_attributes(category, :added_on => Date.today)
+        post.categories.push_with_attributes(category, added_on: Date.today)
         post.categories.first.added_on # => Date.today
 
     NOTE: The categories table doesn't have a added_on column, it's the categories_post join table that does!
@@ -6253,7 +6253,7 @@
     the hierarchy. Example:
 
         class User < ActiveRecord::Base
-          serialize :settings, :class_name => "Hash"
+          serialize :settings, class_name: "Hash"
         end
 
         user = User.create("settings" => %w( one two three ))
@@ -6548,12 +6548,12 @@
     to the posts table and rewrite the comments association macro with:
 
         class Comment < ActiveRecord::Base
-          belongs_to :post, :counter_cache => true
+          belongs_to :post, counter_cache: true
         end
 
     Those 100 SQL count queries will be reduced to zero. Beware that counter caching is only appropriate for objects that begin life
     with the object it's specified to belong with and is destroyed like that as well. Typically objects where you would also specify
-    :dependent => true. If your objects switch from one belonging to another (like a post that can be move from one category to another),
+    dependent: true. If your objects switch from one belonging to another (like a post that can be move from one category to another),
     you'll have to manage the counter yourself.
 
 *   Added natural object-style assignment for has_one and belongs_to associations. Consider the following model:
@@ -6703,7 +6703,7 @@
 
         class MyApplication::Account < ActiveRecord::Base
           has_many :clients # will look for MyApplication::Client
-          has_many :interests, :class_name => "Business::Interest" # will look for Business::Interest
+          has_many :interests, class_name: "Business::Interest" # will look for Business::Interest
         end
 
 *   Fixed that Active Records can safely live inside modules *Aredridel*
@@ -6753,7 +6753,7 @@
     the holder is destroyed:
 
         class Album < ActiveRecord::Base
-          has_many :tracks, :dependent => true
+          has_many :tracks, dependent: true
         end
 
     All the associated tracks are destroyed when the album is.

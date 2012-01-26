@@ -4,8 +4,8 @@ require "fixtures/street_address"
 
 class FormatTest < ActiveSupport::TestCase
   def setup
-    @matz  = { :id => 1, :name => 'Matz' }
-    @david = { :id => 2, :name => 'David' }
+    @matz  = { id: 1, name: 'Matz' }
+    @david = { id: 2, name: 'David' }
 
     @programmers = [ @matz, @david ]
   end
@@ -42,7 +42,7 @@ class FormatTest < ActiveSupport::TestCase
     for format in [ :json, :xml ]
       using_format(Person, format) do
         ActiveResource::HttpMock.respond_to.get "/people/retrieve.#{format}?name=David", {'Accept' => ActiveResource::Formats[format].mime_type}, ActiveResource::Formats[format].encode([@david])
-        remote_programmers = Person.get(:retrieve, :name => 'David')
+        remote_programmers = Person.get(:retrieve, name: 'David')
         assert_equal 1, remote_programmers.size
         assert_equal @david[:id], remote_programmers[0]['id']
         assert_equal @david[:name], remote_programmers[0]['name']
@@ -53,7 +53,7 @@ class FormatTest < ActiveSupport::TestCase
   def test_formats_on_custom_element_method
     [:json, :xml].each do |format|
       using_format(Person, format) do
-        david = (format == :json ? { :person => @david } : @david)
+        david = (format == :json ? { person: @david } : @david)
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/people/2.#{format}", { 'Accept' => ActiveResource::Formats[format].mime_type }, ActiveResource::Formats[format].encode(david)
           mock.get "/people/2/shallow.#{format}", { 'Accept' => ActiveResource::Formats[format].mime_type }, ActiveResource::Formats[format].encode(david)
@@ -64,15 +64,15 @@ class FormatTest < ActiveSupport::TestCase
         assert_equal @david[:name], remote_programmer['name']
       end
 
-      ryan_hash = { :name => 'Ryan' }
-      ryan_hash = (format == :json ? { :person => ryan_hash } : ryan_hash)
+      ryan_hash = { name: 'Ryan' }
+      ryan_hash = (format == :json ? { person: ryan_hash } : ryan_hash)
       ryan = ActiveResource::Formats[format].encode(ryan_hash)
       using_format(Person, format) do
-        remote_ryan = Person.new(:name => 'Ryan')
+        remote_ryan = Person.new(name: 'Ryan')
         ActiveResource::HttpMock.respond_to.post "/people.#{format}", { 'Content-Type' => ActiveResource::Formats[format].mime_type}, ryan, 201, { 'Location' => "/people/5.#{format}" }
         remote_ryan.save
 
-        remote_ryan = Person.new(:name => 'Ryan')
+        remote_ryan = Person.new(name: 'Ryan')
         ActiveResource::HttpMock.respond_to.post "/people/new/register.#{format}", { 'Content-Type' => ActiveResource::Formats[format].mime_type}, ryan, 201, { 'Location' => "/people/5.#{format}" }
         assert_equal ActiveResource::Response.new(ryan, 201, { 'Location' => "/people/5.#{format}" }), remote_ryan.post(:register)
       end
@@ -87,13 +87,13 @@ class FormatTest < ActiveSupport::TestCase
   end
 
   def test_serialization_of_nested_resource
-    address  = { :street => '12345 Street' }
-    person  = { :name => 'Rus', :address => address}
+    address  = { street: '12345 Street' }
+    person  = { name: 'Rus', address: address}
 
     [:json, :xml].each do |format|
       encoded_person = ActiveResource::Formats[format].encode(person)
       assert_match(/12345 Street/, encoded_person)
-      remote_person = Person.new(person.update({:address => StreetAddress.new(address)}))
+      remote_person = Person.new(person.update({address: StreetAddress.new(address)}))
       assert_kind_of StreetAddress, remote_person.address
       using_format(Person, format) do
         ActiveResource::HttpMock.respond_to.post "/people.#{format}", {'Content-Type' => ActiveResource::Formats[format].mime_type}, encoded_person, 201, {'Location' => "/people/5.#{format}"}

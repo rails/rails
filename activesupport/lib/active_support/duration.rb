@@ -7,7 +7,7 @@ module ActiveSupport
   # Time#advance, respectively. It mainly supports the methods on Numeric.
   # Example:
   #
-  #   1.month.ago       # equivalent to Time.now.advance(:months => -1)
+  #   1.month.ago       # equivalent to Time.now.advance(months: -1)
   class Duration < BasicObject
     attr_accessor :value, :parts
 
@@ -77,7 +77,7 @@ module ActiveSupport
         "#{n} #{n == 1 ? length.to_s.singularize : length.to_s}" if n.nonzero?
       end.compact
       parts = ["0 seconds"] if parts.empty?
-      parts.to_sentence(:locale => :en)
+      parts.to_sentence(locale: :en)
     end
 
     def as_json(options = nil) #:nodoc:

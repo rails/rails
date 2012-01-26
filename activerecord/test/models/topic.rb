@@ -2,19 +2,19 @@ class Topic < ActiveRecord::Base
   scope :base
   scope :written_before, lambda { |time|
     if time
-      { :conditions => ['written_on < ?', time] }
+      { conditions: ['written_on < ?', time] }
     end
   }
-  scope :approved, :conditions => {:approved => true}
-  scope :rejected, :conditions => {:approved => false}
+  scope :approved, conditions: {approved: true}
+  scope :rejected, conditions: {approved: false}
 
   scope :scope_with_lambda, lambda { scoped }
 
-  scope :by_lifo, :conditions => {:author_name => 'lifo'}
+  scope :by_lifo, conditions: {author_name: 'lifo'}
 
-  scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
-  scope 'approved_as_string', :conditions => {:approved => true}
-  scope :replied, :conditions => ['replies_count > 0']
+  scope :approved_as_hash_condition, conditions: {topics: {approved: true}}
+  scope 'approved_as_string', conditions: {approved: true}
+  scope :replied, conditions: ['replies_count > 0']
   scope :anonymous_extension do
     def one
       1
@@ -23,7 +23,7 @@ class Topic < ActiveRecord::Base
 
   scope :with_object, Class.new(Struct.new(:klass)) {
     def call
-      klass.where(:approved => true)
+      klass.where(approved: true)
     end
   }.new(self)
 
@@ -42,14 +42,14 @@ class Topic < ActiveRecord::Base
       2
     end
   end
-  scope :named_extension, :extend => NamedExtension
-  scope :multiple_extensions, :extend => [MultipleExtensionTwo, MultipleExtensionOne]
+  scope :named_extension, extend: NamedExtension
+  scope :multiple_extensions, extend: [MultipleExtensionTwo, MultipleExtensionOne]
 
-  has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
-  has_many :replies_with_primary_key, :class_name => "Reply", :dependent => :destroy, :primary_key => "title", :foreign_key => "parent_title"
+  has_many :replies, dependent: :destroy, foreign_key: "parent_id"
+  has_many :replies_with_primary_key, class_name: "Reply", dependent: :destroy, primary_key: "title", foreign_key: "parent_title"
 
-  has_many :unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
-  has_many :silly_unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
+  has_many :unique_replies, dependent: :destroy, foreign_key: "parent_id"
+  has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
 
   serialize :content
 
@@ -119,6 +119,6 @@ end
 
 module Web
   class Topic < ActiveRecord::Base
-    has_many :replies, :dependent => :destroy, :foreign_key => "parent_id", :class_name => 'Web::Reply'
+    has_many :replies, dependent: :destroy, foreign_key: "parent_id", class_name: 'Web::Reply'
   end
 end

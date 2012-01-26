@@ -35,7 +35,7 @@ module ActiveRecord
       private
 
         def add_column_options!(sql, options)
-          base.add_column_options!(sql, options.merge(:column => self))
+          base.add_column_options!(sql, options.merge(column: self))
         end
     end
 
@@ -158,21 +158,21 @@ module ActiveRecord
       #  td.column(:granted, :boolean)
       #  # granted BOOLEAN
       #
-      #  td.column(:picture, :binary, :limit => 2.megabytes)
+      #  td.column(:picture, :binary, limit: 2.megabytes)
       #  # => picture BLOB(2097152)
       #
-      #  td.column(:sales_stage, :string, :limit => 20, :default => 'new', :null => false)
+      #  td.column(:sales_stage, :string, limit: 20, default: 'new', null: false)
       #  # => sales_stage VARCHAR(20) DEFAULT 'new' NOT NULL
       #
-      #  td.column(:bill_gates_money, :decimal, :precision => 15, :scale => 2)
+      #  td.column(:bill_gates_money, :decimal, precision: 15, scale: 2)
       #  # => bill_gates_money DECIMAL(15,2)
       #
-      #  td.column(:sensor_reading, :decimal, :precision => 30, :scale => 20)
+      #  td.column(:sensor_reading, :decimal, precision: 30, scale: 20)
       #  # => sensor_reading DECIMAL(30,20)
       #
       #  # While <tt>:scale</tt> defaults to zero on most databases, it
       #  # probably wouldn't hurt to include it.
-      #  td.column(:huge_integer, :decimal, :precision => 30)
+      #  td.column(:huge_integer, :decimal, precision: 30)
       #  # => huge_integer DECIMAL(30)
       #
       #  # Defines a column with a database-specific type.
@@ -187,11 +187,11 @@ module ActiveRecord
       #
       # What can be written like this with the regular calls to column:
       #
-      #   create_table "products", :force => true do |t|
+      #   create_table "products", force: true do |t|
       #     t.column "shop_id",    :integer
       #     t.column "creator_id", :integer
-      #     t.column "name",       :string,   :default => "Untitled"
-      #     t.column "value",      :string,   :default => "Untitled"
+      #     t.column "name",       :string,   default: "Untitled"
+      #     t.column "value",      :string,   default: "Untitled"
       #     t.column "created_at", :datetime
       #     t.column "updated_at", :datetime
       #   end
@@ -200,7 +200,7 @@ module ActiveRecord
       #
       #   create_table :products do |t|
       #     t.integer :shop_id, :creator_id
-      #     t.string  :name, :value, :default => "Untitled"
+      #     t.string  :name, :value, default: "Untitled"
       #     t.timestamps
       #   end
       #
@@ -214,15 +214,15 @@ module ActiveRecord
       #   create_table :taggings do |t|
       #     t.integer :tag_id, :tagger_id, :taggable_id
       #     t.string  :tagger_type
-      #     t.string  :taggable_type, :default => 'Photo'
+      #     t.string  :taggable_type, default: 'Photo'
       #   end
       #
       # Can also be written as follows using references:
       #
       #   create_table :taggings do |t|
       #     t.references :tag
-      #     t.references :tagger, :polymorphic => true
-      #     t.references :taggable, :polymorphic => { :default => 'Photo' }
+      #     t.references :tagger, polymorphic: true
+      #     t.references :taggable, polymorphic: { default: 'Photo' }
       #   end
       def column(name, type, options = {})
         name = name.to_s
@@ -256,7 +256,7 @@ module ActiveRecord
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
       # <tt>:updated_at</tt> to the table.
       def timestamps(*args)
-        options = { :null => false }.merge(args.extract_options!)
+        options = { null: false }.merge(args.extract_options!)
         column(:created_at, :datetime, options)
         column(:updated_at, :datetime, options)
       end
@@ -350,9 +350,9 @@ module ActiveRecord
       # ====== Creating a simple index
       #  t.index(:name)
       # ====== Creating a unique index
-      #  t.index([:branch_id, :party_id], :unique => true)
+      #  t.index([:branch_id, :party_id], unique: true)
       # ====== Creating a named index
-      #  t.index([:branch_id, :party_id], :unique => true, :name => 'by_branch_party')
+      #  t.index([:branch_id, :party_id], unique: true, name: 'by_branch_party')
       def index(column_name, options = {})
         @base.add_index(@table_name, column_name, options)
       end
@@ -372,7 +372,7 @@ module ActiveRecord
       # Changes the column's definition according to the new options.
       # See TableDefinition#column for details of the options you can use.
       # ===== Examples
-      #  t.change(:name, :string, :limit => 80)
+      #  t.change(:name, :string, limit: 80)
       #  t.change(:description, :text)
       def change(column_name, type, options = {})
         @base.change_column(@table_name, column_name, type, options)
@@ -400,11 +400,11 @@ module ActiveRecord
       # ====== Remove the index_table_name_on_column in the table_name table
       #   t.remove_index :column
       # ====== Remove the index named index_table_name_on_branch_id in the table_name table
-      #   t.remove_index :column => :branch_id
+      #   t.remove_index column: :branch_id
       # ====== Remove the index named index_table_name_on_branch_id_and_party_id in the table_name table
-      #   t.remove_index :column => [:branch_id, :party_id]
+      #   t.remove_index column: [:branch_id, :party_id]
       # ====== Remove the index named by_branch_party in the table_name table
-      #   t.remove_index :name => :by_branch_party
+      #   t.remove_index name: :by_branch_party
       def remove_index(options = {})
         @base.remove_index(@table_name, options)
       end
@@ -427,7 +427,7 @@ module ActiveRecord
       # <tt>references</tt> and <tt>belongs_to</tt> are acceptable.
       # ===== Examples
       #  t.references(:goat)
-      #  t.references(:goat, :polymorphic => true)
+      #  t.references(:goat, polymorphic: true)
       #  t.belongs_to(:goat)
       def references(*args)
         options = args.extract_options!
@@ -443,7 +443,7 @@ module ActiveRecord
       # <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are acceptable.
       # ===== Examples
       #  t.remove_references(:goat)
-      #  t.remove_references(:goat, :polymorphic => true)
+      #  t.remove_references(:goat, polymorphic: true)
       #  t.remove_belongs_to(:goat)
       def remove_references(*args)
         options = args.extract_options!
