@@ -80,9 +80,9 @@ module ActiveRecord
           end
         end
 
-        def instance_cast_code(attr_name)
+        def instance_cast_method(attr_name)
           if serialized_attributes.include?(attr_name)
-            "v.unserialized_value"
+            "cast_serialized"
           else
             super
           end

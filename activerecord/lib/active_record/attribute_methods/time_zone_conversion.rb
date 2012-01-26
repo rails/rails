@@ -53,14 +53,11 @@ module ActiveRecord
         end
 
         private
-        def instance_cast_code(attr_name)
+        def instance_cast_method(attr_name)
           column = columns_hash[attr_name]
 
           if create_time_zone_conversion_attribute?(attr_name, column)
-            typecast             = "v = #{super}"
-            time_zone_conversion = "v.acts_like?(:time) ? v.in_time_zone : v"
-
-            "((#{typecast}) && (#{time_zone_conversion}))"
+            "cast_tz_conversion"
           else
             super
           end

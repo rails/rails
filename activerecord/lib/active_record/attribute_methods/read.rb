@@ -92,17 +92,13 @@ module ActiveRecord
         end
 
         def internal_attribute_access_code(attr_name, cast_code)
-          cast_code = instance_cast_code(attr_name)
-
-          access_code = "v = @attributes.fetch(attr_name) { missing_attribute(attr_name, caller) };"
-
-          access_code << "v && #{cast_code};"
+          method = instance_cast_method(attr_name)
 
           if cache_attribute?(attr_name)
-            access_code = "@attributes_cache[attr_name] ||= (#{access_code})"
+            "cached_cast_attribute('#{attr_name}', :#{method})"
+          else
+            "cast_attribute('#{attr_name}', :#{method})"
           end
-
-          "attr_name = '#{attr_name}'; #{access_code}"
         end
 
         def external_attribute_access_code(attr_name, cast_code)
@@ -119,8 +115,8 @@ module ActiveRecord
           columns_hash[attr_name].type_cast_code('v')
         end
 
-        def instance_cast_code(attr_name)
-          "@columns_hash[attr_name].type_cast(v)"
+        def instance_cast_method(attr_name)
+          "cast_column"
         end
       end
 
@@ -132,6 +128,28 @@ module ActiveRecord
 
 
       private
+      def cached_cast_attribute(attr_name, method)
+        @attributes_cache[attr_name] ||= cast_attribute(attr_name, method)
+      end
+
+      def cast_attribute(attr_name, method)
+        v = @attributes.fetch(attr_name) { missing_attribute(attr_name, caller) }
+        v && send(method, attr_name, v)
+      end
+
+      def cast_serialized(attr_name, value)
+        value.unserialized_value
+      end
+
+      def cast_tz_conversion(attr_name, value)
+        value = cast_column(attr_name, value)
+        value.acts_like?(:time) ? value.in_time_zone : value
+      end
+
+      def cast_column(attr_name, value)
+        @columns_hash[attr_name].type_cast value
+      end
+
       def attribute(attribute_name)
         read_attribute(attribute_name)
       end
