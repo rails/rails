@@ -1400,6 +1400,9 @@ A threshold of +nil+ disables automatic EXPLAINs.
 The default threshold in development mode is 0.5 seconds, and +nil+ in test and
 production modes.
 
+INFO. Automatic EXPLAIN gets disabled if Active Record has no logger, regardless
+of the value of the threshold.
+
 h5. Disabling Automatic EXPLAIN
 
 Automatic EXPLAIN can be selectively silenced with +ActiveRecord::Base.silence_auto_explain+:
