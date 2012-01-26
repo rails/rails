@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `label` form helper accepts :for => nil to not generate the attribute. *Carlos Antonio da Silva*
+
 *   Add `:format` option to number_to_percentage *Rodrigo Flores*
 
 *   Add `config.action_view.logger` to configure logger for ActionView. *Rafael França*
