@@ -2,6 +2,7 @@ module ActiveRecord
   # = Active Record Has And Belongs To Many Association
   module Associations
     class HasAndBelongsToManyAssociation < CollectionAssociation #:nodoc:
+      TIMESTAMP_ATTRIBUTES = [:created_at, :created_on, :updated_at, :updated_on]
       attr_reader :join_table
 
       def initialize(owner, reflection)
@@ -21,10 +22,12 @@ module ActiveRecord
         if options[:insert_sql]
           owner.connection.insert(interpolate(options[:insert_sql], record))
         else
-          stmt = join_table.compile_insert(
-            join_table[reflection.foreign_key]             => owner.id,
-            join_table[reflection.association_foreign_key] => record.id
-          )
+          join_values = { join_table[reflection.foreign_key]             => owner.id,
+                          join_table[reflection.association_foreign_key] => record.id }
+
+          join_values.merge!(timestamp_values) unless all_timestamp_attributes_in_table.empty?
+
+          stmt = join_table.compile_insert(join_values)
 
           owner.connection.insert stmt
         end
@@ -56,6 +59,27 @@ module ActiveRecord
 
         def invertible_for?(record)
           false
+        end
+
+        def timestamp_values
+          current_time = Time.current
+          Hash[all_timestamp_attributes_in_table.map do |column|
+            [join_table[column], current_time]
+          end]
+        end
+
+        def all_timestamp_attributes_in_table
+          @all_timestamp_attributes_in_table ||=
+            timestamp_attributes_for_table(TIMESTAMP_ATTRIBUTES)
+        end
+
+        def timestamp_attributes_for_table(attributes)
+          attributes.select { |c| join_table_column_names.include?(c.to_s) }
+        end
+
+        def join_table_column_names
+          @join_table_column_names ||=
+            owner.connection.schema_cache.columns[reflection.options[:join_table]].map(&:name)
         end
     end
   end
