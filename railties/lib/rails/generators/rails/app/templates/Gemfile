@@ -1,4 +1,4 @@
-source 'https://rubygems.org'
+source :rubygems
 
 <%= rails_gemfile_entry -%>
 
