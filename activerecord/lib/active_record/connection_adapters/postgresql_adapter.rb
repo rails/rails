@@ -1249,7 +1249,7 @@ module ActiveRecord
         # Executes a SELECT query and returns the results, performing any data type
         # conversions that are required to be performed here instead of in PostgreSQLColumn.
         def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds).to_a
+          exec_query(sql, name, binds)
         end
 
         def select_raw(sql, name = nil)

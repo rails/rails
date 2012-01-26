@@ -35,7 +35,8 @@ module ActiveRecord
     #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
     def find_by_sql(sql, binds = [])
       logging_query_plan do
-        connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
+        result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
+        result_set.map! { |record| instantiate(record) }
       end
     end
 

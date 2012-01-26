@@ -24,6 +24,25 @@ module ActiveRecord
       hash_rows
     end
 
+    alias :map! :map
+    alias :collect! :map
+
+    def empty?
+      rows.empty?
+    end
+
+    def to_ary
+      hash_rows
+    end
+
+    def [](idx)
+      hash_rows[idx]
+    end
+
+    def last
+      hash_rows.last
+    end
+
     private
     def hash_rows
       @hash_rows ||= @rows.map { |row|

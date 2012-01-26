@@ -225,7 +225,7 @@ module ActiveRecord
       # column values as values.
       def select(sql, name = nil, binds = [])
         binds = binds.dup
-        exec_query(sql.gsub("\0") { quote(*binds.shift.reverse) }, name).to_a
+        exec_query(sql.gsub("\0") { quote(*binds.shift.reverse) }, name)
       end
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
