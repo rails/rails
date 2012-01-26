@@ -152,7 +152,7 @@ class String
   #   <%= link_to(@person.name, person_path %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
   def parameterize(sep = '-')
-    ActiveSupport::Inflector.parameterize(self, sep)
+    ActiveSupport::Inflector.parameterize(self, sep.to_s)
   end
 
   # Creates the name of a table like Rails does for models to table names. This method
