@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Scaffold now uses `content_tag_for` in index.html.erb *José Valim*
+
 *   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
 
 ## Rails 3.2.0 (unreleased) ##
@@ -67,7 +69,7 @@
     config/initializers/* will not be executed.
 
     Plugins developers need to special case their initializers that are
-    meant to be run in the assets group by adding :group => :assets.    
+    meant to be run in the assets group by adding :group => :assets.
 
 ## Rails 3.1.0 (August 30, 2011) ##
 
