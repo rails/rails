@@ -445,6 +445,12 @@ class AssetTagHelperTest < ActionView::TestCase
     ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_image_tag_does_not_modify_options
+    options = {:size => '16x10'}
+    image_tag('icon', options)
+    assert_equal({:size => '16x10'}, options)
+  end
+
   def test_favicon_link_tag
     FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -486,6 +492,14 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_audio_tag
     AudioLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_video_audio_tag_does_not_modify_options
+    options = {:autoplay => true}
+    video_tag('video', options)
+    assert_equal({:autoplay => true}, options)
+    audio_tag('audio', options)
+    assert_equal({:autoplay => true}, options)
   end
 
   def test_timebased_asset_id
