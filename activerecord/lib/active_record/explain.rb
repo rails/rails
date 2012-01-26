@@ -19,6 +19,8 @@ module ActiveRecord
     # currently collected. A false value indicates collecting is turned
     # off. Otherwise it is an array of queries.
     def logging_query_plan # :nodoc:
+      return yield unless logger
+
       threshold = auto_explain_threshold_in_seconds
       current   = Thread.current
       if threshold && current[:available_queries_for_explain].nil?
