@@ -149,6 +149,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_string_parameterized_underscore_symbol
+    StringToParameterizeWithUnderscore.each do |normal, slugged|
+      assert_equal(normal.parameterize(:_), slugged)
+    end
+  end
+
   def test_humanize
     UnderscoreToHuman.each do |underscore, human|
       assert_equal(human, underscore.humanize)
