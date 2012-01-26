@@ -8,8 +8,8 @@ class Hash
   # arguments. This allows +except+ to play nice with hashes with indifferent access
   # for instance:
   #
-  #   {:a => 1}.with_indifferent_access.except(:a)  # => {}
-  #   {:a => 1}.with_indifferent_access.except("a") # => {}
+  #   {a: 1}.with_indifferent_access.except(:a)  # => {}
+  #   {a: 1}.with_indifferent_access.except("a") # => {}
   #
   def except(*keys)
     dup.except!(*keys)

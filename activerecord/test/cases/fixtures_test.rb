@@ -78,7 +78,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_create_symbol_fixtures
-    fixtures = ActiveRecord::Fixtures.create_fixtures(FIXTURES_ROOT, :collections, :collections => Course) { Course.connection }
+    fixtures = ActiveRecord::Fixtures.create_fixtures(FIXTURES_ROOT, :collections, collections: Course) { Course.connection }
 
     assert Course.find_by_name('Collection'), 'course is not in the database'
     assert fixtures.detect { |f| f.name == 'collections' }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
@@ -112,10 +112,10 @@ class FixturesTest < ActiveRecord::TestCase
         t.column :bonus_time, :time
         t.column :last_read, :date
         t.column :content, :string
-        t.column :approved, :boolean, :default => true
-        t.column :replies_count, :integer, :default => 0
+        t.column :approved, :boolean, default: true
+        t.column :replies_count, :integer, default: 0
         t.column :parent_id, :integer
-        t.column :type, :string, :limit => 50
+        t.column :type, :string, limit: 50
       end
 
       # Store existing prefix/suffix
@@ -253,7 +253,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
     fixtures :companies
 
     def setup
-      @instances = [Account.new(:credit_limit => 50), Company.new(:name => 'RoR Consulting')]
+      @instances = [Account.new(credit_limit: 50), Company.new(name: 'RoR Consulting')]
       ActiveRecord::Fixtures.reset_cache # make sure tables get reinitialized
     end
 
@@ -327,7 +327,7 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
 
   def test_reloading_fixtures_through_accessor_methods
     assert_equal "The First Topic", topics(:first).title
-    @loaded_fixtures['topics']['first'].expects(:find).returns(stub(:title => "Fresh Topic!"))
+    @loaded_fixtures['topics']['first'].expects(:find).returns(stub(title: "Fresh Topic!"))
     assert_equal "Fresh Topic!", topics(:first, true).title
   end
 end
@@ -433,7 +433,7 @@ class OverRideFixtureMethodTest < ActiveRecord::TestCase
 end
 
 class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :funny_jokes => 'Joke'
+  set_fixture_class funny_jokes: 'Joke'
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
@@ -445,7 +445,7 @@ class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
 end
 
 class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :items => Book
+  set_fixture_class items: Book
   fixtures :items
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
@@ -457,7 +457,7 @@ class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
 end
 
 class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :items => Book, :funny_jokes => Joke
+  set_fixture_class items: Book, funny_jokes: Joke
   fixtures :items, :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
@@ -473,7 +473,7 @@ class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
 end
 
 class CustomConnectionFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :courses => Course
+  set_fixture_class courses: Course
   fixtures :courses
   self.use_transactional_fixtures = false
 
@@ -493,7 +493,7 @@ class CustomConnectionFixturesTest < ActiveRecord::TestCase
 end
 
 class TransactionalFixturesOnCustomConnectionTest < ActiveRecord::TestCase
-  set_fixture_class :courses => Course
+  set_fixture_class courses: Course
   fixtures :courses
   self.use_transactional_fixtures = true
 
@@ -521,7 +521,7 @@ class InvalidTableNameFixturesTest < ActiveRecord::TestCase
 end
 
 class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :funny_jokes => 'Joke'
+  set_fixture_class funny_jokes: 'Joke'
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
@@ -759,7 +759,7 @@ end
 class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   ActiveRecord::Fixtures.reset_cache
 
-  set_fixture_class :randomly_named_a9         =>
+  set_fixture_class randomly_named_a9:        
                         ClassNameThatDoesNotFollowCONVENTIONS,
                     :'admin/randomly_named_a9' =>
                         Admin::ClassNameThatDoesNotFollowCONVENTIONS,

@@ -3,7 +3,7 @@ module ActiveRecord
   module Associations
     module ThroughAssociation #:nodoc:
 
-      delegate :source_reflection, :through_reflection, :chain, :to => :reflection
+      delegate :source_reflection, :through_reflection, :chain, to: :reflection
 
       protected
 
@@ -28,7 +28,7 @@ module ActiveRecord
         # methods which create and delete records on the association.
         #
         # We only support indirectly modifying through associations which has a belongs_to source.
-        # This is the "has_many :tags, :through => :taggings" situation, where the join model
+        # This is the "has_many :tags, through: :taggings" situation, where the join model
         # typically has a belongs_to on both side. In other words, associations which could also
         # be represented as has_and_belongs_to_many associations.
         #

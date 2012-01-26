@@ -47,7 +47,7 @@ module ActiveRecord
   #
   #   class AddSsl < ActiveRecord::Migration
   #     def up
-  #       add_column :accounts, :ssl_enabled, :boolean, :default => 1
+  #       add_column :accounts, :ssl_enabled, :boolean, default: 1
   #     end
   #
   #     def down
@@ -75,9 +75,9 @@ module ActiveRecord
   #         t.integer :position
   #       end
   #
-  #       SystemSetting.create  :name => "notice",
-  #                             :label => "Use notice?",
-  #                             :value => 1
+  #       SystemSetting.create  name: "notice",
+  #                             label: "Use notice?",
+  #                             value: 1
   #     end
   #
   #     def down
@@ -106,9 +106,9 @@ module ActiveRecord
   #   <tt>:string</tt>, <tt>:text</tt>, <tt>:integer</tt>, <tt>:float</tt>,
   #   <tt>:decimal</tt>, <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
   #   <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>. A default value can be
-  #   specified by passing an +options+ hash like <tt>{ :default => 11 }</tt>.
+  #   specified by passing an +options+ hash like <tt>{ default: 11 }</tt>.
   #   Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g.
-  #   <tt>{ :limit => 50, :null => false }</tt>) -- see
+  #   <tt>{ limit: 50, null: false }</tt>) -- see
   #   ActiveRecord::ConnectionAdapters::TableDefinition#column for details.
   # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
   #   a column but keeps the type and content.
@@ -119,11 +119,11 @@ module ActiveRecord
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
   #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
-  #   <tt>{ :name => "users_name_index", :unique => true }</tt>) and <tt>:order</tt>
-  #   (e.g. { :order => {:name => :desc} }</tt>).
-  # * <tt>remove_index(table_name, :column => column_name)</tt>: Removes the index
+  #   <tt>{ name: "users_name_index", unique: true }</tt>) and <tt>:order</tt>
+  #   (e.g. { order: {name: :desc} }</tt>).
+  # * <tt>remove_index(table_name, column: column_name)</tt>: Removes the index
   #   specified by +column_name+.
-  # * <tt>remove_index(table_name, :name => index_name)</tt>: Removes the index
+  # * <tt>remove_index(table_name, name: index_name)</tt>: Removes the index
   #   specified by +index_name+.
   #
   # == Irreversible transformations
@@ -526,7 +526,7 @@ module ActiveRecord
       File.basename(filename)
     end
 
-    delegate :migrate, :announce, :write, :to => :migration
+    delegate :migrate, :announce, :write, to: :migration
 
     private
 
@@ -771,10 +771,10 @@ block argument to migrate is deprecated, please filter migrations before constru
     def record_version_state_after_migrating(version)
       if down?
         migrated.delete(version)
-        ActiveRecord::SchemaMigration.where(:version => version.to_s).delete_all
+        ActiveRecord::SchemaMigration.where(version: version.to_s).delete_all
       else
         migrated << version
-        ActiveRecord::SchemaMigration.create!(:version => version.to_s)
+        ActiveRecord::SchemaMigration.create!(version: version.to_s)
       end
     end
 

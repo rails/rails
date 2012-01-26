@@ -4,7 +4,7 @@ require 'active_support/core_ext/object/inclusion'
 module ActiveRecord
   module Generators
     class SessionMigrationGenerator < Base
-      argument :name, :type => :string, :default => "add_sessions_table"
+      argument :name, type: :string, default: "add_sessions_table"
 
       def create_migration_file
         migration_template "migration.rb", "db/migrate/#{file_name}.rb"

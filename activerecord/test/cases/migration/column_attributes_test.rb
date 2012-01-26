@@ -50,7 +50,7 @@ module ActiveRecord
       def test_native_decimal_insert_manual_vs_automatic
         correct_value = '0012345678901234567890.0123456789'.to_d
 
-        connection.add_column "test_models", "wealth", :decimal, :precision => '30', :scale => '10'
+        connection.add_column "test_models", "wealth", :decimal, precision: '30', scale: '10'
 
         # Do a manual insertion
         if current_adapter?(:OracleAdapter)
@@ -76,7 +76,7 @@ module ActiveRecord
         TestModel.delete_all
 
         # Now use the Rails insertion
-        TestModel.create :wealth => BigDecimal.new("12345678901234567890.0123456789")
+        TestModel.create wealth: BigDecimal.new("12345678901234567890.0123456789")
 
         # SELECT
         row = TestModel.find(:first)
@@ -89,7 +89,7 @@ module ActiveRecord
       end
 
       def test_add_column_with_precision_and_scale
-        connection.add_column 'test_models', 'wealth', :decimal, :precision => 9, :scale => 7
+        connection.add_column 'test_models', 'wealth', :decimal, precision: 9, scale: 7
 
         wealth_column = TestModel.columns_hash['wealth']
         assert_equal 9, wealth_column.precision
@@ -100,13 +100,13 @@ module ActiveRecord
         skip "only on sqlite3" unless current_adapter?(:SQLite3Adapter)
 
         connection.add_column 'test_models', 'last_name', :string
-        connection.add_column 'test_models', 'wealth', :decimal, :precision => 9, :scale => 7
+        connection.add_column 'test_models', 'wealth', :decimal, precision: 9, scale: 7
 
         wealth_column = TestModel.columns_hash['wealth']
         assert_equal 9, wealth_column.precision
         assert_equal 7, wealth_column.scale
 
-        connection.change_column 'test_models', 'last_name', :string, :null => false
+        connection.change_column 'test_models', 'last_name', :string, null: false
         TestModel.reset_column_information
 
         wealth_column = TestModel.columns_hash['wealth']
@@ -120,17 +120,17 @@ module ActiveRecord
         add_column "test_models", "bio", :text
         add_column "test_models", "age", :integer
         add_column "test_models", "height", :float
-        add_column "test_models", "wealth", :decimal, :precision => '30', :scale => '10'
+        add_column "test_models", "wealth", :decimal, precision: '30', scale: '10'
         add_column "test_models", "birthday", :datetime
         add_column "test_models", "favorite_day", :date
         add_column "test_models", "moment_of_truth", :datetime
         add_column "test_models", "male", :boolean
 
-        TestModel.create :first_name => 'bob', :last_name => 'bobsen',
-          :bio => "I was born ....", :age => 18, :height => 1.78,
-          :wealth => BigDecimal.new("12345678901234567890.0123456789"),
-          :birthday => 18.years.ago, :favorite_day => 10.days.ago,
-          :moment_of_truth => "1782-10-10 21:40:18", :male => true
+        TestModel.create first_name: 'bob', last_name: 'bobsen',
+          bio: "I was born ....", age: 18, height: 1.78,
+          wealth: BigDecimal.new("12345678901234567890.0123456789"),
+          birthday: 18.years.ago, favorite_day: 10.days.ago,
+          moment_of_truth: "1782-10-10 21:40:18", male: true
 
         bob = TestModel.find(:first)
         assert_equal 'bob', bob.first_name

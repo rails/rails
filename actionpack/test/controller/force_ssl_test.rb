@@ -2,11 +2,11 @@ require 'abstract_unit'
 
 class ForceSSLController < ActionController::Base
   def banana
-    render :text => "monkey"
+    render text: "monkey"
   end
 
   def cheeseburger
-    render :text => "sikachu"
+    render text: "sikachu"
   end
 end
 
@@ -15,19 +15,19 @@ class ForceSSLControllerLevel < ForceSSLController
 end
 
 class ForceSSLCustomDomain < ForceSSLController
-  force_ssl :host => "secure.test.host"
+  force_ssl host: "secure.test.host"
 end
 
 class ForceSSLOnlyAction < ForceSSLController
-  force_ssl :only => :cheeseburger
+  force_ssl only: :cheeseburger
 end
 
 class ForceSSLExceptAction < ForceSSLController
-  force_ssl :except => :banana
+  force_ssl except: :banana
 end
 
 class ForceSSLFlash < ForceSSLController
-  force_ssl :except => [:banana, :set_flash, :use_flash]
+  force_ssl except: [:banana, :set_flash, :use_flash]
 
   def set_flash
     flash["that"] = "hello"
@@ -37,7 +37,7 @@ class ForceSSLFlash < ForceSSLController
   def use_flash
     @flash_copy = {}.update flash
     @flashy = flash["that"]
-    render :inline => "hello"
+    render inline: "hello"
   end
 end
 

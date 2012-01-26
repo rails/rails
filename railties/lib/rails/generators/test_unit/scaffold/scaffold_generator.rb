@@ -6,7 +6,7 @@ module TestUnit
     class ScaffoldGenerator < Base
       include Rails::Generators::ResourceHelpers
 
-      check_class_collision :suffix => "ControllerTest"
+      check_class_collision suffix: "ControllerTest"
 
       def create_test_files
         template 'functional_test.rb',

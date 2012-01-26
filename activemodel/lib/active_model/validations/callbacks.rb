@@ -23,7 +23,7 @@ module ActiveModel
 
       included do
         include ActiveSupport::Callbacks
-        define_callbacks :validation, :terminator => "result == false", :scope => [:kind, :name]
+        define_callbacks :validation, terminator: "result == false", scope: [:kind, :name]
       end
 
       module ClassMethods

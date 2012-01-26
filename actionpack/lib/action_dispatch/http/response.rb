@@ -40,8 +40,8 @@ module ActionDispatch # :nodoc:
     alias_method :headers=, :header=
     alias_method :headers,  :header
 
-    delegate :[], :[]=, :to => :@header
-    delegate :each, :to => :@body
+    delegate :[], :[]=, to: :@header
+    delegate :each, to: :@body
 
     # Sets the HTTP response's content MIME type. For example, in the controller
     # you could write this:

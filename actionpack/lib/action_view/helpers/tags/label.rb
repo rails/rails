@@ -45,7 +45,7 @@ module ActionView
                         end
 
                         i18n_default ||= ""
-                        I18n.t("#{@object_name}.#{method_and_value}", :default => i18n_default, :scope => "helpers.label").presence
+                        I18n.t("#{@object_name}.#{method_and_value}", default: i18n_default, scope: "helpers.label").presence
                       else
                         @content.to_s
                       end

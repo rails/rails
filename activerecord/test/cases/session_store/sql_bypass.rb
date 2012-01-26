@@ -19,7 +19,7 @@ module ActiveRecord
       end
 
       def test_persisted?
-        s = SqlBypass.new :data => 'foo', :session_id => 10
+        s = SqlBypass.new data: 'foo', session_id: 10
         assert !s.persisted?, 'this is a new record!'
       end
 
@@ -29,14 +29,14 @@ module ActiveRecord
       end
 
       def test_loaded?
-        s = SqlBypass.new :data => 'hello'
+        s = SqlBypass.new data: 'hello'
         assert s.loaded?, 'it is loaded'
       end
 
       def test_save
         SqlBypass.create_table! unless Session.table_exists?
         session_id = 20
-        s = SqlBypass.new :data => 'hello', :session_id => session_id
+        s = SqlBypass.new data: 'hello', session_id: session_id
         s.save
         t = SqlBypass.find_by_session_id session_id
         assert_equal s.session_id, t.session_id
@@ -46,7 +46,7 @@ module ActiveRecord
       def test_destroy
         SqlBypass.create_table! unless Session.table_exists?
         session_id = 20
-        s = SqlBypass.new :data => 'hello', :session_id => session_id
+        s = SqlBypass.new data: 'hello', session_id: session_id
         s.save
         s.destroy
         assert_nil SqlBypass.find_by_session_id session_id

@@ -18,7 +18,7 @@ module ActiveRecord
     #   (rarely needed) or named associations in the same form used for the <tt>:include</tt> option, which will
     #   perform an INNER JOIN on the associated table(s). If the value is a string, then the records
     #   will be returned read-only since they will have attributes that do not correspond to the table's columns.
-    #   Pass <tt>:readonly => false</tt> to override.
+    #   Pass <tt>readonly: false</tt> to override.
     # * <tt>:include</tt>: Named associations that should be loaded alongside using LEFT OUTER JOINs.
     #   The symbols named refer to already defined associations. When using named associations, count
     #   returns the number of DISTINCT items for the model you're counting.
@@ -39,17 +39,17 @@ module ActiveRecord
     #   Person.count(:age)  # returns the total count of all people whose age is present in database
     #
     # Examples for count with options:
-    #   Person.count(:conditions => "age > 26")
+    #   Person.count(conditions: "age > 26")
     #
     #   # because of the named association, it finds the DISTINCT count using LEFT OUTER JOIN.
-    #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :include => :job)
+    #   Person.count(conditions: "age > 26 AND job.salary > 60000", include: :job)
     #
     #   # finds the number of rows matching the conditions and joins.
-    #   Person.count(:conditions => "age > 26 AND job.salary > 60000",
-    #                :joins => "LEFT JOIN jobs on jobs.person_id = person.id")
+    #   Person.count(conditions: "age > 26 AND job.salary > 60000",
+    #                joins: "LEFT JOIN jobs on jobs.person_id = person.id")
     #
-    #   Person.count('id', :conditions => "age > 26") # Performs a COUNT(id)
-    #   Person.count(:all, :conditions => "age > 26") # Performs a COUNT(*) (:all is an alias for '*')
+    #   Person.count('id', conditions: "age > 26") # Performs a COUNT(id)
+    #   Person.count(:all, conditions: "age > 26") # Performs a COUNT(*) (:all is an alias for '*')
     #
     # Note: <tt>Person.count(:all)</tt> will not work because it will use <tt>:all</tt> as the condition.
     # Use Person.count instead.
@@ -107,12 +107,12 @@ module ActiveRecord
     #   * Grouped values: This returns an ordered hash of the values and groups them by the
     #     <tt>:group</tt> option. It takes either a column name, or the name of a belongs_to association.
     #
-    #       values = Person.maximum(:age, :group => 'last_name')
+    #       values = Person.maximum(:age, group: 'last_name')
     #       puts values["Drake"]
     #       => 43
     #
     #       drake  = Family.find_by_last_name('Drake')
-    #       values = Person.maximum(:age, :group => :family) # Person belongs_to :family
+    #       values = Person.maximum(:age, group: :family) # Person belongs_to :family
     #       puts values[drake]
     #       => 43
     #
@@ -139,16 +139,16 @@ module ActiveRecord
     # Examples:
     #   Person.calculate(:count, :all) # The same as Person.count
     #   Person.average(:age) # SELECT AVG(age) FROM people...
-    #   Person.minimum(:age, :conditions => ['last_name != ?', 'Drake']) # Selects the minimum age for
+    #   Person.minimum(:age, conditions: ['last_name != ?', 'Drake']) # Selects the minimum age for
     #                                                                    # everyone with a last name other than 'Drake'
     #
     #   # Selects the minimum age for any family without any minors
-    #   Person.minimum(:age, :having => 'min(age) > 17', :group => :last_name)
+    #   Person.minimum(:age, having: 'min(age) > 17', group: :last_name)
     #
     #   Person.sum("2 * age")
     def calculate(operation, column_name, options = {})
       if options.except(:distinct).present?
-        apply_finder_options(options.except(:distinct)).calculate(operation, column_name, :distinct => options[:distinct])
+        apply_finder_options(options.except(:distinct)).calculate(operation, column_name, distinct: options[:distinct])
       else
         relation = with_default_scope
 
@@ -174,7 +174,7 @@ module ActiveRecord
     #
     #   Person.pluck(:id) # SELECT people.id FROM people
     #   Person.uniq.pluck(:role) # SELECT DISTINCT role FROM people
-    #   Person.where(:confirmed => true).limit(5).pluck(:id)
+    #   Person.where(confirmed: true).limit(5).pluck(:id)
     #
     def pluck(column_name)
       klass.connection.select_all(select(column_name).arel).map! do |attributes|

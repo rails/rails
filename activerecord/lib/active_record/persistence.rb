@@ -17,24 +17,24 @@ module ActiveRecord
       #
       # ==== Examples
       #   # Create a single new object
-      #   User.create(:first_name => 'Jamie')
+      #   User.create(first_name: 'Jamie')
       #
       #   # Create a single new object using the :admin mass-assignment security role
-      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
+      #   User.create({ first_name: 'Jamie', is_admin: true }, as: :admin)
       #
       #   # Create a single new object bypassing mass-assignment security
-      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
+      #   User.create({ first_name: 'Jamie', is_admin: true }, without_protection: true)
       #
       #   # Create an Array of new objects
-      #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }])
+      #   User.create([{ first_name: 'Jamie' }, { first_name: 'Jeremy' }])
       #
       #   # Create a single object and pass it into a block to set other attributes.
-      #   User.create(:first_name => 'Jamie') do |u|
+      #   User.create(first_name: 'Jamie') do |u|
       #     u.is_admin = false
       #   end
       #
       #   # Creating an Array of new objects using a block, where the block is executed for each object:
-      #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }]) do |u|
+      #   User.create([{ first_name: 'Jamie' }, { first_name: 'Jeremy' }]) do |u|
       #     u.is_admin = false
       #   end
       def create(attributes = nil, options = {}, &block)
@@ -72,7 +72,7 @@ module ActiveRecord
     #
     # By default, save always run validations. If any of them fail the action
     # is cancelled and +save+ returns +false+. However, if you supply
-    # :validate => false, validations are bypassed altogether. See
+    # validate: false, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # There's a series of callbacks associated with +save+. If any of the
@@ -150,7 +150,7 @@ module ActiveRecord
     # inheritance structures where you want a subclass to appear as the
     # superclass. This can be used along with record identification in
     # Action Pack to allow, say, <tt>Client < Company</tt> to do something
-    # like render <tt>:partial => @client.becomes(Company)</tt> to render that
+    # like render <tt>partial: @client.becomes(Company)</tt> to render that
     # instance using the companies/company partial instead of clients/client.
     #
     # Note: The new instance will share a link to the same attributes as the original class.
@@ -178,7 +178,7 @@ module ActiveRecord
       name = name.to_s
       raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
       send("#{name}=", value)
-      save(:validate => false)
+      save(validate: false)
     end
 
     # Updates a single attribute of an object, without calling save.
@@ -278,7 +278,7 @@ module ActiveRecord
 
     # Reloads the attributes of this object from the database.
     # The optional options argument is passed to find when reloading so you
-    # may do e.g. record.reload(:lock => true) to reload the same record with
+    # may do e.g. record.reload(lock: true) to reload the same record with
     # an exclusive row lock.
     def reload(options = nil)
       clear_aggregation_cache
@@ -304,11 +304,11 @@ module ActiveRecord
     # If used along with +belongs_to+ then +touch+ will invoke +touch+ method on associated object.
     #
     #   class Brake < ActiveRecord::Base
-    #     belongs_to :car, :touch => true
+    #     belongs_to :car, touch: true
     #   end
     #
     #   class Car < ActiveRecord::Base
-    #     belongs_to :corporation, :touch => true
+    #     belongs_to :corporation, touch: true
     #   end
     #
     #   # triggers @brake.car.touch and @brake.car.corporation.touch

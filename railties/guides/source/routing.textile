@@ -28,7 +28,7 @@ it asks the router to match it to a controller action. If the first matching rou
 match "/patients/:id" => "patients#show"
 </ruby>
 
-the request is dispatched to the +patients+ controller's +show+ action with <tt>{ :id => "17" }</tt> in +params+.
+the request is dispatched to the +patients+ controller's +show+ action with <tt>{ id: "17" }</tt> in +params+.
 
 h4. Generating Paths and URLs from Code
 
@@ -64,7 +64,7 @@ it asks the router to map it to a controller action. If the first matching route
 resources :photos
 </ruby>
 
-Rails would dispatch that request to the +destroy+ method on the +photos+ controller with <tt>{ :id => "17" }</tt> in +params+.
+Rails would dispatch that request to the +destroy+ method on the +photos+ controller with <tt>{ id: "17" }</tt> in +params+.
 
 h4. CRUD, Verbs, and Actions
 
@@ -175,7 +175,7 @@ This will create a number of routes for each of the +posts+ and +comments+ contr
 If you want to route +/posts+ (without the prefix +/admin+) to +Admin::PostsController+, you could use
 
 <ruby>
-scope :module => "admin" do
+scope module: "admin" do
   resources :posts, :comments
 end
 </ruby>
@@ -183,7 +183,7 @@ end
 or, for a single case
 
 <ruby>
-resources :posts, :module => "admin"
+resources :posts, module: "admin"
 </ruby>
 
 If you want to route +/admin/posts+ to +PostsController+ (without the +Admin::+ module prefix), you could use
@@ -197,7 +197,7 @@ end
 or, for a single case
 
 <ruby>
-resources :posts, :path => "/admin/posts"
+resources :posts, path: "/admin/posts"
 </ruby>
 
 In each of these cases, the named routes remain the same as if you did not use +scope+. In the last case, the following paths map to +PostsController+:
@@ -327,7 +327,7 @@ Within the block of member routes, each route name specifies the HTTP verb that 
 
 <ruby>
 resources :photos do
-  get 'preview', :on => :member
+  get 'preview', on: :member
 end
 </ruby>
 
@@ -349,7 +349,7 @@ Just as with member routes, you can pass +:on+ to a route:
 
 <ruby>
 resources :photos do
-  get 'search', :on => :collection
+  get 'search', on: :collection
 end
 </ruby>
 
@@ -388,7 +388,7 @@ An incoming path of +/photos/show/1/2+ will be dispatched to the +show+ action o
 NOTE: You can't use +namespace+ or +:module+ with a +:controller+ path segment. If you need to do this then use a constraint on :controller that matches the namespace you require. e.g:
 
 <ruby>
-match ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
+match ':controller(/:action(/:id))', controller: /admin\/[^\/]+/
 </ruby>
 
 TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment add a constraint which overrides this - for example +:id+ => /[^\/]+/ allows anything except a slash.
@@ -401,7 +401,7 @@ You can specify static segments when creating a route:
 match ':controller/:action/:id/with_user/:user_id'
 </ruby>
 
-This route would respond to paths such as +/photos/show/1/with_user/2+. In this case, +params+ would be <tt>{ :controller => "photos", :action => "show", :id => "1", :user_id => "2" }</tt>.
+This route would respond to paths such as +/photos/show/1/with_user/2+. In this case, +params+ would be <tt>{ controller: "photos", action: "show", id: "1", user_id: "2" }</tt>.
 
 h4. The Query String
 
@@ -411,7 +411,7 @@ The +params+ will also include any parameters from the query string. For example
 match ':controller/:action/:id'
 </ruby>
 
-An incoming path of +/photos/show/1?user_id=2+ will be dispatched to the +show+ action of the +Photos+ controller. +params+ will be <tt>{ :controller => "photos", :action => "show", :id => "1", :user_id => "2" }</tt>.
+An incoming path of +/photos/show/1?user_id=2+ will be dispatched to the +show+ action of the +Photos+ controller. +params+ will be <tt>{ controller: "photos", action: "show", id: "1", user_id: "2" }</tt>.
 
 h4. Defining Defaults
 
@@ -426,7 +426,7 @@ With this route, Rails will match an incoming path of +/photos/12+ to the +show+
 You can also define other defaults in a route by supplying a hash for the +:defaults+ option. This even applies to parameters that you do not specify as dynamic segments. For example:
 
 <ruby>
-match 'photos/:id' => 'photos#show', :defaults => { :format => 'jpg' }
+match 'photos/:id' => 'photos#show', defaults: { format: 'jpg' }
 </ruby>
 
 Rails would match +photos/12+ to the +show+ action of +PhotosController+, and set +params[:format]+ to +"jpg"+.
@@ -436,7 +436,7 @@ h4. Naming Routes
 You can specify a name for any route using the +:as+ option.
 
 <ruby>
-match 'exit' => 'sessions#destroy', :as => :logout
+match 'exit' => 'sessions#destroy', as: :logout
 </ruby>
 
 This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/exit+
@@ -446,7 +446,7 @@ h4. HTTP Verb Constraints
 You can use the +:via+ option to constrain the request to one or more HTTP methods:
 
 <ruby>
-match 'photos/show' => 'photos#show', :via => :get
+match 'photos/show' => 'photos#show', via: :get
 </ruby>
 
 There is a shorthand version of this as well:
@@ -458,7 +458,7 @@ get 'photos/show'
 You can also permit more than one verb to a single route:
 
 <ruby>
-match 'photos/show' => 'photos#show', :via => [:get, :post]
+match 'photos/show' => 'photos#show', via: [:get, :post]
 </ruby>
 
 h4. Segment Constraints
@@ -466,19 +466,19 @@ h4. Segment Constraints
 You can use the +:constraints+ option to enforce a format for a dynamic segment:
 
 <ruby>
-match 'photos/:id' => 'photos#show', :constraints => { :id => /[A-Z]\d{5}/ }
+match 'photos/:id' => 'photos#show', constraints: { id: /[A-Z]\d{5}/ }
 </ruby>
 
 This route would match paths such as +/photos/A12345+. You can more succinctly express the same route this way:
 
 <ruby>
-match 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
+match 'photos/:id' => 'photos#show', id: /[A-Z]\d{5}/
 </ruby>
 
 +:constraints+ takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:
 
 <ruby>
-match '/:id' => 'posts#show', :constraints => {:id => /^\d/}
+match '/:id' => 'posts#show', constraints: {id: /^\d/}
 </ruby>
 
 However, note that you don't need to use anchors because all routes are anchored at the start.
@@ -486,7 +486,7 @@ However, note that you don't need to use anchors because all routes are anchored
 For example, the following routes would allow for +posts+ with +to_param+ values like +1-hello-world+ that always begin with a number and +users+ with +to_param+ values like +david+ that never begin with a number to share the root namespace:
 
 <ruby>
-match '/:id' => 'posts#show', :constraints => { :id => /\d.+/ }
+match '/:id' => 'posts#show', constraints: { id: /\d.+/ }
 match '/:username' => 'users#show'
 </ruby>
 
@@ -497,14 +497,14 @@ You can also constrain a route based on any method on the <a href="action_contro
 You specify a request-based constraint the same way that you specify a segment constraint:
 
 <ruby>
-match "photos", :constraints => {:subdomain => "admin"}
+match "photos", constraints: {subdomain: "admin"}
 </ruby>
 
 You can also specify constraints in a block form:
 
 <ruby>
 namespace :admin do
-  constraints :subdomain => "admin" do
+  constraints subdomain: "admin" do
     resources :photos
   end
 end
@@ -527,7 +527,7 @@ end
 
 TwitterClone::Application.routes.draw do
   match "*path" => "blacklist#index",
-    :constraints => BlacklistConstraint.new
+    constraints: BlacklistConstraint.new
 end
 </ruby>
 
@@ -563,16 +563,16 @@ NOTE: Starting from Rails 3.1, wildcard routes will always match the optional fo
 match '*pages' => 'pages#show'
 </ruby>
 
-NOTE: By requesting +"/foo/bar.json"+, your +params[:pages]+ will be equals to +"foo/bar"+ with the request format of JSON. If you want the old 3.0.x behavior back, you could supply +:format => false+ like this:
+NOTE: By requesting +"/foo/bar.json"+, your +params[:pages]+ will be equals to +"foo/bar"+ with the request format of JSON. If you want the old 3.0.x behavior back, you could supply +format: false+ like this:
 
 <ruby>
-match '*pages' => 'pages#show', :format => false
+match '*pages' => 'pages#show', format: false
 </ruby>
 
-NOTE: If you want to make the format segment mandatory, so it cannot be omitted, you can supply +:format => true+ like this:
+NOTE: If you want to make the format segment mandatory, so it cannot be omitted, you can supply +format: true+ like this:
 
 <ruby>
-match '*pages' => 'pages#show', :format => true
+match '*pages' => 'pages#show', format: true
 </ruby>
 
 h4. Redirection
@@ -617,7 +617,7 @@ h4. Using +root+
 You can specify what Rails should route +"/"+ to with the +root+ method:
 
 <ruby>
-root :to => 'pages#main'
+root to: 'pages#main'
 </ruby>
 
 You should put the +root+ route at the top of the file, because it is the most popular route and should be matched first. You also need to delete the +public/index.html+ file for the root route to take effect.
@@ -631,7 +631,7 @@ h4. Specifying a Controller to Use
 The +:controller+ option lets you explicitly specify a controller to use for the resource. For example:
 
 <ruby>
-resources :photos, :controller => "images"
+resources :photos, controller: "images"
 </ruby>
 
 will recognize incoming paths beginning with +/photos+ but route to the +Images+ controller:
@@ -652,7 +652,7 @@ h4. Specifying Constraints
 You can use the +:constraints+ option to specify a required format on the implicit +id+. For example:
 
 <ruby>
-resources :photos, :constraints => {:id => /[A-Z][A-Z][0-9]+/}
+resources :photos, constraints: {id: /[A-Z][A-Z][0-9]+/}
 </ruby>
 
 This declaration constrains the +:id+ parameter to match the supplied regular expression. So, in this case, the router would no longer match +/photos/1+ to this route. Instead, +/photos/RR27+ would match.
@@ -660,7 +660,7 @@ This declaration constrains the +:id+ parameter to match the supplied regular ex
 You can specify a single constraint to apply to a number of routes by using the block form:
 
 <ruby>
-constraints(:id => /[A-Z][A-Z][0-9]+/) do
+constraints(id: /[A-Z][A-Z][0-9]+/) do
   resources :photos
   resources :accounts
 end
@@ -675,7 +675,7 @@ h4. Overriding the Named Helpers
 The +:as+ option lets you override the normal naming for the named route helpers. For example:
 
 <ruby>
-resources :photos, :as => "images"
+resources :photos, as: "images"
 </ruby>
 
 will recognize incoming paths beginning with +/photos+ and route the requests to +PhotosController+, but use the value of the :as option to name the helpers.
@@ -694,7 +694,7 @@ h4. Overriding the +new+ and +edit+ Segments
 The +:path_names+ option lets you override the automatically-generated "new" and "edit" segments in paths:
 
 <ruby>
-resources :photos, :path_names => { :new => 'make', :edit => 'change' }
+resources :photos, path_names: { new: 'make', edit: 'change' }
 </ruby>
 
 This would cause the routing to recognize paths such as
@@ -709,7 +709,7 @@ NOTE: The actual action names aren't changed by this option. The two paths shown
 TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope.
 
 <ruby>
-scope :path_names => { :new => "make" } do
+scope path_names: { new: "make" } do
   # rest of your routes
 end
 </ruby>
@@ -720,7 +720,7 @@ You can use the +:as+ option to prefix the named route helpers that Rails genera
 
 <ruby>
 scope "admin" do
-  resources :photos, :as => "admin_photos"
+  resources :photos, as: "admin_photos"
 end
 
 resources :photos
@@ -731,7 +731,7 @@ This will provide route helpers such as +admin_photos_path+, +new_admin_photo_pa
 To prefix a group of route helpers, use +:as+ with +scope+:
 
 <ruby>
-scope "admin", :as => "admin" do
+scope "admin", as: "admin" do
   resources :photos, :accounts
 end
 
@@ -757,7 +757,7 @@ h4. Restricting the Routes Created
 By default, Rails creates routes for the seven default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the +:only+ and +:except+ options to fine-tune this behavior. The +:only+ option tells Rails to create only the specified routes:
 
 <ruby>
-resources :photos, :only => [:index, :show]
+resources :photos, only: [:index, :show]
 </ruby>
 
 Now, a +GET+ request to +/photos+ would succeed, but a +POST+ request to +/photos+ (which would ordinarily be routed to the +create+ action) will fail.
@@ -765,7 +765,7 @@ Now, a +GET+ request to +/photos+ would succeed, but a +POST+ request to +/photo
 The +:except+ option specifies a route or list of routes that Rails should _not_ create:
 
 <ruby>
-resources :photos, :except => :destroy
+resources :photos, except: :destroy
 </ruby>
 
 In this case, Rails will create all of the normal routes except the route for +destroy+ (a +DELETE+ request to +/photos/:id+).
@@ -777,8 +777,8 @@ h4. Translated Paths
 Using +scope+, we can alter path names generated by resources:
 
 <ruby>
-scope(:path_names => { :new => "neu", :edit => "bearbeiten" }) do
-  resources :categories, :path => "kategorien"
+scope(path_names: { new: "neu", edit: "bearbeiten" }) do
+  resources :categories, path: "kategorien"
 end
 </ruby>
 
@@ -809,7 +809,7 @@ The +:as+ option overrides the automatically-generated name for the resource in 
 
 <ruby>
 resources :magazines do
-  resources :ads, :as => 'periodical_ads'
+  resources :ads, as: 'periodical_ads'
 end
 </ruby>
 
@@ -858,8 +858,8 @@ h5. The +assert_generates+ Assertion
 +assert_generates+ asserts that a particular set of options generate a particular path and can be used with default routes or custom routes.
 
 <ruby>
-assert_generates "/photos/1", { :controller => "photos", :action => "show", :id => "1" }
-assert_generates "/about", :controller => "pages", :action => "about"
+assert_generates "/photos/1", { controller: "photos", action: "show", id: "1" }
+assert_generates "/about", controller: "pages", action: "about"
 </ruby>
 
 h5. The +assert_recognizes+ Assertion
@@ -867,13 +867,13 @@ h5. The +assert_recognizes+ Assertion
 +assert_recognizes+ is the inverse of +assert_generates+. It asserts that a given path is recognized and routes it to a particular spot in your application.
 
 <ruby>
-assert_recognizes({ :controller => "photos", :action => "show", :id => "1" }, "/photos/1")
+assert_recognizes({ controller: "photos", action: "show", id: "1" }, "/photos/1")
 </ruby>
 
 You can supply a +:method+ argument to specify the HTTP verb:
 
 <ruby>
-assert_recognizes({ :controller => "photos", :action => "create" }, { :path => "photos", :method => :post })
+assert_recognizes({ controller: "photos", action: "create" }, { path: "photos", method: :post })
 </ruby>
 
 h5. The +assert_routing+ Assertion
@@ -881,5 +881,5 @@ h5. The +assert_routing+ Assertion
 The +assert_routing+ assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of +assert_generates+ and +assert_recognizes+.
 
 <ruby>
-assert_routing({ :path => "photos", :method => :post }, { :controller => "photos", :action => "create" })
+assert_routing({ path: "photos", method: :post }, { controller: "photos", action: "create" })
 </ruby>

@@ -12,14 +12,14 @@ module ActionController #:nodoc:
     #
     #   <% cache do %>
     #     All the topics in the system:
-    #     <%= render :partial => "topic", :collection => Topic.all %>
+    #     <%= render partial: "topic", collection: Topic.all %>
     #   <% end %>
     #
     # This cache will bind the name of the action that called it, so if
     # this code was part of the view for the topics/list action, you 
     # would be able to invalidate it using:
     #
-    #   expire_fragment(:controller => "topics", :action => "list")
+    #   expire_fragment(controller: "topics", action: "list")
     #
     # This default behavior is limited if you need to cache multiple 
     # fragments per action or if the action itself is cached using 
@@ -27,7 +27,7 @@ module ActionController #:nodoc:
     # qualify the name of the cached fragment by using the 
     # <tt>:action_suffix</tt> option:
     #
-    #   <% cache(:action => "list", :action_suffix => "all_topics") do %>
+    #   <% cache(action: "list", action_suffix: "all_topics") do %>
     #
     # That would result in a name such as 
     # <tt>/topics/list/all_topics</tt>, avoiding conflicts with the 
@@ -38,9 +38,9 @@ module ActionController #:nodoc:
     #
     # The expiration call for this example is:
     #
-    #   expire_fragment(:controller => "topics", 
-    #                   :action => "list", 
-    #                   :action_suffix => "all_topics")
+    #   expire_fragment(controller: "topics", 
+    #                   action: "list", 
+    #                   action_suffix: "all_topics")
     module Fragments
       # Given a key (as described in <tt>expire_fragment</tt>), returns
       # a key suitable for use in reading, writing, or expiring a 
@@ -95,7 +95,7 @@ module ActionController #:nodoc:
       # * String - This would normally take the form of a path, like
       #   <tt>pages/45/notes</tt>.
       # * Hash - Treated as an implicit call to +url_for+, like
-      #   <tt>{:controller => "pages", :action => "notes", :id => 45}</tt>
+      #   <tt>{controller: "pages", action: "notes", id: 45}</tt>
       # * Regexp - Will remove any fragment that matches, so
       #   <tt>%r{pages/\d*/notes}</tt> might remove all notes. Make sure you
       #   don't use anchors in the regex (<tt>^</tt> or <tt>$</tt>) because
@@ -120,7 +120,7 @@ module ActionController #:nodoc:
       end
 
       def instrument_fragment_cache(name, key)
-        ActiveSupport::Notifications.instrument("#{name}.action_controller", :key => key){ yield }
+        ActiveSupport::Notifications.instrument("#{name}.action_controller", key: key){ yield }
       end
     end
   end

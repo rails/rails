@@ -46,13 +46,13 @@ class LogSubscriberTest < ActiveRecord::TestCase
     }.new
     assert_equal 0, logger.debugs.length
 
-    logger.sql(event.new(0, { :sql => 'hi mom!' }))
+    logger.sql(event.new(0, { sql: 'hi mom!' }))
     assert_equal 1, logger.debugs.length
 
-    logger.sql(event.new(0, { :sql => 'hi mom!', :name => 'foo' }))
+    logger.sql(event.new(0, { sql: 'hi mom!', name: 'foo' }))
     assert_equal 2, logger.debugs.length
 
-    logger.sql(event.new(0, { :sql => 'hi mom!', :name => 'SCHEMA' }))
+    logger.sql(event.new(0, { sql: 'hi mom!', name: 'SCHEMA' }))
     assert_equal 2, logger.debugs.length
   end
 

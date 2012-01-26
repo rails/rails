@@ -13,7 +13,7 @@ module ActiveRecord
         add_column "test_models", "girlfriend", :string
         TestModel.reset_column_information
 
-        TestModel.create :girlfriend => 'bobette'
+        TestModel.create girlfriend: 'bobette'
 
         rename_column "test_models", "girlfriend", "exgirlfriend"
 
@@ -28,7 +28,7 @@ module ActiveRecord
       def test_rename_column_using_symbol_arguments
         add_column :test_models, :first_name, :string
 
-        TestModel.create :first_name => 'foo'
+        TestModel.create first_name: 'foo'
 
         rename_column :test_models, :first_name, :nick_name
         TestModel.reset_column_information
@@ -41,7 +41,7 @@ module ActiveRecord
       def test_rename_column
         add_column "test_models", "first_name", "string"
 
-        TestModel.create :first_name => 'foo'
+        TestModel.create first_name: 'foo'
 
         rename_column "test_models", "first_name", "nick_name"
         TestModel.reset_column_information
@@ -50,7 +50,7 @@ module ActiveRecord
       end
 
       def test_rename_column_preserves_default_value_not_null
-        add_column 'test_models', 'salary', :integer, :default => 70000
+        add_column 'test_models', 'salary', :integer, default: 70000
 
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
         assert_equal 70000, default_before
@@ -98,8 +98,8 @@ module ActiveRecord
 
       def test_remove_column_with_multi_column_index
         add_column "test_models", :hat_size, :integer
-        add_column "test_models", :hat_style, :string, :limit => 100
-        add_index "test_models", ["hat_style", "hat_size"], :unique => true
+        add_column "test_models", :hat_style, :string, limit: 100
+        add_index "test_models", ["hat_style", "hat_size"], unique: true
 
         # FIXME: we should test that the index goes away
         remove_column("test_models", "hat_size")
@@ -107,28 +107,28 @@ module ActiveRecord
 
       # FIXME: we need to test that these calls do something
       def test_change_type_of_not_null_column
-        change_column "test_models", "updated_at", :datetime, :null => false
-        change_column "test_models", "updated_at", :datetime, :null => false
-        change_column "test_models", "updated_at", :datetime, :null => true
+        change_column "test_models", "updated_at", :datetime, null: false
+        change_column "test_models", "updated_at", :datetime, null: false
+        change_column "test_models", "updated_at", :datetime, null: true
       end
 
       def test_change_column_nullability
         add_column "test_models", "funny", :boolean
         assert TestModel.columns_hash["funny"].null, "Column 'funny' must initially allow nulls"
 
-        change_column "test_models", "funny", :boolean, :null => false, :default => true
+        change_column "test_models", "funny", :boolean, null: false, default: true
 
         TestModel.reset_column_information
         refute TestModel.columns_hash["funny"].null, "Column 'funny' must *not* allow nulls at this point"
 
-        change_column "test_models", "funny", :boolean, :null => true
+        change_column "test_models", "funny", :boolean, null: true
         TestModel.reset_column_information
         assert TestModel.columns_hash["funny"].null, "Column 'funny' must allow nulls again at this point"
       end
 
       def test_change_column
         add_column 'test_models', 'age', :integer
-        add_column 'test_models', 'approved', :boolean, :default => true
+        add_column 'test_models', 'approved', :boolean, default: true
 
         label = "test_change_column Columns"
         old_columns = connection.columns(TestModel.table_name, label)
@@ -147,29 +147,29 @@ module ActiveRecord
           c.name == 'approved' && c.type == :boolean && c.default == true
         }
 
-        change_column :test_models, :approved, :boolean, :default => false
+        change_column :test_models, :approved, :boolean, default: false
         new_columns = connection.columns(TestModel.table_name, label)
 
         refute new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
         assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
-        change_column :test_models, :approved, :boolean, :default => true
+        change_column :test_models, :approved, :boolean, default: true
       end
 
       def test_change_column_with_nil_default
-        add_column "test_models", "contributor", :boolean, :default => true
+        add_column "test_models", "contributor", :boolean, default: true
         assert TestModel.new.contributor?
 
-        change_column "test_models", "contributor", :boolean, :default => nil
+        change_column "test_models", "contributor", :boolean, default: nil
         TestModel.reset_column_information
         refute TestModel.new.contributor?
         assert_nil TestModel.new.contributor
       end
 
       def test_change_column_with_new_default
-        add_column "test_models", "administrator", :boolean, :default => true
+        add_column "test_models", "administrator", :boolean, default: true
         assert TestModel.new.administrator?
 
-        change_column "test_models", "administrator", :boolean, :default => false
+        change_column "test_models", "administrator", :boolean, default: false
         TestModel.reset_column_information
         refute TestModel.new.administrator?
       end

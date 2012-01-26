@@ -5,7 +5,7 @@ module ActiveRecord
     def self.extended(base)
       # If a query takes longer than these many seconds we log its query plan
       # automatically. nil disables this feature.
-      base.config_attribute :auto_explain_threshold_in_seconds, :global => true
+      base.config_attribute :auto_explain_threshold_in_seconds, global: true
     end
 
     # If auto explain is enabled, this method triggers EXPLAIN logging for the

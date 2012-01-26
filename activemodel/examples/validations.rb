@@ -25,5 +25,5 @@ person1 = Person.new
 p person1.valid?
 person1.errors
 
-person2 = Person.new(:name => "matz")
+person2 = Person.new(name: "matz")
 p person2.valid?

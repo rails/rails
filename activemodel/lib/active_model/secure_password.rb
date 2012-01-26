@@ -21,7 +21,7 @@ module ActiveModel
       #     has_secure_password
       #   end
       #
-      #   user = User.new(:name => "david", :password => "", :password_confirmation => "nomatch")
+      #   user = User.new(name: "david", password: "", password_confirmation: "nomatch")
       #   user.save                                                      # => false, password required
       #   user.password = "mUc3m00RsqyRe"
       #   user.save                                                      # => false, confirmation doesn't match

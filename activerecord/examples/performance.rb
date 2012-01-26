@@ -3,12 +3,12 @@ TIMES = (ENV['N'] || 10000).to_i
 require File.expand_path('../../../load_paths', __FILE__)
 require "active_record"
 
-conn = { :adapter => 'sqlite3', :database => ':memory:' }
+conn = { adapter: 'sqlite3', database: ':memory:' }
 
 ActiveRecord::Base.establish_connection(conn)
 
 class User < ActiveRecord::Base
-  connection.create_table :users, :force => true do |t|
+  connection.create_table :users, force: true do |t|
     t.string :name, :email
     t.timestamps
   end
@@ -17,7 +17,7 @@ class User < ActiveRecord::Base
 end
 
 class Exhibit < ActiveRecord::Base
-  connection.create_table :exhibits, :force => true do |t|
+  connection.create_table :exhibits, force: true do |t|
     t.belongs_to :user
     t.string :name
     t.text :notes
@@ -75,16 +75,16 @@ today = Date.today
 puts 'Inserting 10,000 users and exhibits...'
 10_000.times do
   user = User.create(
-    :created_at => today,
-    :name       => ActiveRecord::Faker.name,
-    :email      => ActiveRecord::Faker.email
+    created_at: today,
+    name:       ActiveRecord::Faker.name,
+    email:      ActiveRecord::Faker.email
   )
 
   Exhibit.create(
-    :created_at => today,
-    :name       => ActiveRecord::Faker.name,
-    :user       => user,
-    :notes      => notes
+    created_at: today,
+    name:       ActiveRecord::Faker.name,
+    user:       user,
+    notes:      notes
   )
 end
 
@@ -92,13 +92,13 @@ require 'benchmark'
 
 Benchmark.bm(46) do |x|
   ar_obj       = Exhibit.find(1)
-  attrs        = { :name => 'sam' }
-  attrs_first  = { :name => 'sam' }
-  attrs_second = { :name => 'tom' }
+  attrs        = { name: 'sam' }
+  attrs_first  = { name: 'sam' }
+  attrs_second = { name: 'tom' }
   exhibit      = {
-    :name       => ActiveRecord::Faker.name,
-    :notes      => notes,
-    :created_at => Date.today
+    name:       ActiveRecord::Faker.name,
+    notes:      notes,
+    created_at: Date.today
   }
 
   x.report("Model#id (x#{(TIMES * 100).ceil})") do
@@ -145,7 +145,7 @@ Benchmark.bm(46) do |x|
   end
 
   x.report 'Resource#update' do
-    TIMES.times { Exhibit.first.update_attributes(:name => 'bob') }
+    TIMES.times { Exhibit.first.update_attributes(name: 'bob') }
   end
 
   x.report 'Resource#destroy' do

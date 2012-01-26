@@ -17,7 +17,7 @@ module ActionController
       ActiveSupport.on_load(:action_controller) { self.cache_store ||= Rails.cache }
     end
 
-    initializer "action_controller.assets_config", :group => :all do |app|
+    initializer "action_controller.assets_config", group: :all do |app|
       app.config.action_controller.assets_dir ||= app.config.paths["public"].first
     end
 

@@ -24,7 +24,7 @@ module ActiveModel
       #     class Person < ActiveRecord::Base
       #       validates_confirmation_of :user_name, :password
       #       validates_confirmation_of :email_address,
-      #                                 :message => "should match confirmation"
+      #                                 message: "should match confirmation"
       #     end
       #
       #   View:
@@ -40,7 +40,7 @@ module ActiveModel
       # +nil+. To require confirmation, make sure
       # to add a presence check for the confirmation attribute:
       #
-      #   validates_presence_of :password_confirmation, :if => :password_changed?
+      #   validates_presence_of :password_confirmation, if: :password_changed?
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "doesn't match
@@ -49,14 +49,14 @@ module ActiveModel
       #   validation contexts by default (+nil+), other options are <tt>:create</tt>
       #   and <tt>:update</tt>.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
-      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The
+      #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
+      #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false
       #   value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to
       #   determine if the validation should not occur (e.g.
-      #   <tt>:unless => :skip_validation</tt>, or
-      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
+      #   <tt>unless: :skip_validation</tt>, or
+      #   <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict. 
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information

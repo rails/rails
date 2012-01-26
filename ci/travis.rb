@@ -104,7 +104,7 @@ ENV['GEM'].split(',').each do |gem|
   [false, true].each do |isolated|
     next if gem == 'railties' && isolated
 
-    build = Build.new(gem, :isolated => isolated)
+    build = Build.new(gem, isolated: isolated)
     results[build.key] = build.run!
 
     if build.activerecord?

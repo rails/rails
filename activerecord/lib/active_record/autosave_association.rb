@@ -16,7 +16,7 @@ module ActiveRecord
   # Note that it also means that associations marked for destruction won't
   # be destroyed directly. They will however still be marked for destruction.
   #
-  # Note that <tt>:autosave => false</tt> is not same as not declaring <tt>:autosave</tt>.
+  # Note that <tt>autosave: false</tt> is not same as not declaring <tt>:autosave</tt>.
   # When the <tt>:autosave</tt> option is not present new associations are saved.
   #
   # == Validation
@@ -37,7 +37,7 @@ module ActiveRecord
   # === One-to-one Example
   #
   #   class Post
-  #     has_one :author, :autosave => true
+  #     has_one :author, autosave: true
   #   end
   #
   # Saving changes to the parent and its associated model can now be performed
@@ -81,26 +81,26 @@ module ActiveRecord
   #     has_many :comments # :autosave option is no declared
   #   end
   #
-  #   post = Post.new(:title => 'ruby rocks')
-  #   post.comments.build(:body => 'hello world')
+  #   post = Post.new(title: 'ruby rocks')
+  #   post.comments.build(body: 'hello world')
   #   post.save # => saves both post and comment
   #
-  #   post = Post.create(:title => 'ruby rocks')
-  #   post.comments.build(:body => 'hello world')
+  #   post = Post.create(title: 'ruby rocks')
+  #   post.comments.build(body: 'hello world')
   #   post.save # => saves both post and comment
   #
-  #   post = Post.create(:title => 'ruby rocks')
-  #   post.comments.create(:body => 'hello world')
+  #   post = Post.create(title: 'ruby rocks')
+  #   post.comments.create(body: 'hello world')
   #   post.save # => saves both post and comment
   #
   # When <tt>:autosave</tt> is true all children is saved, no matter whether they are new records:
   #
   #   class Post
-  #     has_many :comments, :autosave => true
+  #     has_many :comments, autosave: true
   #   end
   #
-  #   post = Post.create(:title => 'ruby rocks')
-  #   post.comments.create(:body => 'hello world')
+  #   post = Post.create(title: 'ruby rocks')
+  #   post.comments.create(body: 'hello world')
   #   post.comments[0].body = 'hi everyone'
   #   post.save # => saves both post and comment, with 'hi everyone' as body
   #
@@ -344,7 +344,7 @@ module ActiveRecord
                 association.insert_record(record) unless reflection.nested?
               end
             elsif autosave
-              saved = record.save(:validate => false)
+              saved = record.save(validate: false)
             end
 
             raise ActiveRecord::Rollback unless saved
@@ -384,7 +384,7 @@ module ActiveRecord
               record[reflection.foreign_key] = key
             end
 
-            saved = record.save(:validate => !autosave)
+            saved = record.save(validate: !autosave)
             raise ActiveRecord::Rollback if !saved && autosave
             saved
           end
@@ -404,7 +404,7 @@ module ActiveRecord
         if autosave && record.marked_for_destruction?
           record.destroy
         elsif autosave != false
-          saved = record.save(:validate => !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
+          saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
 
           if association.updated?
             association_id = record.send(reflection.options[:primary_key] || :id)

@@ -104,13 +104,13 @@ class SanitizerTest < ActionController::TestCase
   def test_should_allow_custom_tags
     text = "<u>foo</u>"
     sanitizer = HTML::WhiteListSanitizer.new
-    assert_equal(text, sanitizer.sanitize(text, :tags => %w(u)))
+    assert_equal(text, sanitizer.sanitize(text, tags: %w(u)))
   end
 
   def test_should_allow_only_custom_tags
     text = "<u>foo</u> with <i>bar</i>"
     sanitizer = HTML::WhiteListSanitizer.new
-    assert_equal("<u>foo</u> with bar", sanitizer.sanitize(text, :tags => %w(u)))
+    assert_equal("<u>foo</u> with bar", sanitizer.sanitize(text, tags: %w(u)))
   end
 
   def test_should_allow_custom_tags_with_attributes
@@ -122,7 +122,7 @@ class SanitizerTest < ActionController::TestCase
   def test_should_allow_custom_tags_with_custom_attributes
     text = %(<blockquote foo="bar">Lorem ipsum</blockquote>)
     sanitizer = HTML::WhiteListSanitizer.new
-    assert_equal(text, sanitizer.sanitize(text, :attributes => ['foo']))
+    assert_equal(text, sanitizer.sanitize(text, attributes: ['foo']))
   end
 
   [%w(img src), %w(a href)].each do |(tag, attr)|

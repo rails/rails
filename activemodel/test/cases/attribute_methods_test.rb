@@ -10,7 +10,7 @@ class ModelWithAttributes
   end
 
   def attributes
-    { :foo => 'value of foo' }
+    { foo: 'value of foo' }
   end
 
 private

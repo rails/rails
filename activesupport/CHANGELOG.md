@@ -234,7 +234,7 @@
 
     MemCacheStore:
     * Support all keys. Previously keys with spaces in them would fail
-    * Deprecate CompressedMemCacheStore since it isn't needed anymore (use :compress => true)
+    * Deprecate CompressedMemCacheStore since it isn't needed anymore (use compress: true)
 
 *   JSON: encode objects that don't have a native JSON representation using to_hash, if available, instead of instance_values (the old fallback) or to_s (other encoders' default). Encode BigDecimal and Regexp encode as strings to conform with other encoders. Try to transcode non-UTF-8 strings.  *Jeremy Kemper*
 
@@ -571,7 +571,7 @@
 
 *   Add Time.zone_default accessor for setting the default time zone.  Rails::Configuration.time_zone sets this.  #10982 *Geoff Buesing*
 
-*   cache.fetch(key, :force => true) to force a cache miss.  *Jeremy Kemper*
+*   cache.fetch(key, force: true) to force a cache miss.  *Jeremy Kemper*
 
 *   Support retrieving TimeZones with a Duration.  TimeZone[-28800] == TimeZone[-480.minutes].  *Rick Olson*
 
@@ -771,23 +771,23 @@
 
     Before:
         Hash.from_xml '<images></images>'
-        # => {:images => nil}
+        # => {images: nil}
 
         Hash.from_xml '<images><image>foo.jpg</image></images>'
-        # => {:images => {:image => "foo.jpg"}}
+        # => {images: {image: "foo.jpg"}}
 
         Hash.from_xml '<images><image>foo.jpg</image><image>bar.jpg</image></images>'
-        # => {:images => {:image => ["foo.jpg", "bar.jpg"]}}
+        # => {images: {image: ["foo.jpg", "bar.jpg"]}}
 
     After:
         Hash.from_xml '<images type="array"></images>'
-        # => {:images => []}
+        # => {images: []}
 
         Hash.from_xml '<images type="array"><image>foo.jpg</image></images>'
-        # => {:images => ["foo.jpg"]}
+        # => {images: ["foo.jpg"]}
 
         Hash.from_xml '<images type="array"><image>foo.jpg</image><image>bar.jpg</image></images>'
-        # => {:images => ["foo.jpg", "bar.jpg"]}
+        # => {images: ["foo.jpg", "bar.jpg"]}
 
 *   Improve Time and Date test coverage.  #8646 *Josh Peek*
 
@@ -838,7 +838,7 @@
 
     ...becomes:
 
-        attributes = { :person => { :name => "David", :avatar => #<StringIO> } }
+        attributes = { person: { name: "David", avatar: #<StringIO> } }
         attributes[:person][:avatar].content_type      # => "image/jpg"
         attributes[:person][:avatar].original_filename # => "me.jpg"
         attributes[:person][:avatar].read # => binary data of the file
@@ -998,7 +998,7 @@
 
 *   Fix cases where empty xml nodes weren't being translated to nil in Hash.create_from_xml *Rick Olso n*
 
-    <written-on type="date"></written-on> # => { :type => 'date' } # WRONG
+    <written-on type="date"></written-on> # => { type: 'date' } # WRONG
     <written-on type="date"></written-on> # => nil # RIGHT
 
 *   Tighten rescue clauses.  #5985 *james@grayproductions.net*
@@ -1111,7 +1111,7 @@
 
     ...would return:
 
-        { :note => { :title => "This is a note", :created_at => Date.new(2004, 10, 10) } }
+        { note: { title: "This is a note", created_at: Date.new(2004, 10, 10) } }
 
 *   Added Jim Weirich's excellent FlexMock class to vendor (Copyright 2003, 2004 by Jim Weirich (jim@weriichhouse.org)) -- it's not automatically required, though, so require 'flexmock' is still necessary *David Heinemeier Hansson*
 
@@ -1123,7 +1123,7 @@
 
 *   Added Array#to_s(:db) that'll produce a comma-separated list of ids [David Heinemeier Hansson]. Example:
 
-        Purchase.find(:all, :conditions => "product_id IN (#{shops.products.to_s(:db)})"
+        Purchase.find(:all, conditions: "product_id IN (#{shops.products.to_s(:db)})"
 
 *   Normalize classify's argument to a String so that it plays nice with Symbols. *Marcel Molina Jr.*
 
@@ -1133,13 +1133,13 @@
 
     Enumerable#first_match was like detect, but instead of returning the matching element, the yielded value returned. For example:
 
-        user_xml = adapters(:from => User, :to => Xml).first_match do |adapter|
+        user_xml = adapters(from: User, to: Xml).first_match do |adapter|
           adapter.adapt @user
         end
 
     But this is just as easily done with:
 
-        user_xml = adapters(:from => User, :to => Xml).each do
+        user_xml = adapters(from: User, to: Xml).each do
           break adapter.adapt(@user)
         end
 
@@ -1205,7 +1205,7 @@
 
 *   Added Hash#to_xml and Array#to_xml that makes it much easier to produce XML from basic structures [David Heinemeier Hansson]. Examples:
 
-        { :name => "David", :street_name => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }.to_xml
+        { name: "David", street_name: "Paulina", age: 26, moved_on: Date.new(2005, 11, 15) }.to_xml
 
     ...returns:
 
@@ -1264,8 +1264,8 @@
 
         class Account < ActiveRecord::Base
           has_one :subscription
-          delegate :free?, :paying?, :to => :subscription
-          delegate :overdue?, :to => "subscription.last_payment"
+          delegate :free?, :paying?, to: :subscription
+          delegate :overdue?, to: "subscription.last_payment"
         end
 
         account.free?    # => account.subscription.free?
@@ -1315,10 +1315,10 @@
 
     ActionController::Routing::Routes.draw do |map|
         # Account routes
-        map.with_options(:controller => 'account') do |account|
-          account.home   '',       :action => 'dashboard'
-          account.signup 'signup', :action => 'new'
-          account.logout 'logout', :action => 'logout'
+        map.with_options(controller: 'account') do |account|
+          account.home   '',       action: 'dashboard'
+          account.signup 'signup', action: 'new'
+          account.logout 'logout', action: 'logout'
         end
     end
 
@@ -1469,7 +1469,7 @@
 
 *   Fixed memory leak with Object#remove_subclasses_of, which inflicted a Rails application running in development mode with a ~20KB leak per request #1289 *Chris McGrath*
 
-*   Made 1.year == 365.25.days to account for leap years.  This allows you to do User.find(:all, :conditions => ['birthday > ?', 50.years.ago]) without losing a lot of days.  #1488 *tuxie@dekadance.se*
+*   Made 1.year == 365.25.days to account for leap years.  This allows you to do User.find(:all, conditions: ['birthday > ?', 50.years.ago]) without losing a lot of days.  #1488 *tuxie@dekadance.se*
 
 *   Added an exception if calling id on nil to WhinyNil #584 *kevin-temp@writesoon.com*
 
@@ -1560,13 +1560,13 @@
 *   Added Time::Calculations to ask for things like Time.now.tomorrow, Time.now.yesterday, Time.now.months_ago(4) #580 [DP|Flurin]. Examples:
 
         "Later today"         => now.in(3.hours),
-        "Tomorrow morning"    => now.tomorrow.change(:hour => 9),
-        "Tomorrow afternoon"  => now.tomorrow.change(:hour => 14),
-        "In a couple of days" => now.tomorrow.tomorrow.change(:hour => 9),
-        "Next monday"         => now.next_week.change(:hour => 9),
-        "In a month"          => now.next_month.change(:hour => 9),
-        "In 6 months"         => now.months_since(6).change(:hour => 9),
-        "In a year"           => now.in(1.year).change(:hour => 9)
+        "Tomorrow morning"    => now.tomorrow.change(hour: 9),
+        "Tomorrow afternoon"  => now.tomorrow.change(hour: 14),
+        "In a couple of days" => now.tomorrow.tomorrow.change(hour: 9),
+        "Next monday"         => now.next_week.change(hour: 9),
+        "In a month"          => now.next_month.change(hour: 9),
+        "In 6 months"         => now.months_since(6).change(hour: 9),
+        "In a year"           => now.in(1.year).change(hour: 9)
 
 *   Upgraded to breakpoint 92 which fixes:
 

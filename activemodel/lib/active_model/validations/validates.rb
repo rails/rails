@@ -12,15 +12,15 @@ module ActiveModel
       #
       # Examples of using the default rails validators:
       #
-      #   validates :terms, :acceptance => true
-      #   validates :password, :confirmation => true
-      #   validates :username, :exclusion => { :in => %w(admin superuser) }
-      #   validates :email, :format => { :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, :on => :create }
-      #   validates :age, :inclusion => { :in => 0..9 }
-      #   validates :first_name, :length => { :maximum => 30 }
-      #   validates :age, :numericality => true
-      #   validates :username, :presence => true
-      #   validates :username, :uniqueness => true
+      #   validates :terms, acceptance: true
+      #   validates :password, confirmation: true
+      #   validates :username, exclusion: { in: %w(admin superuser) }
+      #   validates :email, format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, on: :create }
+      #   validates :age, inclusion: { in: 0..9 }
+      #   validates :first_name, length: { maximum: 30 }
+      #   validates :age, numericality: true
+      #   validates :username, presence: true
+      #   validates :username, uniqueness: true
       #
       # The power of the +validates+ method comes when using custom validators
       # and default validators in one call for a given attribute e.g.
@@ -36,8 +36,8 @@ module ActiveModel
       #     include ActiveModel::Validations
       #     attr_accessor :name, :email
       #
-      #     validates :name, :presence => true, :uniqueness => true, :length => { :maximum => 100 }
-      #     validates :email, :presence => true, :email => true
+      #     validates :name, presence: true, uniqueness: true, length: { maximum: 100 }
+      #     validates :email, presence: true, email: true
       #   end
       #
       # Validator classes may also exist within the class being validated
@@ -52,7 +52,7 @@ module ActiveModel
       #       end
       #     end
       #
-      #     validates :name, :title => true
+      #     validates :name, title: true
       #   end
       #
       # Additionally validator classes may be in another namespace and still used within any class.
@@ -62,9 +62,9 @@ module ActiveModel
       # The validators hash can also handle regular expressions, ranges,
       # arrays and strings in shortcut form, e.g.
       #
-      #   validates :email, :format => /@/
-      #   validates :gender, :inclusion => %w(male female)
-      #   validates :password, :length => 6..20
+      #   validates :email, format: /@/
+      #   validates :gender, inclusion: %w(male female)
+      #   validates :password, length: 6..20
       #
       # When using shortcut form, ranges and arrays are passed to your
       # validator's initializer as +options[:in]+ while other types including
@@ -73,11 +73,11 @@ module ActiveModel
       # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+ and +:strict+
       # can be given to one specific validator, as a hash:
       #
-      #   validates :password, :presence => { :if => :password_required? }, :confirmation => true
+      #   validates :password, presence: { if: :password_required? }, confirmation: true
       #
       # Or to all at the same time:
       #
-      #   validates :password, :presence => true, :confirmation => true, :if => :password_required?
+      #   validates :password, presence: true, confirmation: true, if: :password_required?
       #
       def validates(*attributes)
         defaults = attributes.extract_options!.dup
@@ -86,7 +86,7 @@ module ActiveModel
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
         raise ArgumentError, "You need to supply at least one validation" if validations.empty?
 
-        defaults.merge!(:attributes => attributes)
+        defaults.merge!(attributes: attributes)
 
         validations.each do |key, options|
           key = "#{key.to_s.camelize}Validator"
@@ -128,9 +128,9 @@ module ActiveModel
         when Hash
           options
         when Range, Array
-          { :in => options }
+          { in: options }
         else
-          { :with => options }
+          { with: options }
         end
       end
     end

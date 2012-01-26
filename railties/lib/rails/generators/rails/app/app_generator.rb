@@ -96,14 +96,14 @@ module Rails
     end
 
     def public_directory
-      directory "public", "public", :recursive => false
+      directory "public", "public", recursive: false
     end
 
     def script
       directory "script" do |content|
         "#{shebang}\n" + content
       end
-      chmod "script", 0755, :verbose => false
+      chmod "script", 0755, verbose: false
     end
 
     def test
@@ -145,8 +145,8 @@ module Rails
       add_shared_options_for "application"
 
       # Add bin/rails options
-      class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
-                             :desc => "Show Rails version number and quit"
+      class_option :version, type: :boolean, aliases: "-v", group: :rails,
+                             desc: "Show Rails version number and quit"
 
       def initialize(*args)
         raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?

@@ -130,11 +130,11 @@ module ActionDispatch
       include TestProcess, RequestHelpers, Assertions
 
       %w( status status_message headers body redirect? ).each do |method|
-        delegate method, :to => :response, :allow_nil => true
+        delegate method, to: :response, allow_nil: true
       end
 
       %w( path ).each do |method|
-        delegate method, :to => :request, :allow_nil => true
+        delegate method, to: :request, allow_nil: true
       end
 
       # The hostname used in the last request.
@@ -185,7 +185,7 @@ module ActionDispatch
 
       remove_method :default_url_options
       def default_url_options
-        { :host => host, :protocol => https? ? "https" : "http" }
+        { host: host, protocol: https? ? "https" : "http" }
       end
 
       # Resets the instance. This can be used to reset the state information
@@ -258,8 +258,8 @@ module ActionDispatch
           hostname, port = host.split(':')
 
           env = {
-            :method => method,
-            :params => parameters,
+            method: method,
+            params: parameters,
 
             "SERVER_NAME"     => hostname,
             "SERVER_PORT"     => port || (https? ? "443" : "80"),
@@ -399,8 +399,8 @@ module ActionDispatch
   #       assert_equal 200, status
   #
   #       # post the login and follow through to the home page
-  #       post "/login", :username => people(:jamis).username,
-  #         :password => people(:jamis).password
+  #       post "/login", username: people(:jamis).username,
+  #         password: people(:jamis).password
   #       follow_redirect!
   #       assert_equal 200, status
   #       assert_equal "/home", path
@@ -433,13 +433,13 @@ module ActionDispatch
   #       module CustomAssertions
   #         def enter(room)
   #           # reference a named route, for maximum internal consistency!
-  #           get(room_url(:id => room.id))
+  #           get(room_url(id: room.id))
   #           assert(...)
   #           ...
   #         end
   #
   #         def speak(room, message)
-  #           xml_http_request "/say/#{room.id}", :message => message
+  #           xml_http_request "/say/#{room.id}", message: message
   #           assert(...)
   #           ...
   #         end
@@ -449,8 +449,8 @@ module ActionDispatch
   #         open_session do |sess|
   #           sess.extend(CustomAssertions)
   #           who = people(who)
-  #           sess.post "/login", :username => who.username,
-  #             :password => who.password
+  #           sess.post "/login", username: who.username,
+  #             password: who.password
   #           assert(...)
   #         end
   #       end

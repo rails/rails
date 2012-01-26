@@ -74,10 +74,10 @@ module ApplicationTests
 
     test "Rack::SSL is configured with options when given" do
       add_to_config "config.force_ssl = true"
-      add_to_config "config.ssl_options = { :host => 'example.com' }"
+      add_to_config "config.ssl_options = { host: 'example.com' }"
       boot!
 
-      assert_equal AppTemplate::Application.middleware.first.args, [{:host => 'example.com'}]
+      assert_equal AppTemplate::Application.middleware.first.args, [{host: 'example.com'}]
     end
 
     test "removing Active Record omits its middleware" do
@@ -162,9 +162,9 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           if params[:nothing]
-            render :text => ""
+            render text: ""
           else
-            render :text => "OMG"
+            render text: "OMG"
           end
         end
       end

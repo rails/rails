@@ -105,7 +105,7 @@ module ActionDispatch
               # Add a default constraint for :controller path segments that matches namespaced
               # controllers with default routes like :controller/:action/:id(.:format), e.g:
               # GET /admin/products/show/1
-              # => { :controller => 'admin/products', :action => 'show', :id => '1' }
+              # => { controller: 'admin/products', action: 'show', id: '1' }
               @options[:controller] ||= /.+?/
             end
 
@@ -129,14 +129,14 @@ module ActionDispatch
 
           def app
             Constraints.new(
-              to.respond_to?(:call) ? to : Routing::RouteSet::Dispatcher.new(:defaults => defaults),
+              to.respond_to?(:call) ? to : Routing::RouteSet::Dispatcher.new(defaults: defaults),
               blocks,
               @set.request_class
             )
           end
 
           def conditions
-            { :path_info => @path }.merge(constraints).merge(request_method_condition)
+            { path_info: @path }.merge(constraints).merge(request_method_condition)
           end
 
           def requirements
@@ -208,7 +208,7 @@ module ActionDispatch
           def request_method_condition
             if via = @options[:via]
               list = Array(via).map { |m| m.to_s.dasherize.upcase }
-              { :request_method => list }
+              { request_method: list }
             else
               { }
             end
@@ -251,7 +251,7 @@ module ActionDispatch
       module Base
         # You can specify what Rails should route "/" to with the root method:
         #
-        #   root :to => 'pages#main'
+        #   root to: 'pages#main'
         #
         # For options, see +match+, as +root+ uses it internally.
         #
@@ -259,7 +259,7 @@ module ActionDispatch
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
-          match '/', { :as => :root }.merge(options)
+          match '/', { as: :root }.merge(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
@@ -283,8 +283,8 @@ module ActionDispatch
         # +:controller+ should be set in options or hash shorthand. Examples:
         #
         #   match 'photos/:id' => 'photos#show'
-        #   match 'photos/:id', :to => 'photos#show'
-        #   match 'photos/:id', :controller => 'photos', :action => 'show'
+        #   match 'photos/:id', to: 'photos#show'
+        #   match 'photos/:id', controller: 'photos', action: 'show'
         #
         # A pattern can also point to a +Rack+ endpoint i.e. anything that
         # responds to +call+:
@@ -310,7 +310,7 @@ module ActionDispatch
         # [:module]
         #   The namespace for :controller.
         #
-        #     match 'path' => 'c#a', :module => 'sekret', :controller => 'posts'
+        #     match 'path' => 'c#a', module: 'sekret', controller: 'posts'
         #     #=> Sekret::PostsController
         #
         #   See <tt>Scoping#namespace</tt> for its scope equivalent.
@@ -321,16 +321,16 @@ module ActionDispatch
         # [:via]
         #   Allowed HTTP verb(s) for route.
         #
-        #      match 'path' => 'c#a', :via => :get
-        #      match 'path' => 'c#a', :via => [:get, :post]
+        #      match 'path' => 'c#a', via: :get
+        #      match 'path' => 'c#a', via: [:get, :post]
         #
         # [:to]
         #   Points to a +Rack+ endpoint. Can be an object that responds to
         #   +call+ or a string representing a controller's action.
         #
-        #      match 'path', :to => 'controller#action'
-        #      match 'path', :to => lambda { [200, {}, "Success!"] }
-        #      match 'path', :to => RackApp
+        #      match 'path', to: 'controller#action'
+        #      match 'path', to: lambda { [200, {}, "Success!"] }
+        #      match 'path', to: RackApp
         #
         # [:on]
         #   Shorthand for wrapping routes in a specific RESTful context. Valid
@@ -338,14 +338,14 @@ module ActionDispatch
         #   <tt>resource(s)</tt> block. For example:
         #
         #      resource :bar do
-        #        match 'foo' => 'c#a', :on => :member, :via => [:get, :post]
+        #        match 'foo' => 'c#a', on: :member, via: [:get, :post]
         #      end
         #
         #   Is equivalent to:
         #
         #      resource :bar do
         #        member do
-        #          match 'foo' => 'c#a', :via => [:get, :post]
+        #          match 'foo' => 'c#a', via: [:get, :post]
         #        end
         #      end
         #
@@ -353,12 +353,12 @@ module ActionDispatch
         #   Constrains parameters with a hash of regular expressions or an
         #   object that responds to <tt>matches?</tt>
         #
-        #     match 'path/:id', :constraints => { :id => /[A-Z]\d{5}/ }
+        #     match 'path/:id', constraints: { id: /[A-Z]\d{5}/ }
         #
         #     class Blacklist
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path' => 'c#a', :constraints => Blacklist.new
+        #     match 'path' => 'c#a', constraints: Blacklist.new
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.
@@ -367,7 +367,7 @@ module ActionDispatch
         #   Sets defaults for parameters
         #
         #     # Sets params[:format] to 'jpg' by default
-        #     match 'path' => 'c#a', :defaults => { :format => 'jpg' }
+        #     match 'path' => 'c#a', defaults: { format: 'jpg' }
         #
         #   See <tt>Scoping#defaults</tt> for its scope equivalent.
         #
@@ -376,13 +376,13 @@ module ActionDispatch
         #   false, the pattern matches any request prefixed with the given path.
         #
         #     # Matches any request starting with 'path'
-        #     match 'path' => 'c#a', :anchor => false
+        #     match 'path' => 'c#a', anchor: false
         def match(path, options=nil)
         end
 
         # Mount a Rack-based application to be used within the application.
         #
-        #   mount SomeRackApp, :at => "some_route"
+        #   mount SomeRackApp, at: "some_route"
         #
         # Alternatively:
         #
@@ -395,7 +395,7 @@ module ActionDispatch
         # the helper is either +some_rack_app_path+ or +some_rack_app_url+.
         # To customize this helper's name, use the +:as+ option:
         #
-        #   mount(SomeRackApp => "some_route", :as => "exciting")
+        #   mount(SomeRackApp => "some_route", as: "exciting")
         #
         # This will generate the +exciting_path+ and +exciting_url+ helpers
         # which can be used to navigate to this mounted app.
@@ -412,7 +412,7 @@ module ActionDispatch
 
           options[:as] ||= app_name(app)
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false))
+          match(path, options.merge(to: app, anchor: false, format: false))
 
           define_generate_prefix(app, options[:as])
           self
@@ -466,7 +466,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # get 'bacon', :to => 'food#bacon'
+        # get 'bacon', to: 'food#bacon'
         def get(*args, &block)
           map_method(:get, args, &block)
         end
@@ -476,7 +476,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # post 'bacon', :to => 'food#bacon'
+        # post 'bacon', to: 'food#bacon'
         def post(*args, &block)
           map_method(:post, args, &block)
         end
@@ -486,7 +486,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # put 'bacon', :to => 'food#bacon'
+        # put 'bacon', to: 'food#bacon'
         def put(*args, &block)
           map_method(:put, args, &block)
         end
@@ -496,7 +496,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # delete 'broccoli', :to => 'food#broccoli'
+        # delete 'broccoli', to: 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, args, &block)
         end
@@ -544,13 +544,13 @@ Calling with multiple paths is deprecated.
       # If you want to route /posts (without the prefix /admin) to
       # <tt>Admin::PostsController</tt>, you could use
       #
-      #   scope :module => "admin" do
+      #   scope module: "admin" do
       #     resources :posts
       #   end
       #
       # or, for a single case
       #
-      #   resources :posts, :module => "admin"
+      #   resources :posts, module: "admin"
       #
       # If you want to route /admin/posts to +PostsController+
       # (without the Admin:: module prefix), you could use
@@ -561,7 +561,7 @@ Calling with multiple paths is deprecated.
       #
       # or, for a single case
       #
-      #   resources :posts, :path => "/admin/posts"
+      #   resources :posts, path: "/admin/posts"
       #
       # In each of these cases, the named routes remain the same as if you did
       # not use scope. In the last case, the following paths map to
@@ -579,7 +579,7 @@ Calling with multiple paths is deprecated.
         #
         # Take the following route definition as an example:
         #
-        #   scope :path => ":account_id", :as => "account" do
+        #   scope path: ":account_id", as: "account" do
         #     resources :projects
         #   end
         #
@@ -594,17 +594,17 @@ Calling with multiple paths is deprecated.
         # === Examples
         #
         #   # route /posts (without the prefix /admin) to <tt>Admin::PostsController</tt>
-        #   scope :module => "admin" do
+        #   scope module: "admin" do
         #     resources :posts
         #   end
         #
         #   # prefix the posts resource's requests with '/admin'
-        #   scope :path => "/admin" do
+        #   scope path: "/admin" do
         #     resources :posts
         #   end
         #
         #   # prefix the routing helper name: +sekret_posts_path+ instead of +posts_path+
-        #   scope :as => "sekret" do
+        #   scope as: "sekret" do
         #     resources :posts
         #   end
         def scope(*args)
@@ -647,7 +647,7 @@ Calling with multiple paths is deprecated.
         #
         # Example:
         #   controller "food" do
-        #     match "bacon", :action => "bacon"
+        #     match "bacon", action: "bacon"
         #   end
         def controller(controller, options={})
           options[:controller] = controller
@@ -681,23 +681,23 @@ Calling with multiple paths is deprecated.
         # === Examples
         #
         #   # accessible through /sekret/posts rather than /admin/posts
-        #   namespace :admin, :path => "sekret" do
+        #   namespace :admin, path: "sekret" do
         #     resources :posts
         #   end
         #
         #   # maps to <tt>Sekret::PostsController</tt> rather than <tt>Admin::PostsController</tt>
-        #   namespace :admin, :module => "sekret" do
+        #   namespace :admin, module: "sekret" do
         #     resources :posts
         #   end
         #
         #   # generates +sekret_posts_path+ rather than +admin_posts_path+
-        #   namespace :admin, :as => "sekret" do
+        #   namespace :admin, as: "sekret" do
         #     resources :posts
         #   end
         def namespace(path, options = {})
           path = path.to_s
-          options = { :path => path, :as => path, :module => path,
-                      :shallow_path => path, :shallow_prefix => path }.merge!(options)
+          options = { path: path, as: path, module: path,
+                      shallow_path: path, shallow_prefix: path }.merge!(options)
           scope(options) { yield }
         end
 
@@ -705,7 +705,7 @@ Calling with multiple paths is deprecated.
         # Allows you to constrain the nested routes based on a set of rules.
         # For instance, in order to change the routes to allow for a dot character in the +id+ parameter:
         #
-        #   constraints(:id => /\d+\.\d+/) do
+        #   constraints(id: /\d+\.\d+/) do
         #     resources :posts
         #   end
         #
@@ -715,7 +715,7 @@ Calling with multiple paths is deprecated.
         # You may use this to also restrict other parameters:
         #
         #   resources :posts do
-        #     constraints(:post_id => /\d+\.\d+/) do
+        #     constraints(post_id: /\d+\.\d+/) do
         #       resources :comments
         #     end
         #   end
@@ -724,7 +724,7 @@ Calling with multiple paths is deprecated.
         #
         # Routes can also be constrained to an IP or a certain range of IP addresses:
         #
-        #   constraints(:ip => /192.168.\d+.\d+/) do
+        #   constraints(ip: /192.168.\d+.\d+/) do
         #     resources :posts
         #   end
         #
@@ -757,16 +757,16 @@ Calling with multiple paths is deprecated.
         #      resources :iphones
         #    end
         def constraints(constraints = {})
-          scope(:constraints => constraints) { yield }
+          scope(constraints: constraints) { yield }
         end
 
         # Allows you to set default parameters for a route, such as this:
-        #   defaults :id => 'home' do
-        #     match 'scoped_pages/(:id)', :to => 'pages#show'
+        #   defaults id: 'home' do
+        #     match 'scoped_pages/(:id)', to: 'pages#show'
         #   end
         # Using this, the +:id+ parameter here will default to 'home'.
         def defaults(defaults = {})
-          scope(:defaults => defaults) { yield }
+          scope(defaults: defaults) { yield }
         end
 
         private
@@ -864,7 +864,7 @@ Calling with multiple paths is deprecated.
       # use dots as part of the +:id+ parameter add a constraint which
       # overrides this restriction, e.g:
       #
-      #   resources :articles, :id => /[^\/]+/
+      #   resources :articles, id: /[^\/]+/
       #
       # This allows any character other than a slash as part of your +:id+.
       #
@@ -921,7 +921,7 @@ Calling with multiple paths is deprecated.
           end
 
           def resource_scope
-            { :controller => controller }
+            { controller: controller }
           end
 
           alias :collection_scope :path
@@ -1062,43 +1062,43 @@ Calling with multiple paths is deprecated.
         #   Allows you to change the segment component of the +edit+ and +new+ actions.
         #   Actions not specified are not changed.
         #
-        #     resources :posts, :path_names => { :new => "brand_new" }
+        #     resources :posts, path_names: { new: "brand_new" }
         #
         #   The above example will now change /posts/new to /posts/brand_new
         #
         # [:path]
         #   Allows you to change the path prefix for the resource.
         #
-        #     resources :posts, :path => 'postings'
+        #     resources :posts, path: 'postings'
         #
         #   The resource and all segments will now route to /postings instead of /posts
         #
         # [:only]
         #   Only generate routes for the given actions.
         #
-        #     resources :cows, :only => :show
-        #     resources :cows, :only => [:show, :index]
+        #     resources :cows, only: :show
+        #     resources :cows, only: [:show, :index]
         #
         # [:except]
         #   Generate all routes except for the given actions.
         #
-        #     resources :cows, :except => :show
-        #     resources :cows, :except => [:show, :index]
+        #     resources :cows, except: :show
+        #     resources :cows, except: [:show, :index]
         #
         # [:shallow]
         #   Generates shallow routes for nested resource(s). When placed on a parent resource,
         #   generates shallow routes for all nested resources.
         #
-        #     resources :posts, :shallow => true do
+        #     resources :posts, shallow: true do
         #       resources :comments
         #     end
         #
         #   Is the same as:
         #
         #     resources :posts do
-        #       resources :comments, :except => [:show, :edit, :update, :destroy]
+        #       resources :comments, except: [:show, :edit, :update, :destroy]
         #     end
-        #     resources :comments, :only => [:show, :edit, :update, :destroy]
+        #     resources :comments, only: [:show, :edit, :update, :destroy]
         #
         #   This allows URLs for resources that otherwise would be deeply nested such
         #   as a comment on a blog post like <tt>/posts/a-long-permalink/comments/1234</tt>
@@ -1107,9 +1107,9 @@ Calling with multiple paths is deprecated.
         # [:shallow_path]
         #   Prefixes nested shallow routes with the specified path.
         #
-        #     scope :shallow_path => "sekret" do
+        #     scope shallow_path: "sekret" do
         #       resources :posts do
-        #         resources :comments, :shallow => true
+        #         resources :comments, shallow: true
         #       end
         #     end
         #
@@ -1126,10 +1126,10 @@ Calling with multiple paths is deprecated.
         # === Examples
         #
         #   # routes call <tt>Admin::PostsController</tt>
-        #   resources :posts, :module => "admin"
+        #   resources :posts, module: "admin"
         #
         #   # resource actions are at /admin/posts.
-        #   resources :posts, :path => "admin/posts"
+        #   resources :posts, path: "admin/posts"
         def resources(*resources, &block)
           options = resources.extract_options!
 
@@ -1230,7 +1230,7 @@ Calling with multiple paths is deprecated.
                 if @scope[:shallow_path].blank?
                   scope(parent_resource.nested_scope, nested_options) { yield }
                 else
-                  scope(@scope[:shallow_path], :as => @scope[:shallow_prefix]) do
+                  scope(@scope[:shallow_path], as: @scope[:shallow_prefix]) do
                     scope(parent_resource.nested_scope, nested_options) { yield }
                   end
                 end
@@ -1251,7 +1251,7 @@ Calling with multiple paths is deprecated.
         end
 
         def shallow
-          scope(:shallow => true, :shallow_path => @scope[:path]) do
+          scope(shallow: true, shallow_path: @scope[:path]) do
             yield
           end
         end
@@ -1416,7 +1416,7 @@ Calling with multiple paths is deprecated.
           end
 
           def nested_options #:nodoc:
-            options = { :as => parent_resource.member_name }
+            options = { as: parent_resource.member_name }
             options[:constraints] = {
               :"#{parent_resource.singular}_id" => id_constraint
             } if id_constraint?
@@ -1506,7 +1506,7 @@ Calling with multiple paths is deprecated.
 
       def initialize(set) #:nodoc:
         @set = set
-        @scope = { :path_names => @set.resources_path_names }
+        @scope = { path_names: @set.resources_path_names }
       end
 
       include Base

@@ -52,7 +52,7 @@ class DateTime
   # <tt>:minutes</tt>, <tt>:seconds</tt>.
   def advance(options)
     d = to_date.advance(options)
-    datetime_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
+    datetime_advanced_by_date = change(year: d.year, month: d.month, day: d.day)
     seconds_to_advance = (options[:seconds] || 0) + (options[:minutes] || 0) * 60 + (options[:hours] || 0) * 3600
     seconds_to_advance == 0 ? datetime_advanced_by_date : datetime_advanced_by_date.since(seconds_to_advance)
   end
@@ -72,7 +72,7 @@ class DateTime
 
   # Returns a new DateTime representing the start of the day (0:00)
   def beginning_of_day
-    change(:hour => 0)
+    change(hour: 0)
   end
   alias :midnight :beginning_of_day
   alias :at_midnight :beginning_of_day
@@ -80,7 +80,7 @@ class DateTime
 
   # Returns a new DateTime representing the end of the day (23:59:59)
   def end_of_day
-    change(:hour => 23, :min => 59, :sec => 59)
+    change(hour: 23, min: 59, sec: 59)
   end
 
   # Adjusts DateTime to UTC by adding its offset value; offset is set to 0

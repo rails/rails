@@ -207,19 +207,19 @@ class LifecycleTest < ActiveRecord::TestCase
 
   test "able to save developer" do
     SalaryChecker.instance # activate
-    developer = SpecialDeveloper.new :name => 'Roger', :salary => 100000
+    developer = SpecialDeveloper.new name: 'Roger', salary: 100000
     assert developer.save, "developer with normal salary failed to save"
   end
 
   test "unable to save developer with low salary" do
     SalaryChecker.instance # activate
-    developer = SpecialDeveloper.new :name => 'Rookie', :salary => 50000
+    developer = SpecialDeveloper.new name: 'Rookie', salary: 50000
     assert !developer.save, "allowed to save a developer with too low salary"
   end
 
   test "able to call methods defined with included module" do # https://rails.lighthouseapp.com/projects/8994/tickets/6065-activerecordobserver-is-not-aware-of-method-added-by-including-modules
     SalaryChecker.instance # activate
-    developer = SpecialDeveloper.create! :name => 'Roger', :salary => 100000
+    developer = SpecialDeveloper.create! name: 'Roger', salary: 100000
     assert_equal developer, SalaryChecker.instance.last_saved
   end
 
@@ -236,8 +236,8 @@ class LifecycleTest < ActiveRecord::TestCase
     observer.calls.clear
 
     ActiveRecord::Base.observers.disable DeveloperObserver do
-      Developer.create! :name => 'Ancestor', :salary => 100000
-      SpecialDeveloper.create! :name => 'Descendent', :salary => 100000
+      Developer.create! name: 'Ancestor', salary: 100000
+      SpecialDeveloper.create! name: 'Descendent', salary: 100000
     end
 
     assert_equal [], observer.calls
@@ -247,8 +247,8 @@ class LifecycleTest < ActiveRecord::TestCase
     observer = DeveloperObserver.instance # activate
     observer.calls.clear
 
-    developer = Developer.create! :name => 'Ancestor', :salary => 100000
-    special_developer = SpecialDeveloper.create! :name => 'Descendent', :salary => 100000
+    developer = Developer.create! name: 'Ancestor', salary: 100000
+    special_developer = SpecialDeveloper.create! name: 'Descendent', salary: 100000
 
     assert_equal [developer, special_developer], observer.calls
   end

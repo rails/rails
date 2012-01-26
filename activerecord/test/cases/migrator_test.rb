@@ -102,7 +102,7 @@ module ActiveRecord
     end
 
     def test_finds_pending_migrations
-      ActiveRecord::SchemaMigration.create!(:version => '1')
+      ActiveRecord::SchemaMigration.create!(version: '1')
       migration_list = [ Migration.new('foo', 1), Migration.new('bar', 3) ]
       migrations = ActiveRecord::Migrator.new(:up, migration_list).pending_migrations
 
@@ -152,7 +152,7 @@ module ActiveRecord
     end
 
     def test_current_version
-      ActiveRecord::SchemaMigration.create!(:version => '1000')
+      ActiveRecord::SchemaMigration.create!(version: '1000')
       assert_equal 1000, ActiveRecord::Migrator.current_version
     end
 
@@ -320,7 +320,7 @@ module ActiveRecord
 
     def test_only_loads_pending_migrations
       # migrate up to 1
-      ActiveRecord::SchemaMigration.create!(:version => '1')
+      ActiveRecord::SchemaMigration.create!(version: '1')
 
       calls, migrator = migrator_class(3)
       migrator.migrate("valid", nil)

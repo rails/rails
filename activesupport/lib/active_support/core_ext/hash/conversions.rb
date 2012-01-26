@@ -40,7 +40,7 @@ class Hash
   #       end
   #     end
   #          
-  #     {:foo => Foo.new}.to_xml(:skip_instruct => true)
+  #     {foo: Foo.new}.to_xml(skip_instruct: true)
   #     # => "<hash><bar>fooing!</bar></hash>"
   #
   # * Otherwise, a node with +key+ as tag is created with a string representation of
@@ -72,7 +72,7 @@ class Hash
     options = options.dup
     options[:indent]  ||= 2
     options[:root]    ||= "hash"
-    options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    options[:builder] ||= Builder::XmlMarkup.new(indent: options[:indent])
 
     builder = options[:builder]
     builder.instruct! unless options.delete(:skip_instruct)
@@ -129,7 +129,7 @@ class Hash
             else
               xml_value = Hash[value.map { |k,v| [k, typecast_xml_value(v)] }]
 
-              # Turn { :files => { :file => #<StringIO> } into { :files => #<StringIO> } so it is compatible with
+              # Turn { files: { file: #<StringIO> } into { files: #<StringIO> } so it is compatible with
               # how multipart uploaded files from HTML appear
               xml_value["file"].is_a?(StringIO) ? xml_value["file"] : xml_value
             end

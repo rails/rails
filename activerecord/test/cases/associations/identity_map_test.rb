@@ -19,7 +19,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_parent_instance_should_be_shared_with_eager_loaded_children
-    m = Author.find(:first, :include => :posts)
+    m = Author.find(:first, include: :posts)
     is = m.posts
     is.each do |i|
       assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"
@@ -29,7 +29,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
       assert_equal m.name, i.author.name, "Name of man should be the same after changes to child-owned instance"
     end
 
-    m = Author.find(:first, :include => :posts, :order => 'posts.id')
+    m = Author.find(:first, include: :posts, order: 'posts.id')
     is = m.posts
     is.each do |i|
       assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"
@@ -42,7 +42,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_newly_built_child
     m = Author.first
-    i = m.posts.build(:title => 'Industrial Revolution Re-enactment', :body => 'Lorem ipsum')
+    i = m.posts.build(title: 'Industrial Revolution Re-enactment', body: 'Lorem ipsum')
     assert_not_nil i.author
     assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
@@ -65,7 +65,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_newly_created_child
     m = Author.first
-    i = m.posts.create(:title => 'Industrial Revolution Re-enactment', :body => 'Lorem ipsum')
+    i = m.posts.create(title: 'Industrial Revolution Re-enactment', body: 'Lorem ipsum')
     assert_not_nil i.author
     assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
@@ -76,7 +76,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_newly_created_via_bang_method_child
     m = Author.first
-    i = m.posts.create!(:title => 'Industrial Revolution Re-enactment', :body => 'Lorem ipsum')
+    i = m.posts.create!(title: 'Industrial Revolution Re-enactment', body: 'Lorem ipsum')
     assert_not_nil i.author
     assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
@@ -99,7 +99,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_poked_in_child
     m = Author.first
-    i = Post.create(:title => 'Industrial Revolution Re-enactment', :body => 'Lorem ipsum')
+    i = Post.create(title: 'Industrial Revolution Re-enactment', body: 'Lorem ipsum')
     m.posts << i
     assert_not_nil i.author
     assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"
@@ -111,7 +111,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_replaced_via_accessor_children
     m = Author.first
-    i = Post.new(:title => 'Industrial Revolution Re-enactment', :body => 'Lorem ipsum')
+    i = Post.new(title: 'Industrial Revolution Re-enactment', body: 'Lorem ipsum')
     m.posts = [i]
     assert_same m, i.author
     assert_not_nil i.author
@@ -124,7 +124,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_replaced_via_method_children
     m = Author.first
-    i = Post.new(:title => 'Industrial Revolution Re-enactment', :body => 'Lorem ipsum')
+    i = Post.new(title: 'Industrial Revolution Re-enactment', body: 'Lorem ipsum')
     m.posts = [i]
     assert_not_nil i.author
     assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"

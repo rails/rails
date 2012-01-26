@@ -52,7 +52,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
   def test_customized_primary_key_auto_assigns_on_save
     Keyboard.delete_all
-    keyboard = Keyboard.new(:name => 'HHKB')
+    keyboard = Keyboard.new(name: 'HHKB')
     assert_nothing_raised { keyboard.save! }
     assert_equal keyboard.id, Keyboard.find_by_name('HHKB').id
   end

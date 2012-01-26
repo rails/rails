@@ -17,7 +17,7 @@ module ActionController
     attr_reader :allowed_methods
 
     def initialize(*allowed_methods)
-      super("Only #{allowed_methods.to_sentence(:locale => :en)} requests are allowed.")
+      super("Only #{allowed_methods.to_sentence(locale: :en)} requests are allowed.")
     end
   end
 

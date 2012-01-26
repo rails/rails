@@ -23,7 +23,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def setup
     @fake_timezones = %w(A B C D E).inject([]) do |zones, id|
-      tz = TZInfo::Timezone.loaded_zones[id] = stub(:name => id, :to_s => id)
+      tz = TZInfo::Timezone.loaded_zones[id] = stub(name: id, to_s: id)
       ActiveSupport::TimeZone.stubs(:[]).with(id).returns(tz)
       zones << tz
     end
@@ -62,28 +62,28 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_collection_options_with_disabled_value
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => "Babe")
+      options_from_collection_for_select(dummy_posts, "author_name", "title", disabled: "Babe")
     )
   end
 
   def test_collection_options_with_disabled_array
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => [ "Babe", "Cabe" ])
+      options_from_collection_for_select(dummy_posts, "author_name", "title", disabled: [ "Babe", "Cabe" ])
     )
   end
 
   def test_collection_options_with_preselected_and_disabled_value
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" selected=\"selected\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", "title", :selected => "Cabe", :disabled => "Babe")
+      options_from_collection_for_select(dummy_posts, "author_name", "title", selected: "Cabe", disabled: "Babe")
     )
   end
 
   def test_collection_options_with_proc_for_disabled
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => lambda{|p| p.author_name.in?(["Babe", "Cabe"]) })
+      options_from_collection_for_select(dummy_posts, "author_name", "title", disabled: lambda{|p| p.author_name.in?(["Babe", "Cabe"]) })
     )
   end
 
@@ -119,28 +119,28 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_array_options_for_select_with_disabled_value
     assert_dom_equal(
       "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\">Sweden</option>",
-      options_for_select([ "Denmark", "<USA>", "Sweden" ], :disabled => "<USA>")
+      options_for_select([ "Denmark", "<USA>", "Sweden" ], disabled: "<USA>")
     )
   end
 
   def test_array_options_for_select_with_disabled_array
     assert_dom_equal(
       "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\" disabled=\"disabled\">Sweden</option>",
-      options_for_select([ "Denmark", "<USA>", "Sweden" ], :disabled => ["<USA>", "Sweden"])
+      options_for_select([ "Denmark", "<USA>", "Sweden" ], disabled: ["<USA>", "Sweden"])
     )
   end
 
   def test_array_options_for_select_with_selection_and_disabled_value
     assert_dom_equal(
       "<option value=\"Denmark\" selected=\"selected\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\">Sweden</option>",
-      options_for_select([ "Denmark", "<USA>", "Sweden" ], :selected => "Denmark", :disabled => "<USA>")
+      options_for_select([ "Denmark", "<USA>", "Sweden" ], selected: "Denmark", disabled: "<USA>")
     )
   end
 
   def test_boolean_array_options_for_select_with_selection_and_disabled_value
     assert_dom_equal(
       "<option value=\"true\">true</option>\n<option value=\"false\" selected=\"selected\">false</option>",
-      options_for_select([ true, false ], :selected => false, :disabled => nil)
+      options_for_select([ true, false ], selected: false, disabled: nil)
     )
   end
 
@@ -201,7 +201,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     albums = [ Album.new(1, "first","rap"), Album.new(2, "second","pop")]
     assert_dom_equal(
     %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", :selected => "1")
+    options_from_collection_for_select(albums, "id", "genre", selected: "1")
     )
   end
 
@@ -210,7 +210,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
     %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", :selected => 1)
+    options_from_collection_for_select(albums, "id", "genre", selected: 1)
     )
   end
 
@@ -219,7 +219,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
     %(<option value="1.0">rap</option>\n<option value="2.0" selected="selected">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", :selected => "2.0")
+    options_from_collection_for_select(albums, "id", "genre", selected: "2.0")
     )
   end
 
@@ -228,7 +228,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
     %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", :selected => nil)
+    options_from_collection_for_select(albums, "id", "genre", selected: nil)
     )
   end
 
@@ -237,7 +237,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
     %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", :disabled => nil)
+    options_from_collection_for_select(albums, "id", "genre", disabled: nil)
     )
   end
 
@@ -246,7 +246,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
     %(<option disabled="disabled" value="1.0">rap</option>\n<option disabled="disabled" value="2.0">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", :disabled => ["1.0", 2.0])
+    options_from_collection_for_select(albums, "id", "genre", disabled: ["1.0", 2.0])
     )
   end
 
@@ -388,7 +388,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_without_multiple
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"></select>",
-      select(:post, :category, "", {}, :multiple => false)
+      select(:post, :category, "", {}, multiple: false)
     )
   end
 
@@ -468,7 +468,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.category = "<mus>"
 
-    output_buffer = fields_for :post, @post, :index => 108 do |f|
+    output_buffer = fields_for :post, @post, index: 108 do |f|
       concat f.select(:category, %w( abe <mus> hest))
     end
 
@@ -498,7 +498,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     options = "<option value=\"abe\">abe</option><option value=\"mus\">mus</option><option value=\"hest\">hest</option>"
 
     output_buffer = fields_for :post, @post do |f|
-      concat f.select(:category, options, :prompt => 'The prompt')
+      concat f.select(:category, options, prompt: 'The prompt')
     end
 
     assert_dom_equal(
@@ -508,7 +508,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_select_with_multiple_to_add_hidden_input
-    output_buffer =  select(:post, :category, "", {}, :multiple => true)
+    output_buffer =  select(:post, :category, "", {}, multiple: true)
     assert_dom_equal(
       "<input type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
@@ -516,7 +516,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_select_with_multiple_and_disabled_to_add_disabled_hidden_input
-    output_buffer =  select(:post, :category, "", {}, :multiple => true, :disabled => true)
+    output_buffer =  select(:post, :category, "", {}, multiple: true, disabled: true)
     assert_dom_equal(
       "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
@@ -528,7 +528,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\"></option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :include_blank => true)
+      select("post", "category", %w( abe <mus> hest), include_blank: true)
     )
   end
 
@@ -537,7 +537,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">None</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :include_blank => 'None')
+      select("post", "category", %w( abe <mus> hest), include_blank: 'None')
     )
   end
 
@@ -546,7 +546,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">&lt;None&gt;</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :include_blank => '<None>')
+      select("post", "category", %w( abe <mus> hest), include_blank: '<None>')
     )
   end
 
@@ -555,7 +555,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :prompt => true)
+      select("post", "category", %w( abe <mus> hest), prompt: true)
     )
   end
 
@@ -564,7 +564,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :prompt => true)
+      select("post", "category", %w( abe <mus> hest), prompt: true)
     )
   end
 
@@ -573,7 +573,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">The prompt</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :prompt => 'The prompt')
+      select("post", "category", %w( abe <mus> hest), prompt: 'The prompt')
     )
   end
 
@@ -581,7 +581,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">&lt;The prompt&gt;</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :prompt => '<The prompt>')
+      select("post", "category", %w( abe <mus> hest), prompt: '<The prompt>')
     )
   end
 
@@ -590,7 +590,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :prompt => true, :include_blank => true)
+      select("post", "category", %w( abe <mus> hest), prompt: true, include_blank: true)
     )
   end
 
@@ -599,7 +599,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n</select>",
-      select("post", "category", [], :prompt => true, :include_blank => true)
+      select("post", "category", [], prompt: true, include_blank: true)
     )
   end
 
@@ -617,7 +617,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"1\">1</option></select>",
-      select("post", "category", [1], :prompt => true, :include_blank => true)
+      select("post", "category", [1], prompt: true, include_blank: true)
     )
   end
 
@@ -626,7 +626,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"number\">Number</option>\n<option value=\"text\">Text</option>\n<option value=\"boolean\">Yes/No</option></select>",
-      select("post", "category", [["Number", "number"], ["Text", "text"], ["Yes/No", "boolean"]], :prompt => true, :include_blank => true)
+      select("post", "category", [["Number", "number"], ["Text", "text"], ["Yes/No", "boolean"]], prompt: true, include_blank: true)
     )
   end
 
@@ -635,7 +635,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\" selected=\"selected\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest ), :selected => 'abe')
+      select("post", "category", %w( abe <mus> hest ), selected: 'abe')
     )
   end
 
@@ -647,7 +647,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       expected,
-      select("album[]", "genre", %w[rap rock country], {}, { :index => nil })
+      select("album[]", "genre", %w[rap rock country], {}, { index: nil })
     )
   end
 
@@ -656,7 +656,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest ), :selected => nil)
+      select("post", "category", %w( abe <mus> hest ), selected: nil)
     )
   end
 
@@ -665,7 +665,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\" disabled=\"disabled\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest ), :disabled => 'hest')
+      select("post", "category", %w( abe <mus> hest ), disabled: 'hest')
     )
   end
 
@@ -674,7 +674,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\" disabled=\"disabled\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\" disabled=\"disabled\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest ), :disabled => ['hest', 'abe'])
+      select("post", "category", %w( abe <mus> hest ), disabled: ['hest', 'abe'])
     )
   end
 
@@ -715,7 +715,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.author_name = "Babe"
 
-    output_buffer = fields_for :post, @post, :index => 815 do |f|
+    output_buffer = fields_for :post, @post, index: 815 do |f|
       concat f.collection_select(:author_name, dummy_posts, :author_name, :author_name)
     end
 
@@ -746,7 +746,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option value=\"\"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { :include_blank => true }, "style" => "width: 200px")
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: true }, "style" => "width: 200px")
     )
   end
 
@@ -756,7 +756,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option value=\"\">No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { :include_blank => 'No Selection' }, "style" => "width: 200px")
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: 'No Selection' }, "style" => "width: 200px")
     )
   end
 
@@ -767,10 +767,10 @@ class FormOptionsHelperTest < ActionView::TestCase
     expected = "<input type=\"hidden\" name=\"post[author_name][]\" value=\"\"/><select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>"
 
     # Should suffix default name with [].
-    assert_dom_equal expected, collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { :include_blank => true }, :multiple => true)
+    assert_dom_equal expected, collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: true }, multiple: true)
 
     # Shouldn't suffix custom name with [].
-    assert_dom_equal expected, collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { :include_blank => true, :name => 'post[author_name][]' }, :multiple => true)
+    assert_dom_equal expected, collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: true, name: 'post[author_name][]' }, multiple: true)
   end
 
   def test_collection_select_with_blank_and_selected
@@ -779,7 +779,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       %{<select id="post_author_name" name="post[author_name]"><option value=""></option>\n<option value="&lt;Abe&gt;" selected="selected">&lt;Abe&gt;</option>\n<option value="Babe">Babe</option>\n<option value="Cabe">Cabe</option></select>},
-      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", {:include_blank => true, :selected => "<Abe>"})
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", {include_blank: true, selected: "<Abe>"})
     )
   end
 
@@ -789,7 +789,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe</option></select>",
-      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", :disabled => 'Cabe')
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", disabled: 'Cabe')
        )
   end
 
@@ -828,7 +828,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_under_fields_for_with_index
     @firm = Firm.new("D")
 
-    output_buffer = fields_for :firm, @firm, :index => 305 do |f|
+    output_buffer = fields_for :firm, @firm, index: 305 do |f|
       concat f.time_zone_select(:time_zone)
     end
 
@@ -866,7 +866,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_time_zone_select_with_blank
     @firm = Firm.new("D")
-    html = time_zone_select("firm", "time_zone", nil, :include_blank => true)
+    html = time_zone_select("firm", "time_zone", nil, include_blank: true)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"\"></option>\n" +
                  "<option value=\"A\">A</option>\n" +
@@ -880,7 +880,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_time_zone_select_with_blank_as_string
     @firm = Firm.new("D")
-    html = time_zone_select("firm", "time_zone", nil, :include_blank => 'No Zone')
+    html = time_zone_select("firm", "time_zone", nil, include_blank: 'No Zone')
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"\">No Zone</option>\n" +
                  "<option value=\"A\">A</option>\n" +
@@ -905,13 +905,13 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "</select>",
                  html
     assert_dom_equal html, time_zone_select("firm", "time_zone", nil, {},
-      :style => "color: red")
+      style: "color: red")
   end
 
   def test_time_zone_select_with_blank_and_style
     @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil,
-      { :include_blank => true }, "style" => "color: red")
+      { include_blank: true }, "style" => "color: red")
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" +
                  "<option value=\"\"></option>\n" +
                  "<option value=\"A\">A</option>\n" +
@@ -922,13 +922,13 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "</select>",
                  html
     assert_dom_equal html, time_zone_select("firm", "time_zone", nil,
-      { :include_blank => true }, :style => "color: red")
+      { include_blank: true }, style: "color: red")
   end
 
   def test_time_zone_select_with_blank_as_string_and_style
     @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil,
-      { :include_blank => 'No Zone' }, "style" => "color: red")
+      { include_blank: 'No Zone' }, "style" => "color: red")
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" +
                  "<option value=\"\">No Zone</option>\n" +
                  "<option value=\"A\">A</option>\n" +
@@ -939,7 +939,7 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "</select>",
                  html
     assert_dom_equal html, time_zone_select("firm", "time_zone", nil,
-      { :include_blank => 'No Zone' }, :style => "color: red")
+      { include_blank: 'No Zone' }, style: "color: red")
   end
 
   def test_time_zone_select_with_priority_zones
@@ -978,7 +978,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_default_time_zone_and_nil_value
      @firm = Firm.new()
      @firm.time_zone = nil
-      html = time_zone_select( "firm", "time_zone", nil, :default => 'B' )
+      html = time_zone_select( "firm", "time_zone", nil, default: 'B' )
       assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                    "<option value=\"A\">A</option>\n" +
                    "<option value=\"B\" selected=\"selected\">B</option>\n" +
@@ -991,7 +991,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_time_zone_select_with_default_time_zone_and_value
      @firm = Firm.new('D')
-      html = time_zone_select( "firm", "time_zone", nil, :default => 'B' )
+      html = time_zone_select( "firm", "time_zone", nil, default: 'B' )
       assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                    "<option value=\"A\">A</option>\n" +
                    "<option value=\"B\">B</option>\n" +
@@ -1005,21 +1005,21 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_options_for_select_with_element_attributes
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\" class=\"bold\">&lt;Denmark&gt;</option>\n<option value=\"USA\" onclick=\"alert('Hello World');\">USA</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Germany\">Germany</option>",
-      options_for_select([ [ "<Denmark>", { :class => 'bold' } ], [ "USA", { :onclick => "alert('Hello World');" } ], [ "Sweden" ], "Germany" ])
+      options_for_select([ [ "<Denmark>", { class: 'bold' } ], [ "USA", { onclick: "alert('Hello World');" } ], [ "Sweden" ], "Germany" ])
     )
   end
 
   def test_options_for_select_with_element_attributes_and_selection
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\" class=\"bold\" selected=\"selected\">USA</option>\n<option value=\"Sweden\">Sweden</option>",
-      options_for_select([ "<Denmark>", [ "USA", { :class => 'bold' } ], "Sweden" ], "USA")
+      options_for_select([ "<Denmark>", [ "USA", { class: 'bold' } ], "Sweden" ], "USA")
     )
   end
 
   def test_options_for_select_with_element_attributes_and_selection_array
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\" class=\"bold\" selected=\"selected\">USA</option>\n<option value=\"Sweden\" selected=\"selected\">Sweden</option>",
-      options_for_select([ "<Denmark>", [ "USA", { :class => 'bold' } ], "Sweden" ], [ "USA", "Sweden" ])
+      options_for_select([ "<Denmark>", [ "USA", { class: 'bold' } ], "Sweden" ], [ "USA", "Sweden" ])
     )
   end
 
@@ -1033,28 +1033,28 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_option_html_attributes_with_single_element_hash
     assert_dom_equal(
       " class=\"fancy\"",
-      option_html_attributes([ 'foo', 'bar', { :class => 'fancy' } ])
+      option_html_attributes([ 'foo', 'bar', { class: 'fancy' } ])
     )
   end
 
   def test_option_html_attributes_with_multiple_element_hash
     assert_dom_equal(
       " class=\"fancy\" onclick=\"alert('Hello World');\"",
-      option_html_attributes([ 'foo', 'bar', { :class => 'fancy', 'onclick' => "alert('Hello World');" } ])
+      option_html_attributes([ 'foo', 'bar', { class: 'fancy', 'onclick' => "alert('Hello World');" } ])
     )
   end
 
   def test_option_html_attributes_with_multiple_hashes
     assert_dom_equal(
       " class=\"fancy\" onclick=\"alert('Hello World');\"",
-      option_html_attributes([ 'foo', 'bar', { :class => 'fancy' }, { 'onclick' => "alert('Hello World');" } ])
+      option_html_attributes([ 'foo', 'bar', { class: 'fancy' }, { 'onclick' => "alert('Hello World');" } ])
     )
   end
 
   def test_option_html_attributes_with_special_characters
     assert_dom_equal(
       " onclick=\"alert(&quot;&lt;code&gt;&quot;)\"",
-      option_html_attributes([ 'foo', 'bar', { :onclick => %(alert("<code>")) } ])
+      option_html_attributes([ 'foo', 'bar', { onclick: %(alert("<code>")) } ])
     )
   end
 

@@ -45,7 +45,7 @@ module ActionView
       include AbstractController::Helpers
       include ActionView::Helpers
 
-      delegate :lookup_context, :to => :controller
+      delegate :lookup_context, to: :controller
       attr_accessor :controller, :output_buffer, :rendered
 
       module ClassMethods

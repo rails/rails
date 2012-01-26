@@ -43,7 +43,7 @@ module ActiveRecord
 
       def each_hash(result) # :nodoc:
         if block_given?
-          result.each(:as => :hash, :symbolize_keys => true) do |row|
+          result.each(as: :hash, symbolize_keys: true) do |row|
             yield row
           end
         else
@@ -180,7 +180,7 @@ module ActiveRecord
       # # as values.
       # def select_one(sql, name = nil)
       #   result = execute(sql, name)
-      #   result.each(:as => :hash) do |r|
+      #   result.each(as: :hash) do |r|
       #     return r
       #   end
       # end
@@ -262,7 +262,7 @@ module ActiveRecord
       end
 
       def configure_connection
-        @connection.query_options.merge!(:as => :array)
+        @connection.query_options.merge!(as: :array)
 
         # By default, MySQL 'where id is null' selects the last inserted id.
         # Turn this off. http://dev.rubyonrails.org/ticket/6778

@@ -3,9 +3,9 @@ module ActiveModel
   # == Active Model Numericality Validator
   module Validations
     class NumericalityValidator < EachValidator
-      CHECKS = { :greater_than => :>, :greater_than_or_equal_to => :>=,
-                 :equal_to => :==, :less_than => :<, :less_than_or_equal_to => :<=,
-                 :odd => :odd?, :even => :even?, :other_than => :!= }.freeze
+      CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
+                 equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
+                 odd: :odd?, even: :even?, other_than: :!= }.freeze
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
@@ -48,7 +48,7 @@ module ActiveModel
             option_value = record.send(option_value) if option_value.is_a?(Symbol)
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, filtered_options(value).merge(:count => option_value))
+              record.errors.add(attr_name, option, filtered_options(value).merge(count: option_value))
             end
           end
         end
@@ -74,7 +74,7 @@ module ActiveModel
       end
 
       def filtered_options(value)
-        options.except(*RESERVED_OPTIONS).merge!(:value => value)
+        options.except(*RESERVED_OPTIONS).merge!(value: value)
       end
     end
 
@@ -84,7 +84,7 @@ module ActiveModel
       # <tt>/\A[\+\-]?\d+\Z/</tt> (if <tt>only_integer</tt> is set to true).
       #
       #   class Person < ActiveRecord::Base
-      #     validates_numericality_of :value, :on => :create
+      #     validates_numericality_of :value, on: :create
       #   end
       #
       # Configuration options:
@@ -103,10 +103,10 @@ module ActiveModel
       # * <tt>:odd</tt> - Specifies the value must be an odd number.
       # * <tt>:even</tt> - Specifies the value must be an even number.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The
+      #   occur (e.g. <tt>if: :allow_validation</tt>, or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
+      #   not occur (e.g. <tt>unless: :skip_validation</tt>, or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information
@@ -119,8 +119,8 @@ module ActiveModel
       # * <tt>:less_than_or_equal_to</tt>
       #
       #   class Person < ActiveRecord::Base
-      #     validates_numericality_of :width, :less_than => Proc.new { |person| person.height }
-      #     validates_numericality_of :width, :greater_than => :minimum_weight
+      #     validates_numericality_of :width, less_than: Proc.new { |person| person.height }
+      #     validates_numericality_of :width, greater_than: :minimum_weight
       #   end
       #
       def validates_numericality_of(*attr_names)

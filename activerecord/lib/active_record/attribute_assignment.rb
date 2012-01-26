@@ -27,7 +27,7 @@ module ActiveRecord
     #   end
     #
     #   user = User.new
-    #   user.attributes = { :username => 'Phusion', :is_admin => true }
+    #   user.attributes = { username: 'Phusion', is_admin: true }
     #   user.username   # => "Phusion"
     #   user.is_admin?  # => false
     def attributes=(new_attributes)
@@ -41,26 +41,26 @@ module ActiveRecord
     # the attribute names (which again matches the column names) and the role
     # name using the :as option.
     #
-    # To bypass mass-assignment security you can use the :without_protection => true
+    # To bypass mass-assignment security you can use the without_protection: true
     # option.
     #
     #   class User < ActiveRecord::Base
     #     attr_accessible :name
-    #     attr_accessible :name, :is_admin, :as => :admin
+    #     attr_accessible :name, :is_admin, as: :admin
     #   end
     #
     #   user = User.new
-    #   user.assign_attributes({ :name => 'Josh', :is_admin => true })
+    #   user.assign_attributes({ name: 'Josh', is_admin: true })
     #   user.name       # => "Josh"
     #   user.is_admin?  # => false
     #
     #   user = User.new
-    #   user.assign_attributes({ :name => 'Josh', :is_admin => true }, :as => :admin)
+    #   user.assign_attributes({ name: 'Josh', is_admin: true }, as: :admin)
     #   user.name       # => "Josh"
     #   user.is_admin?  # => true
     #
     #   user = User.new
-    #   user.assign_attributes({ :name => 'Josh', :is_admin => true }, :without_protection => true)
+    #   user.assign_attributes({ name: 'Josh', is_admin: true }, without_protection: true)
     #   user.name       # => "Josh"
     #   user.is_admin?  # => true
     def assign_attributes(new_attributes, options = {})

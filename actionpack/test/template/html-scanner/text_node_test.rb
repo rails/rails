@@ -20,9 +20,9 @@ class TextNodeTest < ActiveSupport::TestCase
   end
 
   def test_find_hash
-    assert_equal @node, @node.find(:content => /howdy/)
-    assert_nil @node.find(:content => /^howdy$/)
-    assert_equal false, @node.find(:content => "howdy")
+    assert_equal @node, @node.find(content: /howdy/)
+    assert_nil @node.find(content: /^howdy$/)
+    assert_equal false, @node.find(content: "howdy")
   end
 
   def test_find_other
@@ -40,8 +40,8 @@ class TextNodeTest < ActiveSupport::TestCase
   end
 
   def test_match_hash
-    assert_not_nil @node, @node.match(:content => "howdy")
-    assert_nil @node.match(:content => /^howdy$/)
+    assert_not_nil @node, @node.match(content: "howdy")
+    assert_nil @node.match(content: /^howdy$/)
   end
 
   def test_match_other

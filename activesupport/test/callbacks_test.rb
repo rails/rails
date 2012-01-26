@@ -3,7 +3,7 @@ require 'abstract_unit'
 module CallbacksTest
   class Phone
     include ActiveSupport::Callbacks
-    define_callbacks :save, :rescuable => true
+    define_callbacks :save, rescuable: true
 
     set_callback :save, :before, :before_save1
     set_callback :save, :after, :after_save1
@@ -82,10 +82,10 @@ module CallbacksTest
   end
 
   class PersonSkipper < Person
-    skip_callback :save, :before, :before_save_method, :if => :yes
-    skip_callback :save, :after, :before_save_method, :unless => :yes
-    skip_callback :save, :after, :before_save_method, :if => :no
-    skip_callback :save, :before, :before_save_method, :unless => :no
+    skip_callback :save, :before, :before_save_method, if: :yes
+    skip_callback :save, :after, :before_save_method, unless: :yes
+    skip_callback :save, :after, :before_save_method, if: :no
+    skip_callback :save, :before, :before_save_method, unless: :no
     def yes; true; end
     def no; false; end
   end
@@ -95,7 +95,7 @@ module CallbacksTest
 
     define_callbacks :dispatch
 
-    set_callback :dispatch, :before, :log, :per_key => {:unless => proc {|c| c.action_name == :index || c.action_name == :show }}
+    set_callback :dispatch, :before, :log, per_key: {unless: proc {|c| c.action_name == :index || c.action_name == :show }}
     set_callback :dispatch, :after, :log2
 
     attr_reader :action_name, :logger
@@ -120,7 +120,7 @@ module CallbacksTest
   end
 
   class Child < ParentController
-    skip_callback :dispatch, :before, :log, :per_key => {:if => proc {|c| c.action_name == :update} }
+    skip_callback :dispatch, :before, :log, per_key: {if: proc {|c| c.action_name == :update} }
     skip_callback :dispatch, :after, :log2
   end
 
@@ -131,10 +131,10 @@ module CallbacksTest
       super
     end
 
-    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :if] }, :per_key => {:if => :starts_true}
-    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :if] }, :per_key => {:if => :starts_false}
-    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :unless] }, :per_key => {:unless => :starts_true}
-    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :unless] }, :per_key => {:unless => :starts_false}
+    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :if] }, per_key: {if: :starts_true}
+    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :if] }, per_key: {if: :starts_false}
+    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :unless] }, per_key: {unless: :starts_true}
+    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :unless] }, per_key: {unless: :starts_false}
 
     def starts_true
       if @@starts_true
@@ -191,23 +191,23 @@ module CallbacksTest
 
   class ConditionalPerson < Record
     # proc
-    before_save Proc.new { |r| r.history << [:before_save, :proc] }, :if => Proc.new { |r| true }
-    before_save Proc.new { |r| r.history << "b00m" }, :if => Proc.new { |r| false }
-    before_save Proc.new { |r| r.history << [:before_save, :proc] }, :unless => Proc.new { |r| false }
-    before_save Proc.new { |r| r.history << "b00m" }, :unless => Proc.new { |r| true }
+    before_save Proc.new { |r| r.history << [:before_save, :proc] }, if: Proc.new { |r| true }
+    before_save Proc.new { |r| r.history << "b00m" }, if: Proc.new { |r| false }
+    before_save Proc.new { |r| r.history << [:before_save, :proc] }, unless: Proc.new { |r| false }
+    before_save Proc.new { |r| r.history << "b00m" }, unless: Proc.new { |r| true }
     # symbol
-    before_save Proc.new { |r| r.history << [:before_save, :symbol] }, :if => :yes
-    before_save Proc.new { |r| r.history << "b00m" }, :if => :no
-    before_save Proc.new { |r| r.history << [:before_save, :symbol] }, :unless => :no
-    before_save Proc.new { |r| r.history << "b00m" }, :unless => :yes
+    before_save Proc.new { |r| r.history << [:before_save, :symbol] }, if: :yes
+    before_save Proc.new { |r| r.history << "b00m" }, if: :no
+    before_save Proc.new { |r| r.history << [:before_save, :symbol] }, unless: :no
+    before_save Proc.new { |r| r.history << "b00m" }, unless: :yes
     # string
-    before_save Proc.new { |r| r.history << [:before_save, :string] }, :if => 'yes'
-    before_save Proc.new { |r| r.history << "b00m" }, :if => 'no'
-    before_save Proc.new { |r| r.history << [:before_save, :string] }, :unless => 'no'
-    before_save Proc.new { |r| r.history << "b00m" }, :unless => 'yes'
+    before_save Proc.new { |r| r.history << [:before_save, :string] }, if: 'yes'
+    before_save Proc.new { |r| r.history << "b00m" }, if: 'no'
+    before_save Proc.new { |r| r.history << [:before_save, :string] }, unless: 'no'
+    before_save Proc.new { |r| r.history << "b00m" }, unless: 'yes'
     # Combined if and unless
-    before_save Proc.new { |r| r.history << [:before_save, :combined_symbol] }, :if => :yes, :unless => :no
-    before_save Proc.new { |r| r.history << "b00m" }, :if => :yes, :unless => :yes
+    before_save Proc.new { |r| r.history << [:before_save, :combined_symbol] }, if: :yes, unless: :no
+    before_save Proc.new { |r| r.history << "b00m" }, if: :yes, unless: :yes
 
     def yes; true; end
     def other_yes; true; end
@@ -231,18 +231,18 @@ module CallbacksTest
   class AroundPerson < MySuper
     attr_reader :history
 
-    set_callback :save, :before, :nope,           :if =>     :no
-    set_callback :save, :before, :nope,           :unless => :yes
+    set_callback :save, :before, :nope,           if:     :no
+    set_callback :save, :before, :nope,           unless: :yes
     set_callback :save, :after,  :tweedle
     set_callback :save, :before, "tweedle_dee"
     set_callback :save, :before, proc {|m| m.history << "yup" }
-    set_callback :save, :before, :nope,           :if =>     proc { false }
-    set_callback :save, :before, :nope,           :unless => proc { true }
-    set_callback :save, :before, :yup,            :if =>     proc { true }
-    set_callback :save, :before, :yup,            :unless => proc { false }
+    set_callback :save, :before, :nope,           if:     proc { false }
+    set_callback :save, :before, :nope,           unless: proc { true }
+    set_callback :save, :before, :yup,            if:     proc { true }
+    set_callback :save, :before, :yup,            unless: proc { false }
     set_callback :save, :around, :tweedle_dum
-    set_callback :save, :around, :w0tyes,         :if =>     :yes
-    set_callback :save, :around, :w0tno,          :if =>     :no
+    set_callback :save, :around, :w0tyes,         if:     :yes
+    set_callback :save, :around, :w0tno,          if:     :no
     set_callback :save, :around, :tweedle_deedle
 
     def no; false; end
@@ -329,7 +329,7 @@ module CallbacksTest
     define_callbacks :save
     attr_reader :stuff
 
-    set_callback :save, :before, :action, :per_key => {:if => :yes}
+    set_callback :save, :before, :action, per_key: {if: :yes}
 
     def yes() true end
 
@@ -495,7 +495,7 @@ module CallbacksTest
   class CallbackTerminator
     include ActiveSupport::Callbacks
 
-    define_callbacks :save, :terminator => "result == :halt"
+    define_callbacks :save, terminator: "result == :halt"
 
     set_callback :save, :before, :first
     set_callback :save, :before, :second
@@ -598,7 +598,7 @@ module CallbacksTest
   class CustomScopeObject
     include ActiveSupport::Callbacks
 
-    define_callbacks :save, :scope => [:kind, :name]
+    define_callbacks :save, scope: [:kind, :name]
     set_callback :save, :before, CallbackObject.new
 
     attr_accessor :record
@@ -669,7 +669,7 @@ module CallbacksTest
 
   class WriterSkipper < Person
     attr_accessor :age
-    skip_callback :save, :before, :before_save_method, :if => lambda {self.age > 21}
+    skip_callback :save, :before, :before_save_method, if: lambda {self.age > 21}
   end
 
   class WriterCallbacksTest < ActiveSupport::TestCase

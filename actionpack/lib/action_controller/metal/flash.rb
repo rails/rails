@@ -3,8 +3,8 @@ module ActionController #:nodoc:
     extend ActiveSupport::Concern
 
     included do
-      delegate :flash, :to => :request
-      delegate :alert, :notice, :to => "request.flash"
+      delegate :flash, to: :request
+      delegate :alert, :notice, to: "request.flash"
       helper_method :alert, :notice
     end
 

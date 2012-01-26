@@ -24,8 +24,8 @@
     <%= post_form.text_area :content %>
   </div>
   <h2>Tags</h2>
-  <%= render :partial => 'tags/form',
-             :locals => {:form => post_form} %>
+  <%= render partial: 'tags/form',
+             locals: {form: post_form} %>
   <div class="actions">
     <%= post_form.submit %>
   </div>

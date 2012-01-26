@@ -76,7 +76,7 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
         keys_to_names = Hash[names.map{|name| [escape_key(namespaced_key(name, options)), name]}]
-        raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
+        raw_values = @data.get_multi(keys_to_names.keys, raw: true)
         values = {}
         raw_values.each do |key, value|
           entry = deserialize_entry(value)
@@ -91,7 +91,7 @@ module ActiveSupport
       # to zero.
       def increment(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
-        response = instrument(:increment, name, :amount => amount) do
+        response = instrument(:increment, name, amount: amount) do
           @data.incr(escape_key(namespaced_key(name, options)), amount)
         end
         response == Response::NOT_FOUND ? nil : response.to_i
@@ -105,7 +105,7 @@ module ActiveSupport
       # to zero.
       def decrement(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
-        response = instrument(:decrement, name, :amount => amount) do
+        response = instrument(:decrement, name, amount: amount) do
           @data.decr(escape_key(namespaced_key(name, options)), amount)
         end
         response == Response::NOT_FOUND ? nil : response.to_i

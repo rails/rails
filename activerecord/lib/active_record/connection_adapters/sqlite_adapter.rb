@@ -165,18 +165,18 @@ module ActiveRecord
 
       def native_database_types #:nodoc:
         {
-          :primary_key => default_primary_key_type,
-          :string      => { :name => "varchar", :limit => 255 },
-          :text        => { :name => "text" },
-          :integer     => { :name => "integer" },
-          :float       => { :name => "float" },
-          :decimal     => { :name => "decimal" },
-          :datetime    => { :name => "datetime" },
-          :timestamp   => { :name => "datetime" },
-          :time        => { :name => "time" },
-          :date        => { :name => "date" },
-          :binary      => { :name => "blob" },
-          :boolean     => { :name => "boolean" }
+          primary_key: default_primary_key_type,
+          string:      { name: "varchar", limit: 255 },
+          text:        { name: "text" },
+          integer:     { name: "integer" },
+          float:       { name: "float" },
+          decimal:     { name: "decimal" },
+          datetime:    { name: "datetime" },
+          timestamp:   { name: "datetime" },
+          time:        { name: "time" },
+          date:        { name: "date" },
+          binary:      { name: "blob" },
+          boolean:     { name: "boolean" }
         }
       end
 
@@ -247,7 +247,7 @@ module ActiveRecord
             stmt = records
           else
             cache = @statements[sql] ||= {
-              :stmt => @connection.prepare(sql)
+              stmt: @connection.prepare(sql)
             }
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
@@ -445,7 +445,7 @@ module ActiveRecord
         unless columns(table_name).detect{|c| c.name == column_name.to_s }
           raise ActiveRecord::ActiveRecordError, "Missing column #{table_name}.#{column_name}"
         end
-        alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
+        alter_table(table_name, rename: {column_name.to_s => new_column_name.to_s})
       end
 
       def empty_insert_statement_value
@@ -469,7 +469,7 @@ module ActiveRecord
 
           transaction do
             move_table(table_name, altered_table_name,
-              options.merge(:temporary => true))
+              options.merge(temporary: true))
             move_table(altered_table_name, table_name, &caller)
           end
         end
@@ -480,7 +480,7 @@ module ActiveRecord
         end
 
         def copy_table(from, to, options = {}) #:nodoc:
-          options = options.merge(:id => (!columns(from).detect{|c| c.name == 'id'}.nil? && 'id' == primary_key(from).to_s))
+          options = options.merge(id: (!columns(from).detect{|c| c.name == 'id'}.nil? && 'id' == primary_key(from).to_s))
           create_table(to, options) do |definition|
             @definition = definition
             columns(from).each do |column|
@@ -490,9 +490,9 @@ module ActiveRecord
                  column.name) : column.name
 
               @definition.column(column_name, column.type,
-                :limit => column.limit, :default => column.default,
-                :precision => column.precision, :scale => column.scale,
-                :null => column.null)
+                limit: column.limit, default: column.default,
+                precision: column.precision, scale: column.scale,
+                null: column.null)
             end
             @definition.primary_key(primary_key(from)) if primary_key(from)
             yield @definition if block_given?
@@ -520,7 +520,7 @@ module ActiveRecord
 
             unless columns.empty?
               # index name can't be the same
-              opts = { :name => name.gsub(/_(#{from})_/, "_#{to}_") }
+              opts = { name: name.gsub(/_(#{from})_/, "_#{to}_") }
               opts[:unique] = true if index.unique
               add_index(to, columns, opts)
             end

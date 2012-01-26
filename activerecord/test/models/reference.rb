@@ -2,7 +2,7 @@ class Reference < ActiveRecord::Base
   belongs_to :person
   belongs_to :job
 
-  has_many :agents_posts_authors, :through => :person
+  has_many :agents_posts_authors, through: :person
 
   class << self
     attr_accessor :make_comments
@@ -12,12 +12,12 @@ class Reference < ActiveRecord::Base
 
   def make_comments
     if self.class.make_comments
-      person.update_attributes :comments => "Reference destroyed"
+      person.update_attributes comments: "Reference destroyed"
     end
   end
 end
 
 class BadReference < ActiveRecord::Base
   self.table_name = 'references'
-  default_scope where(:favourite => false)
+  default_scope where(favourite: false)
 end

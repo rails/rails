@@ -35,7 +35,7 @@ h5. Edit the Mailer
 
 <ruby>
 class UserMailer < ActionMailer::Base
-  default :from => "from@example.com"
+  default from: "from@example.com"
 end
 </ruby>
 
@@ -43,12 +43,12 @@ Let's add a method called +welcome_email+, that will send an email to the user's
 
 <ruby>
 class UserMailer < ActionMailer::Base
-  default :from => "notifications@example.com"
+  default from: "notifications@example.com"
 
   def welcome_email(user)
     @user = user
     @url  = "http://example.com/login"
-    mail(:to => user.email, :subject => "Welcome to My Awesome Site")
+    mail(to: user.email, subject: "Welcome to My Awesome Site")
   end
 end
 </ruby>
@@ -127,11 +127,11 @@ class UsersController < ApplicationController
         # Tell the UserMailer to send a welcome Email after save
         UserMailer.welcome_email(@user).deliver
 
-        format.html { redirect_to(@user, :notice => 'User was successfully created.') }
-        format.json { render :json => @user, :status => :created, :location => @user }
+        format.html { redirect_to(@user, notice: 'User was successfully created.') }
+        format.json { render json: @user, status: :created, location: @user }
       else
-        format.html { render :action => "new" }
-        format.json { render :json => @user.errors, :status => :unprocessable_entity }
+        format.html { render action: "new" }
+        format.json { render json: @user.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -202,9 +202,9 @@ NOTE: Mail will automatically Base64 encode an attachment, if you want something
 
 <ruby>
 encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
-attachments['filename.jpg'] = {:mime_type => 'application/x-gzip',
-                               :encoding => 'SpecialEncoding',
-                               :content => encoded_content }
+attachments['filename.jpg'] = {mime_type: 'application/x-gzip',
+                               encoding: 'SpecialEncoding',
+                               content: encoded_content }
 </ruby>
 
 NOTE: If you specify an encoding, Mail will assume that your content is already encoded and not try to Base64 encode it.
@@ -234,8 +234,8 @@ end
 <erb>
 <p>Hello there, this is our image</p>
 
-<%= image_tag attachments['image.jpg'].url, :alt => 'My Photo',
-                                            :class => 'photos' %>
+<%= image_tag attachments['image.jpg'].url, alt: 'My Photo',
+                                            class: 'photos' %>
 </erb>
 
 h5. Sending Email To Multiple Recipients
@@ -244,12 +244,12 @@ It is possible to send email to one or more recipients in one email (for e.g. in
 
 <ruby>
 class AdminMailer < ActionMailer::Base
-  default :to => Admin.all.map(&:email),
-          :from => "notification@example.com"
+  default to: Admin.all.map(&:email),
+          from: "notification@example.com"
 
   def new_registration(user)
     @user = user
-    mail(:subject => "New User Signup: #{@user.email}")
+    mail(subject: "New User Signup: #{@user.email}")
   end
 end
 </ruby>
@@ -265,7 +265,7 @@ to format the email address in the format <tt>"Name &lt;email&gt;"</tt>.
 def welcome_email(user)
   @user = user
   email_with_name = "#{@user.name} <#{@user.email}>"
-  mail(:to => email_with_name, :subject => "Welcome to My Awesome Site")
+  mail(to: email_with_name, subject: "Welcome to My Awesome Site")
 end
 </ruby>
 
@@ -277,15 +277,15 @@ To change the default mailer view for your action you do something like:
 
 <ruby>
 class UserMailer < ActionMailer::Base
-  default :from => "notifications@example.com"
+  default from: "notifications@example.com"
 
   def welcome_email(user)
     @user = user
     @url  = "http://example.com/login"
-    mail(:to => user.email,
-         :subject => "Welcome to My Awesome Site",
-         :template_path => 'notifications',
-         :template_name => 'another')
+    mail(to: user.email,
+         subject: "Welcome to My Awesome Site",
+         template_path: 'notifications',
+         template_name: 'another')
   end
 end
 </ruby>
@@ -296,15 +296,15 @@ If you want more flexibility you can also pass a block and render specific templ
 
 <ruby>
 class UserMailer < ActionMailer::Base
-  default :from => "notifications@example.com"
+  default from: "notifications@example.com"
 
   def welcome_email(user)
     @user = user
     @url  = "http://example.com/login"
-    mail(:to => user.email,
-         :subject => "Welcome to My Awesome Site") do |format|
+    mail(to: user.email,
+         subject: "Welcome to My Awesome Site") do |format|
       format.html { render 'another_template' }
-      format.text { render :text => 'Render text' }
+      format.text { render text: 'Render text' }
     end
   end
 
@@ -327,13 +327,13 @@ end
 
 Just like with controller views, use +yield+ to render the view inside the layout.
 
-You can also pass in a <tt>:layout => 'layout_name'</tt> option to the render call inside the format block to specify different layouts for different actions:
+You can also pass in a <tt>layout: 'layout_name'</tt> option to the render call inside the format block to specify different layouts for different actions:
 
 <ruby>
 class UserMailer < ActionMailer::Base
   def welcome_email(user)
-    mail(:to => user.email) do |format|
-      format.html { render :layout => 'my_layout' }
+    mail(to: user.email) do |format|
+      format.html { render layout: 'my_layout' }
       format.text
     end
   end
@@ -349,15 +349,15 @@ URLs can be generated in mailer views using +url_for+ or named routes.
 Unlike controllers, the mailer instance doesn't have any context about the incoming request so you'll need to provide the +:host+, +:controller+, and +:action+:
 
 <erb>
-<%= url_for(:host => "example.com",
-            :controller => "welcome",
-            :action => "greeting") %>
+<%= url_for(host: "example.com",
+            controller: "welcome",
+            action: "greeting") %>
 </erb>
 
 When using named routes you only need to supply the +:host+:
 
 <erb>
-<%= user_url(@user, :host => "example.com") %>
+<%= user_url(@user, host: "example.com") %>
 </erb>
 
 Email clients have no web context and so paths have no base URL to form complete web addresses. Thus, when using named routes only the "_url" variant makes sense.
@@ -365,10 +365,10 @@ Email clients have no web context and so paths have no base URL to form complete
 It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt> option as a configuration option in <tt>config/application.rb</tt>:
 
 <ruby>
-config.action_mailer.default_url_options = { :host => "example.com" }
+config.action_mailer.default_url_options = { host: "example.com" }
 </ruby>
 
-If you use this setting, you should pass the <tt>:only_path => false</tt> option when using +url_for+. This will ensure that absolute URLs are generated because the +url_for+ view helper will, by default, generate relative URLs when a <tt>:host</tt> option isn't explicitly provided.
+If you use this setting, you should pass the <tt>only_path: false</tt> option when using +url_for+. This will ensure that absolute URLs are generated because the +url_for+ view helper will, by default, generate relative URLs when a <tt>:host</tt> option isn't explicitly provided.
 
 h4. Sending Multipart Emails
 
@@ -381,8 +381,8 @@ class UserMailer < ActionMailer::Base
   def welcome_email(user)
     @user = user
     @url  = user_url(@user)
-    mail(:to => user.email,
-         :subject => "Welcome to My Awesome Site") do |format|
+    mail(to: user.email,
+         subject: "Welcome to My Awesome Site") do |format|
       format.html
       format.text
     end
@@ -402,8 +402,8 @@ class UserMailer < ActionMailer::Base
     @user = user
     @url  = user_url(@user)
     attachments['terms.pdf'] = File.read('/path/terms.pdf')
-    mail(:to => user.email,
-         :subject => "Please see the Terms and Conditions attached")
+    mail(to: user.email,
+         subject: "Please see the Terms and Conditions attached")
   end
 end
 </ruby>
@@ -425,15 +425,15 @@ class UserMailer < ActionMailer::Base
   def receive(email)
     page = Page.find_by_address(email.to.first)
     page.emails.create(
-      :subject => email.subject,
-      :body => email.body
+      subject: email.subject,
+      body: email.body
     )
 
     if email.has_attachments?
       email.attachments.each do |attachment|
         page.attachments.create({
-          :file => attachment,
-          :description => email.subject
+          file: attachment,
+          description: email.subject
         })
       end
     end
@@ -466,8 +466,8 @@ An example would be adding the following to your appropriate <tt>config/environm
 config.action_mailer.delivery_method = :sendmail
 # Defaults to:
 # config.action_mailer.sendmail_settings = {
-#   :location => '/usr/sbin/sendmail',
-#   :arguments => '-i -t'
+#   location: '/usr/sbin/sendmail',
+#   arguments: '-i -t'
 # }
 config.action_mailer.perform_deliveries = true
 config.action_mailer.raise_delivery_errors = true
@@ -480,13 +480,13 @@ As Action Mailer now uses the Mail gem, this becomes as simple as adding to your
 <ruby>
 config.action_mailer.delivery_method = :smtp
 config.action_mailer.smtp_settings = {
-  :address              => "smtp.gmail.com",
-  :port                 => 587,
-  :domain               => 'baci.lindsaar.net',
-  :user_name            => '<username>',
-  :password             => '<password>',
-  :authentication       => 'plain',
-  :enable_starttls_auto => true  }
+  address:              "smtp.gmail.com",
+  port:                 587,
+  domain:               'baci.lindsaar.net',
+  user_name:            '<username>',
+  password:             '<password>',
+  authentication:       'plain',
+  enable_starttls_auto: true  }
 </ruby>
 
 h3. Mailer Testing

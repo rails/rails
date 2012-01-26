@@ -7,12 +7,12 @@ module Rails
     class ResourceGenerator < ModelGenerator #metagenerator
       include ResourceHelpers
 
-      hook_for :resource_controller, :required => true do |controller|
+      hook_for :resource_controller, required: true do |controller|
         invoke controller, [ controller_name, options[:actions] ]
       end
 
-      class_option :actions, :type => :array, :banner => "ACTION ACTION", :default => [],
-                             :desc => "Actions for the resource controller"
+      class_option :actions, type: :array, banner: "ACTION ACTION", default: [],
+                             desc: "Actions for the resource controller"
 
       def add_resource_route
         return if options[:actions].present?

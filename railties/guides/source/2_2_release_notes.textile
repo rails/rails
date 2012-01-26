@@ -76,7 +76,7 @@ class ArticlesController < ApplicationController
     # not triggered. Instead the default render will occur, which will check the last-modified
     # and etag headers and conclude that it only needs to send a "304 Not Modified" instead
     # of rendering the template.
-    if stale?(:last_modified => @article.published_at.utc, :etag => @article)
+    if stale?(last_modified: @article.published_at.utc, etag: @article)
       respond_to do |wants|
         # normal response processing
       end
@@ -90,7 +90,7 @@ class ArticlesController < ApplicationController
     # (i.e. no match of either etag or last-modified), then the default render of the template happens.
     # If the request is fresh, then the default render will return a "304 Not Modified"
     # instead of rendering the template.
-    fresh_when(:last_modified => @article.published_at.utc, :etag => @article)
+    fresh_when(last_modified: @article.published_at.utc, etag: @article)
   end
 end
 </ruby>
@@ -154,7 +154,7 @@ class Product < ActiveRecord::Base
 end
 
 # Get all products with copyright-free photos:
-Product.all(:joins => :photos, :conditions => { :photos => { :copyright => false }})
+Product.all(joins: :photos, conditions: { photos: { copyright: false }})
 </ruby>
 
 * More information:
@@ -166,7 +166,7 @@ Two new sets of methods have been added to Active Record's dynamic finders famil
 
 h5. +find_last_by_<em>attribute</em>+
 
-The +find_last_by_<em>attribute</em>+ method is equivalent to +Model.last(:conditions => {:attribute => value})+
+The +find_last_by_<em>attribute</em>+ method is equivalent to +Model.last(conditions: {attribute: value})+
 
 <ruby>
 # Get the last user who signed up from London
@@ -177,7 +177,7 @@ User.find_last_by_city('London')
 
 h5. +find_by_<em>attribute</em>!+
 
-The new bang! version of +find_by_<em>attribute</em>!+ is equivalent to +Model.first(:conditions => {:attribute => value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
+The new bang! version of +find_by_<em>attribute</em>!+ is equivalent to +Model.first(conditions: {attribute: value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
 
 <ruby>
 # Raise ActiveRecord::RecordNotFound exception if 'Moby' hasn't signed up yet!
@@ -198,7 +198,7 @@ h4. Other ActiveRecord Changes
 
 * +rake db:migrate:redo+ now accepts an optional VERSION to target that specific migration to redo
 * Set +config.active_record.timestamped_migrations = false+ to have migrations with numeric prefix instead of UTC timestamp.
-* Counter cache columns (for associations declared with +:counter_cache => true+) do not need to be initialized to zero any longer.
+* Counter cache columns (for associations declared with +counter_cache: true+) do not need to be initialized to zero any longer.
 * +ActiveRecord::Base.human_name+ for an internationalization-aware humane translation of model names
 
 h3. Action Controller
@@ -210,7 +210,7 @@ h4. Shallow Route Nesting
 Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with.
 
 <ruby>
-map.resources :publishers, :shallow => true do |publisher|
+map.resources :publishers, shallow: true do |publisher|
   publisher.resources :magazines do |magazine|
     magazine.resources :photos
   end
@@ -237,7 +237,7 @@ h4. Method Arrays for Member or Collection Routes
 You can now supply an array of methods for new member or collection routes. This removes the annoyance of having to define a route as accepting any verb as soon as you need it to handle more than one. With Rails 2.2, this is a legitimate route declaration:
 
 <ruby>
-map.resources :photos, :collection => { :search => [:get, :post] }
+map.resources :photos, collection: { search: [:get, :post] }
 </ruby>
 
 * Lead Contributor: "Brennan Dunn":http://brennandunn.com/
@@ -247,8 +247,8 @@ h4. Resources With Specific Actions
 By default, when you use +map.resources+ to create a route, Rails generates routes for seven default actions (index, show, create, new, edit, update, and destroy). But each of these routes takes up memory in your application, and causes Rails to generate additional routing logic. Now you can use the +:only+ and +:except+ options to fine-tune the routes that Rails will generate for resources. You can supply a single action, an array of actions, or the special +:all+ or +:none+ options. These options are inherited by nested resources.
 
 <ruby>
-map.resources :photos, :only => [:index, :show]
-map.resources :products, :except => :destroy
+map.resources :photos, only: [:index, :show]
+map.resources :products, except: :destroy
 </ruby>
 
 * Lead Contributor: "Tom Stuart":http://experthuman.com/
@@ -329,7 +329,7 @@ If you delegate behavior from one class to another, you can now specify a prefix
 <ruby>
 class Vendor < ActiveRecord::Base
   has_one :account
-  delegate :email, :password, :to => :account, :prefix => true
+  delegate :email, :password, to: :account, prefix: true
 end
 </ruby>
 
@@ -338,7 +338,7 @@ This will produce delegated methods +vendor#account_email+ and +vendor#account_p
 <ruby>
 class Vendor < ActiveRecord::Base
   has_one :account
-  delegate :email, :password, :to => :account, :prefix => :owner
+  delegate :email, :password, to: :account, prefix: :owner
 end
 </ruby>
 
@@ -403,7 +403,7 @@ A few pieces of older code are deprecated in this release:
 <ruby>
 def partial_with_implicit_local_assignment
   @customer = Customer.new("Marcel")
-  render :partial => "customer"
+  render partial: "customer"
 end
 </ruby>
 

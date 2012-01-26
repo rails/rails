@@ -166,7 +166,7 @@
 
         # Assert number of emails delivered within a block:
         assert_emails 1 do
-          post :signup, :name => 'Jonathan'
+          post :signup, name: 'Jonathan'
         end
 
 

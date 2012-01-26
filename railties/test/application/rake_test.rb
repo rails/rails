@@ -46,7 +46,7 @@ module ApplicationTests
         end
 
         rake_tasks do
-          task :do_nothing => :environment do
+          task do_nothing: :environment do
           end
         end
       RUBY
@@ -86,7 +86,7 @@ module ApplicationTests
     def test_rake_routes_calls_the_route_inspector
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          get '/cart', :to => 'cart#show'
+          get '/cart', to: 'cart#show'
         end
       RUBY
       assert_equal "cart GET /cart(.:format) cart#show\n", Dir.chdir(app_path){ `rake routes` }
@@ -95,7 +95,7 @@ module ApplicationTests
     def test_logger_is_flushed_when_exiting_production_rake_tasks
       add_to_config <<-RUBY
         rake_tasks do
-          task :log_something => :environment do
+          task log_something: :environment do
             Rails.logger.error("Sample log message")
           end
         end

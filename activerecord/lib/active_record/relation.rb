@@ -97,21 +97,21 @@ module ActiveRecord
     #
     # ==== Examples
     #   # Find the first user named Penélope or create a new one.
-    #   User.where(:first_name => 'Penélope').first_or_create
+    #   User.where(first_name: 'Penélope').first_or_create
     #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
     #
     #   # Find the first user named Penélope or create a new one.
     #   # We already have one so the existing record will be returned.
-    #   User.where(:first_name => 'Penélope').first_or_create
+    #   User.where(first_name: 'Penélope').first_or_create
     #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
     #
     #   # Find the first user named Scarlett or create a new one with a particular last name.
-    #   User.where(:first_name => 'Scarlett').first_or_create(:last_name => 'Johansson')
+    #   User.where(first_name: 'Scarlett').first_or_create(last_name: 'Johansson')
     #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
     #
     #   # Find the first user named Scarlett or create a new one with a different last name.
     #   # We already have one so the existing record will be returned.
-    #   User.where(:first_name => 'Scarlett').first_or_create do |user|
+    #   User.where(first_name: 'Scarlett').first_or_create do |user|
     #     user.last_name = "O'Hara"
     #   end
     #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
@@ -231,7 +231,7 @@ module ActiveRecord
     #
     # ==== Example
     #
-    #   Comment.where(:post_id => 1).scoping do
+    #   Comment.where(post_id: 1).scoping do
     #     Comment.first # SELECT * FROM comments WHERE post_id = 1
     #   end
     #
@@ -256,7 +256,7 @@ module ActiveRecord
     # ==== Examples
     #
     #   # Update all customers with the given attributes
-    #   Customer.update_all :wants_email => true
+    #   Customer.update_all wants_email: true
     #
     #   # Update all books with 'Rails' in their title
     #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
@@ -265,13 +265,13 @@ module ActiveRecord
     #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
     #
     #   # Update all books that match conditions, but limit it to 5 ordered by date
-    #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
+    #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", order: 'created_at', limit: 5
     #
     #   # Conditions from the current relation also works
-    #   Book.where('title LIKE ?', '%Rails%').update_all(:author => 'David')
+    #   Book.where('title LIKE ?', '%Rails%').update_all(author: 'David')
     #
     #   # The same idea applies to limit and order
-    #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
+    #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(author: 'David')
     def update_all(updates, conditions = nil, options = {})
       IdentityMap.repository[symbolized_base_class].clear if IdentityMap.enabled?
       if conditions || options.present?
@@ -306,7 +306,7 @@ module ActiveRecord
     # ==== Examples
     #
     #   # Updates one record
-    #   Person.update(15, :user_name => 'Samuel', :group => 'expert')
+    #   Person.update(15, user_name: 'Samuel', group: 'expert')
     #
     #   # Updates multiple records
     #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
@@ -346,8 +346,8 @@ module ActiveRecord
     # ==== Examples
     #
     #   Person.destroy_all("last_login < '2004-04-04'")
-    #   Person.destroy_all(:status => "inactive")
-    #   Person.where(:age => 0..18).destroy_all
+    #   Person.destroy_all(status: "inactive")
+    #   Person.where(age: 0..18).destroy_all
     def destroy_all(conditions = nil)
       if conditions
         where(conditions).destroy_all
@@ -397,7 +397,7 @@ module ActiveRecord
     #
     #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
     #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
-    #   Post.where(:person_id => 5).where(:category => ['Something', 'Else']).delete_all
+    #   Post.where(person_id: 5).where(category: ['Something', 'Else']).delete_all
     #
     # Both calls delete the affected posts all at once with a single DELETE statement.
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
@@ -478,7 +478,7 @@ module ActiveRecord
     # Joins that are also marked for preloading. In which case we should just eager load them.
     # Note that this is a naive implementation because we could have strings and symbols which
     # represent the same association, but that aren't matched by this. Also, we could have
-    # nested hashes which partially match, e.g. { :a => :b } & { :a => [:b, :c] }
+    # nested hashes which partially match, e.g. { a: :b } & { a: [:b, :c] }
     def joined_includes_values
       @includes_values & @joins_values
     end

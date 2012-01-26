@@ -127,7 +127,7 @@ as the id of the ARes object.
   #
   # Response (201): Location: http://api.people.com:3000/people/2
   #
-  ryan = Person.new(:first => 'Ryan')
+  ryan = Person.new(first: 'Ryan')
   ryan.new?  # => true
   ryan.save  # => true
   ryan.new?  # => false

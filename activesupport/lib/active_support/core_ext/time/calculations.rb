@@ -4,7 +4,7 @@ require 'active_support/core_ext/time/conversions'
 
 class Time
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  DAYS_INTO_WEEK = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6 }
+  DAYS_INTO_WEEK = { monday: 0, tuesday: 1, wednesday: 2, thursday: 3, friday: 4, saturday: 5, sunday: 6 }
 
   class << self
     # Overriding case equality method so that it returns true for ActiveSupport::TimeWithZone instances
@@ -63,7 +63,7 @@ class Time
 
   # Seconds since midnight: Time.now.seconds_since_midnight
   def seconds_since_midnight
-    to_i - change(:hour => 0).to_i + (usec / 1.0e+6)
+    to_i - change(hour: 0).to_i + (usec / 1.0e+6)
   end
 
   # Returns a new Time where one or more of the elements have been changed according to the +options+ parameter. The time options
@@ -98,7 +98,7 @@ class Time
     end
 
     d = to_date.advance(options)
-    time_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
+    time_advanced_by_date = change(year: d.year, month: d.month, day: d.day)
     seconds_to_advance = (options[:seconds] || 0) + (options[:minutes] || 0) * 60 + (options[:hours] || 0) * 3600
     seconds_to_advance == 0 ? time_advanced_by_date : time_advanced_by_date.since(seconds_to_advance)
   end
@@ -118,27 +118,27 @@ class Time
 
   # Returns a new Time representing the time a number of specified weeks ago.
   def weeks_ago(weeks)
-    advance(:weeks => -weeks)
+    advance(weeks: -weeks)
   end
 
   # Returns a new Time representing the time a number of specified months ago
   def months_ago(months)
-    advance(:months => -months)
+    advance(months: -months)
   end
 
   # Returns a new Time representing the time a number of specified months in the future
   def months_since(months)
-    advance(:months => months)
+    advance(months: months)
   end
 
   # Returns a new Time representing the time a number of specified years ago
   def years_ago(years)
-    advance(:years => -years)
+    advance(years: -years)
   end
 
   # Returns a new Time representing the time a number of specified years in the future
   def years_since(years)
-    advance(:years => years)
+    advance(years: years)
   end
 
   # Short-hand for years_ago(1)
@@ -197,18 +197,18 @@ class Time
 
   # Returns a new Time representing the start of the given day in the previous week (default is :monday).
   def prev_week(day = :monday)
-    ago(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(:hour => 0)
+    ago(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(hour: 0)
   end
 
   # Returns a new Time representing the start of the given day in next week (default is :monday).
   def next_week(day = :monday)
-    since(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(:hour => 0)
+    since(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(hour: 0)
   end
 
   # Returns a new Time representing the start of the day (0:00)
   def beginning_of_day
-    #(self - seconds_since_midnight).change(:usec => 0)
-    change(:hour => 0)
+    #(self - seconds_since_midnight).change(usec: 0)
+    change(hour: 0)
   end
   alias :midnight :beginning_of_day
   alias :at_midnight :beginning_of_day
@@ -216,13 +216,13 @@ class Time
 
   # Returns a new Time representing the end of the day, 23:59:59.999999 (.999999999 in ruby1.9)
   def end_of_day
-    change(:hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
+    change(hour: 23, min: 59, sec: 59, usec: 999999.999)
   end
 
   # Returns a new Time representing the start of the month (1st of the month, 0:00)
   def beginning_of_month
     #self - ((self.mday-1).days + self.seconds_since_midnight)
-    change(:day => 1, :hour => 0)
+    change(day: 1, hour: 0)
   end
   alias :at_beginning_of_month :beginning_of_month
 
@@ -230,42 +230,42 @@ class Time
   def end_of_month
     #self - ((self.mday-1).days + self.seconds_since_midnight)
     last_day = ::Time.days_in_month(month, year)
-    change(:day => last_day, :hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
+    change(day: last_day, hour: 23, min: 59, sec: 59, usec: 999999.999)
   end
   alias :at_end_of_month :end_of_month
 
   # Returns  a new Time representing the start of the quarter (1st of january, april, july, october, 0:00)
   def beginning_of_quarter
-    beginning_of_month.change(:month => [10, 7, 4, 1].detect { |m| m <= month })
+    beginning_of_month.change(month: [10, 7, 4, 1].detect { |m| m <= month })
   end
   alias :at_beginning_of_quarter :beginning_of_quarter
 
   # Returns a new Time representing the end of the quarter (end of the last day of march, june, september, december)
   def end_of_quarter
-    beginning_of_month.change(:month => [3, 6, 9, 12].detect { |m| m >= month }).end_of_month
+    beginning_of_month.change(month: [3, 6, 9, 12].detect { |m| m >= month }).end_of_month
   end
   alias :at_end_of_quarter :end_of_quarter
 
   # Returns a new Time representing the start of the year (1st of january, 0:00)
   def beginning_of_year
-    change(:month => 1, :day => 1, :hour => 0)
+    change(month: 1, day: 1, hour: 0)
   end
   alias :at_beginning_of_year :beginning_of_year
 
   # Returns a new Time representing the end of the year (end of the 31st of december)
   def end_of_year
-    change(:month => 12, :day => 31, :hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
+    change(month: 12, day: 31, hour: 23, min: 59, sec: 59, usec: 999999.999)
   end
   alias :at_end_of_year :end_of_year
 
   # Convenience method which returns a new Time representing the time 1 day ago
   def yesterday
-    advance(:days => -1)
+    advance(days: -1)
   end
 
   # Convenience method which returns a new Time representing the time 1 day since the instance time
   def tomorrow
-    advance(:days => 1)
+    advance(days: 1)
   end
 
   # Returns a Range representing the whole day of the current time.

@@ -23,14 +23,14 @@ end
 Now, suppose we wanted to add a new order for an existing customer. We'd need to do something like this:
 
 <ruby>
-@order = Order.create(:order_date => Time.now,
-  :customer_id => @customer.id)
+@order = Order.create(order_date: Time.now,
+  customer_id: @customer.id)
 </ruby>
 
 Or consider deleting a customer, and ensuring that all of its orders get deleted as well:
 
 <ruby>
-@orders = Order.where(:customer_id => @customer.id)
+@orders = Order.where(customer_id: @customer.id)
 @orders.each do |order|
   order.destroy
 end
@@ -41,7 +41,7 @@ With Active Record associations, we can streamline these -- and other -- operati
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, :dependent => :destroy
+  has_many :orders, dependent: :destroy
 end
 
 class Order < ActiveRecord::Base
@@ -52,7 +52,7 @@ end
 With this change, creating a new order for a particular customer is easier:
 
 <ruby>
-@order = @customer.orders.create(:order_date => Time.now)
+@order = @customer.orders.create(order_date: Time.now)
 </ruby>
 
 Deleting a customer and all of its orders is _much_ easier:
@@ -121,7 +121,7 @@ A +has_many :through+ association is often used to set up a many-to-many connect
 <ruby>
 class Physician < ActiveRecord::Base
   has_many :appointments
-  has_many :patients, :through => :appointments
+  has_many :patients, through: :appointments
 end
 
 class Appointment < ActiveRecord::Base
@@ -131,7 +131,7 @@ end
 
 class Patient < ActiveRecord::Base
   has_many :appointments
-  has_many :physicians, :through => :appointments
+  has_many :physicians, through: :appointments
 end
 </ruby>
 
@@ -152,7 +152,7 @@ The +has_many :through+ association is also useful for setting up "shortcuts" th
 <ruby>
 class Document < ActiveRecord::Base
   has_many :sections
-  has_many :paragraphs, :through => :sections
+  has_many :paragraphs, through: :sections
 end
 
 class Section < ActiveRecord::Base
@@ -165,7 +165,7 @@ class Paragraph < ActiveRecord::Base
 end
 </ruby>
 
-With +:through => :sections+ specified, Rails will now understand:
+With +through: :sections+ specified, Rails will now understand:
 
 <ruby>
 @document.paragraphs
@@ -178,7 +178,7 @@ A +has_one :through+ association sets up a one-to-one connection with another mo
 <ruby>
 class Supplier < ActiveRecord::Base
   has_one :account
-  has_one :account_history, :through => :account
+  has_one :account_history, through: :account
 end
 
 class Account < ActiveRecord::Base
@@ -265,7 +265,7 @@ The second way to declare a many-to-many relationship is to use +has_many :throu
 <ruby>
 class Assembly < ActiveRecord::Base
   has_many :manifests
-  has_many :parts, :through => :manifests
+  has_many :parts, through: :manifests
 end
 
 class Manifest < ActiveRecord::Base
@@ -275,7 +275,7 @@ end
 
 class Part < ActiveRecord::Base
   has_many :manifests
-  has_many :assemblies, :through => :manifests
+  has_many :assemblies, through: :manifests
 end
 </ruby>
 
@@ -289,15 +289,15 @@ A slightly more advanced twist on associations is the _polymorphic association_.
 
 <ruby>
 class Picture < ActiveRecord::Base
-  belongs_to :imageable, :polymorphic => true
+  belongs_to :imageable, polymorphic: true
 end
 
 class Employee < ActiveRecord::Base
-  has_many :pictures, :as => :imageable
+  has_many :pictures, as: :imageable
 end
 
 class Product < ActiveRecord::Base
-  has_many :pictures, :as => :imageable
+  has_many :pictures, as: :imageable
 end
 </ruby>
 
@@ -327,7 +327,7 @@ class CreatePictures < ActiveRecord::Migration
   def change
     create_table :pictures do |t|
       t.string :name
-      t.references :imageable, :polymorphic => true
+      t.references :imageable, polymorphic: true
       t.timestamps
     end
   end
@@ -342,9 +342,9 @@ In designing a data model, you will sometimes find a model that should have a re
 
 <ruby>
 class Employee < ActiveRecord::Base
-  has_many :subordinates, :class_name => "Employee"
-  belongs_to :manager, :class_name => "Employee",
-    :foreign_key => "manager_id"
+  has_many :subordinates, class_name: "Employee"
+  belongs_to :manager, class_name: "Employee",
+    foreign_key: "manager_id"
 end
 </ruby>
 
@@ -435,7 +435,7 @@ These need to be backed up by a migration to create the +assemblies_parts+ table
 <ruby>
 class CreateAssemblyPartJoinTable < ActiveRecord::Migration
   def change
-    create_table :assemblies_parts, :id => false do |t|
+    create_table :assemblies_parts, id: false do |t|
       t.integer :assembly_id
       t.integer :part_id
     end
@@ -443,7 +443,7 @@ class CreateAssemblyPartJoinTable < ActiveRecord::Migration
 end
 </ruby>
 
-We pass +:id => false+ to +create_table+ because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a +has_and_belongs_to_many+ association like mangled models IDs, or exceptions about conflicting IDs chances are you forgot that bit.
+We pass +id: false+ to +create_table+ because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a +has_and_belongs_to_many+ association like mangled models IDs, or exceptions about conflicting IDs chances are you forgot that bit.
 
 h4. Controlling Association Scope
 
@@ -488,14 +488,14 @@ module MyApplication
   module Business
     class Supplier < ActiveRecord::Base
        has_one :account,
-        :class_name => "MyApplication::Billing::Account"
+        class_name: "MyApplication::Billing::Account"
     end
   end
 
   module Billing
     class Account < ActiveRecord::Base
        belongs_to :supplier,
-        :class_name => "MyApplication::Business::Supplier"
+        class_name: "MyApplication::Business::Supplier"
     end
   end
 end
@@ -560,8 +560,8 @@ h6(#belongs_to-build_association). <tt>build_<em>association</em>(attributes = {
 The <tt>build_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set, but the associated object will _not_ yet be saved.
 
 <ruby>
-@customer = @order.build_customer(:customer_number => 123,
-  :customer_name => "John Doe")
+@customer = @order.build_customer(customer_number: 123,
+  customer_name: "John Doe")
 </ruby>
 
 h6(#belongs_to-create_association). <tt>create_<em>association</em>(attributes = {})</tt>
@@ -569,8 +569,8 @@ h6(#belongs_to-create_association). <tt>create_<em>association</em>(attributes =
 The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through this object's foreign key will be set, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 <ruby>
-@customer = @order.create_customer(:customer_number => 123,
-  :customer_name => "John Doe")
+@customer = @order.create_customer(customer_number: 123,
+  customer_name: "John Doe")
 </ruby>
 
 
@@ -580,8 +580,8 @@ While Rails uses intelligent defaults that will work well in most situations, th
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :counter_cache => true,
-    :conditions => "active = 1"
+  belongs_to :customer, counter_cache: true,
+    conditions: "active = 1"
 end
 </ruby>
 
@@ -610,7 +610,7 @@ If the name of the other model cannot be derived from the association name, you 
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :class_name => "Patron"
+  belongs_to :customer, class_name: "Patron"
 end
 </ruby>
 
@@ -620,7 +620,7 @@ The +:conditions+ option lets you specify the conditions that the associated obj
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :conditions => "active = 1"
+  belongs_to :customer, conditions: "active = 1"
 end
 </ruby>
 
@@ -641,7 +641,7 @@ With these declarations, asking for the value of +@customer.orders.size+ require
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :counter_cache => true
+  belongs_to :customer, counter_cache: true
 end
 class Customer < ActiveRecord::Base
   has_many :orders
@@ -654,7 +654,7 @@ Although the +:counter_cache+ option is specified on the model that includes the
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :counter_cache => :count_of_orders
+  belongs_to :customer, counter_cache: :count_of_orders
 end
 class Customer < ActiveRecord::Base
   has_many :orders
@@ -675,8 +675,8 @@ By convention, Rails assumes that the column used to hold the foreign key on thi
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :class_name => "Patron",
-    :foreign_key => "patron_id"
+  belongs_to :customer, class_name: "Patron",
+    foreign_key: "patron_id"
 end
 </ruby>
 
@@ -705,7 +705,7 @@ If you frequently retrieve customers directly from line items (+@line_item.order
 
 <ruby>
 class LineItem < ActiveRecord::Base
-  belongs_to :order, :include => :customer
+  belongs_to :order, include: :customer
 end
 
 class Order < ActiveRecord::Base
@@ -740,7 +740,7 @@ If you set the +:touch+ option to +:true+, then the +updated_at+ or +updated_on+
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :touch => true
+  belongs_to :customer, touch: true
 end
 
 class Customer < ActiveRecord::Base
@@ -752,7 +752,7 @@ In this case, saving or destroying an order will update the timestamp on the ass
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :touch => :orders_updated_at
+  belongs_to :customer, touch: :orders_updated_at
 end
 </ruby>
 
@@ -829,7 +829,7 @@ h6(#has_one-build_association). <tt>build_<em>association</em>(attributes = {})<
 The <tt>build_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set, but the associated object will _not_ yet be saved.
 
 <ruby>
-@account = @supplier.build_account(:terms => "Net 30")
+@account = @supplier.build_account(terms: "Net 30")
 </ruby>
 
 h6(#has_one-create_association). <tt>create_<em>association</em>(attributes = {})</tt>
@@ -837,7 +837,7 @@ h6(#has_one-create_association). <tt>create_<em>association</em>(attributes = {}
 The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be set, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 <ruby>
-@account = @supplier.create_account(:terms => "Net 30")
+@account = @supplier.create_account(terms: "Net 30")
 </ruby>
 
 h5. Options for +has_one+
@@ -846,7 +846,7 @@ While Rails uses intelligent defaults that will work well in most situations, th
 
 <ruby>
 class Supplier < ActiveRecord::Base
-  has_one :account, :class_name => "Billing", :dependent => :nullify
+  has_one :account, class_name: "Billing", dependent: :nullify
 end
 </ruby>
 
@@ -882,7 +882,7 @@ If the name of the other model cannot be derived from the association name, you 
 
 <ruby>
 class Supplier < ActiveRecord::Base
-  has_one :account, :class_name => "Billing"
+  has_one :account, class_name: "Billing"
 end
 </ruby>
 
@@ -892,7 +892,7 @@ The +:conditions+ option lets you specify the conditions that the associated obj
 
 <ruby>
 class Supplier < ActiveRecord::Base
-  has_one :account, :conditions => "confirmed = 1"
+  has_one :account, conditions: "confirmed = 1"
 end
 </ruby>
 
@@ -906,7 +906,7 @@ By convention, Rails assumes that the column used to hold the foreign key on the
 
 <ruby>
 class Supplier < ActiveRecord::Base
-  has_one :account, :foreign_key => "supp_id"
+  has_one :account, foreign_key: "supp_id"
 end
 </ruby>
 
@@ -935,7 +935,7 @@ If you frequently retrieve representatives directly from suppliers (+@supplier.a
 
 <ruby>
 class Supplier < ActiveRecord::Base
-  has_one :account, :include => :representative
+  has_one :account, include: :representative
 end
 
 class Account < ActiveRecord::Base
@@ -1074,7 +1074,7 @@ The <tt><em>collection</em>.delete</tt> method removes one or more objects from 
 @customer.orders.delete(@order1)
 </ruby>
 
-WARNING: Additionally, objects will be destroyed if they're associated with +:dependent => :destroy+, and deleted if they're associated with +:dependent => :delete_all+.
+WARNING: Additionally, objects will be destroyed if they're associated with +dependent: :destroy+, and deleted if they're associated with +dependent: :delete_all+.
 
 
 h6(#has_many-collection-equal). <tt><em>collection</em>=objects</tt>
@@ -1095,7 +1095,7 @@ The <tt><em>collection_singular</em>_ids=</tt> method makes the collection conta
 
 h6(#has_many-collection-clear). <tt><em>collection</em>.clear</tt>
 
-The <tt><em>collection</em>.clear</tt> method removes every object from the collection. This destroys the associated objects if they are associated with +:dependent => :destroy+, deletes them directly from the database if +:dependent => :delete_all+, and otherwise sets their foreign keys to +NULL+.
+The <tt><em>collection</em>.clear</tt> method removes every object from the collection. This destroys the associated objects if they are associated with +dependent: :destroy+, deletes them directly from the database if +dependent: :delete_all+, and otherwise sets their foreign keys to +NULL+.
 
 h6(#has_many-collection-empty). <tt><em>collection</em>.empty?</tt>
 
@@ -1120,7 +1120,7 @@ h6(#has_many-collection-find). <tt><em>collection</em>.find(...)</tt>
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+.
 
 <ruby>
-@open_orders = @customer.orders.where(:open => 1)
+@open_orders = @customer.orders.where(open: 1)
 </ruby>
 
 h6(#has_many-collection-where). <tt><em>collection</em>.where(...)</tt>
@@ -1128,7 +1128,7 @@ h6(#has_many-collection-where). <tt><em>collection</em>.where(...)</tt>
 The <tt><em>collection</em>.where</tt> method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed.
 
 <ruby>
-@open_orders = @customer.orders.where(:open => true) # No query yet
+@open_orders = @customer.orders.where(open: true) # No query yet
 @open_order = @open_orders.first # Now the database will be queried
 </ruby>
 
@@ -1141,8 +1141,8 @@ h6(#has_many-collection-build). <tt><em>collection</em>.build(attributes = {}, .
 The <tt><em>collection</em>.build</tt> method returns one or more new objects of the associated type. These objects will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
 
 <ruby>
-@order = @customer.orders.build(:order_date => Time.now,
-  :order_number => "A12345")
+@order = @customer.orders.build(order_date: Time.now,
+  order_number: "A12345")
 </ruby>
 
 h6(#has_many-collection-create). <tt><em>collection</em>.create(attributes = {})</tt>
@@ -1150,8 +1150,8 @@ h6(#has_many-collection-create). <tt><em>collection</em>.create(attributes = {})
 The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 <ruby>
-@order = @customer.orders.create(:order_date => Time.now,
-  :order_number => "A12345")
+@order = @customer.orders.create(order_date: Time.now,
+  order_number: "A12345")
 </ruby>
 
 h5. Options for +has_many+
@@ -1160,7 +1160,7 @@ While Rails uses intelligent defaults that will work well in most situations, th
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, :dependent => :delete_all, :validate => :false
+  has_many :orders, dependent: :delete_all, validate: :false
 end
 </ruby>
 
@@ -1203,7 +1203,7 @@ If the name of the other model cannot be derived from the association name, you 
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, :class_name => "Transaction"
+  has_many :orders, class_name: "Transaction"
 end
 </ruby>
 
@@ -1213,8 +1213,8 @@ The +:conditions+ option lets you specify the conditions that the associated obj
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :confirmed_orders, :class_name => "Order",
-    :conditions => "confirmed = 1"
+  has_many :confirmed_orders, class_name: "Order",
+    conditions: "confirmed = 1"
 end
 </ruby>
 
@@ -1222,8 +1222,8 @@ You can also set conditions via a hash:
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :confirmed_orders, :class_name => "Order",
-    :conditions => { :confirmed => true }
+  has_many :confirmed_orders, class_name: "Order",
+    conditions: { confirmed: true }
 end
 </ruby>
 
@@ -1233,8 +1233,8 @@ If you need to evaluate conditions dynamically at runtime, use a proc:
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :latest_orders, :class_name => "Order",
-    :conditions => proc { ["orders.created_at > ?, 10.hours.ago] }
+  has_many :latest_orders, class_name: "Order",
+    conditions: proc { ["orders.created_at > ?, 10.hours.ago] }
 end
 </ruby>
 
@@ -1264,7 +1264,7 @@ By convention, Rails assumes that the column used to hold the foreign key on the
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, :foreign_key => "cust_id"
+  has_many :orders, foreign_key: "cust_id"
 end
 </ruby>
 
@@ -1276,7 +1276,7 @@ The +:group+ option supplies an attribute name to group the result set by, using
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :line_items, :through => :orders, :group => "orders.id"
+  has_many :line_items, through: :orders, group: "orders.id"
 end
 </ruby>
 
@@ -1303,7 +1303,7 @@ If you frequently retrieve line items directly from customers (+@customer.orders
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, :include => :line_items
+  has_many :orders, include: :line_items
 end
 
 class Order < ActiveRecord::Base
@@ -1322,14 +1322,14 @@ The +:limit+ option lets you restrict the total number of objects that will be f
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :recent_orders, :class_name => "Order",
-    :order => "order_date DESC", :limit => 100
+  has_many :recent_orders, class_name: "Order",
+    order: "order_date DESC", limit: 100
 end
 </ruby>
 
 h6(#has_many-offset). +:offset+
 
-The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 11 records.
+The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +offset: 11+, it will skip the first 11 records.
 
 h6(#has_many-order). +:order+
 
@@ -1337,7 +1337,7 @@ The +:order+ option dictates the order in which associated objects will be recei
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, :order => "date_confirmed DESC"
+  has_many :orders, order: "date_confirmed DESC"
 end
 </ruby>
 
@@ -1374,11 +1374,11 @@ Set the +:uniq+ option to true to keep the collection free of duplicates. This i
 <ruby>
 class Person < ActiveRecord::Base
   has_many :readings
-  has_many :posts, :through => :readings
+  has_many :posts, through: :readings
 end
 
-person = Person.create(:name => 'john')
-post   = Post.create(:name => 'a1')
+person = Person.create(name: 'john')
+post   = Post.create(name: 'a1')
 person.posts << post
 person.posts << post
 person.posts.inspect # => [#<Post id: 5, name: "a1">, #<Post id: 5, name: "a1">]
@@ -1392,11 +1392,11 @@ Now let's set +:uniq+ to true:
 <ruby>
 class Person
   has_many :readings
-  has_many :posts, :through => :readings, :uniq => true
+  has_many :posts, through: :readings, uniq: true
 end
 
-person = Person.create(:name => 'honda')
-post   = Post.create(:name => 'a1')
+person = Person.create(name: 'honda')
+post   = Post.create(name: 'a1')
 person.posts << post
 person.posts << post
 person.posts.inspect # => [#<Post id: 7, name: "a1">]
@@ -1546,7 +1546,7 @@ The <tt><em>collection</em>.find</tt> method finds objects within the collection
 
 <ruby>
 @new_assemblies = @part.assemblies.all(
-  :conditions => ["created_at > ?", 2.days.ago])
+  conditions: ["created_at > ?", 2.days.ago])
 </ruby>
 
 NOTE: Beginning with Rails 3, supplying options to the +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
@@ -1569,7 +1569,7 @@ The <tt><em>collection</em>.build</tt> method returns a new object of the associ
 
 <ruby>
 @assembly = @part.assemblies.build(
-  {:assembly_name => "Transmission housing"})
+  {assembly_name: "Transmission housing"})
 </ruby>
 
 h6(#has_and_belongs_to_many-create-attributes). <tt><em>collection</em>.create(attributes = {})</tt>
@@ -1578,7 +1578,7 @@ The <tt><em>collection</em>.create</tt> method returns a new object of the assoc
 
 <ruby>
 @assembly = @part.assemblies.create(
-  {:assembly_name => "Transmission housing"})
+  {assembly_name: "Transmission housing"})
 </ruby>
 
 h5. Options for +has_and_belongs_to_many+
@@ -1587,8 +1587,8 @@ While Rails uses intelligent defaults that will work well in most situations, th
 
 <ruby>
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :uniq => true,
-    :read_only => true
+  has_and_belongs_to_many :assemblies, uniq: true,
+    read_only: true
 end
 </ruby>
 
@@ -1623,9 +1623,9 @@ TIP: The +:foreign_key+ and +:association_foreign_key+ options are useful when s
 
 <ruby>
 class User < ActiveRecord::Base
-  has_and_belongs_to_many :friends, :class_name => "User",
-    :foreign_key => "this_user_id",
-    :association_foreign_key => "other_user_id"
+  has_and_belongs_to_many :friends, class_name: "User",
+    foreign_key: "this_user_id",
+    association_foreign_key: "other_user_id"
 end
 </ruby>
 
@@ -1639,7 +1639,7 @@ If the name of the other model cannot be derived from the association name, you 
 
 <ruby>
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :class_name => "Gadget"
+  has_and_belongs_to_many :assemblies, class_name: "Gadget"
 end
 </ruby>
 
@@ -1650,7 +1650,7 @@ The +:conditions+ option lets you specify the conditions that the associated obj
 <ruby>
 class Parts < ActiveRecord::Base
   has_and_belongs_to_many :assemblies,
-    :conditions => "factory = 'Seattle'"
+    conditions: "factory = 'Seattle'"
 end
 </ruby>
 
@@ -1659,7 +1659,7 @@ You can also set conditions via a hash:
 <ruby>
 class Parts < ActiveRecord::Base
   has_and_belongs_to_many :assemblies,
-    :conditions => { :factory => 'Seattle' }
+    conditions: { factory: 'Seattle' }
 end
 </ruby>
 
@@ -1689,9 +1689,9 @@ By convention, Rails assumes that the column in the join table used to hold the 
 
 <ruby>
 class User < ActiveRecord::Base
-  has_and_belongs_to_many :friends, :class_name => "User",
-    :foreign_key => "this_user_id",
-    :association_foreign_key => "other_user_id"
+  has_and_belongs_to_many :friends, class_name: "User",
+    foreign_key: "this_user_id",
+    association_foreign_key: "other_user_id"
 end
 </ruby>
 
@@ -1701,7 +1701,7 @@ The +:group+ option supplies an attribute name to group the result set by, using
 
 <ruby>
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :group => "factory"
+  has_and_belongs_to_many :assemblies, group: "factory"
 end
 </ruby>
 
@@ -1723,14 +1723,14 @@ The +:limit+ option lets you restrict the total number of objects that will be f
 
 <ruby>
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :order => "created_at DESC",
-    :limit => 50
+  has_and_belongs_to_many :assemblies, order: "created_at DESC",
+    limit: 50
 end
 </ruby>
 
 h6(#has_and_belongs_to_many-offset). +:offset+
 
-The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 11 records.
+The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +offset: 11+, it will skip the first 11 records.
 
 h6(#has_and_belongs_to_many-order). +:order+
 
@@ -1738,7 +1738,7 @@ The +:order+ option dictates the order in which associated objects will be recei
 
 <ruby>
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :order => "assembly_name ASC"
+  has_and_belongs_to_many :assemblies, order: "assembly_name ASC"
 end
 </ruby>
 
@@ -1752,7 +1752,7 @@ The +:select+ option lets you override the SQL +SELECT+ clause that is used to r
 
 h6(#has_and_belongs_to_many-uniq). +:uniq+
 
-Specify the +:uniq => true+ option to remove duplicates from the collection.
+Specify the +uniq: true+ option to remove duplicates from the collection.
 
 h6(#has_and_belongs_to_many-validate). +:validate+
 
@@ -1783,7 +1783,7 @@ You define association callbacks by adding options to the association declaratio
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, :before_add => :check_credit_limit
+  has_many :orders, before_add: :check_credit_limit
 
   def check_credit_limit(order)
     ...
@@ -1798,7 +1798,7 @@ You can stack callbacks on a single event by passing them as an array:
 <ruby>
 class Customer < ActiveRecord::Base
   has_many :orders,
-    :before_add => [:check_credit_limit, :calculate_shipping_charges]
+    before_add: [:check_credit_limit, :calculate_shipping_charges]
 
   def check_credit_limit(order)
     ...
@@ -1836,11 +1836,11 @@ module FindRecentExtension
 end
 
 class Customer < ActiveRecord::Base
-  has_many :orders, :extend => FindRecentExtension
+  has_many :orders, extend: FindRecentExtension
 end
 
 class Supplier < ActiveRecord::Base
-  has_many :deliveries, :extend => FindRecentExtension
+  has_many :deliveries, extend: FindRecentExtension
 end
 </ruby>
 
@@ -1849,7 +1849,7 @@ To include more than one extension module in a single association, specify an ar
 <ruby>
 class Customer < ActiveRecord::Base
   has_many :orders,
-    :extend => [FindRecentExtension, FindActiveExtension]
+    extend: [FindRecentExtension, FindActiveExtension]
 end
 </ruby>
 

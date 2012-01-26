@@ -53,7 +53,7 @@ module AbstractController
     end
 
     class Callback2Overwrite < Callback2
-      before_filter :first, :except => :index
+      before_filter :first, except: :index
     end
 
     class TestCallbacks2 < ActiveSupport::TestCase
@@ -114,8 +114,8 @@ module AbstractController
     end
 
     class CallbacksWithConditions < ControllerWithCallbacks
-      before_filter :list, :only => :index
-      before_filter :authenticate, :except => :index
+      before_filter :list, only: :index
+      before_filter :authenticate, except: :index
 
       def index
         self.response_body = @list.join(", ")
@@ -158,8 +158,8 @@ module AbstractController
     end
 
     class CallbacksWithArrayConditions < ControllerWithCallbacks
-      before_filter :list, :only => [:index, :listy]
-      before_filter :authenticate, :except => [:index, :listy]
+      before_filter :list, only: [:index, :listy]
+      before_filter :authenticate, except: [:index, :listy]
 
       def index
         self.response_body = @list.join(", ")
@@ -202,7 +202,7 @@ module AbstractController
     end
 
     class ChangedConditions < Callback2
-      before_filter :first, :only => :index
+      before_filter :first, only: :index
 
       def not_index
         @text ||= nil

@@ -5,9 +5,9 @@ class ClassAttributeAccessorTest < ActiveSupport::TestCase
   def setup
     @class = Class.new do
       cattr_accessor :foo
-      cattr_accessor :bar,  :instance_writer   => false
-      cattr_reader   :shaq, :instance_reader   => false
-      cattr_accessor :camp, :instance_accessor => false
+      cattr_accessor :bar,  instance_writer:   false
+      cattr_reader   :shaq, instance_reader:   false
+      cattr_accessor :camp, instance_accessor: false
     end
     @object = @class.new
   end

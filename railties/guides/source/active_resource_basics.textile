@@ -46,7 +46,7 @@ h4. Create
 Creating a new resource submits the JSON form of the resource as the body of the request with HTTP POST method and parse the response into Active Resource object.
 
 <ruby>
-person = Person.create(:name => 'Vishnu')
+person = Person.create(name: 'Vishnu')
 person.id  # => 1
 </ruby>
 
@@ -92,7 +92,7 @@ h4. Validating client side resources
 Consider a Person resource on the server requiring both a first_name and a last_name with a validates_presence_of :first_name, :last_name declaration in the model:
 
 <ruby>
-person = Person.new(:first_name => "Jim", :last_name => "")
+person = Person.new(first_name: "Jim", last_name: "")
 person.save                   # => false (server returns an HTTP 422 status code and errors)
 person.valid?                 # => false
 person.errors.empty?          # => false

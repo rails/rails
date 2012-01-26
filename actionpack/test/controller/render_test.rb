@@ -9,7 +9,7 @@ module Fun
     end
 
     def nested_partial_with_form_builder
-      render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
+      render partial: ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
     end
   end
 end
@@ -17,7 +17,7 @@ end
 module Quiz
   class QuestionsController < ActionController::Base
     def new
-      render :partial => Quiz::Question.new("Namespaced Partial")
+      render partial: Quiz::Question.new("Namespaced Partial")
     end
   end
 end
@@ -43,12 +43,12 @@ class TestController < ActionController::Base
   end
 
   def hello_world_file
-    render :file => File.expand_path("../../fixtures/hello", __FILE__), :formats => [:html]
+    render file: File.expand_path("../../fixtures/hello", __FILE__), formats: [:html]
   end
 
   def conditional_hello
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123])
-      render :action => 'hello_world'
+    if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123])
+      render action: 'hello_world'
     end
   end
 
@@ -56,103 +56,103 @@ class TestController < ActionController::Base
     record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
 
     if stale?(record)
-      render :action => 'hello_world'
+      render action: 'hello_world'
     end
   end
 
   def conditional_hello_with_public_header
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
-      render :action => 'hello_world'
+    if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123], public: true)
+      render action: 'hello_world'
     end
   end
 
   def conditional_hello_with_public_header_with_record
     record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
 
-    if stale?(record, :public => true)
-      render :action => 'hello_world'
+    if stale?(record, public: true)
+      render action: 'hello_world'
     end
   end
 
   def conditional_hello_with_public_header_and_expires_at
     expires_in 1.minute
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
-      render :action => 'hello_world'
+    if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123], public: true)
+      render action: 'hello_world'
     end
   end
 
   def conditional_hello_with_expires_in
     expires_in 60.1.seconds
-    render :action => 'hello_world'
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_expires_in_with_public
-    expires_in 1.minute, :public => true
-    render :action => 'hello_world'
+    expires_in 1.minute, public: true
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_expires_in_with_public_with_more_keys
-    expires_in 1.minute, :public => true, 'max-stale' => 5.hours
-    render :action => 'hello_world'
+    expires_in 1.minute, public: true, 'max-stale' => 5.hours
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax
-    expires_in 1.minute, :public => true, :private => nil, 'max-stale' => 5.hours
-    render :action => 'hello_world'
+    expires_in 1.minute, public: true, private: nil, 'max-stale' => 5.hours
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_expires_now
     expires_now
-    render :action => 'hello_world'
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_bangs
-    render :action => 'hello_world'
+    render action: 'hello_world'
   end
   before_filter :handle_last_modified_and_etags, :only=>:conditional_hello_with_bangs
 
   def handle_last_modified_and_etags
-    fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
+    fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
   end
 
   # :ported:
   def render_hello_world
-    render :template => "test/hello_world"
+    render template: "test/hello_world"
   end
 
   def render_hello_world_with_last_modified_set
     response.last_modified = Date.new(2008, 10, 10).to_time
-    render :template => "test/hello_world"
+    render template: "test/hello_world"
   end
 
   # :ported: compatibility
   def render_hello_world_with_forward_slash
-    render :template => "/test/hello_world"
+    render template: "/test/hello_world"
   end
 
   # :ported:
   def render_template_in_top_directory
-    render :template => 'shared'
+    render template: 'shared'
   end
 
   # :deprecated:
   def render_template_in_top_directory_with_slash
-    render :template => '/shared'
+    render template: '/shared'
   end
 
   # :ported:
   def render_hello_world_from_variable
     @person = "david"
-    render :text => "hello #{@person}"
+    render text: "hello #{@person}"
   end
 
   # :ported:
   def render_action_hello_world
-    render :action => "hello_world"
+    render action: "hello_world"
   end
 
   def render_action_upcased_hello_world
-    render :action => "Hello_world"
+    render action: "Hello_world"
   end
 
   def render_action_hello_world_as_string
@@ -160,29 +160,29 @@ class TestController < ActionController::Base
   end
 
   def render_action_hello_world_with_symbol
-    render :action => :hello_world
+    render action: :hello_world
   end
 
   # :ported:
   def render_text_hello_world
-    render :text => "hello world"
+    render text: "hello world"
   end
 
   # :ported:
   def render_text_hello_world_with_layout
     @variable_for_layout = ", I'm here!"
-    render :text => "hello world", :layout => true
+    render text: "hello world", layout: true
   end
 
   def hello_world_with_layout_false
-    render :layout => false
+    render layout: false
   end
 
   # :ported:
   def render_file_with_instance_variables
     @secret = 'in the sauce'
     path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar')
-    render :file => path
+    render file: path
   end
 
   # :ported:
@@ -195,17 +195,17 @@ class TestController < ActionController::Base
   # :ported:
   def render_file_not_using_full_path
     @secret = 'in the sauce'
-    render :file => 'test/render_file_with_ivar'
+    render file: 'test/render_file_with_ivar'
   end
 
   def render_file_not_using_full_path_with_dot_in_path
     @secret = 'in the sauce'
-    render :file => 'test/dot.directory/render_file_with_ivar'
+    render file: 'test/dot.directory/render_file_with_ivar'
   end
 
   def render_file_using_pathname
     @secret = 'in the sauce'
-    render :file => Pathname.new(File.dirname(__FILE__)).join('..', 'fixtures', 'test', 'dot.directory', 'render_file_with_ivar')
+    render file: Pathname.new(File.dirname(__FILE__)).join('..', 'fixtures', 'test', 'dot.directory', 'render_file_with_ivar')
   end
 
   def render_file_from_template
@@ -215,52 +215,52 @@ class TestController < ActionController::Base
 
   def render_file_with_locals
     path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals')
-    render :file => path, :locals => {:secret => 'in the sauce'}
+    render file: path, locals: {secret: 'in the sauce'}
   end
 
   def render_file_as_string_with_locals
     path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals'))
-    render path, :locals => {:secret => 'in the sauce'}
+    render path, locals: {secret: 'in the sauce'}
   end
 
   def accessing_request_in_template
-    render :inline =>  "Hello: <%= request.host %>"
+    render inline:  "Hello: <%= request.host %>"
   end
 
   def accessing_logger_in_template
-    render :inline =>  "<%= logger.class %>"
+    render inline:  "<%= logger.class %>"
   end
 
   def accessing_action_name_in_template
-    render :inline =>  "<%= action_name %>"
+    render inline:  "<%= action_name %>"
   end
 
   def accessing_controller_name_in_template
-    render :inline =>  "<%= controller_name %>"
+    render inline:  "<%= controller_name %>"
   end
 
   # :ported:
   def render_custom_code
-    render :text => "hello world", :status => 404
+    render text: "hello world", status: 404
   end
 
   # :ported:
   def render_text_with_nil
-    render :text => nil
+    render text: nil
   end
 
   # :ported:
   def render_text_with_false
-    render :text => false
+    render text: false
   end
 
   def render_text_with_resource
-    render :text => Customer.new("David")
+    render text: Customer.new("David")
   end
 
   # :ported:
   def render_nothing_with_appendix
-    render :text => "appended"
+    render text: "appended"
   end
 
   # This test is testing 3 things:
@@ -269,7 +269,7 @@ class TestController < ActionController::Base
   #   setting content type
   def render_xml_hello
     @name = "David"
-    render :template => "test/hello"
+    render template: "test/hello"
   end
 
   def render_xml_hello_as_string_template
@@ -278,7 +278,7 @@ class TestController < ActionController::Base
   end
 
   def render_line_offset
-    render :inline => '<% raise %>', :locals => {:foo => 'bar'}
+    render inline: '<% raise %>', locals: {foo: 'bar'}
   end
 
   def heading
@@ -291,49 +291,49 @@ class TestController < ActionController::Base
 
   # :ported:
   def blank_response
-    render :text => ' '
+    render text: ' '
   end
 
   # :ported:
   def layout_test
-    render :action => "hello_world"
+    render action: "hello_world"
   end
 
   # :ported:
   def builder_layout_test
     @name = nil
-    render :action => "hello", :layout => "layouts/builder"
+    render action: "hello", layout: "layouts/builder"
   end
 
   # :move: test this in Action View
   def builder_partial_test
-    render :action => "hello_world_container"
+    render action: "hello_world_container"
   end
 
   # :ported:
   def partials_list
     @test_unchanged = 'hello'
     @customers = [ Customer.new("david"), Customer.new("mary") ]
-    render :action => "list"
+    render action: "list"
   end
 
   def partial_only
-    render :partial => true
+    render partial: true
   end
 
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
-    render :text => "How's there? " + render_to_string(:template => "test/list")
+    render text: "How's there? " + render_to_string(template: "test/list")
   end
 
   def accessing_params_in_template
-    render :inline => "Hello: <%= params[:name] %>"
+    render inline: "Hello: <%= params[:name] %>"
   end
 
   def accessing_local_assigns_in_inline_template
     name = params[:local_name]
-    render :inline => "<%= 'Goodbye, ' + local_name %>",
-           :locals => { :local_name => name }
+    render inline: "<%= 'Goodbye, ' + local_name %>",
+           locals: { local_name: name }
   end
 
   def render_implicit_html_template_from_xhr_request
@@ -349,7 +349,7 @@ class TestController < ActionController::Base
   end
 
   def render_to_string_test
-    @foo = render_to_string :inline => "this is a test"
+    @foo = render_to_string inline: "this is a test"
   end
 
   def default_render
@@ -362,69 +362,69 @@ class TestController < ActionController::Base
   end
 
   def render_action_hello_world_as_symbol
-    render :action => :hello_world
+    render action: :hello_world
   end
 
   def layout_test_with_different_layout
-    render :action => "hello_world", :layout => "standard"
+    render action: "hello_world", layout: "standard"
   end
 
   def layout_test_with_different_layout_and_string_action
-    render "hello_world", :layout => "standard"
+    render "hello_world", layout: "standard"
   end
 
   def layout_test_with_different_layout_and_symbol_action
-    render :hello_world, :layout => "standard"
+    render :hello_world, layout: "standard"
   end
 
   def rendering_without_layout
-    render :action => "hello_world", :layout => false
+    render action: "hello_world", layout: false
   end
 
   def layout_overriding_layout
-    render :action => "hello_world", :layout => "standard"
+    render action: "hello_world", layout: "standard"
   end
 
   def rendering_nothing_on_layout
-    render :nothing => true
+    render nothing: true
   end
 
   def render_to_string_with_assigns
     @before = "i'm before the render"
-    render_to_string :text => "foo"
+    render_to_string text: "foo"
     @after = "i'm after the render"
-    render :template => "test/hello_world"
+    render template: "test/hello_world"
   end
 
   def render_to_string_with_exception
-    render_to_string :file => "exception that will not be caught - this will certainly not work"
+    render_to_string file: "exception that will not be caught - this will certainly not work"
   end
 
   def render_to_string_with_caught_exception
     @before = "i'm before the render"
     begin
-      render_to_string :file => "exception that will be caught- hope my future instance vars still work!"
+      render_to_string file: "exception that will be caught- hope my future instance vars still work!"
     rescue
     end
     @after = "i'm after the render"
-    render :template => "test/hello_world"
+    render template: "test/hello_world"
   end
 
   def accessing_params_in_template_with_layout
-    render :layout => true, :inline =>  "Hello: <%= params[:name] %>"
+    render layout: true, inline:  "Hello: <%= params[:name] %>"
   end
 
   # :ported:
   def render_with_explicit_template
-    render :template => "test/hello_world"
+    render template: "test/hello_world"
   end
 
   def render_with_explicit_unescaped_template
-    render :template => "test/h*llo_world"
+    render template: "test/h*llo_world"
   end
 
   def render_with_explicit_escaped_template
-    render :template => "test/hello,world"
+    render template: "test/hello,world"
   end
 
   def render_with_explicit_string_template
@@ -433,47 +433,47 @@ class TestController < ActionController::Base
 
   # :ported:
   def render_with_explicit_template_with_locals
-    render :template => "test/render_file_with_locals", :locals => { :secret => 'area51' }
+    render template: "test/render_file_with_locals", locals: { secret: 'area51' }
   end
 
   # :ported:
   def double_render
-    render :text => "hello"
-    render :text => "world"
+    render text: "hello"
+    render text: "world"
   end
 
   def double_redirect
-    redirect_to :action => "double_render"
-    redirect_to :action => "double_render"
+    redirect_to action: "double_render"
+    redirect_to action: "double_render"
   end
 
   def render_and_redirect
-    render :text => "hello"
-    redirect_to :action => "double_render"
+    render text: "hello"
+    redirect_to action: "double_render"
   end
 
   def render_to_string_and_render
-    @stuff = render_to_string :text => "here is some cached stuff"
-    render :text => "Hi web users! #{@stuff}"
+    @stuff = render_to_string text: "here is some cached stuff"
+    render text: "Hi web users! #{@stuff}"
   end
 
   def render_to_string_with_inline_and_render
-    render_to_string :inline => "<%= 'dlrow olleh'.reverse %>"
-    render :template => "test/hello_world"
+    render_to_string inline: "<%= 'dlrow olleh'.reverse %>"
+    render template: "test/hello_world"
   end
 
   def rendering_with_conflicting_local_vars
     @name = "David"
-    render :action => "potential_conflicts"
+    render action: "potential_conflicts"
   end
 
   def hello_world_from_rxml_using_action
-    render :action => "hello_world_from_rxml", :handlers => [:builder]
+    render action: "hello_world_from_rxml", handlers: [:builder]
   end
 
   # :deprecated:
   def hello_world_from_rxml_using_template
-    render :template => "test/hello_world_from_rxml", :handlers => [:builder]
+    render template: "test/hello_world_from_rxml", handlers: [:builder]
   end
 
   def action_talk_to_layout
@@ -483,40 +483,40 @@ class TestController < ActionController::Base
   # :addressed:
   def render_text_with_assigns
     @hello = "world"
-    render :text => "foo"
+    render text: "foo"
   end
 
   def yield_content_for
-    render :action => "content_for", :layout => "yield"
+    render action: "content_for", layout: "yield"
   end
 
   def render_content_type_from_body
     response.content_type = Mime::RSS
-    render :text => "hello world!"
+    render text: "hello world!"
   end
 
   def head_with_location_header
-    head :location => "/foo"
+    head location: "/foo"
   end
 
   def head_with_location_object
-    head :location => Customer.new("david", 1)
+    head location: Customer.new("david", 1)
   end
 
   def head_with_symbolic_status
-    head :status => params[:status].intern
+    head status: params[:status].intern
   end
 
   def head_with_integer_status
-    head :status => params[:status].to_i
+    head status: params[:status].to_i
   end
 
   def head_with_string_status
-    head :status => params[:status]
+    head status: params[:status]
   end
 
   def head_with_custom_header
-    head :x_custom_header => "something"
+    head x_custom_header: "something"
   end
 
   def head_with_www_authenticate_header
@@ -524,88 +524,88 @@ class TestController < ActionController::Base
   end
 
   def head_with_status_code_first
-    head :forbidden, :x_custom_header => "something"
+    head :forbidden, x_custom_header: "something"
   end
 
   def render_using_layout_around_block
-    render :action => "using_layout_around_block"
+    render action: "using_layout_around_block"
   end
 
   def render_using_layout_around_block_in_main_layout_and_within_content_for_layout
-    render :action => "using_layout_around_block", :layout => "layouts/block_with_layout"
+    render action: "using_layout_around_block", layout: "layouts/block_with_layout"
   end
 
   def partial_formats_html
-    render :partial => 'partial', :formats => [:html]
+    render partial: 'partial', formats: [:html]
   end
 
   def partial
-    render :partial => 'partial'
+    render partial: 'partial'
   end
 
   def render_to_string_with_partial
-    @partial_only = render_to_string :partial => "partial_only"
-    @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }
-    render :template => "test/hello_world"
+    @partial_only = render_to_string partial: "partial_only"
+    @partial_with_locals = render_to_string partial: "customer", locals: { customer: Customer.new("david") }
+    render template: "test/hello_world"
   end
 
   def partial_with_counter
-    render :partial => "counter", :locals => { :counter_counter => 5 }
+    render partial: "counter", locals: { counter_counter: 5 }
   end
 
   def partial_with_locals
-    render :partial => "customer", :locals => { :customer => Customer.new("david") }
+    render partial: "customer", locals: { customer: Customer.new("david") }
   end
 
   def partial_with_form_builder
-    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
+    render partial: ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
   end
 
   def partial_with_form_builder_subclass
-    render :partial => LabellingFormBuilder.new(:post, nil, view_context, {})
+    render partial: LabellingFormBuilder.new(:post, nil, view_context, {})
   end
 
   def partial_collection
-    render :partial => "customer", :collection => [ Customer.new("david"), Customer.new("mary") ]
+    render partial: "customer", collection: [ Customer.new("david"), Customer.new("mary") ]
   end
 
   def partial_collection_with_as
-    render :partial => "customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :customer
+    render partial: "customer_with_var", collection: [ Customer.new("david"), Customer.new("mary") ], as: :customer
   end
 
   def partial_collection_with_counter
-    render :partial => "customer_counter", :collection => [ Customer.new("david"), Customer.new("mary") ]
+    render partial: "customer_counter", collection: [ Customer.new("david"), Customer.new("mary") ]
   end
 
   def partial_collection_with_as_and_counter
-    render :partial => "customer_counter_with_as", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :client
+    render partial: "customer_counter_with_as", collection: [ Customer.new("david"), Customer.new("mary") ], as: :client
   end
 
   def partial_collection_with_locals
-    render :partial => "customer_greeting", :collection => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
+    render partial: "customer_greeting", collection: [ Customer.new("david"), Customer.new("mary") ], locals: { greeting: "Bonjour" }
   end
 
   def partial_collection_with_spacer
-    render :partial => "customer", :spacer_template => "partial_only", :collection => [ Customer.new("david"), Customer.new("mary") ]
+    render partial: "customer", spacer_template: "partial_only", collection: [ Customer.new("david"), Customer.new("mary") ]
   end
 
   def partial_collection_shorthand_with_locals
-    render :partial => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
+    render partial: [ Customer.new("david"), Customer.new("mary") ], locals: { greeting: "Bonjour" }
   end
 
   def partial_collection_shorthand_with_different_types_of_records
-    render :partial => [
+    render partial: [
         BadCustomer.new("mark"),
         GoodCustomer.new("craig"),
         BadCustomer.new("john"),
         GoodCustomer.new("zach"),
         GoodCustomer.new("brandon"),
         BadCustomer.new("dan") ],
-      :locals => { :greeting => "Bonjour" }
+      locals: { greeting: "Bonjour" }
   end
 
   def empty_partial_collection
-    render :partial => "customer", :collection => []
+    render partial: "customer", collection: []
   end
 
   def partial_collection_shorthand_with_different_types_of_records_with_counter
@@ -613,15 +613,15 @@ class TestController < ActionController::Base
   end
 
   def missing_partial
-    render :partial => 'thisFileIsntHere'
+    render partial: 'thisFileIsntHere'
   end
 
   def partial_with_hash_object
-    render :partial => "hash_object", :object => {:first_name => "Sam"}
+    render partial: "hash_object", object: {first_name: "Sam"}
   end
 
   def partial_with_nested_object
-    render :partial => "quiz/questions/question", :object => Quiz::Question.new("first")
+    render partial: "quiz/questions/question", object: Quiz::Question.new("first")
   end
 
   def partial_with_nested_object_shorthand
@@ -629,33 +629,33 @@ class TestController < ActionController::Base
   end
 
   def partial_hash_collection
-    render :partial => "hash_object", :collection => [ {:first_name => "Pratik"}, {:first_name => "Amy"} ]
+    render partial: "hash_object", collection: [ {first_name: "Pratik"}, {first_name: "Amy"} ]
   end
 
   def partial_hash_collection_with_locals
-    render :partial => "hash_greeting", :collection => [ {:first_name => "Pratik"}, {:first_name => "Amy"} ], :locals => { :greeting => "Hola" }
+    render partial: "hash_greeting", collection: [ {first_name: "Pratik"}, {first_name: "Amy"} ], locals: { greeting: "Hola" }
   end
 
   def partial_with_implicit_local_assignment
     @customer = Customer.new("Marcel")
-    render :partial => "customer"
+    render partial: "customer"
   end
 
   def render_call_to_partial_with_layout
-    render :action => "calling_partial_with_layout"
+    render action: "calling_partial_with_layout"
   end
 
   def render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout
-    render :action => "calling_partial_with_layout", :layout => "layouts/partial_with_layout"
+    render action: "calling_partial_with_layout", layout: "layouts/partial_with_layout"
   end
 
-  before_filter :only => :render_with_filters do
+  before_filter only: :render_with_filters do
     request.format = :xml
   end
 
   # Ensure that the before filter is executed *before* self.formats is set.
   def render_with_filters
-    render :action => :formatted_xml_erb
+    render action: :formatted_xml_erb
   end
 
   private
@@ -984,12 +984,12 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_accessing_params_in_template
-    get :accessing_params_in_template, :name => "David"
+    get :accessing_params_in_template, name: "David"
     assert_equal "Hello: David", @response.body
   end
 
   def test_accessing_local_assigns_in_inline_template
-    get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
+    get :accessing_local_assigns_in_inline_template, local_name: "Local David"
     assert_equal "Goodbye, Local David", @response.body
   end
 
@@ -999,7 +999,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_implicitly_render_js_template_without_layout
-    get :render_implicit_js_template_without_layout, :format => :js
+    get :render_implicit_js_template_without_layout, format: :js
     assert_no_match %r{<html>}, @response.body
   end
 
@@ -1066,7 +1066,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_accessing_params_in_template_with_layout
-    get :accessing_params_in_template_with_layout, :name => "David"
+    get :accessing_params_in_template_with_layout, name: "David"
     assert_equal "<html>Hello: David</html>", @response.body
   end
 
@@ -1181,21 +1181,21 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_head_with_symbolic_status
-    get :head_with_symbolic_status, :status => "ok"
+    get :head_with_symbolic_status, status: "ok"
     assert_equal 200, @response.status
     assert_response :ok
 
-    get :head_with_symbolic_status, :status => "not_found"
+    get :head_with_symbolic_status, status: "not_found"
     assert_equal 404, @response.status
     assert_response :not_found
 
-    get :head_with_symbolic_status, :status => "no_content"
+    get :head_with_symbolic_status, status: "no_content"
     assert_equal 204, @response.status
     assert !@response.headers.include?('Content-Length')
     assert_response :no_content
 
     Rack::Utils::SYMBOL_TO_STATUS_CODE.each do |status, code|
-      get :head_with_symbolic_status, :status => status.to_s
+      get :head_with_symbolic_status, status: status.to_s
       assert_equal code, @response.response_code
       assert_response status
     end
@@ -1203,13 +1203,13 @@ class RenderTest < ActionController::TestCase
 
   def test_head_with_integer_status
     Rack::Utils::HTTP_STATUS_CODES.each do |code, message|
-      get :head_with_integer_status, :status => code.to_s
+      get :head_with_integer_status, status: code.to_s
       assert_equal message, @response.message
     end
   end
 
   def test_head_with_string_status
-    get :head_with_string_status, :status => "404 Eat Dirt"
+    get :head_with_string_status, status: "404 Eat Dirt"
     assert_equal 404, @response.response_code
     assert_equal "Not Found", @response.message
     assert_response :not_found
@@ -1317,27 +1317,27 @@ class RenderTest < ActionController::TestCase
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
-    assert_template :partial => '_customer'
+    assert_template partial: '_customer'
   end
 
   def test_partial_collection_shorthand_with_locals
     get :partial_collection_shorthand_with_locals
     assert_equal "Bonjour: davidBonjour: mary", @response.body
-    assert_template :partial => 'customers/_customer', :count => 2
-    assert_template :partial => '_completely_fake_and_made_up_template_that_cannot_possibly_be_rendered', :count => 0
+    assert_template partial: 'customers/_customer', count: 2
+    assert_template partial: '_completely_fake_and_made_up_template_that_cannot_possibly_be_rendered', count: 0
   end
 
   def test_partial_collection_shorthand_with_different_types_of_records
     get :partial_collection_shorthand_with_different_types_of_records
     assert_equal "Bonjour bad customer: mark0Bonjour good customer: craig1Bonjour bad customer: john2Bonjour good customer: zach3Bonjour good customer: brandon4Bonjour bad customer: dan5", @response.body
-    assert_template :partial => 'good_customers/_good_customer', :count => 3
-    assert_template :partial => 'bad_customers/_bad_customer', :count => 3
+    assert_template partial: 'good_customers/_good_customer', count: 3
+    assert_template partial: 'bad_customers/_bad_customer', count: 3
   end
 
   def test_empty_partial_collection
     get :empty_partial_collection
     assert_equal " ", @response.body
-    assert_template :partial => false
+    assert_template partial: false
   end
 
   def test_partial_with_hash_object

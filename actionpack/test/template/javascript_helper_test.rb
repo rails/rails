@@ -48,7 +48,7 @@ class JavaScriptHelperTest < ActionView::TestCase
 
   def test_button_to_function_with_onclick
     assert_dom_equal "<input onclick=\"alert('Goodbye World :('); alert('Hello world!');\" type=\"button\" value=\"Greeting\" />",
-      button_to_function("Greeting", "alert('Hello world!')", :onclick => "alert('Goodbye World :(')")
+      button_to_function("Greeting", "alert('Hello world!')", onclick: "alert('Goodbye World :(')")
   end
 
   def test_button_to_function_without_function
@@ -63,12 +63,12 @@ class JavaScriptHelperTest < ActionView::TestCase
 
   def test_link_to_function_with_existing_onclick
     assert_dom_equal %(<a href="#" onclick="confirm('Sanity!'); alert('Hello world!'); return false;">Greeting</a>),
-      link_to_function("Greeting", "alert('Hello world!')", :onclick => "confirm('Sanity!')")
+      link_to_function("Greeting", "alert('Hello world!')", onclick: "confirm('Sanity!')")
   end
 
   def test_function_with_href
     assert_dom_equal %(<a href="http://example.com/" onclick="alert('Hello world!'); return false;">Greeting</a>),
-      link_to_function("Greeting", "alert('Hello world!')", :href => 'http://example.com/')
+      link_to_function("Greeting", "alert('Hello world!')", href: 'http://example.com/')
   end
 
   def test_javascript_tag
@@ -82,7 +82,7 @@ class JavaScriptHelperTest < ActionView::TestCase
 
   def test_javascript_tag_with_options
     assert_dom_equal "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
-      javascript_tag("alert('hello')", :id => "the_js_tag")
+      javascript_tag("alert('hello')", id: "the_js_tag")
   end
 
   def test_javascript_cdata_section

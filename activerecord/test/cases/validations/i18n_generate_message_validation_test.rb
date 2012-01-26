@@ -8,22 +8,22 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
     I18n.backend = I18n::Backend::Simple.new
   end
 
-  # validates_associated: generate_message(attr_name, :invalid, :message => custom_message, :value => value)
+  # validates_associated: generate_message(attr_name, :invalid, message: custom_message, value: value)
   def test_generate_message_invalid_with_default_message
-    assert_equal 'is invalid', @topic.errors.generate_message(:title, :invalid, :value => 'title')
+    assert_equal 'is invalid', @topic.errors.generate_message(:title, :invalid, value: 'title')
   end
 
   def test_generate_message_invalid_with_custom_message
-    assert_equal 'custom message title', @topic.errors.generate_message(:title, :invalid, :message => 'custom message %{value}', :value => 'title')
+    assert_equal 'custom message title', @topic.errors.generate_message(:title, :invalid, message: 'custom message %{value}', value: 'title')
   end
 
-  # validates_uniqueness_of: generate_message(attr_name, :taken, :message => custom_message)
+  # validates_uniqueness_of: generate_message(attr_name, :taken, message: custom_message)
   def test_generate_message_taken_with_default_message
-    assert_equal "has already been taken", @topic.errors.generate_message(:title, :taken, :value => 'title')
+    assert_equal "has already been taken", @topic.errors.generate_message(:title, :taken, value: 'title')
   end
 
   def test_generate_message_taken_with_custom_message
-    assert_equal 'custom message title', @topic.errors.generate_message(:title, :taken, :message => 'custom message %{value}', :value => 'title')
+    assert_equal 'custom message title', @topic.errors.generate_message(:title, :taken, message: 'custom message %{value}', value: 'title')
   end
 
   # ActiveRecord#RecordInvalid exception

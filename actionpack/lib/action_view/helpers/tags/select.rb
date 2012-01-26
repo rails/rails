@@ -19,9 +19,9 @@ module ActionView
           #   { nil => [] }
           #
           if !@choices.empty? && @choices.first.respond_to?(:last) && Array === @choices.first.last
-            option_tags = grouped_options_for_select(@choices, :selected => selected_value, :disabled => @options[:disabled])
+            option_tags = grouped_options_for_select(@choices, selected: selected_value, disabled: @options[:disabled])
           else
-            option_tags = options_for_select(@choices, :selected => selected_value, :disabled => @options[:disabled])
+            option_tags = options_for_select(@choices, selected: selected_value, disabled: @options[:disabled])
           end
 
           select_content_tag(option_tags, @options, @html_options)

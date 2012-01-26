@@ -144,7 +144,7 @@
 
   helpers:
     select:
-      # Default value for :prompt => true in FormOptionsHelper
+      # Default value for prompt: true in FormOptionsHelper
       prompt: "Please select"
 
     # Default translation keys for submit FormHelper

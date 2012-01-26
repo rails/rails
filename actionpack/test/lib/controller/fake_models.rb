@@ -201,6 +201,6 @@ end
 
 class RenderJsonTestException < Exception
   def to_json(options = nil)
-    return { :error => self.class.name, :message => self.to_s }.to_json
+    return { error: self.class.name, message: self.to_s }.to_json
   end
 end

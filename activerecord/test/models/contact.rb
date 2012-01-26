@@ -1,5 +1,5 @@
 class Contact < ActiveRecord::Base
-  establish_connection(:adapter => 'fake')
+  establish_connection(adapter: 'fake')
 
   connection.tables = ['contacts']
   connection.primary_keys = {
@@ -21,5 +21,5 @@ class Contact < ActiveRecord::Base
 
   serialize :preferences
 
-  belongs_to :alternative, :class_name => 'Contact'
+  belongs_to :alternative, class_name: 'Contact'
 end

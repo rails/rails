@@ -31,7 +31,7 @@ module Rails
       include FileUtils
 
       class_attribute :destination_root, :current_path, :generator_class, :default_arguments
-      delegate :destination_root, :current_path, :generator_class, :default_arguments, :to => :'self.class'
+      delegate :destination_root, :current_path, :generator_class, :default_arguments, to: :'self.class'
 
       # Generators frequently change the current path using +FileUtils.cd+.
       # So we need to store the path at file load and revert back to it after each test.
@@ -205,12 +205,12 @@ module Rails
       # You can provide a configuration hash as second argument. This method returns the output
       # printed by the generator.
       def run_generator(args=self.default_arguments, config={})
-        capture(:stdout) { self.generator_class.start(args, config.reverse_merge(:destination_root => destination_root)) }
+        capture(:stdout) { self.generator_class.start(args, config.reverse_merge(destination_root: destination_root)) }
       end
 
       # Instantiate the generator.
       def generator(args=self.default_arguments, options={}, config={})
-        @generator ||= self.generator_class.new(args, options, config.reverse_merge(:destination_root => destination_root))
+        @generator ||= self.generator_class.new(args, options, config.reverse_merge(destination_root: destination_root))
       end
 
       # Create a Rails::Generators::GeneratedAttribute by supplying the

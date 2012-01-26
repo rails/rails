@@ -8,15 +8,15 @@ $:.unshift File.expand_path('..', __FILE__)
 require "tasks/release"
 
 desc "Build gem files for all projects"
-task :build => "all:build"
+task build: "all:build"
 
 desc "Release all gems to gemcutter and create a tag"
-task :release => "all:release"
+task release: "all:release"
 
 PROJECTS = %w(activesupport activemodel actionpack actionmailer activeresource activerecord railties)
 
 desc 'Run all tests by default'
-task :default => %w(test test:isolated)
+task default: %w(test test:isolated)
 
 %w(test test:isolated package gem).each do |task_name|
   desc "Run #{task_name} task for all projects"
@@ -38,7 +38,7 @@ task :smoke do
 end
 
 desc "Install gems for all projects."
-task :install => :gem do
+task install: :gem do
   version = File.read("RAILS_VERSION").strip
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"

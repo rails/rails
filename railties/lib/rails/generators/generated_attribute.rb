@@ -31,9 +31,9 @@ module Rails
         def parse_type_and_options(type)
           case type
           when /(string|text|binary|integer)\{(\d+)\}/
-            return $1, :limit => $2.to_i
+            return $1, limit: $2.to_i
           when /decimal\{(\d+)(,|\.|\-)(\d+)\}/
-            return :decimal, :precision => $1.to_i, :scale => $3.to_i
+            return :decimal, precision: $1.to_i, scale: $3.to_i
           else
             return type, {}
           end

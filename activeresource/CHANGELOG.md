@@ -160,15 +160,15 @@
 
 *   Handle string and symbol param keys when splitting params into prefix params and query params.
 
-        Comment.find(:all, :params => { :article_id => 5, :page => 2 }) or Comment.find(:all, :params => { 'article_id' => 5, :page => 2 })
+        Comment.find(:all, params: { article_id: 5, page: 2 }) or Comment.find(:all, params: { 'article_id' => 5, page: 2 })
 
-*   Added find-one with symbol [David Heinemeier Hansson]. Example: Person.find(:one, :from => :leader) # => GET /people/leader.xml
+*   Added find-one with symbol [David Heinemeier Hansson]. Example: Person.find(:one, from: :leader) # => GET /people/leader.xml
 
 *   BACKWARDS INCOMPATIBLE: Changed the finder API to be more extensible with :params and more strict usage of scopes [David Heinemeier Hansson]. Changes:
 
-        Person.find(:all, :title => "CEO")      ...becomes: Person.find(:all, :params => { :title => "CEO" })
-        Person.find(:managers)                  ...becomes: Person.find(:all, :from => :managers)
-        Person.find("/companies/1/manager.xml") ...becomes: Person.find(:one, :from => "/companies/1/manager.xml")
+        Person.find(:all, title: "CEO")      ...becomes: Person.find(:all, params: { title: "CEO" })
+        Person.find(:managers)                  ...becomes: Person.find(:all, from: :managers)
+        Person.find("/companies/1/manager.xml") ...becomes: Person.find(:one, from: "/companies/1/manager.xml")
 
 *   Add support for setting custom headers per Active Resource model *Rick Olson*
 
@@ -181,7 +181,7 @@
 
 *   Added find-by-path options to ActiveResource::Base.find [David Heinemeier Hansson]. Examples:
 
-        employees = Person.find(:all, :from => "/companies/1/people.xml") # => GET /companies/1/people.xml
+        employees = Person.find(:all, from: "/companies/1/people.xml") # => GET /companies/1/people.xml
         manager   = Person.find("/companies/1/manager.xml")               # => GET /companies/1/manager.xml
 
 
@@ -245,7 +245,7 @@
 
 *   Query string support.  *untext, Jeremy Kemper*
         # GET /forums/1/topics.xml?sort=created_at
-        Topic.find(:all, :forum_id => 1, :sort => 'created_at')
+        Topic.find(:all, forum_id: 1, sort: 'created_at')
 
 *   Base#==, eql?, and hash methods. == returns true if its argument is identical to self or if it's an instance of the same class, is not new?, and has the same id. eql? is an alias for ==. hash delegates to id.  *Jeremy Kemper*
 
@@ -284,22 +284,22 @@
         def update
           @person.save!
         rescue ActiveRecord::StaleObjectError
-          render :xml => @person.reload.to_xml, :status => '409 Conflict'
+          render xml: @person.reload.to_xml, status: '409 Conflict'
         end
 
 *   Basic validation support *Rick Olson*
 
     Parses the xml response of ActiveRecord::Errors#to_xml with a similar interface to ActiveRecord::Errors.
 
-        render :xml => @person.errors.to_xml, :status => '400 Validation Error'
+        render xml: @person.errors.to_xml, status: '400 Validation Error'
 
 *   Deep hashes are converted into collections of resources.  *Jeremy Kemper*
-        Person.new :name => 'Bob',
-                   :address => { :id => 1, :city => 'Portland' },
-                   :contacts => [{ :id => 1 }, { :id => 2 }]
+        Person.new name: 'Bob',
+                   address: { id: 1, city: 'Portland' },
+                   contacts: [{ id: 1 }, { id: 2 }]
     Looks for Address and Contact resources and creates them if unavailable.
     So clients can fetch a complex resource in a single request if you e.g.
-        render :xml => @person.to_xml(:include => [:address, :contacts])
+        render xml: @person.to_xml(include: [:address, :contacts])
     in your controller action.
 
 *   Major updates *Rick Olson*
@@ -324,9 +324,9 @@
         end
 
         @post     = Post.find 5
-        @comments = Comment.find :all, :post_id => @post.id
+        @comments = Comment.find :all, post_id: @post.id
 
-        @comment  = Comment.new({:body => 'hello world'}, {:post_id => @post.id})
+        @comment  = Comment.new({body: 'hello world'}, {post_id: @post.id})
         @comment.save
 
 *   Base.site= accepts URIs. 200...400 are valid response codes. PUT and POST request bodies default to ''. *Jeremy Kemper*

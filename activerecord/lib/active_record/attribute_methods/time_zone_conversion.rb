@@ -7,7 +7,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        config_attribute :time_zone_aware_attributes, :global => true
+        config_attribute :time_zone_aware_attributes, global: true
         self.time_zone_aware_attributes = false
 
         config_attribute :skip_time_zone_conversion_for_attributes

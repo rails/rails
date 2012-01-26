@@ -19,7 +19,7 @@ class RDocTaskWithoutDescriptions < RDoc::Task
       rm_r rdoc_dir rescue nil
     end
 
-    task :clobber => [clobber_task_name]
+    task clobber: [clobber_task_name]
 
     directory @rdoc_dir
     task rdoc_task_name => [rdoc_target]

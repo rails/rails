@@ -11,7 +11,7 @@ module ActiveRecord
       # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class,
       # which is then passed on to any new database connections made and which can be retrieved on both
       # a class and instance level by calling +logger+.
-      config_attribute :logger, :global => true
+      config_attribute :logger, global: true
 
       ##
       # :singleton-method:
@@ -40,14 +40,14 @@ module ActiveRecord
       #         'database' => 'db/production.sqlite3'
       #      }
       #   }
-      config_attribute :configurations, :global => true
+      config_attribute :configurations, global: true
       self.configurations = {}
 
       ##
       # :singleton-method:
       # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
       # dates and times from the database. This is set to :utc by default.
-      config_attribute :default_timezone, :global => true
+      config_attribute :default_timezone, global: true
       self.default_timezone = :utc
 
       ##
@@ -58,13 +58,13 @@ module ActiveRecord
       # ActiveRecord::Schema file which can be loaded into any database that
       # supports migrations. Use :ruby if you want to have different database
       # adapters for, e.g., your development and test environments.
-      config_attribute :schema_format, :global => true
+      config_attribute :schema_format, global: true
       self.schema_format = :ruby
 
       ##
       # :singleton-method:
       # Specify whether or not to use timestamps for migration versions
-      config_attribute :timestamped_migrations, :global => true
+      config_attribute :timestamped_migrations, global: true
       self.timestamped_migrations = true
 
       ##
@@ -146,13 +146,13 @@ module ActiveRecord
     #
     # ==== Examples
     #   # Instantiates a single new object
-    #   User.new(:first_name => 'Jamie')
+    #   User.new(first_name: 'Jamie')
     #
     #   # Instantiates a single new object using the :admin mass-assignment security role
-    #   User.new({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
+    #   User.new({ first_name: 'Jamie', is_admin: true }, as: :admin)
     #
     #   # Instantiates a single new object bypassing mass-assignment security
-    #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
+    #   User.new({ first_name: 'Jamie', is_admin: true }, without_protection: true)
     def initialize(attributes = nil, options = {})
       @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
 

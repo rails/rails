@@ -10,7 +10,7 @@ module ActionView
       #
       # ==== Example
       #
-      #   @user = User.new({ :username => 'testing', :password => 'xyz', :age => 42}) %>
+      #   @user = User.new({ username: 'testing', password: 'xyz', age: 42}) %>
       #   debug(@user)
       #   # =>
       #   <pre class='debug_dump'>--- !ruby/object:User

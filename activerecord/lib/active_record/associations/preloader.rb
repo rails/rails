@@ -68,7 +68,7 @@ module ActiveRecord
       #   books.
       # - a Hash which specifies multiple association names, as well as
       #   association names for the to-be-preloaded association objects. For
-      #   example, specifying <tt>{ :author => :avatar }</tt> will preload a
+      #   example, specifying <tt>{ author: :avatar }</tt> will preload a
       #   book's author, as well as that author's avatar.
       #
       # +:associations+ has the same format as the +:include+ option for
@@ -76,8 +76,8 @@ module ActiveRecord
       #
       #   :books
       #   [ :books, :author ]
-      #   { :author => :avatar }
-      #   [ :books, { :author => :avatar } ]
+      #   { author: :avatar }
+      #   [ :books, { author: :avatar } ]
       #
       # +options+ contains options that will be passed to ActiveRecord::Base#find
       # (which is called under the hood for preloading records). But it is passed

@@ -18,13 +18,13 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
       [200, {"Content-Type" => "text/html"}, ["#{env["SCRIPT_NAME"]} -- #{env["PATH_INFO"]}"]]
     }
 
-    mount SprocketsApp, :at => "/sprockets"
+    mount SprocketsApp, at: "/sprockets"
     mount SprocketsApp => "/shorthand"
 
-    mount FakeEngine, :at => "/fakeengine"
+    mount FakeEngine, at: "/fakeengine"
 
     scope "/its_a" do
-      mount SprocketsApp, :at => "/sprocket"
+      mount SprocketsApp, at: "/sprocket"
     end
   end
 

@@ -5,15 +5,15 @@ module ActiveResource
   # of the "default" REST methods with your own custom resource requests. For example,
   # say you use Rails to expose a REST service and configure your routes with:
   #
-  #    map.resources :people, :new => { :register => :post },
-  #                           :member => { :promote => :put, :deactivate => :delete }
-  #                           :collection => { :active => :get }
+  #    map.resources :people, new: { register: :post },
+  #                           member: { promote: :put, deactivate: :delete }
+  #                           collection: { active: :get }
   #
   #  This route set creates routes for the following HTTP requests:
   #
   #    POST    /people/new/register.json # PeopleController.register
-  #    PUT     /people/1/promote.json    # PeopleController.promote with :id => 1
-  #    DELETE  /people/1/deactivate.json # PeopleController.deactivate with :id => 1
+  #    PUT     /people/1/promote.json    # PeopleController.promote with id: 1
+  #    DELETE  /people/1/deactivate.json # PeopleController.deactivate with id: 1
   #    GET     /people/active.json       # PeopleController.active
   #
   # Using this module, Active Resource can use these custom REST methods just like the
@@ -23,14 +23,14 @@ module ActiveResource
   #     self.site = "https://37s.sunrise.com"
   #   end
   #
-  #   Person.new(:name => 'Ryan').post(:register)  # POST /people/new/register.json
-  #   # => { :id => 1, :name => 'Ryan' }
+  #   Person.new(name: 'Ryan').post(:register)  # POST /people/new/register.json
+  #   # => { id: 1, name: 'Ryan' }
   #
-  #   Person.find(1).put(:promote, :position => 'Manager') # PUT /people/1/promote.json
+  #   Person.find(1).put(:promote, position: 'Manager') # PUT /people/1/promote.json
   #   Person.find(1).delete(:deactivate) # DELETE /people/1/deactivate.json
   #
   #   Person.get(:active)  # GET /people/active.json
-  #   # => [{:id => 1, :name => 'Ryan'}, {:id => 2, :name => 'Joe'}]
+  #   # => [{id: 1, name: 'Ryan'}, {id: 2, name: 'Joe'}]
   #
   module CustomMethods
     extend ActiveSupport::Concern
@@ -42,17 +42,17 @@ module ActiveResource
         # Invokes a GET to a given custom REST method. For example:
         #
         #   Person.get(:active)  # GET /people/active.json
-        #   # => [{:id => 1, :name => 'Ryan'}, {:id => 2, :name => 'Joe'}]
+        #   # => [{id: 1, name: 'Ryan'}, {id: 2, name: 'Joe'}]
         #
-        #   Person.get(:active, :awesome => true)  # GET /people/active.json?awesome=true
-        #   # => [{:id => 1, :name => 'Ryan'}]
+        #   Person.get(:active, awesome: true)  # GET /people/active.json?awesome=true
+        #   # => [{id: 1, name: 'Ryan'}]
         #
         # Note: the objects returned from this method are not automatically converted
         # into ActiveResource::Base instances - they are ordinary Hashes. If you are expecting
         # ActiveResource::Base instances, use the <tt>find</tt> class method with the
         # <tt>:from</tt> option. For example:
         #
-        #   Person.find(:all, :from => :active)
+        #   Person.find(:all, from: :active)
         def get(custom_method_name, options = {})
           hashified = format.decode(connection.get(custom_method_collection_url(custom_method_name, options), headers).body)
           derooted  = Formats.remove_root(hashified)

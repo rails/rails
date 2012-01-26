@@ -298,13 +298,13 @@ Arrays return the result of applying +to_query+ to each element with <tt>_key_[]
 Hashes also respond to +to_query+ but with a different signature. If no argument is passed a call generates a sorted series of key/value assignments calling +to_query(key)+ on its values. Then it joins the result with "&":
 
 <ruby>
-{:c => 3, :b => 2, :a => 1}.to_query # => "a=1&b=2&c=3"
+{c: 3, b: 2, a: 1}.to_query # => "a=1&b=2&c=3"
 </ruby>
 
 The method +Hash#to_query+ accepts an optional namespace for the keys:
 
 <ruby>
-{:id => 89, :name => "John Smith"}.to_query('user')
+{id: 89, name: "John Smith"}.to_query('user')
 # => "user%5Bid%5D=89&user%5Bname%5D=John+Smith"
 </ruby>
 
@@ -318,10 +318,10 @@ Given a default options hash, +with_options+ yields a proxy object to a block. W
 
 <ruby>
 class Account < ActiveRecord::Base
-  has_many :customers, :dependent => :destroy
-  has_many :products,  :dependent => :destroy
-  has_many :invoices,  :dependent => :destroy
-  has_many :expenses,  :dependent => :destroy
+  has_many :customers, dependent: :destroy
+  has_many :products,  dependent: :destroy
+  has_many :invoices,  dependent: :destroy
+  has_many :expenses,  dependent: :destroy
 end
 </ruby>
 
@@ -329,7 +329,7 @@ this way:
 
 <ruby>
 class Account < ActiveRecord::Base
-  with_options :dependent => :destroy do |assoc|
+  with_options dependent: :destroy do |assoc|
     assoc.has_many :customers
     assoc.has_many :products
     assoc.has_many :invoices
@@ -341,9 +341,9 @@ end
 That idiom may convey _grouping_ to the reader as well. For example, say you want to send a newsletter whose language depends on the user. Somewhere in the mailer you could group locale-dependent bits like this:
 
 <ruby>
-I18n.with_options :locale => user.locale, :scope => "newsletter" do |i18n|
+I18n.with_options locale: user.locale, scope: "newsletter" do |i18n|
   subject i18n.t :subject
-  body    i18n.t :body, :user_name => user.name
+  body    i18n.t :body, user_name: user.name
 end
 </ruby>
 
@@ -880,7 +880,7 @@ That is what +delegate+ does for you:
 class User < ActiveRecord::Base
   has_one :profile
 
-  delegate :name, :to => :profile
+  delegate :name, to: :profile
 end
 </ruby>
 
@@ -891,17 +891,17 @@ The method must be public in the target.
 The +delegate+ macro accepts several methods:
 
 <ruby>
-delegate :name, :age, :address, :twitter, :to => :profile
+delegate :name, :age, :address, :twitter, to: :profile
 </ruby>
 
 When interpolated into a string, the +:to+ option should become an expression that evaluates to the object the method is delegated to. Typically a string or symbol. Such an expression is evaluated in the context of the receiver:
 
 <ruby>
 # delegates to the Rails constant
-delegate :logger, :to => :Rails
+delegate :logger, to: :Rails
 
 # delegates to the receiver's class
-delegate :table_name, :to => 'self.class'
+delegate :table_name, to: 'self.class'
 </ruby>
 
 WARNING: If the +:prefix+ option is +true+ this is less generic, see below.
@@ -909,7 +909,7 @@ WARNING: If the +:prefix+ option is +true+ this is less generic, see below.
 By default, if the delegation raises +NoMethodError+ and the target is +nil+ the exception is propagated. You can ask that +nil+ is returned instead with the +:allow_nil+ option:
 
 <ruby>
-delegate :name, :to => :profile, :allow_nil => true
+delegate :name, to: :profile, allow_nil: true
 </ruby>
 
 With +:allow_nil+ the call +user.name+ returns +nil+ if the user has no profile.
@@ -917,7 +917,7 @@ With +:allow_nil+ the call +user.name+ returns +nil+ if the user has no profile.
 The option +:prefix+ adds a prefix to the name of the generated method. This may be handy for example to get a better name:
 
 <ruby>
-delegate :street, :to => :address, :prefix => true
+delegate :street, to: :address, prefix: true
 </ruby>
 
 The previous example generates +address_street+ rather than +street+.
@@ -927,7 +927,7 @@ WARNING: Since in this case the name of the generated method is composed of the 
 A custom prefix may also be configured:
 
 <ruby>
-delegate :size, :to => :attachment, :prefix => :avatar
+delegate :size, to: :attachment, prefix: :avatar
 </ruby>
 
 In the previous example the macro generates +avatar_size+ rather than +size+.
@@ -990,10 +990,10 @@ For example +ActionMailer::Base+ defines:
 <ruby>
 class_attribute :default_params
 self.default_params = {
-  :mime_version => "1.0",
-  :charset      => "UTF-8",
-  :content_type => "text/plain",
-  :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+  mime_version: "1.0",
+  charset:      "UTF-8",
+  content_type: "text/plain",
+  parts_order:  [ "text/plain", "text/enriched", "text/html" ]
 }.freeze
 </ruby>
 
@@ -1015,7 +1015,7 @@ The generation of the writer instance method can be prevented by setting the opt
 <ruby>
 module ActiveRecord
   class Base
-    class_attribute :table_name_prefix, :instance_writer => false
+    class_attribute :table_name_prefix, instance_writer: false
     self.table_name_prefix = ""
   end
 end
@@ -1027,7 +1027,7 @@ The generation of the reader instance method can be prevented by setting the opt
 
 <ruby>
 class A
-  class_attribute :x, :instance_reader => false
+  class_attribute :x, instance_reader: false
 end
 
 A.new.x = 1 # NoMethodError
@@ -1070,11 +1070,11 @@ The generation of the reader instance method can be prevented by setting +:insta
 module A
   class B
     # No first_name instance reader is generated.
-    cattr_accessor :first_name, :instance_reader => false
+    cattr_accessor :first_name, instance_reader: false
     # No last_name= instance writer is generated.
-    cattr_accessor :last_name, :instance_writer => false
+    cattr_accessor :last_name, instance_writer: false
     # No surname instance reader or surname= writer is generated.
-    cattr_accessor :surname, :instance_accessor => false
+    cattr_accessor :surname, instance_accessor: false
   end
 end
 </ruby>
@@ -1117,7 +1117,7 @@ As with vanilla class attribute accessors these macros create convenience instan
 <ruby>
 module ActiveRecord
   class Base
-    class_inheritable_accessor :default_scoping, :instance_writer => false
+    class_inheritable_accessor :default_scoping, instance_writer: false
   end
 end
 </ruby>
@@ -1289,7 +1289,7 @@ The method +truncate+ returns a copy of its receiver truncated after a given +le
 Ellipsis can be customized with the +:omission+ option:
 
 <ruby>
-"Oh dear! Oh dear! I shall be late!".truncate(20, :omission => '&hellip;')
+"Oh dear! Oh dear! I shall be late!".truncate(20, omission: '&hellip;')
 # => "Oh dear! Oh &hellip;"
 </ruby>
 
@@ -1300,7 +1300,7 @@ Pass a +:separator+ to truncate the string at a natural break:
 <ruby>
 "Oh dear! Oh dear! I shall be late!".truncate(18)
 # => "Oh dear! Oh dea..."
-"Oh dear! Oh dear! I shall be late!".truncate(18, :separator => ' ')
+"Oh dear! Oh dear! I shall be late!".truncate(18, separator: ' ')
 # => "Oh dear! Oh..."
 </ruby>
 
@@ -1324,9 +1324,9 @@ h4. Key-based Interpolation
 In Ruby 1.9 the <tt>%</tt> string operator supports key-based interpolation, both formatted and unformatted:
 
 <ruby>
-"Total is %<total>.02f" % {:total => 43.1}  # => Total is 43.10
-"I say %{foo}" % {:foo => "wadus"}          # => "I say wadus"
-"I say %{woo}" % {:foo => "wadus"}          # => KeyError
+"Total is %<total>.02f" % {total: 43.1}  # => Total is 43.10
+"I say %{foo}" % {foo: "wadus"}          # => "I say wadus"
+"I say %{woo}" % {foo: "wadus"}          # => KeyError
 </ruby>
 
 Active Support adds that functionality to <tt>%</tt> in previous versions of Ruby.
@@ -1764,7 +1764,7 @@ def full_messages
   each do |attribute, messages|
     ...
     attr_name = attribute.to_s.gsub('.', '_').humanize
-    attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+    attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
     ...
   end
 
@@ -1907,7 +1907,7 @@ Addition only assumes the elements respond to <tt>+</tt>:
 <ruby>
 [[1, 2], [2, 3], [3, 4]].sum    # => [1, 2, 2, 3, 3, 4]
 %w(foo bar baz).sum             # => "foobarbaz"
-{:a => 1, :b => 2, :c => 3}.sum # => [:b, 2, :c, 3, :a, 1]
+{a: 1, b: 2, c: 3}.sum # => [:b, 2, :c, 3, :a, 1]
 </ruby>
 
 The sum of an empty collection is zero by default, but this is customizable:
@@ -2040,7 +2040,7 @@ h4. Options Extraction
 When the last argument in a method call is a hash, except perhaps for a +&block+ argument, Ruby allows you to omit the brackets:
 
 <ruby>
-User.exists?(:email => params[:email])
+User.exists?(email: params[:email])
 </ruby>
 
 That syntactic sugar is used a lot in Rails to avoid positional arguments where there would be too many, offering instead interfaces that emulate named parameters. In particular it is very idiomatic to use a trailing hash for options.
@@ -2168,7 +2168,7 @@ If there's any element that does not belong to the type of the first one the roo
 If the receiver is an array of hashes the root element is by default also "records":
 
 <ruby>
-[{:a => 1, :b => 2}, {:c => 3}].to_xml
+[{a: 1, b: 2}, {c: 3}].to_xml
 # =>
 # <?xml version="1.0" encoding="UTF-8"?>
 # <records type="array">
@@ -2189,7 +2189,7 @@ The name of children nodes is by default the name of the root node singularized.
 The default XML builder is a fresh instance of <tt>Builder::XmlMarkup</tt>. You can configure your own builder via the <tt>:builder</tt> option. The method also accepts options like <tt>:dasherize</tt> and friends, they are forwarded to the builder:
 
 <ruby>
-Contributor.limit(2).order(:rank).to_xml(:skip_types => true)
+Contributor.limit(2).order(:rank).to_xml(skip_types: true)
 # =>
 # <?xml version="1.0" encoding="UTF-8"?>
 # <contributors>
@@ -2235,8 +2235,8 @@ This method is similar in purpose to <tt>Kernel#Array</tt>, but there are some d
 The last point is particularly worth comparing for some enumerables:
 
 <ruby>
-Array.wrap(:foo => :bar) # => [{:foo => :bar}]
-Array(:foo => :bar)      # => [[:foo, :bar]]
+Array.wrap(foo: :bar) # => [{foo: :bar}]
+Array(foo: :bar)      # => [[:foo, :bar]]
 </ruby>
 
 There's also a related idiom that uses the splat operator:
@@ -2404,8 +2404,8 @@ h4. Merging
 Ruby has a built-in method +Hash#merge+ that merges two hashes:
 
 <ruby>
-{:a => 1, :b => 1}.merge(:a => 0, :c => 2)
-# => {:a => 0, :b => 1, :c => 2}
+{a: 1, b: 1}.merge(a: 0, c: 2)
+# => {a: 0, b: 1, c: 2}
 </ruby>
 
 Active Support defines a few more ways of merging hashes that may be convenient.
@@ -2415,19 +2415,19 @@ h5. +reverse_merge+ and +reverse_merge!+
 In case of collision the key in the hash of the argument wins in +merge+. You can support option hashes with default values in a compact way with this idiom:
 
 <ruby>
-options = {:length => 30, :omission => "..."}.merge(options)
+options = {length: 30, omission: "..."}.merge(options)
 </ruby>
 
 Active Support defines +reverse_merge+ in case you prefer this alternative notation:
 
 <ruby>
-options = options.reverse_merge(:length => 30, :omission => "...")
+options = options.reverse_merge(length: 30, omission: "...")
 </ruby>
 
 And a bang version +reverse_merge!+ that performs the merge in place:
 
 <ruby>
-options.reverse_merge!(:length => 30, :omission => "...")
+options.reverse_merge!(length: 30, omission: "...")
 </ruby>
 
 WARNING. Take into account that +reverse_merge!+ may change the hash in the caller, which may or may not be a good idea.
@@ -2449,8 +2449,8 @@ As you can see in the previous example if a key is found in both hashes the valu
 Active Support defines +Hash#deep_merge+. In a deep merge, if a key is found in both hashes and their values are hashes in turn, then their _merge_ becomes the value in the resulting hash:
 
 <ruby>
-{:a => {:b => 1}}.deep_merge(:a => {:c => 2})
-# => {:a => {:b => 1, :c => 2}}
+{a: {b: 1}}.deep_merge(a: {c: 2})
+# => {a: {b: 1, c: 2}}
 </ruby>
 
 The method +deep_merge!+ performs a deep merge in place.
@@ -2468,21 +2468,21 @@ The method +diff+ returns a hash that represents a diff of the receiver and the 
 * The rest is just merged.
 
 <ruby>
-{:a => 1}.diff(:a => 1)
+{a: 1}.diff(a: 1)
 # => {}, first rule
 
-{:a => 1}.diff(:a => 2)
-# => {:a => 1}, second rule
+{a: 1}.diff(a: 2)
+# => {a: 1}, second rule
 
-{:a => 1}.diff(:b => 2)
-# => {:a => 1, :b => 2}, third rule
+{a: 1}.diff(b: 2)
+# => {a: 1, b: 2}, third rule
 
-{:a => 1, :b => 2, :c => 3}.diff(:b => 1, :c => 3, :d => 4)
-# => {:a => 1, :b => 2, :d => 4}, all rules
+{a: 1, b: 2, c: 3}.diff(b: 1, c: 3, d: 4)
+# => {a: 1, b: 2, d: 4}, all rules
 
 {}.diff({})        # => {}
-{:a => 1}.diff({}) # => {:a => 1}
-{}.diff(:a => 1)   # => {:a => 1}
+{a: 1}.diff({}) # => {a: 1}
+{}.diff(a: 1)   # => {a: 1}
 </ruby>
 
 An important property of this diff hash is that you can retrieve the original hash by applying +diff+ twice:
@@ -2502,14 +2502,14 @@ h5. +except+ and +except!+
 The method +except+ returns a hash with the keys in the argument list removed, if present:
 
 <ruby>
-{:a => 1, :b => 2}.except(:a) # => {:b => 2}
+{a: 1, b: 2}.except(:a) # => {b: 2}
 </ruby>
 
 If the receiver responds to +convert_key+, the method is called on each of the arguments. This allows +except+ to play nice with hashes with indifferent access for instance:
 
 <ruby>
-{:a => 1}.with_indifferent_access.except(:a)  # => {}
-{:a => 1}.with_indifferent_access.except("a") # => {}
+{a: 1}.with_indifferent_access.except(:a)  # => {}
+{a: 1}.with_indifferent_access.except("a") # => {}
 </ruby>
 
 The method +except+ may come in handy for example when you want to protect some parameter that can't be globally protected with +attr_protected+:
@@ -2528,14 +2528,14 @@ h5. +stringify_keys+ and +stringify_keys!+
 The method +stringify_keys+ returns a hash that has a stringified version of the keys in the receiver. It does so by sending +to_s+ to them:
 
 <ruby>
-{nil => nil, 1 => 1, :a => :a}.stringify_keys
+{nil => nil, 1 => 1, a: :a}.stringify_keys
 # => {"" => nil, "a" => :a, "1" => 1}
 </ruby>
 
 The result in case of collision is undefined:
 
 <ruby>
-{"a" => 1, :a => 2}.stringify_keys
+{"a" => 1, a: 2}.stringify_keys
 # => {"a" => 2}, in my test, can't rely on this result though
 </ruby>
 
@@ -2561,7 +2561,7 @@ The method +symbolize_keys+ returns a hash that has a symbolized version of the 
 
 <ruby>
 {nil => nil, 1 => 1, "a" => "a"}.symbolize_keys
-# => {1 => 1, nil => nil, :a => "a"}
+# => {1 => 1, nil => nil, a: "a"}
 </ruby>
 
 WARNING. Note in the previous example only one key was symbolized.
@@ -2569,8 +2569,8 @@ WARNING. Note in the previous example only one key was symbolized.
 The result in case of collision is undefined:
 
 <ruby>
-{"a" => 1, :a => 2}.symbolize_keys
-# => {:a => 2}, in my test, can't rely on this result though
+{"a" => 1, a: 2}.symbolize_keys
+# => {a: 2}, in my test, can't rely on this result though
 </ruby>
 
 This method may be useful for example to easily accept both symbols and strings as options. For instance +ActionController::UrlRewriter+ defines
@@ -2600,8 +2600,8 @@ h5. +assert_valid_keys+
 The method +assert_valid_keys+ receives an arbitrary number of arguments, and checks whether the receiver has any key outside that white list. If it does +ArgumentError+ is raised.
 
 <ruby>
-{:a => 1}.assert_valid_keys(:a)  # passes
-{:a => 1}.assert_valid_keys("a") # ArgumentError
+{a: 1}.assert_valid_keys(:a)  # passes
+{a: 1}.assert_valid_keys("a") # ArgumentError
 </ruby>
 
 Active Record does not accept unknown options when building associations for example. It implements that control via +assert_valid_keys+:
@@ -2633,18 +2633,18 @@ h4. Slicing
 Ruby has built-in support for taking slices out of strings and arrays. Active Support extends slicing to hashes:
 
 <ruby>
-{:a => 1, :b => 2, :c => 3}.slice(:a, :c)
-# => {:c => 3, :a => 1}
+{a: 1, b: 2, c: 3}.slice(:a, :c)
+# => {c: 3, a: 1}
 
-{:a => 1, :b => 2, :c => 3}.slice(:b, :X)
-# => {:b => 2} # non-existing keys are ignored
+{a: 1, b: 2, c: 3}.slice(:b, :X)
+# => {b: 2} # non-existing keys are ignored
 </ruby>
 
 If the receiver responds to +convert_key+ keys are normalized:
 
 <ruby>
-{:a => 1, :b => 2}.with_indifferent_access.slice("a")
-# => {:a => 1}
+{a: 1, b: 2}.with_indifferent_access.slice("a")
+# => {a: 1}
 </ruby>
 
 NOTE. Slicing may come in handy for sanitizing option hashes with a white list of keys.
@@ -2652,9 +2652,9 @@ NOTE. Slicing may come in handy for sanitizing option hashes with a white list o
 There's also +slice!+ which in addition to perform a slice in place returns what's removed:
 
 <ruby>
-hash = {:a => 1, :b => 2}
-rest = hash.slice!(:a) # => {:b => 2}
-hash                   # => {:a => 1}
+hash = {a: 1, b: 2}
+rest = hash.slice!(:a) # => {b: 2}
+hash                   # => {a: 1}
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/hash/slice.rb+.
@@ -2664,9 +2664,9 @@ h4. Extracting
 The method +extract!+ removes and returns the key/value pairs matching the given keys.
 
 <ruby>
-hash = {:a => 1, :b => 2}
-rest = hash.extract!(:a) # => {:a => 1}
-hash                     # => {:b => 2}
+hash = {a: 1, b: 2}
+rest = hash.extract!(:a) # => {a: 1}
+hash                     # => {b: 2}
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/hash/slice.rb+.
@@ -2676,7 +2676,7 @@ h4. Indifferent Access
 The method +with_indifferent_access+ returns an +ActiveSupport::HashWithIndifferentAccess+ out of its receiver:
 
 <ruby>
-{:a => 1}.with_indifferent_access["a"] # => 1
+{a: 1}.with_indifferent_access["a"] # => 1
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/hash/indifferent_access.rb+.
@@ -2786,7 +2786,7 @@ An unbound method is not callable as is, you need to bind it first to an object 
 
 <ruby>
 clear = Hash.instance_method(:clear)
-clear.bind({:a => 1}).call # => {}
+clear.bind({a: 1}).call # => {}
 </ruby>
 
 Active Support defines +Proc#bind+ with an analogous purpose:
@@ -3012,8 +3012,8 @@ The most generic way to jump to other days is +advance+. This method receives a 
 
 <ruby>
 date = Date.new(2010, 6, 6)
-date.advance(:years => 1, :weeks => 2)  # => Mon, 20 Jun 2011
-date.advance(:months => 2, :days => -2) # => Wed, 04 Aug 2010
+date.advance(years: 1, weeks: 2)  # => Mon, 20 Jun 2011
+date.advance(months: 2, days: -2) # => Wed, 04 Aug 2010
 </ruby>
 
 Note in the previous example that increments may be negative.
@@ -3023,14 +3023,14 @@ To perform the computation the method first increments years, then months, then 
 The method +advance+ advances first one month, and then one day, the result is:
 
 <ruby>
-Date.new(2010, 2, 28).advance(:months => 1, :days => 1)
+Date.new(2010, 2, 28).advance(months: 1, days: 1)
 # => Sun, 29 Mar 2010
 </ruby>
 
 While if it did it the other way around the result would be different:
 
 <ruby>
-Date.new(2010, 2, 28).advance(:days => 1).advance(:months => 1)
+Date.new(2010, 2, 28).advance(days: 1).advance(months: 1)
 # => Thu, 01 Apr 2010
 </ruby>
 
@@ -3039,14 +3039,14 @@ h5. Changing Components
 The method +change+ allows you to get a new date which is the same as the receiver except for the given year, month, or day:
 
 <ruby>
-Date.new(2010, 12, 23).change(:year => 2011, :month => 11)
+Date.new(2010, 12, 23).change(year: 2011, month: 11)
 # => Wed, 23 Nov 2011
 </ruby>
 
 This method is not tolerant to non-existing dates, if the change is invalid +ArgumentError+ is raised:
 
 <ruby>
-Date.new(2010, 1, 31).change(:month => 2)
+Date.new(2010, 1, 31).change(month: 2)
 # => ArgumentError: invalid date
 </ruby>
 
@@ -3204,7 +3204,7 @@ The most generic way to jump to another datetime is +advance+. This method recei
 <ruby>
 d = DateTime.current
 # => Thu, 05 Aug 2010 11:33:31 +0000
-d.advance(:years => 1, :months => 1, :days => 1, :hours => 1, :minutes => 1, :seconds => 1)
+d.advance(years: 1, months: 1, days: 1, hours: 1, minutes: 1, seconds: 1)
 # => Tue, 06 Sep 2011 12:34:32 +0000
 </ruby>
 
@@ -3215,14 +3215,14 @@ If we first move the date bits (that have also a relative order of processing, a
 <ruby>
 d = DateTime.new(2010, 2, 28, 23, 59, 59)
 # => Sun, 28 Feb 2010 23:59:59 +0000
-d.advance(:months => 1, :seconds => 1)
+d.advance(months: 1, seconds: 1)
 # => Mon, 29 Mar 2010 00:00:00 +0000
 </ruby>
 
 but if we computed them the other way around, the result would be different:
 
 <ruby>
-d.advance(:seconds => 1).advance(:months => 1)
+d.advance(seconds: 1).advance(months: 1)
 # => Thu, 01 Apr 2010 00:00:00 +0000
 </ruby>
 
@@ -3235,28 +3235,28 @@ The method +change+ allows you to get a new datetime which is the same as the re
 <ruby>
 now = DateTime.current
 # => Tue, 08 Jun 2010 01:56:22 +0000
-now.change(:year => 2011, :offset => Rational(-6, 24))
+now.change(year: 2011, offset: Rational(-6, 24))
 # => Wed, 08 Jun 2011 01:56:22 -0600
 </ruby>
 
 If hours are zeroed, then minutes and seconds are too (unless they have given values):
 
 <ruby>
-now.change(:hour => 0)
+now.change(hour: 0)
 # => Tue, 08 Jun 2010 00:00:00 +0000
 </ruby>
 
 Similarly, if minutes are zeroed, then seconds are too (unless it has given a value):
 
 <ruby>
-now.change(:min => 0)
+now.change(min: 0)
 # => Tue, 08 Jun 2010 01:00:00 +0000
 </ruby>
 
 This method is not tolerant to non-existing dates, if the change is invalid +ArgumentError+ is raised:
 
 <ruby>
-DateTime.current.change(:month => 2, :day => 30)
+DateTime.current.change(month: 2, day: 30)
 # => ArgumentError: invalid date
 </ruby>
 
@@ -3336,7 +3336,7 @@ Time.zone_default
 # In Barcelona, 2010/03/28 02:00 <plus>0100 becomes 2010/03/28 03:00 <plus>0200 due to DST.
 t = Time.local_time(2010, 3, 28, 1, 59, 59)
 # => Sun Mar 28 01:59:59 +0100 2010
-t.advance(:seconds => 1)
+t.advance(seconds: 1)
 # => Sun Mar 28 03:00:00 +0200 2010
 </ruby>
 

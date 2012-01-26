@@ -5,8 +5,8 @@ class AuthorizationTest < ActiveSupport::TestCase
 
   def setup
     @conn = ActiveResource::Connection.new('http://localhost')
-    @matz  = { :person => { :id => 1, :name => 'Matz' } }.to_json
-    @david = { :person => { :id => 2, :name => 'David' } }.to_json
+    @matz  = { person: { id: 1, name: 'Matz' } }.to_json
+    @david = { person: { id: 2, name: 'David' } }.to_json
     @authenticated_conn = ActiveResource::Connection.new("http://david:test123@localhost")
     @basic_authorization_request_header = { 'Authorization' => 'Basic ZGF2aWQ6dGVzdDEyMw==' }
   end

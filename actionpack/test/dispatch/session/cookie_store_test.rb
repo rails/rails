@@ -5,8 +5,8 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
-  Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, :digest => 'SHA1')
-  SignedBar = Verifier.generate(:foo => "bar", :session_id => SecureRandom.hex(16))
+  Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, digest: 'SHA1')
+  SignedBar = Verifier.generate(foo: "bar", session_id: SecureRandom.hex(16))
 
   class TestController < ActionController::Base
     def no_session_access
@@ -14,20 +14,20 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def persistent_session_id
-      render :text => session[:session_id]
+      render text: session[:session_id]
     end
 
     def set_session_value
       session[:foo] = "bar"
-      render :text => Rack::Utils.escape(Verifier.generate(session.to_hash))
+      render text: Rack::Utils.escape(Verifier.generate(session.to_hash))
     end
 
     def get_session_value
-      render :text => "foo: #{session[:foo].inspect}"
+      render text: "foo: #{session[:foo].inspect}"
     end
 
     def get_session_id
-      render :text => "id: #{request.session_options[:id]}"
+      render text: "id: #{request.session_options[:id]}"
     end
 
     def call_session_clear
@@ -98,7 +98,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   end
 
   def test_does_not_set_secure_cookies_over_http
-    with_test_route_set(:secure => true) do
+    with_test_route_set(secure: true) do
       get '/set_session_value'
       assert_response :success
       assert_equal nil, headers['Set-Cookie']
@@ -117,7 +117,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   end
 
   def test_does_set_secure_cookies_over_https
-    with_test_route_set(:secure => true) do
+    with_test_route_set(secure: true) do
       get '/set_session_value', nil, 'HTTPS' => 'on'
       assert_response :success
       assert_equal "_myapp_session=#{response.body}; path=/; secure; HttpOnly",
@@ -249,7 +249,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   end
 
   def test_session_store_with_expire_after
-    with_test_route_set(:expire_after => 5.hours) do
+    with_test_route_set(expire_after: 5.hours) do
       # First request accesses the session
       time = Time.local(2008, 4, 24)
       Time.stubs(:now).returns(time)
@@ -278,7 +278,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   end
 
   def test_session_store_with_explicit_domain
-    with_test_route_set(:domain => "example.es") do
+    with_test_route_set(domain: "example.es") do
       get '/set_session_value'
       assert_match(/domain=example\.es/, headers['Set-Cookie'])
       headers['Set-Cookie']
@@ -293,14 +293,14 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   end
 
   def test_session_store_with_nil_domain
-    with_test_route_set(:domain => nil) do
+    with_test_route_set(domain: nil) do
       get '/set_session_value'
       assert_no_match(/domain\=/, headers['Set-Cookie'])
     end
   end
 
   def test_session_store_with_all_domains
-    with_test_route_set(:domain => :all) do
+    with_test_route_set(domain: :all) do
       get '/set_session_value'
       assert_match(/domain=\.example\.com/, headers['Set-Cookie'])
     end
@@ -317,10 +317,10 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::CookieStoreTest::TestController
+          match ':action', to: ::CookieStoreTest::TestController
         end
 
-        options = { :key => SessionKey }.merge!(options)
+        options = { key: SessionKey }.merge!(options)
 
         @app = self.class.build_app(set) do |middleware|
           middleware.use ActionDispatch::Session::CookieStore, options

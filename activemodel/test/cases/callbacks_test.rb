@@ -15,9 +15,9 @@ class CallbacksTest < ActiveModel::TestCase
     extend ActiveModel::Callbacks
 
     define_model_callbacks :create
-    define_model_callbacks :initialize, :only => :after
-    define_model_callbacks :multiple,   :only => [:before, :around]
-    define_model_callbacks :empty,      :only => []
+    define_model_callbacks :initialize, only: :after
+    define_model_callbacks :multiple,   only: [:before, :around]
+    define_model_callbacks :empty,      only: []
 
     before_create :before_create
     around_create CallbackValidator.new

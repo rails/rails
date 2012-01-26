@@ -5,7 +5,7 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
   class Parent
     include ActiveSupport::Configurable
     config_accessor :foo
-    config_accessor :bar, :instance_reader => false, :instance_writer => false
+    config_accessor :bar, instance_reader: false, instance_writer: false
   end
 
   class Child < Parent
@@ -19,13 +19,13 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
   end
 
   test "adds a configuration hash" do
-    assert_equal({ :foo => :bar }, Parent.config)
+    assert_equal({ foo: :bar }, Parent.config)
   end
 
   test "adds a configuration hash to a module as well" do
     mixin = Module.new { include ActiveSupport::Configurable }
     mixin.config.foo = :bar
-    assert_equal({ :foo => :bar }, mixin.config)
+    assert_equal({ foo: :bar }, mixin.config)
   end
 
   test "configuration hash is inheritable" do

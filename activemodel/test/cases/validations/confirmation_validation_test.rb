@@ -13,7 +13,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
   def test_no_title_confirmation
     Topic.validates_confirmation_of(:title)
 
-    t = Topic.new(:author_name => "Plutarch")
+    t = Topic.new(author_name: "Plutarch")
     assert t.valid?
 
     t.title_confirmation = "Parallel Lives"

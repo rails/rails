@@ -21,10 +21,10 @@ class TimestampTest < ActiveRecord::TestCase
       return skip("only tested on postgresql")
     end
 
-    d = Developer.create!(:name => 'aaron', :updated_at => 1.0 / 0.0)
+    d = Developer.create!(name: 'aaron', updated_at: 1.0 / 0.0)
     assert_equal(1.0 / 0.0, d.updated_at)
 
-    d = Developer.create!(:name => 'aaron', :updated_at => -1.0 / 0.0)
+    d = Developer.create!(name: 'aaron', updated_at: -1.0 / 0.0)
     assert_equal(-1.0 / 0.0, d.updated_at)
   end
 end

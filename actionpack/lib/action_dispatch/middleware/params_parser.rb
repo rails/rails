@@ -46,7 +46,7 @@ module ActionDispatch
         when :json
           data = ActiveSupport::JSON.decode(request.body)
           request.body.rewind if request.body.respond_to?(:rewind)
-          data = {:_json => data} unless data.is_a?(Hash)
+          data = {_json: data} unless data.is_a?(Hash)
           data.with_indifferent_access
         else
           false

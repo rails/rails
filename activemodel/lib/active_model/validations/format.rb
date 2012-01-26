@@ -30,7 +30,7 @@ module ActiveModel
       end
 
       def record_error(record, attribute, name, value)
-        record.errors.add(attribute, :invalid, options.except(name).merge!(:value => value))
+        record.errors.add(attribute, :invalid, options.except(name).merge!(value: value))
       end
 
       def check_options_validity(options, name)
@@ -46,20 +46,20 @@ module ActiveModel
       # You can require that the attribute matches the regular expression:
       #
       #   class Person < ActiveRecord::Base
-      #     validates_format_of :email, :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, :on => :create
+      #     validates_format_of :email, with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, on: :create
       #   end
       #
       # Alternatively, you can require that the specified attribute does _not_ match the regular expression:
       #
       #   class Person < ActiveRecord::Base
-      #     validates_format_of :email, :without => /NOSPAM/
+      #     validates_format_of :email, without: /NOSPAM/
       #   end
       #
       # You can also provide a proc or lambda which will determine the regular expression that will be used to validate the attribute
       #
       #   class Person < ActiveRecord::Base
       #     # Admin can have number as a first letter in their screen name
-      #     validates_format_of :screen_name, :with => lambda{ |person| person.admin? ? /\A[a-z0-9][a-z0-9_\-]*\Z/i : /\A[a-z][a-z0-9_\-]*\Z/i }
+      #     validates_format_of :screen_name, with: lambda{ |person| person.admin? ? /\A[a-z0-9][a-z0-9_\-]*\Z/i : /\A[a-z][a-z0-9_\-]*\Z/i }
       #   end
       #
       # Note: use <tt>\A</tt> and <tt>\Z</tt> to match the start and end of the string, <tt>^</tt> and <tt>$</tt> match the start/end of a line.
@@ -79,10 +79,10 @@ module ActiveModel
       #   validation contexts by default (+nil+), other options are <tt>:create</tt>
       #   and <tt>:update</tt>.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The
+      #   occur (e.g. <tt>if: :allow_validation</tt>, or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
+      #   not occur (e.g. <tt>unless: :skip_validation</tt>, or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict. 
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information

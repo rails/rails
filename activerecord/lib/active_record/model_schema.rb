@@ -13,7 +13,7 @@ module ActiveRecord
       # the Product class will look for "productid" instead of "id" as the primary column. If the
       # latter is specified, the Product class will look for "product_id" instead of "id". Remember
       # that this is a global setting for all Active Records.
-      config_attribute :primary_key_prefix_type, :global => true
+      config_attribute :primary_key_prefix_type, global: true
 
       ##
       # :singleton-method:
@@ -255,7 +255,7 @@ module ActiveRecord
       #
       #      JobLevel.reset_column_information
       #      %w{assistant executive manager director}.each do |type|
-      #        JobLevel.create(:name => type)
+      #        JobLevel.create(name: type)
       #      end
       #    end
       #

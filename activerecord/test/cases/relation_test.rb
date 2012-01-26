@@ -71,7 +71,7 @@ module ActiveRecord
     def test_has_values
       relation = Relation.new Post, Post.arel_table
       relation.where_values << relation.table[:id].eq(10)
-      assert_equal({:id => 10}, relation.where_values_hash)
+      assert_equal({id: 10}, relation.where_values_hash)
     end
 
     def test_values_wrong_table
@@ -101,7 +101,7 @@ module ActiveRecord
 
     def test_create_with_value
       relation = Relation.new Post, Post.arel_table
-      hash = { :hello => 'world' }
+      hash = { hello: 'world' }
       relation.create_with_value = hash
       assert_equal hash, relation.scope_for_create
     end
@@ -109,8 +109,8 @@ module ActiveRecord
     def test_create_with_value_with_wheres
       relation = Relation.new Post, Post.arel_table
       relation.where_values << relation.table[:id].eq(10)
-      relation.create_with_value = {:hello => 'world'}
-      assert_equal({:hello => 'world', :id => 10}, relation.scope_for_create)
+      relation.create_with_value = {hello: 'world'}
+      assert_equal({hello: 'world', id: 10}, relation.scope_for_create)
     end
 
     # FIXME: is this really wanted or expected behavior?
@@ -121,7 +121,7 @@ module ActiveRecord
       relation.where_values << relation.table[:id].eq(10)
       assert_equal({}, relation.scope_for_create)
 
-      relation.create_with_value = {:hello => 'world'}
+      relation.create_with_value = {hello: 'world'}
       assert_equal({}, relation.scope_for_create)
     end
 
@@ -151,7 +151,7 @@ module ActiveRecord
 
     def test_apply_finder_options_takes_references
       relation = Relation.new :a, :b
-      relation = relation.apply_finder_options(:references => :foo)
+      relation = relation.apply_finder_options(references: :foo)
       assert_equal ['foo'], relation.references_values
     end
   end
