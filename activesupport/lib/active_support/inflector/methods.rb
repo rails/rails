@@ -94,7 +94,10 @@ module ActiveSupport
       result = lower_case_and_underscored_word.to_s.dup
       inflections.humans.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
       result.gsub!(/_id$/, "")
-      result.gsub(/(_)?([a-z\d]*)/i) { "#{$1 && ' '}#{inflections.acronyms[$2] || $2.downcase}" }.gsub(/^\w/) { $&.upcase }
+      result.gsub!(/_/, ' ')
+      result.gsub(/([a-z\d]*)/i) { |match|
+        "#{inflections.acronyms[match] || match.downcase}"
+      }.gsub(/^\w/) { $&.upcase }
     end
 
     # Capitalizes all the words and replaces some characters in the string to create
