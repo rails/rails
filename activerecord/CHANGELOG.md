@@ -208,7 +208,7 @@
 
         Client.select(:name).uniq
 
-    This also allows you to revert the unqueness in a relation:
+    This also allows you to revert the uniqueness in a relation:
 
         Client.select(:name).uniq.uniq(false)
 
