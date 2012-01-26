@@ -1,5 +1,7 @@
 ## Rails 3.2.1 (unreleased) ##
 
+*   The threshold for auto EXPLAIN is ignored if there's no logger. *fxn*
+
 *   Fix possible race condition when two threads try to define attribute
     methods for the same class.
 
@@ -65,7 +67,7 @@
 *   Implemented ActiveRecord::Relation#pluck method
 
     Method returns Array of column value from table under ActiveRecord model
-        
+
         Client.pluck(:id)
 
     *Bogdan Gusiev*
@@ -82,7 +84,7 @@
       Post.find(1)
       Post.connection.close
     }.join
-    
+
     Only people who spawn threads in their application code need to worry
     about this change.
 
@@ -181,7 +183,7 @@
     during :reject_if => :all_blank (fixes #2937)
 
     *Aaron Christy*
-    
+
 *   Add ActiveSupport::Cache::NullStore for use in development and testing.
 
     *Brian Durand*
