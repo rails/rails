@@ -73,6 +73,15 @@
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
+
+## Rails 3.2.1 (unreleased) ##
+
+*   The threshold for auto EXPLAIN is ignored if there's no logger. *fxn*
+
+*   Fix possible race condition when two threads try to define attribute
+    methods for the same class.
+
+
 ## Rails 3.2.0 (January 20, 2012) ##
 
 *   Added a `with_lock` method to ActiveRecord objects, which starts
