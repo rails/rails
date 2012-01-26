@@ -4,7 +4,7 @@
 
 *   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
 
-## Rails 3.2.0 (unreleased) ##
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   Turn gem has been removed from default Gemfile. We still looking for a best presentation for tests output. *Guillermo Iguaran*
 
