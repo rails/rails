@@ -157,11 +157,35 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dependence_with_restrict
-    firm = RestrictedFirm.new(:name => 'restrict')
-    firm.save!
+    # ActiveRecord::Base.dependent_restrict_raises = false, by default
+    # Shows Deprecation Warning
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
     firm.create_account(:credit_limit => 10)
+
     assert_not_nil firm.account
-    assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
+
+    ActiveSupport::Deprecation.silence { firm.destroy }
+
+    assert !firm.errors.empty?
+    assert_equal "Cannot delete record because dependent account exists", firm.errors[:base].first
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.account.present?
+  end
+
+  def test_dependence_with_restrict_with_dependent_restrict_raises_config_set_to_true
+    ActiveRecord::Base.dependent_restrict_raises = true
+    # Shows Deprecation Warning
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
+    firm.create_account(:credit_limit => 10)
+
+    assert_not_nil firm.account
+    assert_raise(ActiveRecord::DeleteRestrictionError) { ActiveSupport::Deprecation.silence { firm.destroy } }
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.account.present?
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = false
   end
 
   def test_successful_build_association

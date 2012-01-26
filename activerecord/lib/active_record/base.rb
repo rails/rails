@@ -389,6 +389,15 @@ module ActiveRecord #:nodoc:
     cattr_accessor :timestamped_migrations , :instance_writer => false
     @@timestamped_migrations = true
 
+    ##
+    # Specifies wether or not has_many or has_one association option
+    # :dependent => :restrict raises an exception. If set to true, then
+    # ActiveRecord::DeleteRestrictionError exception would be raised
+    # alongwith a DEPRECATION WARNING. If set to false, then no exception
+    # would be raised but a DEPRECATION WARNING would be displayed.
+    cattr_accessor :dependent_restrict_raises, :instance_writer => false
+    @@dependent_restrict_raises = false
+
     class << self # Class methods
       def inherited(child_class) #:nodoc:
         child_class.initialize_generated_modules

@@ -1140,16 +1140,39 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nil companies(:leetsoft).reload.client_of
     assert_nil companies(:jadedpixel).reload.client_of
 
-
     assert_equal num_accounts, Account.count
   end
 
   def test_restrict
-    firm = RestrictedFirm.new(:name => 'restrict')
-    firm.save!
+    # ActiveRecord::Base.dependent_restrict_raises = false, by default
+    # Shows Deprecation Warning
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
+
     assert !firm.companies.empty?
-    assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
+
+    ActiveSupport::Deprecation.silence { firm.destroy }
+
+    assert !firm.errors.empty?
+    assert_equal "Cannot delete record because dependent companies exist", firm.errors[:base].first
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.companies.exists?(:name => 'child')
+  end
+
+  def test_restrict_when_dependent_restrict_raises_config_set_to_true
+    ActiveRecord::Base.dependent_restrict_raises = true
+    # Shows Deprecation Warning
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
+    firm.companies.create(:name => 'child')
+
+    assert !firm.companies.empty?
+    assert_raise(ActiveRecord::DeleteRestrictionError) { ActiveSupport::Deprecation.silence { firm.destroy } }
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.companies.exists?(:name => 'child')
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = false
   end
 
   def test_included_in_collection
