@@ -2550,7 +2550,7 @@ class TestUnicodePaths < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       match "/#{Rack::Utils.escape("ほげ")}" => lambda { |env|
-        path_params = env['action_dispatch.request.path_parameters']
+        env['action_dispatch.request.path_parameters']
         [200, { 'Content-Type' => 'text/plain' }, []]
       }, :as => :unicode_path
     end
