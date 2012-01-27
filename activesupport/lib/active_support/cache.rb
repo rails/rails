@@ -91,7 +91,7 @@ module ActiveSupport
       def retrieve_cache_key(key)
         case
         when key.respond_to?(:cache_key) then key.cache_key
-        when key.is_a?(Array)            then ['Array', *key.map { |element| retrieve_cache_key(element) }].to_param
+        when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
         else                                  key.to_param
         end.to_s
       end
