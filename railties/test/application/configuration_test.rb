@@ -535,7 +535,7 @@ module ApplicationTests
       assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
     end
 
-    test "config.colorize_logging defaul is true" do
+    test "config.colorize_logging default is true" do
       make_basic_app
       assert app.config.colorize_logging
     end
