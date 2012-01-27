@@ -1,5 +1,24 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added deprecation for the `:dependent => :restrict` association option.
+
+    Please note:
+
+      * Up until now `has_many` and `has_one`, `:dependent => :restrict`
+        option raised a `DeleteRestrictionError` at the time of destroying
+        the object. Instead, it will add an error on the model.
+
+      * To fix this warning, make sure your code isn't relying on a
+        `DeleteRestrictionError` and then add
+        `config.active_record.dependent_restrict_raises = false` to your
+        application config.
+
+      * New rails application would be generated with the
+        `config.active_record.dependent_restrict_raises = false` in the
+        application config.
+
+    *Manoj Kumar*
+
 *   Added `create_join_table` migration helper to create HABTM join tables
 
         create_join_table :products, :categories

@@ -72,6 +72,16 @@ module ActiveRecord
       # The connection handler
       config_attribute :connection_handler
       self.connection_handler = ConnectionAdapters::ConnectionHandler.new
+
+      ##
+      # :singleton-method:
+      # Specifies wether or not has_many or has_one association option
+      # :dependent => :restrict raises an exception. If set to true, the
+      # ActiveRecord::DeleteRestrictionError exception will be raised
+      # along with a DEPRECATION WARNING. If set to false, an error would
+      # be added to the model instead.
+      config_attribute :dependent_restrict_raises, :global => true
+      self.dependent_restrict_raises = true
     end
 
     module ClassMethods
