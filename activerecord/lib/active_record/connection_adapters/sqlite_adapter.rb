@@ -454,7 +454,7 @@ module ActiveRecord
 
       protected
         def select(sql, name = nil, binds = []) #:nodoc:
-          exec_query(sql, name, binds).to_a
+          exec_query(sql, name, binds)
         end
 
         def table_structure(table_name)
