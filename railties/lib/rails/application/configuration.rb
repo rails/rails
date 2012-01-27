@@ -11,7 +11,7 @@ module Rails
                     :dependency_loading, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
                     :railties_order, :relative_url_root, :secret_token,
-                    :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
+                    :serve_static_assets, :ssl_options, :static_cache_control, :session_options, :sync_log,
                     :time_zone, :reload_classes_only_on_change
 
       attr_writer :log_level
@@ -33,6 +33,7 @@ module Rails
         @session_options               = {}
         @time_zone                     = "UTC"
         @log_level                     = nil
+        @sync_log                      = !Rails.env.production?
         @middleware                    = app_middleware
         @generators                    = app_generators
         @cache_store                   = [ :file_store, "#{root}/tmp/cache/" ]

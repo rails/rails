@@ -30,8 +30,8 @@ module Rails
 
           f = File.open path, 'a'
           f.binmode
-          f.sync = !Rails.env.production? # make sure every write flushes
-
+          f.sync = config.sync_log # make sure every write flushes
+          
           logger = ActiveSupport::TaggedLogging.new(
             ActiveSupport::Logger.new(f)
           )
