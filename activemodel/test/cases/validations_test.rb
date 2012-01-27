@@ -330,4 +330,10 @@ class ValidationsTest < ActiveModel::TestCase
       Topic.new.valid?
     end
   end
+
+  def test_does_not_modify_options_argument
+    options = {:presence => true}
+    Topic.validates :title, options
+    assert_equal({:presence => true}, options)
+  end
 end

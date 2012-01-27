@@ -2,6 +2,15 @@ require "cases/helper"
 
 module ActiveRecord
   class Migration
+    class << self
+      attr_accessor :message_count
+    end
+
+    def puts(text="")
+      ActiveRecord::Migration.message_count ||= 0
+      ActiveRecord::Migration.message_count += 1
+    end
+
     module TestHelper
       attr_reader :connection, :table_name
 

@@ -152,6 +152,7 @@ module ActionView
       def normalize_name(name, prefixes) #:nodoc:
         prefixes = nil if prefixes.blank?
         parts    = name.to_s.split('/')
+        parts.shift if parts.first.empty?
         name     = parts.pop
 
         return name, prefixes || [""] if parts.empty?

@@ -42,10 +42,10 @@ module ActiveSupport
     # +camelize+ will also convert '/' to '::' which is useful for converting paths to namespaces.
     #
     # Examples:
-    #   "active_record".camelize                # => "ActiveRecord"
-    #   "active_record".camelize(:lower)        # => "activeRecord"
-    #   "active_record/errors".camelize         # => "ActiveRecord::Errors"
-    #   "active_record/errors".camelize(:lower) # => "activeRecord::Errors"
+    #   "active_model".camelize                # => "ActiveModel"
+    #   "active_model".camelize(:lower)        # => "activeModel"
+    #   "active_model/errors".camelize         # => "ActiveModel::Errors"
+    #   "active_model/errors".camelize(:lower) # => "activeModel::Errors"
     #
     # As a rule of thumb you can think of +camelize+ as the inverse of +underscore+,
     # though there are cases where that does not hold:
@@ -66,8 +66,8 @@ module ActiveSupport
     # Changes '::' to '/' to convert namespaces to paths.
     #
     # Examples:
-    #   "ActiveRecord".underscore         # => "active_record"
-    #   "ActiveRecord::Errors".underscore # => active_record/errors
+    #   "ActiveModel".underscore         # => "active_model"
+    #   "ActiveModel::Errors".underscore # => "active_model/errors"
     #
     # As a rule of thumb you can think of +underscore+ as the inverse of +camelize+,
     # though there are cases where that does not hold:
@@ -94,7 +94,10 @@ module ActiveSupport
       result = lower_case_and_underscored_word.to_s.dup
       inflections.humans.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
       result.gsub!(/_id$/, "")
-      result.gsub(/(_)?([a-z\d]*)/i) { "#{$1 && ' '}#{inflections.acronyms[$2] || $2.downcase}" }.gsub(/^\w/) { $&.upcase }
+      result.gsub!(/_/, ' ')
+      result.gsub(/([a-z\d]*)/i) { |match|
+        "#{inflections.acronyms[match] || match.downcase}"
+      }.gsub(/^\w/) { $&.upcase }
     end
 
     # Capitalizes all the words and replaces some characters in the string to create
@@ -240,7 +243,7 @@ module ActiveSupport
       begin
         constantize(camel_cased_word)
       rescue NameError => e
-        raise unless e.message =~ /uninitialized constant #{const_regexp(camel_cased_word)}$/ ||
+        raise unless e.message =~ /(uninitialized constant|wrong constant name) #{const_regexp(camel_cased_word)}$/ ||
           e.name.to_s == camel_cased_word.to_s
       rescue ArgumentError => e
         raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/

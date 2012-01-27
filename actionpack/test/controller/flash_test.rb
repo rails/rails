@@ -51,10 +51,6 @@ class FlashTest < ActionController::TestCase
       render :inline => "hello"
     end
 
-    def rescue_action(e)
-      raise unless ActionView::MissingTemplate === e
-    end
-
     # methods for test_sweep_after_halted_filter_chain
     before_filter :halt_and_redir, :only => "filter_halting_action"
 

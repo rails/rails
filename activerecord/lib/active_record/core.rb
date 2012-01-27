@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'thread'
 
 module ActiveRecord
   module Core
@@ -44,10 +45,10 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling
-      # dates and times from the database. This is set to :local by default.
+      # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
+      # dates and times from the database. This is set to :utc by default.
       config_attribute :default_timezone, :global => true
-      self.default_timezone = :local
+      self.default_timezone = :utc
 
       ##
       # :singleton-method:
@@ -80,6 +81,8 @@ module ActiveRecord
       end
 
       def initialize_generated_modules
+        @attribute_methods_mutex = Mutex.new
+
         # force attribute methods to be higher in inheritance hierarchy than other generated methods
         generated_attribute_methods
         generated_feature_methods
@@ -152,16 +155,8 @@ module ActiveRecord
     #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
     def initialize(attributes = nil, options = {})
       @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
-      @association_cache = {}
-      @aggregation_cache = {}
-      @attributes_cache = {}
-      @new_record = true
-      @readonly = false
-      @destroyed = false
-      @marked_for_destruction = false
-      @previously_changed = {}
-      @changed_attributes = {}
-      @relation = nil
+
+      init_internals
 
       ensure_proper_type
 
@@ -185,13 +180,11 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes = self.class.initialize_attributes(coder['attributes'])
-      @relation = nil
 
-      @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
-      @association_cache = {}
-      @aggregation_cache = {}
-      @readonly = @destroyed = @marked_for_destruction = false
+      init_internals
+
       @new_record = false
+
       run_callbacks :find
       run_callbacks :initialize
 
@@ -209,6 +202,7 @@ module ActiveRecord
       cloned_attributes.delete(self.class.primary_key)
 
       @attributes = cloned_attributes
+      @attributes[self.class.primary_key] = nil
 
       run_callbacks(:initialize) if _initialize_callbacks.any?
 
@@ -219,7 +213,8 @@ module ActiveRecord
 
       @aggregation_cache = {}
       @association_cache = {}
-      @attributes_cache = {}
+      @attributes_cache  = {}
+
       @new_record  = true
 
       ensure_proper_type
@@ -329,6 +324,23 @@ module ActiveRecord
     # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary/
     def to_ary # :nodoc:
       nil
+    end
+
+    def init_internals
+      pk = self.class.primary_key
+
+      @attributes[pk] = nil unless @attributes.key?(pk)
+
+      @relation               = nil
+      @aggregation_cache      = {}
+      @association_cache      = {}
+      @attributes_cache       = {}
+      @previously_changed     = {}
+      @changed_attributes     = {}
+      @readonly               = false
+      @destroyed              = false
+      @marked_for_destruction = false
+      @new_record             = true
     end
   end
 end

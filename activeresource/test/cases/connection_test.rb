@@ -224,7 +224,6 @@ class ConnectionTest < ActiveSupport::TestCase
     http = Net::HTTP.new('')
     @conn.site="https://secure"
     @conn.ssl_options={:verify_mode => OpenSSL::SSL::VERIFY_PEER}
-    @conn.timeout = 10 # prevent warning about uninitialized.
     @conn.send(:configure_http, http)
 
     assert http.use_ssl?

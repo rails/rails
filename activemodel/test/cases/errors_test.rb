@@ -27,10 +27,25 @@ class ErrorsTest < ActiveModel::TestCase
     end
   end
 
+  def test_delete
+    errors = ActiveModel::Errors.new(self)
+    errors[:foo] = 'omg'
+    errors.delete(:foo)
+    assert_empty errors[:foo]
+  end
+
   def test_include?
     errors = ActiveModel::Errors.new(self)
     errors[:foo] = 'omg'
     assert errors.include?(:foo), 'errors should include :foo'
+  end
+
+  def test_dup
+    errors = ActiveModel::Errors.new(self)
+    errors[:foo] = 'bar'
+    errors_dup = errors.dup
+    errors_dup[:bar] = 'omg'
+    assert_not_same errors_dup.messages, errors.messages
   end
 
   def test_has_key?

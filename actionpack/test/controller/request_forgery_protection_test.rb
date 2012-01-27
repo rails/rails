@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'digest/sha1'
-require 'active_support/core_ext/string/strip'
 require "active_support/log_subscriber/test_helper"
 
 # common controller actions
@@ -36,8 +35,6 @@ module RequestForgeryProtectionActions
   def form_for_without_protection
     render :inline => "<%= form_for(:some_resource, :authenticity_token => false ) {} %>"
   end
-
-  def rescue_action(e) raise e end
 end
 
 # sample controllers
@@ -74,9 +71,7 @@ class CustomAuthenticityParamController < RequestForgeryProtectionController
   end
 end
 
-
 # common test methods
-
 module RequestForgeryProtectionTests
   def setup
     @token      = "cf50faa3fe97702ca1ae"
@@ -247,10 +242,6 @@ class FreeCookieControllerTest < ActionController::TestCase
     assert_blank @response.body
   end
 end
-
-
-
-
 
 class CustomAuthenticityParamControllerTest < ActionController::TestCase
   def setup

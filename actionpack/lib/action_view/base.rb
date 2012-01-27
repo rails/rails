@@ -143,10 +143,10 @@ module ActionView #:nodoc:
 
     class_attribute :helpers
     class_attribute :_routes
+    class_attribute :logger
 
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
-      delegate :logger, :to => 'ActionController::Base', :allow_nil => true
 
       def cache_template_loading
         ActionView::Resolver.caching?

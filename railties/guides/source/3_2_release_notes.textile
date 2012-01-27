@@ -27,6 +27,7 @@ h4. What to update in your apps
 ** <tt>rails = 3.2.0</tt>
 ** <tt>sass-rails ~> 3.2.3</tt>
 ** <tt>coffee-rails ~> 3.2.1</tt>
+** <tt>uglifier >= 1.0.3</tt>
 
 * Rails 3.2 deprecates <tt>vendor/plugins</tt> and Rails 4.0 will remove them completely. You can start replacing these plugins by extracting them as gems and adding them in your Gemfile. If you choose not to make them gems, you can move them into, say, <tt>lib/my_plugin/*</tt> and add an appropriate initializer in <tt>config/initializers/my_plugin.rb</tt>.
 
@@ -138,9 +139,15 @@ will create indexes for +title+ and +author+ with the latter being an unique ind
 
 * Remove old <tt>config.paths.app.controller</tt> API in favor of <tt>config.paths["app/controller"]</tt>.
 
-h4. Deprecations
+h4(#railties_deprecations). Deprecations
 
 * +Rails::Plugin+ is deprecated and will be removed in Rails 4.0. Instead of adding plugins to +vendor/plugins+ use gems or bundler with path or git dependencies.
+
+h3. Action Mailer
+
+* Upgraded <tt>mail</tt> version to 2.4.0.
+
+* Removed the old Action Mailer API which was deprecated since Rails 3.0.
 
 h3. Action Pack
 
@@ -198,7 +205,7 @@ We now no longer write out HTTP_COOKIE and the cookie jar is persistent between 
 
 * Assets should use the request protocol by default or default to relative if no request is available.
 
-h5. Deprecations
+h5(#actioncontroller_deprecations). Deprecations
 
 * Deprecated implied layout lookup in controllers whose parent had a explicit layout set:
 
@@ -213,15 +220,27 @@ end
 
 In the example above, Posts controller will no longer automatically look up for a posts layout. If you need this functionality you could either remove <tt>layout "application"</tt> from +ApplicationController+ or explicitly set it to +nil+ in +PostsController+.
 
+* Deprecated <tt>ActionController::UnknownAction</tt> in favour of <tt>AbstractController::ActionNotFound</tt>.
+
+* Deprecated <tt>ActionController::DoubleRenderError</tt> in favour of <tt>AbstractController::DoubleRenderError</tt>.
+
+* Deprecated <tt>method_missing</tt> in favour of +action_missing+ for missing actions.
+
+* Deprecated <tt>ActionController#rescue_action</tt>, <tt>ActionController#initialize_template_class</tt> and <tt>ActionController#assign_shortcuts</tt>.
+
 h4. Action Dispatch
 
-* Use a BodyProxy instead of including a Module that responds to close. Closes #4441 if Active Record is disabled assets are delivered correctly.
+* Add <tt>config.action_dispatch.default_charset</tt> to configure default charset for <tt>ActionDispatch::Response</tt>.
 
 * Added <tt>ActionDispatch::RequestId</tt> middleware that'll make a unique X-Request-Id header available to the response and enables the <tt>ActionDispatch::Request#uuid</tt> method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog.
 
 * The <tt>ShowExceptions</tt> middleware now accepts a exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in +env["action_dispatch.exception"]+ and with the <tt>PATH_INFO</tt> rewritten to the status code.
 
 * Allow rescue responses to be configured through a railtie as in <tt>config.action_dispatch.rescue_responses</tt>.
+
+h5(#actiondispatch_deprecations). Deprecations
+
+* Deprecated the ability to set a default charset at the controller level, use the new <tt>config.action_dispatch.default_charset</tt> instead.
 
 h4. Action View
 
@@ -266,13 +285,19 @@ end
 
 * Added +font_path+ helper method that computes the path to a font asset in <tt>public/fonts</tt>.
 
-h5. Deprecations
+h5(#actionview_deprecations). Deprecations
 
 * Passing formats or handlers to render :template and friends like <tt>render :template => "foo.html.erb"</tt> is deprecated. Instead, you can provide :handlers and :formats directly as an options: <tt> render :template => "foo", :formats => [:html, :js], :handlers => :erb</tt>.
 
+h4. Sprockets
+
+* Adds a configuration option <tt>config.assets.logger</tt> to control Sprockets logging. Set it to +false+ to turn off logging and to +nil+ to default to +Rails.logger+.
+
 h3. Active Record
 
-* Boolean columns with 'on' and 'ON' values are type casted to true.
+* Boolean columns with 'on' and 'ON' values are type cast to true.
+
+* When the +timestamps+ method creates the +created_at+ and +updated_at+ columns, it makes them non-nullable by default.
 
 * Implemented <tt>ActiveRecord::Relation#explain</tt>.
 
@@ -347,7 +372,34 @@ has_many :clients, :class_name => :Client # Note that the symbol need to be capi
 User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson")
 </ruby>
 
-h4. Deprecations
+* Added a <tt>with_lock</tt> method to Active Record objects, which starts a transaction, locks the object (pessimistically) and yields to the block. The method takes one (optional) parameter and passes it to +lock!+.
+
+This makes it possible to write the following:
+
+<ruby>
+class Order < ActiveRecord::Base
+  def cancel!
+    transaction do
+      lock!
+      # ... cancelling logic
+    end
+  end
+end
+</ruby>
+
+as:
+
+<ruby>
+class Order < ActiveRecord::Base
+  def cancel!
+    with_lock do
+      # ... cancelling logic
+    end
+  end
+end
+</ruby>
+
+h4(#activerecord_deprecations). Deprecations
 
 * Automatic closure of connections in threads is deprecated. For example the following code is deprecated:
 
@@ -395,7 +447,7 @@ h3. Active Model
 
 * Provide mass_assignment_sanitizer as an easy API to replace the sanitizer behavior. Also support both :logger (default) and :strict sanitizer behavior.
 
-h4. Deprecations
+h4(#activemodel_deprecations). Deprecations
 
 * Deprecated <tt>define_attr_method</tt> in <tt>ActiveModel::AttributeMethods</tt> because this only existed to support methods like +set_table_name+ in Active Record, which are themselves being deprecated.
 
@@ -455,7 +507,7 @@ Event.where(:created_at => Time.now.all_day)
 
 * Removed <tt>ActiveSupport::SecureRandom</tt> in favor of <tt>SecureRandom</tt> from the standard library.
 
-h4. Deprecations
+h4(#activesupport_deprecations). Deprecations
 
 * +ActiveSupport::Base64+ is deprecated in favor of <tt>::Base64</tt>.
 

@@ -16,6 +16,7 @@ require 'models/engine'
 require 'models/tyre'
 require 'models/minivan'
 
+
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :tags, :taggings, :cars, :minivans
@@ -176,19 +177,19 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_cross_table_order_and_limit
-    tags = Tag.eager_load(:taggings).
+    tags = Tag.includes(:taggings).
               order("tags.name asc", "taggings.taggable_id asc", "REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").
               limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order_and_limit
-    tags = Tag.eager_load(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
+    tags = Tag.includes(:taggings).references(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order
-    tags = Tag.eager_load(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
+    tags = Tag.includes(:taggings).references(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
     assert_equal 3, tags.length
   end
 
@@ -1166,18 +1167,48 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
   end
 
-  def test_deprecated_references_eager_loaded_tables
-    expected = tags(:general)
-    tagging  = taggings(:welcome_general)
-    tag = assert_queries 1 do
-      assert_deprecated do
-        Tag.includes(:taggings).where(:taggings => { :id => tagging.id }).to_a.first
-      end
-    end
+  def test_references_triggers_eager_loading
+    scope = Post.includes(:comments)
+    assert !scope.eager_loading?
+    assert scope.references(:comments).eager_loading?
+  end
 
-    assert_equal expected, tag
-    assert_no_queries do
-      tag.taggings.to_a
-    end
+  def test_references_doesnt_trigger_eager_loading_if_reference_not_included
+    scope = Post.references(:comments)
+    assert !scope.eager_loading?
+  end
+
+  def test_automatically_added_where_references
+    scope = Post.where(:comments => { :body => "Bla" })
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.where('comments.body' => 'Bla')
+    assert_equal ['comments'], scope.references_values
+  end
+
+  def test_automatically_added_having_references
+    scope = Post.having(:comments => { :body => "Bla" })
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.having('comments.body' => 'Bla')
+    assert_equal ['comments'], scope.references_values
+  end
+
+  def test_automatically_added_order_references
+    scope = Post.order('comments.body')
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.order('comments.body', 'yaks.body')
+    assert_equal ['comments', 'yaks'], scope.references_values
+
+    # Don't infer yaks, let's not go down that road again...
+    scope = Post.order('comments.body, yaks.body')
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.order('comments.body asc')
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.order('foo(comments.body)')
+    assert_equal [], scope.references_values
   end
 end

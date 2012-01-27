@@ -692,6 +692,17 @@ Item.transaction do
 end
 </ruby>
 
+If you already have an instance of your model, you can start a transaction and acquire the lock in one go using the following code:
+
+<ruby>
+item = Item.first
+item.with_lock do
+  # This block is called within a transaction,
+  # item is already locked.
+  item.increment!(:views)
+end
+</ruby>
+
 h3. Joining Tables
 
 Active Record provides a finder method called +joins+ for specifying +JOIN+ clauses on the resulting SQL. There are multiple ways to use the +joins+ method.
@@ -954,7 +965,7 @@ If you're working with dates or times within scopes, due to how they are evaluat
 
 <ruby>
 class Post < ActiveRecord::Base
-  scope :last_week, lambda { where("created_at < ?", Time.zone.now ) }
+  scope :created_before_now, lambda { where("created_at < ?", Time.zone.now ) }
 end
 </ruby>
 
@@ -966,21 +977,21 @@ When a +lambda+ is used for a +scope+, it can take arguments:
 
 <ruby>
 class Post < ActiveRecord::Base
-  scope :1_week_before, lambda { |time| where("created_at < ?", time) }
+  scope :created_before, lambda { |time| where("created_at < ?", time) }
 end
 </ruby>
 
 This may then be called using this:
 
 <ruby>
-Post.1_week_before(Time.zone.now)
+Post.created_before(Time.zone.now)
 </ruby>
 
 However, this is just duplicating the functionality that would be provided to you by a class method.
 
 <ruby>
 class Post < ActiveRecord::Base
-  def self.1_week_before(time)
+  def self.created_before(time)
     where("created_at < ?", time)
   end
 end
@@ -989,7 +1000,7 @@ end
 Using a class method is the preferred way to accept arguments for scopes. These methods will still be accessible on the association objects:
 
 <ruby>
-category.posts.1_week_before(time)
+category.posts.created_before(time)
 </ruby>
 
 h4. Working with scopes
@@ -1388,6 +1399,9 @@ A threshold of +nil+ disables automatic EXPLAINs.
 
 The default threshold in development mode is 0.5 seconds, and +nil+ in test and
 production modes.
+
+INFO. Automatic EXPLAIN gets disabled if Active Record has no logger, regardless
+of the value of the threshold.
 
 h5. Disabling Automatic EXPLAIN
 

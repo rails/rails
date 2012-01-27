@@ -44,7 +44,7 @@ module ActiveRecord
     end
 
     def test_multi_value_methods
-      assert_equal [:select, :group, :order, :joins, :where, :having, :bind].map(&:to_s).sort,
+      assert_equal [:select, :group, :order, :joins, :where, :having, :bind, :references].map(&:to_s).sort,
         Relation::MULTI_VALUE_METHODS.map(&:to_s).sort
     end
 
@@ -136,10 +136,23 @@ module ActiveRecord
       assert relation.eager_loading?
     end
 
-    def test_apply_finder_options_supports_eager_load
+    def test_references_values
       relation = Relation.new :a, :b
-      relation = relation.apply_finder_options(:eager_load => :b)
-      assert_equal [:b], relation.eager_load_values
+      assert_equal [], relation.references_values
+      relation = relation.references(:foo).references(:omg, :lol)
+      assert_equal ['foo', 'omg', 'lol'], relation.references_values
+    end
+
+    def test_references_values_dont_duplicate
+      relation = Relation.new :a, :b
+      relation = relation.references(:foo).references(:foo)
+      assert_equal ['foo'], relation.references_values
+    end
+
+    def test_apply_finder_options_takes_references
+      relation = Relation.new :a, :b
+      relation = relation.apply_finder_options(:references => :foo)
+      assert_equal ['foo'], relation.references_values
     end
   end
 end

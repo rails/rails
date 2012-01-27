@@ -42,7 +42,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_join_conditions_allow_nil_associations
-    authors = Author.eager_load(:essays).where(:essays => {:id => nil})
+    authors = Author.includes(:essays).where(:essays => {:id => nil})
     assert_equal 2, authors.count
   end
 

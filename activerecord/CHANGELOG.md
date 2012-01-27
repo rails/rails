@@ -1,5 +1,40 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* The primary key is always initialized in the @attributes hash to nil (unless
+  another value has been specified).
+
+*   In previous releases, the following would generate a single query with
+    an `OUTER JOIN comments`, rather than two separate queries:
+
+        Post.includes(:comments)
+            .where("comments.name = 'foo'")
+
+    This behaviour relies on matching SQL string, which is an inherently
+    flawed idea unless we write an SQL parser, which we do not wish to
+    do.
+
+    Therefore, it is now deprecated.
+
+    To avoid deprecation warnings and for future compatibility, you must
+    explicitly state which tables you reference, when using SQL snippets:
+
+        Post.includes(:comments)
+            .where("comments.name = 'foo'")
+            .references(:comments)
+
+    Note that you do not need to explicitly specify references in the
+    following cases, as they can be automatically inferred:
+
+        Post.where(comments: { name: 'foo' })
+        Post.where('comments.name' => 'foo')
+        Post.order('comments.name')
+
+    You also do not need to worry about this unless you are doing eager
+    loading. Basically, don't worry unless you see a deprecation warning
+    or (in future releases) an SQL error due to a missing JOIN.
+
+    [Jon Leighton]
+
 *   Support for the `schema_info` table has been dropped.  Please
     switch to `schema_migrations`.
 
@@ -38,7 +73,43 @@
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
-## Rails 3.2.0 (unreleased) ##
+
+## Rails 3.2.1 (unreleased) ##
+
+*   The threshold for auto EXPLAIN is ignored if there's no logger. *fxn*
+
+*   Fix possible race condition when two threads try to define attribute
+    methods for the same class.
+
+
+## Rails 3.2.0 (January 20, 2012) ##
+
+*   Added a `with_lock` method to ActiveRecord objects, which starts
+    a transaction, locks the object (pessimistically) and yields to the block.
+    The method takes one (optional) parameter and passes it to `lock!`.
+
+    Before:
+
+        class Order < ActiveRecord::Base
+          def cancel!
+            transaction do
+              lock!
+              # ... cancelling logic
+            end
+          end
+        end
+
+    After:
+
+        class Order < ActiveRecord::Base
+          def cancel!
+            with_lock do
+              # ... cancelling logic
+            end
+          end
+        end
+
+    *Olek Janiszewski*
 
 *   'on' and 'ON' boolean columns values are type casted to true
     *Santiago Pastorino*
@@ -50,7 +121,7 @@
     Example:
       rake db:migrate SCOPE=blog
 
-   *Piotr Sarnacki*
+    *Piotr Sarnacki*
 
 *   Migrations copied from engines are now scoped with engine's name,
     for example 01_create_posts.blog.rb. *Piotr Sarnacki*
@@ -137,7 +208,7 @@
 
         Client.select(:name).uniq
 
-    This also allows you to revert the unqueness in a relation:
+    This also allows you to revert the uniqueness in a relation:
 
         Client.select(:name).uniq.uniq(false)
 

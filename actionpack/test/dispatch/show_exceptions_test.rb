@@ -7,11 +7,11 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       req = ActionDispatch::Request.new(env)
       case req.path
       when "/not_found"
-        raise ActionController::UnknownAction
+        raise AbstractController::ActionNotFound
       when "/method_not_allowed"
         raise ActionController::MethodNotAllowed
       when "/not_found_original_exception"
-        raise ActionView::Template::Error.new('template', {}, AbstractController::ActionNotFound.new)
+        raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
       else
         raise "puke!"
       end

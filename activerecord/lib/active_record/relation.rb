@@ -7,7 +7,7 @@ module ActiveRecord
   class Relation
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
-    MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
+    MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind, :references]
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering, :reverse_order, :uniq]
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
@@ -496,6 +496,10 @@ module ActiveRecord
       to_a.inspect
     end
 
+    def pretty_print(q)
+      q.pp(self.to_a)
+    end
+
     def with_default_scope #:nodoc:
       if default_scoped? && default_scope = klass.send(:build_default_scope)
         default_scope = default_scope.merge(self)
@@ -521,14 +525,25 @@ module ActiveRecord
 
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
+      string_tables = tables_in_string(to_sql)
 
-      referenced_tables = (tables_in_string(to_sql) - joined_tables)
-      if referenced_tables.any?
+      if (references_values - joined_tables).any?
+        true
+      elsif (string_tables - joined_tables).any?
         ActiveSupport::Deprecation.warn(
-          "Your query appears to reference tables (#{referenced_tables.join(', ')}) that are not " \
-          "explicitly joined. This implicit joining is deprecated, so you must explicitly " \
-          "reference the tables. For example, instead of Author.includes(:posts).where(\"posts.name = 'foo'\"), " \
-          "you should write Author.eager_load(:posts).where(\"posts.name = 'foo'\")."
+          "It looks like you are eager loading table(s) (one of: #{string_tables.join(', ')}) " \
+          "that are referenced in a string SQL snippet. For example: \n" \
+          "\n" \
+          "    Post.includes(:comments).where(\"comments.title = 'foo'\")\n" \
+          "\n" \
+          "Currently, Active Record recognises the table in the string, and knows to JOIN the " \
+          "comments table to the query, rather than loading comments in a separate query. " \
+          "However, doing this without writing a full-blown SQL parser is inherently flawed. " \
+          "Since we don't want to write an SQL parser, we are removing this functionality. " \
+          "From now on, you must explicitly tell Active Record when you are referencing a table " \
+          "from a string:\n" \
+          "\n" \
+          "    Post.includes(:comments).where(\"comments.title = 'foo'\").references(:comments)\n\n"
         )
         true
       else

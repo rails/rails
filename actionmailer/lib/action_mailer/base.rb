@@ -1,7 +1,6 @@
 require 'mail'
 require 'action_mailer/collector'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/proc'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'action_mailer/log_subscriber'
@@ -409,7 +408,7 @@ module ActionMailer #:nodoc:
       # and passing a Mail::Message will do nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
-          self.set_payload_for_mail(payload, mail)
+          set_payload_for_mail(payload, mail)
           yield # Let Mail do the delivery actions
         end
       end
@@ -602,9 +601,6 @@ module ActionMailer #:nodoc:
     #   end
     #
     def mail(headers={}, &block)
-      # Guard flag to prevent both the old and the new API from firing
-      # Should be removed when old API is removed
-      @mail_was_called = true
       m = @_message
 
       # At the beginning, do not consider class default for parts order neither content_type
@@ -612,8 +608,9 @@ module ActionMailer #:nodoc:
       parts_order  = headers[:parts_order]
 
       # Call all the procs (if any)
-      default_values = self.class.default.merge(self.class.default) do |k,v|
-        v.respond_to?(:call) ? v.bind(self).call : v
+      class_default = self.class.default
+      default_values = class_default.merge(class_default) do |k,v|
+        v.respond_to?(:to_proc) ? instance_eval(&v) : v
       end
 
       # Handle defaults

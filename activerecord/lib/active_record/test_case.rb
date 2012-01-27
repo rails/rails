@@ -1,3 +1,7 @@
+require 'active_support/deprecation'
+require 'active_support/test_case'
+
+ActiveSupport::Deprecation.warn('ActiveRecord::TestCase is deprecated, please use ActiveSupport::TestCase')
 module ActiveRecord
   # = Active Record Test Case
   #
@@ -25,37 +29,6 @@ module ActiveRecord
       else
         assert_equal expected.to_s, actual.to_s, message
       end
-    end
-
-    def assert_sql(*patterns_to_match)
-      ActiveRecord::SQLCounter.log = []
-      yield
-      ActiveRecord::SQLCounter.log
-    ensure
-      failed_patterns = []
-      patterns_to_match.each do |pattern|
-        failed_patterns << pattern unless ActiveRecord::SQLCounter.log.any?{ |sql| pattern === sql }
-      end
-      assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map{ |p| p.inspect }.join(', ')} not found.#{ActiveRecord::SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{ActiveRecord::SQLCounter.log.join("\n")}"}"
-    end
-
-    def assert_queries(num = 1)
-      ActiveRecord::SQLCounter.log = []
-      yield
-    ensure
-      assert_equal num, ActiveRecord::SQLCounter.log.size, "#{ActiveRecord::SQLCounter.log.size} instead of #{num} queries were executed.#{ActiveRecord::SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{ActiveRecord::SQLCounter.log.join("\n")}"}"
-    end
-
-    def assert_no_queries(&block)
-      prev_ignored_sql = ActiveRecord::SQLCounter.ignored_sql
-      ActiveRecord::SQLCounter.ignored_sql = []
-      assert_queries(0, &block)
-    ensure
-      ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
-    end
-
-    def sqlite3? connection
-      connection.class.name.split('::').last == "SQLite3Adapter"
     end
   end
 end

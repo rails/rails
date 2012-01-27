@@ -7,6 +7,10 @@ class SafeBufferTest < ActiveSupport::TestCase
     @buffer = ActiveSupport::SafeBuffer.new
   end
 
+  def test_titleize
+    assert_equal 'Foo', "foo".html_safe.titleize
+  end
+
   test "Should look like a string" do
     assert @buffer.is_a?(String)
     assert_equal "", @buffer

@@ -10,7 +10,7 @@ module ActiveRecord
                   :where_values, :having_values, :bind_values,
                   :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value,
                   :from_value, :reordering_value, :reverse_order_value,
-                  :uniq_value
+                  :uniq_value, :references_values
 
     def includes(*args)
       args.reject! {|a| a.blank? }
@@ -38,6 +38,24 @@ module ActiveRecord
       relation
     end
 
+    # Used to indicate that an association is referenced by an SQL string, and should
+    # therefore be JOINed in any query rather than loaded separately.
+    #
+    # For example:
+    #
+    #   User.includes(:posts).where("posts.name = 'foo'")
+    #   # => Doesn't JOIN the posts table, resulting in an error.
+    #
+    #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
+    #   # => Query now knows the string references posts, so adds a JOIN
+    def references(*args)
+      return self if args.blank?
+
+      relation = clone
+      relation.references_values = (references_values + args.flatten.map(&:to_s)).uniq
+      relation
+    end
+
     # Works in two unique ways.
     #
     # First: takes a block so it can be used just like Array#select.
@@ -57,16 +75,16 @@ module ActiveRecord
     # array, it actually returns a relation object and can have other query
     # methods appended to it, such as the other methods in ActiveRecord::QueryMethods.
     #
-    # This method will also take multiple parameters:
+    # The argument to the method can also be an array of fields.
     #
-    #   >> Model.select(:field, :other_field, :and_one_more)
+    #   >> Model.select([:field, :other_field, :and_one_more])
     #   => [#<Model field: "value", other_field: "value", and_one_more: "value">]
     #
-    # Any attributes that do not have fields retrieved by a select
-    # will return `nil` when the getter method for that attribute is used:
+    # Accessing attributes of an object that do not have fields retrieved by a select
+    # will throw <tt>ActiveModel::MissingAttributeError</tt>:
     #
     #   >> Model.select(:field).first.other_field
-    #   => nil
+    #   => ActiveModel::MissingAttributeError: missing attribute: other_field
     def select(value = Proc.new)
       if block_given?
         to_a.select {|*block_args| value.call(*block_args) }
@@ -88,8 +106,14 @@ module ActiveRecord
     def order(*args)
       return self if args.blank?
 
+      args       = args.flatten
+      references = args.reject { |arg| Arel::Node === arg }
+                       .map { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }
+                       .compact
+
       relation = clone
-      relation.order_values += args.flatten
+      relation = relation.references(references) if references.any?
+      relation.order_values += args
       relation
     end
 
@@ -133,6 +157,7 @@ module ActiveRecord
       return self if opts.blank?
 
       relation = clone
+      relation = relation.references(PredicateBuilder.references(opts)) if Hash === opts
       relation.where_values += build_where(opts, rest)
       relation
     end
@@ -141,6 +166,7 @@ module ActiveRecord
       return self if opts.blank?
 
       relation = clone
+      relation = relation.references(PredicateBuilder.references(opts)) if Hash === opts
       relation.having_values += build_where(opts, rest)
       relation
     end

@@ -344,6 +344,21 @@ module ActionDispatch
   end
 end
 
+module ActionDispatch
+  module RoutingVerbs
+    def get(uri_or_host, path = nil, port = nil)
+      host = uri_or_host.host unless path
+      path ||= uri_or_host.path
+
+      params = {'PATH_INFO'      => path,
+                'REQUEST_METHOD' => 'GET',
+                'HTTP_HOST'      => host}
+
+      routes.call(params)[2].join
+    end
+  end
+end
+
 module RoutingTestHelpers
   def url_for(set, options, recall = nil)
     set.send(:url_for, options.merge(:only_path => true, :_path_segments => recall))

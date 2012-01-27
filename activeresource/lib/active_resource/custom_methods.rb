@@ -2,7 +2,7 @@ require 'active_support/core_ext/object/blank'
 
 module ActiveResource
   # A module to support custom REST methods and sub-resources, allowing you to break out
-  # of the "default" REST methods with your own custom resource requests.  For example,
+  # of the "default" REST methods with your own custom resource requests. For example,
   # say you use Rails to expose a REST service and configure your routes with:
   #
   #    map.resources :people, :new => { :register => :post },
@@ -20,7 +20,7 @@ module ActiveResource
   # standard methods.
   #
   #   class Person < ActiveResource::Base
-  #     self.site = "http://37s.sunrise.i:3000"
+  #     self.site = "https://37s.sunrise.com"
   #   end
   #
   #   Person.new(:name => 'Ryan').post(:register)  # POST /people/new/register.json

@@ -115,6 +115,14 @@ class FormHelperTest < ActionView::TestCase
     super
   end
 
+  class FooTag < ActionView::Helpers::Tags::Base
+    def initialize; end
+  end
+
+  def test_tags_base_child_without_render_method
+    assert_raise(NotImplementedError) { FooTag.new.render }
+  end
+
   def test_label
     assert_dom_equal('<label for="post_title">Title</label>', label("post", "title"))
     assert_dom_equal('<label for="post_title">The title goes here</label>', label("post", "title", "The title goes here"))
@@ -207,6 +215,10 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal('<label for="my_for">Title</label>', label(:post, :title, nil, "for" => "my_for"))
   end
 
+  def test_label_does_not_generate_for_attribute_when_given_nil
+    assert_dom_equal('<label>Title</label>', label(:post, :title, :for => nil))
+  end
+
   def test_label_with_id_attribute_as_symbol
     assert_dom_equal('<label for="post_title" id="my_id">Title</label>', label(:post, :title, nil, :id => "my_id"))
   end
@@ -230,6 +242,10 @@ class FormHelperTest < ActionView::TestCase
 
   def test_label_with_block
     assert_dom_equal('<label for="post_title">The title, please:</label>', label(:post, :title) { "The title, please:" })
+  end
+
+  def test_label_with_block_and_options
+    assert_dom_equal('<label for="my_for">The title, please:</label>', label(:post, :title, "for" => "my_for") { "The title, please:" })
   end
 
   def test_label_with_block_in_erb

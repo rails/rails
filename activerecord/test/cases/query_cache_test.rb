@@ -3,7 +3,7 @@ require 'models/topic'
 require 'models/task'
 require 'models/category'
 require 'models/post'
-
+require 'rack'
 
 class QueryCacheTest < ActiveRecord::TestCase
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
@@ -43,6 +43,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     called = false
     mw = ActiveRecord::QueryCache.new lambda { |env|
       called = true
+      [200, {}, nil]
     }
     mw.call({})
     assert called, 'middleware should delegate'
@@ -53,6 +54,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.find 1
       Task.find 1
       assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+      [200, {}, nil]
     }
     mw.call({})
   end
@@ -62,6 +64,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
     mw = ActiveRecord::QueryCache.new lambda { |env|
       assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
+      [200, {}, nil]
     }
     mw.call({})
   end
@@ -83,7 +86,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_off_after_close
-    mw = ActiveRecord::QueryCache.new lambda { |env| }
+    mw = ActiveRecord::QueryCache.new lambda { |env| [200, {}, nil] }
     body = mw.call({}).last
 
     assert ActiveRecord::Base.connection.query_cache_enabled, 'cache enabled'
@@ -94,6 +97,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_cache_clear_after_close
     mw = ActiveRecord::QueryCache.new lambda { |env|
       Post.find(:first)
+      [200, {}, nil]
     }
     body = mw.call({}).last
 
@@ -243,15 +247,4 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
       p.categories.delete_all
     end
   end
-end
-
-class QueryCacheBodyProxyTest < ActiveRecord::TestCase
-
-  test "is polite to it's body and responds to it" do
-    body = Class.new(String) { def to_path; "/path"; end }.new
-    proxy = ActiveRecord::QueryCache::BodyProxy.new(nil, body, ActiveRecord::Base.connection_id)
-    assert proxy.respond_to?(:to_path)
-    assert_equal proxy.to_path, "/path"
-  end
-
 end

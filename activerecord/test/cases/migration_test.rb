@@ -1,4 +1,5 @@
 require "cases/helper"
+require "cases/migration/helper"
 require 'bigdecimal/util'
 
 require 'models/person'
@@ -16,28 +17,6 @@ class Reminder < ActiveRecord::Base; end
 
 class Thing < ActiveRecord::Base; end
 
-class ActiveRecord::Migration
-  class << self
-    attr_accessor :message_count
-  end
-
-  def puts(text="")
-    ActiveRecord::Migration.message_count ||= 0
-    ActiveRecord::Migration.message_count += 1
-  end
-end
-
-module ActiveRecord
-  class MigrationTest < ActiveRecord::TestCase
-    attr_reader :connection
-
-    def setup
-      super
-      @connection = Base.connection
-    end
-  end
-end
-
 class MigrationTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
@@ -45,6 +24,10 @@ class MigrationTest < ActiveRecord::TestCase
 
   def setup
     super
+    %w(reminders people_reminders prefix_reminders_suffix).each do |table|
+      Reminder.connection.drop_table(table) rescue nil
+    end
+    Reminder.reset_column_information
     ActiveRecord::Migration.verbose = true
     ActiveRecord::Migration.message_count = 0
   end
@@ -81,9 +64,9 @@ class MigrationTest < ActiveRecord::TestCase
     # using a copy as we need the drop_table method to
     # continue to work for the ensure block of the test
     temp_conn = Person.connection.dup
-    temp_conn.extend(Module.new {
-      def drop_table; raise "no"; end
-    })
+
+    assert_not_equal temp_conn, Person.connection
+
     temp_conn.create_table :testings2, :force => true do |t|
       t.column :foo, :string
     end
@@ -91,16 +74,25 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :testings2 rescue nil
   end
 
-  def test_add_table
-    assert !Reminder.table_exists?
+  def connection
+    ActiveRecord::Base.connection
+  end
 
-    WeNeedReminders.up
+  def test_migration_instance_has_connection
+    migration = Class.new(ActiveRecord::Migration).new
+    assert_equal connection, migration.connection
+  end
 
-    assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
+  def test_method_missing_delegates_to_connection
+    migration = Class.new(ActiveRecord::Migration) {
+      def connection
+        Class.new {
+          def create_table; "hi mom!"; end
+        }.new
+      end
+    }.new
 
-    WeNeedReminders.down
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_equal "hi mom!", migration.method_missing(:create_table)
   end
 
   def test_add_table_with_decimals
@@ -164,26 +156,6 @@ class MigrationTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StatementInvalid) { BigNumber.find(:first) }
   end
 
-  def test_migrator
-    assert !Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid")
-
-    assert_equal 3, ActiveRecord::Migrator.current_version
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-    assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
-
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
-
-    assert_equal 0, ActiveRecord::Migrator.current_version
-    Person.reset_column_information
-    assert !Person.column_methods_hash.include?(:last_name)
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
-  end
-
   def test_filtering_migrations
     assert !Person.column_methods_hash.include?(:last_name)
     assert !Reminder.table_exists?
@@ -240,55 +212,6 @@ class MigrationTest < ActiveRecord::TestCase
     assert migration.went_down, 'have not gone down'
   end
 
-  def test_migrator_one_up
-    assert !Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 2)
-
-    assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
-  end
-
-  def test_migrator_one_down
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid")
-
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 1)
-
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-  end
-
-  def test_migrator_one_up_one_down
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-
-    assert !Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-  end
-
-  def test_migrator_double_up
-    assert_equal(0, ActiveRecord::Migrator.current_version)
-    ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1)
-    assert_nothing_raised { ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1) }
-    assert_equal(1, ActiveRecord::Migrator.current_version)
-  end
-
-  def test_migrator_double_down
-    assert_equal(0, ActiveRecord::Migrator.current_version)
-    ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1)
-    ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 1)
-    assert_nothing_raised { ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 1) }
-    assert_equal(0, ActiveRecord::Migrator.current_version)
-  end
-
   def test_migrator_one_up_with_exception_and_rollback
     unless ActiveRecord::Base.connection.supports_ddl_transactions?
       skip "not supported on #{ActiveRecord::Base.connection.class}"
@@ -308,117 +231,6 @@ class MigrationTest < ActiveRecord::TestCase
 
     Person.reset_column_information
     refute Person.column_methods_hash.include?(:last_name)
-  end
-
-  def test_only_loads_pending_migrations
-    # migrate up to 1
-    ActiveRecord::SchemaMigration.create!(:version => '1')
-
-    proxies = ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", nil)
-
-    names = proxies.map(&:name)
-    assert !names.include?('ValidPeopleHaveLastNames')
-    assert names.include?('WeNeedReminders')
-    assert names.include?('InnocentJointable')
-  end
-
-  def test_target_version_zero_should_run_only_once
-    # migrate up to 1
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 1)
-
-    # migrate down to 0
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
-
-    # migrate down to 0 again
-    proxies = ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
-    assert_equal [], proxies
-  end
-
-  def test_migrator_db_has_no_schema_migrations_table
-    # Oracle adapter raises error if semicolon is present as last character
-    if current_adapter?(:OracleAdapter)
-      ActiveRecord::Base.connection.execute("DROP TABLE schema_migrations")
-    else
-      ActiveRecord::Base.connection.execute("DROP TABLE schema_migrations;")
-    end
-    assert_nothing_raised do
-      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 1)
-    end
-  end
-
-  def test_migrator_verbosity
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-    assert_not_equal 0, ActiveRecord::Migration.message_count
-    ActiveRecord::Migration.message_count = 0
-
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-    assert_not_equal 0, ActiveRecord::Migration.message_count
-    ActiveRecord::Migration.message_count = 0
-  end
-
-  def test_migrator_verbosity_off
-    ActiveRecord::Migration.verbose = false
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-    assert_equal 0, ActiveRecord::Migration.message_count
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-    assert_equal 0, ActiveRecord::Migration.message_count
-  end
-
-  def test_migrator_going_down_due_to_version_target
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
-
-    assert !Person.column_methods_hash.include?(:last_name)
-    assert !Reminder.table_exists?
-
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
-
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
-    assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
-  end
-
-  def test_migrator_rollback
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
-    assert_equal(3, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal(2, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal(1, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal(0, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal(0, ActiveRecord::Migrator.current_version)
-  end
-
-  def test_migrator_forward
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 1)
-    assert_equal(1, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.forward(MIGRATIONS_ROOT + "/valid", 2)
-    assert_equal(3, ActiveRecord::Migrator.current_version)
-
-    ActiveRecord::Migrator.forward(MIGRATIONS_ROOT + "/valid")
-    assert_equal(3, ActiveRecord::Migrator.current_version)
-  end
-
-  def test_get_all_versions
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
-    assert_equal([1,2,3], ActiveRecord::Migrator.get_all_versions)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal([1,2], ActiveRecord::Migrator.get_all_versions)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal([1], ActiveRecord::Migrator.get_all_versions)
-
-    ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-    assert_equal([], ActiveRecord::Migrator.get_all_versions)
   end
 
   def test_schema_migrations_table_name

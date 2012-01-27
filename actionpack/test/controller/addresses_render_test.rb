@@ -3,16 +3,18 @@ require 'active_support/logger'
 require 'controller/fake_controllers'
 
 class Address
-  def Address.count(conditions = nil, join = nil)
-    nil
-  end
+  class << self
+    def count(conditions = nil, join = nil)
+      nil
+    end
 
-  def Address.find_all(arg1, arg2, arg3, arg4)
-    []
-  end
+    def find_all(arg1, arg2, arg3, arg4)
+      []
+    end
 
-  def self.find(*args)
-    []
+    def find(*args)
+      []
+    end
   end
 end
 

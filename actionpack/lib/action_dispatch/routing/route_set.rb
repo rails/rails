@@ -360,7 +360,26 @@ module ActionDispatch
             SEPARATORS,
             anchor)
 
-        Journey::Path::Pattern.new(strexp)
+        pattern = Journey::Path::Pattern.new(strexp)
+
+        builder = Journey::GTG::Builder.new pattern.spec
+
+        # Get all the symbol nodes followed by literals that are not the
+        # dummy node.
+        symbols = pattern.spec.grep(Journey::Nodes::Symbol).find_all { |n|
+          builder.followpos(n).first.literal?
+        }
+
+        # Get all the symbol nodes preceded by literals.
+        symbols.concat pattern.spec.find_all(&:literal?).map { |n|
+          builder.followpos(n).first
+        }.find_all(&:symbol?)
+
+        symbols.each { |x|
+          x.regexp = /(?:#{Regexp.union(x.regexp, '-')})+/
+        }
+
+        pattern
       end
       private :build_path
 
@@ -579,7 +598,8 @@ module ActionDispatch
               params[key] = URI.parser.unescape(value)
             end
           end
-
+          old_params = env[::ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+          env[::ActionDispatch::Routing::RouteSet::PARAMETERS_KEY] = (old_params || {}).merge(params)
           dispatcher = route.app
           while dispatcher.is_a?(Mapper::Constraints) && dispatcher.matches?(env) do
             dispatcher = dispatcher.app

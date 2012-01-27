@@ -213,6 +213,16 @@ ActiveRecord::Schema.define do
     t.integer :access_level, :default => 1
   end
 
+  create_table :dog_lovers, :force => true do |t|
+    t.integer :trained_dogs_count, :default => 0
+    t.integer :bred_dogs_count, :default => 0
+  end
+
+  create_table :dogs, :force => true do |t|
+    t.integer :trainer_id
+    t.integer :breeder_id
+  end
+
   create_table :edges, :force => true, :id => false do |t|
     t.column :source_id, :integer, :null => false
     t.column :sink_id,   :integer, :null => false
@@ -714,8 +724,6 @@ ActiveRecord::Schema.define do
   create_table :countries_treaties, :force => true, :id => false do |t|
     t.string :country_id, :null => false
     t.string :treaty_id, :null => false
-    t.datetime :created_at
-    t.datetime :updated_at
   end
 
   create_table :liquid, :force => true do |t|

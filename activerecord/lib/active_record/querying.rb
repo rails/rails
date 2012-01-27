@@ -8,7 +8,7 @@ module ActiveRecord
     delegate :find_each, :find_in_batches, :to => :scoped
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
              :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
-             :having, :create_with, :uniq, :to => :scoped
+             :having, :create_with, :uniq, :references, :to => :scoped
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :to => :scoped
 
     # Executes a custom SQL query against your database and returns all the results. The results will

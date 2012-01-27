@@ -116,7 +116,7 @@ module ActionController
   #
   #   Title: <%= @post.title %>
   #
-  # You don't have to rely on the automated rendering. For example, actions that could result in the rendering of different templates 
+  # You don't have to rely on the automated rendering. For example, actions that could result in the rendering of different templates
   # will use the manual rendering methods:
   #
   #   def search
@@ -133,7 +133,7 @@ module ActionController
   # == Redirects
   #
   # Redirects are used to move from one action to another. For example, after a <tt>create</tt> action, which stores a blog entry to the
-  # database, we might like to show the user the new entry. Because we're following good DRY principles (Don't Repeat Yourself), we're 
+  # database, we might like to show the user the new entry. Because we're following good DRY principles (Don't Repeat Yourself), we're
   # going to reuse (and redirect to) a <tt>show</tt> action that we'll assume has already been created. The code might look like this:
   #
   #   def create
@@ -228,8 +228,11 @@ module ActionController
       include mod
     end
 
-    # Rails 2.x compatibility
-    include ActionController::Compatibility
+    # Define some internal variables that should not be propagated to the view.
+    self.protected_instance_variables = [
+      :@_status, :@_headers, :@_params, :@_env, :@_response, :@_request,
+      :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout
+    ]
 
     ActiveSupport.run_load_hooks(:action_controller, self)
   end

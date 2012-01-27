@@ -78,6 +78,11 @@ module ActiveModel
       @messages = ActiveSupport::OrderedHash.new
     end
 
+    def initialize_dup(other)
+      @messages = other.messages.dup
+      super
+    end
+
     # Clear the messages
     def clear
       messages.clear
@@ -99,6 +104,11 @@ module ActiveModel
       messages[key] = value
     end
 
+    # Delete messages for +key+
+    def delete(key)
+      messages.delete(key)
+    end
+
     # When passed a symbol or a name of a method, returns an array of errors
     # for the method.
     #
@@ -113,7 +123,7 @@ module ActiveModel
     #   p.errors[:name] = "must be set"
     #   p.errors[:name] # => ['must be set']
     def []=(attribute, error)
-      self[attribute.to_sym] << error
+      self[attribute] << error
     end
 
     # Iterates through each error key, value pair in the error messages hash.
@@ -209,7 +219,7 @@ module ActiveModel
     # +attribute+.
     # If no +message+ is supplied, <tt>:invalid</tt> is assumed.
     #
-    # If +message+ is a symbol, it will be translated using the appropriate scope (see +translate_error+).
+    # If +message+ is a symbol, it will be translated using the appropriate scope (see +generate_message+).
     # If +message+ is a proc, it will be called, allowing for things like <tt>Time.now</tt> to be used within an error.
     def add(attribute, message = nil, options = {})
       message = normalize_message(attribute, message, options)

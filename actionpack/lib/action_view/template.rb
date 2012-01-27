@@ -288,7 +288,7 @@ module ActionView
             logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
 
-          raise ActionView::Template::Error.new(self, {}, e)
+          raise ActionView::Template::Error.new(self, e)
         end
       end
 
@@ -297,13 +297,12 @@ module ActionView
           e.sub_template_of(self)
           raise e
         else
-          assigns  = view.respond_to?(:assigns) ? view.assigns : {}
           template = self
           unless template.source
             template = refresh(view)
             template.encode!
           end
-          raise Template::Error.new(template, assigns, e)
+          raise Template::Error.new(template, e)
         end
       end
 

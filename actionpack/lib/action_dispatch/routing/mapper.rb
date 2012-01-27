@@ -2,6 +2,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/inclusion'
 require 'active_support/inflector'
+require 'active_support/deprecation'
 require 'action_dispatch/routing/redirection'
 
 module ActionDispatch
@@ -54,6 +55,7 @@ module ActionDispatch
 
         def initialize(set, scope, path, options)
           @set, @scope = set, scope
+          @segment_keys = nil
           @options = (@scope[:options] || {}).merge(options)
           @path = normalize_path(path)
           normalize_options!
@@ -213,7 +215,9 @@ module ActionDispatch
           end
 
           def segment_keys
-            @segment_keys ||= Journey::Path::Pattern.new(
+            return @segment_keys if @segment_keys
+
+            @segment_keys = Journey::Path::Pattern.new(
               Journey::Router::Strexp.compile(@path, requirements, SEPARATORS)
             ).names
           end
@@ -464,7 +468,7 @@ module ActionDispatch
         #
         # get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
-          map_method(:get, *args, &block)
+          map_method(:get, args, &block)
         end
 
         # Define a route that only recognizes HTTP POST.
@@ -474,7 +478,7 @@ module ActionDispatch
         #
         # post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
-          map_method(:post, *args, &block)
+          map_method(:post, args, &block)
         end
 
         # Define a route that only recognizes HTTP PUT.
@@ -484,7 +488,7 @@ module ActionDispatch
         #
         # put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
-          map_method(:put, *args, &block)
+          map_method(:put, args, &block)
         end
 
         # Define a route that only recognizes HTTP PUT.
@@ -494,15 +498,24 @@ module ActionDispatch
         #
         # delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
-          map_method(:delete, *args, &block)
+          map_method(:delete, args, &block)
         end
 
         private
-          def map_method(method, *args, &block)
+          def map_method(method, args, &block)
+            if args.length > 2
+              ActiveSupport::Deprecation.warn <<-eowarn
+The method signature of #{method}() is changing to:
+
+    #{method}(path, options = {}, &block)
+
+Calling with multiple paths is deprecated.
+              eowarn
+            end
+
             options = args.extract_options!
             options[:via] = method
-            args.push(options)
-            match(*args, &block)
+            match(*args, options, &block)
             self
           end
       end

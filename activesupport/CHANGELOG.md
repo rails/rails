@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Remove ActiveSupport::TestCase#pending method, use `skip` instead. *Carlos Antonio da Silva*
+
 *    Deprecates the compatibility method Module#local_constant_names,
      use Module#local_constants instead (which returns symbols). *fxn*
 
@@ -12,7 +14,7 @@
 *    BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger
      from Ruby stdlib.
 
-## Rails 3.2.0 (unreleased) ##
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   Add ActiveSupport::Cache::NullStore for use in development and testing. *Brian Durand*
 

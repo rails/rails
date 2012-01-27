@@ -38,7 +38,8 @@ module ActiveRecord
     # first time. Also, make it output to STDERR.
     console do |app|
       require "active_record/railties/console_sandbox" if app.sandbox?
-      ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDERR)
+      console = ActiveSupport::Logger.new(STDERR)
+      Rails.logger.extend ActiveSupport::Logger.broadcast console
     end
 
     initializer "active_record.initialize_timezone" do

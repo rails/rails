@@ -30,8 +30,6 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
       session[:bar] = "baz"
       head :ok
     end
-
-    def rescue_action(e) raise end
   end
 
   def test_setting_and_getting_session_value

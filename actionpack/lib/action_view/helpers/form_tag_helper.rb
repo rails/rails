@@ -627,7 +627,7 @@ module ActionView
               token_tag(authenticity_token)
             else
               html_options["method"] = "post"
-              tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag(authenticity_token)
+              method_tag(method) + token_tag(authenticity_token)
           end
 
           tags = utf8_enforcer_tag << method_tag
@@ -636,24 +636,14 @@ module ActionView
 
         def form_tag_html(html_options)
           extra_tags = extra_tags_for_form(html_options)
-          (tag(:form, html_options, true) + extra_tags).html_safe
+          tag(:form, html_options, true) + extra_tags
         end
 
         def form_tag_in_block(html_options, &block)
           content = capture(&block)
-          output = ActiveSupport::SafeBuffer.new
-          output.safe_concat(form_tag_html(html_options))
+          output = form_tag_html(html_options)
           output << content
           output.safe_concat("</form>")
-        end
-
-        def token_tag(token)
-          if token == false || !protect_against_forgery?
-            ''
-          else
-            token ||= form_authenticity_token
-            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
-          end
         end
 
         # see http://www.w3.org/TR/html4/types.html#type-name

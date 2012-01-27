@@ -115,7 +115,7 @@ module ActiveRecord
       # the documentation for ActiveRecord::Base#table_name.
       def table_name=(value)
         @original_table_name = @table_name if defined?(@table_name)
-        @table_name          = value
+        @table_name          = value && value.to_s
         @quoted_table_name   = nil
         @arel_table          = nil
         @relation            = Relation.new(self, arel_table)

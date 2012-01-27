@@ -6,9 +6,11 @@ require 'models/engine'
 require 'models/reply'
 require 'models/category'
 require 'models/categorization'
+require 'models/dog'
+require 'models/dog_lover'
 
 class CounterCacheTest < ActiveRecord::TestCase
-  fixtures :topics, :categories, :categorizations, :cars
+  fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers
 
   class ::SpecialTopic < ::Topic
     has_many :special_replies, :foreign_key => 'parent_id'
@@ -61,13 +63,27 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
-  test "reset counter should with belongs_to which has class_name" do
+  test "reset counter with belongs_to which has class_name" do
     car = cars(:honda)
     assert_nothing_raised do
       Car.reset_counters(car.id, :engines)
     end
     assert_nothing_raised do
       Car.reset_counters(car.id, :wheels)
+    end
+  end
+
+  test "reset the right counter if two have the same class_name" do
+    david = dog_lovers(:david)
+
+    DogLover.increment_counter(:bred_dogs_count, david.id)
+    DogLover.increment_counter(:trained_dogs_count, david.id)
+
+    assert_difference 'david.reload.bred_dogs_count', -1 do
+      DogLover.reset_counters(david.id, :bred_dogs)
+    end
+    assert_difference 'david.reload.trained_dogs_count', -1 do
+      DogLover.reset_counters(david.id, :trained_dogs)
     end
   end
 

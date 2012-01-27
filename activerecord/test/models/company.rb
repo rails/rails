@@ -88,6 +88,8 @@ class Firm < Company
   has_many :accounts
   has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
 
+  has_many :association_with_references, :class_name => 'Client', :references => :foo
+
   def log
     @log ||= []
   end

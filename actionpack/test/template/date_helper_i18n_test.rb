@@ -118,4 +118,12 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
     I18n.expects(:translate).with(:'date.order', :locale => 'en').returns [:year, :month, :day]
     datetime_select('post', 'updated_at', :locale => 'en')
   end
+
+  def test_date_or_time_select_given_invalid_order
+    I18n.expects(:translate).with(:'date.order', :locale => 'en').returns [:invalid, :month, :day]
+
+    assert_raise StandardError do
+      datetime_select('post', 'updated_at', :locale => 'en')
+    end
+  end
 end
