@@ -43,6 +43,12 @@ module ActiveRecord
       hash_rows.last
     end
 
+    def initialize_copy(other)
+      @columns   = columns.dup
+      @rows      = rows.dup
+      @hash_rows = nil
+    end
+
     private
     def hash_rows
       @hash_rows ||= @rows.map { |row|
