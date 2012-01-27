@@ -1,7 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
-* The primary key is always initialized in the @attributes hash to nil (unless
-  another value has been specified).
+*   Added `create_join_table` migration helper to create HABTM join tables
+
+        create_join_table :products, :categories
+        # =>
+        # create_table :categories_products, :id => false do |td|
+        #   td.integer :product_id, :null => false
+        #   td.integer :category_id, :null => false
+        # end
+
+    *Rafael Mendonça França*
+
+*   The primary key is always initialized in the @attributes hash to nil (unless
+    another value has been specified).
 
 *   In previous releases, the following would generate a single query with
     an `OUTER JOIN comments`, rather than two separate queries:

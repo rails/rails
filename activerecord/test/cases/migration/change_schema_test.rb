@@ -173,7 +173,6 @@ module ActiveRecord
           skip "not supported on #{connection.class}"
         end
 
-
         connection.create_table :testings do |t|
           t.column :foo, :string
         end
