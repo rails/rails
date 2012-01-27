@@ -77,8 +77,7 @@ module ActiveSupport
       def expand_cache_key(key, namespace = nil)
         expanded_cache_key = namespace ? "#{namespace}/" : ""
 
-        prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
-        if prefix
+        if prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
           expanded_cache_key << "#{prefix}/"
         end
 
