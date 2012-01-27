@@ -114,6 +114,7 @@ database independent way (you'll read about them in detail later):
 * +change_column+
 * +change_table+
 * +create_table+
+* +create_join_table+
 * +drop_table+
 * +remove_column+
 * +remove_index+
@@ -383,6 +384,35 @@ end
 
 will append +ENGINE=BLACKHOLE+ to the SQL statement used to create the table
 (when using MySQL, the default is +ENGINE=InnoDB+).
+
+h4. Creating a Join Table
+
+Migration method +create_join_table+ creates a HABTM join table. A typical use
+would be
+
+<ruby>
+create_join_table :products, :categories
+</ruby>
+
+which creates a +categories_products+ table with two columns called +category_id+ and +product_id+.
+These columns have the option +:null+ set to +false+ by default.
+
+You can pass the option +:table_name+ with you want to customize the table name. For example,
+
+<ruby>
+create_join_table :products, :categories, :table_name => :categorization
+</ruby>
+
+will create a +categorization+ table.
+
+By default, +create_join_table+ will create two columns with no options, but you can specify these
+options using the +:column_options+ option. For example,
+
+<ruby>
+create_join_table :products, :categories, :column_options => {:null => true}
+</ruby>
+
+will create the +product_id+ and +category_id+ with the +:null+ option as +true+.
 
 h4. Changing Tables
 
