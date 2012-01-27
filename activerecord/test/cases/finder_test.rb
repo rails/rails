@@ -881,6 +881,17 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal 23, sig38.client_of
   end
 
+  def test_find_or_create_from_two_attributes_and_hash
+    number_of_companies = Company.count
+    sig38 = Company.find_or_create_by_name_and_firm_id({:name => "38signals", :firm_id => 17, :client_of => 23})
+    assert_equal number_of_companies + 1, Company.count
+    assert_equal sig38, Company.find_or_create_by_name_and_firm_id({:name => "38signals", :firm_id => 17, :client_of => 23})
+    assert sig38.persisted?
+    assert_equal "38signals", sig38.name
+    assert_equal 17, sig38.firm_id
+    assert_equal 23, sig38.client_of
+  end
+
   def test_find_or_create_from_one_aggregate_attribute
     number_of_customers = Customer.count
     created_customer = Customer.find_or_create_by_balance(Money.new(123))
