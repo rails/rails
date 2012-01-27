@@ -80,6 +80,7 @@ module ActiveSupport
     #   <%= link_to(@person.name, person_path(@person)) %>
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
+      sep = sep.to_s if sep.instance_of?(Symbol)
       # replace accented chars with their ascii equivalents
       parameterized_string = transliterate(string)
       # Turn unwanted chars into the separator
