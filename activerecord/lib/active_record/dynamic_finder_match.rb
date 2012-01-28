@@ -6,33 +6,17 @@ module ActiveRecord
   #
   class DynamicFinderMatch
     def self.match(method)
-      finder       = :first
-      bang         = false
-      instantiator = nil
-
-      case method.to_s
-      when /^find_(all_|last_)?by_([_a-zA-Z]\w*)$/
-        finder = :last if $1 == 'last_'
-        finder = :all if $1 == 'all_'
-        names = $2
-      when /^find_by_([_a-zA-Z]\w*)\!$/
-        bang = true
-        names = $1
-      when /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/
-        instantiator = $1 == 'initialize' ? :new : :create
-        names = $2
-      else
-        return nil
+      [ FindBy, FindByBang, FindOrInitializeCreateBy ].each do |klass|
+        o = klass.match(method.to_s)
+        return o if o
       end
-
-      new(finder, instantiator, bang, names.split('_and_'))
+      nil
     end
 
-    def initialize(finder, instantiator, bang, attribute_names)
+    def initialize(finder, names, instantiator = nil)
       @finder          = finder
       @instantiator    = instantiator
-      @bang            = bang
-      @attribute_names = attribute_names
+      @attribute_names = names.split('_and_')
     end
 
     attr_reader :finder, :attribute_names, :instantiator
@@ -41,16 +25,45 @@ module ActiveRecord
       @finder && !@instantiator
     end
 
-    def instantiator?
-      @finder == :first && @instantiator
-    end
-
     def creator?
       @finder == :first && @instantiator == :create
     end
 
+    def instantiator?
+      @instantiator
+    end
+
     def bang?
-      @bang
+      false
+    end
+  end
+
+  class FindBy < DynamicFinderMatch
+    def self.match(method)
+      if method =~ /^find_(all_|last_)?by_([_a-zA-Z]\w*)$/
+        new($1 == 'last_' ? :last : $1 == 'all_' ? :all : :first, $2)
+      end
+    end
+  end
+
+  class FindByBang < DynamicFinderMatch
+    def self.match(method)
+      if method =~ /^find_by_([_a-zA-Z]\w*)\!$/
+        new(:first, $1)
+      end
+    end
+
+    def bang?
+      true
+    end
+  end
+
+  class FindOrInitializeCreateBy < DynamicFinderMatch
+    def self.match(method)
+      instantiator = nil
+      if method =~ /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/
+        new(:first, $2, $1 == 'initialize' ? :new : :create)
+      end
     end
   end
 end
