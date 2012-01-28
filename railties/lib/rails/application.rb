@@ -290,7 +290,15 @@ module Rails
     end
 
     def build_original_fullpath(env)
-      ["#{env["SCRIPT_NAME"]}#{env["PATH_INFO"]}", env["QUERY_STRING"]].reject(&:blank?).join("?")
+      path_info    = env["PATH_INFO"]
+      query_string = env["QUERY_STRING"]
+      script_name  = env["SCRIPT_NAME"]
+
+      if query_string.present?
+        "#{script_name}#{path_info}?#{query_string}"
+      else
+        "#{script_name}#{path_info}"
+      end
     end
   end
 end
