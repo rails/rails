@@ -36,6 +36,10 @@ module ActiveRecord
     def bang?
       false
     end
+
+    def valid_arguments?(arguments)
+      arguments.size >= @attribute_names.size
+    end
   end
 
   class FindBy < DynamicFinderMatch
@@ -64,6 +68,10 @@ module ActiveRecord
       if method =~ /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/
         new(:first, $2, $1 == 'initialize' ? :new : :create)
       end
+    end
+
+    def valid_arguments?(arguments)
+      arguments.size == 1 && arguments.first.is_a?(Hash) || super
     end
   end
 end
