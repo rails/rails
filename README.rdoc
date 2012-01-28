@@ -76,4 +76,3 @@ to proceed. {Join us}[http://contributors.rubyonrails.org]!
 Ruby on Rails is released under the MIT license:
 
 * http://www.opensource.org/licenses/MIT
-
