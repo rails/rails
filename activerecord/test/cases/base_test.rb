@@ -1301,9 +1301,22 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
-  def test_nil_serialized_attribute_with_class_constraint
+  def test_nil_serialized_attribute_without_class_constraint
     topic = Topic.new
     assert_nil topic.content
+  end
+
+  def test_nil_not_serialized_without_class_constraint
+    assert Topic.new(:content => nil).save
+    assert_equal 1, Topic.where(:content => nil).count
+  end
+
+  def test_nil_not_serialized_with_class_constraint
+    Topic.serialize :content, Hash
+    assert Topic.new(:content => nil).save
+    assert_equal 1, Topic.where(:content => nil).count
+  ensure
+    Topic.serialize(:content)
   end
 
   def test_should_raise_exception_on_serialized_attribute_with_type_mismatch
