@@ -6,17 +6,23 @@ module ActiveRecord
   #
   class DynamicFinderMatch
     def self.match(method)
-      [ FindBy, FindByBang, FindOrInitializeCreateBy ].each do |klass|
-        o = klass.match(method.to_s)
-        return o if o
+      method = method.to_s
+      klass = [FindBy, FindByBang, FindOrInitializeCreateBy].find do |klass|
+        klass.matches?(method)
       end
-      nil
+      klass.try(:new, method)
     end
 
-    def initialize(finder, names, instantiator = nil)
-      @finder          = finder
-      @instantiator    = instantiator
-      @attribute_names = names.split('_and_')
+    def self.matches?(method)
+      method =~ self::METHOD_PATTERN
+    end
+
+    def initialize(method)
+      @finder = :first
+      @instantiator = nil
+      match_data = method.match(self.class::METHOD_PATTERN)
+      @attribute_names = match_data[-1].split("_and_")
+      initialize_from_match_data(match_data)
     end
 
     attr_reader :finder, :attribute_names, :instantiator
@@ -40,22 +46,24 @@ module ActiveRecord
     def valid_arguments?(arguments)
       arguments.size >= @attribute_names.size
     end
+
+    private
+
+    def initialize_from_match_data(match_data)
+    end
   end
 
   class FindBy < DynamicFinderMatch
-    def self.match(method)
-      if method =~ /^find_(all_|last_)?by_([_a-zA-Z]\w*)$/
-        new($1 == 'last_' ? :last : $1 == 'all_' ? :all : :first, $2)
-      end
+    METHOD_PATTERN = /^find_(all_|last_)?by_([_a-zA-Z]\w*)$/
+
+    def initialize_from_match_data(match_data)
+      @finder = :last if match_data[1] == 'last_'
+      @finder = :all if match_data[1] == 'all_'
     end
   end
 
   class FindByBang < DynamicFinderMatch
-    def self.match(method)
-      if method =~ /^find_by_([_a-zA-Z]\w*)\!$/
-        new(:first, $1)
-      end
-    end
+    METHOD_PATTERN = /^find_by_([_a-zA-Z]\w*)\!$/
 
     def bang?
       true
@@ -63,11 +71,10 @@ module ActiveRecord
   end
 
   class FindOrInitializeCreateBy < DynamicFinderMatch
-    def self.match(method)
-      instantiator = nil
-      if method =~ /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/
-        new(:first, $2, $1 == 'initialize' ? :new : :create)
-      end
+    METHOD_PATTERN = /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/
+
+    def initialize_from_match_data(match_data)
+      @instantiator = match_data[1] == 'initialize' ? :new : :create
     end
 
     def valid_arguments?(arguments)
