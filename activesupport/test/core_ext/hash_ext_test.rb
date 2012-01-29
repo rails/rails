@@ -402,6 +402,30 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, hash_1
   end
 
+  def test_deep_remove
+    hash_1 = { :a => 1, :b => { :c => 2, :d => 3 }, :e => 4 }
+    kh = { :a => true, :b => { :c => true } }
+    hash_2 = hash_1.deep_remove(kh)
+    expected = { :b => { :d => 3}, :e => 4 }
+    assert_equal expected, hash_2
+    hash_2[:b][:d] = 0
+    assert_equal 3, hash_1[:b][:d]
+    assert_equal expected, hash_1.deep_remove!(kh)
+    assert_equal expected, hash_1
+  end
+
+  def test_deep_remove_on_indifferent_access
+    hash_1 = HashWithIndifferentAccess.new({ :a => 1, :b => HashWithIndifferentAccess.new({ :c => 2, :d => 3 }), :e => 4 })
+    kh = HashWithIndifferentAccess.new({ :a => true, :b => HashWithIndifferentAccess.new({ :c => true }) })
+    hash_2 = hash_1.deep_remove(kh)
+    expected = { 'b' => { 'd' => 3}, 'e' => 4 }
+    assert_equal expected, hash_2
+    hash_2[:b][:d] = 0
+    assert_equal 3, hash_1[:b][:d]
+    assert_equal expected, hash_1.deep_remove!(kh)
+    assert_equal expected, hash_1
+  end
+
   def test_store_on_indifferent_access
     hash = HashWithIndifferentAccess.new
     hash.store(:test1, 1)
