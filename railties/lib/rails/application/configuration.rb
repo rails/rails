@@ -112,11 +112,10 @@ module Rails
       end
 
       def colorize_logging
-        @colorize_logging
+        ActiveSupport::LogSubscriber.colorize_logging
       end
 
       def colorize_logging=(val)
-        @colorize_logging = val
         ActiveSupport::LogSubscriber.colorize_logging = val
         self.generators.colorize_logging = val
       end

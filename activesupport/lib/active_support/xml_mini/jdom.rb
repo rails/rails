@@ -71,7 +71,7 @@ module ActiveSupport
 
       child_nodes = element.child_nodes
       if child_nodes.length > 0
-        for i in 0...child_nodes.length
+        (0...child_nodes.length).each do |i|
           child = child_nodes.item(i)
           merge_element!(hash, child) unless child.node_type == Node.TEXT_NODE
         end
@@ -133,7 +133,7 @@ module ActiveSupport
     def get_attributes(element)
       attribute_hash = {}
       attributes = element.attributes
-      for i in 0...attributes.length
+      (0...attributes.length).each do |i|
          attribute_hash[CONTENT_KEY] ||= ''
          attribute_hash[attributes.item(i).name] =  attributes.item(i).value
        end
@@ -147,7 +147,7 @@ module ActiveSupport
     def texts(element)
       texts = []
       child_nodes = element.child_nodes
-      for i in 0...child_nodes.length
+      (0...child_nodes.length).each do |i|
         item = child_nodes.item(i)
         if item.node_type == Node.TEXT_NODE
           texts << item.get_data
@@ -163,7 +163,7 @@ module ActiveSupport
     def empty_content?(element)
       text = ''
       child_nodes = element.child_nodes
-      for i in 0...child_nodes.length
+      (0...child_nodes.length).each do |i|
         item = child_nodes.item(i)
         if item.node_type == Node.TEXT_NODE
           text << item.get_data.strip

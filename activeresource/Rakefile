@@ -33,7 +33,7 @@ end
 task :lines do
   lines, codelines, total_lines, total_codelines = 0, 0, 0, 0
 
-  for file_name in FileList["lib/active_resource/**/*.rb"]
+  FileList["lib/active_resource/**/*.rb"].each do |file_name|
     next if file_name =~ /vendor/
     f = File.open(file_name)
 

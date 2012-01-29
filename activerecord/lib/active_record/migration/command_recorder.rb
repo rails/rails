@@ -8,11 +8,14 @@ module ActiveRecord
     # * add_index
     # * add_timestamps
     # * create_table
+    # * create_join_table
     # * remove_timestamps
     # * rename_column
     # * rename_index
     # * rename_table
     class CommandRecorder
+      include JoinTable
+
       attr_accessor :commands, :delegate
 
       def initialize(delegate = nil)
@@ -48,7 +51,7 @@ module ActiveRecord
         super || delegate.respond_to?(*args)
       end
 
-      [:create_table, :change_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default].each do |method|
+      [:create_table, :create_join_table, :change_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{method}(*args)          # def create_table(*args)
             record(:"#{method}", args)  #   record(:create_table, args)
@@ -60,6 +63,12 @@ module ActiveRecord
 
       def invert_create_table(args)
         [:drop_table, [args.first]]
+      end
+
+      def invert_create_join_table(args)
+        table_name = find_join_table_name(*args)
+
+        [:drop_table, [table_name]]
       end
 
       def invert_rename_table(args)
@@ -99,7 +108,6 @@ module ActiveRecord
       rescue NoMethodError => e
         raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@delegate}")
       end
-
     end
   end
 end

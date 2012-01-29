@@ -1,9 +1,12 @@
 require 'active_support/deprecation/reporting'
 require 'active_record/schema_migration'
+require 'active_record/migration/join_table'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module SchemaStatements
+      include ActiveRecord::Migration::JoinTable
+
       # Returns a Hash of mappings from the abstract data types to the native
       # database types. See TableDefinition#column for details on the recognized
       # abstract data types.
@@ -168,6 +171,45 @@ module ActiveRecord
         create_sql << td.to_sql
         create_sql << ") #{options[:options]}"
         execute create_sql
+      end
+
+      # Creates a new join table with the name created using the lexical order of the first two
+      # arguments. These arguments can be be a String or a Symbol.
+      #
+      #  # Creates a table called 'assemblies_parts' with no id.
+      #  create_join_table(:assemblies, :parts)
+      #
+      # You can pass a +options+ hash can include the following keys:
+      # [<tt>:table_name</tt>]
+      #   Sets the table name overriding the default
+      # [<tt>:column_options</tt>]
+      #   Any extra options you want appended to the columns definition.
+      # [<tt>:options</tt>]
+      #   Any extra options you want appended to the table definition.
+      # [<tt>:temporary</tt>]
+      #   Make a temporary table.
+      # [<tt>:force</tt>]
+      #   Set to true to drop the table before creating it.
+      #   Defaults to false.
+      #
+      # ===== Examples
+      # ====== Add a backend specific option to the generated SQL (MySQL)
+      #  create_join_table(:assemblies, :parts, :options => 'ENGINE=InnoDB DEFAULT CHARSET=utf8')
+      # generates:
+      #  CREATE TABLE assemblies_parts (
+      #    assembly_id int NOT NULL,
+      #    part_id int NOT NULL,
+      #  ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+      def create_join_table(table_1, table_2, options = {})
+        join_table_name = find_join_table_name(table_1, table_2, options)
+
+        column_options = options.delete(:column_options) || {}
+        column_options.reverse_merge!({:null => false})
+
+        create_table(join_table_name, options.merge!(:id => false)) do |td|
+          td.integer :"#{table_1.to_s.singularize}_id", column_options
+          td.integer :"#{table_2.to_s.singularize}_id", column_options
+        end
       end
 
       # A block for changing columns in +table+.
