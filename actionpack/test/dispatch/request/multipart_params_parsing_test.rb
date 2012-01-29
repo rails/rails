@@ -91,6 +91,9 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     files = params['files']
     files.force_encoding('ASCII-8BIT')
     assert_equal 19756, files.size
+
+    files_expected = IO.read(File.join(FIXTURE_PATH, "multipart_files_expected"), {:mode => 'rb'})
+    assert_equal files_expected, files
   end
 
   test "does not create tempfile if no file has been selected" do
