@@ -508,7 +508,7 @@ module ActionView
 
       # Returns a select tag with options for each of the days 1 through 31 with the current day selected.
       # The <tt>date</tt> can also be substituted for a day number.
-      # If you want to display days with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.      
+      # If you want to display days with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.
       # Override the field name using the <tt>:field_name</tt> option, 'day' by default.
       #
       # ==== Examples
@@ -854,7 +854,7 @@ module ActionView
         end
 
         def translated_date_order
-          date_order = I18n.translate(:'date.order', :locale => @options[:locale]) || []
+          date_order = I18n.translate(:'date.order', :locale => @options[:locale], :default => [])
 
           forbidden_elements = date_order - [:year, :month, :day]
           if forbidden_elements.any?
@@ -990,18 +990,12 @@ module ActionView
         # Returns the separator for a given datetime component.
         def separator(type)
           case type
-            when :year
-              @options[:discard_year] ? "" : @options[:date_separator]
-            when :month
-              @options[:discard_month] ? "" : @options[:date_separator]
-            when :day
-              @options[:discard_day] ? "" : @options[:date_separator]
+            when :year, :month, :day
+              @options[:"discard_#{type}"] ? "" : @options[:date_separator]
             when :hour
               (@options[:discard_year] && @options[:discard_day]) ? "" : @options[:datetime_separator]
-            when :minute
-              @options[:discard_minute] ? "" : @options[:time_separator]
-            when :second
-              @options[:include_seconds] ? @options[:time_separator] : ""
+            when :minute, :second
+              @options[:"discard_#{type}"] ? "" : @options[:time_separator]
           end
         end
     end
