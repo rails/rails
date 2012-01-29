@@ -1579,7 +1579,7 @@ class BasicsTest < ActiveRecord::TestCase
       Developer.find(:all)
     end
     assert developers.size >= 2
-    for i in 1...developers.size
+    (1...developers.size).each do |i|
       assert developers[i-1].salary >= developers[i].salary
     end
   end
