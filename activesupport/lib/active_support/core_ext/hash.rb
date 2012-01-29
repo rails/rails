@@ -1,4 +1,6 @@
 require 'active_support/core_ext/hash/conversions'
+require 'active_support/core_ext/hash/deep_dup'
+require 'active_support/core_ext/hash/deep_filter'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/diff'
 require 'active_support/core_ext/hash/except'
