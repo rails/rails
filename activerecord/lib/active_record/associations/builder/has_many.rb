@@ -60,8 +60,7 @@ module ActiveRecord::Associations::Builder
             if dependent_restrict_raises?
               raise ActiveRecord::DeleteRestrictionError.new(name)
             else
-              errors.add(:base, I18n.t("activerecord.errors.messages.restrict_dependent_destroy",
-                         :model => name))
+              errors.add(:base, :restrict_dependent_destroy, :model => name)
               return false
             end
           end
