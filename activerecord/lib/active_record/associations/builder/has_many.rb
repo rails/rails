@@ -53,20 +53,6 @@ module ActiveRecord::Associations::Builder
         end
       end
 
-      def define_restrict_dependency_method
-        name = self.name
-        mixin.redefine_method(dependency_method_name) do
-          if send(name).exists?
-            if dependent_restrict_raises?
-              raise ActiveRecord::DeleteRestrictionError.new(name)
-            else
-              errors.add(:base, :restrict_dependent_destroy, :model => name)
-              return false
-            end
-          end
-        end
-      end
-
       def dependency_method_name
         "has_many_dependent_for_#{name}"
       end

@@ -40,10 +40,6 @@ module ActiveRecord::Associations::Builder
         end
       end
 
-      def dependency_method_name
-        "has_one_dependent_#{options[:dependent]}_for_#{name}"
-      end
-
       def define_destroy_dependency_method
         name = self.name
         mixin.redefine_method(dependency_method_name) do
@@ -53,18 +49,8 @@ module ActiveRecord::Associations::Builder
       alias :define_delete_dependency_method :define_destroy_dependency_method
       alias :define_nullify_dependency_method :define_destroy_dependency_method
 
-      def define_restrict_dependency_method
-        name = self.name
-        mixin.redefine_method(dependency_method_name) do
-          unless send(name).nil?
-            if dependent_restrict_raises?
-              raise ActiveRecord::DeleteRestrictionError.new(name)
-            else
-              errors.add(:base, :restrict_dependent_destroy, :model => name)
-              return false
-            end
-          end
-        end
+      def dependency_method_name
+        "has_one_dependent_#{options[:dependent]}_for_#{name}"
       end
   end
 end
