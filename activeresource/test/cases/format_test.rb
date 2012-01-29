@@ -19,7 +19,7 @@ class FormatTest < ActiveSupport::TestCase
   end
 
   def test_formats_on_single_element
-    for format in [ :json, :xml ]
+    [ :json, :xml ].each do |format|
       using_format(Person, format) do
         ActiveResource::HttpMock.respond_to.get "/people/1.#{format}", {'Accept' => ActiveResource::Formats[format].mime_type}, ActiveResource::Formats[format].encode(@david)
         assert_equal @david[:name], Person.find(1).name
@@ -28,7 +28,7 @@ class FormatTest < ActiveSupport::TestCase
   end
 
   def test_formats_on_collection
-    for format in [ :json, :xml ]
+    [ :json, :xml ].each do |format|
       using_format(Person, format) do
         ActiveResource::HttpMock.respond_to.get "/people.#{format}", {'Accept' => ActiveResource::Formats[format].mime_type}, ActiveResource::Formats[format].encode(@programmers)
         remote_programmers = Person.find(:all)
@@ -39,7 +39,7 @@ class FormatTest < ActiveSupport::TestCase
   end
 
   def test_formats_on_custom_collection_method
-    for format in [ :json, :xml ]
+    [ :json, :xml ].each do |format|
       using_format(Person, format) do
         ActiveResource::HttpMock.respond_to.get "/people/retrieve.#{format}?name=David", {'Accept' => ActiveResource::Formats[format].mime_type}, ActiveResource::Formats[format].encode([@david])
         remote_programmers = Person.get(:retrieve, :name => 'David')
