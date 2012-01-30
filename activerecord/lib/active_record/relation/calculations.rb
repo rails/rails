@@ -333,7 +333,7 @@ module ActiveRecord
     def select_for_count
       if @select_values.present?
         select = @select_values.join(", ")
-        select if select !~ /(,|\*)/
+        select if select !~ /[,*]/
       end
     end
 
