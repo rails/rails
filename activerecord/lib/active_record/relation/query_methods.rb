@@ -226,8 +226,7 @@ module ActiveRecord
     #   end
     #
     def none
-      relation = NullRelation.new(@klass, @table)
-      relation
+      NullRelation.new(@klass, @table)
     end
 
     def readonly(value = true)
