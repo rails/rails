@@ -27,13 +27,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   include SharedGeneratorTests
 
   def test_invalid_plugin_name_raises_an_error
-    content = capture(:stderr){ run_generator [File.join(destination_root, "43-things")] }
-    assert_equal "Invalid plugin name 43-things. Please give a name which does not start with numbers.\n", content
-  end
+    content = capture(:stderr){ run_generator [File.join(destination_root, "things-43")] }
+    assert_equal "Invalid plugin name things-43. Please give a name which use only alphabetic or numeric or \"_\" characters.\n", content
 
-  def test_invalid_plugin_name_is_fixed
-    run_generator [File.join(destination_root, "things-43")]
-    assert_file "things-43/lib/things-43.rb", /module Things43/
+    content = capture(:stderr){ run_generator [File.join(destination_root, "things4.3")] }
+    assert_equal "Invalid plugin name things4.3. Please give a name which use only alphabetic or numeric or \"_\" characters.\n", content
+ 
+    content = capture(:stderr){ run_generator [File.join(destination_root, "43things")] }
+    assert_equal "Invalid plugin name 43things. Please give a name which does not start with numbers.\n", content
   end
 
   def test_camelcase_plugin_name_underscores_filenames
