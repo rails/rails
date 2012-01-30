@@ -333,6 +333,9 @@ module ActiveRecord
     def select_for_count
       if @select_values.present?
         select = @select_values.join(", ")
+        # 'has_many :foos, through: :bars, uniq: true' results in select 'DISTINCT foos.*'.
+        # if this is the case, we must change * to whatever the primary key is to make it valid sql.
+        select = select.sub(/^(DISTINCT.*)\*$/, "\\1#{primary_key}")
         select if select !~ /(,|\*)/
       end
     end

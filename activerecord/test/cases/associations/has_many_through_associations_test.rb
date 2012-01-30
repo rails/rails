@@ -755,6 +755,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, authors(:mary).categories.general.count
   end
 
+  def test_count_has_many_through_uniq_with_condition
+    author = authors(:bob)
+    assert_equal author.similar_posts.count, author.similar_posts.where("posts.id != 32425435").count
+  end
+
   def test_has_many_through_belongs_to_should_update_when_the_through_foreign_key_changes
     post = posts(:eager_other)
 
