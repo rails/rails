@@ -254,17 +254,13 @@ module Rails
             nesting = class_name.split('::')
             last_name = nesting.pop
 
-            # Hack to limit const_defined? to non-inherited on 1.9
-            extra = []
-            extra << false unless Object.method(:const_defined?).arity == 1
-
             # Extract the last Module in the nesting
             last = nesting.inject(Object) do |last_module, nest|
-              break unless last_module.const_defined?(nest, *extra)
+              break unless last_module.const_defined?(nest, false)
               last_module.const_get(nest)
             end
 
-            if last && last.const_defined?(last_name.camelize, *extra)
+            if last && last.const_defined?(last_name.camelize, false)
               raise Error, "The name '#{class_name}' is either already used in your application " <<
                            "or reserved by Ruby on Rails. Please choose an alternative and run "  <<
                            "this generator again."
