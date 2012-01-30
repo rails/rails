@@ -86,9 +86,12 @@ module ActiveSupport
           end
 
           protected
-            # overridden by each implementation
             def with_gc_stats
+              GC::Profiler.enable
+              GC.start
               yield
+            ensure
+              GC::Profiler.disable
             end
         end
 
@@ -124,27 +127,42 @@ module ActiveSupport
 
         class Memory < DigitalInformationUnit
           Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
+
+          # Ruby 1.9 + GCdata patch
+          if GC.respond_to?(:malloc_allocated_size)
+            def measure
+              GC.malloc_allocated_size
+            end
+          end
         end
 
         class Objects < Amount
           Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
+
+          # Ruby 1.9 + GCdata patch
+          if GC.respond_to?(:malloc_allocations)
+            def measure
+              GC.malloc_allocations
+            end
+          end
         end
 
         class GcRuns < Amount
           Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
+
+          def measure
+            GC.count
+          end
         end
 
         class GcTime < Time
           Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
+
+          def measure
+            GC::Profiler.total_time
+          end
         end
       end
     end
   end
-end
-
-if RUBY_VERSION.between?('1.9.2', '2.0')
-  require 'active_support/testing/performance/ruby/yarv'
-else
-  $stderr.puts 'Update your ruby interpreter to be able to run benchmarks.'
-  exit
 end
