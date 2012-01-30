@@ -1,7 +1,7 @@
 begin
   require 'base64'
 rescue LoadError
-  # The Base64 module isn't available in ealier versions of Ruby 1.9.
+  # The Base64 module isn't available in earlier versions of Ruby 1.9.
   module Base64
     # Encodes a string to its base 64 representation. Each 60 characters of
     # output is separated by a newline character.
