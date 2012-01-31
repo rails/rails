@@ -249,10 +249,12 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   test 'collection check boxes accepts selected values as :checked option and override the model values' do
-    skip "check with fields for"
+    user = Struct.new(:category_ids).new(2)
     collection = (1..3).map{|i| [i, "Category #{i}"] }
-    :user.category_ids = [2]
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, :checked => [1, 3]
+
+    concat(fields_for(:user, user) do |p|
+      p.collection_check_boxes :category_ids, collection, :first, :last, :checked => [1, 3]
+    end)
 
     assert_select 'input[type=checkbox][value=1][checked=checked]'
     assert_select 'input[type=checkbox][value=3][checked=checked]'
