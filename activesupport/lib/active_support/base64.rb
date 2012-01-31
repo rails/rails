@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 begin
   require 'base64'
 rescue LoadError
