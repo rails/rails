@@ -179,6 +179,20 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'label[for=user_active_false] > input#user_active_false[type=radio]'
   end
 
+  test 'collection radio buttons with fields for' do
+    collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
+    concat(fields_for(:post) do |p|
+      p.collection_radio_buttons :category_id, collection, :id, :name
+    end)
+
+    assert_select 'input#post_category_id_1[type=radio][value=1]'
+    assert_select 'input#post_category_id_2[type=radio][value=2]'
+
+    assert_select 'label.collection_radio_buttons[for=post_category_id_1]', 'Category 1'
+    assert_select 'label.collection_radio_buttons[for=post_category_id_2]', 'Category 2'
+  end
+
+
   # COLLECTION CHECK BOXES
   test 'collection check boxes accepts a collection and generate a serie of checkboxes for value method' do
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
@@ -281,19 +295,16 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   test 'collection check boxes with fields for' do
-    skip "test collection check boxes with fields for (and radio buttons as well)"
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
-    concat(form_for(:user) do |f|
-      f.fields_for(:post) do |p|
-        p.collection_check_boxes :category_ids, collection, :id, :name
-      end
+    concat(fields_for(:post) do |p|
+      p.collection_check_boxes :category_ids, collection, :id, :name
     end)
 
-    assert_select 'input#user_post_category_ids_1[type=checkbox][value=1]'
-    assert_select 'input#user_post_category_ids_2[type=checkbox][value=2]'
+    assert_select 'input#post_category_ids_1[type=checkbox][value=1]'
+    assert_select 'input#post_category_ids_2[type=checkbox][value=2]'
 
-    assert_select 'label.collection_check_boxes[for=user_post_category_ids_1]', 'Category 1'
-    assert_select 'label.collection_check_boxes[for=user_post_category_ids_2]', 'Category 2'
+    assert_select 'label.collection_check_boxes[for=post_category_ids_1]', 'Category 1'
+    assert_select 'label.collection_check_boxes[for=post_category_ids_2]', 'Category 2'
   end
 
   test 'collection check boxeses wraps the collection in the given collection wrapper tag' do
