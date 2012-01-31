@@ -5,6 +5,7 @@ module ActionView
 
       autoload :Base
       autoload :CheckBox
+      autoload :CollectionCheckBoxes
       autoload :CollectionRadioButtons
       autoload :CollectionSelect
       autoload :DateSelect
