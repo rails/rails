@@ -318,8 +318,7 @@ module ActiveRecord
     def find_one(id)
       id = id.id if ActiveRecord::Base === id
 
-      if IdentityMap.enabled? &&
-        (where_values.blank? || contains_only_subclass_constraint?(where_values)) &&
+      if IdentityMap.enabled? && where_values.blank? &&
         limit_value.blank? && order_values.blank? &&
         includes_values.blank? && preload_values.blank? &&
         readonly_value.nil? && joins_values.blank? &&
@@ -394,12 +393,6 @@ module ActiveRecord
 
     def using_limitable_reflections?(reflections)
       reflections.none? { |r| r.collection? }
-    end
-    
-    def contains_only_subclass_constraint?(where_values)
-      where_values.length == 1 &&
-      !where_values[0].left.nil? && where_values[0].left.relation.name == table_name &&
-      !where_values[0].right.nil? && where_values[0].right.length == 1 && where_values[0].right[0] == @klass.name
     end
   end
 end
