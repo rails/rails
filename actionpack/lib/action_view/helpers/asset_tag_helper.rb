@@ -234,7 +234,7 @@ module ActionView
       #
       # generates
       #
-      #   <link href="/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+      #   <link href="/assets/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
       #
       # You may specify a different file in the first argument:
       #
@@ -252,7 +252,7 @@ module ActionView
       #
       #   <%= favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png' %>
       #
-      def favicon_link_tag(source='/favicon.ico', options={})
+      def favicon_link_tag(source='favicon.ico', options={})
         tag('link', {
           :rel  => 'shortcut icon',
           :type => 'image/vnd.microsoft.icon',
