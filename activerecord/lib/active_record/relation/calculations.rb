@@ -177,7 +177,10 @@ module ActiveRecord
     #   Person.where(:confirmed => true).limit(5).pluck(:id)
     #
     def pluck(column_name)
-      klass.connection.select_all(select(column_name).arel).map! do |attributes|
+      column_name = column_name.to_s
+      select_manager = select(column_name).arel
+      select_manager.orders.delete_if { |key| key != column_name }
+      klass.connection.select_all(select_manager).map! do |attributes|
         klass.type_cast_attribute(attributes.keys.first, klass.initialize_attributes(attributes))
       end
     end

@@ -478,4 +478,8 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_with_qualified_column_name
     assert_equal [1,2,3,4], Topic.order(:id).pluck("topics.id")
   end
+
+  def test_pluck_with_incorrect_order
+    Topic.uniq.order(:written_on).pluck("topics.id")
+  end
 end
