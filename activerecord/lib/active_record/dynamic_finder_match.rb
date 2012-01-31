@@ -10,7 +10,7 @@ module ActiveRecord
       klass = [FindBy, FindByBang, FindOrInitializeCreateBy].find do |klass|
         klass.matches?(method)
       end
-      klass.try(:new, method)
+      klass.new(method) if klass
     end
 
     def self.matches?(method)
