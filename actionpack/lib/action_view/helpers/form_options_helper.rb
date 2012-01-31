@@ -363,9 +363,10 @@ module ActionView
           [element.send(text_method), element.send(value_method)]
         end
         selected, disabled = extract_selected_and_disabled(selected)
-        select_deselect = {}
-        select_deselect[:selected] = extract_values_from_collection(collection, value_method, selected)
-        select_deselect[:disabled] = extract_values_from_collection(collection, value_method, disabled)
+        select_deselect = {
+          :selected => extract_values_from_collection(collection, value_method, selected),
+          :disabled => extract_values_from_collection(collection, value_method, disabled)
+        }
 
         options_for_select(options, select_deselect)
       end
@@ -522,11 +523,10 @@ module ActionView
       private
         def option_html_attributes(element)
           return "" unless Array === element
-          html_attributes = []
-          element.select { |e| Hash === e }.reduce({}, :merge).each do |k, v|
-            html_attributes << " #{k}=\"#{ERB::Util.html_escape(v.to_s)}\""
-          end
-          html_attributes.join
+
+          element.select { |e| Hash === e }.reduce({}, :merge).map do |k, v|
+            " #{k}=\"#{ERB::Util.html_escape(v.to_s)}\""
+          end.join
         end
 
         def option_text_and_value(option)
@@ -552,12 +552,12 @@ module ActionView
 
         def extract_selected_and_disabled(selected)
           if selected.is_a?(Proc)
-            [ selected, nil ]
+            [selected, nil]
           else
             selected = Array.wrap(selected)
-            options = selected.extract_options!.symbolize_keys
-            selected_items = options.include?(:selected) ? options[:selected] : selected
-            [ selected_items, options[:disabled] ]
+            options  = selected.extract_options!.symbolize_keys
+            selected_items = options.fetch(:selected, selected)
+            [selected_items, options[:disabled]]
           end
         end
 
