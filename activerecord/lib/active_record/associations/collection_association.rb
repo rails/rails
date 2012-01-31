@@ -60,7 +60,7 @@ module ActiveRecord
             end
           end
 
-          relation.uniq.pluck(column)
+          relation.pluck(column)
         end
       end
 
