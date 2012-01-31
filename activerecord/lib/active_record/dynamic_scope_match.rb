@@ -19,5 +19,9 @@ module ActiveRecord
 
     attr_reader :scope, :attribute_names
     alias :scope? :scope
+
+    def valid_arguments?(arguments)
+      arguments.size >= @attribute_names.size
+    end
   end
 end
