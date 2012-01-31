@@ -22,6 +22,9 @@ ActiveSupport::Deprecation.debug = true
 # Enable Identity Map only when ENV['IM'] is set to "true"
 ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "true")
 
+# Avoid deprecation warning setting dependent_restric_raises to false. The default is true
+ActiveRecord::Base.dependent_restrict_raises = false
+
 # Connect to the database
 ARTest.connect
 

@@ -1144,7 +1144,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_restrict
-    # ActiveRecord::Base.dependent_restrict_raises = true, by default
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = true
 
     firm = RestrictedFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
@@ -1153,13 +1154,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.companies.exists?(:name => 'child')
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 
   def test_restrict_when_dependent_restrict_raises_config_set_to_false
-    # ActiveRecord::Base.dependent_restrict_raises = true, by default
-
+    option_before = ActiveRecord::Base.dependent_restrict_raises
     ActiveRecord::Base.dependent_restrict_raises = false
-    # add an error on the model instead of raising ActiveRecord::DeleteRestrictionError
 
     firm = RestrictedFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
@@ -1174,7 +1175,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.companies.exists?(:name => 'child')
   ensure
-    ActiveRecord::Base.dependent_restrict_raises = true
+    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 
   def test_included_in_collection
@@ -1680,9 +1681,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_building_has_many_association_with_restrict_dependency
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = true
+
     klass = Class.new(ActiveRecord::Base)
-    
-    assert_deprecated     { klass.has_many :companies, :dependent => :restrict }  
+
+    assert_deprecated     { klass.has_many :companies, :dependent => :restrict }
     assert_not_deprecated { klass.has_many :companies }
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 end
