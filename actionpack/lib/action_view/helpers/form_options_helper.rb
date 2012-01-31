@@ -191,6 +191,10 @@ module ActionView
         Tags::CollectionSelect.new(object, method, self, collection, value_method, text_method, options, html_options).render
       end
 
+      def collection_radio_buttons(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
+        Tags::CollectionRadioButtons.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
+      end
+
       # Returns <tt><select></tt>, <tt><optgroup></tt> and <tt><option></tt> tags for the collection of existing return values of
       # +method+ for +object+'s class. The value returned from calling +method+ on the instance +object+ will
       # be selected. If calling +method+ returns +nil+, no selection is made without including <tt>:prompt</tt>
