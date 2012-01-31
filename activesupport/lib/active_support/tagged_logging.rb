@@ -33,13 +33,14 @@ module ActiveSupport
     deprecate :silence
 
     def add(severity, message = nil, progname = nil, &block)
-      @logger.add(severity, "#{tags_text}#{message}", progname, &block)
+      message = (block_given? ? block.call : progname) if message.nil?
+      @logger.add(severity, "#{tags_text}#{message}", progname)
     end
 
     %w( fatal error warn info debug unknown ).each do |severity|
       eval <<-EOM, nil, __FILE__, __LINE__ + 1
         def #{severity}(progname = nil, &block)
-          add(Logger::#{severity.upcase}, progname, &block)
+          add(Logger::#{severity.upcase}, nil, progname, &block)
         end
       EOM
     end
