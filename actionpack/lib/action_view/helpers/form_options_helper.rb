@@ -418,10 +418,10 @@ module ActionView
       # wrap the output in an appropriate <tt><select></tt> tag.
       def option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, selected_key = nil)
         collection.map do |group|
-          group_label_string = group.send(group_label_method)
-          "<optgroup label=\"#{ERB::Util.html_escape(group_label_string)}\">" +
-            options_from_collection_for_select(group.send(group_method), option_key_method, option_value_method, selected_key) +
-            '</optgroup>'
+          option_tags = options_from_collection_for_select(
+            group.send(group_method), option_key_method, option_value_method, selected_key)
+
+          content_tag(:optgroup, option_tags, :label => group.send(group_label_method))
         end.join.html_safe
       end
 
