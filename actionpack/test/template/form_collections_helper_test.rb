@@ -9,11 +9,11 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   def with_collection_radio_buttons(*args, &block)
-    concat collection_radio_buttons(*args, &block)
+    @output_buffer = collection_radio_buttons(*args, &block)
   end
 
   def with_collection_check_boxes(*args, &block)
-    concat collection_check_boxes(*args, &block)
+    @output_buffer = collection_check_boxes(*args, &block)
   end
 
   # COLLECTION RADIO BUTTONS
@@ -172,7 +172,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test 'collection radio accepts a block to render the radio and label as required' do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |label_for, text, value, html_options|
-      concat label(:user, label_for, text) { radio_button(:user, :active, value, html_options) }
+      label(:user, label_for, text) { radio_button(:user, :active, value, html_options) }
     end
 
     assert_select 'label[for=user_active_true] > input#user_active_true[type=radio]'
@@ -181,9 +181,9 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test 'collection radio buttons with fields for' do
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
-    concat(fields_for(:post) do |p|
+    @output_buffer = fields_for(:post) do |p|
       p.collection_radio_buttons :category_id, collection, :id, :name
-    end)
+    end
 
     assert_select 'input#post_category_id_1[type=radio][value=1]'
     assert_select 'input#post_category_id_2[type=radio][value=2]'
@@ -191,7 +191,6 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'label.collection_radio_buttons[for=post_category_id_1]', 'Category 1'
     assert_select 'label.collection_radio_buttons[for=post_category_id_2]', 'Category 2'
   end
-
 
   # COLLECTION CHECK BOXES
   test 'collection check boxes accepts a collection and generate a serie of checkboxes for value method' do
@@ -252,9 +251,9 @@ class FormCollectionsHelperTest < ActionView::TestCase
     user = Struct.new(:category_ids).new(2)
     collection = (1..3).map{|i| [i, "Category #{i}"] }
 
-    concat(fields_for(:user, user) do |p|
+    @output_buffer = fields_for(:user, user) do |p|
       p.collection_check_boxes :category_ids, collection, :first, :last, :checked => [1, 3]
-    end)
+    end
 
     assert_select 'input[type=checkbox][value=1][checked=checked]'
     assert_select 'input[type=checkbox][value=3][checked=checked]'
@@ -298,9 +297,9 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test 'collection check boxes with fields for' do
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
-    concat(fields_for(:post) do |p|
+    @output_buffer = fields_for(:post) do |p|
       p.collection_check_boxes :category_ids, collection, :id, :name
-    end)
+    end
 
     assert_select 'input#post_category_ids_1[type=checkbox][value=1]'
     assert_select 'input#post_category_ids_2[type=checkbox][value=2]'
