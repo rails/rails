@@ -7,8 +7,8 @@ module ActiveRecord
   class DynamicFinderMatch
     def self.match(method)
       method = method.to_s
-      klass = [FindBy, FindByBang, FindOrInitializeCreateBy].find do |klass|
-        klass.matches?(method)
+      klass = [FindBy, FindByBang, FindOrInitializeCreateBy].find do |_klass|
+        _klass.matches?(method)
       end
       klass.new(method) if klass
     end
