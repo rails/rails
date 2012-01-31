@@ -26,6 +26,8 @@
     This is a behavior change, previously the hidden tag had a value of the disabled checkbox.
     *Tadas Tamosauskas*
 
+*   `favicon_link_tag` helper will now use the favicon in app/assets by default. *Lucas Caton*
+
 ## Rails 3.2.0 (January 20, 2012) ##
 
 *   Add `config.action_dispatch.default_charset` to configure default charset for ActionDispatch::Response. *Carlos Antonio da Silva*
