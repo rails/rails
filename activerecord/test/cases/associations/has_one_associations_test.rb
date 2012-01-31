@@ -183,7 +183,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm.destroy
 
     assert !firm.errors.empty?
-    assert_equal "Cannot delete record because dependent account exist", firm.errors[:base].first
+    assert_equal "Cannot delete record because dependent account exists", firm.errors[:base].first
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.account.present?
   ensure
@@ -484,20 +484,9 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_building_has_one_association_with_dependent_restrict
-    assert_deprecated do
-      class_eval <<-EOF
-        class RestrictedFirm < ActiveRecord::Base
-          has_one :account, :dependent => :restrict
-        end
-      EOF
-    end
-
-    assert_not_deprecated do
-      class_eval <<-EOF
-        class Firm < ActiveRecord::Base
-          has_one :account
-        end
-      EOF
-    end
+    klass = Class.new(ActiveRecord::Base)
+    
+    assert_deprecated     { klass.has_one :account, :dependent => :restrict }
+    assert_not_deprecated { klass.has_one :account }
   end
 end

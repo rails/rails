@@ -1170,7 +1170,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert !firm.errors.empty?
 
-    assert_equal "Cannot delete record because dependent companies exist", firm.errors[:base].first
+    assert_equal "Cannot delete record because dependent company exists", firm.errors[:base].first
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.companies.exists?(:name => 'child')
   ensure
@@ -1676,20 +1676,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_building_has_many_association_with_restrict_dependency
-    assert_deprecated do
-      class_eval <<-EOF
-        class RestrictedFirm < ActiveRecord::Base
-          has_many :companies, :dependent => :restrict
-        end
-      EOF
-    end
-
-    assert_not_deprecated do
-      class_eval <<-EOF
-        class Firm < ActiveRecord::Base
-          has_many :companies
-        end
-      EOF
-    end
+    klass = Class.new(ActiveRecord::Base)
+    
+    assert_deprecated     { klass.has_many :companies, :dependent => :restrict }  
+    assert_not_deprecated { klass.has_many :companies }
   end
 end
