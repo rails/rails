@@ -491,7 +491,7 @@ module ActionDispatch
           map_method(:put, args, &block)
         end
 
-        # Define a route that only recognizes HTTP PUT.
+        # Define a route that only recognizes HTTP DELETE.
         # For supported arguments, see <tt>Base#match</tt>.
         #
         # Example:
