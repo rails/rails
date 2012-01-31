@@ -109,7 +109,7 @@ module ActiveSupport
         @_dependencies.each { |dep| base.send(:include, dep) }
         super
         base.extend self::ClassMethods if defined? self::ClassMethods
-        base.class_eval(&@_included_block) if instance_variable_defined?(:@_included_block)
+        base.class_eval(&@_included_block) if defined? @_included_block
       end
     end
 
