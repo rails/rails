@@ -351,7 +351,7 @@ module ActionController
         def tests(controller_class)
           case controller_class
           when String, Symbol
-            self.controller_class = "#{controller_class.to_s.underscore}_controller".camelize.constantize
+            self.controller_class = "#{controller_class.to_s.camelize}Controller".constantize
           when Class
             self.controller_class = controller_class
           else
