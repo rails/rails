@@ -1278,6 +1278,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert company.clients_using_sql.loaded?
   end
 
+  def test_get_ids_for_ordered_association
+    assert_equal [companies(:second_client).id, companies(:first_client).id], companies(:first_firm).clients_ordered_by_rating_ids
+  end
+
   def test_assign_ids_ignoring_blanks
     firm = Firm.create!(:name => 'Apple')
     firm.client_ids = [companies(:first_client).id, nil, companies(:second_client).id, '']
