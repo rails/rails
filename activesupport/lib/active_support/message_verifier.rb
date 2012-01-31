@@ -1,4 +1,5 @@
 require 'active_support/base64'
+require 'active_support/deprecation'
 require 'active_support/core_ext/object/blank'
 
 module ActiveSupport

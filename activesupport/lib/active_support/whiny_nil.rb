@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 # Extensions to +nil+ which allow for more helpful error messages for people who
 # are new to Rails.
 #

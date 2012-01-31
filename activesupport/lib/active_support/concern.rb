@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module ActiveSupport
   # A typical module looks like this:
   #
