@@ -56,6 +56,11 @@ module <%= app_const_base %>
     # parameters by using an attr_accessible or attr_protected declaration.
     # config.active_record.whitelist_attributes = true
 
+    # Specifies wether or not has_many or has_one association option :dependent => :restrict raises
+    # an exception. If set to true, then an ActiveRecord::DeleteRestrictionError exception would be
+    # raised. If set to false, then an error will be added on the model instead.
+    config.active_record.dependent_restrict_raises = false
+
 <% unless options.skip_sprockets? -%>
     # Enable the asset pipeline.
     config.assets.enabled = true
