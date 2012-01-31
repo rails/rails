@@ -1104,7 +1104,10 @@ class BasicsTest < ActiveRecord::TestCase
   # TODO: extend defaults tests to other databases!
   if current_adapter?(:PostgreSQLAdapter)
     def test_default
+      tz = Default.default_timezone
+      Default.default_timezone = :local
       default = Default.new
+      Default.default_timezone = tz
 
       # fixed dates / times
       assert_equal Date.new(2004, 1, 1), default.fixed_date
