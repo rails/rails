@@ -1,3 +1,5 @@
+require 'active_record/attributes/translator'
+
 module ActiveRecord
   module AttributeMethods
     module Read
@@ -126,28 +128,20 @@ module ActiveRecord
         self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
       end
 
-
       private
+
+      def attribute_translator
+        Attributes::Translator.new(@attributes, @columns_hash)
+      end
+
       def cached_cast_attribute(attr_name, method)
         @attributes_cache[attr_name] ||= cast_attribute(attr_name, method)
       end
 
       def cast_attribute(attr_name, method)
-        v = @attributes.fetch(attr_name) { missing_attribute(attr_name, caller) }
-        v && send(method, attr_name, v)
-      end
-
-      def cast_serialized(attr_name, value)
-        value.unserialized_value
-      end
-
-      def cast_tz_conversion(attr_name, value)
-        value = cast_column(attr_name, value)
-        value.acts_like?(:time) ? value.in_time_zone : value
-      end
-
-      def cast_column(attr_name, value)
-        @columns_hash[attr_name].type_cast value
+        attribute_translator.cast_attribute(attr_name, method) do
+          missing_attribute(attr_name, caller)
+        end
       end
 
       def attribute(attribute_name)
