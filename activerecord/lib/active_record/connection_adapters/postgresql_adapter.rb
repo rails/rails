@@ -49,6 +49,22 @@ module ActiveRecord
             super
           end
         end
+
+        def add_custom_type options
+          options.each do |name, type|
+            custom_types[name.to_s] = type
+          end
+        end
+
+        def custom_type_for field_type
+          custom_types[field_type.to_s]
+        end
+
+        private
+
+        def custom_types
+          Thread.current[:custom_types] ||= {}
+        end
       end
       # :startdoc:
 
@@ -125,7 +141,7 @@ module ActiveRecord
               :integer
             # Pass through all types that are not specific to PostgreSQL.
             else
-              super
+              self.class.custom_type_for(field_type) || super
           end
         end
 
@@ -834,7 +850,7 @@ module ActiveRecord
           # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
           desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
           orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
-      
+
           column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders)
         end.compact
       end
