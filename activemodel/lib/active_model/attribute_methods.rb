@@ -184,7 +184,7 @@ module ActiveModel
         attribute_method_matchers.each do |matcher|
           matcher_new = matcher.method_name(new_name).to_s
           matcher_old = matcher.method_name(old_name).to_s
-          define_optimized_call self, matcher_new, matcher_old
+          define_proxy_call false, self, matcher_new, matcher_old
         end
       end
 
@@ -226,7 +226,7 @@ module ActiveModel
             if respond_to?(generate_method, true)
               send(generate_method, attr_name)
             else
-              define_optimized_call generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
+              define_proxy_call true, generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
             end
           end
         end
@@ -285,7 +285,7 @@ module ActiveModel
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This fallbacks `define_method`
         # and `send` if the given names cannot be compiled.
-        def define_optimized_call(mod, name, send, *extra) #:nodoc:
+        def define_proxy_call(include_private, mod, name, send, *extra) #:nodoc:
           if name =~ NAME_COMPILABLE_REGEXP
             defn = "def #{name}(*args)"
           else
@@ -295,7 +295,7 @@ module ActiveModel
           extra = (extra.map(&:inspect) << "*args").join(", ")
 
           if send =~ CALL_COMPILABLE_REGEXP
-            target = "#{send}(#{extra})"
+            target = "#{"self." unless include_private}#{send}(#{extra})"
           else
             target = "send(:'#{send}', #{extra})"
           end

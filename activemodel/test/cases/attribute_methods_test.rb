@@ -76,6 +76,19 @@ private
   end
 end
 
+class ModelWithRubyKeywordNamedAttributes
+  include ActiveModel::AttributeMethods
+
+  def attributes
+    { :begin => 'value of begin', :end => 'value of end' }
+  end
+
+private
+  def attribute(name)
+    attributes[name.to_sym]
+  end
+end
+
 class ModelWithoutAttributesMethod
   include ActiveModel::AttributeMethods
 end
@@ -146,6 +159,15 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithAttributesWithSpaces.alias_attribute(:'foo_bar', :'foo bar')
 
     assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.foo_bar
+  end
+
+  test '#alias_attribute works with attributes named as a ruby keyword' do
+    ModelWithRubyKeywordNamedAttributes.define_attribute_methods([:begin, :end])
+    ModelWithRubyKeywordNamedAttributes.alias_attribute(:from, :begin)
+    ModelWithRubyKeywordNamedAttributes.alias_attribute(:to, :end)
+
+    assert_equal "value of begin", ModelWithRubyKeywordNamedAttributes.new.from
+    assert_equal "value of end", ModelWithRubyKeywordNamedAttributes.new.to
   end
 
   test '#undefine_attribute_methods removes attribute methods' do
