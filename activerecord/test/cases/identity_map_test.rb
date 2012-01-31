@@ -162,6 +162,14 @@ class IdentityMapTest < ActiveRecord::TestCase
     c2 = Comment.find(c.id)
     assert_same(c1, c2)
   end
+  
+  def test_queries_are_not_executed_when_finding_inherited_class_by_id
+    c = comments(:sub_special_comment)
+    SubSpecialComment.find(c.id)
+    assert_no_queries do
+      SubSpecialComment.find(c.id)
+    end
+  end
 
   ##############################################################################
   # Tests checking dirty attribute behavior with IM                            #
