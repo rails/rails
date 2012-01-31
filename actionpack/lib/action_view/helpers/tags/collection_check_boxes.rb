@@ -5,9 +5,7 @@ module ActionView
         delegate :check_box, :label, :to => :@template_object
 
         def render
-          rendered_collection = render_collection(
-            @method_name, @collection, @value_method, @text_method, @options, @html_options
-          ) do |value, text, default_html_options|
+          rendered_collection = render_collection do |value, text, default_html_options|
             default_html_options[:multiple] = true
 
             if block_given?

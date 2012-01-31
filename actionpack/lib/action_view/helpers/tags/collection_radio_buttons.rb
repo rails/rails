@@ -5,9 +5,7 @@ module ActionView
         delegate :radio_button, :label, :to => :@template_object
 
         def render
-          rendered_collection = render_collection(
-            @method_name, @collection, @value_method, @text_method, @options, @html_options
-          ) do |value, text, default_html_options|
+          rendered_collection = render_collection do |value, text, default_html_options|
             if block_given?
               yield sanitize_attribute_name(@method_name, value), text, value, default_html_options
             else
@@ -50,14 +48,14 @@ module ActionView
           "#{attribute}_#{value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase}"
         end
 
-        def render_collection(attribute, collection, value_method, text_method, options={}, html_options={}) #:nodoc:
-          item_wrapper_tag   = options.fetch(:item_wrapper_tag, :span)
-          item_wrapper_class = options[:item_wrapper_class]
+        def render_collection #:nodoc:
+          item_wrapper_tag   = @options.fetch(:item_wrapper_tag, :span)
+          item_wrapper_class = @options[:item_wrapper_class]
 
-          collection.map do |item|
-            value = value_for_collection(item, value_method)
-            text  = value_for_collection(item, text_method)
-            default_html_options = default_html_options_for_collection(item, value, options, html_options)
+          @collection.map do |item|
+            value = value_for_collection(item, @value_method)
+            text  = value_for_collection(item, @text_method)
+            default_html_options = default_html_options_for_collection(item, value, @options, @html_options)
 
             rendered_item = yield value, text, default_html_options
 
