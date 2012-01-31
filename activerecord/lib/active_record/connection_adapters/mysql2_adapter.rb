@@ -576,7 +576,7 @@ module ActiveRecord
         create_table = result.first[1]
 
         if create_table.to_s =~ /PRIMARY KEY\s+\((.+)\)/
-          keys = $1.split(",").map { |key| key.gsub(/`/, "") }
+          keys = $1.split(",").map { |key| key.gsub(/[`"]/, "") }
           keys.length == 1 ? [keys.first, nil] : nil
         else
           nil
