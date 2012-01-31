@@ -157,7 +157,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dependence_with_restrict
-    # ActiveRecord::Base.dependent_restrict_raises = true, by default
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = true
 
     firm = RestrictedFirm.create!(:name => 'restrict')
     firm.create_account(:credit_limit => 10)
@@ -167,13 +168,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.account.present?
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 
   def test_dependence_with_restrict_with_dependent_restrict_raises_config_set_to_false
-    # ActiveRecord::Base.dependent_restrict_raises = true, by default
-
+    option_before = ActiveRecord::Base.dependent_restrict_raises
     ActiveRecord::Base.dependent_restrict_raises = false
-    # adds an error on the model instead of raising ActiveRecord::DeleteRestrictionError
 
     firm = RestrictedFirm.create!(:name => 'restrict')
     firm.create_account(:credit_limit => 10)
@@ -187,7 +188,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.account.present?
   ensure
-    ActiveRecord::Base.dependent_restrict_raises = true
+    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 
   def test_successful_build_association
@@ -484,9 +485,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_building_has_one_association_with_dependent_restrict
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = true
+
     klass = Class.new(ActiveRecord::Base)
-    
+
     assert_deprecated     { klass.has_one :account, :dependent => :restrict }
     assert_not_deprecated { klass.has_one :account }
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 end

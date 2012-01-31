@@ -58,9 +58,9 @@ module ActiveRecord::Associations::Builder
 
       def dependent_restrict_deprecation_warning
         if dependent_restrict_raises?
-          msg = "In the next release, `:dependent => :restrict` will not raise a `DeleteRestrictionError`."\
-                "Instead, it will add an error on the model. To fix this warning, make sure your code" \
-                "isn't relying on a `DeleteRestrictionError` and then add" \
+          msg = "In the next release, `:dependent => :restrict` will not raise a `DeleteRestrictionError`. "\
+                "Instead, it will add an error on the model. To fix this warning, make sure your code " \
+                "isn't relying on a `DeleteRestrictionError` and then add " \
                 "`config.active_record.dependent_restrict_raises = false` to your application config."
           ActiveSupport::Deprecation.warn msg
         end
