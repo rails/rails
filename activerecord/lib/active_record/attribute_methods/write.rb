@@ -28,11 +28,14 @@ module ActiveRecord
         @attributes_cache.delete(attr_name)
         column = column_for_attribute(attr_name)
 
-        if column || @attributes.has_key?(attr_name)
-          @attributes[attr_name] = type_cast_attribute_for_write(column, value)
-        else
-          raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
+        unless column || @attributes.has_key?(attr_name)
+          ActiveSupport::Deprecation.warn(
+            "You're trying to create an attribute `#{attr_name}'. Writing arbitrary " \
+            "attributes on a model is deprecated. Please just use `attr_writer` etc."
+          )
         end
+
+        @attributes[attr_name] = type_cast_attribute_for_write(column, value)
       end
       alias_method :raw_write_attribute, :write_attribute
 
