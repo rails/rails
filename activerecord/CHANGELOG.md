@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Implemented ActiveRecord::Relation#none method
+
+    The `none` method returns a chainable relation with zero records
+    (an instance of the NullRelation class).
+
+    Any subsequent condition chained to the returned relation will continue
+    generating an empty relation and will not fire any query to the database.
+
+    *Juanjo Bazán*
+
+*   Added the `ActiveRecord::NullRelation` class implementing the null
+    object pattern for the Relation class. *Juanjo Bazán*
+
 *   Added deprecation for the `:dependent => :restrict` association option.
 
     Please note:

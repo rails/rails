@@ -43,6 +43,7 @@ module ActiveRecord
     autoload :AutosaveAssociation
 
     autoload :Relation
+    autoload :NullRelation
 
     autoload_under 'relation' do
       autoload :QueryMethods
