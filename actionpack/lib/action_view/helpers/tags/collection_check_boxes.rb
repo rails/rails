@@ -9,18 +9,18 @@ module ActionView
             default_html_options[:multiple] = true
 
             if block_given?
-              yield sanitize_attribute_name(@method_name, value), text, value, default_html_options
+              yield sanitize_attribute_name(value), text, value, default_html_options
             else
               check_box(@object_name, @method_name, default_html_options, value, nil) +
-                label(@object_name, sanitize_attribute_name(@method_name, value), text, :class => "collection_check_boxes")
+                label(@object_name, sanitize_attribute_name(value), text, :class => "collection_check_boxes")
             end
           end
 
-          # Prepend a hidden field to make sure something will be sent back to the
-          # server if all checkboxes are unchecked.
-          hidden = @template_object.hidden_field_tag("#{@object_name}[#{@method_name}][]", "", :id => nil)
+          # Append a hidden field to make sure something will be sent back to the
+          # server if all check boxes are unchecked.
+          hidden = @template_object.hidden_field_tag(tag_name_multiple, "", :id => nil)
 
-          wrap_rendered_collection(rendered_collection + hidden, @options)
+          wrap_rendered_collection(rendered_collection + hidden)
         end
       end
     end

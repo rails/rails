@@ -78,7 +78,7 @@ module ActionView
             options["name"] ||= tag_name_with_index(@auto_index)
             options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
           else
-            options["name"] ||= tag_name + (options['multiple'] ? '[]' : '')
+            options["name"] ||= options['multiple'] ? tag_name_multiple : tag_name
             options["id"] = options.fetch("id"){ tag_id }
           end
           options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
@@ -86,6 +86,10 @@ module ActionView
 
         def tag_name
           "#{@object_name}[#{sanitized_method_name}]"
+        end
+
+        def tag_name_multiple
+          "#{tag_name}[]"
         end
 
         def tag_name_with_index(index)

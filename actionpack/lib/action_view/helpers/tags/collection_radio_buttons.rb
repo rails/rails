@@ -7,31 +7,31 @@ module ActionView
         def render
           rendered_collection = render_collection do |value, text, default_html_options|
             if block_given?
-              yield sanitize_attribute_name(@method_name, value), text, value, default_html_options
+              yield sanitize_attribute_name(value), text, value, default_html_options
             else
               radio_button(@object_name, @method_name, value, default_html_options) +
-                label(@object_name, sanitize_attribute_name(@method_name, value), text, :class => "collection_radio_buttons")
+                label(@object_name, sanitize_attribute_name(value), text, :class => "collection_radio_buttons")
             end
           end
 
-          wrap_rendered_collection(rendered_collection, @options)
+          wrap_rendered_collection(rendered_collection)
         end
 
         private
 
         # Generate default options for collection helpers, such as :checked and
         # :disabled.
-        def default_html_options_for_collection(item, value, options, html_options) #:nodoc:
-          html_options = html_options.dup
+        def default_html_options_for_collection(item, value) #:nodoc:
+          html_options = @html_options.dup
 
           [:checked, :selected, :disabled].each do |option|
-            next unless options[option]
+            next unless @options[option]
 
 
-            accept = if options[option].respond_to?(:call)
-                       options[option].call(item)
+            accept = if @options[option].respond_to?(:call)
+                       @options[option].call(item)
                      else
-                       Array(options[option]).include?(value)
+                       Array(@options[option]).include?(value)
                      end
 
             if accept
@@ -44,8 +44,8 @@ module ActionView
           html_options
         end
 
-        def sanitize_attribute_name(attribute, value) #:nodoc:
-          "#{attribute}_#{value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase}"
+        def sanitize_attribute_name(value) #:nodoc:
+          "#{sanitized_method_name}_#{value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase}"
         end
 
         def render_collection #:nodoc:
@@ -55,7 +55,7 @@ module ActionView
           @collection.map do |item|
             value = value_for_collection(item, @value_method)
             text  = value_for_collection(item, @text_method)
-            default_html_options = default_html_options_for_collection(item, value, @options, @html_options)
+            default_html_options = default_html_options_for_collection(item, value)
 
             rendered_item = yield value, text, default_html_options
 
@@ -67,11 +67,11 @@ module ActionView
           value.respond_to?(:call) ? value.call(item) : item.send(value)
         end
 
-        def wrap_rendered_collection(collection, options)
-          wrapper_tag = options[:collection_wrapper_tag]
+        def wrap_rendered_collection(collection)
+          wrapper_tag = @options[:collection_wrapper_tag]
 
           if wrapper_tag
-            wrapper_class = options[:collection_wrapper_class]
+            wrapper_class = @options[:collection_wrapper_class]
             @template_object.content_tag(wrapper_tag, collection, :class => wrapper_class)
           else
             collection
