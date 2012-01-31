@@ -349,6 +349,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_active_record_dependent_restrict_raises_is_present_application_config
+    run_generator
+    assert_file "config/application.rb", /config\.active_record\.dependent_restrict_raises = false/
+  end
+
 protected
 
   def action(*args, &block)

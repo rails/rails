@@ -1140,16 +1140,41 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nil companies(:leetsoft).reload.client_of
     assert_nil companies(:jadedpixel).reload.client_of
 
-
     assert_equal num_accounts, Account.count
   end
 
   def test_restrict
-    firm = RestrictedFirm.new(:name => 'restrict')
-    firm.save!
+    # ActiveRecord::Base.dependent_restrict_raises = true, by default
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
+
     assert !firm.companies.empty?
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.companies.exists?(:name => 'child')
+  end
+
+  def test_restrict_when_dependent_restrict_raises_config_set_to_false
+    # ActiveRecord::Base.dependent_restrict_raises = true, by default
+
+    ActiveRecord::Base.dependent_restrict_raises = false
+    # add an error on the model instead of raising ActiveRecord::DeleteRestrictionError
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
+    firm.companies.create(:name => 'child')
+
+    assert !firm.companies.empty?
+
+    firm.destroy
+
+    assert !firm.errors.empty?
+
+    assert_equal "Cannot delete record because dependent company exists", firm.errors[:base].first
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.companies.exists?(:name => 'child')
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = true
   end
 
   def test_included_in_collection
@@ -1401,29 +1426,29 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       firm.clients.last
     end
   end
-  
+
   def test_custom_primary_key_on_new_record_should_fetch_with_query
     author = Author.new(:name => "David")
     assert !author.essays.loaded?
-    
-    assert_queries 1 do 
+
+    assert_queries 1 do
       assert_equal 1, author.essays.size
     end
-    
+
     assert_equal author.essays, Essay.find_all_by_writer_id("David")
-    
+
   end
-  
+
   def test_has_many_custom_primary_key
     david = authors(:david)
     assert_equal david.essays, Essay.find_all_by_writer_id("David")
   end
-  
+
   def test_blank_custom_primary_key_on_new_record_should_not_run_queries
     author = Author.new
     assert !author.essays.loaded?
-    
-    assert_queries 0 do 
+
+    assert_queries 0 do
       assert_equal 0, author.essays.size
     end
   end
@@ -1648,5 +1673,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car.bulbs.replace([bulb2])
     assert_equal [bulb2], car.bulbs
     assert_equal [bulb2], car.reload.bulbs
+  end
+
+  def test_building_has_many_association_with_restrict_dependency
+    klass = Class.new(ActiveRecord::Base)
+    
+    assert_deprecated     { klass.has_many :companies, :dependent => :restrict }  
+    assert_not_deprecated { klass.has_many :companies }
   end
 end
