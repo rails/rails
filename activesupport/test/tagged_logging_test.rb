@@ -70,4 +70,12 @@ class TaggedLoggingTest < ActiveSupport::TestCase
       assert_nothing_raised { @logger.silence {} }
     end
   end
+
+  test "calls block" do
+    @logger.tagged("BCX") do
+      @logger.info { "Funky town" }
+    end
+    assert_equal "[BCX] Funky town\n", @output.string
+  end
+
 end
