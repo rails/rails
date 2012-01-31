@@ -8,7 +8,7 @@ module ActiveRecord
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind, :references]
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering, :reverse_order, :uniq]
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering, :reverse_order, :uniq, :none]
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
@@ -166,7 +166,9 @@ module ActiveRecord
 
       default_scoped = with_default_scope
 
-      if default_scoped.equal?(self)
+      if @none_value
+        @records = []
+      elsif default_scoped.equal?(self)
         @records = if @readonly_value.nil? && !@klass.locking_enabled?
           eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
         else

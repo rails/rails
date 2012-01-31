@@ -210,6 +210,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 4, developers.map(&:salary).uniq.size
   end
 
+  def test_none
+    assert_no_queries do
+      assert_equal [], Developer.none
+      assert_equal [], Developer.scoped.none
+    end
+  end
+
+  def test_none_chainable
+    assert_no_queries do
+      assert_equal [], Developer.none.where(:name => 'David')
+    end
+  end
+
   def test_select_with_block
     even_ids = Developer.scoped.select {|d| d.id % 2 == 0 }.map(&:id)
     assert_equal [2, 4, 6, 8, 10], even_ids.sort

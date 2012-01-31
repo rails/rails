@@ -20,7 +20,7 @@ module ActiveRecord
     end
 
     def test_single_values
-      assert_equal [:limit, :offset, :lock, :readonly, :from, :reordering, :reverse_order, :uniq].map(&:to_s).sort,
+      assert_equal [:limit, :offset, :lock, :readonly, :from, :reordering, :reverse_order, :uniq, :none].map(&:to_s).sort,
         Relation::SINGLE_VALUE_METHODS.map(&:to_s).sort
     end
 
