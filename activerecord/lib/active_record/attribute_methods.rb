@@ -36,6 +36,18 @@ module ActiveRecord
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods
+        unless defined?(@attribute_methods_mutex)
+          ActiveSupport::Deprecation.warn(
+            "It looks like something (probably a gem/plugin) is removing or overriding the " \
+            "ActiveRecord::Base.inherited method. It is important that this hook executes so " \
+            "that your models are set up correctly. A workaround has been added to stop this " \
+            "causing an error in 3.2, but future versions will simply not work if the hook is " \
+            "overridden."
+          )
+
+          @attribute_methods_mutex = Mutex.new
+        end
+
         # Use a mutex; we don't want two thread simaltaneously trying to define
         # attribute methods.
         @attribute_methods_mutex.synchronize do
