@@ -1254,7 +1254,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_get_ids_for_ordered_association
-    assert_equal [companies(:second_client).id, companies(:first_client).id], companies(:first_firm).clients_ordered_by_rating_ids
+    assert_equal [companies(:second_client).id, companies(:first_client).id], companies(:first_firm).clients_ordered_by_name_ids
   end
 
   def test_assign_ids_ignoring_blanks
@@ -1405,29 +1405,29 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       firm.clients.last
     end
   end
-  
+
   def test_custom_primary_key_on_new_record_should_fetch_with_query
     author = Author.new(:name => "David")
     assert !author.essays.loaded?
-    
-    assert_queries 1 do 
+
+    assert_queries 1 do
       assert_equal 1, author.essays.size
     end
-    
+
     assert_equal author.essays, Essay.find_all_by_writer_id("David")
-    
+
   end
-  
+
   def test_has_many_custom_primary_key
     david = authors(:david)
     assert_equal david.essays, Essay.find_all_by_writer_id("David")
   end
-  
+
   def test_blank_custom_primary_key_on_new_record_should_not_run_queries
     author = Author.new
     assert !author.essays.loaded?
-    
-    assert_queries 0 do 
+
+    assert_queries 0 do
       assert_equal 0, author.essays.size
     end
   end
