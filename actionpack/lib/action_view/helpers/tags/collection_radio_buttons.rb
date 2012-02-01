@@ -2,20 +2,26 @@ module ActionView
   module Helpers
     module Tags
       class CollectionRadioButtons < CollectionSelect
-        delegate :radio_button, :label, :to => :@template_object
-
         def render
           render_collection do |value, text, default_html_options|
             if block_given?
               yield sanitize_attribute_name(value), text, value, default_html_options
             else
-              radio_button(@object_name, @method_name, value, default_html_options) +
-                label(@object_name, sanitize_attribute_name(value), text, :class => "collection_radio_buttons")
+              radio_button(value, default_html_options) +
+                label(value, text, "collection_radio_buttons")
             end
           end
         end
 
         private
+
+        def radio_button(value, html_options)
+          @template_object.radio_button(@object_name, @method_name, value, html_options)
+        end
+
+        def label(value, text, css_class)
+          @template_object.label(@object_name, sanitize_attribute_name(value), text, :class => css_class)
+        end
 
         # Generate default options for collection helpers, such as :checked and
         # :disabled.
