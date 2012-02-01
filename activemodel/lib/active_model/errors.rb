@@ -224,7 +224,7 @@ module ActiveModel
     def add(attribute, message = nil, options = {})
       message = normalize_message(attribute, message, options)
       if options[:strict]
-        raise ActiveModel::StrictValidationFailed,  message
+        raise ActiveModel::StrictValidationFailed, full_message(attribute, message)
       end
 
       self[attribute] << message
