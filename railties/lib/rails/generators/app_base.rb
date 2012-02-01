@@ -200,8 +200,8 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git',   :branch => '3-2-stable'
-              gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git', :branch => '3-2-stable'
+              gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
+              gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
 
               # See https://github.com/sstephenson/execjs#readme for more supported runtimes
               #{javascript_runtime_gemfile_entry}
