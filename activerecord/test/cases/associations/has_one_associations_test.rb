@@ -184,7 +184,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm.destroy
 
     assert !firm.errors.empty?
-    assert_equal "Cannot delete record because dependent account exists", firm.errors[:base].first
+    assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.account.present?
   ensure
