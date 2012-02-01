@@ -184,11 +184,35 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm.destroy
 
     assert !firm.errors.empty?
-    assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
+    assert_equal "Cannot delete record because a dependent account exist", firm.errors[:base].first
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.account.present?
   ensure
     ActiveRecord::Base.dependent_restrict_raises = option_before
+  end
+
+  def test_dependence_with_restrict_with_dependent_restrict_raises_config_set_to_false_and_attribute_name
+    old_backend = I18n.backend
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations 'en', :activerecord => {:attributes => {:restricted_firm => {:account => "account model"}}}
+
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = false
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
+    firm.create_account(:credit_limit => 10)
+
+    assert_not_nil firm.account
+
+    firm.destroy
+
+    assert !firm.errors.empty?
+    assert_equal "Cannot delete record because a dependent account model exist", firm.errors[:base].first
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.account.present?
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
+    I18n.backend = old_backend
   end
 
   def test_successful_build_association
