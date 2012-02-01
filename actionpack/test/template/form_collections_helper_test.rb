@@ -84,8 +84,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   test 'collection radio accepts a block to render the radio and label as required' do
-    with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |label_for, text, value, html_options|
-      label(:user, label_for, text) { radio_button(:user, :active, value, html_options) }
+    with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label { b.radio_button }
     end
 
     assert_select 'label[for=user_active_true] > input#user_active_true[type=radio]'
@@ -229,8 +229,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   test 'collection check boxes accepts a block to render the radio and label as required' do
-    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |label_for, text, value, html_options|
-      label(:user, label_for, text) { check_box(:user, :active, html_options, value) }
+    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label { b.check_box }
     end
 
     assert_select 'label[for=user_active_true] > input#user_active_true[type=checkbox]'

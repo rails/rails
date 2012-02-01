@@ -2,15 +2,22 @@ module ActionView
   module Helpers
     module Tags
       class CollectionCheckBoxes < CollectionRadioButtons
+        class CheckBoxBuilder < Builder
+          def check_box(extra_html_options={})
+            html_options = extra_html_options.merge(@input_html_options)
+            @template_object.check_box(@object_name, @method_name, html_options, @value, nil)
+          end
+        end
+
         def render
           rendered_collection = render_collection do |value, text, default_html_options|
             default_html_options[:multiple] = true
+            builder = instantiate_builder(CheckBoxBuilder, value, text, default_html_options)
 
             if block_given?
-              yield sanitize_attribute_name(value), text, value, default_html_options
+              yield builder
             else
-              check_box(value, default_html_options) +
-                label(value, text, "collection_check_boxes")
+              builder.check_box + builder.label(:class => "collection_check_boxes")
             end
           end
 
@@ -19,12 +26,6 @@ module ActionView
           hidden = @template_object.hidden_field_tag(tag_name_multiple, "", :id => nil)
 
           rendered_collection + hidden
-        end
-
-        private
-
-        def check_box(value, html_options)
-          @template_object.check_box(@object_name, @method_name, html_options, value, nil)
         end
       end
     end
