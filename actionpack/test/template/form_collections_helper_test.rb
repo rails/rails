@@ -101,6 +101,28 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'label[for=user_active_false] + input#user_active_false[type=radio]'
   end
 
+  test 'collection radio with block helpers accept extra html options' do
+    with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label(:class => "radio_button") + b.radio_button(:class => "radio_button")
+    end
+
+    assert_select 'label.radio_button[for=user_active_true] + input#user_active_true.radio_button[type=radio]'
+    assert_select 'label.radio_button[for=user_active_false] + input#user_active_false.radio_button[type=radio]'
+  end
+
+  test 'collection radio with block helpers allows access to current text and value' do
+    with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label(:"data-value" => b.value) { b.radio_button + b.text }
+    end
+
+    assert_select 'label[for=user_active_true][data-value=true]', 'true' do
+      assert_select 'input#user_active_true[type=radio]'
+    end
+    assert_select 'label[for=user_active_false][data-value=false]', 'false' do
+      assert_select 'input#user_active_false[type=radio]'
+    end
+  end
+
   test 'collection radio buttons with fields for' do
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     @output_buffer = fields_for(:post) do |p|
@@ -253,5 +275,27 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
     assert_select 'label[for=user_active_true] + input#user_active_true[type=checkbox]'
     assert_select 'label[for=user_active_false] + input#user_active_false[type=checkbox]'
+  end
+
+  test 'collection check boxes with block helpers accept extra html options' do
+    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label(:class => "check_box") + b.check_box(:class => "check_box")
+    end
+
+    assert_select 'label.check_box[for=user_active_true] + input#user_active_true.check_box[type=checkbox]'
+    assert_select 'label.check_box[for=user_active_false] + input#user_active_false.check_box[type=checkbox]'
+  end
+
+  test 'collection check boxes with block helpers allows access to current text and value' do
+    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label(:"data-value" => b.value) { b.check_box + b.text }
+    end
+
+    assert_select 'label[for=user_active_true][data-value=true]', 'true' do
+      assert_select 'input#user_active_true[type=checkbox]'
+    end
+    assert_select 'label[for=user_active_false][data-value=false]', 'false' do
+      assert_select 'input#user_active_false[type=checkbox]'
+    end
   end
 end

@@ -3,6 +3,8 @@ module ActionView
     module Tags
       module CollectionHelpers
         class Builder
+          attr_reader :text, :value
+
           def initialize(template_object, object_name, method_name,
                          sanitized_attribute_name, text, value, input_html_options)
             @template_object = template_object

@@ -573,6 +573,13 @@ module ActionView
       #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
       #     b.label(:class => "radio_button") { b.radio_button(:class => "radio_button") }
       #   end
+      #
+      # There are also two special methods available: <tt>text</tt> and
+      # <tt>value</tt>, which are the current text and value methods for the
+      # item being rendered, respectively. You can use them like this:
+      #   collection_radio_buttons(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #      b.label(:"data-value" => b.value) { b.radio_button + b.text }
+      #   end
       def collection_radio_buttons(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionRadioButtons.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
       end
@@ -628,6 +635,13 @@ module ActionView
       # extra html options:
       #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
       #     b.label(:class => "check_box") { b.check_box(:class => "check_box") }
+      #   end
+      #
+      # There are also two special methods available: <tt>text</tt> and
+      # <tt>value</tt>, which are the current text and value methods for the
+      # item being rendered, respectively. You can use them like this:
+      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #      b.label(:"data-value" => b.value) { b.check_box + b.text }
       #   end
       def collection_check_boxes(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionCheckBoxes.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
