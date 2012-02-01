@@ -5,7 +5,7 @@ module ActionView
         delegate :radio_button, :label, :to => :@template_object
 
         def render
-          rendered_collection = render_collection do |value, text, default_html_options|
+          render_collection do |value, text, default_html_options|
             if block_given?
               yield sanitize_attribute_name(value), text, value, default_html_options
             else
@@ -13,8 +13,6 @@ module ActionView
                 label(@object_name, sanitize_attribute_name(value), text, :class => "collection_radio_buttons")
             end
           end
-
-          wrap_rendered_collection(rendered_collection)
         end
 
         private
@@ -49,33 +47,17 @@ module ActionView
         end
 
         def render_collection #:nodoc:
-          item_wrapper_tag   = @options.fetch(:item_wrapper_tag, :span)
-          item_wrapper_class = @options[:item_wrapper_class]
-
           @collection.map do |item|
             value = value_for_collection(item, @value_method)
             text  = value_for_collection(item, @text_method)
             default_html_options = default_html_options_for_collection(item, value)
 
-            rendered_item = yield value, text, default_html_options
-
-            item_wrapper_tag ? @template_object.content_tag(item_wrapper_tag, rendered_item, :class => item_wrapper_class) : rendered_item
+            yield value, text, default_html_options
           end.join.html_safe
         end
 
         def value_for_collection(item, value) #:nodoc:
           value.respond_to?(:call) ? value.call(item) : item.send(value)
-        end
-
-        def wrap_rendered_collection(collection)
-          wrapper_tag = @options[:collection_wrapper_tag]
-
-          if wrapper_tag
-            wrapper_class = @options[:collection_wrapper_class]
-            @template_object.content_tag(wrapper_tag, collection, :class => wrapper_class)
-          else
-            collection
-          end
         end
       end
     end

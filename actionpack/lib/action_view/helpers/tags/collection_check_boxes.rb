@@ -20,7 +20,7 @@ module ActionView
           # server if all check boxes are unchecked.
           hidden = @template_object.hidden_field_tag(tag_name_multiple, "", :id => nil)
 
-          wrap_rendered_collection(rendered_collection + hidden)
+          rendered_collection + hidden
         end
       end
     end

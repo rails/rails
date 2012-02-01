@@ -24,18 +24,12 @@ module ActionView
       #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial)
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
-      #   <span>
-      #     <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
-      #     <label class="collection_radio_buttons" for="post_author_id_1">D. Heinemeier Hansson</label>
-      #   </span>
-      #   <span>
-      #     <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
-      #     <label class="collection_radio_buttons" for="post_author_id_2">D. Thomas</label>
-      #   </span>
-      #   <span>
-      #     <input id="post_author_id_3" name="post[author_id]" type="radio" value="3" />
-      #     <label class="collection_radio_buttons" for="post_author_id_3">M. Clark</label>
-      #   </span>
+      #   <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
+      #   <label class="collection_radio_buttons" for="post_author_id_1">D. Heinemeier Hansson</label>
+      #   <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
+      #   <label class="collection_radio_buttons" for="post_author_id_2">D. Thomas</label>
+      #   <input id="post_author_id_3" name="post[author_id]" type="radio" value="3" />
+      #   <label class="collection_radio_buttons" for="post_author_id_3">M. Clark</label>
       def collection_radio_buttons(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionRadioButtons.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
       end
@@ -63,18 +57,12 @@ module ActionView
       #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial)
       #
       # If <tt>@post.author_ids</tt> is already <tt>[1]</tt>, this would return:
-      #   <span>
-      #     <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
-      #     <label class="collection_check_boxes" for="post_author_ids_1">D. Heinemeier Hansson</label>
-      #   </span>
-      #   <span>
-      #     <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="2" />
-      #     <label class="collection_check_boxes" for="post_author_ids_1">D. Thomas</label>
-      #   </span>
-      #   <span>
-      #     <input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3" />
-      #     <label class="collection_check_boxes" for="post_author_ids_3">M. Clark</label>
-      #   </span>
+      #   <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
+      #   <label class="collection_check_boxes" for="post_author_ids_1">D. Heinemeier Hansson</label>
+      #   <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="2" />
+      #   <label class="collection_check_boxes" for="post_author_ids_1">D. Thomas</label>
+      #   <input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3" />
+      #   <label class="collection_check_boxes" for="post_author_ids_3">M. Clark</label>
       #   <input name="post[author_ids][]" type="hidden" value="" />
       def collection_check_boxes(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionCheckBoxes.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
