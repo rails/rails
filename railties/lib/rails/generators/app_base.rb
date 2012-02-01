@@ -181,10 +181,6 @@ module Rails
         end
       end
 
-      def ruby_debugger_gemfile_entry
-        "gem 'ruby-debug19', :require => 'ruby-debug'"
-      end
-
       def assets_gemfile_entry
         return if options[:skip_sprockets]
 
