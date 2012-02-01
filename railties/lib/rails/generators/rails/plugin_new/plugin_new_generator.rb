@@ -285,7 +285,9 @@ task :default => :test
       end
 
       def valid_const?
-        if camelized =~ /^\d/
+        if original_name =~ /[^0-9a-zA-Z_]+/
+          raise Error, "Invalid plugin name #{original_name}. Please give a name which use only alphabetic or numeric or \"_\" characters."
+        elsif camelized =~ /^\d/
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not match one of the reserved rails words."
