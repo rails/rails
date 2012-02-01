@@ -32,9 +32,11 @@ module ActionView
 
         def value_before_type_cast(object)
           unless object.nil?
-            object.respond_to?(@method_name + "_before_type_cast") ?
-            object.send(@method_name + "_before_type_cast") :
-            object.send(@method_name)
+            method_before_type_cast = @method_name + "_before_type_cast"
+
+            object.respond_to?(method_before_type_cast) ?
+              object.send(method_before_type_cast) :
+              object.send(@method_name)
           end
         end
 
@@ -59,13 +61,15 @@ module ActionView
         end
 
         def add_default_name_and_id_for_value(tag_value, options)
-          unless tag_value.nil?
-            pretty_tag_value = tag_value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase
+          if tag_value.nil?
+            add_default_name_and_id(options)
+          else
             specified_id = options["id"]
             add_default_name_and_id(options)
-            options["id"] += "_#{pretty_tag_value}" if specified_id.blank? && options["id"].present?
-          else
-            add_default_name_and_id(options)
+
+            if specified_id.blank? && options["id"].present?
+              options["id"] += "_#{sanitized_value(tag_value)}"
+            end
           end
         end
 
@@ -110,6 +114,10 @@ module ActionView
 
         def sanitized_method_name
           @sanitized_method_name ||= @method_name.sub(/\?$/,"")
+        end
+
+        def sanitized_value(value)
+          value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase
         end
 
         def select_content_tag(option_tags, options, html_options)

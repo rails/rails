@@ -45,7 +45,7 @@ module ActionView
         end
 
         def sanitize_attribute_name(value) #:nodoc:
-          "#{sanitized_method_name}_#{value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase}"
+          "#{sanitized_method_name}_#{sanitized_value(value)}"
         end
 
         def render_collection #:nodoc:
