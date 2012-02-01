@@ -188,6 +188,10 @@ module ActiveSupport #:nodoc:
         chars(Unicode.tidy_bytes(@wrapped_string, force))
       end
 
+      def as_json(options = nil) #:nodoc:
+        to_s.as_json(options)
+      end
+
       %w(capitalize downcase reverse tidy_bytes upcase).each do |method|
         define_method("#{method}!") do |*args|
           @wrapped_string = send(method, *args).to_s
