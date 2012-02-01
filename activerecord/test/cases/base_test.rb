@@ -1960,7 +1960,27 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "photos", Photo.table_name
   end
 
-  def test_rawr
+  def test_column_types_typecast
+    topic = Topic.first
+    refute_equal 't.lo', topic.author_name
+
+    attrs = topic.attributes.dup
+    attrs.delete 'id'
+
+    typecast = Class.new {
+      def type_cast value
+        "t.lo"
+      end
+    }
+
+    types = { 'author_name' => typecast.new }
+    topic = Topic.allocate.init_with 'attributes' => attrs,
+                                     'column_types' => types
+
+    assert_equal 't.lo', topic.author_name
+  end
+
+  def test_typecasting_aliases
     assert_equal 10, Topic.select('10 as tenderlove').first.tenderlove
   end
 end
