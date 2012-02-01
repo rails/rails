@@ -212,7 +212,7 @@ module ActiveSupport
 
       constant = Object
       names.each do |name|
-        constant = constant.const_defined?(name, false) ? constant.const_get(name) : constant.const_missing(name)
+        constant = constant.const_get(name, false)
       end
       constant
     end
