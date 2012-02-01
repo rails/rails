@@ -13,9 +13,9 @@
       collection_check_boxes :post, :author_ids, Author.all, :id, :name
       # Outputs something like:
       <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" />
-      <label class="collection_check_boxes" for="post_author_ids_1">D. Heinemeier Hansson</label>
+      <label for="post_author_ids_1">D. Heinemeier Hansson</label>
       <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
-      <label class="collection_check_boxes" for="post_author_ids_2">D. Thomas</label>
+      <label for="post_author_ids_2">D. Thomas</label>
       <input name="post[author_ids][]" type="hidden" value="" />
 
     The label/check_box pairs can be customized with a block.
@@ -28,9 +28,9 @@
       collection_radio_buttons :post, :author_id, Author.all, :id, :name
       # Outputs something like:
       <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" />
-      <label class="collection_radio_buttons" for="post_author_id_1">D. Heinemeier Hansson</label>
+      <label for="post_author_id_1">D. Heinemeier Hansson</label>
       <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
-      <label class="collection_radio_buttons" for="post_author_id_2">D. Thomas</label>
+      <label for="post_author_id_2">D. Thomas</label>
 
     The label/radio_button pairs can be customized with a block.
 

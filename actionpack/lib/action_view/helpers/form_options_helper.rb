@@ -550,11 +550,11 @@ module ActionView
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
       #   <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
-      #   <label class="collection_radio_buttons" for="post_author_id_1">D. Heinemeier Hansson</label>
+      #   <label for="post_author_id_1">D. Heinemeier Hansson</label>
       #   <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
-      #   <label class="collection_radio_buttons" for="post_author_id_2">D. Thomas</label>
+      #   <label for="post_author_id_2">D. Thomas</label>
       #   <input id="post_author_id_3" name="post[author_id]" type="radio" value="3" />
-      #   <label class="collection_radio_buttons" for="post_author_id_3">M. Clark</label>
+      #   <label for="post_author_id_3">M. Clark</label>
       #
       # It is also possible to customize the way the elements will be shown by
       # giving a block to the method:
@@ -570,14 +570,14 @@ module ActionView
       #
       # The builder methods <tt>label</tt> and <tt>radio_button</tt> also accept
       # extra html options:
-      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
       #     b.label(:class => "radio_button") { b.radio_button(:class => "radio_button") }
       #   end
       #
       # There are also two special methods available: <tt>text</tt> and
       # <tt>value</tt>, which are the current text and value methods for the
       # item being rendered, respectively. You can use them like this:
-      #   collection_radio_buttons(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
       #      b.label(:"data-value" => b.value) { b.radio_button + b.text }
       #   end
       def collection_radio_buttons(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
@@ -612,11 +612,11 @@ module ActionView
       #
       # If <tt>@post.author_ids</tt> is already <tt>[1]</tt>, this would return:
       #   <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
-      #   <label class="collection_check_boxes" for="post_author_ids_1">D. Heinemeier Hansson</label>
+      #   <label for="post_author_ids_1">D. Heinemeier Hansson</label>
       #   <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
-      #   <label class="collection_check_boxes" for="post_author_ids_2">D. Thomas</label>
+      #   <label for="post_author_ids_2">D. Thomas</label>
       #   <input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3" />
-      #   <label class="collection_check_boxes" for="post_author_ids_3">M. Clark</label>
+      #   <label for="post_author_ids_3">M. Clark</label>
       #   <input name="post[author_ids][]" type="hidden" value="" />
       #
       # It is also possible to customize the way the elements will be shown by

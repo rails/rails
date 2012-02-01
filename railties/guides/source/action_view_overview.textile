@@ -1153,11 +1153,11 @@ If <tt>@post.author_id</tt> is 1, this would return:
 
 <html>
 <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
-<label class="collection_radio_buttons" for="post_author_id_1">D. Heinemeier Hansson</label>
+<label for="post_author_id_1">D. Heinemeier Hansson</label>
 <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
-<label class="collection_radio_buttons" for="post_author_id_2">D. Thomas</label>
+<label for="post_author_id_2">D. Thomas</label>
 <input id="post_author_id_3" name="post[author_id]" type="radio" value="3" />
-<label class="collection_radio_buttons" for="post_author_id_3">M. Clark</label>
+<label for="post_author_id_3">M. Clark</label>
 </html>
 
 h5. collection_check_boxes
@@ -1189,11 +1189,11 @@ If <tt>@post.author_ids</tt> is [1], this would return:
 
 <html>
 <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
-<label class="collection_check_boxes" for="post_author_ids_1">D. Heinemeier Hansson</label>
+<label for="post_author_ids_1">D. Heinemeier Hansson</label>
 <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
-<label class="collection_check_boxes" for="post_author_ids_2">D. Thomas</label>
+<label for="post_author_ids_2">D. Thomas</label>
 <input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3" />
-<label class="collection_check_boxes" for="post_author_ids_3">M. Clark</label>
+<label for="post_author_ids_3">M. Clark</label>
 <input name="post[author_ids][]" type="hidden" value="" />
 </html>
 

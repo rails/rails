@@ -20,7 +20,7 @@ module ActionView
             if block_given?
               yield builder
             else
-              builder.radio_button + builder.label(:class => "collection_radio_buttons")
+              builder.radio_button + builder.label
             end
           end
         end

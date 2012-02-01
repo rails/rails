@@ -21,7 +21,7 @@ module ActionView
             if block_given?
               yield builder
             else
-              builder.check_box + builder.label(:class => "collection_check_boxes")
+              builder.check_box + builder.label
             end
           end
 

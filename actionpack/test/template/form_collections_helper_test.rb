@@ -27,21 +27,21 @@ class FormCollectionsHelperTest < ActionView::TestCase
   test 'collection radio accepts a collection and generate inputs from label method' do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s
 
-    assert_select 'label.collection_radio_buttons[for=user_active_true]', 'true'
-    assert_select 'label.collection_radio_buttons[for=user_active_false]', 'false'
+    assert_select 'label[for=user_active_true]', 'true'
+    assert_select 'label[for=user_active_false]', 'false'
   end
 
   test 'collection radio handles camelized collection values for labels correctly' do
     with_collection_radio_buttons :user, :active, ['Yes', 'No'], :to_s, :to_s
 
-    assert_select 'label.collection_radio_buttons[for=user_active_yes]', 'Yes'
-    assert_select 'label.collection_radio_buttons[for=user_active_no]', 'No'
+    assert_select 'label[for=user_active_yes]', 'Yes'
+    assert_select 'label[for=user_active_no]', 'No'
   end
 
   test 'colection radio should sanitize collection values for labels correctly' do
     with_collection_radio_buttons :user, :name, ['$0.99', '$1.99'], :to_s, :to_s
-    assert_select 'label.collection_radio_buttons[for=user_name_099]', '$0.99'
-    assert_select 'label.collection_radio_buttons[for=user_name_199]', '$1.99'
+    assert_select 'label[for=user_name_099]', '$0.99'
+    assert_select 'label[for=user_name_199]', '$1.99'
   end
 
   test 'collection radio accepts checked item' do
@@ -132,8 +132,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'input#post_category_id_1[type=radio][value=1]'
     assert_select 'input#post_category_id_2[type=radio][value=2]'
 
-    assert_select 'label.collection_radio_buttons[for=post_category_id_1]', 'Category 1'
-    assert_select 'label.collection_radio_buttons[for=post_category_id_2]', 'Category 2'
+    assert_select 'label[for=post_category_id_1]', 'Category 1'
+    assert_select 'label[for=post_category_id_2]', 'Category 2'
   end
 
   # COLLECTION CHECK BOXES
@@ -156,21 +156,21 @@ class FormCollectionsHelperTest < ActionView::TestCase
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     with_collection_check_boxes :user, :category_ids, collection, :id, :name
 
-    assert_select 'label.collection_check_boxes[for=user_category_ids_1]', 'Category 1'
-    assert_select 'label.collection_check_boxes[for=user_category_ids_2]', 'Category 2'
+    assert_select 'label[for=user_category_ids_1]', 'Category 1'
+    assert_select 'label[for=user_category_ids_2]', 'Category 2'
   end
 
   test 'collection check boxes handles camelized collection values for labels correctly' do
     with_collection_check_boxes :user, :active, ['Yes', 'No'], :to_s, :to_s
 
-    assert_select 'label.collection_check_boxes[for=user_active_yes]', 'Yes'
-    assert_select 'label.collection_check_boxes[for=user_active_no]', 'No'
+    assert_select 'label[for=user_active_yes]', 'Yes'
+    assert_select 'label[for=user_active_no]', 'No'
   end
 
   test 'colection check box should sanitize collection values for labels correctly' do
     with_collection_check_boxes :user, :name, ['$0.99', '$1.99'], :to_s, :to_s
-    assert_select 'label.collection_check_boxes[for=user_name_099]', '$0.99'
-    assert_select 'label.collection_check_boxes[for=user_name_199]', '$1.99'
+    assert_select 'label[for=user_name_099]', '$0.99'
+    assert_select 'label[for=user_name_199]', '$1.99'
   end
 
   test 'collection check boxes accepts selected values as :checked option' do
@@ -248,8 +248,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'input#post_category_ids_1[type=checkbox][value=1]'
     assert_select 'input#post_category_ids_2[type=checkbox][value=2]'
 
-    assert_select 'label.collection_check_boxes[for=post_category_ids_1]', 'Category 1'
-    assert_select 'label.collection_check_boxes[for=post_category_ids_2]', 'Category 2'
+    assert_select 'label[for=post_category_ids_1]', 'Category 1'
+    assert_select 'label[for=post_category_ids_2]', 'Category 2'
   end
 
   test 'collection check boxes does not wrap input inside the label' do
