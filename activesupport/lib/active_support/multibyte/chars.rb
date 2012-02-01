@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'active_support/json'
 require 'active_support/core_ext/string/access'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/module/delegation'
