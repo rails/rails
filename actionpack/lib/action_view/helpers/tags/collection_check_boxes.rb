@@ -1,7 +1,11 @@
+require 'action_view/helpers/tags/collection_helpers'
+
 module ActionView
   module Helpers
     module Tags
-      class CollectionCheckBoxes < CollectionRadioButtons
+      class CollectionCheckBoxes < Base
+        include CollectionHelpers
+
         class CheckBoxBuilder < Builder
           def check_box(extra_html_options={})
             html_options = extra_html_options.merge(@input_html_options)
