@@ -164,7 +164,9 @@ module ActionView
       #
       # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are methods to be called on each member
       # of +collection+. The return values are used as the +value+ attribute and contents of each
-      # <tt><option></tt> tag, respectively.
+      # <tt><option></tt> tag, respectively. They can also be any object that responds to +call+, such
+      # as a +proc+, that will be called for each member of the +collection+ to
+      # retrieve the value/text.
       #
       # Example object structure for use with this method:
       #   class Post < ActiveRecord::Base
@@ -520,13 +522,17 @@ module ActionView
         zone_options.html_safe
       end
 
-      # Returns radio button tags for the collection of existing return values of +method+ for
-      # +object+'s class. The value returned from calling +method+ on the instance +object+ will
-      # be selected. If calling +method+ returns +nil+, no selection is made.
+      # Returns radio button tags for the collection of existing return values
+      # of +method+ for +object+'s class. The value returned from calling
+      # +method+ on the instance +object+ will be selected. If calling +method+
+      # returns +nil+, no selection is made.
       #
-      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are methods to be called on each member
-      # of +collection+. The return values are used as the +value+ attribute and contents of each
-      # radio button tag, respectively.
+      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are
+      # methods to be called on each member of +collection+. The return values
+      # are used as the +value+ attribute and contents of each radio button tag,
+      # respectively. They can also be any object that responds to +call+, such
+      # as a +proc+, that will be called for each member of the +collection+ to
+      # retrieve the value/text.
       #
       # Example object structure for use with this method:
       #   class Post < ActiveRecord::Base
@@ -549,24 +555,46 @@ module ActionView
       #   <label class="collection_radio_buttons" for="post_author_id_2">D. Thomas</label>
       #   <input id="post_author_id_3" name="post[author_id]" type="radio" value="3" />
       #   <label class="collection_radio_buttons" for="post_author_id_3">M. Clark</label>
+      #
+      # It is also possible to customize the way the elements will be shown by
+      # giving a block to the method:
+      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
+      #     b.label { b.radio_button }
+      #   end
+      #
+      # The argument passed to the block is a special kind of builder for this
+      # collection, which has the ability to generate the label and radio button
+      # for the current item in the collection, with proper text and value.
+      # Using it, you can change the label and radio button display order or
+      # even use the label as wrapper, as in the example above.
+      #
+      # The builder methods <tt>label</tt> and <tt>radio_button</tt> also accept
+      # extra html options:
+      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #     b.label(:class => "radio_button") { b.radio_button(:class => "radio_button") }
+      #   end
       def collection_radio_buttons(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionRadioButtons.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
       end
 
-      # Returns check box tags for the collection of existing return values of +method+ # for
-      # +object+'s class. The value returned from calling +method+ on the instance +object+ will
-      # be selected. If calling +method+ returns +nil+, no selection is made.
+      # Returns check box tags for the collection of existing return values of
+      # +method+ for +object+'s class. The value returned from calling +method+
+      # on the instance +object+ will be selected. If calling +method+ returns
+      # +nil+, no selection is made.
       #
-      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are methods to be called on each member
-      # of +collection+. The return values are used as the +value+ attribute and contents of each
-      # check box tag, respectively.
+      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are
+      # methods to be called on each member of +collection+. The return values
+      # are used as the +value+ attribute and contents of each check box tag,
+      # respectively. They can also be any object that responds to +call+, such
+      # as a +proc+, that will be called for each member of the +collection+ to
+      # retrieve the value/text.
       #
       # Example object structure for use with this method:
       #   class Post < ActiveRecord::Base
-      #     has_and_belongs_to :author
+      #     has_and_belongs_to_many :author
       #   end
       #   class Author < ActiveRecord::Base
-      #     has_and_belongs_to :posts
+      #     has_and_belongs_to_many :posts
       #     def name_with_initial
       #       "#{first_name.first}. #{last_name}"
       #     end
@@ -578,11 +606,29 @@ module ActionView
       # If <tt>@post.author_ids</tt> is already <tt>[1]</tt>, this would return:
       #   <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
       #   <label class="collection_check_boxes" for="post_author_ids_1">D. Heinemeier Hansson</label>
-      #   <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="2" />
-      #   <label class="collection_check_boxes" for="post_author_ids_1">D. Thomas</label>
+      #   <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
+      #   <label class="collection_check_boxes" for="post_author_ids_2">D. Thomas</label>
       #   <input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3" />
       #   <label class="collection_check_boxes" for="post_author_ids_3">M. Clark</label>
       #   <input name="post[author_ids][]" type="hidden" value="" />
+      #
+      # It is also possible to customize the way the elements will be shown by
+      # giving a block to the method:
+      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #     b.label { b.check_box }
+      #   end
+      #
+      # The argument passed to the block is a special kind of builder for this
+      # collection, which has the ability to generate the label and check box
+      # for the current item in the collection, with proper text and value.
+      # Using it, you can change the label and check box display order or even
+      # use the label as wrapper, as in the example above.
+      #
+      # The builder methods <tt>label</tt> and <tt>check_box</tt> also accept
+      # extra html options:
+      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #     b.label(:class => "check_box") { b.check_box(:class => "check_box") }
+      #   end
       def collection_check_boxes(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionCheckBoxes.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
       end

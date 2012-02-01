@@ -83,13 +83,22 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select 'label input'
   end
 
-  test 'collection radio accepts a block to render the radio and label as required' do
+  test 'collection radio accepts a block to render the label as radio button wrapper' do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
       b.label { b.radio_button }
     end
 
     assert_select 'label[for=user_active_true] > input#user_active_true[type=radio]'
     assert_select 'label[for=user_active_false] > input#user_active_false[type=radio]'
+  end
+
+  test 'collection radio accepts a block to change the order of label and radio button' do
+    with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label + b.radio_button
+    end
+
+    assert_select 'label[for=user_active_true] + input#user_active_true[type=radio]'
+    assert_select 'label[for=user_active_false] + input#user_active_false[type=radio]'
   end
 
   test 'collection radio buttons with fields for' do
@@ -228,12 +237,21 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select 'label input'
   end
 
-  test 'collection check boxes accepts a block to render the radio and label as required' do
+  test 'collection check boxes accepts a block to render the label as check box wrapper' do
     with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
       b.label { b.check_box }
     end
 
     assert_select 'label[for=user_active_true] > input#user_active_true[type=checkbox]'
     assert_select 'label[for=user_active_false] > input#user_active_false[type=checkbox]'
+  end
+
+  test 'collection check boxes accepts a block to change the order of label and check box' do
+    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label + b.check_box
+    end
+
+    assert_select 'label[for=user_active_true] + input#user_active_true[type=checkbox]'
+    assert_select 'label[for=user_active_false] + input#user_active_false[type=checkbox]'
   end
 end
