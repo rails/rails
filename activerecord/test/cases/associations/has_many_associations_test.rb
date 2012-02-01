@@ -738,6 +738,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal number_of_clients + 1, companies(:first_firm).clients_of_firm.size
   end
 
+  def test_find_or_initialize_updates_collection_size_only_once
+    number_of_clients = companies(:first_firm).clients_of_firm.size
+    client = companies(:first_firm).clients_of_firm.find_or_initialize_by_name("name" => "Another Client")
+    client.save
+    assert_equal number_of_clients + 1, companies(:first_firm).clients_of_firm.size
+  end
+
   def test_find_or_create_with_hash
     post = authors(:david).posts.find_or_create_by_title(:title => 'Yet another post', :body => 'somebody')
     assert_equal post, authors(:david).posts.find_or_create_by_title(:title => 'Yet another post', :body => 'somebody')
