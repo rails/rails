@@ -75,7 +75,8 @@ module ActiveRecord::Associations::Builder
               raise ActiveRecord::DeleteRestrictionError.new(name)
             else
               key  = association(name).reflection.macro == :has_one ? "one" : "many"
-              errors.add(:base, :"restrict_dependent_destroy.#{key}", :record => name)
+              errors.add(:base, :"restrict_dependent_destroy.#{key}",
+                         :record => self.class.human_attribute_name(name).downcase)
               return false
             end
           end
