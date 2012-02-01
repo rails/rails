@@ -19,7 +19,6 @@ module Rails
         opt.banner = "Usage: console [environment] [options]"
         opt.on('-s', '--sandbox', 'Rollback database modifications on exit.') { |v| options[:sandbox] = v }
         opt.on("--debugger", 'Enable ruby-debugging for the console.') { |v| options[:debugger] = v }
-        opt.on('--irb', "DEPRECATED: Invoke `/your/choice/of/ruby script/rails console` instead") { |v| abort '--irb option is no longer supported. Invoke `/your/choice/of/ruby script/rails console` instead' }
         opt.parse!(ARGV)
       end
 
