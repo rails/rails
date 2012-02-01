@@ -33,7 +33,6 @@ module ActionView
         def instantiate_builder(builder_class, value, text, html_options)
           builder_class.new(@template_object, @object_name, @method_name,
                             sanitize_attribute_name(value), text, value, html_options)
-
         end
 
         # Generate default options for collection helpers, such as :checked and
@@ -42,14 +41,13 @@ module ActionView
           html_options = @html_options.dup
 
           [:checked, :selected, :disabled].each do |option|
-            next unless @options[option]
+            next unless current_value = @options[option]
 
-
-            accept = if @options[option].respond_to?(:call)
-                       @options[option].call(item)
-                     else
-                       Array(@options[option]).include?(value)
-                     end
+            accept = if current_value.respond_to?(:call)
+              current_value.call(item)
+            else
+              Array(current_value).include?(value)
+            end
 
             if accept
               html_options[option] = true

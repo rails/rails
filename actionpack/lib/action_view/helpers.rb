@@ -12,7 +12,6 @@ module ActionView #:nodoc:
     autoload :CsrfHelper
     autoload :DateHelper
     autoload :DebugHelper
-    autoload :FormCollectionsHelper
     autoload :FormHelper
     autoload :FormOptionsHelper
     autoload :FormTagHelper
@@ -43,7 +42,6 @@ module ActionView #:nodoc:
     include CsrfHelper
     include DateHelper
     include DebugHelper
-    include FormCollectionsHelper
     include FormHelper
     include FormOptionsHelper
     include FormTagHelper
