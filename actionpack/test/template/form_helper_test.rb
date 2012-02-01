@@ -398,6 +398,10 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_check_box_with_nil_unchecked_value_is_html_safe
+    assert check_box("post", "secret", {}, "on", nil).html_safe?
+  end
+
   def test_check_box_with_multiple_behavior
     @post.comment_ids = [2,3]
     assert_dom_equal(
