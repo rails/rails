@@ -6,7 +6,7 @@ module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets,
-                    :cache_classes, :cache_store, :consider_all_requests_local,
+                    :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :dependency_loading, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
                     :railties_order, :relative_url_root, :secret_token,

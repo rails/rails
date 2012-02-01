@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. *Piotr Sarnacki*
+
+    Example:
+
+        # it can be added to config/application.rb
+        console do
+          # this block is called only when running console,
+          # so we can safely require pry here
+          require "pry"
+          config.console = Pry
+        end
+
 *   Add convenience `hide!` method to Rails generators to hide current generator
     namespace from showing when running `rails generate`. *Carlos Antonio da Silva*
 

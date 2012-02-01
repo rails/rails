@@ -42,8 +42,9 @@ module Rails
         puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
       end
 
-      IRB::ExtendCommandBundle.send :include, Rails::ConsoleMethods
-      IRB.start
+      console = Rails.application.config.console || IRB
+      console::ExtendCommandBundle.send :include, Rails::ConsoleMethods
+      console.start
     end
   end
 end

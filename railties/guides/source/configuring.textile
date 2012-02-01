@@ -122,6 +122,17 @@ WARNING: Threadsafe operation is incompatible with the normal workings of develo
 
 * +config.whiny_nils+ enables or disables warnings when a certain set of methods are invoked on +nil+ and it does not respond to them. Defaults to true in development and test environments.
 
+* +config.console+ allows you to set class that will be used as console you run +rails console+. It's best to run it in +console+ block:
+
+<ruby>
+console do
+  # this block is called only when running console,
+  # so we can safely require pry here
+  require "pry"
+  config.console = Pry
+end
+</ruby>
+
 h4. Configuring Assets
 
 Rails 3.1, by default, is set up to use the +sprockets+ gem to manage assets within an application. This gem concatenates and compresses assets in order to make serving them much less painful.
