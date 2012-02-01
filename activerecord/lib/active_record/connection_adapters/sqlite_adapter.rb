@@ -6,26 +6,11 @@ module ActiveRecord
   module ConnectionAdapters #:nodoc:
     class SQLiteColumn < Column #:nodoc:
       class <<  self
-        def string_to_binary(value)
-          value.gsub(/\0|\%/n) do |b|
-            case b
-              when "\0" then "%00"
-              when "%"  then "%25"
-            end
-          end
-        end
-
         def binary_to_string(value)
           if value.encoding != Encoding::ASCII_8BIT
             value = value.force_encoding(Encoding::ASCII_8BIT)
           end
-
-          value.gsub(/%00|%25/n) do |b|
-            case b
-              when "%00" then "\0"
-              when "%25" then "%"
-            end
-          end
+          value
         end
       end
     end
