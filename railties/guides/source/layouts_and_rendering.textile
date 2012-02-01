@@ -1086,7 +1086,7 @@ You can also pass local variables into partials, making them even more powerful 
 <% end %>
 </erb>
 
-Although the same partial will be rendered into both views, Action View's submit helper will return "New zone" for the new action and "Editing zone" for the edit action.
+Although the same partial will be rendered into both views, Action View's submit helper will return "Create Zone" for the new action and "Update Zone" for the edit action.
 
 Every partial also has a local variable with the same name as the partial (minus the underscore). You can pass an object in to this local variable via the +:object+ option:
 
