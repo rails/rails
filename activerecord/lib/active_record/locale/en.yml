@@ -11,7 +11,7 @@ en:
         taken: "has already been taken"
         record_invalid: "Validation failed: %{errors}"
         restrict_dependent_destroy:
-          one: "Cannot delete record because a dependent %{record} exist"
+          one: "Cannot delete record because a dependent %{record} exists"
           many: "Cannot delete record because dependent %{record} exist"
         # Append your own errors here or at the model/attributes scope.
 
