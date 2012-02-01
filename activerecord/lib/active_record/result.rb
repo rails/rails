@@ -49,6 +49,10 @@ module ActiveRecord
       @hash_rows = nil
     end
 
+    def column_types
+      {}
+    end
+
     private
     def hash_rows
       @hash_rows ||= @rows.map { |row|

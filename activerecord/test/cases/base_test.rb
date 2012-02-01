@@ -1959,4 +1959,8 @@ class BasicsTest < ActiveRecord::TestCase
   def test_table_name_with_2_abstract_subclasses
     assert_equal "photos", Photo.table_name
   end
+
+  def test_rawr
+    assert_equal 10, Topic.select('10 as tenderlove').first.tenderlove
+  end
 end
