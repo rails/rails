@@ -15,6 +15,10 @@ module ActiveRecord
       end
 
       def dump(obj)
+        unless obj.is_a?(object_class)
+          raise SerializationTypeMismatch,
+            "Attribute was supposed to be a #{object_class}, but was a #{obj.class}. -- #{obj.inspect}"
+        end
         YAML.dump obj
       end
 
