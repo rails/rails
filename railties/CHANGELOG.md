@@ -1,3 +1,10 @@
+## Rails 3.2.2 (unreleased) ##
+
+*   The Gemfile generated in new apps has as source http://rubygems.org
+    instead of https://rubygems.org. This allow to JRuby users to
+    generate working apps without install jruby-openssl before of run
+    `rails new` *Guillermo Iguaran*
+
 ## Rails 3.2.1 (January 26, 2012) ##
 
 *   Documentation fixes.
