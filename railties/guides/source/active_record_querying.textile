@@ -404,6 +404,8 @@ Or ordering by multiple fields:
 
 <ruby>
 Client.order("orders_count ASC, created_at DESC")
+# OR
+Client.order("orders_count ASC", "created_at DESC")
 </ruby>
 
 h3. Selecting Specific Fields
@@ -608,7 +610,7 @@ This method accepts *no* arguments.
 
 h3. Readonly Objects
 
-Active Record provides +readonly+ method on a relation to explicitly disallow modification or deletion of any of the returned object. Any attempt to alter or destroy a readonly record will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception.
+Active Record provides +readonly+ method on a relation to explicitly disallow modification of any of the returned objects. Any attempt to alter a readonly record will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception.
 
 <ruby>
 client = Client.readonly.first
@@ -648,15 +650,13 @@ c2.save # Raises an ActiveRecord::StaleObjectError
 
 You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging, or otherwise apply the business logic needed to resolve the conflict.
 
-NOTE: You must ensure that your database schema defaults the +lock_version+ column to +0+.
-
 This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
 
-To override the name of the +lock_version+ column, +ActiveRecord::Base+ provides a class method called +set_locking_column+:
+To override the name of the +lock_version+ column, +ActiveRecord::Base+ provides a class attribute called +locking_column+:
 
 <ruby>
 class Client < ActiveRecord::Base
-  set_locking_column :lock_client_column
+  self.locking_column = :lock_client_column
 end
 </ruby>
 

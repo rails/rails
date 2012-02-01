@@ -190,7 +190,7 @@ module ActionDispatch
   # Examples:
   #
   #   match 'post/:id' => 'posts#show', :via => :get
-  #   match 'post/:id' => "posts#create_comment', :via => :post
+  #   match 'post/:id' => 'posts#create_comment', :via => :post
   #
   # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
   # URL will route to the <tt>show</tt> action.
@@ -203,7 +203,7 @@ module ActionDispatch
   # Examples:
   #
   #   get 'post/:id' => 'posts#show'
-  #   post 'post/:id' => "posts#create_comment'
+  #   post 'post/:id' => 'posts#create_comment'
   #
   # This syntax is less verbose and the intention is more apparent to someone else reading your code,
   # however if your route needs to respond to more than one HTTP method (or all methods) then using the
