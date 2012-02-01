@@ -311,7 +311,7 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_strict_validation_particular_validator
-    Topic.validates :title,  :presence => {:strict => true}
+    Topic.validates :title,  :presence => { :strict => true }
     assert_raises ActiveModel::StrictValidationFailed do
       Topic.new.valid?
     end
@@ -329,5 +329,14 @@ class ValidationsTest < ActiveModel::TestCase
     assert_raises ActiveModel::StrictValidationFailed do
       Topic.new.valid?
     end
+  end
+
+  def test_strict_validation_error_message
+    Topic.validates :title, :strict => true, :presence => true
+
+    exception = assert_raises(ActiveModel::StrictValidationFailed) do
+      Topic.new.valid?
+    end
+    assert_equal "Title can't be blank", exception.message
   end
 end

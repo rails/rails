@@ -1,7 +1,6 @@
 require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
-
   # == Active Model validates method
   module Validations
     module ClassMethods
@@ -59,7 +58,7 @@ module ActiveModel
       #
       #   validates :name, :'film/title' => true
       #
-      # The validators hash can also handle regular expressions, ranges, 
+      # The validators hash can also handle regular expressions, ranges,
       # arrays and strings in shortcut form, e.g.
       #
       #   validates :email, :format => /@/
@@ -70,7 +69,7 @@ module ActiveModel
       # validator's initializer as +options[:in]+ while other types including
       # regular expressions and strings are passed as +options[:with]+
       #
-      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+ and +:strict+ 
+      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+ and +:strict+
       # can be given to one specific validator, as a hash:
       #
       #   validates :password, :presence => { :if => :password_required? }, :confirmation => true
@@ -101,11 +100,11 @@ module ActiveModel
         end
       end
 
-      # This method is used to define validation that can not be corrected by end user
-      # and is considered exceptional. 
-      # So each validator defined with bang or <tt>:strict</tt> option set to <tt>true</tt>
-      # will always raise <tt>ActiveModel::InternalValidationFailed</tt> instead of adding error
-      # when validation fails
+      # This method is used to define validation that cannot be corrected by end
+      # user and is considered exceptional. So each validator defined with bang
+      # or <tt>:strict</tt> option set to <tt>true</tt> will always raise
+      # <tt>ActiveModel::StrictValidationFailed</tt> instead of adding error
+      # when validation fails.
       # See <tt>validates</tt> for more information about validation itself.
       def validates!(*attributes)
         options = attributes.extract_options!
@@ -118,7 +117,7 @@ module ActiveModel
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
       def _validates_default_keys
-        [ :if, :unless, :on, :allow_blank, :allow_nil , :strict]
+        [:if, :unless, :on, :allow_blank, :allow_nil , :strict]
       end
 
       def _parse_validates_options(options) #:nodoc:
