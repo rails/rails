@@ -74,7 +74,8 @@ module ActiveRecord::Associations::Builder
             if dependent_restrict_raises?
               raise ActiveRecord::DeleteRestrictionError.new(name)
             else
-              errors.add(:base, :restrict_dependent_destroy, :model => name.to_s.singularize)
+              key  = association(name).reflection.macro == :has_one ? "one" : "many"
+              errors.add(:base, :"restrict_dependent_destroy.#{key}", :record => name)
               return false
             end
           end
