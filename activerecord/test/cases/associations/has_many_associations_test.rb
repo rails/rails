@@ -1171,7 +1171,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert !firm.errors.empty?
 
-    assert_equal "Cannot delete record because dependent company exists", firm.errors[:base].first
+    assert_equal "Cannot delete record because dependent companies exist", firm.errors[:base].first
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.companies.exists?(:name => 'child')
   ensure
