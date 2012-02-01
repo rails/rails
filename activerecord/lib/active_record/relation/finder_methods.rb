@@ -397,9 +397,10 @@ module ActiveRecord
     end
     
     def contains_only_subclass_constraint?(where_values)
-      where_values.length == 1 &&
-      !where_values[0].left.nil? && where_values[0].left.relation.name == table_name &&
-      !where_values[0].right.nil? && where_values[0].right.length == 1 && where_values[0].right[0] == @klass.name
+      equalities = where_values.grep(Arel::Nodes::In)
+      equalities.respond_to?('length') && equalities.length == 1 && 
+      !equalities[0].left.nil? && equalities[0].left.relation.name == table_name &&
+      !equalities[0].right.nil? && equalities[0].right.length == 1 && equalities[0].right[0] == @klass.name
     end
   end
 end
