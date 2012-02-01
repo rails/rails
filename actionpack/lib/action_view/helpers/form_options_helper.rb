@@ -360,7 +360,7 @@ module ActionView
       # should produce the desired results.
       def options_from_collection_for_select(collection, value_method, text_method, selected = nil)
         options = collection.map do |element|
-          [element.send(text_method), element.send(value_method)]
+          [value_for_collection(element, text_method), value_for_collection(element, value_method)]
         end
         selected, disabled = extract_selected_and_disabled(selected)
         select_deselect = {
@@ -622,7 +622,7 @@ module ActionView
             [selected, nil]
           else
             selected = Array.wrap(selected)
-            options  = selected.extract_options!.symbolize_keys
+            options = selected.extract_options!.symbolize_keys
             selected_items = options.fetch(:selected, selected)
             [selected_items, options[:disabled]]
           end
@@ -636,6 +636,10 @@ module ActionView
           else
             selected
           end
+        end
+
+        def value_for_collection(item, value)
+          value.respond_to?(:call) ? value.call(item) : item.send(value)
         end
     end
 

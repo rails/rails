@@ -72,10 +72,6 @@ module ActionView
             yield value, text, default_html_options
           end.join.html_safe
         end
-
-        def value_for_collection(item, value) #:nodoc:
-          value.respond_to?(:call) ? value.call(item) : item.send(value)
-        end
       end
     end
   end

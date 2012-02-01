@@ -87,6 +87,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_options_with_proc_for_value_method
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, lambda { |p| p.author_name }, "title")
+    )
+  end
+
+  def test_collection_options_with_proc_for_text_method
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", lambda { |p| p.title })
+    )
+  end
+
   def test_string_options_for_select
     options = "<option value=\"Denmark\">Denmark</option><option value=\"USA\">USA</option><option value=\"Sweden\">Sweden</option>"
     assert_dom_equal(
@@ -790,7 +804,25 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe</option></select>",
       collection_select("post", "author_name", dummy_posts, "author_name", "author_name", :disabled => 'Cabe')
-       )
+    )
+  end
+
+  def test_collection_select_with_proc_for_value_method
+    @post = Post.new
+
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option></select>",
+      collection_select("post", "author_name", dummy_posts, lambda { |p| p.author_name }, "title")
+    )
+  end
+
+  def test_collection_select_with_proc_for_text_method
+    @post = Post.new
+
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option></select>",
+      collection_select("post", "author_name", dummy_posts, "author_name", lambda { |p| p.title })
+    )
   end
 
   def test_time_zone_select
@@ -1084,14 +1116,14 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   private
 
-    def dummy_posts
-      [ Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-        Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-        Post.new("Cabe went home", "Cabe", "To a little house", "shh!") ]
-    end
+  def dummy_posts
+    [ Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
+      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
+      Post.new("Cabe went home", "Cabe", "To a little house", "shh!") ]
+  end
 
-    def dummy_continents
-      [ Continent.new("<Africa>", [Country.new("<sa>", "<South Africa>"), Country.new("so", "Somalia")] ),
-       Continent.new("Europe", [Country.new("dk", "Denmark"), Country.new("ie", "Ireland")] ) ]
-    end
+  def dummy_continents
+    [ Continent.new("<Africa>", [Country.new("<sa>", "<South Africa>"), Country.new("so", "Somalia")]),
+      Continent.new("Europe", [Country.new("dk", "Denmark"), Country.new("ie", "Ireland")]) ]
+  end
 end
