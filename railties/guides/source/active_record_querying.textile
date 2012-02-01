@@ -608,6 +608,30 @@ SELECT * FROM clients WHERE orders_count > 10 ORDER BY clients.id DESC
 
 This method accepts *no* arguments.
 
+h3. Null Relation
+
+The +none+ method returns a chainable relation with no records. Any subsequent conditions chained to the returned relation will continue generating empty relations. This is useful in scenarios where you need a chainable response to a method or a scope that could return zero results.
+
+<ruby>
+Post.none # returns an empty Relation and fires no queries.
+</ruby>
+
+<ruby>
+# The visible_posts method below is expected to return a Relation.
+@posts = current_user.visible_posts.where(:name => params[:name])
+
+def visible_posts
+  case role
+  when 'Country Manager'
+    Post.where(:country => country)
+  when 'Reviewer'
+    Post.published
+  when 'Bad User'
+    Post.none # => returning [] or nil breaks the caller code in this case
+  end
+end
+</ruby>
+
 h3. Readonly Objects
 
 Active Record provides +readonly+ method on a relation to explicitly disallow modification of any of the returned objects. Any attempt to alter a readonly record will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception.

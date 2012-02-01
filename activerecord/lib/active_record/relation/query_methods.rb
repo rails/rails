@@ -201,26 +201,26 @@ module ActiveRecord
     #
     # The returned NullRelation inherits from Relation and implements the
     # Null Object pattern so it is an object with defined null behavior:
-    # it always returns an empty array of records and avoids any database query.
+    # it always returns an empty array of records and does not query the database.
     #
     # Any subsequent condition chained to the returned relation will continue
     # generating an empty relation and will not fire any query to the database.
     #
-    # Used in cases where is needed a method or a scope that could return zero
-    # results but the response has to be chainable.
+    # This is useful in scenarios where you need a chainable response to a method
+    # or a scope that could return zero results.
     #
     # For example:
     #
     #   @posts = current_user.visible_posts.where(:name => params[:name])
-    #   # => the visible_post method response has to be a chainable Relation
+    #   # => the visible_posts method is expected to return a chainable Relation
     #
     #   def visible_posts
     #     case role
-    #     if 'Country Manager'
+    #     when 'Country Manager'
     #       Post.where(:country => country)
-    #     if 'Reviewer'
+    #     when 'Reviewer'
     #       Post.published
-    #     if 'Bad User'
+    #     when 'Bad User'
     #       Post.none # => returning [] instead breaks the previous code
     #     end
     #   end
