@@ -216,11 +216,11 @@ module ActiveRecord
     #
     #   def visible_posts
     #     case role
-    #     if 'Country Manager'
+    #     when 'Country Manager'
     #       Post.where(:country => country)
-    #     if 'Reviewer'
+    #     when 'Reviewer'
     #       Post.published
-    #     if 'Bad User'
+    #     when 'Bad User'
     #       Post.none # => returning [] instead breaks the previous code
     #     end
     #   end
