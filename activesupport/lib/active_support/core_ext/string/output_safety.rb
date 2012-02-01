@@ -35,7 +35,7 @@ class ERB
     singleton_class.send(:remove_method, :html_escape)
     module_function :html_escape
 
-    # Returns an escaped version of +html+ without affecting existing escaped entities.
+    # A utility method for escaping HTML without affecting existing escaped entities.
     #
     # ==== Examples
     #   html_escape_once("1 < 2 &amp; 3")

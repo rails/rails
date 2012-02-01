@@ -100,12 +100,12 @@ module ActiveModel
         end
       end
 
-      # This method is used to define validation that cannot be corrected by end
-      # user and is considered exceptional. So each validator defined with bang
+      # This method is used to define validations that cannot be corrected by end
+      # users and are considered exceptional. So each validator defined with bang
       # or <tt>:strict</tt> option set to <tt>true</tt> will always raise
       # <tt>ActiveModel::StrictValidationFailed</tt> instead of adding error
       # when validation fails.
-      # See <tt>validates</tt> for more information about validation itself.
+      # See <tt>validates</tt> for more information about the validation itself.
       def validates!(*attributes)
         options = attributes.extract_options!
         options[:strict] = true
