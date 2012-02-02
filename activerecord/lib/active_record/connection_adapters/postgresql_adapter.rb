@@ -1,6 +1,7 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/object/blank'
 require 'active_record/connection_adapters/statement_pool'
+require 'active_record/connection_adapters/postgresql/oid'
 
 # Make sure we're using pg high enough for PGResult#values
 gem 'pg', '~> 0.11'
@@ -696,12 +697,28 @@ module ActiveRecord
         Arel.sql("$#{index + 1}")
       end
 
+      class Result < ActiveRecord::Result
+        def initialize(columns, rows, column_types)
+          super(columns, rows)
+          @column_types = column_types
+        end
+      end
+
       def exec_query(sql, name = 'SQL', binds = [])
         log(sql, name, binds) do
           result = binds.empty? ? exec_no_cache(sql, binds) :
                                   exec_cache(sql, binds)
 
-          ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
+          types = {}
+          result.fields.each_with_index do |fname, i|
+            ftype = result.ftype i
+            types[fname] = OID::TYPE_MAP.fetch(ftype) { |oid|
+              warn "unknown OID: #{fname}(#{oid}) (#{sql})"
+              OID::Identity.new
+            }
+          end
+
+          ret = Result.new(result.fields, result_as_array(result), types)
           result.clear
           return ret
         end
