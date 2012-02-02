@@ -409,7 +409,7 @@ module ActiveRecord
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name, name = nil)#:nodoc:
+      def columns(table_name)#:nodoc:
         sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|

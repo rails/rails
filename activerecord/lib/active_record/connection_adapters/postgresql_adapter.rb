@@ -891,7 +891,7 @@ module ActiveRecord
       end
 
       # Returns the list of all column definitions for a table.
-      def columns(table_name, name = nil)
+      def columns(table_name)
         # Limit, precision, and scale are all handled by the superclass.
         column_definitions(table_name).collect do |column_name, type, default, notnull|
           PostgreSQLColumn.new(column_name, default, type, notnull == 'f')
