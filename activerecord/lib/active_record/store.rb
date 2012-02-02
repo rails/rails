@@ -36,11 +36,13 @@ module ActiveRecord
       def store_accessor(store_attribute, *keys)
         Array(keys).flatten.each do |key|
           define_method("#{key}=") do |value|
+            send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
             send(store_attribute)[key] = value
             send("#{store_attribute}_will_change!")
           end
     
           define_method(key) do
+            send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
             send(store_attribute)[key]
           end
         end
