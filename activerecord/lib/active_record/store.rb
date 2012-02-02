@@ -15,7 +15,7 @@ module ActiveRecord
   #   class User < ActiveRecord::Base
   #     store :settings, accessors: [ :color, :homepage ]
   #   end
-  #   
+  #
   #   u = User.new(color: 'black', homepage: '37signals.com')
   #   u.color                          # Accessor stored attribute
   #   u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
@@ -26,7 +26,7 @@ module ActiveRecord
   #   end
   module Store
     extend ActiveSupport::Concern
-  
+
     module ClassMethods
       def store(store_attribute, options = {})
         serialize store_attribute, Hash
@@ -39,7 +39,7 @@ module ActiveRecord
             send(store_attribute)[key] = value
             send("#{store_attribute}_will_change!")
           end
-    
+
           define_method(key) do
             send(store_attribute)[key]
           end
