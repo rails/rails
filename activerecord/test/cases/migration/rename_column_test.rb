@@ -130,25 +130,24 @@ module ActiveRecord
         add_column 'test_models', 'age', :integer
         add_column 'test_models', 'approved', :boolean, :default => true
 
-        label = "test_change_column Columns"
-        old_columns = connection.columns(TestModel.table_name, label)
+        old_columns = connection.columns(TestModel.table_name)
 
         assert old_columns.find { |c| c.name == 'age' && c.type == :integer }
 
         change_column "test_models", "age", :string
 
-        new_columns = connection.columns(TestModel.table_name, label)
+        new_columns = connection.columns(TestModel.table_name)
 
         refute new_columns.find { |c| c.name == 'age' and c.type == :integer }
         assert new_columns.find { |c| c.name == 'age' and c.type == :string }
 
-        old_columns = connection.columns(TestModel.table_name, label)
+        old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
           c.name == 'approved' && c.type == :boolean && c.default == true
         }
 
         change_column :test_models, :approved, :boolean, :default => false
-        new_columns = connection.columns(TestModel.table_name, label)
+        new_columns = connection.columns(TestModel.table_name)
 
         refute new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
         assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }

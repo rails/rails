@@ -9,7 +9,7 @@ module ActiveRecord
         @tables     = {}
 
         @columns = Hash.new do |h, table_name|
-          h[table_name] = conn.columns(table_name, "#{table_name} Columns")
+          h[table_name] = conn.columns(table_name)
         end
 
         @columns_hash = Hash.new do |h, table_name|
