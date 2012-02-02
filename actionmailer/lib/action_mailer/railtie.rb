@@ -1,3 +1,4 @@
+require 'mail'
 require "action_mailer"
 require "rails"
 require "abstract_controller/railties/routes_helpers"
@@ -40,5 +41,16 @@ module ActionMailer
         config.compile_methods! if config.respond_to?(:compile_methods!)
       end
     end
+
+    config.after_initialize do |app|
+      options = app.config.action_mailer
+
+      # set default delivery method settings to Mail
+      method = options.delivery_method
+      if settings = options.send(:"#{method}_settings")
+        Mail.defaults { delivery_method(method, settings) }
+      end
+    end
+
   end
 end
