@@ -68,7 +68,7 @@ if ActiveRecord::Base.connection.supports_explain?
 
     def test_exec_explain_with_no_binds
       sqls    = %w(foo bar)
-      binds   = [[], []]
+      binds   = [[], nil]
       queries = sqls.zip(binds)
 
       connection.stubs(:explain).returns('query plan foo', 'query plan bar')
