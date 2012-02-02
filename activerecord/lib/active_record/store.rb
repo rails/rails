@@ -34,7 +34,7 @@ module ActiveRecord
       end
 
       def store_accessor(store_attribute, *keys)
-        Array(keys).flatten.each do |key|
+        keys.flatten.each do |key|
           define_method("#{key}=") do |value|
             send(store_attribute)[key] = value
             send("#{store_attribute}_will_change!")
