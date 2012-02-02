@@ -25,6 +25,8 @@ module ActiveRecord
 
         class Money
           def type_cast(value)
+            return if value.nil?
+
             # Because money output is formatted according to the locale, there are two
             # cases to consider (note the decimal separators):
             #  (1) $12,345,678.12
@@ -62,18 +64,24 @@ module ActiveRecord
 
         class Integer
           def type_cast(value)
-            value.to_i
+            return if value.nil?
+
+            value.to_i rescue value ? 1 : 0
           end
         end
 
         class Boolean
           def type_cast(value)
+            return if value.nil?
+
             ConnectionAdapters::Column.value_to_boolean value
           end
         end
 
         class Timestamp
           def type_cast(value)
+            return if value.nil?
+
             # FIXME: probably we can improve this since we know it is PG
             # specific
             ConnectionAdapters::Column.string_to_time value
@@ -82,6 +90,8 @@ module ActiveRecord
 
         class Date
           def type_cast(value)
+            return if value.nil?
+
             # FIXME: probably we can improve this since we know it is PG
             # specific
             ConnectionAdapters::Column.value_to_date value
@@ -90,6 +100,8 @@ module ActiveRecord
 
         class Time
           def type_cast(value)
+            return if value.nil?
+
             # FIXME: probably we can improve this since we know it is PG
             # specific
             ConnectionAdapters::Column.string_to_dummy_time value
@@ -98,6 +110,8 @@ module ActiveRecord
 
         class Float
           def type_cast(value)
+            return if value.nil?
+
             value.to_f
           end
         end
