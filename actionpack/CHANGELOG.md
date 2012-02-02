@@ -1,5 +1,41 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow `value_method` and `text_method` arguments from `collection_select` and
+    `options_from_collection_for_select` to receive an object that responds to `:call`,
+    such as a `proc`, to evaluate the option in the current element context. This works
+    the same way with `collection_radio_buttons` and `collection_check_boxes`.
+
+    *Carlos Antonio da Silva + Rafael Mendonça França*
+
+*   Add `collection_check_boxes` form helper, similar to `collection_select`:
+    Example:
+
+      collection_check_boxes :post, :author_ids, Author.all, :id, :name
+      # Outputs something like:
+      <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" />
+      <label for="post_author_ids_1">D. Heinemeier Hansson</label>
+      <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
+      <label for="post_author_ids_2">D. Thomas</label>
+      <input name="post[author_ids][]" type="hidden" value="" />
+
+    The label/check_box pairs can be customized with a block.
+
+    *Carlos Antonio da Silva + Rafael Mendonça França*
+
+*   Add `collection_radio_buttons` form helper, similar to `collection_select`:
+    Example:
+
+      collection_radio_buttons :post, :author_id, Author.all, :id, :name
+      # Outputs something like:
+      <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" />
+      <label for="post_author_id_1">D. Heinemeier Hansson</label>
+      <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
+      <label for="post_author_id_2">D. Thomas</label>
+
+    The label/radio_button pairs can be customized with a block.
+
+    *Carlos Antonio da Silva + Rafael Mendonça França*
+
 *   check_box with `:form` html5 attribute will now replicate the `:form`
     attribute to the hidden field as well. *Carlos Antonio da Silva*
 
@@ -7,7 +43,7 @@
 
 *   Add `:format` option to number_to_percentage *Rodrigo Flores*
 
-*   Add `config.action_view.logger` to configure logger for ActionView. *Rafael França*
+*   Add `config.action_view.logger` to configure logger for ActionView. *Rafael Mendonça França*
 
 *   Deprecated ActionController::Integration in favour of ActionDispatch::Integration
 
