@@ -421,6 +421,13 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_checkbox_form_html5_attribute
+    assert_dom_equal(
+      '<input form="new_form" name="post[secret]" type="hidden" value="0" /><input checked="checked" form="new_form" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      check_box("post", "secret", :form => "new_form")
+    )
+  end
+
   def test_radio_button
     assert_dom_equal('<input checked="checked" id="post_title_hello_world" name="post[title]" type="radio" value="Hello World" />',
       radio_button("post", "title", "Hello World")
@@ -2168,8 +2175,8 @@ class FormHelperTest < ActionView::TestCase
   end
 
   protected
-    def protect_against_forgery?
-      false
-    end
 
+  def protect_against_forgery?
+    false
+  end
 end
