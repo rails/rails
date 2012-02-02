@@ -68,7 +68,7 @@ module ActiveRecord
 
         class Boolean
           def type_cast(value)
-            value == 't'
+            ConnectionAdapters::Column.value_to_boolean value
           end
         end
 
@@ -139,6 +139,12 @@ module ActiveRecord
 
         TYPE_MAP[1009] = OID::Vector.new(',', TYPE_MAP[25]) # _text
         TYPE_MAP[1007] = OID::Vector.new(',', TYPE_MAP[23]) # _int4
+        TYPE_MAP[600]  = OID::Vector.new(',', TYPE_MAP[701]) # point
+        TYPE_MAP[601]  = OID::Vector.new(',', TYPE_MAP[600]) # lseg
+        TYPE_MAP[602]  = OID::Identity.new # path
+        TYPE_MAP[603]  = OID::Vector.new(';', TYPE_MAP[600]) # box
+        TYPE_MAP[604]  = OID::Identity.new # polygon
+        TYPE_MAP[718]  = OID::Identity.new # circle
       end
     end
   end
