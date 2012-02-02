@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   check_box with `:form` html5 attribute will now replicate the `:form`
+    attribute to the hidden field as well. *Carlos Antonio da Silva*
+
 *   `label` form helper accepts :for => nil to not generate the attribute. *Carlos Antonio da Silva*
 
 *   Add `:format` option to number_to_percentage *Rodrigo Flores*
