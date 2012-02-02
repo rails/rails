@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   module Explain
@@ -58,7 +59,7 @@ module ActiveRecord
       queries && queries.map do |sql, bind|
         [].tap do |msg|
           msg << "EXPLAIN for: #{sql}"
-          unless bind.empty?
+          unless bind.blank?
             bind_msg = bind.map {|col, val| [col.name, val]}.inspect
             msg.last << " #{bind_msg}"
           end
