@@ -324,7 +324,7 @@ module ActiveRecord
       end
 
       # Returns an array of +SQLiteColumn+ objects for the table specified by +table_name+.
-      def columns(table_name, name = nil) #:nodoc:
+      def columns(table_name) #:nodoc:
         table_structure(table_name).map do |field|
           case field["dflt_value"]
           when /^null$/i
