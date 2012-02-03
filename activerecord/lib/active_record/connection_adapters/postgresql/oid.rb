@@ -116,12 +116,51 @@ module ActiveRecord
           end
         end
 
-        TYPE_MAP = {} # :nodoc:
+        class Decimal
+          def type_cast(value)
+            return if value.nil?
+
+            ConnectionAdapters::Column.value_to_decimal value
+          end
+        end
+
+        class TypeMap
+          def initialize
+            @mapping = {}
+          end
+
+          def []=(oid, type)
+            @mapping[oid] = type
+          end
+
+          def [](oid)
+            @mapping[oid]
+          end
+
+          def fetch(ftype, fmod)
+            # The type for the numeric depends on the width of the field,
+            # so we'll do something special here.
+            #
+            # When dealing with decimal columns:
+            #
+            # places after decimal  = fmod - 4 & 0xffff
+            # places before decimal = (fmod - 4) >> 16 & 0xffff
+            if ftype == 1700 && (fmod - 4 & 0xffff).zero?
+              ftype = 23
+            end
+
+            @mapping.fetch(ftype) { |oid| yield oid, fmod }
+          end
+        end
+
+        TYPE_MAP = TypeMap.new # :nodoc:
 
         TYPE_MAP[23] = OID::Integer.new  # int4
         TYPE_MAP[20] = TYPE_MAP[23] # int8
         TYPE_MAP[21] = TYPE_MAP[23] # int2
         TYPE_MAP[26] = TYPE_MAP[23] # oid
+
+        TYPE_MAP[1700] = OID::Decimal.new # decimal
 
         TYPE_MAP[25]   = OID::Identity.new # text
         TYPE_MAP[19]   = TYPE_MAP[25] # name
