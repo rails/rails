@@ -719,7 +719,7 @@ module ActiveRecord
             }
           end
 
-          ret = Result.new(result.fields, result_as_array(result), types)
+          ret = Result.new(result.fields, result.values, types)
           result.clear
           return ret
         end
