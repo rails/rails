@@ -124,6 +124,14 @@ module ActiveRecord
           end
         end
 
+        class Hstore
+          def type_cast(value)
+            return if value.nil?
+
+            ConnectionAdapters::PostgreSQLColumn.cast_hstore value
+          end
+        end
+
         class TypeMap
           def initialize
             @mapping = {}
@@ -198,6 +206,8 @@ module ActiveRecord
         TYPE_MAP[603]  = OID::Vector.new(';', TYPE_MAP[600]) # box
         TYPE_MAP[604]  = OID::Identity.new # polygon
         TYPE_MAP[718]  = OID::Identity.new # circle
+
+        TYPE_MAP[1399854] = OID::Hstore.new # hstore
       end
     end
   end
