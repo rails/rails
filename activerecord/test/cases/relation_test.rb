@@ -154,5 +154,34 @@ module ActiveRecord
       relation = relation.apply_finder_options(:references => :foo)
       assert_equal ['foo'], relation.references_values
     end
+    def test_fetch_no_default_or_block
+      title = "A Tale of Two Test-Cases"
+      relation = Relation.new Post, Post.arel_table
+      relation = relation.where({:title => title})
+      assert_equal title, relation.fetch.title
+    end
+
+    def test_fetch_with_existing_object
+      relation = Relation.new Post, Post.arel_table
+      obj = relation.where(:title => "Welcome to the weblog").fetch
+      assert_equal posts(:welcome), obj
+    end
+
+    def test_fetch_with_default
+      title = "A Tale of Two Test-Cases"
+      relation = Relation.new Post, Post.arel_table
+      obj = relation.where(:title => title).fetch(posts(:welcome))
+      assert_equal posts(:welcome), obj
+    end
+
+    def test_fetch_with_block
+      title = "A Tale of Two Test-Cases"
+      body  = "It was red, it was green"
+      relation = Relation.new Post, Post.arel_table
+      obj = relation.where(:title => title).fetch {|new_post|
+        new_post.body = body
+      }
+      assert_equal body, obj.body
+    end
   end
 end

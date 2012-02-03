@@ -109,6 +109,32 @@ module ActiveRecord
       end
     end
 
+    # Works similarly to Hash#fetch. Attempts a .first on the relation and returns it if present.
+    # If not, returns the default object, or passes a newly built object from the relation into the given block
+    #
+    # If no block is given, returns the newly built object directly. Replaces the idiom of:
+    #
+    #   scope = Person.where(:category => "Developer")
+    #   dev   = scope.first || scope.build
+    #   # instead:
+    #   Person.where(:category => "Developer").fetch
+    #
+    # Example:
+    #   scope = Person.where(:cateogry => "Developer")
+    #   scope.exists? #=> false
+    #   dev   = Person.where(:category => "Developer").fetch #=> #<Person id: nil, category: "Developer">
+    #   dev.save
+    #   scope.fetch #=> #<Person id:1, category: "Developer">
+    def fetch(default=nil, &block)
+      self.first || if default
+                      default
+                    elsif block
+                      self.build.tap(&block)
+                    else
+                      self.build
+                    end
+    end
+
     # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
     # same arguments to this method as you can to <tt>find(:first)</tt>.
     def first(*args)
