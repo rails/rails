@@ -165,7 +165,7 @@ module ActiveRecord
     #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
     def initialize(attributes = nil, options = {})
       @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
-      @columns_hash = self.class.columns_hash.dup
+      @columns_hash = self.class.column_types.dup
 
       init_internals
 
@@ -191,7 +191,7 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes = self.class.initialize_attributes(coder['attributes'])
-      @columns_hash = self.class.columns_hash.merge(coder['column_types'] || {})
+      @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
 
 
       init_internals

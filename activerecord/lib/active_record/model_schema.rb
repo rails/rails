@@ -206,6 +206,14 @@ module ActiveRecord
         @columns_hash ||= Hash[columns.map { |c| [c.name, c] }]
       end
 
+      def column_types
+        @column_types ||= columns_hash.dup.tap { |x|
+          serialized_attributes.keys.each do |key|
+            x[key] = AttributeMethods::Serialization::Type.new(x[key])
+          end
+        }
+      end
+
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
@@ -268,9 +276,16 @@ module ActiveRecord
         undefine_attribute_methods
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
-        @column_names = @content_columns = @column_defaults = @columns = @columns_hash = nil
-        @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @relation = nil
+        @arel_engine          = nil
+        @column_defaults      = nil
+        @column_names         = nil
+        @columns              = nil
+        @columns_hash         = nil
+        @column_types         = nil
+        @content_columns      = nil
+        @dynamic_methods_hash = nil
+        @inheritance_column   = nil
+        @relation             = nil
       end
 
       def clear_cache! # :nodoc:
