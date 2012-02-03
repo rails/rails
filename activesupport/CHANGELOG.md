@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    `AS::Callbacks#define_callbacks`: add `:skip_after_callbacks_if_terminated` option.
+
 *    Add html_escape_once to ERB::Util, and delegate escape_once tag helper to it. *Carlos Antonio da Silva*
 
 *    Remove ActiveSupport::TestCase#pending method, use `skip` instead. *Carlos Antonio da Silva*

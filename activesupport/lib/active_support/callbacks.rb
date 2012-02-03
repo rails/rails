@@ -169,7 +169,7 @@ module ActiveSupport
         when :after
           <<-RUBY_EVAL
           #{code}
-          if #{@compiled_options}
+          if #{!chain.config[:skip_after_callbacks_if_terminated] || "!halted"} && #{@compiled_options}
             #{@filter}
           end
           RUBY_EVAL
@@ -527,6 +527,11 @@ module ActiveSupport
       #   In this example, if any before validate callbacks returns +false+,
       #   other callbacks are not executed. Defaults to "false", meaning no value
       #   halts the chain.
+      #
+      # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after callbacks should be terminated
+      #   by the <tt>:terminator</tt> option. By default after callbacks executed no matter
+      #   if callback chain was terminated or not.
+      #   Option makes sence only when <tt>:terminator</tt> option is specified.
       #
       # * <tt>:rescuable</tt> - By default, after filters are not executed if
       #   the given block or a before filter raises an error. By setting this option
