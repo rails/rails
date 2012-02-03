@@ -18,6 +18,10 @@ module ActiveRecord
         def type_cast(value)
           value.unserialized_value
         end
+
+        def type
+          @column.type
+        end
       end
 
       class Attribute < Struct.new(:coder, :value, :state)

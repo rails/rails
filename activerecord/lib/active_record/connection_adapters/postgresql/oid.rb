@@ -11,19 +11,23 @@ module ActiveRecord
           end
         end
 
-        class Identity
+        class Type
+          def type; end
+        end
+
+        class Identity < Type
           def type_cast(value)
             value
           end
         end
 
-        class Bytea
+        class Bytea < Type
           def type_cast(value)
             PGconn.unescape_bytea value if value
           end
         end
 
-        class Money
+        class Money < Type
           def type_cast(value)
             return if value.nil?
 
@@ -43,7 +47,7 @@ module ActiveRecord
           end
         end
 
-        class Vector
+        class Vector < Type
           attr_reader :delim, :subtype
 
           # +delim+ corresponds to the `typdelim` column in the pg_types
@@ -62,7 +66,7 @@ module ActiveRecord
           end
         end
 
-        class Integer
+        class Integer < Type
           def type_cast(value)
             return if value.nil?
 
@@ -70,7 +74,7 @@ module ActiveRecord
           end
         end
 
-        class Boolean
+        class Boolean < Type
           def type_cast(value)
             return if value.nil?
 
@@ -78,7 +82,9 @@ module ActiveRecord
           end
         end
 
-        class Timestamp
+        class Timestamp < Type
+          def type; :timestamp; end
+
           def type_cast(value)
             return if value.nil?
 
@@ -88,7 +94,9 @@ module ActiveRecord
           end
         end
 
-        class Date
+        class Date < Type
+          def type; :datetime; end
+
           def type_cast(value)
             return if value.nil?
 
@@ -98,7 +106,7 @@ module ActiveRecord
           end
         end
 
-        class Time
+        class Time < Type
           def type_cast(value)
             return if value.nil?
 
@@ -108,7 +116,7 @@ module ActiveRecord
           end
         end
 
-        class Float
+        class Float < Type
           def type_cast(value)
             return if value.nil?
 
@@ -116,7 +124,7 @@ module ActiveRecord
           end
         end
 
-        class Decimal
+        class Decimal < Type
           def type_cast(value)
             return if value.nil?
 
@@ -124,7 +132,7 @@ module ActiveRecord
           end
         end
 
-        class Hstore
+        class Hstore < Type
           def type_cast(value)
             return if value.nil?
 

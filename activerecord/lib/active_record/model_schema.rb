@@ -206,12 +206,24 @@ module ActiveRecord
         @columns_hash ||= Hash[columns.map { |c| [c.name, c] }]
       end
 
-      def column_types
-        @column_types ||= columns_hash.dup.tap { |x|
-          serialized_attributes.keys.each do |key|
-            x[key] = AttributeMethods::Serialization::Type.new(x[key])
+      def column_types # :nodoc:
+        @column_types ||= decorate_columns(columns_hash.dup)
+      end
+
+      def decorate_columns(columns_hash) # :nodoc:
+        return if columns_hash.empty?
+
+        serialized_attributes.keys.each do |key|
+          columns_hash[key] = AttributeMethods::Serialization::Type.new(columns_hash[key])
+        end
+
+        columns_hash.each do |name, col|
+          if create_time_zone_conversion_attribute?(name, col)
+            columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(col)
           end
-        }
+        end
+
+        columns_hash
       end
 
       # Returns a hash where the keys are column names and the values are

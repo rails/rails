@@ -4,6 +4,21 @@ require 'active_support/core_ext/object/inclusion'
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
+      class Type # :nodoc:
+        def initialize(column)
+          @column = column
+        end
+
+        def type_cast(value)
+          value = @column.type_cast(value)
+          value.acts_like?(:time) ? value.in_time_zone : value
+        end
+
+        def type
+          @column.type
+        end
+      end
+
       extend ActiveSupport::Concern
 
       included do
@@ -64,7 +79,9 @@ module ActiveRecord
         end
 
         def create_time_zone_conversion_attribute?(name, column)
-          time_zone_aware_attributes && !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) && column.type.in?([:datetime, :timestamp])
+          time_zone_aware_attributes &&
+            !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) &&
+            [:datetime, :timestamp].include?(column.type)
         end
       end
     end

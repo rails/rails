@@ -77,6 +77,7 @@ module ActiveRecord
             IdentityMap.add(instance)
           end
         else
+          column_types = sti_class.decorate_columns(column_types)
           instance = sti_class.allocate.init_with('attributes' => record,
                                                   'column_types' => column_types)
         end
