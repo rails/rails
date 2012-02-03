@@ -6,6 +6,7 @@ namespace :assets do
     groups = ENV['RAILS_GROUPS'] || 'assets'
     args   = [$0, task,"RAILS_ENV=#{env}","RAILS_GROUPS=#{groups}"]
     args << "--trace" if Rake.application.options.trace
+    RakeFileUtils.verbose_flag = false if RakeFileUtils.verbose_flag == RakeFileUtils::DEFAULT
     if $0 =~ /rake\.bat\Z/i
       Kernel.exec $0, *args
     else  
