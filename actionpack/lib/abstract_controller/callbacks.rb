@@ -21,11 +21,9 @@ module AbstractController
 
     module ClassMethods
       # If :only or :except are used, convert the options into the
-      # primitive form (:per_key) used by ActiveSupport::Callbacks.
+      # :unless and :if options of ActiveSupport::Callbacks.
       # The basic idea is that :only => :index gets converted to
-      # :if => proc {|c| c.action_name == "index" }, but that the
-      # proc is only evaluated once per action for the lifetime of
-      # a Rails process.
+      # :if => proc {|c| c.action_name == "index" }.
       #
       # ==== Options
       # * <tt>only</tt>   - The callback should be run only for this action
@@ -33,11 +31,11 @@ module AbstractController
       def _normalize_callback_options(options)
         if only = options[:only]
           only = Array(only).map {|o| "action_name == '#{o}'"}.join(" || ")
-          options[:per_key] = {:if => only}
+          options[:if] = Array(options[:if]) << only
         end
         if except = options[:except]
           except = Array(except).map {|e| "action_name == '#{e}'"}.join(" || ")
-          options[:per_key] = {:unless => except}
+          options[:unless] = Array(options[:unless]) << except
         end
       end
 

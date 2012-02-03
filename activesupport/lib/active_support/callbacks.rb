@@ -136,8 +136,8 @@ module ActiveSupport
       end
 
       def _update_filter(filter_options, new_options)
-        filter_options[:if].push(new_options[:unless]) if new_options.key?(:unless)
-        filter_options[:unless].push(new_options[:if]) if new_options.key?(:if)
+        filter_options[:if].concat(Array(new_options[:unless])) if new_options.key?(:unless)
+        filter_options[:unless].concat(Array(new_options[:if])) if new_options.key?(:if)
       end
 
       def recompile!(_options, _per_key)
