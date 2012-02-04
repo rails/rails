@@ -13,6 +13,8 @@ class String
   def to_date
     return nil if self.blank?
     ::Date.new(*::Date._parse(self, false).values_at(:year, :mon, :mday))
+  rescue NoMethodError
+    raise ArgumentError, "invalid date"
   end
 
   def to_datetime
