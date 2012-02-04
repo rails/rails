@@ -117,4 +117,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal true,  GenericEnumerable.new([ 1 ]).exclude?(2)
     assert_equal false, GenericEnumerable.new([ 1 ]).exclude?(1)
   end
+  
+  def test_except
+    assert_equal([1, 2, 3, 4, 5].except(2, 4), [1, 3, 5])
+    assert_equal([:a, :b, :c].except(:a), [:b, :c])
+    assert_equal([:a, :b, :c].except(nil), [:a, :b, :c])
+  end 
+  
 end

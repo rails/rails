@@ -56,6 +56,16 @@ module Enumerable
   def exclude?(object)
     !include?(object)
   end
+
+  # Return a version of the collection with the provided elements removed. Similar to subtracting an array.
+  # 
+  #   [1,2,3,4,5].except(2,4)
+  #     => [1,3,5]
+  #
+  def except(*exclusions)
+    reject { |e| exclusions.include?(e) }
+  end 
+  
 end
 
 class Range #:nodoc:
