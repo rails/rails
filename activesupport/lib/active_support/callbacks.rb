@@ -353,7 +353,7 @@ module ActiveSupport
     module ClassMethods
 
       # This method calls the callback method for the given key.
-      # If this called first time it creates a new callback method for the key, 
+      # If this called first time it creates a new callback method for the key,
       # calculating which callbacks can be omitted because of per_key conditions.
       #
       def __run_callbacks(key, kind, object, &blk) #:nodoc:
@@ -415,7 +415,7 @@ module ActiveSupport
       #
       # Before and around callbacks are called in the order that they are set; after
       # callbacks are called in the reverse order.
-      # 
+      #
       # Around callbacks can access the return value from the event, if it
       # wasn't halted, from the +yield+ call.
       #

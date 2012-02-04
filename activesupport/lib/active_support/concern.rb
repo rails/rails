@@ -56,7 +56,7 @@ module ActiveSupport
   # these from +Host+ directly including +Foo+ in +Bar+:
   #
   #   module Bar
-  #     include Foo 
+  #     include Foo
   #     def self.included(base)
   #       base.method_injected_by_foo
   #     end
@@ -114,11 +114,7 @@ module ActiveSupport
     end
 
     def included(base = nil, &block)
-      if base.nil?
-        @_included_block = block
-      else
-        super
-      end
+      base.nil? ? @_included_block = block : super
     end
   end
 end

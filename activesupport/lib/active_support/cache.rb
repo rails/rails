@@ -344,11 +344,7 @@ module ActiveSupport
           key = namespaced_key(name, options)
           entry = read_entry(key, options)
           if entry
-            if entry.expired?
-              delete_entry(key, options)
-            else
-              results[name] = entry.value
-            end
+            entry.expired? ? delete_entry(key, options) : results[name] = entry.value
           end
         end
         results
@@ -382,11 +378,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:exist?, name) do |payload|
           entry = read_entry(namespaced_key(name, options), options)
-          if entry && !entry.expired?
-            true
-          else
-            false
-          end
+          entry && !entry.expired? ? true : false
         end
       end
 
@@ -473,11 +465,7 @@ module ActiveSupport
       private
         # Merge the default options with ones specific to a method call.
         def merged_options(call_options) # :nodoc:
-          if call_options
-            options.merge(call_options)
-          else
-            options.dup
-          end
+          call_options ? options.merge(call_options) : options.dup
         end
 
         # Expand key to be a consistent string value. Invoke +cache_key+ if
@@ -593,11 +581,7 @@ module ActiveSupport
 
       # Set a new time when the entry will expire.
       def expires_at=(time)
-        if time
-          @expires_in = time.to_f - @created_at
-        else
-          @expires_in = nil
-        end
+         @expires_in = time ? (time.to_f - @created_at) : nil
       end
 
       # Seconds since the epoch when the entry will expire.
@@ -608,11 +592,7 @@ module ActiveSupport
       # Returns the size of the cached value. This could be less than value.size
       # if the data is compressed.
       def size
-        if @value.nil?
-          0
-        else
-          @value.bytesize
-        end
+        @value.nil? ? 0 : @value.bytesize
       end
 
       private
