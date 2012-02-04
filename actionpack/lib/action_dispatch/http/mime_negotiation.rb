@@ -29,10 +29,14 @@ module ActionDispatch
       # Returns the accepted MIME type for the request.
       def accepts
         @env["action_dispatch.request.accepts"] ||= begin
-          header = @env['HTTP_ACCEPT'].to_s.strip
+          header = @env['HTTP_ACCEPT']
 
-          if header.empty?
-            [content_mime_type]
+          if header.blank?
+            if xhr?
+              [content_mime_type]
+            else
+              ['*/*']# Mime::ALL
+            end
           else
             Mime::Type.parse(header)
           end
