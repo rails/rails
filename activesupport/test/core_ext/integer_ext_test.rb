@@ -26,6 +26,5 @@ class IntegerExtTest < ActiveSupport::TestCase
   def test_ordinal
     assert_equal 'st', 1.ordinal
     assert_equal 'th', 8.ordinal
-    1000000000000000000000000000000000000000000000000000000000000000000000.ordinal
   end
 end
