@@ -93,6 +93,36 @@ class BaseErrorsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_should_parse_json_string_errors_with_an_errors_key
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post "/people.json", {}, %q({"errors":["Age can't be blank", "Name can't be blank", "Name must start with a letter", "Person quota full for today."]}), 422, {'Content-Type' => 'application/json; charset=utf-8'}
+    end
+
+    assert_deprecated(/as an array/) do
+      invalid_user_using_format(:json) do
+        assert @person.errors[:name].any?
+        assert_equal ["can't be blank"], @person.errors[:age]
+        assert_equal ["can't be blank", "must start with a letter"], @person.errors[:name]
+        assert_equal ["Person quota full for today."], @person.errors[:base]
+      end
+    end
+  end
+
+  def test_should_parse_3_1_style_json_errors
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post "/people.json", {}, %q({"age":["can't be blank"],"name":["can't be blank", "must start with a letter"],"person":["quota full for today."]}), 422, {'Content-Type' => 'application/json; charset=utf-8'}
+    end
+
+    assert_deprecated(/without a root/) do
+      invalid_user_using_format(:json) do
+        assert @person.errors[:name].any?
+        assert_equal ["can't be blank"], @person.errors[:age]
+        assert_equal ["can't be blank", "must start with a letter"], @person.errors[:name]
+        assert_equal ["Person quota full for today."], @person.errors[:base]
+      end
+    end
+  end
+
   private
   def invalid_user_using_format(mime_type_reference)
     previous_format = Person.format
