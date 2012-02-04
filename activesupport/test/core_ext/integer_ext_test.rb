@@ -21,6 +21,5 @@ class IntegerExtTest < ActiveSupport::TestCase
     # Its results are tested comprehensively in the inflector test cases.
     assert_equal '1st', 1.ordinalize
     assert_equal '8th', 8.ordinalize
-    1000000000000000000000000000000000000000000000000000000000000000000000.ordinalize
   end
 end
