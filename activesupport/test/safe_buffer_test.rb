@@ -83,4 +83,24 @@ class SafeBufferTest < ActiveSupport::TestCase
       @buffer.safe_concat "BUSTED"
     end
   end
+
+  test "Should set magic match variables within block passed to gsub" do
+    'burn'[/(matches)/]
+    @buffer << 'swan'
+    result = nil
+    @buffer.gsub(/(swan)/) { result = $1 }
+    assert_equal 'swan', result, "dang it, still not working"
+  end
+
+  test "Should not expect magic match variables after gsub call" do
+    'burn'[/(matches)/]
+    @buffer << 'vesta'
+    @buffer.gsub(/(vesta)/, '')
+    assert !$1, %(
+      if you can make this test fail it is a _good_ thing: somehow you have
+      restored the standard behaviour of SafeBuffer#gsub to make magic matching
+      variables available after the call, and you could invert this test
+    )
+  end
+
 end

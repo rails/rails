@@ -149,6 +149,22 @@ module ActiveSupport #:nodoc:
     def dirty?
       @dirty
     end
+
+    # Provides a special-case override for String#gsub
+    # to preserve some of the standard behaviour with respect
+    # to magic matching global variables
+    #
+    # Unlike standard gsub, magic matching globs are _not_
+    # available in code following a SafeBuffer#gsub call,
+    # but they are available within a block passed to gsub, eg:
+    #   SafeBuffer.new('m').gsub(/(m)/){ $1 }
+    # In this case $1 == 'm' within the block, but not afterwards
+    #
+    # If you really need the magic matching variables after the gsub call
+    # you will need to convert SafeBuffer to a String first
+    def gsub(*args, &block)
+      to_str.gsub(*args, &block)
+    end
   end
 end
 
