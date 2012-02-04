@@ -192,8 +192,8 @@ module ActionController #:nodoc:
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
       if collector = retrieve_collector_from_mimes(mimes, &block)
-        response = collector.response_for(negotiated_format(collector)) || collector.default_response
-        response.call(nil)
+        response = collector.response
+        response ? response.call : default_render({})
       end
     end
 
@@ -236,14 +236,13 @@ module ActionController #:nodoc:
       if collector = retrieve_collector_from_mimes(&block)
         options = resources.size == 1 ? {} : resources.extract_options!
 
-        if defined_response = collector.response_for(negotiated_format(collector))
+        if defined_response = collector.response
           if action = options.delete(:action)
             render :action => action
           else
-            defined_response.call(nil)
+            defined_response.call
           end
         else
-          options.merge!(:default_response => collector.default_response)
           (options.delete(:responder) || self.class.responder).call(self, resources, options)
         end
       end
@@ -275,10 +274,11 @@ module ActionController #:nodoc:
     #
     def retrieve_collector_from_mimes(mimes=nil, &block) #:nodoc:
       mimes ||= collect_mimes_from_class_level
-      collector = Collector.new(mimes) { |options| default_render(options || {}) }
+      collector = Collector.new(mimes)
       block.call(collector) if block_given?
+      format = collector.negotiate_format(request)
 
-      if format = negotiated_format(collector)
+      if format
         self.content_type ||= format.to_s
         lookup_context.freeze_formats([format.to_sym])
         collector
@@ -288,17 +288,12 @@ module ActionController #:nodoc:
       end
     end
 
-    def negotiated_format(collector)
-      request.negotiate_mime(collector.order)
-    end
-
     class Collector #:nodoc:
       include AbstractController::Collector
-      attr_accessor :order
-      attr_reader :default_response
+      attr_accessor :order, :format
 
-      def initialize(mimes, &block)
-        @order, @responses, @default_response = [], {}, block
+      def initialize(mimes)
+        @order, @responses = [], {}
         mimes.each { |mime| send(mime) }
       end
 
@@ -317,8 +312,12 @@ module ActionController #:nodoc:
         @responses[mime_type] ||= block
       end
 
-      def response_for(mime)
-        @responses[mime] || @responses[Mime::ALL]
+      def response
+        @responses[format] || @responses[Mime::ALL]
+      end
+
+      def negotiate_format(request)
+        @format = request.negotiate_mime(order)
       end
     end
   end
