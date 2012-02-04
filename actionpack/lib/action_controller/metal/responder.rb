@@ -129,7 +129,6 @@ module ActionController #:nodoc:
       @resources = resources
       @options = options
       @action = options.delete(:action)
-      @default_response = options.delete(:default_response)
     end
 
     delegate :head, :render, :redirect_to,   :to => :controller
@@ -226,7 +225,7 @@ module ActionController #:nodoc:
     # controller.
     #
     def default_render
-      @default_response.call(options)
+      controller.default_render(options)
     end
 
     # Display is just a shortcut to render a resource with the current format.
