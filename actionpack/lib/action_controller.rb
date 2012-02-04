@@ -49,6 +49,8 @@ module ActionController
   end
 end
 
+require "action_controller/metal/exceptions"
+
 # All of these simply register additional autoloads
 require 'action_view'
 require 'action_controller/vendor/html-scanner'
