@@ -175,7 +175,8 @@ module ActionView
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
-      # it will use the Inflector to determine the plural form
+      # it will use the Inflector to determine the plural form. If +omit_count+ 
+      # is true, only the word will be returned
       #
       # ==== Examples
       #   pluralize(1, 'person')
@@ -189,8 +190,12 @@ module ActionView
       #
       #   pluralize(0, 'person')
       #   # => 0 people
-      def pluralize(count, singular, plural = nil)
-        "#{count || 0} " + ((count == 1 || count =~ /^1(\.0+)?$/) ? singular : (plural || singular.pluralize))
+      #
+      #   pluralize(2, 'person', nil, true)
+      #   # => people
+      def pluralize(count, singular, plural = nil, omit_count = false)  
+        prefix = omit_count ? "" : "#{count || 0} "
+        prefix + ((count == 1 || count =~ /^1(\.0+)?$/) ? singular : (plural || singular.pluralize))
       end
 
       # Wraps the +text+ into lines no longer than +line_width+ width. This method
