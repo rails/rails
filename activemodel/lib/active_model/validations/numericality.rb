@@ -60,6 +60,8 @@ module ActiveModel
         case raw_value
         when /\A0[xX]/
           nil
+        when /\A-*[0-9]+[eE]/
+          nil
         else
           begin
             Kernel.Float(raw_value)
