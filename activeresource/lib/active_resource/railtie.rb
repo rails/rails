@@ -1,5 +1,4 @@
 require "active_resource"
-require "rails"
 
 module ActiveResource
   class Railtie < Rails::Railtie
