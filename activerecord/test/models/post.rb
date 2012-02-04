@@ -5,6 +5,8 @@ class Post < ActiveRecord::Base
     end
   end
 
+  default_scope select("posts.*")
+
   scope :containing_the_letter_a, where("body LIKE '%a%'")
   scope :ranked_by_comments, order("comments_count DESC")
 
