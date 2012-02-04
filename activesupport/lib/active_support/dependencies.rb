@@ -190,7 +190,6 @@ module ActiveSupport #:nodoc:
         nesting.each do |namespace|
           begin
             return Dependencies.load_missing_constant Inflector.constantize(namespace), const_name
-          rescue NoMethodError then raise
           rescue NameError => e
             error ||= e
           end
