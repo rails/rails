@@ -65,6 +65,11 @@ class Time
   def seconds_since_midnight
     to_i - change(:hour => 0).to_i + (usec / 1.0e+6)
   end
+  
+  # Current time of date. Returns following symbols: :monring, :afternoon and :evening
+  def time_of_day
+    self.hour >= 0 && self.hour < 12 ? :morning : self.hour >= 12 && self.hour < 17 ? :afternoon : self.hour >= 17 && self.hour <= 23 ? :evening : nil
+  end
 
   # Returns a new Time where one or more of the elements have been changed according to the +options+ parameter. The time options
   # (hour, minute, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and
