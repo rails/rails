@@ -232,16 +232,39 @@ module ActiveRecord
     end
 
     def apply_join_dependency(relation, join_dependency)
-      join_dependency.join_associations.each do |association|
-        relation = association.join_relation(relation)
-      end
-
       limitable_reflections = using_limitable_reflections?(join_dependency.reflections)
 
       if !limitable_reflections && relation.limit_value
-        limited_id_condition = construct_limited_ids_condition(relation.except(:select))
+		# Determine which tables are actually used to limit/sort the result set
+		order_tables = tables_in_string(relation.order_values.join(', ')).map {|t| t.strip if t.respond_to?(:strip)}
+		where_tables = tables_in_string(relation.arel.where_sql).map {|t| t.strip if t.respond_to?(:strip)}
+		all_tables = (order_tables + where_tables)
+		all_tables.uniq!
+
+		# Create a separate relation for use in the DISTINCT query
+		clean_relation = relation.dup
+		for association in join_dependency.join_associations
+		  if all_tables.include?(association.aliased_table_name) || (node = association.find_parent_in(join_dependency))
+			# If you're querying on a second-level association (e.g foo.include({:bar => :baz}).where('bars_bazes...'))
+			# we need to join all the intermediate tables too.
+			clean_relation = association.join_relation(clean_relation)
+			if node === ActiveRecord::Associations::JoinDependency::JoinAssociation
+			  while node.find_parent_in(join_dependency).class == ActiveRecord::Associations::JoinDependency::JoinAssociation
+				clean_relation = node.join_relation(clean_relation)
+				node = node.parent
+			  end
+			end
+		  end
+		  relation = association.join_relation(relation) 
+		end
+		
+        limited_id_condition = construct_limited_ids_condition(clean_relation.except(:select))
         relation = relation.where(limited_id_condition)
-      end
+	  else
+		join_dependency.join_associations.each do |association|
+		  relation = association.join_relation(relation)
+		end
+	  end
 
       relation = relation.except(:limit, :offset) unless limitable_reflections
 
