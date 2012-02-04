@@ -306,15 +306,17 @@ db_namespace = namespace :db do
   end
 
   namespace :fixtures do
-    desc "Load fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
+    desc "Load fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures. Load order can be specified by config.fixtures_load_order or FIXTURE_ORDER=x,y."
     task :load => :environment do
       require 'active_record/fixtures'
 
       ActiveRecord::Base.establish_connection(Rails.env)
       base_dir     = File.join [Rails.root, ENV['FIXTURES_PATH'] || %w{test fixtures}].flatten
       fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
-
-      (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.{yml,csv}"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
+      all_fixtures     = (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.{yml,csv}"].map {|f| f[(fixtures_dir.size + 1)..-5] })
+      ordered_fixtures = (ENV['FIXTURE_ORDER'] ? ENV['FIXTURE_ORDER'].split(/,/) : Rails.application.config.fixtures_load_order) || []
+      (ordered_fixtures + (all_fixtures - ordered_fixtures)).each do |fixture_file|
+        puts "Loading #{fixture_file}" if ENV['VERBOSE']
         ActiveRecord::Fixtures.create_fixtures(fixtures_dir, fixture_file)
       end
     end
