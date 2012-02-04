@@ -15,6 +15,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  class RequestLookup
+    def self.matches?(request)
+      request.params
+      return false
+    end
+  end
+
   class YoutubeFavoritesRedirector
     def self.call(params, request)
       "http://www.youtube.com/watch?v=#{params[:youtube_id]}"
@@ -26,6 +33,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     Routes.draw do
       default_url_options :host => "rubyonrails.org"
       resources_path_names :correlation_indexes => "info_about_correlation_indexes"
+
+      match ':something' => 'foo#something', :constraints => RequestLookup
 
       controller :sessions do
         get  'login' => :new
