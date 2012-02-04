@@ -5,6 +5,8 @@ require 'rbconfig'
 
 module Rails
   class DBConsole
+    MODES = ['html', 'list', 'line', 'column']
+
     def self.start(app)
       new(app).start
     end
@@ -22,8 +24,8 @@ module Rails
           include_password = true
         end
 
-        opt.on("--mode [MODE]", ['html', 'list', 'line', 'column'],
-          "Automatically put the sqlite3 database in the specified mode (html, list, line, column).") do |mode|
+        opt.on("--mode [MODE]", MODES,
+          "Automatically put the sqlite3 database in the specified mode (#{MODES.join(', ')}).") do |mode|
             options['mode'] = mode
         end
 
@@ -112,6 +114,6 @@ module Rails
 end
 
 # Has to set the RAILS_ENV before config/application is required
-if ARGV.first && !ARGV.first.index("-") && env = ARGV.first
+if (arg = ARGV.last) && !arg.index("-") && !Rails::DBConsole::MODES.include?(arg) && env = arg
   ENV['RAILS_ENV'] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
 end
