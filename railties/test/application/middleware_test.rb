@@ -36,7 +36,6 @@ module ApplicationTests
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
         "ActionDispatch::RemoteIp",
-        "Rack::Sendfile",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
@@ -64,6 +63,12 @@ module ApplicationTests
       boot!
 
       assert_equal "Rack::Cache", middleware.first
+    end
+
+    test "Rack::Sendfile is present when action_dispatch.x_sendfile_header is set" do
+      add_to_config "config.action_dispatch.x_sendfile_header = true"
+      boot!
+      assert middleware.include?("Rack::Sendfile")
     end
 
     test "Rack::SSL is present when force_ssl is set" do
