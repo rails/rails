@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Default responder will now always use your overridden block in `respond_with` to render your response. *Prem Sichanugrist*
+
 *   Allow `value_method` and `text_method` arguments from `collection_select` and
     `options_from_collection_for_select` to receive an object that responds to `:call`,
     such as a `proc`, to evaluate the option in the current element context. This works
