@@ -76,6 +76,7 @@ module InflectorTestCases
     "elf"         => "elves",
     "information" => "information",
     "equipment"   => "equipment",
+    "hardware"    => "hardware",
     "bus"         => "buses",
     "status"      => "statuses",
     "status_code" => "status_codes",
