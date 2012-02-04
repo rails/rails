@@ -91,6 +91,14 @@ module ActiveSupport
         message ||= "#{object.inspect} is blank"
         assert object.present?, message
       end
+      
+      #Test if an object is valid. Passes if object.valid? is true
+      #
+      #   assert_valid object # => true
+      def assert_valid(object, message=nil)
+        message ||= "#{object.inspect} is not valid"
+        assert object.valid?, message
+      end
     end
   end
 end

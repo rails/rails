@@ -120,6 +120,43 @@ class AssertPresentTest < ActiveSupport::TestCase
   end
 end
 
+class AssertValidTest < ActiveSupport::TestCase
+  VALID = Class.new do
+    def valid?
+      true
+    end
+  end.new
+
+  INVALID = Class.new do
+    def valid?
+      false
+    end
+  end.new
+  
+
+  def test_assert_valid_true
+    assert_valid VALID
+  end
+
+  def test_assert_valid_false
+    begin
+      assert_valid INVALID
+      fail "should not get to here"
+    rescue Exception => e
+      assert_match(/is not valid/, e.message) 
+    end
+  end
+
+  def test_assert_valid_false_with_custom_message
+    begin
+      assert_valid INVALID, "custom message"
+      fail "should not get to here"
+    rescue Exception => e
+      assert_match(/custom message/, e.message) 
+    end
+  end
+end
+
 class AlsoDoingNothingTest < ActiveSupport::TestCase
 end
 
