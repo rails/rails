@@ -95,7 +95,7 @@ module CallbacksTest
 
     define_callbacks :dispatch
 
-    set_callback :dispatch, :before, :log, :per_key => {:unless => proc {|c| c.action_name == :index || c.action_name == :show }}
+    set_callback :dispatch, :before, :log, :unless => proc {|c| c.action_name == :index || c.action_name == :show }
     set_callback :dispatch, :after, :log2
 
     attr_reader :action_name, :logger
@@ -120,7 +120,7 @@ module CallbacksTest
   end
 
   class Child < ParentController
-    skip_callback :dispatch, :before, :log, :per_key => {:if => proc {|c| c.action_name == :update} }
+    skip_callback :dispatch, :before, :log, :if => proc {|c| c.action_name == :update} 
     skip_callback :dispatch, :after, :log2
   end
 
@@ -131,10 +131,10 @@ module CallbacksTest
       super
     end
 
-    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :if] }, :per_key => {:if => :starts_true}
-    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :if] }, :per_key => {:if => :starts_false}
-    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :unless] }, :per_key => {:unless => :starts_true}
-    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :unless] }, :per_key => {:unless => :starts_false}
+    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :if] }, :if => :starts_true
+    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :if] }, :if => :starts_false
+    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :unless] }, :unless => :starts_true
+    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :unless] }, :unless => :starts_false
 
     def starts_true
       if @@starts_true
@@ -329,7 +329,7 @@ module CallbacksTest
     define_callbacks :save
     attr_reader :stuff
 
-    set_callback :save, :before, :action, :per_key => {:if => :yes}
+    set_callback :save, :before, :action, :if => :yes
 
     def yes() true end
 
@@ -698,6 +698,22 @@ module CallbacksTest
       model = ExtendCallbacks.new.extend ExtendModule
       model.save
       assert_equal [1, 2, 3], model.recorder
+    end
+  end
+
+  class PerKeyOptionDeprecationTest < ActiveSupport::TestCase
+
+    def test_per_key_option_deprecaton
+      assert_raise NotImplementedError do
+        Phone.class_eval do
+          set_callback :save, :before, :before_save1, :per_key => {:if => "true"}
+        end
+      end
+      assert_raise NotImplementedError do
+        Phone.class_eval do
+          skip_callback :save, :before, :before_save1, :per_key => {:if => "true"}
+        end
+      end
     end
   end
  

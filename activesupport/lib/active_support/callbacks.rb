@@ -95,12 +95,19 @@ module ActiveSupport
 
       def initialize(chain, filter, kind, options, klass)
         @chain, @kind, @klass = chain, kind, klass
+        deprecate_per_key_option(options)
         normalize_options!(options)
 
         @raw_filter, @options = filter, options
         @filter               = _compile_filter(filter)
         @compiled_options     = _compile_options(options)
         @callback_id          = next_id
+      end
+
+      def deprecate_per_key_option(options)
+        if options[:per_key]
+          raise NotImplementedError, ":per_key option is no longer supported. Use generic :if and :unless options instead."
+        end
       end
 
       def clone(chain, klass)
@@ -116,11 +123,6 @@ module ActiveSupport
       def normalize_options!(options)
         options[:if] = Array(options[:if])
         options[:unless] = Array(options[:unless])
-
-        options[:per_key] ||= {}
-
-        options[:if] += Array(options[:per_key][:if])
-        options[:unless] += Array(options[:per_key][:unless])
       end
 
       def name
@@ -140,9 +142,9 @@ module ActiveSupport
         filter_options[:unless].concat(Array(new_options[:if])) if new_options.key?(:if)
       end
 
-      def recompile!(_options, _per_key)
+      def recompile!(_options)
+        deprecate_per_key_option(_options)
         _update_filter(self.options, _options)
-        _update_filter(self.options, _per_key)
 
         @callback_id      = next_id
         @filter           = _compile_filter(@raw_filter)
@@ -352,9 +354,9 @@ module ActiveSupport
 
     module ClassMethods
 
-      # This method calls the callback method for the given key.
-      # If this called first time it creates a new callback method for the key, 
-      # calculating which callbacks can be omitted because of per_key conditions.
+      # This method runs callback chain for the given key.
+      # If this called first time it creates a new callback method for the key.
+      # This generated method plays caching role.
       #
       def __run_callbacks(key, kind, object, &blk) #:nodoc:
         name = __callback_runner_name(kind)
@@ -427,29 +429,6 @@ module ActiveSupport
       #   will be called only when it returns a false value.
       # * <tt>:prepend</tt> - If true, the callback will be prepended to the existing
       #   chain rather than appended.
-      # * <tt>:per_key</tt> - A hash with <tt>:if</tt> and <tt>:unless</tt> options;
-      #   see "Per-key conditions" below.
-      #
-      # ===== Per-key conditions
-      #
-      # When creating or skipping callbacks, you can specify conditions that
-      # are always the same for a given key. For instance, in Action Pack,
-      # we convert :only and :except conditions into per-key conditions.
-      #
-      #   before_filter :authenticate, :except => "index"
-      #
-      # becomes
-      #
-      #   set_callback :process_action, :before, :authenticate, :per_key => {:unless => proc {|c| c.action_name == "index"}}
-      #
-      # Per-key conditions are evaluated only once per use of a given key.
-      # In the case of the above example, you would do:
-      #
-      #   run_callbacks(:process_action, action_name) { ... dispatch stuff ... }
-      #
-      # In that case, each action_name would get its own compiled callback
-      # method that took into consideration the per_key conditions. This
-      # is a speed improvement for ActionPack.
       #
       def set_callback(name, *filter_list, &block)
         mapped = nil
@@ -484,7 +463,7 @@ module ActiveSupport
             if filter && options.any?
               new_filter = filter.clone(chain, self)
               chain.insert(chain.index(filter), new_filter)
-              new_filter.recompile!(options, options[:per_key] || {})
+              new_filter.recompile!(options)
             end
 
             chain.delete(filter)
