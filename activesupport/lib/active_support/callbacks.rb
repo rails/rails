@@ -77,7 +77,7 @@ module ActiveSupport
     #   end
     #
     def run_callbacks(kind, key = nil, &block)
-      self.class.__run_callbacks(key, kind, self, &block)
+      self.class.__run_callbacks(kind, self, &block)
     end
 
     private
@@ -152,7 +152,7 @@ module ActiveSupport
       end
 
       # Wraps code with filter
-      def apply(code, key=nil, object=nil)
+      def apply(code)
         case @kind
         when :before
           <<-RUBY_EVAL
@@ -316,14 +316,14 @@ module ActiveSupport
         }.merge(config)
       end
 
-      def compile(key=nil, object=nil)
+      def compile
         method = []
         method << "value = nil"
         method << "halted = false"
 
         callbacks = yielding
         reverse_each do |callback|
-          callbacks = callback.apply(callbacks, key, object)
+          callbacks = callback.apply(callbacks)
         end
         method << callbacks
 
@@ -354,14 +354,14 @@ module ActiveSupport
 
     module ClassMethods
 
-      # This method runs callback chain for the given key.
-      # If this called first time it creates a new callback method for the key.
+      # This method runs callback chain for the given kind.
+      # If this called first time it creates a new callback method for the kind.
       # This generated method plays caching role.
       #
-      def __run_callbacks(key, kind, object, &blk) #:nodoc:
+      def __run_callbacks(kind, object, &blk) #:nodoc:
         name = __callback_runner_name(kind)
         unless object.respond_to?(name)
-          str = object.send("_#{kind}_callbacks").compile(key, object)
+          str = object.send("_#{kind}_callbacks").compile
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{name}() #{str} end
             protected :#{name}
