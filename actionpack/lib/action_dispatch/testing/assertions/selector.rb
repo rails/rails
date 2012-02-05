@@ -340,7 +340,7 @@ module ActionDispatch
       # element +encoded+. It then calls the block with all un-encoded elements.
       #
       # ==== Examples
-      #   # Selects all bold tags from within the title of an ATOM feed's entries (perhaps to nab a section name prefix)
+      #   # Selects all bold tags from within the title of an Atom feed's entries (perhaps to nab a section name prefix)
       #   assert_select "feed[xmlns='http://www.w3.org/2005/Atom']" do
       #     # Select each entry item and then the title item
       #     assert_select "entry>title" do
