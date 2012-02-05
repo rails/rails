@@ -56,36 +56,32 @@ module ActiveRecord
           if Hash === object
             object.map { |k,v|
               "#{escape_hstore(k)}=>#{escape_hstore(v)}"
-            }.join ', '
+            }.join ','
           else
-            kvs = object.scan(/(?<!\\)".*?(?<!\\)"/).map { |o|
-              unescape_hstore(o[1...-1])
-            }
-            Hash[kvs.each_slice(2).to_a]
+            hash_from_hstore_string(object)
           end
         end
 
         private
-        HSTORE_ESCAPE = {
-            ' '  => '\\ ',
-            '\\' => '\\\\',
-            '"'  => '\\"',
-            '='  => '\\=',
-        }
-        HSTORE_ESCAPE_RE   = Regexp.union(HSTORE_ESCAPE.keys)
-        HSTORE_UNESCAPE    = HSTORE_ESCAPE.invert
-        HSTORE_UNESCAPE_RE = Regexp.union(HSTORE_UNESCAPE.keys)
+        def hash_from_hstore_string(string)
+          Hash[string.scan(HstorePair).map { |k,v|
+            v = v.upcase == 'NULL' ? nil : v.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
+            k = k.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
+            [k,v]
+          }]
+        end
 
-        def unescape_hstore(value)
-          value.gsub(HSTORE_UNESCAPE_RE) do |match|
-            HSTORE_UNESCAPE[match]
-          end
+        HstorePair = begin
+          quoted_string = /"[^"\\]*(?:\\.[^"\\]*)*"/
+          unquoted_string = /(?:\\.|[^\s,])[^\s=,\\]*(?:\\.[^\s=,\\]*|=[^,>])*/
+          /(#{quoted_string}|#{unquoted_string})\s*=>\s*(#{quoted_string}|#{unquoted_string})/
         end
 
         def escape_hstore(value)
-          value.gsub(HSTORE_ESCAPE_RE) do |match|
-            HSTORE_ESCAPE[match]
-          end
+            value.nil?         ? 'NULL'
+          : value =~ /[=\s,>]/ ? '"%s"' % value.gsub(/(["\\])/, '\\\\\1')
+          : value == ""        ? '""'
+          :                      value.gsub(/(["\\])/, '\\\\\1')
         end
       end
       # :startdoc:

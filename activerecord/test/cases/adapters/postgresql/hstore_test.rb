@@ -1,4 +1,6 @@
 require "cases/helper"
+require 'active_record/base'
+require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlHstoreTest < ActiveRecord::TestCase
   class Hstore < ActiveRecord::Base
@@ -16,6 +18,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     rescue ActiveRecord::StatementInvalid
       return skip "do not test on PG without hstore"
     end
+    @column = Hstore.columns.find { |c| c.name == 'tags' }
   end
 
   def teardown
@@ -23,19 +26,64 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
   end
 
   def test_column
-    column = Hstore.columns.find { |c| c.name == 'tags' }
-    assert column
-    assert_equal :hstore, column.type
+    assert_equal :hstore, @column.type
   end
 
   def test_type_cast_hstore
-    column = Hstore.columns.find { |c| c.name == 'tags' }
-    assert column
+    assert @column
 
     data = "\"1\"=>\"2\""
-    hash = column.class.cast_hstore data
+    hash = @column.class.cast_hstore data
     assert_equal({'1' => '2'}, hash)
-    assert_equal({'1' => '2'}, column.type_cast(data))
+    assert_equal({'1' => '2'}, @column.type_cast(data))
+
+    assert_equal({}, @column.type_cast(""))
+    assert_equal({'key'=>nil}, @column.type_cast('key => NULL'))
+    assert_equal({'c'=>'}','"a"'=>'b "a b'}, @column.type_cast(%q(c=>"}", "\"a\""=>"b \"a b")))
+  end
+
+  def test_gen1
+    assert_equal(%q(" "=>""), @column.type_cast({' '=>''}))
+  end
+
+  def test_gen2
+    assert_equal(%q(","=>""), @column.type_cast({','=>''}))
+  end
+
+  def test_gen3
+    assert_equal(%q("="=>""), @column.type_cast({'='=>''}))
+  end
+
+  def test_gen4
+    assert_equal(%q(">"=>""), @column.type_cast({'>'=>''}))
+  end
+
+  def test_parse1
+    assert_equal({'a'=>nil,'b'=>nil,'c'=>'NuLl','null'=>'c'}, @column.type_cast('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
+  end
+
+  def test_parse2
+    assert_equal({" " => " "},  @column.type_cast("\\ =>\\ "))
+  end
+
+  def test_parse3
+    assert_equal({"=" => ">"},  @column.type_cast("==>>"))
+  end
+
+  def test_parse4
+    assert_equal({"=a"=>"q=w"},   @column.type_cast('\=a=>q=w'))
+  end
+
+  def test_parse5
+    assert_equal({"=a"=>"q=w"},   @column.type_cast('"=a"=>q\=w'))
+  end
+
+  def test_parse6
+    assert_equal({"\"a"=>"q>w"},  @column.type_cast('"\"a"=>q>w'))
+  end
+
+  def test_parse7
+    assert_equal({"\"a"=>"q\"w"}, @column.type_cast('\"a=>q"w'))
   end
 
   def test_select
@@ -52,6 +100,10 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
   def test_create
     assert_cycle('a' => 'b', '1' => '2')
+  end
+
+  def test_nil
+    assert_cycle('a' => nil)
   end
 
   def test_quotes
