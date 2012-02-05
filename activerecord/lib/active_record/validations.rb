@@ -38,7 +38,7 @@ module ActiveRecord
         else
           object = new(attributes, options)
           yield(object) if block_given?
-          object.save!
+          object.save!(:callbacks => options[:callbacks])
           object
         end
       end
