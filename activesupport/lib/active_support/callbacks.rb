@@ -66,8 +66,6 @@ module ActiveSupport
     #
     # Calls the before and around callbacks in the order they were set, yields
     # the block (if given one), and then runs the after callbacks in reverse order.
-    # Optionally accepts a key, which will be used to compile an optimized callback
-    # method for each key. See +ClassMethods.define_callbacks+ for more information.
     #
     # If the callback chain was halted, returns +false+. Otherwise returns the result
     # of the block, or +true+ if no block is given.
@@ -77,7 +75,8 @@ module ActiveSupport
     #   end
     #
     def run_callbacks(kind, key = nil, &block)
-      self.class.__run_callbacks(key, kind, self, &block)
+      #TODO: deprecate key argument
+      self.class.__run_callbacks(kind, self, &block)
     end
 
     private
@@ -100,8 +99,7 @@ module ActiveSupport
 
         @raw_filter, @options = filter, options
         @filter               = _compile_filter(filter)
-        @compiled_options     = _compile_options(options)
-        @callback_id          = next_id
+        recompile_options!
       end
 
       def deprecate_per_key_option(options)
@@ -146,13 +144,11 @@ module ActiveSupport
         deprecate_per_key_option(_options)
         _update_filter(self.options, _options)
 
-        @callback_id      = next_id
-        @filter           = _compile_filter(@raw_filter)
-        @compiled_options = _compile_options(@options)
+        recompile_options!
       end
 
       # Wraps code with filter
-      def apply(code, key=nil, object=nil)
+      def apply(code)
         case @kind
         when :before
           <<-RUBY_EVAL
@@ -222,7 +218,7 @@ module ActiveSupport
       # Options support the same options as filters themselves (and support
       # symbols, string, procs, and objects), so compile a conditional
       # expression based on the options
-      def _compile_options(options)
+      def recompile_options!
         conditions = ["true"]
 
         unless options[:if].empty?
@@ -233,7 +229,7 @@ module ActiveSupport
           conditions << Array(_compile_filter(options[:unless])).map {|f| "!#{f}"}
         end
 
-        conditions.flatten.join(" && ")
+        @compiled_options = conditions.flatten.join(" && ")
       end
 
       # Filters support:
@@ -316,14 +312,14 @@ module ActiveSupport
         }.merge(config)
       end
 
-      def compile(key=nil, object=nil)
+      def compile
         method = []
         method << "value = nil"
         method << "halted = false"
 
         callbacks = yielding
         reverse_each do |callback|
-          callbacks = callback.apply(callbacks, key, object)
+          callbacks = callback.apply(callbacks)
         end
         method << callbacks
 
@@ -354,14 +350,14 @@ module ActiveSupport
 
     module ClassMethods
 
-      # This method runs callback chain for the given key.
-      # If this called first time it creates a new callback method for the key.
+      # This method runs callback chain for the given kind.
+      # If this called first time it creates a new callback method for the kind.
       # This generated method plays caching role.
       #
-      def __run_callbacks(key, kind, object, &blk) #:nodoc:
+      def __run_callbacks(kind, object, &blk) #:nodoc:
         name = __callback_runner_name(kind)
         unless object.respond_to?(name)
-          str = object.send("_#{kind}_callbacks").compile(key, object)
+          str = object.send("_#{kind}_callbacks").compile
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{name}() #{str} end
             protected :#{name}
