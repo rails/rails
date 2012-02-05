@@ -145,7 +145,6 @@ module ActiveSupport
         deprecate_per_key_option(_options)
         _update_filter(self.options, _options)
 
-        @filter           = _compile_filter(@raw_filter)
         @compiled_options = _compile_options(@options)
       end
 
