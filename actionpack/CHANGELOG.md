@@ -73,6 +73,9 @@
 
 *   `favicon_link_tag` helper will now use the favicon in app/assets by default. *Lucas Caton*
 
+*    `ActionView::Helpers::TextHelper#highlight` now defaults to the
+     HTML5 `mark` element. *Brian Cardarella*
+
 ## Rails 3.2.0 (January 20, 2012) ##
 
 *   Add `config.action_dispatch.default_charset` to configure default charset for ActionDispatch::Response. *Carlos Antonio da Silva*
