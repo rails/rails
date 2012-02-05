@@ -274,8 +274,8 @@ class Time
   end
 
   # Returns a Range representing the whole week of the current time.
-  def all_week
-    beginning_of_week..end_of_week
+  def all_week(start_day = :monday)
+    beginning_of_week(start_day)..end_of_week(start_day)
   end
 
   # Returns a Range representing the whole month of the current time.
