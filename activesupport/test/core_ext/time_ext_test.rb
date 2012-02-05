@@ -807,6 +807,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_all_week
     assert_equal Time.local(2011,6,6,0,0,0)..Time.local(2011,6,12,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_week
+    assert_equal Time.local(2011,6,5,0,0,0)..Time.local(2011,6,11,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_week(:sunday)
   end
 
   def test_all_month
