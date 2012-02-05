@@ -91,12 +91,12 @@ class TextHelperTest < ActionView::TestCase
 
   def test_highlight
     assert_equal(
-      "This is a <strong class=\"highlight\">beautiful</strong> morning",
+      "This is a <mark>beautiful</mark> morning",
       highlight("This is a beautiful morning", "beautiful")
     )
 
     assert_equal(
-      "This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day",
+      "This is a <mark>beautiful</mark> morning, but also a <mark>beautiful</mark> day",
       highlight("This is a beautiful morning, but also a beautiful day", "beautiful")
     )
 
@@ -115,31 +115,31 @@ class TextHelperTest < ActionView::TestCase
 
   def test_highlight_should_sanitize_input
     assert_equal(
-      "This is a <strong class=\"highlight\">beautiful</strong> morning",
+      "This is a <mark>beautiful</mark> morning",
       highlight("This is a beautiful morning<script>code!</script>", "beautiful")
     )
   end
 
   def test_highlight_should_not_sanitize_if_sanitize_option_if_false
     assert_equal(
-      "This is a <strong class=\"highlight\">beautiful</strong> morning<script>code!</script>",
+      "This is a <mark>beautiful</mark> morning<script>code!</script>",
       highlight("This is a beautiful morning<script>code!</script>", "beautiful", :sanitize => false)
     )
   end
 
   def test_highlight_with_regexp
     assert_equal(
-      "This is a <strong class=\"highlight\">beautiful!</strong> morning",
+      "This is a <mark>beautiful!</mark> morning",
       highlight("This is a beautiful! morning", "beautiful!")
     )
 
     assert_equal(
-      "This is a <strong class=\"highlight\">beautiful! morning</strong>",
+      "This is a <mark>beautiful! morning</mark>",
       highlight("This is a beautiful! morning", "beautiful! morning")
     )
 
     assert_equal(
-      "This is a <strong class=\"highlight\">beautiful? morning</strong>",
+      "This is a <mark>beautiful? morning</mark>",
       highlight("This is a beautiful? morning", "beautiful? morning")
     )
   end
@@ -157,23 +157,23 @@ class TextHelperTest < ActionView::TestCase
 
   def test_highlight_with_html
     assert_equal(
-      "<p>This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
+      "<p>This is a <mark>beautiful</mark> morning, but also a <mark>beautiful</mark> day</p>",
       highlight("<p>This is a beautiful morning, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
-      "<p>This is a <em><strong class=\"highlight\">beautiful</strong></em> morning, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
+      "<p>This is a <em><mark>beautiful</mark></em> morning, but also a <mark>beautiful</mark> day</p>",
       highlight("<p>This is a <em>beautiful</em> morning, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
-      "<p>This is a <em class=\"error\"><strong class=\"highlight\">beautiful</strong></em> morning, but also a <strong class=\"highlight\">beautiful</strong> <span class=\"last\">day</span></p>",
+      "<p>This is a <em class=\"error\"><mark>beautiful</mark></em> morning, but also a <mark>beautiful</mark> <span class=\"last\">day</span></p>",
       highlight("<p>This is a <em class=\"error\">beautiful</em> morning, but also a beautiful <span class=\"last\">day</span></p>", "beautiful")
     )
     assert_equal(
-      "<p class=\"beautiful\">This is a <strong class=\"highlight\">beautiful</strong> morning, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
+      "<p class=\"beautiful\">This is a <mark>beautiful</mark> morning, but also a <mark>beautiful</mark> day</p>",
       highlight("<p class=\"beautiful\">This is a beautiful morning, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
-      "<p>This is a <strong class=\"highlight\">beautiful</strong> <a href=\"http://example.com/beautiful#top?what=beautiful%20morning&amp;when=now+then\">morning</a>, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
+      "<p>This is a <mark>beautiful</mark> <a href=\"http://example.com/beautiful#top?what=beautiful%20morning&amp;when=now+then\">morning</a>, but also a <mark>beautiful</mark> day</p>",
       highlight("<p>This is a beautiful <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&when=now+then\">morning</a>, but also a beautiful day</p>", "beautiful")
     )
     assert_equal(
