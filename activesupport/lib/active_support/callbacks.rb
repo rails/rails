@@ -66,8 +66,6 @@ module ActiveSupport
     #
     # Calls the before and around callbacks in the order they were set, yields
     # the block (if given one), and then runs the after callbacks in reverse order.
-    # Optionally accepts a key, which will be used to compile an optimized callback
-    # method for each key. See +ClassMethods.define_callbacks+ for more information.
     #
     # If the callback chain was halted, returns +false+. Otherwise returns the result
     # of the block, or +true+ if no block is given.
@@ -77,6 +75,7 @@ module ActiveSupport
     #   end
     #
     def run_callbacks(kind, key = nil, &block)
+      #TODO: deprecate key argument
       self.class.__run_callbacks(kind, self, &block)
     end
 
