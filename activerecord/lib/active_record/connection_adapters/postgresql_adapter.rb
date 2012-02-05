@@ -217,6 +217,9 @@ module ActiveRecord
             # Arrays
             when /\A'(.*)'::"?\D+"?\[\]\z/
               $1
+            # Hstore
+            when /\A'(.*)'::hstore\z/
+              $1
             # Object identifier types
             when /\A-?\d+\z/
               $1
@@ -284,7 +287,8 @@ module ActiveRecord
         :binary      => { :name => "bytea" },
         :boolean     => { :name => "boolean" },
         :xml         => { :name => "xml" },
-        :tsvector    => { :name => "tsvector" }
+        :tsvector    => { :name => "tsvector" },
+        :hstore      => { :name => "hstore" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
