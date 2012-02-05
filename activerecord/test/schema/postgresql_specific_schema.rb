@@ -63,12 +63,14 @@ _SQL
   );
 _SQL
 
+  if 't' == select_value("select 'hstore'=ANY(select typname from pg_type)")
   execute <<_SQL
   CREATE TABLE postgresql_hstores (
     id SERIAL PRIMARY KEY,
     hash_store hstore default ''::hstore
   );
 _SQL
+  end
 
   execute <<_SQL
   CREATE TABLE postgresql_moneys (
