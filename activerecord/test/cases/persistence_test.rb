@@ -161,6 +161,11 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal("New Topic", topic_reloaded.title)
   end
 
+  def test_create_without_callbacks
+    assert_raise(ActiveRecord::RecordInvalid) { Topic.create_without_callbacks!(:title => "new topic", :validation_test => "invalid") }
+    assert !Topic.send(:_skip_callbacks?)
+  end
+
   def test_save!
     topic = Topic.new(:title => "New Topic")
     assert topic.save!
@@ -176,6 +181,16 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.reload
     assert_equal("null", topic.title)
     assert_equal("null", topic.author_name)
+  end
+
+  def test_save_without_callbacks!
+    topic = Topic.new(:title => "New Topic")
+    assert topic.save!
+    assert !topic.send(:_skip_callbacks?)
+
+    reply = WrongReply.new
+    assert_raise(ActiveRecord::RecordInvalid) { reply.save_without_callbacks! }
+    assert !reply.send(:_skip_callbacks?)
   end
 
   def test_save_nil_string_attributes

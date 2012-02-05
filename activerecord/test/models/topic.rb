@@ -81,6 +81,10 @@ class Topic < ActiveRecord::Base
   after_initialize :set_email_address
 
   class_attribute :after_initialize_called
+  attr_accessor :validation_test
+
+  validates :validation_test, :numericality => true, :unless => proc { validation_test.blank? }
+
   after_initialize do
     self.class.after_initialize_called = true
   end

@@ -38,10 +38,18 @@ module ActiveRecord
         else
           object = new(attributes, options)
           yield(object) if block_given?
-          object.save!
+          _save_with_or_without_callbacks(object, :bang => true)
           object
         end
       end
+
+      # Creates an object without triggering the following callbacks:
+      #   * <tt>before_create</tt>
+      #   * <tt>after_create</tt>
+      def create_without_callbacks!(*args, &block)
+        _create_without_callbacks(*args, { :bang => true }, &block)
+      end
+
     end
 
     # The validation process on save can be skipped by passing <tt>:validate => false</tt>. The regular Base#save method is
@@ -50,10 +58,28 @@ module ActiveRecord
       perform_validations(options) ? super : false
     end
 
+    # Saves the model without triggering the following callbacks:
+    #   * <tt>before_save</tt>
+    #   * <tt>after_save</tt>
+    #   * <tt>before_update</tt>
+    #   * <tt>after_update</tt>
+    def save_without_callbacks(*args)
+      without_callbacks do
+        save(*args)
+      end
+    end
+
     # Attempts to save the record just like Base#save but will raise a +RecordInvalid+ exception instead of returning false
     # if the record is not valid.
     def save!(options={})
       perform_validations(options) ? super : raise(RecordInvalid.new(self))
+    end
+
+    # Same as <tt>save_without_callbacks</tt> except <tt>save!</tt> is called instead of <tt>save</tt>
+    def save_without_callbacks!(*args)
+      without_callbacks do
+        save!(*args)
+      end
     end
 
     # Runs all the validations within the specified context. Returns true if no errors are found,
