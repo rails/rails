@@ -114,25 +114,18 @@ Rails by default automatically loads all fixtures from the +test/fixtures+ folde
 * Load the fixture data into the table
 * Dump the fixture data into a variable in case you want to access it directly
 
-h5. Hashes with Special Powers
+h5. Fixtures are ActiveRecord objects
 
-Fixtures are basically Hash objects. As mentioned in point #3 above, you can access the hash object directly because it is automatically setup as a local variable of the test case. For example:
+Fixtures are instances of ActiveRecord. As mentioned in point #3 above, you can access the object directly because it is automatically setup as a local variable of the test case. For example:
 
 <ruby>
-# this will return the Hash for the fixture named david
+# this will return the User object for the fixture named david
 users(:david)
 
 # this will return the property for david called id
 users(:david).id
-</ruby>
 
-Fixtures can also transform themselves into the form of the original class. Thus, you can get at the methods only available to that class.
-
-<ruby>
-# using the find method, we grab the "real" david as a User
-david = users(:david).find
-
-# and now we have access to methods only available to a User class
+# one can also access methods available on the User class
 email(david.girlfriend.email, david.location_tonight)
 </ruby>
 
