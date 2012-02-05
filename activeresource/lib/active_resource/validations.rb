@@ -25,10 +25,48 @@ module ActiveResource
       end
     end
 
+    # Grabs errors from a hash of attribute => array of errors elements
+    # The second parameter directs the errors cache to be cleared (default)
+    # or not (by passing true)
+    #
+    # Unrecognized attribute names will be humanized and added to the record's
+    # base errors.
+    def from_hash(messages, save_cache = false)
+      clear unless save_cache
+
+      messages.each do |(key,errors)|
+        errors.each do |error|
+          if @base.attributes.keys.include?(key)
+            add key, error
+          elsif key == 'base'
+            self[:base] << error
+          else
+            # reporting an error on an attribute not in attributes
+            # format and add them to base
+            self[:base] << "#{key.humanize} #{error}"
+          end
+        end
+      end
+    end
+
     # Grabs errors from a json response.
     def from_json(json, save_cache = false)
-      array = Array.wrap(ActiveSupport::JSON.decode(json)['errors']) rescue []
-      from_array array, save_cache
+      decoded = ActiveSupport::JSON.decode(json) || {} rescue {}
+      if decoded.kind_of?(Hash) && (decoded.has_key?('errors') || decoded.empty?)
+        errors = decoded['errors'] || {}
+        if errors.kind_of?(Array)
+          # 3.2.1-style with array of strings
+          ActiveSupport::Deprecation.warn('Returning errors as an array of strings is deprecated.')
+          from_array errors, save_cache
+        else
+          # 3.2.2+ style
+          from_hash errors, save_cache
+        end
+      else
+        # <3.2-style respond_with - lacks 'errors' key
+        ActiveSupport::Deprecation.warn('Returning errors as a hash without a root "errors" key is deprecated.')
+        from_hash decoded, save_cache
+      end
     end
 
     # Grabs errors from an XML response.
