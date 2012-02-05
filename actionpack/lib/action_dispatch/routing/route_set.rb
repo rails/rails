@@ -482,7 +482,7 @@ module ActionDispatch
         # if the current controller is "foo/bar/baz" and :controller => "baz/bat"
         # is specified, the controller becomes "foo/baz/bat"
         def use_relative_controller!
-          if !named_route && different_controller?
+          if !named_route && different_controller? && !controller.start_with?("/")
             old_parts = current_controller.split('/')
             size = controller.count("/") + 1
             parts = old_parts[0...-size] << controller
