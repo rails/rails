@@ -99,7 +99,7 @@ module ActiveSupport
 
         @raw_filter, @options = filter, options
         @filter               = _compile_filter(filter)
-        @compiled_options     = _compile_options(options)
+        recompile_options!
       end
 
       def deprecate_per_key_option(options)
@@ -144,7 +144,7 @@ module ActiveSupport
         deprecate_per_key_option(_options)
         _update_filter(self.options, _options)
 
-        @compiled_options = _compile_options(@options)
+        recompile_options!
       end
 
       # Wraps code with filter
@@ -218,7 +218,7 @@ module ActiveSupport
       # Options support the same options as filters themselves (and support
       # symbols, string, procs, and objects), so compile a conditional
       # expression based on the options
-      def _compile_options(options)
+      def recompile_options!
         conditions = ["true"]
 
         unless options[:if].empty?
@@ -229,7 +229,7 @@ module ActiveSupport
           conditions << Array(_compile_filter(options[:unless])).map {|f| "!#{f}"}
         end
 
-        conditions.flatten.join(" && ")
+        @compiled_options = conditions.flatten.join(" && ")
       end
 
       # Filters support:
