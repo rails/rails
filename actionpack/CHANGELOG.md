@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Adds `image_url`, `javascript_url`, `stylesheet_url`, `audio_url`, `video_url`, and `font_url`
+    to assets tag helper. These URL helpers will return the full path to your assets. This is useful
+    when you are going to reference this asset from external host. *Prem Sichanugrist*
+
 *   Default responder will now always use your overridden block in `respond_with` to render your response. *Prem Sichanugrist*
 
 *   Allow `value_method` and `text_method` arguments from `collection_select` and

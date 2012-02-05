@@ -65,6 +65,13 @@ module ActionView
         end
         alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
 
+        # Computes the full URL to a stylesheet asset in the public stylesheets directory.
+        # This will use +stylesheet_path+ internally, so most of their behaviors will be the same.
+        def stylesheet_url(source)
+          URI.join(current_host, path_to_stylesheet(source)).to_s
+        end
+        alias_method :url_to_stylesheet, :stylesheet_url # aliased to avoid conflicts with a stylesheet_url named route
+
         # Returns a stylesheet link tag for the sources specified as arguments. If
         # you don't specify an extension, <tt>.css</tt> will be appended automatically.
         # You can modify the link attributes by passing a hash as the last argument.
