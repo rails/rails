@@ -194,6 +194,7 @@ module ActiveRecord
 
     # Returns the column object for the named attribute.
     def column_for_attribute(name)
+      # FIXME: should this return a null object for columns that don't exist?
       self.class.columns_hash[name.to_s]
     end
 
