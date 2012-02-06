@@ -579,6 +579,16 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_equal "views/index?id=1", @cache_with_pathname.send(:file_path_key, key)
   end
 
+  # Test that generated cache keys are short enough to have Tempfile stuff added to them and 
+  # remain valid
+  def test_filename_max_size
+    key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
+    path = @cache.send(:key_file_path, key)
+    Dir::Tmpname.create(path) do |tmpname, n, opts|
+      assert (File.basename(tmpname+'.lock').length <= 255), "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
+    end
+  end
+
   # Because file systems have a maximum filename size, filenames > max size should be split in to directories
   # If filename is 'AAAAB', where max size is 4, the returned path should be AAAA/B
   def test_key_transformation_max_filename_size
