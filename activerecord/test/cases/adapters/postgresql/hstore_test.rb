@@ -12,7 +12,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     begin
       @connection.transaction do
         @connection.create_table('hstores') do |t|
-          t.hstore 'tags'
+          t.hstore 'tags', :default => ''
         end
       end
     rescue ActiveRecord::StatementInvalid
@@ -33,7 +33,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert @column
 
     data = "\"1\"=>\"2\""
-    hash = @column.class.cast_hstore data
+    hash = @column.class.string_to_hstore data
     assert_equal({'1' => '2'}, hash)
     assert_equal({'1' => '2'}, @column.type_cast(data))
 
@@ -43,19 +43,19 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
   end
 
   def test_gen1
-    assert_equal(%q(" "=>""), @column.type_cast({' '=>''}))
+    assert_equal(%q(" "=>""), @column.class.hstore_to_string({' '=>''}))
   end
 
   def test_gen2
-    assert_equal(%q(","=>""), @column.type_cast({','=>''}))
+    assert_equal(%q(","=>""), @column.class.hstore_to_string({','=>''}))
   end
 
   def test_gen3
-    assert_equal(%q("="=>""), @column.type_cast({'='=>''}))
+    assert_equal(%q("="=>""), @column.class.hstore_to_string({'='=>''}))
   end
 
   def test_gen4
-    assert_equal(%q(">"=>""), @column.type_cast({'>'=>''}))
+    assert_equal(%q(">"=>""), @column.class.hstore_to_string({'>'=>''}))
   end
 
   def test_parse1

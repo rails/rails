@@ -52,25 +52,31 @@ module ActiveRecord
           end
         end
 
-        def cast_hstore(object)
+        def hstore_to_string(object)
           if Hash === object
             object.map { |k,v|
               "#{escape_hstore(k)}=>#{escape_hstore(v)}"
             }.join ','
           else
-            hash_from_hstore_string(object)
+            object
+          end
+        end
+
+        def string_to_hstore(string)
+          if string.nil?
+            nil
+          elsif String === string
+            Hash[string.scan(HstorePair).map { |k,v|
+              v = v.upcase == 'NULL' ? nil : v.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
+              k = k.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
+              [k,v]
+            }]
+          else
+            string
           end
         end
 
         private
-        def hash_from_hstore_string(string)
-          Hash[string.scan(HstorePair).map { |k,v|
-            v = v.upcase == 'NULL' ? nil : v.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
-            k = k.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
-            [k,v]
-          }]
-        end
-
         HstorePair = begin
           quoted_string = /"[^"\\]*(?:\\.[^"\\]*)*"/
           unquoted_string = /(?:\\.|[^\s,])[^\s=,\\]*(?:\\.[^\s=,\\]*|=[^,>])*/
@@ -501,6 +507,9 @@ module ActiveRecord
         when String
           return super unless 'bytea' == column.sql_type
           { :value => value, :format => 1 }
+        when Hash
+          return super unless 'hstore' == column.sql_type
+          PostgreSQLColumn.hstore_to_string(value)
         else
           super
         end
