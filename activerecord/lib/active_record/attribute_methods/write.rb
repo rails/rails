@@ -43,23 +43,9 @@ module ActiveRecord
         end
 
         def type_cast_attribute_for_write(column, value)
-          if column && column.number?
-            convert_number_column_value(value)
-          else
-            value
-          end
-        end
+          return value unless column
 
-        def convert_number_column_value(value)
-          if value == false
-            0
-          elsif value == true
-            1
-          elsif value.is_a?(String) && value.blank?
-            nil
-          else
-            value
-          end
+          column.type_cast_for_write value
         end
     end
   end
