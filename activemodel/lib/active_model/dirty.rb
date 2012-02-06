@@ -1,6 +1,7 @@
 require 'active_model/attribute_methods'
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/object/blank'
 
 module ActiveModel
   # == Active Model Dirty
@@ -98,7 +99,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed? # => true
     def changed?
-      changed_attributes.any?
+      changed_attributes.present?
     end
 
     # List of attributes with unsaved changes.
