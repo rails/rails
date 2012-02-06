@@ -357,4 +357,22 @@ class LengthValidationTest < ActiveModel::TestCase
   ensure
     Person.reset_callbacks(:validate)
   end
+
+  def test_validates_length_of_for_infinite_maxima
+    Topic.validates_length_of(:title, :within => 5..Float::INFINITY)
+
+    t = Topic.new("title" => "1234")
+    assert t.invalid?
+    assert t.errors[:title].any?
+
+    t.title = "12345"
+    assert t.valid?
+
+    Topic.validates_length_of(:author_name, :maximum => Float::INFINITY)
+
+    assert t.valid?
+
+    t.author_name = "A very long author name that should still be valid." * 100
+    assert t.valid?
+  end
 end

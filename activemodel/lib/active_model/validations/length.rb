@@ -29,8 +29,8 @@ module ActiveModel
         keys.each do |key|
           value = options[key]
 
-          unless value.is_a?(Integer) && value >= 0
-            raise ArgumentError, ":#{key} must be a nonnegative Integer"
+          unless value.is_a?(Integer) && value >= 0 or value == Float::INFINITY
+            raise ArgumentError, ":#{key} must be a nonnegative Integer or Infinity"
           end
         end
       end
