@@ -34,9 +34,11 @@ module ActionView
           unless object.nil?
             method_before_type_cast = @method_name + "_before_type_cast"
 
-            object.respond_to?(method_before_type_cast) ?
-              object.send(method_before_type_cast) :
+            if object.respond_to?(method_before_type_cast)
+              object.send(method_before_type_cast).serialized_value
+            else
               object.send(@method_name)
+            end
           end
         end
 
