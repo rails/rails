@@ -18,11 +18,13 @@ module ActionDispatch
     def initialize(app, check_ip_spoofing = true, custom_proxies = nil)
       @app = app
       @check_ip = check_ip_spoofing
-      if custom_proxies
-        custom_regexp = Regexp.new(custom_proxies)
-        @proxies = Regexp.union(TRUSTED_PROXIES, custom_regexp)
+      @proxies = case custom_proxies
+      when Regexp
+        custom_proxies
+      when nil
+        TRUSTED_PROXIES
       else
-        @proxies = TRUSTED_PROXIES
+        Regexp.union(TRUSTED_PROXIES, custom_proxies)
       end
     end
 
