@@ -244,17 +244,17 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   VideoLinkToTag = {
-    %(video_tag("xml.ogg")) => %(<video src="/videos/xml.ogg" />),
-    %(video_tag("rss.m4v", :autoplay => true, :controls => true)) => %(<video autoplay="autoplay" controls="controls" src="/videos/rss.m4v" />),
-    %(video_tag("rss.m4v", :autobuffer => true)) => %(<video autobuffer="autobuffer" src="/videos/rss.m4v" />),
-    %(video_tag("gold.m4v", :size => "160x120")) => %(<video height="120" src="/videos/gold.m4v" width="160" />),
-    %(video_tag("gold.m4v", "size" => "320x240")) => %(<video height="240" src="/videos/gold.m4v" width="320" />),
-    %(video_tag("trailer.ogg", :poster => "screenshot.png")) => %(<video poster="/images/screenshot.png" src="/videos/trailer.ogg" />),
-    %(video_tag("error.avi", "size" => "100")) => %(<video src="/videos/error.avi" />),
-    %(video_tag("error.avi", "size" => "100 x 100")) => %(<video src="/videos/error.avi" />),
-    %(video_tag("error.avi", "size" => "x")) => %(<video src="/videos/error.avi" />),
-    %(video_tag("http://media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="http://media.rubyonrails.org/video/rails_blog_2.mov" />),
-    %(video_tag("//media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="//media.rubyonrails.org/video/rails_blog_2.mov" />),
+    %(video_tag("xml.ogg")) => %(<video src="/videos/xml.ogg"></video>),
+    %(video_tag("rss.m4v", :autoplay => true, :controls => true)) => %(<video autoplay="autoplay" controls="controls" src="/videos/rss.m4v"></video>),
+    %(video_tag("rss.m4v", :autobuffer => true)) => %(<video autobuffer="autobuffer" src="/videos/rss.m4v"></video>),
+    %(video_tag("gold.m4v", :size => "160x120")) => %(<video height="120" src="/videos/gold.m4v" width="160"></video>),
+    %(video_tag("gold.m4v", "size" => "320x240")) => %(<video height="240" src="/videos/gold.m4v" width="320"></video>),
+    %(video_tag("trailer.ogg", :poster => "screenshot.png")) => %(<video poster="/images/screenshot.png" src="/videos/trailer.ogg"></video>),
+    %(video_tag("error.avi", "size" => "100")) => %(<video src="/videos/error.avi"></video>),
+    %(video_tag("error.avi", "size" => "100 x 100")) => %(<video src="/videos/error.avi"></video>),
+    %(video_tag("error.avi", "size" => "x")) => %(<video src="/videos/error.avi"></video>),
+    %(video_tag("http://media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="http://media.rubyonrails.org/video/rails_blog_2.mov"></video>),
+    %(video_tag("//media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="//media.rubyonrails.org/video/rails_blog_2.mov"></video>),
     %(video_tag("multiple.ogg", "multiple.avi")) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
     %(video_tag(["multiple.ogg", "multiple.avi"])) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
     %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>)
@@ -289,10 +289,10 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   AudioLinkToTag = {
-    %(audio_tag("xml.wav")) => %(<audio src="/audios/xml.wav" />),
-    %(audio_tag("rss.wav", :autoplay => true, :controls => true)) => %(<audio autoplay="autoplay" controls="controls" src="/audios/rss.wav" />),
-    %(audio_tag("http://media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="http://media.rubyonrails.org/audio/rails_blog_2.mov" />),
-    %(audio_tag("//media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="//media.rubyonrails.org/audio/rails_blog_2.mov" />),
+    %(audio_tag("xml.wav")) => %(<audio src="/audios/xml.wav"></audio>),
+    %(audio_tag("rss.wav", :autoplay => true, :controls => true)) => %(<audio autoplay="autoplay" controls="controls" src="/audios/rss.wav"></audio>),
+    %(audio_tag("http://media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="http://media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
+    %(audio_tag("//media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="//media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
     %(audio_tag("audio.mp3", "audio.ogg")) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
     %(audio_tag(["audio.mp3", "audio.ogg"])) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
     %(audio_tag(["audio.mp3", "audio.ogg"], :autobuffer => true, :controls => true)) => %(<audio autobuffer="autobuffer" controls="controls"><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>)
