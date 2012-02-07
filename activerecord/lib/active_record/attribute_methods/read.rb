@@ -125,7 +125,11 @@ module ActiveRecord
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
-        self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
+        if @columns_hash.key? attr_name
+          @columns_hash[attr_name].type_cast @attributes[attr_name]
+        else
+          self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
+        end
       end
 
       private

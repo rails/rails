@@ -8,12 +8,13 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    attr_reader :columns, :rows
+    attr_reader :columns, :rows, :column_types
 
     def initialize(columns, rows)
-      @columns   = columns
-      @rows      = rows
-      @hash_rows = nil
+      @columns      = columns
+      @rows         = rows
+      @hash_rows    = nil
+      @column_types = {}
     end
 
     def each
@@ -47,10 +48,6 @@ module ActiveRecord
       @columns   = columns.dup
       @rows      = rows.dup
       @hash_rows = nil
-    end
-
-    def column_types
-      {}
     end
 
     private
