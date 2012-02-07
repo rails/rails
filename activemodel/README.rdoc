@@ -87,10 +87,9 @@ modules:
         errors.add(:name, "can not be nil") if name.nil?
       end
 
-      def ErrorsPerson.human_attribute_name(attr, options = {})
+      def self.human_attribute_name(attr, options = {})
         "Name"
       end
-
     end
 
     person.errors.full_messages
@@ -163,7 +162,7 @@ modules:
 
 * Custom validators
 
-   class Person
+   class ValidatorPerson
      include ActiveModel::Validations
      validates_with HasNameValidator
      attr_accessor :name
@@ -171,7 +170,7 @@ modules:
 
    class HasNameValidator < ActiveModel::Validator
      def validate(record)
-      record.errors[:name] = "must exist" if record.name.blank?
+       record.errors[:name] = "must exist" if record.name.blank?
      end
    end
 
@@ -182,7 +181,7 @@ modules:
    p.valid?                  # =>  true
 
   {Learn more}[link:classes/ActiveModel/Validator.html]
-  
+
 
 == Download and installation
 
