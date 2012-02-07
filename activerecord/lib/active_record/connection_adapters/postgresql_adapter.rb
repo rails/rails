@@ -39,12 +39,6 @@ module ActiveRecord
         super(name, self.class.extract_value_from_default(default), sql_type, null)
       end
 
-      def type_cast(value)
-        return super unless sql_type == 'bytea'
-
-        PGconn.unescape_bytea(value) if value
-      end
-
       # :stopdoc:
       class << self
         attr_accessor :money_precision

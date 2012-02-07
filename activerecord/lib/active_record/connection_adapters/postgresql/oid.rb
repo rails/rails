@@ -13,6 +13,10 @@ module ActiveRecord
 
         class Type
           def type; end
+
+          def type_cast_for_write(value)
+            value
+          end
         end
 
         class Identity < Type
