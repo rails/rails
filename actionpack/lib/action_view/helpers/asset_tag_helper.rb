@@ -488,7 +488,7 @@ module ActionView
             end
           else
             options[:src] = send("path_to_#{type}", sources.first)
-            tag(type, options)
+            content_tag(type, nil, options)
           end
         end
 
