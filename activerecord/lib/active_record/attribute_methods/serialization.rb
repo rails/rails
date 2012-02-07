@@ -88,6 +88,14 @@ module ActiveRecord
           super
         end
       end
+
+      def read_attribute_before_type_cast(attr_name)
+        if serialized_attributes.include?(attr_name)
+          super.unserialized_value
+        else
+          super
+        end
+      end
     end
   end
 end

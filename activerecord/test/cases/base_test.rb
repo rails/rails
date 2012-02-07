@@ -1279,6 +1279,21 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(hash, important_topic.content)
   end
 
+  # This test was added to fix GH #4004. Obviously the value returned
+  # is not really the value 'before type cast' so we should maybe think
+  # about changing that in the future.
+  def test_serialized_attribute_before_type_cast_returns_unserialized_value
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "topics"
+    klass.serialize :content, Hash
+
+    t = klass.new(:content => { :foo => :bar })
+    assert_equal({ :foo => :bar }, t.content_before_type_cast)
+    t.save!
+    t.reload
+    assert_equal({ :foo => :bar }, t.content_before_type_cast)
+  end
+
   def test_serialized_attribute_declared_in_subclass
     hash = { 'important1' => 'value1', 'important2' => 'value2' }
     important_topic = ImportantTopic.create("important" => hash)
