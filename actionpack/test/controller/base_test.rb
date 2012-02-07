@@ -257,6 +257,22 @@ class UrlOptionsTest < ActionController::TestCase
     assert_equal '/special', rs.url_for(url_params)
   end
 
+  def test_url_for_query_params_included
+    rs = ActionDispatch::Routing::RouteSet.new
+    rs.draw do
+      match 'home' => 'pages#home'
+    end
+
+    options = {
+      :action     => "home",
+      :controller => "pages",
+      :only_path  => true,
+      :params     => { "token" => "secret" }
+    }
+
+    assert_equal '/home?token=secret', rs.url_for(options)
+  end
+
   def test_url_options_override
     with_routing do |set|
       set.draw do
