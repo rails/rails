@@ -127,7 +127,7 @@ class RequestTest < ActiveSupport::TestCase
                            'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
     assert_equal '3.4.5.6', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 67.205.106.73'
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '67.205.106.73, 10.0.0.1, 9.9.9.9, 3.4.5.6'
     assert_equal '10.0.0.1', request.remote_ip
   end
 
