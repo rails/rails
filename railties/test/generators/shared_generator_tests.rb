@@ -125,7 +125,7 @@ module SharedGeneratorTests
   def test_edge_option
     generator([destination_root], :edge => true).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
-    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$}
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["'],\s+:branch\s+=>\s+["']3-2-stable["']$}
     assert_file 'Gemfile', %r{^gem\s+["']journey["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/journey.git")}["']$}
     assert_file 'Gemfile', %r{^gem\s+["']arel["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/arel.git")}["']$}
   end

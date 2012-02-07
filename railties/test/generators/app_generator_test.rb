@@ -136,8 +136,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_edge_gemfile_option
     generator([destination_root], :edge => true).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
-    assert_file 'Gemfile', %r{^\s+gem\s+["']sass-rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/sass-rails.git")}["']$}
-    assert_file 'Gemfile', %r{^\s+gem\s+["']coffee-rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/coffee-rails.git")}["']$}
+    assert_file 'Gemfile', %r{^\s+gem\s+["']sass-rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/sass-rails.git")}["'],\s+:branch\s+=>\s+["']3-2-stable["']$}
+    assert_file 'Gemfile', %r{^\s+gem\s+["']coffee-rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/coffee-rails.git")}["'],\s+:branch\s+=>\s+["']3-2-stable["']$}
   end
 
   def test_config_database_is_added_by_default
