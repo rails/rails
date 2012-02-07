@@ -126,7 +126,11 @@ module ActiveRecord
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         if @columns_hash.key? attr_name
-          @columns_hash[attr_name].type_cast @attributes[attr_name]
+          if self.class.cache_attribute?(attr_name)
+            @attributes_cache[attr_name] ||= @columns_hash[attr_name].type_cast(@attributes[attr_name])
+          else
+            @columns_hash[attr_name].type_cast @attributes[attr_name]
+          end
         else
           self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
         end
