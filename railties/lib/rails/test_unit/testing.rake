@@ -55,7 +55,21 @@ namespace :test do
     # Placeholder task for other Railtie and plugins to enhance. See Active Record for an example.
   end
 
-  task :run => %w(test:units test:functionals test:integration)
+  task :run do
+    errors = %w(test:units test:functionals test:integration).collect do |task|
+      begin
+        Rake::Task[task].invoke
+        nil
+      rescue => e
+        { :task => task, :exception => e }
+      end
+    end.compact
+
+    if errors.any?
+      puts errors.map { |e| "Errors running #{e[:task]}! #{e[:exception].inspect}" }.join("\n")
+      abort
+    end
+  end
 
   Rake::TestTask.new(:recent => "test:prepare") do |t|
     since = TEST_CHANGES_SINCE
