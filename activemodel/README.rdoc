@@ -9,10 +9,12 @@ Prior to Rails 3.0, if a plugin or gem developer wanted to have an object
 interact with Action Pack helpers, it was required to either copy chunks of
 code from Rails, or monkey patch entire helpers to make them handle objects
 that did not exactly conform to the Active Record interface. This would result
-in code duplication and fragile applications that broke on upgrades.
+in code duplication and fragile applications that broke on upgrades. Active
+Model solves this by defining an explicit API. You can read more about the
+API in ActiveModel::Lint::Tests.
 
-Active Model solves this. You can include functionality from the following
-modules:
+Active Model also provides the following functionality to have ORM-like
+behavior out of the box:
 
 * Add attribute magic to objects
 
@@ -182,7 +184,7 @@ modules:
    p.valid?                  # =>  true
 
   {Learn more}[link:classes/ActiveModel/Validator.html]
-  
+
 
 == Download and installation
 
