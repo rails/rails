@@ -4,12 +4,11 @@ require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/reverse_merge'
-require 'active_support/ordered_hash'
 
 module ActiveModel
   # == Active Model Errors
   #
-  # Provides a modified +OrderedHash+ that you can include in your object
+  # Provides a modified +Hash+ that you can include in your object
   # for handling error messages and interacting with Action Pack helpers.
   #
   # A minimal implementation could be:
@@ -75,7 +74,7 @@ module ActiveModel
     #   end
     def initialize(base)
       @base     = base
-      @messages = ActiveSupport::OrderedHash.new
+      @messages = {}
     end
 
     def initialize_dup(other)
@@ -206,7 +205,7 @@ module ActiveModel
       to_a.to_xml options.reverse_merge(:root => "errors", :skip_types => true)
     end
 
-    # Returns an ActiveSupport::OrderedHash that can be used as the JSON representation for this object.
+    # Returns an Hash that can be used as the JSON representation for this object.
     def as_json(options=nil)
       to_hash
     end
