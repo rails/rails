@@ -1872,9 +1872,24 @@ The method +multiple_of?+ tests whether an integer is multiple of the argument:
 
 NOTE: Defined in +active_support/core_ext/integer/multiple.rb+.
 
+h4. +ordinal+
+
+The method +ordinal+ returns the ordinal suffix string corresponding to the receiver integer:
+
+<ruby>
+1.ordinal    # => "st"
+2.ordinal    # => "nd"
+53.ordinal   # => "rd"
+2009.ordinal # => "th"
+-21.ordinal  # => "st"
+-134.ordinal # => "th"
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/integer/inflections.rb+.
+
 h4. +ordinalize+
 
-The method +ordinalize+ returns the ordinal string corresponding to the receiver integer:
+The method +ordinalize+ returns the ordinal string corresponding to the receiver integer. In comparison, note that the +ordinal+ method returns *only* the suffix string.
 
 <ruby>
 1.ordinalize    # => "1st"
