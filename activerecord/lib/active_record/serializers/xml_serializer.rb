@@ -162,7 +162,7 @@ module ActiveRecord #:nodoc:
     #
     #   class IHaveMyOwnXML < ActiveRecord::Base
     #     def to_xml(options = {})
-    #       require 'builder' unless defined? ::Builder
+    #       require 'builder'
     #       options[:indent] ||= 2
     #       xml = options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
     #       xml.instruct! unless options[:skip_instruct]
