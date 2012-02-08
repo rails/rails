@@ -94,7 +94,7 @@ module ActiveRecord
 
             # FIXME: probably we can improve this since we know it is PG
             # specific
-            ConnectionAdapters::Column.string_to_time value
+            ConnectionAdapters::PostgreSQLColumn.string_to_time value
           end
         end
 
