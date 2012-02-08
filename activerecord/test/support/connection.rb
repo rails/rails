@@ -1,4 +1,5 @@
 require 'logger'
+require_dependency 'models/college'
 require_dependency 'models/course'
 
 module ARTest
@@ -15,6 +16,6 @@ module ARTest
     ActiveRecord::Base.logger = Logger.new("debug.log")
     ActiveRecord::Base.configurations = connection_config
     ActiveRecord::Base.establish_connection 'arunit'
-    Course.establish_connection 'arunit2'
+    ARUnit2Record.establish_connection 'arunit2'
   end
 end
