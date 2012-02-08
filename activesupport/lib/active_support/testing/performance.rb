@@ -3,7 +3,6 @@ require 'rails/version'
 require 'active_support/concern'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/string/inflections'
-require 'action_view/helpers/number_helper'
 
 module ActiveSupport
   module Testing
@@ -246,9 +245,8 @@ module ActiveSupport
         end
 
         class Base
-          include ActionView::Helpers::NumberHelper
-
           attr_reader :total
+          class_attribute :formatter
 
           def initialize
             @total = 0
@@ -290,13 +288,21 @@ module ActiveSupport
 
         class Amount < Base
           def format(measurement)
-            number_with_delimiter(measurement.floor)
+            if self.class.formatter.present?
+              self.class.formatter.call(measurement.floor)
+            else
+              measurement.floor
+            end
           end
         end
 
         class DigitalInformationUnit < Base
           def format(measurement)
-            number_to_human_size(measurement, :precision => 2)
+            if self.class.formatter.present?
+              self.class.formatter.call(measurement)
+            else
+              "#{measurement} Bytes"
+            end
           end
         end
 
