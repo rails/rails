@@ -162,8 +162,10 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_add_index_attribute_length_limit
-      connection.add_index :testings, [:foo, :bar], :length => {:foo => 10, :bar => nil}
-      assert connection.index_exists?(:testings, [:foo, :bar])
+      Person.connection.add_index :testings, [:foo, :bar], :length => {:foo => 10, :bar => nil}, :name => "attribute_length"
+      assert Person.connection.index_exists?(:testings, [:foo, :bar])
+    ensure
+      Person.connection.remove_index("people", :name => "attribute_length")
     end
 
     def test_remove_nonexistent_index
