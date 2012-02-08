@@ -486,7 +486,6 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_not_auto_table_name_prefix_if_column_joined
     c = Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
-    # No chance for typecast here
-    assert_equal ["7"], Company.joins(:contracts).pluck(:developer_id)
+    assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
   end
 end
