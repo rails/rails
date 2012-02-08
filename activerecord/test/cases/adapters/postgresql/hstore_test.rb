@@ -86,6 +86,14 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert_equal({"\"a"=>"q\"w"}, @column.type_cast('\"a=>q"w'))
   end
 
+  def test_rewrite
+    @connection.execute "insert into hstores (tags) VALUES ('1=>2')"
+    x = Hstore.find :first
+    x.tags = { '"a\'' => 'b' }
+    assert x.save!
+  end
+
+
   def test_select
     @connection.execute "insert into hstores (tags) VALUES ('1=>2')"
     x = Hstore.find :first

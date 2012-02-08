@@ -476,6 +476,11 @@ module ActiveRecord
         return super unless column
 
         case value
+        when Hash
+          case column.sql_type
+          when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
+          else super
+          end
         when Float
           return super unless value.infinite? && column.type == :datetime
           "'#{value.to_s.downcase}'"
