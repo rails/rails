@@ -120,22 +120,20 @@ module ActiveRecord
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         # If it's cached, just return it
-        @attributes_cache.fetch(attr_name) {
-
-          column = @columns_hash.fetch(attr_name) {
-            return self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
+        @attributes_cache.fetch(attr_name) { |name|
+          column = @columns_hash.fetch(name) {
+            return self.class.type_cast_attribute(name, @attributes, @attributes_cache)
           }
 
-          value = @attributes.fetch(attr_name) {
-            return block_given? ? yield(attr_name) : nil
+          value = @attributes.fetch(name) {
+            return block_given? ? yield(name) : nil
           }
 
-          if self.class.cache_attribute?(attr_name)
-            @attributes_cache[attr_name] ||= column.type_cast(value)
+          if self.class.cache_attribute?(name)
+            @attributes_cache[name] = column.type_cast(value)
           else
             column.type_cast value
           end
-
         }
       end
 
