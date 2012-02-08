@@ -1,5 +1,9 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Fix `pluck` to work with joins. Backport of #4942.
+
+    *Carlos Antonio da Silva*
+
 *   Fix a problem with `translate_exception` method in a non English environment.
     Backport of #6397.
 
