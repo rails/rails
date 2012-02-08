@@ -1,5 +1,3 @@
-require 'active_record/attributes/translator'
-
 module ActiveRecord
   module AttributeMethods
     module Read
@@ -138,20 +136,6 @@ module ActiveRecord
       end
 
       private
-
-      def attribute_translator
-        Attributes::Translator.new(@attributes, @columns_hash)
-      end
-
-      def cached_cast_attribute(attr_name, method)
-        @attributes_cache[attr_name] ||= cast_attribute(attr_name, method)
-      end
-
-      def cast_attribute(attr_name, method)
-        attribute_translator.cast_attribute(attr_name, method) do
-          missing_attribute(attr_name, caller)
-        end
-      end
 
       def attribute(attribute_name)
         read_attribute(attribute_name)
