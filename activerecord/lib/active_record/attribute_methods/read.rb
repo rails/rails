@@ -119,19 +119,24 @@ module ActiveRecord
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
-        column = @columns_hash.fetch(attr_name) {
-          return self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
-        }
+        # If it's cached, just return it
+        @attributes_cache.fetch(attr_name) {
 
-        value = @attributes.fetch(attr_name) {
-          return block_given? ? yield(attr_name) : nil
-        }
+          column = @columns_hash.fetch(attr_name) {
+            return self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
+          }
 
-        if self.class.cache_attribute?(attr_name)
-          @attributes_cache[attr_name] ||= column.type_cast(value)
-        else
-          column.type_cast value
-        end
+          value = @attributes.fetch(attr_name) {
+            return block_given? ? yield(attr_name) : nil
+          }
+
+          if self.class.cache_attribute?(attr_name)
+            @attributes_cache[attr_name] ||= column.type_cast(value)
+          else
+            column.type_cast value
+          end
+
+        }
       end
 
       private
