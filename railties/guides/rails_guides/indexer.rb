@@ -1,5 +1,4 @@
 require 'active_support/core_ext/object/blank'
-require 'active_support/ordered_hash'
 require 'active_support/core_ext/string/inflections'
 
 module RailsGuides
@@ -21,7 +20,7 @@ module RailsGuides
     def process(string, current_level=3, counters=[1])
       s = StringScanner.new(string)
 
-      level_hash = ActiveSupport::OrderedHash.new
+      level_hash = {}
 
       while !s.eos?
         re = %r{^h(\d)(?:\((#.*?)\))?\s*\.\s*(.*)$}
