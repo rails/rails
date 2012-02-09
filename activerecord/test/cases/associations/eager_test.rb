@@ -39,6 +39,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nil member.favourite_club
   end
 
+  def test_loading_with_one_association_without_primary_key
+    Comment.primary_key = nil
+    begin
+      assert_nothing_raised do
+        Post.includes(:comments).references(:comments).all
+      end
+    rescue
+      raise $!
+    ensure
+      Comment.primary_key = 'id'
+    end
+  end
+
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)
     post = posts.find { |p| p.id == 1 }
