@@ -245,7 +245,7 @@ module ActiveRecord
     #   end
     #   coder = {}
     #   Post.new.encode_with(coder)
-    #   coder # => { 'id' => nil, ... }
+    #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
       coder['attributes'] = attributes
     end

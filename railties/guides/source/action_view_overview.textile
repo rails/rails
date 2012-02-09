@@ -570,7 +570,7 @@ stylesheet_link_tag :monkey # =>
 
 h5. auto_discovery_link_tag
 
-Returns a link tag that browsers and news readers can use to auto-detect an RSS or ATOM feed.
+Returns a link tag that browsers and news readers can use to auto-detect an RSS or Atom feed.
 
 <ruby>
 auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "RSS Feed"}) # =>
@@ -687,7 +687,7 @@ h4. AtomFeedHelper
 
 h5. atom_feed
 
-This helper makes building an ATOM feed easy. Here's a full usage example:
+This helper makes building an Atom feed easy. Here's a full usage example:
 
 *config/routes.rb*
 

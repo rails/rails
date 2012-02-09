@@ -206,8 +206,8 @@ module ActiveRecord
     # Any subsequent condition chained to the returned relation will continue
     # generating an empty relation and will not fire any query to the database.
     #
-    # This is useful in scenarios where you need a chainable response to a method
-    # or a scope that could return zero results.
+    # Used in cases where a method or scope could return zero records but the
+    # result needs to be chainable.
     #
     # For example:
     #
