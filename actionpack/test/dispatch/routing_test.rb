@@ -157,8 +157,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
 
         resources :posts do
-          get :archive, :on => :collection
-          get :toggle_view, :on => :collection
+          get  :archive, :toggle_view, :on => :collection
           post :preview, :on => :member
 
           resource :subscription
@@ -2563,3 +2562,36 @@ class TestUnicodePaths < ActionDispatch::IntegrationTest
     assert_equal "200", @response.code
   end
 end
+
+class TestMultipleNestedController < ActionDispatch::IntegrationTest
+  module ::Foo
+    module Bar
+      class BazController < ActionController::Base
+        def index
+          render :inline => "<%= url_for :controller => '/pooh', :action => 'index' %>"
+        end
+      end
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      namespace :foo do
+        namespace :bar do
+          match "baz" => "baz#index"
+        end
+      end
+      match "pooh" => "pooh#index"
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  test "controller option which starts with '/' from multiple nested controller" do
+    get "/foo/bar/baz"
+    assert_equal "/pooh", @response.body
+  end
+
+end
+

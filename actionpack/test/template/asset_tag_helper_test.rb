@@ -88,6 +88,18 @@ class AssetTagHelperTest < ActionView::TestCase
     %(path_to_javascript("/super/xmlhr.js")) => %(/super/xmlhr.js)
   }
 
+  JavascriptUrlToTag = {
+    %(javascript_url("xmlhr")) => %(http://www.example.com/javascripts/xmlhr.js),
+    %(javascript_url("super/xmlhr")) => %(http://www.example.com/javascripts/super/xmlhr.js),
+    %(javascript_url("/super/xmlhr.js")) => %(http://www.example.com/super/xmlhr.js)
+  }
+
+  UrlToJavascriptToTag = {
+    %(url_to_javascript("xmlhr")) => %(http://www.example.com/javascripts/xmlhr.js),
+    %(url_to_javascript("super/xmlhr")) => %(http://www.example.com/javascripts/super/xmlhr.js),
+    %(url_to_javascript("/super/xmlhr.js")) => %(http://www.example.com/super/xmlhr.js)
+  }
+
   JavascriptIncludeToTag = {
     %(javascript_include_tag("bank")) => %(<script src="/javascripts/bank.js" type="text/javascript"></script>),
     %(javascript_include_tag("bank.js")) => %(<script src="/javascripts/bank.js" type="text/javascript"></script>),
@@ -119,6 +131,20 @@ class AssetTagHelperTest < ActionView::TestCase
     %(path_to_stylesheet('/dir/file.rcss')) => %(/dir/file.rcss)
   }
 
+  StyleUrlToTag = {
+    %(stylesheet_url("bank")) => %(http://www.example.com/stylesheets/bank.css),
+    %(stylesheet_url("bank.css")) => %(http://www.example.com/stylesheets/bank.css),
+    %(stylesheet_url('subdir/subdir')) => %(http://www.example.com/stylesheets/subdir/subdir.css),
+    %(stylesheet_url('/subdir/subdir.css')) => %(http://www.example.com/subdir/subdir.css)
+  }
+
+  UrlToStyleToTag = {
+    %(url_to_stylesheet("style")) => %(http://www.example.com/stylesheets/style.css),
+    %(url_to_stylesheet("style.css")) => %(http://www.example.com/stylesheets/style.css),
+    %(url_to_stylesheet('dir/file')) => %(http://www.example.com/stylesheets/dir/file.css),
+    %(url_to_stylesheet('/dir/file.rcss')) => %(http://www.example.com/dir/file.rcss)
+  }
+
   StyleLinkToTag = {
     %(stylesheet_link_tag("bank")) => %(<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" type="text/css" />),
     %(stylesheet_link_tag("bank.css")) => %(<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" type="text/css" />),
@@ -147,6 +173,20 @@ class AssetTagHelperTest < ActionView::TestCase
     %(path_to_image("xml.png"))      => %(/images/xml.png),
     %(path_to_image("dir/xml.png"))  => %(/images/dir/xml.png),
     %(path_to_image("/dir/xml.png")) => %(/dir/xml.png)
+  }
+
+  ImageUrlToTag = {
+    %(image_url("xml"))          => %(http://www.example.com/images/xml),
+    %(image_url("xml.png"))      => %(http://www.example.com/images/xml.png),
+    %(image_url("dir/xml.png"))  => %(http://www.example.com/images/dir/xml.png),
+    %(image_url("/dir/xml.png")) => %(http://www.example.com/dir/xml.png)
+  }
+
+  UrlToImageToTag = {
+    %(url_to_image("xml"))          => %(http://www.example.com/images/xml),
+    %(url_to_image("xml.png"))      => %(http://www.example.com/images/xml.png),
+    %(url_to_image("dir/xml.png"))  => %(http://www.example.com/images/dir/xml.png),
+    %(url_to_image("/dir/xml.png")) => %(http://www.example.com/dir/xml.png)
   }
 
   ImageLinkToTag = {
@@ -189,24 +229,38 @@ class AssetTagHelperTest < ActionView::TestCase
     %(path_to_video("/dir/xml.ogg")) => %(/dir/xml.ogg)
   }
 
+  VideoUrlToTag = {
+    %(video_url("xml"))          => %(http://www.example.com/videos/xml),
+    %(video_url("xml.ogg"))      => %(http://www.example.com/videos/xml.ogg),
+    %(video_url("dir/xml.ogg"))  => %(http://www.example.com/videos/dir/xml.ogg),
+    %(video_url("/dir/xml.ogg")) => %(http://www.example.com/dir/xml.ogg)
+  }
+
+  UrlToVideoToTag = {
+    %(url_to_video("xml"))          => %(http://www.example.com/videos/xml),
+    %(url_to_video("xml.ogg"))      => %(http://www.example.com/videos/xml.ogg),
+    %(url_to_video("dir/xml.ogg"))  => %(http://www.example.com/videos/dir/xml.ogg),
+    %(url_to_video("/dir/xml.ogg")) => %(http://www.example.com/dir/xml.ogg)
+  }
+
   VideoLinkToTag = {
-    %(video_tag("xml.ogg")) => %(<video src="/videos/xml.ogg" />),
-    %(video_tag("rss.m4v", :autoplay => true, :controls => true)) => %(<video autoplay="autoplay" controls="controls" src="/videos/rss.m4v" />),
-    %(video_tag("rss.m4v", :autobuffer => true)) => %(<video autobuffer="autobuffer" src="/videos/rss.m4v" />),
-    %(video_tag("gold.m4v", :size => "160x120")) => %(<video height="120" src="/videos/gold.m4v" width="160" />),
-    %(video_tag("gold.m4v", "size" => "320x240")) => %(<video height="240" src="/videos/gold.m4v" width="320" />),
-    %(video_tag("trailer.ogg", :poster => "screenshot.png")) => %(<video poster="/images/screenshot.png" src="/videos/trailer.ogg" />),
-    %(video_tag("error.avi", "size" => "100")) => %(<video src="/videos/error.avi" />),
-    %(video_tag("error.avi", "size" => "100 x 100")) => %(<video src="/videos/error.avi" />),
-    %(video_tag("error.avi", "size" => "x")) => %(<video src="/videos/error.avi" />),
-    %(video_tag("http://media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="http://media.rubyonrails.org/video/rails_blog_2.mov" />),
-    %(video_tag("//media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="//media.rubyonrails.org/video/rails_blog_2.mov" />),
+    %(video_tag("xml.ogg")) => %(<video src="/videos/xml.ogg"></video>),
+    %(video_tag("rss.m4v", :autoplay => true, :controls => true)) => %(<video autoplay="autoplay" controls="controls" src="/videos/rss.m4v"></video>),
+    %(video_tag("rss.m4v", :autobuffer => true)) => %(<video autobuffer="autobuffer" src="/videos/rss.m4v"></video>),
+    %(video_tag("gold.m4v", :size => "160x120")) => %(<video height="120" src="/videos/gold.m4v" width="160"></video>),
+    %(video_tag("gold.m4v", "size" => "320x240")) => %(<video height="240" src="/videos/gold.m4v" width="320"></video>),
+    %(video_tag("trailer.ogg", :poster => "screenshot.png")) => %(<video poster="/images/screenshot.png" src="/videos/trailer.ogg"></video>),
+    %(video_tag("error.avi", "size" => "100")) => %(<video src="/videos/error.avi"></video>),
+    %(video_tag("error.avi", "size" => "100 x 100")) => %(<video src="/videos/error.avi"></video>),
+    %(video_tag("error.avi", "size" => "x")) => %(<video src="/videos/error.avi"></video>),
+    %(video_tag("http://media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="http://media.rubyonrails.org/video/rails_blog_2.mov"></video>),
+    %(video_tag("//media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="//media.rubyonrails.org/video/rails_blog_2.mov"></video>),
     %(video_tag("multiple.ogg", "multiple.avi")) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
     %(video_tag(["multiple.ogg", "multiple.avi"])) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
     %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>)
   }
 
- AudioPathToTag = {
+  AudioPathToTag = {
     %(audio_path("xml"))          => %(/audios/xml),
     %(audio_path("xml.wav"))      => %(/audios/xml.wav),
     %(audio_path("dir/xml.wav"))  => %(/audios/dir/xml.wav),
@@ -220,11 +274,25 @@ class AssetTagHelperTest < ActionView::TestCase
     %(path_to_audio("/dir/xml.wav")) => %(/dir/xml.wav)
   }
 
+  AudioUrlToTag = {
+    %(audio_url("xml"))          => %(http://www.example.com/audios/xml),
+    %(audio_url("xml.wav"))      => %(http://www.example.com/audios/xml.wav),
+    %(audio_url("dir/xml.wav"))  => %(http://www.example.com/audios/dir/xml.wav),
+    %(audio_url("/dir/xml.wav")) => %(http://www.example.com/dir/xml.wav)
+  }
+
+  UrlToAudioToTag = {
+    %(url_to_audio("xml"))          => %(http://www.example.com/audios/xml),
+    %(url_to_audio("xml.wav"))      => %(http://www.example.com/audios/xml.wav),
+    %(url_to_audio("dir/xml.wav"))  => %(http://www.example.com/audios/dir/xml.wav),
+    %(url_to_audio("/dir/xml.wav")) => %(http://www.example.com/dir/xml.wav)
+  }
+
   AudioLinkToTag = {
-    %(audio_tag("xml.wav")) => %(<audio src="/audios/xml.wav" />),
-    %(audio_tag("rss.wav", :autoplay => true, :controls => true)) => %(<audio autoplay="autoplay" controls="controls" src="/audios/rss.wav" />),
-    %(audio_tag("http://media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="http://media.rubyonrails.org/audio/rails_blog_2.mov" />),
-    %(audio_tag("//media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="//media.rubyonrails.org/audio/rails_blog_2.mov" />),
+    %(audio_tag("xml.wav")) => %(<audio src="/audios/xml.wav"></audio>),
+    %(audio_tag("rss.wav", :autoplay => true, :controls => true)) => %(<audio autoplay="autoplay" controls="controls" src="/audios/rss.wav"></audio>),
+    %(audio_tag("http://media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="http://media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
+    %(audio_tag("//media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="//media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
     %(audio_tag("audio.mp3", "audio.ogg")) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
     %(audio_tag(["audio.mp3", "audio.ogg"])) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
     %(audio_tag(["audio.mp3", "audio.ogg"], :autobuffer => true, :controls => true)) => %(<audio autobuffer="autobuffer" controls="controls"><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>)
@@ -240,6 +308,14 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_path_to_javascript_alias_for_javascript_path
     PathToJavascriptToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_javascript_url
+    JavascriptUrlToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_url_to_javascript_alias_for_javascript_url
+    UrlToJavascriptToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_javascript_include_tag_with_blank_asset_id
@@ -349,6 +425,15 @@ class AssetTagHelperTest < ActionView::TestCase
     PathToStyleToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_stylesheet_url
+    ENV["RAILS_ASSET_ID"] = ""
+    StyleUrlToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_url_to_stylesheet_alias_for_stylesheet_url
+    UrlToStyleToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
   def test_stylesheet_link_tag
     ENV["RAILS_ASSET_ID"] = ""
     StyleLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
@@ -433,6 +518,14 @@ class AssetTagHelperTest < ActionView::TestCase
     PathToImageToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_image_url
+    ImageUrlToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_url_to_image_alias_for_image_url
+    UrlToImageToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
   def test_image_alt
     [nil, '/', '/foo/bar/', 'foo/bar/'].each do |prefix|
       assert_equal 'Rails', image_alt("#{prefix}rails.png")
@@ -478,6 +571,14 @@ class AssetTagHelperTest < ActionView::TestCase
     PathToVideoToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_video_url
+    VideoUrlToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_url_to_video_alias_for_video_url
+    UrlToVideoToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
   def test_video_tag
     VideoLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -488,6 +589,14 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_path_to_audio_alias_for_audio_path
     PathToAudioToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_audio_url
+    AudioUrlToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_url_to_audio_alias_for_audio_url
+    UrlToAudioToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_audio_tag
@@ -572,7 +681,6 @@ class AssetTagHelperTest < ActionView::TestCase
         "#{request.protocol}assets#{source.length}.example.com"
       end
     end
-
 
     @controller.request.stubs(:ssl?).returns(false)
     assert_equal "http://assets15.example.com/images/xml.png", image_path("xml.png")
@@ -1141,6 +1249,22 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse_over2.png'" onmouseout="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse2.png'" src="gopher://assets.example.com/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
   end
 
+  def test_should_compute_proper_url_with_asset_host
+    @controller.config.asset_host = "assets.example.com"
+    assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_url("xmlhr"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_url("style"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_url("xml.png"))
+  end
+
+  def test_should_compute_proper_url_with_asset_host_and_default_protocol
+    @controller.config.asset_host = "assets.example.com"
+    @controller.config.default_asset_host_protocol = :request
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_url("xmlhr"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_url("style"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_url("xml.png"))
+  end
+
   def test_should_ignore_asset_host_on_complete_url
     @controller.config.asset_host = "http://assets.example.com"
     assert_dom_equal(%(<link href="http://bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag("http://bar.example.com/stylesheets/style.css"))
@@ -1154,16 +1278,19 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   def test_should_wildcard_asset_host_between_zero_and_four
     @controller.config.asset_host = 'http://a%d.example.com'
     assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path('xml.png'))
+    assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_url('xml.png'))
   end
 
   def test_asset_host_without_protocol_should_be_protocol_relative
     @controller.config.asset_host = 'a.example.com'
     assert_equal 'gopher://a.example.com/collaboration/hieraki/images/xml.png', image_path('xml.png')
+    assert_equal 'gopher://a.example.com/collaboration/hieraki/images/xml.png', image_url('xml.png')
   end
 
   def test_asset_host_without_protocol_should_be_protocol_relative_even_if_path_present
     @controller.config.asset_host = 'a.example.com/files/go/here'
     assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_path('xml.png')
+    assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_url('xml.png')
   end
 
   def test_assert_css_and_js_of_the_same_name_return_correct_extension

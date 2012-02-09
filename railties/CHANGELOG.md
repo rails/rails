@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add convenience `hide!` method to Rails generators to hide current generator
+    namespace from showing when running `rails generate`. *Carlos Antonio da Silva*
+
 *   Scaffold now uses `content_tag_for` in index.html.erb *José Valim*
 
 *   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*

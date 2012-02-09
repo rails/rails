@@ -2,7 +2,6 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/inclusion'
 require 'active_support/inflector'
-require 'active_support/deprecation'
 require 'action_dispatch/routing/redirection'
 
 module ActionDispatch
@@ -503,16 +502,6 @@ module ActionDispatch
 
         private
           def map_method(method, args, &block)
-            if args.length > 2
-              ActiveSupport::Deprecation.warn <<-eowarn
-The method signature of #{method}() is changing to:
-
-    #{method}(path, options = {}, &block)
-
-Calling with multiple paths is deprecated.
-              eowarn
-            end
-
             options = args.extract_options!
             options[:via] = method
             match(*args, options, &block)
@@ -1260,6 +1249,9 @@ Calling with multiple paths is deprecated.
           parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
+        # match 'path' => 'controller#action'
+        # match 'path', to: 'controller#action'
+        # match 'path', 'otherpath', on: :member, via: :get
         def match(path, *rest)
           if rest.empty? && Hash === path
             options  = path

@@ -66,6 +66,21 @@ module ActiveRecord
         end
       end
 
+      # Casts a Ruby value to something appropriate for writing to the database.
+      def type_cast_for_write(value)
+        return value unless number?
+
+        if value == false
+          0
+        elsif value == true
+          1
+        elsif value.is_a?(String) && value.blank?
+          nil
+        else
+          value
+        end
+      end
+
       # Casts value (which is a String) to an appropriate instance.
       def type_cast(value)
         return nil if value.nil?

@@ -48,6 +48,12 @@ module Rails
         @namespace ||= super.sub(/_generator$/, '').sub(/:generators:/, ':')
       end
 
+      # Convenience method to hide this generator from the available ones when
+      # running rails generator command.
+      def self.hide!
+        Rails::Generators.hide_namespace self.namespace
+      end
+
       # Invoke a generator based on the value supplied by the user to the
       # given option named "name". A class option is created when this method
       # is invoked and you can set a hash to customize it.

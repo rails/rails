@@ -570,7 +570,7 @@ stylesheet_link_tag :monkey # =>
 
 h5. auto_discovery_link_tag
 
-Returns a link tag that browsers and news readers can use to auto-detect an RSS or ATOM feed.
+Returns a link tag that browsers and news readers can use to auto-detect an RSS or Atom feed.
 
 <ruby>
 auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "RSS Feed"}) # =>
@@ -583,6 +583,14 @@ Computes the path to an image asset in the +public/images+ directory. Full paths
 
 <ruby>
 image_path("edit.png") # => /images/edit.png
+</ruby>
+
+h5. image_url
+
+Computes the url to an image asset in the +public/images+ directory. This will call +image_path+ internally and merge with your current host or your asset host.
+
+<ruby>
+image_url("edit.png") # => http://www.example.com/images/edit.png
 </ruby>
 
 h5. image_tag
@@ -629,6 +637,14 @@ Computes the path to a JavaScript asset in the +public/javascripts+ directory. I
 javascript_path "common" # => /javascripts/common.js
 </ruby>
 
+h5. javascript_url
+
+Computes the url to a JavaScript asset in the +public/javascripts+ directory. This will call +javascript_path+ internally and merge with your current host or your asset host.
+
+<ruby>
+javascript_url "common" # => http://www.example.com/javascripts/common.js
+</ruby>
+
 h5. stylesheet_link_tag
 
 Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, +.css+ will be appended automatically.
@@ -659,11 +675,19 @@ Computes the path to a stylesheet asset in the +public/stylesheets+ directory. I
 stylesheet_path "application" # => /stylesheets/application.css
 </ruby>
 
+h5. stylesheet_url
+
+Computes the url to a stylesheet asset in the +public/stylesheets+ directory. This will call +stylesheet_path+ internally and merge with your current host or your asset host.
+
+<ruby>
+stylesheet_url "application" # => http://www.example.com/stylesheets/application.css
+</ruby>
+
 h4. AtomFeedHelper
 
 h5. atom_feed
 
-This helper makes building an ATOM feed easy. Here's a full usage example:
+This helper makes building an Atom feed easy. Here's a full usage example:
 
 *config/routes.rb*
 

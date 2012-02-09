@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Adds `image_url`, `javascript_url`, `stylesheet_url`, `audio_url`, `video_url`, and `font_url`
+    to assets tag helper. These URL helpers will return the full path to your assets. This is useful
+    when you are going to reference this asset from external host. *Prem Sichanugrist*
+
+*   Default responder will now always use your overridden block in `respond_with` to render your response. *Prem Sichanugrist*
+
 *   Allow `value_method` and `text_method` arguments from `collection_select` and
     `options_from_collection_for_select` to receive an object that responds to `:call`,
     such as a `proc`, to evaluate the option in the current element context. This works
@@ -66,6 +72,9 @@
     *Tadas Tamosauskas*
 
 *   `favicon_link_tag` helper will now use the favicon in app/assets by default. *Lucas Caton*
+
+*    `ActionView::Helpers::TextHelper#highlight` now defaults to the
+     HTML5 `mark` element. *Brian Cardarella*
 
 ## Rails 3.2.0 (January 20, 2012) ##
 

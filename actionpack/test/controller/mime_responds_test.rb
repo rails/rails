@@ -593,6 +593,19 @@ class RenderJsonRespondWithController < RespondWithController
       format.json { render :json => RenderJsonTestException.new('boom') }
     end
   end
+
+  def create
+    resource = ValidatedCustomer.new(params[:name], 1)
+    respond_with(resource) do |format|
+      format.json do
+        if resource.errors.empty?
+          render :json => { :valid => true }
+        else
+          render :json => { :valid => false }
+        end
+      end
+    end
+  end
 end
 
 class EmptyRespondWithController < ActionController::Base
@@ -962,6 +975,18 @@ class RespondWithControllerTest < ActionController::TestCase
     get :index, :format => :json
     assert_match(/"message":"boom"/, @response.body)
     assert_match(/"error":"RenderJsonTestException"/, @response.body)
+  end
+
+  def test_api_response_with_valid_resource_respect_override_block
+    @controller = RenderJsonRespondWithController.new
+    post :create, :name => "sikachu", :format => :json
+    assert_equal '{"valid":true}', @response.body
+  end
+
+  def test_api_response_with_invalid_resource_respect_override_block
+    @controller = RenderJsonRespondWithController.new
+    post :create, :name => "david", :format => :json
+    assert_equal '{"valid":false}', @response.body
   end
 
   def test_no_double_render_is_raised

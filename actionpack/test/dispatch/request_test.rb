@@ -42,7 +42,7 @@ class RequestTest < ActiveSupport::TestCase
       'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
     assert_equal '3.4.5.6', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,3.4.5.6'
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,unknown'
     assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '172.16.0.1,3.4.5.6'
@@ -63,7 +63,7 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,192.168.0.1'
     assert_equal 'unknown', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4'
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6, 9.9.9.9, 10.0.0.1, 172.31.4.4'
     assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '1.1.1.1',
@@ -85,7 +85,7 @@ class RequestTest < ActiveSupport::TestCase
                            :ip_spoofing_check => false
     assert_equal '2.2.2.2', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, 9.9.9.9'
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 8.8.8.8'
     assert_equal '9.9.9.9', request.remote_ip
   end
 
@@ -94,8 +94,8 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal '127.0.0.1', request.remote_ip
   end
 
-  test "remote ip with user specified trusted proxies" do
-    @trusted_proxies = /^67\.205\.106\.73$/i
+  test "remote ip with user specified trusted proxies String" do
+    @trusted_proxies = "67.205.106.73"
 
     request = stub_request 'REMOTE_ADDR' => '67.205.106.73',
                            'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
@@ -116,8 +116,19 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,67.205.106.73'
     assert_equal 'unknown', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 67.205.106.73'
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6, 9.9.9.9, 10.0.0.1, 67.205.106.73'
     assert_equal '3.4.5.6', request.remote_ip
+  end
+
+  test "remote ip with user specified trusted proxies Regexp" do
+    @trusted_proxies = /^67\.205\.106\.73$/i
+
+    request = stub_request 'REMOTE_ADDR' => '67.205.106.73',
+                           'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
+    assert_equal '3.4.5.6', request.remote_ip
+
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '67.205.106.73, 10.0.0.1, 9.9.9.9, 3.4.5.6'
+    assert_equal '10.0.0.1', request.remote_ip
   end
 
   test "domains" do

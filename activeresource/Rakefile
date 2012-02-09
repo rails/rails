@@ -12,6 +12,7 @@ Rake::TestTask.new { |t|
   t.libs << "test"
   t.pattern = 'test/**/*_test.rb'
   t.warning = true
+  t.verbose = true
 }
 
 namespace :test do
