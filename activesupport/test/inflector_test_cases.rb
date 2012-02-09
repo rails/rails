@@ -105,6 +105,8 @@ module InflectorTestCases
 
     "cow"         => "kine",
     "database"    => "databases",
+    
+    "five"        => "fives",
 
     # regression tests against improper inflection regexes
     "|ice"        => "|ices",
