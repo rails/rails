@@ -1,6 +1,5 @@
 # encoding: utf-8
 require 'abstract_unit'
-require 'active_support/ordered_hash'
 require 'controller/fake_controllers'
 
 class UrlHelperTest < ActiveSupport::TestCase
