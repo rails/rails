@@ -1250,7 +1250,7 @@ module ActionDispatch
         end
 
         # match 'path' => 'controller#action'
-        # match 'path', as: 'controller#action'
+        # match 'path', to: 'controller#action'
         # match 'path', 'otherpath', on: :member, via: :get
         def match(path, *rest)
           if rest.empty? && Hash === path

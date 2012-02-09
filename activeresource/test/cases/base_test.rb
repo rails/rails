@@ -8,7 +8,6 @@ require "fixtures/proxy"
 require "fixtures/address"
 require "fixtures/subscription_plan"
 require 'active_support/json'
-require 'active_support/ordered_hash'
 require 'active_support/core_ext/hash/conversions'
 require 'mocha'
 
@@ -464,8 +463,7 @@ class BaseTest < ActiveSupport::TestCase
     assert Person.collection_path(:gender => 'male', :student => true).include?('student=true')
 
     assert_equal '/people.json?name%5B%5D=bob&name%5B%5D=your+uncle%2Bme&name%5B%5D=&name%5B%5D=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
-
-    assert_equal '/people.json?struct%5Ba%5D%5B%5D=2&struct%5Ba%5D%5B%5D=1&struct%5Bb%5D=fred', Person.collection_path(:struct => ActiveSupport::OrderedHash[:a, [2,1], 'b', 'fred'])
+    assert_equal '/people.json?struct%5Ba%5D%5B%5D=2&struct%5Ba%5D%5B%5D=1&struct%5Bb%5D=fred', Person.collection_path(:struct => {:a => [2,1], 'b' => 'fred'})
   end
 
   def test_custom_element_path

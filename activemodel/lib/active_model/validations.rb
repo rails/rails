@@ -33,7 +33,7 @@ module ActiveModel
   #   person.first_name = 'zoolander'
   #   person.valid?                   # => false
   #   person.invalid?                 # => true
-  #   person.errors                   # => #<OrderedHash {:first_name=>["starts with z."]}>
+  #   person.errors                   # => #<Hash {:first_name=>["starts with z."]}>
   #
   # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+ method
   # to your instances initialized with a new <tt>ActiveModel::Errors</tt> object, so

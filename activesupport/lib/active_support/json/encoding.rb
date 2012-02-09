@@ -1,7 +1,6 @@
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/json/variable'
-require 'active_support/ordered_hash'
 
 require 'bigdecimal'
 require 'active_support/core_ext/big_decimal/conversions' # for #to_s
@@ -239,8 +238,7 @@ class Hash
 
     # use encoder as a proxy to call as_json on all values in the subset, to protect from circular references
     encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    result = self.is_a?(ActiveSupport::OrderedHash) ? ActiveSupport::OrderedHash : Hash
-    result[subset.map { |k, v| [k.to_s, encoder.as_json(v, options)] }]
+    Hash[subset.map { |k, v| [k.to_s, encoder.as_json(v, options)] }]
   end
 
   def encode_json(encoder)

@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Adds Integer#ordinal to get the ordinal suffix string of an integer. *Tim Gildea*
+
 *    AS::Callbacks: `:per_key` option is no longer supported
 
 *    `AS::Callbacks#define_callbacks`: add `:skip_after_callbacks_if_terminated` option.

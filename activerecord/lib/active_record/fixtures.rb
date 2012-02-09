@@ -3,7 +3,6 @@ require 'yaml'
 require 'zlib'
 require 'active_support/dependencies'
 require 'active_support/core_ext/object/blank'
-require 'active_support/ordered_hash'
 require 'active_record/fixtures/file'
 
 if defined? ActiveRecord
@@ -508,7 +507,7 @@ module ActiveRecord
       @name         = fixture_name
       @class_name   = class_name
 
-      @fixtures     = ActiveSupport::OrderedHash.new
+      @fixtures     = {}
 
       # Should be an AR::Base type class
       if class_name.is_a?(Class)

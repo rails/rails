@@ -212,6 +212,8 @@ module ActiveRecord
     # The dup method does not preserve the timestamps (created|updated)_(at|on).
     def initialize_dup(other)
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
+      self.class.initialize_attributes(cloned_attributes)
+
       cloned_attributes.delete(self.class.primary_key)
 
       @attributes = cloned_attributes
@@ -246,7 +248,7 @@ module ActiveRecord
     #   end
     #   coder = {}
     #   Post.new.encode_with(coder)
-    #   coder # => { 'id' => nil, ... }
+    #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
       coder['attributes'] = attributes
     end
