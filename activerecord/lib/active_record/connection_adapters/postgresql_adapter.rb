@@ -91,142 +91,142 @@ module ActiveRecord
       end
       # :startdoc:
 
-      private
-        def extract_limit(sql_type)
-          case sql_type
-          when /^bigint/i;    8
-          when /^smallint/i;  2
-          else super
-          end
-        end
+      # Extracts the value from a PostgreSQL column default definition.
+      def self.extract_value_from_default(default)
+        # This is a performance optimization for Ruby 1.9.2 in development.
+        # If the value is nil, we return nil straight away without checking
+        # the regular expressions. If we check each regular expression,
+        # Regexp#=== will call NilClass#to_str, which will trigger
+        # method_missing (defined by whiny nil in ActiveSupport) which
+        # makes this method very very slow.
+        return default unless default
 
-        # Extracts the scale from PostgreSQL-specific data types.
-        def extract_scale(sql_type)
-          # Money type has a fixed scale of 2.
-          sql_type =~ /^money/ ? 2 : super
-        end
-
-        # Extracts the precision from PostgreSQL-specific data types.
-        def extract_precision(sql_type)
-          if sql_type == 'money'
-            self.class.money_precision
-          else
-            super
-          end
-        end
-
-        # Maps PostgreSQL-specific data types to logical Rails types.
-        def simplified_type(field_type)
-          case field_type
-          # Numeric and monetary types
-          when /^(?:real|double precision)$/
-            :float
-          # Monetary types
-          when 'money'
-            :decimal
-          when 'hstore'
-            :hstore
+        case default
+          # Numeric types
+          when /\A\(?(-?\d+(\.\d*)?\)?)\z/
+            $1
           # Character types
-          when /^(?:character varying|bpchar)(?:\(\d+\))?$/
-            :string
+          when /\A'(.*)'::(?:character varying|bpchar|text)\z/m
+            $1
+          # Character types (8.1 formatting)
+          when /\AE'(.*)'::(?:character varying|bpchar|text)\z/m
+            $1.gsub(/\\(\d\d\d)/) { $1.oct.chr }
           # Binary data types
-          when 'bytea'
-            :binary
+          when /\A'(.*)'::bytea\z/m
+            $1
           # Date/time types
-          when /^timestamp with(?:out)? time zone$/
-            :datetime
-          when 'interval'
-            :string
+          when /\A'(.+)'::(?:time(?:stamp)? with(?:out)? time zone|date)\z/
+            $1
+          when /\A'(.*)'::interval\z/
+            $1
+          # Boolean type
+          when 'true'
+            true
+          when 'false'
+            false
           # Geometric types
-          when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
-            :string
+          when /\A'(.*)'::(?:point|line|lseg|box|"?path"?|polygon|circle)\z/
+            $1
           # Network address types
-          when /^(?:cidr|inet|macaddr)$/
-            :string
-          # Bit strings
-          when /^bit(?: varying)?(?:\(\d+\))?$/
-            :string
+          when /\A'(.*)'::(?:cidr|inet|macaddr)\z/
+            $1
+          # Bit string types
+          when /\AB'(.*)'::"?bit(?: varying)?"?\z/
+            $1
           # XML type
-          when 'xml'
-            :xml
-          # tsvector type
-          when 'tsvector'
-            :tsvector
+          when /\A'(.*)'::xml\z/m
+            $1
           # Arrays
-          when /^\D+\[\]$/
-            :string
+          when /\A'(.*)'::"?\D+"?\[\]\z/
+            $1
           # Object identifier types
-          when 'oid'
-            :integer
-          # UUID type
-          when 'uuid'
-            :string
-          # Small and big integer types
-          when /^(?:small|big)int$/
-            :integer
-          # Pass through all types that are not specific to PostgreSQL.
+          when /\A-?\d+\z/
+            $1
           else
-            super
-          end
+            # Anything else is blank, some user type, or some function
+            # and we can't know the value of that, so return nil.
+            nil
         end
+      end
 
-        # Extracts the value from a PostgreSQL column default definition.
-        def self.extract_value_from_default(default)
-          # This is a performance optimization for Ruby 1.9.2 in development.
-          # If the value is nil, we return nil straight away without checking
-          # the regular expressions. If we check each regular expression,
-          # Regexp#=== will call NilClass#to_str, which will trigger
-          # method_missing (defined by whiny nil in ActiveSupport) which
-          # makes this method very very slow.
-          return default unless default
-
-          case default
-            # Numeric types
-            when /\A\(?(-?\d+(\.\d*)?\)?)\z/
-              $1
-            # Character types
-            when /\A'(.*)'::(?:character varying|bpchar|text)\z/m
-              $1
-            # Character types (8.1 formatting)
-            when /\AE'(.*)'::(?:character varying|bpchar|text)\z/m
-              $1.gsub(/\\(\d\d\d)/) { $1.oct.chr }
-            # Binary data types
-            when /\A'(.*)'::bytea\z/m
-              $1
-            # Date/time types
-            when /\A'(.+)'::(?:time(?:stamp)? with(?:out)? time zone|date)\z/
-              $1
-            when /\A'(.*)'::interval\z/
-              $1
-            # Boolean type
-            when 'true'
-              true
-            when 'false'
-              false
-            # Geometric types
-            when /\A'(.*)'::(?:point|line|lseg|box|"?path"?|polygon|circle)\z/
-              $1
-            # Network address types
-            when /\A'(.*)'::(?:cidr|inet|macaddr)\z/
-              $1
-            # Bit string types
-            when /\AB'(.*)'::"?bit(?: varying)?"?\z/
-              $1
-            # XML type
-            when /\A'(.*)'::xml\z/m
-              $1
-            # Arrays
-            when /\A'(.*)'::"?\D+"?\[\]\z/
-              $1
-            # Object identifier types
-            when /\A-?\d+\z/
-              $1
-            else
-              # Anything else is blank, some user type, or some function
-              # and we can't know the value of that, so return nil.
-              nil
-          end
+      private
+      def extract_limit(sql_type)
+        case sql_type
+        when /^bigint/i;    8
+        when /^smallint/i;  2
+        else super
         end
+      end
+
+      # Extracts the scale from PostgreSQL-specific data types.
+      def extract_scale(sql_type)
+        # Money type has a fixed scale of 2.
+        sql_type =~ /^money/ ? 2 : super
+      end
+
+      # Extracts the precision from PostgreSQL-specific data types.
+      def extract_precision(sql_type)
+        if sql_type == 'money'
+          self.class.money_precision
+        else
+          super
+        end
+      end
+
+      # Maps PostgreSQL-specific data types to logical Rails types.
+      def simplified_type(field_type)
+        case field_type
+        # Numeric and monetary types
+        when /^(?:real|double precision)$/
+          :float
+        # Monetary types
+        when 'money'
+          :decimal
+        when 'hstore'
+          :hstore
+        # Character types
+        when /^(?:character varying|bpchar)(?:\(\d+\))?$/
+          :string
+        # Binary data types
+        when 'bytea'
+          :binary
+        # Date/time types
+        when /^timestamp with(?:out)? time zone$/
+          :datetime
+        when 'interval'
+          :string
+        # Geometric types
+        when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
+          :string
+        # Network address types
+        when /^(?:cidr|inet|macaddr)$/
+          :string
+        # Bit strings
+        when /^bit(?: varying)?(?:\(\d+\))?$/
+          :string
+        # XML type
+        when 'xml'
+          :xml
+        # tsvector type
+        when 'tsvector'
+          :tsvector
+        # Arrays
+        when /^\D+\[\]$/
+          :string
+        # Object identifier types
+        when 'oid'
+          :integer
+        # UUID type
+        when 'uuid'
+          :string
+        # Small and big integer types
+        when /^(?:small|big)int$/
+          :integer
+        # Pass through all types that are not specific to PostgreSQL.
+        else
+          super
+        end
+      end
     end
 
     # The PostgreSQL adapter works with the native C (https://bitbucket.org/ged/ruby-pg) driver.
