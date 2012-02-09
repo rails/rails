@@ -1,5 +1,18 @@
 ## unreleased ##
 
+*   Added support for partial indices to PostgreSQL adapter
+
+    The `add_index` method now supports a `where` option that receives a
+    string with the partial index criteria.
+
+      add_index(:accounts, :code, :where => "active")
+
+      Generates
+
+      CREATE INDEX index_accounts_on_code ON accounts(code) WHERE active
+
+    *Marcelo Silveira*
+
 *   Do not shallow the original exception in `exec_cache` on PostgreSQL adapter.
 
     Fixes #11260.
