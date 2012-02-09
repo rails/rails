@@ -93,14 +93,6 @@ module ActiveRecord
             super
           end
         end
-
-        def instance_cast_method(attr_name)
-          if serialized_attributes.include?(attr_name)
-            "cast_serialized"
-          else
-            super
-          end
-        end
       end
 
       def type_cast_attribute_for_write(column, value)

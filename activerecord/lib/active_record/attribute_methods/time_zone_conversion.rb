@@ -68,16 +68,6 @@ module ActiveRecord
         end
 
         private
-        def instance_cast_method(attr_name)
-          column = columns_hash[attr_name]
-
-          if create_time_zone_conversion_attribute?(attr_name, column)
-            "cast_tz_conversion"
-          else
-            super
-          end
-        end
-
         def create_time_zone_conversion_attribute?(name, column)
           time_zone_aware_attributes &&
             !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) &&

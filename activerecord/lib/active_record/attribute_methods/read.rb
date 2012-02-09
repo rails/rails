@@ -112,10 +112,6 @@ module ActiveRecord
         def attribute_cast_code(attr_name)
           columns_hash[attr_name].type_cast_code('v')
         end
-
-        def instance_cast_method(attr_name)
-          "cast_column"
-        end
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,

@@ -4,13 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter < AbstractAdapter
       module OID
-        class Wtf
-          def type_cast(value)
-            p :wtf => value
-            value
-          end
-        end
-
         class Type
           def type; end
 
