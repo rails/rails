@@ -242,6 +242,13 @@ module RenderTestCases
     assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
 
+  def test_register_template_handler_resets_extensions_list
+    ActionView::Template::Handlers.extensions
+
+    ActionView::Template.register_template_handler :new_handler, CustomHandler
+    assert ActionView::Template::Handlers.extensions.include?(:new_handler)
+  end
+
   def test_render_ignores_templates_with_malformed_template_handlers
     %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
       assert_raise(ActionView::MissingTemplate) { @view.render(:file => "test/malformed/#{name}") }

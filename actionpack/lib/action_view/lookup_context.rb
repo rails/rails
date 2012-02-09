@@ -133,7 +133,7 @@ module ActionView
       end
 
       def default_handlers #:nodoc:
-        @@default_handlers ||= Template::Handlers.extensions
+        Template::Handlers.extensions
       end
 
       def handlers_regexp #:nodoc:
