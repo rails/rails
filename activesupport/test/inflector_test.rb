@@ -295,7 +295,7 @@ class InflectorTest < ActiveSupport::TestCase
       ActiveSupport::Inflector.constantize(string)
     end
   end
-  
+
   def test_safe_constantize
     run_safe_constantize_tests_on do |string|
       ActiveSupport::Inflector.safe_constantize(string)

@@ -4,7 +4,7 @@ class Object
   #
   #   characters = ["Konata", "Kagami", "Tsukasa"]
   #   "Konata".in?(characters) # => true
-  #   
+  #
   #   character = "Konata"
   #   character.in?("Konata", "Kagami", "Tsukasa") # => true
   #

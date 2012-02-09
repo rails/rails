@@ -201,10 +201,10 @@ module ActiveRecord
 
       class << self
         alias :data_column_name :data_column
-        
+
         # Use the ActiveRecord::Base.connection by default.
         attr_writer :connection
-        
+
         # Use the ActiveRecord::Base.connection_pool by default.
         attr_writer :connection_pool
 
@@ -223,7 +223,7 @@ module ActiveRecord
           end
         end
       end
-      
+
       delegate :connection, :connection=, :connection_pool, :connection_pool=, :to => self
 
       attr_reader :session_id, :new_record

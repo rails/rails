@@ -7,7 +7,7 @@
  *
  * @version
  * 3.0.83 (July 02 2010)
- * 
+ *
  * @copyright
  * Copyright (C) 2004-2010 Alex Gorbatchev.
  *
@@ -42,8 +42,8 @@
 			];
 
 		this.forHtmlScript({
-			left	: /(&lt;|<)%[@!=]?/g, 
-			right	: /%(&gt;|>)/g 
+			left	: /(&lt;|<)%[@!=]?/g,
+			right	: /%(&gt;|>)/g
 		});
 	};
 

@@ -11,7 +11,7 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal 'black', @john.color
     assert_nil @john.homepage
   end
-  
+
   test "writing store attributes through accessors" do
     @john.color = 'red'
     @john.homepage = '37signals.com'

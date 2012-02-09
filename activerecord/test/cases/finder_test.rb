@@ -989,9 +989,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_or_create_should_work_with_block_on_first_call
-	  class << Company
+ class << Company
 		undef_method(:find_or_create_by_name) if method_defined?(:find_or_create_by_name)
-	  end
+ end
     c = Company.find_or_create_by_name(:name => "Fortune 1000") { |f| f.rating = 1000 }
     assert_equal "Fortune 1000", c.name
     assert_equal 1000.to_f, c.rating.to_f
