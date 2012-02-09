@@ -88,7 +88,11 @@ module ActiveRecord
 
         private
         def cacheable_column?(column)
-          attribute_types_cached_by_default.include?(column.type)
+          if attribute_types_cached_by_default == ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
+            ! serialized_attributes.include? column.name
+          else
+            attribute_types_cached_by_default.include?(column.type)
+          end
         end
 
         def internal_attribute_access_code(attr_name, cast_code)

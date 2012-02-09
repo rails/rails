@@ -776,7 +776,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def time_related_columns_on_topic
-    Topic.columns.select { |c| c.type.in?([:time, :date, :datetime, :timestamp]) }
+    Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
   end
 
   def in_time_zone(zone)
