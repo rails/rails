@@ -197,6 +197,8 @@ HEADER
             index_orders = (index.orders || {})
             statement_parts << (':order => ' + index.orders.inspect) unless index_orders.empty?
 
+            statement_parts << (':where => ' + index.where.inspect) if index.where
+
             '  ' + statement_parts.join(', ')
           end
 

@@ -169,6 +169,12 @@ module ActiveRecord
           connection.add_index("testings", ["last_name", "first_name"], :order => :desc)
           connection.remove_index("testings", ["last_name", "first_name"])
         end
+
+        # Selected adapters support partial indices
+        if current_adapter?(:PostgreSQLAdapter)
+          connection.add_index("testings", ["last_name"], :where => "first_name = 'john doe'")
+          connection.remove_index("testings", ["last_name"])
+        end
       end
 
     end

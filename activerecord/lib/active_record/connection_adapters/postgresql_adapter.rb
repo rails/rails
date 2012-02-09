@@ -889,8 +889,9 @@ module ActiveRecord
           # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
           desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
           orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
+          where = inddef.scan(/WHERE (.+)$/).flatten[0]
 
-          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders)
+          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where)
         end.compact
       end
 
