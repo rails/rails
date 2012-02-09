@@ -800,7 +800,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    sources = ActiveSupport::OrderedHash.new
+    sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy"
     sources[:omg] = MIGRATIONS_ROOT + "/to_copy2"
     ActiveRecord::Migration.copy(@migrations_path, sources)
@@ -841,7 +841,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    sources = ActiveSupport::OrderedHash.new
+    sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
     sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_timestamps2"
 
@@ -882,8 +882,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   def test_skipping_migrations
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
-
-    sources = ActiveSupport::OrderedHash.new
+    
+    sources = {} 
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
     sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_name_collision"
 
@@ -902,7 +902,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    sources = ActiveSupport::OrderedHash.new
+    sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
 
     skipped = []
