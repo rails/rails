@@ -7,7 +7,7 @@
  *
  * @version
  * 3.0.83 (July 02 2010)
- * 
+ *
  * @copyright
  * Copyright (C) 2004-2010 Alex Gorbatchev.
  *
@@ -25,7 +25,7 @@
 		{
 			return '\\b([a-z_]|)' + str.replace(/ /g, '(?=:)\\b|\\b([a-z_\\*]|\\*|)') + '(?=:)\\b';
 		};
-	
+
 		function getValuesCSS(str)
 		{
 			return '\\b' + str.replace(/ /g, '(?!-)(?!:)\\b|\\b()') + '\:\\b';
@@ -45,7 +45,7 @@
 						'quotes right richness size slope src speak-header speak-numeral speak-punctuation speak speech-rate stemh stemv stress ' +
 						'table-layout text-align top text-decoration text-indent text-shadow text-transform unicode-bidi unicode-range units-per-em ' +
 						'vertical-align visibility voice-family volume white-space widows width widths word-spacing x-height z-index';
-		
+
 		var values =	'above absolute all always aqua armenian attr aural auto avoid baseline behind below bidi-override black blink block blue bold bolder '+
 						'both bottom braille capitalize caption center center-left center-right circle close-quote code collapse compact condensed '+
 						'continuous counter counters crop cross crosshair cursive dashed decimal decimal-leading-zero digits disc dotted double '+
@@ -60,14 +60,14 @@
 						'table-caption table-cell table-column table-column-group table-footer-group table-header-group table-row table-row-group teal '+
 						'text-bottom text-top thick thin top transparent tty tv ultra-condensed ultra-expanded underline upper-alpha uppercase upper-latin '+
 						'upper-roman url visible wait white wider w-resize x-fast x-high x-large x-loud x-low x-slow x-small x-soft xx-large xx-small yellow';
-		
+
 		var fonts =		'[mM]onospace [tT]ahoma [vV]erdana [aA]rial [hH]elvetica [sS]ans-serif [sS]erif [cC]ourier mono sans serif';
-		
+
 		var statements		= '!important !default';
 		var preprocessor	= '@import @extend @debug @warn @if @for @while @mixin @include';
-		
+
 		var r = SyntaxHighlighter.regexLib;
-		
+
 		this.regexList = [
 			{ regex: r.multiLineCComments,								css: 'comments' },		// multiline comments
 			{ regex: r.singleLineCComments,								css: 'comments' },		// singleline comments

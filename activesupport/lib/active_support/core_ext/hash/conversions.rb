@@ -26,20 +26,20 @@ class Hash
   #
   # * If +value+ is a callable object it must expect one or two arguments. Depending
   #   on the arity, the callable is invoked with the +options+ hash as first argument
-  #   with +key+ as <tt>:root</tt>, and +key+ singularized as second argument. The 
+  #   with +key+ as <tt>:root</tt>, and +key+ singularized as second argument. The
   #   callable can add nodes by using <tt>options[:builder]</tt>.
   #
   #     "foo".to_xml(lambda { |options, key| options[:builder].b(key) })
   #     # => "<b>foo</b>"
   #
   # * If +value+ responds to +to_xml+ the method is invoked with +key+ as <tt>:root</tt>.
-  #     
+  #
   #     class Foo
   #       def to_xml(options)
   #         options[:builder].bar "fooing!"
   #       end
   #     end
-  #          
+  #
   #     {:foo => Foo.new}.to_xml(:skip_instruct => true)
   #     # => "<hash><bar>fooing!</bar></hash>"
   #
@@ -108,7 +108,7 @@ class Hash
                   raise "can't typecast #{entries.inspect}"
                 end
               end
-            elsif value['type'] == 'file' || 
+            elsif value['type'] == 'file' ||
                (value["__content__"] && (value.keys.size == 1 || value["__content__"].present?))
               content = value["__content__"]
               if parser = ActiveSupport::XmlMini::PARSING[value["type"]]

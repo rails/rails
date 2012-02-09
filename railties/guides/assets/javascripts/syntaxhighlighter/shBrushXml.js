@@ -7,7 +7,7 @@
  *
  * @version
  * 3.0.83 (July 02 2010)
- * 
+ *
  * @copyright
  * Copyright (C) 2004-2010 Alex Gorbatchev.
  *
@@ -28,8 +28,8 @@
 				tag = new XRegExp('(&lt;|<)[\\s\\/\\?]*(?<name>[:\\w-\\.]+)', 'xg').exec(code),
 				result = []
 				;
-		
-			if (match.attributes != null) 
+
+			if (match.attributes != null)
 			{
 				var attributes,
 					regex = new XRegExp('(?<name> [\\w:\\-\\.]+)' +
@@ -37,7 +37,7 @@
 										'(?<value> ".*?"|\'.*?\'|\\w+)',
 										'xg');
 
-				while ((attributes = regex.exec(code)) != null) 
+				while ((attributes = regex.exec(code)) != null)
 				{
 					result.push(new constructor(attributes.name, match.index + attributes.index, 'color1'));
 					result.push(new constructor(attributes.value, match.index + attributes.index + attributes[0].indexOf(attributes.value), 'string'));
@@ -51,7 +51,7 @@
 
 			return result;
 		}
-	
+
 		this.regexList = [
 			{ regex: new XRegExp('(\\&lt;|<)\\!\\[[\\w\\s]*?\\[(.|\\s)*?\\]\\](\\&gt;|>)', 'gm'),			css: 'color2' },	// <![ ... [ ... ]]>
 			{ regex: SyntaxHighlighter.regexLib.xmlComments,												css: 'comments' },	// <!-- ... -->

@@ -9,7 +9,7 @@ module ActionDispatch
   # of ShowExceptions. Everytime there is an exception, ShowExceptions will
   # store the exception in env["action_dispatch.exception"], rewrite the
   # PATH_INFO to the exception status code and call the rack app.
-  # 
+  #
   # If the application returns a "X-Cascade" pass response, this middleware
   # will send an empty response as result with the correct status code.
   # If any exception happens inside the exceptions app, this middleware

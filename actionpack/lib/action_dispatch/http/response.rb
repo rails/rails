@@ -56,7 +56,7 @@ module ActionDispatch # :nodoc:
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
     LOCATION     = "Location".freeze
- 
+
     cattr_accessor(:default_charset) { "utf-8" }
 
     include Rack::Response::Helpers

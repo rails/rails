@@ -18,7 +18,7 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     @logger.tagged("BCX") { @logger.info "Funky time" }
     assert_equal "[BCX] Funky time\n", @output.string
   end
-  
+
   test "tagged twice" do
     @logger.tagged("BCX") { @logger.tagged("Jason") { @logger.info "Funky time" } }
     assert_equal "[BCX] [Jason] Funky time\n", @output.string

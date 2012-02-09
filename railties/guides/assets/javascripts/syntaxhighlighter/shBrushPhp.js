@@ -7,7 +7,7 @@
  *
  * @version
  * 3.0.83 (July 02 2010)
- * 
+ *
  * @copyright
  * Copyright (C) 2004-2010 Alex Gorbatchev.
  *
@@ -61,7 +61,7 @@
 						'function include include_once global goto if implements interface instanceof namespace new ' +
 						'old_function or private protected public return require require_once static switch ' +
 						'throw try use var while xor ';
-		
+
 		var constants	= '__FILE__ __LINE__ __METHOD__ __FUNCTION__ __CLASS__';
 
 		this.regexList = [

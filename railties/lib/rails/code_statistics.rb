@@ -38,7 +38,7 @@ class CodeStatistics #:nodoc:
         next unless file_name =~ pattern
 
         comment_started = false
-        
+
         File.open(directory + "/" + file_name) do |f|
           while line = f.gets
             stats["lines"]     += 1

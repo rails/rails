@@ -171,18 +171,18 @@ class ParamsWrapperTest < ActionController::TestCase
       assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'person' => { 'username' => 'sikachu' }})
     end
   end
-  
+
   def test_accessible_wrapped_keys_from_matching_model
     User.expects(:respond_to?).with(:accessible_attributes).returns(true)
     User.expects(:accessible_attributes).twice.returns(["username"])
-    
+
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
       assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu' }})
     end
   end
-  
+
   def test_accessible_wrapped_keys_from_specified_model
     with_default_wrapper_options do
       Person.expects(:respond_to?).with(:accessible_attributes).returns(true)
