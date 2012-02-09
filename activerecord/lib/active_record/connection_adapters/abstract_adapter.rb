@@ -142,6 +142,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support partial indices?
+      def supports_partial_index?
+        false
+      end
+
       # Does this adapter support explain? As of this writing sqlite3,
       # mysql2, and postgresql are the only ones that do.
       def supports_explain?
