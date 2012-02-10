@@ -98,7 +98,7 @@ module ActiveRecord
         when :date                 then klass.value_to_date(value)
         when :binary               then klass.binary_to_string(value)
         when :boolean              then klass.value_to_boolean(value)
-        when :hstore               then klass.cast_hstore(value)
+        when :hstore               then klass.string_to_hstore(value)
         else value
         end
       end
@@ -116,7 +116,7 @@ module ActiveRecord
         when :date                 then "#{klass}.value_to_date(#{var_name})"
         when :binary               then "#{klass}.binary_to_string(#{var_name})"
         when :boolean              then "#{klass}.value_to_boolean(#{var_name})"
-        when :hstore               then "#{klass}.cast_hstore(#{var_name})"
+        when :hstore               then "#{klass}.string_to_hstore(#{var_name})"
         else var_name
         end
       end

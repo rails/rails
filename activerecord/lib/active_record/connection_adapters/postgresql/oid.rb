@@ -133,7 +133,7 @@ module ActiveRecord
           def type_cast(value)
             return if value.nil?
 
-            ConnectionAdapters::PostgreSQLColumn.cast_hstore value
+            ConnectionAdapters::PostgreSQLColumn.string_to_hstore value
           end
         end
 
