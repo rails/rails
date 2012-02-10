@@ -31,6 +31,7 @@ module ActionDispatch
         end
 
         def prepare_params!(params)
+          normalize_controller!(params)
           merge_default_action!(params)
           split_glob_param!(params) if @glob_param
         end
@@ -64,6 +65,10 @@ module ActionDispatch
 
         def dispatch(controller, action, env)
           controller.action(action).call(env)
+        end
+
+        def normalize_controller!(params)
+          params[:controller] = params[:controller].underscore if params.key?(:controller)
         end
 
         def merge_default_action!(params)
