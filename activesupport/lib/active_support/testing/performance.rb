@@ -61,7 +61,7 @@ module ActiveSupport
         ensure
           begin
             teardown
-            run_callbacks :teardown, :enumerator => :reverse_each
+            run_callbacks :teardown
           rescue Exception => e
             result = @runner.puke(self.class, method_name, e)
           end

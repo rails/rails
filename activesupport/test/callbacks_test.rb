@@ -112,7 +112,7 @@ module CallbacksTest
     end
 
     def dispatch
-      run_callbacks :dispatch, action_name do
+      run_callbacks :dispatch do
         @logger << "Done"
       end
       self
@@ -153,7 +153,7 @@ module CallbacksTest
     end
 
     def save
-      run_callbacks :save, :action
+      run_callbacks :save
     end
   end
 
@@ -338,7 +338,7 @@ module CallbacksTest
     end
 
     def save
-      run_callbacks :save, "hyphen-ated" do
+      run_callbacks :save do
         @stuff
       end
     end
@@ -701,7 +701,7 @@ module CallbacksTest
     end
   end
 
-  class PerKeyOptionDeprecationTest < ActiveSupport::TestCase
+  class DeprecationsTest < ActiveSupport::TestCase
 
     def test_per_key_option_deprecaton
       assert_raise NotImplementedError do
@@ -713,6 +713,12 @@ module CallbacksTest
         Phone.class_eval do
           skip_callback :save, :before, :before_save1, :per_key => {:if => "true"}
         end
+      end
+    end
+
+    def test_run_callbacks_second_argument_deprecation
+      assert_raise NotImplementedError do
+        Phone.new.run_callbacks(:save, :action)
       end
     end
   end
