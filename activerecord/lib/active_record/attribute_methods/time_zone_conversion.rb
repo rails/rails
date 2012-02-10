@@ -42,7 +42,7 @@ module ActiveRecord
                     time = time.is_a?(String) ? Time.zone.parse(time) : time.to_time rescue time
                   end
                   time = time.in_time_zone rescue nil if time
-                  write_attribute(:#{attr_name}, original_time)
+                  write_attribute(:#{attr_name}, time.in_time_zone('UTC').to_s)
                   @attributes_cache["#{attr_name}"] = time
                 end
               EOV
