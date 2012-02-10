@@ -10,6 +10,8 @@ class Topic < ActiveRecord::Base
 
   scope :scope_with_lambda, lambda { scoped }
 
+  scope :scope_can_access_where_values, lambda { self.scoped.where_values.empty? ? where('2=2') : where('3=3') }
+
   scope :by_lifo, :conditions => {:author_name => 'lifo'}
 
   scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
