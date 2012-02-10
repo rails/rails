@@ -150,6 +150,10 @@ module ActiveRecord
             @mapping[oid]
           end
 
+          def key?(oid)
+            @mapping.key? oid
+          end
+
           def fetch(ftype, fmod)
             # The type for the numeric depends on the width of the field,
             # so we'll do something special here.
@@ -168,53 +172,71 @@ module ActiveRecord
 
         TYPE_MAP = TypeMap.new # :nodoc:
 
-        TYPE_MAP[23] = OID::Integer.new  # int4
-        TYPE_MAP[20] = TYPE_MAP[23] # int8
-        TYPE_MAP[21] = TYPE_MAP[23] # int2
-        TYPE_MAP[26] = TYPE_MAP[23] # oid
+        # When the PG adapter connects, the pg_type table is queried.  The
+        # key of this hash maps to the `typname` column from the table.
+        # TYPE_MAP is then dynamically built with oids as the key and type
+        # objects as values.
+        NAMES = Hash.new { |h,k| # :nodoc:
+          h[k] = OID::Identity.new
+        }
 
-        TYPE_MAP[1700] = OID::Decimal.new # decimal
 
-        TYPE_MAP[25]   = OID::Identity.new # text
-        TYPE_MAP[19]   = TYPE_MAP[25] # name
-        TYPE_MAP[1043] = TYPE_MAP[25] # varchar
+        # Register an OID type named +name+ with a typcasting object in
+        # +type+.  +name+ should correspond to the `typname` column in
+        # the `pg_type` table.
+        def self.register_type(name, type)
+          NAMES[name] = type
+        end
+
+        # Alias the +old+ type to the +new+ type.
+        def self.alias_type(new, old)
+          NAMES[new] = NAMES[old]
+        end
+
+        # Is +name+ a registered type?
+        def self.registered_type?(name)
+          NAMES.key? name
+        end
+
+        register_type 'int2', OID::Integer.new
+        alias_type    'int4', 'int2'
+        alias_type    'int8', 'int2'
+        alias_type    'oid',  'int2'
+
+        register_type 'numeric', OID::Decimal.new
+        register_type 'text', OID::Identity.new
+        alias_type 'varchar', 'text'
+        alias_type 'char', 'text'
 
         # FIXME: why are we keeping these types as strings?
-        TYPE_MAP[3614] = TYPE_MAP[25] # tsvector
-        TYPE_MAP[1186] = TYPE_MAP[25] # interval
-        TYPE_MAP[650]  = TYPE_MAP[25] # cidr
-        TYPE_MAP[869]  = TYPE_MAP[25] # inet
-        TYPE_MAP[829]  = TYPE_MAP[25] # macaddr
-        TYPE_MAP[1560] = TYPE_MAP[25] # bit
-        TYPE_MAP[1562] = TYPE_MAP[25] # varbit
+        alias_type 'tsvector', 'text'
+        alias_type 'interval', 'text'
+        alias_type 'cidr',     'text'
+        alias_type 'inet',     'text'
+        alias_type 'macaddr',  'text'
+        alias_type 'bit',      'text'
+        alias_type 'varbit',   'text'
 
         # FIXME: I don't think this is correct. We should probably be returning a parsed date,
         # but the tests pass with a string returned.
-        TYPE_MAP[1184] = OID::Identity.new # timestamptz
+        register_type 'timestamptz', OID::Identity.new
 
-        TYPE_MAP[790] = OID::Money.new # money
-        TYPE_MAP[17]  = OID::Bytea.new # bytea
-        TYPE_MAP[16]  = OID::Boolean.new  # bool
+        register_type 'money', OID::Money.new
+        register_type 'bytea', OID::Bytea.new
+        register_type 'bool', OID::Boolean.new
 
-        TYPE_MAP[700] = OID::Float.new # float4
-        TYPE_MAP[701] = TYPE_MAP[700]  # float8
+        register_type 'float4', OID::Float.new
+        alias_type 'float8', 'float4'
 
-        TYPE_MAP[1114] = OID::Timestamp.new # timestamp
-        TYPE_MAP[1082] = OID::Date.new # date
-        TYPE_MAP[1083] = OID::Time.new # time
+        register_type 'timestamp', OID::Timestamp.new
+        register_type 'date', OID::Date.new
+        register_type 'time', OID::Time.new
 
-        TYPE_MAP[1009] = OID::Vector.new(',', TYPE_MAP[25]) # _text
-        TYPE_MAP[1007] = OID::Vector.new(',', TYPE_MAP[23]) # _int4
-        TYPE_MAP[600]  = OID::Vector.new(',', TYPE_MAP[701]) # point
-        TYPE_MAP[601]  = OID::Vector.new(',', TYPE_MAP[600]) # lseg
-        TYPE_MAP[602]  = OID::Identity.new # path
-        TYPE_MAP[603]  = OID::Vector.new(';', TYPE_MAP[600]) # box
-        TYPE_MAP[604]  = OID::Identity.new # polygon
-        TYPE_MAP[718]  = OID::Identity.new # circle
-
-        TYPE_MAP[1399854] = OID::Hstore.new # hstore
+        register_type 'path', OID::Identity.new
+        register_type 'polygon', OID::Identity.new
+        register_type 'circle', OID::Identity.new
+        register_type 'hstore', OID::Hstore.new
       end
     end
   end
 end
-

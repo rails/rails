@@ -383,6 +383,7 @@ module ActiveRecord
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
 
+        initialize_type_map
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
@@ -1188,6 +1189,22 @@ module ActiveRecord
         end
 
       private
+      def initialize_type_map
+        result = execute('SELECT oid, typname, typelem, typdelim FROM pg_type', 'SCHEMA')
+        leaves, nodes = result.partition { |row| row['typelem'] == '0' }
+
+        # populate the leaf nodes
+        leaves.find_all { |row| OID.registered_type? row['typname'] }.each do |row|
+          OID::TYPE_MAP[row['oid'].to_i] = OID::NAMES[row['typname']]
+        end
+
+        # populate composite types
+        nodes.find_all { |row| OID::TYPE_MAP.key? row['typelem'].to_i }.each do |row|
+          vector = OID::Vector.new row['typdelim'], OID::TYPE_MAP[row['typelem'].to_i]
+          OID::TYPE_MAP[row['oid'].to_i] = vector
+        end
+      end
+
         FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
         def exec_no_cache(sql, binds)
