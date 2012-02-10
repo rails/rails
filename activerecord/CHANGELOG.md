@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added support for partial indices to PostgreSQL adapter
+
+    The `add_index` method now supports a `where` option that receives a
+    string with the partial index criteria.
+
+      add_index(:accounts, :code, :where => "active")
+
+      Generates
+
+      CREATE INDEX index_accounts_on_code ON accounts(code) WHERE active
+
+    *Marcelo Silveira*
+
 *   Implemented ActiveRecord::Relation#none method
 
     The `none` method returns a chainable relation with zero records
