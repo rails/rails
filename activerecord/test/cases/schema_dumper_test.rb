@@ -238,6 +238,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_includes_tsvector_shorthand_definition
       output = standard_dump
+      if %r{create_table "postgresql_hstores"} =~ output
+        assert_match %r{t.hstore "hash_store", default => ""}, output
+      end
+    end
+
+    def test_schema_dump_includes_tsvector_shorthand_definition
+      output = standard_dump
       if %r{create_table "postgresql_tsvectors"} =~ output
         assert_match %r{t.tsvector "text_vector"}, output
       end

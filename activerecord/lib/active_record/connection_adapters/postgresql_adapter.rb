@@ -52,40 +52,42 @@ module ActiveRecord
           end
         end
 
-        def cast_hstore(object)
+        def hstore_to_string(object)
           if Hash === object
             object.map { |k,v|
               "#{escape_hstore(k)}=>#{escape_hstore(v)}"
-            }.join ', '
+            }.join ','
           else
-            kvs = object.scan(/(?<!\\)".*?(?<!\\)"/).map { |o|
-              unescape_hstore(o[1...-1])
-            }
-            Hash[kvs.each_slice(2).to_a]
+            object
+          end
+        end
+
+        def string_to_hstore(string)
+          if string.nil?
+            nil
+          elsif String === string
+            Hash[string.scan(HstorePair).map { |k,v|
+              v = v.upcase == 'NULL' ? nil : v.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
+              k = k.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
+              [k,v]
+            }]
+          else
+            string
           end
         end
 
         private
-        HSTORE_ESCAPE = {
-            ' '  => '\\ ',
-            '\\' => '\\\\',
-            '"'  => '\\"',
-            '='  => '\\=',
-        }
-        HSTORE_ESCAPE_RE   = Regexp.union(HSTORE_ESCAPE.keys)
-        HSTORE_UNESCAPE    = HSTORE_ESCAPE.invert
-        HSTORE_UNESCAPE_RE = Regexp.union(HSTORE_UNESCAPE.keys)
-
-        def unescape_hstore(value)
-          value.gsub(HSTORE_UNESCAPE_RE) do |match|
-            HSTORE_UNESCAPE[match]
-          end
+        HstorePair = begin
+          quoted_string = /"[^"\\]*(?:\\.[^"\\]*)*"/
+          unquoted_string = /(?:\\.|[^\s,])[^\s=,\\]*(?:\\.[^\s=,\\]*|=[^,>])*/
+          /(#{quoted_string}|#{unquoted_string})\s*=>\s*(#{quoted_string}|#{unquoted_string})/
         end
 
         def escape_hstore(value)
-          value.gsub(HSTORE_ESCAPE_RE) do |match|
-            HSTORE_ESCAPE[match]
-          end
+            value.nil?         ? 'NULL'
+          : value =~ /[=\s,>]/ ? '"%s"' % value.gsub(/(["\\])/, '\\\\\1')
+          : value == ""        ? '""'
+          :                      value.to_s.gsub(/(["\\])/, '\\\\\1')
         end
       end
       # :startdoc:
@@ -217,6 +219,9 @@ module ActiveRecord
             # Arrays
             when /\A'(.*)'::"?\D+"?\[\]\z/
               $1
+            # Hstore
+            when /\A'(.*)'::hstore\z/
+              $1
             # Object identifier types
             when /\A-?\d+\z/
               $1
@@ -284,7 +289,8 @@ module ActiveRecord
         :binary      => { :name => "bytea" },
         :boolean     => { :name => "boolean" },
         :xml         => { :name => "xml" },
-        :tsvector    => { :name => "tsvector" }
+        :tsvector    => { :name => "tsvector" },
+        :hstore      => { :name => "hstore" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -474,6 +480,11 @@ module ActiveRecord
         return super unless column
 
         case value
+        when Hash
+          case column.sql_type
+          when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
+          else super
+          end
         when Float
           return super unless value.infinite? && column.type == :datetime
           "'#{value.to_s.downcase}'"
@@ -505,6 +516,9 @@ module ActiveRecord
         when String
           return super unless 'bytea' == column.sql_type
           { :value => value, :format => 1 }
+        when Hash
+          return super unless 'hstore' == column.sql_type
+          PostgreSQLColumn.hstore_to_string(value)
         else
           super
         end
