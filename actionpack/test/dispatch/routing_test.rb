@@ -2449,6 +2449,32 @@ class TestAppendingRoutes < ActionDispatch::IntegrationTest
   end
 end
 
+class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
+  module ::Admin
+    class StorageFilesController < ActionController::Base
+      def index
+        render :text => "admin/storage_files#index"
+      end
+    end
+  end
+
+  DefaultScopeRoutes = ActionDispatch::Routing::RouteSet.new
+  DefaultScopeRoutes.draw do
+    namespace :admin do
+      resources :storage_files, :controller => "StorageFiles"
+    end
+  end
+
+  def app
+    DefaultScopeRoutes
+  end
+
+  def test_controller_options
+    get '/admin/storage_files'
+    assert_equal "admin/storage_files#index", @response.body
+  end
+end
+
 class TestDefaultScope < ActionDispatch::IntegrationTest
   module ::Blog
     class PostsController < ActionController::Base
