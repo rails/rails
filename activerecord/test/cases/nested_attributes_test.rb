@@ -823,13 +823,7 @@ class TestNestedAttributesOnAHasAndBelongsToManyAssociation < ActiveRecord::Test
   include NestedAttributesOnACollectionAssociationTests
 end
 
-class TestNestedAttributesLimit < ActiveRecord::TestCase
-  def setup
-    Pirate.accepts_nested_attributes_for :parrots, :limit => 2
-
-    @pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
-  end
-
+module NestedAttributesLimitTests
   def teardown
     Pirate.accepts_nested_attributes_for :parrots, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
@@ -851,6 +845,26 @@ class TestNestedAttributesLimit < ActiveRecord::TestCase
                                                       'car' => { :name => 'The Happening' }} }
     end
   end
+end
+
+class TestNestedAttributesLimitNumeric < ActiveRecord::TestCase
+  def setup
+    Pirate.accepts_nested_attributes_for :parrots, :limit => 2
+
+    @pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+  end
+
+  include NestedAttributesLimitTests
+end
+
+class TestNestedAttributesLimitSymbol < ActiveRecord::TestCase
+  def setup
+    Pirate.accepts_nested_attributes_for :parrots, :limit => :parrots_limit
+
+    @pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?", :parrots_limit => 2)
+  end
+
+  include NestedAttributesLimitTests
 end
 
 class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
