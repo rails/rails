@@ -22,4 +22,9 @@ class IntegerExtTest < ActiveSupport::TestCase
     assert_equal '1st', 1.ordinalize
     assert_equal '8th', 8.ordinalize
   end
+
+  def test_ordinal
+    assert_equal 'st', 1.ordinal
+    assert_equal 'th', 8.ordinal
+  end
 end

@@ -482,7 +482,7 @@ module ActionDispatch
         # if the current controller is "foo/bar/baz" and :controller => "baz/bat"
         # is specified, the controller becomes "foo/baz/bat"
         def use_relative_controller!
-          if !named_route && different_controller?
+          if !named_route && different_controller? && !controller.start_with?("/")
             old_parts = current_controller.split('/')
             size = controller.count("/") + 1
             parts = old_parts[0...-size] << controller
@@ -567,6 +567,7 @@ module ActionDispatch
 
         path_addition, params = generate(path_options, path_segments || {})
         path << path_addition
+        params.merge!(options[:params] || {})
 
         ActionDispatch::Http::URL.url_for(options.merge!({
           :path => path,

@@ -130,13 +130,13 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
 
-  test "should return OrderedHash for errors" do
+  test "should return Hash for errors" do
     contact = Contact.new
     contact.errors.add :name, "can't be blank"
     contact.errors.add :name, "is too short (minimum is 2 characters)"
     contact.errors.add :age, "must be 16 or over"
 
-    hash = ActiveSupport::OrderedHash.new
+    hash = {}
     hash[:name] = ["can't be blank", "is too short (minimum is 2 characters)"]
     hash[:age]  = ["must be 16 or over"]
     assert_equal hash.to_json, contact.errors.to_json

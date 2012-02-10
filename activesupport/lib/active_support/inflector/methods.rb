@@ -250,6 +250,29 @@ module ActiveSupport
       end
     end
 
+    # Returns the suffix that should be added to a number to denote the position
+    # in an ordered sequence such as 1st, 2nd, 3rd, 4th.
+    #
+    # Examples:
+    #   ordinal(1)     # => "st"
+    #   ordinal(2)     # => "nd"
+    #   ordinal(1002)  # => "nd"
+    #   ordinal(1003)  # => "rd"
+    #   ordinal(-11)   # => "th"
+    #   ordinal(-1021) # => "st"
+    def ordinal(number)
+      if (11..13).include?(number.to_i.abs % 100)
+        "th"
+      else
+        case number.to_i.abs % 10
+          when 1; "st"
+          when 2; "nd"
+          when 3; "rd"
+          else    "th"
+        end
+      end
+    end
+
     # Turns a number into an ordinal string used to denote the position in an
     # ordered sequence such as 1st, 2nd, 3rd, 4th.
     #
@@ -261,16 +284,7 @@ module ActiveSupport
     #   ordinalize(-11)   # => "-11th"
     #   ordinalize(-1021) # => "-1021st"
     def ordinalize(number)
-      if (11..13).include?(number.to_i.abs % 100)
-        "#{number}th"
-      else
-        case number.to_i.abs % 10
-          when 1; "#{number}st"
-          when 2; "#{number}nd"
-          when 3; "#{number}rd"
-          else    "#{number}th"
-        end
-      end
+      "#{number}#{ordinal(number)}"
     end
 
     private

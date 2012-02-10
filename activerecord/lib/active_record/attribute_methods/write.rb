@@ -37,30 +37,16 @@ module ActiveRecord
       alias_method :raw_write_attribute, :write_attribute
 
       private
-        # Handle *= for method_missing.
-        def attribute=(attribute_name, value)
-          write_attribute(attribute_name, value)
-        end
+      # Handle *= for method_missing.
+      def attribute=(attribute_name, value)
+        write_attribute(attribute_name, value)
+      end
 
-        def type_cast_attribute_for_write(column, value)
-          if column && column.number?
-            convert_number_column_value(value)
-          else
-            value
-          end
-        end
+      def type_cast_attribute_for_write(column, value)
+        return value unless column
 
-        def convert_number_column_value(value)
-          if value == false
-            0
-          elsif value == true
-            1
-          elsif value.is_a?(String) && value.blank?
-            nil
-          else
-            value
-          end
-        end
+        column.type_cast_for_write value
+      end
     end
   end
 end

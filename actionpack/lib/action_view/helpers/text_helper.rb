@@ -90,11 +90,11 @@ module ActionView
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
       # as a single-quoted string with \1 where the phrase is to be inserted (defaults to
-      # '<strong class="highlight">\1</strong>')
+      # '<mark>\1</mark>')
       #
       # ==== Examples
       #   highlight('You searched for: rails', 'rails')
-      #   # => You searched for: <strong class="highlight">rails</strong>
+      #   # => You searched for: <mark>rails</mark>
       #
       #   highlight('You searched for: ruby, rails, dhh', 'actionpack')
       #   # => You searched for: ruby, rails, dhh
@@ -111,9 +111,9 @@ module ActionView
       def highlight(text, phrases, *args)
         options = args.extract_options!
         unless args.empty?
-          options[:highlighter] = args[0] || '<strong class="highlight">\1</strong>'
+          options[:highlighter] = args[0] || '<mark>\1</mark>'
         end
-        options.reverse_merge!(:highlighter => '<strong class="highlight">\1</strong>')
+        options.reverse_merge!(:highlighter => '<mark>\1</mark>')
 
         text = sanitize(text) unless options[:sanitize] == false
         if text.blank? || phrases.blank?
