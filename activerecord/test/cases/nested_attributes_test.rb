@@ -663,7 +663,7 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_sort_the_hash_by_the_keys_before_building_new_associated_models
-    attributes = ActiveSupport::OrderedHash.new
+    attributes = {}
     attributes['123726353'] = { :name => 'Grace OMalley' }
     attributes['2'] = { :name => 'Privateers Greed' } # 2 is lower then 123726353
     @pirate.send(association_setter, attributes)
