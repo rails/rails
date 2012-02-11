@@ -30,4 +30,9 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
   def test_underlying_adapter_no_longer_active
     assert !@underlying.active?, "Removed adapter should no longer be active"
   end
+
+  def test_underlying_adapter_disconnection
+    assert_nothing_raised { @underlying.disconnect! }
+  end
+
 end

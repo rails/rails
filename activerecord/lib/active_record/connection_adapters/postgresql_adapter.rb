@@ -423,7 +423,7 @@ module ActiveRecord
       # method does nothing.
       def disconnect!
         clear_cache!
-        @connection.close rescue nil
+        @connection.close rescue nil unless @connection.finished?
       end
 
       def native_database_types #:nodoc:
