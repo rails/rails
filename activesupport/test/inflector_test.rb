@@ -65,6 +65,14 @@ class InflectorTest < ActiveSupport::TestCase
       assert_equal(plural.capitalize, ActiveSupport::Inflector.pluralize(plural.capitalize))
     end
   end
+  
+  SingularToPlural.each do |singular, plural|
+    define_method "test_singularize_singular_#{singular}" do
+      assert_equal(singular, ActiveSupport::Inflector.singularize(singular))
+      assert_equal(singular.capitalize, ActiveSupport::Inflector.singularize(singular.capitalize))
+    end
+  end
+  
 
   def test_overwrite_previous_inflectors
     assert_equal("series", ActiveSupport::Inflector.singularize("series"))
