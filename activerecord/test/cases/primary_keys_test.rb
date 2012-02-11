@@ -1,6 +1,5 @@
 require "cases/helper"
 require 'models/topic'
-require 'models/reply'
 require 'models/subscriber'
 require 'models/movie'
 require 'models/keyboard'
