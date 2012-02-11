@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/prepend_and_append'
+
 module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator
@@ -49,7 +51,7 @@ module ActiveRecord
         class_hierarchy = [record.class]
 
         while class_hierarchy.first != @klass
-          class_hierarchy.insert(0, class_hierarchy.first.superclass)
+          class_hierarchy.prepend(class_hierarchy.first.superclass)
         end
 
         class_hierarchy.detect { |klass| !klass.abstract_class? }
