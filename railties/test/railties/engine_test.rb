@@ -793,6 +793,27 @@ module RailtiesTest
       assert_equal "Bukkit's foo partial", last_response.body.strip
     end
 
+    test "engine knows at which path it was mounted" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          mount(Bukkits::Engine => "/foo-bar")
+        end
+      RUBY
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      assert_raise(RuntimeError) { ::Rails::Engine.mounted_path }
+      assert_equal ::Bukkits::Engine.mounted_path, "/foo-bar"
+    end
+
   private
     def app
       Rails.application
