@@ -20,7 +20,7 @@ module ActiveRecord
 
         class Bytea < Type
           def type_cast(value)
-            PGconn.unescape_bytea value if value
+            PGconn.unescape_bytea value
           end
         end
 
@@ -180,7 +180,6 @@ module ActiveRecord
           h[k] = OID::Identity.new
         }
 
-
         # Register an OID type named +name+ with a typcasting object in
         # +type+.  +name+ should correspond to the `typname` column in
         # the `pg_type` table.
@@ -207,6 +206,8 @@ module ActiveRecord
         register_type 'text', OID::Identity.new
         alias_type 'varchar', 'text'
         alias_type 'char', 'text'
+        alias_type 'bpchar', 'text'
+        alias_type 'xml', 'text'
 
         # FIXME: why are we keeping these types as strings?
         alias_type 'tsvector', 'text'

@@ -35,7 +35,8 @@ module ActiveRecord
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
       # Instantiates a new PostgreSQL column definition in a table.
-      def initialize(name, default, sql_type = nil, null = true)
+      def initialize(name, default, oid_type, sql_type = nil, null = true)
+        @oid_type = oid_type
         super(name, self.class.extract_value_from_default(default), sql_type, null)
       end
 
@@ -152,6 +153,13 @@ module ActiveRecord
             # and we can't know the value of that, so return nil.
             nil
         end
+      end
+
+      def type_cast(value)
+        return if value.nil?
+        return super if encoded?
+
+        @oid_type.type_cast value
       end
 
       private
@@ -931,8 +939,11 @@ module ActiveRecord
       # Returns the list of all column definitions for a table.
       def columns(table_name)
         # Limit, precision, and scale are all handled by the superclass.
-        column_definitions(table_name).collect do |column_name, type, default, notnull|
-          PostgreSQLColumn.new(column_name, default, type, notnull == 'f')
+        column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod|
+          oid = OID::TYPE_MAP.fetch(oid.to_i, fmod.to_i) {
+            OID::Identity.new
+          }
+          PostgreSQLColumn.new(column_name, default, oid, type, notnull == 'f')
         end
       end
 
@@ -1334,7 +1345,7 @@ module ActiveRecord
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name) #:nodoc:
           exec_query(<<-end_sql, 'SCHEMA').rows
-            SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull
+            SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull, a.atttypid, a.atttypmod
               FROM pg_attribute a LEFT JOIN pg_attrdef d
                 ON a.attrelid = d.adrelid AND a.attnum = d.adnum
              WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
