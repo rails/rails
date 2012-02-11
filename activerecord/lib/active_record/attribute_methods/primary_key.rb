@@ -24,6 +24,12 @@ module ActiveRecord
         query_attribute(self.class.primary_key)
       end
 
+      protected
+
+      def attribute_method?(attr_name)
+        attr_name == 'id' || super
+      end
+
       module ClassMethods
         def define_method_attribute(attr_name)
           super
