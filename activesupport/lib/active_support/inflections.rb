@@ -2,7 +2,7 @@ module ActiveSupport
   Inflector.inflections do |inflect|
     inflect.plural(/$/, 's')
     inflect.plural(/s$/i, 's')
-    inflect.plural(/(ax|test)is$/i, '\1es')
+    inflect.plural(/^(ax|test)is$/i, '\1es')
     inflect.plural(/(octop|vir)us$/i, '\1i')
     inflect.plural(/(octop|vir)i$/i, '\1i')
     inflect.plural(/(alias|status)$/i, '\1es')
@@ -40,7 +40,8 @@ module ActiveSupport
     inflect.singular(/(bus)(es)?$/i, '\1')
     inflect.singular(/(o)es$/i, '\1')
     inflect.singular(/(shoe)s$/i, '\1')
-    inflect.singular(/(cris|ax|test)(is|es)$/i, '\1is')
+    inflect.singular(/(cris|test)(is|es)$/i, '\1is')
+    inflect.singular(/^(a)x[ie]s$/i, '\1xis')
     inflect.singular(/(octop|vir)(us|i)$/i, '\1us')
     inflect.singular(/(alias|status)(es)?$/i, '\1')
     inflect.singular(/^(ox)en/i, '\1')

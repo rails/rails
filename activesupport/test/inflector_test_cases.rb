@@ -93,6 +93,7 @@ module InflectorTestCases
     "matrix_fu"   => "matrix_fus",
 
     "axis"        => "axes",
+    "taxi"        => "taxis", # prevents regression
     "testis"      => "testes",
     "crisis"      => "crises",
 

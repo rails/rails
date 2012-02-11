@@ -2153,25 +2153,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_singleton_resources_are_not_singularized
     with_test_routes do
       get '/medical/taxis/new'
-      assert_equal 'medical/taxes#new', @response.body
+      assert_equal 'medical/taxis#new', @response.body
       assert_equal '/medical/taxis/new', new_medical_taxis_path
 
       post '/medical/taxis'
-      assert_equal 'medical/taxes#create', @response.body
+      assert_equal 'medical/taxis#create', @response.body
 
       get '/medical/taxis'
-      assert_equal 'medical/taxes#show', @response.body
+      assert_equal 'medical/taxis#show', @response.body
       assert_equal '/medical/taxis', medical_taxis_path
 
       get '/medical/taxis/edit'
-      assert_equal 'medical/taxes#edit', @response.body
+      assert_equal 'medical/taxis#edit', @response.body
       assert_equal '/medical/taxis/edit', edit_medical_taxis_path
 
       put '/medical/taxis'
-      assert_equal 'medical/taxes#update', @response.body
+      assert_equal 'medical/taxis#update', @response.body
 
       delete '/medical/taxis'
-      assert_equal 'medical/taxes#destroy', @response.body
+      assert_equal 'medical/taxis#destroy', @response.body
     end
   end
 
