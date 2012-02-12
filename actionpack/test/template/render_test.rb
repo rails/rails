@@ -236,18 +236,23 @@ module RenderTestCases
   end
 
   def test_render_partial_with_locals_using_string
-    assert_equal "Hola: david", @controller_view.render('customer_greeting', :greeting => 'Hola', :customer_greeting => Customer.new("david"))
+    locals = { :greeting => 'Hola', :customer_greeting => Customer.new("david") }
+    assert_equal "Hola: david", @controller_view.render('customer_greeting', :locals => locals)
   end
 
   def test_render_partial_using_object
-    assert_equal "Hello: lifo",
-      @controller_view.render(Customer.new("lifo"), :greeting => "Hello")
+    assert_equal "Hello: lifo", @controller_view.render(Customer.new("lifo"), :locals => { :greeting => "Hello" })
   end
 
   def test_render_partial_using_collection
     customers = [ Customer.new("Amazon"), Customer.new("Yahoo") ]
-    assert_equal "Hello: AmazonHello: Yahoo",
-      @controller_view.render(customers, :greeting => "Hello")
+    assert_equal "Hello: AmazonHello: Yahoo", @controller_view.render(customers, :locals => { :greeting => "Hello" })
+  end
+
+  def test_render_partial_using_collection_with_spacer
+    customers = [ Customer.new("Amazon"), Customer.new("Yahoo") ]
+    assert_equal "Hello: Amazon[spacer]Hello: Yahoo",
+      @controller_view.render(customers, :spacer_template => "customer_spacer", :locals => { :greeting => "Hello" })
   end
 
   # TODO: The reason for this test is unclear, improve documentation

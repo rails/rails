@@ -13,18 +13,16 @@ module ActionView
       # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
       # * <tt>:text</tt> - Renders the text passed in out.
       #
-      # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
-      # as the locals hash.
-      def render(options = {}, locals = {}, &block)
-        case options
-        when Hash
+      def render(options_or_record_or_array = {}, additional_options = {}, &block)
+        if options_or_record_or_array.is_a?(Hash)
+          options = options_or_record_or_array
           if block_given?
             view_renderer.render_partial(self, options.merge(:partial => options[:layout]), &block)
           else
             view_renderer.render(self, options)
           end
         else
-          view_renderer.render_partial(self, :partial => options, :locals => locals)
+          view_renderer.render_partial(self, additional_options.merge(:partial => options_or_record_or_array))
         end
       end
 

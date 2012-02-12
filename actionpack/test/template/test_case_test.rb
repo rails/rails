@@ -50,7 +50,7 @@ module ActionView
     end
 
     test "works without testing a helper module" do
-      assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
+      assert_equal 'Eloy', render('developers/developer', :locals => { :developer => stub(:name => 'Eloy') })
     end
 
     test "can render a layout with block" do
@@ -236,7 +236,7 @@ module ActionView
     end
 
     test "is able to render partials with local variables" do
-      assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
+      assert_equal 'Eloy', render('developers/developer', :locals => { :developer => stub(:name => 'Eloy') })
       assert_equal 'Eloy', render(:partial => 'developers/developer',
                                   :locals => { :developer => stub(:name => 'Eloy') })
     end
