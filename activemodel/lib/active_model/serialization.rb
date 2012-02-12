@@ -17,7 +17,7 @@ module ActiveModel
   #     attr_accessor :name
   #
   #     def attributes
-  #       {'name' => name}
+  #       {'name' => nil}
   #     end
   #
   #   end
@@ -29,8 +29,11 @@ module ActiveModel
   #   person.name = "Bob"
   #   person.serializable_hash   # => {"name"=>"Bob"}
   #
-  # You need to declare some sort of attributes hash which contains the attributes
-  # you want to serialize and their current value.
+  # You need to declare an attributes hash which contains the attributes
+  # you want to serialize. When called, serializable hash will use
+  # instance methods that match the name of the attributes hash's keys.
+  # In order to override this behavior, take a look at the private
+  # method read_attribute_for_serialization.
   #
   # Most of the time though, you will want to include the JSON or XML
   # serializations. Both of these modules automatically include the
