@@ -446,7 +446,11 @@ module ActionMailer #:nodoc:
     def initialize(method_name=nil, *args)
       super()
       @_message = Mail.new
-      process(method_name, *args) if method_name
+      @rendered = false
+      if method_name
+        process(method_name, *args)
+        mail unless @rendered
+      end
     end
 
     def process(*args) #:nodoc:
@@ -640,7 +644,8 @@ module ActionMailer #:nodoc:
         m.body.set_sort_order(parts_order)
         m.body.sort_parts!
       end
-
+      
+      @rendered = true
       m
     end
 

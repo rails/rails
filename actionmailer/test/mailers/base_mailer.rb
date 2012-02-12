@@ -15,6 +15,10 @@ class BaseMailer < ActionMailer::Base
     mail
   end
 
+  def dont_call_mail_method(hash = {})
+    headers hash
+  end
+
   def welcome_from_another_path(path)
     mail(:template_name => "welcome", :template_path => path)
   end
