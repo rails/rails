@@ -80,6 +80,7 @@ module ActiveRecord
         disconnect!
         connect
       end
+      alias :reset! :reconnect!
 
       # Disconnects from the database if already connected.
       # Otherwise, this method does nothing.
@@ -88,11 +89,6 @@ module ActiveRecord
           @connection.close
           @connection = nil
         end
-      end
-
-      def reset!
-        disconnect!
-        connect
       end
 
       # DATABASE STATEMENTS ======================================
