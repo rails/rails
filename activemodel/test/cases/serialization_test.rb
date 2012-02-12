@@ -31,6 +31,22 @@ class SerializationTest < ActiveModel::TestCase
     end
   end
 
+  class BusinessCard
+    include ActiveModel::Serialization
+
+    def initialize(user)
+      @user = user
+    end
+
+    def attributes
+      {
+        :name => @user.name,
+        :email => @user.email,
+        :address => @user.address.serializable_hash
+      }
+    end
+  end
+
   setup do
     @user = User.new('David', 'david@example.com', 'male')
     @user.address = Address.new
@@ -41,7 +57,6 @@ class SerializationTest < ActiveModel::TestCase
     @user.friends = [User.new('Joe', 'joe@example.com', 'male'),
                      User.new('Sue', 'sue@example.com', 'female')]
   end
-
   def test_method_serializable_hash_should_work
     expected =  {"name"=>"David", "gender"=>"male", "email"=>"david@example.com"}
     assert_equal expected , @user.serializable_hash
@@ -70,6 +85,13 @@ class SerializationTest < ActiveModel::TestCase
   def test_method_serializable_hash_should_work_with_except_and_methods
     expected =  {"gender"=>"male", :foo=>"i_am_foo"}
     assert_equal expected , @user.serializable_hash(:except => [:name, :email], :methods => [:foo])
+  end
+
+  def test_method_serializable_hash_should_use_values_part_of_hash
+    expected =  {:name=>"David", :email=>"david@example.com",
+                 :address=>{"street"=>"123 Lane", "city"=>"Springfield", "state"=>"CA", "zip"=>11111}}
+    business_card = BusinessCard.new(@user)
+    assert_equal expected, business_card.serializable_hash
   end
 
   def test_should_not_call_methods_that_dont_respond

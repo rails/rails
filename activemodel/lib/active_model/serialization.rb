@@ -98,8 +98,8 @@ module ActiveModel
     private
 
       # Hook method defining how an attribute value should be retrieved for
-      # serialization. By default this is assumed to be an instance named after
-      # the attribute. Override this method in subclasses should you need to
+      # serialization. By default this is assumed to be the value of the key
+      # in attributes. Override this method in subclasses should you need to
       # retrieve the value for a given attribute differently:
       #
       #   class MyClass
@@ -114,7 +114,9 @@ module ActiveModel
       #     end
       #   end
       #
-      alias :read_attribute_for_serialization :send
+      def read_attribute_for_serialization(key)
+        attributes[key]
+      end
 
       # Add associations specified via the <tt>:include</tt> option.
       #
