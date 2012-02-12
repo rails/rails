@@ -57,7 +57,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_partial_with_implicit_path
-    @view.render(Customer.new("david"), :greeting => "hi")
+    @view.render(Customer.new("david"), :locals => { :greeting => "hi" })
     wait
 
     assert_equal 1, @logger.logged(:info).size
@@ -73,7 +73,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_collection_with_implicit_path
-    @view.render([ Customer.new("david"), Customer.new("mary") ], :greeting => "hi")
+    @view.render([ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "hi" })
     wait
 
     assert_equal 1, @logger.logged(:info).size
@@ -81,7 +81,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_collection_template_without_path
-    @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], :greeting => "hi")
+    @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], :locals => { :greeting => "hi" })
     wait
 
     assert_equal 1, @logger.logged(:info).size

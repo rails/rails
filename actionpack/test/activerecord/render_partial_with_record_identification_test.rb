@@ -40,9 +40,19 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
     render :partial => @developers
   end
 
+  def render_with_record_collection_shorthand
+    @developers = Developer.all
+    render @developers
+  end
+
   def render_with_record_collection_and_spacer_template
     @developer = Developer.find(1)
     render :partial => @developer.projects, :spacer_template => 'test/partial_only'
+  end
+
+  def render_with_record_collection_shorthand_and_spacer_template
+    @developer = Developer.find(1)
+    render @developer.projects, :spacer_template => 'test/partial_only'
   end
 end
 
@@ -80,8 +90,19 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
     assert_equal 'DavidJamisfixture_3fixture_4fixture_5fixture_6fixture_7fixture_8fixture_9fixture_10Jamis', @response.body
   end
 
+  def test_render_with_record_collection_shorthand
+    get :render_with_record_collection_shorthand
+    assert_template 'developers/_developer'
+    assert_equal 'DavidJamisfixture_3fixture_4fixture_5fixture_6fixture_7fixture_8fixture_9fixture_10Jamis', @response.body
+  end
+
   def test_render_with_record_collection_and_spacer_template
     get :render_with_record_collection_and_spacer_template
+    assert_equal assigns(:developer).projects.map(&:name).join('only partial'), @response.body
+  end
+
+  def test_render_with_record_collection_shorthand_and_spacer_template
+    get :render_with_record_collection_shorthand_and_spacer_template
     assert_equal assigns(:developer).projects.map(&:name).join('only partial'), @response.body
   end
 
