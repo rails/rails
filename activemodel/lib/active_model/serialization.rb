@@ -50,7 +50,7 @@ module ActiveModel
   #     attr_accessor :name
   #
   #     def attributes
-  #       {'name' => name}
+  #       {'name' => nil}
   #     end
   #
   #   end
