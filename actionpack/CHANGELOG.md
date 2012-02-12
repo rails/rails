@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `date_field` and `date_field_tag` helpers which render an `input[type="date"]` tag *Olek Janiszewski*
+
 *   Adds `image_url`, `javascript_url`, `stylesheet_url`, `audio_url`, `video_url`, and `font_url`
     to assets tag helper. These URL helpers will return the full path to your assets. This is useful
     when you are going to reference this asset from external host. *Prem Sichanugrist*
