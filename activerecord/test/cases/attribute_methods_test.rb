@@ -8,6 +8,7 @@ require 'models/computer'
 require 'models/topic'
 require 'models/company'
 require 'models/category'
+require 'models/reply'
 require 'models/contact'
 require 'models/keyboard'
 
