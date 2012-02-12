@@ -8,7 +8,6 @@ require 'models/computer'
 require 'models/topic'
 require 'models/company'
 require 'models/category'
-require 'models/reply'
 require 'models/contact'
 require 'models/keyboard'
 
@@ -772,11 +771,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   private
   def cached_columns
-    @cached_columns ||= time_related_columns_on_topic.map(&:name)
+    Topic.columns.find_all { |column|
+      !Topic.serialized_attributes.include? column.name
+    }.map(&:name)
   end
 
   def time_related_columns_on_topic
-    Topic.columns.select { |c| c.type.in?([:time, :date, :datetime, :timestamp]) }
+    Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
   end
 
   def in_time_zone(zone)

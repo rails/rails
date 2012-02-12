@@ -10,6 +10,20 @@ module ActiveRecord
         self.serialized_attributes = {}
       end
 
+      class Type # :nodoc:
+        def initialize(column)
+          @column = column
+        end
+
+        def type_cast(value)
+          value.unserialized_value
+        end
+
+        def type
+          @column.type
+        end
+      end
+
       class Attribute < Struct.new(:coder, :value, :state)
         def unserialized_value
           state == :serialized ? unserialize : value

@@ -177,11 +177,23 @@ module ActiveRecord
     #   Person.where(:confirmed => true).limit(5).pluck(:id)
     #
     def pluck(column_name)
+      key = column_name.to_s.split('.', 2).last
+
       if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
         column_name = "#{table_name}.#{column_name}"
       end
-      klass.connection.select_all(select(column_name).arel).map! do |attributes|
-        klass.type_cast_attribute(attributes.keys.first, klass.initialize_attributes(attributes))
+
+      result = klass.connection.select_all(select(column_name).arel)
+      types  = result.column_types.merge klass.column_types
+      column = types[key]
+
+      result.map do |attributes|
+        value = klass.initialize_attributes(attributes)[key]
+        if column
+          column.type_cast value
+        else
+          value
+        end
       end
     end
 

@@ -1,6 +1,7 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/object/blank'
 require 'active_record/connection_adapters/statement_pool'
+require 'active_record/connection_adapters/postgresql/oid'
 
 # Make sure we're using pg high enough for PGResult#values
 gem 'pg', '~> 0.11'
@@ -34,7 +35,8 @@ module ActiveRecord
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
       # Instantiates a new PostgreSQL column definition in a table.
-      def initialize(name, default, sql_type = nil, null = true)
+      def initialize(name, default, oid_type, sql_type = nil, null = true)
+        @oid_type = oid_type
         super(name, self.class.extract_value_from_default(default), sql_type, null)
       end
 
@@ -52,180 +54,192 @@ module ActiveRecord
           end
         end
 
-        def cast_hstore(object)
+        def hstore_to_string(object)
           if Hash === object
             object.map { |k,v|
               "#{escape_hstore(k)}=>#{escape_hstore(v)}"
-            }.join ', '
+            }.join ','
           else
-            kvs = object.scan(/(?<!\\)".*?(?<!\\)"/).map { |o|
-              unescape_hstore(o[1...-1])
-            }
-            Hash[kvs.each_slice(2).to_a]
+            object
+          end
+        end
+
+        def string_to_hstore(string)
+          if string.nil?
+            nil
+          elsif String === string
+            Hash[string.scan(HstorePair).map { |k,v|
+              v = v.upcase == 'NULL' ? nil : v.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
+              k = k.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
+              [k,v]
+            }]
+          else
+            string
           end
         end
 
         private
-        HSTORE_ESCAPE = {
-            ' '  => '\\ ',
-            '\\' => '\\\\',
-            '"'  => '\\"',
-            '='  => '\\=',
-        }
-        HSTORE_ESCAPE_RE   = Regexp.union(HSTORE_ESCAPE.keys)
-        HSTORE_UNESCAPE    = HSTORE_ESCAPE.invert
-        HSTORE_UNESCAPE_RE = Regexp.union(HSTORE_UNESCAPE.keys)
-
-        def unescape_hstore(value)
-          value.gsub(HSTORE_UNESCAPE_RE) do |match|
-            HSTORE_UNESCAPE[match]
-          end
+        HstorePair = begin
+          quoted_string = /"[^"\\]*(?:\\.[^"\\]*)*"/
+          unquoted_string = /(?:\\.|[^\s,])[^\s=,\\]*(?:\\.[^\s=,\\]*|=[^,>])*/
+          /(#{quoted_string}|#{unquoted_string})\s*=>\s*(#{quoted_string}|#{unquoted_string})/
         end
 
         def escape_hstore(value)
-          value.gsub(HSTORE_ESCAPE_RE) do |match|
-            HSTORE_ESCAPE[match]
-          end
+            value.nil?         ? 'NULL'
+          : value =~ /[=\s,>]/ ? '"%s"' % value.gsub(/(["\\])/, '\\\\\1')
+          : value == ""        ? '""'
+          :                      value.to_s.gsub(/(["\\])/, '\\\\\1')
         end
       end
       # :startdoc:
 
-      private
-        def extract_limit(sql_type)
-          case sql_type
-          when /^bigint/i;    8
-          when /^smallint/i;  2
-          else super
-          end
-        end
+      # Extracts the value from a PostgreSQL column default definition.
+      def self.extract_value_from_default(default)
+        # This is a performance optimization for Ruby 1.9.2 in development.
+        # If the value is nil, we return nil straight away without checking
+        # the regular expressions. If we check each regular expression,
+        # Regexp#=== will call NilClass#to_str, which will trigger
+        # method_missing (defined by whiny nil in ActiveSupport) which
+        # makes this method very very slow.
+        return default unless default
 
-        # Extracts the scale from PostgreSQL-specific data types.
-        def extract_scale(sql_type)
-          # Money type has a fixed scale of 2.
-          sql_type =~ /^money/ ? 2 : super
-        end
-
-        # Extracts the precision from PostgreSQL-specific data types.
-        def extract_precision(sql_type)
-          if sql_type == 'money'
-            self.class.money_precision
-          else
-            super
-          end
-        end
-
-        # Maps PostgreSQL-specific data types to logical Rails types.
-        def simplified_type(field_type)
-          case field_type
-          # Numeric and monetary types
-          when /^(?:real|double precision)$/
-            :float
-          # Monetary types
-          when 'money'
-            :decimal
-          when 'hstore'
-            :hstore
+        case default
+          # Numeric types
+          when /\A\(?(-?\d+(\.\d*)?\)?)\z/
+            $1
           # Character types
-          when /^(?:character varying|bpchar)(?:\(\d+\))?$/
-            :string
+          when /\A'(.*)'::(?:character varying|bpchar|text)\z/m
+            $1
+          # Character types (8.1 formatting)
+          when /\AE'(.*)'::(?:character varying|bpchar|text)\z/m
+            $1.gsub(/\\(\d\d\d)/) { $1.oct.chr }
           # Binary data types
-          when 'bytea'
-            :binary
+          when /\A'(.*)'::bytea\z/m
+            $1
           # Date/time types
-          when /^timestamp with(?:out)? time zone$/
-            :datetime
-          when 'interval'
-            :string
+          when /\A'(.+)'::(?:time(?:stamp)? with(?:out)? time zone|date)\z/
+            $1
+          when /\A'(.*)'::interval\z/
+            $1
+          # Boolean type
+          when 'true'
+            true
+          when 'false'
+            false
           # Geometric types
-          when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
-            :string
+          when /\A'(.*)'::(?:point|line|lseg|box|"?path"?|polygon|circle)\z/
+            $1
           # Network address types
-          when /^(?:cidr|inet|macaddr)$/
-            :string
-          # Bit strings
-          when /^bit(?: varying)?(?:\(\d+\))?$/
-            :string
+          when /\A'(.*)'::(?:cidr|inet|macaddr)\z/
+            $1
+          # Bit string types
+          when /\AB'(.*)'::"?bit(?: varying)?"?\z/
+            $1
           # XML type
-          when 'xml'
-            :xml
-          # tsvector type
-          when 'tsvector'
-            :tsvector
+          when /\A'(.*)'::xml\z/m
+            $1
           # Arrays
-          when /^\D+\[\]$/
-            :string
+          when /\A'(.*)'::"?\D+"?\[\]\z/
+            $1
+          # Hstore
+          when /\A'(.*)'::hstore\z/
+            $1
           # Object identifier types
-          when 'oid'
-            :integer
-          # UUID type
-          when 'uuid'
-            :string
-          # Small and big integer types
-          when /^(?:small|big)int$/
-            :integer
-          # Pass through all types that are not specific to PostgreSQL.
+          when /\A-?\d+\z/
+            $1
           else
-            super
-          end
+            # Anything else is blank, some user type, or some function
+            # and we can't know the value of that, so return nil.
+            nil
         end
+      end
 
-        # Extracts the value from a PostgreSQL column default definition.
-        def self.extract_value_from_default(default)
-          # This is a performance optimization for Ruby 1.9.2 in development.
-          # If the value is nil, we return nil straight away without checking
-          # the regular expressions. If we check each regular expression,
-          # Regexp#=== will call NilClass#to_str, which will trigger
-          # method_missing (defined by whiny nil in ActiveSupport) which
-          # makes this method very very slow.
-          return default unless default
+      def type_cast(value)
+        return if value.nil?
+        return super if encoded?
 
-          case default
-            # Numeric types
-            when /\A\(?(-?\d+(\.\d*)?\)?)\z/
-              $1
-            # Character types
-            when /\A'(.*)'::(?:character varying|bpchar|text)\z/m
-              $1
-            # Character types (8.1 formatting)
-            when /\AE'(.*)'::(?:character varying|bpchar|text)\z/m
-              $1.gsub(/\\(\d\d\d)/) { $1.oct.chr }
-            # Binary data types
-            when /\A'(.*)'::bytea\z/m
-              $1
-            # Date/time types
-            when /\A'(.+)'::(?:time(?:stamp)? with(?:out)? time zone|date)\z/
-              $1
-            when /\A'(.*)'::interval\z/
-              $1
-            # Boolean type
-            when 'true'
-              true
-            when 'false'
-              false
-            # Geometric types
-            when /\A'(.*)'::(?:point|line|lseg|box|"?path"?|polygon|circle)\z/
-              $1
-            # Network address types
-            when /\A'(.*)'::(?:cidr|inet|macaddr)\z/
-              $1
-            # Bit string types
-            when /\AB'(.*)'::"?bit(?: varying)?"?\z/
-              $1
-            # XML type
-            when /\A'(.*)'::xml\z/m
-              $1
-            # Arrays
-            when /\A'(.*)'::"?\D+"?\[\]\z/
-              $1
-            # Object identifier types
-            when /\A-?\d+\z/
-              $1
-            else
-              # Anything else is blank, some user type, or some function
-              # and we can't know the value of that, so return nil.
-              nil
-          end
+        @oid_type.type_cast value
+      end
+
+      private
+      def extract_limit(sql_type)
+        case sql_type
+        when /^bigint/i;    8
+        when /^smallint/i;  2
+        else super
         end
+      end
+
+      # Extracts the scale from PostgreSQL-specific data types.
+      def extract_scale(sql_type)
+        # Money type has a fixed scale of 2.
+        sql_type =~ /^money/ ? 2 : super
+      end
+
+      # Extracts the precision from PostgreSQL-specific data types.
+      def extract_precision(sql_type)
+        if sql_type == 'money'
+          self.class.money_precision
+        else
+          super
+        end
+      end
+
+      # Maps PostgreSQL-specific data types to logical Rails types.
+      def simplified_type(field_type)
+        case field_type
+        # Numeric and monetary types
+        when /^(?:real|double precision)$/
+          :float
+        # Monetary types
+        when 'money'
+          :decimal
+        when 'hstore'
+          :hstore
+        # Character types
+        when /^(?:character varying|bpchar)(?:\(\d+\))?$/
+          :string
+        # Binary data types
+        when 'bytea'
+          :binary
+        # Date/time types
+        when /^timestamp with(?:out)? time zone$/
+          :datetime
+        when 'interval'
+          :string
+        # Geometric types
+        when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
+          :string
+        # Network address types
+        when /^(?:cidr|inet|macaddr)$/
+          :string
+        # Bit strings
+        when /^bit(?: varying)?(?:\(\d+\))?$/
+          :string
+        # XML type
+        when 'xml'
+          :xml
+        # tsvector type
+        when 'tsvector'
+          :tsvector
+        # Arrays
+        when /^\D+\[\]$/
+          :string
+        # Object identifier types
+        when 'oid'
+          :integer
+        # UUID type
+        when 'uuid'
+          :string
+        # Small and big integer types
+        when /^(?:small|big)int$/
+          :integer
+        # Pass through all types that are not specific to PostgreSQL.
+        else
+          super
+        end
+      end
     end
 
     # The PostgreSQL adapter works with the native C (https://bitbucket.org/ged/ruby-pg) driver.
@@ -284,7 +298,8 @@ module ActiveRecord
         :binary      => { :name => "bytea" },
         :boolean     => { :name => "boolean" },
         :xml         => { :name => "xml" },
-        :tsvector    => { :name => "tsvector" }
+        :tsvector    => { :name => "tsvector" },
+        :hstore      => { :name => "hstore" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -376,6 +391,7 @@ module ActiveRecord
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
 
+        initialize_type_map
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
@@ -474,6 +490,11 @@ module ActiveRecord
         return super unless column
 
         case value
+        when Hash
+          case column.sql_type
+          when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
+          else super
+          end
         when Float
           return super unless value.infinite? && column.type == :datetime
           "'#{value.to_s.downcase}'"
@@ -505,6 +526,9 @@ module ActiveRecord
         when String
           return super unless 'bytea' == column.sql_type
           { :value => value, :format => 1 }
+        when Hash
+          return super unless 'hstore' == column.sql_type
+          PostgreSQLColumn.hstore_to_string(value)
         else
           super
         end
@@ -700,12 +724,29 @@ module ActiveRecord
         Arel.sql("$#{index + 1}")
       end
 
+      class Result < ActiveRecord::Result
+        def initialize(columns, rows, column_types)
+          super(columns, rows)
+          @column_types = column_types
+        end
+      end
+
       def exec_query(sql, name = 'SQL', binds = [])
         log(sql, name, binds) do
           result = binds.empty? ? exec_no_cache(sql, binds) :
                                   exec_cache(sql, binds)
 
-          ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
+          types = {}
+          result.fields.each_with_index do |fname, i|
+            ftype = result.ftype i
+            fmod  = result.fmod i
+            types[fname] = OID::TYPE_MAP.fetch(ftype, fmod) { |oid, mod|
+              warn "unknown OID: #{fname}(#{oid}) (#{sql})"
+              OID::Identity.new
+            }
+          end
+
+          ret = Result.new(result.fields, result.values, types)
           result.clear
           return ret
         end
@@ -898,8 +939,11 @@ module ActiveRecord
       # Returns the list of all column definitions for a table.
       def columns(table_name)
         # Limit, precision, and scale are all handled by the superclass.
-        column_definitions(table_name).collect do |column_name, type, default, notnull|
-          PostgreSQLColumn.new(column_name, default, type, notnull == 'f')
+        column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod|
+          oid = OID::TYPE_MAP.fetch(oid.to_i, fmod.to_i) {
+            OID::Identity.new
+          }
+          PostgreSQLColumn.new(column_name, default, oid, type, notnull == 'f')
         end
       end
 
@@ -1156,6 +1200,22 @@ module ActiveRecord
         end
 
       private
+      def initialize_type_map
+        result = execute('SELECT oid, typname, typelem, typdelim FROM pg_type', 'SCHEMA')
+        leaves, nodes = result.partition { |row| row['typelem'] == '0' }
+
+        # populate the leaf nodes
+        leaves.find_all { |row| OID.registered_type? row['typname'] }.each do |row|
+          OID::TYPE_MAP[row['oid'].to_i] = OID::NAMES[row['typname']]
+        end
+
+        # populate composite types
+        nodes.find_all { |row| OID::TYPE_MAP.key? row['typelem'].to_i }.each do |row|
+          vector = OID::Vector.new row['typdelim'], OID::TYPE_MAP[row['typelem'].to_i]
+          OID::TYPE_MAP[row['oid'].to_i] = vector
+        end
+      end
+
         FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
         def exec_no_cache(sql, binds)
@@ -1285,7 +1345,7 @@ module ActiveRecord
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name) #:nodoc:
           exec_query(<<-end_sql, 'SCHEMA').rows
-            SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull
+            SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull, a.atttypid, a.atttypmod
               FROM pg_attribute a LEFT JOIN pg_attrdef d
                 ON a.attrelid = d.adrelid AND a.attnum = d.adnum
              WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass

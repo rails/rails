@@ -287,6 +287,7 @@ module ActiveRecord
       IdentityMap.without do
         fresh_object = self.class.unscoped { self.class.find(id, options) }
         @attributes.update(fresh_object.instance_variable_get('@attributes'))
+        @columns_hash = fresh_object.instance_variable_get('@columns_hash')
       end
 
       @attributes_cache = {}

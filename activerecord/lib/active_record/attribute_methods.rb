@@ -244,7 +244,7 @@ module ActiveRecord
     end
 
     def attribute_method?(attr_name)
-      attr_name == 'id' || (defined?(@attributes) && @attributes.include?(attr_name))
+      defined?(@attributes) && @attributes.include?(attr_name)
     end
   end
 end

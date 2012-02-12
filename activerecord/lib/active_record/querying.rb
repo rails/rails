@@ -1,4 +1,5 @@
 require 'active_support/core_ext/module/delegation'
+require 'active_support/deprecation'
 
 module ActiveRecord
   module Querying
@@ -36,7 +37,15 @@ module ActiveRecord
     def find_by_sql(sql, binds = [])
       logging_query_plan do
         result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
-        result_set.map { |record| instantiate(record) }
+        column_types = {}
+
+        if result_set.respond_to? :column_types
+          column_types = result_set.column_types
+        else
+          ActiveSupport::Deprecation.warn "the object returned from `select_all` must respond to `column_types`"
+        end
+
+        result_set.map { |record| instantiate(record, column_types) }
       end
     end
 
