@@ -242,36 +242,6 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     test_default_setup
   end
 
-  def test_time_recognition
-    # We create many routes to make situation more realistic
-    @rs = ::ActionDispatch::Routing::RouteSet.new
-    @rs.draw {
-      root :to => "search#new", :as => "frontpage"
-      resources :videos do
-        resources :comments
-        resource  :file,      :controller => 'video_file'
-        resource  :share,     :controller => 'video_shares'
-        resource  :abuse,     :controller => 'video_abuses'
-      end
-      resources :abuses, :controller => 'video_abuses'
-      resources :video_uploads
-      resources :video_visits
-
-      resources :users do
-        resource  :settings
-        resources :videos
-      end
-      resources :channels do
-        resources :videos, :controller => 'channel_videos'
-      end
-      resource  :session
-      resource  :lost_password
-      match 'search' => 'search#index', :as => 'search'
-      resources :pages
-      match ':controller/:action/:id'
-    }
-  end
-
   def test_route_with_colon_first
     rs.draw do
       match '/:controller/:action/:id', :action => 'index', :id => nil
