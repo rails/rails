@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'active_support/core_ext/string/encoding'
 
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
