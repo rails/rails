@@ -21,6 +21,10 @@ class Distinct < ActiveRecord::Base
   has_many :values, :through => :groups
 end
 
+class Variable < ActiveRecord::Base
+  Variable.table_name = 'variables'
+end
+
 # a suite of tests to ensure the ConnectionAdapters#MysqlAdapter can handle tables with
 # reserved word names (ie: group, order, values, etc...)
 class MysqlReservedWordTest < ActiveRecord::TestCase
@@ -34,11 +38,12 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
       'select'=>'id int auto_increment primary key',
       'values'=>'id int auto_increment primary key, group_id int',
       'distinct'=>'id int auto_increment primary key',
-      'distincts_selects'=>'distinct_id int, select_id int'
+      'distincts_selects'=>'distinct_id int, select_id int',
+      'variables' => 'id int auto_increment primary key, `key` varchar(255), `value` varchar(255)'
   end
 
   def teardown
-    drop_tables_directly ['group', 'select', 'values', 'distinct', 'distincts_selects', 'order']
+    drop_tables_directly ['group', 'select', 'values', 'distinct', 'distincts_selects', 'order', 'variables']
   end
 
   # create tables with reserved-word names and columns
@@ -61,6 +66,33 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     #the quoting here will reveal any double quoting issues in change_column's interaction with the column method in the adapter
     assert_nothing_raised { @connection.change_column('group', 'order', :Int, :default => 0) }
     assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
+  end
+
+  # select from table with reserved word column name
+  def test_reserved_column_name_where
+    assert_nothing_raised {Variable.all}
+    assert_nothing_raised {Variable.where(:key => 'foo')}
+  end
+
+  def test_reserved_column_name_order_by
+    var = Variable.create(:key => 'key1', :value => 'val1')
+    var2 = Variable.create(:key => 'key3', :value => 'val3')
+    var3 = Variable.create(:key => 'key2', :value => 'val2')
+
+    assert_nothing_raised ActiveRecord::StatementInvalid do
+      # the column name 'key' is a reserved word and will break
+      # a query if used unquoted in a ORDER BY clause
+      vars_by_key = Variable.order(:key)
+      assert_equal 'key3', vars_by_key.last[:key]
+
+      # testing reverse order important because eventually symbollic names
+      # are converted to strings with ASC / DESC postfixed.
+      vars_by_key = Variable.order(:key).reverse_order
+      assert_equal 'key1', vars_by_key.last[:key]
+
+      vars_by_val = Variable.order(:value)
+      assert_equal 'val3', vars_by_val[2][:value]
+    end
   end
 
   # dump structure of table with reserved word name

@@ -113,6 +113,7 @@ module ActiveRecord
 
       relation = clone
       relation = relation.references(references) if references.any?
+      args = args.map { |arg| Symbol === arg ? connection.quote_column_name(arg) : arg }
       relation.order_values += args
       relation
     end
