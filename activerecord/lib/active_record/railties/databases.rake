@@ -424,7 +424,7 @@ db_namespace = namespace :db do
         end
       when /postgresql/
         set_psql_env(abcs[env])
-        `psql -f "#{filename}" #{abcs[env]['database']} #{abcs[env]['template']}`
+        `psql -f "#{filename}" #{abcs[env]['database']}`
       when /sqlite/
         dbfile = abcs[env]['database']
         `sqlite3 #{dbfile} < "#{filename}"`
