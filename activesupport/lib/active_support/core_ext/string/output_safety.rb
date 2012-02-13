@@ -100,6 +100,12 @@ module ActiveSupport #:nodoc:
       @dirty = other.dirty?
     end
 
+    def clone_empty
+      new_safe_buffer = self[0, 0]
+      new_safe_buffer.instance_variable_set(:@dirty, @dirty)
+      new_safe_buffer
+    end
+
     def concat(value)
       if dirty? || value.html_safe?
         super(value)
