@@ -14,7 +14,6 @@ module Api
 end
 
 class AccountController < ActionController::Base; end
-class AddressesController < ActionController::Base; end
 class ArchiveController < ActionController::Base; end
 class ArticlesController < ActionController::Base; end
 class BarController < ActionController::Base; end
