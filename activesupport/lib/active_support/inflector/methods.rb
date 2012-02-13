@@ -92,7 +92,7 @@ module ActiveSupport
     #   "author_id"       # => "Author"
     def humanize(lower_case_and_underscored_word)
       result = lower_case_and_underscored_word.to_s.dup
-      inflections.humans.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+      inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
       result.gsub!(/_id$/, "")
       result.gsub!(/_/, ' ')
       result.gsub(/([a-z\d]*)/i) { |match|
@@ -311,7 +311,7 @@ module ActiveSupport
       if word.empty? || inflections.uncountables.include?(result.downcase[/\b\w+\Z/])
         result
       else
-        rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+        rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
         result
       end
     end
