@@ -94,7 +94,7 @@ module ActiveSupport
       result = lower_case_and_underscored_word.to_s.dup
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
       result.gsub!(/_id$/, "")
-      result.gsub!(/_/, ' ')
+      result.tr!('_', ' ')
       result.gsub(/([a-z\d]*)/i) { |match|
         "#{inflections.acronyms[match] || match.downcase}"
       }.gsub(/^\w/) { $&.upcase }
@@ -146,7 +146,7 @@ module ActiveSupport
     # Example:
     #   "puni_puni" # => "puni-puni"
     def dasherize(underscored_word)
-      underscored_word.gsub(/_/, '-')
+      underscored_word.tr('_', '-')
     end
 
     # Removes the module part from the expression in the string:
