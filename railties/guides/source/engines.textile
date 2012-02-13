@@ -73,7 +73,13 @@ end
 
 By inheriting from the +Rails::Engine+ class, this gem notifies Rails that there's an engine at the specified path, and will correctly mount the engine inside the application, performing tasks such as adding the +app+ directory of the engine to the load path for models, controllers and views.
 
-The +isolate_namespace+ method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption. It is recommended that this line be left within this file.
+The +isolate_namespace+ method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace, away from similar components inside hte application. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption, or that important engine components could be overriden by similarly named things within the application.
+
+NOTE: It is *highly* recommended that the +isolate_namespace+ line be left within the +Engine+ class definition.
+
+The +isolate_namespace+ line will cause the models, controllers and views to be namespaced for the engine. What this means is that a model called +Post+ would instead be called +Blorgh::Post+, a controller called +PostsController+ would be +Blorgh::Postscontroller+ and the views for that controller would not be at +app/views/posts+, but rather +app/views/blorgh/posts+. In addition to this, the table for the model is namespaced, becoming +blorgh_posts+, rather than simply +posts+.
+
+Finally, routes will also be isolated within the engine. This is discussed later in the "Routes":#routes section of this guide.
 
 h5. +app+ directory
 
