@@ -36,7 +36,7 @@ module ActionView
 
             object.respond_to?(method_before_type_cast) ?
               object.send(method_before_type_cast) :
-              object.send(@method_name)
+              value(object)
           end
         end
 
