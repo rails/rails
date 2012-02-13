@@ -20,6 +20,8 @@ The engine that will be generated for this guide will be called "blorgh". The en
 
 Engines can also be isolated from their host applications. This means that an application is able to have a path provided by a routing helper such as +posts_path+ and use an engine also that provides a path also called +posts_path+, and the two would not clash. Along with this, controllers, models and table names are also namespaced. You'll see how to do this later in this guide.
 
+It's important to keep in mind at all times that the application should *always* take precedence over its engines. An application is the object that has final say in what goes on in the universe, where the engine should only be enhancing it, rather than changing it.
+
 To see demonstrations of other engines, check out "Devise":https://github.com/plataformatec/devise, an engine that provides authentication for its parent applications, or "Forem":https://github.com/radar/forem, an engine that provides forum functionality.
 
 Finally, engines would not have be possible without the work of James Adam, Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever meet them, don't forget to say thanks!
@@ -29,10 +31,16 @@ h3. Generating an engine
 To generate an engine with Rails 3.1, you will need to run the plugin generator and pass it the +--mountable+ option. To generate the beginnings of the "blorgh" engine you will need to run this command in a terminal:
 
 <shell>
-$ rails plugin new blorgh --mountable
+$ rails plugin new blorgh --full --mountable
 </shell>
 
-The +--mountable+ option tells the plugin generator that you want to create an engine (which is a mountable plugin, hence the option name), creating the basic directory structure of an engine by providing things such as the foundations of an +app+ folder, as well a +config/routes.rb+ file. This generator also provides a file at +lib/blorgh/engine.rb+ which is identical in function to an application's +config/application.rb+ file.
+The +--full+ option tells the plugin generator that you want to create an engine (which is a mountable plugin, hence the option name), creating the basic directory structure of an engine by providing things such as the foundations of an +app+ folder, as well a +config/routes.rb+ file. This generator also provides a file at +lib/blorgh/engine.rb+ which is identical in function to an application's +config/application.rb+ file.
+
+The +--mountable+ option tells the generator to mount the engine inside the dummy testing application located at +test/dummy+ inside the engine. It does this by placing this line in to the dummy application's +config/routes.rb+ file:
+
+<ruby>
+mount Blorgh::Engine, :at => "blorgh"
+</ruby>
 
 h4. Inside an engine
 
@@ -63,7 +71,7 @@ module Blorgh
 end
 </ruby>
 
-By inheriting from the +Rails::Engine+ class, this engine gains all the functionality it needs, such as being able to serve requests to its controllers.
+By inheriting from the +Rails::Engine+ class, this gem notifies Rails that there's an engine at the specified path, and will correctly mount the engine inside the application, performing tasks such as adding the +app+ directory of the engine to the load path for models, controllers and views.
 
 The +isolate_namespace+ method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption. It is recommended that this line be left within this file.
 
@@ -92,9 +100,9 @@ Rails.application.routes.draw do
 end
 </ruby>
 
-This line mounts the engine at the path of +/blorgh+, which will make it accessible through the application only at that path. We will look more into mounting an engine after some features have been developed.
+This line mounts the engine at the path of +/blorgh+, which will make it accessible through the application only at that path.
 
-Also in the test directory is the +test/integration+ directory, where integration tests for the engine should be placed.
+Also in the test directory is the +test/integration+ directory, where integration tests for the engine should be placed. Other directories can be created in the +test+ directory also. For example, you may wish to create a +test/unit+ directory for your unit tests.
 
 h3. Providing engine functionality
 
@@ -378,10 +386,10 @@ As described earlier, by placing the gem in the +Gemfile+ it will be loaded when
 To make the engine's functionality accessible from within an application, it needs to be mounted in that application's +config/routes.rb+ file:
 
 <ruby>
-mount Blorgh::Engine, :at => "blog"
+mount Blorgh::Engine, :at => "/blog"
 </ruby>
 
-This line will mount the engine at +blog+ in the application. Making it accessible at +http://localhost:3000/blog+ when the application runs with +rails s+.
+This line will mount the engine at +/blog+ in the application. Making it accessible at +http://localhost:3000/blog+ when the application runs with +rails server+.
 
 NOTE: Other engines, such as Devise, handle this a little differently by making you specify custom helpers such as +devise_for+ in the routes. These helpers do exactly the same thing, mounting pieces of the engines's functionality at a pre-defined path which may be customizable.
 
@@ -391,6 +399,12 @@ The engine contains migrations for the +blorgh_posts+ and +blorgh_comments+ tabl
 
 <shell>
 $ rake blorgh:install:migrations
+</shell>
+
+If you have multiple engines that need migrations copied over, use +railties:install:migrations+ instead:
+
+<shell>
+$ rake railties:install:migrations
 </shell>
 
 This command, when run for the first time will copy over all the migrations from the engine. When run the next time, it will only copy over migrations that haven't been copied over already. The first run for this command will output something such as this:
@@ -486,8 +500,6 @@ Finally, the author's name should be displayed on the post's page. Add this code
 </p>
 </erb>
 
-WARNING: For posts created previously, this will break the +show+ page for them. We recommend deleting these posts and starting again, or manually assigning an author using +rails c+.
-
 By outputting +@post.author+ using the +<%=+ tag the +to_s+ method will be called on the object. By default, this will look quite ugly:
 
 <text>
@@ -550,17 +562,23 @@ h5. General engine configuration
 
 Within an engine, there may come a time where you wish to use things such as initializers, internationalization or other configuration options. The great news is that these things are entirely possible because a Rails engine shares much the same functionality as a Rails application. In fact, a Rails application's functionality is actually a superset of what is provided by engines!
 
-If you wish to use initializers (code that should run before the engine is loaded), the best place for them is the +config/initializers+ folder. This directory's functionality is explained in the "Initializers section":http://guides.rubyonrails.org/configuring.html#initializers of the Configuring guide.
+If you wish to use an initializer -- code that should run before the engine is loaded -- the place for it is the +config/initializers+ folder. This directory's functionality is explained in the "Initializers section":http://guides.rubyonrails.org/configuring.html#initializers of the Configuring guide, and works precisely the same way as the +config/initializers+ directory inside an application.
 
 For locales, simply place the locale files in the +config/locales+ directory, just like you would in an application.
 
-h3. Extending engine functionality
+h3. Testing an engine
+
+When an engine is generated there is a smaller dummy application created inside it at +test/dummy+. This application is used as a mounting point for the engine to make testing the engine extremely simple. You may extend this application by generating controllers, models or views from within the directory, and then use those to test your engine.
+
+The +test+ directory should be treated like a typical Rails testing environment, allowing for unit, functional and integration tests.
+
+h3. Improving engine functionality
 
 This section looks at overriding or adding functionality to the views, controllers and models provided by an engine.
 
 h4. Overriding views
 
-When Rails looks for a view to render, it will first look in the +app/views+ directory of the application. If it cannot find the view there, then it will check in the +app/views+ directories of all engines which have this directory. 
+When Rails looks for a view to render, it will first look in the +app/views+ directory of the application. If it cannot find the view there, then it will check in the +app/views+ directories of all engines which have this directory.
 
 In the +blorgh+ engine, there is a currently a file at +app/views/blorgh/posts/index.html.erb+. When the engine is asked to render the view for +Blorgh::PostsController+'s +index+ action, it will first see if it can find it at +app/views/blorgh/posts/index.html.erb+ within the application and then if it cannot it will look inside the engine.
 
@@ -583,18 +601,9 @@ Rather than looking like the default scaffold, the page will now look like this:
 
 !images/engines_post_override.png(Engine scaffold overriden)!
 
-h4. Controllers
-
-TODO: Explain how to extend a controller.
-IDEA: I like Devise's +devise :controllers => { "sessions" => "sessions" }+ idea. Perhaps we could incorporate that into the guide?
-
-h4. Models
-
-TODO: Explain how to extend models provided by an engine.
-
 h4. Routes
 
-Within the application, you may wish to link to some area within the engine. Due to the fact that the engine's routes are isolated (by the +isolate_namespace+ call within the +lib/blorgh/engine.rb+ file), you will need to prefix these routes with the engine name. This means rather than having something such as:
+Within the application, you may wish to link to some area within the engine. Due to the fact that the engine's routes are isolated (by the +isolate_namespace+ call within the +Rails::Engine+ subclass), you will need to prefix these routes with the engine name. This means rather than having something such as:
 
 <erb>
 <%= link_to "Blog posts", posts_path %>
@@ -606,7 +615,7 @@ It needs to be written as:
 <%= link_to "Blog posts", blorgh.posts_path %>
 </erb>
 
-This allows for the engine _and_ the application to both have a +posts_path+ routing helper and to not interfere with each other. You may also reference another engine's routes from inside an engine using this same syntax.
+This allows for the engine _and_ the application to both have a +posts_path+ routing helper and to not interfere with each other. The +blorgh+ method here acts as a "routing proxy" for the routes of the engine. You may also reference another engine's routes from inside an engine using this same syntax.
 
 If you wish to reference the application inside the engine in a similar way, use the +main_app+ helper:
 
@@ -614,5 +623,34 @@ If you wish to reference the application inside the engine in a similar way, use
 <%= link_to "Home", main_app.root_path %>
 </erb>
 
-TODO: Mention how to use assets within an engine?
-TODO: Mention how to depend on external gems, like RedCarpet.
+If you were to use this inside an engine, it would *always* go to the application's root. If you were to leave off the +main_app+ "routing proxy" method call, it could potentially go to the engine's or application's root, depending on where it was called from.
+
+h4. Assets
+
+Assets within an engine work in much the same way as they do inside an application. Because the engine class inherits from +Rails::Engine+, the application will know to look up in the engine's +app/assets+ directory for potential assets.
+
+Much like all the other components of an engine, the assets should also be namespaced. This means if you have an asset called +style.css+, it should be placed at +app/assets/stylesheets/[engine name]/style.css+, rather than +app/assets/stylesheets/style.css+. If this asset wasn't namespaced, then there is a possibility that the host application could have an asset named identically, in which case the application's asset would take precedence. 
+
+To include this asset inside an application, just use +stylesheet_link_tag+ like normal:
+
+<erb>
+<%= stylesheet_link_tag "blorgh/style.css" %>
+</erb>
+
+h4. Other gem dependencies
+
+Gem dependencies inside an engine should be specified inside the +.gemspec+ file that's at the root of the engine. The reason for this is because the engine may be installed as a gem. If dependencies were to be specified inside the +Gemfile+, these would not be recognised by a traditional gem install and so they would not be installed, causing the engine to malfunction.
+
+To specify a dependency that should be installed with the engine during a traditional +gem install+, specify it inside the +Gem::Specification+ block inside the +.gemspec+ file in the engine:
+
+<ruby>
+s.add_dependency "moo"
+</ruby>
+
+To specify a dependency that should only be installed as a development dependency of the application, specify it like this:
+
+<ruby>
+s.add_development_dependency "moo"
+</ruby>
+
+Both kinds of dependencies will be installed when +bundle install+ is run inside the application. The development dependencies for the gem will only be used when the tests for the engine are running.
