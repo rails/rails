@@ -4,7 +4,7 @@ require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/postgresql/oid'
 
 # Make sure we're using pg high enough for PGResult#values
-gem 'pg', '~> 0.11'
+gem 'pg', '~> 0.13'
 require 'pg'
 
 module ActiveRecord
@@ -402,7 +402,7 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        @connection.status == PGconn::CONNECTION_OK
+        !@connection.finished? && @connection.status == PGconn::CONNECTION_OK
       rescue PGError
         false
       end
@@ -423,7 +423,7 @@ module ActiveRecord
       # method does nothing.
       def disconnect!
         clear_cache!
-        @connection.close rescue nil
+        @connection.close rescue nil unless @connection.finished?
       end
 
       def native_database_types #:nodoc:
