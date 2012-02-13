@@ -549,6 +549,14 @@ module ActionView
       end
       alias phone_field_tag telephone_field_tag
 
+      # Creates a text field of type "date".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def date_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
+      end
+
       # Creates a text field of type "url".
       #
       # ==== Options
