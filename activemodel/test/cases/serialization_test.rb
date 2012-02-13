@@ -58,17 +58,17 @@ class SerializationTest < ActiveModel::TestCase
   end
 
   def test_method_serializable_hash_should_work_with_methods_option
-    expected = {"name"=>"David", "gender"=>"male", :foo=>"i_am_foo", "email"=>"david@example.com"}
+    expected = {"name"=>"David", "gender"=>"male", "foo"=>"i_am_foo", "email"=>"david@example.com"}
     assert_equal expected, @user.serializable_hash(:methods => [:foo])
   end
 
   def test_method_serializable_hash_should_work_with_only_and_methods
-    expected = {:foo=>"i_am_foo"}
+    expected = {"foo"=>"i_am_foo"}
     assert_equal expected, @user.serializable_hash(:only => [], :methods => [:foo])
   end
 
   def test_method_serializable_hash_should_work_with_except_and_methods
-    expected = {"gender"=>"male", :foo=>"i_am_foo"}
+    expected = {"gender"=>"male", "foo"=>"i_am_foo"}
     assert_equal expected, @user.serializable_hash(:except => [:name, :email], :methods => [:foo])
   end
 
