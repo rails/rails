@@ -116,4 +116,13 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_not_nil dirty
     assert !dirty
   end
+
+  test "clone_empty returns an empty buffer" do
+    assert_equal '', ActiveSupport::SafeBuffer.new('foo').clone_empty
+  end
+
+  test "clone_empty keeps the original dirtyness" do
+    assert @buffer.clone_empty.html_safe?
+    assert !@buffer.gsub!('', '').clone_empty.html_safe?
+  end
 end
