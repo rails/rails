@@ -169,7 +169,7 @@ Blorgh::Engine.routes.draw do
 end
 </ruby>
 
-Note here that the routes are drawn upon the +Blorgh::Engine+ object rather than the +YourApp::Application+ class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the "test directory":#test-directory section.
+Note here that the routes are drawn upon the +Blorgh::Engine+ object rather than the +YourApp::Application+ class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the "test directory":#test-directory section. This is discussed further in the "Routes":#routes section of this guide.
 
 Next, the +scaffold_controller+ generator is invoked, generating a controlled called +Blorgh::PostsController+ (at +app/controllers/blorgh/posts_controller.rb+) and its related views at +app/views/blorgh/posts+. This generator also generates a functional test for the controller (+test/functional/blorgh/posts_controller_test.rb+) and a helper (+app/helpers/blorgh/posts_controller.rb+).
 
@@ -609,19 +609,29 @@ Rather than looking like the default scaffold, the page will now look like this:
 
 h4. Routes
 
-Within the application, you may wish to link to some area within the engine. Due to the fact that the engine's routes are isolated (by the +isolate_namespace+ call within the +Rails::Engine+ subclass), you will need to prefix these routes with the engine name. This means rather than having something such as:
+Routes inside an engine are, by default, isolated from the application. This is done by the +isolate_namespace+ call inside the +Engine+ class. This essentially means that the application and its engines can have identically named routes, and that they will not clash.
+
+Routes inside an engine are drawn on the +Engine+ class within +config/routes.rb+, like this:
+
+<ruby>
+  Blorgh::Engine.routes.draw do
+    resources :posts
+  end
+</ruby>
+
+By having isolated routes such as this, if you wish to link to an area of an engine from within an application, you will need to use the engine's routing proxy method. Calls to normal routing methods such as +posts_path+ may end up going to undesired locations if both the application and the engine both have such a helper defined.
+
+For instance, the following example would go to the application's +posts_path+ if that template was rendered from the application, or the engine's +posts_path+ if it was rendered from the engine:
 
 <erb>
 <%= link_to "Blog posts", posts_path %>
 </erb>
 
-It needs to be written as:
+To make this route always use the engine's +posts_path+ routing helper method, we must call the method on the routing proxy method that shares the same name as the engine.
 
 <erb>
 <%= link_to "Blog posts", blorgh.posts_path %>
 </erb>
-
-This allows for the engine _and_ the application to both have a +posts_path+ routing helper and to not interfere with each other. The +blorgh+ method here acts as a "routing proxy" for the routes of the engine. You may also reference another engine's routes from inside an engine using this same syntax.
 
 If you wish to reference the application inside the engine in a similar way, use the +main_app+ helper:
 
@@ -630,6 +640,8 @@ If you wish to reference the application inside the engine in a similar way, use
 </erb>
 
 If you were to use this inside an engine, it would *always* go to the application's root. If you were to leave off the +main_app+ "routing proxy" method call, it could potentially go to the engine's or application's root, depending on where it was called from.
+
+If a template is rendered from within an engine and it's attempting to use one of the application's routing helper methods, it may result in an undefined method call. If you encounter such an issue, ensure that you're not attempting to call the application's routing methods without the +main_app+ prefix from within the engine.
 
 h4. Assets
 
