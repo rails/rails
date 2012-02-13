@@ -113,12 +113,6 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_kind_of NilClass, @buffer.slice("chipchop")
   end
 
-  test "Should initialize @dirty to false for new instance when sliced" do
-    dirty = @buffer[0,0].send(:dirty?)
-    assert_not_nil dirty
-    assert !dirty
-  end
-
   test "clone_empty returns an empty buffer" do
     assert_equal '', ActiveSupport::SafeBuffer.new('foo').clone_empty
   end

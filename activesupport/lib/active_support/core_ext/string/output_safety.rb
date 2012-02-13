@@ -103,12 +103,6 @@ module ActiveSupport #:nodoc:
       end
     end
 
-    def[](*args)
-      new_safe_buffer = super
-      new_safe_buffer.instance_eval { @dirty = false }
-      new_safe_buffer
-    end
-
     def safe_concat(value)
       raise SafeConcatError if dirty?
       original_concat(value)
