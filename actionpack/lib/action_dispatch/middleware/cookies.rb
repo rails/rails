@@ -303,7 +303,7 @@ module ActionDispatch
       end
     end
 
-    # Base class for the signed and enrypted cookie jar.
+    # Base class for the signed and encrypted cookie jar.
     class SecretCookieJar < CookieJar #:nodoc:
       MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
       SECRET_MIN_LENGTH = 30 # Characters
