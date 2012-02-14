@@ -6,7 +6,6 @@ rescue LoadError => e
 end
 
 require 'digest/md5'
-require 'active_support/core_ext/string/encoding'
 
 module ActiveSupport
   module Cache
