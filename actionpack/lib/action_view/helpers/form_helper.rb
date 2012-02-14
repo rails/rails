@@ -1084,14 +1084,14 @@ module ActionView
       #   <% end %>
       #
       # In the example above, if @post is a new record, it will use "Create Post" as
-      # submit button label, otherwise, it uses "Update Post".
+      # button label, otherwise, it uses "Update Post".
       #
-      # Those labels can be customized using I18n, under the helpers.submit key and accept
-      # the %{model} as translation interpolation:
+      # Those labels can be customized using I18n, under the helpers.submit key
+      # (the same as submit helper) and accept the %{model} as translation interpolation:
       #
       #   en:
       #     helpers:
-      #       button:
+      #       submit:
       #         create: "Create a %{model}"
       #         update: "Confirm changes to %{model}"
       #
@@ -1099,7 +1099,7 @@ module ActionView
       #
       #   en:
       #     helpers:
-      #       button:
+      #       submit:
       #         post:
       #           create: "Add %{model}"
       #
