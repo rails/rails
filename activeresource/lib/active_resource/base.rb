@@ -588,6 +588,12 @@ module ActiveResource
 
       def headers
         @headers ||= {}
+        
+        if superclass != Object && superclass.headers
+          @headers = superclass.headers.merge(@headers)
+        else
+          @headers
+        end
       end
 
       attr_writer :element_name
