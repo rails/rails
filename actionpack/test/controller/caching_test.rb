@@ -237,6 +237,7 @@ class ActionCachingTestController < CachingController
   caches_action :with_format_and_http_param, :cache_path => Proc.new { |c| { :key => 'value' } }
   caches_action :layout_false, :layout => false
   caches_action :record_not_found, :four_oh_four, :simple_runtime_error
+  caches_action :streaming
 
   layout 'talk_from_action'
 
@@ -295,6 +296,10 @@ class ActionCachingTestController < CachingController
   def expire_with_url_string
     expire_action url_for(:controller => 'action_caching_test', :action => 'index')
     render :nothing => true
+  end
+
+  def streaming
+    render :text => "streaming", :stream => true
   end
 end
 
@@ -645,6 +650,13 @@ class ActionCacheTest < ActionController::TestCase
     assert_response 500
     get :simple_runtime_error
     assert_response 500
+  end
+
+  def test_action_caching_plus_streaming
+    get :streaming
+    assert_response :success
+    assert_match(/streaming/, @response.body)
+    assert fragment_exist?('hostname.com/action_caching_test/streaming')
   end
 
   private

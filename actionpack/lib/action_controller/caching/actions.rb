@@ -103,8 +103,10 @@ module ActionController #:nodoc:
       end
 
       def _save_fragment(name, options)
-        content = response_body
-        content = content.join if content.is_a?(Array)
+        content = ""
+        response_body.each do |parts|
+          content << parts
+        end
 
         if caching_allowed?
           write_fragment(name, content, options)
