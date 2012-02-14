@@ -162,6 +162,9 @@ db_namespace = namespace :db do
     else
       raise "unknown schema format #{ActiveRecord::Base.schema_format}"
     end
+    # Allow this task to be called as many times as required. An example is the
+    # migrate:redo task, which calls other two internally that depend on this one.
+    db_namespace['_dump'].reenable
   end
 
   namespace :migrate do
@@ -612,7 +615,7 @@ def firebird_db_string(config)
 end
 
 def set_psql_env(config)
-  ENV['PGHOST']     = config['host']          if config['host'] 
+  ENV['PGHOST']     = config['host']          if config['host']
   ENV['PGPORT']     = config['port'].to_s     if config['port']
   ENV['PGPASSWORD'] = config['password'].to_s if config['password']
   ENV['PGUSER']     = config['username'].to_s if config['username']
