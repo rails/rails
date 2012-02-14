@@ -237,6 +237,31 @@ module ActionDispatch
         @signed ||= SignedCookieJar.new(self, @secret)
       end
 
+      # Returns a jar that'll automatically encrypt cookies values before writing them and decrypt the values when reading. If the
+      # cookie is tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
+      # be raised. If the cookie is verified, but unable to be decrypted, an ActiveSupport::MessageEncryptor::InvalidMessage
+      # exception will be raised.
+      #
+      # This jar requires that you set a suitable secret for the verification on your app's config.secret_token.
+      #
+      # Example:
+      #
+      #     cookies.encypted[:encrypted_cookie] = "you don't know what this says"
+      #     # => Set-Cookie: LSuus8pkXd...ckqiG6qGlwuhSQn--4Eb16w1z7ouNXQZAxV5Bjw==; path=/; expires=Sun, 27-Mar-2011 03:24:16 GMT
+      #
+      # This jar allows chaining with other jars as well, so you can set permanent, encrypted cookies. Examples:
+      #
+      #     cookies.permanent.encypted[:encrypted_permanent] = "you don't know what this says, but it will be here for 20 years"
+      #     # => Set-Cookie: Sok2G6hGs...XFeUpDWQLT8=--UZe+JlZPlMuxHYSq09oV0w==; path=/; expires=Thu, 27 Mar 2031 13:48:43 GMT
+      #
+      # To read encypted cookies:
+      #
+      #     cookies.encrypted[:encrypted_cookie] # => "you don't know what this says"
+      #     cookies.encrypted[:encrypted_permanent] # => "you don't know what this says, but it will be here for 20 years"
+      def encrypted
+        @encrypted ||= EncryptedCookieJar.new(self, @secret)
+      end
+
       def write(headers)
         @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) if write_cookie?(v) }
         @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
@@ -273,44 +298,21 @@ module ActionDispatch
         @parent_jar[key] = options
       end
 
-      def signed
-        @signed ||= SignedCookieJar.new(self, @secret)
-      end
-
       def method_missing(method, *arguments, &block)
         @parent_jar.send(method, *arguments, &block)
       end
     end
 
-    class SignedCookieJar < CookieJar #:nodoc:
+    # Base class for the signed and enrypted cookie jar.
+    class SecretCookieJar < CookieJar #:nodoc:
       MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
       SECRET_MIN_LENGTH = 30 # Characters
 
       def initialize(parent_jar, secret)
         ensure_secret_secure(secret)
         @parent_jar = parent_jar
-        @verifier   = ActiveSupport::MessageVerifier.new(secret)
       end
 
-      def [](name)
-        if signed_message = @parent_jar[name]
-          @verifier.verify(signed_message)
-        end
-      rescue ActiveSupport::MessageVerifier::InvalidSignature
-        nil
-      end
-
-      def []=(key, options)
-        if options.is_a?(Hash)
-          options.symbolize_keys!
-          options[:value] = @verifier.generate(options[:value])
-        else
-          options = { :value => @verifier.generate(options) }
-        end
-
-        raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
-        @parent_jar[key] = options
-      end
 
       def method_missing(method, *arguments, &block)
         @parent_jar.send(method, *arguments, &block)
@@ -335,6 +337,62 @@ module ActionDispatch
             "provided, \"#{secret}\", is shorter than the minimum length " +
             "of #{SECRET_MIN_LENGTH} characters"
         end
+      end
+    end
+
+    class SignedCookieJar < SecretCookieJar #:nodoc:
+      def initialize(parent_jar, secret)
+        super(parent_jar, secret)
+        @verifier   = ActiveSupport::MessageVerifier.new(secret)
+      end
+
+      def [](name)
+        if signed_message = @parent_jar[name]
+          @verifier.verify(signed_message)
+        end
+      rescue ActiveSupport::MessageVerifier::InvalidSignature
+        nil
+      end
+
+      def []=(key, options)
+        if options.is_a?(Hash)
+          options.symbolize_keys!
+          options[:value] = @verifier.generate(options[:value])
+        else
+          options = { :value => @verifier.generate(options) }
+        end
+
+        raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
+        @parent_jar[key] = options
+      end
+    end
+
+    class EncryptedCookieJar < SecretCookieJar #:nodoc:
+      def initialize(parent_jar, secret)
+        super(parent_jar, secret)
+        @encrypter  = ActiveSupport::MessageEncryptor.new(secret)
+      end
+
+      def [](name)
+        if encrypted_message = @parent_jar[name]
+          @encrypter.decrypt_and_verify(encrypted_message)
+        end
+      rescue ActiveSupport::MessageVerifier::InvalidSignature
+        nil
+      rescue ActiveSupport::MessageEncryptor::InvalidMessage
+        nil
+      end
+
+      def []=(key, options)
+        if options.is_a?(Hash)
+          options.symbolize_keys!
+          options[:value] = @encrypter.encrypt_and_sign(options[:value])
+        else
+          options = { :value => @encrypter.encrypt_and_sign(options) }
+        end
+
+        raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
+        @parent_jar[key] = options
       end
     end
 
