@@ -1,6 +1,5 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
-require 'active_support/core_ext/string/encoding'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
