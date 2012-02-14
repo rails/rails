@@ -14,9 +14,9 @@ module ActionView
         end
 
         def render
-          rendered_collection = render_collection do |value, text, default_html_options|
+          rendered_collection = render_collection do |item, value, text, default_html_options|
             default_html_options[:multiple] = true
-            builder = instantiate_builder(CheckBoxBuilder, value, text, default_html_options)
+            builder = instantiate_builder(CheckBoxBuilder, item, value, text, default_html_options)
 
             if block_given?
               yield builder
