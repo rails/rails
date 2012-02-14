@@ -526,7 +526,7 @@ module ActiveRecord
         execute_and_free("SHOW CREATE TABLE #{quote_table_name(table)}", 'SCHEMA') do |result|
           create_table = each_hash(result).first[:"Create Table"]
           if create_table.to_s =~ /PRIMARY KEY\s+\((.+)\)/
-            keys = $1.split(",").map { |key| key.tr('`"', "") }
+            keys = $1.split(",").map { |key| key.delete('`"') }
             keys.length == 1 ? [keys.first, nil] : nil
           else
             nil
