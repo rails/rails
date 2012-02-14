@@ -1,5 +1,9 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Rename field_changed? to _field_changed? so that users can create a field named field
+
+    *Akira Matsuda*, backported by *Steve Klabnik*
+
 *   Fix creation of through association models when using `collection=[]`
     on a `has_many :through` association from an unsaved model.
     Fix #7661.
