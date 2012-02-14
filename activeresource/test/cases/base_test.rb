@@ -473,17 +473,6 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal nil, fruit.headers['key2']
   end
 
-  def test_header_inheritance_should_not_leak_upstream
-    fruit = Class.new(ActiveResource::Base)
-    apple = Class.new(fruit)
-    fruit.site = 'http://market'
-
-    fruit.headers['key'] = 'value'
-
-    apple.headers['key2'] = 'value2'
-    assert_equal nil, fruit.headers['key2']
-  end
-
   ########################################################################
   # Tests for setting up remote URLs for a given model (including adding
   # parameters appropriately)
