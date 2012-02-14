@@ -3,13 +3,14 @@ module ActionView
     module Tags
       module CollectionHelpers
         class Builder
-          attr_reader :text, :value
+          attr_reader :object, :text, :value
 
-          def initialize(template_object, object_name, method_name,
+          def initialize(template_object, object_name, method_name, object,
                          sanitized_attribute_name, text, value, input_html_options)
             @template_object = template_object
             @object_name = object_name
             @method_name = method_name
+            @object = object
             @sanitized_attribute_name = sanitized_attribute_name
             @text = text
             @value = value
@@ -32,8 +33,8 @@ module ActionView
 
         private
 
-        def instantiate_builder(builder_class, value, text, html_options)
-          builder_class.new(@template_object, @object_name, @method_name,
+        def instantiate_builder(builder_class, item, value, text, html_options)
+          builder_class.new(@template_object, @object_name, @method_name, item,
                             sanitize_attribute_name(value), text, value, html_options)
         end
 
@@ -71,7 +72,7 @@ module ActionView
             text  = value_for_collection(item, @text_method)
             default_html_options = default_html_options_for_collection(item, value)
 
-            yield value, text, default_html_options
+            yield item, value, text, default_html_options
           end.join.html_safe
         end
       end
