@@ -246,7 +246,7 @@ module ActionDispatch
       #
       # Example:
       #
-      #     cookies.encypted[:encrypted_cookie] = "you don't know what this says"
+      #     cookies.encrypted[:encrypted_cookie] = "you don't know what this says"
       #     # => Set-Cookie: LSuus8pkXd...ckqiG6qGlwuhSQn--4Eb16w1z7ouNXQZAxV5Bjw==; path=/; expires=Sun, 27-Mar-2011 03:24:16 GMT
       #
       # This jar allows chaining with other jars as well, so you can set permanent, encrypted cookies. Examples:
