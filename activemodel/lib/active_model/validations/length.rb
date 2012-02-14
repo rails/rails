@@ -1,5 +1,3 @@
-require "active_support/core_ext/string/encoding"
-
 module ActiveModel
 
   # == Active Model Length Validator
