@@ -535,3 +535,36 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal old_env, env
   end
 end
+
+class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
+  class TestController < ActionController::Base
+    def post
+      render :text => "Created", :status => 201
+    end
+  end
+
+  def self.call(env)
+    env["action_dispatch.parameter_filter"] = [:password]
+    routes.call(env)
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  routes.draw do
+    match '/post', :to => 'environment_filter_integration_test/test#post', :via => :post
+  end
+
+  def app
+    self.class
+  end
+
+  test "filters rack request form vars" do
+    post "/post", :username => 'cjolly', :password => 'secret'
+
+    assert_equal 'cjolly', request.filtered_parameters['username']
+    assert_equal '[FILTERED]', request.filtered_parameters['password']
+    assert_equal '[FILTERED]', request.filtered_env['rack.request.form_vars']
+  end
+end
