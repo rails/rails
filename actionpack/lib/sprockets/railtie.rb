@@ -24,7 +24,7 @@ module Sprockets
         env.version = ::Rails.env + "-#{config.assets.version}"
 
         if config.assets.logger != false
-          env.logger  = config.assets.logger || ::Rails.logger
+          env.logger = config.assets.logger || ::Rails.logger
         end
 
         if config.assets.cache_store != false

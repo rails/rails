@@ -760,4 +760,9 @@ end
 
 Course.connection.create_table :courses, :force => true do |t|
   t.column :name, :string, :null => false
+  t.column :college_id, :integer
+end
+
+College.connection.create_table :colleges, :force => true do |t|
+  t.column :name, :string, :null => false
 end

@@ -1,8 +1,10 @@
 require "cases/helper"
+
 require 'models/developer'
 require 'models/project'
 require 'models/company'
 require 'models/topic'
+require 'models/reply'
 require 'models/computer'
 require 'models/customer'
 require 'models/order'
