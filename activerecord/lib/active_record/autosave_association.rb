@@ -140,6 +140,23 @@ module ActiveRecord
         CODE
       end
 
+      def define_non_cyclic_method(name, reflection, &block)
+        define_method(name) do |*args|
+          result = true; @_already_called ||= {}
+          # Loop prevention for validation of associations
+          unless @_already_called[[name, reflection.name]]
+            begin
+              @_already_called[[name, reflection.name]]=true
+              result = instance_eval(&block)
+            ensure
+              @_already_called[[name, reflection.name]]=false
+            end
+          end
+
+          result
+        end
+      end
+
       # Adds validation and save callbacks for the association as specified by
       # the +reflection+.
       #
@@ -169,7 +186,7 @@ module ActiveRecord
               define_method(save_method) { save_has_one_association(reflection) }
               after_save save_method
             else
-              define_method(save_method) { save_belongs_to_association(reflection) }
+              define_non_cyclic_method(save_method, reflection) { save_belongs_to_association(reflection) }
               before_save save_method
             end
           end
