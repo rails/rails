@@ -155,6 +155,32 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal 'Not Found', get(URI('http://example.org/journey/omg-faithfully'))
   end
 
+  def test_star_paths_are_greedy
+    rs.draw do
+      match "/(*filters)", :to => lambda { |env|
+        x = env["action_dispatch.request.path_parameters"][:filters]
+        [200, {}, [x]]
+      }, :format => false
+    end
+
+    u = URI('http://example.org/ne_27.065938,-80.6092/sw_25.489856,-82.542794')
+    assert_equal u.path.sub(/^\//, ''), get(u)
+  end
+
+  def test_star_paths_are_greedy_but_not_too_much
+    rs.draw do
+      match "/(*filters).:format", :to => lambda { |env|
+        x = JSON.dump env["action_dispatch.request.path_parameters"]
+        [200, {}, [x]]
+      }
+    end
+
+    expected = { "filters" => "ne_27.065938,-80.6092/sw_25.489856,-82",
+                 "format"  => "542794" }
+    u = URI('http://example.org/ne_27.065938,-80.6092/sw_25.489856,-82.542794')
+    assert_equal expected, JSON.parse(get(u))
+  end
+
   def test_regexp_precidence
     @rs.draw do
       match '/whois/:domain', :constraints => {
