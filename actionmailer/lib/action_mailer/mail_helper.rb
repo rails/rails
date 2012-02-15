@@ -3,9 +3,9 @@ module ActionMailer
     # Uses Text::Format to take the text and format it, indented two spaces for
     # each line, and wrapped at 72 columns.
     def block_format(text)
-      formatted = text.split(/\n\r\n/).collect { |paragraph|
+      formatted = text.split(/\n\r?\n/).collect { |paragraph|
         format_paragraph(paragraph)
-      }.join("\n")
+      }.join("\n\n")
 
       # Make list points stand on their own line
       formatted.gsub!(/[ ]*([*]+) ([^*]*)/) { |s| "  #{$1} #{$2.strip}\n" }
