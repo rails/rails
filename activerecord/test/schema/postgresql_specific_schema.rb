@@ -1,14 +1,19 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_tsvectors postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
+  %w(postgresql_tsvectors postgresql_arrays postgresql_domains postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
       postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones).each do |table_name|
-    execute "DROP TABLE  IF EXISTS #{quote_table_name table_name}"
+    execute "DROP TABLE  IF EXISTS #{quote_table_name table_name} CASCADE"
   end
 
   execute 'DROP SEQUENCE IF EXISTS companies_nonstd_seq CASCADE'
   execute 'CREATE SEQUENCE companies_nonstd_seq START 101 OWNED BY companies.id'
   execute "ALTER TABLE companies ALTER COLUMN id SET DEFAULT nextval('companies_nonstd_seq')"
   execute 'DROP SEQUENCE IF EXISTS companies_id_seq'
+
+  execute 'DROP DOMAIN IF EXISTS custom_money CASCADE'
+  execute 'CREATE DOMAIN custom_money numeric(19, 2) CONSTRAINT not_negative CHECK (VALUE >= 0)'
+  execute 'DROP DOMAIN IF EXISTS email_address CASCADE'
+  execute "CREATE DOMAIN email_address TEXT CONSTRAINT valid_email_address_format CHECK (VALUE ~ '.com')"
 
   %w(accounts_id_seq developers_id_seq projects_id_seq topics_id_seq customers_id_seq orders_id_seq).each do |seq_name|
     execute "SELECT setval('#{seq_name}', 100)"
@@ -53,6 +58,14 @@ _SQL
     id SERIAL PRIMARY KEY,
     commission_by_quarter INTEGER[],
     nicknames TEXT[]
+  );
+_SQL
+
+  execute <<_SQL
+  CREATE TABLE postgresql_domains (
+    id SERIAL PRIMARY KEY,
+    amount custom_money,
+    email email_address
   );
 _SQL
 
