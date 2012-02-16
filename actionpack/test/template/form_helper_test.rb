@@ -540,6 +540,24 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, date_field("post", "written_on"))
   end
 
+  def test_month_field_with_value
+    @post.written_on = '2004-06'
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
+    assert_dom_equal(expected, month_field("post", "written_on"))
+  end
+
+  def test_month_field_with_blank_value
+    @post.written_on = ''
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="" />}
+    assert_dom_equal(expected, month_field("post", "written_on"))
+  end
+
+  def test_month_field_with_nil_value
+    @post.written_on = nil
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" />}
+    assert_dom_equal(expected, month_field("post", "written_on"))
+  end
+
   def test_url_field
     expected = %{<input id="user_homepage" size="30" name="user[homepage]" type="url" />}
     assert_dom_equal(expected, url_field("user", "homepage"))
