@@ -121,6 +121,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert keyboard.respond_to?('id')
   end
 
+  def test_id_before_type_cast_with_custom_primary_key
+    keyboard = Keyboard.create
+    keyboard.key_number = '10'
+    assert_equal '10', keyboard.id_before_type_cast
+    assert_equal nil, keyboard.read_attribute_before_type_cast('id')
+    assert_equal '10', keyboard.read_attribute_before_type_cast('key_number')
+  end
+
   # Syck calls respond_to? before actually calling initialize
   def test_respond_to_with_allocated_object
     topic = Topic.allocate
