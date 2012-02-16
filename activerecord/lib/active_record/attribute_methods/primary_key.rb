@@ -1,3 +1,5 @@
+require 'set'
+
 module ActiveRecord
   module AttributeMethods
     module PrimaryKey
@@ -24,6 +26,11 @@ module ActiveRecord
         query_attribute(self.class.primary_key)
       end
 
+      # Returns the primary key value before type cast
+      def id_before_type_cast
+        read_attribute_before_type_cast('id')
+      end
+
       protected
 
       def attribute_method?(attr_name)
@@ -45,8 +52,10 @@ module ActiveRecord
           end
         end
 
+        ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast).to_set
+
         def dangerous_attribute_method?(method_name)
-          super && !['id', 'id=', 'id?'].include?(method_name)
+          super && !ID_ATTRIBUTE_METHODS.include?(method_name)
         end
 
         # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the
