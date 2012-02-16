@@ -5,6 +5,9 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   class FakeConsole
   end
 
+  def setup
+  end
+
   def test_sandbox_option
     console = Rails::Console.new(app, ["--sandbox"])
     assert console.sandbox?
@@ -32,7 +35,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     start
 
-    assert_match /Loading development environment \(Rails/, output
+    assert_match /Loading \w+ environment \(Rails/, output
   end
 
   def test_start_with_debugger
@@ -49,7 +52,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     start ["--sandbox"]
 
-    assert_match /Loading development environment in sandbox \(Rails/, output
+    assert_match /Loading \w+ environment in sandbox \(Rails/, output
   end
 
   def test_console_defaults_to_IRB
