@@ -13,21 +13,24 @@ module ActiveRecord
     autoload :Column
     autoload :ConnectionSpecification
 
-    autoload_under 'abstract' do
-      autoload :IndexDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :ColumnDefinition, 'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :TableDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :Table,            'active_record/connection_adapters/abstract/schema_definitions'
+    autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
+      autoload :IndexDefinition
+      autoload :ColumnDefinition
+      autoload :TableDefinition
+      autoload :Table
+    end
 
+    autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
+      autoload :ConnectionHandler
+      autoload :ConnectionManagement
+    end
+
+    autoload_under 'abstract' do
       autoload :SchemaStatements
       autoload :DatabaseStatements
       autoload :DatabaseLimits
       autoload :Quoting
-
       autoload :ConnectionPool
-      autoload :ConnectionHandler,       'active_record/connection_adapters/abstract/connection_pool'
-      autoload :ConnectionManagement,    'active_record/connection_adapters/abstract/connection_pool'
-
       autoload :QueryCache
     end
 
