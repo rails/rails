@@ -334,7 +334,7 @@ module ActiveRecord
       end
 
       def connection_pools
-        @connection_pools[$$]
+        @connection_pools[Process.pid]
       end
 
       def establish_connection(name, spec)
@@ -409,20 +409,20 @@ module ActiveRecord
       private
 
       def class_to_pool
-        @class_to_pool[$$]
+        @class_to_pool[Process.pid]
       end
 
       def set_pool_for_spec(spec, pool)
-        @connection_pools[$$][spec] = pool
+        @connection_pools[Process.pid][spec] = pool
       end
 
       def set_class_to_pool(name, pool)
-        @class_to_pool[$$][name] = pool
+        @class_to_pool[Process.pid][name] = pool
         pool
       end
 
       def get_pool_for_class(klass)
-        @class_to_pool[$$].fetch(klass) {
+        @class_to_pool[Process.pid].fetch(klass) {
           c_to_p = @class_to_pool.values.find { |class_to_pool|
             class_to_pool[klass]
           }

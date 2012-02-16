@@ -359,7 +359,7 @@ module ActiveRecord
 
         private
         def cache
-          @cache[$$]
+          @cache[Process.pid]
         end
 
         def dealloc(key)
