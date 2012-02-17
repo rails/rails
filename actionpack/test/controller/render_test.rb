@@ -1433,6 +1433,13 @@ class ExpiresInRenderTest < ActionController::TestCase
     get :conditional_hello_with_expires_now
     assert_equal "no-cache", @response.headers["Cache-Control"]
   end
+
+  def test_date_header_when_expires_in
+    time = Time.mktime(2011,10,30)
+    Time.stubs(:now).returns(time)
+    get :conditional_hello_with_expires_in
+    assert_equal Time.now.httpdate, @response.headers["Date"]
+  end
 end
 
 class LastModifiedRenderTest < ActionController::TestCase

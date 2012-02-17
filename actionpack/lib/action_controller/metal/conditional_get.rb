@@ -115,6 +115,8 @@ module ActionController
     #
     # This method will overwrite an existing Cache-Control header.
     # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
+    #
+    # The method will also ensure a HTTP Date header for client compatibility.
     def expires_in(seconds, options = {}) #:doc:
       response.cache_control.merge!(
         :max_age         => seconds,
@@ -124,6 +126,7 @@ module ActionController
       options.delete(:private)
 
       response.cache_control[:extras] = options.map {|k,v| "#{k}=#{v}"}
+      response.date = Time.now unless response.date?
     end
 
     # Sets a HTTP 1.1 Cache-Control header of <tt>no-cache</tt> so no caching should occur by the browser or
