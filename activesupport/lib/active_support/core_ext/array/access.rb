@@ -19,6 +19,14 @@ class Array
     self.first position + 1
   end
 
+  # Just like regular <tt>Array#first</tt> but it can take a block
+  def first(position=nil)
+    raise ArgumentError, 'negative array size' if position && position < 0
+    ary = self
+    ary = ary.select {|i| yield(i)} if block_given?
+    position ? ary[0, position] : ary[0]
+  end
+
   # Equal to <tt>self[1]</tt>.
   def second
     self[1]
