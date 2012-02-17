@@ -25,9 +25,8 @@ module Arel
               SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
                 FROM (#{sql}) raw_sql_
-                WHERE rownum <= #{offset.expr.to_i + limit}
               )
-              WHERE #{visit offset}
+              WHERE raw_rnum_ between #{offset.expr.to_i + 1 } and #{offset.expr.to_i + limit}
           eosql
         end
 
