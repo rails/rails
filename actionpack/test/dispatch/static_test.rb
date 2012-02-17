@@ -35,6 +35,10 @@ module StaticTests
     assert_html "means hello in Japanese\n", get("/foo/#{Rack::Utils.escape("こんにちは.html")}")
   end
 
+  def test_serves_static_file_with_plus_in_filename
+    assert_html "foo+bar\n", get('/foo/foo%2Bbar.html')
+  end
+
   private
 
     def assert_html(body, response)
