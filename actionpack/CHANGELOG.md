@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add an encrypted cookie jar. It can be used like the signed cookies.
+    Example:
+
+        cookies.encrypted[:buried_treasure] = "X marks the spot"
+        cookies.permanent.encrypted[:encrypted_permanent] = "X marks the spot... forever"
+
+    *Les Fletcher*
+
 *   Add `date_field` and `date_field_tag` helpers which render an `input[type="date"]` tag *Olek Janiszewski*
 
 *   Adds `image_url`, `javascript_url`, `stylesheet_url`, `audio_url`, `video_url`, and `font_url`
