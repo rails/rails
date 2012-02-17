@@ -91,6 +91,16 @@ class TestController < ActionController::Base
     render :action => 'hello_world'
   end
 
+  def conditional_hello_with_expires_in_with_must_revalidate
+    expires_in 1.minute, :must_revalidate => true
+    render :action => 'hello_world'
+  end
+
+  def conditional_hello_with_expires_in_with_public_and_must_revalidate
+    expires_in 1.minute, :public => true, :must_revalidate => true
+    render :action => 'hello_world'
+  end
+
   def conditional_hello_with_expires_in_with_public_with_more_keys
     expires_in 1.minute, :public => true, 'max-stale' => 5.hours
     render :action => 'hello_world'
@@ -1397,6 +1407,16 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_expires_in_header_with_public
     get :conditional_hello_with_expires_in_with_public
     assert_equal "max-age=60, public", @response.headers["Cache-Control"]
+  end
+
+  def test_expires_in_header_with_must_revalidate
+    get :conditional_hello_with_expires_in_with_must_revalidate
+    assert_equal "max-age=60, private, must-revalidate", @response.headers["Cache-Control"]
+  end
+
+  def test_expires_in_header_with_public_and_must_revalidate
+    get :conditional_hello_with_expires_in_with_public_and_must_revalidate
+    assert_equal "max-age=60, public, must-revalidate", @response.headers["Cache-Control"]
   end
 
   def test_expires_in_header_with_additional_headers

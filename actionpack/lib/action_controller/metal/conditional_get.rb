@@ -110,13 +110,17 @@ module ActionController
     #
     # Examples:
     #   expires_in 20.minutes
-    #   expires_in 3.hours, :public => true
+    #   expires_in 3.hours, :public => true, :must_revalidate => true
     #   expires_in 3.hours, 'max-stale' => 5.hours, :public => true
     #
     # This method will overwrite an existing Cache-Control header.
     # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     def expires_in(seconds, options = {}) #:doc:
-      response.cache_control.merge!(:max_age => seconds, :public => options.delete(:public))
+      response.cache_control.merge!(
+        :max_age         => seconds,
+        :public          => options.delete(:public),
+        :must_revalidate => options.delete(:must_revalidate)
+      )
       options.delete(:private)
 
       response.cache_control[:extras] = options.map {|k,v| "#{k}=#{v}"}

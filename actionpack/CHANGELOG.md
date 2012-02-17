@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `expires_in` accepts a `must_revalidate` flag. If true, "must-revalidate"
+    is added to the Cache-Control header. *fxn*
+
 *   Add `date_field` and `date_field_tag` helpers which render an `input[type="date"]` tag *Olek Janiszewski*
 
 *   Adds `image_url`, `javascript_url`, `stylesheet_url`, `audio_url`, `video_url`, and `font_url`
