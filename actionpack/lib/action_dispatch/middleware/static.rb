@@ -38,7 +38,7 @@ module ActionDispatch
     end
 
     def escape_glob_chars(path)
-      path.gsub(/(\*|\?|\[|\]|\{|\})/, "\\\\\\1")
+      path.gsub(/[*?{}\[\]]/, "\\\\\\&")
     end
   end
 
