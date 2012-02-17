@@ -207,11 +207,12 @@ db_namespace = namespace :db do
         next  # means "return" for rake task
       end
       db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
+      db_list.map! { |version| "%.3d" % version }
       file_list = []
       ActiveRecord::Migrator.migrations_paths.each do |path|
         Dir.foreach(path) do |file|
-          # only files matching "20091231235959_some_name.rb" pattern
-          if match_data = /^(\d{14})_(.+)\.rb$/.match(file)
+          # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
+          if match_data = /^(\d{3,})_(.+)\.rb$/.match(file)
             status = db_list.delete(match_data[1]) ? 'up' : 'down'
             file_list << [status, match_data[1], match_data[2].humanize]
           end
