@@ -9,6 +9,7 @@ module ActionView
       autoload :CollectionRadioButtons
       autoload :CollectionSelect
       autoload :DateField
+      autoload :MonthField
       autoload :DateSelect
       autoload :DatetimeSelect
       autoload :EmailField
