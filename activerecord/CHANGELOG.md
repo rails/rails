@@ -130,7 +130,7 @@
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
 
-## Rails 3.2.1 (unreleased) ##
+## Rails 3.2.1 (January 26, 2012) ##
 
 *   The threshold for auto EXPLAIN is ignored if there's no logger. *fxn*
 
