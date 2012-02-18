@@ -281,7 +281,8 @@ module ActionMailer #:nodoc:
   # * <tt>smtp_settings</tt> - Allows detailed configuration for <tt>:smtp</tt> delivery method:
   #   * <tt>:address</tt> - Allows you to use a remote mail server. Just change it from its default
   #     "localhost" setting.
-  #   * <tt>:port</tt> - On the off chance that your mail server doesn't run on port 25, you can change it.
+  #   * <tt>:port</tt> - Allows you to change the port used to connect to your mail server. Mail servers
+  #     requiring a username and password frequently listen on port 587. The default is port 25.
   #   * <tt>:domain</tt> - If you need to specify a HELO domain, you can do it here.
   #   * <tt>:user_name</tt> - If your mail server requires authentication, set the username in this setting.
   #   * <tt>:password</tt> - If your mail server requires authentication, set the password in this setting.
