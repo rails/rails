@@ -1,7 +1,6 @@
 module ActionMailer
   module MailHelper
-    # Uses Text::Format to take the text and format it, indented two spaces for
-    # each line, and wrapped at 72 columns.
+    # Take the text and format it, indented two spaces for each line, and wrapped at 72 columns.
     def block_format(text)
       formatted = text.split(/\n\r?\n/).collect { |paragraph|
         format_paragraph(paragraph)

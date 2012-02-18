@@ -82,7 +82,7 @@ Note that every value you set with this method will get over written if you use 
 
 Example:
 
-  class Authenticationmailer < ActionMailer::Base
+  class AuthenticationMailer < ActionMailer::Base
     default :from => "awesome@application.com", :subject => Proc.new { "E-mail was generated at #{Time.now}" }
     .....
   end

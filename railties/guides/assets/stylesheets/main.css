@@ -81,6 +81,7 @@ body {
 	font-size: 87.5%;
 	line-height: 1.5em;
 	background: #222;
+	min-width: 69em;
 	color: #999;
 	}
 
