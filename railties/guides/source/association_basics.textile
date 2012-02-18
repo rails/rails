@@ -358,7 +358,7 @@ Here are a few things you should know to make efficient use of Active Record ass
 * Avoiding name collisions
 * Updating the schema
 * Controlling association scope
-* Bi-drectional associations
+* Bi-directional associations
 
 h4. Controlling Caching
 
