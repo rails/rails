@@ -358,6 +358,7 @@ Here are a few things you should know to make efficient use of Active Record ass
 * Avoiding name collisions
 * Updating the schema
 * Controlling association scope
+* Bi-drectional associations
 
 h4. Controlling Caching
 
@@ -501,6 +502,59 @@ module MyApplication
 end
 </ruby>
 
+h4. Bi-directional Associations
+
+It's normal for associations to work in two directions, requiring declaration on two different models:
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :orders
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer
+end
+</ruby>
+
+By default, Active Record doesn't know about the connection between these associations. This can lead to two copies of an object getting out of sync:
+
+<ruby>
+c = Customer.first
+o = c.orders.first
+c.first_name == o.customer.first_name # => true
+c.first_name = 'Manny'
+c.first_name == o.customer.first_name # => false
+</ruby>
+
+This happens because c and o.customer are two different in-memory representations of the same data, and neither one is automatically refreshed from changes to the other. Active Record provides the +:inverse_of+ option so that you can inform it of these relations:
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :orders, :inverse_of => :customer
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer, :inverse_of => :orders
+end
+</ruby>
+
+With these changes, Active Record will only load one copy of the customer object, preventing inconsistencies and making your application more efficient:
+
+<ruby>
+c = Customer.first
+o = c.orders.first
+c.first_name == o.customer.first_name # => true
+c.first_name = 'Manny'
+c.first_name == o.customer.first_name # => true
+</ruby>
+
+There are a few limitations to +inverse_of+ support:
+
+* They do not work with <tt>:through</tt> associations.
+* They do not work with <tt>:polymorphic</tt> associations.
+* They do not work with <tt>:as</tt> associations.
+* For +belongs_to+ associations, +has_many+ inverse associations are ignored.
+
 h3. Detailed Association Reference
 
 The following sections give the details of each type of association, including the methods that they add and the options that you can use when declaring an association.
@@ -594,6 +648,7 @@ The +belongs_to+ association supports these options:
 * +:dependent+
 * +:foreign_key+
 * +:include+
+* +:inverse_of+
 * +:polymorphic+
 * +:readonly+
 * +:select+
@@ -719,6 +774,20 @@ end
 </ruby>
 
 NOTE: There's no need to use +:include+ for immediate associations - that is, if you have +Order belongs_to :customer+, then the customer is eager-loaded automatically when it's needed.
+
+h6(#belongs_to-inverse_of). +:inverse_of+
+
+The +:inverse_of+ option specifies the name of the +has_many+ or +has_one+ association that is the inverse of this association. Does not work in combination with the +:polymorphic+ options.
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :orders, :inverse_of => :customer
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer, :inverse_of => :orders
+end
+</ruby>
 
 h6(#belongs_to-polymorphic). +:polymorphic+
 
@@ -859,6 +928,7 @@ The +has_one+ association supports these options:
 * +:dependent+
 * +:foreign_key+
 * +:include+
+* +:inverse_of+
 * +:order+
 * +:primary_key+
 * +:readonly+
@@ -945,6 +1015,20 @@ end
 
 class Representative < ActiveRecord::Base
   has_many :accounts
+end
+</ruby>
+
+h6(#has_one-inverse_of). +:inverse_of+
+
+The +:inverse_of+ option specifies the name of the +belongs_to+ association that is the inverse of this association. Does not work in combination with the +:through+ or +:as+ options.
+
+<ruby>
+class Supplier < ActiveRecord::Base
+  has_one :account, :inverse_of => :supplier
+end
+
+class Account < ActiveRecord::Base
+  belongs_to :supplier, :inverse_of => :account
 end
 </ruby>
 
@@ -1177,6 +1261,7 @@ The +has_many+ association supports these options:
 * +:foreign_key+
 * +:group+
 * +:include+
+* +:inverse_of+
 * +:limit+
 * +:offset+
 * +:order+
@@ -1313,6 +1398,20 @@ end
 
 class LineItem < ActiveRecord::Base
   belongs_to :order
+end
+</ruby>
+
+h6(#has_many-inverse_of). +:inverse_of+
+
+The +:inverse_of+ option specifies the name of the +belongs_to+ association that is the inverse of this association. Does not work in combination with the +:through+ or +:as+ options.
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :orders, :inverse_of => :customer
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer, :inverse_of => :orders
 end
 </ruby>
 
