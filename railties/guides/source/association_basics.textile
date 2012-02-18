@@ -901,6 +901,8 @@ h6(#has_one-dependent). +:dependent+
 If you set the +:dependent+ option to +:destroy+, then deleting this object will call the +destroy+ method on the associated object to delete that object. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated object _without_ calling its +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the association object to +NULL+.
 If you set the +:dependent+ option to +:restrict+, then the deletion of the object is restricted if a dependent associated object exist and an error is added to the base model.
 
+NOTE: Before Rails 4.0, using +:restrict+ with +:dependent: option used to raise a +DeleteRestrictionError+. This functionality has since been deprecated. If your code still depends on the exception being raised, then you should add the +:config.active_record.dependent_restrict_raises = true+ to your application config.
+
 h6(#has_one-foreign_key). +:foreign_key+
 
 By convention, Rails assumes that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
@@ -1251,6 +1253,8 @@ If you set the +:dependent+ option to +:destroy+, then deleting this object will
 If you set the +:dependent+ option to +:restrict+, then the deletion of the object is restricted if any dependent associated objects exist and an error is added to the base model.
 
 NOTE: This option is ignored when you use the +:through+ option on the association.
+
+NOTE: Before Rails 4.0, using +:restrict+ with +:dependent: option used to raise a +DeleteRestrictionError+. This functionality has since been deprecated. If your code still depends on the exception being raised, then you should add the +:config.active_record.dependent_restrict_raises = true+ to your application config.
 
 h6(#has_many-extend). +:extend+
 
