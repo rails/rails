@@ -85,7 +85,7 @@ module AbstractController
 
       # Returns the full controller name, underscored, without the ending Controller.
       # For instance, MyApp::MyPostsController would return "my_app/my_posts" for
-      # controller_name.
+      # controller_path.
       #
       # ==== Returns
       # * <tt>string</tt>
