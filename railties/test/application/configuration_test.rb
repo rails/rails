@@ -359,6 +359,25 @@ module ApplicationTests
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
     end
 
+    test "default delivery_method settings for Mail" do
+      add_to_config <<-RUBY
+        config.action_mailer.delivery_method = :smtp 
+        config.action_mailer.smtp_settings = { :address => "foo.bar", :port => 1025 }
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      _ = ActionMailer::Base
+
+      expected = {
+        :address => "foo.bar", :port => 1025,
+        :domain=>"localhost.localdomain", :user_name=>nil, :password=>nil, :authentication=>nil,
+        :enable_starttls_auto=>true, :openssl_verify_mode=>nil, :ssl=>nil, :tls=>nil
+      }
+      assert_equal expected, Mail.delivery_method.settings
+    end
+
     test "valid timezone is setup correctly" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
@@ -539,5 +558,6 @@ module ApplicationTests
       make_basic_app
       assert app.config.colorize_logging
     end
+
   end
 end
