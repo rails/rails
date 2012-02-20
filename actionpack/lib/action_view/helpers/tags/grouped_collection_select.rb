@@ -14,8 +14,13 @@ module ActionView
         end
 
         def render
+          option_tags_options = {
+            :selected => @options.fetch(:selected) { value(@object) },
+            :disabled => @options[:disabled]
+          }
+
           select_content_tag(
-            option_groups_from_collection_for_select(@collection, @group_method, @group_label_method, @option_key_method, @option_value_method, value(@object)), @options, @html_options
+            option_groups_from_collection_for_select(@collection, @group_method, @group_label_method, @option_key_method, @option_value_method, option_tags_options), @options, @html_options
           )
         end
       end
