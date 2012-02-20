@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'rbconfig'
 
 module StaticTests
   def test_serves_dynamic_content
@@ -35,32 +36,85 @@ module StaticTests
     assert_html "means hello in Japanese\n", get("/foo/#{Rack::Utils.escape("こんにちは.html")}")
   end
 
-  def test_serves_static_file_with_encoded_pchar
-    assert_html "/foo/foo!bar.html", get("/foo/foo%21bar.html")
-    assert_html "/foo/foo$bar.html", get("/foo/foo%24bar.html")
-    assert_html "/foo/foo&bar.html", get("/foo/foo%26bar.html")
-    assert_html "/foo/foo'bar.html", get("/foo/foo%27bar.html")
-    assert_html "/foo/foo(bar).html", get("/foo/foo%28bar%29.html")
-    assert_html "/foo/foo*bar.html", get("/foo/foo%2Abar.html")
-    assert_html "/foo/foo+bar.html", get("/foo/foo%2Bbar.html")
-    assert_html "/foo/foo,bar.html", get("/foo/foo%2Cbar.html")
-    assert_html "/foo/foo;bar.html", get("/foo/foo%3Bbar.html")
-    assert_html "/foo/foo:bar.html", get("/foo/foo%3Abar.html")
-    assert_html "/foo/foo@bar.html", get("/foo/foo%40bar.html")
+
+  def test_serves_static_file_with_exclamation_mark_in_filename
+    with_static_file "/foo/foo!bar.html" do |file|
+      assert_html file, get("/foo/foo%21bar.html")
+      assert_html file, get("/foo/foo!bar.html")
+    end
   end
 
-  def test_serves_static_file_with_unencoded_pchar
-    assert_html "/foo/foo!bar.html", get("/foo/foo!bar.html")
-    assert_html "/foo/foo$bar.html", get("/foo/foo$bar.html")
-    assert_html "/foo/foo&bar.html", get("/foo/foo&bar.html")
-    assert_html "/foo/foo'bar.html", get("/foo/foo'bar.html")
-    assert_html "/foo/foo(bar).html", get("/foo/foo(bar).html")
-    assert_html "/foo/foo*bar.html", get("/foo/foo*bar.html")
-    assert_html "/foo/foo+bar.html", get("/foo/foo+bar.html")
-    assert_html "/foo/foo,bar.html", get("/foo/foo,bar.html")
-    assert_html "/foo/foo;bar.html", get("/foo/foo;bar.html")
-    assert_html "/foo/foo:bar.html", get("/foo/foo:bar.html")
-    assert_html "/foo/foo@bar.html", get("/foo/foo@bar.html")
+  def test_serves_static_file_with_dollar_sign_in_filename
+    with_static_file "/foo/foo$bar.html" do |file|
+      assert_html file, get("/foo/foo%24bar.html")
+      assert_html file, get("/foo/foo$bar.html")
+    end
+  end
+
+  def test_serves_static_file_with_ampersand_in_filename
+    with_static_file "/foo/foo&bar.html" do |file|
+      assert_html file, get("/foo/foo%26bar.html")
+      assert_html file, get("/foo/foo&bar.html")
+    end
+  end
+
+  def test_serves_static_file_with_apostrophe_in_filename
+    with_static_file "/foo/foo'bar.html" do |file|
+      assert_html file, get("/foo/foo%27bar.html")
+      assert_html file, get("/foo/foo'bar.html")
+    end
+  end
+
+  def test_serves_static_file_with_parentheses_in_filename
+    with_static_file "/foo/foo(bar).html" do |file|
+      assert_html file, get("/foo/foo%28bar%29.html")
+      assert_html file, get("/foo/foo(bar).html")
+    end
+  end
+
+  def test_serves_static_file_with_plus_sign_in_filename
+    with_static_file "/foo/foo+bar.html" do |file|
+      assert_html file, get("/foo/foo%2Bbar.html")
+      assert_html file, get("/foo/foo+bar.html")
+    end
+  end
+
+  def test_serves_static_file_with_comma_in_filename
+    with_static_file "/foo/foo,bar.html" do |file|
+      assert_html file, get("/foo/foo%2Cbar.html")
+      assert_html file, get("/foo/foo,bar.html")
+    end
+  end
+
+  def test_serves_static_file_with_semi_colon_in_filename
+    with_static_file "/foo/foo;bar.html" do |file|
+      assert_html file, get("/foo/foo%3Bbar.html")
+      assert_html file, get("/foo/foo;bar.html")
+    end
+  end
+
+  def test_serves_static_file_with_at_symbol_in_filename
+    with_static_file "/foo/foo@bar.html" do |file|
+      assert_html file, get("/foo/foo%40bar.html")
+      assert_html file, get("/foo/foo@bar.html")
+    end
+  end
+
+  # Windows doesn't allow \ / : * ? " < > | in filenames
+  unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+    def test_serves_static_file_with_colon
+      with_static_file "/foo/foo:bar.html" do |file|
+        assert_html file, get("/foo/foo%3Abar.html")
+        assert_html file, get("/foo/foo:bar.html")
+      end
+    end
+
+    def test_serves_static_file_with_asterisk
+      with_static_file "/foo/foo*bar.html" do |file|
+        assert_html file, get("/foo/foo%2Abar.html")
+        assert_html file, get("/foo/foo*bar.html")
+      end
+    end
   end
 
   private
@@ -72,6 +126,14 @@ module StaticTests
 
     def get(path)
       Rack::MockRequest.new(@app).request("GET", path)
+    end
+
+    def with_static_file(file)
+      path = "#{FIXTURE_LOAD_PATH}/public" + file
+      File.open(path, "wb+") { |f| f.write(file) }
+      yield file
+    ensure
+      File.delete(path)
     end
 end
 
