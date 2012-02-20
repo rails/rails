@@ -1100,6 +1100,24 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_grouped_collection_select_with_selected
+    @post = Post.new
+
+    assert_dom_equal(
+      %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>\n<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk" selected="selected">Denmark</option>\n<option value="ie">Ireland</option></optgroup></select>},
+      grouped_collection_select("post", "origin", dummy_continents, :countries, :continent_name, :country_id, :country_name, :selected => 'dk')
+    )
+  end
+
+  def test_grouped_collection_select_with_disabled_value
+    @post = Post.new
+
+    assert_dom_equal(
+      %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>\n<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option disabled="disabled" value="dk">Denmark</option>\n<option value="ie">Ireland</option></optgroup></select>},
+      grouped_collection_select("post", "origin", dummy_continents, :countries, :continent_name, :country_id, :country_name, :disabled => 'dk')
+    )
+  end
+
   def test_grouped_collection_select_under_fields_for
     @post = Post.new
     @post.origin = 'dk'
