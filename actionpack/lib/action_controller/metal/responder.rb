@@ -267,7 +267,7 @@ module ActionController #:nodoc:
     end
 
     def resource_errors
-      respond_to?("#{format}_resource_errors") ? send("#{format}_resource_errors") : resource.errors
+      respond_to?("#{format}_resource_errors", true) ? send("#{format}_resource_errors") : resource.errors
     end
 
     def json_resource_errors
