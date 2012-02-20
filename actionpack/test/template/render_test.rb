@@ -299,6 +299,12 @@ module RenderTestCases
     ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
+  
+  def test_render_knows_about_types_registered_when_extensions_are_checked_earlier_in_initialization
+    ActionView::Template::Handlers.extensions
+    ActionView::Template.register_template_handler :foo, CustomHandler
+    assert ActionView::Template::Handlers.extensions.include?(:foo)
+  end
 
   def test_render_ignores_templates_with_malformed_template_handlers
     ActiveSupport::Deprecation.silence do
