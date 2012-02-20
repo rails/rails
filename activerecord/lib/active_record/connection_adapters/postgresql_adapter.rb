@@ -1071,7 +1071,6 @@ module ActiveRecord
           end_sql
         end
 
-        # [primary_key, sequence]
         [result.first, result.last]
       rescue
         nil
