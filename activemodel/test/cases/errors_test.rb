@@ -184,6 +184,16 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["is invalid"], hash[:email]
   end
 
+  test 'should return a JSON hash representation of the errors with full messages' do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "can not be nil")
+    person.errors.add(:email, "is invalid")
+    hash = person.errors.as_json(:full_messages => true)
+    assert_equal ["name can not be blank", "name can not be nil"], hash[:name]
+    assert_equal ["email is invalid"], hash[:email]
+  end
+
   test "generate_message should work without i18n_scope" do
     person = Person.new
     assert !Person.respond_to?(:i18n_scope)
