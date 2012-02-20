@@ -182,16 +182,16 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_hash_options_for_select
     assert_dom_equal(
-      "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\">$</option>",
-      options_for_select("$" => "Dollar", "<DKR>" => "<Kroner>").split("\n").sort.join("\n")
+      "<option value=\"Dollar\">$</option>\n<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>",
+      options_for_select("$" => "Dollar", "<DKR>" => "<Kroner>").split("\n").join("\n")
     )
     assert_dom_equal(
-      "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>",
-      options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, "Dollar").split("\n").sort.join("\n")
+      "<option value=\"Dollar\" selected=\"selected\">$</option>\n<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>",
+      options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, "Dollar").split("\n").join("\n")
     )
     assert_dom_equal(
-      "<option value=\"&lt;Kroner&gt;\" selected=\"selected\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>",
-      options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, [ "Dollar", "<Kroner>" ]).split("\n").sort.join("\n")
+      "<option value=\"Dollar\" selected=\"selected\">$</option>\n<option value=\"&lt;Kroner&gt;\" selected=\"selected\">&lt;DKR&gt;</option>",
+      options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, [ "Dollar", "<Kroner>" ]).split("\n").join("\n")
     )
   end
 
@@ -1056,36 +1056,36 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_option_html_attributes_from_without_hash
-    assert_dom_equal(
-      "",
+    assert_equal(
+      {},
       option_html_attributes([ 'foo', 'bar' ])
     )
   end
 
   def test_option_html_attributes_with_single_element_hash
-    assert_dom_equal(
-      " class=\"fancy\"",
+    assert_equal(
+      {:class => 'fancy'},
       option_html_attributes([ 'foo', 'bar', { :class => 'fancy' } ])
     )
   end
 
   def test_option_html_attributes_with_multiple_element_hash
-    assert_dom_equal(
-      " class=\"fancy\" onclick=\"alert('Hello World');\"",
+    assert_equal(
+      {:class => 'fancy', 'onclick' => "alert('Hello World');"},
       option_html_attributes([ 'foo', 'bar', { :class => 'fancy', 'onclick' => "alert('Hello World');" } ])
     )
   end
 
   def test_option_html_attributes_with_multiple_hashes
-    assert_dom_equal(
-      " class=\"fancy\" onclick=\"alert('Hello World');\"",
+    assert_equal(
+      {:class => 'fancy', 'onclick' => "alert('Hello World');"},
       option_html_attributes([ 'foo', 'bar', { :class => 'fancy' }, { 'onclick' => "alert('Hello World');" } ])
     )
   end
 
   def test_option_html_attributes_with_special_characters
-    assert_dom_equal(
-      " onclick=\"alert(&quot;&lt;code&gt;&quot;)\"",
+    assert_equal(
+      {:onclick => "alert(&quot;&lt;code&gt;&quot;)"},
       option_html_attributes([ 'foo', 'bar', { :onclick => %(alert("<code>")) } ])
     )
   end
