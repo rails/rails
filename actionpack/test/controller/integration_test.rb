@@ -105,6 +105,12 @@ class SessionTest < ActiveSupport::TestCase
     @session.head(path,params,headers)
   end
 
+  def test_options
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    @session.expects(:process).with(:options,path,params,headers)
+    @session.options(path,params,headers)
+  end
+
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
@@ -153,6 +159,16 @@ class SessionTest < ActiveSupport::TestCase
     )
     @session.expects(:process).with(:head,path,params,headers_after_xhr)
     @session.xml_http_request(:head,path,params,headers)
+  end
+
+  def test_xml_http_request_options
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    headers_after_xhr = headers.merge(
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
+    )
+    @session.expects(:process).with(:options,path,params,headers_after_xhr)
+    @session.xml_http_request(:options,path,params,headers)
   end
 
   def test_xml_http_request_override_accept
@@ -212,7 +228,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
     @integration_session.stubs(:generic_url_rewriter)
     @integration_session.stubs(:process)
 
-    %w( get post head put delete ).each do |verb|
+    %w( get post head put delete options ).each do |verb|
       assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
     end
   end
