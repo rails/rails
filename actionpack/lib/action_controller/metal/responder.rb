@@ -272,7 +272,7 @@ module ActionController #:nodoc:
     # Check whether resource needs a specific definition of empty resource to be valid
     #
     def has_empty_resource_definition?
-      respond_to?("empty_#{format}_resource")
+      respond_to?("empty_#{format}_resource", true)
     end
 
     # Delegate to proper empty resource method
