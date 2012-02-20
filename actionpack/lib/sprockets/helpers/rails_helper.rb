@@ -19,9 +19,9 @@ module Sprockets
 
       def javascript_include_tag(*sources)
         options = sources.extract_options!
-        debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
-        body  = options.key?(:body)  ? options.delete(:body)  : false
-        digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
+        debug   = options.delete(:debug)  { debug_assets? }
+        body    = options.delete(:body)   { false }
+        digest  = options.delete(:digest) { digest_assets? }
 
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
