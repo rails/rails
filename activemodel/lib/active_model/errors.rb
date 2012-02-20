@@ -206,12 +206,23 @@ module ActiveModel
     end
 
     # Returns an Hash that can be used as the JSON representation for this object.
+    # Options:
+    # * <tt>:full_messages</tt> - determines if json object should contain 
+    #   full messages or not. Default: <tt>false</tt>.
     def as_json(options=nil)
-      to_hash
+      to_hash(options && options[:full_messages])
     end
 
-    def to_hash
-      messages.dup
+    def to_hash(full_messages = false)
+      if full_messages
+        messages = {}
+        self.messages.each do |attribute, array|
+          messages[attribute] = array.map{|message| full_message(attribute, message) }
+        end
+        messages
+      else
+        self.messages.dup
+      end
     end
 
     # Adds +message+ to the error messages on +attribute+. More than one error can be added to the same

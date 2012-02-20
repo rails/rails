@@ -1,3 +1,5 @@
+*   `AM::Errors#to_json`: support `:full_messages` parameter *Bogdan Gusiev*
+
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
 
 ## Rails 3.2.0 (January 20, 2012) ##
