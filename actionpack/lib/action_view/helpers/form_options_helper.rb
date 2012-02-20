@@ -330,9 +330,12 @@ module ActionView
         container.map do |element|
           html_attributes = option_html_attributes(element)
           text, value = option_text_and_value(element).map { |item| item.to_s }
-          selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
-          disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
-          %(<option value="#{ERB::Util.html_escape(value)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{ERB::Util.html_escape(text)}</option>)
+
+          html_attributes[:selected] = 'selected' if option_value_selected?(value, selected)
+          html_attributes[:disabled] = 'disabled' if disabled && option_value_selected?(value, disabled)
+          html_attributes[:value] = value
+
+          content_tag(:option, text, html_attributes)
         end.join("\n").html_safe
       end
 
@@ -649,11 +652,9 @@ module ActionView
 
       private
         def option_html_attributes(element)
-          return "" unless Array === element
+          return {} unless Array === element
 
-          element.select { |e| Hash === e }.reduce({}, :merge).map do |k, v|
-            " #{k}=\"#{ERB::Util.html_escape(v.to_s)}\""
-          end.join
+          Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, ERB::Util.html_escape(v.to_s)] }]
         end
 
         def option_text_and_value(option)
