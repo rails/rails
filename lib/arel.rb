@@ -33,7 +33,7 @@ require 'arel/sql_literal'
 ####
 
 module Arel
-  VERSION = '3.0.1'
+  VERSION = '3.0.2'
 
   def self.sql raw_sql
     Arel::Nodes::SqlLiteral.new raw_sql

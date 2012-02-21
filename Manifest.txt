@@ -62,6 +62,7 @@ lib/arel/table.rb
 lib/arel/tree_manager.rb
 lib/arel/update_manager.rb
 lib/arel/visitors.rb
+lib/arel/visitors/bind_visitor.rb
 lib/arel/visitors/depth_first.rb
 lib/arel/visitors/dot.rb
 lib/arel/visitors/ibm_db.rb
@@ -106,6 +107,7 @@ test/test_insert_manager.rb
 test/test_select_manager.rb
 test/test_table.rb
 test/test_update_manager.rb
+test/visitors/test_bind_visitor.rb
 test/visitors/test_depth_first.rb
 test/visitors/test_dot.rb
 test/visitors/test_ibm_db.rb
