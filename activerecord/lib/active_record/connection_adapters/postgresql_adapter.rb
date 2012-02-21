@@ -721,7 +721,7 @@ module ActiveRecord
       end
 
       def substitute_at(column, index)
-        Arel.sql("$#{index + 1}")
+        Arel::Nodes::BindParam.new "$#{index + 1}"
       end
 
       class Result < ActiveRecord::Result

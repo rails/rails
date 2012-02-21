@@ -66,7 +66,7 @@ module ActiveRecord
       end
 
       def substitute_at(column, index)
-        Arel.sql "\0"
+        Arel::Nodes::BindParam.new "\0"
       end
 
       # CONNECTION MANAGEMENT ====================================
