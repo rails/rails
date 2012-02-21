@@ -1,6 +1,7 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_support/core_ext/string/encoding'
+require 'arel/visitors/bind_visitor'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
@@ -69,12 +70,21 @@ module ActiveRecord
         end
       end
 
+      class BindSubstitution < Arel::Visitors::SQLite # :nodoc:
+        include Arel::Visitors::BindVisitor
+      end
+
       def initialize(connection, logger, config)
         super(connection, logger)
         @statements = StatementPool.new(@connection,
                                         config.fetch(:statement_limit) { 1000 })
         @config = config
-        @visitor = Arel::Visitors::SQLite.new self
+
+        if config.fetch(:prepared_statements) { true }
+          @visitor = Arel::Visitors::SQLite.new self
+        else
+          @visitor = BindSubstitution.new self
+        end
       end
 
       def adapter_name #:nodoc:
@@ -210,7 +220,7 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
 
       def explain(arel, binds = [])
-        sql = "EXPLAIN QUERY PLAN #{to_sql(arel)}"
+        sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
         ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
       end
 
