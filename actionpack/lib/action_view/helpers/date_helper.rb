@@ -203,6 +203,9 @@ module ActionView
       #   # lacking a year field.
       #   date_select("user", "birthday", :order => [:month, :day])
       #
+      #   # Generates a date select with reversed year list
+      #   date_select("user", "birthday", :reverse_years => true)
+      #
       #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
       #   # which is initially set to the date 3 days from the current date
       #   date_select("article", "written_on", :default => 3.days.from_now)
@@ -786,6 +789,7 @@ module ActionView
           options[:step]              = options[:start] < options[:end] ? 1 : -1
           options[:leading_zeros]     = false
           options[:max_years_allowed] = @options[:max_years_allowed] || 1000
+          options[:reverse]           = @options[:reverse_years] == true
 
           if (options[:end] - options[:start]).abs > options[:max_years_allowed]
             raise ArgumentError,  "There're too many years options to be built. Are you sure you haven't mistyped something? You can provide the :max_years_allowed parameter"
@@ -893,6 +897,11 @@ module ActionView
           step          = options.delete(:step) || 1
           options.reverse_merge!({:leading_zeros => true, :ampm => false, :use_two_digit_numbers => false})
           leading_zeros = options.delete(:leading_zeros)
+
+          if options[:reverse]
+            start, stop = stop, start
+            step = -step
+          end
 
           select_options = []
           start.step(stop, step) do |i|
