@@ -14,7 +14,7 @@ module ActionView
       BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
                            autoplay controls loop selected hidden scoped async
                            defer reversed ismap seemless muted required
-                           autofocus novalidate formnovalidate open pubdate).to_set
+                           autofocus novalidate formnovalidate open pubdate itemscope).to_set
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML
