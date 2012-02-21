@@ -263,7 +263,7 @@ module ActiveModel
           unless instance_method_already_implemented?(method_name)
             generate_method = "define_method_#{matcher.method_missing_target}"
 
-            if respond_to?(generate_method)
+            if respond_to?(generate_method, true)
               send(generate_method, attr_name)
             else
               define_optimized_call generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
