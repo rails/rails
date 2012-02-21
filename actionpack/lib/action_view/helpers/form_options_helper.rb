@@ -660,11 +660,8 @@ module ActionView
 
         def option_text_and_value(option)
           # Options are [text, value] pairs or strings used for both.
-          case
-          when Array === option
-            option = option.reject { |e| Hash === e }
-            [option.first, option.last]
-          when !option.is_a?(String) && option.respond_to?(:first) && option.respond_to?(:last)
+          if !option.is_a?(String) && option.respond_to?(:first) && option.respond_to?(:last)
+            option = option.reject { |e| Hash === e } if Array === option
             [option.first, option.last]
           else
             [option, option]
@@ -672,11 +669,7 @@ module ActionView
         end
 
         def option_value_selected?(value, selected)
-          if selected.respond_to?(:include?) && !selected.is_a?(String)
-            selected.include? value
-          else
-            value == selected
-          end
+          Array(selected).include? value
         end
 
         def extract_selected_and_disabled(selected)
