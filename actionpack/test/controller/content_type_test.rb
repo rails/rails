@@ -70,7 +70,7 @@ class ContentTypeTest < ActionController::TestCase
   end
 
   def test_render_changed_charset_default
-    assert_deprecated /Setting default charset at controller.*config\.action_dispatch\.default_charset/ do
+    assert_deprecated(/Setting default charset at controller.*config\.action_dispatch\.default_charset/) do
       begin
         OldContentTypeController.default_charset = "utf-16"
         get :render_defaults
@@ -111,7 +111,7 @@ class ContentTypeTest < ActionController::TestCase
   end
 
   def test_nil_default_for_erb
-    assert_deprecated /Setting default charset at controller.*config\.action_dispatch\.default_charset/ do
+    assert_deprecated(/Setting default charset at controller.*config\.action_dispatch\.default_charset/) do
       begin
         OldContentTypeController.default_charset = nil
         get :render_default_for_erb

@@ -167,7 +167,7 @@ class PerformActionTest < ActionController::TestCase
 
   def test_get_on_priv_should_show_selector
     use_controller MethodMissingController
-    assert_deprecated /Using `method_missing` to handle .* use `action_missing` instead/ do
+    assert_deprecated(/Using `method_missing` to handle .* use `action_missing` instead/) do
       get :shouldnt_be_called
     end
     assert_response :success
@@ -178,7 +178,7 @@ class PerformActionTest < ActionController::TestCase
     use_controller MethodMissingController
     assert !@controller.__send__(:action_method?, 'method_missing')
 
-    assert_deprecated /Using `method_missing` to handle .* use `action_missing` instead/ do
+    assert_deprecated(/Using `method_missing` to handle .* use `action_missing` instead/) do
       get :method_missing
     end
     assert_response :success
@@ -187,7 +187,7 @@ class PerformActionTest < ActionController::TestCase
 
   def test_method_missing_should_recieve_symbol
     use_controller AnotherMethodMissingController
-    assert_deprecated /Using `method_missing` to handle .* use `action_missing` instead/ do
+    assert_deprecated(/Using `method_missing` to handle .* use `action_missing` instead/) do
       get :some_action
     end
     assert_kind_of NameError, @controller._exception

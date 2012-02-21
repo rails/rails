@@ -54,7 +54,7 @@ class RangeTest < Test::Unit::TestCase
   end
 
   def test_should_include_identical_exclusive_with_floats
-    assert (1.0...10.0).include?(1.0...10.0)
+    assert((1.0...10.0).include?(1.0...10.0))
   end
 
   def test_blockless_step
