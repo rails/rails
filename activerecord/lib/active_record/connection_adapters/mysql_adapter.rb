@@ -3,6 +3,7 @@ require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
 require 'set'
 require 'active_record/connection_adapters/statement_pool'
+require 'arel/visitors/bind_visitor'
 
 gem 'mysql', '~> 2.8.1'
 require 'mysql'
@@ -228,8 +229,18 @@ module ActiveRecord
         connect
       end
 
+      class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
+        include Arel::Visitors::BindVisitor
+      end
+
       def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::MySQL.new(pool)
+        config = pool.spec.config
+
+        if config.fetch(:prepared_statements) { true }
+          Arel::Visitors::MySQL.new pool
+        else
+          BindSubstitution.new pool
+        end
       end
 
       def adapter_name #:nodoc:

@@ -2,6 +2,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
 require 'active_record/connection_adapters/statement_pool'
+require 'arel/visitors/bind_visitor'
 
 # Make sure we're using pg high enough for PGResult#values
 gem 'pg', '~> 0.11'
@@ -300,9 +301,16 @@ module ActiveRecord
         end
       end
 
+      class BindSubstitution < Arel::Visitors::PostgreSQL # :nodoc:
+        include Arel::Visitors::BindVisitor
+      end
+
       # Initializes and connects a PostgreSQL adapter.
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)
+
+        connection_parameters.delete :prepared_statements
+
         @connection_parameters, @config = connection_parameters, config
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
@@ -321,7 +329,12 @@ module ActiveRecord
       end
 
       def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::PostgreSQL.new(pool)
+        config = pool.spec.config
+        if config.fetch(:prepared_statements) { true }
+          Arel::Visitors::PostgreSQL.new pool
+        else
+          BindSubstitution.new pool
+        end
       end
 
       # Clears the prepared statements cache.

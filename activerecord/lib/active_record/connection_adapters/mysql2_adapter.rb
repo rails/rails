@@ -130,7 +130,7 @@ module ActiveRecord
       end
 
       def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::MySQL.new(pool)
+        BindSubstitution.new pool
       end
 
       def adapter_name
@@ -297,17 +297,11 @@ module ActiveRecord
       alias :create :insert_sql
 
       def exec_insert(sql, name, binds)
-        binds = binds.dup
-
-        # Pretend to support bind parameters
-        execute sql.gsub("\0") { quote(*binds.shift.reverse) }, name
+        execute to_sql(sql, binds), name
       end
 
       def exec_delete(sql, name, binds)
-        binds = binds.dup
-
-        # Pretend to support bind parameters
-        execute sql.gsub("\0") { quote(*binds.shift.reverse) }, name
+        execute to_sql(sql, binds), name
         @connection.affected_rows
       end
       alias :exec_update :exec_delete
@@ -678,8 +672,7 @@ module ActiveRecord
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
         def select(sql, name = nil, binds = [])
-          binds = binds.dup
-          exec_query(sql.gsub("\0") { quote(*binds.shift.reverse) }, name).to_a
+          exec_query(sql, name).to_a
         end
 
         def exec_query(sql, name = 'SQL', binds = [])
