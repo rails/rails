@@ -6,5 +6,8 @@ module Arel
       include Arel::AliasPredication
       include Arel::OrderPredications
     end
+
+    class BindParam < SqlLiteral
+    end
   end
 end

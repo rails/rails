@@ -374,6 +374,7 @@ key on UpdateManager using UpdateManager#key=
 
       def literal o; o end
 
+      alias :visit_Arel_Nodes_BindParam  :literal
       alias :visit_Arel_Nodes_SqlLiteral :literal
       alias :visit_Arel_SqlLiteral       :literal # This is deprecated
       alias :visit_Bignum                :literal

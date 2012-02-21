@@ -65,6 +65,7 @@ module Arel
         visit_edge o, "expr"
       end
       alias :visit_Arel_Nodes_Group             :unary
+      alias :visit_Arel_Nodes_BindParam         :unary
       alias :visit_Arel_Nodes_Grouping          :unary
       alias :visit_Arel_Nodes_Having            :unary
       alias :visit_Arel_Nodes_Limit             :unary

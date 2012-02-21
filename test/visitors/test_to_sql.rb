@@ -9,6 +9,12 @@ module Arel
         @attr = @table[:id]
       end
 
+      it 'works with BindParams' do
+        node = Nodes::BindParam.new 'omg'
+        sql = @visitor.accept node
+        sql.must_be_like 'omg'
+      end
+
       it 'can define a dispatch method' do
         visited = false
         viz = Class.new(Arel::Visitors::Visitor) {
