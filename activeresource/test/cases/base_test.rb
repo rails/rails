@@ -437,6 +437,41 @@ class BaseTest < ActiveSupport::TestCase
     assert_not_equal(first_connection, second_connection, 'Connection should be re-created')
   end
 
+  def test_header_inheritance
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    fruit.site = 'http://market'
+
+    fruit.headers['key'] = 'value'
+    assert_equal 'value', apple.headers['key']
+  end
+
+  def test_header_inheritance_set_at_multiple_points
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    fruit.site = 'http://market'
+
+    fruit.headers['key'] = 'value'
+    assert_equal 'value', apple.headers['key']
+
+    apple.headers['key2'] = 'value2'
+    fruit.headers['key3'] = 'value3'
+
+    assert_equal 'value', apple.headers['key']
+    assert_equal 'value2', apple.headers['key2']
+    assert_equal 'value3', apple.headers['key3']
+  end
+
+  def test_header_inheritance_should_not_leak_upstream
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    fruit.site = 'http://market'
+
+    fruit.headers['key'] = 'value'
+
+    apple.headers['key2'] = 'value2'
+    assert_equal nil, fruit.headers['key2']
+  end
 
   ########################################################################
   # Tests for setting up remote URLs for a given model (including adding
