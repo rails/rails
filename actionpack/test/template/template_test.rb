@@ -12,7 +12,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     def find_template(*args)
     end
 
-    attr_writer :formats
+    attr_accessor :formats
   end
 
   class Context
