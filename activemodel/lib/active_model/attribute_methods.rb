@@ -287,7 +287,7 @@ module ActiveModel
           unless instance_method_already_implemented?(matcher.method_name(attr_name))
             generate_method = "define_method_#{matcher.prefix}attribute#{matcher.suffix}"
 
-            if respond_to?(generate_method)
+            if respond_to?(generate_method, true)
               send(generate_method, attr_name)
             else
               method_name = matcher.method_name(attr_name)
