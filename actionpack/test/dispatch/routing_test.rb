@@ -2402,3 +2402,29 @@ class TestMultipleNestedController < ActionDispatch::IntegrationTest
 
 end
 
+class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      match "/~user" => lambda { |env|
+        [200, { 'Content-Type' => 'text/plain' }, []]
+      }, :as => :tilde_path
+      match "/young-and-fine" => lambda { |env|
+        [200, { 'Content-Type' => 'text/plain' }, []]
+      }, :as => :tilde_path
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  test 'recognizes tilde path' do
+    get "/~user"
+    assert_equal "200", @response.code
+  end
+
+  test 'recognizes minus path' do
+    get "/young-and-fine"
+    assert_equal "200", @response.code
+  end
+
+end
