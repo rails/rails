@@ -473,11 +473,7 @@ module ActionMailer #:nodoc:
     #
     #   X-Special-Domain-Specific-Header: SecretValue
     def headers(args=nil)
-      if args
-        @_message.headers(args)
-      else
-        @_message
-      end
+      args ? @_message.headers(args) : @_message
     end
 
     # Allows you to add attachments to an email, like so:
