@@ -128,7 +128,7 @@ module ActiveRecord
       # Returns a bind substitution value given a +column+ and list of current
       # +binds+
       def substitute_at(column, index)
-        Arel.sql '?'
+        Arel::Nodes::BindParam.new '?'
       end
 
       # REFERENTIAL INTEGRITY ====================================
