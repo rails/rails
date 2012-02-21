@@ -52,10 +52,11 @@ module RenderTestCases
   end
 
   def test_render_template_with_a_missing_partial_of_another_format
+    @view.lookup_context.freeze_formats([:html])
     assert_raise ActionView::Template::Error, "Missing partial /missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
-      @view.lookup_context.freeze_formats([:html])
       @view.render(:template => "with_format", :formats => [:json])
     end
+    assert_equal [:html], @view.lookup_context.formats
   end
 
   def test_render_file_with_locale

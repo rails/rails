@@ -163,10 +163,12 @@ module ActionView
       pieces  = @virtual_path.split("/")
       name    = pieces.pop
       partial = !!name.sub!(/^_/, "")
-      lookup.formats = @formats
+      previous_formats, lookup.formats = lookup.formats, @formats
       lookup.disable_cache do
         lookup.find_template(name, [ pieces.join('/') ], partial, @locals)
       end
+    ensure
+      lookup.formats = previous_formats
     end
 
     def inspect
