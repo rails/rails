@@ -25,3 +25,4 @@ railties/tmp
 .rvmrc
 .rbenv-version
 RDOC_MAIN.rdoc
+vendor/*
