@@ -188,9 +188,9 @@ module ActionView
       initialize_details(details)
     end
 
-    # Freeze the current formats in the lookup context. By freezing them, you
-    # that next template lookups are not going to modify the formats. The con
-    # use this, to ensure that formats won't be further modified (as it does
+    # Freeze the current formats in the lookup context. By freezing them, you are guaranteeing
+    # that next template lookups are not going to modify the formats. The controller can also
+    # use this, to ensure that formats won't be further modified (as it does in respond_to blocks).
     def freeze_formats(formats, unless_frozen=false) #:nodoc:
       return if unless_frozen && @frozen_formats
       self.formats = formats
