@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'arel/visitors/bind_visitor'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -122,12 +123,21 @@ module ActiveRecord
         :boolean     => { :name => "tinyint", :limit => 1 }
       }
 
+      class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
+        include Arel::Visitors::BindVisitor
+      end
+
       # FIXME: Make the first parameter more similar for the two adapters
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
-        @visitor = Arel::Visitors::MySQL.new self
+
+        if config.fetch(:prepared_statements) { true }
+          @visitor = Arel::Visitors::MySQL.new self
+        else
+          @visitor = BindSubstitution.new self
+        end
       end
 
       def adapter_name #:nodoc:

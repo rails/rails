@@ -2,6 +2,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/object/blank'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/postgresql/oid'
+require 'arel/visitors/bind_visitor'
 
 # Make sure we're using pg high enough for PGResult#values
 gem 'pg', '~> 0.11'
@@ -373,11 +374,23 @@ module ActiveRecord
         end
       end
 
+      class BindSubstitution < Arel::Visitors::PostgreSQL # :nodoc:
+        include Arel::Visitors::BindVisitor
+      end
+
       # Initializes and connects a PostgreSQL adapter.
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)
+
+        if config.fetch(:prepared_statements) { true }
+          @visitor = Arel::Visitors::PostgreSQL.new self
+        else
+          @visitor = BindSubstitution.new self
+        end
+
+        connection_parameters.delete :prepared_statements
+
         @connection_parameters, @config = connection_parameters, config
-        @visitor = Arel::Visitors::PostgreSQL.new self
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
@@ -599,7 +612,7 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
 
       def explain(arel, binds = [])
-        sql = "EXPLAIN #{to_sql(arel)}"
+        sql = "EXPLAIN #{to_sql(arel, binds)}"
         ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
       end
 
