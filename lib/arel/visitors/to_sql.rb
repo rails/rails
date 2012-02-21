@@ -108,7 +108,7 @@ key on UpdateManager using UpdateManager#key=
       def visit_Arel_Nodes_Values o
         "VALUES (#{o.expressions.zip(o.columns).map { |value, attr|
           if Nodes::SqlLiteral === value
-            visit_Arel_Nodes_SqlLiteral value
+            visit value
           else
             quote(value, attr && column_for(attr))
           end
@@ -133,7 +133,7 @@ key on UpdateManager using UpdateManager#key=
           (visit(o.set_quantifier) if o.set_quantifier),
           ("#{o.projections.map { |x| visit x }.join ', '}" unless o.projections.empty?),
           ("FROM #{visit(o.source)}" if o.source && !o.source.empty?),
-          ("WHERE #{o.wheres.map { |x| accept x }.join ' AND ' }" unless o.wheres.empty?),
+          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?),
           ("GROUP BY #{o.groups.map { |x| visit x }.join ', ' }" unless o.groups.empty?),
           (visit(o.having) if o.having),
         ].compact.join ' '
