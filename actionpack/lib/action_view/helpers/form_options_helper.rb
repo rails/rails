@@ -506,23 +506,24 @@ module ActionView
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
       def time_zone_options_for_select(selected = nil, priority_zones = nil, model = ::ActiveSupport::TimeZone)
-        zone_options = ""
+        zone_options = "".html_safe
 
         zones = model.all
         convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones
           if priority_zones.is_a?(Regexp)
-            priority_zones = model.all.find_all {|z| z =~ priority_zones}
+            priority_zones = zones.select { |z| z =~ priority_zones }
           end
-          zone_options += options_for_select(convert_zones[priority_zones], selected)
-          zone_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
 
-          zones = zones.reject { |z| priority_zones.include?( z ) }
+          zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
+          zone_options.safe_concat content_tag(:option, '-------------', :value => '', :disabled => 'disabled')
+          zone_options.safe_concat "\n"
+
+          zones.reject! { |z| priority_zones.include?(z) }
         end
 
-        zone_options += options_for_select(convert_zones[zones], selected)
-        zone_options.html_safe
+        zone_options.safe_concat options_for_select(convert_zones[zones], selected)
       end
 
       # Returns radio button tags for the collection of existing return values
