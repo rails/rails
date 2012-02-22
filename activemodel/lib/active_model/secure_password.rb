@@ -31,7 +31,19 @@ module ActiveModel
       #   user.authenticate("mUc3m00RsqyRe")                             # => user
       #   User.find_by_name("david").try(:authenticate, "notright")      # => false
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
-      def has_secure_password
+      #
+      # If you don't want to validate the confirmation of password then you can call has_secure_password
+      # with the :without_confirmation option:
+      #
+      #   class User < ActiveRecord::Base
+      #     has_secure_password :without_confirmation => true
+      #   end
+      #
+      #   user = User.new(:name => "david", :password => "")
+      #   user.save                                                      # => false, password required
+      #   user.password = "mUc3m00RsqyRe"
+      #   user.save                                                      # => true
+      def has_secure_password(opts = {})
         # Load bcrypt-ruby only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework) being dependent on a binary library.
         gem 'bcrypt-ruby', '~> 3.0.0'
@@ -39,10 +51,10 @@ module ActiveModel
 
         attr_reader :password
 
-        validates_confirmation_of :password
-        validates_presence_of     :password_digest
+        validates_presence_of :password_digest
+        validates_confirmation_of :password unless opts[:without_confirmation]
 
-        include InstanceMethodsOnActivation
+        include Authenticator
 
         if respond_to?(:attributes_protected_by_default)
           def self.attributes_protected_by_default
@@ -52,7 +64,7 @@ module ActiveModel
       end
     end
 
-    module InstanceMethodsOnActivation
+    module Authenticator
       # Returns self if the password is correct, otherwise false.
       def authenticate(unencrypted_password)
         if BCrypt::Password.new(password_digest) == unencrypted_password
