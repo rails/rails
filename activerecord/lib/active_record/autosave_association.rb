@@ -44,9 +44,6 @@ module ActiveRecord
   # automatically _and_ atomically:
   #
   #   post = Post.find(1)
-  #   post.title       # => "The current global position of migrating ducks"
-  #   post.author.name # => "alloy"
-  #
   #   post.title = "On the migration of ducks"
   #   post.author.name = "Eloy Duran"
   #
@@ -78,7 +75,7 @@ module ActiveRecord
   # When <tt>:autosave</tt> is not declared new children are saved when their parent is saved:
   #
   #   class Post
-  #     has_many :comments # :autosave option is no declared
+  #     has_many :comments # :autosave option is not declared
   #   end
   #
   #   post = Post.new(:title => 'ruby rocks')
@@ -93,7 +90,8 @@ module ActiveRecord
   #   post.comments.create(:body => 'hello world')
   #   post.save # => saves both post and comment
   #
-  # When <tt>:autosave</tt> is true all children is saved, no matter whether they are new records:
+  # When <tt>:autosave</tt> is true all children are saved, no matter whether they
+  # are new records or not:
   #
   #   class Post
   #     has_many :comments, :autosave => true
