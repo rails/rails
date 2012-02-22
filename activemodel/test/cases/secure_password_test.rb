@@ -1,7 +1,5 @@
 require 'cases/helper'
-require 'models/user'
-require 'models/visitor'
-require 'models/administrator'
+require 'models/secure_password_specific'
 
 class SecurePasswordTest < ActiveModel::TestCase
 
@@ -52,5 +50,12 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert active_authorizer.kind_of?(ActiveModel::MassAssignmentSecurity::WhiteList)
     assert !active_authorizer.include?(:password_digest)
     assert active_authorizer.include?(:name)
+  end
+
+  test "UserWithoutConfirmation does not require password confirmation" do
+    user = UserWithoutConfirmation.new
+    user.password = "thiswillberight"
+
+    assert user.valid?
   end
 end
