@@ -267,8 +267,7 @@ module ActionDispatch
       def eval_block(block)
         if block.arity == 1
           raise "You are using the old router DSL which has been removed in Rails 3.1. " <<
-            "Please check how to update your routes file at: http://www.engineyard.com/blog/2010/the-lowdown-on-routes-in-rails-3/ " <<
-            "or add the rails_legacy_mapper gem to your Gemfile"
+            "Please check how to update your routes file at: http://www.engineyard.com/blog/2010/the-lowdown-on-routes-in-rails-3/"
         end
         mapper = Mapper.new(self)
         if default_scope
