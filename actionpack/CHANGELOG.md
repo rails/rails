@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Adds support for the PATCH verb:
+      * Request objects respond to `patch?`.
+      * Routes have a new `patch` method, and understand `:patch` in the
+        existing places where a verb is configured, like `:via`.
+      * New method `patch` available in functional tests.
+      * If `:patch` is the default verb for updates, edits are
+        tunneled as PATCH rather than as PUT, and routing acts accordingly.
+      * New method `patch_via_redirect` available in integration tests.
+
+    *dlee*
+
 *   Integration tests support the `OPTIONS` method. *Jeremy Kemper*
 
 *   `expires_in` accepts a `must_revalidate` flag. If true, "must-revalidate"
