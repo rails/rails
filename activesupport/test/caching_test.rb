@@ -549,6 +549,9 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, :expires_in => 60)
     @peek = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, :expires_in => 60)
     @cache_with_pathname = ActiveSupport::Cache.lookup_store(:file_store, Pathname.new(cache_dir), :expires_in => 60)
+
+    @buffer = StringIO.new
+    @cache.logger = ActiveSupport::Logger.new(@buffer)
   end
 
   def teardown
@@ -590,6 +593,12 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_nothing_raised(Exception) do
       ActiveSupport::Cache::FileStore.new('/test/cache/directory').delete_matched(/does_not_exist/)
     end
+  end
+
+  def test_log_exception_when_cache_read_fails
+    File.expects(:exist?).raises(StandardError, "failed")
+    @cache.send(:read_entry, "winston", {})
+    assert_present @buffer.string
   end
 end
 
