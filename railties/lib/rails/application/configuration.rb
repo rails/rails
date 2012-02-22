@@ -41,7 +41,7 @@ module Rails
         @file_watcher                  = ActiveSupport::FileUpdateChecker
         @exceptions_app                = nil
         @default_method_for_update     = :put
-        @autoflush_log                 = !Rails.env.production?
+        @autoflush_log                 = true
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false
