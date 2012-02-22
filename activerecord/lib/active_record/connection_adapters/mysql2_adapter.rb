@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'arel/visitors/bind_visitor'
 
 gem 'mysql2', '~> 0.3.10'
 require 'mysql2'
@@ -127,6 +128,10 @@ module ActiveRecord
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
         configure_connection
+      end
+
+      class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
+        include Arel::Visitors::BindVisitor
       end
 
       def self.visitor_for(pool) # :nodoc:
