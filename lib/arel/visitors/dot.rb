@@ -74,6 +74,23 @@ module Arel
       alias :visit_Arel_Nodes_On                :unary
       alias :visit_Arel_Nodes_Top               :unary
       alias :visit_Arel_Nodes_UnqualifiedColumn :unary
+      alias :visit_Arel_Nodes_Preceding         :unary
+      alias :visit_Arel_Nodes_Following         :unary
+      alias :visit_Arel_Nodes_Rows              :unary
+      alias :visit_Arel_Nodes_Range             :unary
+
+      def window o
+        visit_edge o, "orders"
+        visit_edge o, "framing"
+      end
+      alias :visit_Arel_Nodes_Window            :window
+
+      def named_window o
+        visit_edge o, "orders"
+        visit_edge o, "framing"
+        visit_edge o, "name"        
+      end
+      alias :visit_Arel_Nodes_NamedWindow       :named_window
 
       def function o
         visit_edge o, "expressions"
@@ -103,6 +120,7 @@ module Arel
         visit_edge o, "source"
         visit_edge o, "projections"
         visit_edge o, "wheres"
+        visit_edge o, "windows"
       end
 
       def visit_Arel_Nodes_SelectStatement o
@@ -159,6 +177,7 @@ module Arel
       alias :visit_Arel_Nodes_NotEqual           :binary
       alias :visit_Arel_Nodes_NotIn              :binary
       alias :visit_Arel_Nodes_Or                 :binary
+      alias :visit_Arel_Nodes_Over               :binary
 
       def visit_String o
         @node_stack.last.fields << o

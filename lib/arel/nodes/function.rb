@@ -3,6 +3,7 @@ module Arel
     class Function < Arel::Nodes::Node
       include Arel::Expression
       include Arel::Predications
+      include Arel::WindowPredications
       attr_accessor :expressions, :alias, :distinct
 
       def initialize expr, aliaz = nil

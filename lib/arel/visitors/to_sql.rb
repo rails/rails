@@ -136,6 +136,7 @@ key on UpdateManager using UpdateManager#key=
           ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?),
           ("GROUP BY #{o.groups.map { |x| visit x }.join ', ' }" unless o.groups.empty?),
           (visit(o.having) if o.having),
+          ("WINDOW #{o.windows.map { |x| visit x }.join ', ' }" unless o.windows.empty?)
         ].compact.join ' '
       end
 
@@ -173,6 +174,59 @@ key on UpdateManager using UpdateManager#key=
 
       def visit_Arel_Nodes_Except o
         "( #{visit o.left} EXCEPT #{visit o.right} )"
+      end
+
+      def visit_Arel_Nodes_NamedWindow o
+        "#{quote_column_name o.name} AS #{visit_Arel_Nodes_Window o}"
+      end
+
+      def visit_Arel_Nodes_Window o
+        s = [
+          ("ORDER BY #{o.orders.map { |x| visit(x) }.join(', ')}" unless o.orders.empty?),
+          (visit o.framing if o.framing)
+        ].compact.join ' '
+        "(#{s})"
+      end
+
+      def visit_Arel_Nodes_Rows o
+        if o.expr
+          "ROWS #{visit o.expr}"
+        else
+          "ROWS"
+        end
+      end
+
+      def visit_Arel_Nodes_Range o
+        if o.expr
+          "RANGE #{visit o.expr}"
+        else
+          "RANGE"
+        end
+      end
+
+      def visit_Arel_Nodes_Preceding o
+        "#{o.expr ? visit(o.expr) : 'UNBOUNDED'} PRECEDING"
+      end
+
+      def visit_Arel_Nodes_Following o
+        "#{o.expr ? visit(o.expr) : 'UNBOUNDED'} FOLLOWING"
+      end
+
+      def visit_Arel_Nodes_CurrentRow o
+        "CURRENT ROW"
+      end
+
+      def visit_Arel_Nodes_Over o
+        case o.right
+          when nil
+            "#{visit o.left} OVER ()"
+          when Arel::Nodes::SqlLiteral
+            "#{visit o.left} OVER #{visit o.right}"
+          when String, Symbol
+            "#{visit o.left} OVER #{quote_column_name o.right.to_s}"
+          else
+            "#{visit o.left} OVER #{visit o.right}"
+        end
       end
 
       def visit_Arel_Nodes_Having o
