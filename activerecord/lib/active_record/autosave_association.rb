@@ -44,6 +44,9 @@ module ActiveRecord
   # automatically _and_ atomically:
   #
   #   post = Post.find(1)
+  #   post.title       # => "The current global position of migrating ducks"
+  #   post.author.name # => "alloy"
+  #
   #   post.title = "On the migration of ducks"
   #   post.author.name = "Eloy Duran"
   #
