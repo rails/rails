@@ -8,7 +8,8 @@ module ActionView
       @details = extract_details(options)
       extract_format(options[:file] || options[:template], @details)
       template = determine_template(options)
-      freeze_formats(template.formats, true)
+      @lookup_context.rendered_format ||= template.formats.first
+      @lookup_context.formats = template.formats
       render_template(template, options[:layout], options[:locals])
     end
 

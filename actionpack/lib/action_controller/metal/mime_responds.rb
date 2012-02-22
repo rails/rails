@@ -280,7 +280,7 @@ module ActionController #:nodoc:
 
       if format
         self.content_type ||= format.to_s
-        lookup_context.freeze_formats([format.to_sym])
+        lookup_context.formats = [format.to_sym]
         collector
       else
         head :not_acceptable

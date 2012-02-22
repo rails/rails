@@ -51,12 +51,16 @@ module RenderTestCases
     assert_match "<error>No Comment</error>", @view.render(:template => "comments/empty", :formats => [:xml])
   end
 
+  def test_render_partial_implicitly_use_format_of_the_rendered_template
+    @view.lookup_context.formats = [:json]
+    assert_equal "Hello world", @view.render(:template => "test/one", :formats => [:html])
+  end
+
   def test_render_template_with_a_missing_partial_of_another_format
-    @view.lookup_context.freeze_formats([:html])
+    @view.lookup_context.formats = [:html]
     assert_raise ActionView::Template::Error, "Missing partial /missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
       @view.render(:template => "with_format", :formats => [:json])
     end
-    assert_equal [:html], @view.lookup_context.formats
   end
 
   def test_render_file_with_locale
