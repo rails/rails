@@ -1014,10 +1014,10 @@ module ActionDispatch
             member do
               get    :edit if parent_resource.actions.include?(:edit)
               get    :show if parent_resource.actions.include?(:show)
-              delete :destroy if parent_resource.actions.include?(:destroy)
               if parent_resource.actions.include?(:update)
                 send default_method_for_update, :update
               end
+              delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end
 
@@ -1156,10 +1156,10 @@ module ActionDispatch
             member do
               get    :edit if parent_resource.actions.include?(:edit)
               get    :show if parent_resource.actions.include?(:show)
-              delete :destroy if parent_resource.actions.include?(:destroy)
               if parent_resource.actions.include?(:update)
                 send default_method_for_update, :update
               end
+              delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end
 
