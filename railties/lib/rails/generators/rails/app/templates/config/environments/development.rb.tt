@@ -35,4 +35,7 @@
   # Expands the lines which load the assets.
   config.assets.debug = true
   <%- end -%>
+
+  # Disable automatic flushing of the log to improve performance.
+  #config.autoflush_log = false
 end
