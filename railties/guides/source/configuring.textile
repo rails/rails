@@ -76,6 +76,8 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.consider_all_requests_local+ is a flag. If true then any error will cause detailed debugging information to be dumped in the HTTP response, and the +Rails::Info+ controller will show the application runtime context in +/rails/info/properties+. True by default in development and test environments, and false in production mode. For finer-grained control, set this to false and implement +local_request?+ in controllers to specify which requests should provide debugging information on errors.
 
+* +config.default_method_for_update+ tells Rails which HTTP method to use for update actions by default. Set this to +:patch+ for proper HTTP update semantics. The default is +:put+ for backwards compatibility.
+
 * +config.dependency_loading+ is a flag that allows you to disable constant autoloading setting it to false. It only has effect if +config.cache_classes+ is true, which it is by default in production mode. This flag is set to false by +config.threadsafe!+.
 
 * +config.eager_load_paths+ accepts an array of paths from which Rails will eager load on boot if cache classes is enabled. Defaults to every folder in the +app+ directory of the application.
@@ -214,7 +216,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 * +ActionDispatch::Session::CookieStore+ is responsible for storing the session in cookies. An alternate middleware can be used for this by changing the +config.action_controller.session_store+ to an alternate value. Additionally, options passed to this can be configured by using +config.action_controller.session_options+.
 * +ActionDispatch::Flash+ sets up the +flash+ keys. Only available if +config.action_controller.session_store+ is set to a value.
 * +ActionDispatch::ParamsParser+ parses out parameters from the request into +params+.
-* +Rack::MethodOverride+ allows the method to be overridden if +params[:_method]+ is set. This is the middleware which supports the PUT and DELETE HTTP method types.
+* +Rack::MethodOverride+ allows the method to be overridden if +params[:_method]+ is set. This is the middleware which supports the PUT, PATCH, and DELETE HTTP method types.
 * +ActionDispatch::Head+ converts HEAD requests to GET requests and serves them as so.
 * +ActionDispatch::BestStandardsSupport+ enables "best standards support" so that IE8 renders some elements correctly.
 
@@ -346,7 +348,8 @@ h4. Configuring Action Dispatch
 
 h4. Configuring Action View
 
-There are only a few configuration options for Action View, starting with four on +ActionView::Base+:
+There are only a few configuration options for Action View, starting with six on +ActionView::Base+:
+
 
 * +config.action_view.field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is
 

@@ -483,10 +483,11 @@ Now you can try running all the tests and they should pass.
 
 h4. Available Request Types for Functional Tests
 
-If you're familiar with the HTTP protocol, you'll know that +get+ is a type of request. There are 5 request types supported in Rails functional tests:
+If you're familiar with the HTTP protocol, you'll know that +get+ is a type of request. There are 6 request types supported in Rails functional tests:
 
 * +get+
 * +post+
+* +patch+
 * +put+
 * +head+
 * +delete+
@@ -638,6 +639,7 @@ In addition to the standard testing helpers, there are some additional helpers a
 |+request_via_redirect(http_method, path, [parameters], [headers])+                 |Allows you to make an HTTP request and follow any subsequent redirects.|
 |+post_via_redirect(path, [parameters], [headers])+                                 |Allows you to make an HTTP POST request and follow any subsequent redirects.|
 |+get_via_redirect(path, [parameters], [headers])+                                  |Allows you to make an HTTP GET request and follow any subsequent redirects.|
+|+patch_via_redirect(path, [parameters], [headers])+                                |Allows you to make an HTTP PATCH request and follow any subsequent redirects.|
 |+put_via_redirect(path, [parameters], [headers])+                                  |Allows you to make an HTTP PUT request and follow any subsequent redirects.|
 |+delete_via_redirect(path, [parameters], [headers])+                               |Allows you to make an HTTP DELETE request and follow any subsequent redirects.|
 |+open_session+                                                                     |Opens a new session instance.|
@@ -810,7 +812,7 @@ class PostsControllerTest < ActionController::TestCase
   end
 
   test "should update post" do
-    put :update, :id => @post.id, :post => { }
+    patch :update, :id => @post.id, :post => { }
     assert_redirected_to post_path(assigns(:post))
   end
 

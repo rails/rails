@@ -33,6 +33,7 @@ module ActionView
     end
 
     initializer "action_view.set_configs" do |app|
+      ActionView::Base.default_method_for_update = app.config.default_method_for_update
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k,v|
           send "#{k}=", v

@@ -146,7 +146,7 @@ module ApplicationTests
     test "frameworks are not preloaded by default" do
       require "#{app_path}/config/environment"
 
-      assert ActionController.autoload?(:RecordIdentifier)
+      assert ActionController.autoload?(:Caching)
     end
 
     test "frameworks are preloaded with config.preload_frameworks is set" do
@@ -156,7 +156,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert !ActionController.autoload?(:RecordIdentifier)
+      assert !ActionController.autoload?(:Caching)
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
@@ -244,6 +244,49 @@ module ApplicationTests
 
       get "/"
       assert last_response.body =~ /csrf\-param/
+    end
+
+    test "default method for update can be changed" do
+      app_file 'app/models/post.rb', <<-RUBY
+      class Post
+        extend ActiveModel::Naming
+        def to_key; [1]; end
+        def persisted?; true; end
+      end
+      RUBY
+
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ApplicationController
+        def show
+          render :inline => "<%= begin; form_for(Post.new) {}; rescue => e; e.to_s; end %>"
+        end
+
+        def update
+          render :text => "update"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.default_method_for_update = :patch
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal ActionView::Base.default_method_for_update, :patch
+      assert_equal ActionDispatch::Routing::Mapper.default_method_for_update, :patch
+
+      get "/posts/1"
+      assert_match /patch/, last_response.body
+
+      patch "/posts/1"
+      assert_match /update/, last_response.body
+
+      put "/posts/1"
+      assert_equal 404, last_response.status
     end
 
     test "request forgery token param can be changed" do

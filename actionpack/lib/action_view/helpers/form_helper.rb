@@ -250,7 +250,7 @@ module ActionView
       #
       # You can force the form to use the full array of HTTP verbs by setting
       #
-      #    :method => (:get|:post|:put|:delete)
+      #    :method => (:get|:post|:patch|:put|:delete)
       #
       # in the options hash. If the verb is not GET or POST, which are natively supported by HTML forms, the
       # form will be set to POST and a hidden input called _method will carry the intended verb for the server
@@ -385,7 +385,7 @@ module ActionView
         object = convert_to_model(object)
 
         as = options[:as]
-        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :put] : [:new, :post]
+        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, ActionView::Base.default_method_for_update] : [:new, :post]
         options[:html].reverse_merge!(
           :class  => as ? "#{action}_#{as}" : dom_class(object, action),
           :id     => as ? "#{action}_#{as}" : [options[:namespace], dom_id(object, action)].compact.join("_").presence,

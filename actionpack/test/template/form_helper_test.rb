@@ -2195,6 +2195,15 @@ class FormHelperTest < ActionView::TestCase
     assert_equal expected, output_buffer
   end
 
+  def test_form_for_with_default_method_as_patch
+    ActionView::Base.default_method_for_update = :patch
+    form_for(@post) {}
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", "patch")
+    assert_dom_equal expected, output_buffer
+  ensure
+    ActionView::Base.default_method_for_update = :put
+  end
+
   def test_fields_for_returns_block_result
     output = fields_for(Post.new) { |f| "fields" }
     assert_equal "fields", output

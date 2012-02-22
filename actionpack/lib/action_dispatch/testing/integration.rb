@@ -26,8 +26,8 @@ module ActionDispatch
       # object's <tt>@response</tt> instance variable will point to the same
       # response object.
       #
-      # You can also perform POST, PUT, DELETE, and HEAD requests with +#post+,
-      # +#put+, +#delete+, and +#head+.
+      # You can also perform POST, PATCH, PUT, DELETE, and HEAD requests with
+      # +#post+, +#patch+, +#put+, +#delete+, and +#head+.
       def get(path, parameters = nil, headers = nil)
         process :get, path, parameters, headers
       end
@@ -36,6 +36,12 @@ module ActionDispatch
       # details.
       def post(path, parameters = nil, headers = nil)
         process :post, path, parameters, headers
+      end
+
+      # Performs a PATCH request with the given parameters. See +#get+ for more
+      # details.
+      def patch(path, parameters = nil, headers = nil)
+        process :patch, path, parameters, headers
       end
 
       # Performs a PUT request with the given parameters. See +#get+ for more
@@ -65,10 +71,10 @@ module ActionDispatch
       # Performs an XMLHttpRequest request with the given parameters, mirroring
       # a request from the Prototype library.
       #
-      # The request_method is +:get+, +:post+, +:put+, +:delete+ or +:head+; the
-      # parameters are +nil+, a hash, or a url-encoded or multipart string;
-      # the headers are a hash. Keys are automatically upcased and prefixed
-      # with 'HTTP_' if not already.
+      # The request_method is +:get+, +:post+, +:patch+, +:put+, +:delete+ or
+      # +:head+; the parameters are +nil+, a hash, or a url-encoded or multipart
+      # string; the headers are a hash.  Keys are automatically upcased and
+      # prefixed with 'HTTP_' if not already.
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
         headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
@@ -106,6 +112,12 @@ module ActionDispatch
       # See +request_via_redirect+ for more information.
       def post_via_redirect(path, parameters = nil, headers = nil)
         request_via_redirect(:post, path, parameters, headers)
+      end
+
+      # Performs a PATCH request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def patch_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:patch, path, parameters, headers)
       end
 
       # Performs a PUT request, following any subsequent redirect.
@@ -318,7 +330,7 @@ module ActionDispatch
         @integration_session = Integration::Session.new(app)
       end
 
-      %w(get post put head delete options cookies assigns
+      %w(get post put patch head delete options cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
           reset! unless integration_session
