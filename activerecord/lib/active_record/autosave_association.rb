@@ -250,14 +250,27 @@ module ActiveRecord
 
     private
 
-    # Returns the record for an association collection that should be validated
-    # or saved. If +autosave+ is +false+ only new records will be returned,
+    # Returns the record for an association collection that should be saved.
+    # If +autosave+ is +false+ only new records will be returned,
     # unless the parent is/was a new record itself.
-    def associated_records_to_validate_or_save(association, new_record, autosave)
+    def associated_records_to_save(association, new_record, autosave)
       if new_record
         association && association.target
       elsif autosave
         association.target.find_all { |record| record.changed_for_autosave? }
+      else
+        association.target.find_all { |record| record.new_record? }
+      end
+    end
+
+    # Returns the record for an association collection that should be validated.
+    # If +autosave+ is +false+ only new records will be returned,
+    # unless the parent is/was a new record itself.
+    def associated_records_to_validate(association, new_record, autosave)
+      if new_record
+        association && association.target
+      elsif autosave
+        association.target
       else
         association.target.find_all { |record| record.new_record? }
       end
@@ -285,7 +298,7 @@ module ActiveRecord
     # +reflection+.
     def validate_collection_association(reflection)
       if association = association_instance_get(reflection.name)
-        if records = associated_records_to_validate_or_save(association, new_record?, reflection.options[:autosave])
+        if records = associated_records_to_validate(association, new_record?, reflection.options[:autosave])
           records.each { |record| association_valid?(reflection, record) }
         end
       end
@@ -330,7 +343,7 @@ module ActiveRecord
       if association = association_instance_get(reflection.name)
         autosave = reflection.options[:autosave]
 
-        if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
+        if records = associated_records_to_save(association, @new_record_before_save, autosave)
           begin
           records.each do |record|
             next if record.destroyed?
