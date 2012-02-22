@@ -146,12 +146,12 @@ module ActionView
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
       #   in dangerous actions like deleting a record (which search bots can follow
-      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt> and <tt>:put</tt>.
+      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>.
       #   Note that if the user has JavaScript disabled, the request will fall back
       #   to using GET. If <tt>:href => '#'</tt> is used and the user has JavaScript
       #   disabled clicking the link will have no effect. If you are relying on the
       #   POST behavior, you should check for it in your controller's action by using
-      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt> or <tt>put?</tt>.
+      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>:patch</tt>, or <tt>put?</tt>.
       # * <tt>:remote => true</tt> - This will allow the unobtrusive JavaScript
       #   driver to make an Ajax request to the URL in question instead of following
       #   the link. The drivers each provide mechanisms for listening for the
@@ -272,7 +272,7 @@ module ActionView
       #
       # There are a few special +html_options+:
       # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
-      #   <tt>:delete</tt> and <tt>:put</tt>. By default it will be <tt>:post</tt>.
+      #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
       # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
       #   prompt with the question specified. If the user accepts, the link is
@@ -323,30 +323,24 @@ module ActionView
       #   #
       def button_to(name, options = {}, html_options = {})
         html_options = html_options.stringify_keys
-        convert_boolean_attributes!(html_options, %w( disabled ))
+        convert_boolean_attributes!(html_options, %w(disabled))
 
-        method_tag = ''
-        if (method = html_options.delete('method')) && %w{put delete}.include?(method.to_s)
-          method_tag = method_tag(method)
-        end
+        url    = options.is_a?(String) ? options : url_for(options)
+        remote = html_options.delete('remote')
 
-        form_method = method.to_s == 'get' ? 'get' : 'post'
+        method     = html_options.delete('method').to_s
+        method_tag = %w{put patch delete}.include?(method) ? method_tag(method) : ""
+
+        form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
         form_options[:class] ||= html_options.delete('form_class') || 'button_to'
-
-        remote = html_options.delete('remote')
+        form_options.merge!(:method => form_method, :action => url)
+        form_options.merge!("data-remote" => "true") if remote
 
         request_token_tag = form_method == 'post' ? token_tag : ''
 
-        url = options.is_a?(String) ? options : self.url_for(options)
-        name ||= url
-
         html_options = convert_options_to_data_attributes(options, html_options)
-
-        html_options.merge!("type" => "submit", "value" => name)
-
-        form_options.merge!(:method => form_method, :action => url)
-        form_options.merge!("data-remote" => "true") if remote
+        html_options.merge!("type" => "submit", "value" => name || url)
 
         "#{tag(:form, form_options, true)}<div>#{method_tag}#{tag("input", html_options)}#{request_token_tag}</div></form>".html_safe
       end
@@ -596,11 +590,7 @@ module ActionView
         # We ignore any extra parameters in the request_uri if the
         # submitted url doesn't have any either. This lets the function
         # work with things like ?order=asc
-        if url_string.index("?")
-          request_uri = request.fullpath
-        else
-          request_uri = request.path
-        end
+        request_uri = url_string.index("?") ? request.fullpath : request.path
 
         if url_string =~ /^\w+:\/\//
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
@@ -630,12 +620,12 @@ module ActionView
         end
 
         def link_to_remote_options?(options)
-          options.is_a?(Hash) && options.key?('remote') && options.delete('remote')
+          options.is_a?(Hash) && options.delete('remote')
         end
 
         def add_method_to_attributes!(html_options, method)
           if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
-            html_options["rel"] = "#{html_options["rel"]} nofollow".strip
+            html_options["rel"] = "#{html_options["rel"]} nofollow".lstrip
           end
           html_options["data-method"] = method
         end

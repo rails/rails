@@ -47,7 +47,8 @@ module ActionController #:nodoc:
     # And you can also use <tt>:if</tt> (or <tt>:unless</tt>) to pass a
     # proc that specifies when the action should be cached.
     #
-    # Finally, if you are using memcached, you can also pass <tt>:expires_in</tt>.
+    # As of Rails 3.0, you can also pass <tt>:expires_in</tt> with a time 
+    # interval (in seconds) to schedule expiration of the cached item.
     #
     # The following example depicts some of the points made above:
     #
@@ -102,8 +103,10 @@ module ActionController #:nodoc:
       end
 
       def _save_fragment(name, options)
-        content = response_body
-        content = content.join if content.is_a?(Array)
+        content = ""
+        response_body.each do |parts|
+          content << parts
+        end
 
         if caching_allowed?
           write_fragment(name, content, options)

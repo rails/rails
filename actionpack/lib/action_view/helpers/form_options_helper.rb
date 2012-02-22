@@ -164,7 +164,9 @@ module ActionView
       #
       # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are methods to be called on each member
       # of +collection+. The return values are used as the +value+ attribute and contents of each
-      # <tt><option></tt> tag, respectively.
+      # <tt><option></tt> tag, respectively. They can also be any object that responds to +call+, such
+      # as a +proc+, that will be called for each member of the +collection+ to
+      # retrieve the value/text.
       #
       # Example object structure for use with this method:
       #   class Post < ActiveRecord::Base
@@ -328,13 +330,16 @@ module ActionView
         container.map do |element|
           html_attributes = option_html_attributes(element)
           text, value = option_text_and_value(element).map { |item| item.to_s }
-          selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
-          disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
-          %(<option value="#{ERB::Util.html_escape(value)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{ERB::Util.html_escape(text)}</option>)
+
+          html_attributes[:selected] = 'selected' if option_value_selected?(value, selected)
+          html_attributes[:disabled] = 'disabled' if disabled && option_value_selected?(value, disabled)
+          html_attributes[:value] = value
+
+          content_tag(:option, text, html_attributes)
         end.join("\n").html_safe
       end
 
-      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning 
+      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
       # Example:
       #   options_from_collection_for_select(@people, 'id', 'name')
@@ -360,12 +365,13 @@ module ActionView
       # should produce the desired results.
       def options_from_collection_for_select(collection, value_method, text_method, selected = nil)
         options = collection.map do |element|
-          [element.send(text_method), element.send(value_method)]
+          [value_for_collection(element, text_method), value_for_collection(element, value_method)]
         end
         selected, disabled = extract_selected_and_disabled(selected)
-        select_deselect = {}
-        select_deselect[:selected] = extract_values_from_collection(collection, value_method, selected)
-        select_deselect[:disabled] = extract_values_from_collection(collection, value_method, disabled)
+        select_deselect = {
+          :selected => extract_values_from_collection(collection, value_method, selected),
+          :disabled => extract_values_from_collection(collection, value_method, disabled)
+        }
 
         options_for_select(options, select_deselect)
       end
@@ -418,10 +424,10 @@ module ActionView
       # wrap the output in an appropriate <tt><select></tt> tag.
       def option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, selected_key = nil)
         collection.map do |group|
-          group_label_string = eval("group.#{group_label_method}")
-          "<optgroup label=\"#{ERB::Util.html_escape(group_label_string)}\">" +
-            options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key) +
-            '</optgroup>'
+          option_tags = options_from_collection_for_select(
+            group.send(group_method), option_key_method, option_value_method, selected_key)
+
+          content_tag(:optgroup, option_tags, :label => group.send(group_label_method))
         end.join.html_safe
       end
 
@@ -469,16 +475,16 @@ module ActionView
       # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
       # wrap the output in an appropriate <tt><select></tt> tag.
       def grouped_options_for_select(grouped_options, selected_key = nil, prompt = nil)
-        body = ''
-        body << content_tag(:option, prompt, { :value => "" }, true) if prompt
+        body = "".html_safe
+        body.safe_concat content_tag(:option, prompt, :value => "") if prompt
 
         grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
 
-        grouped_options.each do |group|
-          body << content_tag(:optgroup, options_for_select(group[1], selected_key), :label => group[0])
+        grouped_options.each do |label, container|
+          body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), :label => label)
         end
 
-        body.html_safe
+        body
       end
 
       # Returns a string of option tags for pretty much any time zone in the
@@ -519,14 +525,136 @@ module ActionView
         zone_options.html_safe
       end
 
+      # Returns radio button tags for the collection of existing return values
+      # of +method+ for +object+'s class. The value returned from calling
+      # +method+ on the instance +object+ will be selected. If calling +method+
+      # returns +nil+, no selection is made.
+      #
+      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are
+      # methods to be called on each member of +collection+. The return values
+      # are used as the +value+ attribute and contents of each radio button tag,
+      # respectively. They can also be any object that responds to +call+, such
+      # as a +proc+, that will be called for each member of the +collection+ to
+      # retrieve the value/text.
+      #
+      # Example object structure for use with this method:
+      #   class Post < ActiveRecord::Base
+      #     belongs_to :author
+      #   end
+      #   class Author < ActiveRecord::Base
+      #     has_many :posts
+      #     def name_with_initial
+      #       "#{first_name.first}. #{last_name}"
+      #     end
+      #   end
+      #
+      # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
+      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial)
+      #
+      # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
+      #   <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
+      #   <label for="post_author_id_1">D. Heinemeier Hansson</label>
+      #   <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
+      #   <label for="post_author_id_2">D. Thomas</label>
+      #   <input id="post_author_id_3" name="post[author_id]" type="radio" value="3" />
+      #   <label for="post_author_id_3">M. Clark</label>
+      #
+      # It is also possible to customize the way the elements will be shown by
+      # giving a block to the method:
+      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
+      #     b.label { b.radio_button }
+      #   end
+      #
+      # The argument passed to the block is a special kind of builder for this
+      # collection, which has the ability to generate the label and radio button
+      # for the current item in the collection, with proper text and value.
+      # Using it, you can change the label and radio button display order or
+      # even use the label as wrapper, as in the example above.
+      #
+      # The builder methods <tt>label</tt> and <tt>radio_button</tt> also accept
+      # extra html options:
+      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
+      #     b.label(:class => "radio_button") { b.radio_button(:class => "radio_button") }
+      #   end
+      #
+      # There are also two special methods available: <tt>text</tt> and
+      # <tt>value</tt>, which are the current text and value methods for the
+      # item being rendered, respectively. You can use them like this:
+      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
+      #      b.label(:"data-value" => b.value) { b.radio_button + b.text }
+      #   end
+      def collection_radio_buttons(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
+        Tags::CollectionRadioButtons.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
+      end
+
+      # Returns check box tags for the collection of existing return values of
+      # +method+ for +object+'s class. The value returned from calling +method+
+      # on the instance +object+ will be selected. If calling +method+ returns
+      # +nil+, no selection is made.
+      #
+      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are
+      # methods to be called on each member of +collection+. The return values
+      # are used as the +value+ attribute and contents of each check box tag,
+      # respectively. They can also be any object that responds to +call+, such
+      # as a +proc+, that will be called for each member of the +collection+ to
+      # retrieve the value/text.
+      #
+      # Example object structure for use with this method:
+      #   class Post < ActiveRecord::Base
+      #     has_and_belongs_to_many :author
+      #   end
+      #   class Author < ActiveRecord::Base
+      #     has_and_belongs_to_many :posts
+      #     def name_with_initial
+      #       "#{first_name.first}. #{last_name}"
+      #     end
+      #   end
+      #
+      # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
+      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial)
+      #
+      # If <tt>@post.author_ids</tt> is already <tt>[1]</tt>, this would return:
+      #   <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
+      #   <label for="post_author_ids_1">D. Heinemeier Hansson</label>
+      #   <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
+      #   <label for="post_author_ids_2">D. Thomas</label>
+      #   <input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3" />
+      #   <label for="post_author_ids_3">M. Clark</label>
+      #   <input name="post[author_ids][]" type="hidden" value="" />
+      #
+      # It is also possible to customize the way the elements will be shown by
+      # giving a block to the method:
+      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #     b.label { b.check_box }
+      #   end
+      #
+      # The argument passed to the block is a special kind of builder for this
+      # collection, which has the ability to generate the label and check box
+      # for the current item in the collection, with proper text and value.
+      # Using it, you can change the label and check box display order or even
+      # use the label as wrapper, as in the example above.
+      #
+      # The builder methods <tt>label</tt> and <tt>check_box</tt> also accept
+      # extra html options:
+      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #     b.label(:class => "check_box") { b.check_box(:class => "check_box") }
+      #   end
+      #
+      # There are also two special methods available: <tt>text</tt> and
+      # <tt>value</tt>, which are the current text and value methods for the
+      # item being rendered, respectively. You can use them like this:
+      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #      b.label(:"data-value" => b.value) { b.check_box + b.text }
+      #   end
+      def collection_check_boxes(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
+        Tags::CollectionCheckBoxes.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
+      end
+
       private
         def option_html_attributes(element)
-          return "" unless Array === element
-          html_attributes = []
-          element.select { |e| Hash === e }.reduce({}, :merge).each do |k, v|
-            html_attributes << " #{k}=\"#{ERB::Util.html_escape(v.to_s)}\""
-          end
-          html_attributes.join
+          return {} unless Array === element
+
+          Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, ERB::Util.html_escape(v.to_s)] }]
         end
 
         def option_text_and_value(option)
@@ -552,12 +680,12 @@ module ActionView
 
         def extract_selected_and_disabled(selected)
           if selected.is_a?(Proc)
-            [ selected, nil ]
+            [selected, nil]
           else
             selected = Array.wrap(selected)
             options = selected.extract_options!.symbolize_keys
-            selected_items = options.include?(:selected) ? options[:selected] : selected
-            [ selected_items, options[:disabled] ]
+            selected_items = options.fetch(:selected, selected)
+            [selected_items, options[:disabled]]
           end
         end
 
@@ -569,6 +697,10 @@ module ActionView
           else
             selected
           end
+        end
+
+        def value_for_collection(item, value)
+          value.respond_to?(:call) ? value.call(item) : item.send(value)
         end
     end
 
@@ -587,6 +719,14 @@ module ActionView
 
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
         @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_options.merge(html_options))
+      end
+
+      def collection_check_boxes(method, collection, value_method, text_method, options = {}, html_options = {})
+        @template.collection_check_boxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
+      end
+
+      def collection_radio_buttons(method, collection, value_method, text_method, options = {}, html_options = {})
+        @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
       end
     end
   end

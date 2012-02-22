@@ -51,6 +51,18 @@ module RenderTestCases
     assert_match "<error>No Comment</error>", @view.render(:template => "comments/empty", :formats => [:xml])
   end
 
+  def test_render_partial_implicitly_use_format_of_the_rendered_template
+    @view.lookup_context.formats = [:json]
+    assert_equal "Hello world", @view.render(:template => "test/one", :formats => [:html])
+  end
+
+  def test_render_template_with_a_missing_partial_of_another_format
+    @view.lookup_context.formats = [:html]
+    assert_raise ActionView::Template::Error, "Missing partial /missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
+      @view.render(:template => "with_format", :formats => [:json])
+    end
+  end
+
   def test_render_file_with_locale
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(:file => "comments/empty", :locale => [:de])
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(:file => "comments/empty", :locale => :de)
@@ -298,6 +310,12 @@ module RenderTestCases
   def test_render_inline_with_locals_and_compilable_custom_type
     ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
+  end
+  
+  def test_render_knows_about_types_registered_when_extensions_are_checked_earlier_in_initialization
+    ActionView::Template::Handlers.extensions
+    ActionView::Template.register_template_handler :foo, CustomHandler
+    assert ActionView::Template::Handlers.extensions.include?(:foo)
   end
 
   def test_render_ignores_templates_with_malformed_template_handlers

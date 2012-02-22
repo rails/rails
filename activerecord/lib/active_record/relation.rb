@@ -78,6 +78,7 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
+      @bind_values = @bind_values.dup
       reset
     end
 
@@ -454,7 +455,7 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= klass.connection.to_sql(arel)
+      @to_sql ||= klass.connection.to_sql(arel, @bind_values.dup)
     end
 
     def where_values_hash

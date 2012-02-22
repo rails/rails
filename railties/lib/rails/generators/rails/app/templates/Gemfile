@@ -1,4 +1,4 @@
-source :rubygems
+source 'https://rubygems.org'
 
 <%= rails_gemfile_entry -%>
 
@@ -22,4 +22,4 @@ source :rubygems
 # gem 'capistrano', :group => :development
 
 # To use debugger
-# <%= ruby_debugger_gemfile_entry %>
+# gem 'ruby-debug19', :require => 'ruby-debug'

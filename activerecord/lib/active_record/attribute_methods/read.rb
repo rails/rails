@@ -88,19 +88,15 @@ module ActiveRecord
 
         private
         def cacheable_column?(column)
-          attribute_types_cached_by_default.include?(column.type)
+          if attribute_types_cached_by_default == ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
+            ! serialized_attributes.include? column.name
+          else
+            attribute_types_cached_by_default.include?(column.type)
+          end
         end
 
         def internal_attribute_access_code(attr_name, cast_code)
-          access_code = "v = @attributes.fetch(attr_name) { missing_attribute(attr_name, caller) };"
-
-          access_code << "v && #{cast_code};"
-
-          if cache_attribute?(attr_name)
-            access_code = "@attributes_cache[attr_name] ||= (#{access_code})"
-          end
-
-          "attr_name = '#{attr_name}'; #{access_code}"
+          "read_attribute('#{attr_name}') { |n| missing_attribute(n, caller) }"
         end
 
         def external_attribute_access_code(attr_name, cast_code)
@@ -121,13 +117,29 @@ module ActiveRecord
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
-        self.class.type_cast_attribute(attr_name, @attributes, @attributes_cache)
+        # If it's cached, just return it
+        @attributes_cache.fetch(attr_name) { |name|
+          column = @columns_hash.fetch(name) {
+            return self.class.type_cast_attribute(name, @attributes, @attributes_cache)
+          }
+
+          value = @attributes.fetch(name) {
+            return block_given? ? yield(name) : nil
+          }
+
+          if self.class.cache_attribute?(name)
+            @attributes_cache[name] = column.type_cast(value)
+          else
+            column.type_cast value
+          end
+        }
       end
 
       private
-        def attribute(attribute_name)
-          read_attribute(attribute_name)
-        end
+
+      def attribute(attribute_name)
+        read_attribute(attribute_name)
+      end
     end
   end
 end

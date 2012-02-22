@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'active_support/json'
 require 'active_support/core_ext/string/access'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/module/delegation'
@@ -186,6 +187,10 @@ module ActiveSupport #:nodoc:
       # Passing +true+ will forcibly tidy all bytes, assuming that the string's encoding is entirely CP1252 or ISO-8859-1.
       def tidy_bytes(force = false)
         chars(Unicode.tidy_bytes(@wrapped_string, force))
+      end
+
+      def as_json(options = nil) #:nodoc:
+        to_s.as_json(options)
       end
 
       %w(capitalize downcase reverse tidy_bytes upcase).each do |method|

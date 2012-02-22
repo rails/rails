@@ -37,7 +37,8 @@ ActiveRecord::Schema.define do
 
   create_table :admin_users, :force => true do |t|
     t.string :name
-    t.text :settings
+    t.text :settings, :null => true
+    t.text :preferences, :null => false, :default => ""
     t.references :account
   end
 
@@ -174,6 +175,7 @@ ActiveRecord::Schema.define do
   end
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
+  add_index :companies, [:firm_id, :type], :name => "company_partial_index", :where => "rating > 10"
 
   create_table :computers, :force => true do |t|
     t.integer :developer, :null => false
@@ -757,5 +759,10 @@ ActiveRecord::Schema.define do
 end
 
 Course.connection.create_table :courses, :force => true do |t|
+  t.column :name, :string, :null => false
+  t.column :college_id, :integer
+end
+
+College.connection.create_table :colleges, :force => true do |t|
   t.column :name, :string, :null => false
 end

@@ -1104,7 +1104,10 @@ class BasicsTest < ActiveRecord::TestCase
   # TODO: extend defaults tests to other databases!
   if current_adapter?(:PostgreSQLAdapter)
     def test_default
+      tz = Default.default_timezone
+      Default.default_timezone = :local
       default = Default.new
+      Default.default_timezone = tz
 
       # fixed dates / times
       assert_equal Date.new(2004, 1, 1), default.fixed_date
@@ -1147,7 +1150,8 @@ class BasicsTest < ActiveRecord::TestCase
 
       # use a geometric function to test for an open path
       objs = Geometric.find_by_sql ["select isopen(a_path) from geometrics where id = ?", g.id]
-      assert_equal objs[0].isopen, 't'
+
+      assert_equal true, objs[0].isopen
 
       # test alternate formats when defining the geometric types
 
@@ -1175,7 +1179,8 @@ class BasicsTest < ActiveRecord::TestCase
 
       # use a geometric function to test for an closed path
       objs = Geometric.find_by_sql ["select isclosed(a_path) from geometrics where id = ?", g.id]
-      assert_equal objs[0].isclosed, 't'
+
+      assert_equal true, objs[0].isclosed
     end
   end
 
@@ -1276,6 +1281,21 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(hash, important_topic.content)
   end
 
+  # This test was added to fix GH #4004. Obviously the value returned
+  # is not really the value 'before type cast' so we should maybe think
+  # about changing that in the future.
+  def test_serialized_attribute_before_type_cast_returns_unserialized_value
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "topics"
+    klass.serialize :content, Hash
+
+    t = klass.new(:content => { :foo => :bar })
+    assert_equal({ :foo => :bar }, t.content_before_type_cast)
+    t.save!
+    t.reload
+    assert_equal({ :foo => :bar }, t.content_before_type_cast)
+  end
+
   def test_serialized_attribute_declared_in_subclass
     hash = { 'important1' => 'value1', 'important2' => 'value2' }
     important_topic = ImportantTopic.create("important" => hash)
@@ -1298,9 +1318,22 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
-  def test_nil_serialized_attribute_with_class_constraint
+  def test_nil_serialized_attribute_without_class_constraint
     topic = Topic.new
     assert_nil topic.content
+  end
+
+  def test_nil_not_serialized_without_class_constraint
+    assert Topic.new(:content => nil).save
+    assert_equal 1, Topic.where(:content => nil).count
+  end
+
+  def test_nil_not_serialized_with_class_constraint
+    Topic.serialize :content, Hash
+    assert Topic.new(:content => nil).save
+    assert_equal 1, Topic.where(:content => nil).count
+  ensure
+    Topic.serialize(:content)
   end
 
   def test_should_raise_exception_on_serialized_attribute_with_type_mismatch
@@ -1942,5 +1975,29 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_table_name_with_2_abstract_subclasses
     assert_equal "photos", Photo.table_name
+  end
+
+  def test_column_types_typecast
+    topic = Topic.first
+    refute_equal 't.lo', topic.author_name
+
+    attrs = topic.attributes.dup
+    attrs.delete 'id'
+
+    typecast = Class.new {
+      def type_cast value
+        "t.lo"
+      end
+    }
+
+    types = { 'author_name' => typecast.new }
+    topic = Topic.allocate.init_with 'attributes' => attrs,
+                                     'column_types' => types
+
+    assert_equal 't.lo', topic.author_name
+  end
+
+  def test_typecasting_aliases
+    assert_equal 10, Topic.select('10 as tenderlove').first.tenderlove
   end
 end

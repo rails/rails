@@ -8,6 +8,7 @@ else
   gem 'arel'
 end
 
+gem 'rack-test', :git => "https://github.com/brynary/rack-test.git"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
 

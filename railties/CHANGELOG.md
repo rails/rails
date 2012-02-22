@@ -1,5 +1,25 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* New configuration option `config.default_method_for_update` tells Rails which
+  HTTP verb to use for update actions. Values can be `:patch` and `:put`.
+  Default is `:put` for backwards compatibility, but you are encouraged to
+  use `:patch` for proper HTTP semantics with partial updates.
+
+*   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. *Piotr Sarnacki*
+
+    Example:
+
+        # it can be added to config/application.rb
+        console do
+          # this block is called only when running console,
+          # so we can safely require pry here
+          require "pry"
+          config.console = Pry
+        end
+
+*   Add convenience `hide!` method to Rails generators to hide current generator
+    namespace from showing when running `rails generate`. *Carlos Antonio da Silva*
+
 *   Scaffold now uses `content_tag_for` in index.html.erb *José Valim*
 
 *   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*

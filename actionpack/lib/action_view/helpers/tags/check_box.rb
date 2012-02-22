@@ -25,7 +25,7 @@ module ActionView
             add_default_name_and_id(options)
           end
 
-          hidden = @unchecked_value ? tag("input", "name" => options["name"], "type" => "hidden", "value" => @unchecked_value, "disabled" => options["disabled"]) : ""
+          hidden   = hidden_field_for_checkbox(options)
           checkbox = tag("input", options)
           hidden + checkbox
         end
@@ -47,6 +47,10 @@ module ActionView
           else
             value.to_i != 0
           end
+        end
+
+        def hidden_field_for_checkbox(options)
+          @unchecked_value ? tag("input", options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value)) : "".html_safe
         end
       end
     end

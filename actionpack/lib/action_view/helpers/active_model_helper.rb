@@ -39,7 +39,7 @@ module ActionView
       private
 
       def object_has_errors?
-        object.respond_to?(:errors) && object.errors.respond_to?(:full_messages) && error_message.any?
+        object.respond_to?(:errors) && object.errors.respond_to?(:[]) && error_message.present?
       end
 
       def tag_generate_errors?(options)

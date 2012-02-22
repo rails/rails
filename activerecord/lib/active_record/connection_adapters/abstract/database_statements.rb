@@ -2,9 +2,11 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
       # Converts an arel AST to SQL
-      def to_sql(arel)
+      def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
-          visitor.accept(arel.ast)
+          visitor.accept(arel.ast) do
+            quote(*binds.shift.reverse)
+          end
         else
           arel
         end
@@ -13,7 +15,7 @@ module ActiveRecord
       # Returns an array of record hashes with the column names as keys and
       # column values as values.
       def select_all(arel, name = nil, binds = [])
-        select(to_sql(arel), name, binds)
+        select(to_sql(arel, binds), name, binds)
       end
 
       # Returns a record hash with the column names as keys and column values
@@ -33,7 +35,7 @@ module ActiveRecord
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       def select_values(arel, name = nil)
-        result = select_rows(to_sql(arel), name)
+        result = select_rows(to_sql(arel, []), name)
         result.map { |v| v[0] }
       end
 
@@ -84,19 +86,19 @@ module ActiveRecord
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        sql, binds = sql_for_insert(to_sql(arel), pk, id_value, sequence_name, binds)
+        sql, binds = sql_for_insert(to_sql(arel, binds), pk, id_value, sequence_name, binds)
         value      = exec_insert(sql, name, binds)
         id_value || last_inserted_id(value)
       end
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])
-        exec_update(to_sql(arel), name, binds)
+        exec_update(to_sql(arel, binds), name, binds)
       end
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
-        exec_delete(to_sql(arel), name, binds)
+        exec_delete(to_sql(arel, binds), name, binds)
       end
 
       # Checks whether there is currently no transaction active. This is done

@@ -23,7 +23,7 @@ module ActiveModel
 
       included do
         include ActiveSupport::Callbacks
-        define_callbacks :validation, :terminator => "result == false", :scope => [:kind, :name]
+        define_callbacks :validation, :terminator => "result == false", :skip_after_callbacks_if_terminated => true, :scope => [:kind, :name]
       end
 
       module ClassMethods
@@ -40,7 +40,6 @@ module ActiveModel
           options = args.extract_options!
           options[:prepend] = true
           options[:if] = Array(options[:if])
-          options[:if] << "!halted"
           options[:if].unshift("self.validation_context == :#{options[:on]}") if options[:on]
           set_callback(:validation, :after, *(args << options), &block)
         end

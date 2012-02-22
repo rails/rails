@@ -114,25 +114,18 @@ Rails by default automatically loads all fixtures from the +test/fixtures+ folde
 * Load the fixture data into the table
 * Dump the fixture data into a variable in case you want to access it directly
 
-h5. Hashes with Special Powers
+h5. Fixtures are ActiveRecord objects
 
-Fixtures are basically Hash objects. As mentioned in point #3 above, you can access the hash object directly because it is automatically setup as a local variable of the test case. For example:
+Fixtures are instances of ActiveRecord. As mentioned in point #3 above, you can access the object directly because it is automatically setup as a local variable of the test case. For example:
 
 <ruby>
-# this will return the Hash for the fixture named david
+# this will return the User object for the fixture named david
 users(:david)
 
 # this will return the property for david called id
 users(:david).id
-</ruby>
 
-Fixtures can also transform themselves into the form of the original class. Thus, you can get at the methods only available to that class.
-
-<ruby>
-# using the find method, we grab the "real" david as a User
-david = users(:david).find
-
-# and now we have access to methods only available to a User class
+# one can also access methods available on the User class
 email(david.girlfriend.email, david.location_tonight)
 </ruby>
 
@@ -490,10 +483,11 @@ Now you can try running all the tests and they should pass.
 
 h4. Available Request Types for Functional Tests
 
-If you're familiar with the HTTP protocol, you'll know that +get+ is a type of request. There are 5 request types supported in Rails functional tests:
+If you're familiar with the HTTP protocol, you'll know that +get+ is a type of request. There are 6 request types supported in Rails functional tests:
 
 * +get+
 * +post+
+* +patch+
 * +put+
 * +head+
 * +delete+
@@ -645,6 +639,7 @@ In addition to the standard testing helpers, there are some additional helpers a
 |+request_via_redirect(http_method, path, [parameters], [headers])+                 |Allows you to make an HTTP request and follow any subsequent redirects.|
 |+post_via_redirect(path, [parameters], [headers])+                                 |Allows you to make an HTTP POST request and follow any subsequent redirects.|
 |+get_via_redirect(path, [parameters], [headers])+                                  |Allows you to make an HTTP GET request and follow any subsequent redirects.|
+|+patch_via_redirect(path, [parameters], [headers])+                                |Allows you to make an HTTP PATCH request and follow any subsequent redirects.|
 |+put_via_redirect(path, [parameters], [headers])+                                  |Allows you to make an HTTP PUT request and follow any subsequent redirects.|
 |+delete_via_redirect(path, [parameters], [headers])+                               |Allows you to make an HTTP DELETE request and follow any subsequent redirects.|
 |+open_session+                                                                     |Opens a new session instance.|
@@ -817,7 +812,7 @@ class PostsControllerTest < ActionController::TestCase
   end
 
   test "should update post" do
-    put :update, :id => @post.id, :post => { }
+    patch :update, :id => @post.id, :post => { }
     assert_redirected_to post_path(assigns(:post))
   end
 

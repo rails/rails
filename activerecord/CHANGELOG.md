@@ -1,5 +1,50 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added support for partial indices to PostgreSQL adapter
+
+    The `add_index` method now supports a `where` option that receives a
+    string with the partial index criteria.
+
+      add_index(:accounts, :code, :where => "active")
+
+      Generates
+
+      CREATE INDEX index_accounts_on_code ON accounts(code) WHERE active
+
+    *Marcelo Silveira*
+
+*   Implemented ActiveRecord::Relation#none method
+
+    The `none` method returns a chainable relation with zero records
+    (an instance of the NullRelation class).
+
+    Any subsequent condition chained to the returned relation will continue
+    generating an empty relation and will not fire any query to the database.
+
+    *Juanjo Bazán*
+
+*   Added the `ActiveRecord::NullRelation` class implementing the null
+    object pattern for the Relation class. *Juanjo Bazán*
+
+*   Added deprecation for the `:dependent => :restrict` association option.
+
+    Please note:
+
+      * Up until now `has_many` and `has_one`, `:dependent => :restrict`
+        option raised a `DeleteRestrictionError` at the time of destroying
+        the object. Instead, it will add an error on the model.
+
+      * To fix this warning, make sure your code isn't relying on a
+        `DeleteRestrictionError` and then add
+        `config.active_record.dependent_restrict_raises = false` to your
+        application config.
+
+      * New rails application would be generated with the
+        `config.active_record.dependent_restrict_raises = false` in the
+        application config.
+
+    *Manoj Kumar*
+
 *   Added `create_join_table` migration helper to create HABTM join tables
 
         create_join_table :products, :categories
@@ -85,7 +130,7 @@
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
 
-## Rails 3.2.1 (unreleased) ##
+## Rails 3.2.1 (January 26, 2012) ##
 
 *   The threshold for auto EXPLAIN is ignored if there's no logger. *fxn*
 

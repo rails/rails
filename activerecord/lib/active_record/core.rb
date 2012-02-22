@@ -72,6 +72,16 @@ module ActiveRecord
       # The connection handler
       config_attribute :connection_handler
       self.connection_handler = ConnectionAdapters::ConnectionHandler.new
+
+      ##
+      # :singleton-method:
+      # Specifies wether or not has_many or has_one association option
+      # :dependent => :restrict raises an exception. If set to true, the
+      # ActiveRecord::DeleteRestrictionError exception will be raised
+      # along with a DEPRECATION WARNING. If set to false, an error would
+      # be added to the model instead.
+      config_attribute :dependent_restrict_raises, :global => true
+      self.dependent_restrict_raises = true
     end
 
     module ClassMethods
@@ -155,6 +165,7 @@ module ActiveRecord
     #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
     def initialize(attributes = nil, options = {})
       @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
+      @columns_hash = self.class.column_types.dup
 
       init_internals
 
@@ -180,6 +191,8 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes = self.class.initialize_attributes(coder['attributes'])
+      @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
+
 
       init_internals
 
@@ -199,6 +212,8 @@ module ActiveRecord
     # The dup method does not preserve the timestamps (created|updated)_(at|on).
     def initialize_dup(other)
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
+      self.class.initialize_attributes(cloned_attributes)
+
       cloned_attributes.delete(self.class.primary_key)
 
       @attributes = cloned_attributes
@@ -208,7 +223,7 @@ module ActiveRecord
 
       @changed_attributes = {}
       self.class.column_defaults.each do |attr, orig_value|
-        @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
+        @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
       end
 
       @aggregation_cache = {}
@@ -233,7 +248,7 @@ module ActiveRecord
     #   end
     #   coder = {}
     #   Post.new.encode_with(coder)
-    #   coder # => { 'id' => nil, ... }
+    #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
       coder['attributes'] = attributes
     end

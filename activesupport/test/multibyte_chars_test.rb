@@ -88,6 +88,9 @@ class MultibyteCharsTest < ActiveSupport::TestCase
     assert(('a'.mb_chars << 'b'.mb_chars).kind_of?(@proxy_class))
   end
 
+  def test_should_return_string_as_json
+    assert_equal UNICODE_STRING, @chars.as_json
+  end
 end
 
 class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase

@@ -675,7 +675,7 @@ The following is a list of the most commonly used methods. Please refer to the +
 
 h4(#working_with_validation_errors-errors). +errors+
 
-Returns an instance of the class +ActiveModel::Errors+ (which behaves like an ordered hash) containing all errors. Each key is the attribute name and the value is an array of strings with all errors.
+Returns an instance of the class +ActiveModel::Errors+ containing all errors. Each key is the attribute name and the value is an array of strings with all errors.
 
 <ruby>
 class Person < ActiveRecord::Base

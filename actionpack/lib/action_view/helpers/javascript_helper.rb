@@ -1,5 +1,4 @@
 require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/string/encoding'
 
 module ActionView
   module Helpers

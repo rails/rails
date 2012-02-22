@@ -202,6 +202,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+    assert_file "config/application.rb", /#\s+config\.active_record\.dependent_restrict_raises = false/
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
@@ -324,6 +325,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
   end
 
+  def test_default_method_for_update_is_not_patch
+    run_generator [destination_root, "--skip-test-unit", "--skip-active-record"]
+    assert_file "config/application.rb", /#\s+config\.default_method_for_update\s+=\s+:patch/
+  end
+
   def test_new_hash_style
     run_generator [destination_root]
     assert_file "config/initializers/session_store.rb" do |file|
@@ -347,6 +353,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_no_match %r(auto_explain_threshold_in_seconds), file
       end
     end
+  end
+
+  def test_active_record_dependent_restrict_raises_is_present_application_config
+    run_generator
+    assert_file "config/application.rb", /config\.active_record\.dependent_restrict_raises = false/
+  end
+
+  def test_pretend_option
+    output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
+    assert_no_match(/run  bundle install/, output)
   end
 
 protected

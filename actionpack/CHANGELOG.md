@@ -1,10 +1,73 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Adds support for the PATCH verb:
+      * Request objects respond to `patch?`.
+      * Routes have a new `patch` method, and understand `:patch` in the
+        existing places where a verb is configured, like `:via`.
+      * New method `patch` available in functional tests.
+      * If `:patch` is the default verb for updates, edits are
+        tunneled as PATCH rather than as PUT, and routing acts accordingly.
+      * New method `patch_via_redirect` available in integration tests.
+
+    *dlee*
+
+*   Integration tests support the `OPTIONS` method. *Jeremy Kemper*
+
+*   `expires_in` accepts a `must_revalidate` flag. If true, "must-revalidate"
+    is added to the Cache-Control header. *fxn*
+
+*   Add `date_field` and `date_field_tag` helpers which render an `input[type="date"]` tag *Olek Janiszewski*
+
+*   Adds `image_url`, `javascript_url`, `stylesheet_url`, `audio_url`, `video_url`, and `font_url`
+    to assets tag helper. These URL helpers will return the full path to your assets. This is useful
+    when you are going to reference this asset from external host. *Prem Sichanugrist*
+
+*   Default responder will now always use your overridden block in `respond_with` to render your response. *Prem Sichanugrist*
+
+*   Allow `value_method` and `text_method` arguments from `collection_select` and
+    `options_from_collection_for_select` to receive an object that responds to `:call`,
+    such as a `proc`, to evaluate the option in the current element context. This works
+    the same way with `collection_radio_buttons` and `collection_check_boxes`.
+
+    *Carlos Antonio da Silva + Rafael Mendonça França*
+
+*   Add `collection_check_boxes` form helper, similar to `collection_select`:
+    Example:
+
+      collection_check_boxes :post, :author_ids, Author.all, :id, :name
+      # Outputs something like:
+      <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" />
+      <label for="post_author_ids_1">D. Heinemeier Hansson</label>
+      <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
+      <label for="post_author_ids_2">D. Thomas</label>
+      <input name="post[author_ids][]" type="hidden" value="" />
+
+    The label/check_box pairs can be customized with a block.
+
+    *Carlos Antonio da Silva + Rafael Mendonça França*
+
+*   Add `collection_radio_buttons` form helper, similar to `collection_select`:
+    Example:
+
+      collection_radio_buttons :post, :author_id, Author.all, :id, :name
+      # Outputs something like:
+      <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" />
+      <label for="post_author_id_1">D. Heinemeier Hansson</label>
+      <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
+      <label for="post_author_id_2">D. Thomas</label>
+
+    The label/radio_button pairs can be customized with a block.
+
+    *Carlos Antonio da Silva + Rafael Mendonça França*
+
+*   check_box with `:form` html5 attribute will now replicate the `:form`
+    attribute to the hidden field as well. *Carlos Antonio da Silva*
+
 *   `label` form helper accepts :for => nil to not generate the attribute. *Carlos Antonio da Silva*
 
 *   Add `:format` option to number_to_percentage *Rodrigo Flores*
 
-*   Add `config.action_view.logger` to configure logger for ActionView. *Rafael França*
+*   Add `config.action_view.logger` to configure logger for ActionView. *Rafael Mendonça França*
 
 *   Deprecated ActionController::Integration in favour of ActionDispatch::Integration
 
@@ -25,6 +88,11 @@
 *   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form.
     This is a behavior change, previously the hidden tag had a value of the disabled checkbox.
     *Tadas Tamosauskas*
+
+*   `favicon_link_tag` helper will now use the favicon in app/assets by default. *Lucas Caton*
+
+*    `ActionView::Helpers::TextHelper#highlight` now defaults to the
+     HTML5 `mark` element. *Brian Cardarella*
 
 ## Rails 3.2.0 (January 20, 2012) ##
 

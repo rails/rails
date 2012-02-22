@@ -593,6 +593,19 @@ class RenderJsonRespondWithController < RespondWithController
       format.json { render :json => RenderJsonTestException.new('boom') }
     end
   end
+
+  def create
+    resource = ValidatedCustomer.new(params[:name], 1)
+    respond_with(resource) do |format|
+      format.json do
+        if resource.errors.empty?
+          render :json => { :valid => true }
+        else
+          render :json => { :valid => false }
+        end
+      end
+    end
+  end
 end
 
 class EmptyRespondWithController < ActionController::Base
@@ -753,6 +766,41 @@ class RespondWithControllerTest < ActionController::TestCase
       assert_equal 422, @response.status
       errors = {:errors => errors}
       assert_equal errors.to_json, @response.body
+      assert_nil @response.location
+    end
+  end
+
+  def test_using_resource_for_patch_with_html_redirects_on_success
+    with_test_route_set do
+      patch :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 302, @response.status
+      assert_equal "http://www.example.com/customers/13", @response.location
+      assert @response.redirect?
+    end
+  end
+
+  def test_using_resource_for_patch_with_html_rerender_on_failure
+    with_test_route_set do
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      patch :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 200, @response.status
+      assert_equal "Edit world!\n", @response.body
+      assert_nil @response.location
+    end
+  end
+
+  def test_using_resource_for_patch_with_html_rerender_on_failure_even_on_method_override
+    with_test_route_set do
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      @request.env["rack.methodoverride.original_method"] = "POST"
+      patch :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 200, @response.status
+      assert_equal "Edit world!\n", @response.body
       assert_nil @response.location
     end
   end
@@ -962,6 +1010,18 @@ class RespondWithControllerTest < ActionController::TestCase
     get :index, :format => :json
     assert_match(/"message":"boom"/, @response.body)
     assert_match(/"error":"RenderJsonTestException"/, @response.body)
+  end
+
+  def test_api_response_with_valid_resource_respect_override_block
+    @controller = RenderJsonRespondWithController.new
+    post :create, :name => "sikachu", :format => :json
+    assert_equal '{"valid":true}', @response.body
+  end
+
+  def test_api_response_with_invalid_resource_respect_override_block
+    @controller = RenderJsonRespondWithController.new
+    post :create, :name => "david", :format => :json
+    assert_equal '{"valid":false}', @response.body
   end
 
   def test_no_double_render_is_raised

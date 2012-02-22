@@ -40,11 +40,13 @@ module ActiveRecord
     # This locking mechanism will function inside a single Ruby process. To make it work across all
     # web requests, the recommended approach is to add +lock_version+ as a hidden field to your form.
     #
-    # You must ensure that your database schema defaults the +lock_version+ column to 0.
-    #
     # This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
-    # To override the name of the +lock_version+ column, invoke the <tt>set_locking_column</tt> method.
-    # This method uses the same syntax as <tt>set_table_name</tt>
+    # To override the name of the +lock_version+ column, set the <tt>locking_column</tt> class attribute:
+    #
+    #   class Person < ActiveRecord::Base
+    #     self.locking_column = :lock_person
+    #   end
+    #
     module Optimistic
       extend ActiveSupport::Concern
 

@@ -234,7 +234,7 @@ module ActiveResource
   #   ryan.save  # => false
   #
   #   # When
-  #   # PUT https://api.people.com/people/1.json
+  #   # PUT https://api.people.com/people/1.xml
   #   # or
   #   # PUT https://api.people.com/people/1.json
   #   # is requested with invalid values, the response is:
@@ -242,11 +242,20 @@ module ActiveResource
   #   # Response (422):
   #   # <errors><error>First cannot be empty</error></errors>
   #   # or
-  #   # {"errors":["First cannot be empty"]}
+  #   # {"errors":{"first":["cannot be empty"]}}
   #   #
   #
   #   ryan.errors.invalid?(:first)  # => true
   #   ryan.errors.full_messages     # => ['First cannot be empty']
+  #
+  # For backwards-compatibility with older endpoints, the following formats are also supported in JSON responses:
+  #
+  #   # {"errors":['First cannot be empty']}
+  #   #   This was the required format for previous versions of ActiveResource
+  #   # {"first":["cannot be empty"]}
+  #   #   This was the default format produced by respond_with in ActionController <3.2.1
+  #
+  # Parsing either of these formats will result in a deprecation warning.
   #
   # Learn more about Active Resource's validation features in the ActiveResource::Validations documentation.
   #
@@ -579,6 +588,12 @@ module ActiveResource
 
       def headers
         @headers ||= {}
+        
+        if superclass != Object && superclass.headers
+          @headers = superclass.headers.merge(@headers)
+        else
+          @headers
+        end
       end
 
       attr_writer :element_name

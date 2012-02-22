@@ -9,6 +9,11 @@ module ActiveSupport
   #
   # This can be used in situations similar to the <tt>MessageVerifier</tt>, but where you don't
   # want users to be able to determine the value of the payload.
+  #
+  #   key = OpenSSL::Digest::SHA256.new('password').digest        # => "\x89\xE0\x156\xAC..." 
+  #   crypt = ActiveSupport::MessageEncryptor.new(key)            # => #<ActiveSupport::MessageEncryptor ...> 
+  #   encrypted_data = crypt.encrypt_and_sign('my secret data')   # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..." 
+  #   crypt.decrypt_and_verify(encrypted_data)                    # => "my secret data" 
   class MessageEncryptor
     module NullSerializer #:nodoc:
       def self.load(value)
@@ -23,6 +28,15 @@ module ActiveSupport
     class InvalidMessage < StandardError; end
     OpenSSLCipherError = OpenSSL::Cipher.const_defined?(:CipherError) ? OpenSSL::Cipher::CipherError : OpenSSL::CipherError
 
+    # Initialize a new MessageEncryptor.
+    # +secret+ must be at least as long as the cipher key size. For the default 'aes-256-cbc' cipher,
+    # this is 256 bits. If you are using a user-entered secret, you can generate a suitable key with
+    # <tt>OpenSSL::Digest::SHA256.new(user_secret).digest</tt> or similar.
+    #
+    # Options:
+    # * <tt>:cipher</tt>      - Cipher to use. Can be any cipher returned by <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-cbc'
+    # * <tt>:serializer</tt>  - Object serializer to use. Default is +Marshal+.
+    # 
     def initialize(secret, options = {})
       @secret = secret
       @cipher = options[:cipher] || 'aes-256-cbc'

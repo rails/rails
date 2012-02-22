@@ -48,8 +48,8 @@ end
       |x| x =~ /\/adapters\//
     } + Dir.glob("test/cases/adapters/#{adapter_short}/**/*_test.rb")).sort
 
-    t.verbose = true
     t.warning = true
+    t.verbose = true
   }
 
   task "isolated_test_#{adapter}" do

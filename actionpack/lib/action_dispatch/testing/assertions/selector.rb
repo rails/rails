@@ -340,8 +340,8 @@ module ActionDispatch
       # element +encoded+. It then calls the block with all un-encoded elements.
       #
       # ==== Examples
-      #   # Selects all bold tags from within the title of an ATOM feed's entries (perhaps to nab a section name prefix)
-      #   assert_select_feed :atom, 1.0 do
+      #   # Selects all bold tags from within the title of an Atom feed's entries (perhaps to nab a section name prefix)
+      #   assert_select "feed[xmlns='http://www.w3.org/2005/Atom']" do
       #     # Select each entry item and then the title item
       #     assert_select "entry>title" do
       #       # Run assertions on the encoded title elements
@@ -353,7 +353,7 @@ module ActionDispatch
       #
       #
       #   # Selects all paragraph tags from within the description of an RSS feed
-      #   assert_select_feed :rss, 2.0 do
+      #   assert_select "rss[version=2.0]" do
       #     # Select description element of each feed item.
       #     assert_select "channel>item>description" do
       #       # Run assertions on the encoded elements.

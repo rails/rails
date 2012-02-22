@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
-require 'active_support/ordered_hash'
 
 class TestCaseTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -120,6 +119,7 @@ XML
 
     def test_assigns
       @foo = "foo"
+      @foo_hash = {:foo => :bar}
       render :nothing => true
     end
 
@@ -155,14 +155,14 @@ XML
   end
 
   def test_raw_post_handling
-    params = ActiveSupport::OrderedHash[:page, {:name => 'page name'}, 'some key', 123]
+    params = Hash[:page, {:name => 'page name'}, 'some key', 123]
     post :render_raw_post, params.dup
 
     assert_equal params.to_query, @response.body
   end
 
   def test_body_stream
-    params = ActiveSupport::OrderedHash[:page, { :name => 'page name' }, 'some key', 123]
+    params = Hash[:page, { :name => 'page name' }, 'some key', 123]
 
     post :render_body, params.dup
 
@@ -293,6 +293,10 @@ XML
     assert_equal "foo", assigns("foo")
     assert_equal "foo", assigns[:foo]
     assert_equal "foo", assigns["foo"]
+
+    # but the assigned variable should not have its own keys stringified
+    expected_hash = { :foo => :bar }
+    assert_equal expected_hash, assigns(:foo_hash)
   end
 
   def test_view_assigns

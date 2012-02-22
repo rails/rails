@@ -177,8 +177,23 @@ module ActiveRecord
     #   Person.where(:confirmed => true).limit(5).pluck(:id)
     #
     def pluck(column_name)
-      klass.connection.select_all(select(column_name).arel).map! do |attributes|
-        klass.type_cast_attribute(attributes.keys.first, klass.initialize_attributes(attributes))
+      key = column_name.to_s.split('.', 2).last
+
+      if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
+        column_name = "#{table_name}.#{column_name}"
+      end
+
+      result = klass.connection.select_all(select(column_name).arel)
+      types  = result.column_types.merge klass.column_types
+      column = types[key]
+
+      result.map do |attributes|
+        value = klass.initialize_attributes(attributes)[key]
+        if column
+          column.type_cast value
+        else
+          value
+        end
       end
     end
 
@@ -333,7 +348,7 @@ module ActiveRecord
     def select_for_count
       if @select_values.present?
         select = @select_values.join(", ")
-        select if select !~ /(,|\*)/
+        select if select !~ /[,*]/
       end
     end
 

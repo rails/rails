@@ -146,7 +146,8 @@ link_to_remote "Add new item",
   :position => :bottom
 </ruby>
 
-** *:method* Most typically you want to use a POST request when adding a remote link to your view so this is the default behavior. However, sometimes you'll want to update (PUT) or delete/destroy (DELETE) something and you can specify this with the +:method+ option. Let's see an example for a typical AJAX link for deleting an item from a list:
+** *:method* Most typically you want to use a POST request when adding a remote
+link to your view so this is the default behavior. However, sometimes you'll want to update (PUT/PATCH) or delete/destroy (DELETE) something and you can specify this with the +:method+ option. Let's see an example for a typical AJAX link for deleting an item from a list:
 
 <ruby>
 link_to_remote "Delete the item",

@@ -1,38 +1,28 @@
 module Sprockets
   module Compressors
+    extend self
+
     @@css_compressors = {}
     @@js_compressors = {}
     @@default_css_compressor = nil
     @@default_js_compressor = nil
 
-    def self.register_css_compressor(name, klass, options = {})
+    def register_css_compressor(name, klass, options = {})
       @@default_css_compressor = name.to_sym if options[:default] || @@default_css_compressor.nil?
-      @@css_compressors[name.to_sym] = {:klass => klass.to_s, :require => options[:require]}
+      @@css_compressors[name.to_sym] = { :klass => klass.to_s, :require => options[:require] }
     end
 
-    def self.register_js_compressor(name, klass, options = {})
+    def register_js_compressor(name, klass, options = {})
       @@default_js_compressor = name.to_sym if options[:default] || @@default_js_compressor.nil?
-      @@js_compressors[name.to_sym] = {:klass => klass.to_s, :require => options[:require]}
+      @@js_compressors[name.to_sym] = { :klass => klass.to_s, :require => options[:require] }
     end
 
-    def self.registered_css_compressor(name)
-      if name.respond_to?(:to_sym)
-        compressor = @@css_compressors[name.to_sym] || @@css_compressors[@@default_css_compressor]
-        require compressor[:require] if compressor[:require]
-        compressor[:klass].constantize.new
-      else
-        name
-      end
+    def registered_css_compressor(name)
+      find_registered_compressor name, @@css_compressors, @@default_css_compressor
     end
 
-    def self.registered_js_compressor(name)
-      if name.respond_to?(:to_sym)
-        compressor = @@js_compressors[name.to_sym] || @@js_compressors[@@default_js_compressor]
-        require compressor[:require] if compressor[:require]
-        compressor[:klass].constantize.new
-      else
-        name
-      end
+    def registered_js_compressor(name)
+      find_registered_compressor name, @@js_compressors, @@default_js_compressor
     end
 
     # The default compressors must be registered in default plugins (ex. Sass-Rails)
@@ -43,6 +33,18 @@ module Sprockets
     register_css_compressor(:yui, 'YUI::CssCompressor', :require => 'yui/compressor')
     register_js_compressor(:closure, 'Closure::Compiler', :require => 'closure-compiler')
     register_js_compressor(:yui, 'YUI::JavaScriptCompressor', :require => 'yui/compressor')
+
+    private
+
+    def find_registered_compressor(name, compressors_hash, default_compressor_name)
+      if name.respond_to?(:to_sym)
+        compressor = compressors_hash[name.to_sym] || compressors_hash[default_compressor_name]
+        require compressor[:require] if compressor[:require]
+        compressor[:klass].constantize.new
+      else
+        name
+      end
+    end
   end
 
   # An asset compressor which does nothing.

@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    AS::Callbacks: deprecate `:rescuable` option. *Bogdan Gusiev*
+
+*    Adds Integer#ordinal to get the ordinal suffix string of an integer. *Tim Gildea*
+
+*    AS::Callbacks: `:per_key` option is no longer supported
+
+*    `AS::Callbacks#define_callbacks`: add `:skip_after_callbacks_if_terminated` option.
+
+*    Add html_escape_once to ERB::Util, and delegate escape_once tag helper to it. *Carlos Antonio da Silva*
+
 *    Remove ActiveSupport::TestCase#pending method, use `skip` instead. *Carlos Antonio da Silva*
 
 *    Deprecates the compatibility method Module#local_constant_names,
@@ -13,6 +23,8 @@
 
 *    BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger
      from Ruby stdlib.
+
+*    Unicode database updated to 6.1.0.
 
 ## Rails 3.2.0 (January 20, 2012) ##
 

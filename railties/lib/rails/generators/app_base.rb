@@ -181,10 +181,6 @@ module Rails
         end
       end
 
-      def ruby_debugger_gemfile_entry
-        "gem 'ruby-debug19', :require => 'ruby-debug'"
-      end
-
       def assets_gemfile_entry
         return if options[:skip_sprockets]
 
@@ -248,7 +244,7 @@ module Rails
       end
 
       def run_bundle
-        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle]
+        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle] || options[:pretend]
       end
 
       def empty_directory_with_gitkeep(destination, config = {})

@@ -229,8 +229,8 @@ module ActiveRecord
         end
       end
 
-      def columns(tbl_name, log_msg)
-        @columns ||= klass.connection.columns(tbl_name, log_msg)
+      def columns(tbl_name)
+        @columns ||= klass.connection.columns(tbl_name)
       end
 
       def reset_column_information

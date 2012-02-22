@@ -15,7 +15,6 @@ module ApplicationTests
           app.config.session_store nil
         end
       RUBY
-      use_frameworks [:action_controller, :action_view, :action_mailer, :active_record]
       require "#{app_path}/config/environment"
       @paths = Rails.application.config.paths
     end

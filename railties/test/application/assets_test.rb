@@ -64,7 +64,7 @@ module ApplicationTests
       files << Dir["#{app_path}/public/assets/foo/application.js"].first
       files.each do |file|
         assert_not_nil file, "Expected application.js asset to be generated, but none found"
-        assert_equal "alert()", File.read(file)
+        assert_equal "alert();", File.read(file)
       end
     end
 

@@ -4,27 +4,30 @@ module ActionView
       extend ActiveSupport::Autoload
 
       autoload :Base
-      autoload :Label
-      autoload :TextField
-      autoload :PasswordField
-      autoload :HiddenField
-      autoload :FileField
-      autoload :SearchField
-      autoload :TelField
-      autoload :UrlField
-      autoload :EmailField
-      autoload :NumberField
-      autoload :RangeField
-      autoload :TextArea
       autoload :CheckBox
-      autoload :RadioButton
-      autoload :Select
+      autoload :CollectionCheckBoxes
+      autoload :CollectionRadioButtons
       autoload :CollectionSelect
-      autoload :GroupedCollectionSelect
-      autoload :TimeZoneSelect
+      autoload :DateField
       autoload :DateSelect
-      autoload :TimeSelect
       autoload :DatetimeSelect
+      autoload :EmailField
+      autoload :FileField
+      autoload :GroupedCollectionSelect
+      autoload :HiddenField
+      autoload :Label
+      autoload :NumberField
+      autoload :PasswordField
+      autoload :RadioButton
+      autoload :RangeField
+      autoload :SearchField
+      autoload :Select
+      autoload :TelField
+      autoload :TextArea
+      autoload :TextField
+      autoload :TimeSelect
+      autoload :TimeZoneSelect
+      autoload :UrlField
     end
   end
 end

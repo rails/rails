@@ -119,7 +119,7 @@ module ActiveRecord
 
         private
         def cache
-          @cache[$$]
+          @cache[Process.pid]
         end
       end
 
@@ -408,7 +408,7 @@ module ActiveRecord
 
       def select(sql, name = nil, binds = [])
         @connection.query_with_result = true
-        rows = exec_query(sql, name, binds).to_a
+        rows = exec_query(sql, name, binds)
         @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
         rows
       end

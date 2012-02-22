@@ -196,6 +196,39 @@ module ActiveRecord
       relation
     end
 
+    # Returns a chainable relation with zero records, specifically an
+    # instance of the NullRelation class.
+    #
+    # The returned NullRelation inherits from Relation and implements the
+    # Null Object pattern so it is an object with defined null behavior:
+    # it always returns an empty array of records and does not query the database.
+    #
+    # Any subsequent condition chained to the returned relation will continue
+    # generating an empty relation and will not fire any query to the database.
+    #
+    # Used in cases where a method or scope could return zero records but the
+    # result needs to be chainable.
+    #
+    # For example:
+    #
+    #   @posts = current_user.visible_posts.where(:name => params[:name])
+    #   # => the visible_posts method is expected to return a chainable Relation
+    #
+    #   def visible_posts
+    #     case role
+    #     when 'Country Manager'
+    #       Post.where(:country => country)
+    #     when 'Reviewer'
+    #       Post.published
+    #     when 'Bad User'
+    #       Post.none # => returning [] instead breaks the previous code
+    #     end
+    #   end
+    #
+    def none
+      NullRelation.new(@klass, @table)
+    end
+
     def readonly(value = true)
       relation = clone
       relation.readonly_value = value

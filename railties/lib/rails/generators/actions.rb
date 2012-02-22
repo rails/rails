@@ -246,7 +246,7 @@ module Rails
         sentinel = /\.routes\.draw do\s*$/
 
         in_root do
-          inject_into_file 'config/routes.rb', "\n  #{routing_code}\n", { :after => sentinel, :verbose => false }
+          inject_into_file 'config/routes.rb', "\n  #{routing_code}", { :after => sentinel, :verbose => false }
         end
       end
 

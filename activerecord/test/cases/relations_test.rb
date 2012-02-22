@@ -4,11 +4,11 @@ require 'models/tagging'
 require 'models/post'
 require 'models/topic'
 require 'models/comment'
-require 'models/reply'
 require 'models/author'
 require 'models/comment'
 require 'models/entrant'
 require 'models/developer'
+require 'models/reply'
 require 'models/company'
 require 'models/bird'
 require 'models/car'
@@ -213,6 +213,19 @@ class RelationTest < ActiveRecord::TestCase
   def test_select_with_block
     even_ids = Developer.scoped.select {|d| d.id % 2 == 0 }.map(&:id)
     assert_equal [2, 4, 6, 8, 10], even_ids.sort
+  end
+
+  def test_none
+    assert_no_queries do
+      assert_equal [], Developer.none
+      assert_equal [], Developer.scoped.none
+    end
+  end
+
+  def test_none_chainable
+    assert_no_queries do
+      assert_equal [], Developer.none.where(:name => 'David')
+    end
   end
 
   def test_joins_with_nil_argument

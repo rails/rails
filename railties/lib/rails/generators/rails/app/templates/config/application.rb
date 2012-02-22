@@ -31,6 +31,9 @@ module <%= app_const_base %>
     # Activate observers that should always be running.
     # config.active_record.observers = :cacher, :garbage_collector, :forum_observer
 
+    # Use PATCH as default method for update actions
+    # config.default_method_for_update = :patch
+
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
     # config.time_zone = 'Central Time (US & Canada)'
@@ -55,6 +58,11 @@ module <%= app_const_base %>
     # in your app. As such, your models will need to explicitly whitelist or blacklist accessible
     # parameters by using an attr_accessible or attr_protected declaration.
     # config.active_record.whitelist_attributes = true
+
+    # Specifies wether or not has_many or has_one association option :dependent => :restrict raises
+    # an exception. If set to true, then an ActiveRecord::DeleteRestrictionError exception would be
+    # raised. If set to false, then an error will be added on the model instead.
+    <%= comment_if :skip_active_record %>config.active_record.dependent_restrict_raises = false
 
 <% unless options.skip_sprockets? -%>
     # Enable the asset pipeline.
