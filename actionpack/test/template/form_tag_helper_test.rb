@@ -78,6 +78,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_tag_with_method_patch
+    actual = form_tag({}, { :method => :patch })
+    expected = whole_form("http://www.example.com", :method => :patch)
+    assert_dom_equal expected, actual
+  end
+
   def test_form_tag_with_method_put
     actual = form_tag({}, { :method => :put })
     expected = whole_form("http://www.example.com", :method => :put)

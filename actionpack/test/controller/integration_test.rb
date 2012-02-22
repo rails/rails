@@ -63,6 +63,12 @@ class SessionTest < ActiveSupport::TestCase
     @session.post_via_redirect(path, args, headers)
   end
 
+  def test_patch_via_redirect
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    @session.expects(:request_via_redirect).with(:patch, path, args, headers)
+    @session.patch_via_redirect(path, args, headers)
+  end
+
   def test_put_via_redirect
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:put, path, args, headers)
@@ -85,6 +91,12 @@ class SessionTest < ActiveSupport::TestCase
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     @session.expects(:process).with(:post,path,params,headers)
     @session.post(path,params,headers)
+  end
+
+  def test_patch
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    @session.expects(:process).with(:patch,path,params,headers)
+    @session.patch(path,params,headers)
   end
 
   def test_put
@@ -129,6 +141,16 @@ class SessionTest < ActiveSupport::TestCase
     )
     @session.expects(:process).with(:post,path,params,headers_after_xhr)
     @session.xml_http_request(:post,path,params,headers)
+  end
+
+  def test_xml_http_request_patch
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    headers_after_xhr = headers.merge(
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
+    )
+    @session.expects(:process).with(:patch,path,params,headers_after_xhr)
+    @session.xml_http_request(:patch,path,params,headers)
   end
 
   def test_xml_http_request_put
@@ -228,7 +250,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
     @integration_session.stubs(:generic_url_rewriter)
     @integration_session.stubs(:process)
 
-    %w( get post head put delete options ).each do |verb|
+    %w( get post head patch put delete options ).each do |verb|
       assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
     end
   end

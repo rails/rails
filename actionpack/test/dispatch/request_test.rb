@@ -325,14 +325,14 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "String request methods" do
-    [:get, :post, :put, :delete].each do |method|
+    [:get, :post, :patch, :put, :delete].each do |method|
       request = stub_request 'REQUEST_METHOD' => method.to_s.upcase
       assert_equal method.to_s.upcase, request.method
     end
   end
 
   test "Symbol forms of request methods via method_symbol" do
-    [:get, :post, :put, :delete].each do |method|
+    [:get, :post, :patch, :put, :delete].each do |method|
       request = stub_request 'REQUEST_METHOD' => method.to_s.upcase
       assert_equal method, request.method_symbol
     end
@@ -346,7 +346,7 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "allow method hacking on post" do
-    %w(GET OPTIONS PUT POST DELETE).each do |method|
+    %w(GET OPTIONS PATCH PUT POST DELETE).each do |method|
       request = stub_request "REQUEST_METHOD" => method.to_s.upcase
       assert_equal(method == "HEAD" ? "GET" : method, request.method)
     end
@@ -360,7 +360,7 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "restrict method hacking" do
-    [:get, :put, :delete].each do |method|
+    [:get, :patch, :put, :delete].each do |method|
       request = stub_request 'REQUEST_METHOD' => method.to_s.upcase,
         'action_dispatch.request.request_parameters' => { :_method => 'put' }
       assert_equal method.to_s.upcase, request.method
@@ -373,6 +373,13 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal "GET",  request.request_method
     assert request.get?
     assert request.head?
+  end
+
+  test "post masquerading as patch" do
+    request = stub_request 'REQUEST_METHOD' => 'PATCH', "rack.methodoverride.original_method" => "POST"
+    assert_equal "POST", request.method
+    assert_equal "PATCH",  request.request_method
+    assert request.patch?
   end
 
   test "post masquerading as put" do
