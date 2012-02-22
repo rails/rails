@@ -9,7 +9,7 @@ module ActionView
   # generate a key, given to view paths, used in the resolver cache lookup. Since
   # this key is generated just once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
-    attr_accessor :prefixes
+    attr_accessor :prefixes, :rendered_format
 
     mattr_accessor :fallbacks
     @@fallbacks = FallbackFileSystemResolver.instances
@@ -170,21 +170,13 @@ module ActionView
 
     def initialize(view_paths, details = {}, prefixes = [])
       @details, @details_key = {}, nil
-      @frozen_formats, @skip_default_locale = false, false
+      @skip_default_locale = false
       @cache = true
       @prefixes = prefixes
+      @rendered_format = nil
 
       self.view_paths = view_paths
       initialize_details(details)
-    end
-
-    # Freeze the current formats in the lookup context. By freezing them, you are guaranteeing
-    # that next template lookups are not going to modify the formats. The controller can also
-    # use this, to ensure that formats won't be further modified (as it does in respond_to blocks).
-    def freeze_formats(formats, unless_frozen=false) #:nodoc:
-      return if unless_frozen && @frozen_formats
-      self.formats = formats
-      @frozen_formats = true
     end
 
     # Override formats= to expand ["*/*"] values and automatically
