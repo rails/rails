@@ -3,7 +3,7 @@ require 'abstract_unit'
 module CallbacksTest
   class Phone
     include ActiveSupport::Callbacks
-    define_callbacks :save, :rescuable => true
+    define_callbacks :save
 
     set_callback :save, :before, :before_save1
     set_callback :save, :after, :after_save1
@@ -439,13 +439,6 @@ module CallbacksTest
   end
 
   class CallbacksTest < ActiveSupport::TestCase
-    def test_save_phone
-      phone = Phone.new
-      assert_raise RuntimeError do
-        phone.save
-      end
-      assert_equal [:before, :after], phone.history
-    end
 
     def test_save_person
       person = Person.new
