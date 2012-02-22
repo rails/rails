@@ -75,7 +75,9 @@ module ActiveSupport
     #   end
     #
     def run_callbacks(kind, key = nil, &block)
-      #TODO: deprecate key argument
+      if key
+        raise NotImplementedError, "#run_callbacks second argument is no longer supported"
+      end
       self.class.__run_callbacks(kind, self, &block)
     end
 
