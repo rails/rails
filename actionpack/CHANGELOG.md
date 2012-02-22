@@ -1,5 +1,7 @@
 ## Rails 3.2.2 (unreleased) ##
 
+*    Format lookup for partials is derived from the format in which the template. Closes #5025 part 2 *Santiago Pastorino*
+
 *    Use the right format when a partial is missing. Closes #5025. *Santiago Pastorino*
 
 *   Default responder will now always use your overridden block in `respond_with` to render your response. *Prem Sichanugrist*
