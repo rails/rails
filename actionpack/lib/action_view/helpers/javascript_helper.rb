@@ -13,7 +13,8 @@ module ActionView
         "<"     => '\u003C',
         ">"     => '\u003E',
         "&"     => '\u0026',
-        "\342\200\250".force_encoding('UTF-8').encode! => '\u2028'
+        "\342\200\250".force_encoding('UTF-8').encode! => '\u2028',
+        "\342\200\251".force_encoding('UTF-8').encode! => '\u2029'
       }
 
       JS_ESCAPE_MAP = {
@@ -46,7 +47,7 @@ module ActionView
       # html characters so the string can be correctly embedded in a <script> tag.
       def escape_javascript_string(javascript)
         if javascript
-          result = javascript.gsub(/(\\|\342\200\250|[<>&\n\r"'])/u) {|match| JS_STRING_ESCAPE_MAP[match] }
+          result = javascript.gsub(/(\\|\342\200\250|\342\200\251|[<>&\n\r"'])/u) {|match| JS_STRING_ESCAPE_MAP[match] }
           javascript.html_safe? ? result.html_safe : result
         else
           ''
