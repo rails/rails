@@ -9,6 +9,12 @@ require 'action_controller/metal/exceptions'
 module ActionDispatch
   module Routing
     class RouteSet #:nodoc:
+      # Since the router holds references to many parts of the system
+      # like engines, controllers and the application itself, inspecting
+      # the route set can actually be really slow, therefore we default
+      # alias inspect to to_s.
+      alias inspect to_s
+
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       class Dispatcher #:nodoc:
