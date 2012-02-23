@@ -937,9 +937,7 @@ class ControllerWithAllTypesOfFilters < PostsController
 end
 
 class ControllerWithTwoLessFilters < ControllerWithAllTypesOfFilters
-  $vbf = true
   skip_filter :around_again
-  $vbf = false
   skip_filter :after
 end
 
