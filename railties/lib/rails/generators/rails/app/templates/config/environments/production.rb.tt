@@ -70,4 +70,7 @@
   # with SQLite, MySQL, and PostgreSQL).
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
   <%- end -%>
+
+  # Disable automatic flushing of the log to improve performance.
+  # config.autoflush_log = false
 end
