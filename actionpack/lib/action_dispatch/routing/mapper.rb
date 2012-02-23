@@ -325,7 +325,7 @@ module ActionDispatch
         #   +call+ or a string representing a controller's action.
         #
         #      match 'path', :to => 'controller#action'
-        #      match 'path', :to => lambda { [200, {}, "Success!"] }
+        #      match 'path', :to => lambda { |env| [200, {}, "Success!"] }
         #      match 'path', :to => RackApp
         #
         # [:on]
