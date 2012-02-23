@@ -305,6 +305,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, text_field("post", "title", :value => nil)
   end
 
+  def test_text_field_with_nil_name
+    expected = '<input id="post_title" size="30" type="text" value="Hello World" />'
+    assert_dom_equal expected, text_field("post", "title", :name => nil)
+  end
+
   def test_text_field_doesnt_change_param_values
     object_name = 'post[]'
     expected = '<input id="post_123_title" name="post[123][title]" size="30" type="text" value="Hello World" />'
