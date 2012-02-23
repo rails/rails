@@ -179,7 +179,8 @@ module Arel
         core.froms = :b
         core.wheres << :c
         core.groups << :d
-        core.having = :e
+        core.windows << :e
+        core.having = :f
 
         @visitor.accept core
         assert_equal [
@@ -188,7 +189,8 @@ module Arel
           core.source,
           :c, core.wheres,
           :d, core.groups,
-          :e,
+          :e, core.windows,
+          :f,
           core], @collector.calls
       end
 

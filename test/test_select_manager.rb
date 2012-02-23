@@ -731,6 +731,162 @@ module Arel
       end
     end
 
+    describe 'window definition' do
+      it 'can be empty' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window')
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS ()
+        }
+      end
+
+      it 'takes an order' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').order(table['foo'].asc)
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (ORDER BY "users"."foo" ASC)
+        }
+      end
+
+      it 'takes a rows frame, unbounded preceding' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').rows(Arel::Nodes::Preceding.new)
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (ROWS UNBOUNDED PRECEDING)
+        }
+      end
+
+      it 'takes a rows frame, bounded preceding' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').rows(Arel::Nodes::Preceding.new(5))
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (ROWS 5 PRECEDING)
+        }
+      end
+
+      it 'takes a rows frame, unbounded following' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').rows(Arel::Nodes::Following.new)
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (ROWS UNBOUNDED FOLLOWING)
+        }
+      end
+
+      it 'takes a rows frame, bounded following' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').rows(Arel::Nodes::Following.new(5))
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (ROWS 5 FOLLOWING)
+        }
+      end
+
+      it 'takes a rows frame, current row' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').rows(Arel::Nodes::CurrentRow.new)
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (ROWS CURRENT ROW)
+        }
+      end
+
+      it 'takes a rows frame, between two delimiters' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        window = manager.window('a_window')
+        window.frame(
+          Arel::Nodes::Between.new(
+            window.rows,
+            Nodes::And.new([
+              Arel::Nodes::Preceding.new,
+              Arel::Nodes::CurrentRow.new
+            ])))
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+        }
+      end
+
+      it 'takes a range frame, unbounded preceding' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').range(Arel::Nodes::Preceding.new)
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (RANGE UNBOUNDED PRECEDING)
+        }
+      end
+
+      it 'takes a range frame, bounded preceding' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').range(Arel::Nodes::Preceding.new(5))
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (RANGE 5 PRECEDING)
+        }
+      end
+
+      it 'takes a range frame, unbounded following' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').range(Arel::Nodes::Following.new)
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (RANGE UNBOUNDED FOLLOWING)
+        }
+      end
+
+      it 'takes a range frame, bounded following' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').range(Arel::Nodes::Following.new(5))
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (RANGE 5 FOLLOWING)
+        }
+      end
+
+      it 'takes a range frame, current row' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').range(Arel::Nodes::CurrentRow.new)
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (RANGE CURRENT ROW)
+        }
+      end
+
+      it 'takes a range frame, between two delimiters' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        window = manager.window('a_window')
+        window.frame(
+          Arel::Nodes::Between.new(
+            window.range,
+            Nodes::And.new([
+              Arel::Nodes::Preceding.new,
+              Arel::Nodes::CurrentRow.new
+            ])))
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+        }
+      end
+    end
+
     describe 'delete' do
       it "copies from" do
         engine  = EngineProxy.new Table.engine

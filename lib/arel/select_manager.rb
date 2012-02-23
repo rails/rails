@@ -126,6 +126,12 @@ module Arel
       self
     end
 
+    def window name
+      window = Nodes::NamedWindow.new(name)
+      @ctx.windows.push window
+      window
+    end
+
     def project *projections
       # FIXME: converting these to SQLLiterals is probably not good, but
       # rails tests require it.

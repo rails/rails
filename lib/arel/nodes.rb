@@ -26,6 +26,7 @@ require 'arel/nodes/join_source'
 require 'arel/nodes/delete_statement'
 require 'arel/nodes/table_alias'
 require 'arel/nodes/infix_operation'
+require 'arel/nodes/over'
 
 # nary
 require 'arel/nodes/and'
@@ -35,8 +36,12 @@ require 'arel/nodes/and'
 # We should make Function a Unary node and deprecate the use of "aliaz"
 require 'arel/nodes/function'
 require 'arel/nodes/count'
+require 'arel/nodes/extract'
 require 'arel/nodes/values'
 require 'arel/nodes/named_function'
+
+# windows
+require 'arel/nodes/window'
 
 # joins
 require 'arel/nodes/inner_join'

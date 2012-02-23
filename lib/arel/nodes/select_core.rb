@@ -1,7 +1,7 @@
 module Arel
   module Nodes
     class SelectCore < Arel::Nodes::Node
-      attr_accessor :top, :projections, :wheres, :groups
+      attr_accessor :top, :projections, :wheres, :groups, :windows
       attr_accessor :having, :source, :set_quantifier
 
       def initialize
@@ -14,6 +14,7 @@ module Arel
         @wheres         = []
         @groups         = []
         @having         = nil
+        @windows        = []
       end
 
       def from
@@ -34,6 +35,7 @@ module Arel
         @wheres      = @wheres.clone
         @groups      = @groups.clone
         @having      = @having.clone if @having
+        @windows     = @windows.clone
       end
     end
   end
