@@ -198,8 +198,10 @@ module ActionController #:nodoc:
     def api_behavior(error)
       raise error unless resourceful?
 
-      if get?
+      if get? && resource.present?
         display resource
+      elsif get? && resource.blank?
+        display resource, :status => :no_content
       elsif post?
         display resource, :status => :created, :location => api_location
       else
