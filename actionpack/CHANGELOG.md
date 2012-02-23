@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Don't ignore `force_ssl` in development. This is a change of behavior - use a `:if` condition to recreate the old behavior.
+
+        class AccountsController < ApplicationController
+          force_ssl :if => :ssl_configured?
+
+          def ssl_configured?
+            !Rails.env.development?
+          end
+        end
+
+    *Pat Allan*
+
 *   Adds support for the PATCH verb:
       * Request objects respond to `patch?`.
       * Routes have a new `patch` method, and understand `:patch` in the
