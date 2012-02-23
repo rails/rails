@@ -1,6 +1,15 @@
 require 'helper'
 
 describe Arel::Nodes::Over do
+  describe 'as' do
+    it 'should alias the expression' do
+      table = Arel::Table.new :users
+      table[:id].count.over.as('foo').to_sql.must_be_like %{
+        COUNT("users"."id") OVER () AS foo
+      }
+    end
+  end
+
   describe 'with literal' do
     it 'should reference the window definition by name' do
       table = Arel::Table.new :users
