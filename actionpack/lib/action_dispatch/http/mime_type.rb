@@ -111,7 +111,7 @@ module Mime
           if accept_header =~ TRAILING_STAR_REGEXP
             parse_data_with_trailing_star($1)
           else
-            [Mime::Type.lookup(accept_header)]
+            [Mime::Type.lookup(accept_header.split(/\s*;/).first)]
           end
         else
           # keep track of creation order to keep the subsequent sort stable
