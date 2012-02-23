@@ -8,7 +8,7 @@
 *   remove AM delegating register_observer and register_interceptor to Mail *Josh Kalderimis*
 
 
-*   Rails 3.0.6 (April 5, 2011)
+## Rails 3.0.6 (April 5, 2011)
 
 *   Don't allow i18n to change the minor version, version now set to ~> 0.5.0 *Santiago Pastorino*
 
