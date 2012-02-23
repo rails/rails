@@ -272,6 +272,10 @@ key on UpdateManager using UpdateManager#key=
         }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
+      def visit_Arel_Nodes_Extract o
+        "EXTRACT(#{o.field.to_s.upcase} FROM #{visit o.expr})#{o.alias ? " AS #{visit o.alias}" : ''}"
+      end
+
       def visit_Arel_Nodes_Count o
         "COUNT(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
           visit x

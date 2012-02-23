@@ -103,6 +103,12 @@ module Arel
       alias :visit_Arel_Nodes_Avg    :function
       alias :visit_Arel_Nodes_Sum    :function
 
+      def extract o
+        visit_edge o, "expressions"
+        visit_edge o, "alias"
+      end
+      alias :visit_Arel_Nodes_Extract :extract
+
       def visit_Arel_Nodes_NamedFunction o
         visit_edge o, "name"
         visit_edge o, "expressions"

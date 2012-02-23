@@ -19,5 +19,9 @@ module Arel
     def average
       Nodes::Avg.new [self], Nodes::SqlLiteral.new('avg_id')
     end
+
+    def extract field
+      Nodes::Extract.new [self], field
+    end
   end
 end
