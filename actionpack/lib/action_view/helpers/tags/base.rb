@@ -75,14 +75,14 @@ module ActionView
 
         def add_default_name_and_id(options)
           if options.has_key?("index")
-            options["name"] ||= tag_name_with_index(options["index"])
+            options["name"] ||= options.fetch("name"){ tag_name_with_index(options["index"]) }
             options["id"] = options.fetch("id"){ tag_id_with_index(options["index"]) }
             options.delete("index")
           elsif defined?(@auto_index)
-            options["name"] ||= tag_name_with_index(@auto_index)
+            options["name"] ||= options.fetch("name"){ tag_name_with_index(@auto_index) }
             options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
           else
-            options["name"] ||= options['multiple'] ? tag_name_multiple : tag_name
+            options["name"] ||= options.fetch("name"){ options['multiple'] ? tag_name_multiple : tag_name }
             options["id"] = options.fetch("id"){ tag_id }
           end
           options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
