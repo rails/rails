@@ -78,6 +78,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_tag_with_method_patch
+    actual = form_tag({}, { :method => :patch })
+    expected = whole_form("http://www.example.com", :method => :patch)
+    assert_dom_equal expected, actual
+  end
+
   def test_form_tag_with_method_put
     actual = form_tag({}, { :method => :put })
     expected = whole_form("http://www.example.com", :method => :put)
@@ -457,9 +463,14 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, search_field_tag("query"))
   end
 
-  def telephone_field_tag
+  def test_telephone_field_tag
     expected = %{<input id="cell" name="cell" type="tel" />}
     assert_dom_equal(expected, telephone_field_tag("cell"))
+  end
+
+  def test_date_field_tag
+    expected = %{<input id="cell" name="cell" type="date" />}
+    assert_dom_equal(expected, date_field_tag("cell"))
   end
 
   def test_url_field_tag

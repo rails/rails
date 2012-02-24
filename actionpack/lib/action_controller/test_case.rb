@@ -225,7 +225,7 @@ module ActionController
   # == Basic example
   #
   # Functional tests are written as follows:
-  # 1. First, one uses the +get+, +post+, +put+, +delete+ or +head+ method to simulate
+  # 1. First, one uses the +get+, +post+, +patch+, +put+, +delete+ or +head+ method to simulate
   #    an HTTP request.
   # 2. Then, one asserts whether the current state is as expected. "State" can be anything:
   #    the controller's HTTP response, the database contents, etc.
@@ -390,6 +390,11 @@ module ActionController
       # Executes a request simulating POST HTTP method and set/volley the response
       def post(action, *args)
         process(action, "POST", *args)
+      end
+
+      # Executes a request simulating PATCH HTTP method and set/volley the response
+      def patch(action, *args)
+        process(action, "PATCH", *args)
       end
 
       # Executes a request simulating PUT HTTP method and set/volley the response

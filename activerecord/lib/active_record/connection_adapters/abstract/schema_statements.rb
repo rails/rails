@@ -163,7 +163,7 @@ module ActiveRecord
         yield td if block_given?
 
         if options[:force] && table_exists?(table_name)
-          drop_table(table_name)
+          drop_table(table_name, options)
         end
 
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
@@ -294,7 +294,7 @@ module ActiveRecord
       end
 
       # Drops a table from the database.
-      def drop_table(table_name)
+      def drop_table(table_name, options = {})
         execute "DROP TABLE #{quote_table_name(table_name)}"
       end
 
@@ -381,9 +381,16 @@ module ActiveRecord
       #
       # Note: mysql doesn't yet support index order (it accepts the syntax but ignores it)
       #
+      # ====== Creating a partial index
+      #  add_index(:accounts, [:branch_id, :party_id], :unique => true, :where => "active")
+      # generates
+      #  CREATE UNIQUE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id) WHERE active
+      #
+      # Note: only supported by PostgreSQL
+      #
       def add_index(table_name, column_name, options = {})
-        index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
-        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})"
+        index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
+        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
       end
 
       # Remove the given index from the table.
@@ -581,6 +588,9 @@ module ActiveRecord
           if Hash === options # legacy support, since this param was a string
             index_type = options[:unique] ? "UNIQUE" : ""
             index_name = options[:name].to_s if options.key?(:name)
+            if supports_partial_index?
+              index_options = options[:where] ? " WHERE #{options[:where]}" : ""
+            end
           else
             index_type = options
           end
@@ -593,7 +603,7 @@ module ActiveRecord
           end
           index_columns = quoted_columns_for_index(column_names, options).join(", ")
 
-          [index_name, index_type, index_columns]
+          [index_name, index_type, index_columns, index_options]
         end
 
         def index_name_for_remove(table_name, options = {})

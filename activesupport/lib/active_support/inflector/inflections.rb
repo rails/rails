@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/prepend_and_append'
+
 module ActiveSupport
   module Inflector
     # A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
@@ -82,7 +84,7 @@ module ActiveSupport
       def plural(rule, replacement)
         @uncountables.delete(rule) if rule.is_a?(String)
         @uncountables.delete(replacement)
-        @plurals.insert(0, [rule, replacement])
+        @plurals.prepend([rule, replacement])
       end
 
       # Specifies a new singularization rule and its replacement. The rule can either be a string or a regular expression.
@@ -90,7 +92,7 @@ module ActiveSupport
       def singular(rule, replacement)
         @uncountables.delete(rule) if rule.is_a?(String)
         @uncountables.delete(replacement)
-        @singulars.insert(0, [rule, replacement])
+        @singulars.prepend([rule, replacement])
       end
 
       # Specifies a new irregular that applies to both pluralization and singularization at the same time. This can only be used
@@ -134,7 +136,7 @@ module ActiveSupport
       #   human /_cnt$/i, '\1_count'
       #   human "legacy_col_person_name", "Name"
       def human(rule, replacement)
-        @humans.insert(0, [rule, replacement])
+        @humans.prepend([rule, replacement])
       end
 
       # Clears the loaded inflections within a given scope (default is <tt>:all</tt>).

@@ -145,6 +145,32 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal 'Not Found', get(URI('http://example.org/journey/omg-faithfully'))
   end
 
+  def test_star_paths_are_greedy
+    rs.draw do
+      match "/(*filters)", :to => lambda { |env|
+        x = env["action_dispatch.request.path_parameters"][:filters]
+        [200, {}, [x]]
+      }, :format => false
+    end
+
+    u = URI('http://example.org/ne_27.065938,-80.6092/sw_25.489856,-82.542794')
+    assert_equal u.path.sub(/^\//, ''), get(u)
+  end
+
+  def test_star_paths_are_greedy_but_not_too_much
+    rs.draw do
+      match "/(*filters).:format", :to => lambda { |env|
+        x = JSON.dump env["action_dispatch.request.path_parameters"]
+        [200, {}, [x]]
+      }
+    end
+
+    expected = { "filters" => "ne_27.065938,-80.6092/sw_25.489856,-82",
+                 "format"  => "542794" }
+    u = URI('http://example.org/ne_27.065938,-80.6092/sw_25.489856,-82.542794')
+    assert_equal expected, JSON.parse(get(u))
+  end
+
   def test_regexp_precidence
     @rs.draw do
       match '/whois/:domain', :constraints => {
@@ -240,36 +266,6 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     @rs.clear!
     @rs.draw { match '/:controller(/:action(/:id))'}
     test_default_setup
-  end
-
-  def test_time_recognition
-    # We create many routes to make situation more realistic
-    @rs = ::ActionDispatch::Routing::RouteSet.new
-    @rs.draw {
-      root :to => "search#new", :as => "frontpage"
-      resources :videos do
-        resources :comments
-        resource  :file,      :controller => 'video_file'
-        resource  :share,     :controller => 'video_shares'
-        resource  :abuse,     :controller => 'video_abuses'
-      end
-      resources :abuses, :controller => 'video_abuses'
-      resources :video_uploads
-      resources :video_visits
-
-      resources :users do
-        resource  :settings
-        resources :videos
-      end
-      resources :channels do
-        resources :videos, :controller => 'channel_videos'
-      end
-      resource  :session
-      resource  :lost_password
-      match 'search' => 'search#index', :as => 'search'
-      resources :pages
-      match ':controller/:action/:id'
-    }
   end
 
   def test_route_with_colon_first
@@ -652,11 +648,12 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       match '/match' => 'books#get', :via => :get
       match '/match' => 'books#post', :via => :post
       match '/match' => 'books#put', :via => :put
+      match '/match' => 'books#patch', :via => :patch
       match '/match' => 'books#delete', :via => :delete
     end
   end
 
-  %w(GET POST PUT DELETE).each do |request_method|
+  %w(GET PATCH POST PUT DELETE).each do |request_method|
     define_method("test_request_method_recognized_with_#{request_method}") do
       setup_request_method_routes_for(request_method)
       params = rs.recognize_path("/match", :method => request_method)
@@ -1039,6 +1036,7 @@ class RouteSetTest < ActiveSupport::TestCase
       post   "/people"     => "people#create"
       get    "/people/:id" => "people#show",  :as => "person"
       put    "/people/:id" => "people#update"
+      patch  "/people/:id" => "people#update"
       delete "/people/:id" => "people#destroy"
     end
 
@@ -1051,6 +1049,9 @@ class RouteSetTest < ActiveSupport::TestCase
     params = set.recognize_path("/people/5", :method => :put)
     assert_equal("update", params[:action])
 
+    params = set.recognize_path("/people/5", :method => :patch)
+    assert_equal("update", params[:action])
+
     assert_raise(ActionController::UnknownHttpMethod) {
       set.recognize_path("/people", :method => :bacon)
     }
@@ -1060,6 +1061,10 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal("5", params[:id])
 
     params = set.recognize_path("/people/5", :method => :put)
+    assert_equal("update", params[:action])
+    assert_equal("5", params[:id])
+
+    params = set.recognize_path("/people/5", :method => :patch)
     assert_equal("update", params[:action])
     assert_equal("5", params[:id])
 
@@ -1116,6 +1121,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do
       get "people/:id" => "people#show", :as => "person"
       put "people/:id" => "people#update"
+      patch "people/:id" => "people#update"
       get "people/:id(.:format)" => "people#show"
     end
 
@@ -1124,6 +1130,9 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal("5", params[:id])
 
     params = set.recognize_path("/people/5", :method => :put)
+    assert_equal("update", params[:action])
+
+    params = set.recognize_path("/people/5", :method => :patch)
     assert_equal("update", params[:action])
 
     params = set.recognize_path("/people/5.png", :method => :get)

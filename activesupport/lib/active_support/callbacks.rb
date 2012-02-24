@@ -307,7 +307,6 @@ module ActiveSupport
         @name = name
         @config = {
           :terminator => "false",
-          :rescuable => false,
           :scope => [ :kind ]
         }.merge(config)
       end
@@ -317,33 +316,14 @@ module ActiveSupport
         method << "value = nil"
         method << "halted = false"
 
-        callbacks = yielding
+        callbacks = "value = yield if block_given? && !halted"
         reverse_each do |callback|
           callbacks = callback.apply(callbacks)
         end
         method << callbacks
 
-        method << "raise rescued_error if rescued_error" if config[:rescuable]
         method << "halted ? false : (block_given? ? value : true)"
         method.flatten.compact.join("\n")
-      end
-
-      # Returns part of method that evaluates the callback block
-      def yielding
-        method = []
-        if config[:rescuable]
-          method << "rescued_error = nil"
-          method << "begin"
-        end
-
-        method << "value = yield if block_given? && !halted"
-
-        if config[:rescuable]
-          method << "rescue Exception => e"
-          method << "rescued_error = e"
-          method << "end"
-        end
-        method.join("\n")
       end
 
     end
@@ -356,7 +336,7 @@ module ActiveSupport
       #
       def __run_callbacks(kind, object, &blk) #:nodoc:
         name = __callback_runner_name(kind)
-        unless object.respond_to?(name)
+        unless object.respond_to?(name, true)
           str = object.send("_#{kind}_callbacks").compile
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{name}() #{str} end
@@ -507,11 +487,6 @@ module ActiveSupport
       #   by the <tt>:terminator</tt> option. By default after callbacks executed no matter
       #   if callback chain was terminated or not.
       #   Option makes sence only when <tt>:terminator</tt> option is specified.
-      #
-      # * <tt>:rescuable</tt> - By default, after filters are not executed if
-      #   the given block or a before filter raises an error. By setting this option
-      #   to <tt>true</tt> exception raised by given block is stored and after
-      #   executing all the after callbacks the stored exception is raised.
       #
       # * <tt>:scope</tt> - Indicates which methods should be executed when an object
       #   is used as a callback.

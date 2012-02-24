@@ -1,5 +1,35 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Don't ignore `force_ssl` in development. This is a change of behavior - use a `:if` condition to recreate the old behavior.
+
+        class AccountsController < ApplicationController
+          force_ssl :if => :ssl_configured?
+
+          def ssl_configured?
+            !Rails.env.development?
+          end
+        end
+
+    *Pat Allan*
+
+*   Adds support for the PATCH verb:
+      * Request objects respond to `patch?`.
+      * Routes have a new `patch` method, and understand `:patch` in the
+        existing places where a verb is configured, like `:via`.
+      * New method `patch` available in functional tests.
+      * If `:patch` is the default verb for updates, edits are
+        tunneled as PATCH rather than as PUT, and routing acts accordingly.
+      * New method `patch_via_redirect` available in integration tests.
+
+    *dlee*
+
+*   Integration tests support the `OPTIONS` method. *Jeremy Kemper*
+
+*   `expires_in` accepts a `must_revalidate` flag. If true, "must-revalidate"
+    is added to the Cache-Control header. *fxn*
+
+*   Add `date_field` and `date_field_tag` helpers which render an `input[type="date"]` tag *Olek Janiszewski*
+
 *   Adds `image_url`, `javascript_url`, `stylesheet_url`, `audio_url`, `video_url`, and `font_url`
     to assets tag helper. These URL helpers will return the full path to your assets. This is useful
     when you are going to reference this asset from external host. *Prem Sichanugrist*

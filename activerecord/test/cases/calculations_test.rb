@@ -486,11 +486,6 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_not_auto_table_name_prefix_if_column_joined
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
-    # FIXME: PostgreSQL should works in the same way of the other adapters
-    if current_adapter?(:PostgreSQLAdapter)
-      assert_equal ["7"], Company.joins(:contracts).pluck(:developer_id)
-    else
-      assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
-    end
+    assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
   end
 end

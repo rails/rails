@@ -7,6 +7,8 @@ require 'action_dispatch/routing/redirection'
 module ActionDispatch
   module Routing
     class Mapper
+      cattr_accessor(:default_method_for_update) {:put}
+
       class Constraints #:nodoc:
         def self.new(app, constraints, request = Rack::Request)
           if constraints.any?
@@ -465,7 +467,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # get 'bacon', :to => 'food#bacon'
+        #   get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
           map_method(:get, args, &block)
         end
@@ -475,9 +477,19 @@ module ActionDispatch
         #
         # Example:
         #
-        # post 'bacon', :to => 'food#bacon'
+        #   post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
           map_method(:post, args, &block)
+        end
+
+        # Define a route that only recognizes HTTP PATCH.
+        # For supported arguments, see <tt>Base#match</tt>.
+        #
+        # Example:
+        #
+        #   patch 'bacon', :to => 'food#bacon'
+        def patch(*args, &block)
+          map_method(:patch, args, &block)
         end
 
         # Define a route that only recognizes HTTP PUT.
@@ -485,7 +497,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # put 'bacon', :to => 'food#bacon'
+        #   put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
           map_method(:put, args, &block)
         end
@@ -495,7 +507,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # delete 'broccoli', :to => 'food#broccoli'
+        #   delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, args, &block)
         end
@@ -522,13 +534,13 @@ module ActionDispatch
       # This will create a number of routes for each of the posts and comments
       # controller. For <tt>Admin::PostsController</tt>, Rails will create:
       #
-      #   GET	    /admin/posts
-      #   GET	    /admin/posts/new
-      #   POST	  /admin/posts
-      #   GET	    /admin/posts/1
-      #   GET	    /admin/posts/1/edit
-      #   PUT	    /admin/posts/1
-      #   DELETE  /admin/posts/1
+      #   GET       /admin/posts
+      #   GET       /admin/posts/new
+      #   POST      /admin/posts
+      #   GET       /admin/posts/1
+      #   GET       /admin/posts/1/edit
+      #   PUT/PATCH /admin/posts/1
+      #   DELETE    /admin/posts/1
       #
       # If you want to route /posts (without the prefix /admin) to
       # <tt>Admin::PostsController</tt>, you could use
@@ -556,13 +568,13 @@ module ActionDispatch
       # not use scope. In the last case, the following paths map to
       # +PostsController+:
       #
-      #   GET	    /admin/posts
-      #   GET	    /admin/posts/new
-      #   POST	  /admin/posts
-      #   GET	    /admin/posts/1
-      #   GET	    /admin/posts/1/edit
-      #   PUT	    /admin/posts/1
-      #   DELETE  /admin/posts/1
+      #   GET       /admin/posts
+      #   GET       /admin/posts/new
+      #   POST      /admin/posts
+      #   GET       /admin/posts/1
+      #   GET       /admin/posts/1/edit
+      #   PUT/PATCH /admin/posts/1
+      #   DELETE    /admin/posts/1
       module Scoping
         # Scopes a set of routes to the given default options.
         #
@@ -651,13 +663,13 @@ module ActionDispatch
         #
         # This generates the following routes:
         #
-        #       admin_posts GET    /admin/posts(.:format)          admin/posts#index
-        #       admin_posts POST   /admin/posts(.:format)          admin/posts#create
-        #    new_admin_post GET    /admin/posts/new(.:format)      admin/posts#new
-        #   edit_admin_post GET    /admin/posts/:id/edit(.:format) admin/posts#edit
-        #        admin_post GET    /admin/posts/:id(.:format)      admin/posts#show
-        #        admin_post PUT    /admin/posts/:id(.:format)      admin/posts#update
-        #        admin_post DELETE /admin/posts/:id(.:format)      admin/posts#destroy
+        #       admin_posts GET       /admin/posts(.:format)          admin/posts#index
+        #       admin_posts POST      /admin/posts(.:format)          admin/posts#create
+        #    new_admin_post GET       /admin/posts/new(.:format)      admin/posts#new
+        #   edit_admin_post GET       /admin/posts/:id/edit(.:format) admin/posts#edit
+        #        admin_post GET       /admin/posts/:id(.:format)      admin/posts#show
+        #        admin_post PUT/PATCH /admin/posts/:id(.:format)      admin/posts#update
+        #        admin_post DELETE    /admin/posts/:id(.:format)      admin/posts#destroy
         #
         # === Options
         #
@@ -972,12 +984,12 @@ module ActionDispatch
         # the +GeoCoders+ controller (note that the controller is named after
         # the plural):
         #
-        #   GET     /geocoder/new
-        #   POST    /geocoder
-        #   GET     /geocoder
-        #   GET     /geocoder/edit
-        #   PUT     /geocoder
-        #   DELETE  /geocoder
+        #   GET       /geocoder/new
+        #   POST      /geocoder
+        #   GET       /geocoder
+        #   GET       /geocoder/edit
+        #   PUT/PATCH /geocoder
+        #   DELETE    /geocoder
         #
         # === Options
         # Takes same options as +resources+.
@@ -1002,7 +1014,9 @@ module ActionDispatch
             member do
               get    :edit if parent_resource.actions.include?(:edit)
               get    :show if parent_resource.actions.include?(:show)
-              put    :update if parent_resource.actions.include?(:update)
+              if parent_resource.actions.include?(:update)
+                send default_method_for_update, :update
+              end
               delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end
@@ -1020,13 +1034,13 @@ module ActionDispatch
         # creates seven different routes in your application, all mapping to
         # the +Photos+ controller:
         #
-        #   GET     /photos
-        #   GET     /photos/new
-        #   POST    /photos
-        #   GET     /photos/:id
-        #   GET     /photos/:id/edit
-        #   PUT     /photos/:id
-        #   DELETE  /photos/:id
+        #   GET       /photos
+        #   GET       /photos/new
+        #   POST      /photos
+        #   GET       /photos/:id
+        #   GET       /photos/:id/edit
+        #   PUT/PATCH /photos/:id
+        #   DELETE    /photos/:id
         #
         # Resources can also be nested infinitely by using this block syntax:
         #
@@ -1036,13 +1050,13 @@ module ActionDispatch
         #
         # This generates the following comments routes:
         #
-        #   GET     /photos/:photo_id/comments
-        #   GET     /photos/:photo_id/comments/new
-        #   POST    /photos/:photo_id/comments
-        #   GET     /photos/:photo_id/comments/:id
-        #   GET     /photos/:photo_id/comments/:id/edit
-        #   PUT     /photos/:photo_id/comments/:id
-        #   DELETE  /photos/:photo_id/comments/:id
+        #   GET       /photos/:photo_id/comments
+        #   GET       /photos/:photo_id/comments/new
+        #   POST      /photos/:photo_id/comments
+        #   GET       /photos/:photo_id/comments/:id
+        #   GET       /photos/:photo_id/comments/:id/edit
+        #   PUT/PATCH /photos/:photo_id/comments/:id
+        #   DELETE    /photos/:photo_id/comments/:id
         #
         # === Options
         # Takes same options as <tt>Base#match</tt> as well as:
@@ -1104,13 +1118,13 @@ module ActionDispatch
         #
         #   The +comments+ resource here will have the following routes generated for it:
         #
-        #     post_comments    GET    /posts/:post_id/comments(.:format)
-        #     post_comments    POST   /posts/:post_id/comments(.:format)
-        #     new_post_comment GET    /posts/:post_id/comments/new(.:format)
-        #     edit_comment     GET    /sekret/comments/:id/edit(.:format)
-        #     comment          GET    /sekret/comments/:id(.:format)
-        #     comment          PUT    /sekret/comments/:id(.:format)
-        #     comment          DELETE /sekret/comments/:id(.:format)
+        #     post_comments    GET       /posts/:post_id/comments(.:format)
+        #     post_comments    POST      /posts/:post_id/comments(.:format)
+        #     new_post_comment GET       /posts/:post_id/comments/new(.:format)
+        #     edit_comment     GET       /sekret/comments/:id/edit(.:format)
+        #     comment          GET       /sekret/comments/:id(.:format)
+        #     comment          PUT/PATCH /sekret/comments/:id(.:format)
+        #     comment          DELETE    /sekret/comments/:id(.:format)
         #
         # === Examples
         #
@@ -1138,10 +1152,13 @@ module ActionDispatch
               get :new
             end if parent_resource.actions.include?(:new)
 
+            # TODO: Only accept patch or put depending on config
             member do
               get    :edit if parent_resource.actions.include?(:edit)
               get    :show if parent_resource.actions.include?(:show)
-              put    :update if parent_resource.actions.include?(:update)
+              if parent_resource.actions.include?(:update)
+                send default_method_for_update, :update
+              end
               delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end

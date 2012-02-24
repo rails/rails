@@ -62,7 +62,7 @@ module ActiveRecord
       # Finder methods must instantiate through this method to work with the
       # single-table inheritance model that makes it possible to create
       # objects of different types from the same table.
-      def instantiate(record)
+      def instantiate(record, column_types = {})
         sti_class = find_sti_class(record[inheritance_column])
         record_id = sti_class.primary_key && record[sti_class.primary_key]
 
@@ -77,7 +77,9 @@ module ActiveRecord
             IdentityMap.add(instance)
           end
         else
-          instance = sti_class.allocate.init_with('attributes' => record)
+          column_types = sti_class.decorate_columns(column_types)
+          instance = sti_class.allocate.init_with('attributes' => record,
+                                                  'column_types' => column_types)
         end
 
         instance

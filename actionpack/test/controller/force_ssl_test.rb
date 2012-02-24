@@ -109,20 +109,6 @@ class ForceSSLExceptActionTest < ActionController::TestCase
   end
 end
 
-class ForceSSLExcludeDevelopmentTest < ActionController::TestCase
-  tests ForceSSLControllerLevel
-
-  def setup
-    Rails.env.stubs(:development?).returns(false)
-  end
-
-  def test_development_environment_not_redirects_to_https
-    Rails.env.stubs(:development?).returns(true)
-    get :banana
-    assert_response 200
-  end
-end
-
 class ForceSSLFlashTest < ActionController::TestCase
   tests ForceSSLFlash
 

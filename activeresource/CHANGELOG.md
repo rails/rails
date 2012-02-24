@@ -1,3 +1,8 @@
+## Rails 4.0.0 (unreleased) ##
+
+* Adds support for PATCH requests. *dlee*
+
+
 ## Rails 3.2.0 (January 20, 2012) ##
 
 *   Redirect responses: 303 See Other and 307 Temporary Redirect now behave like

@@ -313,7 +313,7 @@ module ActionView
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
         end
 
-        escape = options.key?("escape") ? options.delete("escape") : true
+        escape = options.delete("escape") { true }
         content = ERB::Util.html_escape(content) if escape
 
         content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
@@ -548,6 +548,14 @@ module ActionView
         text_field_tag(name, value, options.stringify_keys.update("type" => "tel"))
       end
       alias phone_field_tag telephone_field_tag
+
+      # Creates a text field of type "date".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def date_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
+      end
 
       # Creates a text field of type "url".
       #

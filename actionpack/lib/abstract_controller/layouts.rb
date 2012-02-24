@@ -322,7 +322,7 @@ module AbstractController
       super
 
       if _include_layout?(options)
-        layout = options.key?(:layout) ? options.delete(:layout) : :default
+        layout = options.delete(:layout) { :default }
         options[:layout] = _layout_for_option(layout)
       end
     end

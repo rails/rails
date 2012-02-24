@@ -305,6 +305,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, text_field("post", "title", :value => nil)
   end
 
+  def test_text_field_with_nil_name
+    expected = '<input id="post_title" size="30" type="text" value="Hello World" />'
+    assert_dom_equal expected, text_field("post", "title", :name => nil)
+  end
+
   def test_text_field_doesnt_change_param_values
     object_name = 'post[]'
     expected = '<input id="post_123_title" name="post[123][title]" size="30" type="text" value="Hello World" />'
@@ -512,6 +517,32 @@ class FormHelperTest < ActionView::TestCase
   def test_telephone_field
     expected = %{<input id="user_cell" size="30" name="user[cell]" type="tel" />}
     assert_dom_equal(expected, telephone_field("user", "cell"))
+  end
+
+  def test_date_field
+    expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
+    assert_dom_equal(expected, date_field("post", "written_on"))
+  end
+
+  def test_date_field_with_datetime_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    assert_dom_equal(expected, date_field("post", "written_on"))
+  end
+
+  def test_date_field_with_timewithzone_value
+    previous_time_zone, Time.zone = Time.zone, 'UTC'
+    expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
+    @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
+    assert_dom_equal(expected, date_field("post", "written_on"))
+  ensure
+    Time.zone = previous_time_zone
+  end
+
+  def test_date_field_with_nil_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="date" />}
+    @post.written_on = nil
+    assert_dom_equal(expected, date_field("post", "written_on"))
   end
 
   def test_url_field
@@ -2167,6 +2198,15 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/super_posts", "edit_post_123", "edit_post", "put")
     assert_equal expected, output_buffer
+  end
+
+  def test_form_for_with_default_method_as_patch
+    ActionView::Base.default_method_for_update = :patch
+    form_for(@post) {}
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", "patch")
+    assert_dom_equal expected, output_buffer
+  ensure
+    ActionView::Base.default_method_for_update = :put
   end
 
   def test_fields_for_returns_block_result

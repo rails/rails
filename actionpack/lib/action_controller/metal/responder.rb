@@ -53,7 +53,7 @@ module ActionController #:nodoc:
   #     end
   #   end
   #
-  # The same happens for PUT and DELETE requests.
+  # The same happens for PATCH/PUT and DELETE requests.
   #
   # === Nested resources
   #
@@ -116,8 +116,9 @@ module ActionController #:nodoc:
   class Responder
     attr_reader :controller, :request, :format, :resource, :resources, :options
 
-    ACTIONS_FOR_VERBS = {
+    DEFAULT_ACTIONS_FOR_VERBS = {
       :post => :new,
+      :patch => :edit,
       :put => :edit
     }
 
@@ -132,7 +133,7 @@ module ActionController #:nodoc:
     end
 
     delegate :head, :render, :redirect_to,   :to => :controller
-    delegate :get?, :post?, :put?, :delete?, :to => :request
+    delegate :get?, :post?, :patch?, :put?, :delete?, :to => :request
 
     # Undefine :to_json and :to_yaml since it's defined on Object
     undef_method(:to_json) if method_defined?(:to_json)
@@ -259,15 +260,15 @@ module ActionController #:nodoc:
       resource.respond_to?(:errors) && !resource.errors.empty?
     end
 
-    # By default, render the <code>:edit</code> action for HTML requests with failure, unless
-    # the verb is POST.
+    # By default, render the <code>:edit</code> action for HTML requests with errors, unless
+    # the verb was POST.
     #
     def default_action
-      @action ||= ACTIONS_FOR_VERBS[request.request_method_symbol]
+      @action ||= DEFAULT_ACTIONS_FOR_VERBS[request.request_method_symbol]
     end
 
     def resource_errors
-      respond_to?("#{format}_resource_errors") ? send("#{format}_resource_errors") : resource.errors
+      respond_to?("#{format}_resource_errors", true) ? send("#{format}_resource_errors") : resource.errors
     end
 
     def json_resource_errors

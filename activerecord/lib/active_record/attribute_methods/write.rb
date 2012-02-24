@@ -28,6 +28,12 @@ module ActiveRecord
         @attributes_cache.delete(attr_name)
         column = column_for_attribute(attr_name)
 
+        # If we're dealing with a binary column, write the data to the cache
+        # so we don't attempt to typecast multiple times.
+        if column && column.binary?
+          @attributes_cache[attr_name] = value
+        end
+
         if column || @attributes.has_key?(attr_name)
           @attributes[attr_name] = type_cast_attribute_for_write(column, value)
         else

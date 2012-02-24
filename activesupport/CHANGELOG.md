@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    AS::Callbacks: deprecate `:rescuable` option. *Bogdan Gusiev*
+
 *    Adds Integer#ordinal to get the ordinal suffix string of an integer. *Tim Gildea*
 
 *    AS::Callbacks: `:per_key` option is no longer supported

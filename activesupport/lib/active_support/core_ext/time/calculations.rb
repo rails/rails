@@ -67,7 +67,7 @@ class Time
   end
 
   # Returns a new Time where one or more of the elements have been changed according to the +options+ parameter. The time options
-  # (hour, minute, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and
+  # (hour, min, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and
   # minute is passed, then sec and usec is set to 0.
   def change(options)
     ::Time.send(

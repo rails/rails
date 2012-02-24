@@ -11,11 +11,15 @@ class FormatTest < ActiveSupport::TestCase
   end
 
   def test_http_format_header_name
-    header_name = ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[:get]
-    assert_equal 'Accept', header_name
+    [:get, :head].each do |verb|
+      header_name = ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[verb]
+      assert_equal 'Accept', header_name
+    end
 
-    headers_names = [ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[:put], ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[:post]]
-    headers_names.each{ |name| assert_equal 'Content-Type', name }
+    [:patch, :put, :post].each do |verb|
+      header_name = ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[verb]
+      assert_equal 'Content-Type', header_name
+    end
   end
 
   def test_formats_on_single_element

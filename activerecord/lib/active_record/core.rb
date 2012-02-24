@@ -165,6 +165,7 @@ module ActiveRecord
     #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
     def initialize(attributes = nil, options = {})
       @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
+      @columns_hash = self.class.column_types.dup
 
       init_internals
 
@@ -190,6 +191,8 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes = self.class.initialize_attributes(coder['attributes'])
+      @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
+
 
       init_internals
 
@@ -220,7 +223,7 @@ module ActiveRecord
 
       @changed_attributes = {}
       self.class.column_defaults.each do |attr, orig_value|
-        @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
+        @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
       end
 
       @aggregation_cache = {}

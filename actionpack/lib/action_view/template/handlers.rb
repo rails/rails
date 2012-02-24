@@ -23,6 +23,7 @@ module ActionView #:nodoc:
       # and should return the rendered template as a String.
       def register_template_handler(extension, handler)
         @@template_handlers[extension.to_sym] = handler
+        @@template_extensions = nil
       end
 
       def template_handler_extensions

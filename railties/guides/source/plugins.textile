@@ -30,7 +30,7 @@ Before you continue, take a moment to decide if your new plugin will be potentia
 * If your plugin is specific to your application, your new plugin will be a _vendored plugin_.
 * If you think your plugin may be used across applications, build it as a _gemified plugin_.
 
-h4. Or generate a gemified plugin.
+h4. Generate a gemified plugin.
 
 Writing your Rails plugin as a gem, rather than as a vendored plugin,
  lets you share your plugin across different rails applications using

@@ -44,10 +44,6 @@ module ActionView
         class_attribute :erb_trim_mode
         self.erb_trim_mode = '-'
 
-        # Default format used by ERB.
-        class_attribute :default_format
-        self.default_format = Mime::HTML
-
         # Default implementation used.
         class_attribute :erb_implementation
         self.erb_implementation = Erubis
