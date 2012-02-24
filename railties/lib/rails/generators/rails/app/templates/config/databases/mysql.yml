@@ -11,10 +11,6 @@
 development:
   adapter: mysql2
   encoding: utf8
-  # It is recommended to leave reconnect disabled because automatic
-  # reconnections do not play nicely with transactions, which are
-  # used by Active Record all over the place.
-  reconnect: false
   database: <%= app_name %>_development
   pool: 5
   username: root
@@ -31,10 +27,6 @@ development:
 test:
   adapter: mysql2
   encoding: utf8
-  # It is recommended to leave reconnect disabled because automatic
-  # reconnections do not play nicely with transactions, which are
-  # used by Active Record all over the place.
-  reconnect: false
   database: <%= app_name %>_test
   pool: 5
   username: root
@@ -48,10 +40,6 @@ test:
 production:
   adapter: mysql2
   encoding: utf8
-  # It is recommended to leave reconnect disabled because automatic
-  # reconnections do not play nicely with transactions, which are
-  # used by Active Record all over the place.
-  reconnect: false
   database: <%= app_name %>_production
   pool: 5
   username: root
