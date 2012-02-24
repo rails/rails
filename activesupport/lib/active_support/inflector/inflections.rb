@@ -28,6 +28,13 @@ module ActiveSupport
         @plurals, @singulars, @uncountables, @humans, @acronyms, @acronym_regex = [], [], [], [], {}, /(?=a)b/
       end
 
+      # Private, for the test suite.
+      def initialize_dup(orig)
+        %w(plurals singulars uncountables humans acronyms acronym_regex).each do |scope|
+          instance_variable_set("@#{scope}", orig.send(scope).dup)
+        end
+      end
+
       # Specifies a new acronym. An acronym must be specified as it will appear in a camelized string.  An underscore
       # string that contains the acronym will retain the acronym when passed to `camelize`, `humanize`, or `titleize`.
       # A camelized string that contains the acronym will maintain the acronym when titleized or humanized, and will
