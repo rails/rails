@@ -184,16 +184,6 @@ module ActiveRecord
         end
       end
 
-      # Verify active connections and remove and disconnect connections
-      # associated with stale threads.
-      def verify_active_connections! #:nodoc:
-        synchronize do
-          @connections.each do |connection|
-            connection.verify!
-          end
-        end
-      end
-
       def clear_stale_cached_connections! # :nodoc:
       end
       deprecate :clear_stale_cached_connections!
@@ -362,11 +352,6 @@ module ActiveRecord
 
       def clear_all_connections!
         connection_pools.each_value {|pool| pool.disconnect! }
-      end
-
-      # Verify active connections.
-      def verify_active_connections! #:nodoc:
-        connection_pools.each_value {|pool| pool.verify_active_connections! }
       end
 
       # Locate the connection of the nearest super class. This can be an
