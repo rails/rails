@@ -203,6 +203,11 @@ class FinderTest < ActiveRecord::TestCase
     first = Topic.find(:first, :conditions => "title = 'The First Topic'")
     assert_equal(topics(:first).title, first.title)
   end
+  
+  def test_find_first_not_nil
+    first = Topic.find(:first, :conditions => {:title => :not_nil})
+    assert_equal(topics(:first).title, first.title)
+  end
 
   def test_find_first_failing
     first = Topic.find(:first, :conditions => "title = 'The First Topic!'")
@@ -215,6 +220,10 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_first_failing
     assert_nil Topic.where("title = 'The Second Topic of the day!'").first
+  end
+  
+  def test_first_not_nil
+    assert_equal topics(:first).title, Topic.where(:title => :not_nil).first.title
   end
 
   def test_first_bang_present

@@ -46,6 +46,8 @@ module ActiveRecord
           when Class
             # FIXME: I think we need to deprecate this behavior
             attribute.eq(value.name)
+          when :not_nil
+            attribute.not_eq(nil)
           else
             attribute.eq(value)
           end
