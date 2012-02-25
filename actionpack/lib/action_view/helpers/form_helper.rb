@@ -385,7 +385,7 @@ module ActionView
         object = convert_to_model(object)
 
         as = options[:as]
-        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, ActionView::Base.default_method_for_update] : [:new, :post]
+        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :patch] : [:new, :post]
         options[:html].reverse_merge!(
           :class  => as ? "#{action}_#{as}" : dom_class(object, action),
           :id     => as ? "#{action}_#{as}" : [options[:namespace], dom_id(object, action)].compact.join("_").presence,

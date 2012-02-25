@@ -76,8 +76,6 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.consider_all_requests_local+ is a flag. If true then any error will cause detailed debugging information to be dumped in the HTTP response, and the +Rails::Info+ controller will show the application runtime context in +/rails/info/properties+. True by default in development and test environments, and false in production mode. For finer-grained control, set this to false and implement +local_request?+ in controllers to specify which requests should provide debugging information on errors.
 
-* +config.default_method_for_update+ tells Rails which HTTP method to use for update actions by default. Set this to +:patch+ for proper HTTP update semantics. The default is +:put+ for backwards compatibility.
-
 * +config.dependency_loading+ is a flag that allows you to disable constant autoloading setting it to false. It only has effect if +config.cache_classes+ is true, which it is by default in production mode. This flag is set to false by +config.threadsafe!+.
 
 * +config.eager_load_paths+ accepts an array of paths from which Rails will eager load on boot if cache classes is enabled. Defaults to every folder in the +app+ directory of the application.

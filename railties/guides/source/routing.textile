@@ -85,7 +85,7 @@ creates seven different routes in your application, all mapping to the +Photos+ 
 |PUT/PATCH    |/photos/:id       |update   |update a specific photo                      |
 |DELETE       |/photos/:id       |destroy  |delete a specific photo                      |
 
-NOTE: The HTTP Verb for the +update+ action defaults to +PUT+ for backwards compatibility. Set +config.default_method_for_update+ to +:patch+ to use +PATCH+. Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
+NOTE: Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
 
 h4. Paths and URLs
 
@@ -140,7 +140,7 @@ creates six different routes in your application, all mapping to the +Geocoders+
 |PUT/PATCH   |/geocoder      |update   |update the one and only geocoder resource     |
 |DELETE      |/geocoder      |destroy  |delete the geocoder resource                  |
 
-NOTE: The HTTP Verb for the +update+ action defaults to +PUT+ for backwards compatibility. Set +config.default_method_for_update+ to +:patch+ to use +PATCH+. Because you might want to use the same controller for a singular route (+/account+) and a plural route (+/accounts/45+), singular resources map to plural controllers.
+NOTE: Because you might want to use the same controller for a singular route (+/account+) and a plural route (+/accounts/45+), singular resources map to plural controllers.
 
 A singular resourceful route generates these helpers:
 
@@ -170,8 +170,6 @@ This will create a number of routes for each of the +posts+ and +comments+ contr
 |GET         |/admin/posts/:id/edit |edit     | edit_admin_post_path(:id) |
 |PUT/PATCH   |/admin/posts/:id      |update   | admin_post_path(:id)      |
 |DELETE      |/admin/posts/:id      |destroy  | admin_post_path(:id)      |
-
-NOTE: The HTTP Verb for the +update+ action defaults to +PUT+ for backwards compatibility. Set +config.default_method_for_update+ to +:patch+ to use +PATCH+.
 
 If you want to route +/posts+ (without the prefix +/admin+) to +Admin::PostsController+, you could use
 
@@ -212,8 +210,6 @@ In each of these cases, the named routes remain the same as if you did not use +
 |PUT/PATCH   |/admin/posts/:id     |update   | post_path(:id)     |
 |DELETE      |/admin/posts/:id     |destroy  | post_path(:id)     |
 
-NOTE: The HTTP Verb for the +update+ action defaults to +PUT+ for backwards compatibility. Set +config.default_method_for_update+ to +:patch+ to use +PATCH+.
-
 h4. Nested Resources
 
 It's common to have resources that are logically children of other resources. For example, suppose your application includes these models:
@@ -246,8 +242,6 @@ In addition to the routes for magazines, this declaration will also route ads to
 |GET         |/magazines/:id/ads/:id/edit |edit     |return an HTML form for editing an ad belonging to a specific magazine     |
 |PUT/PATCH   |/magazines/:id/ads/:id      |update   |update a specific ad belonging to a specific magazine                      |
 |DELETE      |/magazines/:id/ads/:id      |destroy  |delete a specific ad belonging to a specific magazine                      |
-
-NOTE: The HTTP Verb for the +update+ action defaults to +PUT+ for backwards compatibility. Set +config.default_method_for_update+ to +:patch+ to use +PATCH+.
 
 This will also create routing helpers such as +magazine_ads_url+ and +edit_magazine_ad_path+. These helpers take an instance of Magazine as the first parameter (+magazine_ads_url(@magazine)+).
 
@@ -693,8 +687,6 @@ will recognize incoming paths beginning with +/photos+ and route the requests to
 |PUT/PATCH  |/photos/:id       |update   | image_path(:id)      |
 |DELETE     |/photos/:id       |destroy  | image_path(:id)      |
 
-NOTE: The HTTP Verb for the +update+ action defaults to +PUT+ for backwards compatibility. Set +config.default_method_for_update+ to +:patch+ to use +PATCH+.
-
 h4. Overriding the +new+ and +edit+ Segments
 
 The +:path_names+ option lets you override the automatically-generated "new" and "edit" segments in paths:
@@ -798,8 +790,6 @@ Rails now creates routes to the +CategoriesController+.
 |GET        |/kategorien/:id/bearbeiten |edit     | edit_category_path(:id) |
 |PUT/PATCH  |/kategorien/:id            |update   | category_path(:id)      |
 |DELETE     |/kategorien/:id            |destroy  | category_path(:id)      |
-
-NOTE: The HTTP Verb for the +update+ action defaults to +PUT+ for backwards compatibility. Set +config.default_method_for_update+ to +:patch+ to use +PATCH+.
 
 h4. Overriding the Singular Form
 

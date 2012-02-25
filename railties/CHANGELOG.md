@@ -1,10 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-* New configuration option `config.default_method_for_update` tells Rails which
-  HTTP verb to use for update actions. Values can be `:patch` and `:put`.
-  Default is `:put` for backwards compatibility, but you are encouraged to
-  use `:patch` for proper HTTP semantics with partial updates.
-
 *   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. *Piotr Sarnacki*
 
     Example:

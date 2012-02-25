@@ -7,8 +7,6 @@ require 'action_dispatch/routing/redirection'
 module ActionDispatch
   module Routing
     class Mapper
-      cattr_accessor(:default_method_for_update) {:put}
-
       class Constraints #:nodoc:
         def self.new(app, constraints, request = Rack::Request)
           if constraints.any?
@@ -1012,10 +1010,11 @@ module ActionDispatch
             end if parent_resource.actions.include?(:new)
 
             member do
-              get    :edit if parent_resource.actions.include?(:edit)
-              get    :show if parent_resource.actions.include?(:show)
+              get :edit if parent_resource.actions.include?(:edit)
+              get :show if parent_resource.actions.include?(:show)
               if parent_resource.actions.include?(:update)
-                send default_method_for_update, :update
+                patch :update
+                put   :update
               end
               delete :destroy if parent_resource.actions.include?(:destroy)
             end
@@ -1152,12 +1151,12 @@ module ActionDispatch
               get :new
             end if parent_resource.actions.include?(:new)
 
-            # TODO: Only accept patch or put depending on config
             member do
-              get    :edit if parent_resource.actions.include?(:edit)
-              get    :show if parent_resource.actions.include?(:show)
+              get :edit if parent_resource.actions.include?(:edit)
+              get :show if parent_resource.actions.include?(:show)
               if parent_resource.actions.include?(:update)
-                send default_method_for_update, :update
+                patch :update
+                put   :update
               end
               delete :destroy if parent_resource.actions.include?(:destroy)
             end

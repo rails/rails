@@ -268,16 +268,12 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        config.default_method_for_update = :patch
         routes.prepend do
           resources :posts
         end
       RUBY
 
       require "#{app_path}/config/environment"
-
-      assert_equal ActionView::Base.default_method_for_update, :patch
-      assert_equal ActionDispatch::Routing::Mapper.default_method_for_update, :patch
 
       get "/posts/1"
       assert_match /patch/, last_response.body

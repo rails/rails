@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* Forms of persisted records use always PATCH (via the `_method` hack). *fxn*
+
+* For resources, both PATCH and PUT are routed to the `update` action. *fxn*
+
 *   Don't ignore `force_ssl` in development. This is a change of behavior - use a `:if` condition to recreate the old behavior.
 
         class AccountsController < ApplicationController
