@@ -109,7 +109,9 @@ module InflectorTestCases
 
     # regression tests against improper inflection regexes
     "|ice"        => "|ices",
-    "|ouse"       => "|ouses"
+    "|ouse"       => "|ouses",
+    "slice"       => "slices",
+    "police"      => "police"
   }
 
   CamelToUnderscore = {
