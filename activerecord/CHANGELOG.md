@@ -134,8 +134,11 @@
 
 *   The threshold for auto EXPLAIN is ignored if there's no logger. *fxn*
 
+*   Call `to_s` on the value passed to `table_name=`, in particular symbols
+    are supported (regression). *Sergey Nartimov*
+
 *   Fix possible race condition when two threads try to define attribute
-    methods for the same class.
+    methods for the same class. *Jon Leighton*
 
 
 ## Rails 3.2.0 (January 20, 2012) ##
@@ -317,7 +320,34 @@
 
     *Aaron Christy*
 
-## Rails 3.1.3 (November 20, 2011) ##
+ ## Rails 3.1.4 (unreleased) ##
+
+ *   Fix a custom primary key regression *GH 3987*
+
+     *Jon Leighton*
+
+ *   Perf fix (second try): don't load records for `has many :dependent =>
+     :delete_all` *GH 3672*
+
+     *Jon Leighton*
+
+ *   Fix accessing `proxy_association` method from an association extension
+     where the calls are chained. *GH #3890*
+
+     (E.g. `post.comments.where(bla).my_proxy_method`)
+
+     *Jon Leighton*
+
+ *   Perf fix: MySQL primary key lookup was still slow for very large
+     tables. *GH 3678*
+
+     *Kenny J*
+
+ *   Perf fix: If a table has no primary key, don't repeatedly ask the database for it.
+
+     *Julius de Bruijn*
+
+### Rails 3.1.3 (November 20, 2011) ##
 
 *   Perf fix: If we're deleting all records in an association, don't add a IN(..) clause
     to the query. *GH 3672*
@@ -330,7 +360,7 @@
 
     *Christos Zisopoulos and Kenny J*
 
-## Rails 3.1.2 (November 18, 2011) ##
+### Rails 3.1.2 (November 18, 2011) ##
 
 *   Fix bug with PostgreSQLAdapter#indexes. When the search path has multiple schemas, spaces
     were not being stripped from the schema names after the first.
@@ -747,6 +777,58 @@
         Model.limit(10).scoping { Model.all.size }
 
     *Aaron Patterson*
+
+
+## Rails 3.0.12 (unreleased) ##
+
+*   No changes.
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   Exceptions from database adapters should not lose their backtrace.
+
+*   Backport "ActiveRecord::Persistence#touch should not use default_scope" (GH #1519)
+
+*   Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
+    GH #2731
+
+*   Fix ActiveRecord#exists? when passsed a nil value
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   Magic encoding comment added to schema.rb files
+
+*   schema.rb is written as UTF-8 by default.
+
+*   Ensuring an established connection when running `rake db:schema:dump`
+
+*   Association conditions will not clobber join conditions.
+
+*   Destroying a record will destroy the HABTM record before destroying itself.
+    GH #402.
+
+*   Make `ActiveRecord::Batches#find_each` to not return `self`.
+
+*   Update `table_exists?` in PG to to always use current search_path or schema if explictly set.
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   Fix various problems with using :primary_key and :foreign_key options in conjunction with
+  :through associations. [Jon Leighton]
+
+*   Correctly handle inner joins on polymorphic relationships.
+
+*   Fixed infinity and negative infinity cases in PG date columns.
+
+*   Creating records with invalid associations via `create` or `save` will no longer raise exceptions.
 
 
 ## Rails 3.0.7 (April 18, 2011) ##
