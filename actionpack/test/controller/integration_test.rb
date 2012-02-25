@@ -296,8 +296,13 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       self.cookies['cookie_1'] = "sugar"
       self.cookies['cookie_2'] = "oatmeal"
       get '/cookie_monster'
-      assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
-      assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies.to_hash)
+      assert headers["Set-Cookie"].include?"path=/"
+      assert headers["Set-Cookie"].include?"cookie_3=chocolate;"
+      assert headers["Set-Cookie"].include?"cookie_1=; path=/"
+
+      assert cookies.to_hash["cookie_1"], ""
+      assert cookies.to_hash["cookie_2"], "oatmeal"
+      assert cookies.to_hash["cookie_3"], "chocolate"
     end
   end
 
