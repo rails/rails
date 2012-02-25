@@ -299,9 +299,9 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       _headers = headers["Set-Cookie"].split("\n")
       assert _headers.include?("cookie_1=; path=/")
       assert _headers.include?("cookie_3=chocolate; path=/")
-      assert cookies.to_hash["cookie_1"], ""
-      assert cookies.to_hash["cookie_2"], "oatmeal"
-      assert cookies.to_hash["cookie_3"], "chocolate"
+      assert_equal cookies.to_hash["cookie_1"], ""
+      assert_equal cookies.to_hash["cookie_2"], "oatmeal"
+      assert_equal cookies.to_hash["cookie_3"], "chocolate"
     end
   end
 
