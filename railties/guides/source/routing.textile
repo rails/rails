@@ -82,7 +82,7 @@ creates seven different routes in your application, all mapping to the +Photos+ 
 |POST         |/photos           |create   |create a new photo                           |
 |GET          |/photos/:id       |show     |display a specific photo                     |
 |GET          |/photos/:id/edit  |edit     |return an HTML form for editing a photo      |
-|PUT/PATCH    |/photos/:id       |update   |update a specific photo                      |
+|PATCH/PUT    |/photos/:id       |update   |update a specific photo                      |
 |DELETE       |/photos/:id       |destroy  |delete a specific photo                      |
 
 NOTE: Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
@@ -137,7 +137,7 @@ creates six different routes in your application, all mapping to the +Geocoders+
 |POST        |/geocoder      |create   |create the new geocoder                       |
 |GET         |/geocoder      |show     |display the one and only geocoder resource    |
 |GET         |/geocoder/edit |edit     |return an HTML form for editing the geocoder  |
-|PUT/PATCH   |/geocoder      |update   |update the one and only geocoder resource     |
+|PATCH/PUT   |/geocoder      |update   |update the one and only geocoder resource     |
 |DELETE      |/geocoder      |destroy  |delete the geocoder resource                  |
 
 NOTE: Because you might want to use the same controller for a singular route (+/account+) and a plural route (+/accounts/45+), singular resources map to plural controllers.
@@ -168,7 +168,7 @@ This will create a number of routes for each of the +posts+ and +comments+ contr
 |POST        |/admin/posts          |create   | admin_posts_path          |
 |GET         |/admin/posts/:id      |show     | admin_post_path(:id)      |
 |GET         |/admin/posts/:id/edit |edit     | edit_admin_post_path(:id) |
-|PUT/PATCH   |/admin/posts/:id      |update   | admin_post_path(:id)      |
+|PATCH/PUT   |/admin/posts/:id      |update   | admin_post_path(:id)      |
 |DELETE      |/admin/posts/:id      |destroy  | admin_post_path(:id)      |
 
 If you want to route +/posts+ (without the prefix +/admin+) to +Admin::PostsController+, you could use
@@ -207,7 +207,7 @@ In each of these cases, the named routes remain the same as if you did not use +
 |POST        |/admin/posts         |create   | posts_path         |
 |GET         |/admin/posts/:id     |show     | post_path(:id)     |
 |GET         |/admin/posts/:id/edit|edit     | edit_post_path(:id)|
-|PUT/PATCH   |/admin/posts/:id     |update   | post_path(:id)     |
+|PATCH/PUT   |/admin/posts/:id     |update   | post_path(:id)     |
 |DELETE      |/admin/posts/:id     |destroy  | post_path(:id)     |
 
 h4. Nested Resources
@@ -240,7 +240,7 @@ In addition to the routes for magazines, this declaration will also route ads to
 |POST        |/magazines/:id/ads          |create   |create a new ad belonging to a specific magazine                           |
 |GET         |/magazines/:id/ads/:id      |show     |display a specific ad belonging to a specific magazine                     |
 |GET         |/magazines/:id/ads/:id/edit |edit     |return an HTML form for editing an ad belonging to a specific magazine     |
-|PUT/PATCH   |/magazines/:id/ads/:id      |update   |update a specific ad belonging to a specific magazine                      |
+|PATCH/PUT   |/magazines/:id/ads/:id      |update   |update a specific ad belonging to a specific magazine                      |
 |DELETE      |/magazines/:id/ads/:id      |destroy  |delete a specific ad belonging to a specific magazine                      |
 
 This will also create routing helpers such as +magazine_ads_url+ and +edit_magazine_ad_path+. These helpers take an instance of Magazine as the first parameter (+magazine_ads_url(@magazine)+).
@@ -640,7 +640,7 @@ will recognize incoming paths beginning with +/photos+ but route to the +Images+
 |POST        |/photos          |create   | photos_path          |
 |GET         |/photos/:id      |show     | photo_path(:id)      |
 |GET         |/photos/:id/edit |edit     | edit_photo_path(:id) |
-|PUT/PATCH   |/photos/:id      |update   | photo_path(:id)      |
+|PATCH/PUT   |/photos/:id      |update   | photo_path(:id)      |
 |DELETE      |/photos/:id      |destroy  | photo_path(:id)      |
 
 NOTE: Use +photos_path+, +new_photo_path+, etc. to generate paths for this resource.
@@ -684,7 +684,7 @@ will recognize incoming paths beginning with +/photos+ and route the requests to
 |POST       |/photos           |create   | images_path          |
 |GET        |/photos/:id       |show     | image_path(:id)      |
 |GET        |/photos/:id/edit  |edit     | edit_image_path(:id) |
-|PUT/PATCH  |/photos/:id       |update   | image_path(:id)      |
+|PATCH/PUT  |/photos/:id       |update   | image_path(:id)      |
 |DELETE     |/photos/:id       |destroy  | image_path(:id)      |
 
 h4. Overriding the +new+ and +edit+ Segments
@@ -788,7 +788,7 @@ Rails now creates routes to the +CategoriesController+.
 |POST       |/kategorien                |create   | categories_path         |
 |GET        |/kategorien/:id            |show     | category_path(:id)      |
 |GET        |/kategorien/:id/bearbeiten |edit     | edit_category_path(:id) |
-|PUT/PATCH  |/kategorien/:id            |update   | category_path(:id)      |
+|PATCH/PUT  |/kategorien/:id            |update   | category_path(:id)      |
 |DELETE     |/kategorien/:id            |destroy  | category_path(:id)      |
 
 h4. Overriding the Singular Form

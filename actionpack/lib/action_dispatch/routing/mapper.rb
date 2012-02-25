@@ -537,7 +537,7 @@ module ActionDispatch
       #   POST      /admin/posts
       #   GET       /admin/posts/1
       #   GET       /admin/posts/1/edit
-      #   PUT/PATCH /admin/posts/1
+      #   PATCH/PUT /admin/posts/1
       #   DELETE    /admin/posts/1
       #
       # If you want to route /posts (without the prefix /admin) to
@@ -571,7 +571,7 @@ module ActionDispatch
       #   POST      /admin/posts
       #   GET       /admin/posts/1
       #   GET       /admin/posts/1/edit
-      #   PUT/PATCH /admin/posts/1
+      #   PATCH/PUT /admin/posts/1
       #   DELETE    /admin/posts/1
       module Scoping
         # Scopes a set of routes to the given default options.
@@ -666,7 +666,7 @@ module ActionDispatch
         #    new_admin_post GET       /admin/posts/new(.:format)      admin/posts#new
         #   edit_admin_post GET       /admin/posts/:id/edit(.:format) admin/posts#edit
         #        admin_post GET       /admin/posts/:id(.:format)      admin/posts#show
-        #        admin_post PUT/PATCH /admin/posts/:id(.:format)      admin/posts#update
+        #        admin_post PATCH/PUT /admin/posts/:id(.:format)      admin/posts#update
         #        admin_post DELETE    /admin/posts/:id(.:format)      admin/posts#destroy
         #
         # === Options
@@ -986,7 +986,7 @@ module ActionDispatch
         #   POST      /geocoder
         #   GET       /geocoder
         #   GET       /geocoder/edit
-        #   PUT/PATCH /geocoder
+        #   PATCH/PUT /geocoder
         #   DELETE    /geocoder
         #
         # === Options
@@ -1038,7 +1038,7 @@ module ActionDispatch
         #   POST      /photos
         #   GET       /photos/:id
         #   GET       /photos/:id/edit
-        #   PUT/PATCH /photos/:id
+        #   PATCH/PUT /photos/:id
         #   DELETE    /photos/:id
         #
         # Resources can also be nested infinitely by using this block syntax:
@@ -1054,7 +1054,7 @@ module ActionDispatch
         #   POST      /photos/:photo_id/comments
         #   GET       /photos/:photo_id/comments/:id
         #   GET       /photos/:photo_id/comments/:id/edit
-        #   PUT/PATCH /photos/:photo_id/comments/:id
+        #   PATCH/PUT /photos/:photo_id/comments/:id
         #   DELETE    /photos/:photo_id/comments/:id
         #
         # === Options
@@ -1122,7 +1122,7 @@ module ActionDispatch
         #     new_post_comment GET       /posts/:post_id/comments/new(.:format)
         #     edit_comment     GET       /sekret/comments/:id/edit(.:format)
         #     comment          GET       /sekret/comments/:id(.:format)
-        #     comment          PUT/PATCH /sekret/comments/:id(.:format)
+        #     comment          PATCH/PUT /sekret/comments/:id(.:format)
         #     comment          DELETE    /sekret/comments/:id(.:format)
         #
         # === Examples

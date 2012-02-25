@@ -329,7 +329,7 @@ module ActionView
         remote = html_options.delete('remote')
 
         method     = html_options.delete('method').to_s
-        method_tag = %w{put patch delete}.include?(method) ? method_tag(method) : ""
+        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ""
 
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}

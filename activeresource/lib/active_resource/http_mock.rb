@@ -55,7 +55,7 @@ module ActiveResource
         @responses = responses
       end
 
-      [ :post, :put, :patch, :get, :delete, :head ].each do |method|
+      [ :post, :patch, :put, :get, :delete, :head ].each do |method|
         # def post(path, request_headers = {}, body = nil, status = 200, response_headers = {})
         #   @responses[Request.new(:post, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
         # end
@@ -291,9 +291,9 @@ module ActiveResource
       if resp_cls && !resp_cls.body_permitted?
         @body = nil
       end
-      
+
       self['Content-Length'] = @body.nil? ? "0" : body.size.to_s
-      
+
     end
 
     # Returns true if code is 2xx,
