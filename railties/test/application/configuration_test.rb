@@ -281,8 +281,14 @@ module ApplicationTests
       patch "/posts/1"
       assert_match /update/, last_response.body
 
+      patch "/posts/1"
+      assert_equal 200, last_response.status
+
       put "/posts/1"
-      assert_equal 404, last_response.status
+      assert_match /update/, last_response.body
+
+      put "/posts/1"
+      assert_equal 200, last_response.status
     end
 
     test "request forgery token param can be changed" do
