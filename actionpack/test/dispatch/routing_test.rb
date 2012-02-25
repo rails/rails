@@ -2413,12 +2413,10 @@ end
 class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      match "/~user" => lambda { |env|
-        [200, { 'Content-Type' => 'text/plain' }, []]
-      }, :as => :tilde_path
-      match "/young-and-fine" => lambda { |env|
-        [200, { 'Content-Type' => 'text/plain' }, []]
-      }, :as => :tilde_path
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      match "/~user" => ok
+      match "/young-and-fine" => ok
     end
   end
 
