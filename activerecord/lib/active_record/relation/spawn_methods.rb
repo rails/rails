@@ -24,7 +24,10 @@ module ActiveRecord
 
       (Relation::MULTI_VALUE_METHODS - [:joins, :where, :order]).each do |method|
         value = r.send(:"#{method}_values")
-        merged_relation.send(:"#{method}_values=", merged_relation.send(:"#{method}_values") + value) if value.present?
+        next if value.empty?
+
+        value += merged_relation.send(:"#{method}_values")
+        merged_relation.send :"#{method}_values=", value
       end
 
       merged_relation.joins_values += r.joins_values
