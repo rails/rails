@@ -77,7 +77,9 @@ class DateHelperTest < ActionView::TestCase
 
     # 43200..86399
     assert_equal "about 1 month", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 30.seconds)
-    assert_equal "about 1 month", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 29.seconds)
+    assert_equal "about 1 month", distance_of_time_in_words(from, to + 44.days + 23.hours + 59.minutes + 29.seconds)
+    assert_equal "about 2 months", distance_of_time_in_words(from, to + 44.days + 23.hours + 59.minutes + 30.seconds)
+    assert_equal "about 2 months", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 29.seconds)
 
     # 86400..525599
     assert_equal "2 months", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 30.seconds)
