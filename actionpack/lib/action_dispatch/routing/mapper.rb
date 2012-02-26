@@ -107,7 +107,7 @@ module ActionDispatch
 
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default
-            if path.match(/\*([^\/]+)$/) && @options[:format] != false
+            if path.match(%r{\*([^/\)]+)\)?$}) && @options[:format] != false
               @options.reverse_merge!(:"#{$1}" => /.+?/)
             end
 
