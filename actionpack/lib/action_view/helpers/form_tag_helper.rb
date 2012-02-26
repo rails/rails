@@ -114,11 +114,11 @@ module ActionView
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
 
         if options.delete(:include_blank)
-          option_tags = "<option value=\"\"></option>".html_safe + option_tags
+          option_tags = content_tag(:option, '', :value => '').safe_concat(option_tags)
         end
 
         if prompt = options.delete(:prompt)
-          option_tags = "<option value=\"\">#{prompt}</option>".html_safe + option_tags
+          option_tags = content_tag(:option, prompt, :value => '').safe_concat(option_tags)
         end
 
         content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
