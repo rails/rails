@@ -18,7 +18,7 @@
 #     username: myUsername
 #     password: myPassword
 
-defaults: &default
+defaults: &defaults
   adapter: mysql2
   encoding: utf8
   pool: 5
