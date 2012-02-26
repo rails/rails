@@ -8,16 +8,15 @@
 #
 # And be sure to use new-style password hashing:
 #   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
-# 
+
 # These default settings are applied for each environment.
 # You can override each setting as required by adding the
-# required changes below the +<<*: defaults+ block
+# required changes below <tt><<*: defaults</tt>
 # e.g., 
 #   development:
 #     <<: *defaults
 #     username: myUsername
 #     password: myPassword
-
 defaults: &defaults
   adapter: mysql2
   encoding: utf8

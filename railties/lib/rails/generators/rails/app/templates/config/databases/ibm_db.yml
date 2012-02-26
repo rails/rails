@@ -33,10 +33,10 @@
 #
 # For more details on the installation and the connection parameters below,
 # please refer to the latest documents at http://rubyforge.org/docman/?group_id=2361
-# 
+
 # These default settings are applied for each environment.
 # You can override each setting as required by adding the
-# required changes below the +<<*: defaults+ block
+# required changes below <tt><<*: defaults</tt>
 # e.g., 
 #   development:
 #     <<: *defaults

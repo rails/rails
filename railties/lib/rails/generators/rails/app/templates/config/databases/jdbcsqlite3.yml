@@ -7,7 +7,7 @@
 
 # These default settings are applied for each environment.
 # You can override each setting as required by adding the
-# required changes below the +<<*: defaults+ block
+# required changes below <tt><<*: defaults</tt>
 # e.g., 
 #   development:
 #     <<: *defaults
