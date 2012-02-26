@@ -34,11 +34,18 @@
 # For more details on the installation and the connection parameters below,
 # please refer to the latest documents at http://rubyforge.org/docman/?group_id=2361
 
-development:
+# These default settings are applied for each environment.
+# You can override each setting as required by adding the
+# required changes below <tt><<*: defaults</tt>
+# e.g., 
+#   development:
+#     <<: *defaults
+#     username: myUsername
+#     password: myPassword
+defaults: &defaults
   adapter: ibm_db
   username: db2inst1
   password:
-  database: <%= app_name[0,4] %>_dev
   #schema: db2inst1
   #host: localhost
   #port: 50000
@@ -50,37 +57,15 @@ development:
   #timeout: 10
   #authentication: SERVER
   #parameterized: false
+  
+development:
+  <<: *defaults
+  database: <%= app_name[0,4] %>_dev
 
 test:
-  adapter: ibm_db
-  username: db2inst1
-  password:
+  <<: *defaults  
   database: <%= app_name[0,4] %>_tst
-  #schema: db2inst1
-  #host: localhost
-  #port: 50000
-  #account: my_account
-  #app_user: my_app_user
-  #application: my_application
-  #workstation: my_workstation
-  #security: SSL
-  #timeout: 10
-  #authentication: SERVER
-  #parameterized: false
 
 production:
-  adapter: ibm_db
-  username: db2inst1
-  password:
+  <<: *defaults  
   database: <%= app_name[0,8] %>
-  #schema: db2inst1
-  #host: localhost
-  #port: 50000
-  #account: my_account
-  #app_user: my_app_user
-  #application: my_application
-  #workstation: my_workstation
-  #security: SSL
-  #timeout: 10
-  #authentication: SERVER
-  #parameterized: false
