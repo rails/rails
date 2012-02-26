@@ -771,6 +771,44 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_collection_radio_buttons
+    post = Post.new
+    def post.active; false; end
+    form_for(post) do |f|
+      concat f.collection_radio_buttons(:active, [true, false], :to_s, :to_s)
+    end
+
+    expected = whole_form("/posts", "new_post" , "new_post") do
+      "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
+      "<label for='post_active_true'>true</label>" +
+      "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
+      "<label for='post_active_false'>false</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_collection_check_boxes
+    post = Post.new
+    def post.tag_ids; [1, 3]; end
+    collection = (1..3).map{|i| [i, "Tag #{i}"] }
+    form_for(post) do |f|
+      concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
+    end
+
+    expected = whole_form("/posts", "new_post" , "new_post") do
+      "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
+      "<label for='post_tag_ids_1'>Tag 1</label>" +
+      "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" +
+      "<label for='post_tag_ids_2'>Tag 2</label>" +
+      "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
+      "<label for='post_tag_ids_3'>Tag 3</label>" +
+      "<input name='post[tag_ids][]' type='hidden' value='' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_file_field_generate_multipart
     Post.send :attr_accessor, :file
 
