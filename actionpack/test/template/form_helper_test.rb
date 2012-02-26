@@ -1999,37 +1999,6 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def hidden_fields(method = nil)
-    txt =  %{<div style="margin:0;padding:0;display:inline">}
-    txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    if method && !method.to_s.in?(['get', 'post'])
-      txt << %{<input name="_method" type="hidden" value="#{method}" />}
-    end
-    txt << %{</div>}
-  end
-
-  def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-    txt =  %{<form accept-charset="UTF-8" action="#{action}"}
-    txt << %{ enctype="multipart/form-data"} if multipart
-    txt << %{ data-remote="true"} if remote
-    txt << %{ class="#{html_class}"} if html_class
-    txt << %{ id="#{id}"} if id
-    method = method.to_s == "get" ? "get" : "post"
-    txt << %{ method="#{method}">}
-  end
-
-  def whole_form(action = "/", id = nil, html_class = nil, options = nil)
-    contents = block_given? ? yield : ""
-
-    if options.is_a?(Hash)
-      method, remote, multipart = options.values_at(:method, :remote, :multipart)
-    else
-      method = options
-    end
-
-    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(method) + contents + "</form>"
-  end
-
   def test_default_form_builder
     old_default_form_builder, ActionView::Base.default_form_builder =
       ActionView::Base.default_form_builder, LabelledFormBuilder
@@ -2212,6 +2181,37 @@ class FormHelperTest < ActionView::TestCase
   end
 
   protected
+
+  def hidden_fields(method = nil)
+    txt =  %{<div style="margin:0;padding:0;display:inline">}
+    txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+    if method && !method.to_s.in?(['get', 'post'])
+      txt << %{<input name="_method" type="hidden" value="#{method}" />}
+    end
+    txt << %{</div>}
+  end
+
+  def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
+    txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+    txt << %{ enctype="multipart/form-data"} if multipart
+    txt << %{ data-remote="true"} if remote
+    txt << %{ class="#{html_class}"} if html_class
+    txt << %{ id="#{id}"} if id
+    method = method.to_s == "get" ? "get" : "post"
+    txt << %{ method="#{method}">}
+  end
+
+  def whole_form(action = "/", id = nil, html_class = nil, options = nil)
+    contents = block_given? ? yield : ""
+
+    if options.is_a?(Hash)
+      method, remote, multipart = options.values_at(:method, :remote, :multipart)
+    else
+      method = options
+    end
+
+    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(method) + contents + "</form>"
+  end
 
   def protect_against_forgery?
     false
