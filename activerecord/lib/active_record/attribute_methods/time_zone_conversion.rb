@@ -1,21 +1,14 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/object/inclusion'
+require 'delegate'
 
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
-      class Type # :nodoc:
-        def initialize(column)
-          @column = column
-        end
-
+      class Type < SimpleDelegator # :nodoc:
         def type_cast(value)
-          value = @column.type_cast(value)
+          value = __getobj__.type_cast(value)
           value.acts_like?(:time) ? value.in_time_zone : value
-        end
-
-        def type
-          @column.type
         end
       end
 
@@ -29,12 +22,25 @@ module ActiveRecord
         self.skip_time_zone_conversion_for_attributes = []
       end
 
+      private
+
+      def _field_changed?(attr, old, value)
+        if self.class.send(:create_time_zone_conversion_attribute?, attr, column_for_attribute(attr))
+          value = value.is_a?(String) ? Time.zone.parse(value) : value.to_time rescue value
+          value = value.in_time_zone rescue nil if value
+
+          old != value
+        else
+          super
+        end
+      end
+
       module ClassMethods
         protected
         # The enhanced read method automatically converts the UTC time stored in the database to the time
         # zone stored in Time.zone.
         def attribute_cast_code(attr_name)
-          column = columns_hash[attr_name]
+          column = column_types[attr_name]
 
           if create_time_zone_conversion_attribute?(attr_name, column)
             typecast             = "v = #{super}"
@@ -49,7 +55,7 @@ module ActiveRecord
         # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
         # This enhanced write method will automatically convert the time passed to it to the zone stored in Time.zone.
         def define_method_attribute=(attr_name)
-          if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
+          if create_time_zone_conversion_attribute?(attr_name, column_types[attr_name])
             method_body, line = <<-EOV, __LINE__ + 1
               def #{attr_name}=(original_time)
                 time = original_time

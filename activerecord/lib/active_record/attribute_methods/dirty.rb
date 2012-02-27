@@ -58,8 +58,6 @@ module ActiveRecord
           @changed_attributes.delete(attr) unless _field_changed?(attr, old, value)
         else
           old = clone_attribute_value(:read_attribute, attr)
-          # Save Time objects as TimeWithZone if time_zone_aware_attributes == true
-          old = old.in_time_zone if clone_with_time_zone_conversion_attribute?(attr, old)
           @changed_attributes[attr] = old if _field_changed?(attr, old, value)
         end
 
@@ -91,10 +89,6 @@ module ActiveRecord
         end
 
         old != value
-      end
-
-      def clone_with_time_zone_conversion_attribute?(attr, old)
-        old.class.name == "Time" && time_zone_aware_attributes && !self.skip_time_zone_conversion_for_attributes.include?(attr.to_sym)
       end
     end
   end

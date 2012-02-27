@@ -1,3 +1,5 @@
+require 'delegate'
+
 module ActiveRecord
   module AttributeMethods
     module Serialization
@@ -10,17 +12,9 @@ module ActiveRecord
         self.serialized_attributes = {}
       end
 
-      class Type # :nodoc:
-        def initialize(column)
-          @column = column
-        end
-
+      class Type < SimpleDelegator # :nodoc:
         def type_cast(value)
-          value.unserialized_value
-        end
-
-        def type
-          @column.type
+          value.respond_to?(:unserialized_value) ? value.unserialized_value : value
         end
       end
 

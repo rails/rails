@@ -13,8 +13,8 @@ module ActiveRecord
       include BeforeTypeCast
       include Query
       include PrimaryKey
-      include TimeZoneConversion
       include Dirty
+      include TimeZoneConversion
       include Serialization
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
@@ -195,7 +195,7 @@ module ActiveRecord
     # Returns the column object for the named attribute.
     def column_for_attribute(name)
       # FIXME: should this return a null object for columns that don't exist?
-      self.class.columns_hash[name.to_s]
+      @columns_hash[name.to_s]
     end
 
     protected
