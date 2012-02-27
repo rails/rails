@@ -12,7 +12,9 @@ development:
   adapter: mysql2
   encoding: utf8
   database: <%= app_name %>_development
-  pool: 5
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
   username: root
   password:
 <% if mysql_socket -%>
@@ -28,7 +30,9 @@ test:
   adapter: mysql2
   encoding: utf8
   database: <%= app_name %>_test
-  pool: 5
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
   username: root
   password:
 <% if mysql_socket -%>
@@ -41,7 +45,9 @@ production:
   adapter: mysql2
   encoding: utf8
   database: <%= app_name %>_production
-  pool: 5
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
   username: root
   password:
 <% if mysql_socket -%>

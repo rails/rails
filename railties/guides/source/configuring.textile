@@ -649,3 +649,23 @@ The error occurred while evaluating nil.each
 *+set_routes_reloader+* Configures Action Dispatch to reload the routes file using +ActionDispatch::Callbacks.to_prepare+.
 
 *+disable_dependency_loading+* Disables the automatic dependency loading if the +config.cache_classes+ is set to true and +config.dependency_loading+ is set to false.
+
+h3. Database pooling
+
+Active Record database connections are managed by +ActiveRecord::ConnectionAdapters::ConnectionPool+ which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 1 and can be configured in +database.yml+.
+
+<ruby>
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
+  timeout: 5000
+</ruby>
+
+Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, Mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
+
+Any one request will check out a connection the first time it requires access to the database, after which it will check the connection back in, at the end of the request, meaning that the additional connection slot will be available again for the next request in the queue.
+
+NOTE. If you have enabled +Rails.threadsafe!+ mode then there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.
