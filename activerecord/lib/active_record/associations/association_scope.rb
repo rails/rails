@@ -79,10 +79,9 @@ module ActiveRecord
           conditions = self.conditions[i]
 
           if reflection == chain.last
-            column = column_for(table.table_name, key.to_s)
+            column   = column_for(table.table_name, key.to_s)
             bind_val = bind(scope, column, owner[foreign_key])
-            scope = scope.where(table[key].eq(bind_val))
-            #scope = scope.where(table[key].eq(owner[foreign_key]))
+            scope    = scope.where(table[key].eq(bind_val))
 
             if reflection.type
               scope = scope.where(table[reflection.type].eq(owner.class.base_class.name))
