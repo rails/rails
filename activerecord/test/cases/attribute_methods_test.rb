@@ -625,6 +625,20 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_time_zone_aware_attribute_dirty_tracking
+    time_string_1 = "2012-02-20 10:00:00"
+    time_string_2 = "2012-02-20 09:00:00"
+
+    in_time_zone 1 do
+      record = @target.create(:written_on => time_string_1)
+
+      record.written_on = time_string_2
+      assert record.written_on_changed?, "expected written_on to be changed"
+      record.written_on = time_string_1
+      assert !record.written_on_changed?, "expected written_on not to be changed"
+    end
+  end
+
   def test_setting_time_zone_aware_attribute_to_blank_string_returns_nil
     in_time_zone "Pacific Time (US & Canada)" do
       record   = @target.new

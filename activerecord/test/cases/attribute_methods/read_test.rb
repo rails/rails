@@ -44,6 +44,10 @@ module ActiveRecord
               [name, FakeColumn.new(name)]
             }]
           end
+
+          def self.column_types
+            columns_hash
+          end
         end
       end
 
