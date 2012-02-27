@@ -89,6 +89,11 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal('1234@mikel.me.com', mail['In-Reply-To'].decoded)
   end
 
+  test "implicitly mail method call" do
+    mail = BaseMailer.dont_call_mail_method
+    assert mail.delivery_method.is_a?(Mail::TestMailer)
+  end 
+
   # Attachments
   test "attachment with content" do
     email = BaseMailer.attachment_with_content
