@@ -441,7 +441,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_text_area
     assert_dom_equal(
-      '<textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',
+      %{<textarea cols="40" id="post_body" name="post[body]" rows="20">\nBack to the hill and over it again!</textarea>},
       text_area("post", "body")
     )
   end
@@ -449,14 +449,14 @@ class FormHelperTest < ActionView::TestCase
   def test_text_area_with_escapes
     @post.body        = "Back to <i>the</i> hill and over it again!"
     assert_dom_equal(
-      '<textarea cols="40" id="post_body" name="post[body]" rows="20">Back to &lt;i&gt;the&lt;/i&gt; hill and over it again!</textarea>',
+      %{<textarea cols="40" id="post_body" name="post[body]" rows="20">\nBack to &lt;i&gt;the&lt;/i&gt; hill and over it again!</textarea>},
       text_area("post", "body")
     )
   end
 
   def test_text_area_with_alternate_value
     assert_dom_equal(
-      '<textarea cols="40" id="post_body" name="post[body]" rows="20">Testing alternate values.</textarea>',
+      %{<textarea cols="40" id="post_body" name="post[body]" rows="20">\nTesting alternate values.</textarea>},
       text_area("post", "body", :value => 'Testing alternate values.')
     )
   end
@@ -464,14 +464,14 @@ class FormHelperTest < ActionView::TestCase
   def test_text_area_with_html_entities
     @post.body        = "The HTML Entity for & is &amp;"
     assert_dom_equal(
-      '<textarea cols="40" id="post_body" name="post[body]" rows="20">The HTML Entity for &amp; is &amp;amp;</textarea>',
+      %{<textarea cols="40" id="post_body" name="post[body]" rows="20">\nThe HTML Entity for &amp; is &amp;amp;</textarea>},
       text_area("post", "body")
     )
   end
 
   def test_text_area_with_size_option
     assert_dom_equal(
-      '<textarea cols="183" id="post_body" name="post[body]" rows="820">Back to the hill and over it again!</textarea>',
+      %{<textarea cols="183" id="post_body" name="post[body]" rows="820">\nBack to the hill and over it again!</textarea>},
       text_area("post", "body", :size => "183x820")
     )
   end
@@ -515,7 +515,7 @@ class FormHelperTest < ActionView::TestCase
       '<input id="post_title" name="dont guess" size="30" type="text" value="Hello World" />', text_field("post", "title", "name" => "dont guess")
     )
     assert_dom_equal(
-      '<textarea cols="40" id="post_body" name="really!" rows="20">Back to the hill and over it again!</textarea>',
+      %{<textarea cols="40" id="post_body" name="really!" rows="20">\nBack to the hill and over it again!</textarea>},
       text_area("post", "body", "name" => "really!")
     )
     assert_dom_equal(
@@ -535,7 +535,7 @@ class FormHelperTest < ActionView::TestCase
       '<input id="dont guess" name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title", "id" => "dont guess")
     )
     assert_dom_equal(
-      '<textarea cols="40" id="really!" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',
+      %{<textarea cols="40" id="really!" name="post[body]" rows="20">\nBack to the hill and over it again!</textarea>},
       text_area("post", "body", "id" => "really!")
     )
     assert_dom_equal(
@@ -555,7 +555,7 @@ class FormHelperTest < ActionView::TestCase
       '<input name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title", "id" => nil)
     )
     assert_dom_equal(
-      '<textarea cols="40" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',
+      %{<textarea cols="40" name="post[body]" rows="20">\nBack to the hill and over it again!</textarea>},
       text_area("post", "body", "id" => nil)
     )
     assert_dom_equal(
@@ -586,7 +586,7 @@ class FormHelperTest < ActionView::TestCase
       text_field("post", "title", "index" => 5)
     )
     assert_dom_equal(
-      '<textarea cols="40" name="post[5][body]" id="post_5_body" rows="20">Back to the hill and over it again!</textarea>',
+      %{<textarea cols="40" name="post[5][body]" id="post_5_body" rows="20">\nBack to the hill and over it again!</textarea>},
       text_area("post", "body", "index" => 5)
     )
     assert_dom_equal(
@@ -613,7 +613,7 @@ class FormHelperTest < ActionView::TestCase
       text_field("post", "title", "index" => 5, 'id' => nil)
     )
     assert_dom_equal(
-      '<textarea cols="40" name="post[5][body]" rows="20">Back to the hill and over it again!</textarea>',
+      %{<textarea cols="40" name="post[5][body]" rows="20">\nBack to the hill and over it again!</textarea>},
       text_area("post", "body", "index" => 5, 'id' => nil)
     )
     assert_dom_equal(
@@ -644,7 +644,7 @@ class FormHelperTest < ActionView::TestCase
       "<input id=\"post_#{pid}_title\" name=\"post[#{pid}][title]\" size=\"30\" type=\"text\" value=\"Hello World\" />", text_field("post[]","title")
     )
     assert_dom_equal(
-      "<textarea cols=\"40\" id=\"post_#{pid}_body\" name=\"post[#{pid}][body]\" rows=\"20\">Back to the hill and over it again!</textarea>",
+      "<textarea cols=\"40\" id=\"post_#{pid}_body\" name=\"post[#{pid}][body]\" rows=\"20\">\nBack to the hill and over it again!</textarea>",
       text_area("post[]", "body")
     )
     assert_dom_equal(
@@ -652,7 +652,7 @@ class FormHelperTest < ActionView::TestCase
       check_box("post[]", "secret")
     )
    assert_dom_equal(
-"<input checked=\"checked\" id=\"post_#{pid}_title_hello_world\" name=\"post[#{pid}][title]\" type=\"radio\" value=\"Hello World\" />",
+      "<input checked=\"checked\" id=\"post_#{pid}_title_hello_world\" name=\"post[#{pid}][title]\" type=\"radio\" value=\"Hello World\" />",
       radio_button("post[]", "title", "Hello World")
     )
     assert_dom_equal("<input id=\"post_#{pid}_title_goodbye_world\" name=\"post[#{pid}][title]\" type=\"radio\" value=\"Goodbye World\" />",
@@ -667,7 +667,7 @@ class FormHelperTest < ActionView::TestCase
       text_field("post[]","title", :id => nil)
     )
     assert_dom_equal(
-      "<textarea cols=\"40\" name=\"post[#{pid}][body]\" rows=\"20\">Back to the hill and over it again!</textarea>",
+      "<textarea cols=\"40\" name=\"post[#{pid}][body]\" rows=\"20\">\nBack to the hill and over it again!</textarea>",
       text_area("post[]", "body", :id => nil)
     )
     assert_dom_equal(
@@ -702,7 +702,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "create-post" , "edit_post", :method => "put") do
       "<label for='post_title'>The Title</label>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
       "<input name='commit' type='submit' value='Create post' />" +
@@ -781,7 +781,7 @@ class FormHelperTest < ActionView::TestCase
     expected =  whole_form("/posts/123", "create-post", "edit_other_name", :method => "put") do
       "<label for='other_name_title' class='post_title'>Title</label>" +
       "<input name='other_name[title]' size='30' id='other_name_title' value='Hello World' type='text' />" +
-      "<textarea name='other_name[body]' id='other_name_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='other_name[body]' id='other_name_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='other_name[secret]' value='0' type='hidden' />" +
       "<input name='other_name[secret]' checked='checked' id='other_name_secret' value='1' type='checkbox' />" +
       "<input name='commit' value='Create post' type='submit' />"
@@ -799,7 +799,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =  whole_form("/", "create-post", "edit_post", "delete") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
@@ -816,7 +816,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =  whole_form("/", "create-post", "edit_post", "delete") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
@@ -847,7 +847,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =  whole_form("/", "create-post", "edit_post", :method => "put", :remote => true) do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
@@ -864,7 +864,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =  whole_form("/", "create-post", "edit_post", :method => "put", :remote => true) do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
@@ -882,7 +882,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =  whole_form("/posts", 'new_post', 'new_post', :remote => true) do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
@@ -899,7 +899,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/", "create-post") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
@@ -918,7 +918,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<label for='post_123_title'>Title</label>" +
       "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
-      "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[123][secret]' type='hidden' value='0' />" +
       "<input name='post[123][secret]' checked='checked' type='checkbox' id='post_123_secret' value='1' />"
     end
@@ -935,7 +935,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[][title]' size='30' type='text' id='post__title' value='Hello World' />" +
-      "<textarea name='post[][body]' id='post__body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[][body]' id='post__body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[][secret]' type='hidden' value='0' />" +
       "<input name='post[][secret]' checked='checked' type='checkbox' id='post__secret' value='1' />"
     end
@@ -952,7 +952,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
       "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='namespace_post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='namespace_post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='namespace_post_secret' value='1' />"
     end
@@ -1012,7 +1012,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
       "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='namespace_post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='namespace_post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[comment][body]' size='30' type='text' id='namespace_post_comment_body' value='Hello World' />"
     end
 
@@ -1746,7 +1746,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
 
@@ -1762,7 +1762,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =
       "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
-      "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[123][secret]' type='hidden' value='0' />" +
       "<input name='post[123][secret]' checked='checked' type='checkbox' id='post_123_secret' value='1' />"
 
@@ -1778,7 +1778,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =
       "<input name='post[][title]' size='30' type='text' id='post__title' value='Hello World' />" +
-      "<textarea name='post[][body]' id='post__body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[][body]' id='post__body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[][secret]' type='hidden' value='0' />" +
       "<input name='post[][secret]' checked='checked' type='checkbox' id='post__secret' value='1' />"
 
@@ -1794,7 +1794,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =
       "<input name='post[abc][title]' size='30' type='text' id='post_abc_title' value='Hello World' />" +
-      "<textarea name='post[abc][body]' id='post_abc_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[abc][body]' id='post_abc_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[abc][secret]' type='hidden' value='0' />" +
       "<input name='post[abc][secret]' checked='checked' type='checkbox' id='post_abc_secret' value='1' />"
 
@@ -1810,7 +1810,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
 
@@ -1826,7 +1826,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
 
@@ -1871,7 +1871,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form('/posts/123', 'create-post', 'edit_post', :method => 'put') do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='parent_post[secret]' type='hidden' value='0' />" +
       "<input name='parent_post[secret]' checked='checked' type='checkbox' id='parent_post_secret' value='1' />"
     end
@@ -1891,7 +1891,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form('/posts/123', 'create-post', 'edit_post', :method => 'put') do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[comment][name]' type='text' id='post_comment_name' value='new comment' size='30' />"
     end
 
@@ -1931,7 +1931,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
       "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>" +
-      "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea><br/>" +
+      "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea><br/>" +
       "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>"
     end
 
@@ -1981,7 +1981,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
       "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>" +
-      "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea><br/>" +
+      "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea><br/>" +
       "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>"
     end
 
@@ -1999,7 +1999,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =
       "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>" +
-      "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea><br/>" +
+      "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>\nBack to the hill and over it again!</textarea><br/>" +
       "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>"
 
     assert_dom_equal expected, output_buffer
