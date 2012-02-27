@@ -141,6 +141,20 @@ end
 
 +invalid?+ is simply the inverse of +valid?+. +invalid?+ triggers your validations, returning true if any errors were found in the object, and false otherwise.
 
+h4. Strict Validations
+
+Rails can also be specify strict validations. You can use the +:strict+ option to set that validation as strict. If an object fails a strict validation then an +ActiveModel::StrictValidationFailed+ error message is raised.
+
+<ruby>
+class Person < ActiveRecord::Base
+  validates :name, :presence => {:strict => true}
+end
+
+>> p = Person.new
+>> p.valid?
+=> ActiveModel::StrictValidationFailed: can't be blank
+</ruby>
+
 h4(#validations_overview-errors). +errors[]+
 
 To verify whether or not a particular attribute of an object is valid, you can use +errors[:attribute]+. It returns an array of all the errors for +:attribute+. If there are no errors on the specified attribute, an empty array is returned.
