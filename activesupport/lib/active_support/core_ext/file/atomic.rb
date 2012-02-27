@@ -16,7 +16,7 @@ class File
     require 'tempfile' unless defined?(Tempfile)
     require 'fileutils' unless defined?(FileUtils)
 
-    temp_file = Tempfile.new(basename(file_name), temp_dir)
+    temp_file = Tempfile.new(basename(file_name), temp_dir, :binmode => true)
     yield temp_file
     temp_file.close
 
