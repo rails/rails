@@ -178,7 +178,7 @@ module ActiveRecord
     #
     def pluck(column_name)
       column_name = column_name.to_s
-      klass.connection.select_all(select(column_name).arel).map! do |attributes|
+      klass.connection.select_all(select(column_name).arel, nil, bind_values).map! do |attributes|
         klass.type_cast_attribute(attributes.keys.first, klass.initialize_attributes(attributes))
       end
     end
@@ -240,7 +240,8 @@ module ActiveRecord
         query_builder = relation.arel
       end
 
-      type_cast_calculated_value(@klass.connection.select_value(query_builder), column_for(column_name), operation)
+      result = @klass.connection.select_value(query_builder, nil, relation.bind_values)
+      type_cast_calculated_value(result, column_for(column_name), operation)
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -286,7 +287,7 @@ module ActiveRecord
       relation = except(:group).group(group)
       relation.select_values = select_values
 
-      calculated_data = @klass.connection.select_all(relation)
+      calculated_data = @klass.connection.select_all(relation, nil, bind_values)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
