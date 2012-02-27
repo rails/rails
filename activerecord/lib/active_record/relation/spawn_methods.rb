@@ -31,6 +31,7 @@ module ActiveRecord
       end
 
       merged_relation.joins_values += r.joins_values
+      merged_relation.joins_values.uniq!
 
       merged_wheres = @where_values + r.where_values
 
@@ -49,7 +50,7 @@ module ActiveRecord
         }.reverse
       end
 
-      merged_relation.where_values = merged_wheres
+      merged_relation.where_values = merged_wheres.uniq
 
       (Relation::SINGLE_VALUE_METHODS - [:lock, :create_with, :reordering]).each do |method|
         value = r.send(:"#{method}_value")
@@ -67,6 +68,7 @@ module ActiveRecord
       else
         # merge in order_values from r
         merged_relation.order_values += r.order_values
+        merged_relation.order_values.uniq!
       end
 
       # Apply scope extension modules

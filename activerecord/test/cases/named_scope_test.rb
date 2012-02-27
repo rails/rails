@@ -336,9 +336,16 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
   end
 
-  def test_should_not_duplicates_where_values
-    where_values = Topic.where("1=1").scope_with_lambda.where_values
-    assert_equal ["1=1"], where_values
+  def test_should_not_duplicate_relation_values
+    t = Topic.joins(:replies).where('1=1').order('title ASC').scope_with_lambda
+    assert_equal [:replies], t.joins_values
+    assert_equal ['1=1'], t.where_values
+    assert_equal ['title ASC'], t.order_values
+  end
+
+  def test_should_not_remove_access_to_where_values
+    where_values = Topic.where('1=1').scope_can_access_where_values.where_values
+    assert_equal ['1=1', '3=3'], where_values
   end
 
   def test_chaining_with_duplicate_joins
