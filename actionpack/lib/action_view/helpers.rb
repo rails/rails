@@ -10,6 +10,7 @@ module ActionView #:nodoc:
     autoload :CaptureHelper
     autoload :ControllerHelper
     autoload :CsrfHelper
+    autoload :CharsetHelper
     autoload :DateHelper
     autoload :DebugHelper
     autoload :FormHelper
@@ -40,6 +41,7 @@ module ActionView #:nodoc:
     include CaptureHelper
     include ControllerHelper
     include CsrfHelper
+    include CharsetHelper
     include DateHelper
     include DebugHelper
     include FormHelper

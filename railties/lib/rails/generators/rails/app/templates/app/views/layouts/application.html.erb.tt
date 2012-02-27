@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <%%= charset_meta_tag %>
   <title><%= camelized %></title>
   <%%= stylesheet_link_tag    "application", :media => "all" %>
   <%%= javascript_include_tag "application" %>
