@@ -59,6 +59,7 @@ module ActionView
             end
           end
 
+          html_options[:object] = @object
           html_options
         end
 
