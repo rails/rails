@@ -1,14 +1,13 @@
 require 'active_support/core_ext/object/try'
-require 'active_support/core_ext/array/wrap'
 
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
     def render(context, options)
       @view    = context
       @details = extract_details(options)
-      extract_format(options[:file] || options[:template], @details)
       template = determine_template(options)
-      freeze_formats(template.formats, true)
+      @lookup_context.rendered_format ||= template.formats.first
+      @lookup_context.formats = template.formats
       render_template(template, options[:layout], options[:locals])
     end
 
@@ -26,6 +25,8 @@ module ActionView
       elsif options.key?(:template)
         options[:template].respond_to?(:render) ?
           options[:template] : find_template(options[:template], options[:prefixes], false, keys, @details)
+      else
+        raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file or :text option."
       end
     end
 

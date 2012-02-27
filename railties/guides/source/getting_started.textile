@@ -41,9 +41,6 @@ internet for learning Ruby, including:
 * "Programming Ruby":http://www.ruby-doc.org/docs/ProgrammingRuby/
 * "Why's (Poignant) Guide to Ruby":http://mislav.uniqpath.com/poignant-guide/
 
-Also, the example code for this guide is available in the rails github:https://github.com/rails/rails repository
-in rails/railties/guides/code/getting_started.
-
 h3. What is Rails?
 
 TIP: This section goes into the background and philosophy of the Rails framework
@@ -293,7 +290,7 @@ rundown on the function of each of the files and folders that Rails created by d
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
 |tmp/|Temporary files|
-|vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you optionally install it into your project) and plugins containing additional prepackaged functionality.|
+|vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems and the Rails source code (if you optionally install it into your project).|
 
 h4. Configuring a Database
 
@@ -332,7 +329,9 @@ environment:
 development:
   adapter: sqlite3
   database: db/development.sqlite3
-  pool: 5
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
   timeout: 5000
 </yaml>
 
@@ -353,7 +352,9 @@ development:
   adapter: mysql2
   encoding: utf8
   database: blog_development
-  pool: 5
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
   username: root
   password:
   socket: /tmp/mysql.sock
@@ -373,7 +374,9 @@ development:
   adapter: postgresql
   encoding: unicode
   database: blog_development
-  pool: 5
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
   username: blog
   password:
 </yaml>
@@ -450,7 +453,13 @@ start a web server on your development machine. You can do this by running:
 $ rails server
 </shell>
 
-TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an +execjs+ error. Usually Mac OS X and Windows come with a JavaScript runtime installed. +therubyracer+ and +therubyrhino+ are the commonly used runtimes for Ruby and JRuby respectively. You can also investigate a list of runtimes at "ExecJS":https://github.com/sstephenson/execjs.
+TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and
+the absence of a runtime will give you an +execjs+ error. Usually Mac OS X
+and Windows come with a JavaScript runtime installed. Rails adds the +therubyracer+ gem
+to Gemfile in a commented line for new apps and you can uncomment if you need it.
++therubyrhino+ is the recommended runtime for JRuby users and is added by default
+to Gemfile in apps generated under JRuby. You can investigate about all the
+supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
 
 This will fire up an instance of the WEBrick web server by default (Rails can
 also use several other web servers). To see your application in action, open a
@@ -814,8 +823,7 @@ and links. A few things to note in the view:
 
 NOTE. In previous versions of Rails, you had to use +&lt;%=h post.name %&gt;+ so
 that any HTML would be escaped before being inserted into the page. In Rails
-3.0+, this is now the default. To get unescaped HTML, you now use +&lt;%= raw
-post.name %&gt;+.
+3 and above, this is now the default. To get unescaped HTML, you now use <tt>&lt;%= raw post.name %&gt;</tt>.
 
 TIP: For more details on the rendering process, see "Layouts and Rendering in
 Rails":layouts_and_rendering.html.
@@ -828,7 +836,7 @@ Rails renders a view to the browser, it does so by putting the view's HTML into
 a layout's HTML. In previous versions of Rails, the +rails generate scaffold+
 command would automatically create a controller specific layout, like
 +app/views/layouts/posts.html.erb+, for the posts controller. However this has
-been changed in Rails 3.0+. An application specific +layout+ is used for all the
+been changed in Rails 3. An application specific +layout+ is used for all the
 controllers and can be found in +app/views/layouts/application.html.erb+. Open
 this layout in your editor and modify the +body+ tag to include the style directive
 below:
@@ -842,7 +850,7 @@ below:
   <%= javascript_include_tag "application" %>
   <%= csrf_meta_tags %>
 </head>
-<body style="background: #EEEEEE;">
+<body style="background-color: #EEEEEE;">
 
 <%= yield %>
 
@@ -851,7 +859,7 @@ below:
 </erb>
 
 Now when you refresh the +/posts+ page, you'll see a gray background to the
-page. This same gray background will be used throughout all the views for posts.
+page. This same gray background will be used throughout all the views.
 
 h4. Creating New Posts
 
@@ -1012,7 +1020,7 @@ by its id value. After finding the record, Rails displays it by using
 +app/views/posts/show.html.erb+:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1279,7 +1287,7 @@ So first, we'll wire up the Post show template
 (+/app/views/posts/show.html.erb+) to let us make a new comment:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1345,7 +1353,7 @@ template. This is where we want the comment to show, so let's add that to the
 +app/views/posts/show.html.erb+.
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1427,7 +1435,7 @@ Then you can change +app/views/posts/show.html.erb+ to look like the
 following:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1498,7 +1506,7 @@ create a file +app/views/comments/_form.html.erb+ containing:
 Then you make the +app/views/posts/show.html.erb+ look like the following:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1666,7 +1674,7 @@ right in the form where you create the post. First, create a new model to hold
 the tags:
 
 <shell>
-$ rails generate model tag name:string post:references
+$ rails generate model Tag name:string post:references
 </shell>
 
 Again, run the migration to create the database table:
@@ -1693,10 +1701,10 @@ class Post < ActiveRecord::Base
 end
 </ruby>
 
-The +:allow_destroy+ option on the nested attribute declaration tells Rails to
-display a "remove" checkbox on the view that you'll build shortly. The
-+:reject_if+ option prevents saving new tags that do not have any attributes
-filled in.
+The +:allow_destroy+ option tells Rails to enable destroying tags through the
+nested attributes (you'll handle that by displaying a "remove" checkbox on the
+view that you'll build shortly). The +:reject_if+ option prevents saving new
+tags that do not have any attributes filled in.
 
 We will modify +views/posts/_form.html.erb+ to render a partial to make a tag:
 
@@ -1769,7 +1777,7 @@ Finally, we will edit the <tt>app/views/posts/show.html.erb</tt> template to
 show our tags.
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1829,7 +1837,7 @@ Now you can edit the view in <tt>app/views/posts/show.html.erb</tt> to look like
 this:
 
 <erb>
-<p class="notice"><%= notice %></p>
+<p id="notice"><%= notice %></p>
 
 <p>
   <b>Name:</b>
@@ -1873,7 +1881,6 @@ free to consult these support resources:
 * The "Ruby on Rails Tutorial":http://railstutorial.org/book
 * The "Ruby on Rails mailing list":http://groups.google.com/group/rubyonrails-talk
 * The "#rubyonrails":irc://irc.freenode.net/#rubyonrails channel on irc.freenode.net
-* The "Rails Wiki":http://wiki.rubyonrails.org/
 
 Rails also comes with built-in help that you can generate using the rake command-line utility:
 

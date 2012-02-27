@@ -1,6 +1,5 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/array/wrap'
 require 'active_model/mass_assignment_security/permission_set'
 require 'active_model/mass_assignment_security/sanitizer'
 
@@ -10,11 +9,13 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_accessible_attributes
-      class_attribute :_protected_attributes
-      class_attribute :_active_authorizer
+      extend ActiveModel::Configuration
 
-      class_attribute :_mass_assignment_sanitizer
+      config_attribute :_accessible_attributes
+      config_attribute :_protected_attributes
+      config_attribute :_active_authorizer
+
+      config_attribute :_mass_assignment_sanitizer
       self.mass_assignment_sanitizer = :logger
     end
 
@@ -56,7 +57,7 @@ module ActiveModel
     # You can specify your own sanitizer object eg. MySanitizer.new.
     # See <tt>ActiveModel::MassAssignmentSecurity::LoggerSanitizer</tt> for example implementation.
     #
-    # 
+    #
     module ClassMethods
       # Attributes named in this macro are protected from mass-assignment
       # whenever attributes are sanitized before assignment. A role for the
@@ -71,10 +72,11 @@ module ActiveModel
       #   class Customer
       #     include ActiveModel::MassAssignmentSecurity
       #
-      #     attr_accessor :name, :credit_rating
+      #     attr_accessor :name, :email, :logins_count
       #
-      #     attr_protected :credit_rating, :last_login
-      #     attr_protected :last_login, :as => :admin
+      #     attr_protected :logins_count
+      #     # Suppose that admin can not change email for customer
+      #     attr_protected :logins_count, :email, :as => :admin
       #
       #     def assign_attributes(values, options = {})
       #       sanitize_for_mass_assignment(values, options[:as]).each do |k, v|
@@ -86,21 +88,21 @@ module ActiveModel
       # When using the :default role :
       #
       #   customer = Customer.new
-      #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :default)
+      #   customer.assign_attributes({ "name" => "David", "email" => "a@b.com", :logins_count => 5 }, :as => :default)
       #   customer.name          # => "David"
-      #   customer.credit_rating # => nil
-      #   customer.last_login    # => nil
-      #
-      #   customer.credit_rating = "Average"
-      #   customer.credit_rating # => "Average"
+      #   customer.email # => "a@b.com"
+      #   customer.logins_count    # => nil
       #
       # And using the :admin role :
       #
       #   customer = Customer.new
-      #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :admin)
+      #   customer.assign_attributes({ "name" => "David", "email" => "a@b.com", :logins_count => 5}, :as => :admin)
       #   customer.name          # => "David"
-      #   customer.credit_rating # => "Excellent"
-      #   customer.last_login    # => nil
+      #   customer.email # => nil
+      #   customer.logins_count    # => nil
+      #
+      #   customer.email = "c@d.com"
+      #   customer.email # => "c@d.com"
       #
       # To start from an all-closed default and enable attributes as needed,
       # have a look at +attr_accessible+.
@@ -113,7 +115,7 @@ module ActiveModel
 
         self._protected_attributes = protected_attributes_configs.dup
 
-        Array.wrap(role).each do |name|
+        Array(role).each do |name|
           self._protected_attributes[name] = self.protected_attributes(name) + args
         end
 
@@ -175,7 +177,7 @@ module ActiveModel
 
         self._accessible_attributes = accessible_attributes_configs.dup
 
-        Array.wrap(role).each do |name|
+        Array(role).each do |name|
           self._accessible_attributes[name] = self.accessible_attributes(name) + args
         end
 
@@ -224,12 +226,12 @@ module ActiveModel
 
   protected
 
-    def sanitize_for_mass_assignment(attributes, role = :default)
+    def sanitize_for_mass_assignment(attributes, role = nil)
       _mass_assignment_sanitizer.sanitize(attributes, mass_assignment_authorizer(role))
     end
 
-    def mass_assignment_authorizer(role = :default)
-      self.class.active_authorizer[role]
+    def mass_assignment_authorizer(role)
+      self.class.active_authorizer[role || :default]
     end
   end
 end

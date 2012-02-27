@@ -59,7 +59,7 @@ class ObjectTests < ActiveSupport::TestCase
   end
 end
 
-class ObjectInstanceVariableTest < Test::Unit::TestCase
+class ObjectInstanceVariableTest < ActiveSupport::TestCase
   def setup
     @source, @dest = Object.new, Object.new
     @source.instance_variable_set(:@bar, 'bar')
@@ -91,7 +91,7 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
   end
 end
 
-class ObjectTryTest < Test::Unit::TestCase
+class ObjectTryTest < ActiveSupport::TestCase
   def setup
     @string = "Hello"
   end

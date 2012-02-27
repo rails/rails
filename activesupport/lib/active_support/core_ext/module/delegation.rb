@@ -81,25 +81,25 @@ class Module
   # no matter whether +nil+ responds to the delegated method. You can get a
   # +nil+ instead with the +:allow_nil+ option.
   #
-  #  class Foo
-  #    attr_accessor :bar
-  #    def initialize(bar = nil)
-  #      @bar = bar
-  #    end
-  #    delegate :zoo, :to => :bar
-  #  end
+  #   class Foo
+  #     attr_accessor :bar
+  #     def initialize(bar = nil)
+  #       @bar = bar
+  #     end
+  #     delegate :zoo, :to => :bar
+  #   end
   #
-  #  Foo.new.zoo   # raises NoMethodError exception (you called nil.zoo)
+  #   Foo.new.zoo   # raises NoMethodError exception (you called nil.zoo)
   #
-  #  class Foo
-  #    attr_accessor :bar
-  #    def initialize(bar = nil)
-  #      @bar = bar
-  #    end
-  #    delegate :zoo, :to => :bar, :allow_nil => true
-  #  end
+  #   class Foo
+  #     attr_accessor :bar
+  #     def initialize(bar = nil)
+  #       @bar = bar
+  #     end
+  #     delegate :zoo, :to => :bar, :allow_nil => true
+  #   end
   #
-  #  Foo.new.zoo   # returns nil
+  #   Foo.new.zoo   # returns nil
   #
   def delegate(*methods)
     options = methods.pop

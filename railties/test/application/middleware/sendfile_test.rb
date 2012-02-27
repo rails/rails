@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class SendfileTest < Test::Unit::TestCase
+  class SendfileTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

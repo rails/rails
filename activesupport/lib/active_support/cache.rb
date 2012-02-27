@@ -16,6 +16,7 @@ module ActiveSupport
     autoload :FileStore, 'active_support/cache/file_store'
     autoload :MemoryStore, 'active_support/cache/memory_store'
     autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
+    autoload :NullStore, 'active_support/cache/null_store'
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -76,8 +77,7 @@ module ActiveSupport
       def expand_cache_key(key, namespace = nil)
         expanded_cache_key = namespace ? "#{namespace}/" : ""
 
-        prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
-        if prefix
+        if prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
           expanded_cache_key << "#{prefix}/"
         end
 
@@ -382,11 +382,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:exist?, name) do |payload|
           entry = read_entry(namespaced_key(name, options), options)
-          if entry && !entry.expired?
-            true
-          else
-            false
-          end
+          entry && !entry.expired?
         end
       end
 

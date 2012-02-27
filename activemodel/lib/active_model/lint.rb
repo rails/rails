@@ -3,9 +3,13 @@ module ActiveModel
     # == Active Model Lint Tests
     #
     # You can test whether an object is compliant with the Active Model API by
-    # including <tt>ActiveModel::Lint::Tests</tt> in your TestCase. It will include
-    # tests that tell you whether your object is fully compliant, or if not,
-    # which aspects of the API are not implemented.
+    # including <tt>ActiveModel::Lint::Tests</tt> in your TestCase. It will
+    # include tests that tell you whether your object is fully compliant,
+    # or if not, which aspects of the API are not implemented.
+    #
+    # Note an object is not required to implement all APIs in order to work
+    # with Action Pack. This module only intends to provide guidance in case
+    # you want all features out of the box.
     #
     # These tests do not attempt to determine the semantic correctness of the
     # returned values. For instance, you could implement valid? to always
@@ -19,7 +23,8 @@ module ActiveModel
       # == Responds to <tt>to_key</tt>
       #
       # Returns an Enumerable of all (primary) key attributes
-      # or nil if model.persisted? is false
+      # or nil if model.persisted? is false. This is used by
+      # dom_id to generate unique ids for the object.
       def test_to_key
         assert model.respond_to?(:to_key), "The model should respond to to_key"
         def model.persisted?() false end
@@ -53,22 +58,13 @@ module ActiveModel
         assert_kind_of String, model.to_partial_path
       end
 
-      # == Responds to <tt>valid?</tt>
-      #
-      # Returns a boolean that specifies whether the object is in a valid or invalid
-      # state.
-      def test_valid?
-        assert model.respond_to?(:valid?), "The model should respond to valid?"
-        assert_boolean model.valid?, "valid?"
-      end
-
       # == Responds to <tt>persisted?</tt>
       #
       # Returns a boolean that specifies whether the object has been persisted yet.
       # This is used when calculating the URL for an object. If the object is
-      # not persisted, a form for that object, for instance, will be POSTed to the
-      # collection. If it is persisted, a form for the object will be PUT to the
-      # URL for the object.
+      # not persisted, a form for that object, for instance, will route to the
+      # create action. If it is persisted, a form for the object will routes to
+      # the update action.
       def test_persisted?
         assert model.respond_to?(:persisted?), "The model should respond to persisted?"
         assert_boolean model.persisted?, "persisted?"
@@ -90,23 +86,13 @@ module ActiveModel
 
       # == Errors Testing
       #
-      # Returns an object that has :[] and :full_messages defined on it. See below
-      # for more details.
-      #
-      # Returns an Array of Strings that are the errors for the attribute in
-      # question. If localization is used, the Strings should be localized
-      # for the current locale. If no error is present, this method should
-      # return an empty Array.
+      # Returns an object that implements [](attribute) defined which returns an
+      # Array of Strings that are the errors for the attribute in question.
+      # If localization is used, the Strings should be localized for the current
+      # locale. If no error is present, this method should return an empty Array.
       def test_errors_aref
         assert model.respond_to?(:errors), "The model should respond to errors"
         assert model.errors[:hello].is_a?(Array), "errors#[] should return an Array"
-      end
-
-      # Returns an Array of all error messages for the object. Each message
-      # should contain information about the field, if applicable.
-      def test_errors_full_messages
-        assert model.respond_to?(:errors), "The model should respond to errors"
-        assert model.errors.full_messages.is_a?(Array), "errors#full_messages should return an Array"
       end
 
       private

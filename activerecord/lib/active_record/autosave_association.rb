@@ -1,5 +1,3 @@
-require 'active_support/core_ext/array/wrap'
-
 module ActiveRecord
   # = Active Record Autosave Association
   #
@@ -80,7 +78,7 @@ module ActiveRecord
   # When <tt>:autosave</tt> is not declared new children are saved when their parent is saved:
   #
   #   class Post
-  #     has_many :comments # :autosave option is no declared
+  #     has_many :comments # :autosave option is not declared
   #   end
   #
   #   post = Post.new(:title => 'ruby rocks')
@@ -95,7 +93,8 @@ module ActiveRecord
   #   post.comments.create(:body => 'hello world')
   #   post.save # => saves both post and comment
   #
-  # When <tt>:autosave</tt> is true all children is saved, no matter whether they are new records:
+  # When <tt>:autosave</tt> is true all children are saved, no matter whether they
+  # are new records or not:
   #
   #   class Post
   #     has_many :comments, :autosave => true
@@ -297,7 +296,7 @@ module ActiveRecord
     def association_valid?(reflection, record)
       return true if record.destroyed? || record.marked_for_destruction?
 
-      unless valid = record.valid?
+      unless valid = record.valid?(validation_context)
         if reflection.options[:autosave]
           record.errors.each do |attribute, message|
             attribute = "#{reflection.name}.#{attribute}"
@@ -343,7 +342,7 @@ module ActiveRecord
               if autosave
                 saved = association.insert_record(record, false)
               else
-                association.insert_record(record)
+                association.insert_record(record) unless reflection.nested?
               end
             elsif autosave
               saved = record.save(:validate => false)

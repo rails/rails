@@ -1,11 +1,11 @@
 require 'abstract_unit'
 require "fixtures/person"
 
-class BaseErrorsTest < Test::Unit::TestCase
+class BaseErrorsTest < ActiveSupport::TestCase
   def setup
     ActiveResource::HttpMock.respond_to do |mock|
       mock.post "/people.xml", {}, %q(<?xml version="1.0" encoding="UTF-8"?><errors><error>Age can't be blank</error><error>Name can't be blank</error><error>Name must start with a letter</error><error>Person quota full for today.</error></errors>), 422, {'Content-Type' => 'application/xml; charset=utf-8'}
-      mock.post "/people.json", {}, %q({"errors":["Age can't be blank","Name can't be blank","Name must start with a letter","Person quota full for today."]}), 422, {'Content-Type' => 'application/json; charset=utf-8'}
+      mock.post "/people.json", {}, %q({"errors":{"age":["can't be blank"],"name":["can't be blank", "must start with a letter"],"person":["quota full for today."]}}), 422, {'Content-Type' => 'application/json; charset=utf-8'}
     end
   end
 
@@ -83,12 +83,42 @@ class BaseErrorsTest < Test::Unit::TestCase
   def test_should_mark_as_invalid_when_content_type_is_unavailable_in_response_header
     ActiveResource::HttpMock.respond_to do |mock|
       mock.post "/people.xml", {}, %q(<?xml version="1.0" encoding="UTF-8"?><errors><error>Age can't be blank</error><error>Name can't be blank</error><error>Name must start with a letter</error><error>Person quota full for today.</error></errors>), 422, {}
-      mock.post "/people.json", {}, %q({"errors":["Age can't be blank","Name can't be blank","Name must start with a letter","Person quota full for today."]}), 422, {}
+      mock.post "/people.json", {}, %q({"errors":{"age":["can't be blank"],"name":["can't be blank", "must start with a letter"],"person":["quota full for today."]}}), 422, {}
     end
 
     [ :json, :xml ].each do |format|
       invalid_user_using_format(format) do
         assert !@person.valid?
+      end
+    end
+  end
+
+  def test_should_parse_json_string_errors_with_an_errors_key
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post "/people.json", {}, %q({"errors":["Age can't be blank", "Name can't be blank", "Name must start with a letter", "Person quota full for today."]}), 422, {'Content-Type' => 'application/json; charset=utf-8'}
+    end
+
+    assert_deprecated(/as an array/) do
+      invalid_user_using_format(:json) do
+        assert @person.errors[:name].any?
+        assert_equal ["can't be blank"], @person.errors[:age]
+        assert_equal ["can't be blank", "must start with a letter"], @person.errors[:name]
+        assert_equal ["Person quota full for today."], @person.errors[:base]
+      end
+    end
+  end
+
+  def test_should_parse_3_1_style_json_errors
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post "/people.json", {}, %q({"age":["can't be blank"],"name":["can't be blank", "must start with a letter"],"person":["quota full for today."]}), 422, {'Content-Type' => 'application/json; charset=utf-8'}
+    end
+
+    assert_deprecated(/without a root/) do
+      invalid_user_using_format(:json) do
+        assert @person.errors[:name].any?
+        assert_equal ["can't be blank"], @person.errors[:age]
+        assert_equal ["can't be blank", "must start with a letter"], @person.errors[:name]
+        assert_equal ["Person quota full for today."], @person.errors[:base]
       end
     end
   end

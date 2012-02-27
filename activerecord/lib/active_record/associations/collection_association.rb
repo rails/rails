@@ -1,5 +1,3 @@
-require 'active_support/core_ext/array/wrap'
-
 module ActiveRecord
   module Associations
     # = Active Record Association Collection
@@ -49,17 +47,25 @@ module ActiveRecord
           end
         else
           column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
+          relation = scoped
 
-          scoped.select(column).map! do |record|
-            record.send(reflection.association_primary_key)
+          including = (relation.eager_load_values + relation.includes_values).uniq
+
+          if including.any?
+            join_dependency = ActiveRecord::Associations::JoinDependency.new(reflection.klass, including, [])
+            relation = join_dependency.join_associations.inject(relation) do |r, association|
+              association.join_relation(r)
+            end
           end
+
+          relation.pluck(column)
         end
       end
 
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
         pk_column = reflection.primary_key_column
-        ids = Array.wrap(ids).reject { |id| id.blank? }
+        ids = Array(ids).reject { |id| id.blank? }
         ids.map! { |i| pk_column.type_cast(i) }
         replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
       end
@@ -150,6 +156,13 @@ module ActiveRecord
           reset
           loaded!
         end
+      end
+
+      # Called when the association is declared as :dependent => :delete_all. This is
+      # an optimised version which avoids loading the records into memory. Not really
+      # for public consumption.
+      def delete_all_on_destroy
+        scoped.delete_all
       end
 
       # Destroy all the records from this association.
@@ -385,12 +398,7 @@ module ActiveRecord
           return memory    if persisted.empty?
 
           persisted.map! do |record|
-            # Unfortunately we cannot simply do memory.delete(record) since on 1.8 this returns
-            # record rather than memory.at(memory.index(record)). The behavior is fixed in 1.9.
-            mem_index = memory.index(record)
-
-            if mem_index
-              mem_record = memory.delete_at(mem_index)
+            if mem_record = memory.delete(record)
 
               (record.attribute_names - mem_record.changes.keys).each do |name|
                 mem_record[name] = record[name]

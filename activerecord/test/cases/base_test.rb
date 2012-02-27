@@ -23,10 +23,18 @@ require 'models/edge'
 require 'models/joke'
 require 'models/bulb'
 require 'models/bird'
+require 'models/teapot'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 require 'bcrypt'
 
+class FirstAbstractClass < ActiveRecord::Base
+  self.abstract_class = true
+end
+class SecondAbstractClass < FirstAbstractClass
+  self.abstract_class = true
+end
+class Photo < SecondAbstractClass; end
 class Category < ActiveRecord::Base; end
 class Categorization < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
@@ -76,6 +84,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert(modules.index(Computer.generated_attribute_methods) > modules.index(Computer.generated_feature_methods),
            "generated_attribute_methods must be higher in inheritance hierarchy than generated_feature_methods")
     assert_not_equal Computer.generated_feature_methods, Post.generated_feature_methods
+    assert(modules.index(Computer.generated_attribute_methods) < modules.index(ActiveRecord::Base.ancestors[1]))
   end
 
   def test_column_names_are_escaped
@@ -176,6 +185,31 @@ class BasicsTest < ActiveRecord::TestCase
         "The last_read attribute should be of the Date class"
       )
     end
+  end
+
+  def test_previously_changed
+    topic = Topic.find :first
+    topic.title = '<3<3<3'
+    assert_equal({}, topic.previous_changes)
+
+    topic.save!
+    expected = ["The First Topic", "<3<3<3"]
+    assert_equal(expected, topic.previous_changes['title'])
+  end
+
+  def test_previously_changed_dup
+    topic = Topic.find :first
+    topic.title = '<3<3<3'
+    topic.save!
+
+    t2 = topic.dup
+
+    assert_equal(topic.previous_changes, t2.previous_changes)
+
+    topic.title = "lolwut"
+    topic.save!
+
+    assert_not_equal(topic.previous_changes, t2.previous_changes)
   end
 
   def test_preserving_time_objects
@@ -655,7 +689,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
+    assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on
   end
 
   def test_multiparameter_attributes_on_time_with_no_date
@@ -904,7 +938,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
+    assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
   end
 
   def test_boolean
@@ -958,10 +992,9 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "b", duped_topic.title
 
     # test if the attribute values have been duped
-    topic.title = {"a" => "b"}
     duped_topic = topic.dup
-    duped_topic.title["a"] = "c"
-    assert_equal "b", topic.title["a"]
+    duped_topic.title.replace "c"
+    assert_equal "a", topic.title
 
     # test if attributes set as part of after_initialize are duped correctly
     assert_equal topic.author_email_address, duped_topic.author_email_address
@@ -972,8 +1005,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal duped_topic.id, topic.id
 
     duped_topic.reload
-    # FIXME: I think this is poor behavior, and will fix it with #5686
-    assert_equal({'a' => 'c'}.to_yaml, duped_topic.title)
+    assert_equal("c", duped_topic.title)
   end
 
   def test_dup_with_aggregate_of_same_name_as_attribute
@@ -1072,7 +1104,10 @@ class BasicsTest < ActiveRecord::TestCase
   # TODO: extend defaults tests to other databases!
   if current_adapter?(:PostgreSQLAdapter)
     def test_default
+      tz = Default.default_timezone
+      Default.default_timezone = :local
       default = Default.new
+      Default.default_timezone = tz
 
       # fixed dates / times
       assert_equal Date.new(2004, 1, 1), default.fixed_date
@@ -1115,7 +1150,8 @@ class BasicsTest < ActiveRecord::TestCase
 
       # use a geometric function to test for an open path
       objs = Geometric.find_by_sql ["select isopen(a_path) from geometrics where id = ?", g.id]
-      assert_equal objs[0].isopen, 't'
+
+      assert_equal true, objs[0].isopen
 
       # test alternate formats when defining the geometric types
 
@@ -1143,7 +1179,8 @@ class BasicsTest < ActiveRecord::TestCase
 
       # use a geometric function to test for an closed path
       objs = Geometric.find_by_sql ["select isclosed(a_path) from geometrics where id = ?", g.id]
-      assert_equal objs[0].isclosed, 't'
+
+      assert_equal true, objs[0].isclosed
     end
   end
 
@@ -1196,19 +1233,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert(auto.id > 0)
   end
 
-  def quote_column_name(name)
-    "<#{name}>"
-  end
-
-  def test_quote_keys
-    ar = AutoId.new
-    source = {"foo" => "bar", "baz" => "quux"}
-    actual = ar.send(:quote_columns, self, source)
-    inverted = actual.invert
-    assert_equal("<foo>", inverted["bar"])
-    assert_equal("<baz>", inverted["quux"])
-  end
-
   def test_sql_injection_via_find
     assert_raise(ActiveRecord::RecordNotFound, ActiveRecord::StatementInvalid) do
       Topic.find("123456 OR id > 0")
@@ -1246,6 +1270,42 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
+  def test_serialized_attribute_in_base_class
+    Topic.serialize("content", Hash)
+
+    hash = { 'content1' => 'value1', 'content2' => 'value2' }
+    important_topic = ImportantTopic.create("content" => hash)
+    assert_equal(hash, important_topic.content)
+
+    important_topic.reload
+    assert_equal(hash, important_topic.content)
+  end
+
+  # This test was added to fix GH #4004. Obviously the value returned
+  # is not really the value 'before type cast' so we should maybe think
+  # about changing that in the future.
+  def test_serialized_attribute_before_type_cast_returns_unserialized_value
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "topics"
+    klass.serialize :content, Hash
+
+    t = klass.new(:content => { :foo => :bar })
+    assert_equal({ :foo => :bar }, t.content_before_type_cast)
+    t.save!
+    t.reload
+    assert_equal({ :foo => :bar }, t.content_before_type_cast)
+  end
+
+  def test_serialized_attribute_declared_in_subclass
+    hash = { 'important1' => 'value1', 'important2' => 'value2' }
+    important_topic = ImportantTopic.create("important" => hash)
+    assert_equal(hash, important_topic.important)
+
+    important_topic.reload
+    assert_equal(hash, important_topic.important)
+    assert_equal(hash, important_topic.read_attribute(:important))
+  end
+
   def test_serialized_time_attribute
     myobj = Time.local(2008,1,1,1,0)
     topic = Topic.create("content" => myobj).reload
@@ -1258,9 +1318,22 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
-  def test_nil_serialized_attribute_with_class_constraint
+  def test_nil_serialized_attribute_without_class_constraint
     topic = Topic.new
     assert_nil topic.content
+  end
+
+  def test_nil_not_serialized_without_class_constraint
+    assert Topic.new(:content => nil).save
+    assert_equal 1, Topic.where(:content => nil).count
+  end
+
+  def test_nil_not_serialized_with_class_constraint
+    Topic.serialize :content, Hash
+    assert Topic.new(:content => nil).save
+    assert_equal 1, Topic.where(:content => nil).count
+  ensure
+    Topic.serialize(:content)
   end
 
   def test_should_raise_exception_on_serialized_attribute_with_type_mismatch
@@ -1370,22 +1443,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal author_name, Topic.find(topic.id).author_name
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_quote_chars
-      with_kcode('UTF8') do
-        str = 'The Narrator'
-        topic = Topic.create(:author_name => str)
-        assert_equal str, topic.author_name
-
-        assert_kind_of ActiveSupport::Multibyte.proxy_class, str.mb_chars
-        topic = Topic.find_by_author_name(str.mb_chars)
-
-        assert_kind_of Topic, topic
-        assert_equal str, topic.author_name, "The right topic should have been found by name even with name passed as Chars"
-      end
-    end
-  end
-
   def test_toggle_attribute
     assert !topics(:first).approved?
     topics(:first).toggle!(:approved)
@@ -1412,17 +1469,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal dev, dev.reload
   end
 
-  def test_set_table_name_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.table_name = "foo"
-    assert_equal "foo", k.table_name
-
-    assert_deprecated do
-      k.set_table_name "bar"
-    end
-    assert_equal "bar", k.table_name
-  end
-
   def test_switching_between_table_name
     assert_difference("GoodJoke.count") do
       Joke.table_name = "cold_jokes"
@@ -1431,6 +1477,11 @@ class BasicsTest < ActiveRecord::TestCase
       Joke.table_name = "funny_jokes"
       Joke.create
     end
+  end
+
+  def test_set_table_name_symbol_converted_to_string
+    Joke.table_name = :cold_jokes
+    assert_equal 'cold_jokes', Joke.table_name
   end
 
   def test_quoted_table_name_after_set_table_name
@@ -1445,160 +1496,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal klass.connection.quote_table_name("bar"), klass.quoted_table_name
   end
 
-  def test_set_table_name_with_block
-    k = Class.new( ActiveRecord::Base )
-    assert_deprecated do
-      k.set_table_name "foo"
-      k.set_table_name do
-        ActiveSupport::Deprecation.silence { original_table_name } + "ks"
-      end
-    end
-    assert_equal "fooks", k.table_name
-  end
-
   def test_set_table_name_with_inheritance
     k = Class.new( ActiveRecord::Base )
     def k.name; "Foo"; end
     def k.table_name; super + "ks"; end
     assert_equal "foosks", k.table_name
-  end
-
-  def test_original_table_name
-    k = Class.new(ActiveRecord::Base)
-    def k.name; "Foo"; end
-    k.table_name = "bar"
-
-    assert_deprecated do
-      assert_equal "foos", k.original_table_name
-    end
-
-    k = Class.new(ActiveRecord::Base)
-    k.table_name = "omg"
-    k.table_name = "wtf"
-
-    assert_deprecated do
-      assert_equal "omg", k.original_table_name
-    end
-  end
-
-  def test_set_primary_key_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.primary_key = "foo"
-    assert_equal "foo", k.primary_key
-
-    assert_deprecated do
-      k.set_primary_key "bar"
-    end
-    assert_equal "bar", k.primary_key
-  end
-
-  def test_set_primary_key_with_block
-    k = Class.new( ActiveRecord::Base )
-    k.primary_key = 'id'
-
-    assert_deprecated do
-      k.set_primary_key do
-        "sys_" + ActiveSupport::Deprecation.silence { original_primary_key }
-      end
-    end
-    assert_equal "sys_id", k.primary_key
-  end
-
-  def test_original_primary_key
-    k = Class.new(ActiveRecord::Base)
-    def k.name; "Foo"; end
-    k.primary_key = "bar"
-
-    assert_deprecated do
-      assert_equal "id", k.original_primary_key
-    end
-
-    k = Class.new(ActiveRecord::Base)
-    k.primary_key = "omg"
-    k.primary_key = "wtf"
-
-    assert_deprecated do
-      assert_equal "omg", k.original_primary_key
-    end
-  end
-
-  def test_set_inheritance_column_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.inheritance_column = "foo"
-    assert_equal "foo", k.inheritance_column
-
-    assert_deprecated do
-      k.set_inheritance_column "bar"
-    end
-    assert_equal "bar", k.inheritance_column
-  end
-
-  def test_set_inheritance_column_with_block
-    k = Class.new( ActiveRecord::Base )
-    assert_deprecated do
-      k.set_inheritance_column do
-        ActiveSupport::Deprecation.silence { original_inheritance_column } + "_id"
-      end
-    end
-    assert_equal "type_id", k.inheritance_column
-  end
-
-  def test_original_inheritance_column
-    k = Class.new(ActiveRecord::Base)
-    def k.name; "Foo"; end
-    k.inheritance_column = "omg"
-
-    assert_deprecated do
-      assert_equal "type", k.original_inheritance_column
-    end
-  end
-
-  def test_set_sequence_name_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.sequence_name = "foo"
-    assert_equal "foo", k.sequence_name
-
-    assert_deprecated do
-      k.set_sequence_name "bar"
-    end
-    assert_equal "bar", k.sequence_name
-  end
-
-  def test_set_sequence_name_with_block
-    k = Class.new( ActiveRecord::Base )
-    k.table_name = "projects"
-    orig_name = k.sequence_name
-    return skip "sequences not supported by db" unless orig_name
-
-    assert_deprecated do
-      k.set_sequence_name do
-        ActiveSupport::Deprecation.silence { original_sequence_name } + "_lol"
-      end
-    end
-    assert_equal orig_name + "_lol", k.sequence_name
-  end
-
-  def test_original_sequence_name
-    k = Class.new(ActiveRecord::Base)
-    k.table_name = "projects"
-    orig_name = k.sequence_name
-    return skip "sequences not supported by db" unless orig_name
-
-    k = Class.new(ActiveRecord::Base)
-    k.table_name = "projects"
-    k.sequence_name = "omg"
-
-    assert_deprecated do
-      assert_equal orig_name, k.original_sequence_name
-    end
-
-    k = Class.new(ActiveRecord::Base)
-    k.table_name = "projects"
-    k.sequence_name = "omg"
-    k.sequence_name = "wtf"
-    assert_deprecated do
-      assert_equal "omg", k.original_sequence_name
-    end
   end
 
   def test_sequence_name_with_abstract_class
@@ -1710,7 +1612,7 @@ class BasicsTest < ActiveRecord::TestCase
       Developer.find(:all)
     end
     assert developers.size >= 2
-    for i in 1...developers.size
+    (1...developers.size).each do |i|
       assert developers[i-1].salary >= developers[i].salary
     end
   end
@@ -1801,10 +1703,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_descends_from_active_record
-    # Tries to call Object.abstract_class?
-    assert_raise(NoMethodError) do
-      ActiveRecord::Base.descends_from_active_record?
-    end
+    assert !ActiveRecord::Base.descends_from_active_record?
 
     # Abstract subclass of AR::Base.
     assert LoosePerson.descends_from_active_record?
@@ -1827,6 +1726,10 @@ class BasicsTest < ActiveRecord::TestCase
 
     # Concrete subclasses an abstract class which has a type column.
     assert !SubStiPost.descends_from_active_record?
+
+    assert Teapot.descends_from_active_record?
+    assert !OtherTeapot.descends_from_active_record?
+    assert CoolTeapot.descends_from_active_record?
   end
 
   def test_find_on_abstract_base_class_doesnt_use_type_condition
@@ -1860,7 +1763,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_inspect_instance
     topic = topics(:first)
-    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", approved: false, replies_count: 1, parent_id: nil, parent_title: nil, type: nil, group: nil, created_at: "#{topic.created_at.to_s(:db)}", updated_at: "#{topic.updated_at.to_s(:db)}">), topic.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", important: nil, approved: false, replies_count: 1, parent_id: nil, parent_title: nil, type: nil, group: nil, created_at: "#{topic.created_at.to_s(:db)}", updated_at: "#{topic.updated_at.to_s(:db)}">), topic.inspect
   end
 
   def test_inspect_new_instance
@@ -1900,7 +1803,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_silence_sets_log_level_to_error_in_block
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
-    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
     ActiveRecord::Base.logger.level = Logger::DEBUG
     ActiveRecord::Base.silence do
       ActiveRecord::Base.logger.warn "warn"
@@ -1914,7 +1817,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_silence_sets_log_level_back_to_level_before_yield
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
-    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
     ActiveRecord::Base.logger.level = Logger::WARN
     ActiveRecord::Base.silence do
     end
@@ -1926,7 +1829,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_benchmark_with_log_level
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
-    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
     ActiveRecord::Base.logger.level = Logger::WARN
     ActiveRecord::Base.benchmark("Debug Topic Count", :level => :debug) { Topic.count }
     ActiveRecord::Base.benchmark("Warn Topic Count",  :level => :warn)  { Topic.count }
@@ -1941,10 +1844,8 @@ class BasicsTest < ActiveRecord::TestCase
   def test_benchmark_with_use_silence
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
-    ActiveRecord::Base.logger = Logger.new(log)
-    ActiveRecord::Base.benchmark("Logging", :level => :debug, :silence => true) { ActiveRecord::Base.logger.debug "Loud" }
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
     ActiveRecord::Base.benchmark("Logging", :level => :debug, :silence => false)  { ActiveRecord::Base.logger.debug "Quiet" }
-    assert_no_match(/Loud/, log.string)
     assert_match(/Quiet/, log.string)
   ensure
     ActiveRecord::Base.logger = original_logger
@@ -1976,9 +1877,9 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clear_cache!
     # preheat cache
-    c1 = Post.columns
+    c1 = Post.connection.schema_cache.columns['posts']
     ActiveRecord::Base.clear_cache!
-    c2 = Post.columns
+    c2 = Post.connection.schema_cache.columns['posts']
     assert_not_equal c1, c2
   end
 
@@ -1995,11 +1896,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_marshal_round_trip
-    if ENV['TRAVIS'] && RUBY_VERSION == "1.8.7"
-      return skip("Marshalling tests disabled for Ruby 1.8.7 on Travis CI due to what appears " \
-                  "to be a Ruby bug.")
-    end
-
     expected = posts(:welcome)
     marshalled = Marshal.dump(expected)
     actual   = Marshal.load(marshalled)
@@ -2008,11 +1904,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_marshal_new_record_round_trip
-    if ENV['TRAVIS'] && RUBY_VERSION == "1.8.7"
-      return skip("Marshalling tests disabled for Ruby 1.8.7 on Travis CI due to what appears " \
-                  "to be a Ruby bug.")
-    end
-
     marshalled = Marshal.dump(Post.new)
     post       = Marshal.load(marshalled)
 
@@ -2020,11 +1911,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_marshalling_with_associations
-    if ENV['TRAVIS'] && RUBY_VERSION == "1.8.7"
-      return skip("Marshalling tests disabled for Ruby 1.8.7 on Travis CI due to what appears " \
-                  "to be a Ruby bug.")
-    end
-
     post = Post.new
     post.comments.build
 
@@ -2043,7 +1929,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal [], NonExistentTable.attribute_names
   end
 
-  def test_attribtue_names_on_abstract_class
+  def test_attribute_names_on_abstract_class
     assert_equal [], AbstractCompany.attribute_names
   end
 
@@ -2076,5 +1962,42 @@ class BasicsTest < ActiveRecord::TestCase
     scope = stub
     Bird.stubs(:scoped).returns(mock(:uniq => scope))
     assert_equal scope, Bird.uniq
+  end
+
+  def test_active_record_super
+    assert_equal ActiveRecord::Model, ActiveRecord::Base.active_record_super
+    assert_equal ActiveRecord::Base,  Topic.active_record_super
+    assert_equal Topic,               ImportantTopic.active_record_super
+    assert_equal ActiveRecord::Model, Teapot.active_record_super
+    assert_equal Teapot,              OtherTeapot.active_record_super
+    assert_equal ActiveRecord::Model, CoolTeapot.active_record_super
+  end
+
+  def test_table_name_with_2_abstract_subclasses
+    assert_equal "photos", Photo.table_name
+  end
+
+  def test_column_types_typecast
+    topic = Topic.first
+    refute_equal 't.lo', topic.author_name
+
+    attrs = topic.attributes.dup
+    attrs.delete 'id'
+
+    typecast = Class.new {
+      def type_cast value
+        "t.lo"
+      end
+    }
+
+    types = { 'author_name' => typecast.new }
+    topic = Topic.allocate.init_with 'attributes' => attrs,
+                                     'column_types' => types
+
+    assert_equal 't.lo', topic.author_name
+  end
+
+  def test_typecasting_aliases
+    assert_equal 10, Topic.select('10 as tenderlove').first.tenderlove
   end
 end

@@ -679,7 +679,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_join_table_alias
-    assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL').size
+    assert_equal(
+      3,
+      Developer.find(
+        :all, :include => {:projects => :developers}, :references => :developers_projects_join,
+        :conditions => 'developers_projects_join.joined_on IS NOT NULL'
+      ).size
+    )
   end
 
   def test_join_with_group
@@ -689,7 +695,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     end
     Project.columns.each { |c| group << "projects.#{c.name}" }
 
-    assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL', :group => group.join(",")).size
+    assert_equal(
+      3,
+      Developer.find(
+        :all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL',
+        :references => :developers_projects_join, :group => group.join(",")
+      ).size
+    )
   end
 
   def test_find_grouped
@@ -825,12 +837,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # clear cache possibly created by other tests
     david.projects.reset_column_information
 
-    # One query for columns, one for primary key, one for table existence
-    assert_queries(3) { david.projects.columns; david.projects.columns }
+    assert_queries(1) { david.projects.columns; david.projects.columns }
 
     ## and again to verify that reset_column_information clears the cache correctly
     david.projects.reset_column_information
-    assert_queries(3) { david.projects.columns; david.projects.columns }
+    assert_queries(1) { david.projects.columns; david.projects.columns }
   end
 
   def test_attributes_are_being_set_when_initialized_from_habm_association_with_where_clause

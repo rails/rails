@@ -7,8 +7,8 @@ Gem::Specification.new do |s|
   s.summary     = 'Full-stack web application framework.'
   s.description = 'Ruby on Rails is a full-stack web framework optimized for programmer happiness and sustainable productivity. It encourages beautiful code by favoring convention over configuration.'
 
-  s.required_ruby_version     = '>= 1.8.7'
-  s.required_rubygems_version = ">= 1.3.6"
+  s.required_ruby_version     = '>= 1.9.3'
+  s.required_rubygems_version = ">= 1.8.11"
 
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'

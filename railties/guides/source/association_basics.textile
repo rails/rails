@@ -358,6 +358,7 @@ Here are a few things you should know to make efficient use of Active Record ass
 * Avoiding name collisions
 * Updating the schema
 * Controlling association scope
+* Bi-directional associations
 
 h4. Controlling Caching
 
@@ -501,6 +502,59 @@ module MyApplication
 end
 </ruby>
 
+h4. Bi-directional Associations
+
+It's normal for associations to work in two directions, requiring declaration on two different models:
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :orders
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer
+end
+</ruby>
+
+By default, Active Record doesn't know about the connection between these associations. This can lead to two copies of an object getting out of sync:
+
+<ruby>
+c = Customer.first
+o = c.orders.first
+c.first_name == o.customer.first_name # => true
+c.first_name = 'Manny'
+c.first_name == o.customer.first_name # => false
+</ruby>
+
+This happens because c and o.customer are two different in-memory representations of the same data, and neither one is automatically refreshed from changes to the other. Active Record provides the +:inverse_of+ option so that you can inform it of these relations:
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :orders, :inverse_of => :customer
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer, :inverse_of => :orders
+end
+</ruby>
+
+With these changes, Active Record will only load one copy of the customer object, preventing inconsistencies and making your application more efficient:
+
+<ruby>
+c = Customer.first
+o = c.orders.first
+c.first_name == o.customer.first_name # => true
+c.first_name = 'Manny'
+c.first_name == o.customer.first_name # => true
+</ruby>
+
+There are a few limitations to +inverse_of+ support:
+
+* They do not work with <tt>:through</tt> associations.
+* They do not work with <tt>:polymorphic</tt> associations.
+* They do not work with <tt>:as</tt> associations.
+* For +belongs_to+ associations, +has_many+ inverse associations are ignored.
+
 h3. Detailed Association Reference
 
 The following sections give the details of each type of association, including the methods that they add and the options that you can use when declaring an association.
@@ -594,6 +648,7 @@ The +belongs_to+ association supports these options:
 * +:dependent+
 * +:foreign_key+
 * +:include+
+* +:inverse_of+
 * +:polymorphic+
 * +:readonly+
 * +:select+
@@ -719,6 +774,20 @@ end
 </ruby>
 
 NOTE: There's no need to use +:include+ for immediate associations - that is, if you have +Order belongs_to :customer+, then the customer is eager-loaded automatically when it's needed.
+
+h6(#belongs_to-inverse_of). +:inverse_of+
+
+The +:inverse_of+ option specifies the name of the +has_many+ or +has_one+ association that is the inverse of this association. Does not work in combination with the +:polymorphic+ options.
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :orders, :inverse_of => :customer
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer, :inverse_of => :orders
+end
+</ruby>
 
 h6(#belongs_to-polymorphic). +:polymorphic+
 
@@ -859,6 +928,7 @@ The +has_one+ association supports these options:
 * +:dependent+
 * +:foreign_key+
 * +:include+
+* +:inverse_of+
 * +:order+
 * +:primary_key+
 * +:readonly+
@@ -899,6 +969,9 @@ end
 h6(#has_one-dependent). +:dependent+
 
 If you set the +:dependent+ option to +:destroy+, then deleting this object will call the +destroy+ method on the associated object to delete that object. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated object _without_ calling its +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the association object to +NULL+.
+If you set the +:dependent+ option to +:restrict+, then the deletion of the object is restricted if a dependent associated object exist and a +DeleteRestrictionError+ exception is raised.
+
+NOTE: The default behavior for +:dependent => :restrict+ is to raise a +DeleteRestrictionError+ when associated objects exist. Since Rails 4.0 this behavior is being deprecated in favor of adding an error to the base model. To silence the warning in Rails 4.0, you should fix your code to not expect this Exception and add +config.active_record.dependent_restrict_raises = false+ to your application config.
 
 h6(#has_one-foreign_key). +:foreign_key+
 
@@ -945,6 +1018,20 @@ end
 
 class Representative < ActiveRecord::Base
   has_many :accounts
+end
+</ruby>
+
+h6(#has_one-inverse_of). +:inverse_of+
+
+The +:inverse_of+ option specifies the name of the +belongs_to+ association that is the inverse of this association. Does not work in combination with the +:through+ or +:as+ options.
+
+<ruby>
+class Supplier < ActiveRecord::Base
+  has_one :account, :inverse_of => :supplier
+end
+
+class Account < ActiveRecord::Base
+  belongs_to :supplier, :inverse_of => :account
 end
 </ruby>
 
@@ -1120,7 +1207,7 @@ h6(#has_many-collection-find). <tt><em>collection</em>.find(...)</tt>
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+.
 
 <ruby>
-@open_orders = @customer.orders.where(:open => 1)
+@open_orders = @customer.orders.find(1)
 </ruby>
 
 h6(#has_many-collection-where). <tt><em>collection</em>.where(...)</tt>
@@ -1177,6 +1264,7 @@ The +has_many+ association supports these options:
 * +:foreign_key+
 * +:group+
 * +:include+
+* +:inverse_of+
 * +:limit+
 * +:offset+
 * +:order+
@@ -1242,11 +1330,14 @@ h6(#has_many-counter_sql). +:counter_sql+
 
 Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself.
 
-NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL will be generated by substituting +SELECT COUNT(*) FROM+ for the +SELECT ... FROM+ clause of your +:finder_sql+ statement.
+NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL will be generated by substituting the +SELECT ... FROM+ clause of your +:finder_sql+ statement by +SELECT COUNT(*) FROM+.
 
 h6(#has_many-dependent). +:dependent+
 
 If you set the +:dependent+ option to +:destroy+, then deleting this object will call the +destroy+ method on the associated objects to delete those objects. If you set the +:dependent+ option to +:delete_all+, then deleting this object will delete the associated objects _without_ calling their +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the associated objects to +NULL+.
+If you set the +:dependent+ option to +:restrict+, then the deletion of the object is restricted if a dependent associated object exist and a +DeleteRestrictionError+ exception is raised.
+
+NOTE: The default behavior for +:dependent => :restrict+ is to raise a +DeleteRestrictionError+ when associated objects exist. Since Rails 4.0 this behavior is being deprecated in favor of adding an error to the base model. To silence the warning in Rails 4.0, you should fix your code to not expect this Exception and add +config.active_record.dependent_restrict_raises = false+ to your application config.
 
 NOTE: This option is ignored when you use the +:through+ option on the association.
 
@@ -1313,6 +1404,20 @@ end
 
 class LineItem < ActiveRecord::Base
   belongs_to :order
+end
+</ruby>
+
+h6(#has_many-inverse_of). +:inverse_of+
+
+The +:inverse_of+ option specifies the name of the +belongs_to+ association that is the inverse of this association. Does not work in combination with the +:through+ or +:as+ options.
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :orders, :inverse_of => :customer
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer, :inverse_of => :orders
 end
 </ruby>
 
@@ -1545,11 +1650,8 @@ h6(#has_and_belongs_to_many-collection-find). <tt><em>collection</em>.find(...)<
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+. It also adds the additional condition that the object must be in the collection.
 
 <ruby>
-@new_assemblies = @part.assemblies.all(
-  :conditions => ["created_at > ?", 2.days.ago])
+@assembly = @part.assemblies.find(1)
 </ruby>
-
-NOTE: Beginning with Rails 3, supplying options to the +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
 
 h6(#has_and_belongs_to_many-collection-where). <tt><em>collection</em>.where(...)</tt>
 
@@ -1669,7 +1771,7 @@ h6(#has_and_belongs_to_many-counter_sql). +:counter_sql+
 
 Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself.
 
-NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL will be generated by substituting +SELECT COUNT(*) FROM+ for the +SELECT ... FROM+ clause of your +:finder_sql+ statement.
+NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL will be generated by substituting the +SELECT ... FROM+ clause of your +:finder_sql+ statement by +SELECT COUNT(*) FROM+.
 
 h6(#has_and_belongs_to_many-delete_sql). +:delete_sql+
 

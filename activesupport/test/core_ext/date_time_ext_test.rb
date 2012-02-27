@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 
-class DateTimeExtCalculationsTest < Test::Unit::TestCase
+class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
     assert_equal "2005-02-21 14:30:00",               datetime.to_s(:db)
@@ -43,8 +43,8 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_civil_from_format
-    assert_equal DateTime.civil(2010, 5, 4, 0, 0, 0, DateTime.local_offset), DateTime.civil_from_format(:local, 2010, 5, 4)
-    assert_equal DateTime.civil(2010, 5, 4, 0, 0, 0, 0), DateTime.civil_from_format(:utc, 2010, 5, 4)
+    assert_equal Time.local(2010, 5, 4, 0, 0, 0), DateTime.civil_from_format(:local, 2010, 5, 4)
+    assert_equal Time.utc(2010, 5, 4, 0, 0, 0), DateTime.civil_from_format(:utc, 2010, 5, 4)
   end
 
   def test_seconds_since_midnight
@@ -329,15 +329,6 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_acts_like_time
     assert DateTime.new.acts_like_time?
-  end
-
-  def test_local_offset
-    with_env_tz 'US/Eastern' do
-      assert_equal Rational(-5, 24), DateTime.local_offset
-    end
-    with_env_tz 'US/Central' do
-      assert_equal Rational(-6, 24), DateTime.local_offset
-    end
   end
 
   def test_utc?

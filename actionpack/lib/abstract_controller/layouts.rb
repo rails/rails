@@ -195,8 +195,9 @@ module AbstractController
     include Rendering
 
     included do
-      class_attribute :_layout_conditions
-      remove_possible_method :_layout_conditions
+      class_attribute :_layout, :_layout_conditions,
+        :instance_reader => false, :instance_writer => false
+      self._layout = nil
       self._layout_conditions = {}
       _write_layout_method
     end
@@ -254,7 +255,7 @@ module AbstractController
         conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
         self._layout_conditions = conditions
 
-        @_layout = layout || false # Converts nil to false
+        self._layout = layout
         _write_layout_method
       end
 
@@ -281,52 +282,27 @@ module AbstractController
           RUBY
         end
 
-        if defined?(@_layout)
-          layout_definition = case @_layout
-            when String
-              @_layout.inspect
-            when Symbol
-              <<-RUBY
-                #{@_layout}.tap do |layout|
-                  unless layout.is_a?(String) || !layout
-                    raise ArgumentError, "Your layout method :#{@_layout} returned \#{layout}. It " \
-                      "should have returned a String, false, or nil"
-                  end
+        layout_definition = case _layout
+          when String
+            _layout.inspect
+          when Symbol
+            <<-RUBY
+              #{_layout}.tap do |layout|
+                unless layout.is_a?(String) || !layout
+                  raise ArgumentError, "Your layout method :#{_layout} returned \#{layout}. It " \
+                    "should have returned a String, false, or nil"
                 end
-              RUBY
-            when Proc
-              define_method :_layout_from_proc, &@_layout
-              "_layout_from_proc(self)"
-            when false
-              nil
-            when true
-              raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
-            when nil
-              name_clause
-            end
-        else
-          # Add a deprecation if the parent layout was explicitly set and the child
-          # still does a dynamic lookup. In next Rails release, we should @_layout
-          # to be inheritable so we can skip the child lookup if the parent explicitly
-          # set the layout.
-          parent   = self.superclass.instance_variable_get(:@_layout)
-          @_layout = nil
-          inspect  = parent.is_a?(Proc) ? parent.inspect : parent
-
-          layout_definition = if parent.nil?
-              name_clause
-            elsif name
-              <<-RUBY
-                if template = lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first
-                  ActiveSupport::Deprecation.warn 'Layout found at "#{_implied_layout_name}" for #{name} but parent controller ' \
-                    'set layout to #{inspect.inspect}. Please explicitly set your layout to "#{_implied_layout_name}" ' \
-                    'or set it to nil to force a dynamic lookup.'
-                  template
-                else
-                  super
-                end
-              RUBY
-            end
+              end
+            RUBY
+          when Proc
+            define_method :_layout_from_proc, &_layout
+            "_layout_from_proc(self)"
+          when false
+            nil
+          when true
+            raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
+          when nil
+            name_clause
         end
 
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -346,7 +322,7 @@ module AbstractController
       super
 
       if _include_layout?(options)
-        layout = options.key?(:layout) ? options.delete(:layout) : :default
+        layout = options.delete(:layout) { :default }
         options[:layout] = _layout_for_option(layout)
       end
     end

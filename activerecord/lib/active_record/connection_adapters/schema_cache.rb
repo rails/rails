@@ -2,22 +2,14 @@ module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
       attr_reader :columns, :columns_hash, :primary_keys, :tables
-      attr_reader :column_defaults
       attr_reader :connection
 
       def initialize(conn)
         @connection = conn
-        @tables              = {}
+        @tables     = {}
 
-        @columns     = Hash.new do |h, table_name|
-          h[table_name] =
-            # Fetch a list of columns
-            conn.columns(table_name, "#{table_name} Columns").tap do |cs|
-              # set primary key information
-              cs.each do |column|
-                column.primary = column.name == primary_keys[table_name]
-              end
-            end
+        @columns = Hash.new do |h, table_name|
+          h[table_name] = conn.columns(table_name)
         end
 
         @columns_hash = Hash.new do |h, table_name|
@@ -26,15 +18,8 @@ module ActiveRecord
           }]
         end
 
-        @column_defaults = Hash.new do |h, table_name|
-          h[table_name] = Hash[columns[table_name].map { |col|
-            [col.name, col.default]
-          }]
-        end
-
         @primary_keys = Hash.new do |h, table_name|
-          h[table_name] = table_exists?(table_name) ?
-                          conn.primary_key(table_name) : 'id'
+          h[table_name] = table_exists?(table_name) ? conn.primary_key(table_name) : nil
         end
       end
 
@@ -45,15 +30,11 @@ module ActiveRecord
         @tables[name] = connection.table_exists?(name)
       end
 
-      # Clears out internal caches:
-      #
-      #   * columns
-      #   * columns_hash
-      #   * tables
+      # Clears out internal caches
       def clear!
         @columns.clear
         @columns_hash.clear
-        @column_defaults.clear
+        @primary_keys.clear
         @tables.clear
       end
 
@@ -61,7 +42,6 @@ module ActiveRecord
       def clear_table_cache!(table_name)
         @columns.delete table_name
         @columns_hash.delete table_name
-        @column_defaults.delete table_name
         @primary_keys.delete table_name
         @tables.delete table_name
       end

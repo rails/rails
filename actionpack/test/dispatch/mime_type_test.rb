@@ -69,6 +69,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, Mime::Type.parse(accept)
   end
 
+  test "parse single media range with q" do
+    accept = "text/html;q=0.9"
+    expect = [Mime::HTML]
+    assert_equal expect, Mime::Type.parse(accept)
+  end
+
   # Accept header send with user HTTP_USER_AGENT: Sunrise/0.42j (Windows XP)
   test "parse broken acceptlines" do
     accept = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/*,,*/*;q=0.5"
@@ -92,6 +98,37 @@ class MimeTypeTest < ActiveSupport::TestCase
       end
     ensure
       Mime::Type.unregister(:FOO)
+    end
+  end
+
+  test "custom type with type aliases" do
+    begin
+      Mime::Type.register "text/foobar", :foobar, ["text/foo", "text/bar"]
+      %w[text/foobar text/foo text/bar].each do |type|
+        assert_equal Mime::FOOBAR, type
+      end
+    ensure
+      Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
+  test "custom type with extension aliases" do
+    begin
+      Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
+      %w[foobar foo bar].each do |extension|
+        assert_equal Mime::FOOBAR, Mime::EXTENSION_LOOKUP[extension]
+      end
+    ensure
+      Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
+  test "register alias" do
+    begin
+      Mime::Type.register_alias "application/xhtml+xml", :foobar
+      assert_equal Mime::HTML, Mime::EXTENSION_LOOKUP['foobar']
+    ensure
+      Mime::Type.unregister(:FOOBAR)
     end
   end
 

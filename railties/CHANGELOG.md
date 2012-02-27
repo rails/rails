@@ -1,9 +1,48 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 4.0.0 (unreleased) ##
 
-*   New applications get a flag
-    `config.active_record.auto_explain_threshold_in_seconds` in the environments
-    configuration files. With a value of 0.5 in development.rb, and commented
-    out in production.rb. No mention in test.rb. *fxn*
+*   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. *Piotr Sarnacki*
+
+    Example:
+
+        # it can be added to config/application.rb
+        console do
+          # this block is called only when running console,
+          # so we can safely require pry here
+          require "pry"
+          config.console = Pry
+        end
+
+*   Add convenience `hide!` method to Rails generators to hide current generator
+    namespace from showing when running `rails generate`. *Carlos Antonio da Silva*
+
+*   Scaffold now uses `content_tag_for` in index.html.erb *José Valim*
+
+*   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
+
+
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   Documentation fixes.
+
+*   Migration generation understands decimal{1.2} and decimal{1-2}, in
+    addition to decimal{1,2}. *José Valim*
+
+
+## Rails 3.2.0 (January 20, 2012) ##
+
+*   Turn gem has been removed from default Gemfile. We still looking for a best presentation for tests output. *Guillermo Iguaran*
+
+*   Rails::Plugin is deprecated and will be removed in Rails 4.0. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
+
+*   Guides are available as a single .mobi for the Kindle and free Kindle readers apps. *Michael Pearson & Xavier Noria*
+
+*   Allow scaffold/model/migration generators to accept a "index" and "uniq" modifiers, as in: "tracking_id:integer:uniq" in order to generate (unique) indexes. Some types also accept custom options, for instance, you can specify the precision and scale for decimals as "price:decimal{7,2}". *Dmitrii Samoilov*
+
+*   Added `config.exceptions_app` to set the exceptions application invoked by the ShowException middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`. *José Valim*
+
+*   Speed up development by only reloading classes if dependencies files changed. This can be turned off by setting `config.reload_classes_only_on_change` to false. *José Valim*
+
+*   New applications get a flag `config.active_record.auto_explain_threshold_in_seconds` in the environments configuration files. With a value of 0.5 in development.rb, and commented out in production.rb. No mention in test.rb. *fxn*
 
 *   Add DebugExceptions middleware which contains features extracted from ShowExceptions middleware *José Valim*
 
@@ -18,7 +57,8 @@
 
 *   Update Rails::Rack::Logger middleware to apply any tags set in config.log_tags to the newly ActiveSupport::TaggedLogging Rails.logger. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications *DHH*
 
-*   Default options to `rails new` can be set in ~/.railsrc *Guillermo Iguaran*
+*   Default options to `rails new` can be set in ~/.railsrc. You can specify extra command-line arguments to be used every time
+    'rails new' runs in the .railsrc configuration file in your home directory. *Guillermo Iguaran*
 
 *   Add destroy alias to Rails engines *Guillermo Iguaran*
 
@@ -31,7 +71,34 @@
 *   Remove old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API *Guillermo Iguaran*
 
 
-*   Rails 3.1.1
+## Rails 3.1.4 (unreleased) ##
+
+*   Setting config.force_ssl also marks the session cookie as secure.
+
+    *José Valim*
+
+*   Add therubyrhino to Gemfile in new applications when running under JRuby.
+
+    *Guillermo Iguaran*
+
+
+## Rails 3.1.3 (November 20, 2011) ##
+
+*   New apps should be generated with a sass-rails dependency of 3.1.5, not 3.1.5.rc.2
+
+
+## Rails 3.1.2 (November 18, 2011) ##
+
+*   Engines: don't blow up if db/seeds.rb is missing.
+
+    *Jeremy Kemper*
+
+*   `rails new foo --skip-test-unit` should not add the `:test` task to the rake default task.
+    *GH 2564*
+
+    *José Valim*
+
+## Rails 3.1.1 (October 07, 2011) ##
 
 *   Add jquery-rails to Gemfile of plugins, test/dummy app needs it. Closes #3091. *Santiago Pastorino*
 
@@ -43,17 +110,6 @@
 
     Plugins developers need to special case their initializers that are
     meant to be run in the assets group by adding :group => :assets.
-
-## Rails 3.1.2 (unreleased) ##
-
-*   Engines: don't blow up if db/seeds.rb is missing.
-
-    *Jeremy Kemper*
-
-*   `rails new foo --skip-test-unit` should not add the `:test` task to the rake default task.
-    *GH 2564*
-
-    *José Valim*
 
 ## Rails 3.1.0 (August 30, 2011) ##
 
@@ -147,12 +203,37 @@
 *   Include all helpers from plugins and shared engines in application *Piotr Sarnacki*
 
 
+## Rails 3.0.12 (unreleased) ##
+
+*   No changes.
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   Updated Prototype UJS to lastest version fixing multiples errors in IE [Guillermo Iguaran]
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   Fix Rake 0.9.0 support.
+
+
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   No changes.
 
 
-*   Rails 3.0.6 (April 5, 2011)
+##   Rails 3.0.6 (April 5, 2011) ##
 
 *   No changes.
 

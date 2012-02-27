@@ -2,7 +2,7 @@ require "isolation/abstract_unit"
 
 module ApplicationTests
   module RakeTests
-    class RakeMigrationsTest < Test::Unit::TestCase
+    class RakeMigrationsTest < ActiveSupport::TestCase
       def setup
         build_app
         boot_rails
@@ -67,7 +67,7 @@ module ApplicationTests
           `rails generate migration add_email_to_users email:string`
         end
 
-        Dir.chdir(app_path) { `rake db:migrate`}
+        Dir.chdir(app_path) { `rake db:migrate` }
         output = Dir.chdir(app_path) { `rake db:migrate:status` }
 
         assert_match(/up\s+\d{14}\s+Create users/, output)
@@ -80,13 +80,34 @@ module ApplicationTests
         assert_match(/down\s+\d{14}\s+Add email to users/, output)
       end
 
+      test 'migration status without timestamps' do
+        add_to_config('config.active_record.timestamped_migrations = false')
+
+        Dir.chdir(app_path) do
+          `rails generate model user username:string password:string`
+          `rails generate migration add_email_to_users email:string`
+        end
+
+        Dir.chdir(app_path) { `rake db:migrate` }
+        output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+        assert_match(/up\s+\d{3,}\s+Create users/, output)
+        assert_match(/up\s+\d{3,}\s+Add email to users/, output)
+
+        Dir.chdir(app_path) { `rake db:rollback STEP=1` }
+        output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+        assert_match(/up\s+\d{3,}\s+Create users/, output)
+        assert_match(/down\s+\d{3,}\s+Add email to users/, output)
+      end
+
       test 'test migration status after rollback and redo' do
         Dir.chdir(app_path) do
           `rails generate model user username:string password:string`
           `rails generate migration add_email_to_users email:string`
         end
 
-        Dir.chdir(app_path) { `rake db:migrate`}
+        Dir.chdir(app_path) { `rake db:migrate` }
         output = Dir.chdir(app_path) { `rake db:migrate:status` }
 
         assert_match(/up\s+\d{14}\s+Create users/, output)
@@ -103,6 +124,33 @@ module ApplicationTests
 
         assert_match(/up\s+\d{14}\s+Create users/, output)
         assert_match(/up\s+\d{14}\s+Add email to users/, output)
+      end
+
+      test 'migration status after rollback and redo without timestamps' do
+        add_to_config('config.active_record.timestamped_migrations = false')
+
+        Dir.chdir(app_path) do
+          `rails generate model user username:string password:string`
+          `rails generate migration add_email_to_users email:string`
+        end
+
+        Dir.chdir(app_path) { `rake db:migrate` }
+        output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+        assert_match(/up\s+\d{3,}\s+Create users/, output)
+        assert_match(/up\s+\d{3,}\s+Add email to users/, output)
+
+        Dir.chdir(app_path) { `rake db:rollback STEP=2` }
+        output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+        assert_match(/down\s+\d{3,}\s+Create users/, output)
+        assert_match(/down\s+\d{3,}\s+Add email to users/, output)
+
+        Dir.chdir(app_path) { `rake db:migrate:redo` }
+        output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+        assert_match(/up\s+\d{3,}\s+Create users/, output)
+        assert_match(/up\s+\d{3,}\s+Add email to users/, output)
       end
     end
   end

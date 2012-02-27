@@ -32,6 +32,10 @@ module ActiveRecord
         record
       end
 
+      # ActiveRecord::Relation#delete_all needs to support joins before we can use a
+      # SQL-only implementation.
+      alias delete_all_on_destroy delete_all
+
       private
 
         def count_records

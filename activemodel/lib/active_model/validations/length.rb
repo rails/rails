@@ -1,5 +1,3 @@
-require "active_support/core_ext/string/encoding"
-
 module ActiveModel
 
   # == Active Model Length Validator
@@ -13,8 +11,7 @@ module ActiveModel
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
           raise ArgumentError, ":in and :within must be a Range" unless range.is_a?(Range)
-          options[:minimum], options[:maximum] = range.begin, range.end
-          options[:maximum] -= 1 if range.exclude_end?
+          options[:minimum], options[:maximum] = range.min, range.max
         end
 
         super
@@ -30,8 +27,8 @@ module ActiveModel
         keys.each do |key|
           value = options[key]
 
-          unless value.is_a?(Integer) && value >= 0
-            raise ArgumentError, ":#{key} must be a nonnegative Integer"
+          unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY
+            raise ArgumentError, ":#{key} must be a nonnegative Integer or Infinity"
           end
         end
       end
@@ -57,12 +54,8 @@ module ActiveModel
       private
 
       def tokenize(value)
-        if value.kind_of?(String)
-          if options[:tokenizer]
-            options[:tokenizer].call(value)
-          elsif !value.encoding_aware?
-            value.mb_chars
-          end
+        if options[:tokenizer] && value.kind_of?(String)
+          options[:tokenizer].call(value)
         end || value
       end
     end

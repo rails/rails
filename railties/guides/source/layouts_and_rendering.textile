@@ -495,7 +495,7 @@ def show
 end
 </ruby>
 
-Make sure to use +and return+ and not +&amp;&amp; return+, since +&amp;&amp; return+ will not work due to the operator precedence in the Ruby Language.
+Make sure to use +and return+ instead of +&amp;&amp; return+ because +&amp;&amp; return+ will not work due to the operator precedence in the Ruby Language.
 
 Note that the implicit render done by ActionController detects if +render+ has been called, so the following will work without errors:
 
@@ -656,7 +656,7 @@ WARNING: The asset tag helpers do _not_ verify the existence of the assets at th
 
 h5. Linking to Feeds with the +auto_discovery_link_tag+
 
-The +auto_discovery_link_tag+ helper builds HTML that most browsers and newsreaders can use to detect the presences of RSS or ATOM feeds. It takes the type of the link (+:rss+ or +:atom+), a hash of options that are passed through to url_for, and a hash of options for the tag:
+The +auto_discovery_link_tag+ helper builds HTML that most browsers and newsreaders can use to detect the presence of RSS or Atom feeds. It takes the type of the link (+:rss+ or +:atom+), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
 <erb>
 <%= auto_discovery_link_tag(:rss, {:action => "feed"},
@@ -667,7 +667,7 @@ There are three tag options available for the +auto_discovery_link_tag+:
 
 * +:rel+ specifies the +rel+ value in the link. The default value is "alternate".
 * +:type+ specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically.
-* +:title+ specifies the title of the link. The default value is the upshifted +:type+ value, for example, "ATOM" or "RSS".
+* +:title+ specifies the title of the link. The default value is the uppercased +:type+ value, for example, "ATOM" or "RSS".
 
 h5. Linking to JavaScript Files with the +javascript_include_tag+
 
@@ -724,7 +724,7 @@ Outputting +script+ tags such as this:
 
 These two files for jQuery, +jquery.js+ and +jquery_ujs.js+ must be placed inside +public/javascripts+ if the application doesn't use the asset pipeline. These files can be downloaded from the "jquery-rails repository on GitHub":https://github.com/indirect/jquery-rails/tree/master/vendor/assets/javascripts
 
-WARNING: If you are using the asset pipeline, this tag will render a +script+ tag for an asset called +defaults.js+, which would not exist in your application unless you've explicitly defined it to be.
+WARNING: If you are using the asset pipeline, this tag will render a +script+ tag for an asset called +defaults.js+, which would not exist in your application unless you've explicitly created it.
 
 And you can in any case override the +:defaults+ expansion in <tt>config/application.rb</tt>:
 
@@ -1188,7 +1188,7 @@ You can also specify a second partial to be rendered between instances of the ma
 h5. Spacer Templates
 
 <erb>
-<%= render @products, :spacer_template => "product_ruler" %>
+<%= render :partial => @products, :spacer_template => "product_ruler" %>
 </erb>
 
 Rails will render the +_product_ruler+ partial (with no data passed in to it) between each pair of +_product+ partials.

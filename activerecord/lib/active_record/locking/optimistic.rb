@@ -40,16 +40,18 @@ module ActiveRecord
     # This locking mechanism will function inside a single Ruby process. To make it work across all
     # web requests, the recommended approach is to add +lock_version+ as a hidden field to your form.
     #
-    # You must ensure that your database schema defaults the +lock_version+ column to 0.
-    #
     # This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
-    # To override the name of the +lock_version+ column, invoke the <tt>set_locking_column</tt> method.
-    # This method uses the same syntax as <tt>set_table_name</tt>
+    # To override the name of the +lock_version+ column, set the <tt>locking_column</tt> class attribute:
+    #
+    #   class Person < ActiveRecord::Base
+    #     self.locking_column = :lock_person
+    #   end
+    #
     module Optimistic
       extend ActiveSupport::Concern
 
       included do
-        cattr_accessor :lock_optimistically, :instance_writer => false
+        config_attribute :lock_optimistically, :global => true
         self.lock_optimistically = true
       end
 
@@ -62,21 +64,6 @@ module ActiveRecord
           lock_col = self.class.locking_column
           previous_lock_value = send(lock_col).to_i
           send(lock_col + '=', previous_lock_value + 1)
-        end
-
-        def attributes_from_column_definition
-          result = super
-
-          # If the locking column has no default value set,
-          # start the lock version at zero. Note we can't use
-          # <tt>locking_enabled?</tt> at this point as
-          # <tt>@attributes</tt> may not have been initialized yet.
-
-          if result.key?(self.class.locking_column) && lock_optimistically
-            result[self.class.locking_column] ||= 0
-          end
-
-          result
         end
 
         def update(attribute_names = @attributes.keys) #:nodoc:
@@ -144,24 +131,16 @@ module ActiveRecord
           lock_optimistically && columns_hash[locking_column]
         end
 
+        # Set the column to use for optimistic locking. Defaults to +lock_version+.
         def locking_column=(value)
           @original_locking_column = @locking_column if defined?(@locking_column)
           @locking_column          = value.to_s
-        end
-
-        # Set the column to use for optimistic locking. Defaults to +lock_version+.
-        def set_locking_column(value = nil, &block)
-          deprecated_property_setter :locking_column, value, block
         end
 
         # The version column used for optimistic locking. Defaults to +lock_version+.
         def locking_column
           reset_locking_column unless defined?(@locking_column)
           @locking_column
-        end
-
-        def original_locking_column #:nodoc:
-          deprecated_original_property_getter :locking_column
         end
 
         # Quote the column name used for optimistic locking.
@@ -179,6 +158,18 @@ module ActiveRecord
         def update_counters(id, counters)
           counters = counters.merge(locking_column => 1) if locking_enabled?
           super
+        end
+
+        # If the locking column has no default value set,
+        # start the lock version at zero. Note we can't use
+        # <tt>locking_enabled?</tt> at this point as
+        # <tt>@attributes</tt> may not have been initialized yet.
+        def initialize_attributes(attributes) #:nodoc:
+          if attributes.key?(locking_column) && lock_optimistically
+            attributes[locking_column] ||= 0
+          end
+
+          attributes
         end
       end
     end

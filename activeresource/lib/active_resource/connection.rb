@@ -15,6 +15,7 @@ module ActiveResource
     HTTP_FORMAT_HEADER_NAMES = {  :get => 'Accept',
       :put => 'Content-Type',
       :post => 'Content-Type',
+      :patch => 'Content-Type',
       :delete => 'Accept',
       :head => 'Accept'
     }
@@ -39,14 +40,14 @@ module ActiveResource
 
     # Set URI for remote service.
     def site=(site)
-      @site = site.is_a?(URI) ? site : URI.parser.parse(site)
+      @site = site.is_a?(URI) ? site : URI.parse(site)
       @user = URI.parser.unescape(@site.user) if @site.user
       @password = URI.parser.unescape(@site.password) if @site.password
     end
 
     # Set the proxy for remote service.
     def proxy=(proxy)
-      @proxy = proxy.is_a?(URI) ? proxy : URI.parser.parse(proxy)
+      @proxy = proxy.is_a?(URI) ? proxy : URI.parse(proxy)
     end
 
     # Sets the user for remote service.
@@ -84,6 +85,12 @@ module ActiveResource
     # Used to delete resources.
     def delete(path, headers = {})
       with_auth { request(:delete, path, build_request_headers(headers, :delete, self.site.merge(path))) }
+    end
+
+    # Executes a PATCH request (see HTTP protocol documentation if unfamiliar).
+    # Used to update resources.
+    def patch(path, body = '', headers = {})
+      with_auth { request(:patch, path, body.to_s, build_request_headers(headers, :patch, self.site.merge(path))) }
     end
 
     # Executes a PUT request (see HTTP protocol documentation if unfamiliar).
@@ -166,38 +173,28 @@ module ActiveResource
       end
 
       def configure_http(http)
-        http = apply_ssl_options(http)
-
-        # Net::HTTP timeouts default to 60 seconds.
-        if @timeout
-          http.open_timeout = @timeout
-          http.read_timeout = @timeout
+        apply_ssl_options(http).tap do |https|
+          # Net::HTTP timeouts default to 60 seconds.
+          if defined? @timeout
+            https.open_timeout = @timeout
+            https.read_timeout = @timeout
+          end
         end
-
-        http
       end
 
       def apply_ssl_options(http)
-        return http unless @site.is_a?(URI::HTTPS)
+        http.tap do |https|
+          # Skip config if site is already a https:// URI.
+          if defined? @ssl_options
+            http.use_ssl = true
 
-        http.use_ssl     = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        return http unless defined?(@ssl_options)
+            # Default to no cert verification (WTF? FIXME)
+            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
-        http.ca_path     = @ssl_options[:ca_path] if @ssl_options[:ca_path]
-        http.ca_file     = @ssl_options[:ca_file] if @ssl_options[:ca_file]
-
-        http.cert        = @ssl_options[:cert] if @ssl_options[:cert]
-        http.key         = @ssl_options[:key]  if @ssl_options[:key]
-
-        http.cert_store  = @ssl_options[:cert_store]  if @ssl_options[:cert_store]
-        http.ssl_timeout = @ssl_options[:ssl_timeout] if @ssl_options[:ssl_timeout]
-
-        http.verify_mode     = @ssl_options[:verify_mode]     if @ssl_options[:verify_mode]
-        http.verify_callback = @ssl_options[:verify_callback] if @ssl_options[:verify_callback]
-        http.verify_depth    = @ssl_options[:verify_depth]    if @ssl_options[:verify_depth]
-
-        http
+            # All the SSL options have corresponding http settings.
+            @ssl_options.each { |key, value| http.send "#{key}=", value }
+          end
+        end
       end
 
       def default_header

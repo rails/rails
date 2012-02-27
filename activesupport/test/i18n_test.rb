@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'active_support/time'
 require 'active_support/core_ext/array/conversions'
 
-class I18nTest < Test::Unit::TestCase
+class I18nTest < ActiveSupport::TestCase
   def setup
     @date = Date.parse("2008-7-2")
     @time = Time.utc(2008, 7, 2, 16, 47, 1)

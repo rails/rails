@@ -37,6 +37,7 @@
         # precision:
         # significant: false
         # strip_insignificant_zeros: false
+        format: "%n%"
 
     # Used in number_to_precision()
     precision:
@@ -146,15 +147,8 @@
       # Default value for :prompt => true in FormOptionsHelper
       prompt: "Please select"
 
-    # Default translation keys for submit FormHelper
+    # Default translation keys for submit and button FormHelper
     submit:
       create: 'Create %{model}'
       update: 'Update %{model}'
       submit: 'Save %{model}'
-
-    # Default translation keys for button FormHelper
-    button:
-      create: 'Create %{model}'
-      update: 'Update %{model}'
-      submit: 'Save %{model}'
-

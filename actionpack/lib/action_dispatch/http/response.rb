@@ -111,9 +111,9 @@ module ActionDispatch # :nodoc:
     end
 
     def body
-      str = ''
-      each { |part| str << part.to_s }
-      str
+      strings = []
+      each { |part| strings << part.to_s }
+      strings.join
     end
 
     EMPTY = " "
@@ -121,14 +121,7 @@ module ActionDispatch # :nodoc:
     def body=(body)
       @blank = true if body == EMPTY
 
-      # Explicitly check for strings. This is *wrong* theoretically
-      # but if we don't check this, the performance on string bodies
-      # is bad on Ruby 1.8 (because strings responds to each then).
-      @body = if body.respond_to?(:to_str) || !body.respond_to?(:each)
-        [body]
-      else
-        body
-      end
+      @body = body.respond_to?(:each) ? body : [body]
     end
 
     def body_parts

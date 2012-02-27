@@ -3,13 +3,13 @@ require 'multibyte_test_helpers'
 require 'stringio'
 require 'fileutils'
 require 'tempfile'
-require 'active_support/buffered_logger'
+require 'active_support/testing/deprecation'
 
-class BufferedLoggerTest < Test::Unit::TestCase
+class BufferedLoggerTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
   include ActiveSupport::Testing::Deprecation
 
-  Logger = ActiveSupport::BufferedLogger
+  Logger = ActiveSupport::Logger
 
   def setup
     @message = "A debug message"
@@ -31,9 +31,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
     logger.level = Logger::DEBUG
 
     str = "\x80"
-    if str.respond_to?(:force_encoding)
-      str.force_encoding("ASCII-8BIT")
-    end
+    str.force_encoding("ASCII-8BIT")
 
     logger.add Logger::DEBUG, str
   ensure
@@ -51,9 +49,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
     logger.level = Logger::DEBUG
 
     str = "\x80"
-    if str.respond_to?(:force_encoding)
-      str.force_encoding("ASCII-8BIT")
-    end
+    str.force_encoding("ASCII-8BIT")
 
     logger.add Logger::DEBUG, str
   ensure
@@ -112,19 +108,10 @@ class BufferedLoggerTest < Test::Unit::TestCase
 
   def test_should_know_if_its_loglevel_is_below_a_given_level
     Logger::Severity.constants.each do |level|
+      next if level.to_s == 'UNKNOWN'
       @logger.level = Logger::Severity.const_get(level) - 1
       assert @logger.send("#{level.downcase}?"), "didn't know if it was #{level.downcase}? or below"
     end
-  end
-
-  def test_should_create_the_log_directory_if_it_doesnt_exist
-    tmp_directory = File.join(File.dirname(__FILE__), "tmp")
-    log_file = File.join(tmp_directory, "development.log")
-    FileUtils.rm_rf(tmp_directory)
-    assert_deprecated do
-      @logger  = Logger.new(log_file)
-    end
-    assert File.exist?(tmp_directory)
   end
 
   def test_buffer_multibyte
@@ -132,9 +119,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
     @logger.info(BYTE_STRING)
     assert @output.string.include?(UNICODE_STRING)
     byte_string = @output.string.dup
-    if byte_string.respond_to?(:force_encoding)
-      byte_string.force_encoding("ASCII-8BIT")
-    end
+    byte_string.force_encoding("ASCII-8BIT")
     assert byte_string.include?(BYTE_STRING)
   end
 end

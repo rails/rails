@@ -48,7 +48,7 @@ end
 
 NOTE: +create_file+ is a method provided by +Thor::Actions+. Documentation for +create_file+ and other Thor methods can be found in "Thor's documentation":http://rdoc.info/github/wycats/thor/master/Thor/Actions.html
 
-Our new generator is quite simple: it inherits from +Rails::Generators::Base+ and has one method definition. Each public method in the generator is executed when a generator is invoked. Finally, we invoke the +create_file+ method that will create a file at the given destination with the given content. If you are familiar with the Rails Application Templates API, you'll feel right at home with the new generators API.
+Our new generator is quite simple: it inherits from +Rails::Generators::Base+ and has one method definition. When a generator is invoked, each public method in the generator is executed sequentially in the order that it is defined. Finally, we invoke the +create_file+ method that will create a file at the given destination with the given content. If you are familiar with the Rails Application Templates API, you'll feel right at home with the new generators API.
 
 To invoke our new generator, we just need to do:
 
@@ -405,22 +405,6 @@ h3. Generator methods
 The following are methods available for both generators and templates for Rails.
 
 NOTE: Methods provided by Thor are not covered this guide and can be found in "Thor's documentation":http://rdoc.info/github/wycats/thor/master/Thor/Actions.html
-
-h4. +plugin+
-
-+plugin+ will install a plugin into the current application.
-
-<ruby>
-plugin("dynamic-form", :git => "git://github.com/rails/dynamic-form.git")
-</ruby>
-
-Available options are:
-
-* +:git+ - Takes the path to the git repository where this plugin can be found.
-* +:branch+ - The name of the branch of the git repository where the plugin is found.
-* +:submodule+ - Set to +true+ for the plugin to be installed as a submodule. Defaults to +false+.
-* +:svn+ - Takes the path to the svn repository where this plugin can be found.
-* +:revision+ - The revision of the plugin in an SVN repository.
 
 h4. +gem+
 

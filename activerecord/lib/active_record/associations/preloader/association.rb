@@ -95,8 +95,8 @@ module ActiveRecord
         def build_scope
           scope = klass.scoped
 
-          scope = scope.where(process_conditions(options[:conditions]))
-          scope = scope.where(process_conditions(preload_options[:conditions]))
+          scope = scope.where(interpolate(options[:conditions]))
+          scope = scope.where(interpolate(preload_options[:conditions]))
 
           scope = scope.select(preload_options[:select] || options[:select] || table[Arel.star])
           scope = scope.includes(preload_options[:include] || options[:include])
@@ -112,13 +112,11 @@ module ActiveRecord
           scope
         end
 
-        def process_conditions(conditions)
+        def interpolate(conditions)
           if conditions.respond_to?(:to_proc)
-            conditions = klass.send(:instance_eval, &conditions)
-          end
-
-          if conditions
-            klass.send(:sanitize_sql, conditions)
+            klass.send(:instance_eval, &conditions)
+          else
+            conditions
           end
         end
       end

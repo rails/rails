@@ -1,5 +1,4 @@
 require "active_support/notifications"
-require "active_support/core_ext/array/wrap"
 
 module ActiveSupport
   module Deprecation
@@ -19,7 +18,7 @@ module ActiveSupport
       #   ActiveSupport::Deprecation.behavior = :stderr
       #   ActiveSupport::Deprecation.behavior = [:stderr, :log]
       def behavior=(behavior)
-        @behavior = Array.wrap(behavior).map { |b| DEFAULT_BEHAVIORS[b] || b }
+        @behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || b }
       end
     end
 
@@ -34,8 +33,8 @@ module ActiveSupport
            if defined?(Rails) && Rails.logger
              Rails.logger
            else
-             require 'logger'
-             Logger.new($stderr)
+             require 'active_support/logger'
+             ActiveSupport::Logger.new($stderr)
            end
          logger.warn message
          logger.debug callstack.join("\n  ") if debug

@@ -15,7 +15,7 @@ module ActiveRecord
       end
 
       def dump(obj)
-        YAML.dump obj
+        YAML.dump(obj) unless obj.nil?
       end
 
       def load(yaml)

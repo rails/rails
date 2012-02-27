@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/name_error'
 
-class NameErrorTest < Test::Unit::TestCase
+class NameErrorTest < ActiveSupport::TestCase
   def test_name_error_should_set_missing_name
     SomeNameThatNobodyWillUse____Really ? 1 : 0
     flunk "?!?!"

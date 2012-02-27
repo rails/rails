@@ -4,10 +4,13 @@ module Rails
       def initialize(app, log = nil)
         @app = app
 
-        path = Pathname.new(log || "#{File.expand_path(Rails.root)}/log/#{Rails.env}.log").cleanpath
-        @cursor = ::File.size(path)
+        path = Pathname.new(log || "#{::File.expand_path(Rails.root)}/log/#{Rails.env}.log").cleanpath
 
-        @file = ::File.open(path, 'r')
+        @cursor = @file = nil
+        if ::File.exists?(path)
+          @cursor = ::File.size(path)
+          @file = ::File.open(path, 'r')
+        end
       end
 
       def call(env)
@@ -17,6 +20,7 @@ module Rails
       end
 
       def tail!
+        return unless @cursor
         @file.seek @cursor
 
         unless @file.eof?

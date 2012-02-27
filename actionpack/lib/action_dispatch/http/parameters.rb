@@ -41,8 +41,6 @@ module ActionDispatch
       # you'll get a weird error down the road, but our form handling
       # should really prevent that from happening
       def encode_params(params)
-        return params unless "ruby".encoding_aware?
-
         if params.is_a?(String)
           return params.force_encoding("UTF-8").encode!
         elsif !params.is_a?(Hash)

@@ -13,16 +13,7 @@ module ActiveRecord
       end
 
       def test_primary_key_for_non_existent_table
-        assert_equal 'id', @cache.primary_keys['omgponies']
-      end
-
-      def test_primary_key_is_set_on_columns
-        posts_columns = @cache.columns_hash['posts']
-        assert posts_columns['id'].primary
-
-        (posts_columns.keys - ['id']).each do |key|
-          assert !posts_columns[key].primary
-        end
+        assert_nil @cache.primary_keys['omgponies']
       end
 
       def test_caches_columns
@@ -35,14 +26,18 @@ module ActiveRecord
         assert_equal columns_hash, @cache.columns_hash['posts']
       end
 
-      def test_clearing_column_cache
+      def test_clearing
         @cache.columns['posts']
         @cache.columns_hash['posts']
+        @cache.tables['posts']
+        @cache.primary_keys['posts']
 
         @cache.clear!
 
         assert_equal 0, @cache.columns.size
         assert_equal 0, @cache.columns_hash.size
+        assert_equal 0, @cache.tables.size
+        assert_equal 0, @cache.primary_keys.size
       end
     end
   end

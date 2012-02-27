@@ -21,7 +21,7 @@ end
 
 class ControllerWithBeforeFilterAndDefaultUrlOptionsTest < ActionController::TestCase
 
-  # This test has it´s roots in issue #1872
+  # This test has its roots in issue #1872
   test "should redirect with correct locale :de" do
     get :redirect, :locale => "de"
     assert_redirected_to "/controller_with_before_filter_and_default_url_options/target?locale=de"

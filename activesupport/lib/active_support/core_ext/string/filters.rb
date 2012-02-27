@@ -36,14 +36,13 @@ class String
   #   "And they found that many people were sleeping better.".truncate(25, :omission => "... (continued)")
   #   # => "And they f... (continued)"
   def truncate(length, options = {})
-    text = self.dup
+    return self.dup unless self.length > length
+
     options[:omission] ||= "..."
-
-    length_with_room_for_omission = length - options[:omission].mb_chars.length
-    chars = text.mb_chars
+    length_with_room_for_omission = length - options[:omission].length
     stop = options[:separator] ?
-      (chars.rindex(options[:separator].mb_chars, length_with_room_for_omission) || length_with_room_for_omission) : length_with_room_for_omission
+      (rindex(options[:separator], length_with_room_for_omission) || length_with_room_for_omission) : length_with_room_for_omission
 
-    (chars.length > length ? chars[0...stop] + options[:omission] : text).to_s
+    self[0...stop] + options[:omission]
   end
 end

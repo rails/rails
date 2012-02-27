@@ -9,10 +9,12 @@ Prior to Rails 3.0, if a plugin or gem developer wanted to have an object
 interact with Action Pack helpers, it was required to either copy chunks of
 code from Rails, or monkey patch entire helpers to make them handle objects
 that did not exactly conform to the Active Record interface. This would result
-in code duplication and fragile applications that broke on upgrades.
+in code duplication and fragile applications that broke on upgrades. Active
+Model solves this by defining an explicit API. You can read more about the
+API in ActiveModel::Lint::Tests.
 
-Active Model solves this. You can include functionality from the following
-modules:
+Active Model also provides the following functionality to have ORM-like
+behavior out of the box:
 
 * Add attribute magic to objects
 
@@ -87,10 +89,9 @@ modules:
         errors.add(:name, "can not be nil") if name.nil?
       end
 
-      def ErrorsPerson.human_attribute_name(attr, options = {})
+      def self.human_attribute_name(attr, options = {})
         "Name"
       end
-
     end
 
     person.errors.full_messages
@@ -163,7 +164,7 @@ modules:
 
 * Custom validators
 
-   class Person
+   class ValidatorPerson
      include ActiveModel::Validations
      validates_with HasNameValidator
      attr_accessor :name
@@ -171,7 +172,7 @@ modules:
 
    class HasNameValidator < ActiveModel::Validator
      def validate(record)
-      record.errors[:name] = "must exist" if record.name.blank?
+       record.errors[:name] = "must exist" if record.name.blank?
      end
    end
 
@@ -182,7 +183,7 @@ modules:
    p.valid?                  # =>  true
 
   {Learn more}[link:classes/ActiveModel/Validator.html]
-  
+
 
 == Download and installation
 
@@ -197,7 +198,9 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 == License
 
-Active Model is released under the MIT license.
+Active Model is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
 
 
 == Support

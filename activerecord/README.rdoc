@@ -143,7 +143,7 @@ A short rundown of some of the major features:
 
 * Logging support for Log4r[http://log4r.sourceforge.net] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc].
 
-    ActiveRecord::Base.logger = Logger.new(STDOUT)
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)
     ActiveRecord::Base.logger = Log4r::Logger.new("Application Log")
 
 
@@ -208,7 +208,9 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 == License
 
-Active Record is released under the MIT license.
+Active Record is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
 
 
 == Support

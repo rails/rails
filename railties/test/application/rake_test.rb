@@ -2,7 +2,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class RakeTest < Test::Unit::TestCase
+  class RakeTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -63,26 +63,23 @@ module ApplicationTests
     def test_rake_test_error_output
       Dir.chdir(app_path){ `rake db:migrate` }
 
-      app_file "config/database.yml", <<-RUBY
-        development:
-      RUBY
-
       app_file "test/unit/one_unit_test.rb", <<-RUBY
+        raise 'unit'
       RUBY
 
       app_file "test/functional/one_functional_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'functional'
       RUBY
 
       app_file "test/integration/one_integration_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'integration'
       RUBY
 
       silence_stderr do
-        output = Dir.chdir(app_path){ `rake test` }
-        assert_match(/Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output)
-        assert_match(/Errors running test:functionals! #<RuntimeError/, output)
-        assert_match(/Errors running test:integration! #<RuntimeError/, output)
+        output = Dir.chdir(app_path) { `rake test 2>&1` }
+        assert_match 'unit', output
+        assert_match 'functional', output
+        assert_match 'integration', output
       end
     end
 
@@ -131,7 +128,15 @@ module ApplicationTests
         `bundle exec rake db:migrate db:test:clone test`
       end
 
-      assert_match(/7 tests, 10 assertions, 0 failures, 0 errors/, content)
+      assert_match(/\d+ tests, \d+ assertions, 0 failures, 0 errors/, content)
+    end
+
+    def test_rake_dump_structure_should_respect_db_structure_env_variable
+      Dir.chdir(app_path) do
+        `bundle exec rake db:migrate` # ensure we have a schema_migrations table to dump
+        `bundle exec rake db:structure:dump DB_STRUCTURE=db/my_structure.sql`
+      end
+      assert File.exists?(File.join(app_path, 'db', 'my_structure.sql'))
     end
   end
 end

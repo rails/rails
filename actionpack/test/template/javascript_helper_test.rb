@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'active_support/core_ext/string/encoding'
 
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
@@ -28,11 +27,7 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
     assert_equal %(backslash\\\\test), escape_javascript( %(backslash\\test) )
     assert_equal %(dont <\\/close> tags), escape_javascript(%(dont </close> tags))
-    if "ruby".encoding_aware?
-      assert_equal %(unicode &#x2028; newline), escape_javascript(%(unicode \342\200\250 newline).force_encoding('UTF-8').encode!)
-    else
-      assert_equal %(unicode &#x2028; newline), escape_javascript(%(unicode \342\200\250 newline))
-    end
+    assert_equal %(unicode &#x2028; newline), escape_javascript(%(unicode \342\200\250 newline).force_encoding('UTF-8').encode!)
     assert_equal %(dont <\\/close> tags), j(%(dont </close> tags))
   end
 

@@ -38,7 +38,8 @@ module ActiveRecord
     # first time. Also, make it output to STDERR.
     console do |app|
       require "active_record/railties/console_sandbox" if app.sandbox?
-      ActiveRecord::Base.logger = Logger.new(STDERR)
+      console = ActiveSupport::Logger.new(STDERR)
+      Rails.logger.extend ActiveSupport::Logger.broadcast console
     end
 
     initializer "active_record.initialize_timezone" do
@@ -85,18 +86,30 @@ module ActiveRecord
       end
     end
 
-    initializer "active_record.set_dispatch_hooks", :before => :set_clear_dependencies_hook do |app|
-      ActiveSupport.on_load(:active_record) do
-        ActionDispatch::Reloader.to_cleanup do
-          ActiveRecord::Base.clear_reloadable_connections!
-          ActiveRecord::Base.clear_cache!
+    initializer "active_record.set_reloader_hooks" do |app|
+      hook = lambda do
+        ActiveRecord::Base.clear_reloadable_connections!
+        ActiveRecord::Base.clear_cache!
+      end
+
+      if app.config.reload_classes_only_on_change
+        ActiveSupport.on_load(:active_record) do
+          ActionDispatch::Reloader.to_prepare(&hook)
+        end
+      else
+        ActiveSupport.on_load(:active_record) do
+          ActionDispatch::Reloader.to_cleanup(&hook)
         end
       end
     end
 
+    initializer "active_record.add_watchable_files" do |app|
+      config.watchable_files.concat ["#{app.root}/db/schema.rb", "#{app.root}/db/structure.sql"]
+    end
+
     config.after_initialize do
       ActiveSupport.on_load(:active_record) do
-        instantiate_observers
+        ActiveRecord::Base.instantiate_observers
 
         ActionDispatch::Reloader.to_prepare do
           ActiveRecord::Base.instantiate_observers

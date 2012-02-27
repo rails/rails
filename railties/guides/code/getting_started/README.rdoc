@@ -86,8 +86,8 @@ programming in general.
 Debugger support is available through the debugger command when you start your
 Mongrel or WEBrick server with --debugger. This means that you can break out of
 execution at any point in the code, investigate and change the model, and then,
-resume execution! You need to install ruby-debug to run the server in debugging
-mode. With gems, use <tt>sudo gem install ruby-debug</tt>. Example:
+resume execution! You need to install ruby-debug19 to run the server in debugging
+mode. With gems, use <tt>sudo gem install ruby-debug19</tt>. Example:
 
   class WeblogController < ActionController::Base
     def index
@@ -191,7 +191,6 @@ The default directory structure of a generated Ruby on Rails application:
   `-- vendor
       |-- assets
           `-- stylesheets
-      `-- plugins
 
 app
   Holds all the code that's specific to this particular application.
@@ -256,6 +255,5 @@ test
   directory.
 
 vendor
-  External libraries that the application depends on. Also includes the plugins
-  subdirectory. If the app has frozen rails, those gems also go here, under
-  vendor/rails/. This directory is in the load path.
+  External libraries that the application depends on. If the app has frozen rails,
+  those gems also go here, under vendor/rails/. This directory is in the load path.

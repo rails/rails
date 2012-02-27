@@ -270,7 +270,7 @@ module ActionDispatch
             end
             text.strip! unless NO_STRIP.include?(match.name)
             unless match_with.is_a?(Regexp) ? (text =~ match_with) : (text == match_with.to_s)
-              content_mismatch ||= build_message(message, "<?> expected but was\n<?>.", match_with, text)
+              content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, text)
               true
             end
           end
@@ -279,7 +279,7 @@ module ActionDispatch
             html = match.children.map(&:to_s).join
             html.strip! unless NO_STRIP.include?(match.name)
             unless match_with.is_a?(Regexp) ? (html =~ match_with) : (html == match_with.to_s)
-              content_mismatch ||= build_message(message, "<?> expected but was\n<?>.", match_with, html)
+              content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, html)
               true
             end
           end
@@ -289,12 +289,15 @@ module ActionDispatch
         message ||= content_mismatch if matches.empty?
         # Test minimum/maximum occurrence.
         min, max, count = equals[:minimum], equals[:maximum], equals[:count]
+
+        # FIXME: minitest provides messaging when we use assert_operator,
+        # so is this custom message really needed?
         message = message || %(Expected #{count_description(min, max, count)} matching "#{selector.to_s}", found #{matches.size}.)
         if count
-          assert matches.size == count, message
+          assert_equal matches.size, count, message
         else
-          assert matches.size >= min, message if min
-          assert matches.size <= max, message if max
+          assert_operator matches.size, :>=, min, message if min
+          assert_operator matches.size, :<=, max, message if max
         end
 
         # If a block is given call that block. Set @selected to allow
@@ -337,8 +340,8 @@ module ActionDispatch
       # element +encoded+. It then calls the block with all un-encoded elements.
       #
       # ==== Examples
-      #   # Selects all bold tags from within the title of an ATOM feed's entries (perhaps to nab a section name prefix)
-      #   assert_select_feed :atom, 1.0 do
+      #   # Selects all bold tags from within the title of an Atom feed's entries (perhaps to nab a section name prefix)
+      #   assert_select "feed[xmlns='http://www.w3.org/2005/Atom']" do
       #     # Select each entry item and then the title item
       #     assert_select "entry>title" do
       #       # Run assertions on the encoded title elements
@@ -350,7 +353,7 @@ module ActionDispatch
       #
       #
       #   # Selects all paragraph tags from within the description of an RSS feed
-      #   assert_select_feed :rss, 2.0 do
+      #   assert_select "rss[version=2.0]" do
       #     # Select description element of each feed item.
       #     assert_select "channel>item>description" do
       #       # Run assertions on the encoded elements.
@@ -414,8 +417,8 @@ module ActionDispatch
         deliveries = ActionMailer::Base.deliveries
         assert !deliveries.empty?, "No e-mail in delivery list"
 
-        for delivery in deliveries
-          for part in (delivery.parts.empty? ? [delivery] : delivery.parts)
+        deliveries.each do |delivery|
+          (delivery.parts.empty? ? [delivery] : delivery.parts).each do |part|
             if part["Content-Type"].to_s =~ /^text\/html\W/
               root = HTML::Document.new(part.body.to_s).root
               assert_select root, ":root", &block

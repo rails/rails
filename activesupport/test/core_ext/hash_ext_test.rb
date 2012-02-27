@@ -6,7 +6,7 @@ require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/conversions'
 require 'active_support/inflections'
 
-class HashExtTest < Test::Unit::TestCase
+class HashExtTest < ActiveSupport::TestCase
   class IndifferentHash < HashWithIndifferentAccess
   end
 
@@ -27,11 +27,7 @@ class HashExtTest < Test::Unit::TestCase
     @symbols = { :a  => 1, :b  => 2 }
     @mixed   = { :a  => 1, 'b' => 2 }
     @fixnums = {  0  => 1,  1  => 2 }
-    if RUBY_VERSION < '1.9.0'
-      @illegal_symbols = { "\0" => 1, "" => 2, [] => 3 }
-    else
-      @illegal_symbols = { [] => 3 }
-    end
+    @illegal_symbols = { [] => 3 }
   end
 
   def test_methods
@@ -527,7 +523,7 @@ class IWriteMyOwnXML
   end
 end
 
-class HashExtToParamTests < Test::Unit::TestCase
+class HashExtToParamTests < ActiveSupport::TestCase
   class ToParam < String
     def to_param
       "#{self}-1"
@@ -558,7 +554,7 @@ class HashExtToParamTests < Test::Unit::TestCase
   end
 end
 
-class HashToXmlTest < Test::Unit::TestCase
+class HashToXmlTest < ActiveSupport::TestCase
   def setup
     @xml_options = { :root => :person, :skip_instruct => true, :indent => 0 }
   end

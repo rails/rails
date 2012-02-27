@@ -211,7 +211,7 @@ module ActiveRecord
       def after_commit(*args, &block)
         options = args.last
         if options.is_a?(Hash) && options[:on]
-          options[:if] = Array.wrap(options[:if])
+          options[:if] = Array(options[:if])
           options[:if] << "transaction_include_action?(:#{options[:on]})"
         end
         set_callback(:commit, :after, *args, &block)
@@ -220,7 +220,7 @@ module ActiveRecord
       def after_rollback(*args, &block)
         options = args.last
         if options.is_a?(Hash) && options[:on]
-          options[:if] = Array.wrap(options[:if])
+          options[:if] = Array(options[:if])
           options[:if] << "transaction_include_action?(:#{options[:on]})"
         end
         set_callback(:rollback, :after, *args, &block)

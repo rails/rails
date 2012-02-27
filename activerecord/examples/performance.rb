@@ -29,6 +29,14 @@ class Exhibit < ActiveRecord::Base
   def look; attributes end
   def feel; look; user.name end
 
+  def self.with_name
+    where("name IS NOT NULL")
+  end
+
+  def self.with_notes
+    where("notes IS NOT NULL")
+  end
+
   def self.look(exhibits) exhibits.each { |e| e.look } end
   def self.feel(exhibits) exhibits.each { |e| e.feel } end
 end
@@ -107,6 +115,10 @@ Benchmark.bm(46) do |x|
 
   x.report 'Model.first' do
     TIMES.times { Exhibit.first.look }
+  end
+
+  x.report 'Model.named_scope' do
+    TIMES.times { Exhibit.limit(10).with_name.with_notes }
   end
 
   x.report("Model.all limit(100) (x#{(TIMES / 10).ceil})") do

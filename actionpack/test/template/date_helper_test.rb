@@ -1396,6 +1396,25 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, date_select("post", "written_on", :order => [ :month, :year ])
   end
 
+  def test_date_select_without_day_with_separator
+    @post = Post.new
+    @post.written_on = Date.new(2004, 6, 15)
+
+    expected = "<input type=\"hidden\" id=\"post_written_on_3i\" name=\"post[written_on(3i)]\" value=\"1\" />\n"
+
+    expected <<  %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
+    expected << %{<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6" selected="selected">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n}
+    expected << "</select>\n"
+
+    expected << "/"
+
+    expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << "</select>\n"
+
+    assert_dom_equal expected, date_select("post", "written_on", :date_separator => '/', :order => [ :month, :year ])
+  end
+
   def test_date_select_without_day_and_with_disabled_html_option
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)
@@ -1568,7 +1587,7 @@ class DateHelperTest < ActionView::TestCase
     start_year = Time.now.year-5
     end_year   = Time.now.year+5
 
-    expected = '<input name="post[written_on(3i)]" type="hidden" id="post_written_on_3i"/>' + "\n"
+    expected = '<input name="post[written_on(3i)]" type="hidden" id="post_written_on_3i" value="1"/>' + "\n"
     expected <<   %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
     expected << "<option value=\"\"></option>\n"
     start_year.upto(end_year) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
@@ -1580,6 +1599,40 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", :order=>[:year, :month], :include_blank=>true)
+  end
+
+  def test_date_select_with_nil_and_blank_and_discard_month
+    @post = Post.new
+
+    start_year = Time.now.year-5
+    end_year   = Time.now.year+5
+
+    expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << "<option value=\"\"></option>\n"
+    start_year.upto(end_year) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    expected << "</select>\n"
+    expected << '<input name="post[written_on(2i)]" type="hidden" id="post_written_on_2i" value="1"/>' + "\n"
+    expected << '<input name="post[written_on(3i)]" type="hidden" id="post_written_on_3i" value="1"/>' + "\n"
+
+    assert_dom_equal expected, date_select("post", "written_on", :discard_month => true, :include_blank=>true)
+  end
+
+  def test_date_select_with_nil_and_blank_and_discard_year
+    @post = Post.new
+
+    expected = '<input id="post_written_on_1i" name="post[written_on(1i)]" type="hidden" value="1" />' + "\n"
+
+    expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
+    expected << "<option value=\"\"></option>\n"
+    1.upto(12) { |i| expected << %(<option value="#{i}">#{Date::MONTHNAMES[i]}</option>\n) }
+    expected << "</select>\n"
+
+    expected << %{<select id="post_written_on_3i" name="post[written_on(3i)]">\n}
+    expected << "<option value=\"\"></option>\n"
+    1.upto(31) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    expected << "</select>\n"
+
+    assert_dom_equal expected, date_select("post", "written_on", :discard_year => true, :include_blank=>true)
   end
 
   def test_date_select_cant_override_discard_hour

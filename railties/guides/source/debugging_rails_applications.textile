@@ -465,7 +465,7 @@ Now you should know where you are in the running trace and be able to print the 
 
 Use +step+ (abbreviated +s+) to continue running your program until the next logical stopping point and return control to ruby-debug.
 
-TIP: You can also use +step+ _n_+ and +step- _n_+ to move forward or backward _n_ steps respectively.
+TIP: You can also use <tt>step<plus> n</tt> and <tt>step- n</tt> to move forward or backward +n+ steps respectively.
 
 You may also use +next+ which is similar to step, but function or method calls that appear within the line of code are executed without stopping. As with step, you may use plus sign to move _n_ steps.
 

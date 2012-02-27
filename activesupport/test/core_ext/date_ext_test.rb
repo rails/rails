@@ -384,16 +384,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_rfc3339
-      assert_equal('1980-02-28', Date.new(1980, 2, 28).rfc3339)
-    end
-
-    def test_iso8601
-      assert_equal('1980-02-28', Date.new(1980, 2, 28).iso8601)
-    end
-  end
-
   def test_today
     Date.stubs(:current).returns(Date.new(2000, 1, 1))
     assert_equal false, Date.new(1999, 12, 31).today?
@@ -454,7 +444,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
 end
 
-class DateExtBehaviorTest < Test::Unit::TestCase
+class DateExtBehaviorTest < ActiveSupport::TestCase
   def test_date_acts_like_date
     assert Date.new.acts_like_date?
   end

@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'fixtures/person'
 require 'active_support/core_ext/hash/conversions'
 
-class ObservingTest < Test::Unit::TestCase
+class ObservingTest < ActiveSupport::TestCase
   cattr_accessor :history
 
   class PersonObserver < ActiveModel::Observer

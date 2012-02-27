@@ -61,7 +61,7 @@ class SendFileTest < ActionController::TestCase
     require 'stringio'
     output = StringIO.new
     output.binmode
-    output.string.force_encoding(file_data.encoding) if output.string.respond_to?(:force_encoding)
+    output.string.force_encoding(file_data.encoding)
     assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
     assert_equal file_data, output.string
   end

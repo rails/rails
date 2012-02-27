@@ -7,7 +7,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :reflections
+      extend ActiveModel::Configuration
+      config_attribute :reflections
       self.reflections = {}
     end
 
@@ -174,7 +175,7 @@ module ActiveRecord
 
       def initialize(macro, name, options, active_record)
         super
-        @collection = macro.in?([:has_many, :has_and_belongs_to_many])
+        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
       end
 
       # Returns a new, unsaved instance of the associated class. +options+ will
@@ -228,8 +229,8 @@ module ActiveRecord
         end
       end
 
-      def columns(tbl_name, log_msg)
-        @columns ||= klass.connection.columns(tbl_name, log_msg)
+      def columns(tbl_name)
+        @columns ||= klass.connection.columns(tbl_name)
       end
 
       def reset_column_information
@@ -260,6 +261,10 @@ module ActiveRecord
       # ThroughReflection.
       def chain
         [self]
+      end
+
+      def nested?
+        false
       end
 
       # An array of arrays of conditions. Each item in the outside array corresponds to a reflection
@@ -457,7 +462,7 @@ module ActiveRecord
         source_reflection.source_macro
       end
 
-      # A through association is nested iff there would be more than one join table
+      # A through association is nested if there would be more than one join table
       def nested?
         chain.length > 2 || through_reflection.macro == :has_and_belongs_to_many
       end

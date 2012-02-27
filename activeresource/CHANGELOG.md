@@ -1,9 +1,34 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 4.0.0 (unreleased) ##
+
+* Adds support for PATCH requests. *dlee*
+
+
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   Documentation fixes.
+
+
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   Redirect responses: 303 See Other and 307 Temporary Redirect now behave like
     301 Moved Permanently and 302 Found.  GH #3302.
 
     *Jim Herz*
+
+
+## Rails 3.1.4 (unreleased) ##
+
+*   No changes
+
+
+## Rails 3.1.3 (November 20, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.2 (November 18, 2011) ##
+
+*   No changes
 
 
 ## Rails 3.1.1 (October 7, 2011) ##
@@ -18,12 +43,38 @@
     class User < ActiveResource::Base    self.format = :xml
     end
 
+
+## Rails 3.0.12 (unreleased) ##
+
+*   No changes.
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   No Changes
+
+
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   No changes.
 
 
-*   Rails 3.0.6 (April 5, 2011)
+## Rails 3.0.6 (April 5, 2011) ##
 
 *   No changes.
 

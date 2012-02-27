@@ -3,15 +3,14 @@ require File.expand_path('../../../load_paths', __FILE__)
 lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'active_resource'
 require 'active_support'
 require 'active_support/test_case'
-
 require 'setter_trap'
+require 'active_support/logger'
 
-require 'logger'
-ActiveResource::Base.logger = Logger.new("#{File.dirname(__FILE__)}/debug.log")
+ActiveResource::Base.logger = ActiveSupport::Logger.new("#{File.dirname(__FILE__)}/debug.log")
 
 def setup_response
   matz_hash = { 'person' => { :id => 1, :name => 'Matz' } }

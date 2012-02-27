@@ -3,7 +3,8 @@ class Person < ActiveRecord::Base
   has_one  :reader
 
   has_many :posts, :through => :readers
-  has_many :posts_with_no_comments, :through => :readers, :source => :post, :include => :comments, :conditions => 'comments.id is null'
+  has_many :posts_with_no_comments, :through => :readers, :source => :post, :include => :comments,
+                                    :conditions => 'comments.id is null', :references => :comments
 
   has_many :references
   has_many :bad_references
@@ -54,7 +55,7 @@ class LoosePerson < ActiveRecord::Base
   self.table_name = 'people'
   self.abstract_class = true
 
-  attr_protected :comments
+  attr_protected :comments, :best_friend_id, :best_friend_of_id
   attr_protected :as => :admin
 
   has_one    :best_friend,    :class_name => 'LoosePerson', :foreign_key => :best_friend_id

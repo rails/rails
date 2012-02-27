@@ -157,11 +157,62 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dependence_with_restrict
-    firm = RestrictedFirm.new(:name => 'restrict')
-    firm.save!
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = true
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
     firm.create_account(:credit_limit => 10)
+
     assert_not_nil firm.account
+
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.account.present?
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
+  end
+
+  def test_dependence_with_restrict_with_dependent_restrict_raises_config_set_to_false
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = false
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
+    firm.create_account(:credit_limit => 10)
+
+    assert_not_nil firm.account
+
+    firm.destroy
+
+    assert !firm.errors.empty?
+    assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.account.present?
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
+  end
+
+  def test_dependence_with_restrict_with_dependent_restrict_raises_config_set_to_false_and_attribute_name
+    old_backend = I18n.backend
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations 'en', :activerecord => {:attributes => {:restricted_firm => {:account => "account model"}}}
+
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = false
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
+    firm.create_account(:credit_limit => 10)
+
+    assert_not_nil firm.account
+
+    firm.destroy
+
+    assert !firm.errors.empty?
+    assert_equal "Cannot delete record because a dependent account model exists", firm.errors[:base].first
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.account.present?
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
+    I18n.backend = old_backend
   end
 
   def test_successful_build_association
@@ -455,5 +506,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     bulb = car.create_bulb
 
     assert_equal car.id, bulb.attributes_after_initialize['car_id']
+  end
+
+  def test_building_has_one_association_with_dependent_restrict
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = true
+
+    klass = Class.new(ActiveRecord::Base)
+
+    assert_deprecated     { klass.has_one :account, :dependent => :restrict }
+    assert_not_deprecated { klass.has_one :account }
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 end

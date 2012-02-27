@@ -1,6 +1,8 @@
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/class/attribute_accessors"
-require "active_support/core_ext/array/wrap"
+require 'active_support/deprecation'
+require 'active_record/schema_migration'
+require 'set'
 
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
@@ -341,15 +343,27 @@ module ActiveRecord
 
     attr_accessor :name, :version
 
-    def initialize
-      @name       = self.class.name
-      @version    = nil
+    def initialize(name = self.class.name, version = nil)
+      @name       = name
+      @version    = version
       @connection = nil
+      @reverting  = false
     end
 
     # instantiate the delegate object after initialize is defined
     self.verbose  = true
     self.delegate = new
+
+    def revert
+      @reverting = true
+      yield
+    ensure
+      @reverting = false
+    end
+
+    def reverting?
+      @reverting
+    end
 
     def up
       self.class.delegate = self
@@ -384,9 +398,11 @@ module ActiveRecord
             end
             @connection = conn
             time = Benchmark.measure {
-              recorder.inverse.each do |cmd, args|
-                send(cmd, *args)
-              end
+              self.revert {
+                recorder.inverse.each do |cmd, args|
+                  send(cmd, *args)
+                end
+              }
             }
           else
             time = Benchmark.measure { change }
@@ -441,9 +457,11 @@ module ActiveRecord
       arg_list = arguments.map{ |a| a.inspect } * ', '
 
       say_with_time "#{method}(#{arg_list})" do
-        unless arguments.empty? || method == :execute
-          arguments[0] = Migrator.proper_table_name(arguments.first)
-          arguments[1] = Migrator.proper_table_name(arguments.second) if method == :rename_table
+        unless reverting?
+          unless arguments.empty? || method == :execute
+            arguments[0] = Migrator.proper_table_name(arguments.first)
+            arguments[1] = Migrator.proper_table_name(arguments.second) if method == :rename_table
+          end
         end
         return super unless connection.respond_to?(method)
         connection.send(method, *arguments, &block)
@@ -508,7 +526,7 @@ module ActiveRecord
       File.basename(filename)
     end
 
-    delegate :migrate, :announce, :write, :to=>:migration
+    delegate :migrate, :announce, :write, :to => :migration
 
     private
 
@@ -530,14 +548,14 @@ module ActiveRecord
 
       def migrate(migrations_paths, target_version = nil, &block)
         case
-          when target_version.nil?
-            up(migrations_paths, target_version, &block)
-          when current_version == 0 && target_version == 0
-            []
-          when current_version > target_version
-            down(migrations_paths, target_version, &block)
-          else
-            up(migrations_paths, target_version, &block)
+        when target_version.nil?
+          up(migrations_paths, target_version, &block)
+        when current_version == 0 && target_version == 0
+          []
+        when current_version > target_version
+          down(migrations_paths, target_version, &block)
+        else
+          up(migrations_paths, target_version, &block)
         end
       end
 
@@ -549,25 +567,34 @@ module ActiveRecord
         move(:up, migrations_paths, steps)
       end
 
-      def up(migrations_paths, target_version = nil, &block)
-        self.new(:up, migrations_paths, target_version).migrate(&block)
+      def up(migrations_paths, target_version = nil)
+        migrations = migrations(migrations_paths)
+        migrations.select! { |m| yield m } if block_given?
+
+        self.new(:up, migrations, target_version).migrate
       end
 
       def down(migrations_paths, target_version = nil, &block)
-        self.new(:down, migrations_paths, target_version).migrate(&block)
+        migrations = migrations(migrations_paths)
+        migrations.select! { |m| yield m } if block_given?
+
+        self.new(:down, migrations, target_version).migrate
       end
 
       def run(direction, migrations_paths, target_version)
-        self.new(direction, migrations_paths, target_version).run
+        self.new(direction, migrations(migrations_paths), target_version).run
+      end
+
+      def open(migrations_paths)
+        self.new(:up, migrations(migrations_paths), nil)
       end
 
       def schema_migrations_table_name
-        Base.table_name_prefix + 'schema_migrations' + Base.table_name_suffix
+        SchemaMigration.table_name
       end
 
       def get_all_versions
-        table = Arel::Table.new(schema_migrations_table_name)
-        Base.connection.select_values(table.project(table['version'])).map{ |v| v.to_i }.sort
+        SchemaMigration.all.map { |x| x.version.to_i }.sort
       end
 
       def current_version
@@ -587,20 +614,17 @@ module ActiveRecord
       def migrations_paths
         @migrations_paths ||= ['db/migrate']
         # just to not break things if someone uses: migration_path = some_string
-        Array.wrap(@migrations_paths)
+        Array(@migrations_paths)
       end
 
       def migrations_path
         migrations_paths.first
       end
 
-      def migrations(paths, subdirectories = true)
-        paths = Array.wrap(paths)
+      def migrations(paths)
+        paths = Array(paths)
 
-        glob = subdirectories ? "**/" : ""
-        files = Dir[*paths.map { |p| "#{p}/#{glob}[0-9]*_*.rb" }]
-
-        seen = Hash.new false
+        files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
 
         migrations = files.map do |file|
           version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
@@ -608,11 +632,6 @@ module ActiveRecord
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
           name = name.camelize
-
-          raise DuplicateMigrationVersionError.new(version) if seen[version]
-          raise DuplicateMigrationNameError.new(name) if seen[name]
-
-          seen[version] = seen[name] = true
 
           MigrationProxy.new(name, version, file, scope)
         end
@@ -623,7 +642,7 @@ module ActiveRecord
       private
 
       def move(direction, migrations_paths, steps)
-        migrator = self.new(direction, migrations_paths)
+        migrator = self.new(direction, migrations(migrations_paths))
         start_index = migrator.migrations.index(migrator.current_migration)
 
         if start_index
@@ -634,19 +653,33 @@ module ActiveRecord
       end
     end
 
-    def initialize(direction, migrations_paths, target_version = nil)
+    def initialize(direction, migrations, target_version = nil)
       raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
-      Base.connection.initialize_schema_migrations_table
-      @direction, @migrations_paths, @target_version = direction, migrations_paths, target_version
+
+      @direction         = direction
+      @target_version    = target_version
+      @migrated_versions = nil
+
+      if Array(migrations).grep(String).empty?
+        @migrations = migrations
+      else
+        ActiveSupport::Deprecation.warn "instantiate this class with a list of migrations"
+        @migrations = self.class.migrations(migrations)
+      end
+
+      validate(@migrations)
+
+      ActiveRecord::SchemaMigration.create_table
     end
 
     def current_version
-      migrated.last || 0
+      migrated.sort.last || 0
     end
 
     def current_migration
       migrations.detect { |m| m.version == current_version }
     end
+    alias :current :current_migration
 
     def run
       target = migrations.detect { |m| m.version == @target_version }
@@ -657,101 +690,109 @@ module ActiveRecord
       end
     end
 
-    def migrate(&block)
-      current = migrations.detect { |m| m.version == current_version }
-      target = migrations.detect { |m| m.version == @target_version }
-
-      if target.nil? && @target_version && @target_version > 0
+    def migrate
+      if !target && @target_version && @target_version > 0
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
-      start = up? ? 0 : (migrations.index(current) || 0)
-      finish = migrations.index(target) || migrations.size - 1
-      runnable = migrations[start..finish]
+      running = runnable
 
-      # skip the last migration if we're headed down, but not ALL the way down
-      runnable.pop if down? && target
+      if block_given?
+        ActiveSupport::Deprecation.warn(<<-eomsg)
+block argument to migrate is deprecated, please filter migrations before constructing the migrator
+        eomsg
+        running.select! { |m| yield m }
+      end
 
-      ran = []
-      runnable.each do |migration|
-        if block && !block.call(migration)
-          next
-        end
-
+      running.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
-
-        seen = migrated.include?(migration.version.to_i)
-
-        # On our way up, we skip migrating the ones we've already migrated
-        next if up? && seen
-
-        # On our way down, we skip reverting the ones we've never migrated
-        if down? && !seen
-          migration.announce 'never migrated, skipping'; migration.write
-          next
-        end
 
         begin
           ddl_transaction do
             migration.migrate(@direction)
             record_version_state_after_migrating(migration.version)
           end
-          ran << migration
         rescue => e
           canceled_msg = Base.connection.supports_ddl_transactions? ? "this and " : ""
           raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
         end
       end
-      ran
+    end
+
+    def runnable
+      runnable = migrations[start..finish]
+      if up?
+        runnable.reject { |m| ran?(m) }
+      else
+        # skip the last migration if we're headed down, but not ALL the way down
+        runnable.pop if target
+        runnable.find_all { |m| ran?(m) }
+      end
     end
 
     def migrations
-      @migrations ||= begin
-        migrations = self.class.migrations(@migrations_paths)
-        down? ? migrations.reverse : migrations
-      end
+      down? ? @migrations.reverse : @migrations.sort_by(&:version)
     end
 
     def pending_migrations
       already_migrated = migrated
-      migrations.reject { |m| already_migrated.include?(m.version.to_i) }
+      migrations.reject { |m| already_migrated.include?(m.version) }
     end
 
     def migrated
-      @migrated_versions ||= self.class.get_all_versions
+      @migrated_versions ||= Set.new(self.class.get_all_versions)
     end
 
     private
-      def record_version_state_after_migrating(version)
-        table = Arel::Table.new(self.class.schema_migrations_table_name)
+    def ran?(migration)
+      migrated.include?(migration.version.to_i)
+    end
 
-        @migrated_versions ||= []
-        if down?
-          @migrated_versions.delete(version)
-          stmt = table.where(table["version"].eq(version.to_s)).compile_delete
-          Base.connection.delete stmt
-        else
-          @migrated_versions.push(version).sort!
-          stmt = table.compile_insert table["version"] => version.to_s
-          Base.connection.insert stmt
-        end
-      end
+    def target
+      migrations.detect { |m| m.version == @target_version }
+    end
 
-      def up?
-        @direction == :up
-      end
+    def finish
+      migrations.index(target) || migrations.size - 1
+    end
 
-      def down?
-        @direction == :down
-      end
+    def start
+      up? ? 0 : (migrations.index(current) || 0)
+    end
 
-      # Wrap the migration in a transaction only if supported by the adapter.
-      def ddl_transaction(&block)
-        if Base.connection.supports_ddl_transactions?
-          Base.transaction { block.call }
-        else
-          block.call
-        end
+    def validate(migrations)
+      name ,= migrations.group_by(&:name).find { |_,v| v.length > 1 }
+      raise DuplicateMigrationNameError.new(name) if name
+
+      version ,= migrations.group_by(&:version).find { |_,v| v.length > 1 }
+      raise DuplicateMigrationVersionError.new(version) if version
+    end
+
+    def record_version_state_after_migrating(version)
+      if down?
+        migrated.delete(version)
+        ActiveRecord::SchemaMigration.where(:version => version.to_s).delete_all
+      else
+        migrated << version
+        ActiveRecord::SchemaMigration.create!(:version => version.to_s)
       end
+    end
+
+    def up?
+      @direction == :up
+    end
+
+    def down?
+      @direction == :down
+    end
+
+    # Wrap the migration in a transaction only if supported by the adapter.
+    def ddl_transaction
+      if Base.connection.supports_ddl_transactions?
+        Base.transaction { yield }
+      else
+        yield
+      end
+    end
   end
 end

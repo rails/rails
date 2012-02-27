@@ -3,8 +3,18 @@ require 'abstract_unit'
 class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   class Boomer
+    attr_accessor :closed
+
     def initialize(detailed  = false)
       @detailed = detailed
+      @closed = false
+    end
+
+    def each
+    end
+
+    def close
+      @closed = true
     end
 
     def call(env)
@@ -12,9 +22,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       req = ActionDispatch::Request.new(env)
       case req.path
       when "/pass"
-        [404, { "X-Cascade" => "pass" }, []]
+        [404, { "X-Cascade" => "pass" }, self]
       when "/not_found"
-        raise ActionController::UnknownAction
+        raise AbstractController::ActionNotFound
       when "/runtime_error"
         raise RuntimeError
       when "/method_not_allowed"
@@ -24,15 +34,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/unprocessable_entity"
         raise ActionController::InvalidAuthenticityToken
       when "/not_found_original_exception"
-        raise ActionView::Template::Error.new('template', {}, AbstractController::ActionNotFound.new)
+        raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
       else
         raise "puke!"
       end
     end
   end
 
-  ProductionApp  = ActionDispatch::DebugExceptions.new((Boomer.new(false)))
-  DevelopmentApp = ActionDispatch::DebugExceptions.new((Boomer.new(true)))
+  ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false))
+  DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true))
 
   test 'skip diagnosis if not showing detailed exceptions' do
     @app = ProductionApp
@@ -55,6 +65,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test 'closes the response body on cascade pass' do
+    boomer = Boomer.new(false)
+    @app = ActionDispatch::DebugExceptions.new(boomer)
+    assert_raise ActionController::RoutingError do
+      get "/pass", {}, {'action_dispatch.show_exceptions' => true}
+    end
+    assert boomer.closed, "Expected to close the response body"
+  end
+
   test "rescue with diagnostics message" do
     @app = DevelopmentApp
 
@@ -64,7 +83,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 404
-    assert_match(/#{ActionController::UnknownAction.name}/, body)
+    assert_match(/#{AbstractController::ActionNotFound.name}/, body)
 
     get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 405
@@ -121,5 +140,18 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     cleaner = stub(:clean => ['passed backtrace cleaner'])
     get "/", {}, {'action_dispatch.show_exceptions' => true, 'action_dispatch.backtrace_cleaner' => cleaner}
     assert_match(/passed backtrace cleaner/, body)
+  end
+
+  test 'logs exception backtrace when all lines silenced' do
+    output = StringIO.new
+    backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
+    backtrace_cleaner.add_silencer { true }
+
+    env = {'action_dispatch.show_exceptions' => true,
+           'action_dispatch.logger' => Logger.new(output),
+           'action_dispatch.backtrace_cleaner' => backtrace_cleaner}
+
+    get "/", {}, env
+    assert_operator((output.rewind && output.read).lines.count, :>, 10)
   end
 end

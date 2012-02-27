@@ -143,7 +143,7 @@ module ActiveSupport
 
         # Translate a file path into a key.
         def file_path_key(path)
-          fname = path[cache_path.size, path.size].split(File::SEPARATOR, 4).last
+          fname = path[cache_path.to_s.size..-1].split(File::SEPARATOR, 4).last
           Rack::Utils.unescape(fname)
         end
 

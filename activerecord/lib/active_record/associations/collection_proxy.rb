@@ -52,7 +52,7 @@ module ActiveRecord
 
       def initialize(association)
         @association = association
-        Array.wrap(association.options[:extend]).each { |ext| proxy_extend(ext) }
+        Array(association.options[:extend]).each { |ext| proxy_extend(ext) }
       end
 
       alias_method :new, :build
@@ -82,9 +82,8 @@ module ActiveRecord
             proxy_association.send :add_to_target, r
             yield(r) if block_given?
           end
-        end
 
-        if target.respond_to?(method) || (!proxy_association.klass.respond_to?(method) && Class.respond_to?(method))
+        elsif target.respond_to?(method) || (!proxy_association.klass.respond_to?(method) && Class.respond_to?(method))
           if load_target
             if target.respond_to?(method)
               target.send(method, *args, &block)

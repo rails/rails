@@ -1,8 +1,3 @@
-begin
-  require 'psych'
-rescue LoadError
-end
-
 require 'erb'
 require 'yaml'
 

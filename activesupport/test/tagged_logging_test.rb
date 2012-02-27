@@ -1,9 +1,9 @@
 require 'abstract_unit'
-require 'active_support/core_ext/logger'
+require 'active_support/logger'
 require 'active_support/tagged_logging'
 
 class TaggedLoggingTest < ActiveSupport::TestCase
-  class MyLogger < ::Logger
+  class MyLogger < ::ActiveSupport::Logger
     def flush(*)
       info "[FLUSHED]"
     end

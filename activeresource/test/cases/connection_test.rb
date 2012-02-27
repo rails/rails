@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class ConnectionTest < Test::Unit::TestCase
+class ConnectionTest < ActiveSupport::TestCase
   ResponseCodeStub = Struct.new(:code)
   RedirectResponseStub = Struct.new(:code, :Location)
 
@@ -224,7 +224,6 @@ class ConnectionTest < Test::Unit::TestCase
     http = Net::HTTP.new('')
     @conn.site="https://secure"
     @conn.ssl_options={:verify_mode => OpenSSL::SSL::VERIFY_PEER}
-    @conn.timeout = 10 # prevent warning about uninitialized.
     @conn.send(:configure_http, http)
 
     assert http.use_ssl?

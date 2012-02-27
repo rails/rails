@@ -206,7 +206,7 @@ A short rundown of some of the major features:
 
     You specify a logger through a class method, such as:
 
-    ActionController::Base.logger = Logger.new("Application Log")
+    ActionController::Base.logger = ActiveSupport::Logger.new("Application Log")
     ActionController::Base.logger = Log4r::Logger.new("Application Log")
 
 
@@ -218,7 +218,7 @@ A short rundown of some of the major features:
 
       def show
         # the output of the method will be cached as
-        # ActionController::Base.page_cache_directory + "/weblog/show/n.html"
+        # ActionController::Base.page_cache_directory + "/weblog/show.html"
         # and the web server will pick it up without even hitting Rails
       end
 
@@ -327,7 +327,9 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 == License
 
-Action Pack is released under the MIT license.
+Action Pack is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
 
 
 == Support

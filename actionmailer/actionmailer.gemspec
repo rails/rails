@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.version     = version
   s.summary     = 'Email composition, delivery, and receiving framework (part of Rails).'
   s.description = 'Email on Rails. Compose, deliver, receive, and test emails using the familiar controller/view pattern. First-class support for multipart email and attachments.'
-  s.required_ruby_version = '>= 1.8.7'
+  s.required_ruby_version = '>= 1.9.3'
 
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'
@@ -17,5 +17,5 @@ Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency('actionpack',  version)
-  s.add_dependency('mail',        '~> 2.3.0')
+  s.add_dependency('mail',        '~> 2.4.1')
 end

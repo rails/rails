@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'logger'
+require 'active_support/logger'
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 # Provide some controller to run the tests on.
@@ -37,29 +37,6 @@ class NonEmptyController < ActionController::Base
 
   hide_action :hidden_action
   def hidden_action
-  end
-end
-
-class MethodMissingController < ActionController::Base
-  hide_action :shouldnt_be_called
-  def shouldnt_be_called
-    raise "NO WAY!"
-  end
-
-protected
-
-  def method_missing(selector)
-    render :text => selector.to_s
-  end
-end
-
-class AnotherMethodMissingController < ActionController::Base
-  cattr_accessor :_exception
-  rescue_from Exception, :with => :_exception=
-
-  protected
-  def method_missing(*attrs, &block)
-    super
   end
 end
 
@@ -106,7 +83,7 @@ class ControllerClassTests < ActiveSupport::TestCase
   end
 end
 
-class ControllerInstanceTests < Test::Unit::TestCase
+class ControllerInstanceTests < ActiveSupport::TestCase
   def setup
     @empty = EmptyController.new
     @contained = Submodule::ContainedEmptyController.new
@@ -114,6 +91,12 @@ class ControllerInstanceTests < Test::Unit::TestCase
 
     @non_empty_controllers = [NonEmptyController.new,
                               Submodule::ContainedNonEmptyController.new]
+  end
+
+  def test_performed?
+    assert !@empty.performed?
+    @empty.response_body = ["sweet"]
+    assert @empty.performed?
   end
 
   def test_action_methods
@@ -142,7 +125,7 @@ class PerformActionTest < ActionController::TestCase
 
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
-    @controller.logger = Logger.new(nil)
+    @controller.logger = ActiveSupport::Logger.new(nil)
 
     @request     = ActionController::TestRequest.new
     @response    = ActionController::TestResponse.new
@@ -159,32 +142,10 @@ class PerformActionTest < ActionController::TestCase
     assert_equal exception.message, "The action 'non_existent' could not be found for EmptyController"
   end
 
-  def test_get_on_priv_should_show_selector
-    use_controller MethodMissingController
-    get :shouldnt_be_called
-    assert_response :success
-    assert_equal 'shouldnt_be_called', @response.body
-  end
-
-  def test_method_missing_is_not_an_action_name
-    use_controller MethodMissingController
-    assert !@controller.__send__(:action_method?, 'method_missing')
-
-    get :method_missing
-    assert_response :success
-    assert_equal 'method_missing', @response.body
-  end
-
-  def test_method_missing_should_recieve_symbol
-    use_controller AnotherMethodMissingController
-    get :some_action
-    assert_kind_of NameError, @controller._exception
-  end
-
   def test_get_on_hidden_should_fail
     use_controller NonEmptyController
-    assert_raise(ActionController::UnknownAction) { get :hidden_action }
-    assert_raise(ActionController::UnknownAction) { get :another_hidden_action }
+    assert_raise(AbstractController::ActionNotFound) { get :hidden_action }
+    assert_raise(AbstractController::ActionNotFound) { get :another_hidden_action }
   end
 end
 
@@ -195,6 +156,22 @@ class UrlOptionsTest < ActionController::TestCase
     super
     @request.host = 'www.example.com'
     rescue_action_in_public!
+  end
+
+  def test_url_for_query_params_included
+    rs = ActionDispatch::Routing::RouteSet.new
+    rs.draw do
+      match 'home' => 'pages#home'
+    end
+
+    options = {
+      :action     => "home",
+      :controller => "pages",
+      :only_path  => true,
+      :params     => { "token" => "secret" }
+    }
+
+    assert_equal '/home?token=secret', rs.url_for(options)
   end
 
   def test_url_options_override

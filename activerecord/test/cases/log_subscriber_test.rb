@@ -5,7 +5,7 @@ require "active_support/log_subscriber/test_helper"
 
 class LogSubscriberTest < ActiveRecord::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
-  include ActiveSupport::BufferedLogger::Severity
+  include ActiveSupport::Logger::Severity
 
   fixtures :posts
 

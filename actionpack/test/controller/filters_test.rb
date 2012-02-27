@@ -16,7 +16,7 @@ class ActionController::Base
 
   def assigns(key = nil)
     assigns = {}
-    instance_variable_names.each do |ivar|
+    instance_variables.each do |ivar|
       next if ActionController::Base.protected_instance_variables.include?(ivar)
       assigns[ivar[1..-1]] = instance_variable_get(ivar)
     end
@@ -165,8 +165,6 @@ class FilterTest < ActionController::TestCase
         @ran_filter ||= []
         @ran_filter << "clean_up_tmp"
       end
-
-      def rescue_action(e) raise(e) end
   end
 
   class ConditionalCollectionFilterController < ConditionalFilterController
@@ -454,11 +452,6 @@ class FilterTest < ActionController::TestCase
     def show
       raise ErrorToRescue.new("Something made the bad noise.")
     end
-
-  private
-    def rescue_action(exception)
-      raise exception
-    end
   end
 
   class NonYieldingAroundFilterController < ActionController::Base
@@ -471,9 +464,6 @@ class FilterTest < ActionController::TestCase
     def index
       render :inline => "index"
     end
-
-    #make sure the controller complains
-    def rescue_action(e); raise e; end
 
     private
 
@@ -825,11 +815,7 @@ class FilterTest < ActionController::TestCase
     end
 end
 
-
-
 class PostsController < ActionController::Base
-  def rescue_action(e); raise e; end
-
   module AroundExceptions
     class Error < StandardError ; end
     class Before < Error ; end
@@ -951,9 +937,7 @@ class ControllerWithAllTypesOfFilters < PostsController
 end
 
 class ControllerWithTwoLessFilters < ControllerWithAllTypesOfFilters
-  $vbf = true
   skip_filter :around_again
-  $vbf = false
   skip_filter :after
 end
 

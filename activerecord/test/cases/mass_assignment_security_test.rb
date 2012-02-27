@@ -50,6 +50,13 @@ module MassAssignmentTestHelpers
     assert_equal 'm',    person.gender
     assert_equal 'rides a sweet bike', person.comments
   end
+
+  def with_strict_sanitizer
+    ActiveRecord::Base.mass_assignment_sanitizer = :strict
+    yield
+  ensure
+    ActiveRecord::Base.mass_assignment_sanitizer = :logger
+  end
 end
 
 module MassAssignmentRelationTestHelpers
@@ -323,6 +330,13 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
     assert_all_attributes(best_friend)
   end
 
+  def test_has_one_build_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.build_best_friend(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
+  end
+
   # create
 
   def test_has_one_create_with_attr_protected_attributes
@@ -350,6 +364,13 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
     assert_all_attributes(best_friend)
   end
 
+  def test_has_one_create_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.create_best_friend(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
+  end
+
   # create!
 
   def test_has_one_create_with_bang_with_attr_protected_attributes
@@ -375,6 +396,13 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
   def test_has_one_create_with_bang_without_protection
     best_friend = @person.create_best_friend!(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
+  end
+
+  def test_has_one_create_with_bang_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.create_best_friend!(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
   end
 
 end
@@ -438,6 +466,13 @@ class MassAssignmentSecurityBelongsToRelationsTest < ActiveRecord::TestCase
     assert_all_attributes(best_friend)
   end
 
+  def test_belongs_to_create_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.create_best_friend_of(attributes_hash.except(:id, :comments))
+      assert_equal best_friend.id, @person.best_friend_of_id
+    end
+  end
+
   # create!
 
   def test_belongs_to_create_with_bang_with_attr_protected_attributes
@@ -463,6 +498,13 @@ class MassAssignmentSecurityBelongsToRelationsTest < ActiveRecord::TestCase
   def test_belongs_to_create_with_bang_without_protection
     best_friend = @person.create_best_friend!(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
+  end
+
+  def test_belongs_to_create_with_bang_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.create_best_friend_of!(attributes_hash.except(:id, :comments))
+      assert_equal best_friend.id, @person.best_friend_of_id
+    end
   end
 
 end
@@ -499,6 +541,13 @@ class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
     assert_all_attributes(best_friend)
   end
 
+  def test_has_many_build_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.best_friends.build(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
+  end
+
   # create
 
   def test_has_many_create_with_attr_protected_attributes
@@ -526,6 +575,13 @@ class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
     assert_all_attributes(best_friend)
   end
 
+  def test_has_many_create_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.best_friends.create(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
+  end
+
   # create!
 
   def test_has_many_create_with_bang_with_attr_protected_attributes
@@ -551,6 +607,13 @@ class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
   def test_has_many_create_with_bang_without_protection
     best_friend = @person.best_friends.create!(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
+  end
+
+  def test_has_many_create_with_bang_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.best_friends.create!(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
   end
 
 end

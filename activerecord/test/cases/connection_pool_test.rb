@@ -4,6 +4,8 @@ module ActiveRecord
   module ConnectionAdapters
     class ConnectionPoolTest < ActiveRecord::TestCase
       def setup
+        super
+
         # Keep a duplicate pool so we do not bother others
         @pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
 
@@ -16,6 +18,70 @@ module ActiveRecord
             end
           end
         end
+      end
+
+      def teardown
+        super
+        @pool.disconnect!
+      end
+
+      def test_full_pool_exception
+        assert_raises(PoolFullError) do
+          (@pool.size + 1).times do
+            @pool.checkout
+          end
+        end
+      end
+
+      def test_reap_and_active
+        @pool.checkout
+        @pool.checkout
+        @pool.checkout
+        @pool.timeout = 0
+
+        connections = @pool.connections.dup
+
+        @pool.reap
+
+        assert_equal connections.length, @pool.connections.length
+      end
+
+      def test_reap_inactive
+        @pool.checkout
+        @pool.checkout
+        @pool.checkout
+        @pool.timeout = 0
+
+        connections = @pool.connections.dup
+        connections.each do |conn|
+          conn.extend(Module.new { def active?; false; end; })
+        end
+
+        @pool.reap
+
+        assert_equal 0, @pool.connections.length
+      ensure
+        connections.each(&:close)
+      end
+
+      def test_remove_connection
+        conn = @pool.checkout
+        assert conn.in_use?
+
+        length = @pool.connections.length
+        @pool.remove conn
+        assert conn.in_use?
+        assert_equal(length - 1, @pool.connections.length)
+      ensure
+        conn.close
+      end
+
+      def test_remove_connection_for_thread
+        conn = @pool.connection
+        @pool.remove conn
+        assert_not_equal(conn, @pool.connection)
+      ensure
+        conn.close if conn
       end
 
       def test_active_connection?
@@ -35,27 +101,16 @@ module ActiveRecord
           threads << Thread.new(i) do |pool_count|
             connection = pool.connection
             assert_not_nil connection
+            connection.close
           end
         end
 
-        threads.each {|t| t.join}
+        threads.each(&:join)
 
         Thread.new do
-          threads.each do |t|
-            thread_ids = pool.instance_variable_get(:@reserved_connections).keys
-            assert thread_ids.include?(t.object_id)
-          end
-
-          assert_deprecated do
-            pool.connection
-          end
-          threads.each do |t|
-            thread_ids = pool.instance_variable_get(:@reserved_connections).keys
-            assert !thread_ids.include?(t.object_id)
-          end
+          assert pool.connection
           pool.connection.close
         end.join
-
       end
 
       def test_automatic_reconnect=

@@ -5,34 +5,24 @@ class ERB
   module Util
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
+    HTML_ESCAPE_ONCE_REGEXP = /[\"><]|&(?!([a-zA-Z]+|(#\d+));)/
+    JSON_ESCAPE_REGEXP = /[&"><]/
 
-    # Detect whether 1.9 can transcode with XML escaping.
-    if '"&gt;&lt;&amp;&quot;"' == ('><&"'.encode('utf-8', :xml => :attr) rescue false)
-      # A utility method for escaping HTML tag characters.
-      # This method is also aliased as <tt>h</tt>.
-      #
-      # In your ERB templates, use this method to escape any unsafe content. For example:
-      #   <%=h @person.name %>
-      #
-      # ==== Example:
-      #   puts html_escape("is a > 0 & a < 10?")
-      #   # => is a &gt; 0 &amp; a &lt; 10?
-      def html_escape(s)
-        s = s.to_s
-        if s.html_safe?
-          s
-        else
-          s.encode(s.encoding, :xml => :attr)[1...-1].html_safe
-        end
-      end
-    else
-      def html_escape(s) #:nodoc:
-        s = s.to_s
-        if s.html_safe?
-          s
-        else
-          s.gsub(/[&"><]/n) { |special| HTML_ESCAPE[special] }.html_safe
-        end
+    # A utility method for escaping HTML tag characters.
+    # This method is also aliased as <tt>h</tt>.
+    #
+    # In your ERB templates, use this method to escape any unsafe content. For example:
+    #   <%=h @person.name %>
+    #
+    # ==== Example:
+    #   puts html_escape("is a > 0 & a < 10?")
+    #   # => is a &gt; 0 &amp; a &lt; 10?
+    def html_escape(s)
+      s = s.to_s
+      if s.html_safe?
+        s
+      else
+        s.encode(s.encoding, :xml => :attr)[1...-1].html_safe
       end
     end
 
@@ -44,6 +34,21 @@ class ERB
 
     singleton_class.send(:remove_method, :html_escape)
     module_function :html_escape
+
+    # A utility method for escaping HTML without affecting existing escaped entities.
+    #
+    # ==== Examples
+    #   html_escape_once("1 < 2 &amp; 3")
+    #   # => "1 &lt; 2 &amp; 3"
+    #
+    #   html_escape_once("&lt;&lt; Accept & Checkout")
+    #   # => "&lt;&lt; Accept &amp; Checkout"
+    def html_escape_once(s)
+      result = s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP) { |special| HTML_ESCAPE[special] }
+      s.html_safe? ? result.html_safe : result
+    end
+
+    module_function :html_escape_once
 
     # A utility method for escaping HTML entities in JSON strings
     # using \uXXXX JavaScript escape sequences for string literals:
@@ -63,7 +68,7 @@ class ERB
     #   <%=j @person.to_json %>
     #
     def json_escape(s)
-      result = s.to_s.gsub(/[&"><]/) { |special| JSON_ESCAPE[special] }
+      result = s.to_s.gsub(JSON_ESCAPE_REGEXP) { |special| JSON_ESCAPE[special] }
       s.html_safe? ? result.html_safe : result
     end
 
@@ -146,11 +151,6 @@ module ActiveSupport #:nodoc:
 
     def encode_with(coder)
       coder.represent_scalar nil, to_str
-    end
-
-    def to_yaml(*args)
-      return super() if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
-      to_str.to_yaml(*args)
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|

@@ -179,6 +179,12 @@ module ActiveRecord
         assert_equal Arel.sql('$2'), bind
       end
 
+      def test_partial_index
+        @connection.add_index 'ex', %w{ id number }, :name => 'partial', :where => "number > 100"
+        index = @connection.indexes('ex').find { |idx| idx.name == 'partial' }
+        assert_equal "(number > 100)", index.where
+      end
+
       private
       def insert(ctx, data)
         binds   = data.map { |name, value|

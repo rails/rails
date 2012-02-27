@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'action_dispatch/testing/integration'
 
 module ActionDispatch
-  class RunnerTest < Test::Unit::TestCase
+  class RunnerTest < ActiveSupport::TestCase
     class MyRunner
       include Integration::Runner
 

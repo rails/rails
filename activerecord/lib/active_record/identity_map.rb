@@ -111,12 +111,11 @@ module ActiveRecord
     # model object.
     def reinit_with(coder)
       @attributes_cache = {}
-      dirty = @changed_attributes.keys
-      @attributes.update(coder['attributes'].except(*dirty))
+      dirty      = @changed_attributes.keys
+      attributes = self.class.initialize_attributes(coder['attributes'].except(*dirty))
+      @attributes.update(attributes)
       @changed_attributes.update(coder['attributes'].slice(*dirty))
       @changed_attributes.delete_if{|k,v| v.eql? @attributes[k]}
-
-      set_serialized_attributes
 
       run_callbacks :find
 
@@ -124,24 +123,6 @@ module ActiveRecord
     end
 
     class Middleware
-      class Body #:nodoc:
-        def initialize(target, original)
-          @target   = target
-          @original = original
-        end
-
-        def each(&block)
-          @target.each(&block)
-        end
-
-        def close
-          @target.close if @target.respond_to?(:close)
-        ensure
-          IdentityMap.enabled = @original
-          IdentityMap.clear
-        end
-      end
-
       def initialize(app)
         @app = app
       end
@@ -149,8 +130,14 @@ module ActiveRecord
       def call(env)
         enabled = IdentityMap.enabled
         IdentityMap.enabled = true
-        status, headers, body = @app.call(env)
-        [status, headers, Body.new(body, enabled)]
+
+        response = @app.call(env)
+        response[2] = Rack::BodyProxy.new(response[2]) do
+          IdentityMap.enabled = enabled
+          IdentityMap.clear
+        end
+
+        response
       end
     end
   end

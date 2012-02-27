@@ -42,7 +42,7 @@ h4. Rails General Configuration
 
 These configuration methods are to be called on a +Rails::Railtie+ object, such as a subclass of +Rails::Engine+ or +Rails::Application+.
 
-* +config.after_initialize+ takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, plugins, engines, and all the application's initializers in +config/initializers+. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
+* +config.after_initialize+ takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, engines, and all the application's initializers in +config/initializers+. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
 
 <ruby>
 config.after_initialize do
@@ -82,6 +82,10 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.encoding+ sets up the application-wide encoding. Defaults to UTF-8.
 
+* +config.exceptions_app+ sets the exceptions application invoked by the ShowException middleware when an exception happens. Defaults to +ActionDispatch::PublicExceptions.new(Rails.public_path)+.
+
+* +config.file_watcher+ the class used to detect file updates in the filesystem when +config.reload_classes_only_on_change+ is true. Must conform to +ActiveSupport::FileUpdateChecker+ API.
+
 * +config.filter_parameters+ used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card numbers.
 
 * +config.force_ssl+ forces all requests to be under HTTPS protocol by using +Rack::SSL+ middleware.
@@ -94,11 +98,9 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.middleware+ allows you to configure the application's middleware. This is covered in depth in the "Configuring Middleware":#configuring-middleware section below.
 
-* +config.plugins+ accepts the list of plugins to load. The default is +nil+ in which case all plugins will be loaded. If this is set to +[]+, no plugins will be loaded. Otherwise, plugins will be loaded in the order specified. This option lets you enforce some particular loading order, useful when dependencies between plugins require it. For that use case, put first the plugins you want to be loaded in a certain order, and then the special symbol +:all+ to have the rest loaded without the need to specify them.
-
 * +config.preload_frameworks+ enables or disables preloading all frameworks at startup. Enabled by +config.threadsafe!+. Defaults to +nil+, so is disabled.
 
-* +config.reload_plugins+ enables or disables plugin reloading. Defaults to false.
+* +config.reload_classes_only_on_change+ enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to true. If +config.cache_classes+ is true, this option is ignored.
 
 * +config.secret_token+ used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get +config.secret_token+ initialized to a random key in +config/initializers/secret_token.rb+.
 
@@ -119,6 +121,17 @@ WARNING: Threadsafe operation is incompatible with the normal workings of develo
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
 * +config.whiny_nils+ enables or disables warnings when a certain set of methods are invoked on +nil+ and it does not respond to them. Defaults to true in development and test environments.
+
+* +config.console+ allows you to set class that will be used as console you run +rails console+. It's best to run it in +console+ block:
+
+<ruby>
+console do
+  # this block is called only when running console,
+  # so we can safely require pry here
+  require "pry"
+  config.console = Pry
+end
+</ruby>
 
 h4. Configuring Assets
 
@@ -150,6 +163,7 @@ Rails 3.1, by default, is set up to use the +sprockets+ gem to manage assets wit
 
 * +config.assets.compile+ is a boolean that can be used to turn on live Sprockets compilation in production.
 
+* +config.assets.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby +Logger+ class. Defaults to the same configured at +config.logger+. Setting +config.assets.logger+ to false will turn off served assets logging.
 
 h4. Configuring Generators
 
@@ -200,7 +214,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 * +ActionDispatch::Session::CookieStore+ is responsible for storing the session in cookies. An alternate middleware can be used for this by changing the +config.action_controller.session_store+ to an alternate value. Additionally, options passed to this can be configured by using +config.action_controller.session_options+.
 * +ActionDispatch::Flash+ sets up the +flash+ keys. Only available if +config.action_controller.session_store+ is set to a value.
 * +ActionDispatch::ParamsParser+ parses out parameters from the request into +params+.
-* +Rack::MethodOverride+ allows the method to be overridden if +params[:_method]+ is set. This is the middleware which supports the PUT and DELETE HTTP method types.
+* +Rack::MethodOverride+ allows the method to be overridden if +params[:_method]+ is set. This is the middleware which supports the PATCH, PUT, and DELETE HTTP method types.
 * +ActionDispatch::Head+ converts HEAD requests to GET requests and serves them as so.
 * +ActionDispatch::BestStandardsSupport+ enables "best standards support" so that IE8 renders some elements correctly.
 
@@ -270,6 +284,8 @@ h4. Configuring Active Record
 
 * +config.active_record.auto_explain_threshold_in_seconds+ configures the threshold for automatic EXPLAINs (+nil+ disables this feature). Queries exceeding the threshold get their query plan logged. Default is 0.5 in development mode.
 
+* +config.active_record.dependent_restrict_raises+ will control the behavior when an object with a <tt>:dependent => :restrict</tt> association is deleted. Setting this to false will prevent +DeleteRestrictionError+ from being raised and instead will add an error on the model object. Defaults to false in the development mode.
+
 The MySQL adapter adds one additional configuration option:
 
 * +ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans+ controls whether Active Record will consider all +tinyint(1)+ columns in a MySQL database to be booleans and is true by default.
@@ -330,7 +346,8 @@ h4. Configuring Action Dispatch
 
 h4. Configuring Action View
 
-There are only a few configuration options for Action View, starting with four on +ActionView::Base+:
+There are only a few configuration options for Action View, starting with six on +ActionView::Base+:
+
 
 * +config.action_view.field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is
 
@@ -340,7 +357,7 @@ Proc.new { |html_tag, instance| %Q(<div class="field_with_errors">#{html_tag}</d
 
 * +config.action_view.default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.
 
-* +config.action_view.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action Mailer. Set to +nil+ to disable logging.
+* +config.action_view.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action View. Set to +nil+ to disable logging.
 
 * +config.action_view.erb_trim_mode+ gives the trim mode to be used by ERB. It defaults to +'-'+. See the "ERB documentation":http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/ for more information.
 
@@ -456,7 +473,7 @@ Some parts of Rails can also be configured externally by supplying environment v
 
 h3. Using Initializer Files
 
-After loading the framework and any gems and plugins in your application, Rails turns to loading initializers. An initializer is any Ruby file stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks, plugins and gems are loaded, such as options to configure settings for these parts.
+After loading the framework and any gems in your application, Rails turns to loading initializers. An initializer is any Ruby file stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and gems are loaded, such as options to configure settings for these parts.
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
 
@@ -531,7 +548,7 @@ Serves as a placeholder so that +:load_environment_config+ can be defined to run
 
 *+initialize_logger+* Initializes the logger (an +ActiveSupport::BufferedLogger+ object) for the application and makes it accessible at +Rails.logger+, provided that no initializer inserted before this point has defined +Rails.logger+.
 
-*+initialize_cache+* If +RAILS_CACHE+ isn't set yet, initializes the cache by referencing the value in +config.cache_store+ and stores the outcome as +RAILS_CACHE+. If this object responds to the +middleware+ method, its middleware is inserted before +Rack::Runtime+ in the middleware stack.
+*+initialize_cache+* If +Rails.cache+ isn't set yet, initializes the cache by referencing the value in +config.cache_store+ and stores the outcome as +Rails.cache+. If this object responds to the +middleware+ method, its middleware is inserted before +Rack::Runtime+ in the middleware stack.
 
 *+set_clear_dependencies_hook+* Provides a hook for +active_record.set_dispatch_hooks+ to use, which will run before this initializer. This initializer -- which runs only if +cache_classes+ is set to +false+ -- uses +ActionDispatch::Callbacks.after+ to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
 
@@ -569,7 +586,7 @@ The error occurred while evaluating nil.each
 
 *+action_controller.logger+* Sets +ActionController::Base.logger+ -- if it's not already set -- to +Rails.logger+.
 
-*+action_controller.initialize_framework_caches+* Sets +ActionController::Base.cache_store+ -- if it's not already set -- to +RAILS_CACHE+.
+*+action_controller.initialize_framework_caches+* Sets +ActionController::Base.cache_store+ -- if it's not already set -- to +Rails.cache+.
 
 *+action_controller.set_configs+* Sets up Action Controller by using the settings in +config.action_controller+ by +send+'ing the method names as setters to +ActionController::Base+ and passing the values through.
 
@@ -611,7 +628,7 @@ The error occurred while evaluating nil.each
 
 *+prepend_helpers_path+* Adds the directory +app/helpers+ from the application, railties and engines to the lookup path for helpers for the application.
 
-*+load_config_initializers+* Loads all Ruby files from +config/initializers+ in the application, railties and engines. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
+*+load_config_initializers+* Loads all Ruby files from +config/initializers+ in the application, railties and engines. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks are loaded.
 
 *+engines_blank_point+* Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are ran.
 
@@ -632,3 +649,23 @@ The error occurred while evaluating nil.each
 *+set_routes_reloader+* Configures Action Dispatch to reload the routes file using +ActionDispatch::Callbacks.to_prepare+.
 
 *+disable_dependency_loading+* Disables the automatic dependency loading if the +config.cache_classes+ is set to true and +config.dependency_loading+ is set to false.
+
+h3. Database pooling
+
+Active Record database connections are managed by +ActiveRecord::ConnectionAdapters::ConnectionPool+ which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 1 and can be configured in +database.yml+.
+
+<ruby>
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
+  timeout: 5000
+</ruby>
+
+Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, Mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
+
+Any one request will check out a connection the first time it requires access to the database, after which it will check the connection back in, at the end of the request, meaning that the additional connection slot will be available again for the next request in the queue.
+
+NOTE. If you have enabled +Rails.threadsafe!+ mode then there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.

@@ -1,12 +1,16 @@
 require "fileutils"
 
 namespace :assets do
-  def ruby_rake_task(task)
+  def ruby_rake_task(task, fork = true)
     env    = ENV['RAILS_ENV'] || 'production'
     groups = ENV['RAILS_GROUPS'] || 'assets'
     args   = [$0, task,"RAILS_ENV=#{env}","RAILS_GROUPS=#{groups}"]
     args << "--trace" if Rake.application.options.trace
-    ruby(*args)
+    if $0 =~ /rake\.bat\Z/i
+      Kernel.exec $0, *args
+    else  
+      fork ? ruby(*args) : Kernel.exec(FileUtils::RUBY, *args)
+    end    
   end
 
   # We are currently running with no explicit bundler group
@@ -59,14 +63,14 @@ namespace :assets do
       # required in order to compile digestless assets as the
       # environment has already cached the assets on the primary
       # run.
-      ruby_rake_task "assets:precompile:nondigest" if Rails.application.config.assets.digest
+      ruby_rake_task("assets:precompile:nondigest", false) if Rails.application.config.assets.digest
     end
 
-    task :primary => ["assets:environment", "tmp:cache:clear"] do
+    task :primary => ["assets:cache:clean"] do
       internal_precompile
     end
 
-    task :nondigest => ["assets:environment", "tmp:cache:clear"] do
+    task :nondigest => ["assets:cache:clean"] do
       internal_precompile(false)
     end
   end
@@ -77,10 +81,16 @@ namespace :assets do
   end
 
   namespace :clean do
-    task :all => ["assets:environment", "tmp:cache:clear"] do
+    task :all => ["assets:cache:clean"] do
       config = Rails.application.config
       public_asset_path = File.join(Rails.public_path, config.assets.prefix)
       rm_rf public_asset_path, :secure => true
+    end
+  end
+
+  namespace :cache do
+    task :clean => ["assets:environment"] do
+      Rails.application.assets.cache.clear
     end
   end
 

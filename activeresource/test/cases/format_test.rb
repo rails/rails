@@ -2,7 +2,7 @@ require 'abstract_unit'
 require "fixtures/person"
 require "fixtures/street_address"
 
-class FormatTest < Test::Unit::TestCase
+class FormatTest < ActiveSupport::TestCase
   def setup
     @matz  = { :id => 1, :name => 'Matz' }
     @david = { :id => 2, :name => 'David' }
@@ -11,15 +11,19 @@ class FormatTest < Test::Unit::TestCase
   end
 
   def test_http_format_header_name
-    header_name = ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[:get]
-    assert_equal 'Accept', header_name
+    [:get, :head].each do |verb|
+      header_name = ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[verb]
+      assert_equal 'Accept', header_name
+    end
 
-    headers_names = [ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[:put], ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[:post]]
-    headers_names.each{ |name| assert_equal 'Content-Type', name }
+    [:patch, :put, :post].each do |verb|
+      header_name = ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[verb]
+      assert_equal 'Content-Type', header_name
+    end
   end
 
   def test_formats_on_single_element
-    for format in [ :json, :xml ]
+    [ :json, :xml ].each do |format|
       using_format(Person, format) do
         ActiveResource::HttpMock.respond_to.get "/people/1.#{format}", {'Accept' => ActiveResource::Formats[format].mime_type}, ActiveResource::Formats[format].encode(@david)
         assert_equal @david[:name], Person.find(1).name
@@ -28,7 +32,7 @@ class FormatTest < Test::Unit::TestCase
   end
 
   def test_formats_on_collection
-    for format in [ :json, :xml ]
+    [ :json, :xml ].each do |format|
       using_format(Person, format) do
         ActiveResource::HttpMock.respond_to.get "/people.#{format}", {'Accept' => ActiveResource::Formats[format].mime_type}, ActiveResource::Formats[format].encode(@programmers)
         remote_programmers = Person.find(:all)
@@ -39,7 +43,7 @@ class FormatTest < Test::Unit::TestCase
   end
 
   def test_formats_on_custom_collection_method
-    for format in [ :json, :xml ]
+    [ :json, :xml ].each do |format|
       using_format(Person, format) do
         ActiveResource::HttpMock.respond_to.get "/people/retrieve.#{format}?name=David", {'Accept' => ActiveResource::Formats[format].mime_type}, ActiveResource::Formats[format].encode([@david])
         remote_programmers = Person.get(:retrieve, :name => 'David')

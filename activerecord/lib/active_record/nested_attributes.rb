@@ -12,7 +12,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :nested_attributes_options, :instance_writer => false
+      config_attribute :nested_attributes_options
       self.nested_attributes_options = {}
     end
 
@@ -382,7 +382,7 @@ module ActiveRecord
       if attributes_collection.is_a? Hash
         keys = attributes_collection.keys
         attributes_collection = if keys.include?('id') || keys.include?(:id)
-          Array.wrap(attributes_collection)
+          [attributes_collection]
         else
           attributes_collection.values
         end

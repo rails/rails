@@ -20,7 +20,7 @@ module DelegatingFixtures
   end
 end
 
-class DelegatingAttributesTest < Test::Unit::TestCase
+class DelegatingAttributesTest < ActiveSupport::TestCase
   include DelegatingFixtures
   attr_reader :single_class
 
