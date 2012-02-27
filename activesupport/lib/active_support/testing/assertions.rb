@@ -30,9 +30,23 @@ module ActiveSupport
       #   end
       #
       # An array of values corresponding to each expression in an expression array can
-      # also be passed
+      # also be passed.
       #
       #   assert_difference [ 'Article.count', 'Post.count' ], [+2, +1] do
+      #     post :create, :article => {...}
+      #   end
+      #
+      # This can also be done in the form of an a Hash. So the above example
+      # would could be rewritten as:
+      #
+      #   assert_difference {'Article.count'=>+2, 'Post.count'=>+1} do
+      #     post :create, :article => {...}
+      #   end
+      #
+      # And of course in the above example, the expressions could have
+      # been lambdas:
+      #
+      #   assert_difference {lambda{ Article.count } => +2, lambda{ Post.count => +1 }} do
       #     post :create, :article => {...}
       #   end
       #
@@ -55,12 +69,8 @@ module ActiveSupport
         expressions = []
         if expression.is_a? Hash
           message = expression.delete(:message){nil}
-
-          # can we count on ordering here, or do we need to do something
-          # along the lines of expressions.each {|k,v| differences << v;
-          # expressions << k }
-          expressions = expression.keys
-          differences = expression.values
+          differences = []
+          expression.each {|k,v| differences << v; expressions << k }
         else
           expressions = Array.wrap expression
           differences = Array.wrap differences
