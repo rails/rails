@@ -38,11 +38,16 @@ module ActiveRecord
         columns[column_name]
       end
 
-      def bind(scope, column, value)
+      def bind_value(scope, column, value)
         substitute = alias_tracker.connection.substitute_at(
           column, scope.bind_values.length)
         scope.bind_values += [[column, value]]
         substitute
+      end
+
+      def bind(scope, table_name, column_name, value)
+        column   = column_for table_name, column_name
+        bind_value scope, column, value
       end
 
       def add_constraints(scope)
@@ -79,12 +84,13 @@ module ActiveRecord
           conditions = self.conditions[i]
 
           if reflection == chain.last
-            column   = column_for(table.table_name, key.to_s)
-            bind_val = bind(scope, column, owner[foreign_key])
+            bind_val = bind scope, table.table_name, key.to_s, owner[foreign_key]
             scope    = scope.where(table[key].eq(bind_val))
 
             if reflection.type
-              scope = scope.where(table[reflection.type].eq(owner.class.base_class.name))
+              value    = owner.class.base_class.name
+              bind_val = bind scope, table.table_name, reflection.type.to_s, value
+              scope    = scope.where(table[reflection.type].eq(bind_val))
             end
 
             conditions.each do |condition|
