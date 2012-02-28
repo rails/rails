@@ -209,12 +209,10 @@ module ActiveSupport
     def constantize(camel_cased_word) #:nodoc:
       names = camel_cased_word.split('::')
       names.shift if names.empty? || names.first.empty?
-
-      constant = Object
-      names.each do |name|
-        constant = constant.const_get(name, false)
+ 
+      names.inject(Object) do |constant, name|
+        constant.const_get(name, false)
       end
-      constant
     end
 
     # Tries to find a constant with the name specified in the argument string:
