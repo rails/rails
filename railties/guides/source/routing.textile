@@ -295,13 +295,13 @@ In this case, Rails will see that +@magazine+ is a +Magazine+ and +@ad+ is an +A
 <%= link_to "Ad details", [@magazine, @ad] %>
 </erb>
 
-If you wanted to link to just a magazine, you could leave out the +Array+:
+If you wanted to link to just a magazine:
 
 <erb>
 <%= link_to "Magazine details", @magazine %>
 </erb>
 
-For other actions, you just need to insert the action name as the first element of the +Array+:
+For other actions, you just need to insert the action name as the first element of the array:
 
 <erb>
 <%= link_to "Edit Ad", [:edit, @magazine, @ad] %>
