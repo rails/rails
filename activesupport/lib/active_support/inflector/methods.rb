@@ -209,7 +209,7 @@ module ActiveSupport
     def constantize(camel_cased_word) #:nodoc:
       names = camel_cased_word.split('::')
       names.shift if names.empty? || names.first.empty?
-
+ 
       names.inject(Object) do |constant, name|
         constant.const_get(name, false)
       end
