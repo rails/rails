@@ -24,9 +24,10 @@ module ActionView
     # server by setting ActionController::Base.asset_host in the application
     # configuration, typically in <tt>config/environments/production.rb</tt>.
     # For example, you'd define <tt>assets.example.com</tt> to be your asset
-    # host this way:
+    # host this way, inside the <tt>configure</tt> block of your environment-specific
+    # configuration files or <tt>config/application.rb</tt>:
     #
-    #   ActionController::Base.asset_host = "assets.example.com"
+    #   config.action_controller.asset_host = "assets.example.com"
     #
     # Helpers take that into account:
     #
