@@ -301,6 +301,12 @@ If you wanted to link to just a magazine, you could leave out the +Array+:
 <%= link_to "Magazine details", @magazine %>
 </erb>
 
+For other actions, you just need to insert the action name as the first element of the +Array+:
+
+<erb>
+<%= link_to "Edit Ad", [:edit, @magazine, @ad] %>
+</erb>
+
 This allows you to treat instances of your models as URLs, and is a key advantage to using the resourceful style.
 
 h4. Adding More RESTful Actions
