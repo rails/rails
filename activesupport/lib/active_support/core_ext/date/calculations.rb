@@ -182,6 +182,13 @@ class Date
     result = (self - 7).beginning_of_week + DAYS_INTO_WEEK[day]
     self.acts_like?(:time) ? result.change(:hour => 0) : result
   end
+  alias :last_week :prev_week
+
+  # Alias of prev_month
+  alias :last_month :prev_month
+
+  # Alias of prev_year
+  alias :last_year :prev_year
 
   # Returns a new Date/DateTime representing the start of the given day in next week (default is :monday).
   def next_week(day = :monday)

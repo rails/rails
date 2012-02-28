@@ -145,6 +145,7 @@ class Time
   def prev_year
     years_ago(1)
   end
+  alias_method :last_year, :prev_year
 
   # Short-hand for years_since(1)
   def next_year
@@ -155,6 +156,7 @@ class Time
   def prev_month
     months_ago(1)
   end
+  alias_method :last_month, :prev_month
 
   # Short-hand for months_since(1)
   def next_month
@@ -199,6 +201,7 @@ class Time
   def prev_week(day = :monday)
     ago(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(:hour => 0)
   end
+  alias_method :last_week, :prev_week
 
   # Returns a new Time representing the start of the given day in next week (default is :monday).
   def next_week(day = :monday)
