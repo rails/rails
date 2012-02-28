@@ -1,4 +1,5 @@
 require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/module/anonymous"
 
 module AbstractController
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
@@ -276,7 +277,7 @@ module AbstractController
         remove_possible_method(:_layout)
 
         prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
-        name_clause = if name
+        name_clause = unless anonymous?
           <<-RUBY
             lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first || super
           RUBY
