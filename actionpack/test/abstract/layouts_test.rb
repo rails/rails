@@ -299,6 +299,18 @@ module AbstractControllerTests
         controller.process(:index)
         assert_equal "Overwrite Hello index!", controller.response_body
       end
+
+      test "layout for anonymous controller" do
+        klass = Class.new(WithString) do
+          def index
+            render :text => 'index', :layout => true
+          end
+        end
+
+        controller = klass.new
+        controller.process(:index)
+        assert_equal "With String index", controller.response_body
+      end
     end
   end
 end
