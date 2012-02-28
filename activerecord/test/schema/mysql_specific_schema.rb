@@ -1,5 +1,5 @@
 ActiveRecord::Schema.define do
-  create_table :binary_fields, :force => true, :options => 'CHARACTER SET latin1' do |t|
+  create_table :binary_fields, :force => true do |t|
     t.binary :tiny_blob,   :limit => 255
     t.binary :normal_blob, :limit => 65535
     t.binary :medium_blob, :limit => 16777215
