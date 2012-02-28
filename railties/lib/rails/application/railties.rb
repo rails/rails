@@ -4,7 +4,7 @@ module Rails
   class Application < Engine
     class Railties < Rails::Engine::Railties
       def all(&block)
-        @all ||= railties + engines + plugins
+        @all ||= railties + engines
         @all.each(&block) if block
         @all
       end

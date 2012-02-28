@@ -30,17 +30,7 @@ Before you continue, take a moment to decide if your new plugin will be potentia
 * If your plugin is specific to your application, your new plugin will be a _vendored plugin_.
 * If you think your plugin may be used across applications, build it as a _gemified plugin_.
 
-h4. Either generate a vendored plugin...
-
-Use the +rails generate plugin+ command in your Rails root directory
- to create a new plugin that will live in the +vendor/plugins+
- directory. See usage and options by asking for help:
-
-<shell>
-$ rails generate plugin --help
-</shell>
-
-h4. Or generate a gemified plugin.
+h4. Generate a gemified plugin.
 
 Writing your Rails plugin as a gem, rather than as a vendored plugin,
  lets you share your plugin across different rails applications using
@@ -412,30 +402,6 @@ After running +bundle install+, your gem functionality will be available to the 
 When the gem is ready to be shared as a formal release, it can be published to "RubyGems":http://www.rubygems.org.
 For more information about publishing gems to RubyGems, see: "http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html":http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html
 
-h3. Non-Gem Plugins
-
-Non-gem plugins are useful for functionality that won't be shared with another project. Keeping your custom functionality in the
-vendor/plugins directory un-clutters the rest of the application.
-
-Move the directory that you created for the gem based plugin into the vendor/plugins directory of a generated Rails application, create a vendor/plugins/yaffle/init.rb file that contains "require 'yaffle'" and everything will still work.
-
-<ruby>
-# yaffle/init.rb
-
-require 'yaffle'
-</ruby>
-
-You can test this by changing to the Rails application that you added the plugin to and starting a rails console. Once in the
-console we can check to see if the String has an instance method to_squawk:
-
-<shell>
-$ cd my_app
-$ rails console
-$ "Rails plugins are easy!".to_squawk
-</shell>
-
-You can also remove the .gemspec, Gemfile and Gemfile.lock files as they will no longer be needed.
-
 h3. RDoc Documentation
 
 Once your plugin is stable and you are ready to deploy do everyone else a favor and document it! Luckily, writing documentation for your plugin is easy.
@@ -461,4 +427,3 @@ h4. References
 * "Using Gemspecs As Intended":http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/
 * "Gemspec Reference":http://docs.rubygems.org/read/chapter/20
 * "GemPlugins":http://www.mbleigh.com/2008/06/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
-* "Keeping init.rb thin":http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html

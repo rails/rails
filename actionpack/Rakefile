@@ -16,7 +16,7 @@ Rake::TestTask.new(:test_action_pack) do |t|
 
   # make sure we include the tests in alphabetical order as on some systems
   # this will not happen automatically and the tests (as a whole) will error
-  t.test_files = Dir.glob('test/{abstract,controller,dispatch,template}/**/*_test.rb').sort
+  t.test_files = Dir.glob('test/{abstract,controller,dispatch,template,assertions}/**/*_test.rb').sort
 
   t.warning = true
   t.verbose = true
@@ -55,15 +55,15 @@ end
 task :lines do
   lines, codelines, total_lines, total_codelines = 0, 0, 0, 0
 
-  for file_name in FileList["lib/**/*.rb"]
+  FileList["lib/**/*.rb"].each do |file_name|
     next if file_name =~ /vendor/
-    f = File.open(file_name)
-
-    while line = f.gets
-      lines += 1
-      next if line =~ /^\s*$/
-      next if line =~ /^\s*#/
-      codelines += 1
+    File.open(file_name, 'r') do |f|
+      while line = f.gets
+        lines += 1
+        next if line =~ /^\s*$/
+        next if line =~ /^\s*#/
+        codelines += 1
+      end
     end
     puts "L: #{sprintf("%4d", lines)}, LOC #{sprintf("%4d", codelines)} | #{file_name}"
 

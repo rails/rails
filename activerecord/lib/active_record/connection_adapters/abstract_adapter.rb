@@ -11,23 +11,26 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :Column
+    autoload :ConnectionSpecification
+
+    autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
+      autoload :IndexDefinition
+      autoload :ColumnDefinition
+      autoload :TableDefinition
+      autoload :Table
+    end
+
+    autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
+      autoload :ConnectionHandler
+      autoload :ConnectionManagement
+    end
 
     autoload_under 'abstract' do
-      autoload :IndexDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :ColumnDefinition, 'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :TableDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :Table,            'active_record/connection_adapters/abstract/schema_definitions'
-
       autoload :SchemaStatements
       autoload :DatabaseStatements
       autoload :DatabaseLimits
       autoload :Quoting
-
       autoload :ConnectionPool
-      autoload :ConnectionHandler,       'active_record/connection_adapters/abstract/connection_pool'
-      autoload :ConnectionManagement,    'active_record/connection_adapters/abstract/connection_pool'
-      autoload :ConnectionSpecification
-
       autoload :QueryCache
     end
 
@@ -142,6 +145,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support partial indices?
+      def supports_partial_index?
+        false
+      end
+
       # Does this adapter support explain? As of this writing sqlite3,
       # mysql2, and postgresql are the only ones that do.
       def supports_explain?
@@ -158,7 +166,7 @@ module ActiveRecord
       # Returns a bind substitution value given a +column+ and list of current
       # +binds+
       def substitute_at(column, index)
-        Arel.sql '?'
+        Arel::Nodes::BindParam.new '?'
       end
 
       # REFERENTIAL INTEGRITY ====================================

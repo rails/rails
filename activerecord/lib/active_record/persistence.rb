@@ -9,7 +9,7 @@ module ActiveRecord
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
       #
-      # The +attributes+ parameter can be either be a Hash or an Array of Hashes. These Hashes describe the
+      # The +attributes+ parameter can be either a Hash or an Array of Hashes. These Hashes describe the
       # attributes on the objects that are to be created.
       #
       # +create+ respects mass-assignment security and accepts either +:as+ or +:without_protection+ options
@@ -59,8 +59,8 @@ module ActiveRecord
       @destroyed
     end
 
-    # Returns if the record is persisted, i.e. it's not a new record and it was
-    # not destroyed.
+    # Returns true if the record is persisted, i.e. it's not a new record and it was
+    # not destroyed, otherwise returns false.
     def persisted?
       !(new_record? || destroyed?)
     end
@@ -209,7 +209,7 @@ module ActiveRecord
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
-        self.assign_attributes(attributes, options)
+        assign_attributes(attributes, options)
         save
       end
     end
@@ -220,7 +220,7 @@ module ActiveRecord
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
-        self.assign_attributes(attributes, options)
+        assign_attributes(attributes, options)
         save!
       end
     end
@@ -285,8 +285,9 @@ module ActiveRecord
       clear_association_cache
 
       IdentityMap.without do
-        fresh_object = self.class.unscoped { self.class.find(self.id, options) }
+        fresh_object = self.class.unscoped { self.class.find(id, options) }
         @attributes.update(fresh_object.instance_variable_get('@attributes'))
+        @columns_hash = fresh_object.instance_variable_get('@columns_hash')
       end
 
       @attributes_cache = {}
@@ -367,14 +368,6 @@ module ActiveRecord
       IdentityMap.add(self) if IdentityMap.enabled?
       @new_record = false
       id
-    end
-
-    # Initializes the attributes array with keys matching the columns from the linked table and
-    # the values matching the corresponding default value of that column, so
-    # that a new instance, or one populated from a passed-in Hash, still has all the attributes
-    # that instances loaded from the database would.
-    def attributes_from_column_definition
-      self.class.column_defaults.dup
     end
   end
 end

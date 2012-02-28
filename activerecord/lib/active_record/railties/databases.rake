@@ -38,6 +38,7 @@ db_namespace = namespace :db do
   desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
   task :create => :load_config do
     configs_for_environment.each { |config| create_database(config) }
+    ActiveRecord::Base.establish_connection(configs_for_environment.first)
   end
 
   def mysql_creation_options(config)
@@ -111,8 +112,7 @@ db_namespace = namespace :db do
         end
       end
     else
-      # Bug with 1.9.2 Calling return within begin still executes else
-      $stderr.puts "#{config['database']} already exists" unless config['adapter'] =~ /sqlite/
+      $stderr.puts "#{config['database']} already exists"
     end
   end
 
@@ -162,6 +162,9 @@ db_namespace = namespace :db do
     else
       raise "unknown schema format #{ActiveRecord::Base.schema_format}"
     end
+    # Allow this task to be called as many times as required. An example is the
+    # migrate:redo task, which calls other two internally that depend on this one.
+    db_namespace['_dump'].reenable
   end
 
   namespace :migrate do
@@ -204,11 +207,12 @@ db_namespace = namespace :db do
         next  # means "return" for rake task
       end
       db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
+      db_list.map! { |version| "%.3d" % version }
       file_list = []
       ActiveRecord::Migrator.migrations_paths.each do |path|
         Dir.foreach(path) do |file|
-          # only files matching "20091231235959_some_name.rb" pattern
-          if match_data = /^(\d{14})_(.+)\.rb$/.match(file)
+          # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
+          if match_data = /^(\d{3,})_(.+)\.rb$/.match(file)
             status = db_list.delete(match_data[1]) ? 'up' : 'down'
             file_list << [status, match_data[1], match_data[2].humanize]
           end
@@ -420,7 +424,7 @@ db_namespace = namespace :db do
         end
       when /postgresql/
         set_psql_env(abcs[env])
-        `psql -f "#{filename}" #{abcs[env]['database']} #{abcs[env]['template']}`
+        `psql -f "#{filename}" #{abcs[env]['database']}`
       when /sqlite/
         dbfile = abcs[env]['database']
         `sqlite3 #{dbfile} < "#{filename}"`
@@ -539,7 +543,7 @@ end
 
 namespace :railties do
   namespace :install do
-    # desc "Copies missing migrations from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
+    # desc "Copies missing migrations from Railties (e.g. engines). You can specify Railties to use with FROM=railtie1,railtie2"
     task :migrations => :'db:load_config' do
       to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map {|n| n.strip }
       railties = ActiveSupport::OrderedHash.new
@@ -612,7 +616,7 @@ def firebird_db_string(config)
 end
 
 def set_psql_env(config)
-  ENV['PGHOST']     = config['host']          if config['host'] 
+  ENV['PGHOST']     = config['host']          if config['host']
   ENV['PGPORT']     = config['port'].to_s     if config['port']
   ENV['PGPASSWORD'] = config['password'].to_s if config['password']
   ENV['PGUSER']     = config['username'].to_s if config['username']

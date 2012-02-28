@@ -134,13 +134,6 @@ h4. Regular Font
 
 When "true" and "false" are English words rather than Ruby keywords use a regular font:
 
-<ruby>
-# If <tt>reload_plugins?</tt> is false, add this to your plugin's <tt>init.rb</tt>
-# to make it reloadable:
-#
-#   Dependencies.load_once_paths.delete lib_path
-</ruby>
-
 h3. Description Lists
 
 In lists of options, parameters, etc. use a hyphen between the item and its description (reads better than a colon because normally options are symbols):

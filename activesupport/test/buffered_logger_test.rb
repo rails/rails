@@ -3,10 +3,9 @@ require 'multibyte_test_helpers'
 require 'stringio'
 require 'fileutils'
 require 'tempfile'
-require 'active_support/buffered_logger'
 require 'active_support/testing/deprecation'
 
-class BufferedLoggerTest < Test::Unit::TestCase
+class BufferedLoggerTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
   include ActiveSupport::Testing::Deprecation
 
@@ -32,9 +31,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
     logger.level = Logger::DEBUG
 
     str = "\x80"
-    if str.respond_to?(:force_encoding)
-      str.force_encoding("ASCII-8BIT")
-    end
+    str.force_encoding("ASCII-8BIT")
 
     logger.add Logger::DEBUG, str
   ensure
@@ -52,9 +49,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
     logger.level = Logger::DEBUG
 
     str = "\x80"
-    if str.respond_to?(:force_encoding)
-      str.force_encoding("ASCII-8BIT")
-    end
+    str.force_encoding("ASCII-8BIT")
 
     logger.add Logger::DEBUG, str
   ensure
@@ -124,9 +119,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
     @logger.info(BYTE_STRING)
     assert @output.string.include?(UNICODE_STRING)
     byte_string = @output.string.dup
-    if byte_string.respond_to?(:force_encoding)
-      byte_string.force_encoding("ASCII-8BIT")
-    end
+    byte_string.force_encoding("ASCII-8BIT")
     assert byte_string.include?(BYTE_STRING)
   end
 end

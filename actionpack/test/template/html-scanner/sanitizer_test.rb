@@ -56,7 +56,6 @@ class SanitizerTest < ActionController::TestCase
     assert_sanitized "a b c<script language=\"Javascript\">blah blah blah</script>d e f", "a b cd e f"
   end
 
-  # TODO: Clean up
   def test_sanitize_js_handlers
     raw = %{onthis="do that" <a href="#" onclick="hello" name="foo" onbogus="remove me">hello</a>}
     assert_sanitized raw, %{onthis="do that" <a name="foo" href="#">hello</a>}
@@ -138,11 +137,18 @@ class SanitizerTest < ActionController::TestCase
       assert sanitizer.send(:contains_bad_protocols?, 'src', "#{proto}://bad")
     end
   end
-  
+
   def test_should_accept_good_protocols_ignoring_case
     sanitizer = HTML::WhiteListSanitizer.new
     HTML::WhiteListSanitizer.allowed_protocols.each do |proto|
       assert !sanitizer.send(:contains_bad_protocols?, 'src', "#{proto.capitalize}://good")
+    end
+  end
+
+  def test_should_accept_good_protocols_ignoring_space
+    sanitizer = HTML::WhiteListSanitizer.new
+    HTML::WhiteListSanitizer.allowed_protocols.each do |proto|
+      assert !sanitizer.send(:contains_bad_protocols?, 'src', " #{proto}://good")
     end
   end
 
@@ -208,7 +214,6 @@ class SanitizerTest < ActionController::TestCase
     assert_sanitized img_hack, "<img>"
   end
 
-  # TODO: Clean up
   def test_should_sanitize_attributes
     assert_sanitized %(<SPAN title="'><script>alert()</script>">blah</SPAN>), %(<span title="'&gt;&lt;script&gt;alert()&lt;/script&gt;">blah</span>)
   end

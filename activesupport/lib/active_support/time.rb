@@ -13,7 +13,6 @@ end
 require 'date'
 require 'time'
 
-require 'active_support/core_ext/time/publicize_conversion_methods'
 require 'active_support/core_ext/time/marshal'
 require 'active_support/core_ext/time/acts_like'
 require 'active_support/core_ext/time/calculations'

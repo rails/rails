@@ -30,7 +30,7 @@ module ActionDispatch
 
       def generate_sid
         sid = SecureRandom.hex(16)
-        sid.encode!('UTF-8') if sid.respond_to?(:encode!)
+        sid.encode!('UTF-8')
         sid
       end
 

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 require 'active_support/core_ext/object/blank'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Relation
   class Relation
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
-    MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order, :uniq]
+    MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind, :references]
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering, :reverse_order, :uniq]
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
@@ -77,6 +78,7 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
+      @bind_values = @bind_values.dup
       reset
     end
 
@@ -355,7 +357,7 @@ module ActiveRecord
       end
     end
 
-    # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
+    # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
     # therefore all callbacks and filters are fired off before the object is deleted. This method is
     # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
     #
@@ -459,7 +461,7 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= klass.connection.to_sql(arel)
+      @to_sql ||= klass.connection.to_sql(arel, @bind_values.dup)
     end
 
     def where_values_hash
@@ -467,7 +469,12 @@ module ActiveRecord
         node.left.relation.name == table_name
       }
 
-      Hash[equalities.map { |where| [where.left.name, where.right] }]
+      binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
+
+      Hash[equalities.map { |where|
+        name = where.left.name
+        [name, binds.fetch(name.to_s) { where.right }]
+      }]
     end
 
     def scope_for_create
@@ -501,6 +508,10 @@ module ActiveRecord
       to_a.inspect
     end
 
+    def pretty_print(q)
+      q.pp(self.to_a)
+    end
+
     def with_default_scope #:nodoc:
       if default_scoped? && default_scope = klass.send(:build_default_scope)
         default_scope = default_scope.merge(self)
@@ -526,8 +537,30 @@ module ActiveRecord
 
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
+      string_tables = tables_in_string(to_sql)
 
-      (tables_in_string(to_sql) - joined_tables).any?
+      if (references_values - joined_tables).any?
+        true
+      elsif (string_tables - joined_tables).any?
+        ActiveSupport::Deprecation.warn(
+          "It looks like you are eager loading table(s) (one of: #{string_tables.join(', ')}) " \
+          "that are referenced in a string SQL snippet. For example: \n" \
+          "\n" \
+          "    Post.includes(:comments).where(\"comments.title = 'foo'\")\n" \
+          "\n" \
+          "Currently, Active Record recognises the table in the string, and knows to JOIN the " \
+          "comments table to the query, rather than loading comments in a separate query. " \
+          "However, doing this without writing a full-blown SQL parser is inherently flawed. " \
+          "Since we don't want to write an SQL parser, we are removing this functionality. " \
+          "From now on, you must explicitly tell Active Record when you are referencing a table " \
+          "from a string:\n" \
+          "\n" \
+          "    Post.includes(:comments).where(\"comments.title = 'foo'\").references(:comments)\n\n"
+        )
+        true
+      else
+        false
+      end
     end
 
     def tables_in_string(string)

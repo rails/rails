@@ -3,7 +3,7 @@ require 'isolation/abstract_unit'
 require 'rack/test'
 
 module ApplicationTests
-  class MiddlewareExceptionsTest < Test::Unit::TestCase
+  class MiddlewareExceptionsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 

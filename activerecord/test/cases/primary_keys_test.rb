@@ -188,15 +188,31 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
   def test_set_primary_key_with_no_connection
     return skip("disconnect wipes in-memory db") if in_memory_db?
 
-    connection = ActiveRecord::Base.remove_connection
+    connection = ActiveRecord::Model.remove_connection
 
     model = Class.new(ActiveRecord::Base)
     model.primary_key = 'foo'
 
     assert_equal 'foo', model.primary_key
 
-    ActiveRecord::Base.establish_connection(connection)
+    ActiveRecord::Model.establish_connection(connection)
 
     assert_equal 'foo', model.primary_key
   end
 end
+
+if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+  class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+  
+    def test_primaery_key_method_with_ansi_quotes
+      con = ActiveRecord::Base.connection
+      con.execute("SET SESSION sql_mode='ANSI_QUOTES'")
+      assert_equal "id", con.primary_key("topics")
+    ensure
+      con.reconnect!
+    end
+  
+  end
+end
+

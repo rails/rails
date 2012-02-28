@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'active_support/time'
 require 'active_support/core_ext/range'
 
-class RangeTest < Test::Unit::TestCase
+class RangeTest < ActiveSupport::TestCase
   def test_to_s_from_dates
     date_range = Date.new(2005, 12, 10)..Date.new(2005, 12, 12)
     assert_equal "BETWEEN '2005-12-10' AND '2005-12-12'", date_range.to_s(:db)
@@ -53,6 +53,10 @@ class RangeTest < Test::Unit::TestCase
     assert !(2..8).include?(5..9)
   end
 
+  def test_should_include_identical_exclusive_with_floats
+    assert((1.0...10.0).include?(1.0...10.0))
+  end
+
   def test_blockless_step
     assert_equal [1,3,5,7,9], (1..10).step(2)
   end
@@ -66,5 +70,17 @@ class RangeTest < Test::Unit::TestCase
   def test_cover_is_not_override
     range = (1..3)
     assert range.method(:include?) != range.method(:cover?)
+  end
+
+  def test_overlaps_on_time
+    time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
+    time_range_2 = Time.utc(2005, 12, 10, 17, 00)..Time.utc(2005, 12, 10, 18, 00)
+    assert time_range_1.overlaps?(time_range_2)
+  end
+
+  def test_no_overlaps_on_time
+    time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
+    time_range_2 = Time.utc(2005, 12, 10, 17, 31)..Time.utc(2005, 12, 10, 18, 00)
+    assert !time_range_1.overlaps?(time_range_2)
   end
 end

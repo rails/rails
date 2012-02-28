@@ -21,7 +21,9 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 == License
 
-Railties is released under the MIT license.
+Railties is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
 
 == Support
 

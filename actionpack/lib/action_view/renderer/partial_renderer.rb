@@ -85,8 +85,7 @@ module ActionView
   # == Rendering objects that respond to `to_partial_path`
   #
   # Instead of explicitly naming the location of a partial, you can also let PartialRenderer do the work
-  # and pick the proper path by checking `to_proper_path` method. If the object passed to render is a collection,
-  # all objects must return the same path.
+  # and pick the proper path by checking `to_partial_path` method.
   #
   #  # @account.to_partial_path returns 'accounts/account', so it can be used to replace:
   #  # <%= render :partial => "accounts/account", :locals => { :account => @account} %>

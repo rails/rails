@@ -8,12 +8,13 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    attr_reader :columns, :rows
+    attr_reader :columns, :rows, :column_types
 
     def initialize(columns, rows)
-      @columns   = columns
-      @rows      = rows
-      @hash_rows = nil
+      @columns      = columns
+      @rows         = rows
+      @hash_rows    = nil
+      @column_types = {}
     end
 
     def each
@@ -22,6 +23,31 @@ module ActiveRecord
 
     def to_hash
       hash_rows
+    end
+
+    alias :map! :map
+    alias :collect! :map
+
+    def empty?
+      rows.empty?
+    end
+
+    def to_ary
+      hash_rows
+    end
+
+    def [](idx)
+      hash_rows[idx]
+    end
+
+    def last
+      hash_rows.last
+    end
+
+    def initialize_copy(other)
+      @columns   = columns.dup
+      @rows      = rows.dup
+      @hash_rows = nil
     end
 
     private

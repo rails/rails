@@ -2,7 +2,7 @@ require 'isolation/abstract_unit'
 require 'rack/test'
 
 module ApplicationTests
-  class AssetDebuggingTest < Test::Unit::TestCase
+  class AssetDebuggingTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 

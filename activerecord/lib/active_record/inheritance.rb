@@ -6,17 +6,21 @@ module ActiveRecord
 
     included do
       # Determine whether to store the full constant name including namespace when using STI
-      class_attribute :store_full_sti_class
+      config_attribute :store_full_sti_class
       self.store_full_sti_class = true
     end
 
     module ClassMethods
       # True if this isn't a concrete subclass needing a STI type condition.
       def descends_from_active_record?
-        if superclass.abstract_class?
-          superclass.descends_from_active_record?
+        sup = active_record_super
+
+        if sup.abstract_class?
+          sup.descends_from_active_record?
+        elsif self == Base
+          false
         else
-          superclass == Base || !columns_hash.include?(inheritance_column)
+          [Base, Model].include?(sup) || !columns_hash.include?(inheritance_column)
         end
       end
 
@@ -58,7 +62,7 @@ module ActiveRecord
       # Finder methods must instantiate through this method to work with the
       # single-table inheritance model that makes it possible to create
       # objects of different types from the same table.
-      def instantiate(record)
+      def instantiate(record, column_types = {})
         sti_class = find_sti_class(record[inheritance_column])
         record_id = sti_class.primary_key && record[sti_class.primary_key]
 
@@ -73,10 +77,20 @@ module ActiveRecord
             IdentityMap.add(instance)
           end
         else
-          instance = sti_class.allocate.init_with('attributes' => record)
+          column_types = sti_class.decorate_columns(column_types)
+          instance = sti_class.allocate.init_with('attributes' => record,
+                                                  'column_types' => column_types)
         end
 
         instance
+      end
+
+      # For internal use.
+      #
+      # If this class includes ActiveRecord::Model then it won't have a
+      # superclass. So this provides a way to get to the 'root' (ActiveRecord::Model).
+      def active_record_super #:nodoc:
+        superclass < Model ? superclass : Model
       end
 
       protected
@@ -84,12 +98,15 @@ module ActiveRecord
       # Returns the class descending directly from ActiveRecord::Base or an
       # abstract class, if any, in the inheritance hierarchy.
       def class_of_active_record_descendant(klass)
-        if klass == Base || klass.superclass == Base || klass.superclass.abstract_class?
-          klass
-        elsif klass.superclass.nil?
+        unless klass < Model
           raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
+        end
+
+        sup = klass.active_record_super
+        if [Base, Model].include?(klass) || [Base, Model].include?(sup) || sup.abstract_class?
+          klass
         else
-          class_of_active_record_descendant(klass.superclass)
+          class_of_active_record_descendant(sup)
         end
       end
 

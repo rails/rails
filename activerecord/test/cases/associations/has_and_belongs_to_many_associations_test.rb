@@ -679,7 +679,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_join_table_alias
-    assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL').size
+    assert_equal(
+      3,
+      Developer.find(
+        :all, :include => {:projects => :developers}, :references => :developers_projects_join,
+        :conditions => 'developers_projects_join.joined_on IS NOT NULL'
+      ).size
+    )
   end
 
   def test_join_with_group
@@ -689,7 +695,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     end
     Project.columns.each { |c| group << "projects.#{c.name}" }
 
-    assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL', :group => group.join(",")).size
+    assert_equal(
+      3,
+      Developer.find(
+        :all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL',
+        :references => :developers_projects_join, :group => group.join(",")
+      ).size
+    )
   end
 
   def test_find_grouped

@@ -78,9 +78,9 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "found templates respects given formats if one cannot be found from template or handler" do
-    ActionView::Template::Handlers::ERB.expects(:default_format).returns(nil)
+    ActionView::Template::Handlers::Builder.expects(:default_format).returns(nil)
     @lookup_context.formats = [:text]
-    template = @lookup_context.find("hello_world", %w(test))
+    template = @lookup_context.find("hello", %w(test))
     assert_equal [:text], template.formats
   end
 

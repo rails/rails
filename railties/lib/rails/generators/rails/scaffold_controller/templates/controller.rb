@@ -54,8 +54,8 @@ class <%= controller_class_name %>Controller < ApplicationController
     end
   end
 
-  # PUT <%= route_url %>/1
-  # PUT <%= route_url %>/1.json
+  # PATCH/PUT <%= route_url %>/1
+  # PATCH/PUT <%= route_url %>/1.json
   def update
     @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
 

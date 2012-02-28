@@ -1,6 +1,6 @@
 require 'isolation/abstract_unit'
 
-class ConsoleTest < Test::Unit::TestCase
+class ConsoleTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
 
   def setup

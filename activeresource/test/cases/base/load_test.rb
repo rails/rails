@@ -32,7 +32,7 @@ module Highrise
 end
 
 
-class BaseLoadTest < Test::Unit::TestCase
+class BaseLoadTest < ActiveSupport::TestCase
   def setup
     @matz  = { :id => 1, :name => 'Matz' }
 

@@ -4,7 +4,7 @@ require "stringio"
 require "rack/test"
 
 module RailtiesTest
-  class EngineTest < Test::Unit::TestCase
+  class EngineTest < ActiveSupport::TestCase
 
     include ActiveSupport::Testing::Isolation
     include SharedTests
@@ -149,46 +149,6 @@ module RailtiesTest
 
       get("/bukkits/foo")
       assert_equal "foo", last_response.body
-    end
-
-    test "engine can load its own plugins" do
-      @plugin.write "lib/bukkits.rb", <<-RUBY
-        module Bukkits
-          class Engine < ::Rails::Engine
-          end
-        end
-      RUBY
-
-      @plugin.write "vendor/plugins/yaffle/init.rb", <<-RUBY
-        config.yaffle_loaded = true
-      RUBY
-
-      boot_rails
-
-      assert Bukkits::Engine.config.yaffle_loaded
-    end
-
-    test "engine does not load plugins that already exists in application" do
-      @plugin.write "lib/bukkits.rb", <<-RUBY
-        module Bukkits
-          class Engine < ::Rails::Engine
-          end
-        end
-      RUBY
-
-      @plugin.write "vendor/plugins/yaffle/init.rb", <<-RUBY
-        config.engine_yaffle_loaded = true
-      RUBY
-
-      app_file "vendor/plugins/yaffle/init.rb", <<-RUBY
-        config.app_yaffle_loaded = true
-      RUBY
-
-      warnings = capture(:stderr) { boot_rails }
-
-      assert !warnings.empty?
-      assert !Bukkits::Engine.config.respond_to?(:engine_yaffle_loaded)
-      assert Rails.application.config.app_yaffle_loaded
     end
 
     test "it loads its environment file" do

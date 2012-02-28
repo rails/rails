@@ -25,29 +25,29 @@ module ActiveResource
   #
   # == Automated mapping
   #
-  # Active Resource objects represent your RESTful resources as manipulatable Ruby objects.  To map resources
+  # Active Resource objects represent your RESTful resources as manipulatable Ruby objects. To map resources
   # to Ruby objects, Active Resource only needs a class name that corresponds to the resource name (e.g., the class
   # Person maps to the resources people, very similarly to Active Record) and a +site+ value, which holds the
   # URI of the resources.
   #
   #   class Person < ActiveResource::Base
-  #     self.site = "http://api.people.com:3000/"
+  #     self.site = "https://api.people.com"
   #   end
   #
-  # Now the Person class is mapped to RESTful resources located at <tt>http://api.people.com:3000/people/</tt>, and
+  # Now the Person class is mapped to RESTful resources located at <tt>https://api.people.com/people/</tt>, and
   # you can now use Active Resource's life cycle methods to manipulate resources. In the case where you already have
   # an existing model with the same name as the desired RESTful resource you can set the +element_name+ value.
   #
   #   class PersonResource < ActiveResource::Base
-  #     self.site = "http://api.people.com:3000/"
+  #     self.site = "https://api.people.com"
   #     self.element_name = "person"
   #   end
   #
   # If your Active Resource object is required to use an HTTP proxy you can set the +proxy+ value which holds a URI.
   #
   #   class PersonResource < ActiveResource::Base
-  #     self.site = "http://api.people.com:3000/"
-  #     self.proxy = "http://user:password@proxy.people.com:8080"
+  #     self.site = "https://api.people.com"
+  #     self.proxy = "https://user:password@proxy.people.com:8080"
   #   end
   #
   #
@@ -103,7 +103,7 @@ module ActiveResource
   # You can validate resources client side by overriding validation methods in the base class.
   #
   #   class Person < ActiveResource::Base
-  #      self.site = "http://api.people.com:3000/"
+  #      self.site = "https://api.people.com"
   #      protected
   #        def validate
   #          errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
@@ -114,47 +114,64 @@ module ActiveResource
   #
   # == Authentication
   #
-  # Many REST APIs will require authentication, usually in the form of basic
-  # HTTP authentication.  Authentication can be specified by:
+  # Many REST APIs require authentication. The HTTP spec describes two ways to
+  # make requests with a username and password (see RFC 2617).
   #
-  # === HTTP Basic Authentication
-  # * putting the credentials in the URL for the +site+ variable.
+  # Basic authentication simply sends a username and password along with HTTP
+  # requests. These sensitive credentials are sent unencrypted, visible to
+  # any onlooker, so this scheme should only be used with SSL.
+  #
+  # Digest authentication sends a crytographic hash of the username, password,
+  # HTTP method, URI, and a single-use secret key provided by the server.
+  # Sensitive credentials aren't visible to onlookers, so digest authentication
+  # doesn't require SSL. However, this doesn't mean the connection is secure!
+  # Just the username and password.
+  #
+  # (You really, really want to use SSL. There's little reason not to.)
+  #
+  # === Picking an authentication scheme
+  #
+  # Basic authentication is the default. To switch to digest authentication,
+  # set +auth_type+ to +:digest+:
   #
   #    class Person < ActiveResource::Base
-  #      self.site = "http://ryan:password@api.people.com:3000/"
+  #      self.auth_type = :digest
   #    end
   #
-  # * defining +user+ and/or +password+ variables
+  # === Setting the username and password
+  #
+  # Set +user+ and +password+ on the class, or include them in the +site+ URL.
   #
   #    class Person < ActiveResource::Base
-  #      self.site = "http://api.people.com:3000/"
+  #      # Set user and password directly:
   #      self.user = "ryan"
   #      self.password = "password"
+  #
+  #      # Or include them in the site:
+  #      self.site = "https://ryan:password@api.people.com"
   #    end
-  #
-  # For obvious security reasons, it is probably best if such services are available
-  # over HTTPS.
-  #
-  # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses
-  # as usernames.  In those situations you should use the separate user and password option.
   #
   # === Certificate Authentication
   #
-  # * End point uses an X509 certificate for authentication. <tt>See ssl_options=</tt> for all options.
+  # You can also authenticate using an X509 certificate. <tt>See ssl_options=</tt> for all options.
   #
   #    class Person < ActiveResource::Base
   #      self.site = "https://secure.api.people.com/"
-  #      self.ssl_options = {:cert         => OpenSSL::X509::Certificate.new(File.open(pem_file))
-  #                          :key          => OpenSSL::PKey::RSA.new(File.open(pem_file)),
-  #                          :ca_path      => "/path/to/OpenSSL/formatted/CA_Certs",
-  #                          :verify_mode  => OpenSSL::SSL::VERIFY_PEER}
+  #
+  #      File.open(pem_file_path, 'rb') do |pem_file|
+  #        self.ssl_options = {
+  #          cert:        OpenSSL::X509::Certificate.new(pem_file),
+  #          key:         OpenSSL::PKey::RSA.new(pem_file),
+  #          ca_path:     "/path/to/OpenSSL/formatted/CA_Certs",
+  #          verify_mode: OpenSSL::SSL::VERIFY_PEER }
+  #      end
   #    end
   #
   #
   # == Errors & Validation
   #
   # Error handling and validation is handled in much the same manner as you're used to seeing in
-  # Active Record.  Both the response code in the HTTP response and the body of the response are used to
+  # Active Record. Both the response code in the HTTP response and the body of the response are used to
   # indicate that an error occurred.
   #
   # === Resource errors
@@ -163,7 +180,7 @@ module ActiveResource
   # response code will be returned from the server which will raise an ActiveResource::ResourceNotFound
   # exception.
   #
-  #   # GET http://api.people.com:3000/people/999.json
+  #   # GET https://api.people.com/people/999.json
   #   ryan = Person.find(999) # 404, raises ActiveResource::ResourceNotFound
   #
   #
@@ -185,7 +202,7 @@ module ActiveResource
   # * Other - ActiveResource::ConnectionError
   #
   # These custom exceptions allow you to deal with resource errors more naturally and with more precision
-  # rather than returning a general HTTP error.  For example:
+  # rather than returning a general HTTP error. For example:
   #
   #   begin
   #     ryan = Person.find(my_id)
@@ -199,7 +216,7 @@ module ActiveResource
   # an ActiveResource::MissingPrefixParam will be raised.
   #
   #  class Comment < ActiveResource::Base
-  #    self.site = "http://someip.com/posts/:post_id/"
+  #    self.site = "https://someip.com/posts/:post_id"
   #  end
   #
   #  Comment.find(1)
@@ -208,8 +225,8 @@ module ActiveResource
   # === Validation errors
   #
   # Active Resource supports validations on resources and will return errors if any of these validations fail
-  # (e.g., "First name can not be blank" and so on).  These types of errors are denoted in the response by
-  # a response code of <tt>422</tt> and an XML or JSON representation of the validation errors.  The save operation will
+  # (e.g., "First name can not be blank" and so on). These types of errors are denoted in the response by
+  # a response code of <tt>422</tt> and an XML or JSON representation of the validation errors. The save operation will
   # then fail (with a <tt>false</tt> return value) and the validation errors can be accessed on the resource in question.
   #
   #   ryan = Person.find(1)
@@ -217,19 +234,28 @@ module ActiveResource
   #   ryan.save  # => false
   #
   #   # When
-  #   # PUT http://api.people.com:3000/people/1.json
+  #   # PUT https://api.people.com/people/1.xml
   #   # or
-  #   # PUT http://api.people.com:3000/people/1.json
+  #   # PUT https://api.people.com/people/1.json
   #   # is requested with invalid values, the response is:
   #   #
   #   # Response (422):
   #   # <errors><error>First cannot be empty</error></errors>
   #   # or
-  #   # {"errors":["First cannot be empty"]}
+  #   # {"errors":{"first":["cannot be empty"]}}
   #   #
   #
   #   ryan.errors.invalid?(:first)  # => true
   #   ryan.errors.full_messages     # => ['First cannot be empty']
+  #
+  # For backwards-compatibility with older endpoints, the following formats are also supported in JSON responses:
+  #
+  #   # {"errors":['First cannot be empty']}
+  #   #   This was the required format for previous versions of ActiveResource
+  #   # {"first":["cannot be empty"]}
+  #   #   This was the default format produced by respond_with in ActionController <3.2.1
+  #
+  # Parsing either of these formats will result in a deprecation warning.
   #
   # Learn more about Active Resource's validation features in the ActiveResource::Validations documentation.
   #
@@ -240,7 +266,7 @@ module ActiveResource
   # amount of time before Active Resource times out with the +timeout+ variable.
   #
   #   class Person < ActiveResource::Base
-  #     self.site = "http://api.people.com:3000/"
+  #     self.site = "https://api.people.com"
   #     self.timeout = 5
   #   end
   #
@@ -383,22 +409,22 @@ module ActiveResource
         @known_attributes ||= []
       end
 
-      # Gets the URI of the REST resources to map for this class.  The site variable is required for
+      # Gets the URI of the REST resources to map for this class. The site variable is required for
       # Active Resource's mapping to work.
       def site
         # Not using superclass_delegating_reader because don't want subclasses to modify superclass instance
         #
         # With superclass_delegating_reader
         #
-        #   Parent.site = 'http://anonymous@test.com'
-        #   Subclass.site # => 'http://anonymous@test.com'
+        #   Parent.site = 'https://anonymous@test.com'
+        #   Subclass.site # => 'https://anonymous@test.com'
         #   Subclass.site.user = 'david'
-        #   Parent.site # => 'http://david@test.com'
+        #   Parent.site # => 'https://david@test.com'
         #
         # Without superclass_delegating_reader (expected behavior)
         #
-        #   Parent.site = 'http://anonymous@test.com'
-        #   Subclass.site # => 'http://anonymous@test.com'
+        #   Parent.site = 'https://anonymous@test.com'
+        #   Subclass.site # => 'https://anonymous@test.com'
         #   Subclass.site.user = 'david' # => TypeError: can't modify frozen object
         #
         if defined?(@site)
@@ -562,6 +588,12 @@ module ActiveResource
 
       def headers
         @headers ||= {}
+        
+        if superclass != Object && superclass.headers
+          @headers = superclass.headers.merge(@headers)
+        else
+          @headers
+        end
       end
 
       attr_writer :element_name
@@ -592,7 +624,7 @@ module ActiveResource
         prefix(options)
       end
 
-      # An attribute reader for the source string for the resource path \prefix.  This
+      # An attribute reader for the source string for the resource path \prefix. This
       # method is regenerated at runtime based on what the \prefix is set to.
       def prefix_source
         prefix # generate #prefix and #prefix_source methods first
@@ -625,7 +657,7 @@ module ActiveResource
       alias_method :set_element_name, :element_name=  #:nodoc:
       alias_method :set_collection_name, :collection_name=  #:nodoc:
 
-      # Gets the element path for the given ID in +id+.  If the +query_options+ parameter is omitted, Rails
+      # Gets the element path for the given ID in +id+. If the +query_options+ parameter is omitted, Rails
       # will split from the \prefix options.
       #
       # ==== Options
@@ -638,7 +670,7 @@ module ActiveResource
       #   # => /posts/1.json
       #
       #   class Comment < ActiveResource::Base
-      #     self.site = "http://37s.sunrise.i/posts/:post_id/"
+      #     self.site = "https://37s.sunrise.com/posts/:post_id"
       #   end
       #
       #   Comment.element_path(1, :post_id => 5)
@@ -668,7 +700,7 @@ module ActiveResource
       #   # => /posts/new.json
       #
       #   class Comment < ActiveResource::Base
-      #     self.site = "http://37s.sunrise.i/posts/:post_id/"
+      #     self.site = "https://37s.sunrise.com/posts/:post_id"
       #   end
       #
       #   Comment.collection_path(:post_id => 5)
@@ -677,7 +709,7 @@ module ActiveResource
         "#{prefix(prefix_options)}#{collection_name}/new.#{format.extension}"
       end
 
-      # Gets the collection path for the REST resources.  If the +query_options+ parameter is omitted, Rails
+      # Gets the collection path for the REST resources. If the +query_options+ parameter is omitted, Rails
       # will split from the +prefix_options+.
       #
       # ==== Options
@@ -725,8 +757,8 @@ module ActiveResource
       #   ryan = Person.new(:first => 'ryan')
       #   ryan.save
       #
-      # Returns the newly created resource.  If a failure has occurred an
-      # exception will be raised (see <tt>save</tt>).  If the resource is invalid and
+      # Returns the newly created resource. If a failure has occurred an
+      # exception will be raised (see <tt>save</tt>). If the resource is invalid and
       # has not been saved then <tt>valid?</tt> will return <tt>false</tt>,
       # while <tt>new?</tt> will still return <tt>true</tt>.
       #
@@ -747,11 +779,11 @@ module ActiveResource
         self.new(attributes).tap { |resource| resource.save }
       end
 
-      # Core method for finding resources.  Used similarly to Active Record's +find+ method.
+      # Core method for finding resources. Used similarly to Active Record's +find+ method.
       #
       # ==== Arguments
-      # The first argument is considered to be the scope of the query.  That is, how many
-      # resources are returned from the request.  It can be one of the following.
+      # The first argument is considered to be the scope of the query. That is, how many
+      # resources are returned from the request. It can be one of the following.
       #
       # * <tt>:one</tt> - Returns a single resource.
       # * <tt>:first</tt> - Returns the first resource found.
@@ -834,7 +866,7 @@ module ActiveResource
         find(:last, *args)
       end
 
-      # This is an alias for find(:all).  You can pass in all the same
+      # This is an alias for find(:all). You can pass in all the same
       # arguments to this method as you can to <tt>find(:all)</tt>
       def all(*args)
         find(:all, *args)
@@ -939,12 +971,12 @@ module ActiveResource
 
         # Accepts a URI and creates the site URI from that.
         def create_site_uri_from(site)
-          site.is_a?(URI) ? site.dup : URI.parser.parse(site)
+          site.is_a?(URI) ? site.dup : URI.parse(site)
         end
 
         # Accepts a URI and creates the proxy URI from that.
         def create_proxy_uri_from(proxy)
-          proxy.is_a?(URI) ? proxy.dup : URI.parser.parse(proxy)
+          proxy.is_a?(URI) ? proxy.dup : URI.parse(proxy)
         end
 
         # contains a set of the current prefix parameters.
@@ -1015,7 +1047,7 @@ module ActiveResource
     #   not_ryan.new?  # => true
     #
     # Any active resource member attributes will NOT be cloned, though all other
-    # attributes are.  This is to prevent the conflict between any +prefix_options+
+    # attributes are. This is to prevent the conflict between any +prefix_options+
     # that refer to the original parent resource and the newly cloned parent
     # resource that does not exist.
     #
@@ -1031,7 +1063,7 @@ module ActiveResource
       # Clone all attributes except the pk and any nested ARes
       cloned = Hash[attributes.reject {|k,v| k == self.class.primary_key || v.is_a?(ActiveResource::Base)}.map { |k, v| [k, v.clone] }]
       # Form the new resource - bypass initialize of resource with 'new' as that will call 'load' which
-      # attempts to convert hashes into member objects and arrays into collections of objects.  We want
+      # attempts to convert hashes into member objects and arrays into collections of objects. We want
       # the raw objects to be cloned so we bypass load by directly setting the attributes hash.
       resource = self.class.new({})
       resource.prefix_options = self.prefix_options
@@ -1083,7 +1115,7 @@ module ActiveResource
       attributes[self.class.primary_key] = id
     end
 
-    # Test for equality.  Resource are equal if and only if +other+ is the same object or
+    # Test for equality. Resource are equal if and only if +other+ is the same object or
     # is an instance of the same class, is not <tt>new?</tt>, and has the same +id+.
     #
     # ==== Examples
@@ -1139,7 +1171,7 @@ module ActiveResource
       end
     end
 
-    # Saves (+POST+) or \updates (+PUT+) a resource.  Delegates to +create+ if the object is \new,
+    # Saves (+POST+) or \updates (+PUT+) a resource. Delegates to +create+ if the object is \new,
     # +update+ if it exists. If the response to the \save includes a body, it will be assumed that this body
     # is Json for the final object as it looked after the \save (which would include attributes like +created_at+
     # that weren't part of the original submit).
@@ -1190,7 +1222,7 @@ module ActiveResource
     end
 
     # Evaluates to <tt>true</tt> if this resource is not <tt>new?</tt> and is
-    # found on the remote service.  Using this method, you can check for
+    # found on the remote service. Using this method, you can check for
     # resources that may have been deleted between the object's instantiation
     # and actions on it.
     #
@@ -1232,7 +1264,7 @@ module ActiveResource
     end
 
     # A method to manually load attributes from a \hash. Recursively loads collections of
-    # resources.  This method is called in +initialize+ and +create+ when a \hash of attributes
+    # resources. This method is called in +initialize+ and +create+ when a \hash of attributes
     # is provided.
     #
     # ==== Examples
@@ -1289,12 +1321,12 @@ module ActiveResource
     #
     # Note: Unlike ActiveRecord::Base.update_attribute, this method <b>is</b>
     # subject to normal validation routines as an update sends the whole body
-    # of the resource in the request.  (See Validations).
+    # of the resource in the request. (See Validations).
     #
     # As such, this method is equivalent to calling update_attributes with a single attribute/value pair.
     #
     # If the saving fails because of a connection or remote service error, an
-    # exception will be raised.  If saving fails because the resource is
+    # exception will be raised. If saving fails because the resource is
     # invalid then <tt>false</tt> will be returned.
     def update_attribute(name, value)
       self.send("#{name}=".to_sym, value)
@@ -1305,7 +1337,7 @@ module ActiveResource
     # and requests that the record be saved.
     #
     # If the saving fails because of a connection or remote service error, an
-    # exception will be raised.  If saving fails because the resource is
+    # exception will be raised. If saving fails because the resource is
     # invalid then <tt>false</tt> will be returned.
     #
     # Note: Though this request can be made with a partial set of the

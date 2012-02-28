@@ -8,11 +8,10 @@ require "fixtures/proxy"
 require "fixtures/address"
 require "fixtures/subscription_plan"
 require 'active_support/json'
-require 'active_support/ordered_hash'
 require 'active_support/core_ext/hash/conversions'
 require 'mocha'
 
-class BaseTest < Test::Unit::TestCase
+class BaseTest < ActiveSupport::TestCase
   def setup
     setup_response # find me in abstract_unit
     @original_person_site = Person.site
@@ -438,6 +437,41 @@ class BaseTest < Test::Unit::TestCase
     assert_not_equal(first_connection, second_connection, 'Connection should be re-created')
   end
 
+  def test_header_inheritance
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    fruit.site = 'http://market'
+
+    fruit.headers['key'] = 'value'
+    assert_equal 'value', apple.headers['key']
+  end
+
+  def test_header_inheritance_set_at_multiple_points
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    fruit.site = 'http://market'
+
+    fruit.headers['key'] = 'value'
+    assert_equal 'value', apple.headers['key']
+
+    apple.headers['key2'] = 'value2'
+    fruit.headers['key3'] = 'value3'
+
+    assert_equal 'value', apple.headers['key']
+    assert_equal 'value2', apple.headers['key2']
+    assert_equal 'value3', apple.headers['key3']
+  end
+
+  def test_header_inheritance_should_not_leak_upstream
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    fruit.site = 'http://market'
+
+    fruit.headers['key'] = 'value'
+
+    apple.headers['key2'] = 'value2'
+    assert_equal nil, fruit.headers['key2']
+  end
 
   ########################################################################
   # Tests for setting up remote URLs for a given model (including adding
@@ -464,8 +498,7 @@ class BaseTest < Test::Unit::TestCase
     assert Person.collection_path(:gender => 'male', :student => true).include?('student=true')
 
     assert_equal '/people.json?name%5B%5D=bob&name%5B%5D=your+uncle%2Bme&name%5B%5D=&name%5B%5D=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
-
-    assert_equal '/people.json?struct%5Ba%5D%5B%5D=2&struct%5Ba%5D%5B%5D=1&struct%5Bb%5D=fred', Person.collection_path(:struct => ActiveSupport::OrderedHash[:a, [2,1], 'b', 'fred'])
+    assert_equal '/people.json?struct%5Ba%5D%5B%5D=2&struct%5Ba%5D%5B%5D=1&struct%5Bb%5D=fred', Person.collection_path(:struct => {:a => [2,1], 'b' => 'fred'})
   end
 
   def test_custom_element_path

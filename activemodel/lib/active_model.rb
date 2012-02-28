@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2011 David Heinemeier Hansson
+# Copyright (c) 2004-2012 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -32,6 +32,7 @@ module ActiveModel
   autoload :AttributeMethods
   autoload :BlockValidator, 'active_model/validator'
   autoload :Callbacks
+  autoload :Configuration
   autoload :Conversion
   autoload :Dirty
   autoload :EachValidator, 'active_model/validator'

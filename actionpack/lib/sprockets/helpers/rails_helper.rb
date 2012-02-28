@@ -19,9 +19,9 @@ module Sprockets
 
       def javascript_include_tag(*sources)
         options = sources.extract_options!
-        debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
-        body  = options.key?(:body)  ? options.delete(:body)  : false
-        digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
+        debug   = options.delete(:debug)  { debug_assets? }
+        body    = options.delete(:body)   { false }
+        digest  = options.delete(:digest) { digest_assets? }
 
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
@@ -36,9 +36,9 @@ module Sprockets
 
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!
-        debug   = options.key?(:debug) ? options.delete(:debug) : debug_assets?
-        body    = options.key?(:body)  ? options.delete(:body)  : false
-        digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
+        debug   = options.delete(:debug)  { debug_assets? }
+        body    = options.delete(:body)   { false }
+        digest  = options.delete(:digest) { digest_assets? }
 
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
@@ -63,13 +63,18 @@ module Sprockets
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
-      def javascript_path(source)
+      def font_path(source)
         path_to_asset(source)
+      end
+      alias_method :path_to_font, :font_path # aliased to avoid conflicts with an font_path named route
+
+      def javascript_path(source)
+        path_to_asset(source, :ext => 'js')
       end
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with an javascript_path named route
 
       def stylesheet_path(source)
-        path_to_asset(source)
+        path_to_asset(source, :ext => 'css')
       end
       alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with an stylesheet_path named route
 
@@ -113,11 +118,6 @@ module Sprockets
         attr_accessor :asset_environment, :asset_prefix, :asset_digests, :compile_assets, :digest_assets
 
         class AssetNotPrecompiledError < StandardError; end
-
-        # Return the filesystem path for the source
-        def compute_source_path(source, ext)
-          asset_for(source, ext)
-        end
 
         def asset_for(source, ext)
           source = source.to_s

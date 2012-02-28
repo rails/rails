@@ -9,7 +9,7 @@ module Fun
     end
 
     def nested_partial_with_form_builder
-      render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {}, Proc.new {})
+      render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
     end
   end
 end
@@ -54,7 +54,7 @@ class TestController < ActionController::Base
 
   def conditional_hello_with_record
     record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
-    
+
     if stale?(record)
       render :action => 'hello_world'
     end
@@ -88,6 +88,16 @@ class TestController < ActionController::Base
 
   def conditional_hello_with_expires_in_with_public
     expires_in 1.minute, :public => true
+    render :action => 'hello_world'
+  end
+
+  def conditional_hello_with_expires_in_with_must_revalidate
+    expires_in 1.minute, :must_revalidate => true
+    render :action => 'hello_world'
+  end
+
+  def conditional_hello_with_expires_in_with_public_and_must_revalidate
+    expires_in 1.minute, :public => true, :must_revalidate => true
     render :action => 'hello_world'
   end
 
@@ -558,11 +568,11 @@ class TestController < ActionController::Base
   end
 
   def partial_with_form_builder
-    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {}, Proc.new {})
+    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
   end
 
   def partial_with_form_builder_subclass
-    render :partial => LabellingFormBuilder.new(:post, nil, view_context, {}, Proc.new {})
+    render :partial => LabellingFormBuilder.new(:post, nil, view_context, {})
   end
 
   def partial_collection
@@ -649,10 +659,6 @@ class TestController < ActionController::Base
     render :action => "calling_partial_with_layout", :layout => "layouts/partial_with_layout"
   end
 
-  def rescue_action(e)
-    raise
-  end
-
   before_filter :only => :render_with_filters do
     request.format = :xml
   end
@@ -696,7 +702,8 @@ class RenderTest < ActionController::TestCase
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
     super
-    @controller.logger = Logger.new(nil)
+    @controller.logger      = ActiveSupport::Logger.new(nil)
+    ActionView::Base.logger = ActiveSupport::Logger.new(nil)
 
     @request.host = "www.nextangle.com"
   end
@@ -891,12 +898,12 @@ class RenderTest < ActionController::TestCase
 
   # :ported:
   def test_attempt_to_access_object_method
-    assert_raise(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
+    assert_raise(AbstractController::ActionNotFound, "No action responded to [clone]") { get :clone }
   end
 
   # :ported:
   def test_private_methods
-    assert_raise(ActionController::UnknownAction, "No action responded to [determine_layout]") { get :determine_layout }
+    assert_raise(AbstractController::ActionNotFound, "No action responded to [determine_layout]") { get :determine_layout }
   end
 
   # :ported:
@@ -907,7 +914,7 @@ class RenderTest < ActionController::TestCase
 
   def test_access_to_logger_in_view
     get :accessing_logger_in_template
-    assert_equal "Logger", @response.body
+    assert_equal "ActiveSupport::Logger", @response.body
   end
 
   # :ported:
@@ -1096,15 +1103,15 @@ class RenderTest < ActionController::TestCase
 
   # :ported:
   def test_double_render
-    assert_raise(ActionController::DoubleRenderError) { get :double_render }
+    assert_raise(AbstractController::DoubleRenderError) { get :double_render }
   end
 
   def test_double_redirect
-    assert_raise(ActionController::DoubleRenderError) { get :double_redirect }
+    assert_raise(AbstractController::DoubleRenderError) { get :double_redirect }
   end
 
   def test_render_and_redirect
-    assert_raise(ActionController::DoubleRenderError) { get :render_and_redirect }
+    assert_raise(AbstractController::DoubleRenderError) { get :render_and_redirect }
   end
 
   # specify the one exception to double render rule - render_to_string followed by render
@@ -1402,6 +1409,16 @@ class ExpiresInRenderTest < ActionController::TestCase
     assert_equal "max-age=60, public", @response.headers["Cache-Control"]
   end
 
+  def test_expires_in_header_with_must_revalidate
+    get :conditional_hello_with_expires_in_with_must_revalidate
+    assert_equal "max-age=60, private, must-revalidate", @response.headers["Cache-Control"]
+  end
+
+  def test_expires_in_header_with_public_and_must_revalidate
+    get :conditional_hello_with_expires_in_with_public_and_must_revalidate
+    assert_equal "max-age=60, public, must-revalidate", @response.headers["Cache-Control"]
+  end
+
   def test_expires_in_header_with_additional_headers
     get :conditional_hello_with_expires_in_with_public_with_more_keys
     assert_equal "max-age=60, public, max-stale=18000", @response.headers["Cache-Control"]
@@ -1415,6 +1432,13 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_expires_now
     get :conditional_hello_with_expires_now
     assert_equal "no-cache", @response.headers["Cache-Control"]
+  end
+
+  def test_date_header_when_expires_in
+    time = Time.mktime(2011,10,30)
+    Time.stubs(:now).returns(time)
+    get :conditional_hello_with_expires_in
+    assert_equal Time.now.httpdate, @response.headers["Date"]
   end
 end
 

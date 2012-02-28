@@ -191,6 +191,15 @@ module ActionDispatch
         value
       end
 
+      # Whether the given cookie is to be deleted by this CookieJar.
+      # Like <tt>[]=</tt>, you can pass in an options hash to test if a
+      # deletion applies to a specific <tt>:path</tt>, <tt>:domain</tt> etc.
+      def deleted?(key, options = {})
+        options.symbolize_keys!
+        handle_options(options)
+        @delete_cookies[key.to_s] == options
+      end
+
       # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
       def clear(options = {})
         @cookies.each_key{ |k| delete(k, options) }

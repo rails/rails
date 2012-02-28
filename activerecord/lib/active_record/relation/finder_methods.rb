@@ -134,7 +134,7 @@ module ActiveRecord
     def last(*args)
       if args.any?
         if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
-          if order_values.empty? && reorder_value.nil?
+          if order_values.empty?
             order("#{primary_key} DESC").limit(*args).reverse
           else
             to_a.last(*args)
@@ -187,7 +187,7 @@ module ActiveRecord
     def exists?(id = false)
       return false if id.nil?
 
-      id = id.id if ActiveRecord::Base === id
+      id = id.id if ActiveRecord::Model === id
 
       join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
@@ -200,7 +200,7 @@ module ActiveRecord
         relation = relation.where(table[primary_key].eq(id)) if id
       end
 
-      connection.select_value(relation, "#{name} Exists") ? true : false
+      connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
     end
 
     protected
@@ -208,7 +208,7 @@ module ActiveRecord
     def find_with_associations
       join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
-      rows = connection.select_all(relation, 'SQL', relation.bind_values)
+      rows = connection.select_all(relation, 'SQL', relation.bind_values.dup)
       join_dependency.instantiate(rows)
     rescue ThrowResult
       []
@@ -331,7 +331,7 @@ module ActiveRecord
 
       substitute = connection.substitute_at(column, @bind_values.length)
       relation = where(table[primary_key].eq(substitute))
-      relation.bind_values = [[column, id]]
+      relation.bind_values += [[column, id]]
       record = relation.first
 
       unless record

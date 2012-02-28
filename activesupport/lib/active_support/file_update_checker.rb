@@ -1,4 +1,3 @@
-require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/array/extract_options"
 
 module ActiveSupport
@@ -113,7 +112,7 @@ module ActiveSupport
     end
 
     def compile_ext(array) #:nodoc:
-      array = Array.wrap(array)
+      array = Array(array)
       return if array.empty?
       ".{#{array.join(",")}}"
     end

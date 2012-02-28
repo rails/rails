@@ -3,7 +3,7 @@ require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
 
-class TestJSONEncoding < Test::Unit::TestCase
+class TestJSONEncoding < ActiveSupport::TestCase
   class Foo
     def initialize(a, b)
       @a, @b = a, b
@@ -37,6 +37,10 @@ class TestJSONEncoding < Test::Unit::TestCase
 
   ArrayTests    = [[ ['a', 'b', 'c'],          %([\"a\",\"b\",\"c\"])          ],
                    [ [1, 'a', :b, nil, false], %([1,\"a\",\"b\",null,false]) ]]
+
+  RangeTests    = [[ 1..2,     %("1..2")],
+                   [ 1...2,    %("1...2")],
+                   [ 1.5..2.5, %("1.5..2.5")]]
 
   SymbolTests   = [[ :a,     %("a")    ],
                    [ :this,  %("this") ],
@@ -91,11 +95,11 @@ class TestJSONEncoding < Test::Unit::TestCase
   def test_utf8_string_encoded_properly
     result = ActiveSupport::JSON.encode('€2.99')
     assert_equal '"\\u20ac2.99"', result
-    assert_equal(Encoding::UTF_8, result.encoding) if result.respond_to?(:encoding)
+    assert_equal(Encoding::UTF_8, result.encoding)
 
     result = ActiveSupport::JSON.encode('✎☺')
     assert_equal '"\\u270e\\u263a"', result
-    assert_equal(Encoding::UTF_8, result.encoding) if result.respond_to?(:encoding)
+    assert_equal(Encoding::UTF_8, result.encoding)
   end
 
   def test_non_utf8_string_transcodes

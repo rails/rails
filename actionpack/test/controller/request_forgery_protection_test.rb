@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'digest/sha1'
-require 'active_support/core_ext/string/strip'
 require "active_support/log_subscriber/test_helper"
 
 # common controller actions
@@ -36,8 +35,6 @@ module RequestForgeryProtectionActions
   def form_for_without_protection
     render :inline => "<%= form_for(:some_resource, :authenticity_token => false ) {} %>"
   end
-
-  def rescue_action(e) raise e end
 end
 
 # sample controllers
@@ -74,9 +71,7 @@ class CustomAuthenticityParamController < RequestForgeryProtectionController
   end
 end
 
-
 # common test methods
-
 module RequestForgeryProtectionTests
   def setup
     @token      = "cf50faa3fe97702ca1ae"
@@ -119,6 +114,10 @@ module RequestForgeryProtectionTests
     assert_blocked { post :index, :format=>'xml' }
   end
 
+  def test_should_not_allow_patch_without_token
+    assert_blocked { patch :index }
+  end
+
   def test_should_not_allow_put_without_token
     assert_blocked { put :index }
   end
@@ -133,6 +132,10 @@ module RequestForgeryProtectionTests
 
   def test_should_allow_post_with_token
     assert_not_blocked { post :index, :custom_authenticity_token => @token }
+  end
+
+  def test_should_allow_patch_with_token
+    assert_not_blocked { patch :index, :custom_authenticity_token => @token }
   end
 
   def test_should_allow_put_with_token
@@ -151,6 +154,11 @@ module RequestForgeryProtectionTests
   def test_should_allow_delete_with_token_in_header
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { delete :index }
+  end
+
+  def test_should_allow_patch_with_token_in_header
+    @request.env['HTTP_X_CSRF_TOKEN'] = @token
+    assert_not_blocked { patch :index }
   end
 
   def test_should_allow_put_with_token_in_header
@@ -237,7 +245,7 @@ class FreeCookieControllerTest < ActionController::TestCase
   end
 
   def test_should_allow_all_methods_without_token
-    [:post, :put, :delete].each do |method|
+    [:post, :patch, :put, :delete].each do |method|
       assert_nothing_raised { send(method, :index)}
     end
   end
@@ -247,10 +255,6 @@ class FreeCookieControllerTest < ActionController::TestCase
     assert_blank @response.body
   end
 end
-
-
-
-
 
 class CustomAuthenticityParamControllerTest < ActionController::TestCase
   def setup

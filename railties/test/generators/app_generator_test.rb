@@ -32,7 +32,6 @@ DEFAULT_APP_FILES = %w(
   test/unit
   vendor
   vendor/assets
-  vendor/plugins
   tmp/cache
   tmp/cache/assets
 )
@@ -203,6 +202,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+    assert_file "config/application.rb", /#\s+config\.active_record\.dependent_restrict_raises = false/
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
@@ -230,14 +230,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/performance/browsing_test.rb"
   end
 
-  def test_inclusion_of_therubyrhino_under_jruby
+  def test_inclusion_of_javascript_runtime
     run_generator([destination_root])
     if defined?(JRUBY_VERSION)
       assert_file "Gemfile", /gem\s+["']therubyrhino["']$/
     else
-      assert_file "Gemfile" do |content|
-        assert_no_match(/gem\s+["']therubyrhino["']$/, content)
-      end
+      assert_file "Gemfile", /# gem\s+["']therubyracer["']$/
     end
   end
 
@@ -350,6 +348,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_no_match %r(auto_explain_threshold_in_seconds), file
       end
     end
+  end
+
+  def test_active_record_dependent_restrict_raises_is_present_application_config
+    run_generator
+    assert_file "config/application.rb", /config\.active_record\.dependent_restrict_raises = false/
+  end
+
+  def test_pretend_option
+    output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
+    assert_no_match(/run  bundle install/, output)
   end
 
 protected

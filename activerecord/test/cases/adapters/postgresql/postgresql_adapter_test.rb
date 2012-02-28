@@ -179,6 +179,17 @@ module ActiveRecord
         assert_equal Arel.sql('$2'), bind
       end
 
+      def test_partial_index
+        @connection.add_index 'ex', %w{ id number }, :name => 'partial', :where => "number > 100"
+        index = @connection.indexes('ex').find { |idx| idx.name == 'partial' }
+        assert_equal "(number > 100)", index.where
+      end
+
+      def test_distinct_with_nulls
+        assert_equal "DISTINCT posts.title, posts.updater_id AS alias_0", @connection.distinct("posts.title", ["posts.updater_id desc nulls first"])
+        assert_equal "DISTINCT posts.title, posts.updater_id AS alias_0", @connection.distinct("posts.title", ["posts.updater_id desc nulls last"])
+      end
+
       private
       def insert(ctx, data)
         binds   = data.map { |name, value|

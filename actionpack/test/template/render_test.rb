@@ -51,6 +51,18 @@ module RenderTestCases
     assert_match "<error>No Comment</error>", @view.render(:template => "comments/empty", :formats => [:xml])
   end
 
+  def test_render_partial_implicitly_use_format_of_the_rendered_template
+    @view.lookup_context.formats = [:json]
+    assert_equal "Hello world", @view.render(:template => "test/one", :formats => [:html])
+  end
+
+  def test_render_template_with_a_missing_partial_of_another_format
+    @view.lookup_context.formats = [:html]
+    assert_raise ActionView::Template::Error, "Missing partial /missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
+      @view.render(:template => "with_format", :formats => [:json])
+    end
+  end
+
   def test_render_file_with_locale
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(:file => "comments/empty", :locale => [:de])
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(:file => "comments/empty", :locale => :de)
@@ -299,6 +311,12 @@ module RenderTestCases
     ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
+  
+  def test_render_knows_about_types_registered_when_extensions_are_checked_earlier_in_initialization
+    ActionView::Template::Handlers.extensions
+    ActionView::Template.register_template_handler :foo, CustomHandler
+    assert ActionView::Template::Handlers.extensions.include?(:foo)
+  end
 
   def test_render_ignores_templates_with_malformed_template_handlers
     ActiveSupport::Deprecation.silence do
@@ -410,51 +428,49 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     GC.start
   end
 
-  if '1.9'.respond_to?(:force_encoding)
-    def test_render_utf8_template_with_magic_comment
-      with_external_encoding Encoding::ASCII_8BIT do
-        result = @view.render(:file => "test/utf8_magic", :formats => [:html], :layouts => "layouts/yield")
-        assert_equal Encoding::UTF_8, result.encoding
-        assert_equal "\nРусский \nтекст\n\nUTF-8\nUTF-8\nUTF-8\n", result
+  def test_render_utf8_template_with_magic_comment
+    with_external_encoding Encoding::ASCII_8BIT do
+      result = @view.render(:file => "test/utf8_magic", :formats => [:html], :layouts => "layouts/yield")
+      assert_equal Encoding::UTF_8, result.encoding
+      assert_equal "\nРусский \nтекст\n\nUTF-8\nUTF-8\nUTF-8\n", result
+    end
+  end
+
+  def test_render_utf8_template_with_default_external_encoding
+    with_external_encoding Encoding::UTF_8 do
+      result = @view.render(:file => "test/utf8", :formats => [:html], :layouts => "layouts/yield")
+      assert_equal Encoding::UTF_8, result.encoding
+      assert_equal "Русский текст\n\nUTF-8\nUTF-8\nUTF-8\n", result
+    end
+  end
+
+  def test_render_utf8_template_with_incompatible_external_encoding
+    with_external_encoding Encoding::SHIFT_JIS do
+      begin
+        @view.render(:file => "test/utf8", :formats => [:html], :layouts => "layouts/yield")
+        flunk 'Should have raised incompatible encoding error'
+      rescue ActionView::Template::Error => error
+        assert_match 'Your template was not saved as valid Shift_JIS', error.original_exception.message
       end
     end
+  end
 
-    def test_render_utf8_template_with_default_external_encoding
-      with_external_encoding Encoding::UTF_8 do
-        result = @view.render(:file => "test/utf8", :formats => [:html], :layouts => "layouts/yield")
-        assert_equal Encoding::UTF_8, result.encoding
-        assert_equal "Русский текст\n\nUTF-8\nUTF-8\nUTF-8\n", result
+  def test_render_utf8_template_with_partial_with_incompatible_encoding
+    with_external_encoding Encoding::SHIFT_JIS do
+      begin
+        @view.render(:file => "test/utf8_magic_with_bare_partial", :formats => [:html], :layouts => "layouts/yield")
+        flunk 'Should have raised incompatible encoding error'
+      rescue ActionView::Template::Error => error
+        assert_match 'Your template was not saved as valid Shift_JIS', error.original_exception.message
       end
     end
+  end
 
-    def test_render_utf8_template_with_incompatible_external_encoding
-      with_external_encoding Encoding::SHIFT_JIS do
-        begin
-          @view.render(:file => "test/utf8", :formats => [:html], :layouts => "layouts/yield")
-          flunk 'Should have raised incompatible encoding error'
-        rescue ActionView::Template::Error => error
-          assert_match 'Your template was not saved as valid Shift_JIS', error.original_exception.message
-        end
-      end
-    end
-
-    def test_render_utf8_template_with_partial_with_incompatible_encoding
-      with_external_encoding Encoding::SHIFT_JIS do
-        begin
-          @view.render(:file => "test/utf8_magic_with_bare_partial", :formats => [:html], :layouts => "layouts/yield")
-          flunk 'Should have raised incompatible encoding error'
-        rescue ActionView::Template::Error => error
-          assert_match 'Your template was not saved as valid Shift_JIS', error.original_exception.message
-        end
-      end
-    end
-
-    def with_external_encoding(encoding)
-      old = Encoding.default_external
-      silence_warnings { Encoding.default_external = encoding }
-      yield
-    ensure
-      silence_warnings { Encoding.default_external = old }
-    end
+  def with_external_encoding(encoding)
+    old = Encoding.default_external
+    silence_warnings { Encoding.default_external = encoding }
+    yield
+  ensure
+    silence_warnings { Encoding.default_external = old }
   end
 end

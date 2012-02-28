@@ -8,6 +8,7 @@ require 'active_support/core_ext/array/extract_options'
 
 require 'rails/application'
 require 'rails/version'
+require 'rails/deprecation'
 
 require 'active_support/railtie'
 require 'action_dispatch/railtie'
@@ -77,7 +78,11 @@ module Rails
     end
 
     def cache
-      RAILS_CACHE
+      @@cache ||= nil
+    end
+
+    def cache=(cache)
+      @@cache = cache
     end
 
     # Returns all rails groups for loading based on:

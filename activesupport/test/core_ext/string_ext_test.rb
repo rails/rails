@@ -17,7 +17,7 @@ module Ace
   end
 end
 
-class StringInflectionsTest < Test::Unit::TestCase
+class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
 
@@ -297,7 +297,7 @@ class StringInflectionsTest < Test::Unit::TestCase
   end
 end
 
-class StringBehaviourTest < Test::Unit::TestCase
+class StringBehaviourTest < ActiveSupport::TestCase
   def test_acts_like_string
     assert 'Bambi'.acts_like_string?
   end
@@ -445,7 +445,9 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test 'knows whether it is encoding aware' do
-    assert 'ruby'.encoding_aware?
+    assert_deprecated do
+      assert 'ruby'.encoding_aware?
+    end
   end
 
   test "call to_param returns a normal string" do

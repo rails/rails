@@ -25,7 +25,7 @@ module ActiveRecord
       if match = (DynamicFinderMatch.match(method_id) || DynamicScopeMatch.match(method_id))
         attribute_names = match.attribute_names
         super unless all_attributes_exists?(attribute_names)
-        if arguments.size < attribute_names.size
+        unless match.valid_arguments?(arguments)
           method_trace = "#{__FILE__}:#{__LINE__}:in `#{method_id}'"
           backtrace = [method_trace] + caller
           raise ArgumentError, "wrong number of arguments (#{arguments.size} for #{attribute_names.size})", backtrace

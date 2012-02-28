@@ -228,7 +228,7 @@ module Rails
   #     resources :articles
   #   end
   #
-  # The routes above will automatically point to <tt>MyEngine::ApplicationController</tt>. Furthermore, you don't
+  # The routes above will automatically point to <tt>MyEngine::ArticlesController</tt>. Furthermore, you don't
   # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you should simply use
   # <tt>articles_path</tt> as you would do with your application.
   #
@@ -300,7 +300,7 @@ module Rails
   #     helper MyEngine::SharedEngineHelper
   #   end
   #
-  # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
+  # If you want to include all of the engine's helpers, you can use #helper method on an engine's
   # instance:
   #
   #   class ApplicationController < ActionController::Base
@@ -326,7 +326,7 @@ module Rails
   # migration in the application and rerun copying migrations.
   #
   # If your engine has migrations, you may also want to prepare data for the database in
-  # the <tt>seeds.rb</tt> file. You can load that data using the <tt>load_seed</tt> method, e.g.
+  # the <tt>db/seeds.rb</tt> file. You can load that data using the <tt>load_seed</tt> method, e.g.
   #
   #   MyEngine::Engine.load_seed
   #

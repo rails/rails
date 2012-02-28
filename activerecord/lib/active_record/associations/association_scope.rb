@@ -10,17 +10,17 @@ module ActiveRecord
 
       def initialize(association)
         @association   = association
-        @alias_tracker = AliasTracker.new
+        @alias_tracker = AliasTracker.new klass.connection
       end
 
       def scope
         scope = klass.unscoped
-        scope = scope.extending(*Array.wrap(options[:extend]))
+        scope = scope.extending(*Array(options[:extend]))
 
         # It's okay to just apply all these like this. The options will only be present if the
         # association supports that option; this is enforced by the association builder.
         scope = scope.apply_finder_options(options.slice(
-          :readonly, :include, :order, :limit, :joins, :group, :having, :offset, :select))
+          :readonly, :include, :references, :order, :limit, :joins, :group, :having, :offset, :select))
 
         if options[:through] && !options[:include]
           scope = scope.includes(source_options[:include])
@@ -32,6 +32,23 @@ module ActiveRecord
       end
 
       private
+
+      def column_for(table_name, column_name)
+        columns = alias_tracker.connection.schema_cache.columns_hash[table_name]
+        columns[column_name]
+      end
+
+      def bind_value(scope, column, value)
+        substitute = alias_tracker.connection.substitute_at(
+          column, scope.bind_values.length)
+        scope.bind_values += [[column, value]]
+        substitute
+      end
+
+      def bind(scope, table_name, column_name, value)
+        column   = column_for table_name, column_name
+        bind_value scope, column, value
+      end
 
       def add_constraints(scope)
         tables = construct_tables
@@ -67,10 +84,13 @@ module ActiveRecord
           conditions = self.conditions[i]
 
           if reflection == chain.last
-            scope = scope.where(table[key].eq(owner[foreign_key]))
+            bind_val = bind scope, table.table_name, key.to_s, owner[foreign_key]
+            scope    = scope.where(table[key].eq(bind_val))
 
             if reflection.type
-              scope = scope.where(table[reflection.type].eq(owner.class.base_class.name))
+              value    = owner.class.base_class.name
+              bind_val = bind scope, table.table_name, reflection.type.to_s, value
+              scope    = scope.where(table[reflection.type].eq(bind_val))
             end
 
             conditions.each do |condition|
@@ -90,8 +110,11 @@ module ActiveRecord
 
             scope = scope.joins(join(foreign_table, constraint))
 
-            unless conditions.empty?
-              scope = scope.where(sanitize(conditions, table))
+            conditions.each do |condition|
+              condition = interpolate(condition)
+              condition = { (table.table_alias || table.name) => condition } unless i == 0
+
+              scope = scope.where(condition)
             end
           end
         end

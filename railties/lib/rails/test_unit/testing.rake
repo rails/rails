@@ -45,7 +45,7 @@ end
 
 task :default => :test
 
-desc 'Runs test:units, test:functionals, test:integration together (also available: test:benchmark, test:profile, test:plugins)'
+desc 'Runs test:units, test:functionals, test:integration together (also available: test:benchmark, test:profile)'
 task :test do
   Rake::Task[ENV['TEST'] ? 'test:single' : 'test:run'].invoke
 end
@@ -55,7 +55,21 @@ namespace :test do
     # Placeholder task for other Railtie and plugins to enhance. See Active Record for an example.
   end
 
-  task :run => %w(test:units test:functionals test:integration)
+  task :run do
+    errors = %w(test:units test:functionals test:integration).collect do |task|
+      begin
+        Rake::Task[task].invoke
+        nil
+      rescue => e
+        { :task => task, :exception => e }
+      end
+    end.compact
+
+    if errors.any?
+      puts errors.map { |e| "Errors running #{e[:task]}! #{e[:exception].inspect}" }.join("\n")
+      abort
+    end
+  end
 
   Rake::TestTask.new(:recent => "test:prepare") do |t|
     since = TEST_CHANGES_SINCE
@@ -118,15 +132,5 @@ namespace :test do
   Rails::SubTestTask.new(:profile => 'test:prepare') do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
-  end
-
-  Rails::SubTestTask.new(:plugins => :environment) do |t|
-    t.libs << "test"
-
-    if ENV['PLUGIN']
-      t.pattern = "vendor/plugins/#{ENV['PLUGIN']}/test/**/*_test.rb"
-    else
-      t.pattern = 'vendor/plugins/*/**/test/**/*_test.rb'
-    end
   end
 end

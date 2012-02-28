@@ -6,7 +6,7 @@ require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/conversions'
 require 'active_support/inflections'
 
-class HashExtTest < Test::Unit::TestCase
+class HashExtTest < ActiveSupport::TestCase
   class IndifferentHash < HashWithIndifferentAccess
   end
 
@@ -523,7 +523,7 @@ class IWriteMyOwnXML
   end
 end
 
-class HashExtToParamTests < Test::Unit::TestCase
+class HashExtToParamTests < ActiveSupport::TestCase
   class ToParam < String
     def to_param
       "#{self}-1"
@@ -554,7 +554,7 @@ class HashExtToParamTests < Test::Unit::TestCase
   end
 end
 
-class HashToXmlTest < Test::Unit::TestCase
+class HashToXmlTest < ActiveSupport::TestCase
   def setup
     @xml_options = { :root => :person, :skip_instruct => true, :indent => 0 }
   end

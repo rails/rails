@@ -210,7 +210,7 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
   end
 end
 
-class NamingHelpersTest < Test::Unit::TestCase
+class NamingHelpersTest < ActiveModel::TestCase
   def setup
     @klass  = Contact
     @record = @klass.new
@@ -276,7 +276,7 @@ class NamingHelpersTest < Test::Unit::TestCase
     end
 end
 
-class NameWithAnonymousClassTest < Test::Unit::TestCase
+class NameWithAnonymousClassTest < ActiveModel::TestCase
   def test_anonymous_class_without_name_argument
     assert_raises(ArgumentError) do
       ActiveModel::Name.new(Class.new)

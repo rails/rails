@@ -614,7 +614,7 @@ As shown in the example, you can also combine standard validations with your own
 
 h4. Custom Methods
 
-You can also create methods that verify the state of your models and add messages to the +errors+ collection when they are invalid. You must then register these methods by using one or more of the +validate+, +validate_on_create+ or +validate_on_update+ class methods, passing in the symbols for the validation methods' names.
+You can also create methods that verify the state of your models and add messages to the +errors+ collection when they are invalid. You must then register these methods by using the +validate+ class method, passing in the symbols for the validation methods' names.
 
 You can pass more than one symbol for each class method and the respective validations will be run in the same order as they were registered.
 
@@ -637,12 +637,24 @@ class Invoice < ActiveRecord::Base
 end
 </ruby>
 
+By default such validations will run every time you call +valid?+. It is also possible to control when to run these custom validations by giving an +:on+ option to the +validate+ method, with either: +:create+ or +:update+.
+
+<ruby>
+class Invoice < ActiveRecord::Base
+  validate :active_customer, :on => :create
+
+  def active_customer
+    errors.add(:customer_id, "is not active") unless customer.active?
+  end
+end
+</ruby>
+
 You can even create your own validation helpers and reuse them in several different models. For example, an application that manages surveys may find it useful to express that a certain field corresponds to a set of choices:
 
 <ruby>
 ActiveRecord::Base.class_eval do
   def self.validates_as_choice(attr_name, n, options={})
-    validates attr_name, :inclusion => { {:in => 1..n}.merge(options) }
+    validates attr_name, :inclusion => { { :in => 1..n }.merge!(options) }
   end
 end
 </ruby>
@@ -659,11 +671,11 @@ h3. Working with Validation Errors
 
 In addition to the +valid?+ and +invalid?+ methods covered earlier, Rails provides a number of methods for working with the +errors+ collection and inquiring about the validity of objects.
 
-The following is a list of the most commonly used methods. Please refer to the +ActiveRecord::Errors+ documentation for a list of all the available methods.
+The following is a list of the most commonly used methods. Please refer to the +ActiveModel::Errors+ documentation for a list of all the available methods.
 
 h4(#working_with_validation_errors-errors). +errors+
 
-Returns an instance of the class +ActiveModel::Errors+ (which behaves like an ordered hash) containing all errors. Each key is the attribute name and the value is an array of strings with all errors.
+Returns an instance of the class +ActiveModel::Errors+ containing all errors. Each key is the attribute name and the value is an array of strings with all errors.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -889,13 +901,8 @@ Below is a simple example where we change the Rails behavior to always display t
 
 <ruby>
 ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
-  if instance.error_message.kind_of?(Array)
-    %(#{html_tag}<span class="validation-error">&nbsp;
-      #{instance.error_message.join(',')}</span>).html_safe
-  else
-    %(#{html_tag}<span class="validation-error">&nbsp;
-      #{instance.error_message}</span>).html_safe
-  end
+  errors = Array(instance.error_message).join(',')
+  %(#{html_tag}<span class="validation-error">&nbsp;#{errors}</span>).html_safe
 end
 </ruby>
 
@@ -949,6 +956,7 @@ h4. Creating an Object
 * +before_validation+
 * +after_validation+
 * +before_save+
+* +around_save+
 * +before_create+
 * +around_create+
 * +after_create+
@@ -959,6 +967,7 @@ h4. Updating an Object
 * +before_validation+
 * +after_validation+
 * +before_save+
+* +around_save+
 * +before_update+
 * +around_update+
 * +after_update+
@@ -967,8 +976,8 @@ h4. Updating an Object
 h4. Destroying an Object
 
 * +before_destroy+
-* +after_destroy+
 * +around_destroy+
+* +after_destroy+
 
 WARNING. +after_save+ runs both on create and update, but always _after_ the more specific callbacks +after_create+ and +after_update+, no matter the order in which the macro calls were executed.
 
@@ -1013,7 +1022,7 @@ The following methods trigger callbacks:
 * +increment!+
 * +save+
 * +save!+
-* +save(false)+
+* +save(:validate => false)+
 * +toggle!+
 * +update+
 * +update_attribute+

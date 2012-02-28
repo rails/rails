@@ -76,9 +76,9 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def munge(base64_string)
-    bits = ActiveSupport::Base64.decode64(base64_string)
+    bits = ::Base64.decode64(base64_string)
     bits.reverse!
-    ActiveSupport::Base64.encode64s(bits)
+    ::Base64.strict_encode64(bits)
   end
 end
 

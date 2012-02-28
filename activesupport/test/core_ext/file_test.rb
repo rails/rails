@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/file'
 
-class AtomicWriteTest < Test::Unit::TestCase
+class AtomicWriteTest < ActiveSupport::TestCase
   def test_atomic_write_without_errors
     contents = "Atomic Text"
     File.atomic_write(file_name, Dir.pwd) do |file|
@@ -55,10 +55,6 @@ class AtomicWriteTest < Test::Unit::TestCase
     assert_equal contents, File.read(file_name)
   ensure
     File.unlink(file_name) rescue nil
-  end
-
-  def test_responds_to_to_path
-    assert_equal __FILE__, File.open(__FILE__, "r").to_path
   end
 
   private

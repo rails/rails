@@ -6,13 +6,12 @@ require 'active_support/core_ext/object/with_options'
 class MilestonesController < ActionController::Base
   def index() head :ok end
   alias_method :show, :index
-  def rescue_action(e) raise e end
 end
 
 ROUTING = ActionDispatch::Routing
 
 # See RFC 3986, section 3.3 for allowed path characters.
-class UriReservedCharactersRoutingTest < Test::Unit::TestCase
+class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
   include RoutingTestHelpers
 
   def setup
@@ -72,35 +71,142 @@ class MockController
   end
 end
 
-class LegacyRouteSetTests < Test::Unit::TestCase
+class LegacyRouteSetTests < ActiveSupport::TestCase
   include RoutingTestHelpers
+  include ActionDispatch::RoutingVerbs
 
   attr_reader :rs
+  alias :routes :rs
 
   def setup
-    @rs = ::ActionDispatch::Routing::RouteSet.new
+    @rs       = ::ActionDispatch::Routing::RouteSet.new
+    @response = nil
+  end
+
+  def test_symbols_with_dashes
+    rs.draw do
+      match '/:artist/:song-omg', :to => lambda { |env|
+        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = JSON.load get(URI('http://example.org/journey/faithfully-omg'))
+    assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
+  end
+
+  def test_id_with_dash
+    rs.draw do
+      match '/journey/:id', :to => lambda { |env|
+        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = JSON.load get(URI('http://example.org/journey/faithfully-omg'))
+    assert_equal({"id"=>"faithfully-omg"}, hash)
+  end
+
+  def test_dash_with_custom_regexp
+    rs.draw do
+      match '/:artist/:song-omg', :constraints => { :song => /\d+/ }, :to => lambda { |env|
+        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = JSON.load get(URI('http://example.org/journey/123-omg'))
+    assert_equal({"artist"=>"journey", "song"=>"123"}, hash)
+    assert_equal 'Not Found', get(URI('http://example.org/journey/faithfully-omg'))
+  end
+
+  def test_pre_dash
+    rs.draw do
+      match '/:artist/omg-:song', :to => lambda { |env|
+        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = JSON.load get(URI('http://example.org/journey/omg-faithfully'))
+    assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
+  end
+
+  def test_pre_dash_with_custom_regexp
+    rs.draw do
+      match '/:artist/omg-:song', :constraints => { :song => /\d+/ }, :to => lambda { |env|
+        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = JSON.load get(URI('http://example.org/journey/omg-123'))
+    assert_equal({"artist"=>"journey", "song"=>"123"}, hash)
+    assert_equal 'Not Found', get(URI('http://example.org/journey/omg-faithfully'))
+  end
+
+  def test_star_paths_are_greedy
+    rs.draw do
+      match "/*path", :to => lambda { |env|
+        x = env["action_dispatch.request.path_parameters"][:path]
+        [200, {}, [x]]
+      }, :format => false
+    end
+
+    u = URI('http://example.org/foo/bar.html')
+    assert_equal u.path.sub(/^\//, ''), get(u)
+  end
+
+  def test_star_paths_are_greedy_but_not_too_much
+    rs.draw do
+      match "/*path", :to => lambda { |env|
+        x = JSON.dump env["action_dispatch.request.path_parameters"]
+        [200, {}, [x]]
+      }
+    end
+
+    expected = { "path" => "foo/bar", "format" => "html" }
+    u = URI('http://example.org/foo/bar.html')
+    assert_equal expected, JSON.parse(get(u))
+  end
+
+  def test_optional_star_paths_are_greedy
+    rs.draw do
+      match "/(*filters)", :to => lambda { |env|
+        x = env["action_dispatch.request.path_parameters"][:filters]
+        [200, {}, [x]]
+      }, :format => false
+    end
+
+    u = URI('http://example.org/ne_27.065938,-80.6092/sw_25.489856,-82.542794')
+    assert_equal u.path.sub(/^\//, ''), get(u)
+  end
+
+  def test_optional_star_paths_are_greedy_but_not_too_much
+    rs.draw do
+      match "/(*filters)", :to => lambda { |env|
+        x = JSON.dump env["action_dispatch.request.path_parameters"]
+        [200, {}, [x]]
+      }
+    end
+
+    expected = { "filters" => "ne_27.065938,-80.6092/sw_25.489856,-82",
+                 "format"  => "542794" }
+    u = URI('http://example.org/ne_27.065938,-80.6092/sw_25.489856,-82.542794')
+    assert_equal expected, JSON.parse(get(u))
   end
 
   def test_regexp_precidence
     @rs.draw do
       match '/whois/:domain', :constraints => {
         :domain => /\w+\.[\w\.]+/ },
-        :to     => lambda { |env| [200, {}, 'regexp'] }
+        :to     => lambda { |env| [200, {}, %w{regexp}] }
 
-      match '/whois/:id', :to => lambda { |env| [200, {}, 'id'] }
+      match '/whois/:id', :to => lambda { |env| [200, {}, %w{id}] }
     end
 
-    body = @rs.call({'PATH_INFO'      => '/whois/example.org',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'www.example.org'})[2]
-
-    assert_equal 'regexp', body
-
-    body = @rs.call({'PATH_INFO'      => '/whois/123',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'clients.example.org'})[2]
-
-    assert_equal 'id', body
+    assert_equal 'regexp', get(URI('http://example.org/whois/example.org'))
+    assert_equal 'id', get(URI('http://example.org/whois/123'))
   end
 
   def test_class_and_lambda_constraints
@@ -112,46 +218,50 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
     @rs.draw do
       match '/', :constraints => subdomain.new,
-                 :to          => lambda { |env| [200, {}, 'default'] }
+                 :to          => lambda { |env| [200, {}, %w{default}] }
       match '/', :constraints => { :subdomain => 'clients' },
-                 :to          => lambda { |env| [200, {}, 'clients'] }
+                 :to          => lambda { |env| [200, {}, %w{clients}] }
     end
 
-    body = @rs.call({'PATH_INFO'      => '/',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'www.example.org'})[2]
-
-    assert_equal 'default', body
-
-    body = @rs.call({'PATH_INFO'      => '/',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'clients.example.org'})[2]
-
-    assert_equal 'clients', body
+    assert_equal 'default', get(URI('http://www.example.org/'))
+    assert_equal 'clients', get(URI('http://clients.example.org/'))
   end
 
   def test_lambda_constraints
     @rs.draw do
       match '/', :constraints => lambda { |req|
         req.subdomain.present? and req.subdomain != "clients" },
-                 :to          => lambda { |env| [200, {}, 'default'] }
+                 :to          => lambda { |env| [200, {}, %w{default}] }
 
       match '/', :constraints => lambda { |req|
         req.subdomain.present? && req.subdomain == "clients" },
-                 :to          => lambda { |env| [200, {}, 'clients'] }
+                 :to          => lambda { |env| [200, {}, %w{clients}] }
     end
 
-    body = @rs.call({'PATH_INFO'      => '/',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'www.example.org'})[2]
+    assert_equal 'default', get(URI('http://www.example.org/'))
+    assert_equal 'clients', get(URI('http://clients.example.org/'))
+  end
 
-    assert_equal 'default', body
+  def test_empty_string_match
+    rs.draw do
+      get '/:username', :constraints => { :username => /[^\/]+/ },
+                       :to => lambda { |e| [200, {}, ['foo']] }
+    end
+    assert_equal 'Not Found', get(URI('http://example.org/'))
+    assert_equal 'foo', get(URI('http://example.org/hello'))
+  end
 
-    body = @rs.call({'PATH_INFO'      => '/',
-                     'REQUEST_METHOD' => 'GET',
-                     'HTTP_HOST'      => 'clients.example.org'})[2]
-
-    assert_equal 'clients', body
+  def test_non_greedy_glob_regexp
+    params = nil
+    rs.draw do
+      get '/posts/:id(/*filters)', :constraints => { :filters => /.+?/ },
+        :to => lambda { |e|
+        params = e["action_dispatch.request.path_parameters"]
+        [200, {}, ['foo']]
+      }
+    end
+    assert_equal 'foo', get(URI('http://example.org/posts/1/foo.js'))
+    assert_equal({:id=>"1", :filters=>"foo", :format=>"js"}, params)
   end
 
   def test_draw_with_block_arity_one_raises
@@ -181,36 +291,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     @rs.clear!
     @rs.draw { match '/:controller(/:action(/:id))'}
     test_default_setup
-  end
-
-  def test_time_recognition
-    # We create many routes to make situation more realistic
-    @rs = ::ActionDispatch::Routing::RouteSet.new
-    @rs.draw {
-      root :to => "search#new", :as => "frontpage"
-      resources :videos do
-        resources :comments
-        resource  :file,      :controller => 'video_file'
-        resource  :share,     :controller => 'video_shares'
-        resource  :abuse,     :controller => 'video_abuses'
-      end
-      resources :abuses, :controller => 'video_abuses'
-      resources :video_uploads
-      resources :video_visits
-
-      resources :users do
-        resource  :settings
-        resources :videos
-      end
-      resources :channels do
-        resources :videos, :controller => 'channel_videos'
-      end
-      resource  :session
-      resource  :lost_password
-      match 'search' => 'search#index', :as => 'search'
-      resources :pages
-      match ':controller/:action/:id'
-    }
   end
 
   def test_route_with_colon_first
@@ -476,7 +556,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal({ :controller => "content", :action => 'show_page', :id => 'foo' }, rs.recognize_path("/page/foo"))
 
     token = "\321\202\320\265\320\272\321\201\321\202" # 'text' in Russian
-    token.force_encoding(Encoding::BINARY) if token.respond_to?(:force_encoding)
+    token.force_encoding(Encoding::BINARY)
     escaped_token = CGI::escape(token)
 
     assert_equal '/page/' + escaped_token, url_for(rs, { :controller => 'content', :action => 'show_page', :id => token })
@@ -593,11 +673,12 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match '/match' => 'books#get', :via => :get
       match '/match' => 'books#post', :via => :post
       match '/match' => 'books#put', :via => :put
+      match '/match' => 'books#patch', :via => :patch
       match '/match' => 'books#delete', :via => :delete
     end
   end
 
-  %w(GET POST PUT DELETE).each do |request_method|
+  %w(GET PATCH POST PUT DELETE).each do |request_method|
     define_method("test_request_method_recognized_with_#{request_method}") do
       setup_request_method_routes_for(request_method)
       params = rs.recognize_path("/match", :method => request_method)
@@ -980,6 +1061,7 @@ class RouteSetTest < ActiveSupport::TestCase
       post   "/people"     => "people#create"
       get    "/people/:id" => "people#show",  :as => "person"
       put    "/people/:id" => "people#update"
+      patch  "/people/:id" => "people#update"
       delete "/people/:id" => "people#destroy"
     end
 
@@ -992,6 +1074,9 @@ class RouteSetTest < ActiveSupport::TestCase
     params = set.recognize_path("/people/5", :method => :put)
     assert_equal("update", params[:action])
 
+    params = set.recognize_path("/people/5", :method => :patch)
+    assert_equal("update", params[:action])
+
     assert_raise(ActionController::UnknownHttpMethod) {
       set.recognize_path("/people", :method => :bacon)
     }
@@ -1001,6 +1086,10 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal("5", params[:id])
 
     params = set.recognize_path("/people/5", :method => :put)
+    assert_equal("update", params[:action])
+    assert_equal("5", params[:id])
+
+    params = set.recognize_path("/people/5", :method => :patch)
     assert_equal("update", params[:action])
     assert_equal("5", params[:id])
 
@@ -1057,6 +1146,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do
       get "people/:id" => "people#show", :as => "person"
       put "people/:id" => "people#update"
+      patch "people/:id" => "people#update"
       get "people/:id(.:format)" => "people#show"
     end
 
@@ -1065,6 +1155,9 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal("5", params[:id])
 
     params = set.recognize_path("/people/5", :method => :put)
+    assert_equal("update", params[:action])
+
+    params = set.recognize_path("/people/5", :method => :patch)
     assert_equal("update", params[:action])
 
     params = set.recognize_path("/people/5.png", :method => :get)
@@ -1321,7 +1414,20 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
   end
-
+  
+  def test_route_with_subdomain_and_constraints_must_receive_params
+    name_param = nil
+    set.draw do
+      match 'page/:name' => 'pages#show', :constraints => lambda {|request|
+        name_param = request.params[:name]
+        return true
+      }
+    end
+    assert_equal({:controller => 'pages', :action => 'show', :name => 'mypage'},
+      set.recognize_path('http://subdomain.example.org/page/mypage'))
+    assert_equal(name_param, 'mypage')
+  end
+  
   def test_route_requirement_recognize_with_ignore_case
     set.draw do
       match 'page/:name' => 'pages#show',

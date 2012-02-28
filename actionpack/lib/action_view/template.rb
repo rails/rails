@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/kernel/singleton_class'
@@ -122,7 +121,7 @@ module ActionView
       @locals            = details[:locals] || []
       @virtual_path      = details[:virtual_path]
       @updated_at        = details[:updated_at] || Time.now
-      @formats = Array.wrap(format).map { |f| f.is_a?(Mime::Type) ? f.ref : f }
+      @formats           = Array(format).map { |f| f.is_a?(Mime::Type) ? f.ref : f }
     end
 
     # Returns if the underlying handler supports streaming. If so,
@@ -184,7 +183,7 @@ module ActionView
     # before passing the source on to the template engine, leaving a
     # blank line in its stead.
     def encode!
-      return unless source.encoding_aware? && source.encoding == Encoding::BINARY
+      return unless source.encoding == Encoding::BINARY
 
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
@@ -265,20 +264,18 @@ module ActionView
           end
         end_src
 
-        if source.encoding_aware?
-          # Make sure the source is in the encoding of the returned code
-          source.force_encoding(code.encoding)
+        # Make sure the source is in the encoding of the returned code
+        source.force_encoding(code.encoding)
 
-          # In case we get back a String from a handler that is not in
-          # BINARY or the default_internal, encode it to the default_internal
-          source.encode!
+        # In case we get back a String from a handler that is not in
+        # BINARY or the default_internal, encode it to the default_internal
+        source.encode!
 
-          # Now, validate that the source we got back from the template
-          # handler is valid in the default_internal. This is for handlers
-          # that handle encoding but screw up
-          unless source.valid_encoding?
-            raise WrongEncodingError.new(@source, Encoding.default_internal)
-          end
+        # Now, validate that the source we got back from the template
+        # handler is valid in the default_internal. This is for handlers
+        # that handle encoding but screw up
+        unless source.valid_encoding?
+          raise WrongEncodingError.new(@source, Encoding.default_internal)
         end
 
         begin
@@ -291,7 +288,7 @@ module ActionView
             logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
 
-          raise ActionView::Template::Error.new(self, {}, e)
+          raise ActionView::Template::Error.new(self, e)
         end
       end
 
@@ -300,13 +297,12 @@ module ActionView
           e.sub_template_of(self)
           raise e
         else
-          assigns  = view.respond_to?(:assigns) ? view.assigns : {}
           template = self
           unless template.source
             template = refresh(view)
             template.encode!
           end
-          raise Template::Error.new(template, assigns, e)
+          raise Template::Error.new(template, e)
         end
       end
 

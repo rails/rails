@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'active_support/time'
 require 'active_support/json'
 
-class TimeWithZoneTest < Test::Unit::TestCase
+class TimeWithZoneTest < ActiveSupport::TestCase
 
   def setup
     @utc = Time.utc(2000, 1, 1, 0)
@@ -736,7 +736,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     end
 end
 
-class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
+class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   def setup
     @t, @dt = Time.utc(2000), DateTime.civil(2000)
   end

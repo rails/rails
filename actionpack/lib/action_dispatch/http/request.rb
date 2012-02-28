@@ -97,6 +97,12 @@ module ActionDispatch
       HTTP_METHOD_LOOKUP[request_method] == :post
     end
 
+    # Is this a PATCH request?
+    # Equivalent to <tt>request.request_method == :patch</tt>.
+    def patch?
+      HTTP_METHOD_LOOKUP[request_method] == :patch
+    end
+
     # Is this a PUT request?
     # Equivalent to <tt>request.request_method_symbol == :put</tt>.
     def put?
@@ -189,7 +195,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = @env['RAW_POST_DATA']
-        raw_post.force_encoding(Encoding::BINARY) if raw_post.respond_to?(:force_encoding)
+        raw_post.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         @env['rack.input']

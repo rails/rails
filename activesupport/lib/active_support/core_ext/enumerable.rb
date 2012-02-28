@@ -26,13 +26,6 @@ module Enumerable
     end
   end
 
-  # Plucks the value of the passed method for each element and returns the result as an array. Example:
-  #
-  #   people.pluck(:name) # => [ "David Heinemeier Hansson", "Jamie Heinemeier Hansson" ]
-  def pluck(method)
-    collect { |element| element.send(method) }
-  end
-
   # Convert an enumerable to a hash. Examples:
   #
   #   people.index_by(&:login)

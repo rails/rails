@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2011 David Heinemeier Hansson
+# Copyright (c) 2004-2012 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -43,6 +43,7 @@ module ActiveRecord
     autoload :AutosaveAssociation
 
     autoload :Relation
+    autoload :NullRelation
 
     autoload_under 'relation' do
       autoload :QueryMethods
@@ -57,7 +58,9 @@ module ActiveRecord
 
     autoload :Base
     autoload :Callbacks
+    autoload :Core
     autoload :CounterCache
+    autoload :ConnectionHandling
     autoload :DynamicMatchers
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch
@@ -67,6 +70,7 @@ module ActiveRecord
     autoload :Integration
     autoload :Migration
     autoload :Migrator, 'active_record/migration'
+    autoload :Model
     autoload :ModelSchema
     autoload :NestedAttributes
     autoload :Observer

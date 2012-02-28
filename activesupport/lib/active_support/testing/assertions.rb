@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 
 module ActiveSupport
@@ -45,7 +44,7 @@ module ActiveSupport
       #     post :delete, :id => ...
       #   end
       def assert_difference(expression, difference = 1, message = nil, &block)
-        expressions = Array.wrap expression
+        expressions = Array(expression)
 
         exps = expressions.map { |e|
           e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }

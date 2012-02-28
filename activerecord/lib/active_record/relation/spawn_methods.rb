@@ -22,14 +22,19 @@ module ActiveRecord
         end
       end
 
-      (Relation::MULTI_VALUE_METHODS - [:joins, :where]).each do |method|
+      (Relation::MULTI_VALUE_METHODS - [:joins, :where, :order, :binds]).each do |method|
         value = r.send(:"#{method}_values")
-        merged_relation.send(:"#{method}_values=", merged_relation.send(:"#{method}_values") + value) if value.present?
+        next if value.empty?
+
+        value += merged_relation.send(:"#{method}_values")
+        merged_relation.send :"#{method}_values=", value
       end
 
       merged_relation.joins_values += r.joins_values
 
       merged_wheres = @where_values + r.where_values
+
+      merged_binds = (@bind_values + r.bind_values).uniq(&:first)
 
       unless @where_values.empty?
         # Remove duplicates, last one wins.
@@ -47,8 +52,9 @@ module ActiveRecord
       end
 
       merged_relation.where_values = merged_wheres
+      merged_relation.bind_values = merged_binds
 
-      (Relation::SINGLE_VALUE_METHODS - [:lock, :create_with]).each do |method|
+      (Relation::SINGLE_VALUE_METHODS - [:lock, :create_with, :reordering]).each do |method|
         value = r.send(:"#{method}_value")
         merged_relation.send(:"#{method}_value=", value) unless value.nil?
       end
@@ -56,6 +62,15 @@ module ActiveRecord
       merged_relation.lock_value = r.lock_value unless merged_relation.lock_value
 
       merged_relation = merged_relation.create_with(r.create_with_value) unless r.create_with_value.empty?
+
+      if (r.reordering_value)
+        # override any order specified in the original relation
+        merged_relation.reordering_value = true
+        merged_relation.order_values = r.order_values
+      else
+        # merge in order_values from r
+        merged_relation.order_values += r.order_values
+      end
 
       # Apply scope extension modules
       merged_relation.send :apply_modules, r.extensions
@@ -113,7 +128,7 @@ module ActiveRecord
       result
     end
 
-    VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset, :extend,
+    VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset, :extend, :references,
                            :order, :select, :readonly, :group, :having, :from, :lock ]
 
     def apply_finder_options(options)
@@ -124,7 +139,7 @@ module ActiveRecord
       finders = options.dup
       finders.delete_if { |key, value| value.nil? && key != :limit }
 
-      ([:joins, :select, :group, :order, :having, :limit, :offset, :from, :lock, :readonly] & finders.keys).each do |finder|
+      ((VALID_FIND_OPTIONS - [:conditions, :include, :extend]) & finders.keys).each do |finder|
         relation = relation.send(finder, finders[finder])
       end
 

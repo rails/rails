@@ -20,62 +20,46 @@ module ActiveRecord
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       # (Alias for the protected read_attribute method).
-      alias [] read_attribute
+      def [](attr_name)
+        read_attribute(attr_name)
+      end
 
       # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
       # (Alias for the protected write_attribute method).
-      alias []= write_attribute
-
-      public :[], :[]=
+      def []=(attr_name, value)
+        write_attribute(attr_name, value)
+      end
     end
 
     module ClassMethods
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods
-        return if attribute_methods_generated?
-
-        if base_class == self
+        # Use a mutex; we don't want two thread simaltaneously trying to define
+        # attribute methods.
+        @attribute_methods_mutex.synchronize do
+          return if attribute_methods_generated?
+          superclass.define_attribute_methods unless self == base_class
           super(column_names)
           @attribute_methods_generated = true
-        else
-          base_class.define_attribute_methods
         end
       end
 
       def attribute_methods_generated?
-        if base_class == self
-          @attribute_methods_generated ||= false
-        else
-          base_class.attribute_methods_generated?
-        end
+        @attribute_methods_generated ||= false
       end
 
-      def generated_attribute_methods
-        @generated_attribute_methods ||= (base_class == self ? super : base_class.generated_attribute_methods)
-      end
-
+      # We will define the methods as instance methods, but will call them as singleton
+      # methods. This allows us to use method_defined? to check if the method exists,
+      # which is fast and won't give any false positives from the ancestors (because
+      # there are no ancestors).
       def generated_external_attribute_methods
-        @generated_external_attribute_methods ||= begin
-          if base_class == self
-            # We will define the methods as instance methods, but will call them as singleton
-            # methods. This allows us to use method_defined? to check if the method exists,
-            # which is fast and won't give any false positives from the ancestors (because
-            # there are no ancestors).
-            Module.new { extend self }
-          else
-            base_class.generated_external_attribute_methods
-          end
-        end
+        @generated_external_attribute_methods ||= Module.new { extend self }
       end
 
       def undefine_attribute_methods
-        if base_class == self
-          super
-          @attribute_methods_generated = false
-        else
-          base_class.undefine_attribute_methods
-        end
+        super if attribute_methods_generated?
+        @attribute_methods_generated = false
       end
 
       def instance_method_already_implemented?(method_name)
@@ -83,19 +67,31 @@ module ActiveRecord
           raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord"
         end
 
-        super
+        if [Base, Model].include?(active_record_super)
+          super
+        else
+          # If B < A and A defines its own attribute method, then we don't want to overwrite that.
+          defined = method_defined_within?(method_name, superclass, superclass.generated_attribute_methods)
+          defined && !ActiveRecord::Base.method_defined?(method_name) || super
+        end
       end
 
       # A method name is 'dangerous' if it is already defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'save' is.)
-      def dangerous_attribute_method?(method_name)
-        active_record = ActiveRecord::Base
-        superclass    = ActiveRecord::Base.superclass
+      def dangerous_attribute_method?(name)
+        method_defined_within?(name, Base)
+      end
 
-        (active_record.method_defined?(method_name) ||
-         active_record.private_method_defined?(method_name)) &&
-        !superclass.method_defined?(method_name) &&
-        !superclass.private_method_defined?(method_name)
+      def method_defined_within?(name, klass, sup = klass.superclass)
+        if klass.method_defined?(name) || klass.private_method_defined?(name)
+          if sup.method_defined?(name) || sup.private_method_defined?(name)
+            klass.instance_method(name).owner != sup.instance_method(name).owner
+          else
+            true
+          end
+        else
+          false
+        end
       end
 
       def attribute_method?(attribute)
@@ -198,6 +194,7 @@ module ActiveRecord
 
     # Returns the column object for the named attribute.
     def column_for_attribute(name)
+      # FIXME: should this return a null object for columns that don't exist?
       self.class.columns_hash[name.to_s]
     end
 
@@ -247,7 +244,7 @@ module ActiveRecord
     end
 
     def attribute_method?(attr_name)
-      attr_name == 'id' || (defined?(@attributes) && @attributes.include?(attr_name))
+      defined?(@attributes) && @attributes.include?(attr_name)
     end
   end
 end

@@ -1,31 +1,16 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
-require 'active_support/core_ext/string/encoding'
+require 'arel/visitors/bind_visitor'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
     class SQLiteColumn < Column #:nodoc:
       class <<  self
-        def string_to_binary(value)
-          value.gsub(/\0|\%/n) do |b|
-            case b
-              when "\0" then "%00"
-              when "%"  then "%25"
-            end
-          end
-        end
-
         def binary_to_string(value)
-          if value.respond_to?(:force_encoding) && value.encoding != Encoding::ASCII_8BIT
+          if value.encoding != Encoding::ASCII_8BIT
             value = value.force_encoding(Encoding::ASCII_8BIT)
           end
-
-          value.gsub(/%00|%25/n) do |b|
-            case b
-              when "%00" then "\0"
-              when "%25" then "%"
-            end
-          end
+          value
         end
       end
     end
@@ -84,12 +69,21 @@ module ActiveRecord
         end
       end
 
+      class BindSubstitution < Arel::Visitors::SQLite # :nodoc:
+        include Arel::Visitors::BindVisitor
+      end
+
       def initialize(connection, logger, config)
         super(connection, logger)
         @statements = StatementPool.new(@connection,
                                         config.fetch(:statement_limit) { 1000 })
         @config = config
-        @visitor = Arel::Visitors::SQLite.new self
+
+        if config.fetch(:prepared_statements) { true }
+          @visitor = Arel::Visitors::SQLite.new self
+        else
+          @visitor = BindSubstitution.new self
+        end
       end
 
       def adapter_name #:nodoc:
@@ -201,31 +195,23 @@ module ActiveRecord
         end
       end
 
-      if "<3".encoding_aware?
-        def type_cast(value, column) # :nodoc:
-          return value.to_f if BigDecimal === value
-          return super unless String === value
-          return super unless column && value
+      def type_cast(value, column) # :nodoc:
+        return value.to_f if BigDecimal === value
+        return super unless String === value
+        return super unless column && value
 
-          value = super
-          if column.type == :string && value.encoding == Encoding::ASCII_8BIT
-            @logger.error "Binary data inserted for `string` type on column `#{column.name}`"
-            value.encode! 'utf-8'
-          end
-          value
+        value = super
+        if column.type == :string && value.encoding == Encoding::ASCII_8BIT
+          @logger.error "Binary data inserted for `string` type on column `#{column.name}`"
+          value.encode! 'utf-8'
         end
-      else
-        def type_cast(value, column) # :nodoc:
-          return super unless BigDecimal === value
-
-          value.to_f
-        end
+        value
       end
 
       # DATABASE STATEMENTS ======================================
 
       def explain(arel, binds = [])
-        sql = "EXPLAIN QUERY PLAN #{to_sql(arel)}"
+        sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
         ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
       end
 
@@ -347,7 +333,7 @@ module ActiveRecord
       end
 
       # Returns an array of +SQLiteColumn+ objects for the table specified by +table_name+.
-      def columns(table_name, name = nil) #:nodoc:
+      def columns(table_name) #:nodoc:
         table_structure(table_name).map do |field|
           case field["dflt_value"]
           when /^null$/i
@@ -462,7 +448,7 @@ module ActiveRecord
 
       protected
         def select(sql, name = nil, binds = []) #:nodoc:
-          exec_query(sql, name, binds).to_a
+          exec_query(sql, name, binds)
         end
 
         def table_structure(table_name)

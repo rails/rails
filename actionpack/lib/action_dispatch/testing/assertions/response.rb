@@ -26,16 +26,17 @@ module ActionDispatch
       #   assert_response 401
       #
       def assert_response(type, message = nil)
-        validate_request!
+        message ||= "Expected response to be a <#{type}>, but was <#{@response.response_code}>"
 
-        if type.in?([:success, :missing, :redirect, :error]) && @response.send("#{type}?")
-          assert_block("") { true } # to count the assertion
-        elsif type.is_a?(Fixnum) && @response.response_code == type
-          assert_block("") { true } # to count the assertion
-        elsif type.is_a?(Symbol) && @response.response_code == Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
-          assert_block("") { true } # to count the assertion
+        if Symbol === type
+          if [:success, :missing, :redirect, :error].include?(type)
+            assert @response.send("#{type}?"), message
+          else
+            code = Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
+            assert_equal @response.response_code, code, message
+          end
         else
-          flunk(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code))
+          assert_equal type, @response.response_code, message
         end
       end
 
@@ -61,9 +62,8 @@ module ActionDispatch
         redirect_is       = normalize_argument_to_redirection(@response.location)
         redirect_expected = normalize_argument_to_redirection(options)
 
-        if redirect_is != redirect_expected
-          flunk "Expected response to be a redirect to <#{redirect_expected}> but was a redirect to <#{redirect_is}>"
-        end
+        message ||= "Expected response to be a redirect to <#{redirect_expected}> but was a redirect to <#{redirect_is}>"
+        assert_equal redirect_expected, redirect_is, message
       end
 
       private
@@ -84,12 +84,6 @@ module ActionDispatch
           else
             @controller.url_for(fragment)
           end.gsub(/[\r\n]/, '')
-        end
-
-        def validate_request!
-          unless @request.is_a?(ActionDispatch::Request)
-            raise ArgumentError, "@request must be an ActionDispatch::Request"
-          end
         end
     end
   end

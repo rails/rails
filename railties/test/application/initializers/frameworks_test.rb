@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class FrameworksTest < Test::Unit::TestCase
+  class FrameworksTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -137,7 +137,7 @@ module ApplicationTests
     end
 
     test "assignment config.encoding to default_charset" do
-      charset = "ruby".respond_to?(:force_encoding) ? 'Shift_JIS' : 'UTF8'
+      charset = 'Shift_JIS'
       add_to_config "config.encoding = '#{charset}'"
       require "#{app_path}/config/environment"
       assert_equal charset, ActionDispatch::Response.default_charset

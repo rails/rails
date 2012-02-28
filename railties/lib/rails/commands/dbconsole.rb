@@ -1,10 +1,4 @@
 require 'erb'
-
-begin
-  require 'psych'
-rescue LoadError
-end
-
 require 'yaml'
 require 'optparse'
 require 'rbconfig'

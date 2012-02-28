@@ -32,33 +32,36 @@ module ActionView
       # in the +options+ hash.
       #
       # ==== Options
-      # * <tt>:area_code</tt>  - Adds parentheses around the area code.
-      # * <tt>:delimiter</tt>  - Specifies the delimiter to use (defaults to "-").
-      # * <tt>:extension</tt>  - Specifies an extension to add to the end of the
-      #   generated number.
+      #
+      # * <tt>:area_code</tt>     - Adds parentheses around the area code.
+      # * <tt>:delimiter</tt>     - Specifies the delimiter to use (defaults to "-").
+      # * <tt>:extension</tt>     - Specifies an extension to add to the end of the
+      #                             generated number.
       # * <tt>:country_code</tt>  - Sets the country code for the phone number.
+      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
+      #
       #  number_to_phone(5551234)                                           # => 555-1234
+      #  number_to_phone("5551234")                                         # => 555-1234
       #  number_to_phone(1235551234)                                        # => 123-555-1234
       #  number_to_phone(1235551234, :area_code => true)                    # => (123) 555-1234
       #  number_to_phone(1235551234, :delimiter => " ")                     # => 123 555 1234
       #  number_to_phone(1235551234, :area_code => true, :extension => 555) # => (123) 555-1234 x 555
       #  number_to_phone(1235551234, :country_code => 1)                    # => +1-123-555-1234
+      #  number_to_phone("123a456")                                         # => 123a456
+      #
+      #  number_to_phone("1234a567", :raise => true)                        # => InvalidNumberError
       #
       #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
-      #  => +1.123.555.1234 x 1343
+      #  # => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
         return unless number
+        options = options.symbolize_keys
 
-        begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          raise InvalidNumberError, number
-        end if options[:raise]
+        parse_float(number, true) if options[:raise]
 
         number       = number.to_s.strip
-        options      = options.symbolize_keys
         area_code    = options[:area_code]
         delimiter    = options[:delimiter] || "-"
         extension    = options[:extension]
@@ -68,7 +71,7 @@ module ActionView
           number.gsub!(/(\d{1,3})(\d{3})(\d{4}$)/,"(\\1) \\2#{delimiter}\\3")
         else
           number.gsub!(/(\d{0,3})(\d{3})(\d{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
-          number.slice!(0, 1) if number.starts_with?(delimiter) && !delimiter.blank?
+          number.slice!(0, 1) if number.start_with?(delimiter) && !delimiter.blank?
         end
 
         str = []
@@ -82,6 +85,7 @@ module ActionView
       # in the +options+ hash.
       #
       # ==== Options
+      #
       # * <tt>:locale</tt>           - Sets the locale to be used for formatting (defaults to current locale).
       # * <tt>:precision</tt>        - Sets the level of precision (defaults to 2).
       # * <tt>:unit</tt>             - Sets the denomination of the currency (defaults to "$").
@@ -94,12 +98,17 @@ module ActionView
       #                                an hyphen to the formatted number given by <tt>:format</tt>).
       #                                Accepts the same fields than <tt>:format</tt>, except
       #                                <tt>%n</tt> is here the absolute value of the number.
+      # * <tt>:raise</tt>            - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
+      #
       #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
       #  number_to_currency(1234567890.506)                   # => $1,234,567,890.51
       #  number_to_currency(1234567890.506, :precision => 3)  # => $1,234,567,890.506
       #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,51 €
+      #  number_to_currency("123a456")                        # => $123a456
+      #
+      #  number_to_currency("123a456", :raise => true)        # => InvalidNumberError
       #
       #  number_to_currency(-1234567890.50, :negative_format => "(%u%n)")
       #  # => ($1,234,567,890.50)
@@ -109,13 +118,12 @@ module ActionView
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
         return unless number
+        options = options.symbolize_keys
 
-        options.symbolize_keys!
+        currency = translations_for('currency', options[:locale])
+        currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
 
-        defaults  = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :default => {})
-
-        defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults).merge!(currency)
+        defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults_translations(options[:locale])).merge!(currency)
         defaults[:negative_format] = "-" + options[:format] if options[:format]
         options   = defaults.merge!(options)
 
@@ -138,44 +146,56 @@ module ActionView
             e.number.to_s.html_safe? ? formatted_number.html_safe : formatted_number
           end
         end
-
       end
 
-      # Formats a +number+ as a percentage string (e.g., 65%). You can customize the
-      # format in the +options+ hash.
+      # Formats a +number+ as a percentage string (e.g., 65%). You can customize the format in the +options+ hash.
       #
       # ==== Options
-      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:precision</tt>  - Sets the precision of the number (defaults to 3).
-      # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +false+)
-      # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
-      # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +false+)
+      #
+      # * <tt>:locale</tt>                      - Sets the locale to be used for formatting (defaults to current
+      #                                           locale).
+      # * <tt>:precision</tt>                   - Sets the precision of the number (defaults to 3).
+      # * <tt>:significant</tt>                 - If +true+, precision will be the # of significant_digits. If +false+,
+      #                                           the # of fractional digits (defaults to +false+).
+      # * <tt>:separator</tt>                   - Sets the separator between the fractional and integer digits (defaults
+      #                                           to ".").
+      # * <tt>:delimiter</tt>                   - Sets the thousands delimiter (defaults to "").
+      # * <tt>:strip_insignificant_zeros</tt>   - If +true+ removes insignificant zeros after the decimal separator
+      #                                           (defaults to +false+).
+      # * <tt>:format</tt>                      - Specifies the format of the percentage string
+      #                                           The number field is <tt>%n</tt> (defaults to "%n%").
+      # * <tt>:raise</tt>                       - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
+      #
       #  number_to_percentage(100)                                        # => 100.000%
+      #  number_to_percentage("98")                                       # => 98.000%
       #  number_to_percentage(100, :precision => 0)                       # => 100%
       #  number_to_percentage(1000, :delimiter => '.', :separator => ',') # => 1.000,000%
       #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
       #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
+      #  number_to_percentage("98a")                                      # => 98a%
+      #  number_to_percentage(100, :format => "%n  %")                    # => 100  %
+      #
+      #  number_to_percentage("98a", :raise => true)                      # => InvalidNumberError
       def number_to_percentage(number, options = {})
         return unless number
+        options = options.symbolize_keys
 
-        options.symbolize_keys!
+        defaults = format_translations('percentage', options[:locale])
+        options  = defaults.merge!(options)
 
-        defaults   = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        percentage = I18n.translate(:'number.percentage.format', :locale => options[:locale], :default => {})
-        defaults  = defaults.merge(percentage)
-
-        options = options.reverse_merge(defaults)
+        format = options[:format] || "%n%"
 
         begin
-          "#{number_with_precision(number, options.merge(:raise => true))}%".html_safe
+          value = number_with_precision(number, options.merge(:raise => true))
+          format.gsub(/%n/, value).html_safe
         rescue InvalidNumberError => e
           if options[:raise]
             raise
           else
-            e.number.to_s.html_safe? ? "#{e.number}%".html_safe : "#{e.number}%"
+            formatted_number = format.gsub(/%n/, e.number)
+            e.number.to_s.html_safe? ? formatted_number.html_safe : formatted_number
           end
         end
       end
@@ -184,39 +204,36 @@ module ActionView
       # customize the format in the +options+ hash.
       #
       # ==== Options
+      #
       # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to ",").
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
+      # * <tt>:raise</tt>      - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
+      #
       #  number_with_delimiter(12345678)                        # => 12,345,678
+      #  number_with_delimiter("123456")                        # => 123,456
       #  number_with_delimiter(12345678.05)                     # => 12,345,678.05
       #  number_with_delimiter(12345678, :delimiter => ".")     # => 12.345.678
       #  number_with_delimiter(12345678, :delimiter => ",")     # => 12,345,678
       #  number_with_delimiter(12345678.05, :separator => " ")  # => 12,345,678 05
       #  number_with_delimiter(12345678.05, :locale => :fr)     # => 12 345 678,05
+      #  number_with_delimiter("112a")                          # => 112a
       #  number_with_delimiter(98765432.98, :delimiter => " ", :separator => ",")
       #  # => 98 765 432,98
+      #
+      #  number_with_delimiter("112a", :raise => true)          # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
-        begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
-        end
+        parse_float(number, options[:raise]) or return number
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        options = options.reverse_merge(defaults)
+        options = defaults_translations(options[:locale]).merge(options)
 
         parts = number.to_s.to_str.split('.')
         parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
         parts.join(options[:separator]).html_safe
-
       end
 
       # Formats a +number+ with the specified level of <tt>:precision</tt> (e.g., 112.32 has a precision
@@ -224,12 +241,16 @@ module ActionView
       # You can customize the format in the +options+ hash.
       #
       # ==== Options
-      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:precision</tt>  - Sets the precision of the number (defaults to 3).
-      # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +false+)
-      # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
-      # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +false+)
+      # * <tt>:locale</tt>                     - Sets the locale to be used for formatting (defaults to current locale).
+      # * <tt>:precision</tt>                  - Sets the precision of the number (defaults to 3).
+      # * <tt>:significant</tt>                - If +true+, precision will be the # of significant_digits. If +false+,
+      #                                          the # of fractional digits (defaults to +false+).
+      # * <tt>:separator</tt>                  - Sets the separator between the fractional and integer digits (defaults
+      #                                          to ".").
+      # * <tt>:delimiter</tt>                  - Sets the thousands delimiter (defaults to "").
+      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator
+      #                                          (defaults to +false+).
+      # * <tt>:raise</tt>                      - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       # ==== Examples
       #  number_with_precision(111.2345)                                            # => 111.235
@@ -240,29 +261,21 @@ module ActionView
       #  number_with_precision(111.2345, :precision => 1, :significant => true)     # => 100
       #  number_with_precision(13, :precision => 5, :significant => true)           # => 13.000
       #  number_with_precision(111.234, :locale => :fr)                             # => 111,234
+      #
       #  number_with_precision(13, :precision => 5, :significant => true, :strip_insignificant_zeros => true)
       #  # => 13
+      #
       #  number_with_precision(389.32314, :precision => 4, :significant => true)    # => 389.3
       #  number_with_precision(1111.2345, :precision => 2, :separator => ',', :delimiter => '.')
       #  # => 1.111,23
       def number_with_precision(number, options = {})
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
-        number = begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
-        end
+        number = (parse_float(number, options[:raise]) or return number)
 
-        defaults           = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        precision_defaults = I18n.translate(:'number.precision.format', :locale => options[:locale], :default => {})
-        defaults           = defaults.merge(precision_defaults)
+        defaults = format_translations('precision', options[:locale])
+        options  = defaults.merge!(options)
 
-        options = options.reverse_merge(defaults)  # Allow the user to unset default values: Eg.: :significant => false
         precision = options.delete :precision
         significant = options.delete :significant
         strip_insignificant_zeros = options.delete :strip_insignificant_zeros
@@ -287,7 +300,6 @@ module ActionView
         else
           formatted_number
         end
-
       end
 
       STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb].freeze
@@ -307,6 +319,7 @@ module ActionView
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
       # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +true+)
       # * <tt>:prefix</tt>  - If +:si+ formats the number using the SI prefix (defaults to :binary)
+      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
       # ==== Examples
       #  number_to_human_size(123)                                          # => 123 Bytes
       #  number_to_human_size(1234)                                         # => 1.21 KB
@@ -323,23 +336,13 @@ module ActionView
       #  number_to_human_size(1234567890123, :precision => 5)        # => "1.1229 TB"
       #  number_to_human_size(524288000, :precision => 5)            # => "500 MB"
       def number_to_human_size(number, options = {})
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
-        number = begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
-        end
+        number = (parse_float(number, options[:raise]) or return number)
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
-        defaults = defaults.merge(human)
+        defaults = format_translations('human', options[:locale])
+        options  = defaults.merge!(options)
 
-        options = options.reverse_merge(defaults)
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
@@ -388,6 +391,7 @@ module ActionView
       #   * *integers*: <tt>:unit</tt>, <tt>:ten</tt>, <tt>:hundred</tt>, <tt>:thousand</tt>,  <tt>:million</tt>,  <tt>:billion</tt>, <tt>:trillion</tt>, <tt>:quadrillion</tt>
       #   * *fractionals*: <tt>:deci</tt>, <tt>:centi</tt>, <tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>, <tt>:pico</tt>, <tt>:femto</tt>
       # * <tt>:format</tt> - Sets the format of the output string (defaults to "%n %u"). The field types are:
+      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
       #     %u  The quantifier (ex.: 'thousand')
       #     %n  The number
@@ -442,23 +446,13 @@ module ActionView
       #  number_to_human(0.34, :units => :distance)                                # => "34 centimeters"
       #
       def number_to_human(number, options = {})
-        options.symbolize_keys!
+        options = options.symbolize_keys
 
-        number = begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            return number
-          end
-        end
+        number = (parse_float(number, options[:raise]) or return number)
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
-        defaults = defaults.merge(human)
+        defaults = format_translations('human', options[:locale])
+        options  = defaults.merge!(options)
 
-        options = options.reverse_merge(defaults)
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
@@ -494,6 +488,25 @@ module ActionView
         decimal_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).strip.html_safe
       end
 
+      private
+
+      def format_translations(namespace, locale)
+        defaults_translations(locale).merge(translations_for(namespace, locale))
+      end
+
+      def defaults_translations(locale)
+        I18n.translate(:'number.format', :locale => locale, :default => {})
+      end
+
+      def translations_for(namespace, locale)
+        I18n.translate(:"number.#{namespace}.format", :locale => locale, :default => {})
+      end
+
+      def parse_float(number, raise_error)
+        Float(number)
+      rescue ArgumentError, TypeError
+        raise InvalidNumberError, number if raise_error
+      end
     end
   end
 end

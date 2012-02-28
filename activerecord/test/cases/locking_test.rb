@@ -6,6 +6,9 @@ require 'models/reader'
 require 'models/legacy_thing'
 require 'models/reference'
 require 'models/string_key_object'
+require 'models/car'
+require 'models/engine'
+require 'models/wheel'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -224,6 +227,18 @@ class OptimisticLockingTest < ActiveRecord::TestCase
       assert_equal lock_version, p1.lock_version
     end
   end
+
+  def test_polymorphic_destroy_with_dependencies_and_lock_version
+    car = Car.create!
+    
+    assert_difference 'car.wheels.count'  do
+    	car.wheels << Wheel.create!
+    end 
+    assert_difference 'car.wheels.count', -1  do
+      car.destroy
+    end
+    assert car.destroyed?
+  end
 end
 
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
@@ -371,6 +386,26 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
           assert_equal old, person.first_name
         end
       end
+    end
+
+    def test_with_lock_commits_transaction
+      person = Person.find 1
+      person.with_lock do
+        person.first_name = 'fooman'
+        person.save!
+      end
+      assert_equal 'fooman', person.reload.first_name
+    end
+
+    def test_with_lock_rolls_back_transaction
+      person = Person.find 1
+      old = person.first_name
+      person.with_lock do
+        person.first_name = 'fooman'
+        person.save!
+        raise 'oops'
+      end rescue nil
+      assert_equal old, person.reload.first_name
     end
 
     if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)

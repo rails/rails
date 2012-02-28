@@ -1,4 +1,5 @@
 require 'active_support/core_ext/module/delegation'
+require 'active_support/deprecation'
 
 module ActiveRecord
   module Querying
@@ -8,7 +9,7 @@ module ActiveRecord
     delegate :find_each, :find_in_batches, :to => :scoped
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
              :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
-             :having, :create_with, :uniq, :to => :scoped
+             :having, :create_with, :uniq, :references, :none, :to => :scoped
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :to => :scoped
 
     # Executes a custom SQL query against your database and returns all the results. The results will
@@ -35,7 +36,16 @@ module ActiveRecord
     #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
     def find_by_sql(sql, binds = [])
       logging_query_plan do
-        connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
+        result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
+        column_types = {}
+
+        if result_set.respond_to? :column_types
+          column_types = result_set.column_types
+        else
+          ActiveSupport::Deprecation.warn "the object returned from `select_all` must respond to `column_types`"
+        end
+
+        result_set.map { |record| instantiate(record, column_types) }
       end
     end
 

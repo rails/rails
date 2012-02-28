@@ -42,8 +42,8 @@ module AbstractController
         controller.public_instance_methods(true)
       end
 
-      # The list of hidden actions to an empty array. Defaults to an
-      # empty array. This can be modified by other modules or subclasses
+      # The list of hidden actions. Defaults to an empty array.
+      # This can be modified by other modules or subclasses
       # to specify particular actions as hidden.
       #
       # ==== Returns
@@ -85,7 +85,7 @@ module AbstractController
 
       # Returns the full controller name, underscored, without the ending Controller.
       # For instance, MyApp::MyPostsController would return "my_app/my_posts" for
-      # controller_name.
+      # controller_path.
       #
       # ==== Returns
       # * <tt>string</tt>

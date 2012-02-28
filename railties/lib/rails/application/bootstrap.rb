@@ -28,9 +28,9 @@ module Rails
             FileUtils.mkdir_p File.dirname path
           end
 
-          f = File.open path, 'w'
+          f = File.open path, 'a'
           f.binmode
-          f.sync = !Rails.env.production? # make sure every write flushes
+          f.sync = config.autoflush_log # if true make sure every write flushes
 
           logger = ActiveSupport::TaggedLogging.new(
             ActiveSupport::Logger.new(f)
@@ -50,11 +50,11 @@ module Rails
 
       # Initialize cache early in the stack so railties can make use of it.
       initializer :initialize_cache, :group => :all do
-        unless defined?(RAILS_CACHE)
-          silence_warnings { Object.const_set "RAILS_CACHE", ActiveSupport::Cache.lookup_store(config.cache_store) }
+        unless Rails.cache
+          Rails.cache = ActiveSupport::Cache.lookup_store(config.cache_store)
 
-          if RAILS_CACHE.respond_to?(:middleware)
-            config.middleware.insert_before("Rack::Runtime", RAILS_CACHE.middleware)
+          if Rails.cache.respond_to?(:middleware)
+            config.middleware.insert_before("Rack::Runtime", Rails.cache.middleware)
           end
         end
       end

@@ -271,6 +271,8 @@ When working with documentation, please take into account the "API Documentation
 
 NOTE: As explained earlier, ordinary code patches should have proper documentation coverage. docrails is only used for isolated documentation improvements.
 
+NOTE: To help our CI servers you can add [ci skip] tag to your documentation commit message to skip build on that commit. Please remember to use it for commits containing only documentation changes.
+
 WARNING: docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
 
 h3. Contributing to the Rails Code
@@ -307,7 +309,7 @@ Rails follows a simple set of coding style conventions.
 
 * Two spaces, no tabs.
 * No trailing whitespace. Blank lines should not have any space.
-* Indent after private/protected.
+* Outdent private/protected from method definitions. Same indentation as the class/module.
 * Prefer +&amp;&amp;+/+||+ over +and+/+or+.
 * Prefer class << self block over self.method for class methods.
 * +MyClass.my_method(my_arg)+ not +my_method( my_arg )+ or +my_method my_arg+.
@@ -380,9 +382,9 @@ Now you need to get other people to look at your patch, just as you've looked at
 
 h4. Iterate as Necessary
 
-It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a plugin.
+It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a gem.
 
-And then...think about your next contribution!
+And then ... think about your next contribution!
 
 h3. Rails Contributors
 

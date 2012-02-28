@@ -2,7 +2,6 @@ module Rails
   class Application
     module Finisher
       include Initializable
-      $rails_rake_task = nil
 
       initializer :add_generator_templates do
         config.generators.templates.unshift(*paths["lib/templates"].existent)
@@ -49,7 +48,7 @@ module Rails
       end
 
       initializer :eager_load! do
-        if config.cache_classes && !$rails_rake_task
+        if config.cache_classes && !(defined?($rails_rake_task) && $rails_rake_task)
           ActiveSupport.run_load_hooks(:before_eager_load, self)
           eager_load!
         end

@@ -1,5 +1,4 @@
 # encoding: utf-8
-require 'active_support/core_ext/string/encoding'
 
 class Object
   # An object is blank if it's false, empty, or a whitespace string.

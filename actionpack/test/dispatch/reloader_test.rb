@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class ReloaderTest < Test::Unit::TestCase
+class ReloaderTest < ActiveSupport::TestCase
   Reloader = ActionDispatch::Reloader
 
   def test_prepare_callbacks
@@ -41,6 +41,16 @@ class ReloaderTest < Test::Unit::TestCase
   def test_returned_body_object_always_responds_to_close
     body = call_and_return_body
     assert_respond_to body, :close
+  end
+
+  def test_returned_body_object_always_responds_to_close_even_if_called_twice
+    body = call_and_return_body
+    assert_respond_to body, :close
+    body.close
+
+    body = call_and_return_body
+    assert_respond_to body, :close
+    body.close
   end
 
   def test_condition_specifies_when_to_reload
@@ -154,7 +164,8 @@ class ReloaderTest < Test::Unit::TestCase
 
   private
     def call_and_return_body(&block)
-      @reloader ||= Reloader.new(block || proc {[200, {}, 'response']})
+      @response ||= 'response'
+      @reloader ||= Reloader.new(block || proc {[200, {}, @response]})
       @reloader.call({'rack.input' => StringIO.new('')})[2]
     end
 end

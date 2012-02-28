@@ -47,7 +47,7 @@ module ActionView
       #   <% end -%>
       #   # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
       #
-      #  <%= form_tag('/posts', :remote => true) %>
+      #   <%= form_tag('/posts', :remote => true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
       #
       #   form_tag('http://far.away.com/form', :authenticity_token => false)
@@ -313,7 +313,7 @@ module ActionView
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
         end
 
-        escape = options.key?("escape") ? options.delete("escape") : true
+        escape = options.delete("escape") { true }
         content = ERB::Util.html_escape(content) if escape
 
         content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
@@ -393,21 +393,17 @@ module ActionView
       #   submit_tag "Save edits", :disabled => true
       #   # => <input disabled="disabled" name="commit" type="submit" value="Save edits" />
       #
-      #
       #   submit_tag "Complete sale", :disable_with => "Please wait..."
-      #   # => <input name="commit" data-disable-with="Please wait..."
-      #   #    type="submit" value="Complete sale" />
+      #   # => <input name="commit" data-disable-with="Please wait..." type="submit" value="Complete sale" />
       #
       #   submit_tag nil, :class => "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
       #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit_button"
-      #   # => <input class="edit_button" data-disable_with="Editing..."
-      #   #    name="commit" type="submit" value="Edit" />
+      #   # => <input class="edit_button" data-disable_with="Editing..." name="commit" type="submit" value="Edit" />
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
-      #   # => <input name='commit' type='submit' value='Save'
-      #         data-confirm="Are you sure?" />
+      #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
@@ -451,12 +447,11 @@ module ActionView
       #     content_tag(:strong, 'Ask me!')
       #   end
       #   # => <button name="button" type="button">
-      #          <strong>Ask me!</strong>
-      #        </button>
+      #   #     <strong>Ask me!</strong>
+      #   #    </button>
       #
       #   button_tag "Checkout", :disable_with => "Please wait..."
-      #   # => <button data-disable-with="Please wait..." name="button"
-      #                type="submit">Checkout</button>
+      #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
@@ -554,6 +549,14 @@ module ActionView
       end
       alias phone_field_tag telephone_field_tag
 
+      # Creates a text field of type "date".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def date_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
+      end
+
       # Creates a text field of type "url".
       #
       # ==== Options
@@ -582,7 +585,7 @@ module ActionView
       #
       # ==== Examples
       #   number_field_tag 'quantity', nil, :in => 1...10
-      #   => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys
         options["type"] ||= "number"
@@ -632,7 +635,7 @@ module ActionView
               token_tag(authenticity_token)
             else
               html_options["method"] = "post"
-              tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag(authenticity_token)
+              method_tag(method) + token_tag(authenticity_token)
           end
 
           tags = utf8_enforcer_tag << method_tag
@@ -641,24 +644,14 @@ module ActionView
 
         def form_tag_html(html_options)
           extra_tags = extra_tags_for_form(html_options)
-          (tag(:form, html_options, true) + extra_tags).html_safe
+          tag(:form, html_options, true) + extra_tags
         end
 
         def form_tag_in_block(html_options, &block)
           content = capture(&block)
-          output = ActiveSupport::SafeBuffer.new
-          output.safe_concat(form_tag_html(html_options))
+          output = form_tag_html(html_options)
           output << content
           output.safe_concat("</form>")
-        end
-
-        def token_tag(token)
-          if token == false || !protect_against_forgery?
-            ''
-          else
-            token ||= form_authenticity_token
-            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
-          end
         end
 
         # see http://www.w3.org/TR/html4/types.html#type-name

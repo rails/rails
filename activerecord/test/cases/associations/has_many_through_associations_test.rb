@@ -738,7 +738,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_select_chosen_fields_only
     author = authors(:david)
-    assert_equal ['body'], author.comments.select('comments.body').first.attributes.keys
+    assert_equal ['body', 'id'].sort, author.comments.select('comments.body').first.attributes.keys.sort
   end
 
   def test_get_has_many_through_belongs_to_ids_with_conditions
@@ -847,7 +847,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_preloading_empty_through_association_via_joins
     person = Person.create!(:first_name => "Gaga")
-    person = Person.where(:id => person.id).where('readers.id = 1 or 1=1').includes(:posts).to_a.first
+    person = Person.where(:id => person.id).where('readers.id = 1 or 1=1').references(:readers).includes(:posts).to_a.first
 
     assert person.posts.loaded?, 'person.posts should be loaded'
     assert_equal [], person.posts

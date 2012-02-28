@@ -74,7 +74,7 @@ module ActionController #:nodoc:
       # The actual before_filter that is used. Modify this to change how you handle unverified requests.
       def verify_authenticity_token
         unless verified_request?
-          logger.warn "WARNING: Can't verify CSRF token authenticity" if logger
+          logger.warn "Can't verify CSRF token authenticity" if logger
           handle_unverified_request
         end
       end

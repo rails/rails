@@ -385,7 +385,7 @@ params[:user] # => {:name => “ow3ned”, :admin => true}
 
 So if you create a new user using mass-assignment, it may be too easy to become an administrator.
 
-Note that this vulnerability is not restricted to database columns. Any setter method, unless explicitly protected, is accessible via the <tt>attributes=</tt> method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3+. The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+). For example:
+Note that this vulnerability is not restricted to database columns. Any setter method, unless explicitly protected, is accessible via the <tt>attributes=</tt> method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3<plus>. The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+). For example:
 
 <ruby>
   class Person < ActiveRecord::Base

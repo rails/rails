@@ -1,4 +1,3 @@
-require 'active_support/core_ext/string/encoding'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/file_update_checker'
 require 'rails/engine/configuration'
@@ -6,11 +5,11 @@ require 'rails/engine/configuration'
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets,
-                    :cache_classes, :cache_store, :consider_all_requests_local,
+      attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets, :autoflush_log,
+                    :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :dependency_loading, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
-                    :railties_order, :relative_url_root, :reload_plugins, :secret_token,
+                    :railties_order, :relative_url_root, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change
 
@@ -41,6 +40,7 @@ module Rails
         @reload_classes_only_on_change = true
         @file_watcher                  = ActiveSupport::FileUpdateChecker
         @exceptions_app                = nil
+        @autoflush_log                 = true
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false
@@ -57,6 +57,7 @@ module Rails
         @assets.js_compressor            = nil
         @assets.css_compressor           = nil
         @assets.initialize_on_precompile = true
+        @assets.logger                   = nil
       end
 
       def compiled_asset_path
@@ -65,17 +66,9 @@ module Rails
 
       def encoding=(value)
         @encoding = value
-        if "ruby".encoding_aware?
-          silence_warnings do
-            Encoding.default_external = value
-            Encoding.default_internal = value
-          end
-        else
-          $KCODE = value
-          if $KCODE == "NONE"
-            raise "The value you specified for config.encoding is " \
-                  "invalid. The possible values are UTF8, SJIS, or EUC"
-          end
+        silence_warnings do
+          Encoding.default_external = value
+          Encoding.default_internal = value
         end
       end
 
@@ -99,10 +92,10 @@ module Rails
       # after boot, and disables reloading code on every request, as these are
       # fundamentally incompatible with thread safety.
       def threadsafe!
-        self.preload_frameworks = true
-        self.cache_classes = true
-        self.dependency_loading = false
-        self.allow_concurrency = true
+        @preload_frameworks = true
+        @cache_classes = true
+        @dependency_loading = false
+        @allow_concurrency = true
         self
       end
 
@@ -119,11 +112,10 @@ module Rails
       end
 
       def colorize_logging
-        @colorize_logging
+        ActiveSupport::LogSubscriber.colorize_logging
       end
 
       def colorize_logging=(val)
-        @colorize_logging = val
         ActiveSupport::LogSubscriber.colorize_logging = val
         self.generators.colorize_logging = val
       end

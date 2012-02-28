@@ -14,14 +14,17 @@ module ActionController
     end
 
     initializer "action_controller.initialize_framework_caches" do
-      ActiveSupport.on_load(:action_controller) { self.cache_store ||= RAILS_CACHE }
+      ActiveSupport.on_load(:action_controller) { self.cache_store ||= Rails.cache }
+    end
+
+    initializer "action_controller.assets_config", :group => :all do |app|
+      app.config.action_controller.assets_dir ||= app.config.paths["public"].first
     end
 
     initializer "action_controller.set_configs" do |app|
       paths   = app.config.paths
       options = app.config.action_controller
 
-      options.assets_dir           ||= paths["public"].first
       options.javascripts_dir      ||= paths["public/javascripts"].first
       options.stylesheets_dir      ||= paths["public/stylesheets"].first
       options.page_cache_directory ||= paths["public"].first

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/blank'
@@ -1098,8 +1097,8 @@ module ActiveRecord
       #   alongside this object by calling their +destroy+ method. If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their +destroy+ method. If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
-      #   <tt>:restrict</tt> this object raises an <tt>ActiveRecord::DeleteRestrictionError</tt> exception and
-      #   cannot be deleted if it has any associated objects.
+      #   <tt>:restrict</tt> an error will be added to the object, preventing its deletion, if any associated 
+      #   objects are present.
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
@@ -1252,8 +1251,8 @@ module ActiveRecord
       #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
       #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
       #   If set to <tt>:nullify</tt>, the associated object's foreign key is set to +NULL+.
-      #   Also, association is assigned. If set to <tt>:restrict</tt> this object raises an
-      #   <tt>ActiveRecord::DeleteRestrictionError</tt> exception and cannot be deleted if it has any associated object.
+      #   If set to <tt>:restrict</tt>, an error will be added to the object, preventing its deletion, if an
+      #   associated object is present.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association

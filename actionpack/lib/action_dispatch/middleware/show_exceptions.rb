@@ -1,6 +1,5 @@
 require 'action_dispatch/http/request'
 require 'action_dispatch/middleware/exception_wrapper'
-require 'active_support/deprecation'
 
 module ActionDispatch
   # This middleware rescues any exception returned by the application
@@ -38,11 +37,6 @@ module ActionDispatch
     end
 
     private
-
-    # Define this method because some plugins were monkey patching it.
-    # Remove this after 3.2 is out with the other deprecations in this class.
-    def status_code(*)
-    end
 
     def render_exception(env, exception)
       wrapper = ExceptionWrapper.new(env, exception)

@@ -77,8 +77,7 @@ module ActiveSupport
       def expand_cache_key(key, namespace = nil)
         expanded_cache_key = namespace ? "#{namespace}/" : ""
 
-        prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
-        if prefix
+        if prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
           expanded_cache_key << "#{prefix}/"
         end
 
@@ -91,7 +90,7 @@ module ActiveSupport
       def retrieve_cache_key(key)
         case
         when key.respond_to?(:cache_key) then key.cache_key
-        when key.is_a?(Array)            then ['Array', *key.map { |element| retrieve_cache_key(element) }].to_param
+        when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
         else                                  key.to_param
         end.to_s
       end
@@ -383,11 +382,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:exist?, name) do |payload|
           entry = read_entry(namespaced_key(name, options), options)
-          if entry && !entry.expired?
-            true
-          else
-            false
-          end
+          entry && !entry.expired?
         end
       end
 

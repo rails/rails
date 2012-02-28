@@ -1,5 +1,4 @@
 require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/string/encoding'
 
 module ActionView
   module Helpers
@@ -14,11 +13,7 @@ module ActionView
         "'"     => "\\'"
       }
 
-      if "ruby".encoding_aware?
-        JS_ESCAPE_MAP["\342\200\250".force_encoding('UTF-8').encode!] = '&#x2028;'
-      else
-        JS_ESCAPE_MAP["\342\200\250"] = '&#x2028;'
-      end
+      JS_ESCAPE_MAP["\342\200\250".force_encoding('UTF-8').encode!] = '&#x2028;'
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #

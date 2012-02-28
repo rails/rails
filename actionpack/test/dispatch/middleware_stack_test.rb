@@ -81,6 +81,12 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack[0].klass
   end
 
+  test "swaps one middleware out for same middleware class" do
+    assert_equal FooMiddleware, @stack[0].klass
+    @stack.swap(FooMiddleware, FooMiddleware, Proc.new { |env| [500, {}, ['error!']] })
+    assert_equal FooMiddleware, @stack[0].klass
+  end
+
   test "raise an error on invalid index" do
     assert_raise RuntimeError do
       @stack.insert("HiyaMiddleware", BazMiddleware)

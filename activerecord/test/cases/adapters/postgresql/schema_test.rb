@@ -24,6 +24,8 @@ class SchemaTest < ActiveRecord::TestCase
     'moment timestamp without time zone default now()'
   ]
   PK_TABLE_NAME = 'table_with_pk'
+  UNMATCHED_SEQUENCE_NAME = 'unmatched_primary_key_default_value_seq'
+  UNMATCHED_PK_TABLE_NAME = 'table_with_unmatched_sequence_for_pk'
 
   class Thing1 < ActiveRecord::Base
     self.table_name = "test_schema.things"
@@ -60,6 +62,8 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE INDEX #{INDEX_D_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_D_COLUMN} DESC);"
     @connection.execute "CREATE INDEX #{INDEX_D_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_D_COLUMN} DESC);"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
+    @connection.execute "CREATE SEQUENCE #{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
+    @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME} (id integer NOT NULL DEFAULT nextval('#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}'::regclass), CONSTRAINT unmatched_pkey PRIMARY KEY (id))"
   end
 
   def teardown
@@ -241,12 +245,12 @@ class SchemaTest < ActiveRecord::TestCase
   def test_pk_and_sequence_for_with_schema_specified
     [
       %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}"),
-      %(#{SCHEMA_NAME}."#{PK_TABLE_NAME}"),
-      %(#{SCHEMA_NAME}.#{PK_TABLE_NAME})
+      %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
     ].each do |given|
       pk, seq = @connection.pk_and_sequence_for(given)
       assert_equal 'id', pk, "primary key should be found when table referenced as #{given}"
-      assert_equal "#{SCHEMA_NAME}.#{PK_TABLE_NAME}_id_seq", seq, "sequence name should be found when table referenced as #{given}"
+      assert_equal "#{PK_TABLE_NAME}_id_seq", seq, "sequence name should be found when table referenced as #{given}" if given == %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}")
+      assert_equal "#{UNMATCHED_SEQUENCE_NAME}", seq, "sequence name should be found when table referenced as #{given}" if given ==  %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
     end
   end
 

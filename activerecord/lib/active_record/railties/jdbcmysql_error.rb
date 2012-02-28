@@ -1,5 +1,5 @@
 #FIXME Remove if ArJdbcMysql will give.
-module ArJdbcMySQL
+module ArJdbcMySQL #:nodoc:
   class Error < StandardError
     attr_accessor :error_number, :sql_state
 

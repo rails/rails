@@ -16,8 +16,8 @@ module ActionView
         end
       end
 
-      %w(content_tag to_date_select_tag to_datetime_select_tag to_time_select_tag).each do |meth|
-        module_eval "def #{meth}(*) error_wrapping(super) end", __FILE__, __LINE__
+      def content_tag(*)
+        error_wrapping(super)
       end
 
       def tag(type, options, *)
@@ -39,7 +39,7 @@ module ActionView
       private
 
       def object_has_errors?
-        object.respond_to?(:errors) && object.errors.respond_to?(:full_messages) && error_message.any?
+        object.respond_to?(:errors) && object.errors.respond_to?(:[]) && error_message.present?
       end
 
       def tag_generate_errors?(options)

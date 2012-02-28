@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 
-class CompiledTemplatesTest < Test::Unit::TestCase
+class CompiledTemplatesTest < ActiveSupport::TestCase
   def setup
     # Clean up any details key cached to expose failures
     # that otherwise would appear just on isolated tests

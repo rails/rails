@@ -23,8 +23,6 @@ module ActiveRecord
       end
 
       def test_column_types
-        return skip('only test encoding on 1.9') unless "<3".encoding_aware?
-
         owner = Owner.create!(:name => "hello".encode('ascii-8bit'))
         owner.reload
         select = Owner.columns.map { |c| "typeof(#{c.name})" }.join ', '
@@ -144,8 +142,6 @@ module ActiveRecord
       end
 
       def test_quote_binary_column_escapes_it
-        return unless "<3".respond_to?(:encode)
-
         DualEncoding.connection.execute(<<-eosql)
           CREATE TABLE dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
@@ -159,9 +155,7 @@ module ActiveRecord
         assert_equal str, binary.data
 
       ensure
-        if "<3".respond_to?(:encode)
-          DualEncoding.connection.drop_table('dual_encodings')
-        end
+        DualEncoding.connection.drop_table('dual_encodings')
       end
 
       def test_execute

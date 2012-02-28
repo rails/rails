@@ -3,7 +3,7 @@ require 'fixtures/person'
 require 'fixtures/street_address'
 require 'active_support/core_ext/hash/conversions'
 
-class CustomMethodsTest < Test::Unit::TestCase
+class CustomMethodsTest < ActiveSupport::TestCase
   def setup
     @matz  = { :person => { :id => 1, :name => 'Matz' } }.to_json
     @matz_deep  = { :person => { :id => 1, :name => 'Matz', :other => 'other' } }.to_json

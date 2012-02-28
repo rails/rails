@@ -91,7 +91,7 @@ In addition to those, there are:
  destroy      Undo code generated with "generate" (short-cut alias: "d")
  benchmarker  See how fast a piece of code runs
  profiler     Get profile information from a piece of code
- plugin       Install a plugin
+ plugin new   Generates skeleton for developing a Rails plugin
  runner       Run a piece of code in the application environment (short-cut alias: "r")
 
 All commands can be run with -h (or --help) for more information.

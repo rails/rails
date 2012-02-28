@@ -40,7 +40,9 @@ The guides and the API should be coherent where appropriate. Please have a look 
 
 Those guidelines apply also to guides.
 
-h3. HTML Generation
+h3. HTML Guides
+
+h4. Generation
 
 To generate all the guides, just +cd+ into the +railties+ directory and execute:
 
@@ -68,7 +70,7 @@ If you want to generate guides in languages other than English, you can keep the
 bundle exec rake generate_guides GUIDES_LANGUAGE=es
 </plain>
 
-h3. HTML Validation
+h4. Validation
 
 Please validate the generated HTML with:
 
@@ -77,3 +79,13 @@ bundle exec rake validate_guides
 </plain>
 
 Particularly, titles get an ID generated from their content and this often leads to duplicates. Please set +WARNINGS=1+ when generating guides to detect them. The warning messages suggest a way to fix them.
+
+h3. Kindle Guides
+
+h4. Generation
+
+To generate guides for the Kindle, you need to provide +KINDLE=1+ as an environment variable:
+
+<plain>
+KINDLE=1 bundle exec rake generate_guides
+</plain>

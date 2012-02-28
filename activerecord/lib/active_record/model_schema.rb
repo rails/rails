@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module ActiveRecord
   module ModelSchema
@@ -12,8 +13,7 @@ module ActiveRecord
       # the Product class will look for "productid" instead of "id" as the primary column. If the
       # latter is specified, the Product class will look for "product_id" instead of "id". Remember
       # that this is a global setting for all Active Records.
-      cattr_accessor :primary_key_prefix_type, :instance_writer => false
-      self.primary_key_prefix_type = nil
+      config_attribute :primary_key_prefix_type, :global => true
 
       ##
       # :singleton-method:
@@ -25,14 +25,14 @@ module ActiveRecord
       # If you are organising your models within modules you can add a prefix to the models within
       # a namespace by defining a singleton method in the parent module called table_name_prefix which
       # returns your chosen prefix.
-      class_attribute :table_name_prefix, :instance_writer => false
+      config_attribute :table_name_prefix
       self.table_name_prefix = ""
 
       ##
       # :singleton-method:
       # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
       # "people_basecamp"). By default, the suffix is the empty string.
-      class_attribute :table_name_suffix, :instance_writer => false
+      config_attribute :table_name_suffix
       self.table_name_suffix = ""
 
       ##
@@ -40,7 +40,7 @@ module ActiveRecord
       # Indicates whether table names should be the pluralized versions of the corresponding class names.
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.
-      class_attribute :pluralize_table_names, :instance_writer => false
+      config_attribute :pluralize_table_names
       self.pluralize_table_names = true
     end
 
@@ -115,7 +115,7 @@ module ActiveRecord
       # the documentation for ActiveRecord::Base#table_name.
       def table_name=(value)
         @original_table_name = @table_name if defined?(@table_name)
-        @table_name          = value
+        @table_name          = value && value.to_s
         @quoted_table_name   = nil
         @arel_table          = nil
         @relation            = Relation.new(self, arel_table)
@@ -128,10 +128,14 @@ module ActiveRecord
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
-        if superclass.abstract_class?
-          self.table_name = superclass.table_name || compute_table_name
-        elsif abstract_class?
-          self.table_name = superclass == Base ? nil : superclass.table_name
+        if abstract_class?
+          self.table_name = if active_record_super == Base || active_record_super.abstract_class?
+                              nil
+                            else
+                              active_record_super.table_name
+                            end
+        elsif active_record_super.abstract_class?
+          self.table_name = active_record_super.table_name || compute_table_name
         else
           self.table_name = compute_table_name
         end
@@ -143,11 +147,7 @@ module ActiveRecord
 
       # The name of the column containing the object's class when Single Table Inheritance is used
       def inheritance_column
-        if self == Base
-          'type'
-        else
-          (@inheritance_column ||= nil) || superclass.inheritance_column
-        end
+        (@inheritance_column ||= nil) || active_record_super.inheritance_column
       end
 
       # Sets the value of inheritance_column
@@ -204,6 +204,26 @@ module ActiveRecord
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
         @columns_hash ||= Hash[columns.map { |c| [c.name, c] }]
+      end
+
+      def column_types # :nodoc:
+        @column_types ||= decorate_columns(columns_hash.dup)
+      end
+
+      def decorate_columns(columns_hash) # :nodoc:
+        return if columns_hash.empty?
+
+        serialized_attributes.keys.each do |key|
+          columns_hash[key] = AttributeMethods::Serialization::Type.new(columns_hash[key])
+        end
+
+        columns_hash.each do |name, col|
+          if create_time_zone_conversion_attribute?(name, col)
+            columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(col)
+          end
+        end
+
+        columns_hash
       end
 
       # Returns a hash where the keys are column names and the values are
@@ -268,9 +288,16 @@ module ActiveRecord
         undefine_attribute_methods
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
-        @column_names = @content_columns = @column_defaults = @columns = @columns_hash = nil
-        @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @relation = nil
+        @arel_engine          = nil
+        @column_defaults      = nil
+        @column_names         = nil
+        @columns              = nil
+        @columns_hash         = nil
+        @column_types         = nil
+        @content_columns      = nil
+        @dynamic_methods_hash = nil
+        @inheritance_column   = nil
+        @relation             = nil
       end
 
       def clear_cache! # :nodoc:
@@ -291,7 +318,7 @@ module ActiveRecord
         base = base_class
         if self == base
           # Nested classes are prefixed with singular parent table name.
-          if parent < ActiveRecord::Base && !parent.abstract_class?
+          if parent < ActiveRecord::Model && !parent.abstract_class?
             contained = parent.table_name
             contained = contained.singularize if parent.pluralize_table_names
             contained += '_'

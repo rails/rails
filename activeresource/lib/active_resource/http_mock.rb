@@ -4,7 +4,7 @@ require 'active_support/core_ext/object/inclusion'
 module ActiveResource
   class InvalidRequestError < StandardError; end #:nodoc:
 
-  # One thing that has always been a pain with remote web services is testing.  The HttpMock
+  # One thing that has always been a pain with remote web services is testing. The HttpMock
   # class makes it easy to test your Active Resource models by creating a set of mock responses to specific
   # requests.
   #
@@ -15,17 +15,17 @@ module ActiveResource
   #
   #   mock.http_method(path, request_headers = {}, body = nil, status = 200, response_headers = {})
   #
-  # * <tt>http_method</tt> - The HTTP method to listen for.  This can be +get+, +post+, +put+, +delete+ or
+  # * <tt>http_method</tt> - The HTTP method to listen for. This can be +get+, +post+, +patch+, +put+, +delete+ or
   #   +head+.
   # * <tt>path</tt> - A string, starting with a "/", defining the URI that is expected to be
   #   called.
-  # * <tt>request_headers</tt> - Headers that are expected along with the request.  This argument uses a
-  #   hash format, such as <tt>{ "Content-Type" => "application/json" }</tt>.  This mock will only trigger
+  # * <tt>request_headers</tt> - Headers that are expected along with the request. This argument uses a
+  #   hash format, such as <tt>{ "Content-Type" => "application/json" }</tt>. This mock will only trigger
   #   if your tests sends a request with identical headers.
-  # * <tt>body</tt> - The data to be returned.  This should be a string of Active Resource parseable content,
+  # * <tt>body</tt> - The data to be returned. This should be a string of Active Resource parseable content,
   #   such as Json.
   # * <tt>status</tt> - The HTTP response code, as an integer, to return with the response.
-  # * <tt>response_headers</tt> - Headers to be returned with the response.  Uses the same hash format as
+  # * <tt>response_headers</tt> - Headers to be returned with the response. Uses the same hash format as
   #   <tt>request_headers</tt> listed above.
   #
   # In order for a mock to deliver its content, the incoming request must match by the <tt>http_method</tt>,
@@ -55,7 +55,7 @@ module ActiveResource
         @responses = responses
       end
 
-      [ :post, :put, :get, :delete, :head ].each do |method|
+      [ :post, :patch, :put, :get, :delete, :head ].each do |method|
         # def post(path, request_headers = {}, body = nil, status = 200, response_headers = {})
         #   @responses[Request.new(:post, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
         # end
@@ -217,7 +217,7 @@ module ActiveResource
     end
 
     # body?       methods
-    { true  => %w(post put),
+    { true  => %w(post patch put),
       false => %w(get delete head) }.each do |has_body, methods|
       methods.each do |method|
         # def post(path, body, headers)
@@ -292,11 +292,8 @@ module ActiveResource
         @body = nil
       end
 
-      if @body.nil?
-        self['Content-Length'] = "0"
-      else
-        self['Content-Length'] = body.size.to_s
-      end
+      self['Content-Length'] = @body.nil? ? "0" : body.size.to_s
+
     end
 
     # Returns true if code is 2xx,

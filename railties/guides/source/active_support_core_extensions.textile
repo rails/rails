@@ -376,7 +376,7 @@ NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
 h5. +instance_values+
 
 The method +instance_values+ returns a hash that maps instance variable names without "@" to their
-corresponding values. Keys are strings both in Ruby 1.8 and 1.9:
+corresponding values. Keys are strings:
 
 <ruby>
 class C
@@ -692,7 +692,8 @@ NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
 h4. Constants
 
-The method +local_constants+ returns the names of the constants that have been defined in the receiver module:
+The method +local_constants+ returns the names of the constants that have been
+defined in the receiver module:
 
 <ruby>
 module X
@@ -704,13 +705,11 @@ module X
   end
 end
 
-X.local_constants    # => ["X2", "X1", "Y"], assumes Ruby 1.8
-X::Y.local_constants # => ["X1", "Y1"], assumes Ruby 1.8
+X.local_constants    # => [:X1, :X2, :Y]
+X::Y.local_constants # => [:Y1, :X1]
 </ruby>
 
-The names are returned as strings in Ruby 1.8, and as symbols in Ruby 1.9. The method +local_constant_names+ always returns strings.
-
-WARNING: This method returns precise results in Ruby 1.9. In older versions of Ruby, however, it may miss some constants in case the same constant exists in the receiver module as well as in any of its ancestors and both constants point to the same object (objects are compared using +Object#object_id+).
+The names are returned as symbols. (The deprecated method +local_constant_names+ returns strings.)
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
@@ -737,8 +736,8 @@ Math.qualified_const_get("E") # => 2.718281828459045
 </ruby>
 
 These methods are analogous to their builtin counterparts. In particular,
-+qualified_constant_defined?+ accepts an optional second argument in 1.9
-to be able to say whether you want the predicate to look in the ancestors.
++qualified_constant_defined?+ accepts an optional second argument to be
+able to say whether you want the predicate to look in the ancestors.
 This flag is taken into account for each constant in the expression while
 walking down the path.
 
@@ -759,42 +758,18 @@ end
 +qualified_const_defined?+ behaves this way:
 
 <ruby>
-N.qualified_const_defined?("C::X", false) # => false (1.9 only)
-N.qualified_const_defined?("C::X", true)  # => true (1.9 only)
-N.qualified_const_defined?("C::X")        # => false in 1.8, true in 1.9
+N.qualified_const_defined?("C::X", false) # => false
+N.qualified_const_defined?("C::X", true)  # => true
+N.qualified_const_defined?("C::X")        # => true
 </ruby>
 
-As the last example implies, in 1.9 the second argument defaults to true,
+As the last example implies, the second argument defaults to true,
 as in +const_defined?+.
 
 For coherence with the builtin methods only relative paths are accepted.
 Absolute qualified constant names like +::Math::PI+ raise +NameError+.
 
 NOTE: Defined in +active_support/core_ext/module/qualified_const.rb+.
-
-h4. Synchronization
-
-The +synchronize+ macro declares a method to be synchronized:
-
-<ruby>
-class Counter
-  @@mutex = Mutex.new
-  attr_reader :value
-
-  def initialize
-    @value = 0
-  end
-
-  def incr
-    @value += 1 # non-atomic
-  end
-  synchronize :incr, :with => '@@mutex'
-end
-</ruby>
-
-The method receives the name of an action, and a +:with+ option with code. The code is evaluated in the context of the receiver each time the method is invoked, and it should evaluate to a +Mutex+ instance or any other object that responds to +synchronize+ and accepts a block.
-
-NOTE: Defined in +active_support/core_ext/module/synchronization.rb+.
 
 h4. Reachable
 
@@ -846,7 +821,7 @@ M.name # => "M"
 N = Module.new
 N.name # => "N"
 
-Module.new.name # => "" in 1.8, nil in 1.9
+Module.new.name # => nil
 </ruby>
 
 You can check whether a module has a name with the predicate +anonymous?+:
@@ -958,18 +933,6 @@ delegate :size, :to => :attachment, :prefix => :avatar
 In the previous example the macro generates +avatar_size+ rather than +size+.
 
 NOTE: Defined in +active_support/core_ext/module/delegation.rb+
-
-h4. Method Names
-
-The builtin methods +instance_methods+ and +methods+ return method names as strings or symbols depending on the Ruby version. Active Support defines +instance_method_names+ and +method_names+ to be equivalent to them, respectively, but always getting strings back.
-
-For example, +ActionView::Helpers::FormBuilder+ knows this array difference is going to work no matter the Ruby version:
-
-<ruby>
-self.field_helpers = (FormHelper.instance_method_names - ['form_for'])
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/module/method_names.rb+
 
 h4. Redefining Methods
 
@@ -1909,9 +1872,24 @@ The method +multiple_of?+ tests whether an integer is multiple of the argument:
 
 NOTE: Defined in +active_support/core_ext/integer/multiple.rb+.
 
+h4. +ordinal+
+
+The method +ordinal+ returns the ordinal suffix string corresponding to the receiver integer:
+
+<ruby>
+1.ordinal    # => "st"
+2.ordinal    # => "nd"
+53.ordinal   # => "rd"
+2009.ordinal # => "th"
+-21.ordinal  # => "st"
+-134.ordinal # => "th"
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/integer/inflections.rb+.
+
 h4. +ordinalize+
 
-The method +ordinalize+ returns the ordinal string corresponding to the receiver integer:
+The method +ordinalize+ returns the ordinal string corresponding to the receiver integer. In comparison, note that the +ordinal+ method returns *only* the suffix string.
 
 <ruby>
 1.ordinalize    # => "1st"
@@ -1973,16 +1951,6 @@ The method +ActiveRecord::Observer#observed_subclasses+ for example is implement
 def observed_subclasses
   observed_classes.sum([]) { |klass| klass.send(:subclasses) }
 end
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/enumerable.rb+.
-
-h4. +pluck+
-
-The +pluck+ method collects the value of the passed method for each element and returns the result as an array.
-
-<ruby>
-people.pluck(:name) # => [ "David Heinemeier Hansson", "Jamie Heinemeier Hansson" ]
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
@@ -2284,9 +2252,6 @@ The last point is particularly worth comparing for some enumerables:
 <ruby>
 Array.wrap(:foo => :bar) # => [{:foo => :bar}]
 Array(:foo => :bar)      # => [[:foo, :bar]]
-
-Array.wrap("foo\nbar")   # => ["foo\nbar"]
-Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
 </ruby>
 
 There's also a related idiom that uses the splat operator:

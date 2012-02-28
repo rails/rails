@@ -14,7 +14,7 @@ end
 class ::MyOtherMailObserver < ::MyMailObserver; end
 
 module ApplicationTests
-  class ConfigurationTest < Test::Unit::TestCase
+  class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
@@ -146,7 +146,7 @@ module ApplicationTests
     test "frameworks are not preloaded by default" do
       require "#{app_path}/config/environment"
 
-      assert ActionController.autoload?(:RecordIdentifier)
+      assert ActionController.autoload?(:Caching)
     end
 
     test "frameworks are preloaded with config.preload_frameworks is set" do
@@ -156,7 +156,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert !ActionController.autoload?(:RecordIdentifier)
+      assert !ActionController.autoload?(:Caching)
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
@@ -246,6 +246,51 @@ module ApplicationTests
       assert last_response.body =~ /csrf\-param/
     end
 
+    test "default method for update can be changed" do
+      app_file 'app/models/post.rb', <<-RUBY
+      class Post
+        extend ActiveModel::Naming
+        def to_key; [1]; end
+        def persisted?; true; end
+      end
+      RUBY
+
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ApplicationController
+        def show
+          render :inline => "<%= begin; form_for(Post.new) {}; rescue => e; e.to_s; end %>"
+        end
+
+        def update
+          render :text => "update"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get "/posts/1"
+      assert_match /patch/, last_response.body
+
+      patch "/posts/1"
+      assert_match /update/, last_response.body
+
+      patch "/posts/1"
+      assert_equal 200, last_response.status
+
+      put "/posts/1"
+      assert_match /update/, last_response.body
+
+      put "/posts/1"
+      assert_equal 200, last_response.status
+    end
+
     test "request forgery token param can be changed" do
       make_basic_app do
         app.config.action_controller.request_forgery_protection_token = '_xsrf_token_here'
@@ -280,6 +325,19 @@ module ApplicationTests
       res = last_response.body
       get "/"
       assert_equal res, last_response.body # value should be unchanged
+    end
+
+    test "sets ActionDispatch.test_app" do
+      make_basic_app
+      assert_equal Rails.application, ActionDispatch.test_app
+    end
+
+    test "sets ActionDispatch::Response.default_charset" do
+      make_basic_app do |app|
+        app.config.action_dispatch.default_charset = "utf-16"
+      end
+
+      assert_equal "utf-16", ActionDispatch::Response.default_charset
     end
 
     test "sets all Active Record models to whitelist all attributes by default" do
@@ -520,6 +578,11 @@ module ApplicationTests
       assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
       assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
       assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
+    end
+
+    test "config.colorize_logging default is true" do
+      make_basic_app
+      assert app.config.colorize_logging
     end
   end
 end

@@ -3,7 +3,7 @@ require 'active_support/time'
 require 'active_support/core_ext/numeric'
 require 'active_support/core_ext/integer'
 
-class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
+class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
   def setup
     @now = Time.local(2005,2,10,15,30,45)
     @dtnow = DateTime.civil(2005,2,10,15,30,45)
@@ -128,7 +128,7 @@ class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
     end
 end
 
-class NumericExtDateTest < Test::Unit::TestCase
+class NumericExtDateTest < ActiveSupport::TestCase
   def setup
     @today = Date.today
   end
@@ -151,7 +151,7 @@ class NumericExtDateTest < Test::Unit::TestCase
   end
 end
 
-class NumericExtSizeTest < Test::Unit::TestCase
+class NumericExtSizeTest < ActiveSupport::TestCase
   def test_unit_in_terms_of_another
     relationships = {
         1024.bytes     =>   1.kilobyte,

@@ -3,7 +3,7 @@ require 'active_support/json'
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/hash/indifferent_access'
 
-class OrderedHashTest < Test::Unit::TestCase
+class OrderedHashTest < ActiveSupport::TestCase
   def setup
     @keys =   %w( blue   green  red    pink   orange )
     @values = %w( 000099 009900 aa0000 cc0066 cc6633 )
@@ -291,21 +291,16 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_equal @ordered_hash.values, @deserialized_ordered_hash.values
   end
 
-  begin
-    require 'psych'
+  def test_psych_serialize
+    @deserialized_ordered_hash = Psych.load(Psych.dump(@ordered_hash))
 
-    def test_psych_serialize
-      @deserialized_ordered_hash = Psych.load(Psych.dump(@ordered_hash))
+    values = @deserialized_ordered_hash.map { |_, value| value }
+    assert_equal @values, values
+  end
 
-      values = @deserialized_ordered_hash.map { |_, value| value }
-      assert_equal @values, values
-    end
-
-    def test_psych_serialize_tag
-      yaml = Psych.dump(@ordered_hash)
-      assert_match '!omap', yaml
-    end
-  rescue LoadError
+  def test_psych_serialize_tag
+    yaml = Psych.dump(@ordered_hash)
+    assert_match '!omap', yaml
   end
 
   def test_has_yaml_tag

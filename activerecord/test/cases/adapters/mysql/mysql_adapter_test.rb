@@ -17,11 +17,7 @@ module ActiveRecord
       end
 
       def test_client_encoding
-        if "<3".respond_to?(:encoding)
-          assert_equal Encoding::UTF_8, @conn.client_encoding
-        else
-          assert_equal 'utf8', @conn.client_encoding
-        end
+        assert_equal Encoding::UTF_8, @conn.client_encoding
       end
 
       def test_exec_insert_number
@@ -41,13 +37,11 @@ module ActiveRecord
 
         value = result.rows.last.last
 
-        if "<3".respond_to?(:encoding)
-          # FIXME: this should probably be inside the mysql AR adapter?
-          value.force_encoding(@conn.client_encoding)
+        # FIXME: this should probably be inside the mysql AR adapter?
+        value.force_encoding(@conn.client_encoding)
 
-          # The strings in this file are utf-8, so transcode to utf-8
-          value.encode!(Encoding::UTF_8)
-        end
+        # The strings in this file are utf-8, so transcode to utf-8
+        value.encode!(Encoding::UTF_8)
 
         assert_equal str, value
       end

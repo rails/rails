@@ -8,8 +8,9 @@
 # Rails booted up.
 require 'fileutils'
 
-require 'test/unit'
 require 'rubygems'
+require 'minitest/autorun'
+require 'active_support/test_case'
 
 # TODO: Remove setting this magic constant
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
@@ -178,20 +179,6 @@ module TestHelpers
       end
     end
 
-    def plugin(name, string = "")
-      dir = "#{app_path}/vendor/plugins/#{name}"
-      FileUtils.mkdir_p(dir)
-
-      File.open("#{dir}/init.rb", 'w') do |f|
-        f.puts "::#{name.upcase} = 'loaded'"
-        f.puts string
-      end
-
-      Bukkit.new(dir).tap do |bukkit|
-        yield bukkit if block_given?
-      end
-    end
-
     def engine(name)
       dir = "#{app_path}/random/#{name}"
       FileUtils.mkdir_p(dir)
@@ -260,7 +247,7 @@ module TestHelpers
                     :activemodel,
                     :activerecord,
                     :activeresource] - arr
-      remove_from_config "config.active_record.identity_map = true" if to_remove.include? :activerecord
+      remove_from_config "config.active_record.dependent_restrict_raises = false" if to_remove.include? :activerecord
       $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
@@ -270,7 +257,7 @@ module TestHelpers
   end
 end
 
-class Test::Unit::TestCase
+class ActiveSupport::TestCase
   include TestHelpers::Paths
   include TestHelpers::Rack
   include TestHelpers::Generation

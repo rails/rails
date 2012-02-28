@@ -8,6 +8,7 @@ else
   gem 'arel'
 end
 
+gem 'rack-test', :git => "https://github.com/brynary/rack-test.git"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
 
@@ -37,13 +38,9 @@ end
 # AS
 gem 'memcache-client', '>= 1.8.5'
 
-platforms :mri_18 do
-  gem 'system_timer'
-  gem 'json'
-end
-
 # Add your own local bundler stuff
-instance_eval File.read '.Gemfile' if File.exists? '.Gemfile'
+local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
+instance_eval File.read local_gemfile if File.exists? local_gemfile
 
 platforms :mri do
   group :test do

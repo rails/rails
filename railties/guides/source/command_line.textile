@@ -45,8 +45,6 @@ $ rails new commandsapp
      ...
      create  tmp/cache
      create  tmp/pids
-     create  vendor/plugins
-     create  vendor/plugins/.gitkeep
 </shell>
 
 Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
@@ -295,18 +293,6 @@ h4. +rails dbconsole+
 
 You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
 
-h4. +rails plugin+
-
-The +rails plugin+ command simplifies plugin management. Plugins can be installed by name or their repository URLs. You need to have Git installed if you want to install a plugin from a Git repo. The same holds for Subversion too.
-
-<shell>
-$ rails plugin install https://github.com/technoweenie/acts_as_paranoid.git
-+ ./CHANGELOG
-+ ./MIT-LICENSE
-...
-...
-</shell>
-
 h4. +rails runner+
 
 <tt>runner</tt> runs Ruby code in the context of Rails non-interactively. For instance:
@@ -415,8 +401,6 @@ The +doc:+ namespace has the tools to generate documentation for your app, API d
 * +rake doc:app+ generates documentation for your application in +doc/app+.
 * +rake doc:guides+ generates Rails guides in +doc/guides+.
 * +rake doc:rails+ generates API documentation for Rails in +doc/api+.
-* +rake doc:plugins+ generates API documentation for all the plugins installed in the application in +doc/plugins+.
-* +rake doc:clobber_plugins+ removes the generated documentation for all plugins.
 
 h4. +notes+
 
@@ -537,7 +521,9 @@ development:
   adapter: postgresql
   encoding: unicode
   database: gitapp_development
-  pool: 5
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
   username: gitapp
   password:
 ...

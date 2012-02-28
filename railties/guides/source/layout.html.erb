@@ -38,57 +38,21 @@
   <div id="header">
     <div class="wrapper clearfix">
       <h1><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></h1>
-      <p class="hide"><a href="#mainCol">Skip navigation</a>.</p>
       <ul class="nav">
         <li><a href="index.html">Home</a></li>
         <li class="index"><a href="index.html" onclick="guideMenu(); return false;" id="guidesMenu">Guides Index</a>
           <div id="guides" class="clearfix" style="display: none;">
             <hr />
-            <dl class="L">
-              <dt>Start Here</dt>
-              <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
-              <dt>Models</dt>
-              <dd><a href="migrations.html">Rails Database Migrations</a></dd>
-              <dd><a href="active_record_validations_callbacks.html">Active Record Validations and Callbacks</a></dd>
-              <dd><a href="association_basics.html">Active Record Associations</a></dd>
-              <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
-              <dt>Views</dt>
-              <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
-              <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
-              <dt>Controllers</dt>
-              <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
-              <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
-            </dl>
-            <dl class="R">
-              <dt>Digging Deeper</dt>
-              <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
-              <dd><a href="i18n.html">Rails Internationalization API</a></dd>
-              <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
-              <dd><a href="testing.html">Testing Rails Applications</a></dd>
-              <dd><a href="security.html">Securing Rails Applications</a></dd>
-              <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
-              <dd><a href="performance_testing.html">Performance Testing Rails Applications</a></dd>
-              <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
-              <dd><a href="command_line.html">Rails Command Line Tools and Rake Tasks</a></dd>
-              <dd><a href="caching_with_rails.html">Caching with Rails</a></dd>
-              <dd><a href="asset_pipeline.html">Asset Pipeline</a></dd>
-
-              <dt>Extending Rails</dt>
-              <dd><a href="plugins.html">The Basics of Creating Rails Plugins</a></dd>
-              <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
-              <dd><a href="generators.html">Creating and Customizing Rails Generators</a></dd>
-
-              <dt>Contributing to Ruby on Rails</dt>
-              <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
-              <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
-              <dd><a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a></dd>
-
-              <dt>Release Notes</dt>
-              <dd><a href="3_1_release_notes.html">Ruby on Rails 3.1 Release Notes</a></dd>
-              <dd><a href="3_0_release_notes.html">Ruby on Rails 3.0 Release Notes</a></dd>
-              <dd><a href="2_3_release_notes.html">Ruby on Rails 2.3 Release Notes</a></dd>
-              <dd><a href="2_2_release_notes.html">Ruby on Rails 2.2 Release Notes</a></dd>
-            </dl>
+            <% ['L', 'R'].each do |position| %>
+              <dl class="<%= position %>">
+              <% docs_for_menu(position).each do |section| %>
+                <dt><%= section['name'] %></dt>
+                <% finished_documents(section['documents']).each do |document| %>
+                <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
+                <% end %>
+              <% end %>
+              </dl>
+            <% end %>
           </div>
         </li>
         <li><a href="contributing_to_ruby_on_rails.html">Contribute</a></li>
@@ -143,8 +107,7 @@
   <hr class="hide" />
   <div id="footer">
     <div class="wrapper">
-      <p>This work is licensed under a <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0</a> License</p>
-      <p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+      <%= render 'license' %>
     </div>
   </div>
 

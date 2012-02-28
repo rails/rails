@@ -182,15 +182,18 @@ module ActionDispatch
   #
   # == HTTP Methods
   #
-  # Using the <tt>:via</tt> option when specifying a route allows you to restrict it to a specific HTTP method.
-  # Possible values are <tt>:post</tt>, <tt>:get</tt>, <tt>:put</tt>, <tt>:delete</tt> and <tt>:any</tt>.
-  # If your route needs to respond to more than one method you can use an array, e.g. <tt>[ :get, :post ]</tt>.
-  # The default value is <tt>:any</tt> which means that the route will respond to any of the HTTP methods.
+  # Using the <tt>:via</tt> option when specifying a route allows you to
+  # restrict it to a specific HTTP method.  Possible values are <tt>:post</tt>,
+  # <tt>:get</tt>, <tt>:patch</tt>, <tt>:put</tt>, <tt>:delete</tt> and
+  # <tt>:any</tt>.  If your route needs to respond to more than one method you
+  # can use an array, e.g. <tt>[ :get, :post ]</tt>.  The default value is
+  # <tt>:any</tt> which means that the route will respond to any of the HTTP
+  # methods.
   #
   # Examples:
   #
   #   match 'post/:id' => 'posts#show', :via => :get
-  #   match 'post/:id' => "posts#create_comment', :via => :post
+  #   match 'post/:id' => 'posts#create_comment', :via => :post
   #
   # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
   # URL will route to the <tt>show</tt> action.
@@ -198,12 +201,12 @@ module ActionDispatch
   # === HTTP helper methods
   #
   # An alternative method of specifying which HTTP method a route should respond to is to use the helper
-  # methods <tt>get</tt>, <tt>post</tt>, <tt>put</tt> and <tt>delete</tt>.
+  # methods <tt>get</tt>, <tt>post</tt>, <tt>patch</tt>, <tt>put</tt> and <tt>delete</tt>.
   #
   # Examples:
   #
   #   get 'post/:id' => 'posts#show'
-  #   post 'post/:id' => "posts#create_comment'
+  #   post 'post/:id' => 'posts#create_comment'
   #
   # This syntax is less verbose and the intention is more apparent to someone else reading your code,
   # however if your route needs to respond to more than one HTTP method (or all methods) then using the
@@ -283,11 +286,6 @@ module ActionDispatch
     autoload :PolymorphicRoutes, 'action_dispatch/routing/polymorphic_routes'
 
     SEPARATORS = %w( / . ? ) #:nodoc:
-    HTTP_METHODS = [:get, :head, :post, :put, :delete, :options] #:nodoc:
-
-    # A helper module to hold URL related helpers.
-    module Helpers #:nodoc:
-      include PolymorphicRoutes
-    end
+    HTTP_METHODS = [:get, :head, :post, :patch, :put, :delete, :options] #:nodoc:
   end
 end

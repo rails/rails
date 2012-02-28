@@ -881,6 +881,17 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal 23, sig38.client_of
   end
 
+  def test_find_or_create_from_two_attributes_and_hash
+    number_of_companies = Company.count
+    sig38 = Company.find_or_create_by_name_and_firm_id({:name => "38signals", :firm_id => 17, :client_of => 23})
+    assert_equal number_of_companies + 1, Company.count
+    assert_equal sig38, Company.find_or_create_by_name_and_firm_id({:name => "38signals", :firm_id => 17, :client_of => 23})
+    assert sig38.persisted?
+    assert_equal "38signals", sig38.name
+    assert_equal 17, sig38.firm_id
+    assert_equal 23, sig38.client_of
+  end
+
   def test_find_or_create_from_one_aggregate_attribute
     number_of_customers = Customer.count
     created_customer = Customer.find_or_create_by_balance(Money.new(123))
@@ -1119,10 +1130,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
-    assert_equal 2, Post.find(:all, :include => { :authors => :author_address }, :order => ' author_addresses.id DESC ', :limit => 2).size
+    assert_equal 2, Post.find(:all, :include => { :authors => :author_address }, :order => 'author_addresses.id DESC ', :limit => 2).size
 
     assert_equal 3, Post.find(:all, :include => { :author => :author_address, :authors => :author_address},
-                              :order => ' author_addresses_authors.id DESC ', :limit => 3).size
+                              :order => 'author_addresses_authors.id DESC ', :limit => 3).size
   end
 
   def test_find_with_nil_inside_set_passed_for_one_attribute
@@ -1149,7 +1160,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_with_limiting_with_custom_select
-    posts = Post.find(:all, :include => :author, :select => ' posts.*, authors.id as "author_id"', :limit => 3, :order => 'posts.id')
+    posts = Post.find(
+      :all, :include => :author, :select => ' posts.*, authors.id as "author_id"',
+      :references => :authors, :limit => 3, :order => 'posts.id'
+    )
     assert_equal 3, posts.size
     assert_equal [0, 1, 1], posts.map(&:author_id).sort
   end

@@ -38,11 +38,6 @@ module Rails
 
       :test_unit => {
         :fixture_replacement => '-r',
-      },
-
-      :plugin => {
-        :generator => '-g',
-        :tasks => '-r'
       }
     }
 
@@ -62,11 +57,6 @@ module Rails
         :stylesheet_engine => :css,
         :test_framework => false,
         :template_engine => :erb
-      },
-
-      :plugin => {
-        :generator => false,
-        :tasks => false
       }
     }
 
@@ -195,7 +185,6 @@ module Rails
           "#{test}:scaffold",
           "#{test}:view",
           "#{test}:performance",
-          "#{test}:plugin",
           "#{template}:controller",
           "#{template}:scaffold",
           "#{template}:mailer",

@@ -61,15 +61,6 @@ module RailtiesTest
         end
       RUBY
 
-      yaffle = plugin "acts_as_yaffle", "::LEVEL = config.log_level" do |plugin|
-        plugin.write "lib/acts_as_yaffle.rb", "class ActsAsYaffle; end"
-      end
-
-      yaffle.write "db/migrate/1_create_yaffles.rb", <<-RUBY
-        class CreateYaffles < ActiveRecord::Migration
-        end
-      RUBY
-
       add_to_config "ActiveRecord::Base.timestamped_migrations = false"
 
       boot_rails
@@ -87,14 +78,10 @@ module RailtiesTest
 
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
-        assert File.exists?("#{app_path}/db/migrate/4_create_yaffles.acts_as_yaffle.rb")
         assert_no_match(/2_create_users/, output.join("\n"))
 
-        yaffle_migration_order = output.index(output.detect{|o| /Copied migration 4_create_yaffles.acts_as_yaffle.rb from acts_as_yaffle/ =~ o })
         bukkits_migration_order = output.index(output.detect{|o| /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/ =~ o })
-        assert_not_nil yaffle_migration_order, "Expected migration to be copied"
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
-        assert_equal(railties.index('acts_as_yaffle') > railties.index('bukkits'), yaffle_migration_order > bukkits_migration_order)
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
         output = `bundle exec rake railties:install:migrations`

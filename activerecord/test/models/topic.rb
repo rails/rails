@@ -80,6 +80,11 @@ class Topic < ActiveRecord::Base
 
   after_initialize :set_email_address
 
+  class_attribute :after_initialize_called
+  after_initialize do
+    self.class.after_initialize_called = true
+  end
+
   def approved=(val)
     @custom_approved = val
     write_attribute(:approved, val)
@@ -106,6 +111,10 @@ class Topic < ActiveRecord::Base
     def before_destroy_for_transaction; end
     def after_save_for_transaction; end
     def after_create_for_transaction; end
+end
+
+class ImportantTopic < Topic
+  serialize :important, Hash
 end
 
 module Web

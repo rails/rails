@@ -13,11 +13,9 @@ module ActionDispatch
       assert_equal 'foo', uf.original_filename
     end
     
-    if "ruby".encoding_aware?
-      def test_filename_should_be_in_utf_8
-        uf = Http::UploadedFile.new(:filename => 'foo', :tempfile => Object.new)
-        assert_equal "UTF-8", uf.original_filename.encoding.to_s
-      end
+    def test_filename_should_be_in_utf_8
+      uf = Http::UploadedFile.new(:filename => 'foo', :tempfile => Object.new)
+      assert_equal "UTF-8", uf.original_filename.encoding.to_s
     end
 
     def test_content_type
