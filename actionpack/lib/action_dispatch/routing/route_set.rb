@@ -594,6 +594,7 @@ module ActionDispatch
       def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
         path = Journey::Router::Utils.normalize_path(path) unless path =~ %r{://}
+        extras = environment[:extras] || {}
 
         begin
           env = Rack::MockRequest.env_for(path, {:method => method})
@@ -603,6 +604,7 @@ module ActionDispatch
 
         req = @request_class.new(env)
         @router.recognize(req) do |route, matches, params|
+          params.merge!(extras)
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY)
