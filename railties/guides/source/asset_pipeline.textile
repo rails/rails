@@ -464,6 +464,7 @@ For Apache:
 
 <plain>
 <LocationMatch "^/assets/.*$">
+  # Use of ETag is discouraged when Last-Modified is present
   Header unset ETag
   FileETag None
   # RFC says only cache for 1 year
