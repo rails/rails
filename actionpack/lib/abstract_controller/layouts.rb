@@ -280,6 +280,10 @@ module AbstractController
           <<-RUBY
             lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first || super
           RUBY
+        else
+          <<-RUBY
+            super
+          RUBY
         end
 
         layout_definition = case _layout
