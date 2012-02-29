@@ -21,6 +21,15 @@ module ActiveRecord
         @tables[name] = connection.table_exists?(name)
       end
 
+      # Add internal cache for table with +table_name+.
+      def add(table_name)
+        if table_exists?(table_name)
+          @primary_keys[table_name]
+          @columns[table_name]
+          @columns_hash[table_name]
+        end
+      end
+
       # Clears out internal caches
       def clear!
         @columns.clear
