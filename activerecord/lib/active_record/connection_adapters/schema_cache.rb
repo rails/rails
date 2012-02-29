@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
       attr_reader :columns, :columns_hash, :primary_keys, :tables
-      attr_reader :connection
+      attr_accessor :connection
 
       def initialize(conn)
         @connection = conn

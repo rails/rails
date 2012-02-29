@@ -107,7 +107,7 @@ module ActiveRecord
       config.watchable_files.concat ["#{app.root}/db/schema.rb", "#{app.root}/db/structure.sql"]
     end
 
-    config.after_initialize do
+    config.after_initialize do |app|
       ActiveSupport.on_load(:active_record) do
         ActiveRecord::Base.instantiate_observers
 
@@ -115,6 +115,17 @@ module ActiveRecord
           ActiveRecord::Base.instantiate_observers
         end
       end
+
+      ActiveSupport.on_load(:active_record) do
+        if app.config.use_schema_cache_dump
+          filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
+          if File.file?(filename)
+            cache = Marshal.load(open(filename, 'rb') { |f| f.read })
+            ActiveRecord::Base.connection.schema_cache = cache
+          end
+        end
+      end
+
     end
   end
 end

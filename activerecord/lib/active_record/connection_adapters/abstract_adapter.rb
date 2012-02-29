@@ -86,6 +86,11 @@ module ActiveRecord
         end
       end
 
+      def schema_cache=(cache)
+        cache.connection = self
+        @schema_cache = cache
+      end
+
       def expire
         @in_use = false
       end
