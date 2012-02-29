@@ -6,21 +6,12 @@ module ActiveRecord
 
       def initialize(conn)
         @connection = conn
-        @tables     = {}
 
-        @columns = Hash.new do |h, table_name|
-          h[table_name] = conn.columns(table_name)
-        end
-
-        @columns_hash = Hash.new do |h, table_name|
-          h[table_name] = Hash[columns[table_name].map { |col|
-            [col.name, col]
-          }]
-        end
-
-        @primary_keys = Hash.new do |h, table_name|
-          h[table_name] = table_exists?(table_name) ? conn.primary_key(table_name) : nil
-        end
+        @columns      = {}
+        @columns_hash = {}
+        @primary_keys = {}
+        @tables       = {}
+        prepare_default_proc
       end
 
       # A cached lookup for table existence.
@@ -44,6 +35,35 @@ module ActiveRecord
         @columns_hash.delete table_name
         @primary_keys.delete table_name
         @tables.delete table_name
+      end
+
+      def marshal_dump
+        [:@columns, :@columns_hash, :@primary_keys, :@tables].map do |val|
+          self.instance_variable_get(val).inject({}) { |h, v| h[v[0]] = v[1]; h }
+        end
+      end
+
+      def marshal_load(array)
+        @columns, @columns_hash, @primary_keys, @tables = array
+        prepare_default_proc
+      end
+
+      private
+
+      def prepare_default_proc
+        @columns.default_proc = Proc.new do |h, table_name|
+          h[table_name] = connection.columns(table_name)
+        end
+
+        @columns_hash.default_proc = Proc.new do |h, table_name|
+          h[table_name] = Hash[columns[table_name].map { |col|
+            [col.name, col]
+          }]
+        end
+
+        @primary_keys.default_proc = Proc.new do |h, table_name|
+          h[table_name] = table_exists?(table_name) ? connection.primary_key(table_name) : nil
+        end
       end
     end
   end
