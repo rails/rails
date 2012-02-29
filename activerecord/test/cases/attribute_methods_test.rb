@@ -626,9 +626,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_time_zone_aware_attribute_saved
-    time_string_1 = "2012-02-20 10:00:00"
-    time_string_2 = "2012-02-20 09:00:00"
-
     in_time_zone 1 do
       record = @target.create(:written_on => '2012-02-20 10:00')
 
