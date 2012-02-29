@@ -37,6 +37,16 @@ module Arel
         sql.must_be_like "SELECT SKIP 1 LIMIT 1"
       end
 
+      it 'uses INNER JOIN to perform joins' do
+        core = Nodes::SelectCore.new
+        table = Table.new(:posts)
+        core.source = Nodes::JoinSource.new(table, [table.create_join(Table.new(:comments))])
+
+        stmt = Nodes::SelectStatement.new([core])
+        sql = @visitor.accept(stmt)
+        sql.must_be_like 'SELECT FROM "posts" INNER JOIN "comments"'
+      end
+
     end
   end
 end
