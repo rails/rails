@@ -78,10 +78,10 @@ module Arel
         collector = visit o.relation, collector
         if o.wheres.any?
           collector << " WHERE "
-          inject_join o.wheres, collector, AND
-        else
-          collector
+          collector = inject_join o.wheres, collector, AND
         end
+
+        maybe_visit o.limit, collector
       end
 
       # FIXME: we should probably have a 2-pass visitor for this

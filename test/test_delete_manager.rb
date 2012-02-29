@@ -8,6 +8,14 @@ module Arel
       end
     end
 
+    it 'handles limit properly' do
+      table = Table.new(:users)
+      dm = Arel::DeleteManager.new
+      dm.take 10
+      dm.from table
+      assert_match(/LIMIT 10/, dm.to_sql)
+    end
+
     describe 'from' do
       it 'uses from' do
         table = Table.new(:users)
