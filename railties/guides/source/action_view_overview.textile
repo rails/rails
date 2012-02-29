@@ -535,10 +535,10 @@ h4. AssetTagHelper
 
 This module provides methods for generating HTML that links views to assets such as images, JavaScript files, stylesheets, and feeds.
 
-By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting +ActionController::Base.asset_host+ in the application configuration, typically in +config/environments/production.rb+. For example, let's say your asset host is +assets.example.com+:
+By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting +config.action_controller.asset_host+ in the application configuration, typically in +config/environments/production.rb+. For example, let's say your asset host is +assets.example.com+:
 
 <ruby>
-ActionController::Base.asset_host = "assets.example.com"
+config.action_controller.asset_host = "assets.example.com"
 image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
 </ruby>
 
