@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
-      attr_reader :columns, :columns_hash, :primary_keys, :tables
+      attr_reader :columns, :columns_hash, :primary_keys, :tables, :version
       attr_accessor :connection
 
       def initialize(conn)
@@ -36,6 +36,7 @@ module ActiveRecord
         @columns_hash.clear
         @primary_keys.clear
         @tables.clear
+        @version = nil
       end
 
       # Clear out internal caches for table with +table_name+.
@@ -47,13 +48,15 @@ module ActiveRecord
       end
 
       def marshal_dump
-        [:@columns, :@columns_hash, :@primary_keys, :@tables].map do |val|
+        # if we get current version during initialization, it happens stack over flow.
+        @version = ActiveRecord::Migrator.current_version
+        [@version] + [:@columns, :@columns_hash, :@primary_keys, :@tables].map do |val|
           self.instance_variable_get(val).inject({}) { |h, v| h[v[0]] = v[1]; h }
         end
       end
 
       def marshal_load(array)
-        @columns, @columns_hash, @primary_keys, @tables = array
+        @version, @columns, @columns_hash, @primary_keys, @tables = array
         prepare_default_proc
       end
 

@@ -121,7 +121,11 @@ module ActiveRecord
           filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
           if File.file?(filename)
             cache = Marshal.load(open(filename, 'rb') { |f| f.read })
-            ActiveRecord::Base.connection.schema_cache = cache
+            if cache.version == ActiveRecord::Migrator.current_version
+              ActiveRecord::Base.connection.schema_cache = cache
+            else
+              warn "schema_cache.dump is expired. Current version is #{ActiveRecord::Migrator.current_version}, but cache version is #{cache.version}."
+            end
           end
         end
       end

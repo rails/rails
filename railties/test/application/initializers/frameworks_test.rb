@@ -205,5 +205,19 @@ module ApplicationTests
       assert ActiveRecord::Base.connection.schema_cache.tables["posts"]
     end
 
+    test "expire schema cache dump" do
+      Dir.chdir(app_path) do
+        `rails generate model post title:string`
+        `bundle exec rake db:migrate`
+        `bundle exec rake db:schema:cache:dump`
+
+        `bundle exec rake db:rollback`
+      end
+      silence_warnings {
+        require "#{app_path}/config/environment"
+        assert !ActiveRecord::Base.connection.schema_cache.tables["posts"]
+      }
+    end
+
   end
 end
