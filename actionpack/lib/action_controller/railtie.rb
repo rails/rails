@@ -6,7 +6,7 @@ require "abstract_controller/railties/routes_helpers"
 require "action_controller/railties/paths"
 
 module ActionController
-  class Railtie < Rails::Railtie
+  class Railtie < Rails::Railtie #:nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
 
     initializer "action_controller.logger" do
