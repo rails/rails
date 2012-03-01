@@ -3,7 +3,7 @@ module ActionPack
     MAJOR = 3
     MINOR = 1
     TINY  = 4
-    PRE   = "rc1"
+    PRE   = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end
