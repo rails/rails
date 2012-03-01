@@ -84,13 +84,13 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "hello&lt;&gt;", clean + @buffer
   end
 
-  test "Should concat as a normal string when dirty" do
+  test "Should concat as a normal string when safe" do
     clean = "hello".html_safe
     @buffer.gsub!('', '<>')
     assert_equal "<>hello", @buffer + clean
   end
 
-  test "Should preserve dirty? status on copy" do
+  test "Should preserve html_safe? status on copy" do
     @buffer.gsub!('', '<>')
     assert !@buffer.dup.html_safe?
   end
@@ -102,20 +102,42 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "<script>", result_buffer
   end
 
-  test "Should raise an error when safe_concat is called on dirty buffers" do
+  test "Should raise an error when safe_concat is called on unsafe buffers" do
     @buffer.gsub!('', '<>')
     assert_raise ActiveSupport::SafeBuffer::SafeConcatError do
       @buffer.safe_concat "BUSTED"
     end
   end
 
-  test "should not fail if the returned object is not a string" do
+  test "Should not fail if the returned object is not a string" do
     assert_kind_of NilClass, @buffer.slice("chipchop")
   end
 
-  test "Should initialize @dirty to false for new instance when sliced" do
-    dirty = @buffer[0,0].send(:dirty?)
-    assert_not_nil dirty
-    assert !dirty
+  test "clone_empty returns an empty buffer" do
+    assert_equal '', ActiveSupport::SafeBuffer.new('foo').clone_empty
+  end
+
+  test "clone_empty keeps the original dirtyness" do
+    assert @buffer.clone_empty.html_safe?
+    assert !@buffer.gsub!('', '').clone_empty.html_safe?
+  end
+
+  test "Should be safe when sliced if original value was safe" do
+    new_buffer = @buffer[0,0]
+    assert_not_nil new_buffer
+    assert new_buffer.html_safe?, "should be safe"
+  end
+
+  test "Should continue unsafe on slice" do
+    x = 'foo'.html_safe.gsub!('f', '<script>alert("lolpwnd");</script>')
+
+    # calling gsub! makes the dirty flag true
+    assert !x.html_safe?, "should not be safe"
+
+    # getting a slice of it
+    y = x[0..-1]
+
+    # should still be unsafe
+    assert !y.html_safe?, "should not be safe"
   end
 end
