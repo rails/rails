@@ -111,7 +111,7 @@
      HTML5 `mark` element. *Brian Cardarella*
 
 
-## Rails 3.2.2 (unreleased) ##
+## Rails 3.2.2 (March 1, 2012) ##
 
 *   Format lookup for partials is derived from the format in which the template is being rendered. Closes #5025 part 2 *Santiago Pastorino*
 
@@ -301,7 +301,7 @@
     returned by the class method attribute_names will be wrapped. This fixes
     the wrapping of nested attributes by adding them to attr_accessible.
 
-## Rails 3.1.4 (unreleased) ##
+## Rails 3.1.4 (March 1, 2012) ##
 
 *   Skip assets group in Gemfile and all assets configurations options
     when the application is generated with --skip-sprockets option.
@@ -603,7 +603,7 @@
 *   Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply to the browser only. *Yehuda Katz, Carl Lerche*
 
 
-## Rails 3.0.12 (unreleased) ##
+## Rails 3.0.12 (March 1, 2012) ##
 
 * Fix using `tranlate` helper with a html translation which uses the `:count` option for
   pluralization.

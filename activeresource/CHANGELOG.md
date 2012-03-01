@@ -16,7 +16,7 @@
     *Jim Herz*
 
 
-## Rails 3.1.4 (unreleased) ##
+## Rails 3.1.4 (March 1, 2012) ##
 
 *   No changes
 
@@ -44,7 +44,7 @@
     end
 
 
-## Rails 3.0.12 (unreleased) ##
+## Rails 3.0.12 (March 1, 2012) ##
 
 *   No changes.
 

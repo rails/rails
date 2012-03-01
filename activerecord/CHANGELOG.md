@@ -320,7 +320,7 @@
 
     *Aaron Christy*
 
- ## Rails 3.1.4 (unreleased) ##
+## Rails 3.1.4 (March 1, 2012) ##
 
  *   Fix a custom primary key regression *GH 3987*
 
@@ -779,7 +779,7 @@
     *Aaron Patterson*
 
 
-## Rails 3.0.12 (unreleased) ##
+## Rails 3.0.12 (March 1, 2012) ##
 
 *   No changes.
 
