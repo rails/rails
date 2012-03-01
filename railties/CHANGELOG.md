@@ -71,7 +71,7 @@
 *   Remove old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API *Guillermo Iguaran*
 
 
-## Rails 3.1.4 (unreleased) ##
+## Rails 3.1.4 (March 1, 2012) ##
 
 *   Setting config.force_ssl also marks the session cookie as secure.
 
@@ -203,7 +203,7 @@
 *   Include all helpers from plugins and shared engines in application *Piotr Sarnacki*
 
 
-## Rails 3.0.12 (unreleased) ##
+## Rails 3.0.12 (March 1, 2012) ##
 
 *   No changes.
 
