@@ -2869,6 +2869,8 @@ d.next_year               # => Wed, 28 Feb 2001
 
 Active Support defines these methods as well for Ruby 1.8.
 
++prev_year+ is aliased to +last_year+.
+
 h6. +prev_month+, +next_month+
 
 In Ruby 1.9 +prev_month+ and +next_month+ return the date with the same day in the last or next month:
@@ -2889,6 +2891,8 @@ Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
 </ruby>
 
 Active Support defines these methods as well for Ruby 1.8.
+
++prev_month+ is aliased to +last_month+.
 
 h6. +beginning_of_week+, +end_of_week+
 
@@ -2934,6 +2938,8 @@ d.prev_week              # => Mon, 26 Apr 2010
 d.prev_week(:saturday)   # => Sat, 01 May 2010
 d.prev_week(:friday)     # => Fri, 30 Apr 2010
 </ruby>
+
++prev_week+ is aliased to +last_week+.
 
 h6. +beginning_of_month+, +end_of_month+
 
@@ -3145,13 +3151,13 @@ end_of_week (at_end_of_week)
 monday
 sunday
 weeks_ago
-prev_week
+prev_week (last_week)
 next_week
 months_ago
 months_since
 beginning_of_month (at_beginning_of_month)
 end_of_month (at_end_of_month)
-prev_month
+prev_month (last_month)
 next_month
 beginning_of_quarter (at_beginning_of_quarter)
 end_of_quarter (at_end_of_quarter)
@@ -3159,7 +3165,7 @@ beginning_of_year (at_beginning_of_year)
 end_of_year (at_end_of_year)
 years_ago
 years_since
-prev_year
+prev_year (last_year)
 next_year
 </ruby>
 
@@ -3321,13 +3327,13 @@ end_of_week (at_end_of_week)
 monday
 sunday
 weeks_ago
-prev_week
+prev_week (last_week)
 next_week
 months_ago
 months_since
 beginning_of_month (at_beginning_of_month)
 end_of_month (at_end_of_month)
-prev_month
+prev_month (last_month)
 next_month
 beginning_of_quarter (at_beginning_of_quarter)
 end_of_quarter (at_end_of_quarter)
@@ -3335,7 +3341,7 @@ beginning_of_year (at_beginning_of_year)
 end_of_year (at_end_of_year)
 years_ago
 years_since
-prev_year
+prev_year (last_year)
 next_year
 </ruby>
 

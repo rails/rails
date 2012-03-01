@@ -1026,6 +1026,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'pasts#destroy', @response.body
     assert_equal '/past', past_path
 
+    patch '/present'
+    assert_equal 'presents#update', @response.body
+    assert_equal '/present', present_path
+
     put '/present'
     assert_equal 'presents#update', @response.body
     assert_equal '/present', present_path
@@ -1043,6 +1047,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     delete '/relationships/1'
     assert_equal 'relationships#destroy', @response.body
     assert_equal '/relationships/1', relationship_path(1)
+
+    patch '/friendships/1'
+    assert_equal 'friendships#update', @response.body
+    assert_equal '/friendships/1', friendship_path(1)
 
     put '/friendships/1'
     assert_equal 'friendships#update', @response.body
@@ -2405,12 +2413,10 @@ end
 class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      match "/~user" => lambda { |env|
-        [200, { 'Content-Type' => 'text/plain' }, []]
-      }, :as => :tilde_path
-      match "/young-and-fine" => lambda { |env|
-        [200, { 'Content-Type' => 'text/plain' }, []]
-      }, :as => :tilde_path
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      match "/~user" => ok
+      match "/young-and-fine" => ok
     end
   end
 

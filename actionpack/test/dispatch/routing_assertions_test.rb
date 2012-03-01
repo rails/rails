@@ -3,6 +3,7 @@ require 'controller/fake_controllers'
 
 class SecureArticlesController < ArticlesController; end
 class BlockArticlesController < ArticlesController; end
+class QueryArticlesController < ArticlesController; end
 
 class RoutingAssertionsTest < ActionController::TestCase
 
@@ -17,6 +18,10 @@ class RoutingAssertionsTest < ActionController::TestCase
 
       scope 'block', :constraints => lambda { |r| r.ssl? } do
         resources :articles, :controller => 'block_articles'
+      end
+
+      scope 'query', :constraints => lambda { |r| r.params[:use_query] == 'true' } do
+        resources :articles, :controller => 'query_articles'
       end
     end
   end
@@ -60,6 +65,13 @@ class RoutingAssertionsTest < ActionController::TestCase
       assert_recognizes({ :controller => 'block_articles', :action => 'index' }, 'http://test.host/block/articles')
     end
     assert_recognizes({ :controller => 'block_articles', :action => 'index' }, 'https://test.host/block/articles')
+  end
+
+  def test_assert_recognizes_with_query_constraint
+    assert_raise(ActionController::RoutingError) do
+      assert_recognizes({ :controller => 'query_articles', :action => 'index', :use_query => 'false' }, '/query/articles', { :use_query => 'false' })
+    end
+    assert_recognizes({ :controller => 'query_articles', :action => 'index', :use_query => 'true' }, '/query/articles', { :use_query => 'true' })
   end
 
   def test_assert_routing

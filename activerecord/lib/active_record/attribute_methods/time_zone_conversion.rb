@@ -58,6 +58,7 @@ module ActiveRecord
                 end
                 time = time.in_time_zone rescue nil if time
                 write_attribute(:#{attr_name}, original_time)
+                #{attr_name}_will_change!
                 @attributes_cache["#{attr_name}"] = time
               end
             EOV

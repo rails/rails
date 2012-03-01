@@ -292,7 +292,7 @@ form_for(@article)
 
 ## Editing an existing article
 # long-style:
-form_for(@article, :url => article_path(@article), :html => { :method => "put" })
+form_for(@article, :url => article_path(@article), :html => { :method => "patch" })
 # short-style:
 form_for(@article)
 </ruby>
@@ -302,11 +302,6 @@ Notice how the short-style +form_for+ invocation is conveniently the same, regar
 Rails will also automatically set the +class+ and +id+ of the form appropriately: a form creating an article would have +id+ and +class+ +new_article+. If you were editing the article with id 23, the +class+ would be set to +edit_article+ and the id to +edit_article_23+. These attributes will be omitted for brevity in the rest of this guide.
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, +:url+, and +:method+ explicitly.
-
-NOTE: Rails can use the +PATCH+ method instead of +PUT+ for update forms if you set the following option in your +config/application.rb+:
-<ruby>
-config.default_method_for_update = :patch
-</ruby>
 
 h5. Dealing with Namespaces
 

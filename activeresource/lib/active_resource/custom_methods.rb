@@ -12,7 +12,7 @@ module ActiveResource
   #  This route set creates routes for the following HTTP requests:
   #
   #    POST      /people/new/register.json # PeopleController.register
-  #    PUT/PATCH /people/1/promote.json    # PeopleController.promote with :id => 1
+  #    PATCH/PUT /people/1/promote.json    # PeopleController.promote with :id => 1
   #    DELETE    /people/1/deactivate.json # PeopleController.deactivate with :id => 1
   #    GET       /people/active.json       # PeopleController.active
   #

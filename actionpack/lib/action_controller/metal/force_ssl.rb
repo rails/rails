@@ -18,15 +18,29 @@ module ActionController
       # Force the request to this particular controller or specified actions to be
       # under HTTPS protocol.
       #
-      # Note that this method will not be effective on development environment.
+      # If you need to disable this for any reason (e.g. development) then you can use
+      # an +:if+ or +:unless+ condition.
+      #
+      #     class AccountsController < ApplicationController
+      #       force_ssl :if => :ssl_configured?
+      #
+      #       def ssl_configured?
+      #         !Rails.env.development?
+      #       end
+      #     end
       #
       # ==== Options
+      # * <tt>host</tt>   - Redirect to a different host name
       # * <tt>only</tt>   - The callback should be run only for this action
       # * <tt>except<tt>  - The callback should be run for all actions except this action
+      # * <tt>if</tt>     - A symbol naming an instance method or a proc; the callback
+      #                     will be called only when it returns a true value.
+      # * <tt>unless</tt> - A symbol naming an instance method or a proc; the callback
+      #                     will be called only when it returns a false value.
       def force_ssl(options = {})
         host = options.delete(:host)
         before_filter(options) do
-          if !request.ssl? && !Rails.env.development?
+          unless request.ssl?
             redirect_options = {:protocol => 'https://', :status => :moved_permanently}
             redirect_options.merge!(:host => host) if host
             redirect_options.merge!(:params => request.query_parameters)

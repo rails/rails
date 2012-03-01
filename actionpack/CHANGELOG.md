@@ -1,5 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* Forms of persisted records use always PATCH (via the `_method` hack). *fxn*
+
+* For resources, both PATCH and PUT are routed to the `update` action. *fxn*
+
+*   Don't ignore `force_ssl` in development. This is a change of behavior - use a `:if` condition to recreate the old behavior.
+
+        class AccountsController < ApplicationController
+          force_ssl :if => :ssl_configured?
+
+          def ssl_configured?
+            !Rails.env.development?
+          end
+        end
+
+    *Pat Allan*
+
 *   Adds support for the PATCH verb:
       * Request objects respond to `patch?`.
       * Routes have a new `patch` method, and understand `:patch` in the
@@ -93,6 +109,29 @@
 
 *    `ActionView::Helpers::TextHelper#highlight` now defaults to the
      HTML5 `mark` element. *Brian Cardarella*
+
+
+## Rails 3.2.2 (unreleased) ##
+
+*   Format lookup for partials is derived from the format in which the template is being rendered. Closes #5025 part 2 *Santiago Pastorino*
+
+*   Use the right format when a partial is missing. Closes #5025. *Santiago Pastorino*
+
+*   Default responder will now always use your overridden block in `respond_with` to render your response. *Prem Sichanugrist*
+
+*   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form.
+    This is a behavior change, previously the hidden tag had a value of the disabled checkbox.
+    *Tadas Tamosauskas*
+
+
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   Documentation improvements.
+
+*   Allow `form.select` to accept ranges (regression). *Jeremy Walker*
+
+*   `datetime_select` works with -/+ infinity dates. *Joe Van Dyk*
+
 
 ## Rails 3.2.0 (January 20, 2012) ##
 
@@ -264,13 +303,23 @@
 
 ## Rails 3.1.4 (unreleased) ##
 
+*   Skip assets group in Gemfile and all assets configurations options
+    when the application is generated with --skip-sprockets option.
+
+    *Guillermo Iguaran*
+
+*   Use ProcessedAsset#pathname in Sprockets helpers when debugging is on. Closes #3333 #3348 #3361.
+
+    *Guillermo Iguaran*
+
 *   Allow to use asset_path on named_routes aliasing RailsHelper's
     asset_path to path_to_asset *Adrian Pike*
 
-*   Assets should use the request protocol by default or default to
-    relative if no request is available *Jonathan del Strother*
+*   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
 
 ## Rails 3.1.3 (November 20, 2011) ##
+
+*   Downgrade sprockets to ~> 2.0.3. Using 2.1.0 caused regressions.
 
 *   Fix using `translate` helper with a html translation which uses the `:count` option for
     pluralization.
@@ -552,6 +601,96 @@
 *   Renames csrf_meta_tag -> csrf_meta_tags, and aliases csrf_meta_tag for backwards compatibility. *fxn*
 
 *   Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply to the browser only. *Yehuda Katz, Carl Lerche*
+
+
+## Rails 3.0.12 (unreleased) ##
+
+* Fix using `tranlate` helper with a html translation which uses the `:count` option for
+  pluralization.
+
+  *Jon Leighton*
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   Fix XSS security vulnerability in the `translate` helper method. When using interpolation
+    in combination with HTML-safe translations, the interpolated input would not get HTML
+    escaped. *GH 3664*
+
+    Before:
+
+      translate('foo_html', :something => '<script>') # => "...<script>..."
+
+    After:
+
+      translate('foo_html', :something => '<script>') # => "...&lt;script&gt;..."
+
+    *Sergey Nartimov*
+
+*   Implement a workaround for a bug in ruby-1.9.3p0 where an error would be
+    raised while attempting to convert a template from one encoding to another.
+
+    Please see http://redmine.ruby-lang.org/issues/5564 for details of the bug.
+
+    The workaround is to load all conversions into memory ahead of time, and will
+    only happen if the ruby version is exactly 1.9.3p0. The hope is obviously
+    that the underlying problem will be resolved in the next patchlevel release
+    of 1.9.3.
+
+*   Fix assert_select_email to work on multipart and non-multipart emails as the method stopped working correctly in Rails 3.x due to changes in the new mail gem.
+
+*   Fix url_for when passed a hash to prevent additional options (eg. :host, :protocol) from being added to the hash after calling it.
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   Fixes an issue where cache sweepers with only after filters would have no
+    controller object, it would raise undefined method controller_name for nil [jeroenj]
+
+*   Ensure status codes are logged when exceptions are raised.
+
+*   Subclasses of OutputBuffer are respected.
+
+*   Fixed ActionView::FormOptionsHelper#select with :multiple => false
+
+*   Avoid extra call to Cache#read in case of a fragment cache hit
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   json_escape will now return a SafeBuffer string if it receives SafeBuffer string [tenderlove]
+
+*   Make sure escape_js returns SafeBuffer string if it receives SafeBuffer string [Prem Sichanugrist]
+
+*   Fix text helpers to work correctly with the new SafeBuffer restriction [Paul Gallagher, Arun Agrawal, Prem Sichanugrist]
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   It is prohibited to perform a in-place SafeBuffer mutation [tenderlove]
+
+    The old behavior of SafeBuffer allowed you to mutate string in place via
+    method like `sub!`. These methods can add unsafe strings to a safe buffer,
+    and the safe buffer will continue to be marked as safe.
+
+    An example problem would be something like this:
+
+      <%= link_to('hello world', @user).sub!(/hello/, params[:xss])  %>
+
+    In the above example, an untrusted string (`params[:xss]`) is added to the
+    safe buffer returned by `link_to`, and the untrusted content is successfully
+    sent to the client without being escaped.  To prevent this from happening
+    `sub!` and other similar methods will now raise an exception when they are called on a safe buffer.
+
+    In addition to the in-place versions, some of the versions of these methods which return a copy of the string will incorrectly mark strings as safe. For example:
+
+       <%= link_to('hello world', @user).sub(/hello/, params[:xss]) %>
+
+    The new versions will now ensure that *all* strings returned by these methods on safe buffers are marked unsafe.
+
+    You can read more about this change in http://groups.google.com/group/rubyonrails-security/browse_thread/thread/2e516e7acc96c4fb
+
+*   Fixed github issue #342 with asset paths and relative roots.
 
 
 ## Rails 3.0.7 (April 18, 2011) ##

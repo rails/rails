@@ -1,10 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-* New configuration option `config.default_method_for_update` tells Rails which
-  HTTP verb to use for update actions. Values can be `:patch` and `:put`.
-  Default is `:put` for backwards compatibility, but you are encouraged to
-  use `:patch` for proper HTTP semantics with partial updates.
-
 *   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. *Piotr Sarnacki*
 
     Example:
@@ -23,6 +18,15 @@
 *   Scaffold now uses `content_tag_for` in index.html.erb *José Valim*
 
 *   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
+
+
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   Documentation fixes.
+
+*   Migration generation understands decimal{1.2} and decimal{1-2}, in
+    addition to decimal{1,2}. *José Valim*
+
 
 ## Rails 3.2.0 (January 20, 2012) ##
 
@@ -65,6 +69,22 @@
 *   Remove old plugin generator (`rails generate plugin`) in favor of `rails plugin new` command *Guillermo Iguaran*
 
 *   Remove old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API *Guillermo Iguaran*
+
+
+## Rails 3.1.4 (unreleased) ##
+
+*   Setting config.force_ssl also marks the session cookie as secure.
+
+    *José Valim*
+
+*   Add therubyrhino to Gemfile in new applications when running under JRuby.
+
+    *Guillermo Iguaran*
+
+
+## Rails 3.1.3 (November 20, 2011) ##
+
+*   New apps should be generated with a sass-rails dependency of 3.1.5, not 3.1.5.rc.2
 
 
 ## Rails 3.1.2 (November 18, 2011) ##
@@ -183,12 +203,37 @@
 *   Include all helpers from plugins and shared engines in application *Piotr Sarnacki*
 
 
+## Rails 3.0.12 (unreleased) ##
+
+*   No changes.
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   Updated Prototype UJS to lastest version fixing multiples errors in IE [Guillermo Iguaran]
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   Fix Rake 0.9.0 support.
+
+
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   No changes.
 
 
-*   Rails 3.0.6 (April 5, 2011)
+##   Rails 3.0.6 (April 5, 2011) ##
 
 *   No changes.
 

@@ -75,14 +75,14 @@ module ActionView
 
         def add_default_name_and_id(options)
           if options.has_key?("index")
-            options["name"] ||= tag_name_with_index(options["index"])
+            options["name"] ||= options.fetch("name"){ tag_name_with_index(options["index"]) }
             options["id"] = options.fetch("id"){ tag_id_with_index(options["index"]) }
             options.delete("index")
           elsif defined?(@auto_index)
-            options["name"] ||= tag_name_with_index(@auto_index)
+            options["name"] ||= options.fetch("name"){ tag_name_with_index(@auto_index) }
             options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
           else
-            options["name"] ||= options['multiple'] ? tag_name_multiple : tag_name
+            options["name"] ||= options.fetch("name"){ options['multiple'] ? tag_name_multiple : tag_name }
             options["id"] = options.fetch("id"){ tag_id }
           end
           options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
@@ -133,13 +133,13 @@ module ActionView
 
         def add_options(option_tags, options, value = nil)
           if options[:include_blank]
-            option_tags = "<option value=\"\">#{ERB::Util.html_escape(options[:include_blank]) if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
+            option_tags = content_tag('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
           end
           if value.blank? && options[:prompt]
             prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = "<option value=\"\">#{ERB::Util.html_escape(prompt)}</option>\n" + option_tags
+            option_tags = content_tag('option', prompt, :value => '') + "\n" + option_tags
           end
-          option_tags.html_safe
+          option_tags
         end
       end
     end

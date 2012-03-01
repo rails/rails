@@ -5,13 +5,13 @@ require 'rails/engine/configuration'
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets,
+      attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :dependency_loading, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
                     :railties_order, :relative_url_root, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
-                    :time_zone, :reload_classes_only_on_change, :default_method_for_update
+                    :time_zone, :reload_classes_only_on_change
 
       attr_writer :log_level
       attr_reader :encoding
@@ -40,7 +40,7 @@ module Rails
         @reload_classes_only_on_change = true
         @file_watcher                  = ActiveSupport::FileUpdateChecker
         @exceptions_app                = nil
-        @default_method_for_update     = :put
+        @autoflush_log                 = true
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false

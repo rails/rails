@@ -325,11 +325,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
   end
 
-  def test_default_method_for_update_is_not_patch
-    run_generator [destination_root, "--skip-test-unit", "--skip-active-record"]
-    assert_file "config/application.rb", /#\s+config\.default_method_for_update\s+=\s+:patch/
-  end
-
   def test_new_hash_style
     run_generator [destination_root]
     assert_file "config/initializers/session_store.rb" do |file|

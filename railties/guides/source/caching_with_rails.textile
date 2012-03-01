@@ -359,7 +359,7 @@ h4. ActiveSupport::Cache::NullStore
 This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with +Rails.cache+, but caching may interfere with being able to see the results of code changes. With this cache store, all +fetch+ and +read+ operations will result in a miss.
 
 <ruby>
-ActionController::Base.cache_store = :null
+ActionController::Base.cache_store = :null_store
 </ruby>
 
 h4. Custom Cache Stores

@@ -330,7 +330,7 @@ module ActionDispatch
         @integration_session = Integration::Session.new(app)
       end
 
-      %w(get post put patch head delete options cookies assigns
+      %w(get post patch put head delete options cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
           reset! unless integration_session

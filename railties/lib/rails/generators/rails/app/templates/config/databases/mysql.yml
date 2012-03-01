@@ -1,5 +1,5 @@
 # MySQL.  Versions 4.1 and 5.0 are recommended.
-# 
+#
 # Install the MYSQL driver
 #   gem install mysql2
 #
@@ -11,9 +11,10 @@
 development:
   adapter: mysql2
   encoding: utf8
-  reconnect: false
   database: <%= app_name %>_development
-  pool: 5
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
   username: root
   password:
 <% if mysql_socket -%>
@@ -28,9 +29,10 @@ development:
 test:
   adapter: mysql2
   encoding: utf8
-  reconnect: false
   database: <%= app_name %>_test
-  pool: 5
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
   username: root
   password:
 <% if mysql_socket -%>
@@ -42,9 +44,10 @@ test:
 production:
   adapter: mysql2
   encoding: utf8
-  reconnect: false
   database: <%= app_name %>_production
-  pool: 5
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
   username: root
   password:
 <% if mysql_socket -%>

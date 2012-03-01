@@ -46,7 +46,7 @@ module AbstractController
       #   callbacks. Note that skipping uses Ruby equality, so it's
       #   impossible to skip a callback defined using an anonymous proc
       #   using #skip_filter
-      def skip_filter(*names, &blk)
+      def skip_filter(*names)
         skip_before_filter(*names)
         skip_after_filter(*names)
         skip_around_filter(*names)
@@ -64,7 +64,7 @@ module AbstractController
       # ==== Block Parameters
       # * <tt>name</tt>     - The callback to be added
       # * <tt>options</tt>  - A hash of options to be used when adding the callback
-      def _insert_callbacks(callbacks, block)
+      def _insert_callbacks(callbacks, block = nil)
         options = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
         _normalize_callback_options(options)
         callbacks.push(block) if block
@@ -90,7 +90,7 @@ module AbstractController
       ##
       # :method: skip_before_filter
       #
-      # :call-seq: skip_before_filter(names, block)
+      # :call-seq: skip_before_filter(names)
       #
       # Skip a before filter. See _insert_callbacks for parameter details.
 
@@ -118,7 +118,7 @@ module AbstractController
       ##
       # :method: skip_after_filter
       #
-      # :call-seq: skip_after_filter(names, block)
+      # :call-seq: skip_after_filter(names)
       #
       # Skip an after filter. See _insert_callbacks for parameter details.
 
@@ -146,7 +146,7 @@ module AbstractController
       ##
       # :method: skip_around_filter
       #
-      # :call-seq: skip_around_filter(names, block)
+      # :call-seq: skip_around_filter(names)
       #
       # Skip an around filter. See _insert_callbacks for parameter details.
 
@@ -179,8 +179,8 @@ module AbstractController
 
           # Skip a before, after or around filter. See _insert_callbacks
           # for details on the allowed parameters.
-          def skip_#{filter}_filter(*names, &blk)                        # def skip_before_filter(*names, &blk)
-            _insert_callbacks(names, blk) do |name, options|             #   _insert_callbacks(names, blk) do |name, options|
+          def skip_#{filter}_filter(*names)                              # def skip_before_filter(*names)
+            _insert_callbacks(names) do |name, options|                  #   _insert_callbacks(names) do |name, options|
               skip_callback(:process_action, :#{filter}, name, options)  #     skip_callback(:process_action, :before, name, options)
             end                                                          #   end
           end                                                            # end

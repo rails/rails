@@ -23,7 +23,6 @@ module ActionDispatch
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
       ActionDispatch::Request.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
       ActionDispatch::Response.default_charset = app.config.action_dispatch.default_charset || app.config.encoding
-      ActionDispatch::Routing::Mapper.default_method_for_update = app.config.default_method_for_update
 
       ActionDispatch::ExceptionWrapper.rescue_responses.merge!(config.action_dispatch.rescue_responses)
       ActionDispatch::ExceptionWrapper.rescue_templates.merge!(config.action_dispatch.rescue_templates)

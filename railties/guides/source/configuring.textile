@@ -76,8 +76,6 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.consider_all_requests_local+ is a flag. If true then any error will cause detailed debugging information to be dumped in the HTTP response, and the +Rails::Info+ controller will show the application runtime context in +/rails/info/properties+. True by default in development and test environments, and false in production mode. For finer-grained control, set this to false and implement +local_request?+ in controllers to specify which requests should provide debugging information on errors.
 
-* +config.default_method_for_update+ tells Rails which HTTP method to use for update actions by default. Set this to +:patch+ for proper HTTP update semantics. The default is +:put+ for backwards compatibility.
-
 * +config.dependency_loading+ is a flag that allows you to disable constant autoloading setting it to false. It only has effect if +config.cache_classes+ is true, which it is by default in production mode. This flag is set to false by +config.threadsafe!+.
 
 * +config.eager_load_paths+ accepts an array of paths from which Rails will eager load on boot if cache classes is enabled. Defaults to every folder in the +app+ directory of the application.
@@ -216,7 +214,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 * +ActionDispatch::Session::CookieStore+ is responsible for storing the session in cookies. An alternate middleware can be used for this by changing the +config.action_controller.session_store+ to an alternate value. Additionally, options passed to this can be configured by using +config.action_controller.session_options+.
 * +ActionDispatch::Flash+ sets up the +flash+ keys. Only available if +config.action_controller.session_store+ is set to a value.
 * +ActionDispatch::ParamsParser+ parses out parameters from the request into +params+.
-* +Rack::MethodOverride+ allows the method to be overridden if +params[:_method]+ is set. This is the middleware which supports the PUT, PATCH, and DELETE HTTP method types.
+* +Rack::MethodOverride+ allows the method to be overridden if +params[:_method]+ is set. This is the middleware which supports the PATCH, PUT, and DELETE HTTP method types.
 * +ActionDispatch::Head+ converts HEAD requests to GET requests and serves them as so.
 * +ActionDispatch::BestStandardsSupport+ enables "best standards support" so that IE8 renders some elements correctly.
 
@@ -651,3 +649,23 @@ The error occurred while evaluating nil.each
 *+set_routes_reloader+* Configures Action Dispatch to reload the routes file using +ActionDispatch::Callbacks.to_prepare+.
 
 *+disable_dependency_loading+* Disables the automatic dependency loading if the +config.cache_classes+ is set to true and +config.dependency_loading+ is set to false.
+
+h3. Database pooling
+
+Active Record database connections are managed by +ActiveRecord::ConnectionAdapters::ConnectionPool+ which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 1 and can be configured in +database.yml+.
+
+<ruby>
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  # Maximum number of database connections available per process. Please
+  # increase this number in multithreaded applications.
+  pool: 1
+  timeout: 5000
+</ruby>
+
+Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, Mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
+
+Any one request will check out a connection the first time it requires access to the database, after which it will check the connection back in, at the end of the request, meaning that the additional connection slot will be available again for the next request in the queue.
+
+NOTE. If you have enabled +Rails.threadsafe!+ mode then there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.
