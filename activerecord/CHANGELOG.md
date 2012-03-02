@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove IdentityMap *Carlos Antonio da Silva*
+
 *   Added the schema cache dump feature.
 
     `Schema cache dump` feature was implemetend. This feature can dump/load internal state of `SchemaCache` instance

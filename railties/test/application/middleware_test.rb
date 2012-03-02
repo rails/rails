@@ -115,7 +115,6 @@ module ApplicationTests
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
       assert !middleware.include?("ActiveRecord::QueryCache")
-      assert !middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "removes lock if allow concurrency is set" do
@@ -171,12 +170,6 @@ module ApplicationTests
     test "Rails.cache does respond to middleware" do
       boot!
       assert_equal "Rack::Runtime", middleware.fourth
-    end
-
-    test "identity map is inserted" do
-      add_to_config "config.active_record.identity_map = true"
-      boot!
-      assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "insert middleware before" do
