@@ -203,7 +203,11 @@ module ActiveRecord
         value = super
         if column.type == :string && value.encoding == Encoding::ASCII_8BIT
           @logger.error "Binary data inserted for `string` type on column `#{column.name}`"
-          value.encode! 'utf-8'
+          if value.frozen?
+            value = value.dup.encode! 'utf-8'
+          elsif
+            value.encode! 'utf-8'
+          end
         end
         value
       end
