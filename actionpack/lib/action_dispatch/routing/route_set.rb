@@ -191,13 +191,49 @@ module ActionDispatch
             selector = url_helper_name(name, kind)
             hash_access_method = hash_access_name(name, kind)
 
-            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_possible_method :#{selector}
-              def #{selector}(*args)
-                url_for(#{hash_access_method}(*args))
-              end
-            END_EVAL
+            if optimize_helper?(kind, route)
+              @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+                remove_possible_method :#{selector}
+                def #{selector}(*args)
+                  if args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
+                    options = #{options.inspect}.merge!(url_options)
+                    options[:path] = "#{optimized_helper(route)}"
+                    ActionDispatch::Http::URL.url_for(options)
+                  else
+                    url_for(#{hash_access_method}(*args))
+                  end
+                end
+              END_EVAL
+            else
+              @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+                remove_possible_method :#{selector}
+                def #{selector}(*args)
+                  url_for(#{hash_access_method}(*args))
+                end
+              END_EVAL
+            end
+
             helpers << selector
+          end
+
+          # Clause check about when we need to generate an optimized helper.
+          def optimize_helper?(kind, route) #:nodoc:
+            route.ast.grep(Journey::Nodes::Star).empty? && route.requirements.except(:controller, :action).empty?
+          end
+
+          # Generates the interpolation to be used in the optimized helper.
+          def optimized_helper(route)
+            string_route = route.ast.to_s
+
+            while string_route.gsub!(/\([^\)]*\)/, "")
+              true
+            end
+
+            route.required_parts.each_with_index do |part, i|
+              string_route.gsub!(part.inspect, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
+            end
+
+            string_route
           end
       end
 
@@ -323,7 +359,7 @@ module ActionDispatch
             # Rails.application.routes.url_helpers.url_for(args)
             @_routes = routes
             class << self
-              delegate :url_for, :to => '@_routes'
+              delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
             end
 
             # Make named_routes available in the module singleton
@@ -557,6 +593,14 @@ module ActionDispatch
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
                           :trailing_slash, :anchor, :params, :only_path, :script_name]
 
+      def mounted?
+        false
+      end
+
+      def optimize_routes_generation?
+        !mounted? && default_url_options.empty?
+      end
+
       def _generate_prefix(options = {})
         nil
       end
@@ -568,19 +612,17 @@ module ActionDispatch
 
         user, password = extract_authentication(options)
         path_segments  = options.delete(:_path_segments)
-        script_name    = options.delete(:script_name)
-
-        path = (script_name.blank? ? _generate_prefix(options) : script_name.chomp('/')).to_s
+        script_name    = options.delete(:script_name).presence || _generate_prefix(options)
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
 
-        path_addition, params = generate(path_options, path_segments || {})
-        path << path_addition
+        path, params = generate(path_options, path_segments || {})
         params.merge!(options[:params] || {})
 
         ActionDispatch::Http::URL.url_for(options.merge!({
           :path => path,
+          :script_name => script_name,
           :params => params,
           :user => user,
           :password => password

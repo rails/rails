@@ -23,19 +23,24 @@ module ActionView
       include ActionDispatch::Routing::UrlFor
       include TagHelper
 
-      def _routes_context
-        controller
-      end
+      # We need to override url_optoins, _routes_context
+      # and optimize_routes_generation? to consider the controller.
 
-      # Need to map default url options to controller one.
-      # def default_url_options(*args) #:nodoc:
-      #   controller.send(:default_url_options, *args)
-      # end
-      #
-      def url_options
+      def url_options #:nodoc:
         return super unless controller.respond_to?(:url_options)
         controller.url_options
       end
+
+      def _routes_context #:nodoc:
+        controller
+      end
+      protected :_routes_context
+
+      def optimize_routes_generation? #:nodoc:
+        controller.respond_to?(:optimize_routes_generation?) ?
+          controller.optimize_routes_generation? : super
+      end
+      protected :optimize_routes_generation?
 
       # Returns the URL for the set of +options+ provided. This takes the
       # same options as +url_for+ in Action Controller (see the
