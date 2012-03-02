@@ -191,7 +191,7 @@ module ActionDispatch
             selector = url_helper_name(name, kind)
             hash_access_method = hash_access_name(name, kind)
 
-            if optimize_helper?(kind, route)
+            if optimize_helper?(route)
               @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
                 remove_possible_method :#{selector}
                 def #{selector}(*args)
@@ -217,7 +217,7 @@ module ActionDispatch
           end
 
           # Clause check about when we need to generate an optimized helper.
-          def optimize_helper?(kind, route) #:nodoc:
+          def optimize_helper?(route) #:nodoc:
             route.ast.grep(Journey::Nodes::Star).empty? && route.requirements.except(:controller, :action).empty?
           end
 
