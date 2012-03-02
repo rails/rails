@@ -40,6 +40,7 @@ module ActiveRecord
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor
+      attr_reader :logger
 
       def initialize(connection, logger = nil) #:nodoc:
         @active = nil
