@@ -195,7 +195,7 @@ module ActionDispatch
               @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
                 remove_possible_method :#{selector}
                 def #{selector}(*args)
-                  if args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && _optimized_routes?
+                  if args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
                     options = #{options.inspect}.merge!(url_options)
                     options[:path] = "#{optimized_helper(route)}"
                     ActionDispatch::Http::URL.url_for(options)
@@ -216,14 +216,9 @@ module ActionDispatch
             helpers << selector
           end
 
-          # If we are generating a path helper and we don't have a *path segment.
-          # We can optimize the routes generation to a string interpolation if
-          # it meets the appropriated runtime conditions.
-          #
-          # TODO We are enabling this only for path helpers, remove the
-          # kind == :path and fix the failures to enable it for url as well.
+          # Clause check about when we need to generate an optimized helper.
           def optimize_helper?(kind, route) #:nodoc:
-            kind == :path && route.ast.grep(Journey::Nodes::Star).empty?
+            route.ast.grep(Journey::Nodes::Star).empty? && route.requirements.except(:controller, :action).empty?
           end
 
           # Generates the interpolation to be used in the optimized helper.
@@ -364,7 +359,7 @@ module ActionDispatch
             # Rails.application.routes.url_helpers.url_for(args)
             @_routes = routes
             class << self
-              delegate :url_for, :to => '@_routes'
+              delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
             end
 
             # Make named_routes available in the module singleton
@@ -600,6 +595,10 @@ module ActionDispatch
 
       def mounted?
         false
+      end
+
+      def optimize_routes_generation?
+        !mounted? && default_url_options.empty?
       end
 
       def _generate_prefix(options = {})

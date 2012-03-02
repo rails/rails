@@ -102,6 +102,9 @@ module ActionDispatch
         super
       end
 
+      # Hook overriden in controller to add request information
+      # with `default_url_options`. Application logic should not
+      # go into url_options.
       def url_options
         default_url_options
       end
@@ -152,9 +155,9 @@ module ActionDispatch
 
       protected
 
-      def _optimized_routes?
+      def optimize_routes_generation?
         return @_optimized_routes if defined?(@_optimized_routes)
-        @_optimized_routes = default_url_options.empty? && !_routes.mounted? && _routes.default_url_options.empty?
+        @_optimized_routes = _routes.optimize_routes_generation? && default_url_options.empty?
       end
 
       def _with_routes(routes)
