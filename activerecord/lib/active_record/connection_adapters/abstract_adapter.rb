@@ -54,7 +54,7 @@ module ActiveRecord
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :last_use, :in_use
+      attr_reader :schema_cache, :last_use, :in_use, :logger
       alias :in_use? :in_use
 
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
