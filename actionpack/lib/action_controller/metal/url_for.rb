@@ -1,7 +1,7 @@
-# Includes +url_for+ into the host class. The class has to provide a +RouteSet+ by implementing 
+# Includes +url_for+ into the host class. The class has to provide a +RouteSet+ by implementing
 # the <tt>_routes</tt> method. Otherwise, an exception will be raised.
 #
-# In addition to <tt>AbstractController::UrlFor</tt>, this module accesses the HTTP layer to define 
+# In addition to <tt>AbstractController::UrlFor</tt>, this module accesses the HTTP layer to define
 # url options like the +host+. In order to do so, this module requires the host class
 # to implement +env+ and +request+, which need to be a Rack-compatible.
 #
@@ -18,7 +18,7 @@
 #       @url        = root_path # named route from the application.
 #     end
 #   end
-# 
+#
 module ActionController
   module UrlFor
     extend ActiveSupport::Concern
@@ -42,6 +42,5 @@ module ActionController
         @_url_options
       end
     end
-
   end
 end
