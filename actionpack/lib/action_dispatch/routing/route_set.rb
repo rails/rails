@@ -191,13 +191,54 @@ module ActionDispatch
             selector = url_helper_name(name, kind)
             hash_access_method = hash_access_name(name, kind)
 
-            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_possible_method :#{selector}
-              def #{selector}(*args)
-                url_for(#{hash_access_method}(*args))
-              end
-            END_EVAL
+            if optimize_helper?(kind, route)
+              @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+                remove_possible_method :#{selector}
+                def #{selector}(*args)
+                  if args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && _optimized_routes?
+                    options = #{options.inspect}.merge!(url_options)
+                    options[:path] = "#{optimized_helper(route)}"
+                    ActionDispatch::Http::URL.url_for(options)
+                  else
+                    url_for(#{hash_access_method}(*args))
+                  end
+                end
+              END_EVAL
+            else
+              @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+                remove_possible_method :#{selector}
+                def #{selector}(*args)
+                  url_for(#{hash_access_method}(*args))
+                end
+              END_EVAL
+            end
+
             helpers << selector
+          end
+
+          # If we are generating a path helper and we don't have a *path segment.
+          # We can optimize the routes generation to a string interpolation if
+          # it meets the appropriated runtime conditions.
+          #
+          # TODO We are enabling this only for path helpers, remove the
+          # kind == :path and fix the failures to enable it for url as well.
+          def optimize_helper?(kind, route) #:nodoc:
+            kind == :path && route.ast.grep(Journey::Nodes::Star).empty?
+          end
+
+          # Generates the interpolation to be used in the optimized helper.
+          def optimized_helper(route)
+            string_route = route.ast.to_s
+
+            while string_route.gsub!(/\([^\)]*\)/, "")
+              true
+            end
+
+            route.required_parts.each_with_index do |part, i|
+              string_route.gsub!(part.inspect, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
+            end
+
+            string_route
           end
       end
 
@@ -557,6 +598,10 @@ module ActionDispatch
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
                           :trailing_slash, :anchor, :params, :only_path, :script_name]
 
+      def mounted?
+        false
+      end
+
       def _generate_prefix(options = {})
         nil
       end
@@ -568,19 +613,17 @@ module ActionDispatch
 
         user, password = extract_authentication(options)
         path_segments  = options.delete(:_path_segments)
-        script_name    = options.delete(:script_name)
-
-        path = (script_name.blank? ? _generate_prefix(options) : script_name.chomp('/')).to_s
+        script_name    = options.delete(:script_name).presence || _generate_prefix(options)
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
 
-        path_addition, params = generate(path_options, path_segments || {})
-        path << path_addition
+        path, params = generate(path_options, path_segments || {})
         params.merge!(options[:params] || {})
 
         ActionDispatch::Http::URL.url_for(options.merge!({
           :path => path,
+          :script_name => script_name,
           :params => params,
           :user => user,
           :password => password

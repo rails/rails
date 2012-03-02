@@ -152,6 +152,11 @@ module ActionDispatch
 
       protected
 
+      def _optimized_routes?
+        return @_optimized_routes if defined?(@_optimized_routes)
+        @_optimized_routes = default_url_options.empty? && !_routes.mounted? && _routes.default_url_options.empty?
+      end
+
       def _with_routes(routes)
         old_routes, @_routes = @_routes, routes
         yield
