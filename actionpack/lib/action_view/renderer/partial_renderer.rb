@@ -272,6 +272,8 @@ module ActionView
       @block   = block
       @details = extract_details(options)
 
+      @lookup_context.rendered_format ||= formats.first
+
       if String === partial
         @object     = options[:object]
         @path       = partial

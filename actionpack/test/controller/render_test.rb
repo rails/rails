@@ -1246,22 +1246,26 @@ class RenderTest < ActionController::TestCase
   def test_partial_only
     get :partial_only
     assert_equal "only partial", @response.body
+    assert_equal "text/html", @response.content_type
   end
 
   def test_should_render_html_formatted_partial
     get :partial
-    assert_equal 'partial html', @response.body
+    assert_equal "partial html", @response.body
+    assert_equal "text/html", @response.content_type
   end
 
   def test_should_render_html_partial_with_formats
     get :partial_formats_html
-    assert_equal 'partial html', @response.body
+    assert_equal "partial html", @response.body
+    assert_equal "text/html", @response.content_type
   end
 
   def test_render_to_string_partial
     get :render_to_string_with_partial
     assert_equal "only partial", assigns(:partial_only)
     assert_equal "Hello: david", assigns(:partial_with_locals)
+    assert_equal "text/html", @response.content_type
   end
 
   def test_partial_with_counter
