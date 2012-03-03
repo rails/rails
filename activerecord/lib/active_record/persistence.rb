@@ -42,10 +42,51 @@ module ActiveRecord
           attributes.collect { |attr| create(attr, options, &block) }
         else
           object = new(attributes, options, &block)
-          object.save
+          _save_with_or_without_callbacks(object)
           object
         end
       end
+
+      # Creates an object without triggering the following callbacks:
+      #   * <tt>before_create</tt>
+      #   * <tt>after_create</tt>
+      def create_without_callbacks(*args, &block)
+        _create_without_callbacks(*args, &block)
+      end
+
+      private
+
+      # This method is shared with with ActiveRecord::Validations
+      # if a :bang option is passed it, it knows to call save! instead of save
+      def _save_with_or_without_callbacks(object, options = {})
+        save_method = _skip_callbacks? ? "save_without_callbacks" : "save"
+        save_method << "!" if options[:bang]
+        object.send(save_method)
+      end
+
+      # This method is shared with with ActiveRecord::Validations
+      # if a :bang option is passed it, it knows to call create! instead of create
+      def _create_without_callbacks(*args, options, &block)
+        bang = options[:bang] if options
+
+        begin
+          self._skip_callbacks = true
+          object = bang ? create!(*args, &block) : create(*args, &block) 
+        ensure
+          self._skip_callbacks = nil
+        end
+
+        object
+      end
+
+      def _skip_callbacks?
+        @@_skip_callbacks if defined?(@@_skip_callbacks)
+      end
+
+      def _skip_callbacks=(value)
+        @@_skip_callbacks = value
+      end
+
     end
 
     # Returns true if this object hasn't been saved yet -- that is, a record
@@ -87,6 +128,17 @@ module ActiveRecord
       end
     end
 
+    # Saves the model without triggering the following callbacks:
+    #   * <tt>before_save</tt>
+    #   * <tt>after_save</tt>
+    #   * <tt>before_update</tt>
+    #   * <tt>after_update</tt>
+    def save_without_callbacks(*args)
+      without_callbacks do
+        save(*args)
+      end
+    end
+    
     # Saves the model.
     #
     # If the model is new a record gets created in the database, otherwise
@@ -102,6 +154,13 @@ module ActiveRecord
     # ActiveRecord::Callbacks for further details.
     def save!(*)
       create_or_update || raise(RecordNotSaved)
+    end
+
+    # Same as <tt>save_without_callbacks</tt> except <tt>save!</tt> is called instead of <tt>save</tt>
+    def save_without_callbacks!(*args)
+      without_callbacks do
+        save!(*args)
+      end
     end
 
     # Deletes the record in the database and freezes this instance to
@@ -145,6 +204,15 @@ module ActiveRecord
       freeze
     end
 
+    # Deletes the record in the database without triggering the following callbacks:
+    #   * <tt>before_destroy</tt>
+    #   * <tt>after_destroy</tt>
+    def destroy_without_callbacks
+      without_callbacks do
+        destroy
+      end
+    end
+
     # Returns an instance of the specified +klass+ with the attributes of the
     # current record. This is mostly useful in relation to single-table
     # inheritance structures where you want a subclass to appear as the
@@ -181,6 +249,17 @@ module ActiveRecord
       save(:validate => false)
     end
 
+    # Updates a single attribute and saves the record without triggering the following callbacks:
+    #   * <tt>before_save</tt>
+    #   * <tt>after_save</tt>
+    #   * <tt>before_update</tt>
+    #   * <tt>after_update</tt>
+    def update_attribute_without_callbacks(*args)
+      without_callbacks do
+        update_attribute(*args)
+      end
+    end
+
     # Updates a single attribute of an object, without calling save.
     #
     # * Validation is skipped.
@@ -214,6 +293,17 @@ module ActiveRecord
       end
     end
 
+    # Updates the attributes and saves the record without triggering the following callbacks:
+    #   * <tt>before_save</tt>
+    #   * <tt>after_save</tt>
+    #   * <tt>before_update</tt>
+    #   * <tt>after_update</tt>
+    def update_attributes_without_callbacks(*args)
+      without_callbacks do
+        update_attributes(*args)
+      end
+    end
+
     # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
     # of +save+, so an exception is raised if the record is invalid.
     def update_attributes!(attributes, options = {})
@@ -222,6 +312,17 @@ module ActiveRecord
       with_transaction_returning_status do
         assign_attributes(attributes, options)
         save!
+      end
+    end
+
+    # Does the same thing as +update_attributes!+ but does not trigger the following callbacks:
+    #   * <tt>before_save</tt>
+    #   * <tt>after_save</tt>
+    #   * <tt>before_update</tt>
+    #   * <tt>after_update</tt>
+    def update_attributes_without_callbacks!(*args)
+      without_callbacks do
+        update_attributes!(*args)
       end
     end
 
@@ -369,5 +470,28 @@ module ActiveRecord
       @new_record = false
       id
     end
+
+    # A wrapper method for +save(!)+, +destroy+, +update_attribute(s)(!)+, 
+    # which sets @_skip_callbacks to true so that ActiveRecord::Callbacks
+    # can know to not trigger the callbacks for a given action
+    def without_callbacks(&block)
+      begin
+        self._skip_callbacks = true
+        result = yield
+      ensure
+        self._skip_callbacks = nil
+      end
+
+      result
+    end
+
+    def _skip_callbacks?
+      @_skip_callbacks if defined?(@_skip_callbacks)
+    end
+
+    def _skip_callbacks=(value)
+      @_skip_callbacks = value
+    end
+
   end
 end

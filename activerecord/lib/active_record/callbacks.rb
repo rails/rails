@@ -205,8 +205,6 @@ module ActiveRecord
   # The entire callback chain of a +save+, <tt>save!</tt>, or +destroy+ call runs
   # within a transaction. That includes <tt>after_*</tt> hooks. If everything
   # goes fine a COMMIT is executed once the chain has been completed.
-  #
-  # If a <tt>before_*</tt> callback cancels the action a ROLLBACK is issued. You
   # can also trigger a ROLLBACK raising an exception in any of the callbacks,
   # including <tt>after_*</tt> hooks. Note, however, that in that case the client
   # needs to be aware of it because an ordinary +save+ will raise such exception
@@ -276,7 +274,7 @@ module ActiveRecord
     end
 
     def destroy #:nodoc:
-      run_callbacks(:destroy) { super }
+      skip_callbacks? ? super : run_callbacks(:destroy) { super }
     end
 
     def touch(*) #:nodoc:
@@ -286,15 +284,19 @@ module ActiveRecord
   private
 
     def create_or_update #:nodoc:
-      run_callbacks(:save) { super }
+      skip_callbacks? ? super : run_callbacks(:save) { super }
     end
 
     def create #:nodoc:
-      run_callbacks(:create) { super }
+      skip_callbacks? ? super : run_callbacks(:create) { super }
     end
 
     def update(*) #:nodoc:
-      run_callbacks(:update) { super }
+      skip_callbacks? ? super : run_callbacks(:update) { super }
+    end
+
+    def skip_callbacks?
+      self.send(:_skip_callbacks?)
     end
   end
 end
