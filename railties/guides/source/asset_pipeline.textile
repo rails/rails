@@ -429,7 +429,7 @@ The default matcher for compiling files includes +application.js+, +application.
 [ Proc.new{ |path| !File.extname(path).in?(['.js', '.css']) }, /application.(css|js)$/ ]
 </ruby>
 
-NB: the matcher (and other members of the precompile array; see below) is applied to the final compiled file name.  This means that anything that compiles to JS/CSS is excluded, as well as raw JS/CSS files; for example, +.coffee+ and +.scss+ files are *not* automatically included as they compile to JS/CSS.
+NOTE. The matcher (and other members of the precompile array; see below) is applied to final compiled file names. This means that anything that compiles to JS/CSS is excluded, as well as raw JS/CSS files; for example, +.coffee+ and +.scss+ files are *not* automatically included as they compile to JS/CSS.
 
 If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the +precompile+ array:
 
