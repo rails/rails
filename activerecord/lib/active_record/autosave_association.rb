@@ -191,23 +191,21 @@ module ActiveRecord
             # Doesn't use after_save as that would save associations added in after_create/after_update twice
             after_create save_method
             after_update save_method
+          elsif reflection.macro == :has_one
+            define_method(save_method) { save_has_one_association(reflection) }
+            # Configures two callbacks instead of a single after_save so that
+            # the model may rely on their execution order relative to its
+            # own callbacks.
+            #
+            # For example, given that after_creates run before after_saves, if
+            # we configured instead an after_save there would be no way to fire
+            # a custom after_create callback after the child association gets
+            # created.
+            after_create save_method
+            after_update save_method
           else
-            if reflection.macro == :has_one
-              define_method(save_method) { save_has_one_association(reflection) }
-              # Configures two callbacks instead of a single after_save so that
-              # the model may rely on their execution order relative to its
-              # own callbacks.
-              #
-              # For example, given that after_creates run before after_saves, if
-              # we configured instead an after_save there would be no way to fire
-              # a custom after_create callback after the child association gets
-              # created.
-              after_create save_method
-              after_update save_method
-            else
-              define_non_cyclic_method(save_method, reflection) { save_belongs_to_association(reflection) }
-              before_save save_method
-            end
+            define_non_cyclic_method(save_method, reflection) { save_belongs_to_association(reflection) }
+            before_save save_method
           end
         end
 

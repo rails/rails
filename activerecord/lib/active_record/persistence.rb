@@ -176,7 +176,7 @@ module ActiveRecord
     #
     def update_attribute(name, value)
       name = name.to_s
-      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
+      verify_readonly_attribute(name)
       send("#{name}=", value)
       save(:validate => false)
     end
@@ -191,7 +191,7 @@ module ActiveRecord
     # attribute is marked as readonly.
     def update_column(name, value)
       name = name.to_s
-      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
+      verify_readonly_attribute(name)
       raise ActiveRecordError, "can not update on a new record object" unless persisted?
       raw_write_attribute(name, value)
       self.class.update_all({ name => value }, self.class.primary_key => id) == 1
@@ -323,7 +323,8 @@ module ActiveRecord
         changes = {}
 
         attributes.each do |column|
-          changes[column.to_s] = write_attribute(column.to_s, current_time)
+          column = column.to_s
+          changes[column] = write_attribute(column, current_time)
         end
 
         changes[self.class.locking_column] = increment_lock if locking_enabled?
@@ -368,6 +369,10 @@ module ActiveRecord
       IdentityMap.add(self) if IdentityMap.enabled?
       @new_record = false
       id
+    end
+
+    def verify_readonly_attribute(name)
+      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
     end
   end
 end
