@@ -475,7 +475,16 @@ end
 </ruby>
 
 will add an +attachment_id+ column and a string +attachment_type+ column with
-a default value of 'Photo'.
+a default value of 'Photo'. +references+ also allows you to define an
+index directly, instead of using +add_index+ after the +create_table+ call:
+
+<ruby>
+create_table :products do |t|
+  t.references :category, :index => true
+end
+</ruby>
+
+will create an index identical to calling `add_index :products, :category_id`.
 
 NOTE: The +references+ helper does not actually create foreign key constraints
 for you. You will need to use +execute+ or a plugin that adds "foreign key
