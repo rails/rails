@@ -16,4 +16,11 @@ class ModelTest < ActiveModel::TestCase
     object = BasicModel.new(:attr => "value")
     assert_equal object.attr, "value"
   end
+
+  def test_initialize_with_nil_or_empty_hash_params_does_not_explode
+    assert_nothing_raised do
+      BasicModel.new()
+      BasicModel.new({})
+    end
+  end
 end

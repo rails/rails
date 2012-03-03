@@ -1016,7 +1016,7 @@ module ActionView
         fields_options, record_object = record_object, nil if record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options[:builder] ||= options[:builder]
         fields_options[:parent_builder] = self
-        fields_options[:namespace] = fields_options[:parent_builder].options[:namespace]
+        fields_options[:namespace] = options[:namespace]
 
         case record_name
         when String, Symbol

@@ -7,9 +7,12 @@ module ActiveRecord
   # chain more <tt>scoped_by_* </tt> methods after the other. It acts like a named
   # scope except that it's dynamic.
   class DynamicScopeMatch
+    METHOD_PATTERN = /^scoped_by_([_a-zA-Z]\w*)$/
+
     def self.match(method)
-      return unless method.to_s =~ /^scoped_by_([_a-zA-Z]\w*)$/
-      new(true, $1 && $1.split('_and_'))
+      if method.to_s =~ METHOD_PATTERN
+        new(true, $1 && $1.split('_and_'))
+      end
     end
 
     def initialize(scope, attribute_names)

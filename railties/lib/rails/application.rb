@@ -229,6 +229,10 @@ module Rails
           middleware.use ::Rack::SSL, config.ssl_options
         end
 
+        if config.action_dispatch.x_sendfile_header.present?
+          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
+        end
+
         if config.serve_static_assets
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
@@ -241,10 +245,6 @@ module Rails
         middleware.use ::ActionDispatch::ShowExceptions, config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
         middleware.use ::ActionDispatch::DebugExceptions
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
-
-        if config.action_dispatch.x_sendfile_header.present?
-          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
-        end
 
         unless config.cache_classes
           app = self

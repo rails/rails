@@ -49,6 +49,18 @@ The <tt>mass_assignment_sanitizer</tt> config also needs to be added in <tt>conf
 config.active_record.mass_assignment_sanitizer = :strict
 </ruby>
 
+h4. What to update in your engines
+
+Replace the code beneath the comment in <tt>script/rails</tt> with the following content:
+
+<ruby>
+ENGINE_ROOT = File.expand_path('../..', __FILE__)
+ENGINE_PATH = File.expand_path('../../lib/your_engine_name/engine', __FILE__)
+
+require 'rails/all'
+require 'rails/engine/commands'
+</ruby>
+
 h3. Creating a Rails 3.2 application
 
 <shell>
