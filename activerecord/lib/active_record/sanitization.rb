@@ -37,9 +37,9 @@ module ActiveRecord
       #   { :name => nil, :group_id => 4 }  returns "name = NULL , group_id='4'"
       def sanitize_sql_for_assignment(assignments)
         case assignments
-          when Array; sanitize_sql_array(assignments)
-          when Hash;  sanitize_sql_hash_for_assignment(assignments)
-          else        assignments
+        when Array; sanitize_sql_array(assignments)
+        when Hash;  sanitize_sql_hash_for_assignment(assignments)
+        else        assignments
         end
       end
 
@@ -57,7 +57,7 @@ module ActiveRecord
       def expand_hash_conditions_for_aggregates(attrs)
         expanded_attrs = {}
         attrs.each do |attr, value|
-          unless (aggregation = reflect_on_aggregation(attr.to_sym)).nil?
+          if aggregation = reflect_on_aggregation(attr.to_sym)
             mapping = aggregate_mapping(aggregation)
             mapping.each do |field_attr, aggregate_attr|
               if mapping.size == 1 && !value.respond_to?(aggregate_attr)
