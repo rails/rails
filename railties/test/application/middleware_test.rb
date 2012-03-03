@@ -26,6 +26,7 @@ module ApplicationTests
       boot!
 
       assert_equal [
+        "Rack::Sendfile",
         "ActionDispatch::Static",
         "Rack::Lock",
         "ActiveSupport::Cache::Strategy::LocalCache",
@@ -36,7 +37,6 @@ module ApplicationTests
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
         "ActionDispatch::RemoteIp",
-        "Rack::Sendfile",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
