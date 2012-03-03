@@ -1,3 +1,5 @@
+*   Added ActiveModel::Model, a mixin to make Ruby objects work with AP out of box *Guillermo Iguaran*
+
 *   `AM::Errors#to_json`: support `:full_messages` parameter *Bogdan Gusiev*
 
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
