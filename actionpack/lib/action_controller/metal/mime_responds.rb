@@ -58,7 +58,7 @@ module ActionController #:nodoc:
       # Clear all mime types in <tt>respond_to</tt>.
       #
       def clear_respond_to
-        self.mimes_for_respond_to = ActiveSupport::OrderedHash.new.freeze
+        self.mimes_for_respond_to = Hash.new.freeze
       end
     end
 
