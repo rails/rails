@@ -13,12 +13,14 @@ module ActiveRecord
             :timeout => 100
         end
 
-        def test_type_cast_binary_encoding_without_logger
-          @conn.extend(Module.new { def logger; end })
-          column = Struct.new(:type, :name).new(:string, "foo")
-          binary = SecureRandom.hex
-          expected = binary.dup.encode!('utf-8')
-          assert_equal expected, @conn.type_cast(binary, column)
+        if "<3".encoding_aware?
+          def test_type_cast_binary_encoding_without_logger
+            @conn.extend(Module.new { def logger; end })
+            column = Struct.new(:type, :name).new(:string, "foo")
+            binary = SecureRandom.hex
+            expected = binary.dup.encode!('utf-8')
+            assert_equal expected, @conn.type_cast(binary, column)
+          end
         end
 
         def test_type_cast_symbol
