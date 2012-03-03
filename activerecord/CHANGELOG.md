@@ -1,5 +1,27 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added an :index option to automatically create indexes for references
+    and belongs_to statements in migrations.
+
+    The `references` and `belongs_to` methods now support an `index`
+    option that receives either a boolean value or an options hash
+    that is identical to options available to the add_index method:
+
+      create_table :messages do |t|
+        t.references :person, :index => true
+      end
+
+      Is the same as:
+
+      create_table :messages do |t|
+        t.references :person
+      end
+      add_index :messages, :person_id
+
+    Generators have also been updated to use the new syntax.
+
+    [Joshua Wood]
+
 *   Added bang methods for mutating `ActiveRecord::Relation` objects.
     For example, while `foo.where(:bar)` will return a new object
     leaving `foo` unchanged, `foo.where!(:bar)` will mutate the foo
