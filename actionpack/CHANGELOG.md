@@ -1,5 +1,8 @@
 ## Rails 3.2.3 (unreleased) ##
 
+*   Turn off verbose mode of rack-cache, we still have X-Rack-Cache to
+    check that info. Closes #5245. *Santiago Pastorino*
+
 *   Fix #5238, rendered_format is not set when template is not rendered. *Piotr Sarnacki*
 
 
