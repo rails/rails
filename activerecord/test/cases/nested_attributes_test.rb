@@ -673,7 +673,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_raise_an_argument_error_if_something_else_than_a_hash_is_passed
     assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, {}) }
-    assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, ActiveSupport::OrderedHash.new) }
+    assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, Hash.new) }
 
     assert_raise_with_message ArgumentError, 'Hash or Array expected, got String ("foo")' do
       @pirate.send(association_setter, "foo")
