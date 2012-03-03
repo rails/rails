@@ -114,10 +114,17 @@ module ActiveRecord
       # You can also just define your own <tt>self.table_name</tt> method; see
       # the documentation for ActiveRecord::Base#table_name.
       def table_name=(value)
-        @table_name        = value && value.to_s
-        @quoted_table_name = nil
-        @arel_table        = nil
-        @relation          = Relation.new(self, arel_table)
+        value = value && value.to_s
+        if defined?(@table_name)
+          return if value == @table_name
+
+          reset_column_information
+        end
+        @table_name          = value
+        @quoted_table_name   = nil
+        @arel_table          = nil
+        @sequence_name       = nil
+        @relation            = Relation.new(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.

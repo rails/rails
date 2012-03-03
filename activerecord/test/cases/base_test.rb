@@ -1479,6 +1479,19 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_clear_cash_when_setting_table_name
+    Joke.table_name = "cold_jokes"
+    before_columns = Joke.columns
+    before_seq     = Joke.sequence_name
+
+    Joke.table_name = "funny_jokes"
+    after_columns = Joke.columns
+    after_seq     = Joke.sequence_name
+
+    assert_not_equal before_columns, after_columns
+    assert_not_equal before_seq, after_seq unless before_seq.blank? && after_seq.blank?
+  end
+
   def test_set_table_name_symbol_converted_to_string
     Joke.table_name = :cold_jokes
     assert_equal 'cold_jokes', Joke.table_name
