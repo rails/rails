@@ -71,7 +71,7 @@ module ActiveRecord
 
       IdentityMap.remove_by_id(symbolized_base_class, id) if IdentityMap.enabled?
 
-      update_all(updates.join(', '), primary_key => id )
+      update_all(updates.join(', '), primary_key => id)
     end
 
     # Increment a number field by one, usually representing a count.

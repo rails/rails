@@ -1,7 +1,7 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     def self.build_from_hash(engine, attributes, default_table)
-      predicates = attributes.map do |column, value|
+      attributes.map do |column, value|
         table = default_table
 
         if value.is_a?(Hash)
@@ -17,20 +17,18 @@ module ActiveRecord
 
           build(table[column.to_sym], value)
         end
-      end
-      predicates.flatten
+      end.flatten
     end
 
     def self.references(attributes)
-      references = attributes.map do |key, value|
+      attributes.map do |key, value|
         if value.is_a?(Hash)
           key
         else
           key = key.to_s
           key.split('.').first.to_sym if key.include?('.')
         end
-      end
-      references.compact
+      end.compact
     end
 
     private
@@ -43,23 +41,24 @@ module ActiveRecord
           values = value.to_a.map {|x| x.is_a?(ActiveRecord::Model) ? x.id : x}
           ranges, values = values.partition {|v| v.is_a?(Range) || v.is_a?(Arel::Relation)}
 
-          array_predicates = ranges.map {|range| attribute.in(range)}
-
-          if values.include?(nil)
+          values_predicate = if values.include?(nil)
             values = values.compact
+
             case values.length
             when 0
-              array_predicates << attribute.eq(nil)
+              attribute.eq(nil)
             when 1
-              array_predicates << attribute.eq(values.first).or(attribute.eq(nil))
+              attribute.eq(values.first).or(attribute.eq(nil))
             else
-              array_predicates << attribute.in(values).or(attribute.eq(nil))
+              attribute.in(values).or(attribute.eq(nil))
             end
           else
-            array_predicates << attribute.in(values)
+            attribute.in(values)
           end
 
-          array_predicates.inject {|composite, predicate| composite.or(predicate)}
+          array_predicates = ranges.map { |range| attribute.in(range) }
+          array_predicates << values_predicate
+          array_predicates.inject { |composite, predicate| composite.or(predicate) }
         when Range, Arel::Relation
           attribute.in(value)
         when ActiveRecord::Model
