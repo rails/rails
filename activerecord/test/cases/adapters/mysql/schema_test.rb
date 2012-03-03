@@ -19,6 +19,16 @@ module ActiveRecord
         end
       end
 
+      def test_tables_quoting
+        begin
+          @connection.tables(nil, "foo-bar")
+          flunk
+        rescue => e
+          # assertion for *quoted* database properly
+          assert_match(/database 'foo-bar'/, e.inspect)
+        end
+      end
+
       def test_schema
         assert @omgpost.find(:first)
       end
