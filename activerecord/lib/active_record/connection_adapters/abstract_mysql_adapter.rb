@@ -375,7 +375,7 @@ module ActiveRecord
 
       def tables(name = nil, database = nil, like = nil) #:nodoc:
         sql = "SHOW TABLES "
-        sql << "IN #{database} " if database
+        sql << "IN #{quote_table_name(database)} " if database
         sql << "LIKE #{quote(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
