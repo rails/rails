@@ -630,7 +630,10 @@ module ActiveRecord
       end
 
       def tables(name = nil, database = nil) #:nodoc:
-        result = execute(["SHOW TABLES", database].compact.join(' IN '), 'SCHEMA')
+        sql = "SHOW TABLES "
+        sql << "IN #{quote_table_name(database)} " if database
+
+        result = execute(sql, 'SCHEMA')
         tables = result.collect { |field| field[0] }
         result.free
         tables

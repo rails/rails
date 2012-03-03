@@ -423,7 +423,9 @@ module ActiveRecord
       end
 
       def tables(name = nil, database = nil) #:nodoc:
-        sql = ["SHOW TABLES", database].compact.join(' IN ')
+        sql = "SHOW TABLES "
+        sql << "IN #{quote_table_name(database)} " if database
+
         execute(sql, 'SCHEMA').collect do |field|
           field.first
         end
