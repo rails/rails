@@ -437,6 +437,15 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal("/", routes.send(:root_path))
   end
 
+  def test_named_route_root_without_hash
+    rs.draw do
+      root "hello#index"
+    end
+    routes = setup_for_named_route
+    assert_equal("http://test.host/", routes.send(:root_url))
+    assert_equal("/", routes.send(:root_path))
+  end
+
   def test_named_route_with_regexps
     rs.draw do
       match 'page/:year/:month/:day/:title' => 'page#show', :as => 'article',
