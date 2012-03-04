@@ -25,7 +25,7 @@ end
 class UniquenessValidationTest < ActiveRecord::TestCase
   fixtures :topics, 'warehouse-things', :developers
 
-  repair_validations(Topic, Reply)
+  repair_validations(Topic, Reply, DeveloperWithAggregate)
 
   def test_validate_uniqueness
     Topic.validates_uniqueness_of(:title)
@@ -129,6 +129,19 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     # UniqueReply and its subclasses
     r3 = t.replies.create "title" => "r2", "content" => "a barrel of fun"
     assert r3.valid?, "Saving r3"
+  end
+
+  def test_validate_uniqueness_scoped_to_aggregation
+    DeveloperWithAggregate.validates_uniqueness_of(:name, :scope => :salary)
+
+    existing  = developers(:jamis)
+    duplicate = DeveloperWithAggregate.new :name => existing.name, :salary => DeveloperSalary.new(existing.salary)
+
+    assert duplicate.invalid?
+
+    duplicate.salary = DeveloperSalary.new(existing.salary + 1)
+
+    assert duplicate.valid?
   end
 
   def test_validate_uniqueness_with_scope_array
