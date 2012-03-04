@@ -1,6 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Remove IdentityMap *Carlos Antonio da Silva*
+*   Remove IdentityMap
+
+    IdentityMap has never graduated to be an "enabled-by-default" feature, due
+    to some inconsistencies with associations, as described in this commit:
+
+       https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6
+
+    Hence the removal from the codebase, until such issues are fixed.
+
+    *Carlos Antonio da Silva*
 
 *   Added the schema cache dump feature.
 
