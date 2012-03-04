@@ -42,7 +42,7 @@ module ActiveRecord
           flunk
         rescue => e
           # assertion for *quoted* database properly
-          assert_match(/Access denied for user/, e.inspect)
+          assert_match(/Unknown database 'foo-bar': SHOW TABLES IN `foo-bar`/, e.inspect)
         end
       end
 
