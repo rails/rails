@@ -123,7 +123,7 @@ module ActiveRecord
         @table_name          = value
         @quoted_table_name   = nil
         @arel_table          = nil
-        @sequence_name       = nil
+        @sequence_name       = nil unless defined?(@explicitly_sequence_name) && @explicitly_sequence_name
         @relation            = Relation.new(self, arel_table)
       end
 
@@ -170,7 +170,8 @@ module ActiveRecord
       end
 
       def reset_sequence_name #:nodoc:
-        self.sequence_name = connection.default_sequence_name(table_name, primary_key)
+        @sequence_name = connection.default_sequence_name(table_name, primary_key)
+        @explicitly_sequence_name = false
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -189,6 +190,7 @@ module ActiveRecord
       #   end
       def sequence_name=(value)
         @sequence_name = value.to_s
+        @explicitly_sequence_name = true
       end
 
       # Indicates whether the table associated with this class exists
