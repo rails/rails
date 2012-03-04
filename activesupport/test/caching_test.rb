@@ -773,6 +773,76 @@ class NullStoreTest < ActiveSupport::TestCase
   end
 end
 
+class CascadeStoreTest < ActiveSupport::TestCase
+  def setup
+    @cache = ActiveSupport::Cache.lookup_store(:cascade_store, {
+      :expires_in => 60,
+      :stores => [
+        :memory_store,
+        [:memory_store, :expires_in => 60]
+      ]
+    })
+    @store1 = @cache.stores[0]
+    @store2 = @cache.stores[1]
+  end
+
+  include CacheStoreBehavior
+  include CacheIncrementDecrementBehavior
+  include CacheDeleteMatchedBehavior
+
+  def test_default_child_store_options
+    assert_equal @store1.options[:expires_in], 60
+  end
+
+  def test_empty_store_cache_miss
+    cache = ActiveSupport::Cache.lookup_store(:cascade_store)
+    assert cache.write('foo', 'bar')
+    assert cache.fetch('foo').nil?
+  end
+
+  def test_cascade_write
+    @cache.write('foo', 'bar')
+    assert_equal @store1.read('foo'), 'bar'
+    assert_equal @store2.read('foo'), 'bar'
+  end
+
+  def test_cascade_read_returns_first_hit
+    @store1.write('foo', 'bar')
+    @store2.expects(:read_entry).never
+    assert_equal @cache.read('foo'), 'bar'
+  end
+
+  def test_cascade_read_fallback
+    @store1.delete('foo')
+    @store2.write('foo', 'bar')
+    assert_equal @cache.read('foo'), 'bar'
+  end
+
+  def test_cascade_read_not_found
+    assert_equal @cache.read('foo'), nil
+  end
+
+  def test_cascade_delete
+    @store1.write('foo', 'bar')
+    @store2.write('foo', 'bar')
+    @cache.delete('foo')
+    assert_equal @store1.read('foo'), nil
+    assert_equal @store2.read('foo'), nil
+  end
+
+  def test_cascade_increment_partial_returns_num
+    @store2.write('foo', 0)
+    assert_equal @cache.increment('foo', 1), 1
+    assert_equal @cache.read('foo'), 1
+  end
+
+  def test_cascade_decrement_partial_returns_num
+    @store2.write('foo', 1)
+    assert_equal @cache.decrement('foo', 1), 0
+    assert_equal @cache.read('foo'), 0
+  end
+end
+
 class CacheStoreLoggerTest < ActiveSupport::TestCase
   def setup
     @cache = ActiveSupport::Cache.lookup_store(:memory_store)
