@@ -115,16 +115,17 @@ module ActiveRecord
       # the documentation for ActiveRecord::Base#table_name.
       def table_name=(value)
         value = value && value.to_s
+
         if defined?(@table_name)
           return if value == @table_name
-
           reset_column_information
         end
-        @table_name          = value
-        @quoted_table_name   = nil
-        @arel_table          = nil
-        @sequence_name       = nil unless defined?(@explicitly_sequence_name) && @explicitly_sequence_name
-        @relation            = Relation.new(self, arel_table)
+
+        @table_name        = value
+        @quoted_table_name = nil
+        @arel_table        = nil
+        @sequence_name     = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
+        @relation          = Relation.new(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -170,8 +171,8 @@ module ActiveRecord
       end
 
       def reset_sequence_name #:nodoc:
-        @sequence_name = connection.default_sequence_name(table_name, primary_key)
-        @explicitly_sequence_name = false
+        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
+        @explicit_sequence_name = false
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -189,8 +190,8 @@ module ActiveRecord
       #     self.sequence_name = "projectseq"   # default would have been "project_seq"
       #   end
       def sequence_name=(value)
-        @sequence_name = value.to_s
-        @explicitly_sequence_name = true
+        @sequence_name          = value.to_s
+        @explicit_sequence_name = true
       end
 
       # Indicates whether the table associated with this class exists
