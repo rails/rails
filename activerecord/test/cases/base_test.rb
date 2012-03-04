@@ -1921,11 +1921,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_marshalling_new_record_round_trip_with_associations
-    if ENV['TRAVIS'] && RUBY_VERSION == "1.8.7"
-      return skip("Marshalling tests disabled for Ruby 1.8.7 on Travis CI due to what appears " \
-                  "to be a Ruby bug.")
-    end
-
     post = Post.new
     post.comments.build
 
