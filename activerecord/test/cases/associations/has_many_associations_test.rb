@@ -130,6 +130,28 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal car.id, bulb.car_id
   end
 
+  def test_association_protect_foreign_key
+    invoice = Invoice.create
+
+    line_item = invoice.line_items.new
+    assert_equal invoice.id, line_item.invoice_id
+
+    line_item = invoice.line_items.new :invoice_id => invoice.id + 1
+    assert_equal invoice.id, line_item.invoice_id
+
+    line_item = invoice.line_items.build
+    assert_equal invoice.id, line_item.invoice_id
+
+    line_item = invoice.line_items.build :invoice_id => invoice.id + 1
+    assert_equal invoice.id, line_item.invoice_id
+
+    line_item = invoice.line_items.create
+    assert_equal invoice.id, line_item.invoice_id
+
+    line_item = invoice.line_items.create :invoice_id => invoice.id + 1
+    assert_equal invoice.id, line_item.invoice_id
+  end
+
   def test_association_conditions_bypass_attribute_protection
     car = Car.create(:name => 'honda')
 
