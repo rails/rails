@@ -260,7 +260,7 @@ module TestHelpers
                     :activemodel,
                     :activerecord,
                     :activeresource] - arr
-      remove_from_config "config.active_record.identity_map = true" if to_remove.include? :activerecord
+      remove_from_config "config.active_record.whitelist_attributes = true" if to_remove.include? :activerecord
       $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
