@@ -111,9 +111,8 @@ module ActiveRecord
         #   end
         #   Project.primary_key # => "foo_id"
         def primary_key=(value)
-          @original_primary_key = @primary_key if defined?(@primary_key)
-          @primary_key          = value && value.to_s
-          @quoted_primary_key   = nil
+          @primary_key        = value && value.to_s
+          @quoted_primary_key = nil
         end
       end
     end
