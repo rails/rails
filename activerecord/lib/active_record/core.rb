@@ -193,7 +193,6 @@ module ActiveRecord
       @attributes = self.class.initialize_attributes(coder['attributes'])
       @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
 
-
       init_internals
 
       @new_record = false
