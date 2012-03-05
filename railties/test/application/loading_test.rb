@@ -20,6 +20,7 @@ class LoadingTest < Test::Unit::TestCase
     app_file "app/models/post.rb", <<-MODEL
       class Post < ActiveRecord::Base
         validates_acceptance_of :title, :accept => "omg"
+        attr_accessible :title
       end
     MODEL
 
