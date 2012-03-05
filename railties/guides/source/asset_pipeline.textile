@@ -128,7 +128,7 @@ For example, these files:
 <plain>
 app/assets/javascripts/home.js
 lib/assets/javascripts/moovinator.js
-vendor/assets/javascript/slider.js
+vendor/assets/javascripts/slider.js
 </plain>
 
 would be referenced in a manifest like this:
