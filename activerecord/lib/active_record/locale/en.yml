@@ -9,7 +9,7 @@ en:
     errors:
       messages:
         taken: "has already been taken"
-        record_invalid: "Validation failed: %{errors}"
+        record_invalid: "%{class_name} validation failed: %{errors}"
         restrict_dependent_destroy:
           one: "Cannot delete record because a dependent %{record} exists"
           many: "Cannot delete record because dependent %{record} exist"
