@@ -3,8 +3,8 @@ module ActiveModel
   # == Active Model Basic Model
   #
   # Includes the required interface for an object to interact with +ActionPack+,
-  # using different +ActiveModel+ modules. It includes model name instrospection,
-  # conversions, translations and validations . Besides that, it allows you to
+  # using different +ActiveModel+ modules. It includes model name introspections,
+  # conversions, translations and validations. Besides that, it allows you to
   # initialize the object with a hash of attributes, pretty much like
   # +ActiveRecord+ does.
   #
@@ -51,7 +51,7 @@ module ActiveModel
   #   person = Person.new(:id => 1, :name => 'bob')
   #   person.omg # => true
   #
-  # For more detailed information on other functionality available, please refer
+  # For more detailed information on other functionalities available, please refer
   # to the specific modules included in +ActiveModel::Model+ (see below).
   module Model
     def self.included(base)

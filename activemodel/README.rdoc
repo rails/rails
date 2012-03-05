@@ -28,8 +28,8 @@ to integrate with Action Pack out of the box: +ActiveModel::Model+.
     person.age # => 18
     person.valid? # => false
 
-It includes model name instrospection, conversions, translations and
-validations, resulting in a class suitable to be used with ActionPack.
+It includes model name introspections, conversions, translations and
+validations, resulting in a class suitable to be used with Action Pack.
 See +ActiveModel::Model+ for more examples.
 
 Active Model also provides the following functionality to have ORM-like
