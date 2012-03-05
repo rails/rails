@@ -1513,8 +1513,8 @@ module ActiveRecord
       # * <tt>Developer#projects.size</tt>
       # * <tt>Developer#projects.find(id)</tt>
       # * <tt>Developer#projects.exists?(...)</tt>
-      # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("project_id" => id)</tt>)
-      # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("project_id" => id); c.save; c</tt>)
+      # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("developer_id" => id)</tt>)
+      # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("developer_id" => id); c.save; c</tt>)
       # The declaration may include an options hash to specialize the behavior of the association.
       #
       # === Options
