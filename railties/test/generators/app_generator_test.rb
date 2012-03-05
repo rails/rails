@@ -202,6 +202,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+    assert_file "config/application.rb", /#\s+config\.active_record\.whitelist_attributes = true/
     assert_file "config/application.rb", /#\s+config\.active_record\.dependent_restrict_raises = false/
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
@@ -348,6 +349,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_no_match %r(auto_explain_threshold_in_seconds), file
       end
     end
+  end
+
+  def test_active_record_whitelist_attributes_is_present_application_config
+    run_generator
+    assert_file "config/application.rb", /config\.active_record\.whitelist_attributes = true/
   end
 
   def test_active_record_dependent_restrict_raises_is_present_application_config
