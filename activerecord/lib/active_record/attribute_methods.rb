@@ -214,29 +214,15 @@ module ActiveRecord
       value
     end
 
-    # Returns a copy of the attributes hash where all the values have been safely quoted for use in
-    # an Arel insert/update method.
-    def arel_attributes_values(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
+    # Returns a copy of the attributes hash where all the values have been
+    # typecasted for use in an Arel insert/update method.
+    def arel_attributes_values(pk_attr_allowed = true, readonly_attr_allowed = true, attribute_names = @attributes.keys)
       attrs      = {}
-      klass      = self.class
-      arel_table = klass.arel_table
+      arel_table = self.class.arel_table
 
       attribute_names.each do |name|
-        if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
-
-          if include_readonly_attributes || !self.class.readonly_attributes.include?(name)
-
-            value = if klass.serialized_attributes.include?(name)
-                      @attributes[name].serialized_value
-                    else
-                      # FIXME: we need @attributes to be used consistently.
-                      # If the values stored in @attributes were already type
-                      # casted, this code could be simplified
-                      read_attribute(name)
-                    end
-
-            attrs[arel_table[name]] = value
-          end
+        if attribute_allowed?(pk_attr_allowed, readonly_attr_allowed, name) 
+          attrs[arel_table[name]] = typecasted_attribute_value(name)
         end
       end
 
@@ -245,6 +231,34 @@ module ActiveRecord
 
     def attribute_method?(attr_name)
       defined?(@attributes) && @attributes.include?(attr_name)
+    end
+
+    private 
+
+    def attribute_allowed?(pk_attribute_allowed, readonly_attribute_allowed, name)
+      return unless column = column_for_attribute(name)
+
+      (pk_attribute_allowed || !pk_attribute?(column)) && 
+        (readonly_attribute_allowed || !readonly_attribute?(name))
+    end
+
+    def readonly_attribute?(name)
+      self.class.readonly_attributes.include?(name)
+    end
+
+    def pk_attribute?(column)
+      column.primary
+    end
+
+    def typecasted_attribute_value(name)
+      if self.class.serialized_attributes.include?(name)
+        @attributes[name].serialized_value
+      else
+        # FIXME: we need @attributes to be used consistently.
+        # If the values stored in @attributes were already typecasted, this code
+        # could be simplified
+        read_attribute(name)
+      end
     end
   end
 end
