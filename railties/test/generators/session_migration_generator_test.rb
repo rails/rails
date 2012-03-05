@@ -15,7 +15,7 @@ class SessionMigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_session_migration_with_custom_table_name
-    ActiveRecord::SessionStore::Session.table_name = "custom_table_name"
+    ActiveRecord::SessionStore::Session.stubs(:table_name => "custom_table_name")
     run_generator
     assert_migration "db/migrate/add_sessions_table.rb" do |migration|
       assert_match(/class AddSessionsTable < ActiveRecord::Migration/, migration)
