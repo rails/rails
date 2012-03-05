@@ -4,6 +4,7 @@ require 'models/person'
 require 'models/reference'
 require 'models/job'
 require 'models/reader'
+require 'models/secure_reader'
 require 'models/comment'
 require 'models/tag'
 require 'models/tagging'
@@ -44,17 +45,33 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_associate_existing
-    posts(:thinking); people(:david) # Warm cache
+    post   = posts(:thinking)
+    person = people(:david)
 
     assert_queries(1) do
-      posts(:thinking).people << people(:david)
+      post.people << person
     end
 
     assert_queries(1) do
-      assert posts(:thinking).people.include?(people(:david))
+      assert post.people.include?(person)
     end
 
-    assert posts(:thinking).reload.people(true).include?(people(:david))
+    assert post.reload.people(true).include?(person)
+  end
+
+  def test_associate_existing_with_strict_mass_assignment_sanitizer
+    ActiveRecord::Base.mass_assignment_sanitizer = :strict
+
+    SecureReader.new
+
+    post   = posts(:thinking)
+    person = people(:david)
+
+    assert_queries(1) do
+      post.secure_people << person
+    end
+  ensure
+    ActiveRecord::Base.mass_assignment_sanitizer = :logger
   end
 
   def test_associate_existing_record_twice_should_add_to_target_twice
