@@ -520,6 +520,10 @@ module Rails
       load(seed_file) if seed_file
     end
 
+    def has_seeds?
+      paths["db/seeds"].existent.any?
+    end
+
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path, :before => :bootstrap_hook do
       _all_load_paths.reverse_each do |path|
@@ -596,14 +600,25 @@ module Rails
 
     rake_tasks do
       next if self.is_a?(Rails::Application)
-      next unless has_migrations?
 
-      namespace railtie_name do
-        namespace :install do
-          desc "Copy migrations from #{railtie_name} to application"
-          task :migrations do
+      if has_migrations?
+        namespace railtie_name do
+          namespace :install do
+            desc "Copy migrations from #{railtie_name} to application"
+            task :migrations do
+              ENV["FROM"] = railtie_name
+              Rake::Task["railties:install:migrations"].invoke
+            end
+          end
+        end
+      end
+
+      if has_seeds?
+        namespace railtie_name do
+          desc "Run seeds.rb from #{railtie_name} in the context of application"
+          task :seed do
             ENV["FROM"] = railtie_name
-            Rake::Task["railties:install:migrations"].invoke
+            Rake::Task["railties:seed"].invoke
           end
         end
       end
