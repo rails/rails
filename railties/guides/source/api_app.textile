@@ -117,7 +117,7 @@ An API application comes with the following middlewares by default.
 * +ActionDispatch::Reloader+: In development mode, support code reloading.
 * +ActionDispatch::ParamsParser+: Parse XML, YAML and JSON parameters when the request's +Content-Type+ is one of those.
 * +ActionDispatch::Head+: Dispatch +HEAD+ requests as +GET+ requests, and return only the status code and headers.
-* +Rack::ConditionalGet+: Supports the the +stale?+ feature in Rails controllers.
+* +Rack::ConditionalGet+: Supports the +stale?+ feature in Rails controllers.
 * +Rack::ETag+: Automatically set an +ETag+ on all string responses. This means that if the same response is returned from a controller for the same URL, the server will return a +304 Not Modified+, even if no additional caching steps are taken. This is primarily a client-side optimization; it reduces bandwidth costs but not server processing time.
 
 Other plugins, including +ActiveRecord+, may add additional middlewares. In general, these middlewares are agnostic to the type of app you are building, and make sense in an API-only Rails application.
