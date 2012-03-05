@@ -4,7 +4,6 @@ require 'models/person'
 require 'models/reference'
 require 'models/job'
 require 'models/reader'
-require 'models/secure_reader'
 require 'models/comment'
 require 'models/tag'
 require 'models/tagging'
@@ -60,7 +59,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_associate_existing_with_strict_mass_assignment_sanitizer
-    ActiveRecord::Base.mass_assignment_sanitizer = :strict
+    SecureReader.mass_assignment_sanitizer = :strict
 
     SecureReader.new
 
@@ -71,7 +70,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       post.secure_people << person
     end
   ensure
-    ActiveRecord::Base.mass_assignment_sanitizer = :logger
+    SecureReader.mass_assignment_sanitizer = :logger
   end
 
   def test_associate_existing_record_twice_should_add_to_target_twice
