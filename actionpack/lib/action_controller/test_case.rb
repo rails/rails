@@ -69,6 +69,10 @@ module ActionController
     #   assert_template :partial => '_customer', :locals => { :customer => @customer }
     #
     def assert_template(options = {}, message = nil)
+      # Force body to be read in case the
+      # template is being streamed
+      response.body
+
       case options
       when NilClass, String, Symbol
         options = options.to_s if Symbol === options
