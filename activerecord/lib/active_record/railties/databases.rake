@@ -542,14 +542,18 @@ db_namespace = namespace :db do
 end
 
 namespace :railties do
+  def each_railtie_from_env
+    to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map {|n| n.strip }
+    Rails.application.railties.all do |railtie|
+      yield railtie if to_load == :all || to_load.include?(railtie.railtie_name)
+    end
+  end
+
   namespace :install do
     # desc "Copies missing migrations from Railties (e.g. engines). You can specify Railties to use with FROM=railtie1,railtie2"
     task :migrations => :'db:load_config' do
-      to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map {|n| n.strip }
       railties = {}
-      Rails.application.railties.all do |railtie|
-        next unless to_load == :all || to_load.include?(railtie.railtie_name)
-
+      each_railtie_from_env do |railtie|
         if railtie.respond_to?(:paths) && (path = railtie.paths['db/migrate'].first)
           railties[railtie.railtie_name] = path
         end
@@ -565,6 +569,15 @@ namespace :railties do
 
       ActiveRecord::Migration.copy( ActiveRecord::Migrator.migrations_paths.first, railties,
                                     :on_skip => on_skip, :on_copy => on_copy)
+    end
+  end
+
+  task :seed do
+    each_railtie_from_env do |railtie|
+      if railtie.respond_to?(:has_seeds?) && railtie.has_seeds?
+        puts "Importing seeds.rb from #{railtie.railtie_name}"
+        railtie.load_seed
+      end
     end
   end
 end

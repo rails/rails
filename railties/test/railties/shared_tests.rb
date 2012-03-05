@@ -64,7 +64,6 @@ module RailtiesTest
       add_to_config "ActiveRecord::Base.timestamped_migrations = false"
 
       boot_rails
-      railties = Rails.application.railties.all.map(&:railtie_name)
 
       Dir.chdir(app_path) do
         output = `bundle exec rake bukkits:install:migrations`
@@ -97,6 +96,48 @@ module RailtiesTest
       require 'rake/testtask'
       Rails.application.load_tasks
       assert !Rake::Task.task_defined?('bukkits:install:migrations')
+    end
+
+    def test_seeding
+      @plugin.write "db/seeds.rb", <<-RUBY
+        puts 'Bukkit seeds'
+      RUBY
+
+      engine 'blog' do |plugin|
+        plugin.write "lib/blog.rb", <<-RUBY
+          module Blog
+            class Engine < ::Rails::Engine
+              railtie_name "blog"
+            end
+          end
+        RUBY
+      end
+
+      boot_rails
+
+      Dir.chdir(app_path) do
+        output = `bundle exec rake bukkits:seed`
+
+        assert_match(/Importing seeds\.rb from bukkits/, output)
+        assert_match(/Bukkit seeds/, output)
+
+        output = `bundle exec rake railties:seed`
+
+        assert_match(/Importing seeds\.rb from bukkits/, output)
+        assert_match(/Bukkit seeds/, output)
+
+        output = `bundle exec rake railties:seed`
+        assert_no_match(/Importing seeds\.rb from blog/, output)
+      end
+    end
+
+    def test_no_rake_task_without_seeds
+      boot_rails
+      require 'rake'
+      require 'rdoc/task'
+      require 'rake/testtask'
+      Rails.application.load_tasks
+      assert !Rake::Task.task_defined?('bukkits:seed')
     end
 
     def test_puts_its_lib_directory_on_load_path
