@@ -8,11 +8,12 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
     I18n.backend = I18n::Backend::Simple.new
   end
 
-  def reset_i18n_load_path(&block)
+  def reset_i18n_load_path
     @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
     yield
+  ensure 
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
   end
