@@ -70,6 +70,8 @@ module ActionController
     #
     def assert_template(options = {}, message = nil)
       validate_request!
+      # Force body to be read in case the template is being streamed
+      response.body
 
       case options
       when NilClass, String, Symbol

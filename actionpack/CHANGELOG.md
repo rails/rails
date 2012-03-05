@@ -1,5 +1,11 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   Fix `assert_template` with `render :stream => true`.
+    Fix #1743.
+    Backport #5288.
+
+    *Sergey Nartimov*
+
 *   Eagerly populate the http method loookup cache so local project inflections do
     not interfere with use of underscore method ( and we don't need locks )
 
