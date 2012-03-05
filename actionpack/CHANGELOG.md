@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* Allows the route helper `root` to take a string argument. For example, `root 'pages#main'`. *bcardarella*
+
 * Forms of persisted records use always PATCH (via the `_method` hack). *fxn*
 
 * For resources, both PATCH and PUT are routed to the `update` action. *fxn*
