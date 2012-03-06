@@ -238,7 +238,14 @@ module ActionView
         spacer = find_template(@options[:spacer_template]).render(@view, @locals)
       end
 
+      if layout = @options[:layout]
+        layout = find_template(layout)
+      end
+
       result = @template ? collection_with_template : collection_without_template
+      
+      result.map!{|content| layout.render(@view, @locals) { content } } if layout
+      
       result.join(spacer).html_safe
     end
 
@@ -342,9 +349,10 @@ module ActionView
         locals[as] = object
         segments << template.render(@view, locals)
       end
-
+      
       segments
     end
+    
 
     def collection_without_template
       segments, locals, collection_data = [], @locals, @collection_data
