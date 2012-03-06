@@ -13,15 +13,14 @@ endprologue.
 
 h3. What is an API app?
 
-Traditionally, when people said that they used Rails as an "API", they meant
-providing a programmatically accessible API alongside their web application.
+Traditionally, when people said that they used Rails as an "API", they meant providing a programmatically accessible API alongside their web application.
 For example, GitHub provides "an API":http://developer.github.com that you can use from your own custom clients.
 
 With the advent of client-side frameworks, more developers are using Rails to build a backend that is shared between their web application and other native applications.
 
 For example, Twitter uses its "public API":https://dev.twitter.com in its web application, which is built as a static site that consumes JSON resources.
 
-Instead of using Rails to generate dynamic HTML that will communicate with the server through forms and links, many developers are treating their web application as just another client, delivered as static HTML, CSS and JavaScript, and consuming a simple JSON API 
+Instead of using Rails to generate dynamic HTML that will communicate with the server through forms and links, many developers are treating their web application as just another client, delivered as static HTML, CSS and JavaScript, and consuming a simple JSON API
 
 This guide covers building a Rails application that serves JSON resources to an API client *or* client-side framework.
 
