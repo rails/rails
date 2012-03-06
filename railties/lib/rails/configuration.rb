@@ -9,6 +9,14 @@ module Rails
     class MiddlewareStackProxy #:nodoc:
       def initialize
         @operations = []
+        @api_only   = false
+      end
+
+      attr_reader :api_only
+      alias       :api_only? :api_only
+
+      def api_only!
+        @api_only = true
       end
 
       def insert_before(*args, &block)

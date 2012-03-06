@@ -239,7 +239,7 @@ module Rails
 
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
-        middleware.use ::Rack::MethodOverride
+        middleware.use ::Rack::MethodOverride unless config.middleware.api_only?
         middleware.use ::ActionDispatch::RequestId
         middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
         middleware.use ::ActionDispatch::ShowExceptions, config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
@@ -252,9 +252,9 @@ module Rails
         end
 
         middleware.use ::ActionDispatch::Callbacks
-        middleware.use ::ActionDispatch::Cookies
+        middleware.use ::ActionDispatch::Cookies unless config.middleware.api_only?
 
-        if config.session_store
+        if !config.middleware.api_only? && config.session_store
           if config.force_ssl && !config.session_options.key?(:secure)
             config.session_options[:secure] = true
           end
@@ -267,7 +267,7 @@ module Rails
         middleware.use ::Rack::ConditionalGet
         middleware.use ::Rack::ETag, "no-cache"
 
-        if config.action_dispatch.best_standards_support
+        if !config.middleware.api_only? && config.action_dispatch.best_standards_support
           middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support
         end
       end
