@@ -1152,3 +1152,39 @@ class MimeControllerLayoutsTest < ActionController::TestCase
     assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
   end
 end
+
+class FlashResponder < ActionController::Responder
+  def initialize(controller, resources, options={})
+    super
+  end
+
+  def to_html
+    controller.flash[:notice] = 'Success'
+    super
+  end
+end
+
+class FlashResponderController < ActionController::Base
+  self.responder = FlashResponder
+  respond_to :html
+
+  def index
+    respond_with Object.new do |format|
+      format.html { render :text => 'HTML' }
+    end
+  end
+end
+
+class FlashResponderControllerTest < ActionController::TestCase
+  tests FlashResponderController
+
+  def test_respond_with_block_executed
+    get :index
+    assert_equal 'HTML', @response.body
+  end
+
+  def test_flash_responder_executed
+    get :index
+    assert_equal 'Success', flash[:notice]
+  end
+end
