@@ -12,6 +12,7 @@ class SprocketsHelperTest < ActionView::TestCase
     def protocol() 'http://' end
     def ssl?() false end
     def host_with_port() 'localhost' end
+    def script_name() nil end
   end
 
   def setup
