@@ -1,10 +1,9 @@
 require 'active_support/core_ext/hash/keys'
 
-# This class has dubious semantics and we only have it so that
-# people can write <tt>params[:key]</tt> instead of <tt>params['key']</tt>
-# and they get the same value for both keys.
-
 module ActiveSupport
+  # This class has dubious semantics and we only have it so that
+  # people can write <tt>params[:key]</tt> instead of <tt>params['key']</tt>
+  # and they get the same value for both keys.
   class HashWithIndifferentAccess < Hash
     
     # Always returns true, so that <tt>Array#extract_options!</tt> finds members of this class.
