@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* Adds support for layouts when rendering a partial with a given collection. *serabe*
+
 * Allows the route helper `root` to take a string argument. For example, `root 'pages#main'`. *bcardarella*
 
 * Forms of persisted records use always PATCH (via the `_method` hack). *fxn*
