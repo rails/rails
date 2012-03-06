@@ -235,16 +235,8 @@ module ActionController #:nodoc:
 
       if collector = retrieve_collector_from_mimes(&block)
         options = resources.size == 1 ? {} : resources.extract_options!
-
-        if defined_response = collector.response
-          if action = options.delete(:action)
-            render :action => action
-          else
-            defined_response.call
-          end
-        else
-          (options.delete(:responder) || self.class.responder).call(self, resources, options)
-        end
+        options[:default_response] = collector.response
+        (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
     end
 

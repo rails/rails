@@ -130,6 +130,7 @@ module ActionController #:nodoc:
       @resources = resources
       @options = options
       @action = options.delete(:action)
+      @default_response = options.delete(:default_response)
     end
 
     delegate :head, :render, :redirect_to,   :to => :controller
@@ -172,7 +173,7 @@ module ActionController #:nodoc:
     # responds to :to_format and display it.
     #
     def to_format
-      if get? || !has_errors?
+      if get? || !has_errors? || response_overridden?
         default_render
       else
         display_errors
@@ -226,7 +227,11 @@ module ActionController #:nodoc:
     # controller.
     #
     def default_render
-      controller.default_render(options)
+      if @default_response
+        @default_response.call(options)
+      else
+        controller.default_render(options)
+      end
     end
 
     # Display is just a shortcut to render a resource with the current format.
@@ -273,6 +278,10 @@ module ActionController #:nodoc:
 
     def json_resource_errors
       {:errors => resource.errors}
+    end
+
+    def response_overridden?
+      @default_response.present?
     end
   end
 end
