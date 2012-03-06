@@ -214,40 +214,53 @@ module ActiveRecord
       value
     end
 
-    # Returns a copy of the attributes hash where all the values have been
-    # typecasted for use in an Arel insert/update method.
-    def arel_attributes_values(pk_attr_allowed = true, readonly_attr_allowed = true, attribute_names = @attributes.keys)
-      attrs      = {}
-      arel_table = self.class.arel_table
+    def arel_attributes_with_values_for_create(pk_attribute_allowed)
+      arel_attributes_with_values(attributes_for_create(pk_attribute_allowed))
+    end
 
-      attribute_names.each do |name|
-        if attribute_allowed?(pk_attr_allowed, readonly_attr_allowed, name) 
-          attrs[arel_table[name]] = typecasted_attribute_value(name)
-        end
-      end
-
-      attrs
+    def arel_attributes_with_values_for_update(attribute_names)
+      arel_attributes_with_values(attributes_for_update(attribute_names))
     end
 
     def attribute_method?(attr_name)
       defined?(@attributes) && @attributes.include?(attr_name)
     end
 
-    private 
+    private
 
-    def attribute_allowed?(pk_attribute_allowed, readonly_attribute_allowed, name)
-      return unless column = column_for_attribute(name)
+    # Returns a Hash of the Arel::Attributes and attribute values that have been
+    # type casted for use in an Arel insert/update method.
+    def arel_attributes_with_values(attribute_names)
+      attrs = {}
+      arel_table = self.class.arel_table
 
-      (pk_attribute_allowed || !pk_attribute?(column)) && 
-        (readonly_attribute_allowed || !readonly_attribute?(name))
+      attribute_names.each do |name|
+        attrs[arel_table[name]] = typecasted_attribute_value(name)
+      end
+      attrs
+    end
+
+    # Filters the primary keys and readonly attributes from the attribute names.
+    def attributes_for_update(attribute_names)
+      attribute_names.select do |name|
+        column_for_attribute(name) && !pk_attribute?(name) && !readonly_attribute?(name)
+      end
+    end
+
+    # Filters out the primary keys, from the attribute names, when the primary
+    # key is to be generated (e.g. the id attribute has no value).
+    def attributes_for_create(pk_attribute_allowed)
+      @attributes.keys.select do |name|
+        column_for_attribute(name) && (pk_attribute_allowed || !pk_attribute?(name))
+      end
     end
 
     def readonly_attribute?(name)
       self.class.readonly_attributes.include?(name)
     end
 
-    def pk_attribute?(column)
-      column.primary
+    def pk_attribute?(name)
+      column_for_attribute(name).primary
     end
 
     def typecasted_attribute_value(name)
