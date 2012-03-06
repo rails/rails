@@ -458,7 +458,7 @@ db_namespace = namespace :db do
           db_namespace["test:load_schema"].invoke
         when :sql
           db_namespace["test:load_structure"].invoke
-        end
+      end
     end
 
     # desc "Recreate the test database from an existent structure.sql file"
