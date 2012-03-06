@@ -117,7 +117,7 @@ module ActionView
     end
 
     def relative_url_root
-      config.relative_url_root
+      config.relative_url_root || current_request.try(:script_name)
     end
 
     def asset_host_config

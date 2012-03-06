@@ -38,6 +38,7 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller = BasicController.new
 
     @request = Class.new do
+      attr_accessor :script_name
       def protocol() 'http://' end
       def ssl?() false end
       def host_with_port() 'localhost' end
@@ -647,6 +648,13 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal %(<img alt="Rails" src="#{@controller.config.relative_url_root}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
+  # Same as above, but with script_name
+  def test_timebased_asset_id_with_script_name
+    @request.script_name = "/collaboration/hieraki"
+    expected_time = File.mtime(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).to_i.to_s
+    assert_equal %(<img alt="Rails" src="#{@request.script_name}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
+  end
+
   def test_should_skip_asset_id_on_complete_url
     assert_equal %(<img alt="Rails" src="http://www.example.com/rails.png" />), image_tag("http://www.example.com/rails.png")
   end
@@ -897,9 +905,55 @@ class AssetTagHelperTest < ActionView::TestCase
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
   end
 
+  # Same as above, but with script_name
+  def test_caching_javascript_include_tag_with_script_name
+    ENV["RAILS_ASSET_ID"] = ""
+    @request.script_name = "/collaboration/hieraki"
+    config.perform_caching = true
+
+    assert_dom_equal(
+      %(<script src="/collaboration/hieraki/javascripts/all.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => true)
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
+
+    assert_dom_equal(
+      %(<script src="/collaboration/hieraki/javascripts/money.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => "money")
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+
+  ensure
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+  end
+
   def test_caching_javascript_include_tag_with_named_paths_and_relative_url_root_when_caching_off
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.relative_url_root = "/collaboration/hieraki"
+    config.perform_caching = false
+
+    assert_dom_equal(
+      %(<script src="/collaboration/hieraki/javascripts/robber.js" type="text/javascript"></script>),
+      javascript_include_tag('robber', :cache => true)
+    )
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
+
+    assert_dom_equal(
+      %(<script src="/collaboration/hieraki/javascripts/robber.js" type="text/javascript"></script>),
+      javascript_include_tag('robber', :cache => "money", :recursive => true)
+    )
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+  end
+
+  # Same as above, but with script_name
+  def test_caching_javascript_include_tag_with_named_paths_and_script_name_when_caching_off
+    ENV["RAILS_ASSET_ID"] = ""
+    @request.script_name = "/collaboration/hieraki"
     config.perform_caching = false
 
     assert_dom_equal(
@@ -1144,10 +1198,58 @@ class AssetTagHelperTest < ActionView::TestCase
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
   end
 
+  # Same as above, but with script_name
+  def test_caching_stylesheet_link_tag_with_script_name
+    ENV["RAILS_ASSET_ID"] = ""
+    @request.script_name = "/collaboration/hieraki"
+    config.perform_caching = true
+
+    assert_dom_equal(
+      %(<link href="/collaboration/hieraki/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />),
+      stylesheet_link_tag(:all, :cache => true)
+    )
+
+    files_to_be_joined = Dir["#{ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR}/[^all]*.css"]
+
+    expected_mtime = files_to_be_joined.map { |p| File.mtime(p) }.max
+    assert_equal expected_mtime, File.mtime(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
+
+    assert_dom_equal(
+      %(<link href="/collaboration/hieraki/stylesheets/money.css" media="screen" rel="stylesheet" type="text/css" />),
+      stylesheet_link_tag(:all, :cache => "money")
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+  ensure
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+  end
+
 
   def test_caching_stylesheet_link_tag_with_named_paths_and_relative_url_root_when_caching_off
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.relative_url_root = "/collaboration/hieraki"
+    config.perform_caching = false
+
+    assert_dom_equal(
+      %(<link href="/collaboration/hieraki/stylesheets/robber.css" media="screen" rel="stylesheet" type="text/css" />),
+      stylesheet_link_tag('robber', :cache => true)
+    )
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
+
+    assert_dom_equal(
+      %(<link href="/collaboration/hieraki/stylesheets/robber.css" media="screen" rel="stylesheet" type="text/css" />),
+      stylesheet_link_tag('robber', :cache => "money")
+    )
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+  end
+
+  # Same as above, but with script_name
+  def test_caching_stylesheet_link_tag_with_named_paths_and_script_name_when_caching_off
+    ENV["RAILS_ASSET_ID"] = ""
+    @request.script_name = "/collaboration/hieraki"
     config.perform_caching = false
 
     assert_dom_equal(
