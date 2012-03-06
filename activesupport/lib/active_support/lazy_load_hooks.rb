@@ -18,15 +18,15 @@
 #   ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
 #
 module ActiveSupport
-  @load_hooks = Hash.new {|h,k| h[k] = [] }
-  @loaded = {}
+  @load_hooks = Hash.new { |h,k| h[k] = [] }
+  @loaded = Hash.new { |h,k| h[k] = [] }
 
   def self.on_load(name, options = {}, &block)
-    if base = @loaded[name]
+    @loaded[name].each do |base|
       execute_hook(base, options, block)
-    else
-      @load_hooks[name] << [block, options]
     end
+
+    @load_hooks[name] << [block, options]
   end
 
   def self.execute_hook(base, options, block)
@@ -38,7 +38,7 @@ module ActiveSupport
   end
 
   def self.run_load_hooks(name, base = Object)
-    @loaded[name] = base
+    @loaded[name] << base
     @load_hooks[name].each do |hook, options|
       execute_hook(base, options, hook)
     end
