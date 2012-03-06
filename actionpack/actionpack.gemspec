@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency('activesupport', version)
   s.add_dependency('activemodel',   version)
-  s.add_dependency('rack-cache',    '~> 1.1')
+  s.add_dependency('rack-cache',    '~> 1.2')
   s.add_dependency('builder',       '~> 3.0.0')
   s.add_dependency('rack',          '~> 1.4.1')
   s.add_dependency('rack-test',     '~> 0.6.1')
