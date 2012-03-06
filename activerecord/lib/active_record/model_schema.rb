@@ -118,7 +118,7 @@ module ActiveRecord
 
         if defined?(@table_name)
           return if value == @table_name
-          reset_column_information
+          reset_column_information if connected?
         end
 
         @table_name        = value
