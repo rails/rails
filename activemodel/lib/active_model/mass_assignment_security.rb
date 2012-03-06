@@ -83,7 +83,7 @@ module ActiveModel
       #     end
       #   end
       #
-      # When using the :default role :
+      # When using the :default role:
       #
       #   customer = Customer.new
       #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :default)
@@ -94,7 +94,7 @@ module ActiveModel
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
       #
-      # And using the :admin role :
+      # And using the :admin role:
       #
       #   customer = Customer.new
       #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :admin)
@@ -105,8 +105,9 @@ module ActiveModel
       # To start from an all-closed default and enable attributes as needed,
       # have a look at +attr_accessible+.
       #
-      # Note that using <tt>Hash#except</tt> or <tt>Hash#slice</tt> in place of +attr_protected+
-      # to sanitize attributes won't provide sufficient protection.
+      # Note that using <tt>Hash#except</tt> or <tt>Hash#slice</tt> in place of
+      # +attr_protected+ to sanitize attributes provides basically the same
+      # functionality, but it makes a bit tricky to deal with nested attributes.
       def attr_protected(*args)
         options = args.extract_options!
         role = options[:as] || :default
@@ -150,7 +151,7 @@ module ActiveModel
       #     end
       #   end
       #
-      # When using the :default role :
+      # When using the :default role:
       #
       #   customer = Customer.new
       #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :default)
@@ -160,15 +161,16 @@ module ActiveModel
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
       #
-      # And using the :admin role :
+      # And using the :admin role:
       #
       #   customer = Customer.new
       #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :admin)
       #   customer.name          # => "David"
       #   customer.credit_rating # => "Excellent"
       #
-      # Note that using <tt>Hash#except</tt> or <tt>Hash#slice</tt> in place of +attr_accessible+
-      # to sanitize attributes won't provide sufficient protection.
+      # Note that using <tt>Hash#except</tt> or <tt>Hash#slice</tt> in place of
+      # +attr_accessible+ to sanitize attributes provides basically the same
+      # functionality, but it makes a bit tricky to deal with nested attributes.
       def attr_accessible(*args)
         options = args.extract_options!
         role = options[:as] || :default
