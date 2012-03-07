@@ -35,7 +35,13 @@ module ActiveRecord
           relation = relation.and(table[scope_item].eq(scope_value))
         end
 
-        if finder_class.unscoped.where(relation).where(options[:conditions]).exists?
+        relation = finder_class.unscoped.where(relation)
+
+        if options[:conditions]
+          relation = relation.merge(options[:conditions])
+        end
+
+        if relation.exists?
           record.errors.add(attribute, :taken, options.except(:case_sensitive, :scope, :conditions).merge(:value => value))
         end
       end
@@ -107,7 +113,7 @@ module ActiveRecord
       # of the title attribute:
       #
       #   class Article < ActiveRecord::Base
-      #     validates_uniqueness_of :title, :conditions => ['status != ?', 'archived']
+      #     validates_uniqueness_of :title, :conditions => where('status != ?', 'archived')
       #   end
       #
       # When the record is created, a check is performed to make sure that no record exists in the database
@@ -118,7 +124,7 @@ module ActiveRecord
       # * <tt>:message</tt> - Specifies a custom error message (default is: "has already been taken").
       # * <tt>:scope</tt> - One or more columns by which to limit the scope of the uniqueness constraint.
       # * <tt>:conditions</tt> - Specify the conditions to be included as a <tt>WHERE</tt> SQL fragment to limit
-      #   the uniqueness constraint lookup. (e.g. <tt>:conditions => {:status => 'active'}</tt>)
+      #   the uniqueness constraint lookup. (e.g. <tt>:conditions => where('status = ?', 'active')</tt>)
       # * <tt>:case_sensitive</tt> - Looks for an exact match. Ignored by non-text columns (+true+ by default).
       # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
       # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
