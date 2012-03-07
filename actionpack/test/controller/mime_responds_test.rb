@@ -132,7 +132,6 @@ class RespondToController < ActionController::Base
     end
   end
 
-
   def iphone_with_html_response_type
     request.format = :iphone if request.env["HTTP_ACCEPT"] == "text/iphone"
 
@@ -1135,7 +1134,7 @@ class PostController < AbstractPostController
   around_filter :with_iphone
 
   def index
-    respond_to(:html, :iphone)
+    respond_to(:html, :iphone, :js)
   end
 
 protected
@@ -1181,6 +1180,11 @@ class MimeControllerLayoutsTest < ActionController::TestCase
     @request.accept = "text/iphone"
     get :index
     assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
+  end
+
+  def test_non_navigational_format_with_no_template_fallbacks_to_html_template_with_no_layout
+    get :index, :format => :js
+    assert_equal "Hello Firefox", @response.body
   end
 end
 
