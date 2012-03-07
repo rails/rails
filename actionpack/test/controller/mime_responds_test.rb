@@ -656,7 +656,9 @@ class RespondWithControllerTest < ActionController::TestCase
     @request.accept = "application/json"
     get :using_hash_resource
     assert_equal "application/json", @response.content_type
-    assert_equal %Q[{"result":{"name":"david","id":13}}], @response.body
+    assert @response.body.include?("result")
+    assert @response.body.include?('"name":"david"')
+    assert @response.body.include?('"id":13')
   end
 
   def test_using_hash_resource_with_post
