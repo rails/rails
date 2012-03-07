@@ -101,6 +101,13 @@ module ActiveRecord
         active_connections.any?
       end
 
+      # Check to see if there is an active connection for
+      # current_connection_id, that is by default the current
+      # thread.
+      def current_connection?
+        @reserved_connections.has_key?(current_connection_id)
+      end
+
       # Signal that the thread is finished with the current connection.
       # #release_connection releases the connection-thread association
       # and returns the connection to the pool.
@@ -114,7 +121,7 @@ module ActiveRecord
       # connection when finished.
       def with_connection
         connection_id = current_connection_id
-        fresh_connection = true unless active_connection?
+        fresh_connection = true unless current_connection?
         yield connection
       ensure
         release_connection(connection_id) if fresh_connection
