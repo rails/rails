@@ -86,3 +86,9 @@ class TightPerson < ActiveRecord::Base
 end
 
 class TightDescendant < TightPerson; end
+
+class RichPerson < ActiveRecord::Base
+  self.table_name = 'people'
+  
+  has_and_belongs_to_many :treasures, :join_table => 'peoples_treasures'
+end

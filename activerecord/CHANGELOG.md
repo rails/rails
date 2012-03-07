@@ -1,5 +1,9 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Fix deleting from a HABTM join table upon destroying an object of a model with optimistic locking enabled. Fixes #5332.
+
+    *Nick Rogers*
+
 *   Use query cache/uncache when using ENV["DATABASE_URL"].
     Fixes #6951. [Backport #8074]
 
