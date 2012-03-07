@@ -71,6 +71,10 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
   end
 
+  def test_schema_names
+    assert_equal ["public", "test_schema", "test_schema2"], @connection.schema_names
+  end
+
   def test_schema_change_with_prepared_stmt
     altered = false
     @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
