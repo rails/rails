@@ -978,6 +978,27 @@ module ActiveRecord
         end_sql
       end
 
+      # Returns an array of schema names.
+      def schema_names
+        query(<<-SQL).flatten
+          SELECT nspname
+            FROM pg_namespace
+           WHERE nspname !~ '^pg_.*'
+             AND nspname NOT IN ('information_schema')
+           ORDER by nspname;
+        SQL
+      end
+
+      # Creates a schema for the given schema name.
+      def create_schema schema_name
+        execute "CREATE SCHEMA #{schema_name}"
+      end
+
+      # Drops the schema for the given schema name.
+      def drop_schema schema_name
+        execute "DROP SCHEMA #{schema_name} CASCADE"
+      end
+
       # Sets the schema search path to a string of comma-separated schema names.
       # Names beginning with $ have to be quoted (e.g. $user => '$user').
       # See: http://www.postgresql.org/docs/current/static/ddl-schemas.html
