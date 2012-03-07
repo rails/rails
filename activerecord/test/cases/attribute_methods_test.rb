@@ -30,9 +30,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t = Topic.new
     t.title = "hello there!"
     t.written_on = Time.now
+    t.author_name = ""
     assert t.attribute_present?("title")
     assert t.attribute_present?("written_on")
     assert !t.attribute_present?("content")
+    assert !t.attribute_present?("author_name")
+    
   end
 
   def test_attribute_present_with_booleans
