@@ -148,6 +148,16 @@ module ActionController
       @_params = val
     end
 
+    # Method that can handle with nested params hashes.
+    # For instance, param("user.id") is the same as
+    # params[:user].is_a?(Hash) && params[:user][:id]
+    def param(key)
+      key.to_s.split('.').inject(params) do |param, key|
+        return unless param
+        param[key]
+      end
+    end
+
     # Basic implementations for content_type=, location=, and headers are
     # provided to reduce the dependency on the RackDelegation module
     # in Renderer and Redirector.

@@ -32,6 +32,14 @@ class ParamsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_param
+    with_test_route_set do
+      post "/", {"user" => {"username" => "gorbachev"}}
+      assert_equal "gorbachev", @controller.param("user.username")
+      assert_nil @controller.param("user.baz")
+    end
+  end
+
   private
     def with_test_route_set
       with_routing do |set|
