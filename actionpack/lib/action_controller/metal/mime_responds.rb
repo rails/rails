@@ -273,6 +273,7 @@ module ActionController #:nodoc:
       if format
         self.content_type ||= format.to_s
         lookup_context.formats = [format.to_sym]
+        lookup_context.rendered_format = lookup_context.formats.first
         collector
       else
         head :not_acceptable
