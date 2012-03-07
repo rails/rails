@@ -6,8 +6,6 @@ module ActionController #:nodoc:
   module MimeResponds
     extend ActiveSupport::Concern
 
-    include ActionController::ImplicitRender
-
     included do
       class_attribute :responder, :mimes_for_respond_to
       self.responder = ActionController::Responder
@@ -193,7 +191,7 @@ module ActionController #:nodoc:
 
       if collector = retrieve_collector_from_mimes(mimes, &block)
         response = collector.response
-        response ? response.call : default_render({})
+        response ? response.call : render({})
       end
     end
 

@@ -270,7 +270,6 @@ Some common modules you might want to add:
 * +ActionController::Rendering+: Support for templating and +ActionView+.
 * +AbstractController::Layouts+: Support for layouts when rendering.
 * +ActionController::Renderers::XML+: Support for +render :xml+.
-* +ActionController::SessionManagement+: Support for +session+. This requires a session middleware.
 * +ActionController::Cookies+: Support for +cookies+, which includes support for signed and encrypted cookies. This requires the cookie middleware.
 * +ActionController::Rescue+: Support for +rescue_from+.
 
