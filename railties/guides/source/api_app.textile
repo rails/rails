@@ -71,13 +71,13 @@ If you're building a Rails application that will be an API server first and fore
 You can generate a new bare Rails app:
 
 <shell>
-$ rails new my_api --api
+$ rails new my_api --http
 </shell>
 
 This will do three main things for you:
 
 * Configure your application to start with a more limited set of middleware than normal. Specifically, it will not include any middleware primarily useful for browser applications (like cookie support) by default.
-* Make +ApplicationController+ inherit from +ActionController::API+ instead of +ActionController::Base+. As with middleware, this will leave out any +ActionController+ modules that provide functionality primarily used by browser applications.
+* Make +ApplicationController+ inherit from +ActionController::HTTP+ instead of +ActionController::Base+. As with middleware, this will leave out any +ActionController+ modules that provide functionality primarily used by browser applications.
 * Configure the generators to skip generating views, helpers and assets when you generate a new resource.
 
 If you want to take an existing app and make it an API app, follow the following steps.
@@ -85,8 +85,8 @@ If you want to take an existing app and make it an API app, follow the following
 In +config/application.rb+ add the following lines at the top of the +Application+ class:
 
 <ruby>
-config.middleware.api_only!
-config.generators.api_only!
+config.middleware.http_only!
+config.generators.http_only!
 </ruby>
 
 Change +app/controllers/application_controller.rb+:
@@ -97,7 +97,7 @@ class ApplicationController < ActionController::Base
 end
 
 # do
-class ApplicationController < ActionController::API
+class ApplicationController < ActionController::HTTP
 end
 </ruby>
 
@@ -239,7 +239,7 @@ Keep in mind that removing these features may remove support for certain feature
 
 h3. Choosing Controller Modules
 
-An API application (using +ActionController::API+) comes with the following controller modules by default:
+An API application (using +ActionController::HTTP+) comes with the following controller modules by default:
 
 * +AbstractController::Translation+: Support for the +l+ and +t+ localization and translation methods. These delegate to +I18n.translate+ and +I18n.localize+.
 * +ActionController::UrlFor+: Makes +url_for+ and friends available.
@@ -252,11 +252,11 @@ An API application (using +ActionController::API+) comes with the following cont
 * +AbstractController::Callbacks+: Support for +before_filter+ and friends
 * +ActionController::Instrumentation+: Support for the instrumentation hooks defined by +ActionController+ (see "the source":https://github.com/rails/rails/blob/master/actionpack/lib/action_controller/metal/instrumentation.rb for more).
 
-Other plugins may add additional modules. You can get a list of all modules included into +ActionController::API+ in the rails console:
+Other plugins may add additional modules. You can get a list of all modules included into +ActionController::HTTP+ in the rails console:
 
 <shell>
 $ irb
->> ActionController::API.ancestors - ActionController::Metal.ancestors
+>> ActionController::HTTP.ancestors - ActionController::Metal.ancestors
 </shell>
 
 h4. Adding Other Modules

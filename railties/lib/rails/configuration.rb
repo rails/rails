@@ -37,7 +37,7 @@ module Rails
     # going to be used as an API endpoint only, the middleware stack can be
     # configured like this:
     #
-    #     config.middleware.api_only!
+    #     config.middleware.http_only!
     #
     # By doing this, Rails will create a smaller middleware stack, by not adding
     # some middlewares that are usually useful for browser access only, such as
@@ -46,14 +46,14 @@ module Rails
     class MiddlewareStackProxy
       def initialize
         @operations = []
-        @api_only   = false
+        @http_only  = false
       end
 
-      attr_reader :api_only
-      alias       :api_only? :api_only
+      attr_reader :http_only
+      alias       :http_only? :http_only
 
-      def api_only!
-        @api_only = true
+      def http_only!
+        @http_only = true
       end
 
       def insert_before(*args, &block)
