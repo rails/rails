@@ -109,7 +109,7 @@ module ActiveRecord
       #   end
       #
       # It is also possible to limit the uniqueness constraint to a set of records matching certain conditions.
-      # In this example archived articles with are not being taken into consideration when validating uniqueness
+      # In this example archived articles are not being taken into consideration when validating uniqueness
       # of the title attribute:
       #
       #   class Article < ActiveRecord::Base
