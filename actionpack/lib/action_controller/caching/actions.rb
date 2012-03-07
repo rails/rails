@@ -142,15 +142,15 @@ module ActionController #:nodoc:
           cache_path = ActionCachePath.new(controller, path_options || {})
 
           body = controller.read_fragment(cache_path.path, @store_options)
-
+          
           unless body
             controller.action_has_layout = false unless @cache_layout
             yield
             controller.action_has_layout = true
             body = controller._save_fragment(cache_path.path, @store_options)
           end
-
-          body = controller.render_to_string(:text => body, :layout => true) unless @cache_layout
+          has_layout = !controller.send(:_layout).nil?
+          body = controller.render_to_string(:text => body, :layout => has_layout) unless @cache_layout
 
           controller.response_body = body
           controller.content_type = Mime[cache_path.extension || :html]
