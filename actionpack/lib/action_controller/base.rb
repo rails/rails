@@ -192,7 +192,6 @@ module ActionController
       Renderers::All,
       ConditionalGet,
       RackDelegation,
-      SessionManagement,
       Caching,
       MimeResponds,
       ImplicitRender,
