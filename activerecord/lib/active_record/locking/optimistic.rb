@@ -102,6 +102,8 @@ module ActiveRecord
         def destroy #:nodoc:
           return super unless locking_enabled?
 
+          destroy_associations
+
           if persisted?
             table = self.class.arel_table
             lock_col = self.class.locking_column
