@@ -138,5 +138,24 @@ module ApplicationTests
       end
       assert File.exists?(File.join(app_path, 'db', 'my_structure.sql'))
     end
+
+    def test_rake_dump_schema_cache
+      Dir.chdir(app_path) do
+        `rails generate model post title:string`
+        `rails generate model product name:string`
+        `bundle exec rake db:migrate`
+        `bundle exec rake db:schema:cache:dump`
+      end
+      assert File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
+    end
+
+    def test_rake_clear_schema_cache
+      Dir.chdir(app_path) do
+        `bundle exec rake db:schema:cache:dump`
+        `bundle exec rake db:schema:cache:clear`
+      end
+      assert !File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
+    end
+
   end
 end
