@@ -235,14 +235,14 @@ end
 
 In addition to the routes for magazines, this declaration will also route ads to an +AdsController+. The ad URLs require a magazine:
 
-|_.HTTP Verb |_.Path                  |_.action |_.used for                                                                 |
-|GET         |/magazines/:id/ads        |index    |display a list of all ads for a specific magazine                          |
-|GET         |/magazines/:id/ads/new    |new      |return an HTML form for creating a new ad belonging to a specific magazine |
-|POST        |/magazines/:id/ads        |create   |create a new ad belonging to a specific magazine                           |
-|GET         |/magazines/:id/ads/:id      |show     |display a specific ad belonging to a specific magazine                     |
-|GET         |/magazines/:id/ads/:id/edit |edit     |return an HTML form for editing an ad belonging to a specific magazine     |
-|PUT         |/magazines/:id/ads/:id      |update   |update a specific ad belonging to a specific magazine                      |
-|DELETE      |/magazines/:id/ads/:id      |destroy  |delete a specific ad belonging to a specific magazine                      |
+|_.HTTP Verb |_.Path                               |_.action |_.used for                                                                 |
+|GET         |/magazines/:magazine_id/ads          |index    |display a list of all ads for a specific magazine                          |
+|GET         |/magazines/:magazine_id/ads/new      |new      |return an HTML form for creating a new ad belonging to a specific magazine |
+|POST        |/magazines/:magazine_id/ads          |create   |create a new ad belonging to a specific magazine                           |
+|GET         |/magazines/:magazine_id/ads/:id      |show     |display a specific ad belonging to a specific magazine                     |
+|GET         |/magazines/:magazine_id/ads/:id/edit |edit     |return an HTML form for editing an ad belonging to a specific magazine     |
+|PUT         |/magazines/:magazine_id/ads/:id      |update   |update a specific ad belonging to a specific magazine                      |
+|DELETE      |/magazines/:magazine_id/ads/:id      |destroy  |delete a specific ad belonging to a specific magazine                      |
 
 
 This will also create routing helpers such as +magazine_ads_url+ and +edit_magazine_ad_path+. These helpers take an instance of Magazine as the first parameter (+magazine_ads_url(@magazine)+).
