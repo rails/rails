@@ -3,6 +3,8 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionPoolTest < ActiveRecord::TestCase
+      attr_reader :pool
+
       def setup
         super
 
@@ -23,6 +25,39 @@ module ActiveRecord
       def teardown
         super
         @pool.disconnect!
+      end
+
+      def active_connections(pool)
+        pool.connections.find_all(&:in_use?)
+      end
+
+      def test_with_connection
+        assert_equal 0, active_connections(pool).size
+
+        main_thread = pool.connection
+        assert_equal 1, active_connections(pool).size
+
+        Thread.new {
+          pool.with_connection do |conn|
+            assert conn
+            assert_equal 2, active_connections(pool).size
+          end
+          assert_equal 1, active_connections(pool).size
+        }.join
+
+        main_thread.close
+        assert_equal 0, active_connections(pool).size
+      end
+
+      def test_active_connection_in_use
+        assert !pool.active_connection?
+        main_thread = pool.connection
+
+        assert pool.active_connection?
+
+        main_thread.close
+
+        assert !pool.active_connection?
       end
 
       def test_full_pool_exception
