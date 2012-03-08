@@ -19,7 +19,7 @@ module ActionView
     # Forms for models are created with +form_for+. That method yields a form
     # builder that knows the model the form is about. The form builder is thus
     # able to generate default values for input fields that correspond to model
-    # attributes, and also convenient names, IDs, endpoints, etc.
+    # attributes, and also convenient names, and IDs, etc.
     #
     # Conventions in the generated field names allow controllers to receive form
     # data nicely structured in +params+ with no effort on your side.
