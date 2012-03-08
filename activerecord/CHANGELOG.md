@@ -1,17 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Whitelist all attribute assignment by default. Change the default for newly generated applications to whitelist all attribute assignment.  Also update the generated model classes so users are reminded of the importance of attr_accessible. *NZKoz*
-
-*   Update ActiveRecord::AttributeMethods#attribute_present? to return false for empty strings. *Jacobkg*
-
-*   Fix associations when using per class databases. *larskanis*
-
-*   Revert setting NOT NULL constraints in add_timestamps *fxn*
-
-*   Fix mysql to use proper text types. Fixes #3931. *kennyj*
-
-*   Fix #5069 - Protect foreign key from mass assignment through association builder. *byroot*
-
 *   Added the schema cache dump feature.
 
     `Schema cache dump` feature was implemetend. This feature can dump/load internal state of `SchemaCache` instance
@@ -164,6 +152,19 @@
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
+## Rails 3.2.3 (unreleased) ##
+
+*   Whitelist all attribute assignment by default. Change the default for newly generated applications to whitelist all attribute assignment.  Also update the generated model classes so users are reminded of the importance of attr_accessible. *NZKoz*
+
+*   Update ActiveRecord::AttributeMethods#attribute_present? to return false for empty strings. *Jacobkg*
+
+*   Fix associations when using per class databases. *larskanis*
+
+*   Revert setting NOT NULL constraints in add_timestamps *fxn*
+
+*   Fix mysql to use proper text types. Fixes #3931. *kennyj*
+
+*   Fix #5069 - Protect foreign key from mass assignment through association builder. *byroot*
 
 ## Rails 3.2.1 (January 26, 2012) ##
 

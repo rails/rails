@@ -1,4 +1,4 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 3.2.3 (unreleased) ##
 
 *   Upgrade mail version to 2.4.3 *ML*
 
