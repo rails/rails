@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* Upgrade rack-cache to 1.2. *José Valim*
+
+* ActionController::SessionManagement is removed. *Santiago Pastorino*
+
+* Since the router holds references to many parts of the system like engines, controllers and the application itself, inspecting the route set can actually be really slow, therefore we default alias inspect to to_s. *José Valim* 
+
+* Add a new line after the textarea opening tag. Closes #393 *rafaelfranca*
+
+* Always pass a respond block from to responder. We should let the responder to decide what to do with the given overridden response block, and not short circuit it. *sikachu*
+
+* Fixes layout rendering regression from 3.2.2. *José Valim*
+
 * Adds support for layouts when rendering a partial with a given collection. *serabe*
 
 * Allows the route helper `root` to take a string argument. For example, `root 'pages#main'`. *bcardarella*
