@@ -15,7 +15,7 @@
 
       3) boot rails.
       RAILS_ENV=production bundle exec rails server
-      => use db/schema_cache.db
+      => use db/schema_cache.dump
 
       4) If you remove clear dumped cache, execute rake task.
       RAILS_ENV=production bundle exec rake db:schema:cache:clear
