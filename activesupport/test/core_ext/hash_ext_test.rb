@@ -486,6 +486,13 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 'bender', slice['login']
   end
 
+  def test_extract
+    original = {:a => 1, :b => 2, :c => 3, :d => 4}
+    expected = {:a => 1, :b => 2}
+
+    assert_equal expected, {:a => 1, :b => 2, :c => 3, :d => 4}.extract!(:a, :b)
+  end
+
   def test_except
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :a => 'x', :b => 'y' }
