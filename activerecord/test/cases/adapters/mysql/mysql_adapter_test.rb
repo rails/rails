@@ -52,7 +52,7 @@ module ActiveRecord
           flunk
         rescue => e
           # assertion for *quoted* database properly
-          assert_match(/Unknown database 'foo-bar': SHOW TABLES IN `foo-bar`/, e.inspect)
+          assert_match(/database 'foo-bar'/, e.inspect)
         end
       end
 
