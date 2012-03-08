@@ -245,7 +245,7 @@ module Rails
   #
   # Additionally, an isolated engine will set its name according to namespace, so
   # MyEngine::Engine.engine_name will be "my_engine". It will also set MyEngine.table_name_prefix
-  # to "my_engine_", changing the MyEngine::Article model to use the my_engine_article table.
+  # to "my_engine_", changing the MyEngine::Article model to use the my_engine_articles table.
   #
   # == Using Engine's routes outside Engine
   #
