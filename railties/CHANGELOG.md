@@ -1,3 +1,11 @@
+## Rails 3.2.3 (unreleased) ##
+
+*   No changes.
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
+
 ## Rails 3.2.1 (January 26, 2012) ##
 
 *   Documentation fixes.
