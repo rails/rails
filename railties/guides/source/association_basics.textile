@@ -1319,7 +1319,7 @@ If you need to evaluate conditions dynamically at runtime, use a proc:
 <ruby>
 class Customer < ActiveRecord::Base
   has_many :latest_orders, :class_name => "Order",
-    :conditions => proc { ["orders.created_at > ?, 10.hours.ago] }
+    :conditions => proc { ["orders.created_at > ?", 10.hours.ago] }
 end
 </ruby>
 
