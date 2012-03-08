@@ -1,3 +1,7 @@
+## Rails 3.2.3 (unreleased) ##
+
+*   Upgrade mail version to 2.4.3 *ML*
+
 ## Rails 3.2.1 (January 26, 2012) ##
 
 *   No changes.
