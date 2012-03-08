@@ -1,5 +1,28 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added the schema cache dump feature.
+
+    `Schema cache dump` feature was implemetend. This feature can dump/load internal state of `SchemaCache` instance
+    because we want to boot rails more quickly when we have many models.
+
+    Usage notes:
+
+      1) execute rake task.
+      RAILS_ENV=production bundle exec rake db:schema:cache:dump
+      => generate db/schema_cache.dump
+
+      2) add config.use_schema_cache_dump = true in config/production.rb. BTW, true is default.
+
+      3) boot rails.
+      RAILS_ENV=production bundle exec rails server
+      => use db/schema_cache.dump
+
+      4) If you remove clear dumped cache, execute rake task.
+      RAILS_ENV=production bundle exec rake db:schema:cache:clear
+      => remove db/schema_cache.dump
+
+    *kennyj*
+
 *   Added support for partial indices to PostgreSQL adapter
 
     The `add_index` method now supports a `where` option that receives a
@@ -129,6 +152,19 @@
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
+## Rails 3.2.3 (unreleased) ##
+
+*   Whitelist all attribute assignment by default. Change the default for newly generated applications to whitelist all attribute assignment.  Also update the generated model classes so users are reminded of the importance of attr_accessible. *NZKoz*
+
+*   Update ActiveRecord::AttributeMethods#attribute_present? to return false for empty strings. *Jacobkg*
+
+*   Fix associations when using per class databases. *larskanis*
+
+*   Revert setting NOT NULL constraints in add_timestamps *fxn*
+
+*   Fix mysql to use proper text types. Fixes #3931. *kennyj*
+
+*   Fix #5069 - Protect foreign key from mass assignment through association builder. *byroot*
 
 ## Rails 3.2.1 (January 26, 2012) ##
 

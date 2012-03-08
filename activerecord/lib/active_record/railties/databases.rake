@@ -372,6 +372,25 @@ db_namespace = namespace :db do
     task :load_if_ruby => 'db:create' do
       db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
+
+    namespace :cache do
+      desc 'Create a db/schema_cache.dump file.'
+      task :dump => :environment do
+        con = ActiveRecord::Base.connection
+        filename = File.join(Rails.application.config.paths["db"].first, "schema_cache.dump")
+
+        con.schema_cache.clear!
+        con.tables.each { |table| con.schema_cache.add(table) }
+        open(filename, 'wb') { |f| f.write(Marshal.dump(con.schema_cache)) }
+      end
+
+      desc 'Clear a db/schema_cache.dump file.'
+      task :clear => :environment do
+        filename = File.join(Rails.application.config.paths["db"].first, "schema_cache.dump")
+        FileUtils.rm(filename) if File.exists?(filename)
+      end
+    end
+
   end
 
   namespace :structure do

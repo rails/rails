@@ -94,7 +94,7 @@ client = Client.find(10)
 The SQL equivalent of the above is:
 
 <sql>
-SELECT * FROM clients WHERE (clients.id = 10)
+SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
 </sql>
 
 <tt>Model.find(primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception if no matching record is found.
