@@ -237,6 +237,7 @@ module ActionView
       #
       # ==== Options
       # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
+      # * <tt>:wrapper_tag</tt> - String representing the tag wrapper, defaults to <tt><p></tt>
       #
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
@@ -249,22 +250,27 @@ module ActionView
       #   simple_format(more_text)
       #   # => "<p>We want to put a paragraph...</p>\n\n<p>...right there.</p>"
       #
+      #   simple_format(more_text, {}, :wrapper_tag => "div")
+      #   # => "<div>We want to put a div...</div>\n\n<div>...right there.</div>"
+      #
       #   simple_format("Look ma! A class!", :class => 'description')
       #   # => "<p class='description'>Look ma! A class!</p>"
       #
       #   simple_format("<span>I'm allowed!</span> It's true.", {}, :sanitize => false)
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options={}, options={})
+        wrapper_tag = options.delete(:wrapper_tag) || "p"
+
         text = '' if text.nil?
         text = text.dup
-        start_tag = tag('p', html_options, true)
+        start_tag = tag("#{wrapper_tag}", html_options, true)
         text = sanitize(text) unless options[:sanitize] == false
         text = text.to_str
-        text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
-        text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
-        text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br
+        text.gsub!(/\r\n?/, "\n")                                 # \r\n and \r -> \n
+        text.gsub!(/\n\n+/, "</#{wrapper_tag}>\n\n#{start_tag}")  # 2+ newline  -> wrapper_tag
+        text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />')              # 1 newline   -> br
         text.insert 0, start_tag
-        text.html_safe.safe_concat("</p>")
+        text.html_safe.safe_concat("</#{wrapper_tag}>")
       end
 
       # Creates a Cycle object whose _to_s_ method cycles through elements of an

@@ -17,6 +17,15 @@ class TextHelperTest < ActionView::TestCase
     assert_equal 'foobar', output_buffer
   end
 
+  def test_simple_format_with_custom_wrapper
+    assert_equal "<div></div>", simple_format(nil, {}, :wrapper_tag => "div")
+  end
+
+  def test_simple_format_with_custom_wrapper_and_multi_line_breaks
+    assert_equal "<div>We want to put a wrapper...</div>\n\n<div>...right there.</div>", simple_format("We want to put a wrapper...\n\n...right there.", {}, :wrapper_tag => "div")
+  end
+
+
   def test_simple_format_should_be_html_safe
     assert simple_format("<b> test with html tags </b>").html_safe?
   end
