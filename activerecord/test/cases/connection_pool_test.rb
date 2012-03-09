@@ -31,6 +31,24 @@ module ActiveRecord
         pool.connections.find_all(&:in_use?)
       end
 
+      def test_released_connection_moves_between_threads
+        thread_conn = nil
+
+        Thread.new {
+          pool.with_connection do |conn|
+            thread_conn = conn
+          end
+        }.join
+
+        assert thread_conn
+
+        Thread.new {
+          pool.with_connection do |conn|
+            assert_equal thread_conn, conn
+          end
+        }.join
+      end
+
       def test_with_connection
         assert_equal 0, active_connections(pool).size
 
