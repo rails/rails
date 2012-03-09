@@ -125,7 +125,7 @@
 
 *   Add a new line after the textarea opening tag. Closes #393 *Rafael Mendonça França*
 
-*   Always pass a respond block from to responder. We should let the responder to decide what to do with the given overridden response block, and not short circuit it. *sikachu*
+*   Always pass a respond block from to responder. We should let the responder decide what to do with the given overridden response block, and not short circuit it. *Prem Sichanugrist*
 
 *   Fixes layout rendering regression from 3.2.2. *José Valim*
 
