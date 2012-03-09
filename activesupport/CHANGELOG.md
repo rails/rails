@@ -27,6 +27,11 @@
 *    Unicode database updated to 6.1.0.
 
 
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
+
+
 ## Rails 3.2.1 (January 26, 2012) ##
 
 *   Documentation fixes and improvements.
