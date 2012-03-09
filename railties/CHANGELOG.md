@@ -2,9 +2,11 @@
 
 *   No changes.
 
+
 ## Rails 3.2.2 (March 1, 2012) ##
 
 *   No changes.
+
 
 ## Rails 3.2.1 (January 26, 2012) ##
 
@@ -54,7 +56,19 @@
 *   Remove old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API *Guillermo Iguaran*
 
 
-*   Rails 3.1.1
+## Rails 3.1.2 (November 18, 2011) ##
+
+*   Engines: don't blow up if db/seeds.rb is missing.
+
+    *Jeremy Kemper*
+
+*   `rails new foo --skip-test-unit` should not add the `:test` task to the rake default task.
+    *GH 2564*
+
+    *José Valim*
+
+
+## Rails 3.1.1 (October 7, 2011) ##
 
 *   Add jquery-rails to Gemfile of plugins, test/dummy app needs it. Closes #3091. *Santiago Pastorino*
 
@@ -67,16 +81,6 @@
     Plugins developers need to special case their initializers that are
     meant to be run in the assets group by adding :group => :assets.
 
-## Rails 3.1.2 (unreleased) ##
-
-*   Engines: don't blow up if db/seeds.rb is missing.
-
-    *Jeremy Kemper*
-
-*   `rails new foo --skip-test-unit` should not add the `:test` task to the rake default task.
-    *GH 2564*
-
-    *José Valim*
 
 ## Rails 3.1.0 (August 30, 2011) ##
 

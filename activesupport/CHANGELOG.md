@@ -89,6 +89,7 @@
 *   ActiveSupport::BufferedLogger#flush is deprecated.  Set sync on your
     filehandle, or tune your filesystem.
 
+
 ## Rails 3.1.0 (August 30, 2011) ##
 
 *   ActiveSupport::Dependencies#load and ActiveSupport::Dependencies#require now
