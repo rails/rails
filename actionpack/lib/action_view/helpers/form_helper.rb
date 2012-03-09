@@ -16,17 +16,28 @@ module ActionView
     # Form helpers are designed to make working with resources much easier
     # compared to using vanilla HTML.
     #
-    # Forms for models are created with +form_for+. That method yields a form
-    # builder that knows the model the form is about. The form builder is thus
-    # able to generate default values for input fields that correspond to model
-    # attributes, and also convenient names, and IDs, etc.
+    # Typically, a form designed to create or update a resource reflects the
+    # identity of the resource in several ways: (i) the url that the form is
+    # sent to (the form element's +action+ attribute) should result in a request
+    # being routed to the appropriate controller action (with the appropriate <tt>:id</tt>
+    # parameter in the case of an existing resource), and (ii) input fields should
+    # be named in such a way that in the controller their values appear in the
+    # appropriate places within the +params+ hash. Also for an existing record, 
+    # when the form is initially displayed, input fields corresponding to attributes
+    # of the resource should show the current values of those attributes.
     #
-    # Conventions in the generated field names allow controllers to receive form
-    # data nicely structured in +params+ with no effort on your side.
+    # In Rails, this is usually achieved by creating the form using +form_for+ and
+    # a number of related helper methods. +form_for+ generates an appropriate <tt>form</tt>
+    # tag and yields a form builder object that knows the model the form is about.
+    # Input fields are created by calling methods defined on the form builder, which
+    # means they are able to generate the appropriate names and default values
+    # corresponding to the model attributes, as well as convenient IDs, etc.
+    # Conventions in the generated field names allow controllers to receive form data
+    # nicely structured in +params+ with no effort on your side.
     #
     # For example, to create a new person you typically set up a new instance of
     # +Person+ in the <tt>PeopleController#new</tt> action, <tt>@person</tt>, and
-    # pass it to +form_for+:
+    # in the view template pass that object to +form_for+:
     #
     #   <%= form_for @person do |f| %>
     #     <%= f.label :first_name %>:
