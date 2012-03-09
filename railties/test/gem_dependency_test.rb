@@ -1,4 +1,5 @@
 require 'plugin_test_helper'
+require 'stringio' # to eat unintended output
 
 class Rails::GemDependency
   public :install_command, :unpack_command
@@ -115,7 +116,7 @@ class GemDependencyTest < Test::Unit::TestCase
   end
 
   def test_gem_load_frozen_when_platform_string_is_present
-    Gem::Platform.expects(:match).returns(true) # pretend we're always on windows
+    Gem::Platform.stubs(:match).returns(true) # pretend we're always on windows
     dummy_gem = Rails::GemDependency.new "dummy-gem-l"
     dummy_gem.add_load_paths
     dummy_gem.load
@@ -218,11 +219,15 @@ class GemDependencyTest < Test::Unit::TestCase
   end
 
   def test_gem_build_passes_options_to_dependencies
+    stdout, $stdout = $stdout, StringIO.new # hide output during tests
+
     start_gem = Rails::GemDependency.new("dummy-gem-g")
     dep_gem = Rails::GemDependency.new("dummy-gem-f")
     start_gem.stubs(:dependencies).returns([dep_gem])
     dep_gem.expects(:build).with({ :force => true }).once
     start_gem.build(:force => true)
+
+    $stdout = stdout # restore output
   end
 
 end
