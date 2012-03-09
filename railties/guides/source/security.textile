@@ -374,7 +374,7 @@ end
 Mass-assignment saves you much work, because you don't have to set each value individually. Simply pass a hash to the +new+ method, or +assign_attributes=+ a hash value, to set the model's attributes to the values in the hash. The problem is that it is often used in conjunction with the parameters (params) hash available in the controller, which may be manipulated by an attacker. He may do so by changing the URL like this:
 
 <pre>
-"name":http://www.example.com/user/signup?user[name]=ow3ned&user[admin]=1
+http://www.example.com/user/signup?user[name]=ow3ned&user[admin]=1
 </pre>
 
 This will set the following parameters in the controller:
