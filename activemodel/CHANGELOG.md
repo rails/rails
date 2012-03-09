@@ -6,9 +6,16 @@
 
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
 
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
+
+
 ## Rails 3.2.1 (January 26, 2012) ##
 
 *   No changes.
+
 
 ## Rails 3.2.0 (January 20, 2012) ##
 
@@ -25,13 +32,16 @@
 
 *   Provide mass_assignment_sanitizer as an easy API to replace the sanitizer behavior. Also support both :logger (default) and :strict sanitizer behavior *Bogdan Gusiev*
 
+
 ## Rails 3.1.3 (November 20, 2011) ##
 
 *   No changes
 
+
 ## Rails 3.1.2 (November 18, 2011) ##
 
 *   No changes
+
 
 ## Rails 3.1.1 (October 7, 2011) ##
 
@@ -41,6 +51,7 @@
     gem 'bcrypt-ruby', '~> 3.0.0'
 
     See GH #2687. *Guillermo Iguaran*
+
 
 ## Rails 3.1.0 (August 30, 2011) ##
 
