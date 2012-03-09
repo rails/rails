@@ -275,19 +275,23 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
+      token = "cf50faa3fe97702ca1ae"
+      PostsController.any_instance.stubs(:form_authenticity_token).returns(token)
+      params = {:authenticity_token => token}
+
       get "/posts/1"
       assert_match /patch/, last_response.body
 
-      patch "/posts/1"
+      patch "/posts/1", params
       assert_match /update/, last_response.body
 
-      patch "/posts/1"
+      patch "/posts/1", params
       assert_equal 200, last_response.status
 
-      put "/posts/1"
+      put "/posts/1", params
       assert_match /update/, last_response.body
 
-      put "/posts/1"
+      put "/posts/1", params
       assert_equal 200, last_response.status
     end
 
@@ -525,6 +529,12 @@ module ApplicationTests
         def self.attribute_names
           %w(title)
         end
+      end
+      RUBY
+
+      app_file 'app/controllers/application_controller.rb', <<-RUBY
+      class ApplicationController < ActionController::Base
+        protect_from_forgery :with => :reset_session # as we are testing API here
       end
       RUBY
 
