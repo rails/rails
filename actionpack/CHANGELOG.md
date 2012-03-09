@@ -9,15 +9,16 @@
 
 *   ActionController::SessionManagement is deprecated. *Santiago Pastorino*
 
-*   Since the router holds references to many parts of the system like engines, controllers and the application itself, inspecting the route set can actually be really slow, therefore we default alias inspect to to_s. *José Valim* 
+*   Since the router holds references to many parts of the system like engines, controllers and the application itself, inspecting the route set can actually be really slow, therefore we default alias inspect to to_s. *José Valim*
 
-*   Add a new line after the textarea opening tag. Closes #393 *rafaelfranca*
+*   Add a new line after the textarea opening tag. Closes #393 *Rafael Mendonça França*
 
 *   Always pass a respond block from to responder. We should let the responder to decide what to do with the given overridden response block, and not short circuit it. *sikachu*
 
 *   Fixes layout rendering regression from 3.2.2. *José Valim*
 
-## Rails 3.2.2 (unreleased) ##
+
+## Rails 3.2.2 (March 1, 2012) ##
 
 *   Format lookup for partials is derived from the format in which the template is being rendered. Closes #5025 part 2 *Santiago Pastorino*
 
