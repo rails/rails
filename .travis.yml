@@ -1,4 +1,6 @@
 script: 'ci/travis.rb'
+before_install:
+  - gem install bundler
 rvm:
   - 1.8.7
   - 1.9.2
