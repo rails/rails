@@ -11,8 +11,8 @@ class GemDependencyTest < Test::Unit::TestCase
     @gem              = Rails::GemDependency.new "xhpricotx"
     @gem_with_source  = Rails::GemDependency.new "xhpricotx", :source => "http://code.whytheluckystiff.net"
     @gem_with_version = Rails::GemDependency.new "xhpricotx", :version => "= 0.6"
-    @gem_with_lib     = Rails::GemDependency.new "xaws-s3x", :lib => "aws/s3"
-    @gem_without_load  = Rails::GemDependency.new "xhpricotx", :lib => false
+    @gem_with_lib     = Rails::GemDependency.new "xaws-s3x",  :lib => "aws/s3"
+    @gem_without_load = Rails::GemDependency.new "xhpricotx", :lib => false
   end
 
   def test_configuration_adds_gem_dependency
@@ -22,11 +22,11 @@ class GemDependencyTest < Test::Unit::TestCase
   end
 
   def test_gem_creates_install_command
-    assert_equal %w(install xhpricotx), @gem.install_command
+    assert_equal ['install', 'xhpricotx', '--version', '">= 0"'], @gem.install_command
   end
 
   def test_gem_with_source_creates_install_command
-    assert_equal %w(install xhpricotx --source http://code.whytheluckystiff.net), @gem_with_source.install_command
+    assert_equal ['install', 'xhpricotx', '--version', '">= 0"', '--source', 'http://code.whytheluckystiff.net'], @gem_with_source.install_command
   end
 
   def test_gem_with_version_creates_install_command
@@ -34,7 +34,7 @@ class GemDependencyTest < Test::Unit::TestCase
   end
 
   def test_gem_creates_unpack_command
-    assert_equal %w(unpack xhpricotx), @gem.unpack_command
+    assert_equal ["unpack", "xhpricotx", "--version", '">= 0"'], @gem.unpack_command
   end
 
   def test_gem_with_version_unpack_install_command
@@ -42,22 +42,22 @@ class GemDependencyTest < Test::Unit::TestCase
     mock_spec = mock()
     mock_spec.stubs(:version).returns('0.6')
     @gem_with_version.stubs(:specification).returns(mock_spec)
-    assert_equal ["unpack", "xhpricotx", "--version", '= 0.6'], @gem_with_version.unpack_command
+    assert_equal ["unpack", "xhpricotx", "--version", '"= 0.6"'], @gem_with_version.unpack_command
   end
 
   def test_gem_adds_load_paths
-    @gem.expects(:gem).with(@gem)
+    @gem.expects(:gem).with(@gem.name, Gem::Requirement.new)
     @gem.add_load_paths
   end
 
   def test_gem_with_version_adds_load_paths
-    @gem_with_version.expects(:gem).with(@gem_with_version)
+    @gem_with_version.expects(:gem).with(@gem_with_version.name, @gem_with_version.requirement)
     @gem_with_version.add_load_paths
     assert @gem_with_version.load_paths_added?
   end
 
   def test_gem_loading
-    @gem.expects(:gem).with(@gem)
+    @gem.expects(:gem).with(@gem.name, Gem::Requirement.new)
     @gem.expects(:require).with(@gem.name)
     @gem.add_load_paths
     @gem.load
@@ -65,7 +65,7 @@ class GemDependencyTest < Test::Unit::TestCase
   end
 
   def test_gem_with_lib_loading
-    @gem_with_lib.expects(:gem).with(@gem_with_lib)
+    @gem_with_lib.expects(:gem).with(@gem_with_lib.name, Gem::Requirement.new)
     @gem_with_lib.expects(:require).with(@gem_with_lib.lib)
     @gem_with_lib.add_load_paths
     @gem_with_lib.load
@@ -73,21 +73,21 @@ class GemDependencyTest < Test::Unit::TestCase
   end
 
   def test_gem_without_lib_loading
-    @gem_without_load.expects(:gem).with(@gem_without_load)
+    @gem_without_load.expects(:gem).with(@gem_without_load.name, Gem::Requirement.new)
     @gem_without_load.expects(:require).with(@gem_without_load.lib).never
     @gem_without_load.add_load_paths
     @gem_without_load.load
   end
 
   def test_gem_dependencies_compare_for_uniq
-    gem1 = Rails::GemDependency.new "gem1"
+    gem1  = Rails::GemDependency.new "gem1"
     gem1a = Rails::GemDependency.new "gem1"
-    gem2 = Rails::GemDependency.new "gem2"
+    gem2  = Rails::GemDependency.new "gem2"
     gem2a = Rails::GemDependency.new "gem2"
-    gem3 = Rails::GemDependency.new "gem2", :version => ">=0.1"
+    gem3  = Rails::GemDependency.new "gem2", :version => ">=0.1"
     gem3a = Rails::GemDependency.new "gem2", :version => ">=0.1"
-    gem4 = Rails::GemDependency.new "gem3"
-    gems = [gem1, gem2, gem1a, gem3, gem2a, gem4, gem3a, gem2, gem4]
+    gem4  = Rails::GemDependency.new "gem3"
+    gems  = [gem1, gem2, gem1a, gem3, gem2a, gem4, gem3a, gem2, gem4]
     assert_equal 4, gems.uniq.size
   end
 
@@ -113,8 +113,9 @@ class GemDependencyTest < Test::Unit::TestCase
     assert_not_nil DUMMY_GEM_C_VERSION
     assert_equal '0.6.0', DUMMY_GEM_C_VERSION
   end
-  
-  def test_gem_load_frozen_when_platform_string_is_present    
+
+  def test_gem_load_frozen_when_platform_string_is_present
+    Gem::Platform.expects(:match).returns(true) # pretend we're always on windows
     dummy_gem = Rails::GemDependency.new "dummy-gem-l"
     dummy_gem.add_load_paths
     dummy_gem.load
@@ -206,13 +207,13 @@ class GemDependencyTest < Test::Unit::TestCase
     assert_equal true,  Rails::GemDependency.new("dummy-gem-i").built?
     assert_equal false, Rails::GemDependency.new("dummy-gem-j").built?
   end
-  
+
   def test_gem_determines_build_status_only_on_vendor_gems
     framework_gem = Rails::GemDependency.new('dummy-framework-gem')
     framework_gem.stubs(:framework_gem?).returns(true)  # already loaded
     framework_gem.stubs(:vendor_rails?).returns(false)  # but not in vendor/rails
     framework_gem.stubs(:vendor_gem?).returns(false)  # and not in vendor/gems
-    framework_gem.add_load_paths  # freeze framework gem early 
+    framework_gem.add_load_paths  # freeze framework gem early
     assert framework_gem.built?
   end
 
