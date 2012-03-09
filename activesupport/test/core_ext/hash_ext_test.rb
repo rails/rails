@@ -490,7 +490,7 @@ class HashExtTest < ActiveSupport::TestCase
     original = {:a => 1, :b => 2, :c => 3, :d => 4}
     expected = {:a => 1, :b => 2}
 
-    assert_equal expected, {:a => 1, :b => 2, :c => 3, :d => 4}.extract!(:a, :b)
+    assert_equal expected, original.extract!(:a, :b)
   end
 
   def test_except
