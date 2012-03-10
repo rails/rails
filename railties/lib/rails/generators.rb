@@ -68,6 +68,7 @@ module Rails
       templates_path.concat config.templates
       templates_path.uniq!
       hide_namespaces(*config.hidden_namespaces)
+      http_only! if config.http_only?
     end
 
     def self.templates_path
@@ -102,6 +103,11 @@ module Rails
     # Remove the color from output.
     def self.no_color!
       Thor::Base.shell = Thor::Shell::Basic
+    end
+
+    # Configure generators for http only
+    def self.http_only!
+      hide_namespaces "assets", "css", "js", "session_migration"
     end
 
     # Track all generators subclasses.
@@ -235,7 +241,7 @@ module Rails
       rails.delete("plugin_new")
       print_list("rails", rails)
 
-      hidden_namespaces.each {|n| groups.delete(n.to_s) }
+      hidden_namespaces.each { |n| groups.delete(n.to_s) }
 
       groups.sort.each { |b, n| print_list(b, n) }
     end

@@ -213,4 +213,28 @@ class GeneratorsTest < Rails::Generators::TestCase
     Rails::Generators.hide_namespace("special:namespace")
     assert Rails::Generators.hidden_namespaces.include?("special:namespace")
   end
+
+  def test_http_only_hides_generators
+    generators = %w(assets js css session_migration)
+
+    generators.each do |generator|
+      assert !Rails::Generators.hidden_namespaces.include?(generator)
+    end
+
+    with_http_only! do
+      generators.each do |generator|
+        assert Rails::Generators.hidden_namespaces.include?(generator),
+          "http only should hide #{generator} generator"
+      end
+    end
+  end
+
+  private
+
+  def with_http_only!
+    Rails::Generators.http_only!
+    yield
+  ensure
+    Rails::Generators.instance_variable_set(:@http_only, false)
+  end
 end
