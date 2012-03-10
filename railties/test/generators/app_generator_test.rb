@@ -369,7 +369,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_http_only_generates_application_controller_with_action_controller_http
     run_generator [destination_root, "--http-only"]
-    assert_file "app/controllers/application_controller.rb", /class ApplicationController < ActionController::HTTP/
+    assert_file "app/controllers/application_controller.rb",
+      /class ApplicationController < ActionController::HTTP/
   end
 
   def test_http_only_generates_application_controller_with_protect_from_forgery_commented_out_setup
