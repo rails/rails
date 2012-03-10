@@ -144,6 +144,9 @@ module Rails
     class AppGenerator < AppBase
       add_shared_options_for "application"
 
+      class_option :http_only, :type => :boolean, :default => false,
+                               :desc => "Preconfigure smaller stack for HTTP only apps"
+
       # Add bin/rails options
       class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
                              :desc => "Show Rails version number and quit"
