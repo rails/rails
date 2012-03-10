@@ -6,6 +6,20 @@ require 'rails/rack'
 
 module Rails
   module Configuration
+    module HttpOnly #:nodoc:
+      def initialize
+        @http_only = false
+      end
+
+      def http_only!
+        @http_only = true
+      end
+
+      def http_only?
+        @http_only
+      end
+    end
+
     # MiddlewareStackProxy is a proxy for the Rails middleware stack that allows
     # you to configure middlewares in your application. It works basically as a
     # command recorder, saving each command to be applied after initialization
@@ -44,16 +58,11 @@ module Rails
     # Cookies, Session and Flash, BestStandardsSupport, and MethodOverride. You
     # can always add any of them later manually if you want.
     class MiddlewareStackProxy
-      attr_reader :http_only
-      alias       :http_only? :http_only
+      include HttpOnly
 
       def initialize
+        super
         @operations = []
-        @http_only  = false
-      end
-
-      def http_only!
-        @http_only = true
       end
 
       def insert_before(*args, &block)
@@ -90,17 +99,16 @@ module Rails
       attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging
       attr_reader :hidden_namespaces
 
-      attr_reader :http_only
-      alias       :http_only? :http_only
+      include HttpOnly
 
       def initialize
+        super
         @aliases = Hash.new { |h,k| h[k] = {} }
         @options = Hash.new { |h,k| h[k] = {} }
         @fallbacks = {}
         @templates = []
         @colorize_logging = true
         @hidden_namespaces = []
-        @http_only = false
       end
 
       def initialize_copy(source)
@@ -112,10 +120,6 @@ module Rails
 
       def hide_namespace(namespace)
         @hidden_namespaces << namespace
-      end
-
-      def http_only!
-        @http_only = true
       end
 
       def method_missing(method, *args)
@@ -138,5 +142,6 @@ module Rails
         end
       end
     end
+
   end
 end
