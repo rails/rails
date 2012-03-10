@@ -52,7 +52,7 @@ module ApplicationTests
       ], middleware
     end
 
-    test "api middleware stack" do
+    test "http only middleware stack" do
       add_to_config "config.middleware.http_only!"
       add_to_config "config.force_ssl = true"
       add_to_config "config.action_dispatch.x_sendfile_header = 'X-Sendfile'"

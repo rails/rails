@@ -126,7 +126,20 @@ module ApplicationTests
       end
     end
 
-    test "http only allow overriding generators on initialization" do
+    test "http only disables options from generators" do
+      add_to_config <<-RUBY
+        config.generators.http_only!
+      RUBY
+
+      # Initialize the application
+      require "#{app_path}/config/environment"
+      Rails.application.load_generators
+
+      assert !Rails::Generators.options[:rails][:template_engine],
+        "http only should have disabled generator options"
+    end
+
+    test "http only allow overriding generators options" do
       add_to_config <<-RUBY
         config.generators.helper = true
         config.generators.http_only!
