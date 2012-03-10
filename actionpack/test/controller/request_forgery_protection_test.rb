@@ -43,7 +43,7 @@ class RequestForgeryProtectionController < ActionController::Base
   protect_from_forgery :only => %w(index meta)
 end
 
-class RequestForgeryProtectionControllerUsingOldBehaviour < ActionController::Base
+class RequestForgeryProtectionControllerUsingException < ActionController::Base
   include RequestForgeryProtectionActions
   protect_from_forgery :only => %w(index meta)
 
@@ -215,7 +215,7 @@ class RequestForgeryProtectionControllerTest < ActionController::TestCase
   end
 end
 
-class RequestForgeryProtectionControllerUsingOldBehaviourTest < ActionController::TestCase
+class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::TestCase
   include RequestForgeryProtectionTests
   def assert_blocked
     assert_raises(ActionController::InvalidAuthenticityToken) do
