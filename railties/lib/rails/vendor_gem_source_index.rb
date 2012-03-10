@@ -97,7 +97,12 @@ module Rails
         end
         vendor_gems[File.basename(d)] = spec
       end
-      @vendor_source_index = Gem::SourceIndex.new(vendor_gems)
+      if Gem::VERSION.to_f < 1.7
+        @vendor_source_index = Gem::SourceIndex.new(vendor_gems)
+      else
+        @vendor_source_index = Gem::SourceIndex.new
+        @vendor_source_index.add_specs *vendor_gems.values
+      end
     end
 
     def version_for_dir(d)
