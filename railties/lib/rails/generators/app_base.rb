@@ -58,6 +58,9 @@ module Rails
         class_option :skip_test_unit,     :type => :boolean, :aliases => "-T", :default => false,
                                           :desc => "Skip Test::Unit files"
 
+        class_option :http_only,          :type => :boolean, :default => false,
+                                          :desc => "Preconfigure smaller stack for HTTP only apps"
+
         class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
                                           :desc => "Show this help message and quit"
       end
