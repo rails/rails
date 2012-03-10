@@ -6,12 +6,10 @@ require 'active_support/core_ext/object/blank'
 
 module ActiveModel
   class Name < String
-    attr_reader :singular, :plural, :element, :collection, :partial_path,
+    attr_reader :singular, :plural, :element, :collection,
       :singular_route_key, :route_key, :param_key, :i18n_key
 
     alias_method :cache_key, :collection
-
-    deprecate :partial_path => "ActiveModel::Name#partial_path is deprecated. Call #to_partial_path on model instances directly instead."
 
     def initialize(klass, namespace = nil, name = nil)
       name ||= klass.name
@@ -27,7 +25,6 @@ module ActiveModel
       @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
       @human        = ActiveSupport::Inflector.humanize(@element).freeze
       @collection   = ActiveSupport::Inflector.tableize(self).freeze
-      @partial_path = "#{@collection}/#{@element}".freeze
       @param_key    = (namespace ? _singularize(@unnamespaced) : @singular).freeze
       @i18n_key     = self.underscore.to_sym
 
