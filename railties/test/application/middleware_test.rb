@@ -53,7 +53,7 @@ module ApplicationTests
     end
 
     test "api middleware stack" do
-      add_to_config "config.middleware.api_only!"
+      add_to_config "config.middleware.http_only!"
       add_to_config "config.force_ssl = true"
       add_to_config "config.action_dispatch.x_sendfile_header = 'X-Sendfile'"
 
@@ -216,7 +216,6 @@ module ApplicationTests
       assert_equal etag, last_response.headers["Etag"]
 
       get "/?nothing=true"
-      puts last_response.body
       assert_equal 200, last_response.status
       assert_equal "", last_response.body
       assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
