@@ -474,13 +474,23 @@ module ActionView
       #
       # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
       # wrap the output in an appropriate <tt><select></tt> tag.
-      def grouped_options_for_select(grouped_options, selected_key = nil, prompt = nil)
+      def grouped_options_for_select(*args)
+        grouped_options = args.shift
+        options = args.extract_options!
+        selected_key, prompt = args
+        divider = options[:divider]
+
         body = "".html_safe
         body.safe_concat content_tag(:option, prompt, :value => "") if prompt
 
         grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
 
-        grouped_options.each do |label, container|
+        grouped_options.each do |container|
+          if divider
+            label, container = divider, container
+          else
+            label, container = container
+          end
           body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), :label => label)
         end
 
