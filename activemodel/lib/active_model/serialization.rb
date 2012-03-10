@@ -2,7 +2,6 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/array/wrap'
 
-
 module ActiveModel
   # == Active Model Serialization
   #
@@ -88,7 +87,7 @@ module ActiveModel
       method_names.each { |n| hash[n.to_s] = send(n) }
 
       serializable_add_includes(options) do |association, records, opts|
-        hash[association] = if records.is_a?(Enumerable)
+        hash[association.to_s] = if records.is_a?(Enumerable)
           records.map { |a| a.serializable_hash(opts) }
         else
           records.serializable_hash(opts)
