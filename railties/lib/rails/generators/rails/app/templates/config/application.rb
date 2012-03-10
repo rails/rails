@@ -59,13 +59,22 @@ module <%= app_const_base %>
     # an exception. If set to true, then an ActiveRecord::DeleteRestrictionError exception would be
     # raised. If set to false, then an error will be added on the model instead.
     <%= comment_if :skip_active_record %>config.active_record.dependent_restrict_raises = false
-
 <% unless options.skip_sprockets? -%>
+
     # Enable the asset pipeline.
     config.assets.enabled = true
 
     # Version of your assets, change this if you want to expire all your assets.
     config.assets.version = '1.0'
+<% end -%>
+<% if options.http_only? -%>
+
+    # Only loads a smaller set of middleware suitable for HTTP only apps.
+    # Middleware like session, flash, cookies can be added back manually.
+    config.middleware.http_only!
+
+    # Skip views, helpers and assets when generating a new resource.
+    config.generators.http_only!
 <% end -%>
   end
 end
