@@ -152,7 +152,8 @@ module ActionView
       # the value entered by the user will be available in the controller as
       # <tt>params[:person][:first_name]</tt>.
       #
-      # If <tt>:person</tt> also happens to be the name of an instance variable
+      # For fields generated in this way using the FormBuilder,
+      # if <tt>:person</tt> also happens to be the name of an instance variable
       # <tt>@person</tt>, the default value of the field shown when the form is
       # initially displayed (e.g. in the situation where you are editing an
       # existing record) will be the value of the corresponding attribute of 
