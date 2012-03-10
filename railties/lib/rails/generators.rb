@@ -105,9 +105,22 @@ module Rails
       Thor::Base.shell = Thor::Shell::Basic
     end
 
-    # Configure generators for http only
+    # Configure generators for http only applications. It basically hides
+    # everything that is usually browser related, such as assets and session
+    # migration generators, and completely disable views, helpers and assets
+    # so generators such as scaffold won't create them.
     def self.http_only!
       hide_namespaces "assets", "css", "js", "session_migration"
+
+      options[:rails].merge!(
+        :assets => false,
+        :helper => false,
+        :javascripts => false,
+        :javascript_engine => nil,
+        :stylesheets => false,
+        :stylesheet_engine => nil,
+        :template_engine => nil
+      )
     end
 
     # Track all generators subclasses.
