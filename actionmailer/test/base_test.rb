@@ -552,6 +552,52 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Thanks for signing up this afternoon", mail.subject)
   end
 
+  test "modifying the mail message with a before_filter" do
+    class BeforeFilterMailer < ActionMailer::Base
+      before_filter :add_special_header!
+
+      def welcome ; mail ; end
+
+      private
+      def add_special_header!
+        headers('X-Special-Header' => 'Wow, so special')
+      end
+    end
+
+    assert_equal('Wow, so special', BeforeFilterMailer.welcome['X-Special-Header'].to_s)
+  end
+
+  test "modifying the mail message with an after_filter" do
+    class AfterFilterMailer < ActionMailer::Base
+      after_filter :add_special_header!
+
+      def welcome ; mail ; end
+
+      private
+      def add_special_header!
+        headers('X-Special-Header' => 'Testing')
+      end
+    end
+
+    assert_equal('Testing', AfterFilterMailer.welcome['X-Special-Header'].to_s)
+  end
+
+  test "adding an inline attachment using a before_filter" do
+    class DefaultInlineAttachmentMailer < ActionMailer::Base
+      before_filter :add_inline_attachment!
+
+      def welcome ; mail ; end
+
+      private
+      def add_inline_attachment!
+        attachments.inline["footer.jpg"] = 'hey there'
+      end
+    end
+
+    mail = DefaultInlineAttachmentMailer.welcome
+    assert_equal('image/jpeg; filename=footer.jpg', mail.attachments.inline.first['Content-Type'].to_s)
+  end
+
   test "action methods should be refreshed after defining new method" do
     class FooMailer < ActionMailer::Base
       # this triggers action_methods

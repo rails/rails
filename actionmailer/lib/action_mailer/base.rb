@@ -267,6 +267,33 @@ module ActionMailer #:nodoc:
   # set something in the defaults using a proc, and then set the same thing inside of your
   # mailer method, it will get over written by the mailer method.
   #
+  # = Callbacks
+  #
+  # You can specify callbacks using before_filter and after_filter for configuring your messages.
+  # This may be useful, for example, when you want to add default inline attachments for all
+  # messages sent out by a certain mailer class:
+  #
+  #   class Notifier < ActionMailer::Base
+  #     before_filter :add_inline_attachment!
+  #
+  #     def welcome
+  #       mail
+  #     end
+  #
+  #     private
+  #
+  #       def add_inline_attachment!
+  #         attachments.inline["footer.jpg"] = File.read('/path/to/filename.jpg')
+  #       end
+  #   end
+  #
+  # Callbacks in ActionMailer are implemented using AbstractController::Callbacks, so you
+  # can define and configure callbacks in the same manner that you would use callbacks in
+  # classes that inherit from ActionController::Base.
+  #
+  # Note that unless you have a specific reason to do so, you should prefer using before_filter
+  # rather than after_filter in your ActionMailer classes so that headers are parsed properly.
+  #
   # = Configuration options
   #
   # These options are specified on the class level, like
@@ -330,6 +357,7 @@ module ActionMailer #:nodoc:
     include AbstractController::Helpers
     include AbstractController::Translation
     include AbstractController::AssetPaths
+    include AbstractController::Callbacks
 
     self.protected_instance_variables = [:@_action_has_layout]
 
