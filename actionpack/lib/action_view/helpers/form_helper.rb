@@ -120,29 +120,14 @@ module ActionView
         object.respond_to?(:to_model) ? object.to_model : object
       end
 
-      # Creates a form and a scope around a specific model object that is used
-      # as a base for questioning about values for the fields.
+      # Creates a form that allows the user to create or update the attributes
+      # of a specific model object.
       #
-      # Rails provides succinct resource-oriented form generation with +form_for+
-      # like this:
-      #
-      #   <%= form_for @offer do |f| %>
-      #     <%= f.label :version, 'Version' %>:
-      #     <%= f.text_field :version %><br />
-      #     <%= f.label :author, 'Author' %>:
-      #     <%= f.text_field :author %><br />
-      #     <%= f.submit %>
-      #   <% end %>
-      #
-      # There, +form_for+ is able to generate the rest of RESTful form
-      # parameters based on introspection on the record, but to understand what
-      # it does we need to dig first into the alternative generic usage it is
-      # based upon.
-      #
-      # === Generic form_for
-      #
-      # The generic way to call +form_for+ yields a form builder around a
-      # model:
+      # The method can be used in several slightly different ways, depending on
+      # how much you wish to rely on Rails to infer automatically from the model
+      # how the form should be constructed. For a generic model object, a form
+      # can be created by passing +form_for+ a string or symbol representing
+      # the object we are concerned with:
       #
       #   <%= form_for :person do |f| %>
       #     First name: <%= f.text_field :first_name %><br />
@@ -152,24 +137,38 @@ module ActionView
       #     <%= f.submit %>
       #   <% end %>
       #
-      # There, the argument is a symbol or string with the name of the
-      # object the form is about.
-      #
-      # The form builder acts as a regular form helper that somehow carries the
-      # model. Thus, the idea is that
+      # The variable +f+ yielded to the block is a FormBuilder object that
+      # incorporates the knowledge about the model object represented by
+      # <tt>:person</tt> passed to +form_for+. Methods defined on the FormBuilder
+      # are used to generate fields bound to this model. Thus, for example,
       #
       #   <%= f.text_field :first_name %>
       #
-      # gets expanded to
+      # will get expanded to
       #
       #   <%= text_field :person, :first_name %>
+      # which results in an html <tt><input></tt> tag whose +name+ attribute is
+      # <tt>person[first_name]</tt>. This means that when the form is submitted,
+      # the value entered by the user will be available in the controller as
+      # <tt>params[:person][:first_name]</tt>.
+      #
+      # If <tt>:person</tt> also happens to be the name of an instance variable
+      # <tt>@person</tt>, the default value of the field shown when the form is
+      # initially displayed (e.g. in the situation where you are editing an
+      # existing record) will be the value of the corresponding attribute of 
+      # <tt>@person</tt>.
       #
       # The rightmost argument to +form_for+ is an
-      # optional hash of options:
+      # optional hash of options -
       #
-      # * <tt>:url</tt> - The URL the form is submitted to. It takes the same
-      #   fields you pass to +url_for+ or +link_to+. In particular you may pass
-      #   here a named route directly as well. Defaults to the current action.
+      # * <tt>:url</tt> - The URL the form is to be submitted to. This may be
+      #   represented in the same way as values passed to +url_for+ or +link_to+.
+      #   So for example you may use a named route directly. When the model is
+      #   represented by a string or symbol, as in the example above, if the
+      #   <tt>:url</tt> option is not specified, by default the form will be
+      #   sent back to the current url (We will describe below an alternative
+      #   resource-oriented usage of +form_for+ in which the URL does not need
+      #   to be specified explicitly).
       # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
       #   id attributes on form elements. The namespace attribute will be prefixed
       #   with underscore on the generated HTML id.
@@ -179,7 +178,7 @@ module ActionView
       # possible to use both the stand-alone FormHelper methods and methods
       # from FormTagHelper. For example:
       #
-      #   <%= form_for @person do |f| %>
+      #   <%= form_for :person do |f| %>
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
@@ -191,26 +190,65 @@ module ActionView
       # are designed to work with an object as base, like
       # FormOptionHelper#collection_select and DateHelper#datetime_select.
       #
-      # === Resource-oriented style
+      # === #form_for with a model object
       #
-      # As we said above, in addition to manually configuring the +form_for+
-      # call, you can rely on automated resource identification, which will use
-      # the conventions and named routes of that approach. This is the
-      # preferred way to use +form_for+ nowadays.
-      #
-      # For example, if <tt>@post</tt> is an existing record you want to edit
+      # In the examples above, the object to be created or edited was
+      # represented by a symbol passed to +form_for+, and we noted that
+      # a string can also be used equivalently. It is also possible, however,
+      # to pass a model object itself to +form_for+. For example, if <tt>@post</tt>
+      # is an existing record you wish to edit, you can create the form using
       #
       #   <%= form_for @post do |f| %>
       #     ...
       #   <% end %>
       #
-      # is equivalent to something like:
+      # This behaves in almost the same way as outlined previously, with a
+      # couple of small exceptions. First, the prefix used to name the input
+      # elements within the form (hence the key that denotes them in the +params+
+      # hash) is actually derived from the object's _class_, e.g. <tt>params[:post]</tt>
+      # if the object's class is +Post+. However, this can be overwritten using
+      # the <tt>:as</tt> option, e.g. -
+      #
+      #   <%= form_for(@person, :as => :client) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # would result in <tt>params[:client]</tt>.
+      #
+      # Secondly, the field values shown when the form is initially displayed
+      # are taken from the attributes of the object passed to +form_for+.
+      # Furthermore, this is true regardless of whether the object is an instance
+      # variable. So, for example, if we had a _local_ variable +post+
+      # representing an existing record,
+      #
+      #   <%= form_for post do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # would produce a form with fields whose initial state reflect the current
+      # values of the attributes of +post+.
+      #
+      # === Resource-oriented style
+      #
+      # In the examples just shown, although not indicated explicitly, we still
+      # need to use the <tt>:url</tt> option in order to specify where the
+      # form is going to be sent. However, further simplification is possible
+      # if the record passed to +form_for+ is a _resource_, i.e. it corresponds
+      # to a set of RESTful routes, e.g. defined using the +resources+ method
+      # in <tt>config/routes.rb</tt>. In this case Rails will simply infer the
+      # appropriate URL from the record itself. For example,
+      #
+      #   <%= form_for @post do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # is then equivalent to something like:
       #
       #   <%= form_for @post, :as => :post, :url => post_path(@post), :method => :put, :html => { :class => "edit_post", :id => "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
-      # And for new records
+      # And for a new record
       #
       #   <%= form_for(Post.new) do |f| %>
       #     ...
@@ -222,7 +260,7 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # You can also overwrite the individual conventions, like this:
+      # However you can still overwrite individual conventions, such as:
       #
       #   <%= form_for(@post, :url => super_posts_path) do |f| %>
       #     ...
@@ -231,13 +269,6 @@ module ActionView
       # You can also set the answer format, like this:
       #
       #   <%= form_for(@post, :format => :json) do |f| %>
-      #     ...
-      #   <% end %>
-      #
-      # If you have an object that needs to be represented as a different
-      # parameter, like a Person that acts as a Client:
-      #
-      #   <%= form_for(@person, :as => :client) do |f| %>
       #     ...
       #   <% end %>
       #
@@ -263,9 +294,9 @@ module ActionView
       #
       #    :method => (:get|:post|:patch|:put|:delete)
       #
-      # in the options hash. If the verb is not GET or POST, which are natively supported by HTML forms, the
-      # form will be set to POST and a hidden input called _method will carry the intended verb for the server
-      # to interpret.
+      # in the options hash. If the verb is not GET or POST, which are natively
+      # supported by HTML forms, the form will be set to POST and a hidden input
+      # called _method will carry the intended verb for the server to interpret.
       #
       # === Unobtrusive JavaScript
       #
