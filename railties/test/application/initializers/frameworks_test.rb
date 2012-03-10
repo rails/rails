@@ -1,4 +1,5 @@
 require "isolation/abstract_unit"
+require 'set'
 
 module ApplicationTests
   class FrameworksTest < ActiveSupport::TestCase
@@ -66,7 +67,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       assert Foo.method_defined?(:foo_path)
       assert Foo.method_defined?(:main_app)
-      assert_equal ["notify"], Foo.action_methods
+      assert_equal Set.new(["notify"]), Foo.action_methods
     end
 
     test "allows to not load all helpers for controllers" do

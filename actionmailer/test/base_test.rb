@@ -1,5 +1,7 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'set'
+
 require 'active_support/time'
 
 require 'mailers/base_mailer'
