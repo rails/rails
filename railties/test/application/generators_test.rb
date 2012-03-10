@@ -125,5 +125,20 @@ module ApplicationTests
         assert_equal expected, c.generators.options
       end
     end
+
+    test "http only allow overriding generators on initialization" do
+      add_to_config <<-RUBY
+        config.generators.helper = true
+        config.generators.http_only!
+        config.generators.template_engine = :my_template
+      RUBY
+
+      # Initialize the application
+      require "#{app_path}/config/environment"
+      Rails.application.load_generators
+
+      assert_equal :my_template, Rails::Generators.options[:rails][:template_engine]
+      assert_equal true, Rails::Generators.options[:rails][:helper]
+    end
   end
 end

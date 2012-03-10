@@ -61,6 +61,7 @@ module Rails
     }
 
     def self.configure!(config) #:nodoc:
+      http_only! if config.http_only?
       no_color! unless config.colorize_logging
       aliases.deep_merge! config.aliases
       options.deep_merge! config.options
@@ -68,7 +69,6 @@ module Rails
       templates_path.concat config.templates
       templates_path.uniq!
       hide_namespaces(*config.hidden_namespaces)
-      http_only! if config.http_only?
     end
 
     def self.templates_path
