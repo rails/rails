@@ -195,7 +195,6 @@ class UrlOptionsTest < ActionController::TestCase
         match "account/overview"
       end
 
-      @controller.class.send(:include, set.url_helpers)
       assert !@controller.class.action_methods.include?("account_overview_path")
     end
   end
