@@ -1,6 +1,5 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/array/wrap'
 
 module ActiveModel
   # == Active Model Serialization
@@ -128,7 +127,7 @@ module ActiveModel
         return unless include = options[:include]
 
         unless include.is_a?(Hash)
-          include = Hash[Array.wrap(include).map { |n| n.is_a?(Hash) ? n.to_a.first : [n, {}] }]
+          include = Hash[Array(include).map { |n| n.is_a?(Hash) ? n.to_a.first : [n, {}] }]
         end
 
         include.each do |association, opts|
