@@ -559,7 +559,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal ["notify"], FooMailer.action_methods
+    assert_equal Set.new(["notify"]), FooMailer.action_methods
   end
 
   protected
