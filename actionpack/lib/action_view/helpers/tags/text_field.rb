@@ -4,8 +4,7 @@ module ActionView
       class TextField < Base #:nodoc:
         def render
           options = @options.stringify_keys
-          options["size"] = options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"] unless options.key?("size")
-          options = DEFAULT_FIELD_OPTIONS.merge(options)
+          options["size"] = options["maxlength"] unless options.key?("size")
           options["type"]  ||= field_type
           options["value"] = options.fetch("value"){ value_before_type_cast(object) } unless field_type == "file"
           options["value"] &&= ERB::Util.html_escape(options["value"])
