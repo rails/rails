@@ -97,6 +97,10 @@
       url: asset_pipeline.html
       description: This guide documents the asset pipeline.
     - 
+      name: Getting Started with Engines
+      url: engines.html
+      description: This guide explains how to write a mountable engine.
+    - 
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
