@@ -374,6 +374,8 @@ Write your branch name in branch field (is filled with master by default) and pr
 
 Ensure the changesets you introduced are included in the "Commits" tab and that the "Files Changed" incorporate all of your changes.
 
+If possible, it is encouraged that you squash your commits into a single commit, this makes the pull to master easier, and simplifies the git log for the main repository, so your entire unit of work shows in a single line in the log.
+
 Fill in some details about your potential patch including a meaningful title. When finished, press "Send pull request." Rails Core will be notified about your submission.
 
 h4. Get Some Feedback
