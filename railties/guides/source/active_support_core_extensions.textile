@@ -509,55 +509,6 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/aliasing.rb+.
 
-h5. +attr_accessor_with_default+
-
-The method +attr_accessor_with_default+ serves the same purpose as the Ruby macro +attr_accessor+ but allows you to set a default value for the attribute:
-
-<ruby>
-class Url
-  attr_accessor_with_default :port, 80
-end
-
-Url.new.port # => 80
-</ruby>
-
-The default value can be also specified with a block, which is called in the context of the corresponding object:
-
-<ruby>
-class User
-  attr_accessor :name, :surname
-  attr_accessor_with_default(:full_name) do
-    [name, surname].compact.join(" ")
-  end
-end
-
-u = User.new
-u.name = 'Xavier'
-u.surname = 'Noria'
-u.full_name # => "Xavier Noria"
-</ruby>
-
-The result is not cached, the block is invoked in each call to the reader.
-
-You can overwrite the default with the writer:
-
-<ruby>
-url = Url.new
-url.host # => 80
-url.host = 8080
-url.host # => 8080
-</ruby>
-
-The default value is returned as long as the attribute is unset. The reader does not rely on the value of the attribute to know whether it has to return the default. It rather monitors the writer: if there's any assignment the value is no longer considered to be unset.
-
-Active Resource uses this macro to set a default value for the +:primary_key+ attribute:
-
-<ruby>
-attr_accessor_with_default :primary_key, 'id'
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/module/attr_accessor_with_default.rb+.
-
 h5. Internal Attributes
 
 When you are defining an attribute in a class that is meant to be subclassed, name collisions are a risk. That's remarkably important for libraries.
