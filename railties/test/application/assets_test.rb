@@ -461,6 +461,34 @@ module ApplicationTests
       assert_equal 0, files.length, "Expected application.js asset to be removed, but still exists"
     end
 
+    test "nondigest assets are not precompiled if config.assets.nondigest_enabled set to false" do
+      app_file "app/assets/application.js", "alert();"
+      add_to_config "config.assets.compile = true"
+      add_to_config "config.assets.digest = true"
+      add_to_config "config.assets.nondigest_enabled = false"
+
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:clean assets:precompile` }
+      end
+
+      files = Dir["#{app_path}/public/assets/application.js"]
+      assert_equal 0, files.length, "Expected application.js asset not to be generated, but was found"
+    end
+
+    test "nondigest assets are compiled if config.assets.nondigest_enabled not set" do
+      app_file "app/assets/application.js", "alert();"
+      add_to_config "config.assets.compile = true"
+      add_to_config "config.assets.digest = true"
+      add_to_config "config.assets.nondigest_enabled = nil"
+
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:clean assets:precompile` }
+      end
+
+      files = Dir["#{app_path}/public/assets/application.js"]
+      assert_equal 1, files.length, "Expected application.js asset to be generated, but none found"
+    end
+
     test "asset urls should use the request's protocol by default" do
       app_with_assets_in_view
       add_to_config "config.asset_host = 'example.com'"

@@ -71,7 +71,11 @@ namespace :assets do
     end
 
     task :nondigest => ["assets:cache:clean"] do
-      internal_precompile(false)
+      if Rails.application.config.assets.nondigest_enabled || Rails.application.config.assets.nondigest_enabled.nil?
+        internal_precompile(false)
+      else
+        warn "Skipping assets:precompile:nondigest set config.assets.nondigest_enabled to true if required"
+      end
     end
   end
 
