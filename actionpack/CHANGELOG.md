@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Removed default `size` option from the `text_field`, `search_field`, `telephone_field`, `url_field`, `email_field` helpers. *Philip Arndt*
+
+*   Removed default `cols` and `rows` options from the `text_area` helper. *Philip Arndt*
+
 *   Adds support for layouts when rendering a partial with a given collection. *serabe*
 
 *   Allows the route helper `root` to take a string argument. For example, `root 'pages#main'`. *bcardarella*
