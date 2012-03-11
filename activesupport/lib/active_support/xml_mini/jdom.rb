@@ -12,7 +12,6 @@ java_import org.xml.sax.InputSource unless defined? InputSource
 java_import org.xml.sax.Attributes unless defined? Attributes
 java_import org.w3c.dom.Node unless defined? Node
 
-# = XmlMini JRuby JDOM implementation
 module ActiveSupport
   module XmlMini_JDOM #:nodoc:
     extend self

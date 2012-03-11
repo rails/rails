@@ -30,6 +30,10 @@ module ActiveRecord
         attributes.select { |a| a.has_index? || (a.reference? && options[:indexes]) }
       end
 
+      def accessible_attributes
+        attributes.reject(&:reference?)
+      end
+
       hook_for :test_framework
 
       protected

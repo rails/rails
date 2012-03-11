@@ -513,6 +513,16 @@ class FormTagHelperTest < ActionView::TestCase
 
     expected = %(<fieldset class="format">Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
+
+    output_buffer = render_erb("<%= field_set_tag %>")
+
+    expected = %(<fieldset></fieldset>)
+    assert_dom_equal expected, output_buffer
+
+    output_buffer = render_erb("<%= field_set_tag('You legend!') %>")
+
+    expected = %(<fieldset><legend>You legend!</legend></fieldset>)
+    assert_dom_equal expected, output_buffer
   end
 
   def test_text_area_tag_options_symbolize_keys_side_effects

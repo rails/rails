@@ -248,6 +248,14 @@ They can also be removed from the stack completely:
 config.middleware.delete ActionDispatch::BestStandardsSupport
 </ruby>
 
+In addition to these methods to handle the stack, if your application is going to be used as an API endpoint only, the middleware stack can be configured like this:
+
+<ruby>
+config.middleware.http_only!
+</ruby>
+
+By doing this, Rails will create a smaller middleware stack, by not adding some middlewares that are usually useful for browser access only, such as Cookies, Session and Flash, BestStandardsSupport, and MethodOverride. You can always add any of them later manually if you want. Refer to the "API App docs":api_app.html for more info on how to setup your application for API only apps.
+
 h4. Configuring i18n
 
 * +config.i18n.default_locale+ sets the default locale of an application used for i18n. Defaults to +:en+.
@@ -493,7 +501,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * +after_initialize+: Run directly after the initialization of the application, but before the application initializers are run.
 
-To define an event for these hooks, use the block syntax within a +Rails::Aplication+, +Rails::Railtie+ or +Rails::Engine+ subclass:
+To define an event for these hooks, use the block syntax within a +Rails::Application+, +Rails::Railtie+ or +Rails::Engine+ subclass:
 
 <ruby>
 module YourApp
@@ -652,19 +660,17 @@ The error occurred while evaluating nil.each
 
 h3. Database pooling
 
-Active Record database connections are managed by +ActiveRecord::ConnectionAdapters::ConnectionPool+ which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 1 and can be configured in +database.yml+.
+Active Record database connections are managed by +ActiveRecord::ConnectionAdapters::ConnectionPool+ which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in +database.yml+.
 
 <ruby>
 development:
   adapter: sqlite3
   database: db/development.sqlite3
-  # Maximum number of database connections available per process. Please
-  # increase this number in multithreaded applications.
-  pool: 1
+  pool: 5
   timeout: 5000
 </ruby>
 
-Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, Mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
+Since the connection pooling is handled inside of ActiveRecord by default, all application servers (Thin, mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
 
 Any one request will check out a connection the first time it requires access to the database, after which it will check the connection back in, at the end of the request, meaning that the additional connection slot will be available again for the next request in the queue.
 

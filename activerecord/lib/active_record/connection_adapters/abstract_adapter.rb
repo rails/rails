@@ -57,7 +57,7 @@ module ActiveRecord
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :last_use, :in_use
+      attr_reader :schema_cache, :last_use, :in_use, :logger
       alias :in_use? :in_use
 
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
@@ -84,6 +84,11 @@ module ActiveRecord
             @last_use = Time.now
           end
         end
+      end
+
+      def schema_cache=(cache)
+        cache.connection = self
+        @schema_cache = cache
       end
 
       def expire

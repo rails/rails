@@ -40,7 +40,9 @@ module ActionDispatch
             rewritten_url << ":#{options.delete(:port)}" if options[:port]
           end
 
-          path = options.delete(:path) || ''
+          path = ""
+          path << options.delete(:script_name).to_s.chomp("/")
+          path << options.delete(:path).to_s
 
           params = options[:params] || {}
           params.reject! {|k,v| v.to_param.nil? }

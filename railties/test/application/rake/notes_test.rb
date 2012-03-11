@@ -3,7 +3,7 @@ require "isolation/abstract_unit"
 module ApplicationTests
   module RakeTests
     class RakeNotesTest < ActiveSupport::TestCase
-      def setup 
+      def setup
         build_app
         require "rails/all"
       end
@@ -13,7 +13,6 @@ module ApplicationTests
       end
 
       test 'notes' do
-
         app_file "app/views/home/index.html.erb", "<% # TODO: note in erb %>"
         app_file "app/views/home/index.html.haml", "-# TODO: note in haml"
         app_file "app/views/home/index.html.slim", "/ TODO: note in slim"

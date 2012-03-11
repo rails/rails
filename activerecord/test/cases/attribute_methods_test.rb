@@ -30,9 +30,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t = Topic.new
     t.title = "hello there!"
     t.written_on = Time.now
+    t.author_name = ""
     assert t.attribute_present?("title")
     assert t.attribute_present?("written_on")
     assert !t.attribute_present?("content")
+    assert !t.attribute_present?("author_name")
+    
   end
 
   def test_attribute_present_with_booleans
@@ -622,6 +625,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
         assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
       end
+    end
+  end
+
+  def test_time_zone_aware_attribute_saved
+    in_time_zone 1 do
+      record = @target.create(:written_on => '2012-02-20 10:00')
+
+      record.written_on = '2012-02-20 09:00'
+      record.save
+      assert_equal Time.zone.local(2012, 02, 20, 9), record.reload.written_on
     end
   end
 

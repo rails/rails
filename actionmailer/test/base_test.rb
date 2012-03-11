@@ -1,5 +1,7 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'set'
+
 require 'active_support/time'
 
 require 'mailers/base_mailer'
@@ -559,7 +561,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal ["notify"], FooMailer.action_methods
+    assert_equal Set.new(["notify"]), FooMailer.action_methods
   end
 
   protected

@@ -229,22 +229,22 @@ module Rails
           middleware.use ::Rack::SSL, config.ssl_options
         end
 
+        if config.action_dispatch.x_sendfile_header.present?
+          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
+        end
+
         if config.serve_static_assets
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
 
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
-        middleware.use ::Rack::MethodOverride
+        middleware.use ::Rack::MethodOverride unless config.middleware.http_only?
         middleware.use ::ActionDispatch::RequestId
         middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
         middleware.use ::ActionDispatch::ShowExceptions, config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
         middleware.use ::ActionDispatch::DebugExceptions
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
-
-        if config.action_dispatch.x_sendfile_header.present?
-          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
-        end
 
         unless config.cache_classes
           app = self
@@ -252,9 +252,9 @@ module Rails
         end
 
         middleware.use ::ActionDispatch::Callbacks
-        middleware.use ::ActionDispatch::Cookies
+        middleware.use ::ActionDispatch::Cookies unless config.middleware.http_only?
 
-        if config.session_store
+        if !config.middleware.http_only? && config.session_store
           if config.force_ssl && !config.session_options.key?(:secure)
             config.session_options[:secure] = true
           end
@@ -267,7 +267,7 @@ module Rails
         middleware.use ::Rack::ConditionalGet
         middleware.use ::Rack::ETag, "no-cache"
 
-        if config.action_dispatch.best_standards_support
+        if !config.middleware.http_only? && config.action_dispatch.best_standards_support
           middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support
         end
       end

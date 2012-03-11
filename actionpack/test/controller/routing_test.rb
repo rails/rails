@@ -59,11 +59,11 @@ end
 class MockController
   def self.build(helpers)
     Class.new do
-      def url_for(options)
+      def url_options
+        options = super
         options[:protocol] ||= "http"
         options[:host] ||= "test.host"
-
-        super(options)
+        options
       end
 
       include helpers
@@ -431,6 +431,15 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_named_route_root
     rs.draw do
       root :to => "hello#index"
+    end
+    routes = setup_for_named_route
+    assert_equal("http://test.host/", routes.send(:root_url))
+    assert_equal("/", routes.send(:root_path))
+  end
+
+  def test_named_route_root_without_hash
+    rs.draw do
+      root "hello#index"
     end
     routes = setup_for_named_route
     assert_equal("http://test.host/", routes.send(:root_url))

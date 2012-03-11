@@ -128,10 +128,11 @@ module ActiveRecord
         @reserved_connections[current_connection_id] ||= checkout
       end
 
-      # Check to see if there is an active connection in this connection
-      # pool.
+      # Is there an open connection that is being used for the current thread?
       def active_connection?
-        active_connections.any?
+        @reserved_connections.fetch(current_connection_id) {
+          return false
+        }.in_use?
       end
 
       # Signal that the thread is finished with the current connection.
@@ -287,10 +288,6 @@ module ActiveRecord
           c.verify!
         end
         c
-      end
-
-      def active_connections
-        @connections.find_all { |c| c.in_use? }
       end
     end
 

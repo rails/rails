@@ -132,7 +132,6 @@ class RespondToController < ActionController::Base
     end
   end
 
-
   def iphone_with_html_response_type
     request.format = :iphone if request.env["HTTP_ACCEPT"] == "text/iphone"
 
@@ -1135,7 +1134,7 @@ class PostController < AbstractPostController
   around_filter :with_iphone
 
   def index
-    respond_to(:html, :iphone)
+    respond_to(:html, :iphone, :js)
   end
 
 protected
@@ -1181,5 +1180,46 @@ class MimeControllerLayoutsTest < ActionController::TestCase
     @request.accept = "text/iphone"
     get :index
     assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
+  end
+
+  def test_non_navigational_format_with_no_template_fallbacks_to_html_template_with_no_layout
+    get :index, :format => :js
+    assert_equal "Hello Firefox", @response.body
+  end
+end
+
+class FlashResponder < ActionController::Responder
+  def initialize(controller, resources, options={})
+    super
+  end
+
+  def to_html
+    controller.flash[:notice] = 'Success'
+    super
+  end
+end
+
+class FlashResponderController < ActionController::Base
+  self.responder = FlashResponder
+  respond_to :html
+
+  def index
+    respond_with Object.new do |format|
+      format.html { render :text => 'HTML' }
+    end
+  end
+end
+
+class FlashResponderControllerTest < ActionController::TestCase
+  tests FlashResponderController
+
+  def test_respond_with_block_executed
+    get :index
+    assert_equal 'HTML', @response.body
+  end
+
+  def test_flash_responder_executed
+    get :index
+    assert_equal 'Success', flash[:notice]
   end
 end

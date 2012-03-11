@@ -27,6 +27,11 @@
 *    Unicode database updated to 6.1.0.
 
 
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
+
+
 ## Rails 3.2.1 (January 26, 2012) ##
 
 *   Documentation fixes and improvements.
@@ -111,7 +116,7 @@
     filehandle, or tune your filesystem.
 
 
-## Rails 3.1.4 (unreleased) ##
+## Rails 3.1.4 (March 1, 2012) ##
 
 *   No changes
 
@@ -183,7 +188,7 @@
 *   JSON decoding now uses the multi_json gem which also vendors a json engine called OkJson. The yaml backend has been removed in favor of OkJson as a default engine for 1.8.x, while the built in 1.9.x json implementation will be used by default. *Josh Kalderimis*
 
 
-## Rails 3.0.12 (unreleased) ##
+## Rails 3.0.12 (March 1, 2012) ##
 
 *   No changes.
 

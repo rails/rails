@@ -448,6 +448,22 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal car.id, bulb.car_id
   end
 
+  def test_association_protect_foreign_key
+    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+
+    ship = pirate.build_ship
+    assert_equal pirate.id, ship.pirate_id
+
+    ship = pirate.build_ship :pirate_id => pirate.id + 1
+    assert_equal pirate.id, ship.pirate_id
+
+    ship = pirate.create_ship
+    assert_equal pirate.id, ship.pirate_id
+
+    ship = pirate.create_ship :pirate_id => pirate.id + 1
+    assert_equal pirate.id, ship.pirate_id
+  end
+
   def test_association_conditions_bypass_attribute_protection
     car = Car.create(:name => 'honda')
 

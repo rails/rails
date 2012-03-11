@@ -158,6 +158,43 @@ module ActionView
   #     Name: <%= user.name %>
   #   </div>
   #
+  # If a collection is given, the layout will be rendered once for each item in the collection. Just think
+  # these two snippets have the same output:
+  #
+  #   <%# app/views/users/_user.html.erb %>
+  #   Name: <%= user.name %>
+  #
+  #   <%# app/views/users/index.html.erb %>
+  #   <%# This does not use layouts %>
+  #   <ul>
+  #     <% users.each do |user| -%>
+  #       <li>
+  #         <%= render :partial => "user", :locals => { :user => user } %>
+  #       </li>
+  #     <% end -%>
+  #   </ul>
+  #
+  #   <%# app/views/users/_li_layout.html.erb %>
+  #   <li>
+  #     <%= yield %>
+  #   </li>
+  #
+  #   <%# app/views/users/index.html.erb %>
+  #   <ul>
+  #     <%= render :partial => "user", :layout => "li_layout", :collection => users %>
+  #   </ul>
+  #
+  #   Given two users whose names are Alice and Bob, these snippets return:
+  #
+  #   <ul>
+  #     <li>
+  #       Name: Alice
+  #     </li>
+  #     <li>
+  #       Name: Bob
+  #     </li>
+  #   </ul>
+  #
   # You can also apply a layout to a block within any template:
   #
   #   <%# app/views/users/_chief.html.erb &>
@@ -238,7 +275,14 @@ module ActionView
         spacer = find_template(@options[:spacer_template]).render(@view, @locals)
       end
 
+      if layout = @options[:layout]
+        layout = find_template(layout)
+      end
+
       result = @template ? collection_with_template : collection_without_template
+      
+      result.map!{|content| layout.render(@view, @locals) { content } } if layout
+      
       result.join(spacer).html_safe
     end
 
@@ -271,6 +315,8 @@ module ActionView
       @locals  = options[:locals] || {}
       @block   = block
       @details = extract_details(options)
+
+      @lookup_context.rendered_format ||= formats.first
 
       if String === partial
         @object     = options[:object]
@@ -340,9 +386,10 @@ module ActionView
         locals[as] = object
         segments << template.render(@view, locals)
       end
-
+      
       segments
     end
+    
 
     def collection_without_template
       segments, locals, collection_data = [], @locals, @collection_data

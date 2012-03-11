@@ -39,6 +39,21 @@ module ActiveRecord
         assert_equal 0, @cache.tables.size
         assert_equal 0, @cache.primary_keys.size
       end
+
+      def test_dump_and_load
+        @cache.columns['posts']
+        @cache.columns_hash['posts']
+        @cache.tables['posts']
+        @cache.primary_keys['posts']
+
+        @cache = Marshal.load(Marshal.dump(@cache))
+
+        assert_equal 12, @cache.columns['posts'].size
+        assert_equal 12, @cache.columns_hash['posts'].size
+        assert @cache.tables['posts']
+        assert_equal 'id', @cache.primary_keys['posts']
+      end
+
     end
   end
 end

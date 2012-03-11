@@ -521,7 +521,7 @@ h5. Bulk and Namespace Lookup
 To look up multiple translations at once, an array of keys can be passed:
 
 <ruby>
-I18n.t [:odd, :even], :scope => 'activerecord.errors.messages'
+I18n.t [:odd, :even], :scope => 'errors.messages'
 # => ["must be odd", "must be even"]
 </ruby>
 

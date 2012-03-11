@@ -11,7 +11,7 @@ module Rails
                     :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
                     :railties_order, :relative_url_root, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
-                    :time_zone, :reload_classes_only_on_change
+                    :time_zone, :reload_classes_only_on_change, :use_schema_cache_dump
 
       attr_writer :log_level
       attr_reader :encoding
@@ -41,6 +41,7 @@ module Rails
         @file_watcher                  = ActiveSupport::FileUpdateChecker
         @exceptions_app                = nil
         @autoflush_log                 = true
+        @use_schema_cache_dump         = true
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false

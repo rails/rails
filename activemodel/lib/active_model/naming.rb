@@ -2,6 +2,7 @@ require 'active_support/inflector'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/deprecation'
+require 'active_support/core_ext/object/blank'
 
 module ActiveModel
   class Name < String

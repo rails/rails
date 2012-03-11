@@ -130,6 +130,28 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal car.id, bulb.car_id
   end
 
+  def test_association_protect_foreign_key
+    invoice = Invoice.create
+
+    line_item = invoice.line_items.new
+    assert_equal invoice.id, line_item.invoice_id
+
+    line_item = invoice.line_items.new :invoice_id => invoice.id + 1
+    assert_equal invoice.id, line_item.invoice_id
+
+    line_item = invoice.line_items.build
+    assert_equal invoice.id, line_item.invoice_id
+
+    line_item = invoice.line_items.build :invoice_id => invoice.id + 1
+    assert_equal invoice.id, line_item.invoice_id
+
+    line_item = invoice.line_items.create
+    assert_equal invoice.id, line_item.invoice_id
+
+    line_item = invoice.line_items.create :invoice_id => invoice.id + 1
+    assert_equal invoice.id, line_item.invoice_id
+  end
+
   def test_association_conditions_bypass_attribute_protection
     car = Car.create(:name => 'honda')
 
@@ -354,6 +376,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Microsoft", first_client.name
     assert_equal 1, firm.clients_using_sql.size
     assert_equal 1, Firm.find(:first, :order => "id").clients_using_sql.size
+  end
+
+  def test_finding_using_sql_take_into_account_only_uniq_ids
+    firm = Firm.find(:first, :order => "id")
+    client = firm.clients_using_sql.first
+    assert_equal client, firm.clients_using_sql.find(client.id, client.id)
+    assert_equal client, firm.clients_using_sql.find(client.id, client.id.to_s)
   end
 
   def test_counting_using_sql

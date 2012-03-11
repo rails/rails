@@ -56,7 +56,7 @@ class UrlOptionsController < ActionController::Base
   end
 
   def url_options
-    super.merge(:host => 'www.override.com', :action => 'new', :locale => 'en')
+    super.merge(:host => 'www.override.com')
   end
 end
 
@@ -183,9 +183,9 @@ class UrlOptionsTest < ActionController::TestCase
 
       get :from_view, :route => "from_view_url"
 
-      assert_equal 'http://www.override.com/from_view?locale=en', @response.body
-      assert_equal 'http://www.override.com/from_view?locale=en', @controller.send(:from_view_url)
-      assert_equal 'http://www.override.com/default_url_options/new?locale=en', @controller.url_for(:controller => 'default_url_options')
+      assert_equal 'http://www.override.com/from_view', @response.body
+      assert_equal 'http://www.override.com/from_view', @controller.send(:from_view_url)
+      assert_equal 'http://www.override.com/default_url_options/index', @controller.url_for(:controller => 'default_url_options')
     end
   end
 
@@ -195,7 +195,6 @@ class UrlOptionsTest < ActionController::TestCase
         match "account/overview"
       end
 
-      @controller.class.send(:include, set.url_helpers)
       assert !@controller.class.action_methods.include?("account_overview_path")
     end
   end

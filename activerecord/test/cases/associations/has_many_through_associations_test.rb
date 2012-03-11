@@ -44,17 +44,33 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_associate_existing
-    posts(:thinking); people(:david) # Warm cache
+    post   = posts(:thinking)
+    person = people(:david)
 
     assert_queries(1) do
-      posts(:thinking).people << people(:david)
+      post.people << person
     end
 
     assert_queries(1) do
-      assert posts(:thinking).people.include?(people(:david))
+      assert post.people.include?(person)
     end
 
-    assert posts(:thinking).reload.people(true).include?(people(:david))
+    assert post.reload.people(true).include?(person)
+  end
+
+  def test_associate_existing_with_strict_mass_assignment_sanitizer
+    SecureReader.mass_assignment_sanitizer = :strict
+
+    SecureReader.new
+
+    post   = posts(:thinking)
+    person = people(:david)
+
+    assert_queries(1) do
+      post.secure_people << person
+    end
+  ensure
+    SecureReader.mass_assignment_sanitizer = :logger
   end
 
   def test_associate_existing_record_twice_should_add_to_target_twice
@@ -686,6 +702,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post = author.posts.build
     comment = post.comments.build
     assert author.comments.include?(comment)
+  end
+
+  def test_through_association_readonly_should_be_false
+    assert !people(:michael).posts.first.readonly?
+    assert !people(:michael).posts.all.first.readonly?
+  end
+
+  def test_can_update_through_association
+    assert_nothing_raised do
+      people(:michael).posts.first.update_attributes!(:title => "Can write")
+    end
   end
 
   def test_has_many_through_polymorphic_with_primary_key_option

@@ -17,7 +17,7 @@ class SprocketsHelperWithRoutesTest < ActionView::TestCase
 
   def setup
     super
-    @controller         = BasicController.new
+    @controller = BasicController.new
 
     @assets = Sprockets::Environment.new
     @assets.append_path(FIXTURES.join("sprockets/app/javascripts"))
@@ -34,7 +34,7 @@ class SprocketsHelperWithRoutesTest < ActionView::TestCase
 
   test "namespace conflicts on a named route called asset_path" do
     # Testing this for sanity - asset_path is now a named route!
-    assert_match asset_path('test_asset'), '/assets/test_asset'
+    assert_equal asset_path('test_asset'), '/assets/test_asset'
 
     assert_match %r{/assets/logo-[0-9a-f]+.png},
       path_to_asset("logo.png")

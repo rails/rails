@@ -6,8 +6,6 @@ module ActionController #:nodoc:
   module MimeResponds
     extend ActiveSupport::Concern
 
-    include ActionController::ImplicitRender
-
     included do
       class_attribute :responder, :mimes_for_respond_to
       self.responder = ActionController::Responder
@@ -58,7 +56,7 @@ module ActionController #:nodoc:
       # Clear all mime types in <tt>respond_to</tt>.
       #
       def clear_respond_to
-        self.mimes_for_respond_to = ActiveSupport::OrderedHash.new.freeze
+        self.mimes_for_respond_to = Hash.new.freeze
       end
     end
 
@@ -193,7 +191,7 @@ module ActionController #:nodoc:
 
       if collector = retrieve_collector_from_mimes(mimes, &block)
         response = collector.response
-        response ? response.call : default_render({})
+        response ? response.call : render({})
       end
     end
 
@@ -235,16 +233,8 @@ module ActionController #:nodoc:
 
       if collector = retrieve_collector_from_mimes(&block)
         options = resources.size == 1 ? {} : resources.extract_options!
-
-        if defined_response = collector.response
-          if action = options.delete(:action)
-            render :action => action
-          else
-            defined_response.call
-          end
-        else
-          (options.delete(:responder) || self.class.responder).call(self, resources, options)
-        end
+        options[:default_response] = collector.response
+        (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
     end
 
@@ -281,6 +271,7 @@ module ActionController #:nodoc:
       if format
         self.content_type ||= format.to_s
         lookup_context.formats = [format.to_sym]
+        lookup_context.rendered_format = lookup_context.formats.first
         collector
       else
         head :not_acceptable

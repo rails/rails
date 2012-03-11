@@ -238,6 +238,10 @@ module RenderTestCases
   def test_render_partial_with_nil_values_in_collection
     assert_equal "Hello: davidHello: Anonymous", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), nil ])
   end
+  
+  def test_render_partial_with_layout_using_collection_and_template
+    assert_equal "<b>Hello: Amazon</b><b>Hello: Yahoo</b>", @view.render(:partial => "test/customer", :layout => 'test/b_layout_for_partial', :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
+  end
 
   def test_render_partial_with_empty_array_should_return_nil
     assert_nil @view.render(:partial => [])

@@ -19,10 +19,7 @@ module ActionDispatch
 
     def call(env)
       env["action_dispatch.request_id"] = external_request_id(env) || internal_request_id
-      status, headers, body = @app.call(env)
-
-      headers["X-Request-Id"] = env["action_dispatch.request_id"]
-      [ status, headers, body ]
+      @app.call(env).tap { |status, headers, body| headers["X-Request-Id"] = env["action_dispatch.request_id"] }
     end
 
     private

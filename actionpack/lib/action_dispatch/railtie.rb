@@ -16,7 +16,7 @@ module ActionDispatch
     config.action_dispatch.rack_cache = {
       :metastore => "rails:/",
       :entitystore => "rails:/",
-      :verbose => true
+      :verbose => false
     }
 
     initializer "action_dispatch.configure" do |app|

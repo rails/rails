@@ -254,10 +254,15 @@ module ActionDispatch
         #
         # For options, see +match+, as +root+ uses it internally.
         #
+        # You can also pass a string which will expand
+        #
+        #   root 'pages#main'
+        #
         # You should put the root route at the top of <tt>config/routes.rb</tt>,
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
+          options = { :to => options } if options.is_a?(String)
           match '/', { :as => :root }.merge(options)
         end
 
@@ -446,7 +451,11 @@ module ActionDispatch
             _route = @set.named_routes.routes[name.to_sym]
             _routes = @set
             app.routes.define_mounted_helper(name)
-            app.routes.class_eval do
+            app.routes.singleton_class.class_eval do
+              define_method :mounted? do
+                true
+              end
+
               define_method :_generate_prefix do |options|
                 prefix_options = options.slice(*_route.segment_keys)
                 # we must actually delete prefix segment keys to avoid passing them to next url_for

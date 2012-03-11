@@ -299,7 +299,7 @@ module ActiveRecord
         key_records = Hash[key_records.map { |r| [r.id, r] }]
       end
 
-      ActiveSupport::OrderedHash[calculated_data.map do |row|
+      Hash[calculated_data.map do |row|
         key   = group_columns.map { |aliaz, column|
           type_cast_calculated_value(row[aliaz], column)
         }

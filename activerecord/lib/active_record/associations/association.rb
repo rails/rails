@@ -28,6 +28,7 @@ module ActiveRecord
         @target = nil
         @owner, @reflection = owner, reflection
         @updated = false
+        @stale_state = nil
 
         reset
         reset_scope
@@ -231,7 +232,8 @@ module ActiveRecord
 
         def build_record(attributes, options)
           reflection.build_association(attributes, options) do |record|
-            record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
+            attributes = create_scope.except(*(record.changed - [reflection.foreign_key]))
+            record.assign_attributes(attributes, :without_protection => true)
           end
         end
     end
