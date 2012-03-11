@@ -2057,4 +2057,16 @@ class BasicsTest < ActiveRecord::TestCase
   def test_typecasting_aliases
     assert_equal 10, Topic.select('10 as tenderlove').first.tenderlove
   end
+
+  def test_slice
+    company = Company.new(:rating => 1, :name => "37signals", :firm_name => "37signals")
+    hash = company.slice(:name, :rating, "arbitrary_method")
+    assert_equal hash[:name], company.name
+    assert_equal hash['name'], company.name
+    assert_equal hash[:rating], company.rating
+    assert_equal hash['arbitrary_method'], company.arbitrary_method
+    assert_equal hash[:arbitrary_method], company.arbitrary_method
+    assert_nil hash[:firm_name]
+    assert_nil hash['firm_name']
+  end
 end
