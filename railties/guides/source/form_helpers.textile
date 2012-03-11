@@ -169,11 +169,11 @@ Output:
 <textarea id="message" name="message" cols="24" rows="6">Hi, nice site</textarea>
 <input id="password" name="password" type="password" />
 <input id="parent_id" name="parent_id" type="hidden" value="5" />
-<input id="user_name" name="user[name]" size="30" type="search" />
-<input id="user_phone" name="user[phone]" size="30" type="tel" />
+<input id="user_name" name="user[name]" type="search" />
+<input id="user_phone" name="user[phone]" type="tel" />
 <input id="user_born_on" name="user[born_on]" type="date" />
-<input id="user_homepage" size="30" name="user[homepage]" type="url" />
-<input id="user_address" size="30" name="user[address]" type="email" />
+<input id="user_homepage" name="user[homepage]" type="url" />
+<input id="user_address" name="user[address]" type="email" />
 </html>
 
 Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
@@ -239,7 +239,7 @@ The resulting HTML is:
 
 <html>
 <form accept-charset="UTF-8" action="/articles/create" method="post" class="nifty_form">
-  <input id="article_title" name="article[title]" size="30" type="text" />
+  <input id="article_title" name="article[title]" type="text" />
   <textarea id="article_body" name="article[body]" cols="60" rows="12"></textarea>
   <input name="commit" type="submit" value="Create" />
 </form>
@@ -264,8 +264,8 @@ which produces the following output:
 
 <html>
 <form accept-charset="UTF-8" action="/people/create" class="new_person" id="new_person" method="post">
-  <input id="person_name" name="person[name]" size="30" type="text" />
-  <input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" />
+  <input id="person_name" name="person[name]" type="text" />
+  <input id="contact_detail_phone_number" name="contact_detail[phone_number]" type="text" />
 </form>
 </html>
 
@@ -714,9 +714,9 @@ Assuming the person had two addresses, with ids 23 and 45 this would create outp
 
 <html>
 <form accept-charset="UTF-8" action="/people/1" class="edit_person" id="edit_person_1" method="post">
-  <input id="person_name" name="person[name]" size="30" type="text" />
-  <input id="person_address_23_city" name="person[address][23][city]" size="30" type="text" />
-  <input id="person_address_45_city" name="person[address][45][city]" size="30" type="text" />
+  <input id="person_name" name="person[name]" type="text" />
+  <input id="person_address_23_city" name="person[address][23][city]" type="text" />
+  <input id="person_address_45_city" name="person[address][45][city]" type="text" />
 </form>
 </html>
 
@@ -739,7 +739,7 @@ To create more intricate nestings, you can specify the first part of the input n
 will create inputs like
 
 <html>
-<input id="person_address_primary_1_city" name="person[address][primary][1][city]" size="30" type="text" value="bologna" />
+<input id="person_address_primary_1_city" name="person[address][primary][1][city]" type="text" value="bologna" />
 </html>
 
 As a general rule the final input name is the concatenation of the name given to +fields_for+/+form_for+, the index value and the name of the attribute. You can also pass an +:index+ option directly to helpers such as +text_field+, but it is usually less repetitive to specify this at the form builder level rather than on individual input controls.
