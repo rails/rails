@@ -757,7 +757,7 @@ module ActionView
       #   #    </textarea>
       #
       #   text_area(:application, :notes, :cols => 40, :rows => 15, :class => 'app_input')
-      #   # => <textarea rows="15" id="application_notes" name="application[notes]" class="app_input">
+      #   # => <textarea cols="40" rows="15" id="application_notes" name="application[notes]" class="app_input">
       #   #      #{@application.notes}
       #   #    </textarea>
       #
