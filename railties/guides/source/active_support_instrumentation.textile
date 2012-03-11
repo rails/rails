@@ -70,6 +70,18 @@ The payload for this event has the following parameters related to the outgoing 
 
 h4. Action Controller
 
+h5. write_fragment.action_controller
+
+h5. read_fragment.action_controller
+
+h5. exist_fragment?.action_controller
+
+h5. expire_fragment.action_controller
+
+h5. write_page.action_controller
+
+h5. expire_page.action_controller
+
 h4. Action View
 
 h4. Active Record
