@@ -20,9 +20,9 @@ module ActionView
     # identity of the resource in several ways: (i) the url that the form is
     # sent to (the form element's +action+ attribute) should result in a request
     # being routed to the appropriate controller action (with the appropriate <tt>:id</tt>
-    # parameter in the case of an existing resource), and (ii) input fields should
+    # parameter in the case of an existing resource), (ii) input fields should
     # be named in such a way that in the controller their values appear in the
-    # appropriate places within the +params+ hash. Also for an existing record, 
+    # appropriate places within the +params+ hash, and (iii) for an existing record, 
     # when the form is initially displayed, input fields corresponding to attributes
     # of the resource should show the current values of those attributes.
     #
@@ -217,8 +217,8 @@ module ActionView
       # would result in <tt>params[:client]</tt>.
       #
       # Secondly, the field values shown when the form is initially displayed
-      # are taken from the attributes of the object passed to +form_for+.
-      # Furthermore, this is true regardless of whether the object is an instance
+      # are taken from the attributes of the object passed to +form_for+,
+      # regardless of whether the object is an instance
       # variable. So, for example, if we had a _local_ variable +post+
       # representing an existing record,
       #
@@ -445,29 +445,58 @@ module ActionView
       #
       # === Generic Examples
       #
+      # Although the usage and purpose of +field_for+ is similar to +form_for+'s,
+      # its method signature is slightly different. Like +form_for+, it yields
+      # a FormBuilder object associated with a particular model object to a block,
+      # and within the block allows methods to be called on the builder to
+      # generate fields associated with the model object. Fields may reflect
+      # a model object in two ways - how they are named (hence how submitted
+      # values appear within the +params+ hash in the controller) and what
+      # default values are shown when the form the fields appear in is first
+      # displayed. In order for both of these features to be specified independently,
+      # both an object name (represented by either a symbol or string) and the
+      # object itself can be passed to the method separately -
+      #
       #   <%= form_for @person do |person_form| %>
       #     First name: <%= person_form.text_field :first_name %>
       #     Last name : <%= person_form.text_field :last_name %>
       #
-      #     <%= fields_for @person.permission do |permission_fields| %>
+      #     <%= fields_for :permission, @person.permission do |permission_fields| %>
       #       Admin?  : <%= permission_fields.check_box :admin %>
       #     <% end %>
       #
       #     <%= f.submit %>
       #   <% end %>
       #
-      # ...or if you have an object that needs to be represented as a different
-      # parameter, like a Client that acts as a Person:
+      # In this case, the checkbox field will be represented by an HTML +input+
+      # tag with the +name+ attribute <tt>permission[admin]</tt>, and the submitted
+      # value will appear in the controller as <tt>params[:permission][:admin]</tt>.
+      # If <tt>@person.permission</tt> is an existing record with an attribute
+      # +admin+, the initial state of the checkbox when first displayed will
+      # reflect the value of <tt>@person.permission.admin</tt>.
       #
-      #   <%= fields_for :person, @client do |permission_fields| %>
+      # Often this can be simplified by passing just the name of the model
+      # object to +fields_for+ -
+      #
+      #   <%= fields_for :permission do |permission_fields| %>
       #     Admin?: <%= permission_fields.check_box :admin %>
       #   <% end %>
       #
-      # ...or if you don't have an object, just a name of the parameter:
+      # ...in which case, if <tt>:permission</tt> also happens to be the name of an
+      # instance variable <tt>@permission</tt>, the initial state of the input
+      # field will reflect the value of that variable's attribute <tt>@permission.admin</tt>.
       #
-      #   <%= fields_for :person do |permission_fields| %>
+      # Alternatively, you can pass just the model object itself (if the first
+      # argument isn't a string or symbol +fields_for+ will realize that the
+      # name has been omitted) -
+      #
+      #   <%= fields_for @person.permission do |permission_fields| %>
       #     Admin?: <%= permission_fields.check_box :admin %>
       #   <% end %>
+      #
+      # and +fields_for+ will derive the required name of the field from the
+      # _class_ of the model object, e.g. if <tt>@person.permission</tt>, is
+      # of class +Permission+, the field will still be named <tt>permission[admin]</tt>.
       #
       # Note: This also works for the methods in FormOptionHelper and
       # DateHelper that are designed to work with an object as base, like
