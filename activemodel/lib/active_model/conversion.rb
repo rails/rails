@@ -21,7 +21,7 @@ module ActiveModel
   #   cm.to_model == self # => true
   #   cm.to_key           # => nil
   #   cm.to_param         # => nil
-  #   cm.to_path          # => "contact_messages/contact_message"
+  #   cm.to_partial_path  # => "contact_messages/contact_message"
   #
   module Conversion
     extend ActiveSupport::Concern
@@ -57,7 +57,7 @@ module ActiveModel
     end
 
     module ClassMethods #:nodoc:
-      # Provide a class level cache for the to_path. This is an
+      # Provide a class level cache for #to_partial_path. This is an
       # internal method and should not be accessed directly.
       def _to_partial_path #:nodoc:
         @_to_partial_path ||= begin
