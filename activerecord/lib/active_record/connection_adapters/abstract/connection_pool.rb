@@ -269,10 +269,26 @@ connection.  For example: ActiveRecord::Base.connection.close
             conn.expire
             @queue.signal
           end
+
+          release conn
         end
       end
 
       private
+
+      def release(conn)
+        thread_id = nil
+
+        if @reserved_connections[current_connection_id] == conn
+          thread_id = current_connection_id
+        else
+          thread_id = @reserved_connections.keys.find { |k|
+            @reserved_connections[k] == conn
+          }
+        end
+
+        @reserved_connections.delete thread_id if thread_id
+      end
 
       def new_connection
         ActiveRecord::Base.send(spec.adapter_method, spec.config)
