@@ -75,9 +75,19 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "test/functional/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/@valid_attributes = @user\.attributes\.slice\("age", "name"\)/, content)
-      assert_match(/post :create, user: @valid_attributes/, content)
-      assert_match(/put :update, id: @user, user: @valid_attributes/, content)
+      assert_match(/post :create, user: { age: @user.age, name: @user.name }/, content)
+      assert_match(/put :update, id: @user, user: { age: @user.age, name: @user.name }/, content)
+    end
+  end
+
+  def test_functional_tests_without_attributes
+    run_generator ["User"]
+
+    assert_file "test/functional/users_controller_test.rb" do |content|
+      assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
+      assert_match(/test "should get index"/, content)
+      assert_match(/post :create, user: {  }/, content)
+      assert_match(/put :update, id: @user, user: {  }/, content)
     end
   end
 
