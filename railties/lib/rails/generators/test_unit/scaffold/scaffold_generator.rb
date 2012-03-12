@@ -17,9 +17,22 @@ module TestUnit
 
       private
 
-      def accessible_attributes
-        attributes.reject(&:reference?).map {|a| "\"#{a.name}\"" }.sort.join(', ')
-      end
+        def resource_attributes
+          key_value singular_table_name, "{ #{attributes_hash} }"
+        end
+
+        def attributes_hash
+          return if accessible_attributes.empty?
+
+          accessible_attributes.map do |a|
+            name = a.name
+            "#{name}: @#{singular_table_name}.#{name}"
+          end.sort.join(', ')
+        end
+
+        def accessible_attributes
+          attributes.reject(&:reference?)
+        end
     end
   end
 end
