@@ -83,7 +83,7 @@ The examples above are fairly simple and other libraries match or come close to 
 
 #### Inline math operations
 
-Suppose we have a table `products` with prices in different currencies. And we have a table currency_rates, of constantly changing currency rates. In Arel:
+Suppose we have a table `products` with prices in different currencies. And we have a table `currency_rates`, of constantly changing currency rates. In Arel:
 
     products = Arel::Table.new(:products)
     products.columns # => [products[:id], products[:name], products[:price], products[:currency_id]]
