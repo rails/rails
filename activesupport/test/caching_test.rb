@@ -69,6 +69,10 @@ class CacheKeyTest < ActiveSupport::TestCase
   def test_expand_cache_key_of_true
     assert_equal 'true', ActiveSupport::Cache.expand_cache_key(true)
   end
+  
+  def test_expand_cache_key_of_array_like_object
+    assert_equal 'foo/bar/baz', ActiveSupport::Cache.expand_cache_key(%w{foo bar baz}.to_enum)
+  end
 end
 
 class CacheStoreSettingTest < ActiveSupport::TestCase
