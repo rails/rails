@@ -18,6 +18,10 @@ module ActiveRecord
       when /^find_by_([_a-zA-Z]\w*)\!$/
         bang = true
         names = $1
+      when /^find_or_create_by_([_a-zA-Z]\w*)\!$/
+        bang = true
+        instantiator = :create
+        names = $1
       when /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/
         instantiator = $1 == 'initialize' ? :new : :create
         names = $2
@@ -51,6 +55,14 @@ module ActiveRecord
 
     def bang?
       @bang
+    end
+
+    def save_record?
+      @instantiator == :create
+    end
+
+    def save_method
+      bang? ? :save! : :save
     end
   end
 end

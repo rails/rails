@@ -1,5 +1,7 @@
 ## Rails 3.2.3 (unreleased) ##
 
+*   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
+
 *   Whitelist all attribute assignment by default. Change the default for newly generated applications to whitelist all attribute assignment.  Also update the generated model classes so users are reminded of the importance of attr_accessible. *NZKoz*
 
 *   Update ActiveRecord::AttributeMethods#attribute_present? to return false for empty strings. *Jacobkg*

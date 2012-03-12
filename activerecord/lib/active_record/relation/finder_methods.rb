@@ -290,7 +290,7 @@ module ActiveRecord
           r.assign_attributes(unprotected_attributes_for_create, :without_protection => true)
         end
         yield(record) if block_given?
-        record.save if match.instantiator == :create
+        record.send(match.save_method) if match.save_record?
       end
 
       record
