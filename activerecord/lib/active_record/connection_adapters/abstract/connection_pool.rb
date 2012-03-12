@@ -235,6 +235,8 @@ module ActiveRecord
           conn.run_callbacks :checkin do
             conn.expire
           end
+
+          release conn
         end
       end
 
@@ -246,10 +248,7 @@ module ActiveRecord
 
           # FIXME: we might want to store the key on the connection so that removing
           # from the reserved hash will be a little easier.
-          thread_id = @reserved_connections.keys.find { |k|
-            @reserved_connections[k] == conn
-          }
-          @reserved_connections.delete thread_id if thread_id
+          release conn
         end
       end
 
@@ -266,6 +265,20 @@ module ActiveRecord
       end
 
       private
+
+      def release(conn)
+        thread_id = nil
+
+        if @reserved_connections[current_connection_id] == conn
+          thread_id = current_connection_id
+        else
+          thread_id = @reserved_connections.keys.find { |k|
+            @reserved_connections[k] == conn
+          }
+        end
+
+        @reserved_connections.delete thread_id if thread_id
+      end
 
       def new_connection
         ActiveRecord::Base.send(spec.adapter_method, spec.config)

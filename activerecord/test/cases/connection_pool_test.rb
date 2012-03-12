@@ -31,6 +31,16 @@ module ActiveRecord
         pool.connections.find_all(&:in_use?)
       end
 
+      def test_checkout_after_close
+        connection = pool.connection
+        assert connection.in_use?
+
+        connection.close
+        assert !connection.in_use?
+
+        assert pool.connection.in_use?
+      end
+
       def test_released_connection_moves_between_threads
         thread_conn = nil
 
