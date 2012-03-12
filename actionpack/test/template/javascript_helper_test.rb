@@ -22,12 +22,27 @@ class JavaScriptHelperTest < ActionView::TestCase
     ActiveSupport.escape_html_entities_in_json  = false
   end
 
+  def test_escape_javascript_string
+    assert_equal '', escape_javascript_string(nil)
+
+    assert_equal %(This \\u0022thing\\u0022 is really\\n netos\\'), escape_javascript_string(%(This "thing" is really\n netos'))
+    assert_equal %(backslash\\\\test), escape_javascript_string( %(backslash\\test) )
+    assert_equal %(dont \\u003C/close\\u003E tags), escape_javascript_string(%(dont </close> tags))
+    assert_equal %(unicode \\u2028 \\u2029 newline), escape_javascript_string(%(unicode \342\200\250 \342\200\251 newline).force_encoding('UTF-8').encode!)
+
+    assert_equal %(\\u0026 should not be html encoded), escape_javascript_string(%(& should not be html encoded))
+    assert_equal %(\\r should be preserved), escape_javascript_string(%(\r should be preserved))
+    assert_equal %(\\r\\n should be preserved), escape_javascript_string(%(\r\n should be preserved))
+  end
+
   def test_escape_javascript
     assert_equal '', escape_javascript(nil)
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
     assert_equal %(backslash\\\\test), escape_javascript( %(backslash\\test) )
     assert_equal %(dont <\\/close> tags), escape_javascript(%(dont </close> tags))
     assert_equal %(unicode &#x2028; newline), escape_javascript(%(unicode \342\200\250 newline).force_encoding('UTF-8').encode!)
+    assert_equal %(unicode &#x2029; newline), escape_javascript(%(unicode \342\200\251 newline).force_encoding('UTF-8').encode!)
+
     assert_equal %(dont <\\/close> tags), j(%(dont </close> tags))
   end
 

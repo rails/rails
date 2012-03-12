@@ -3,6 +3,20 @@ require 'action_view/helpers/tag_helper'
 module ActionView
   module Helpers
     module JavaScriptHelper
+
+      JS_STRING_ESCAPE_MAP = {
+        '\\'    => '\\\\',
+        "\r"    => '\r',
+        "\n"    => '\n',
+        '"'     => '\u0022',
+        "'"     => "\\'",
+        "<"     => '\u003C',
+        ">"     => '\u003E',
+        "&"     => '\u0026',
+        "\342\200\250".force_encoding('UTF-8').encode! => '\u2028',
+        "\342\200\251".force_encoding('UTF-8').encode! => '\u2029'
+      }
+
       JS_ESCAPE_MAP = {
         '\\'    => '\\\\',
         '</'    => '<\/',
@@ -14,6 +28,8 @@ module ActionView
       }
 
       JS_ESCAPE_MAP["\342\200\250".force_encoding('UTF-8').encode!] = '&#x2028;'
+      JS_ESCAPE_MAP["\342\200\251".force_encoding('UTF-8').encode!] = '&#x2029;'
+      
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #
@@ -22,7 +38,18 @@ module ActionView
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
-          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
+          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
+          javascript.html_safe? ? result.html_safe : result
+        else
+          ''
+        end
+      end
+
+      # Escapes a string so that it can be used as a javascript string literal. It also escapes
+      # html characters so the string can be correctly embedded in a <script> tag.
+      def escape_javascript_string(javascript)
+        if javascript
+          result = javascript.gsub(/(\\|\342\200\250|\342\200\251|[<>&\n\r"'])/u) {|match| JS_STRING_ESCAPE_MAP[match] }
           javascript.html_safe? ? result.html_safe : result
         else
           ''
