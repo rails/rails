@@ -1185,6 +1185,10 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_finder_with_offset_string
+    assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.find(:all, :offset => "3") }
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
