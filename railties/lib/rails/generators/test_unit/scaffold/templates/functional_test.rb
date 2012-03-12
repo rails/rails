@@ -4,6 +4,7 @@ require 'test_helper'
 class <%= controller_class_name %>ControllerTest < ActionController::TestCase
   setup do
     @<%= singular_table_name %> = <%= table_name %>(:one)
+    @valid_attributes = @<%= singular_table_name %>.attributes.slice(<%= accessible_attributes %>)
   end
 
   test "should get index" do
@@ -19,7 +20,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
 
   test "should create <%= singular_table_name %>" do
     assert_difference('<%= class_name %>.count') do
-      post :create, <%= key_value singular_table_name, "@#{singular_table_name}.attributes" %>
+      post :create, <%= key_value singular_table_name, "@valid_attributes" %>
     end
 
     assert_redirected_to <%= singular_table_name %>_path(assigns(:<%= singular_table_name %>))
@@ -36,7 +37,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
   end
 
   test "should update <%= singular_table_name %>" do
-    put :update, <%= key_value :id, "@#{singular_table_name}" %>, <%= key_value singular_table_name, "@#{singular_table_name}.attributes" %>
+    put :update, <%= key_value :id, "@#{singular_table_name}" %>, <%= key_value singular_table_name, "@valid_attributes" %>
     assert_redirected_to <%= singular_table_name %>_path(assigns(:<%= singular_table_name %>))
   end
 
