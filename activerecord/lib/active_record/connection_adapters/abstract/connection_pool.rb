@@ -345,9 +345,7 @@ connection.  For example: ActiveRecord::Base.connection.close
         connection_pools.values.any? { |pool| pool.active_connection? }
       end
 
-      # Returns any connections in use by the current thread back to the pool,
-      # and also returns connections to the pool cached by threads that are no
-      # longer alive.
+      # Returns any connections in use by the current thread back to the pool.
       def clear_active_connections!
         @connection_pools.each_value {|pool| pool.release_connection }
       end
