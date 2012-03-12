@@ -350,7 +350,7 @@ module ActiveRecord
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
     def update(attribute_names = @attributes.keys)
-      attributes_with_values = arel_attributes_values(false, false, attribute_names)
+      attributes_with_values = arel_attributes_with_values_for_update(attribute_names)
       return 0 if attributes_with_values.empty?
       klass = self.class
       stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
@@ -360,7 +360,7 @@ module ActiveRecord
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
     def create
-      attributes_values = arel_attributes_values(!id.nil?)
+      attributes_values = arel_attributes_with_values_for_create(!id.nil?)
 
       new_id = self.class.unscoped.insert attributes_values
 
