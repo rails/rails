@@ -8,7 +8,7 @@ module Rails
       attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :dependency_loading, :exceptions_app, :file_watcher, :filter_parameters,
-                    :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
+                    :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags, :preload_frameworks,
                     :railties_order, :relative_url_root, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change, :use_schema_cache_dump
@@ -41,6 +41,7 @@ module Rails
         @file_watcher                  = ActiveSupport::FileUpdateChecker
         @exceptions_app                = nil
         @autoflush_log                 = true
+        @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
         @use_schema_cache_dump         = true
 
         @assets = ActiveSupport::OrderedOptions.new

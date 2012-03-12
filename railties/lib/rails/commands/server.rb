@@ -71,6 +71,8 @@ module Rails
         wrapped_app # touch the app so the logger is set up
 
         console = ActiveSupport::Logger.new($stdout)
+        console.formatter = Rails.logger.formatter
+
         Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
       end
 
