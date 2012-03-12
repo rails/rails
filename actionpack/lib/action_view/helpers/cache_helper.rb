@@ -104,7 +104,7 @@ module ActionView
       #
       # Now all you'll have to do is change that timestamp when the helper method changes.
       def cache(name = {}, options = nil, &block)
-        if controller.perform_caching && options_pass_conditions(options)
+        if controller.perform_caching && options_pass_conditions?(options)
           safe_concat(fragment_for(fragment_name_with_digest(name), options, &block))
         else
           yield
@@ -143,12 +143,8 @@ module ActionView
         end
       end
 
-      def options_pass_conditions(options)
-        if options && ((options.has_key?(:if) && !options[:if]) || (options.has_key?(:unless) && options[:unless]))
-          false
-        else
-          true
-        end
+      def options_pass_conditions?(options)
+        !( options && ((options.has_key?(:if) && !options[:if]) || (options.has_key?(:unless) && options[:unless])) )
       end
     end
   end
