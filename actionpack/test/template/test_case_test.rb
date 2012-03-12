@@ -277,6 +277,12 @@ module ActionView
   end
 
   class RenderTemplateTest < ActionView::TestCase
+    test "supports specifying templates with a Regexp" do
+      controller.controller_path = "fun"
+      render(:template => "fun/games/hello_world")
+      assert_template %r{\Afun/games/hello_world\Z}
+    end
+
     test "supports specifying partials" do
       controller.controller_path = "test"
       render(:template => "test/calling_partial_with_layout")
