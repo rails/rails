@@ -229,7 +229,7 @@ This will enable recognition of (among others) these routes:
 
 * Lead Contributor: "S. Brent Faulkner":http://www.unwwwired.net/
 * More information:
-** "Rails Routing from the Outside In":http://guides.rubyonrails.org/routing.html#_nested_resources
+** "Rails Routing from the Outside In":http://guides.rubyonrails.org/routing.html#nested-resources
 ** "What's New in Edge Rails: Shallow Routes":http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-shallow-routes
 
 h4. Method Arrays for Member or Collection Routes
