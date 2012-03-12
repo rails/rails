@@ -862,6 +862,28 @@ class FinderTest < ActiveRecord::TestCase
     assert another.persisted?
   end
 
+  def test_find_or_create_from_one_attribute_bang
+    number_of_companies = Company.count
+    assert_raises(ActiveRecord::RecordInvalid) { Company.find_or_create_by_name!("") }
+    assert_equal number_of_companies, Company.count
+    sig38 = Company.find_or_create_by_name!("38signals")
+    assert_equal number_of_companies + 1, Company.count
+    assert_equal sig38, Company.find_or_create_by_name!("38signals")
+    assert sig38.persisted?
+  end
+
+  def test_find_or_create_from_two_attributes_bang
+    number_of_companies = Company.count
+    assert_raises(ActiveRecord::RecordInvalid) { Company.find_or_create_by_name_and_firm_id!("", 17) }
+    assert_equal number_of_companies, Company.count
+    sig38 = Company.find_or_create_by_name_and_firm_id!("38signals", 17)
+    assert_equal number_of_companies + 1, Company.count
+    assert_equal sig38, Company.find_or_create_by_name_and_firm_id!("38signals", 17)
+    assert sig38.persisted?
+    assert_equal "38signals", sig38.name
+    assert_equal 17, sig38.firm_id
+  end
+
   def test_find_or_create_from_two_attributes_with_one_being_an_aggregate
     number_of_customers = Customer.count
     created_customer = Customer.find_or_create_by_balance_and_name(Money.new(123), "Elizabeth")
