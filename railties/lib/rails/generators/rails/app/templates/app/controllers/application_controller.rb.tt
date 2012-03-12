@@ -1,5 +1,5 @@
-class ApplicationController < ActionController::<%= options.http_only? ? "HTTP" : "Base" %>
+class ApplicationController < ActionController::<%= options.http? ? "HTTP" : "Base" %>
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :reset_session instead.
-  <%= comment_if :http_only %>protect_from_forgery :with => :exception
+  <%= comment_if :http %>protect_from_forgery :with => :exception
 end

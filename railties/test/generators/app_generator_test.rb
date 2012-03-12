@@ -361,19 +361,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /config\.active_record\.dependent_restrict_raises = false/
   end
 
-  def test_http_only_generates_config_middleware_and_generator_http_only_setup
-    run_generator [destination_root, "--http-only"]
+  def test_http_generates_config_middleware_and_generator_http_setup
+    run_generator [destination_root, "--http"]
     assert_file "config/application.rb", /config\.middleware\.http_only!/,
       /config\.generators\.http_only!/
   end
 
-  def test_http_only_generates_application_controller_with_action_controller_http
-    run_generator [destination_root, "--http-only"]
+  def test_http_generates_application_controller_with_action_controller_http
+    run_generator [destination_root, "--http"]
     assert_file "app/controllers/application_controller.rb",
       /class ApplicationController < ActionController::HTTP/
   end
 
-  def test_http_only_generates_application_controller_with_protect_from_forgery_commented_out_setup
+  def test_http_generates_application_controller_with_protect_from_forgery_commented_out_setup
     run_generator [destination_root, "--http"]
     assert_file "app/controllers/application_controller.rb", /^  # protect_from_forgery/
   end
