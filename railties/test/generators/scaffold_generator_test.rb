@@ -62,8 +62,12 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_file "test/functional/product_lines_controller_test.rb",
-                /class ProductLinesControllerTest < ActionController::TestCase/
+    assert_file "test/functional/product_lines_controller_test.rb" do |test|
+      assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, test)
+      assert_match(/@valid_attributes = @product_line\.attributes\.slice\("title"\)/, test)
+      assert_match(/post :create, product_line: @valid_attributes/, test)
+      assert_match(/put :update, id: @product_line, product_line: @valid_attributes/, test)
+    end
 
     # Views
     %w(
