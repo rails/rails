@@ -234,7 +234,9 @@ module Rails
         end
 
         if config.serve_static_assets
-          middleware.use ::ActionDispatch::Static, "app/assets/public", false if Rails.env.development?
+          if (config.assets.enabled && config.assets.compile) || Rails.env.development?
+            middleware.use ::ActionDispatch::Static, "app/assets/public", false
+          end
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
 
