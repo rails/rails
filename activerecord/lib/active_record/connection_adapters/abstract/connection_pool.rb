@@ -226,8 +226,9 @@ connection.  For example: ActiveRecord::Base.connection.close
       # - ConnectionTimeoutError: no connection can be obtained from the pool
       #   within the timeout period.
       def checkout
-        # Checkout an available connection
         synchronize do
+          waited_time = 0
+
           loop do
             conn = @connections.find { |c| c.lease }
 
@@ -243,17 +244,25 @@ connection.  For example: ActiveRecord::Base.connection.close
               return conn
             end
 
-            @queue.wait(@timeout)
-
-            if(active_connections.size < @connections.size)
-              next
-            else
-              clear_stale_cached_connections!
-              if @size == active_connections.size
-                raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}. The max pool size is currently #{@size}; consider increasing it."
-              end
+            if waited_time >= @timeout
+              raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout} (waited #{waited_time} seconds). The max pool size is currently #{@size}; consider increasing it."
             end
 
+            # Sometimes our wait can end because a connection is available,
+            # but another thread can snatch it up first. If timeout hasn't
+            # passed but no connection is avail, looks like that happened --
+            # loop and wait again, for the time remaining on our timeout. 
+            before_wait = Time.now
+            @queue.wait( [@timeout - waited_time, 0].max )
+            waited_time += (Time.now - before_wait)
+
+            # Will go away in Rails 4, when we don't clean up
+            # after leaked connections automatically anymore. Right now, clean
+            # up after we've returned from a 'wait' if it looks like it's
+            # needed, then loop and try again. 
+            if(active_connections.size >= @connections.size)
+              clear_stale_cached_connections!
+            end
           end
         end
       end
