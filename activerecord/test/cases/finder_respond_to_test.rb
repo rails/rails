@@ -56,6 +56,16 @@ class FinderRespondToTest < ActiveRecord::TestCase
     assert_respond_to Topic, :find_or_create_by_title_and_author_name
   end
 
+  def test_should_respond_to_find_or_create_from_one_attribute_bang
+    ensure_topic_method_is_not_cached(:find_or_create_by_title!)
+    assert_respond_to Topic, :find_or_create_by_title!
+  end
+
+  def test_should_respond_to_find_or_create_from_two_attributes_bang
+    ensure_topic_method_is_not_cached(:find_or_create_by_title_and_author_name!)
+    assert_respond_to Topic, :find_or_create_by_title_and_author_name!
+  end
+
   def test_should_not_respond_to_find_by_one_missing_attribute
     assert !Topic.respond_to?(:find_by_undertitle)
   end

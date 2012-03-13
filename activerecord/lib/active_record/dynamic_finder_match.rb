@@ -7,7 +7,7 @@ module ActiveRecord
   class DynamicFinderMatch
     def self.match(method)
       method = method.to_s
-      klass = [FindBy, FindByBang, FindOrInitializeCreateBy].find do |_klass|
+      klass = klasses.find do |_klass|
         _klass.matches?(method)
       end
       klass.new(method) if klass
@@ -15,6 +15,10 @@ module ActiveRecord
 
     def self.matches?(method)
       method =~ self::METHOD_PATTERN
+    end
+
+    def self.klasses
+      [FindBy, FindByBang, FindOrInitializeCreateBy, FindOrCreateByBang]
     end
 
     def initialize(method)
@@ -45,6 +49,14 @@ module ActiveRecord
 
     def valid_arguments?(arguments)
       arguments.size >= @attribute_names.size
+    end
+
+    def save_record?
+      @instantiator == :create
+    end
+
+    def save_method
+      bang? ? :save! : :save
     end
 
     private
@@ -79,6 +91,18 @@ module ActiveRecord
 
     def valid_arguments?(arguments)
       arguments.size == 1 && arguments.first.is_a?(Hash) || super
+    end
+  end
+
+  class FindOrCreateByBang < DynamicFinderMatch
+    METHOD_PATTERN = /^find_or_create_by_([_a-zA-Z]\w*)\!$/
+
+    def initialize_from_match_data(match_data)
+      @instantiator = :create
+    end
+
+    def bang?
+      true
     end
   end
 end

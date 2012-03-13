@@ -45,10 +45,10 @@ module ActionView
     #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
     #     </div>
     #     <label for="person_first_name">First name</label>:
-    #     <input id="person_first_name" name="person[first_name]" size="30" type="text" /><br />
+    #     <input id="person_first_name" name="person[first_name]" type="text" /><br />
     #
     #     <label for="person_last_name">Last name</label>:
-    #     <input id="person_last_name" name="person[last_name]" size="30" type="text" /><br />
+    #     <input id="person_last_name" name="person[last_name]" type="text" /><br />
     #
     #     <input name="commit" type="submit" value="Create Person" />
     #   </form>
@@ -76,10 +76,10 @@ module ActionView
     #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
     #     </div>
     #     <label for="person_first_name">First name</label>:
-    #     <input id="person_first_name" name="person[first_name]" size="30" type="text" value="John" /><br />
+    #     <input id="person_first_name" name="person[first_name]" type="text" value="John" /><br />
     #
     #     <label for="person_last_name">Last name</label>:
-    #     <input id="person_last_name" name="person[last_name]" size="30" type="text" value="Smith" /><br />
+    #     <input id="person_last_name" name="person[last_name]" type="text" value="Smith" /><br />
     #
     #     <input name="commit" type="submit" value="Update Person" />
     #   </form>
@@ -860,20 +860,20 @@ module ActionView
       # ==== Examples
       #
       #   search_field(:user, :name)
-      #   # => <input id="user_name" name="user[name]" size="30" type="search" />
+      #   # => <input id="user_name" name="user[name]" type="search" />
       #   search_field(:user, :name, :autosave => false)
-      #   # => <input autosave="false" id="user_name" name="user[name]" size="30" type="search" />
+      #   # => <input autosave="false" id="user_name" name="user[name]" type="search" />
       #   search_field(:user, :name, :results => 3)
-      #   # => <input id="user_name" name="user[name]" results="3" size="30" type="search" />
+      #   # => <input id="user_name" name="user[name]" results="3" type="search" />
       #   #  Assume request.host returns "www.example.com"
       #   search_field(:user, :name, :autosave => true)
-      #   # => <input autosave="com.example.www" id="user_name" name="user[name]" results="10" size="30" type="search" />
+      #   # => <input autosave="com.example.www" id="user_name" name="user[name]" results="10" type="search" />
       #   search_field(:user, :name, :onsearch => true)
-      #   # => <input id="user_name" incremental="true" name="user[name]" onsearch="true" size="30" type="search" />
+      #   # => <input id="user_name" incremental="true" name="user[name]" onsearch="true" type="search" />
       #   search_field(:user, :name, :autosave => false, :onsearch => true)
-      #   # => <input autosave="false" id="user_name" incremental="true" name="user[name]" onsearch="true" size="30" type="search" />
+      #   # => <input autosave="false" id="user_name" incremental="true" name="user[name]" onsearch="true" type="search" />
       #   search_field(:user, :name, :autosave => true, :onsearch => true)
-      #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" size="30" type="search" />
+      #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" type="search" />
       #
       def search_field(object_name, method, options = {})
         Tags::SearchField.new(object_name, method, self, options).render
@@ -882,7 +882,7 @@ module ActionView
       # Returns a text_field of type "tel".
       #
       #   telephone_field("user", "phone")
-      #   # => <input id="user_phone" name="user[phone]" size="30" type="tel" />
+      #   # => <input id="user_phone" name="user[phone]" type="tel" />
       #
       def telephone_field(object_name, method, options = {})
         Tags::TelField.new(object_name, method, self, options).render
@@ -910,7 +910,7 @@ module ActionView
       # Returns a text_field of type "url".
       #
       #   url_field("user", "homepage")
-      #   # => <input id="user_homepage" size="30" name="user[homepage]" type="url" />
+      #   # => <input id="user_homepage" name="user[homepage]" type="url" />
       #
       def url_field(object_name, method, options = {})
         Tags::UrlField.new(object_name, method, self, options).render
@@ -919,7 +919,7 @@ module ActionView
       # Returns a text_field of type "email".
       #
       #   email_field("user", "address")
-      #   # => <input id="user_address" size="30" name="user[address]" type="email" />
+      #   # => <input id="user_address" name="user[address]" type="email" />
       #
       def email_field(object_name, method, options = {})
         Tags::EmailField.new(object_name, method, self, options).render

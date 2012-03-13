@@ -431,11 +431,11 @@ form("post")
 <form action='/posts/create' method='post'>
   <p>
     <label for="post_title">Title</label><br />
-    <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
+    <input id="post_title" name="post[title]" type="text" value="Hello World" />
   </p>
   <p>
     <label for="post_body">Body</label><br />
-    <textarea cols="40" id="post_body" name="post[body]" rows="20"></textarea>
+    <textarea id="post_body" name="post[body]"></textarea>
   </p>
   <input name="commit" type="submit" value="Create" />
 </form>
@@ -451,7 +451,7 @@ For example, if +@post+ has an attribute +title+ mapped to a +String+ column tha
 
 <ruby>
 input("post", "title") # =>
-  <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
+  <input id="post_title" name="post[title]" type="text" value="Hello World" />
 </ruby>
 
 h4. RecordTagHelper
@@ -987,8 +987,8 @@ The HTML generated for this would be:
 
 <html>
 <form action="/persons/create" method="post">
-  <input id="person_first_name" name="person[first_name]" size="30" type="text" />
-  <input id="person_last_name" name="person[last_name]" size="30" type="text" />
+  <input id="person_first_name" name="person[first_name]" type="text" />
+  <input id="person_last_name" name="person[last_name]" type="text" />
   <input name="commit" type="submit" value="Create" />
 </form>
 </html>

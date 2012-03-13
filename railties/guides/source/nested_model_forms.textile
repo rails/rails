@@ -131,7 +131,7 @@ This will generate the following html:
 
 <html>
 <form action="/people" class="new_person" id="new_person" method="post">
-  <input id="person_name" name="person[name]" size="30" type="text" />
+  <input id="person_name" name="person[name]" type="text" />
 </form>
 </html>
 
@@ -153,9 +153,9 @@ This generates:
 
 <html>
 <form action="/people" class="new_person" id="new_person" method="post">
-  <input id="person_name" name="person[name]" size="30" type="text" />
+  <input id="person_name" name="person[name]" type="text" />
 
-  <input id="person_address_attributes_street" name="person[address_attributes][street]" size="30" type="text" />
+  <input id="person_address_attributes_street" name="person[address_attributes][street]" type="text" />
 </form>
 </html>
 
@@ -194,10 +194,10 @@ Which generates:
 
 <html>
 <form action="/people" class="new_person" id="new_person" method="post">
-  <input id="person_name" name="person[name]" size="30" type="text" />
+  <input id="person_name" name="person[name]" type="text" />
 
-  <input id="person_projects_attributes_0_name" name="person[projects_attributes][0][name]" size="30" type="text" />
-  <input id="person_projects_attributes_1_name" name="person[projects_attributes][1][name]" size="30" type="text" />
+  <input id="person_projects_attributes_0_name" name="person[projects_attributes][0][name]" type="text" />
+  <input id="person_projects_attributes_1_name" name="person[projects_attributes][1][name]" type="text" />
 </form>
 </html>
 

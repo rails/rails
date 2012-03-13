@@ -462,6 +462,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal authors(:david), authors.find_or_create_by_name(:name => 'David')
   end
 
+  def test_dynamic_find_or_create_by_attributes_bang
+    authors = Author.scoped
+
+    assert_raises(ActiveRecord::RecordInvalid) { authors.find_or_create_by_name!('') }
+
+    lifo = authors.find_or_create_by_name!('Lifo')
+    assert_equal "Lifo", lifo.name
+    assert lifo.persisted?
+
+    assert_equal authors(:david), authors.find_or_create_by_name!(:name => 'David')
+  end
+
   def test_find_id
     authors = Author.scoped
 

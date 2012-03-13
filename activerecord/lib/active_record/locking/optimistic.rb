@@ -84,7 +84,7 @@ module ActiveRecord
               relation.table[self.class.primary_key].eq(id).and(
                 relation.table[lock_col].eq(quote_value(previous_lock_value))
               )
-            ).arel.compile_update(arel_attributes_values(false, false, attribute_names))
+            ).arel.compile_update(arel_attributes_with_values_for_update(attribute_names))
 
             affected_rows = connection.update stmt
 
