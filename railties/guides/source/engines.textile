@@ -315,7 +315,7 @@ resources :posts do
 end
 </ruby>
 
-This creates a nested route for the comments, which is what the form requires. 
+This creates a nested route for the comments, which is what the form requires.
 
 The route now exists, but the controller that this route goes to does not. To create it, run this command:
 
@@ -361,7 +361,7 @@ This is the final part required to get the new comment form working. Displaying 
     * "/Users/ryan/Sites/side_projects/blorgh/app/views"
 </text>
 
-The engine is unable to find the partial required for rendering the comments. Rails has looked firstly in the application's (+test/dummy+) +app/views+ directory and then in the engine's +app/views+ directory. When it can't find it, it will throw this error. The engine knows to look for +blorgh/comments/comment+ because the model object it is receiving is from the +Blorgh::Comment+ class. 
+The engine is unable to find the partial required for rendering the comments. Rails has looked firstly in the application's (+test/dummy+) +app/views+ directory and then in the engine's +app/views+ directory. When it can't find it, it will throw this error. The engine knows to look for +blorgh/comments/comment+ because the model object it is receiving is from the +Blorgh::Comment+ class.
 
 This partial will be responsible for rendering just the comment text, for now. Create a new file at +app/views/blorgh/comments/_comment.html.erb+ and put this line inside it:
 
@@ -440,6 +440,18 @@ The first timestamp (+\[timestamp_1\]+) will be the current time and the second 
 
 To run these migrations within the context of the application, simply run +rake db:migrate+. When accessing the engine through +http://localhost:3000/blog+, the posts will be empty. This is because the table created inside the application is different from the one created within the engine. Go ahead, play around with the newly mounted engine. You'll find that it's the same as when it was only an engine.
 
+If you would like to run migrations only from one engine, you can do it by specifying +SCOPE+:
+
+<shell>
+rake db:migrate SCOPE=blorgh
+</shell>
+
+This may be useful if you want to revert engine's migrations before removing it. In order to revert all migrations from blorgh engine you can run such code:
+
+<shell>
+rake db:migrate SCOPE=blorgh VERSION=0
+</shell>
+
 h4. Using a class provided by the application
 
 When an engine is created, it may want to use specific classes from an application to provide links between the pieces of the engine and the pieces of the application. In the case of the +blorgh+ engine, making posts and comments have authors would make a lot of sense.
@@ -481,12 +493,12 @@ private
   end
 </ruby>
 
-By defining that the +author+ association's object is represented by the +User+ class a link is established between the engine and the application. There needs to be a way of associating the records in the +blorgh_posts+ table with the records in the +users+ table. Because the association is called +author+, there should be an +author_id+ column added to the +blorgh_posts+ table. 
+By defining that the +author+ association's object is represented by the +User+ class a link is established between the engine and the application. There needs to be a way of associating the records in the +blorgh_posts+ table with the records in the +users+ table. Because the association is called +author+, there should be an +author_id+ column added to the +blorgh_posts+ table.
 
 To generate this new column, run this command within the engine:
 
 <shell>
-$ rails g migration add_author_id_to_blorgh_posts author_id:integer 
+$ rails g migration add_author_id_to_blorgh_posts author_id:integer
 </shell>
 
 NOTE: Due to the migration's name and the column specification after it, Rails will automatically know that you want to add a column to a specific table and write that into the migration for you. You don't need to tell it any more than this.
