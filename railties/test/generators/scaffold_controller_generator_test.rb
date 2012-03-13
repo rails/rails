@@ -75,8 +75,14 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "test/functional/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post :create, user: { age: @user.age, name: @user.name }/, content)
-      assert_match(/put :update, id: @user, user: { age: @user.age, name: @user.name }/, content)
+
+      if RUBY_VERSION < "1.9"
+        assert_match(/post :create, :user => \{ :age => @user.age, :name => @user.name \}/, content)
+        assert_match(/put :update, :id => @user, :user => \{ :age => @user.age, :name => @user.name \}/, content)
+      else
+        assert_match(/post :create, user: \{ age: @user.age, name: @user.name \}/, content)
+        assert_match(/put :update, id: @user, user: \{ age: @user.age, name: @user.name \}/, content)
+      end
     end
   end
 
@@ -86,8 +92,14 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "test/functional/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post :create, user: {  }/, content)
-      assert_match(/put :update, id: @user, user: {  }/, content)
+
+      if RUBY_VERSION < "1.9"
+        assert_match(/post :create, :user => \{  \}/, content)
+        assert_match(/put :update, :id => @user, :user => \{  \}/, content)
+      else
+        assert_match(/post :create, user: \{  \}/, content)
+        assert_match(/put :update, id: @user, user: \{  \}/, content)
+      end
     end
   end
 
