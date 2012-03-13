@@ -22,6 +22,8 @@ end
 # it being automatically loaded by sprockets
 gem 'uglifier', '>= 1.0.3', :require => false
 
+gem 'sprockets-rails', :git => "git://github.com/rails/sprockets-rails.git"
+
 gem 'rake', '>= 0.8.7'
 gem 'mocha', '>= 0.9.8'
 
