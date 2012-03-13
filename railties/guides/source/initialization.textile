@@ -159,7 +159,6 @@ In a standard Rails application, there's a +Gemfile+ which declares all dependen
 * actionpack (3.1.0.beta)
 * activemodel (3.1.0.beta)
 * activerecord (3.1.0.beta)
-* activeresource (3.1.0.beta)
 * activesupport (3.1.0.beta)
 * arel (2.0.7)
 * builder (3.0.0)
@@ -491,7 +490,6 @@ require "rails"
     active_record
     action_controller
     action_mailer
-    active_resource
     rails/test_unit
 ).each do |framework|
   begin
