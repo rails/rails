@@ -7,6 +7,7 @@ Gem::Specification.new do |s|
   s.summary     = 'Tools for creating, working with, and running Rails applications.'
   s.description = 'Rails internals: application bootup, plugins, generators, and rake tasks.'
   s.required_ruby_version = '>= 1.9.3'
+  s.license     = 'MIT'
 
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'

@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.description = 'A toolkit of support libraries and Ruby core extensions extracted from the Rails framework. Rich support for multibyte strings, internationalization, time zones, and testing.'
 
   s.required_ruby_version = '>= 1.9.3'
+  s.license     = 'MIT'
 
   s.author       = 'David Heinemeier Hansson'
   s.email        = 'david@loudthinking.com'
