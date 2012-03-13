@@ -888,7 +888,7 @@ module ActiveResource
       #   # Let's assume a request to events/5/cancel.json
       #   Event.delete(params[:id]) # sends DELETE /events/5
       def delete(id, options = {})
-        connection.delete(element_path(id, options))
+        connection.delete(element_path(id, options), headers)
       end
 
       # Asserts the existence of a resource, returning <tt>true</tt> if the resource is found.
