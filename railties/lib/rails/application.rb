@@ -237,6 +237,11 @@ module Rails
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
 
+        if Rails.env.development?
+          # Serve static assets from app/assets/public
+          middleware.use ::ActionDispatch::Static, "app/assets/public", false
+        end
+
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rack::MethodOverride unless config.middleware.http_only?
