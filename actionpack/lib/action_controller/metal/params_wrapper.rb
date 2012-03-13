@@ -134,7 +134,7 @@ module ActionController
         super
       end
 
-      protected
+    protected
 
       # Determine the wrapper model from the controller's name. By convention,
       # this could be done by trying to find the defined model that has the

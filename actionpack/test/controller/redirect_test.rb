@@ -105,10 +105,10 @@ class RedirectController < ActionController::Base
 
   def rescue_errors(e) raise e end
 
-  protected
-    def dashbord_url(id, message)
-      url_for :action => "dashboard", :params => { "id" => id, "message" => message }
-    end
+protected
+  def dashbord_url(id, message)
+    url_for :action => "dashboard", :params => { "id" => id, "message" => message }
+  end
 end
 
 class RedirectTest < ActionController::TestCase

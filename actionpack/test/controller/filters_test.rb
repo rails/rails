@@ -66,7 +66,7 @@ class FilterTest < ActionController::TestCase
       end
     end
 
-    protected
+  protected
     (1..3).each do |i|
       define_method "try_#{i}" do
         instance_variable_set :@try, i
@@ -267,11 +267,11 @@ class FilterTest < ActionController::TestCase
       render :inline => "ran action"
     end
 
-    protected
-      def find_user
-        @ran_filter ||= []
-        @ran_filter << "find_user"
-      end
+  protected
+    def find_user
+      @ran_filter ||= []
+      @ran_filter << "find_user"
+    end
   end
 
   class ConditionalParentOfConditionalSkippingController < ConditionalFilterController
@@ -387,14 +387,14 @@ class FilterTest < ActionController::TestCase
       render :text => 'bar'
     end
 
-    protected
-      def first
-        @first = true
-      end
+  protected
+    def first
+      @first = true
+    end
 
-      def second
-        raise OutOfOrder unless @first
-      end
+    def second
+      raise OutOfOrder unless @first
+    end
   end
 
   class DynamicDispatchController < ActionController::Base
@@ -1025,9 +1025,9 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     assert_equal 3, controller.instance_variable_get(:@try)
   end
 
-  protected
-    def test_process(controller, action = "show")
-      @controller = controller.is_a?(Class) ? controller.new : controller
-      process(action)
-    end
+protected
+  def test_process(controller, action = "show")
+    @controller = controller.is_a?(Class) ? controller.new : controller
+    process(action)
+  end
 end

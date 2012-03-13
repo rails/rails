@@ -613,12 +613,12 @@ class TasksController < ActionController::Base
     render_default
   end
 
-  protected
-    def render_default
-      render :inline =>
-        "<%= link_to_unless_current(\"tasks\", tasks_path) %>\n" +
-        "<%= link_to_unless_current(\"tasks\", tasks_url) %>"
-    end
+protected
+  def render_default
+    render :inline =>
+      "<%= link_to_unless_current(\"tasks\", tasks_path) %>\n" +
+      "<%= link_to_unless_current(\"tasks\", tasks_url) %>"
+  end
 end
 
 class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase

@@ -11,7 +11,7 @@ module ActionView
       raise NotImplementedError
     end
 
-    protected
+  protected
 
     def extract_details(options)
       details = {}

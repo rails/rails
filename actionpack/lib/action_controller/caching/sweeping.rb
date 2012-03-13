@@ -67,16 +67,16 @@ module ActionController #:nodoc:
           self.controller = nil
         end
 
-        protected
-          # gets the action cache path for the given options.
-          def action_path_for(options)
-            Actions::ActionCachePath.new(controller, options).path
-          end
+      protected
+        # gets the action cache path for the given options.
+        def action_path_for(options)
+          Actions::ActionCachePath.new(controller, options).path
+        end
 
-          # Retrieve instance variables set in the controller.
-          def assigns(key)
-            controller.instance_variable_get("@#{key}")
-          end
+        # Retrieve instance variables set in the controller.
+        def assigns(key)
+          controller.instance_variable_get("@#{key}")
+        end
 
       private
         def callback(timing)

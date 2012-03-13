@@ -200,7 +200,7 @@ module ActionController #:nodoc:
 
     include AbstractController::Rendering
 
-    protected
+  protected
 
     # Set proper cache control and transfer encoding when streaming
     def _process_options(options) #:nodoc:

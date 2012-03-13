@@ -2218,7 +2218,7 @@ class FormHelperTest < ActionView::TestCase
     assert_equal "fields", output
   end
 
-  protected
+protected
 
   def hidden_fields(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}

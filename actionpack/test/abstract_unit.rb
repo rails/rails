@@ -187,7 +187,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   # Stub Rails dispatcher so it does not get controller references and
   # simply return the controller#action as Rack::Body.
   class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
-    protected
+  protected
     def controller_reference(controller_param)
       controller_param
     end
