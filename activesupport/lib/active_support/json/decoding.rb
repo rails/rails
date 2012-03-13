@@ -38,7 +38,7 @@ module ActiveSupport
         MultiJson::DecodeError
       end
 
-      private
+    private
 
       def convert_dates_from(data)
         case data

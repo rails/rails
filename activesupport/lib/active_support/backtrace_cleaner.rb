@@ -71,29 +71,29 @@ module ActiveSupport
       @filters = []
     end
 
-    private
-      def filter(backtrace)
-        @filters.each do |f|
-          backtrace = backtrace.map { |line| f.call(line) }
-        end
-
-        backtrace
+  private
+    def filter(backtrace)
+      @filters.each do |f|
+        backtrace = backtrace.map { |line| f.call(line) }
       end
 
-      def silence(backtrace)
-        @silencers.each do |s|
-          backtrace = backtrace.reject { |line| s.call(line) }
-        end
+      backtrace
+    end
 
-        backtrace
+    def silence(backtrace)
+      @silencers.each do |s|
+        backtrace = backtrace.reject { |line| s.call(line) }
       end
 
-      def noise(backtrace)
-        @silencers.each do |s|
-          backtrace = backtrace.select { |line| s.call(line) }
-        end
+      backtrace
+    end
 
-        backtrace
+    def noise(backtrace)
+      @silencers.each do |s|
+        backtrace = backtrace.select { |line| s.call(line) }
       end
+
+      backtrace
+    end
   end
 end

@@ -48,12 +48,12 @@ class OutputBufferTest < ActionController::TestCase
     assert_equal Encoding::EUC_JP, output_buffer.encoding
   end
 
-  protected
-    def output_buffer
-      @vc.output_buffer
-    end
+protected
+  def output_buffer
+    @vc.output_buffer
+  end
 
-    def body_parts
-      @controller.response.body_parts
-    end
+  def body_parts
+    @controller.response.body_parts
+  end
 end

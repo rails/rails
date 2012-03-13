@@ -7,7 +7,7 @@ class Rails::InfoController < ActionController::Base
     end
   end
 
-  protected
+protected
 
   def consider_all_requests_local?
     Rails.application.config.consider_all_requests_local

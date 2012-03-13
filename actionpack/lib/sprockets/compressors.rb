@@ -34,7 +34,7 @@ module Sprockets
     register_js_compressor(:closure, 'Closure::Compiler', :require => 'closure-compiler')
     register_js_compressor(:yui, 'YUI::JavaScriptCompressor', :require => 'yui/compressor')
 
-    private
+  private
 
     def find_registered_compressor(name, compressors_hash, default_compressor_name)
       if name.respond_to?(:to_sym)
@@ -76,7 +76,7 @@ module Sprockets
       compressor.compress(content)
     end
 
-    private
+  private
 
     def compressor
       @compressor ||= (@block.call || NullCompressor.new)

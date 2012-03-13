@@ -18,11 +18,11 @@ module Nested
     def on_const_missing(&callback)
       @on_const_missing = callback
     end
-    private
-      def const_missing(mod_id)
-        @on_const_missing[mod_id] if @on_const_missing
-        super
-      end
+  private
+    def const_missing(mod_id)
+      @on_const_missing[mod_id] if @on_const_missing
+      super
+    end
   end
   class ClassL < ClassK
   end

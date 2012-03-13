@@ -26,7 +26,7 @@ module RenderContext
       render :action => "hello_world", :layout => "basic"
     end
 
-    protected
+  protected
 
     # 3) Set view_context to self
     def view_context

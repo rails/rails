@@ -44,7 +44,7 @@ module ActionDispatch
       include Compatibility
       include StaleSessionCheck
 
-      private
+    private
 
       def unpacked_cookie_data(env)
         env["action_dispatch.request.unsigned_session_cookie"] ||= begin

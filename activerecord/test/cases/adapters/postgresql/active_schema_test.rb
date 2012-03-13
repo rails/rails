@@ -33,8 +33,8 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:remove_method, :index_name_exists?)
   end
 
-  private
-    def method_missing(method_symbol, *arguments)
-      ActiveRecord::Base.connection.send(method_symbol, *arguments)
-    end
+private
+  def method_missing(method_symbol, *arguments)
+    ActiveRecord::Base.connection.send(method_symbol, *arguments)
+  end
 end

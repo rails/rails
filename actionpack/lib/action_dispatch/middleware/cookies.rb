@@ -250,11 +250,11 @@ module ActionDispatch
       mattr_accessor :always_write_cookie
       self.always_write_cookie = false
 
-      private
+    private
 
-        def write_cookie?(cookie)
-          @secure || !cookie[:secure] || always_write_cookie
-        end
+      def write_cookie?(cookie)
+        @secure || !cookie[:secure] || always_write_cookie
+      end
     end
 
     class PermanentCookieJar < CookieJar #:nodoc:

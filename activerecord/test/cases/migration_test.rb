@@ -375,13 +375,13 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
+protected
+  def with_env_tz(new_tz = 'US/Eastern')
+    old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+    yield
+  ensure
+    old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+  end
 end
 
 class ReservedWordsMigrationTest < ActiveRecord::TestCase
@@ -613,7 +613,7 @@ class ChangeTableMigrationsTest < ActiveRecord::TestCase
     end
   end
 
-  protected
+protected
   def with_change_table
     Person.connection.change_table :delete_me do |t|
       yield t
@@ -734,7 +734,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal :datetime, column(:birthdate).type
     end
 
-    protected
+  protected
 
     def with_bulk_change_table
       # Reset columns/indexes cache as we're changing the table

@@ -31,7 +31,7 @@ module ActiveRecord
         read_attribute_before_type_cast(self.class.primary_key)
       end
 
-      protected
+    protected
 
       def attribute_method?(attr_name)
         attr_name == 'id' || super

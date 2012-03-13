@@ -35,7 +35,7 @@ module ActiveRecord
         connection.drop_table :test_models rescue nil
       end
 
-      private
+    private
       def add_column(*args)
         connection.add_column(*args)
       end

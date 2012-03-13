@@ -79,7 +79,7 @@ module ActiveRecord
           end
         end
 
-        private
+      private
         HstorePair = begin
           quoted_string = /"[^"\\]*(?:\\.[^"\\]*)*"/
           unquoted_string = /(?:\\.|[^\s,])[^\s=,\\]*(?:\\.[^\s=,\\]*|=[^,>])*/
@@ -163,7 +163,7 @@ module ActiveRecord
         @oid_type.type_cast value
       end
 
-      private
+    private
       def extract_limit(sql_type)
         case sql_type
         when /^bigint/i;    8
@@ -358,7 +358,7 @@ module ActiveRecord
           cache.delete sql_key
         end
 
-        private
+      private
         def cache
           @cache[Process.pid]
         end
@@ -1236,24 +1236,24 @@ module ActiveRecord
         end
       end
 
-      protected
-        # Returns the version of the connected PostgreSQL server.
-        def postgresql_version
-          @connection.server_version
-        end
+    protected
+      # Returns the version of the connected PostgreSQL server.
+      def postgresql_version
+        @connection.server_version
+      end
 
-        def translate_exception(exception, message)
-          case exception.message
-          when /duplicate key value violates unique constraint/
-            RecordNotUnique.new(message, exception)
-          when /violates foreign key constraint/
-            InvalidForeignKey.new(message, exception)
-          else
-            super
-          end
+      def translate_exception(exception, message)
+        case exception.message
+        when /duplicate key value violates unique constraint/
+          RecordNotUnique.new(message, exception)
+        when /violates foreign key constraint/
+          InvalidForeignKey.new(message, exception)
+        else
+          super
         end
+      end
 
-      private
+    private
       def initialize_type_map
         result = execute('SELECT oid, typname, typelem, typdelim FROM pg_type', 'SCHEMA')
         leaves, nodes = result.partition { |row| row['typelem'] == '0' }
@@ -1270,166 +1270,166 @@ module ActiveRecord
         end
       end
 
-        FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
+      FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
-        def exec_no_cache(sql, binds)
-          @connection.async_exec(sql)
-        end
+      def exec_no_cache(sql, binds)
+        @connection.async_exec(sql)
+      end
 
-        def exec_cache(sql, binds)
+      def exec_cache(sql, binds)
+        begin
+          stmt_key = prepare_statement sql
+
+          # Clear the queue
+          @connection.get_last_result
+          @connection.send_query_prepared(stmt_key, binds.map { |col, val|
+            type_cast(val, col)
+          })
+          @connection.block
+          @connection.get_last_result
+        rescue PGError => e
+          # Get the PG code for the failure.  Annoyingly, the code for
+          # prepared statements whose return value may have changed is
+          # FEATURE_NOT_SUPPORTED.  Check here for more details:
+          # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
           begin
-            stmt_key = prepare_statement sql
-
-            # Clear the queue
-            @connection.get_last_result
-            @connection.send_query_prepared(stmt_key, binds.map { |col, val|
-              type_cast(val, col)
-            })
-            @connection.block
-            @connection.get_last_result
-          rescue PGError => e
-            # Get the PG code for the failure.  Annoyingly, the code for
-            # prepared statements whose return value may have changed is
-            # FEATURE_NOT_SUPPORTED.  Check here for more details:
-            # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-            begin
-              code = e.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
-            rescue
-              raise e
-            end
-            if FEATURE_NOT_SUPPORTED == code
-              @statements.delete sql_key(sql)
-              retry
-            else
-              raise e
-            end
+            code = e.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
+          rescue
+            raise e
+          end
+          if FEATURE_NOT_SUPPORTED == code
+            @statements.delete sql_key(sql)
+            retry
+          else
+            raise e
           end
         end
+      end
 
-        # Returns the statement identifier for the client side cache
-        # of statements
-        def sql_key(sql)
-          "#{schema_search_path}-#{sql}"
+      # Returns the statement identifier for the client side cache
+      # of statements
+      def sql_key(sql)
+        "#{schema_search_path}-#{sql}"
+      end
+
+      # Prepare the statement if it hasn't been prepared, return
+      # the statement key.
+      def prepare_statement(sql)
+        sql_key = sql_key(sql)
+        unless @statements.key? sql_key
+          nextkey = @statements.next_key
+          @connection.prepare nextkey, sql
+          @statements[sql_key] = nextkey
         end
+        @statements[sql_key]
+      end
 
-        # Prepare the statement if it hasn't been prepared, return
-        # the statement key.
-        def prepare_statement(sql)
-          sql_key = sql_key(sql)
-          unless @statements.key? sql_key
-            nextkey = @statements.next_key
-            @connection.prepare nextkey, sql
-            @statements[sql_key] = nextkey
-          end
-          @statements[sql_key]
+      # The internal PostgreSQL identifier of the money data type.
+      MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
+      # The internal PostgreSQL identifier of the BYTEA data type.
+      BYTEA_COLUMN_TYPE_OID = 17 #:nodoc:
+
+      # Connects to a PostgreSQL server and sets up the adapter depending on the
+      # connected server's characteristics.
+      def connect
+        @connection = PGconn.connect(@connection_parameters)
+
+        # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
+        # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
+        # should know about this but can't detect it there, so deal with it here.
+        PostgreSQLColumn.money_precision = (postgresql_version >= 80300) ? 19 : 10
+
+        configure_connection
+      end
+
+      # Configures the encoding, verbosity, schema search path, and time zone of the connection.
+      # This is called by #connect and should not be called manually.
+      def configure_connection
+        if @config[:encoding]
+          @connection.set_client_encoding(@config[:encoding])
         end
+        self.client_min_messages = @config[:min_messages] if @config[:min_messages]
+        self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
 
-        # The internal PostgreSQL identifier of the money data type.
-        MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
-        # The internal PostgreSQL identifier of the BYTEA data type.
-        BYTEA_COLUMN_TYPE_OID = 17 #:nodoc:
+        # Use standard-conforming strings if available so we don't have to do the E'...' dance.
+        set_standard_conforming_strings
 
-        # Connects to a PostgreSQL server and sets up the adapter depending on the
-        # connected server's characteristics.
-        def connect
-          @connection = PGconn.connect(@connection_parameters)
-
-          # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
-          # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
-          # should know about this but can't detect it there, so deal with it here.
-          PostgreSQLColumn.money_precision = (postgresql_version >= 80300) ? 19 : 10
-
-          configure_connection
+        # If using Active Record's time zone support configure the connection to return
+        # TIMESTAMP WITH ZONE types in UTC.
+        if ActiveRecord::Base.default_timezone == :utc
+          execute("SET time zone 'UTC'", 'SCHEMA')
+        elsif @local_tz
+          execute("SET time zone '#{@local_tz}'", 'SCHEMA')
         end
+      end
 
-        # Configures the encoding, verbosity, schema search path, and time zone of the connection.
-        # This is called by #connect and should not be called manually.
-        def configure_connection
-          if @config[:encoding]
-            @connection.set_client_encoding(@config[:encoding])
-          end
-          self.client_min_messages = @config[:min_messages] if @config[:min_messages]
-          self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
+      # Returns the current ID of a table's sequence.
+      def last_insert_id(sequence_name) #:nodoc:
+        r = exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
+        Integer(r.rows.first.first)
+      end
 
-          # Use standard-conforming strings if available so we don't have to do the E'...' dance.
-          set_standard_conforming_strings
+      # Executes a SELECT query and returns the results, performing any data type
+      # conversions that are required to be performed here instead of in PostgreSQLColumn.
+      def select(sql, name = nil, binds = [])
+        exec_query(sql, name, binds)
+      end
 
-          # If using Active Record's time zone support configure the connection to return
-          # TIMESTAMP WITH ZONE types in UTC.
-          if ActiveRecord::Base.default_timezone == :utc
-            execute("SET time zone 'UTC'", 'SCHEMA')
-          elsif @local_tz
-            execute("SET time zone '#{@local_tz}'", 'SCHEMA')
-          end
+      def select_raw(sql, name = nil)
+        res = execute(sql, name)
+        results = result_as_array(res)
+        fields = res.fields
+        res.clear
+        return fields, results
+      end
+
+      # Returns the list of a table's column names, data types, and default values.
+      #
+      # The underlying query is roughly:
+      #  SELECT column.name, column.type, default.value
+      #    FROM column LEFT JOIN default
+      #      ON column.table_id = default.table_id
+      #     AND column.num = default.column_num
+      #   WHERE column.table_id = get_table_id('table_name')
+      #     AND column.num > 0
+      #     AND NOT column.is_dropped
+      #   ORDER BY column.num
+      #
+      # If the table name is not prefixed with a schema, the database will
+      # take the first match from the schema search path.
+      #
+      # Query implementation notes:
+      #  - format_type includes the column size constraint, e.g. varchar(50)
+      #  - ::regclass is a function that gives the id for a table name
+      def column_definitions(table_name) #:nodoc:
+        exec_query(<<-end_sql, 'SCHEMA').rows
+          SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull, a.atttypid, a.atttypmod
+            FROM pg_attribute a LEFT JOIN pg_attrdef d
+              ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+           WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
+             AND a.attnum > 0 AND NOT a.attisdropped
+           ORDER BY a.attnum
+        end_sql
+      end
+
+      def extract_pg_identifier_from_name(name)
+        match_data = name.start_with?('"') ? name.match(/\"([^\"]+)\"/) : name.match(/([^\.]+)/)
+
+        if match_data
+          rest = name[match_data[0].length, name.length]
+          rest = rest[1, rest.length] if rest.start_with? "."
+          [match_data[1], (rest.length > 0 ? rest : nil)]
         end
+      end
 
-        # Returns the current ID of a table's sequence.
-        def last_insert_id(sequence_name) #:nodoc:
-          r = exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
-          Integer(r.rows.first.first)
-        end
+      def extract_table_ref_from_insert_sql(sql)
+        sql[/into\s+([^\(]*).*values\s*\(/i]
+        $1.strip if $1
+      end
 
-        # Executes a SELECT query and returns the results, performing any data type
-        # conversions that are required to be performed here instead of in PostgreSQLColumn.
-        def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds)
-        end
-
-        def select_raw(sql, name = nil)
-          res = execute(sql, name)
-          results = result_as_array(res)
-          fields = res.fields
-          res.clear
-          return fields, results
-        end
-
-        # Returns the list of a table's column names, data types, and default values.
-        #
-        # The underlying query is roughly:
-        #  SELECT column.name, column.type, default.value
-        #    FROM column LEFT JOIN default
-        #      ON column.table_id = default.table_id
-        #     AND column.num = default.column_num
-        #   WHERE column.table_id = get_table_id('table_name')
-        #     AND column.num > 0
-        #     AND NOT column.is_dropped
-        #   ORDER BY column.num
-        #
-        # If the table name is not prefixed with a schema, the database will
-        # take the first match from the schema search path.
-        #
-        # Query implementation notes:
-        #  - format_type includes the column size constraint, e.g. varchar(50)
-        #  - ::regclass is a function that gives the id for a table name
-        def column_definitions(table_name) #:nodoc:
-          exec_query(<<-end_sql, 'SCHEMA').rows
-            SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull, a.atttypid, a.atttypmod
-              FROM pg_attribute a LEFT JOIN pg_attrdef d
-                ON a.attrelid = d.adrelid AND a.attnum = d.adnum
-             WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
-               AND a.attnum > 0 AND NOT a.attisdropped
-             ORDER BY a.attnum
-          end_sql
-        end
-
-        def extract_pg_identifier_from_name(name)
-          match_data = name.start_with?('"') ? name.match(/\"([^\"]+)\"/) : name.match(/([^\.]+)/)
-
-          if match_data
-            rest = name[match_data[0].length, name.length]
-            rest = rest[1, rest.length] if rest.start_with? "."
-            [match_data[1], (rest.length > 0 ? rest : nil)]
-          end
-        end
-
-        def extract_table_ref_from_insert_sql(sql)
-          sql[/into\s+([^\(]*).*values\s*\(/i]
-          $1.strip if $1
-        end
-
-        def table_definition
-          TableDefinition.new(self)
-        end
+      def table_definition
+        TableDefinition.new(self)
+      end
     end
   end
 end

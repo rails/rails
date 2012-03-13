@@ -9,7 +9,7 @@ module ARTest
       @config ||= read_config
     end
 
-    private
+  private
 
     def config_file
       Pathname.new(ENV['ARCONFIG'] || TEST_ROOT + '/config.yml')

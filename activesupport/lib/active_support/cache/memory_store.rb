@@ -121,39 +121,39 @@ module ActiveSupport
         @monitor.synchronize(&block)
       end
 
-      protected
-        def read_entry(key, options) # :nodoc:
-          entry = @data[key]
-          synchronize do
-            if entry
-              @key_access[key] = Time.now.to_f
-            else
-              @key_access.delete(key)
-            end
-          end
-          entry
-        end
-
-        def write_entry(key, entry, options) # :nodoc:
-          synchronize do
-            old_entry = @data[key]
-            @cache_size -= old_entry.size if old_entry
-            @cache_size += entry.size
+    protected
+      def read_entry(key, options) # :nodoc:
+        entry = @data[key]
+        synchronize do
+          if entry
             @key_access[key] = Time.now.to_f
-            @data[key] = entry
-            prune(@max_size * 0.75, @max_prune_time) if @cache_size > @max_size
-            true
-          end
-        end
-
-        def delete_entry(key, options) # :nodoc:
-          synchronize do
+          else
             @key_access.delete(key)
-            entry = @data.delete(key)
-            @cache_size -= entry.size if entry
-            !!entry
           end
         end
+        entry
+      end
+
+      def write_entry(key, entry, options) # :nodoc:
+        synchronize do
+          old_entry = @data[key]
+          @cache_size -= old_entry.size if old_entry
+          @cache_size += entry.size
+          @key_access[key] = Time.now.to_f
+          @data[key] = entry
+          prune(@max_size * 0.75, @max_prune_time) if @cache_size > @max_size
+          true
+        end
+      end
+
+      def delete_entry(key, options) # :nodoc:
+        synchronize do
+          @key_access.delete(key)
+          entry = @data.delete(key)
+          @cache_size -= entry.size if entry
+          !!entry
+        end
+      end
     end
   end
 end

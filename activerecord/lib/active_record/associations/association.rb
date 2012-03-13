@@ -160,82 +160,82 @@ module ActiveRecord
         end
       end
 
-      private
+    private
 
-        def find_target?
-          !loaded? && (!owner.new_record? || foreign_key_present?) && klass
-        end
+      def find_target?
+        !loaded? && (!owner.new_record? || foreign_key_present?) && klass
+      end
 
-        def creation_attributes
-          attributes = {}
+      def creation_attributes
+        attributes = {}
 
-          if reflection.macro.in?([:has_one, :has_many]) && !options[:through]
-            attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
+        if reflection.macro.in?([:has_one, :has_many]) && !options[:through]
+          attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
-            if reflection.options[:as]
-              attributes[reflection.type] = owner.class.base_class.name
-            end
-          end
-
-          attributes
-        end
-
-        # Sets the owner attributes on the given record
-        def set_owner_attributes(record)
-          creation_attributes.each { |key, value| record[key] = value }
-        end
-
-        # Should be true if there is a foreign key present on the owner which
-        # references the target. This is used to determine whether we can load
-        # the target if the owner is currently a new record (and therefore
-        # without a key).
-        #
-        # Currently implemented by belongs_to (vanilla and polymorphic) and
-        # has_one/has_many :through associations which go through a belongs_to
-        def foreign_key_present?
-          false
-        end
-
-        # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is of
-        # the kind of the class of the associated objects. Meant to be used as
-        # a sanity check when you are about to assign an associated record.
-        def raise_on_type_mismatch(record)
-          unless record.is_a?(reflection.klass) || record.is_a?(reflection.class_name.constantize)
-            message = "#{reflection.class_name}(##{reflection.klass.object_id}) expected, got #{record.class}(##{record.class.object_id})"
-            raise ActiveRecord::AssociationTypeMismatch, message
+          if reflection.options[:as]
+            attributes[reflection.type] = owner.class.base_class.name
           end
         end
 
-        # Can be redefined by subclasses, notably polymorphic belongs_to
-        # The record parameter is necessary to support polymorphic inverses as we must check for
-        # the association in the specific class of the record.
-        def inverse_reflection_for(record)
-          reflection.inverse_of
-        end
+        attributes
+      end
 
-        # Is this association invertible? Can be redefined by subclasses.
-        def invertible_for?(record)
-          inverse_reflection_for(record)
-        end
+      # Sets the owner attributes on the given record
+      def set_owner_attributes(record)
+        creation_attributes.each { |key, value| record[key] = value }
+      end
 
-        # This should be implemented to return the values of the relevant key(s) on the owner,
-        # so that when state_state is different from the value stored on the last find_target,
-        # the target is stale.
-        #
-        # This is only relevant to certain associations, which is why it returns nil by default.
-        def stale_state
-        end
+      # Should be true if there is a foreign key present on the owner which
+      # references the target. This is used to determine whether we can load
+      # the target if the owner is currently a new record (and therefore
+      # without a key).
+      #
+      # Currently implemented by belongs_to (vanilla and polymorphic) and
+      # has_one/has_many :through associations which go through a belongs_to
+      def foreign_key_present?
+        false
+      end
 
-        def association_class
-          @reflection.klass
+      # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is of
+      # the kind of the class of the associated objects. Meant to be used as
+      # a sanity check when you are about to assign an associated record.
+      def raise_on_type_mismatch(record)
+        unless record.is_a?(reflection.klass) || record.is_a?(reflection.class_name.constantize)
+          message = "#{reflection.class_name}(##{reflection.klass.object_id}) expected, got #{record.class}(##{record.class.object_id})"
+          raise ActiveRecord::AssociationTypeMismatch, message
         end
+      end
 
-        def build_record(attributes, options)
-          reflection.build_association(attributes, options) do |record|
-            attributes = create_scope.except(*(record.changed - [reflection.foreign_key]))
-            record.assign_attributes(attributes, :without_protection => true)
-          end
+      # Can be redefined by subclasses, notably polymorphic belongs_to
+      # The record parameter is necessary to support polymorphic inverses as we must check for
+      # the association in the specific class of the record.
+      def inverse_reflection_for(record)
+        reflection.inverse_of
+      end
+
+      # Is this association invertible? Can be redefined by subclasses.
+      def invertible_for?(record)
+        inverse_reflection_for(record)
+      end
+
+      # This should be implemented to return the values of the relevant key(s) on the owner,
+      # so that when state_state is different from the value stored on the last find_target,
+      # the target is stale.
+      #
+      # This is only relevant to certain associations, which is why it returns nil by default.
+      def stale_state
+      end
+
+      def association_class
+        @reflection.klass
+      end
+
+      def build_record(attributes, options)
+        reflection.build_association(attributes, options) do |record|
+          attributes = create_scope.except(*(record.changed - [reflection.foreign_key]))
+          record.assign_attributes(attributes, :without_protection => true)
         end
+      end
     end
   end
 end

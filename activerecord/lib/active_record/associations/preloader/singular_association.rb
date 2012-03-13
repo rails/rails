@@ -3,7 +3,7 @@ module ActiveRecord
     class Preloader
       class SingularAssociation < Association #:nodoc:
 
-        private
+      private
 
         def preload
           associated_records_by_owner.each do |owner, associated_records|

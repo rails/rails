@@ -78,40 +78,40 @@ module ActiveModel
         observer_instances.size
       end
 
-      protected
-        def instantiate_observer(observer) #:nodoc:
-          # string/symbol
-          if observer.respond_to?(:to_sym)
-            observer.to_s.camelize.constantize.instance
-          elsif observer.respond_to?(:instance)
-            observer.instance
-          else
-            raise ArgumentError,
-              "#{observer} must be a lowercase, underscored class name (or an " +
-              "instance of the class itself) responding to the instance " +
-              "method. Example: Person.observers = :big_brother # calls " +
-              "BigBrother.instance"
-          end
+    protected
+      def instantiate_observer(observer) #:nodoc:
+        # string/symbol
+        if observer.respond_to?(:to_sym)
+          observer.to_s.camelize.constantize.instance
+        elsif observer.respond_to?(:instance)
+          observer.instance
+        else
+          raise ArgumentError,
+            "#{observer} must be a lowercase, underscored class name (or an " +
+            "instance of the class itself) responding to the instance " +
+            "method. Example: Person.observers = :big_brother # calls " +
+            "BigBrother.instance"
         end
+      end
 
-        # Notify observers when the observed class is subclassed.
-        def inherited(subclass)
-          super
-          notify_observers :observed_class_inherited, subclass
-        end
+      # Notify observers when the observed class is subclassed.
+      def inherited(subclass)
+        super
+        notify_observers :observed_class_inherited, subclass
+      end
     end
 
-    private
-      # Fires notifications to model's observers
-      #
-      # def save
-      #   notify_observers(:before_save)
-      #   ...
-      #   notify_observers(:after_save)
-      # end
-      def notify_observers(method)
-        self.class.notify_observers(method, self)
-      end
+  private
+    # Fires notifications to model's observers
+    #
+    # def save
+    #   notify_observers(:before_save)
+    #   ...
+    #   notify_observers(:after_save)
+    # end
+    def notify_observers(method)
+      self.class.notify_observers(method, self)
+    end
   end
 
   # == Active Model Observers
@@ -237,15 +237,15 @@ module ActiveModel
       add_observer!(subclass)
     end
 
-    protected
-      def add_observer!(klass) #:nodoc:
-        klass.add_observer(self)
-      end
+  protected
+    def add_observer!(klass) #:nodoc:
+      klass.add_observer(self)
+    end
 
-      def disabled_for?(object)
-        klass = object.class
-        return false unless klass.respond_to?(:observers)
-        klass.observers.disabled_for?(self)
-      end
+    def disabled_for?(object)
+      klass = object.class
+      return false unless klass.respond_to?(:observers)
+      klass.observers.disabled_for?(self)
+    end
   end
 end

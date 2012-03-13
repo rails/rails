@@ -90,27 +90,27 @@ class Topic < ActiveRecord::Base
     write_attribute(:approved, val)
   end
 
-  protected
+protected
 
-    def default_written_on
-      self.written_on = Time.now unless attribute_present?("written_on")
+  def default_written_on
+    self.written_on = Time.now unless attribute_present?("written_on")
+  end
+
+  def destroy_children
+    self.class.delete_all "parent_id = #{id}"
+  end
+
+  def set_email_address
+    unless self.persisted?
+      self.author_email_address = 'test@test.com'
     end
+  end
 
-    def destroy_children
-      self.class.delete_all "parent_id = #{id}"
-    end
-
-    def set_email_address
-      unless self.persisted?
-        self.author_email_address = 'test@test.com'
-      end
-    end
-
-    def before_validation_for_transaction; end
-    def before_save_for_transaction; end
-    def before_destroy_for_transaction; end
-    def after_save_for_transaction; end
-    def after_create_for_transaction; end
+  def before_validation_for_transaction; end
+  def before_save_for_transaction; end
+  def before_destroy_for_transaction; end
+  def after_save_for_transaction; end
+  def after_create_for_transaction; end
 end
 
 class ImportantTopic < Topic

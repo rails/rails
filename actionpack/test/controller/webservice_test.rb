@@ -241,22 +241,22 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
-    def with_params_parsers(parsers = {})
-      old_session = @integration_session
-      @app = ActionDispatch::ParamsParser.new(app.routes, parsers)
-      reset!
-      yield
-    ensure
-      @integration_session = old_session
-    end
+private
+  def with_params_parsers(parsers = {})
+    old_session = @integration_session
+    @app = ActionDispatch::ParamsParser.new(app.routes, parsers)
+    reset!
+    yield
+  ensure
+    @integration_session = old_session
+  end
 
-    def with_test_route_set
-      with_routing do |set|
-        set.draw do
-          match '/', :to => 'web_service_test/test#assign_parameters'
-        end
-        yield
+  def with_test_route_set
+    with_routing do |set|
+      set.draw do
+        match '/', :to => 'web_service_test/test#assign_parameters'
       end
+      yield
     end
+  end
 end

@@ -44,7 +44,7 @@ module ActiveSupport
       end
     end
 
-    private
+  private
 
     # Convert an XML element and merge into the hash
     #

@@ -27,7 +27,7 @@ module ActionDispatch
       exception ? render_exception(env, exception) : response
     end
 
-    private
+  private
 
     def render_exception(env, exception)
       wrapper = ExceptionWrapper.new(env, exception)

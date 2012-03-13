@@ -160,26 +160,26 @@ class Author < ActiveRecord::Base
 
   validates_presence_of :name
 
-  private
-    def log_before_adding(object)
-      @post_log << "before_adding#{object.id || '<new>'}"
-    end
+private
+  def log_before_adding(object)
+    @post_log << "before_adding#{object.id || '<new>'}"
+  end
 
-    def log_after_adding(object)
-      @post_log << "after_adding#{object.id}"
-    end
+  def log_after_adding(object)
+    @post_log << "after_adding#{object.id}"
+  end
 
-    def log_before_removing(object)
-      @post_log << "before_removing#{object.id}"
-    end
+  def log_before_removing(object)
+    @post_log << "before_removing#{object.id}"
+  end
 
-    def log_after_removing(object)
-      @post_log << "after_removing#{object.id}"
-    end
+  def log_after_removing(object)
+    @post_log << "after_removing#{object.id}"
+  end
 
-    def raise_exception(object)
-      raise Exception.new("You can't add a post")
-    end
+  def raise_exception(object)
+    raise Exception.new("You can't add a post")
+  end
 end
 
 class AuthorAddress < ActiveRecord::Base

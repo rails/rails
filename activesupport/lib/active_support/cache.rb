@@ -85,7 +85,7 @@ module ActiveSupport
         expanded_cache_key
       end
 
-      private
+    private
 
       def retrieve_cache_key(key)
         case
@@ -433,95 +433,95 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
-      protected
-        # Add the namespace defined in the options to a pattern designed to match keys.
-        # Implementations that support delete_matched should call this method to translate
-        # a pattern that matches names into one that matches namespaced keys.
-        def key_matcher(pattern, options)
-          prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
-          if prefix
-            source = pattern.source
-            if source.start_with?('^')
-              source = source[1, source.length]
-            else
-              source = ".*#{source[0, source.length]}"
-            end
-            Regexp.new("^#{Regexp.escape(prefix)}:#{source}", pattern.options)
+    protected
+      # Add the namespace defined in the options to a pattern designed to match keys.
+      # Implementations that support delete_matched should call this method to translate
+      # a pattern that matches names into one that matches namespaced keys.
+      def key_matcher(pattern, options)
+        prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
+        if prefix
+          source = pattern.source
+          if source.start_with?('^')
+            source = source[1, source.length]
           else
-            pattern
+            source = ".*#{source[0, source.length]}"
           end
+          Regexp.new("^#{Regexp.escape(prefix)}:#{source}", pattern.options)
+        else
+          pattern
         end
+      end
 
-        # Read an entry from the cache implementation. Subclasses must implement this method.
-        def read_entry(key, options) # :nodoc:
-          raise NotImplementedError.new
+      # Read an entry from the cache implementation. Subclasses must implement this method.
+      def read_entry(key, options) # :nodoc:
+        raise NotImplementedError.new
+      end
+
+      # Write an entry to the cache implementation. Subclasses must implement this method.
+      def write_entry(key, entry, options) # :nodoc:
+        raise NotImplementedError.new
+      end
+
+      # Delete an entry from the cache implementation. Subclasses must implement this method.
+      def delete_entry(key, options) # :nodoc:
+        raise NotImplementedError.new
+      end
+
+    private
+      # Merge the default options with ones specific to a method call.
+      def merged_options(call_options) # :nodoc:
+        if call_options
+          options.merge(call_options)
+        else
+          options.dup
         end
+      end
 
-        # Write an entry to the cache implementation. Subclasses must implement this method.
-        def write_entry(key, entry, options) # :nodoc:
-          raise NotImplementedError.new
-        end
+      # Expand key to be a consistent string value. Invoke +cache_key+ if
+      # object responds to +cache_key+. Otherwise, to_param method will be
+      # called. If the key is a Hash, then keys will be sorted alphabetically.
+      def expanded_key(key) # :nodoc:
+        return key.cache_key.to_s if key.respond_to?(:cache_key)
 
-        # Delete an entry from the cache implementation. Subclasses must implement this method.
-        def delete_entry(key, options) # :nodoc:
-          raise NotImplementedError.new
-        end
-
-      private
-        # Merge the default options with ones specific to a method call.
-        def merged_options(call_options) # :nodoc:
-          if call_options
-            options.merge(call_options)
+        case key
+        when Array
+          if key.size > 1
+            key = key.collect{|element| expanded_key(element)}
           else
-            options.dup
+            key = key.first
           end
+        when Hash
+          key = key.sort_by { |k,_| k.to_s }.collect{|k,v| "#{k}=#{v}"}
         end
 
-        # Expand key to be a consistent string value. Invoke +cache_key+ if
-        # object responds to +cache_key+. Otherwise, to_param method will be
-        # called. If the key is a Hash, then keys will be sorted alphabetically.
-        def expanded_key(key) # :nodoc:
-          return key.cache_key.to_s if key.respond_to?(:cache_key)
+        key.to_param
+      end
 
-          case key
-          when Array
-            if key.size > 1
-              key = key.collect{|element| expanded_key(element)}
-            else
-              key = key.first
-            end
-          when Hash
-            key = key.sort_by { |k,_| k.to_s }.collect{|k,v| "#{k}=#{v}"}
-          end
+      # Prefix a key with the namespace. Namespace and key will be delimited with a colon.
+      def namespaced_key(key, options)
+        key = expanded_key(key)
+        namespace = options[:namespace] if options
+        prefix = namespace.is_a?(Proc) ? namespace.call : namespace
+        key = "#{prefix}:#{key}" if prefix
+        key
+      end
 
-          key.to_param
+      def instrument(operation, key, options = nil)
+        log(operation, key, options)
+
+        if self.class.instrument
+          payload = { :key => key }
+          payload.merge!(options) if options.is_a?(Hash)
+          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
+        else
+          yield(nil)
         end
+      end
 
-        # Prefix a key with the namespace. Namespace and key will be delimited with a colon.
-        def namespaced_key(key, options)
-          key = expanded_key(key)
-          namespace = options[:namespace] if options
-          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
-          key = "#{prefix}:#{key}" if prefix
-          key
-        end
-
-        def instrument(operation, key, options = nil)
-          log(operation, key, options)
-
-          if self.class.instrument
-            payload = { :key => key }
-            payload.merge!(options) if options.is_a?(Hash)
-            ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
-          else
-            yield(nil)
-          end
-        end
-
-        def log(operation, key, options = nil)
-          return unless logger && logger.debug? && !silence?
-          logger.debug("Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}")
-        end
+      def log(operation, key, options = nil)
+        return unless logger && logger.debug? && !silence?
+        logger.debug("Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}")
+      end
     end
 
     # Entry that is put into caches. It supports expiration time on entries and can compress values
@@ -612,14 +612,14 @@ module ActiveSupport
         end
       end
 
-      private
-        def should_compress?(serialized_value, options)
-          if options[:compress]
-            compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
-            return true if serialized_value.size >= compress_threshold
-          end
-          false
+    private
+      def should_compress?(serialized_value, options)
+        if options[:compress]
+          compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
+          return true if serialized_value.size >= compress_threshold
         end
+        false
+      end
     end
   end
 end

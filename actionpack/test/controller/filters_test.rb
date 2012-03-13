@@ -35,16 +35,16 @@ class FilterTest < ActionController::TestCase
       render :inline => "ran action"
     end
 
-    private
-      def ensure_login
-        @ran_filter ||= []
-        @ran_filter << "ensure_login"
-      end
+  private
+    def ensure_login
+      @ran_filter ||= []
+      @ran_filter << "ensure_login"
+    end
 
-      def clean_up
-        @ran_after_filter ||= []
-        @ran_after_filter << "clean_up"
-      end
+    def clean_up
+      @ran_after_filter ||= []
+      @ran_after_filter << "clean_up"
+    end
   end
 
   class ChangingTheRequirementsController < TestController
@@ -66,7 +66,7 @@ class FilterTest < ActionController::TestCase
       end
     end
 
-    protected
+  protected
     (1..3).each do |i|
       define_method "try_#{i}" do
         instance_variable_set :@try, i
@@ -86,25 +86,25 @@ class FilterTest < ActionController::TestCase
       render :inline => "ran action"
     end
 
-    private
-      def before_filter_rendering
-        @ran_filter ||= []
-        @ran_filter << "before_filter_rendering"
-        render :inline => "something else"
-      end
+  private
+    def before_filter_rendering
+      @ran_filter ||= []
+      @ran_filter << "before_filter_rendering"
+      render :inline => "something else"
+    end
 
-      def unreached_after_filter
-        @ran_filter << "unreached_after_filter_after_render"
-      end
+    def unreached_after_filter
+      @ran_filter << "unreached_after_filter_after_render"
+    end
   end
 
   class RenderingForPrependAfterFilterController < RenderingController
     prepend_after_filter :unreached_prepend_after_filter
 
-    private
-      def unreached_prepend_after_filter
-        @ran_filter << "unreached_preprend_after_filter_after_render"
-      end
+  private
+    def unreached_prepend_after_filter
+      @ran_filter << "unreached_preprend_after_filter_after_render"
+    end
   end
 
   class BeforeFilterRedirectionController < ActionController::Base
@@ -121,25 +121,25 @@ class FilterTest < ActionController::TestCase
       render :inline => "ran target_of_redirection action"
     end
 
-    private
-      def before_filter_redirects
-        @ran_filter ||= []
-        @ran_filter << "before_filter_redirects"
-        redirect_to(:action => 'target_of_redirection')
-      end
+  private
+    def before_filter_redirects
+      @ran_filter ||= []
+      @ran_filter << "before_filter_redirects"
+      redirect_to(:action => 'target_of_redirection')
+    end
 
-      def unreached_after_filter
-        @ran_filter << "unreached_after_filter_after_redirection"
-      end
+    def unreached_after_filter
+      @ran_filter << "unreached_after_filter_after_redirection"
+    end
   end
 
   class BeforeFilterRedirectionForPrependAfterFilterController < BeforeFilterRedirectionController
     prepend_after_filter :unreached_prepend_after_filter_after_redirection
 
-    private
-      def unreached_prepend_after_filter_after_redirection
-        @ran_filter << "unreached_prepend_after_filter_after_redirection"
-      end
+  private
+    def unreached_prepend_after_filter_after_redirection
+      @ran_filter << "unreached_prepend_after_filter_after_redirection"
+    end
   end
 
   class ConditionalFilterController < ActionController::Base
@@ -155,16 +155,16 @@ class FilterTest < ActionController::TestCase
       render :inline => "ran action without filter"
     end
 
-    private
-      def ensure_login
-        @ran_filter ||= []
-        @ran_filter << "ensure_login"
-      end
+  private
+    def ensure_login
+      @ran_filter ||= []
+      @ran_filter << "ensure_login"
+    end
 
-      def clean_up_tmp
-        @ran_filter ||= []
-        @ran_filter << "clean_up_tmp"
-      end
+    def clean_up_tmp
+      @ran_filter ||= []
+      @ran_filter << "clean_up_tmp"
+    end
   end
 
   class ConditionalCollectionFilterController < ConditionalFilterController
@@ -217,11 +217,11 @@ class FilterTest < ActionController::TestCase
     prepend_before_filter :wonderful_life
     # skip_before_filter :fire_flash
 
-    private
-      def wonderful_life
-        @ran_filter ||= []
-        @ran_filter << "wonderful_life"
-      end
+  private
+    def wonderful_life
+      @ran_filter ||= []
+      @ran_filter << "wonderful_life"
+    end
   end
 
   class SkippingAndLimitedController < TestController
@@ -246,11 +246,11 @@ class FilterTest < ActionController::TestCase
       render :text => 'ok'
     end
 
-    private
-      def find_record
-        @ran_filter ||= []
-        @ran_filter << "find_record"
-      end
+  private
+    def find_record
+      @ran_filter ||= []
+      @ran_filter << "find_record"
+    end
   end
 
   class ConditionalSkippingController < TestController
@@ -267,28 +267,28 @@ class FilterTest < ActionController::TestCase
       render :inline => "ran action"
     end
 
-    protected
-      def find_user
-        @ran_filter ||= []
-        @ran_filter << "find_user"
-      end
+  protected
+    def find_user
+      @ran_filter ||= []
+      @ran_filter << "find_user"
+    end
   end
 
   class ConditionalParentOfConditionalSkippingController < ConditionalFilterController
     before_filter :conditional_in_parent_before, :only => [:show, :another_action]
     after_filter  :conditional_in_parent_after, :only => [:show, :another_action]
 
-    private
+  private
 
-      def conditional_in_parent_before
-        @ran_filter ||= []
-        @ran_filter << 'conditional_in_parent_before'
-      end
+    def conditional_in_parent_before
+      @ran_filter ||= []
+      @ran_filter << 'conditional_in_parent_before'
+    end
 
-      def conditional_in_parent_after
-        @ran_filter ||= []
-        @ran_filter << 'conditional_in_parent_after'
-      end
+    def conditional_in_parent_after
+      @ran_filter ||= []
+      @ran_filter << 'conditional_in_parent_after'
+    end
   end
 
   class ChildOfConditionalParentController < ConditionalParentOfConditionalSkippingController
@@ -387,14 +387,14 @@ class FilterTest < ActionController::TestCase
       render :text => 'bar'
     end
 
-    protected
-      def first
-        @first = true
-      end
+  protected
+    def first
+      @first = true
+    end
 
-      def second
-        raise OutOfOrder unless @first
-      end
+    def second
+      raise OutOfOrder unless @first
+    end
   end
 
   class DynamicDispatchController < ActionController::Base
@@ -404,10 +404,10 @@ class FilterTest < ActionController::TestCase
       define_method(action) { render :text => action }
     end
 
-    private
-      def choose
-        self.action_name = params[:choose]
-      end
+  private
+    def choose
+      self.action_name = params[:choose]
+    end
   end
 
   class PrependingBeforeAndAfterController < ActionController::Base
@@ -465,25 +465,25 @@ class FilterTest < ActionController::TestCase
       render :inline => "index"
     end
 
-    private
+  private
 
-      def filter_one
-        @filters  ||= []
-        @filters  << "filter_one"
-      end
+    def filter_one
+      @filters  ||= []
+      @filters  << "filter_one"
+    end
 
-      def filter_two
-        @filters  << "filter_two"
-      end
+    def filter_two
+      @filters  << "filter_two"
+    end
 
-      def non_yielding_filter
-        @filters  << "it didn't yield"
-        @filter_return_value
-      end
+    def non_yielding_filter
+      @filters  << "it didn't yield"
+      @filter_return_value
+    end
 
-      def filter_three
-        @filters  << "filter_three"
-      end
+    def filter_three
+      @filters  << "filter_three"
+    end
 
   end
 
@@ -499,7 +499,7 @@ class FilterTest < ActionController::TestCase
     before_filter :find_only, :only => :edit
     before_filter :find_except, :except => :edit
 
-    private
+  private
 
     def find_only
       @only = 'Only'
@@ -805,14 +805,14 @@ class FilterTest < ActionController::TestCase
     assert_equal 'edit', response.body
   end
 
-  private
-    def test_process(controller, action = "show")
-      @controller = controller.is_a?(Class) ? controller.new : controller
-      @request    = ActionController::TestRequest.new
-      @response   = ActionController::TestResponse.new
+private
+  def test_process(controller, action = "show")
+    @controller = controller.is_a?(Class) ? controller.new : controller
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
 
-      process(action)
-    end
+    process(action)
+  end
 end
 
 class PostsController < ActionController::Base
@@ -829,10 +829,10 @@ class PostsController < ActionController::Base
 
   module_eval %w(raises_before raises_after raises_both no_raise no_filter).map { |action| "def #{action}; default_action end" }.join("\n")
 
-  private
-    def default_action
-      render :inline => "#{action_name} called"
-    end
+private
+  def default_action
+    render :inline => "#{action_name} called"
+  end
 end
 
 class ControllerWithSymbolAsFilter < PostsController
@@ -840,26 +840,26 @@ class ControllerWithSymbolAsFilter < PostsController
   around_filter :raise_after, :only => :raises_after
   around_filter :without_exception, :only => :no_raise
 
-  private
-    def raise_before
-      raise Before
-      yield
-    end
+private
+  def raise_before
+    raise Before
+    yield
+  end
 
-    def raise_after
-      yield
-      raise After
-    end
+  def raise_after
+    yield
+    raise After
+  end
 
-    def without_exception
-      # Do stuff...
-      wtf = 1 + 1
+  def without_exception
+    # Do stuff...
+    wtf = 1 + 1
 
-      yield
+    yield
 
-      # Do stuff...
-      wtf += 1
-    end
+    # Do stuff...
+    wtf += 1
+  end
 end
 
 class ControllerWithFilterClass < PostsController
@@ -913,7 +913,7 @@ class ControllerWithAllTypesOfFilters < PostsController
   after_filter :after
   around_filter :around_again
 
-  private
+private
   def before
     @ran_filter ||= []
     @ran_filter << 'before'
@@ -1025,9 +1025,9 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     assert_equal 3, controller.instance_variable_get(:@try)
   end
 
-  protected
-    def test_process(controller, action = "show")
-      @controller = controller.is_a?(Class) ? controller.new : controller
-      process(action)
-    end
+protected
+  def test_process(controller, action = "show")
+    @controller = controller.is_a?(Class) ? controller.new : controller
+    process(action)
+  end
 end

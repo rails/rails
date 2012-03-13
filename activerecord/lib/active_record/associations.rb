@@ -160,16 +160,16 @@ module ActiveRecord
       association
     end
 
-    private
-      # Returns the specified association instance if it responds to :loaded?, nil otherwise.
-      def association_instance_get(name)
-        @association_cache[name.to_sym]
-      end
+  private
+    # Returns the specified association instance if it responds to :loaded?, nil otherwise.
+    def association_instance_get(name)
+      @association_cache[name.to_sym]
+    end
 
-      # Set the specified association instance.
-      def association_instance_set(name, association)
-        @association_cache[name] = association
-      end
+    # Set the specified association instance.
+    def association_instance_set(name, association)
+      @association_cache[name] = association
+    end
 
     # Associations are a set of macro-like class methods for tying objects together through
     # foreign keys. They express relationships like "Project has one Project Manager"

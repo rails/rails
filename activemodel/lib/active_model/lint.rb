@@ -95,15 +95,15 @@ module ActiveModel
         assert model.errors[:hello].is_a?(Array), "errors#[] should return an Array"
       end
 
-      private
-        def model
-          assert @model.respond_to?(:to_model), "The object should respond_to to_model"
-          @model.to_model
-        end
+    private
+      def model
+        assert @model.respond_to?(:to_model), "The object should respond_to to_model"
+        @model.to_model
+      end
 
-        def assert_boolean(result, name)
-          assert result == true || result == false, "#{name} should be a boolean"
-        end
+      def assert_boolean(result, name)
+        assert result == true || result == false, "#{name} should be a boolean"
+      end
     end
   end
 end

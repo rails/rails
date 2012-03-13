@@ -573,16 +573,16 @@ module ActionController
         end
       end
 
-      protected
-        def rescue_action_without_handler(e)
-          self.exception = e
+    protected
+      def rescue_action_without_handler(e)
+        self.exception = e
 
-          if request.remote_addr == "0.0.0.0"
-            raise(e)
-          else
-            super(e)
-          end
+        if request.remote_addr == "0.0.0.0"
+          raise(e)
+        else
+          super(e)
         end
+      end
     end
 
     include Behavior

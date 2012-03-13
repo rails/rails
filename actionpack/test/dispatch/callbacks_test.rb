@@ -47,12 +47,12 @@ class DispatcherTest < ActiveSupport::TestCase
     assert cleaned
   end
 
-  private
+private
 
-    def dispatch(&block)
-      ActionDispatch::Callbacks.new(block || DummyApp.new).call(
-        {'rack.input' => StringIO.new('')}
-      )
-    end
+  def dispatch(&block)
+    ActionDispatch::Callbacks.new(block || DummyApp.new).call(
+      {'rack.input' => StringIO.new('')}
+    )
+  end
 
 end

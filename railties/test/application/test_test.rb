@@ -77,16 +77,16 @@ module ApplicationTests
       run_test_file 'performance/posts_test.rb'
     end
 
-    private
-      def run_test_file(name)
-        result = ruby '-Itest', "#{app_path}/test/#{name}"
-        assert_equal 0, $?.to_i, result
-      end
+  private
+    def run_test_file(name)
+      result = ruby '-Itest', "#{app_path}/test/#{name}"
+      assert_equal 0, $?.to_i, result
+    end
 
-      def ruby(*args)
-        Dir.chdir(app_path) do
-          `RUBYLIB='#{$:.join(':')}' #{Gem.ruby} #{args.join(' ')}`
-        end
+    def ruby(*args)
+      Dir.chdir(app_path) do
+        `RUBYLIB='#{$:.join(':')}' #{Gem.ruby} #{args.join(' ')}`
       end
+    end
   end
 end

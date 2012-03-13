@@ -32,33 +32,33 @@ module ActiveRecord
         record
       end
 
-      private
+    private
 
-        def create_scope
-          scoped.scope_for_create.stringify_keys.except(klass.primary_key)
-        end
+      def create_scope
+        scoped.scope_for_create.stringify_keys.except(klass.primary_key)
+      end
 
-        def find_target
-          scoped.first.tap { |record| set_inverse_instance(record) }
-        end
+      def find_target
+        scoped.first.tap { |record| set_inverse_instance(record) }
+      end
 
-        # Implemented by subclasses
-        def replace(record)
-          raise NotImplementedError, "Subclasses must implement a replace(record) method"
-        end
+      # Implemented by subclasses
+      def replace(record)
+        raise NotImplementedError, "Subclasses must implement a replace(record) method"
+      end
 
-        def set_new_record(record)
-          replace(record)
-        end
+      def set_new_record(record)
+        replace(record)
+      end
 
-        def create_record(attributes, options, raise_error = false)
-          record = build_record(attributes, options)
-          yield(record) if block_given?
-          saved = record.save
-          set_new_record(record)
-          raise RecordInvalid.new(record) if !saved && raise_error
-          record
-        end
+      def create_record(attributes, options, raise_error = false)
+        record = build_record(attributes, options)
+        yield(record) if block_given?
+        saved = record.save
+        set_new_record(record)
+        raise RecordInvalid.new(record) if !saved && raise_error
+        record
+      end
     end
   end
 end

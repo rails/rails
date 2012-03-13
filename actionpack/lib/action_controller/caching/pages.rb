@@ -124,22 +124,22 @@ module ActionController #:nodoc:
           end
         end
 
-        private
-          def page_cache_file(path, extension)
-            name = (path.empty? || path == "/") ? "/index" : URI.parser.unescape(path.chomp('/'))
-            unless (name.split('/').last || name).include? '.'
-              name << (extension || self.page_cache_extension)
-            end
-            return name
+      private
+        def page_cache_file(path, extension)
+          name = (path.empty? || path == "/") ? "/index" : URI.parser.unescape(path.chomp('/'))
+          unless (name.split('/').last || name).include? '.'
+            name << (extension || self.page_cache_extension)
           end
+          return name
+        end
 
-          def page_cache_path(path, extension = nil)
-            page_cache_directory.to_s + page_cache_file(path, extension)
-          end
+        def page_cache_path(path, extension = nil)
+          page_cache_directory.to_s + page_cache_file(path, extension)
+        end
 
-          def instrument_page_cache(name, path)
-            ActiveSupport::Notifications.instrument("#{name}.action_controller", :path => path){ yield }
-          end
+        def instrument_page_cache(name, path)
+          ActiveSupport::Notifications.instrument("#{name}.action_controller", :path => path){ yield }
+        end
       end
 
       # Expires the page that was cached with the +options+ as a key. Example:

@@ -56,7 +56,7 @@ module ActiveRecord
         end
       end
 
-      private
+    private
       def insert(ctx, data)
         binds   = data.map { |name, value|
           [ctx.columns('ex').find { |x| x.name == name }, value]

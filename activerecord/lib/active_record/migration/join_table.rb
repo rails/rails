@@ -1,7 +1,7 @@
 module ActiveRecord
   class Migration
     module JoinTable #:nodoc:
-      private
+    private
 
       def find_join_table_name(table_1, table_2, options = {})
         options.delete(:table_name) { join_table_name(table_1, table_2) }

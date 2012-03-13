@@ -460,12 +460,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     "form_token"
   end
 
-  private
-    def sort_query_string_params(uri)
-      path, qs = uri.split('?')
-      qs = qs.split('&amp;').sort.join('&amp;') if qs
-      qs ? "#{path}?#{qs}" : path
-    end
+private
+  def sort_query_string_params(uri)
+    path, qs = uri.split('?')
+    qs = qs.split('&amp;').sort.join('&amp;') if qs
+    qs ? "#{path}?#{qs}" : path
+  end
 end
 
 class UrlHelperControllerTest < ActionController::TestCase
@@ -613,12 +613,12 @@ class TasksController < ActionController::Base
     render_default
   end
 
-  protected
-    def render_default
-      render :inline =>
-        "<%= link_to_unless_current(\"tasks\", tasks_path) %>\n" +
-        "<%= link_to_unless_current(\"tasks\", tasks_url) %>"
-    end
+protected
+  def render_default
+    render :inline =>
+      "<%= link_to_unless_current(\"tasks\", tasks_path) %>\n" +
+      "<%= link_to_unless_current(\"tasks\", tasks_url) %>"
+  end
 end
 
 class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase

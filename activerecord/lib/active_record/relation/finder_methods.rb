@@ -203,7 +203,7 @@ module ActiveRecord
       connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
     end
 
-    protected
+  protected
 
     def find_with_associations
       join_dependency = construct_join_dependency_for_association_find

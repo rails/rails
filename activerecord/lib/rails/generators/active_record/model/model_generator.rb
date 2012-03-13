@@ -36,11 +36,11 @@ module ActiveRecord
 
       hook_for :test_framework
 
-      protected
+    protected
 
-        def parent_class_name
-          options[:parent] || "ActiveRecord::Base"
-        end
+      def parent_class_name
+        options[:parent] || "ActiveRecord::Base"
+      end
 
     end
   end

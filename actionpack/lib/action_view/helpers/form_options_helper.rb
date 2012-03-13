@@ -651,51 +651,51 @@ module ActionView
         Tags::CollectionCheckBoxes.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
       end
 
-      private
-        def option_html_attributes(element)
-          return {} unless Array === element
+    private
+      def option_html_attributes(element)
+        return {} unless Array === element
 
-          Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, ERB::Util.html_escape(v.to_s)] }]
-        end
+        Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, ERB::Util.html_escape(v.to_s)] }]
+      end
 
-        def option_text_and_value(option)
-          # Options are [text, value] pairs or strings used for both.
-          if !option.is_a?(String) && option.respond_to?(:first) && option.respond_to?(:last)
-            option = option.reject { |e| Hash === e } if Array === option
-            [option.first, option.last]
-          else
-            [option, option]
-          end
+      def option_text_and_value(option)
+        # Options are [text, value] pairs or strings used for both.
+        if !option.is_a?(String) && option.respond_to?(:first) && option.respond_to?(:last)
+          option = option.reject { |e| Hash === e } if Array === option
+          [option.first, option.last]
+        else
+          [option, option]
         end
+      end
 
-        def option_value_selected?(value, selected)
-          Array(selected).include? value
-        end
+      def option_value_selected?(value, selected)
+        Array(selected).include? value
+      end
 
-        def extract_selected_and_disabled(selected)
-          if selected.is_a?(Proc)
-            [selected, nil]
-          else
-            selected = Array.wrap(selected)
-            options = selected.extract_options!.symbolize_keys
-            selected_items = options.fetch(:selected, selected)
-            [selected_items, options[:disabled]]
-          end
+      def extract_selected_and_disabled(selected)
+        if selected.is_a?(Proc)
+          [selected, nil]
+        else
+          selected = Array.wrap(selected)
+          options = selected.extract_options!.symbolize_keys
+          selected_items = options.fetch(:selected, selected)
+          [selected_items, options[:disabled]]
         end
+      end
 
-        def extract_values_from_collection(collection, value_method, selected)
-          if selected.is_a?(Proc)
-            collection.map do |element|
-              element.send(value_method) if selected.call(element)
-            end.compact
-          else
-            selected
-          end
+      def extract_values_from_collection(collection, value_method, selected)
+        if selected.is_a?(Proc)
+          collection.map do |element|
+            element.send(value_method) if selected.call(element)
+          end.compact
+        else
+          selected
         end
+      end
 
-        def value_for_collection(item, value)
-          value.respond_to?(:call) ? value.call(item) : item.send(value)
-        end
+      def value_for_collection(item, value)
+        value.respond_to?(:call) ? value.call(item) : item.send(value)
+      end
     end
 
     class FormBuilder

@@ -219,37 +219,37 @@ module ActiveRecord
         create_reflection(:composed_of, part_id, options, self)
       end
 
-      private
-        def reader_method(name, class_name, mapping, allow_nil, constructor)
-          define_method(name) do
-            if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
-              attrs = mapping.collect {|pair| read_attribute(pair.first)}
-              object = constructor.respond_to?(:call) ?
-                constructor.call(*attrs) :
-                class_name.constantize.send(constructor, *attrs)
-              @aggregation_cache[name] = object
+    private
+      def reader_method(name, class_name, mapping, allow_nil, constructor)
+        define_method(name) do
+          if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
+            attrs = mapping.collect {|pair| read_attribute(pair.first)}
+            object = constructor.respond_to?(:call) ?
+              constructor.call(*attrs) :
+              class_name.constantize.send(constructor, *attrs)
+            @aggregation_cache[name] = object
+          end
+          @aggregation_cache[name]
+        end
+      end
+
+      def writer_method(name, class_name, mapping, allow_nil, converter)
+        define_method("#{name}=") do |part|
+          if part.nil? && allow_nil
+            mapping.each { |pair| self[pair.first] = nil }
+            @aggregation_cache[name] = nil
+          else
+            unless part.is_a?(class_name.constantize) || converter.nil?
+              part = converter.respond_to?(:call) ?
+                converter.call(part) :
+                class_name.constantize.send(converter, part)
             end
-            @aggregation_cache[name]
+
+            mapping.each { |pair| self[pair.first] = part.send(pair.last) }
+            @aggregation_cache[name] = part.freeze
           end
         end
-
-        def writer_method(name, class_name, mapping, allow_nil, converter)
-          define_method("#{name}=") do |part|
-            if part.nil? && allow_nil
-              mapping.each { |pair| self[pair.first] = nil }
-              @aggregation_cache[name] = nil
-            else
-              unless part.is_a?(class_name.constantize) || converter.nil?
-                part = converter.respond_to?(:call) ?
-                  converter.call(part) :
-                  class_name.constantize.send(converter, part)
-              end
-
-              mapping.each { |pair| self[pair.first] = part.send(pair.last) }
-              @aggregation_cache[name] = part.freeze
-            end
-          end
-        end
+      end
     end
   end
 end

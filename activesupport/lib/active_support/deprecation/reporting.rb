@@ -31,35 +31,35 @@ module ActiveSupport
         end
       end
 
-      private
-        def deprecation_message(callstack, message = nil)
-          message ||= "You are using deprecated behavior which will be removed from the next major or minor release."
-          message += '.' unless message =~ /\.$/
-          "DEPRECATION WARNING: #{message} #{deprecation_caller_message(callstack)}"
-        end
+    private
+      def deprecation_message(callstack, message = nil)
+        message ||= "You are using deprecated behavior which will be removed from the next major or minor release."
+        message += '.' unless message =~ /\.$/
+        "DEPRECATION WARNING: #{message} #{deprecation_caller_message(callstack)}"
+      end
 
-        def deprecation_caller_message(callstack)
-          file, line, method = extract_callstack(callstack)
-          if file
-            if line && method
-              "(called from #{method} at #{file}:#{line})"
-            else
-              "(called from #{file}:#{line})"
-            end
+      def deprecation_caller_message(callstack)
+        file, line, method = extract_callstack(callstack)
+        if file
+          if line && method
+            "(called from #{method} at #{file}:#{line})"
+          else
+            "(called from #{file}:#{line})"
           end
         end
+      end
 
-        def extract_callstack(callstack)
-          rails_gem_root = File.expand_path("../../../../..", __FILE__) + "/"
-          offending_line = callstack.find { |line| !line.start_with?(rails_gem_root) } || callstack.first
-          if offending_line
-            if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
-              md.captures
-            else
-              offending_line
-            end
+      def extract_callstack(callstack)
+        rails_gem_root = File.expand_path("../../../../..", __FILE__) + "/"
+        offending_line = callstack.find { |line| !line.start_with?(rails_gem_root) } || callstack.first
+        if offending_line
+          if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
+            md.captures
+          else
+            offending_line
           end
         end
+      end
     end
   end
 end

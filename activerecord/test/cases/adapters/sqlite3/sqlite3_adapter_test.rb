@@ -330,7 +330,7 @@ module ActiveRecord
         assert_nil @conn.primary_key('failboat')
       end
 
-      private
+    private
 
       def assert_logged logs
         intercept_logs_on @conn

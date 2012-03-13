@@ -141,7 +141,7 @@ if RUBY_PLATFORM =~ /java/
       eoxml
     end
 
-    private
+  private
     def assert_equal_rexml(xml)
       hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
       assert_equal(hash, XmlMini.parse(xml))

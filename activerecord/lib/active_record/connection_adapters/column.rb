@@ -200,94 +200,94 @@ module ActiveRecord
           end
         end
 
-        protected
-          # '0.123456' -> 123456
-          # '1.123456' -> 123456
-          def microseconds(time)
-            ((time[:sec_fraction].to_f % 1) * 1_000_000).to_i
+      protected
+        # '0.123456' -> 123456
+        # '1.123456' -> 123456
+        def microseconds(time)
+          ((time[:sec_fraction].to_f % 1) * 1_000_000).to_i
+        end
+
+        def new_date(year, mon, mday)
+          if year && year != 0
+            Date.new(year, mon, mday) rescue nil
           end
+        end
 
-          def new_date(year, mon, mday)
-            if year && year != 0
-              Date.new(year, mon, mday) rescue nil
-            end
+        def new_time(year, mon, mday, hour, min, sec, microsec)
+          # Treat 0000-00-00 00:00:00 as nil.
+          return nil if year.nil? || (year == 0 && mon == 0 && mday == 0)
+
+          Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+        end
+
+        def fast_string_to_date(string)
+          if string =~ Format::ISO_DATE
+            new_date $1.to_i, $2.to_i, $3.to_i
           end
+        end
 
-          def new_time(year, mon, mday, hour, min, sec, microsec)
-            # Treat 0000-00-00 00:00:00 as nil.
-            return nil if year.nil? || (year == 0 && mon == 0 && mday == 0)
-
-            Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+        # Doesn't handle time zones.
+        def fast_string_to_time(string)
+          if string =~ Format::ISO_DATETIME
+            microsec = ($7.to_f * 1_000_000).to_i
+            new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
           end
+        end
 
-          def fast_string_to_date(string)
-            if string =~ Format::ISO_DATE
-              new_date $1.to_i, $2.to_i, $3.to_i
-            end
-          end
+        def fallback_string_to_date(string)
+          new_date(*::Date._parse(string, false).values_at(:year, :mon, :mday))
+        end
 
-          # Doesn't handle time zones.
-          def fast_string_to_time(string)
-            if string =~ Format::ISO_DATETIME
-              microsec = ($7.to_f * 1_000_000).to_i
-              new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
-            end
-          end
+        def fallback_string_to_time(string)
+          time_hash = Date._parse(string)
+          time_hash[:sec_fraction] = microseconds(time_hash)
 
-          def fallback_string_to_date(string)
-            new_date(*::Date._parse(string, false).values_at(:year, :mon, :mday))
-          end
-
-          def fallback_string_to_time(string)
-            time_hash = Date._parse(string)
-            time_hash[:sec_fraction] = microseconds(time_hash)
-
-            new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction))
-          end
+          new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction))
+        end
       end
 
-      private
-        def extract_limit(sql_type)
-          $1.to_i if sql_type =~ /\((.*)\)/
-        end
+    private
+      def extract_limit(sql_type)
+        $1.to_i if sql_type =~ /\((.*)\)/
+      end
 
-        def extract_precision(sql_type)
-          $2.to_i if sql_type =~ /^(numeric|decimal|number)\((\d+)(,\d+)?\)/i
-        end
+      def extract_precision(sql_type)
+        $2.to_i if sql_type =~ /^(numeric|decimal|number)\((\d+)(,\d+)?\)/i
+      end
 
-        def extract_scale(sql_type)
-          case sql_type
-            when /^(numeric|decimal|number)\((\d+)\)/i then 0
-            when /^(numeric|decimal|number)\((\d+)(,(\d+))\)/i then $4.to_i
-          end
+      def extract_scale(sql_type)
+        case sql_type
+          when /^(numeric|decimal|number)\((\d+)\)/i then 0
+          when /^(numeric|decimal|number)\((\d+)(,(\d+))\)/i then $4.to_i
         end
+      end
 
-        def simplified_type(field_type)
-          case field_type
-          when /int/i
-            :integer
-          when /float|double/i
-            :float
-          when /decimal|numeric|number/i
-            extract_scale(field_type) == 0 ? :integer : :decimal
-          when /datetime/i
-            :datetime
-          when /timestamp/i
-            :timestamp
-          when /time/i
-            :time
-          when /date/i
-            :date
-          when /clob/i, /text/i
-            :text
-          when /blob/i, /binary/i
-            :binary
-          when /char/i, /string/i
-            :string
-          when /boolean/i
-            :boolean
-          end
+      def simplified_type(field_type)
+        case field_type
+        when /int/i
+          :integer
+        when /float|double/i
+          :float
+        when /decimal|numeric|number/i
+          extract_scale(field_type) == 0 ? :integer : :decimal
+        when /datetime/i
+          :datetime
+        when /timestamp/i
+          :timestamp
+        when /time/i
+          :time
+        when /date/i
+          :date
+        when /clob/i, /text/i
+          :text
+        when /blob/i, /binary/i
+          :binary
+        when /char/i, /string/i
+          :string
+        when /boolean/i
+          :boolean
         end
+      end
     end
   end
   # :startdoc:

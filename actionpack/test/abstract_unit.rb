@@ -107,13 +107,13 @@ module SetupOnce
     end
   end
 
-  private
-    def run_setup_once
-      if self.setup_once_block
-        self.setup_once_block.call
-        self.setup_once_block = nil
-      end
+private
+  def run_setup_once
+    if self.setup_once_block
+      self.setup_once_block.call
+      self.setup_once_block = nil
     end
+  end
 end
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
@@ -187,7 +187,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   # Stub Rails dispatcher so it does not get controller references and
   # simply return the controller#action as Rack::Body.
   class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
-    protected
+  protected
     def controller_reference(controller_param)
       controller_param
     end
@@ -335,7 +335,7 @@ end
 
 module ActionDispatch
   class DebugExceptions
-    private
+  private
     remove_method :stderr_logger
     # Silence logger
     def stderr_logger

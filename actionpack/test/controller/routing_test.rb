@@ -1693,16 +1693,16 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal("/blog/2006",       url_for(set, { :year => 2006, :month => nil }, last_request))
   end
 
-  private
-    def assert_uri_equal(expected, actual)
-      assert_equal(sort_query_string_params(expected), sort_query_string_params(actual))
-    end
+private
+  def assert_uri_equal(expected, actual)
+    assert_equal(sort_query_string_params(expected), sort_query_string_params(actual))
+  end
 
-    def sort_query_string_params(uri)
-      path, qs = uri.split('?')
-      qs = qs.split('&').sort.join('&') if qs
-      qs ? "#{path}?#{qs}" : path
-    end
+  def sort_query_string_params(uri)
+    path, qs = uri.split('?')
+    qs = qs.split('&').sort.join('&') if qs
+    qs ? "#{path}?#{qs}" : path
+  end
 end
 
 class RackMountIntegrationTests < ActiveSupport::TestCase
@@ -1874,18 +1874,18 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'people', :action => 'create', :person => { :name => 'Josh'}}, params)
   end
 
-  private
-    def sort_extras!(extras)
-      if extras.length == 2
-        extras[1].sort! { |a, b| a.to_s <=> b.to_s }
-      end
-      extras
+private
+  def sort_extras!(extras)
+    if extras.length == 2
+      extras[1].sort! { |a, b| a.to_s <=> b.to_s }
     end
+    extras
+  end
 
-    def assert_raise(e)
-      result = yield
-      flunk "Did not raise #{e}, but returned #{result.inspect}"
-    rescue e
-      assert true
-    end
+  def assert_raise(e)
+    result = yield
+    flunk "Did not raise #{e}, but returned #{result.inspect}"
+  rescue e
+    assert true
+  end
 end

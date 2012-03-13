@@ -36,27 +36,27 @@ module ActiveRecord
       # SQL-only implementation.
       alias delete_all_on_destroy delete_all
 
-      private
+    private
 
-        def count_records
-          load_target.size
-        end
+      def count_records
+        load_target.size
+      end
 
-        def delete_records(records, method)
-          if sql = options[:delete_sql]
-            records.each { |record| owner.connection.delete(interpolate(sql, record)) }
-          else
-            relation = join_table
-            stmt = relation.where(relation[reflection.foreign_key].eq(owner.id).
-              and(relation[reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
-            ).compile_delete
-            owner.connection.delete stmt
-          end
+      def delete_records(records, method)
+        if sql = options[:delete_sql]
+          records.each { |record| owner.connection.delete(interpolate(sql, record)) }
+        else
+          relation = join_table
+          stmt = relation.where(relation[reflection.foreign_key].eq(owner.id).
+            and(relation[reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
+          ).compile_delete
+          owner.connection.delete stmt
         end
+      end
 
-        def invertible_for?(record)
-          false
-        end
+      def invertible_for?(record)
+        false
+      end
     end
   end
 end

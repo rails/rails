@@ -16,7 +16,7 @@ class Company < AbstractCompany
     "I am Jack's profound disappointment"
   end
 
-  private
+private
 
   def private_method
     "I am Jack's innermost fears and aspirations"
@@ -95,14 +95,14 @@ class Firm < Company
     @log ||= []
   end
 
-  private
-    def log_before_remove(record)
-      log << "before_remove#{record.id}"
-    end
+private
+  def log_before_remove(record)
+    log << "before_remove#{record.id}"
+  end
 
-    def log_after_remove(record)
-      log << "after_remove#{record.id}"
-    end
+  def log_after_remove(record)
+    log << "after_remove#{record.id}"
+  end
 end
 
 class DependentFirm < Company
@@ -169,7 +169,7 @@ class Client < Company
   end
 
   class << self
-    private
+  private
 
     def private_method
       "darkness"
@@ -207,13 +207,13 @@ class Account < ActiveRecord::Base
 
   validate :check_empty_credit_limit
 
-  protected
+protected
 
   def check_empty_credit_limit
     errors.add_on_empty "credit_limit"
   end
 
-  private
+private
 
   def private_method
     "Sir, yes sir!"

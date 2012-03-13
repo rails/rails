@@ -150,14 +150,14 @@ class RespondToController < ActionController::Base
     end
   end
 
-  protected
-    def set_layout
-      if action_name.in?(["all_types_with_layout", "iphone_with_html_response_type"])
-        "respond_to/layouts/standard"
-      elsif action_name == "iphone_with_html_response_type_without_layout"
-        "respond_to/layouts/missing"
-      end
+protected
+  def set_layout
+    if action_name.in?(["all_types_with_layout", "iphone_with_html_response_type"])
+      "respond_to/layouts/standard"
+    elsif action_name == "iphone_with_html_response_type_without_layout"
+      "respond_to/layouts/missing"
     end
+  end
 end
 
 class StarStarMimeControllerTest < ActionController::TestCase
@@ -1110,19 +1110,19 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
-  private
-    def with_test_route_set
-      with_routing do |set|
-        set.draw do
+private
+  def with_test_route_set
+    with_routing do |set|
+      set.draw do
+        resources :customers
+        resources :quiz_stores do
           resources :customers
-          resources :quiz_stores do
-            resources :customers
-          end
-          match ":controller/:action"
         end
-        yield
+        match ":controller/:action"
       end
+      yield
     end
+  end
 end
 
 class AbstractPostController < ActionController::Base

@@ -48,7 +48,7 @@ module ShowExceptions
   end
 
   class ShowExceptionsOverridenController < ShowExceptionsController
-    private
+  private
 
     def show_detailed_exceptions?
       params['detailed'] == '1'

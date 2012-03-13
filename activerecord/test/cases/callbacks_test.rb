@@ -90,11 +90,11 @@ class ImmutableDeveloper < ActiveRecord::Base
     @cancelled == true
   end
 
-  private
-    def cancel
-      @cancelled = true
-      false
-    end
+private
+  def cancel
+    @cancelled = true
+    false
+  end
 end
 
 class ImmutableMethodDeveloper < ActiveRecord::Base

@@ -528,16 +528,16 @@ module ActiveRecord
 
     delegate :migrate, :announce, :write, :to => :migration
 
-    private
+  private
 
-      def migration
-        @migration ||= load_migration
-      end
+    def migration
+      @migration ||= load_migration
+    end
 
-      def load_migration
-        require(File.expand_path(filename))
-        name.constantize.new
-      end
+    def load_migration
+      require(File.expand_path(filename))
+      name.constantize.new
+    end
 
   end
 
@@ -639,7 +639,7 @@ module ActiveRecord
         migrations.sort_by(&:version)
       end
 
-      private
+    private
 
       def move(direction, migrations_paths, steps)
         migrator = self.new(direction, migrations(migrations_paths))
@@ -743,7 +743,7 @@ block argument to migrate is deprecated, please filter migrations before constru
       @migrated_versions ||= Set.new(self.class.get_all_versions)
     end
 
-    private
+  private
     def ran?(migration)
       migrated.include?(migration.version.to_i)
     end

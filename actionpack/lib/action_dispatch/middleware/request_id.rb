@@ -22,15 +22,15 @@ module ActionDispatch
       @app.call(env).tap { |status, headers, body| headers["X-Request-Id"] = env["action_dispatch.request_id"] }
     end
 
-    private
-      def external_request_id(env)
-        if request_id = env["HTTP_X_REQUEST_ID"].presence
-          request_id.gsub(/[^\w\-]/, "").first(255)
-        end
+  private
+    def external_request_id(env)
+      if request_id = env["HTTP_X_REQUEST_ID"].presence
+        request_id.gsub(/[^\w\-]/, "").first(255)
       end
+    end
 
-      def internal_request_id
-        SecureRandom.uuid
-      end
+    def internal_request_id
+      SecureRandom.uuid
+    end
   end
 end

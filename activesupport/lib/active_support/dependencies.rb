@@ -141,7 +141,7 @@ module ActiveSupport #:nodoc:
         @watching << watching
       end
 
-      private
+    private
       def pop_modules(modules)
         modules.each { |mod| @stack[mod].pop }
       end
@@ -666,23 +666,23 @@ module ActiveSupport #:nodoc:
       return true
     end
 
-    protected
-      def log_call(*args)
-        if log_activity?
-          arg_str = args.collect { |arg| arg.inspect } * ', '
-          /in `([a-z_\?\!]+)'/ =~ caller(1).first
-          selector = $1 || '<unknown>'
-          log "called #{selector}(#{arg_str})"
-        end
+  protected
+    def log_call(*args)
+      if log_activity?
+        arg_str = args.collect { |arg| arg.inspect } * ', '
+        /in `([a-z_\?\!]+)'/ =~ caller(1).first
+        selector = $1 || '<unknown>'
+        log "called #{selector}(#{arg_str})"
       end
+    end
 
-      def log(msg)
-        logger.debug "Dependencies: #{msg}" if log_activity?
-      end
+    def log(msg)
+      logger.debug "Dependencies: #{msg}" if log_activity?
+    end
 
-      def log_activity?
-        logger && log_activity
-      end
+    def log_activity?
+      logger && log_activity
+    end
   end
 end
 

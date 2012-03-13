@@ -73,7 +73,7 @@ module MyApplication
 
       validate :check_empty_credit_limit
 
-      protected
+    protected
 
       def check_empty_credit_limit
         errors.add_on_empty "credit_limit"

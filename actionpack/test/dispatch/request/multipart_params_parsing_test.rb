@@ -123,30 +123,30 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
-    def fixture(name)
-      File.open(File.join(FIXTURE_PATH, name), 'rb') do |file|
-        { "rack.input" => file.read,
-          "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
-          "CONTENT_LENGTH" => file.stat.size.to_s }
-      end
+private
+  def fixture(name)
+    File.open(File.join(FIXTURE_PATH, name), 'rb') do |file|
+      { "rack.input" => file.read,
+        "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+        "CONTENT_LENGTH" => file.stat.size.to_s }
     end
+  end
 
-    def parse_multipart(name)
-      with_test_routing do
-        headers = fixture(name)
-        post "/parse", headers.delete("rack.input"), headers
-        assert_response :ok
-        TestController.last_request_parameters
-      end
+  def parse_multipart(name)
+    with_test_routing do
+      headers = fixture(name)
+      post "/parse", headers.delete("rack.input"), headers
+      assert_response :ok
+      TestController.last_request_parameters
     end
+  end
 
-    def with_test_routing
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => 'multipart_params_parsing_test/test'
-        end
-        yield
+  def with_test_routing
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => 'multipart_params_parsing_test/test'
       end
+      yield
     end
+  end
 end

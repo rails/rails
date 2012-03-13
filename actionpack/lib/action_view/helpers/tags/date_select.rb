@@ -18,7 +18,7 @@ module ActionView
           end
         end
 
-        private
+      private
 
         def select_type
           self.class.select_type

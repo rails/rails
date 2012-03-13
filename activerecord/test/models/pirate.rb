@@ -59,26 +59,26 @@ class Pirate < ActiveRecord::Base
     false
   end
 
-  private
-    def log_before_add(record)
-      log(record, "before_adding_method")
-    end
+private
+  def log_before_add(record)
+    log(record, "before_adding_method")
+  end
 
-    def log_after_add(record)
-      log(record, "after_adding_method")
-    end
+  def log_after_add(record)
+    log(record, "after_adding_method")
+  end
 
-    def log_before_remove(record)
-      log(record, "before_removing_method")
-    end
+  def log_before_remove(record)
+    log(record, "before_removing_method")
+  end
 
-    def log_after_remove(record)
-      log(record, "after_removing_method")
-    end
+  def log_after_remove(record)
+    log(record, "after_removing_method")
+  end
 
-    def log(record, callback)
-      ship_log << "#{callback}_#{record.class.name.downcase}_#{record.id || '<new>'}"
-    end
+  def log(record, callback)
+    ship_log << "#{callback}_#{record.class.name.downcase}_#{record.id || '<new>'}"
+  end
 end
 
 class DestructivePirate < Pirate

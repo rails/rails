@@ -7,7 +7,7 @@ class Club < ActiveRecord::Base
   has_one :sponsored_member, :through => :sponsor, :source => :sponsorable, :source_type => "Member"
   belongs_to :category
 
-  private
+private
 
   def private_method
     "I'm sorry sir, this is a *private* club, not a *pirate* club"

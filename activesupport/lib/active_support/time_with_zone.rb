@@ -323,26 +323,26 @@ module ActiveSupport
       result.acts_like?(:time) ? self.class.new(nil, time_zone, result) : result
     end
 
-    private
-      def get_period_and_ensure_valid_local_time
-        # we don't want a Time.local instance enforcing its own DST rules as well,
-        # so transfer time values to a utc constructor if necessary
-        @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
-        begin
-          @time_zone.period_for_local(@time)
-        rescue ::TZInfo::PeriodNotFound
-          # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
-          @time += 1.hour
-          retry
-        end
+  private
+    def get_period_and_ensure_valid_local_time
+      # we don't want a Time.local instance enforcing its own DST rules as well,
+      # so transfer time values to a utc constructor if necessary
+      @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
+      begin
+        @time_zone.period_for_local(@time)
+      rescue ::TZInfo::PeriodNotFound
+        # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
+        @time += 1.hour
+        retry
       end
+    end
 
-      def transfer_time_values_to_utc_constructor(time)
-        ::Time.utc_time(time.year, time.month, time.day, time.hour, time.min, time.sec, time.respond_to?(:usec) ? time.usec : 0)
-      end
+    def transfer_time_values_to_utc_constructor(time)
+      ::Time.utc_time(time.year, time.month, time.day, time.hour, time.min, time.sec, time.respond_to?(:usec) ? time.usec : 0)
+    end
 
-      def duration_of_variable_length?(obj)
-        ActiveSupport::Duration === obj && obj.parts.any? {|p| p[0].in?([:years, :months, :days]) }
-      end
+    def duration_of_variable_length?(obj)
+      ActiveSupport::Duration === obj && obj.parts.any? {|p| p[0].in?([:years, :months, :days]) }
+    end
   end
 end

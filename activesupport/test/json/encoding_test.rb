@@ -270,16 +270,16 @@ class TestJSONEncoding < ActiveSupport::TestCase
                  JSON.parse(json_string_and_date))
   end
 
-  protected
+protected
 
-    def object_keys(json_object)
-      json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
-    end
+  def object_keys(json_object)
+    json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
+  end
 
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
+  def with_env_tz(new_tz = 'US/Eastern')
+    old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+    yield
+  ensure
+    old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+  end
 end

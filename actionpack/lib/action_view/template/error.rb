@@ -111,15 +111,15 @@ module ActionView
         source_extract(4)
       end
 
-      private
+    private
 
-        def source_location
-          if line_number
-            "on line ##{line_number} of "
-          else
-            'in '
-          end + file_name
-        end
+      def source_location
+        if line_number
+          "on line ##{line_number} of "
+        else
+          'in '
+        end + file_name
+      end
     end
   end
 

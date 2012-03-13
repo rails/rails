@@ -10,15 +10,15 @@ module ActiveRecord
         migration_template "migration.rb", "db/migrate/#{file_name}.rb"
       end
 
-      protected
-        attr_reader :migration_action
+    protected
+      attr_reader :migration_action
 
-        def set_local_assigns!
-          if file_name =~ /^(add|remove)_.*_(?:to|from)_(.*)/
-            @migration_action = $1
-            @table_name       = $2.pluralize
-          end
+      def set_local_assigns!
+        if file_name =~ /^(add|remove)_.*_(?:to|from)_(.*)/
+          @migration_action = $1
+          @table_name       = $2.pluralize
         end
+      end
 
     end
   end

@@ -233,11 +233,11 @@ class TagNodeTest < ActiveSupport::TestCase
     assert_equal %(<b x="foo">hello<hr /></b>), t.to_s
   end
 
-  private
+private
 
-    def tag(content, parent=nil)
-      node = HTML::Node.parse(parent,0,0,content)
-      parent.children << node if parent
-      node
-    end
+  def tag(content, parent=nil)
+    node = HTML::Node.parse(parent,0,0,content)
+    parent.children << node if parent
+    node
+  end
 end

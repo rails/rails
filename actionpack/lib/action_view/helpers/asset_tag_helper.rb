@@ -471,31 +471,31 @@ module ActionView
         multiple_sources_tag('audio', sources)
       end
 
-      private
+    private
 
-        def asset_paths
-          @asset_paths ||= AssetTagHelper::AssetPaths.new(config, controller)
-        end
+      def asset_paths
+        @asset_paths ||= AssetTagHelper::AssetPaths.new(config, controller)
+      end
 
-        def multiple_sources_tag(type, sources)
-          options = sources.extract_options!.dup.symbolize_keys!
-          sources.flatten!
+      def multiple_sources_tag(type, sources)
+        options = sources.extract_options!.dup.symbolize_keys!
+        sources.flatten!
 
-          yield options if block_given?
+        yield options if block_given?
 
-          if sources.size > 1
-            content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", :src => send("path_to_#{type}", source)) }
-            end
-          else
-            options[:src] = send("path_to_#{type}", sources.first)
-            content_tag(type, nil, options)
+        if sources.size > 1
+          content_tag(type, options) do
+            safe_join sources.map { |source| tag("source", :src => send("path_to_#{type}", source)) }
           end
+        else
+          options[:src] = send("path_to_#{type}", sources.first)
+          content_tag(type, nil, options)
         end
+      end
 
-        def current_host
-          url_for(:only_path => false)
-        end
+      def current_host
+        url_for(:only_path => false)
+      end
     end
   end
 end

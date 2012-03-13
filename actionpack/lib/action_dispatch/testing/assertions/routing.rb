@@ -178,41 +178,41 @@ module ActionDispatch
         end
       end
 
-      private
-        # Recognizes the route for a given path.
-        def recognized_request_for(path, extras = {})
-          if path.is_a?(Hash)
-            method = path[:method]
-            path   = path[:path]
-          else
-            method = :get
-          end
-
-          # Assume given controller
-          request = ActionController::TestRequest.new
-
-          if path =~ %r{://}
-            begin
-              uri = URI.parse(path)
-              request.env["rack.url_scheme"] = uri.scheme || "http"
-              request.host = uri.host if uri.host
-              request.port = uri.port if uri.port
-              request.path = uri.path.to_s.empty? ? "/" : uri.path
-            rescue URI::InvalidURIError => e
-              raise ActionController::RoutingError, e.message
-            end
-          else
-            path = "/#{path}" unless path.first == "/"
-            request.path = path
-          end
-
-          request.request_method = method if method
-
-          params = @routes.recognize_path(path, { :method => method, :extras => extras })
-          request.path_parameters = params.with_indifferent_access
-
-          request
+    private
+      # Recognizes the route for a given path.
+      def recognized_request_for(path, extras = {})
+        if path.is_a?(Hash)
+          method = path[:method]
+          path   = path[:path]
+        else
+          method = :get
         end
+
+        # Assume given controller
+        request = ActionController::TestRequest.new
+
+        if path =~ %r{://}
+          begin
+            uri = URI.parse(path)
+            request.env["rack.url_scheme"] = uri.scheme || "http"
+            request.host = uri.host if uri.host
+            request.port = uri.port if uri.port
+            request.path = uri.path.to_s.empty? ? "/" : uri.path
+          rescue URI::InvalidURIError => e
+            raise ActionController::RoutingError, e.message
+          end
+        else
+          path = "/#{path}" unless path.first == "/"
+          request.path = path
+        end
+
+        request.request_method = method if method
+
+        params = @routes.recognize_path(path, { :method => method, :extras => extras })
+        request.path_parameters = params.with_indifferent_access
+
+        request
+      end
     end
   end
 end

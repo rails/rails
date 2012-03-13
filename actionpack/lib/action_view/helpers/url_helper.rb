@@ -604,77 +604,77 @@ module ActionView
         end
       end
 
-      private
-        def convert_options_to_data_attributes(options, html_options)
-          if html_options
-            html_options = html_options.stringify_keys
-            html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
+    private
+      def convert_options_to_data_attributes(options, html_options)
+        if html_options
+          html_options = html_options.stringify_keys
+          html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            disable_with = html_options.delete("disable_with")
-            confirm = html_options.delete('confirm')
-            method  = html_options.delete('method')
+          disable_with = html_options.delete("disable_with")
+          confirm = html_options.delete('confirm')
+          method  = html_options.delete('method')
 
-            html_options["data-disable-with"] = disable_with if disable_with
-            html_options["data-confirm"] = confirm if confirm
-            add_method_to_attributes!(html_options, method) if method
+          html_options["data-disable-with"] = disable_with if disable_with
+          html_options["data-confirm"] = confirm if confirm
+          add_method_to_attributes!(html_options, method) if method
 
-            html_options
-          else
-            link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
-          end
-        end
-
-        def link_to_remote_options?(options)
-          options.is_a?(Hash) && options.delete('remote')
-        end
-
-        def add_method_to_attributes!(html_options, method)
-          if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
-            html_options["rel"] = "#{html_options["rel"]} nofollow".lstrip
-          end
-          html_options["data-method"] = method
-        end
-
-        # Processes the +html_options+ hash, converting the boolean
-        # attributes from true/false form into the form required by
-        # HTML/XHTML. (An attribute is considered to be boolean if
-        # its name is listed in the given +bool_attrs+ array.)
-        #
-        # More specifically, for each boolean attribute in +html_options+
-        # given as:
-        #
-        #   "attr" => bool_value
-        #
-        # if the associated +bool_value+ evaluates to true, it is
-        # replaced with the attribute's name; otherwise the attribute is
-        # removed from the +html_options+ hash. (See the XHTML 1.0 spec,
-        # section 4.5 "Attribute Minimization" for more:
-        # http://www.w3.org/TR/xhtml1/#h-4.5)
-        #
-        # Returns the updated +html_options+ hash, which is also modified
-        # in place.
-        #
-        # Example:
-        #
-        #   convert_boolean_attributes!( html_options,
-        #                                %w( checked disabled readonly ) )
-        def convert_boolean_attributes!(html_options, bool_attrs)
-          bool_attrs.each { |x| html_options[x] = x if html_options.delete(x) }
           html_options
+        else
+          link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
         end
+      end
 
-        def token_tag(token=nil)
-          if token == false || !protect_against_forgery?
-            ''
-          else
-            token ||= form_authenticity_token
-            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
-          end
-        end
+      def link_to_remote_options?(options)
+        options.is_a?(Hash) && options.delete('remote')
+      end
 
-        def method_tag(method)
-          tag('input', :type => 'hidden', :name => '_method', :value => method.to_s)
+      def add_method_to_attributes!(html_options, method)
+        if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
+          html_options["rel"] = "#{html_options["rel"]} nofollow".lstrip
         end
+        html_options["data-method"] = method
+      end
+
+      # Processes the +html_options+ hash, converting the boolean
+      # attributes from true/false form into the form required by
+      # HTML/XHTML. (An attribute is considered to be boolean if
+      # its name is listed in the given +bool_attrs+ array.)
+      #
+      # More specifically, for each boolean attribute in +html_options+
+      # given as:
+      #
+      #   "attr" => bool_value
+      #
+      # if the associated +bool_value+ evaluates to true, it is
+      # replaced with the attribute's name; otherwise the attribute is
+      # removed from the +html_options+ hash. (See the XHTML 1.0 spec,
+      # section 4.5 "Attribute Minimization" for more:
+      # http://www.w3.org/TR/xhtml1/#h-4.5)
+      #
+      # Returns the updated +html_options+ hash, which is also modified
+      # in place.
+      #
+      # Example:
+      #
+      #   convert_boolean_attributes!( html_options,
+      #                                %w( checked disabled readonly ) )
+      def convert_boolean_attributes!(html_options, bool_attrs)
+        bool_attrs.each { |x| html_options[x] = x if html_options.delete(x) }
+        html_options
+      end
+
+      def token_tag(token=nil)
+        if token == false || !protect_against_forgery?
+          ''
+        else
+          token ||= form_authenticity_token
+          tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
+        end
+      end
+
+      def method_tag(method)
+        tag('input', :type => 'hidden', :name => '_method', :value => method.to_s)
+      end
     end
   end
 end

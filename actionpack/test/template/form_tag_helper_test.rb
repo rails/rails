@@ -559,7 +559,7 @@ class FormTagHelperTest < ActionView::TestCase
     false
   end
 
-  private
+private
 
   def root_elem(rendered_content)
     HTML::Document.new(rendered_content).root.children[0]

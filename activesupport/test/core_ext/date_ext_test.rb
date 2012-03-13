@@ -451,21 +451,21 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal({ :years => 3, :months => 11, :days => 2 }, options)
   end
 
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
+protected
+  def with_env_tz(new_tz = 'US/Eastern')
+    old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+    yield
+  ensure
+    old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+  end
 
-    def with_tz_default(tz = nil)
-      old_tz = Time.zone
-      Time.zone = tz
-      yield
-    ensure
-      Time.zone = old_tz
-    end
+  def with_tz_default(tz = nil)
+    old_tz = Time.zone
+    Time.zone = tz
+    yield
+  ensure
+    Time.zone = old_tz
+  end
 end
 
 class DateExtBehaviorTest < ActiveSupport::TestCase

@@ -60,7 +60,7 @@ module ActiveRecord
         prepare_default_proc
       end
 
-      private
+    private
 
       def prepare_default_proc
         @columns.default_proc = Proc.new do |h, table_name|

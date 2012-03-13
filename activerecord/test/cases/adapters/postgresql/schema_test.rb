@@ -330,37 +330,37 @@ class SchemaTest < ActiveRecord::TestCase
     end
   end
 
-  private
-    def columns(table_name)
-      @connection.send(:column_definitions, table_name).map do |name, type, default|
-        "#{name} #{type}" + (default ? " default #{default}" : '')
-      end
+private
+  def columns(table_name)
+    @connection.send(:column_definitions, table_name).map do |name, type, default|
+      "#{name} #{type}" + (default ? " default #{default}" : '')
     end
+  end
 
-    def with_schema_search_path(schema_search_path)
-      @connection.schema_search_path = schema_search_path
-      yield if block_given?
-    ensure
-      @connection.schema_search_path = "'$user', public"
+  def with_schema_search_path(schema_search_path)
+    @connection.schema_search_path = schema_search_path
+    yield if block_given?
+  ensure
+    @connection.schema_search_path = "'$user', public"
+  end
+
+  def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name)
+    with_schema_search_path(this_schema_name) do
+      indexes = @connection.indexes(TABLE_NAME).sort_by {|i| i.name}
+      assert_equal 3,indexes.size
+
+      do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)
+      do_dump_index_assertions_for_one_index(indexes[1], INDEX_B_NAME, second_index_column_name)
+      do_dump_index_assertions_for_one_index(indexes[2], INDEX_D_NAME, third_index_column_name)
+
+      assert_equal :desc, indexes.select{|i| i.name == INDEX_D_NAME}[0].orders[INDEX_D_COLUMN]
     end
+  end
 
-    def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name)
-      with_schema_search_path(this_schema_name) do
-        indexes = @connection.indexes(TABLE_NAME).sort_by {|i| i.name}
-        assert_equal 3,indexes.size
-
-        do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)
-        do_dump_index_assertions_for_one_index(indexes[1], INDEX_B_NAME, second_index_column_name)
-        do_dump_index_assertions_for_one_index(indexes[2], INDEX_D_NAME, third_index_column_name)
-
-        assert_equal :desc, indexes.select{|i| i.name == INDEX_D_NAME}[0].orders[INDEX_D_COLUMN]
-      end
-    end
-
-    def do_dump_index_assertions_for_one_index(this_index, this_index_name, this_index_column)
-      assert_equal TABLE_NAME, this_index.table
-      assert_equal 1, this_index.columns.size
-      assert_equal this_index_column, this_index.columns[0]
-      assert_equal this_index_name, this_index.name
-    end
+  def do_dump_index_assertions_for_one_index(this_index, this_index_name, this_index_column)
+    assert_equal TABLE_NAME, this_index.table
+    assert_equal 1, this_index.columns.size
+    assert_equal this_index_column, this_index.columns[0]
+    assert_equal this_index_name, this_index.name
+  end
 end

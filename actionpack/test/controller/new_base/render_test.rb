@@ -34,7 +34,7 @@ module Render
     def overriden
     end
 
-    private
+  private
 
     def secretz
       render :text => "FAIL WHALE!"

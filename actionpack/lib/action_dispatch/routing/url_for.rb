@@ -153,7 +153,7 @@ module ActionDispatch
         end
       end
 
-      protected
+    protected
 
       def optimize_routes_generation?
         return @_optimized_routes if defined?(@_optimized_routes)

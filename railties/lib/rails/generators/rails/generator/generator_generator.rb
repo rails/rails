@@ -10,15 +10,15 @@ module Rails
         directory '.', generator_dir
       end
 
-      protected
+    protected
 
-        def generator_dir
-          if options[:namespace]
-            File.join("lib", "generators", regular_class_path, file_name)
-          else
-            File.join("lib", "generators", regular_class_path)
-          end
+      def generator_dir
+        if options[:namespace]
+          File.join("lib", "generators", regular_class_path, file_name)
+        else
+          File.join("lib", "generators", regular_class_path)
         end
+      end
 
     end
   end

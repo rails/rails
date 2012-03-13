@@ -29,52 +29,52 @@ module Rails
         @controller_name = name.pluralize
       end
 
-      protected
+    protected
 
-        attr_reader :controller_name
+      attr_reader :controller_name
 
-        def controller_class_path
-          class_path
-        end
+      def controller_class_path
+        class_path
+      end
 
-        def controller_file_name
-          @controller_file_name ||= file_name.pluralize
-        end
+      def controller_file_name
+        @controller_file_name ||= file_name.pluralize
+      end
 
-        def controller_file_path
-          @controller_file_path ||= (controller_class_path + [controller_file_name]).join('/')
-        end
+      def controller_file_path
+        @controller_file_path ||= (controller_class_path + [controller_file_name]).join('/')
+      end
 
-        def controller_class_name
-          (controller_class_path + [controller_file_name]).map!{ |m| m.camelize }.join('::')
-        end
+      def controller_class_name
+        (controller_class_path + [controller_file_name]).map!{ |m| m.camelize }.join('::')
+      end
 
-        def controller_i18n_scope
-          @controller_i18n_scope ||= controller_file_path.gsub('/', '.')
-        end
+      def controller_i18n_scope
+        @controller_i18n_scope ||= controller_file_path.gsub('/', '.')
+      end
 
-        # Loads the ORM::Generators::ActiveModel class. This class is responsible
-        # to tell scaffold entities how to generate an specific method for the
-        # ORM. Check Rails::Generators::ActiveModel for more information.
-        def orm_class
-          @orm_class ||= begin
-            # Raise an error if the class_option :orm was not defined.
-            unless self.class.class_options[:orm]
-              raise "You need to have :orm as class option to invoke orm_class and orm_instance"
-            end
+      # Loads the ORM::Generators::ActiveModel class. This class is responsible
+      # to tell scaffold entities how to generate an specific method for the
+      # ORM. Check Rails::Generators::ActiveModel for more information.
+      def orm_class
+        @orm_class ||= begin
+          # Raise an error if the class_option :orm was not defined.
+          unless self.class.class_options[:orm]
+            raise "You need to have :orm as class option to invoke orm_class and orm_instance"
+          end
 
-            begin
-              "#{options[:orm].to_s.camelize}::Generators::ActiveModel".constantize
-            rescue NameError
-              Rails::Generators::ActiveModel
-            end
+          begin
+            "#{options[:orm].to_s.camelize}::Generators::ActiveModel".constantize
+          rescue NameError
+            Rails::Generators::ActiveModel
           end
         end
+      end
 
-        # Initialize ORM::Generators::ActiveModel to access instance methods.
-        def orm_instance(name=singular_table_name)
-          @orm_instance ||= orm_class.new(name)
-        end
+      # Initialize ORM::Generators::ActiveModel to access instance methods.
+      def orm_instance(name=singular_table_name)
+        @orm_instance ||= orm_class.new(name)
+      end
     end
   end
 end

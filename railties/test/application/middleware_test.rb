@@ -231,14 +231,14 @@ module ApplicationTests
       assert_equal "/foo/?something", env["ORIGINAL_FULLPATH"]
     end
 
-    private
+  private
 
-      def boot!
-        require "#{app_path}/config/environment"
-      end
+    def boot!
+      require "#{app_path}/config/environment"
+    end
 
-      def middleware
-        AppTemplate::Application.middleware.map(&:klass).map(&:name)
-      end
+    def middleware
+      AppTemplate::Application.middleware.map(&:klass).map(&:name)
+    end
   end
 end

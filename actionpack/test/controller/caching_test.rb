@@ -207,18 +207,18 @@ class PageCachingTest < ActionController::TestCase
     end
   end
 
-  private
-    def assert_page_cached(action, message = "#{action} should have been cached")
-      assert page_cached?(action), message
-    end
+private
+  def assert_page_cached(action, message = "#{action} should have been cached")
+    assert page_cached?(action), message
+  end
 
-    def assert_page_not_cached(action, message = "#{action} shouldn't have been cached")
-      assert !page_cached?(action), message
-    end
+  def assert_page_not_cached(action, message = "#{action} shouldn't have been cached")
+    assert !page_cached?(action), message
+  end
 
-    def page_cached?(action)
-      File.exist? "#{FILE_STORE_PATH}/page_caching_test/#{action}.html"
-    end
+  def page_cached?(action)
+    File.exist? "#{FILE_STORE_PATH}/page_caching_test/#{action}.html"
+  end
 end
 
 class ActionCachingTestController < CachingController
@@ -659,26 +659,26 @@ class ActionCacheTest < ActionController::TestCase
     assert fragment_exist?('hostname.com/action_caching_test/streaming')
   end
 
-  private
-    def content_to_cache
-      assigns(:cache_this)
-    end
+private
+  def content_to_cache
+    assigns(:cache_this)
+  end
 
-    def reset!
-      @request    = ActionController::TestRequest.new
-      @response   = ActionController::TestResponse.new
-      @controller = ActionCachingTestController.new
-      @controller.singleton_class.send(:include, @routes.url_helpers)
-      @request.host = 'hostname.com'
-    end
+  def reset!
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @controller = ActionCachingTestController.new
+    @controller.singleton_class.send(:include, @routes.url_helpers)
+    @request.host = 'hostname.com'
+  end
 
-    def fragment_exist?(path)
-      @controller.fragment_exist?(path)
-    end
+  def fragment_exist?(path)
+    @controller.fragment_exist?(path)
+  end
 
-    def read_fragment(path)
-      @controller.read_fragment(path)
-    end
+  def read_fragment(path)
+    @controller.read_fragment(path)
+  end
 end
 
 class FragmentCachingTestController < CachingController

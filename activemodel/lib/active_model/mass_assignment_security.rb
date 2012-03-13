@@ -39,7 +39,7 @@ module ActiveModel
     #       ...
     #     end
     #
-    #     protected
+    #   protected
     #
     #     def account_params
     #       role = admin ? :admin : :default
@@ -211,7 +211,7 @@ module ActiveModel
         end
       end
 
-      private
+    private
 
       def protected_attributes_configs
         self._protected_attributes ||= begin

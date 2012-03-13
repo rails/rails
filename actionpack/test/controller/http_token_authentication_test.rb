@@ -18,7 +18,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
       render :text => 'Only for loooooong credentials'
     end
 
-    private
+  private
 
     def authenticate
       authenticate_or_request_with_http_token do |token, options|
@@ -105,7 +105,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal 'Definitely Maybe', @response.body
   end
 
-  private
+private
 
   def encode_credentials(token, options = {})
     ActionController::HttpAuthentication::Token.encode_credentials(token, options)

@@ -89,7 +89,7 @@ module ActiveSupport
       end
     end
 
-    private
+  private
 
     def updated_at #:nodoc:
       @updated_at || begin

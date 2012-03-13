@@ -117,9 +117,9 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert Rails::Generators.hidden_namespaces.include?('hidden')
   end
 
-  protected
+protected
 
-    def assert_name(generator, value, method)
-      assert_equal value, generator.send(method)
-    end
+  def assert_name(generator, value, method)
+    assert_equal value, generator.send(method)
+  end
 end

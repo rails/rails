@@ -68,7 +68,7 @@ module ActiveRecord
         end
       end
 
-      private
+    private
       def tmp_yaml(name, contents)
         t = Tempfile.new name
         t.binmode

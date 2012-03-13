@@ -266,27 +266,27 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
+private
 
-    # Overwrite get to send SessionSecret in env hash
-    def get(path, parameters = nil, env = {})
-      env["action_dispatch.secret_token"] ||= SessionSecret
-      super
-    end
+  # Overwrite get to send SessionSecret in env hash
+  def get(path, parameters = nil, env = {})
+    env["action_dispatch.secret_token"] ||= SessionSecret
+    super
+  end
 
-    def with_test_route_set
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => FlashIntegrationTest::TestController
-        end
-
-        @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::Session::CookieStore, :key => SessionKey
-          middleware.use ActionDispatch::Flash
-          middleware.delete "ActionDispatch::ShowExceptions"
-        end
-
-        yield
+  def with_test_route_set
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => FlashIntegrationTest::TestController
       end
+
+      @app = self.class.build_app(set) do |middleware|
+        middleware.use ActionDispatch::Session::CookieStore, :key => SessionKey
+        middleware.use ActionDispatch::Flash
+        middleware.delete "ActionDispatch::ShowExceptions"
+      end
+
+      yield
     end
+  end
 end

@@ -143,10 +143,10 @@ module ActiveRecord
         @sanitized_conditions ||= klass.send(:sanitize_sql, options[:conditions]) if options[:conditions]
       end
 
-      private
-        def derive_class_name
-          name.to_s.camelize
-        end
+    private
+      def derive_class_name
+        name.to_s.camelize
+      end
     end
 
 
@@ -347,26 +347,26 @@ module ActiveRecord
         end
       end
 
-      private
-        def derive_class_name
-          class_name = name.to_s.camelize
-          class_name = class_name.singularize if collection?
-          class_name
-        end
+    private
+      def derive_class_name
+        class_name = name.to_s.camelize
+        class_name = class_name.singularize if collection?
+        class_name
+      end
 
-        def derive_foreign_key
-          if belongs_to?
-            "#{name}_id"
-          elsif options[:as]
-            "#{options[:as]}_id"
-          else
-            active_record.name.foreign_key
-          end
+      def derive_foreign_key
+        if belongs_to?
+          "#{name}_id"
+        elsif options[:as]
+          "#{options[:as]}_id"
+        else
+          active_record.name.foreign_key
         end
+      end
 
-        def primary_key(klass)
-          klass.primary_key || raise(UnknownPrimaryKey.new(klass))
-        end
+      def primary_key(klass)
+        klass.primary_key || raise(UnknownPrimaryKey.new(klass))
+      end
     end
 
     # Holds all the meta-data about a :through association as it was specified
@@ -525,11 +525,11 @@ module ActiveRecord
         check_validity_of_inverse!
       end
 
-      private
-        def derive_class_name
-          # get the class_name of the belongs_to association of the through reflection
-          options[:source_type] || source_reflection.class_name
-        end
+    private
+      def derive_class_name
+        # get the class_name of the belongs_to association of the through reflection
+        options[:source_type] || source_reflection.class_name
+      end
     end
   end
 end

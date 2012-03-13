@@ -16,7 +16,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
       render :text => 'Definitely Maybe'
     end
 
-    private
+  private
 
     def authenticate
       authenticate_or_request_with_http_digest("SuperSecret") do |username|
@@ -246,7 +246,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert_equal 'Definitely Maybe', @response.body
   end
 
-  private
+private
 
   def encode_credentials(options)
     options.reverse_merge!(:nc => "00000001", :cnonce => "0a4f113b", :password_is_ha1 => false)

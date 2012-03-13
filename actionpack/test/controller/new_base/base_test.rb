@@ -25,9 +25,9 @@ module Dispatching
       render :text => "actions: #{action_methods.to_a.sort.join(', ')}"
     end
 
-    protected
-      def authenticate
-      end
+  protected
+    def authenticate
+    end
   end
 
   class EmptyController < ActionController::Base ; end

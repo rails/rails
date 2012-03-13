@@ -39,11 +39,11 @@ module ActionDispatch
         generate_sid
       end
 
-      private
-        # Turn the session id into a cache key.
-        def cache_key(sid)
-          "_session_id:#{sid}"
-        end
+    private
+      # Turn the session id into a cache key.
+      def cache_key(sid)
+        "_session_id:#{sid}"
+      end
     end
   end
 end

@@ -148,7 +148,7 @@ module ActiveRecord
     end
 
     module ClassMethods
-      private
+    private
 
       def define_non_cyclic_method(name, reflection, &block)
         define_method(name) do |*args|
@@ -245,7 +245,7 @@ module ActiveRecord
       new_record? || changed? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
-    private
+  private
 
     # Returns the record for an association collection that should be validated
     # or saved. If +autosave+ is +false+ only new records will be returned,

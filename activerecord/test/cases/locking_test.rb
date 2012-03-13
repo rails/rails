@@ -297,32 +297,32 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     remove_counter_column_from(Person, 'legacy_things_count')
   end
 
-  private
+private
 
-    def add_counter_column_to(model, col='test_count')
-      model.connection.add_column model.table_name, col, :integer, :null => false, :default => 0
-      model.reset_column_information
-      # OpenBase does not set a value to existing rows when adding a not null default column
-      model.update_all(col => 0) if current_adapter?(:OpenBaseAdapter)
-    end
+  def add_counter_column_to(model, col='test_count')
+    model.connection.add_column model.table_name, col, :integer, :null => false, :default => 0
+    model.reset_column_information
+    # OpenBase does not set a value to existing rows when adding a not null default column
+    model.update_all(col => 0) if current_adapter?(:OpenBaseAdapter)
+  end
 
-    def remove_counter_column_from(model, col = :test_count)
-      model.connection.remove_column model.table_name, col
-      model.reset_column_information
-    end
+  def remove_counter_column_from(model, col = :test_count)
+    model.connection.remove_column model.table_name, col
+    model.reset_column_information
+  end
 
-    def counter_test(model, expected_count)
-      add_counter_column_to(model)
-      object = model.find(:first)
-      assert_equal 0, object.test_count
-      assert_equal 0, object.send(model.locking_column)
-      yield object.id
-      object.reload
-      assert_equal expected_count, object.test_count
-      assert_equal 1, object.send(model.locking_column)
-    ensure
-      remove_counter_column_from(model)
-    end
+  def counter_test(model, expected_count)
+    add_counter_column_to(model)
+    object = model.find(:first)
+    assert_equal 0, object.test_count
+    assert_equal 0, object.send(model.locking_column)
+    yield object.id
+    object.reload
+    assert_equal expected_count, object.test_count
+    assert_equal 1, object.send(model.locking_column)
+  ensure
+    remove_counter_column_from(model)
+  end
 end
 
 
@@ -414,34 +414,34 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
         assert first.end > second.end
       end
 
-      protected
-        def duel(zzz = 5)
-          t0, t1, t2, t3 = nil, nil, nil, nil
+    protected
+      def duel(zzz = 5)
+        t0, t1, t2, t3 = nil, nil, nil, nil
 
-          a = Thread.new do
-            t0 = Time.now
-            Person.transaction do
-              yield
-              sleep zzz       # block thread 2 for zzz seconds
-            end
-            t1 = Time.now
+        a = Thread.new do
+          t0 = Time.now
+          Person.transaction do
+            yield
+            sleep zzz       # block thread 2 for zzz seconds
           end
-
-          b = Thread.new do
-            sleep zzz / 2.0   # ensure thread 1 tx starts first
-            t2 = Time.now
-            Person.transaction { yield }
-            t3 = Time.now
-          end
-
-          a.join
-          b.join
-
-          assert t1 > t0 + zzz
-          assert t2 > t0
-          assert t3 > t2
-          [t0.to_f..t1.to_f, t2.to_f..t3.to_f]
+          t1 = Time.now
         end
+
+        b = Thread.new do
+          sleep zzz / 2.0   # ensure thread 1 tx starts first
+          t2 = Time.now
+          Person.transaction { yield }
+          t3 = Time.now
+        end
+
+        a.join
+        b.join
+
+        assert t1 > t0 + zzz
+        assert t2 > t0
+        assert t3 > t2
+        [t0.to_f..t1.to_f, t2.to_f..t3.to_f]
+      end
     end
   end
 end

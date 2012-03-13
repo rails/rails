@@ -504,7 +504,7 @@ module ApplicationTests
       assert_equal 0, Dir.entries(Rails.application.assets.cache.cache_path).size - 2 # reject [".", ".."]
     end
 
-    private
+  private
 
     def app_with_assets_in_view
       app_file "app/assets/javascripts/application.js", "//= require_tree ."

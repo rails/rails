@@ -721,7 +721,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     # private method (e.g. Object#system)
     #
     Object.class_eval do
-      private
+    private
       def title; "private!"; end
     end
     assert !@target.instance_method_already_implemented?(:title)
@@ -791,7 +791,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "lol", topic.author_name
   end
 
-  private
+private
   def cached_columns
     Topic.columns.find_all { |column|
       !Topic.serialized_attributes.include? column.name
@@ -816,7 +816,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def privatize(method_signature)
     @target.class_eval <<-private_method
-      private
+    private
       def #{method_signature}
         "I'm private"
       end

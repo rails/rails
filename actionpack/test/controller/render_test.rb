@@ -668,31 +668,31 @@ class TestController < ActionController::Base
     render :action => :formatted_xml_erb
   end
 
-  private
+private
 
-    def set_variable_for_layout
-      @variable_for_layout = nil
+  def set_variable_for_layout
+    @variable_for_layout = nil
+  end
+
+  def determine_layout
+    case action_name
+      when "hello_world", "layout_test", "rendering_without_layout",
+           "rendering_nothing_on_layout", "render_text_hello_world",
+           "render_text_hello_world_with_layout",
+           "hello_world_with_layout_false",
+           "partial_only", "accessing_params_in_template",
+           "accessing_params_in_template_with_layout",
+           "render_with_explicit_template",
+           "render_with_explicit_string_template",
+           "update_page", "update_page_with_instance_variables"
+
+        "layouts/standard"
+      when "action_talk_to_layout", "layout_overriding_layout"
+        "layouts/talk_from_action"
+      when "render_implicit_html_template_from_xhr_request"
+        (request.xhr? ? 'layouts/xhr' : 'layouts/standard')
     end
-
-    def determine_layout
-      case action_name
-        when "hello_world", "layout_test", "rendering_without_layout",
-             "rendering_nothing_on_layout", "render_text_hello_world",
-             "render_text_hello_world_with_layout",
-             "hello_world_with_layout_false",
-             "partial_only", "accessing_params_in_template",
-             "accessing_params_in_template_with_layout",
-             "render_with_explicit_template",
-             "render_with_explicit_string_template",
-             "update_page", "update_page_with_instance_variables"
-
-          "layouts/standard"
-        when "action_talk_to_layout", "layout_overriding_layout"
-          "layouts/talk_from_action"
-        when "render_implicit_html_template_from_xhr_request"
-          (request.xhr? ? 'layouts/xhr' : 'layouts/standard')
-      end
-    end
+  end
 end
 
 class RenderTest < ActionController::TestCase

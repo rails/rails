@@ -16,7 +16,7 @@ module ActiveRecord
         @attributes
       end
 
-      private
+    private
 
       # Handle *_before_type_cast for method_missing.
       def attribute_before_type_cast(attribute_name)

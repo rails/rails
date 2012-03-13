@@ -329,11 +329,11 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
   end
 
-  private
-    def assert_reflection(klass, association, options)
-      assert reflection = klass.reflect_on_association(association)
-      options.each do |method, value|
-        assert_equal(value, reflection.send(method))
-      end
+private
+  def assert_reflection(klass, association, options)
+    assert reflection = klass.reflect_on_association(association)
+    options.each do |method, value|
+      assert_equal(value, reflection.send(method))
     end
+  end
 end

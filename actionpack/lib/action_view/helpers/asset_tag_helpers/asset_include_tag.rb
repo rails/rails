@@ -58,87 +58,87 @@ module ActionView
           end
         end
 
-        private
+      private
 
-          def path_to_asset(source, options = {})
-            asset_paths.compute_public_path(source, asset_name.to_s.pluralize, options.merge(:ext => extension))
-          end
+        def path_to_asset(source, options = {})
+          asset_paths.compute_public_path(source, asset_name.to_s.pluralize, options.merge(:ext => extension))
+        end
 
-          def path_to_asset_source(source)
-            asset_paths.compute_source_path(source, asset_name.to_s.pluralize, extension)
-          end
+        def path_to_asset_source(source)
+          asset_paths.compute_source_path(source, asset_name.to_s.pluralize, extension)
+        end
 
-          def compute_paths(*args)
-            expand_sources(*args).collect { |source| path_to_asset_source(source) }
-          end
+        def compute_paths(*args)
+          expand_sources(*args).collect { |source| path_to_asset_source(source) }
+        end
 
-          def expand_sources(sources, recursive)
-            if sources.first == :all
-              collect_asset_files(custom_dir, ('**' if recursive), "*.#{extension}")
-            else
-              sources.inject([]) do |list, source|
-                determined_source = determine_source(source, expansions)
-                update_source_list(list, determined_source)
-              end
+        def expand_sources(sources, recursive)
+          if sources.first == :all
+            collect_asset_files(custom_dir, ('**' if recursive), "*.#{extension}")
+          else
+            sources.inject([]) do |list, source|
+              determined_source = determine_source(source, expansions)
+              update_source_list(list, determined_source)
             end
           end
+        end
 
-          def update_source_list(list, source)
-            case source
-            when String
-              list.delete(source)
-              list << source
-            when Array
-              updated_sources = source - list
-              list.concat(updated_sources)
-            end
+        def update_source_list(list, source)
+          case source
+          when String
+            list.delete(source)
+            list << source
+          when Array
+            updated_sources = source - list
+            list.concat(updated_sources)
           end
+        end
 
-          def ensure_sources!(sources)
-            sources.each do |source|
-              asset_file_path!(path_to_asset_source(source))
-            end
+        def ensure_sources!(sources)
+          sources.each do |source|
+            asset_file_path!(path_to_asset_source(source))
           end
+        end
 
-          def collect_asset_files(*path)
-            dir = path.first
+        def collect_asset_files(*path)
+          dir = path.first
 
-            Dir[File.join(*path.compact)].collect do |file|
-              file[-(file.size - dir.size - 1)..-1].sub(/\.\w+$/, '')
-            end.sort
+          Dir[File.join(*path.compact)].collect do |file|
+            file[-(file.size - dir.size - 1)..-1].sub(/\.\w+$/, '')
+          end.sort
+        end
+
+        def determine_source(source, collection)
+          case source
+          when Symbol
+            collection[source] || raise(ArgumentError, "No expansion found for #{source.inspect}")
+          else
+            source
           end
+        end
 
-          def determine_source(source, collection)
-            case source
-            when Symbol
-              collection[source] || raise(ArgumentError, "No expansion found for #{source.inspect}")
-            else
-              source
-            end
+        def join_asset_file_contents(paths)
+          paths.collect { |path| File.read(asset_file_path!(path, true)) }.join("\n\n")
+        end
+
+        def write_asset_file_contents(joined_asset_path, asset_paths)
+          FileUtils.mkdir_p(File.dirname(joined_asset_path))
+          File.atomic_write(joined_asset_path) { |cache| cache.write(join_asset_file_contents(asset_paths)) }
+
+          # Set mtime to the latest of the combined files to allow for
+          # consistent ETag without a shared filesystem.
+          mt = asset_paths.map { |p| File.mtime(asset_file_path!(p)) }.max
+          File.utime(mt, mt, joined_asset_path)
+        end
+
+        def asset_file_path!(absolute_path, error_if_file_is_uri = false)
+          if asset_paths.is_uri?(absolute_path)
+            raise(Errno::ENOENT, "Asset file #{path} is uri and cannot be merged into single file") if error_if_file_is_uri
+          else
+            raise(Errno::ENOENT, "Asset file not found at '#{absolute_path}'" ) unless File.exist?(absolute_path)
+            return absolute_path
           end
-
-          def join_asset_file_contents(paths)
-            paths.collect { |path| File.read(asset_file_path!(path, true)) }.join("\n\n")
-          end
-
-          def write_asset_file_contents(joined_asset_path, asset_paths)
-            FileUtils.mkdir_p(File.dirname(joined_asset_path))
-            File.atomic_write(joined_asset_path) { |cache| cache.write(join_asset_file_contents(asset_paths)) }
-
-            # Set mtime to the latest of the combined files to allow for
-            # consistent ETag without a shared filesystem.
-            mt = asset_paths.map { |p| File.mtime(asset_file_path!(p)) }.max
-            File.utime(mt, mt, joined_asset_path)
-          end
-
-          def asset_file_path!(absolute_path, error_if_file_is_uri = false)
-            if asset_paths.is_uri?(absolute_path)
-              raise(Errno::ENOENT, "Asset file #{path} is uri and cannot be merged into single file") if error_if_file_is_uri
-            else
-              raise(Errno::ENOENT, "Asset file not found at '#{absolute_path}'" ) unless File.exist?(absolute_path)
-              return absolute_path
-            end
-          end
+        end
       end
 
     end

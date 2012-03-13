@@ -117,7 +117,7 @@ module ActiveRecord
           cache.clear
         end
 
-        private
+      private
         def cache
           @cache[Process.pid]
         end
@@ -334,7 +334,7 @@ module ActiveRecord
         # Transactions aren't supported
       end
 
-      private
+    private
 
       def exec_stmt(sql, name, binds)
         cache = {}

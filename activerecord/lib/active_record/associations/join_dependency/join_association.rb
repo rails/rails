@@ -141,7 +141,7 @@ module ActiveRecord
           @conditions ||= reflection.conditions.reverse
         end
 
-        private
+      private
 
         def interpolate(conditions)
           if conditions.respond_to?(:to_proc)

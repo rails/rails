@@ -270,10 +270,10 @@ class NamingHelpersTest < ActiveModel::TestCase
     assert_equal "sheep_index", route_key(@uncountable)
   end
 
-  private
-    def method_missing(method, *args)
-      ActiveModel::Naming.send(method, *args)
-    end
+private
+  def method_missing(method, *args)
+    ActiveModel::Naming.send(method, *args)
+  end
 end
 
 class NameWithAnonymousClassTest < ActiveModel::TestCase

@@ -99,30 +99,30 @@ module ActiveRecord
           find_by_session_id(session_id)
         end
 
-        private
-          def session_id_column
-            'session_id'
-          end
+      private
+        def session_id_column
+          'session_id'
+        end
 
-          # Compatibility with tables using sessid instead of session_id.
-          def setup_sessid_compatibility!
-            # Reset column info since it may be stale.
-            reset_column_information
-            if columns_hash['sessid']
-              def self.find_by_session_id(*args)
-                find_by_sessid(*args)
-              end
+        # Compatibility with tables using sessid instead of session_id.
+        def setup_sessid_compatibility!
+          # Reset column info since it may be stale.
+          reset_column_information
+          if columns_hash['sessid']
+            def self.find_by_session_id(*args)
+              find_by_sessid(*args)
+            end
 
-              define_method(:session_id)  { sessid }
-              define_method(:session_id=) { |session_id| self.sessid = session_id }
-            else
-              class << self; remove_possible_method :find_by_session_id; end
+            define_method(:session_id)  { sessid }
+            define_method(:session_id=) { |session_id| self.sessid = session_id }
+          else
+            class << self; remove_possible_method :find_by_session_id; end
 
-              def self.find_by_session_id(session_id)
-                find :first, :conditions => {:session_id=>session_id}
-              end
+            def self.find_by_session_id(session_id)
+              find :first, :conditions => {:session_id=>session_id}
             end
           end
+        end
       end
 
       def initialize(attributes = nil, options = {})
@@ -142,22 +142,22 @@ module ActiveRecord
         @data
       end
 
-      private
-        def marshal_data!
-          return false unless loaded?
-          write_attribute(@@data_column_name, self.class.marshal(data))
-        end
+    private
+      def marshal_data!
+        return false unless loaded?
+        write_attribute(@@data_column_name, self.class.marshal(data))
+      end
 
-        # Ensures that the data about to be stored in the database is not
-        # larger than the data storage column. Raises
-        # ActionController::SessionOverflowError.
-        def raise_on_session_data_overflow!
-          return false unless loaded?
-          limit = self.class.data_column_size_limit
-          if limit and read_attribute(@@data_column_name).size > limit
-            raise ActionController::SessionOverflowError
-          end
+      # Ensures that the data about to be stored in the database is not
+      # larger than the data storage column. Raises
+      # ActionController::SessionOverflowError.
+      def raise_on_session_data_overflow!
+        return false unless loaded?
+        limit = self.class.data_column_size_limit
+        if limit and read_attribute(@@data_column_name).size > limit
+          raise ActionController::SessionOverflowError
         end
+      end
     end
 
     # A barebones session store which duck-types with the default session
@@ -300,59 +300,59 @@ module ActiveRecord
     SESSION_RECORD_KEY = 'rack.session.record'
     ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY
 
-    private
-      def get_session(env, sid)
+  private
+    def get_session(env, sid)
+      Base.silence do
+        unless sid and session = @@session_class.find_by_session_id(sid)
+          # If the sid was nil or if there is no pre-existing session under the sid,
+          # force the generation of a new sid and associate a new session associated with the new sid
+          sid = generate_sid
+          session = @@session_class.new(:session_id => sid, :data => {})
+        end
+        env[SESSION_RECORD_KEY] = session
+        [sid, session.data]
+      end
+    end
+
+    def set_session(env, sid, session_data, options)
+      Base.silence do
+        record = get_session_model(env, sid)
+        record.data = session_data
+        return false unless record.save
+
+        session_data = record.data
+        if session_data && session_data.respond_to?(:each_value)
+          session_data.each_value do |obj|
+            obj.clear_association_cache if obj.respond_to?(:clear_association_cache)
+          end
+        end
+      end
+
+      sid
+    end
+
+    def destroy_session(env, session_id, options)
+      if sid = current_session_id(env)
         Base.silence do
-          unless sid and session = @@session_class.find_by_session_id(sid)
-            # If the sid was nil or if there is no pre-existing session under the sid,
-            # force the generation of a new sid and associate a new session associated with the new sid
-            sid = generate_sid
-            session = @@session_class.new(:session_id => sid, :data => {})
-          end
-          env[SESSION_RECORD_KEY] = session
-          [sid, session.data]
+          get_session_model(env, sid).destroy
+          env[SESSION_RECORD_KEY] = nil
         end
       end
 
-      def set_session(env, sid, session_data, options)
-        Base.silence do
-          record = get_session_model(env, sid)
-          record.data = session_data
-          return false unless record.save
+      generate_sid unless options[:drop]
+    end
 
-          session_data = record.data
-          if session_data && session_data.respond_to?(:each_value)
-            session_data.each_value do |obj|
-              obj.clear_association_cache if obj.respond_to?(:clear_association_cache)
-            end
-          end
-        end
-
-        sid
+    def get_session_model(env, sid)
+      if env[ENV_SESSION_OPTIONS_KEY][:id].nil?
+        env[SESSION_RECORD_KEY] = find_session(sid)
+      else
+        env[SESSION_RECORD_KEY] ||= find_session(sid)
       end
+    end
 
-      def destroy_session(env, session_id, options)
-        if sid = current_session_id(env)
-          Base.silence do
-            get_session_model(env, sid).destroy
-            env[SESSION_RECORD_KEY] = nil
-          end
-        end
-
-        generate_sid unless options[:drop]
-      end
-
-      def get_session_model(env, sid)
-        if env[ENV_SESSION_OPTIONS_KEY][:id].nil?
-          env[SESSION_RECORD_KEY] = find_session(sid)
-        else
-          env[SESSION_RECORD_KEY] ||= find_session(sid)
-        end
-      end
-
-      def find_session(id)
-        @@session_class.find_by_session_id(id) ||
-          @@session_class.new(:session_id => id, :data => {})
-      end
+    def find_session(id)
+      @@session_class.find_by_session_id(id) ||
+        @@session_class.new(:session_id => id, :data => {})
+    end
   end
 end

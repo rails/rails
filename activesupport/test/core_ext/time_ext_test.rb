@@ -840,17 +840,17 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2011,1,1,0,0,0)..Time.local(2011,12,31,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_year
   end
 
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
+protected
+  def with_env_tz(new_tz = 'US/Eastern')
+    old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+    yield
+  ensure
+    old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+  end
 
-    def time_is_64bits?
-      Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).is_a?(Time)
-    end
+  def time_is_64bits?
+    Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).is_a?(Time)
+  end
 end
 
 class TimeExtMarshalingTest < ActiveSupport::TestCase

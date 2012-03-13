@@ -133,7 +133,7 @@ module ActiveRecord
         @arel_engine ||= connection_handler.connection_pools[name] ? self : active_record_super.arel_engine
       end
 
-      private
+    private
 
       def relation #:nodoc:
         @relation ||= Relation.new(self, arel_table)
@@ -326,7 +326,7 @@ module ActiveRecord
       "#<#{self.class} #{inspection}>"
     end
 
-    private
+  private
 
     # Under Ruby 1.9, Array#flatten will call #to_ary (recursively) on each of the elements
     # of the array, and then rescues from the possible NoMethodError. If those elements are

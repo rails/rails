@@ -43,65 +43,65 @@ module HTML #:nodoc:
       end
     end
 
-    private
+  private
 
-      # Treat the text at the current position as a tag, and scan it. Supports
-      # comments, doctype tags, and regular tags, and ignores less-than and
-      # greater-than characters within quoted strings.
-      def scan_tag
-        tag = @scanner.getch
-        if @scanner.scan(/!--/) # comment
-          tag << @scanner.matched
-          tag << (@scanner.scan_until(/--\s*>/) || @scanner.scan_until(/\Z/))
-        elsif @scanner.scan(/!\[CDATA\[/)
-          tag << @scanner.matched
-          tag << (@scanner.scan_until(/\]\]>/) || @scanner.scan_until(/\Z/))
-        elsif @scanner.scan(/!/) # doctype
-          tag << @scanner.matched
-          tag << consume_quoted_regions
-        else
-          tag << consume_quoted_regions
+    # Treat the text at the current position as a tag, and scan it. Supports
+    # comments, doctype tags, and regular tags, and ignores less-than and
+    # greater-than characters within quoted strings.
+    def scan_tag
+      tag = @scanner.getch
+      if @scanner.scan(/!--/) # comment
+        tag << @scanner.matched
+        tag << (@scanner.scan_until(/--\s*>/) || @scanner.scan_until(/\Z/))
+      elsif @scanner.scan(/!\[CDATA\[/)
+        tag << @scanner.matched
+        tag << (@scanner.scan_until(/\]\]>/) || @scanner.scan_until(/\Z/))
+      elsif @scanner.scan(/!/) # doctype
+        tag << @scanner.matched
+        tag << consume_quoted_regions
+      else
+        tag << consume_quoted_regions
+      end
+      tag
+    end
+
+    # Scan all text up to the next < character and return it.
+    def scan_text
+      "#{@scanner.getch}#{@scanner.scan(/[^<]*/)}"
+    end
+
+    # Counts the number of newlines in the text and updates the current line
+    # accordingly.
+    def update_current_line(text)
+      text.scan(/\r?\n/) { @current_line += 1 }
+    end
+
+    # Skips over quoted strings, so that less-than and greater-than characters
+    # within the strings are ignored.
+    def consume_quoted_regions
+      text = ""
+      loop do
+        match = @scanner.scan_until(/['"<>]/) or break
+
+        delim = @scanner.matched
+        if delim == "<"
+          match = match.chop
+          @scanner.pos -= 1
         end
-        tag
-      end
 
-      # Scan all text up to the next < character and return it.
-      def scan_text
-        "#{@scanner.getch}#{@scanner.scan(/[^<]*/)}"
-      end
+        text << match
+        break if delim == "<" || delim == ">"
 
-      # Counts the number of newlines in the text and updates the current line
-      # accordingly.
-      def update_current_line(text)
-        text.scan(/\r?\n/) { @current_line += 1 }
-      end
-
-      # Skips over quoted strings, so that less-than and greater-than characters
-      # within the strings are ignored.
-      def consume_quoted_regions
-        text = ""
-        loop do
-          match = @scanner.scan_until(/['"<>]/) or break
-
-          delim = @scanner.matched
-          if delim == "<"
-            match = match.chop
-            @scanner.pos -= 1
-          end
-
+        # consume the quoted region
+        while match = @scanner.scan_until(/[\\#{delim}]/)
           text << match
-          break if delim == "<" || delim == ">"
-
-          # consume the quoted region
-          while match = @scanner.scan_until(/[\\#{delim}]/)
-            text << match
-            break if @scanner.matched == delim
-            break if @scanner.eos?
-            text << @scanner.getch # skip the escaped character
-          end
+          break if @scanner.matched == delim
+          break if @scanner.eos?
+          text << @scanner.getch # skip the escaped character
         end
-        text
       end
+      text
+    end
   end
 
 end

@@ -24,7 +24,7 @@ module Rails
           new(name, type, has_index, attr_options)
         end
 
-        private
+      private
 
         # parse possible attribute options like :limit for string/text/binary/integer or :precision/:scale for decimals
         # when declaring options curly brackets should be used

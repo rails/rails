@@ -25,7 +25,7 @@ module ActionView
           select_content_tag(option_tags, @options, @html_options)
         end
 
-        private
+      private
 
         # Grouped choices look like this:
         #

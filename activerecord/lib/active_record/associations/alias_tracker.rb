@@ -46,31 +46,31 @@ module ActiveRecord
         end
       end
 
-      private
+    private
 
-        def initial_count_for(name)
-          return 0 if Arel::Table === table_joins
+      def initial_count_for(name)
+        return 0 if Arel::Table === table_joins
 
-          # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
-          quoted_name = connection.quote_table_name(name).downcase
+        # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
+        quoted_name = connection.quote_table_name(name).downcase
 
-          counts = table_joins.map do |join|
-            if join.is_a?(Arel::Nodes::StringJoin)
-              # Table names + table aliases
-              join.left.downcase.scan(
-                /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
-              ).size
-            else
-              join.left.table_name == name ? 1 : 0
-            end
+        counts = table_joins.map do |join|
+          if join.is_a?(Arel::Nodes::StringJoin)
+            # Table names + table aliases
+            join.left.downcase.scan(
+              /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
+            ).size
+          else
+            join.left.table_name == name ? 1 : 0
           end
-
-          counts.sum
         end
 
-        def truncate(name)
-          name.slice(0, connection.table_alias_length - 2)
-        end
+        counts.sum
+      end
+
+      def truncate(name)
+        name.slice(0, connection.table_alias_length - 2)
+      end
     end
   end
 end

@@ -96,30 +96,30 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     end
   end
 
-  private
-    def with_real_execute
-      #we need to actually modify some data, so we make execute point to the original method
-      ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
-        alias_method :execute_with_stub, :execute
-        remove_method :execute
-        alias_method :execute, :execute_without_stub
-      end
-      yield
-    ensure
-      #before finishing, we restore the alias to the mock-up method
-      ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
-        remove_method :execute
-        alias_method :execute, :execute_with_stub
-      end
+private
+  def with_real_execute
+    #we need to actually modify some data, so we make execute point to the original method
+    ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
+      alias_method :execute_with_stub, :execute
+      remove_method :execute
+      alias_method :execute, :execute_without_stub
     end
+    yield
+  ensure
+    #before finishing, we restore the alias to the mock-up method
+    ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
+      remove_method :execute
+      alias_method :execute, :execute_with_stub
+    end
+  end
 
 
-    def method_missing(method_symbol, *arguments)
-      ActiveRecord::Base.connection.send(method_symbol, *arguments)
-    end
+  def method_missing(method_symbol, *arguments)
+    ActiveRecord::Base.connection.send(method_symbol, *arguments)
+  end
 
-    def column_present?(table_name, column_name, type)
-      results = ActiveRecord::Base.connection.select_all("SHOW FIELDS FROM #{table_name} LIKE '#{column_name}'")
-      results.first && results.first['Type'] == type
-    end
+  def column_present?(table_name, column_name, type)
+    results = ActiveRecord::Base.connection.select_all("SHOW FIELDS FROM #{table_name} LIKE '#{column_name}'")
+    results.first && results.first['Type'] == type
+  end
 end

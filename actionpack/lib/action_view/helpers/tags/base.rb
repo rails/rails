@@ -22,7 +22,7 @@ module ActionView
           raise NotImplementedError, "Subclasses must implement a render method"
         end
 
-        private
+      private
 
         def value(object)
           object.send @method_name if object

@@ -35,11 +35,11 @@ module ActiveRecord
         column_sql
       end
 
-      private
+    private
 
-        def add_column_options!(sql, options)
-          base.add_column_options!(sql, options.merge(:column => self))
-        end
+      def add_column_options!(sql, options)
+        base.add_column_options!(sql, options.merge(:column => self))
+      end
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
@@ -281,7 +281,7 @@ module ActiveRecord
         @columns.map { |c| c.to_sql } * ', '
       end
 
-      private
+    private
       def new_column_definition(base, name, type)
         definition = ColumnDefinition.new base, name, type
         @columns << definition
@@ -485,10 +485,10 @@ module ActiveRecord
         EOV
       end
 
-      private
-        def native
-          @base.native_database_types
-        end
+    private
+      def native
+        @base.native_database_types
+      end
     end
 
   end

@@ -67,7 +67,7 @@ module ActionView
       @fiber.resume if @waiting_for == key
     end
 
-    private
+  private
 
     def inside_fiber?
       Fiber.current.object_id != @root

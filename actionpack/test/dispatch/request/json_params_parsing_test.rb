@@ -53,23 +53,23 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
-    def assert_parses(expected, actual, headers = {})
-      with_test_routing do
-        post "/parse", actual, headers
-        assert_response :ok
-        assert_equal(expected, TestController.last_request_parameters)
-      end
+private
+  def assert_parses(expected, actual, headers = {})
+    with_test_routing do
+      post "/parse", actual, headers
+      assert_response :ok
+      assert_equal(expected, TestController.last_request_parameters)
     end
+  end
 
-    def with_test_routing
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => ::JsonParamsParsingTest::TestController
-        end
-        yield
+  def with_test_routing
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => ::JsonParamsParsingTest::TestController
       end
+      yield
     end
+  end
 end
 
 class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
@@ -105,22 +105,22 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
-  private
-    def assert_parses(expected, actual, headers = {})
-      with_test_routing(UsersController) do
-        post "/parse", actual, headers
-        assert_response :ok
-        assert_equal(expected, UsersController.last_request_parameters)
-        assert_equal(expected.merge({"action" => "parse"}), UsersController.last_parameters)
-      end
+private
+  def assert_parses(expected, actual, headers = {})
+    with_test_routing(UsersController) do
+      post "/parse", actual, headers
+      assert_response :ok
+      assert_equal(expected, UsersController.last_request_parameters)
+      assert_equal(expected.merge({"action" => "parse"}), UsersController.last_parameters)
     end
+  end
 
-    def with_test_routing(controller)
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => controller
-        end
-        yield
+  def with_test_routing(controller)
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => controller
       end
+      yield
     end
+  end
 end

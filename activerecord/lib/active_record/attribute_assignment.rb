@@ -6,7 +6,7 @@ module ActiveRecord
     include ActiveModel::MassAssignmentSecurity
 
     module ClassMethods
-      private
+    private
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
       def attributes_protected_by_default
@@ -98,7 +98,7 @@ module ActiveRecord
       assign_multiparameter_attributes(multi_parameter_attributes)
     end
 
-    protected
+  protected
 
     def mass_assignment_options
       @mass_assignment_options ||= {}
@@ -108,7 +108,7 @@ module ActiveRecord
       mass_assignment_options[:as] || :default
     end
 
-    private
+  private
 
     # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done
     # by calling new on the column type or aggregation type (through composed_of) object with these parameters.

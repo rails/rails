@@ -240,87 +240,87 @@ module Rails
       groups.sort.each { |b, n| print_list(b, n) }
     end
 
-    protected
+  protected
 
-      # Prints a list of generators.
-      def self.print_list(base, namespaces) #:nodoc:
-        namespaces = namespaces.reject do |n|
-          hidden_namespaces.include?(n)
-        end
-
-        return if namespaces.empty?
-        puts "#{base.camelize}:"
-
-        namespaces.each do |namespace|
-          puts("  #{namespace}")
-        end
-
-        puts
+    # Prints a list of generators.
+    def self.print_list(base, namespaces) #:nodoc:
+      namespaces = namespaces.reject do |n|
+        hidden_namespaces.include?(n)
       end
 
-      # Try fallbacks for the given base.
-      def self.invoke_fallbacks_for(name, base) #:nodoc:
-        return nil unless base && fallbacks[base.to_sym]
-        invoked_fallbacks = []
+      return if namespaces.empty?
+      puts "#{base.camelize}:"
 
-        Array(fallbacks[base.to_sym]).each do |fallback|
-          next if invoked_fallbacks.include?(fallback)
-          invoked_fallbacks << fallback
-
-          klass = find_by_namespace(name, fallback)
-          return klass if klass
-        end
-
-        nil
+      namespaces.each do |namespace|
+        puts("  #{namespace}")
       end
 
-      # Receives namespaces in an array and tries to find matching generators
-      # in the load path.
-      def self.lookup(namespaces) #:nodoc:
-        paths = namespaces_to_paths(namespaces)
+      puts
+    end
 
-        paths.each do |raw_path|
-          ["rails/generators", "generators"].each do |base|
-            path = "#{base}/#{raw_path}_generator"
+    # Try fallbacks for the given base.
+    def self.invoke_fallbacks_for(name, base) #:nodoc:
+      return nil unless base && fallbacks[base.to_sym]
+      invoked_fallbacks = []
 
-            begin
-              require path
-              return
-            rescue LoadError => e
-              raise unless e.message =~ /#{Regexp.escape(path)}$/
-            rescue Exception => e
-              warn "[WARNING] Could not load generator #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
-            end
+      Array(fallbacks[base.to_sym]).each do |fallback|
+        next if invoked_fallbacks.include?(fallback)
+        invoked_fallbacks << fallback
+
+        klass = find_by_namespace(name, fallback)
+        return klass if klass
+      end
+
+      nil
+    end
+
+    # Receives namespaces in an array and tries to find matching generators
+    # in the load path.
+    def self.lookup(namespaces) #:nodoc:
+      paths = namespaces_to_paths(namespaces)
+
+      paths.each do |raw_path|
+        ["rails/generators", "generators"].each do |base|
+          path = "#{base}/#{raw_path}_generator"
+
+          begin
+            require path
+            return
+          rescue LoadError => e
+            raise unless e.message =~ /#{Regexp.escape(path)}$/
+          rescue Exception => e
+            warn "[WARNING] Could not load generator #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
           end
         end
       end
+    end
 
-      # This will try to load any generator in the load path to show in help.
-      def self.lookup! #:nodoc:
-        $LOAD_PATH.each do |base|
-          Dir[File.join(base, "{rails/generators,generators}", "**", "*_generator.rb")].each do |path|
-            begin
-              path = path.sub("#{base}/", "")
-              require path
-            rescue Exception
-              # No problem
-            end
+    # This will try to load any generator in the load path to show in help.
+    def self.lookup! #:nodoc:
+      $LOAD_PATH.each do |base|
+        Dir[File.join(base, "{rails/generators,generators}", "**", "*_generator.rb")].each do |path|
+          begin
+            path = path.sub("#{base}/", "")
+            require path
+          rescue Exception
+            # No problem
           end
         end
       end
+    end
 
-      # Convert namespaces to paths by replacing ":" for "/" and adding
-      # an extra lookup. For example, "rails:model" should be searched
-      # in both: "rails/model/model_generator" and "rails/model_generator".
-      def self.namespaces_to_paths(namespaces) #:nodoc:
-        paths = []
-        namespaces.each do |namespace|
-          pieces = namespace.split(":")
-          paths << pieces.dup.push(pieces.last).join("/")
-          paths << pieces.join("/")
-        end
-        paths.uniq!
-        paths
+    # Convert namespaces to paths by replacing ":" for "/" and adding
+    # an extra lookup. For example, "rails:model" should be searched
+    # in both: "rails/model/model_generator" and "rails/model_generator".
+    def self.namespaces_to_paths(namespaces) #:nodoc:
+      paths = []
+      namespaces.each do |namespace|
+        pieces = namespace.split(":")
+        paths << pieces.dup.push(pieces.last).join("/")
+        paths << pieces.join("/")
       end
+      paths.uniq!
+      paths
+    end
   end
 end

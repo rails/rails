@@ -125,7 +125,7 @@ module AbstractController
       hash
     end
 
-    private
+  private
 
     # Normalize args and options.
     # :api: private

@@ -95,7 +95,7 @@ module ActiveRecord
         end
       end
 
-      private
+    private
 
       def preload(association)
         case association

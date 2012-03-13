@@ -198,7 +198,7 @@ module ActiveRecord
       self.class.columns_hash[name.to_s]
     end
 
-    protected
+  protected
 
     def clone_attributes(reader_method = :read_attribute, attributes = {})
       attribute_names.each do |name|
@@ -226,7 +226,7 @@ module ActiveRecord
       defined?(@attributes) && @attributes.include?(attr_name)
     end
 
-    private
+  private
 
     # Returns a Hash of the Arel::Attributes and attribute values that have been
     # type casted for use in an Arel insert/update method.

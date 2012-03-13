@@ -27,7 +27,7 @@ module ActiveSupport
         Thread.current[:activesupport_tagged_logging_tags] ||= []
       end
 
-      private
+    private
       def tags_text
         tags = current_tags
         if tags.any?

@@ -29,7 +29,7 @@ module ActiveRecord
         arel.respond_to?(method, include_private)
     end
 
-    protected
+  protected
 
     def method_missing(method, *args, &block)
       if Array.method_defined?(method)

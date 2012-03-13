@@ -59,7 +59,7 @@ module ActiveRecord
           cache.clear
         end
 
-        private
+      private
         def cache
           @cache[$$]
         end
@@ -446,117 +446,117 @@ module ActiveRecord
         "VALUES(NULL)"
       end
 
-      protected
-        def select(sql, name = nil, binds = []) #:nodoc:
-          exec_query(sql, name, binds)
+    protected
+      def select(sql, name = nil, binds = []) #:nodoc:
+        exec_query(sql, name, binds)
+      end
+
+      def table_structure(table_name)
+        structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA').to_hash
+        raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
+        structure
+      end
+
+      def alter_table(table_name, options = {}) #:nodoc:
+        altered_table_name = "altered_#{table_name}"
+        caller = lambda {|definition| yield definition if block_given?}
+
+        transaction do
+          move_table(table_name, altered_table_name,
+            options.merge(:temporary => true))
+          move_table(altered_table_name, table_name, &caller)
+        end
+      end
+
+      def move_table(from, to, options = {}, &block) #:nodoc:
+        copy_table(from, to, options, &block)
+        drop_table(from)
+      end
+
+      def copy_table(from, to, options = {}) #:nodoc:
+        options = options.merge(:id => (!columns(from).detect{|c| c.name == 'id'}.nil? && 'id' == primary_key(from).to_s))
+        create_table(to, options) do |definition|
+          @definition = definition
+          columns(from).each do |column|
+            column_name = options[:rename] ?
+              (options[:rename][column.name] ||
+               options[:rename][column.name.to_sym] ||
+               column.name) : column.name
+
+            @definition.column(column_name, column.type,
+              :limit => column.limit, :default => column.default,
+              :precision => column.precision, :scale => column.scale,
+              :null => column.null)
+          end
+          @definition.primary_key(primary_key(from)) if primary_key(from)
+          yield @definition if block_given?
         end
 
-        def table_structure(table_name)
-          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA').to_hash
-          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
-          structure
-        end
+        copy_table_indexes(from, to, options[:rename] || {})
+        copy_table_contents(from, to,
+          @definition.columns.map {|column| column.name},
+          options[:rename] || {})
+      end
 
-        def alter_table(table_name, options = {}) #:nodoc:
-          altered_table_name = "altered_#{table_name}"
-          caller = lambda {|definition| yield definition if block_given?}
+      def copy_table_indexes(from, to, rename = {}) #:nodoc:
+        indexes(from).each do |index|
+          name = index.name
+          if to == "altered_#{from}"
+            name = "temp_#{name}"
+          elsif from == "altered_#{to}"
+            name = name[5..-1]
+          end
 
-          transaction do
-            move_table(table_name, altered_table_name,
-              options.merge(:temporary => true))
-            move_table(altered_table_name, table_name, &caller)
+          to_column_names = columns(to).map { |c| c.name }
+          columns = index.columns.map {|c| rename[c] || c }.select do |column|
+            to_column_names.include?(column)
+          end
+
+          unless columns.empty?
+            # index name can't be the same
+            opts = { :name => name.gsub(/_(#{from})_/, "_#{to}_") }
+            opts[:unique] = true if index.unique
+            add_index(to, columns, opts)
           end
         end
+      end
 
-        def move_table(from, to, options = {}, &block) #:nodoc:
-          copy_table(from, to, options, &block)
-          drop_table(from)
+      def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
+        column_mappings = Hash[columns.map {|name| [name, name]}]
+        rename.each { |a| column_mappings[a.last] = a.first }
+        from_columns = columns(from).collect {|col| col.name}
+        columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
+        quoted_columns = columns.map { |col| quote_column_name(col) } * ','
+
+        quoted_to = quote_table_name(to)
+        exec_query("SELECT * FROM #{quote_table_name(from)}").each do |row|
+          sql = "INSERT INTO #{quoted_to} (#{quoted_columns}) VALUES ("
+          sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
+          sql << ')'
+          exec_query sql
         end
+      end
 
-        def copy_table(from, to, options = {}) #:nodoc:
-          options = options.merge(:id => (!columns(from).detect{|c| c.name == 'id'}.nil? && 'id' == primary_key(from).to_s))
-          create_table(to, options) do |definition|
-            @definition = definition
-            columns(from).each do |column|
-              column_name = options[:rename] ?
-                (options[:rename][column.name] ||
-                 options[:rename][column.name.to_sym] ||
-                 column.name) : column.name
+      def sqlite_version
+        @sqlite_version ||= SQLiteAdapter::Version.new(select_value('select sqlite_version(*)'))
+      end
 
-              @definition.column(column_name, column.type,
-                :limit => column.limit, :default => column.default,
-                :precision => column.precision, :scale => column.scale,
-                :null => column.null)
-            end
-            @definition.primary_key(primary_key(from)) if primary_key(from)
-            yield @definition if block_given?
-          end
-
-          copy_table_indexes(from, to, options[:rename] || {})
-          copy_table_contents(from, to,
-            @definition.columns.map {|column| column.name},
-            options[:rename] || {})
+      def default_primary_key_type
+        if supports_autoincrement?
+          'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'
+        else
+          'INTEGER PRIMARY KEY NOT NULL'
         end
+      end
 
-        def copy_table_indexes(from, to, rename = {}) #:nodoc:
-          indexes(from).each do |index|
-            name = index.name
-            if to == "altered_#{from}"
-              name = "temp_#{name}"
-            elsif from == "altered_#{to}"
-              name = name[5..-1]
-            end
-
-            to_column_names = columns(to).map { |c| c.name }
-            columns = index.columns.map {|c| rename[c] || c }.select do |column|
-              to_column_names.include?(column)
-            end
-
-            unless columns.empty?
-              # index name can't be the same
-              opts = { :name => name.gsub(/_(#{from})_/, "_#{to}_") }
-              opts[:unique] = true if index.unique
-              add_index(to, columns, opts)
-            end
-          end
+      def translate_exception(exception, message)
+        case exception.message
+        when /column(s)? .* (is|are) not unique/
+          RecordNotUnique.new(message, exception)
+        else
+          super
         end
-
-        def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
-          column_mappings = Hash[columns.map {|name| [name, name]}]
-          rename.each { |a| column_mappings[a.last] = a.first }
-          from_columns = columns(from).collect {|col| col.name}
-          columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
-          quoted_columns = columns.map { |col| quote_column_name(col) } * ','
-
-          quoted_to = quote_table_name(to)
-          exec_query("SELECT * FROM #{quote_table_name(from)}").each do |row|
-            sql = "INSERT INTO #{quoted_to} (#{quoted_columns}) VALUES ("
-            sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
-            sql << ')'
-            exec_query sql
-          end
-        end
-
-        def sqlite_version
-          @sqlite_version ||= SQLiteAdapter::Version.new(select_value('select sqlite_version(*)'))
-        end
-
-        def default_primary_key_type
-          if supports_autoincrement?
-            'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'
-          else
-            'INTEGER PRIMARY KEY NOT NULL'
-          end
-        end
-
-        def translate_exception(exception, message)
-          case exception.message
-          when /column(s)? .* (is|are) not unique/
-            RecordNotUnique.new(message, exception)
-          else
-            super
-          end
-        end
+      end
 
     end
   end

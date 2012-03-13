@@ -79,8 +79,8 @@ class OptionMergerTest < ActiveSupport::TestCase
     assert_equal ActiveSupport::OptionMerger, ActiveSupport::OptionMerger.new('', '').class
   end
 
-  private
-    def method_with_options(options = {})
-      options
-    end
+private
+  def method_with_options(options = {})
+    options
+  end
 end

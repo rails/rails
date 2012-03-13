@@ -29,47 +29,47 @@ module ActiveRecord::Associations::Builder
       true
     end
 
-    private
+  private
 
-      def wrap_block_extension
-        options[:extend] = Array(options[:extend])
+    def wrap_block_extension
+      options[:extend] = Array(options[:extend])
 
-        if block_extension
-          silence_warnings do
-            model.parent.const_set(extension_module_name, Module.new(&block_extension))
-          end
-          options[:extend].push("#{model.parent}::#{extension_module_name}".constantize)
+      if block_extension
+        silence_warnings do
+          model.parent.const_set(extension_module_name, Module.new(&block_extension))
         end
+        options[:extend].push("#{model.parent}::#{extension_module_name}".constantize)
       end
+    end
 
-      def extension_module_name
-        @extension_module_name ||= "#{model.to_s.demodulize}#{name.to_s.camelize}AssociationExtension"
+    def extension_module_name
+      @extension_module_name ||= "#{model.to_s.demodulize}#{name.to_s.camelize}AssociationExtension"
+    end
+
+    def define_callback(callback_name)
+      full_callback_name = "#{callback_name}_for_#{name}"
+
+      # TODO : why do i need method_defined? I think its because of the inheritance chain
+      model.class_attribute full_callback_name.to_sym unless model.method_defined?(full_callback_name)
+      model.send("#{full_callback_name}=", Array(options[callback_name.to_sym]))
+    end
+
+    def define_readers
+      super
+
+      name = self.name
+      mixin.redefine_method("#{name.to_s.singularize}_ids") do
+        association(name).ids_reader
       end
+    end
 
-      def define_callback(callback_name)
-        full_callback_name = "#{callback_name}_for_#{name}"
+    def define_writers
+      super
 
-        # TODO : why do i need method_defined? I think its because of the inheritance chain
-        model.class_attribute full_callback_name.to_sym unless model.method_defined?(full_callback_name)
-        model.send("#{full_callback_name}=", Array(options[callback_name.to_sym]))
+      name = self.name
+      mixin.redefine_method("#{name.to_s.singularize}_ids=") do |ids|
+        association(name).ids_writer(ids)
       end
-
-      def define_readers
-        super
-
-        name = self.name
-        mixin.redefine_method("#{name.to_s.singularize}_ids") do
-          association(name).ids_reader
-        end
-      end
-
-      def define_writers
-        super
-
-        name = self.name
-        mixin.redefine_method("#{name.to_s.singularize}_ids=") do |ids|
-          association(name).ids_writer(ids)
-        end
-      end
+    end
   end
 end

@@ -768,7 +768,7 @@ module NestedAttributesOnACollectionAssociationTests
     assert_nothing_raised(NoMethodError) { @pirate.save! }
   end
 
-  private
+private
 
   def association_setter
     @association_setter ||= "#{@association_name}_attributes=".to_sym

@@ -110,22 +110,22 @@ class TokenizerTest < ActiveSupport::TestCase
     assert_end
   end
 
-  private
+private
 
-    def tokenize(text)
-      @tokenizer = HTML::Tokenizer.new(text)
-    end
+  def tokenize(text)
+    @tokenizer = HTML::Tokenizer.new(text)
+  end
 
-    def assert_next(expected, message=nil)
-      token = @tokenizer.next
-      assert_equal expected, token, message
-    end
+  def assert_next(expected, message=nil)
+    token = @tokenizer.next
+    assert_equal expected, token, message
+  end
 
-    def assert_sequence(*expected)
-      assert_next expected.shift until expected.empty?
-    end
+  def assert_sequence(*expected)
+    assert_next expected.shift until expected.empty?
+  end
 
-    def assert_end(message=nil)
-      assert_nil @tokenizer.next, message
-    end
+  def assert_end(message=nil)
+    assert_nil @tokenizer.next, message
+  end
 end

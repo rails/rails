@@ -69,28 +69,28 @@ module ActiveSupport
         result
       end
 
-      protected
-        # overridden by each implementation
-        def run_gc; end
+    protected
+      # overridden by each implementation
+      def run_gc; end
 
-        def run_warmup
-          run_gc
+      def run_warmup
+        run_gc
 
-          time = Metrics::Time.new
-          run_test(time, :benchmark)
-          puts "%s (%s warmup)" % [full_test_name, time.format(time.total)]
+        time = Metrics::Time.new
+        run_test(time, :benchmark)
+        puts "%s (%s warmup)" % [full_test_name, time.format(time.total)]
 
-          run_gc
-        end
+        run_gc
+      end
 
-        def run_profile(metric)
-          klass = full_profile_options[:benchmark] ? Benchmarker : Profiler
-          performer = klass.new(self, metric)
+      def run_profile(metric)
+        klass = full_profile_options[:benchmark] ? Benchmarker : Profiler
+        performer = klass.new(self, metric)
 
-          performer.run
-          puts performer.report
-          performer.record
-        end
+        performer.run
+        puts performer.report
+        performer.record
+      end
 
       class Performer
         delegate :run_test, :full_profile_options, :full_test_name, :to => :@harness
@@ -108,10 +108,10 @@ module ActiveSupport
           end
         end
 
-        protected
-          def output_filename
-            "#{full_profile_options[:output]}/#{full_test_name}_#{@metric.name}"
-          end
+      protected
+        def output_filename
+          "#{full_profile_options[:output]}/#{full_test_name}_#{@metric.name}"
+        end
       end
 
       # overridden by each implementation
@@ -166,25 +166,25 @@ module ActiveSupport
           @env
         end
 
-        protected
-          HEADER = 'measurement,created_at,app,rails,ruby,platform'
+      protected
+        HEADER = 'measurement,created_at,app,rails,ruby,platform'
 
-          def with_output_file
-            fname = output_filename
+        def with_output_file
+          fname = output_filename
 
-            if new = !File.exist?(fname)
-              FileUtils.mkdir_p(File.dirname(fname))
-            end
-
-            File.open(fname, 'ab') do |file|
-              file.puts(HEADER) if new
-              yield file
-            end
+          if new = !File.exist?(fname)
+            FileUtils.mkdir_p(File.dirname(fname))
           end
 
-          def output_filename
-            "#{super}.csv"
+          File.open(fname, 'ab') do |file|
+            file.puts(HEADER) if new
+            yield file
           end
+        end
+
+        def output_filename
+          "#{super}.csv"
+        end
       end
 
       module Metrics
@@ -218,9 +218,9 @@ module ActiveSupport
           # overridden by each implementation
           def profile; end
 
-          protected
-            # overridden by each implementation
-            def with_gc_stats; end
+        protected
+          # overridden by each implementation
+          def with_gc_stats; end
         end
 
         class Time < Base

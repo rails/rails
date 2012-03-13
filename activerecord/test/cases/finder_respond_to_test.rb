@@ -77,7 +77,7 @@ class FinderRespondToTest < ActiveRecord::TestCase
     assert !Topic.respond_to?(:find_or_create_by_title?)
   end
 
-  private
+private
 
   def ensure_topic_method_is_not_cached(method_id)
     class << Topic; self; end.send(:remove_method, method_id) if Topic.public_methods.any? { |m| m.to_s == method_id.to_s }

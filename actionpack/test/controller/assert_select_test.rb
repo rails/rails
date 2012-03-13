@@ -328,14 +328,14 @@ EOF
     end
   end
 
-  protected
-    def render_html(html)
-      @controller.response_with = html
-      get :html
-    end
+protected
+  def render_html(html)
+    @controller.response_with = html
+    get :html
+  end
 
-    def render_xml(xml)
-      @controller.response_with = xml
-      get :xml
-    end
+  def render_xml(xml)
+    @controller.response_with = xml
+    get :xml
+  end
 end

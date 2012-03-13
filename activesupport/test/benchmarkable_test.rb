@@ -55,8 +55,8 @@ class BenchmarkableTest < ActiveSupport::TestCase
     logger.level = ActiveSupport::Logger::DEBUG
   end
 
-  private
-    def assert_last_logged(message = 'Benchmarking')
-      assert_match(/^#{message} \(.*\)$/, buffer.last)
-    end
+private
+  def assert_last_logged(message = 'Benchmarking')
+    assert_match(/^#{message} \(.*\)$/, buffer.last)
+  end
 end

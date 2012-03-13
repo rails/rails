@@ -33,7 +33,7 @@ module ActionController
       super || " "
     end
 
-    private
+  private
 
     # Normalize arguments by catching blocks and setting them on :update.
     def _normalize_args(action=nil, options={}, &blk) #:nodoc:

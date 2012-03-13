@@ -427,11 +427,11 @@ module ActionDispatch
         end
       end
 
-      protected
-        # +assert_select+ and +css_select+ call this to obtain the content in the HTML page.
-        def response_from_page
-          html_document.root
-        end
+    protected
+      # +assert_select+ and +css_select+ call this to obtain the content in the HTML page.
+      def response_from_page
+        html_document.root
+      end
     end
   end
 end

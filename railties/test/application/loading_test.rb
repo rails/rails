@@ -256,7 +256,7 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "BODY", last_response.body
   end
 
-  protected
+protected
 
   def setup_ar!
     ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")

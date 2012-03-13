@@ -256,11 +256,11 @@ module ActionMailer #:nodoc:
   #   class Notifier < ActionMailer::Base
   #     default 'X-Special-Header' => Proc.new { my_method }
   #
-  #     private
+  #   private
   #
-  #       def my_method
-  #         'some complex call'
-  #       end
+  #     def my_method
+  #       'some complex call'
+  #     end
   #   end
   #
   # Note that the proc is evaluated right at the start of the mail message generation, so if you
@@ -280,11 +280,11 @@ module ActionMailer #:nodoc:
   #       mail
   #     end
   #
-  #     private
+  #   private
   #
-  #       def add_inline_attachment!
-  #         attachments.inline["footer.jpg"] = File.read('/path/to/filename.jpg')
-  #       end
+  #     def add_inline_attachment!
+  #       attachments.inline["footer.jpg"] = File.read('/path/to/filename.jpg')
+  #     end
   #   end
   #
   # Callbacks in ActionMailer are implemented using AbstractController::Callbacks, so you

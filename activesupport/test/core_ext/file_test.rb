@@ -57,12 +57,12 @@ class AtomicWriteTest < ActiveSupport::TestCase
     File.unlink(file_name) rescue nil
   end
 
-  private
-    def file_name
-      "atomic.file"
-    end
+private
+  def file_name
+    "atomic.file"
+  end
 
-    def file_mode
-      File.stat(file_name).mode
-    end
+  def file_mode
+    File.stat(file_name).mode
+  end
 end

@@ -84,26 +84,26 @@ module ActiveSupport
       to_i
     end
 
-    protected
+  protected
 
-      def sum(sign, time = ::Time.current) #:nodoc:
-        parts.inject(time) do |t,(type,number)|
-          if t.acts_like?(:time) || t.acts_like?(:date)
-            if type == :seconds
-              t.since(sign * number)
-            else
-              t.advance(type => sign * number)
-            end
+    def sum(sign, time = ::Time.current) #:nodoc:
+      parts.inject(time) do |t,(type,number)|
+        if t.acts_like?(:time) || t.acts_like?(:date)
+          if type == :seconds
+            t.since(sign * number)
           else
-            raise ::ArgumentError, "expected a time or date, got #{time.inspect}"
+            t.advance(type => sign * number)
           end
+        else
+          raise ::ArgumentError, "expected a time or date, got #{time.inspect}"
         end
       end
+    end
 
-    private
+  private
 
-      def method_missing(method, *args, &block) #:nodoc:
-        value.send(method, *args, &block)
-      end
+    def method_missing(method, *args, &block) #:nodoc:
+      value.send(method, *args, &block)
+    end
   end
 end

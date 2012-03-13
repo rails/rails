@@ -1,11 +1,11 @@
 module ActiveModel
   module Validations
     module HelperMethods
-      private
-        def _merge_attributes(attr_names)
-          options = attr_names.extract_options!
-          options.merge(:attributes => attr_names.flatten)
-        end
+    private
+      def _merge_attributes(attr_names)
+        options = attr_names.extract_options!
+        options.merge(:attributes => attr_names.flatten)
+      end
     end
 
     class WithValidator < EachValidator
@@ -36,10 +36,10 @@ module ActiveModel
       #       end
       #     end
       #
-      #     private
-      #       def some_complex_logic
-      #         # ...
-      #       end
+      #   private
+      #     def some_complex_logic
+      #       # ...
+      #     end
       #   end
       #
       # You may also pass it multiple classes, like so:

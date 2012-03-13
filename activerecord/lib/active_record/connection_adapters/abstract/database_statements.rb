@@ -318,64 +318,64 @@ module ActiveRecord
         update.where update.key.in(subselect)
       end
 
-      protected
-        # Returns an array of record hashes with the column names as keys and
-        # column values as values.
-        def select(sql, name = nil, binds = [])
-        end
-        undef_method :select
+    protected
+      # Returns an array of record hashes with the column names as keys and
+      # column values as values.
+      def select(sql, name = nil, binds = [])
+      end
+      undef_method :select
 
-        # Returns the last auto-generated ID from the affected table.
-        def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-          execute(sql, name)
-          id_value
-        end
+      # Returns the last auto-generated ID from the affected table.
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        execute(sql, name)
+        id_value
+      end
 
-        # Executes the update statement and returns the number of rows affected.
-        def update_sql(sql, name = nil)
-          execute(sql, name)
-        end
+      # Executes the update statement and returns the number of rows affected.
+      def update_sql(sql, name = nil)
+        execute(sql, name)
+      end
 
-        # Executes the delete statement and returns the number of rows affected.
-        def delete_sql(sql, name = nil)
-          update_sql(sql, name)
-        end
+      # Executes the delete statement and returns the number of rows affected.
+      def delete_sql(sql, name = nil)
+        update_sql(sql, name)
+      end
 
-        # Send a rollback message to all records after they have been rolled back. If rollback
-        # is false, only rollback records since the last save point.
-        def rollback_transaction_records(rollback)
-          if rollback
-            records = @_current_transaction_records.flatten
-            @_current_transaction_records.clear
-          else
-            records = @_current_transaction_records.pop
-          end
-
-          unless records.blank?
-            records.uniq.each do |record|
-              begin
-                record.rolledback!(rollback)
-              rescue Exception => e
-                record.logger.error(e) if record.respond_to?(:logger) && record.logger
-              end
-            end
-          end
-        end
-
-        # Send a commit message to all records after they have been committed.
-        def commit_transaction_records
+      # Send a rollback message to all records after they have been rolled back. If rollback
+      # is false, only rollback records since the last save point.
+      def rollback_transaction_records(rollback)
+        if rollback
           records = @_current_transaction_records.flatten
           @_current_transaction_records.clear
-          unless records.blank?
-            records.uniq.each do |record|
-              begin
-                record.committed!
-              rescue Exception => e
-                record.logger.error(e) if record.respond_to?(:logger) && record.logger
-              end
+        else
+          records = @_current_transaction_records.pop
+        end
+
+        unless records.blank?
+          records.uniq.each do |record|
+            begin
+              record.rolledback!(rollback)
+            rescue Exception => e
+              record.logger.error(e) if record.respond_to?(:logger) && record.logger
             end
           end
         end
+      end
+
+      # Send a commit message to all records after they have been committed.
+      def commit_transaction_records
+        records = @_current_transaction_records.flatten
+        @_current_transaction_records.clear
+        unless records.blank?
+          records.uniq.each do |record|
+            begin
+              record.committed!
+            rescue Exception => e
+              record.logger.error(e) if record.respond_to?(:logger) && record.logger
+            end
+          end
+        end
+      end
 
       def sql_for_insert(sql, pk, id_value, sequence_name, binds)
         [sql, binds]

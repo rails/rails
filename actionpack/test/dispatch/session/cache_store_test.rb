@@ -160,20 +160,20 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
-    def with_test_route_set
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => ::CacheStoreTest::TestController
-        end
-
-        @app = self.class.build_app(set) do |middleware|
-          cache = ActiveSupport::Cache::MemoryStore.new
-          middleware.use ActionDispatch::Session::CacheStore, :key => '_session_id', :cache => cache
-          middleware.delete "ActionDispatch::ShowExceptions"
-        end
-
-        yield
+private
+  def with_test_route_set
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => ::CacheStoreTest::TestController
       end
+
+      @app = self.class.build_app(set) do |middleware|
+        cache = ActiveSupport::Cache::MemoryStore.new
+        middleware.use ActionDispatch::Session::CacheStore, :key => '_session_id', :cache => cache
+        middleware.delete "ActionDispatch::ShowExceptions"
+      end
+
+      yield
     end
+  end
 end

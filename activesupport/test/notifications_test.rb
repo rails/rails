@@ -144,10 +144,10 @@ module Notifications
       assert_equal [[:foo]], @another
     end
 
-    private
-      def event(*args)
-        args
-      end
+  private
+    def event(*args)
+      args
+    end
   end
 
   class InstrumentationTest < TestCase
@@ -234,9 +234,9 @@ module Notifications
       assert !not_child.parent_of?(parent)
     end
 
-    protected
-      def random_id
-        @random_id ||= SecureRandom.hex(10)
-      end
+  protected
+    def random_id
+      @random_id ||= SecureRandom.hex(10)
+    end
   end
 end

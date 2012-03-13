@@ -126,42 +126,42 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     assert_parses expected, query
   end
 
-  private
-    def with_test_routing
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => ::UrlEncodedParamsParsingTest::TestController
-        end
-        yield
+private
+  def with_test_routing
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => ::UrlEncodedParamsParsingTest::TestController
       end
+      yield
+    end
+  end
+
+  def assert_parses(expected, actual)
+    with_test_routing do
+      post "/parse", actual
+      assert_response :ok
+      assert_equal(expected, TestController.last_request_parameters)
+      assert_utf8(TestController.last_request_parameters)
+    end
+  end
+
+  def assert_utf8(object)
+    correct_encoding = Encoding.default_internal
+
+    unless object.is_a?(Hash)
+      assert_equal correct_encoding, object.encoding, "#{object.inspect} should have been UTF-8"
+      return
     end
 
-    def assert_parses(expected, actual)
-      with_test_routing do
-        post "/parse", actual
-        assert_response :ok
-        assert_equal(expected, TestController.last_request_parameters)
-        assert_utf8(TestController.last_request_parameters)
+    object.each do |k,v|
+      case v
+      when Hash
+        assert_utf8(v)
+      when Array
+        v.each {|el| assert_utf8(el) }
+      else
+        assert_utf8(v)
       end
     end
-
-    def assert_utf8(object)
-      correct_encoding = Encoding.default_internal
-
-      unless object.is_a?(Hash)
-        assert_equal correct_encoding, object.encoding, "#{object.inspect} should have been UTF-8"
-        return
-      end
-
-      object.each do |k,v|
-        case v
-        when Hash
-          assert_utf8(v)
-        when Array
-          v.each {|el| assert_utf8(el) }
-        else
-          assert_utf8(v)
-        end
-      end
-    end
+  end
 end

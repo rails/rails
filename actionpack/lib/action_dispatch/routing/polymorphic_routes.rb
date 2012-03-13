@@ -149,54 +149,54 @@ module ActionDispatch
         EOT
       end
 
-      private
-        def action_prefix(options)
-          options[:action] ? "#{options[:action]}_" : ''
-        end
+    private
+      def action_prefix(options)
+        options[:action] ? "#{options[:action]}_" : ''
+      end
 
-        def routing_type(options)
-          options[:routing_type] || :url
-        end
+      def routing_type(options)
+        options[:routing_type] || :url
+      end
 
-        def build_named_route_call(records, inflection, options = {})
-          if records.is_a?(Array)
-            record = records.pop
-            route = records.map do |parent|
-              if parent.is_a?(Symbol) || parent.is_a?(String)
-                parent
-              else
-                ActiveModel::Naming.singular_route_key(parent)
-              end
-            end
-          else
-            record = extract_record(records)
-            route  = []
-          end
-
-          if record.is_a?(Symbol) || record.is_a?(String)
-            route << record
-          elsif record
-            if inflection == :singular
-              route << ActiveModel::Naming.singular_route_key(record)
+      def build_named_route_call(records, inflection, options = {})
+        if records.is_a?(Array)
+          record = records.pop
+          route = records.map do |parent|
+            if parent.is_a?(Symbol) || parent.is_a?(String)
+              parent
             else
-              route << ActiveModel::Naming.route_key(record)
+              ActiveModel::Naming.singular_route_key(parent)
             end
+          end
+        else
+          record = extract_record(records)
+          route  = []
+        end
+
+        if record.is_a?(Symbol) || record.is_a?(String)
+          route << record
+        elsif record
+          if inflection == :singular
+            route << ActiveModel::Naming.singular_route_key(record)
           else
-            raise ArgumentError, "Nil location provided. Can't build URI."
+            route << ActiveModel::Naming.route_key(record)
           end
-
-          route << routing_type(options)
-
-          action_prefix(options) + route.join("_")
+        else
+          raise ArgumentError, "Nil location provided. Can't build URI."
         end
 
-        def extract_record(record_or_hash_or_array)
-          case record_or_hash_or_array
-            when Array; record_or_hash_or_array.last
-            when Hash;  record_or_hash_or_array[:id]
-            else        record_or_hash_or_array
-          end
+        route << routing_type(options)
+
+        action_prefix(options) + route.join("_")
+      end
+
+      def extract_record(record_or_hash_or_array)
+        case record_or_hash_or_array
+          when Array; record_or_hash_or_array.last
+          when Hash;  record_or_hash_or_array[:id]
+          else        record_or_hash_or_array
         end
+      end
     end
   end
 end

@@ -11,7 +11,7 @@ module ActiveRecord
           reflection.active_record_primary_key
         end
 
-        private
+      private
 
         def build_scope
           super.order(preload_options[:order] || options[:order])

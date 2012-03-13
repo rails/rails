@@ -144,14 +144,14 @@ class RescueController < ActionController::Base
     raise ActionView::TemplateError.new(nil, ZeroDivisionError.new('this is zero division error'))
   end
 
-  protected
-    def deny_access
-      head :forbidden
-    end
+protected
+  def deny_access
+    head :forbidden
+  end
 
-    def show_errors(exception)
-      head :unprocessable_entity
-    end
+  def show_errors(exception)
+    head :unprocessable_entity
+  end
 end
 
 class ExceptionInheritanceRescueController < ActionController::Base
@@ -318,10 +318,10 @@ class RescueTest < ActionDispatch::IntegrationTest
       raise 'b00m'
     end
 
-    protected
-      def show_errors(exception)
-        render :text => exception.message
-      end
+  protected
+    def show_errors(exception)
+      render :text => exception.message
+    end
   end
 
   test 'normal request' do
@@ -338,16 +338,16 @@ class RescueTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
+private
 
-    def with_test_routing
-      with_routing do |set|
-        set.draw do
-          match 'foo', :to => ::RescueTest::TestController.action(:foo)
-          match 'invalid', :to => ::RescueTest::TestController.action(:invalid)
-          match 'b00m', :to => ::RescueTest::TestController.action(:b00m)
-        end
-        yield
+  def with_test_routing
+    with_routing do |set|
+      set.draw do
+        match 'foo', :to => ::RescueTest::TestController.action(:foo)
+        match 'invalid', :to => ::RescueTest::TestController.action(:invalid)
+        match 'b00m', :to => ::RescueTest::TestController.action(:b00m)
       end
+      yield
     end
+  end
 end

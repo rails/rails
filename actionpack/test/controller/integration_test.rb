@@ -457,24 +457,24 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
   end
 
-  private
-    def with_test_route_set
-      with_routing do |set|
-        controller = ::IntegrationProcessTest::IntegrationController.clone
-        controller.class_eval do
-          include set.url_helpers
-        end
-
-        set.draw do
-          match ':action', :to => controller
-          get 'get/:action', :to => controller
-        end
-
-        self.singleton_class.send(:include, set.url_helpers)
-
-        yield
+private
+  def with_test_route_set
+    with_routing do |set|
+      controller = ::IntegrationProcessTest::IntegrationController.clone
+      controller.class_eval do
+        include set.url_helpers
       end
+
+      set.draw do
+        match ':action', :to => controller
+        get 'get/:action', :to => controller
+      end
+
+      self.singleton_class.send(:include, set.url_helpers)
+
+      yield
     end
+  end
 end
 
 class MetalIntegrationTest < ActionDispatch::IntegrationTest

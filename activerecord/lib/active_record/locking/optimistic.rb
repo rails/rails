@@ -59,67 +59,67 @@ module ActiveRecord
         self.class.locking_enabled?
       end
 
-      private
-        def increment_lock
-          lock_col = self.class.locking_column
-          previous_lock_value = send(lock_col).to_i
-          send(lock_col + '=', previous_lock_value + 1)
+    private
+      def increment_lock
+        lock_col = self.class.locking_column
+        previous_lock_value = send(lock_col).to_i
+        send(lock_col + '=', previous_lock_value + 1)
+      end
+
+      def update(attribute_names = @attributes.keys) #:nodoc:
+        return super unless locking_enabled?
+        return 0 if attribute_names.empty?
+
+        lock_col = self.class.locking_column
+        previous_lock_value = send(lock_col).to_i
+        increment_lock
+
+        attribute_names += [lock_col]
+        attribute_names.uniq!
+
+        begin
+          relation = self.class.unscoped
+
+          stmt = relation.where(
+            relation.table[self.class.primary_key].eq(id).and(
+              relation.table[lock_col].eq(quote_value(previous_lock_value))
+            )
+          ).arel.compile_update(arel_attributes_with_values_for_update(attribute_names))
+
+          affected_rows = connection.update stmt
+
+          unless affected_rows == 1
+            raise ActiveRecord::StaleObjectError.new(self, "update")
+          end
+
+          affected_rows
+
+        # If something went wrong, revert the version.
+        rescue Exception
+          send(lock_col + '=', previous_lock_value)
+          raise
         end
+      end
 
-        def update(attribute_names = @attributes.keys) #:nodoc:
-          return super unless locking_enabled?
-          return 0 if attribute_names.empty?
+      def destroy #:nodoc:
+        return super unless locking_enabled?
 
+        if persisted?
+          table = self.class.arel_table
           lock_col = self.class.locking_column
-          previous_lock_value = send(lock_col).to_i
-          increment_lock
+          predicate = table[self.class.primary_key].eq(id).
+            and(table[lock_col].eq(send(lock_col).to_i))
 
-          attribute_names += [lock_col]
-          attribute_names.uniq!
+          affected_rows = self.class.unscoped.where(predicate).delete_all
 
-          begin
-            relation = self.class.unscoped
-
-            stmt = relation.where(
-              relation.table[self.class.primary_key].eq(id).and(
-                relation.table[lock_col].eq(quote_value(previous_lock_value))
-              )
-            ).arel.compile_update(arel_attributes_with_values_for_update(attribute_names))
-
-            affected_rows = connection.update stmt
-
-            unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError.new(self, "update")
-            end
-
-            affected_rows
-
-          # If something went wrong, revert the version.
-          rescue Exception
-            send(lock_col + '=', previous_lock_value)
-            raise
+          unless affected_rows == 1
+            raise ActiveRecord::StaleObjectError.new(self, "destroy")
           end
         end
 
-        def destroy #:nodoc:
-          return super unless locking_enabled?
-
-          if persisted?
-            table = self.class.arel_table
-            lock_col = self.class.locking_column
-            predicate = table[self.class.primary_key].eq(id).
-              and(table[lock_col].eq(send(lock_col).to_i))
-
-            affected_rows = self.class.unscoped.where(predicate).delete_all
-
-            unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError.new(self, "destroy")
-            end
-          end
-
-          @destroyed = true
-          freeze
-        end
+        @destroyed = true
+        freeze
+      end
 
       module ClassMethods
         DEFAULT_LOCKING_COLUMN = 'lock_version'

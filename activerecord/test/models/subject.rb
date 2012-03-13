@@ -6,11 +6,11 @@ class Subject < ActiveRecord::Base
   # as otherwise synonym test was failing
   after_initialize :set_email_address
 
-  protected
-    def set_email_address
-      unless self.persisted?
-        self.author_email_address = 'test@test.com'
-      end
+protected
+  def set_email_address
+    unless self.persisted?
+      self.author_email_address = 'test@test.com'
     end
+  end
 
 end

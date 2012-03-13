@@ -113,12 +113,12 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
     @connection.drop_table :parent rescue nil
   end
 
-  private
-    def boolean_domain_exists?
-      !@connection.select_one("SELECT 1 FROM rdb$fields WHERE rdb$field_name = 'D_BOOLEAN'").nil?
-    end
+private
+  def boolean_domain_exists?
+    !@connection.select_one("SELECT 1 FROM rdb$fields WHERE rdb$field_name = 'D_BOOLEAN'").nil?
+  end
 
-    def sequence_exists?(sequence_name)
-      FireRuby::Generator.exists?(sequence_name, @fireruby_connection)
-    end
+  def sequence_exists?(sequence_name)
+    FireRuby::Generator.exists?(sequence_name, @fireruby_connection)
+  end
 end

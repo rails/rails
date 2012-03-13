@@ -516,7 +516,7 @@ module ActiveRecord
       end
     end
 
-    private
+  private
 
     def references_eager_loaded_tables?
       joined_tables = arel.join_sources.map do |join|

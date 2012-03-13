@@ -21,10 +21,10 @@ module ActiveModel #:nodoc:
   #       end
   #     end
   #
-  #     private
-  #       def some_complex_logic
-  #         # ...
-  #       end
+  #   private
+  #     def some_complex_logic
+  #       # ...
+  #     end
   #   end
   #
   # Any class that inherits from ActiveModel::Validator must implement a method
@@ -174,7 +174,7 @@ module ActiveModel #:nodoc:
       super
     end
 
-    private
+  private
 
     def validate_each(record, attribute, value)
       @block.call(record, attribute, value)

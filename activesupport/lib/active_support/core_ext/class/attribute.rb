@@ -108,7 +108,7 @@ class Class
     end
   end
 
-  private
+private
   def singleton_class?
     ancestors.first != self
   end

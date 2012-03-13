@@ -206,7 +206,7 @@ module ActionDispatch
         self[:notice] = message
       end
 
-      protected
+    protected
       def now_is_loaded?
         @now
       end

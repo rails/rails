@@ -3,7 +3,7 @@ require 'rails/generators/named_base'
 module Erb
   module Generators
     class Base < Rails::Generators::NamedBase #:nodoc:
-      protected
+    protected
 
       def format
         :html

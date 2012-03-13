@@ -227,20 +227,20 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = 'roger'; s.save }
   end
 
-  private
-    def switch_to_alt_inheritance_column
-      # we don't want misleading test results, so get rid of the values in the type column
-      Company.find(:all, :order => 'id').each do |c|
-        c['type'] = nil
-        c.save
-      end
-      [ Company, Firm, Client].each { |klass| klass.reset_column_information }
-      Company.inheritance_column = 'ruby_type'
+private
+  def switch_to_alt_inheritance_column
+    # we don't want misleading test results, so get rid of the values in the type column
+    Company.find(:all, :order => 'id').each do |c|
+      c['type'] = nil
+      c.save
     end
-    def switch_to_default_inheritance_column
-      [ Company, Firm, Client].each { |klass| klass.reset_column_information }
-      Company.inheritance_column = 'type'
-    end
+    [ Company, Firm, Client].each { |klass| klass.reset_column_information }
+    Company.inheritance_column = 'ruby_type'
+  end
+  def switch_to_default_inheritance_column
+    [ Company, Firm, Client].each { |klass| klass.reset_column_information }
+    Company.inheritance_column = 'type'
+  end
 end
 
 

@@ -3,7 +3,7 @@ module ActiveRecord
     class Preloader
       class CollectionAssociation < Association #:nodoc:
 
-        private
+      private
 
         def build_scope
           super.order(preload_options[:order] || options[:order])

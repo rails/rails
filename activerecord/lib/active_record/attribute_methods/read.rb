@@ -57,7 +57,7 @@ module ActiveRecord
           end
         end
 
-        protected
+      protected
         # We want to generate the methods via module_eval rather than define_method,
         # because define_method is slower on dispatch and uses more memory (because it
         # creates a closure).
@@ -86,7 +86,7 @@ module ActiveRecord
           STR
         end
 
-        private
+      private
         def cacheable_column?(column)
           if attribute_types_cached_by_default == ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
             ! serialized_attributes.include? column.name
@@ -135,7 +135,7 @@ module ActiveRecord
         }
       end
 
-      private
+    private
 
       def attribute(attribute_name)
         read_attribute(attribute_name)

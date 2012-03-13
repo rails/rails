@@ -142,73 +142,73 @@ module AbstractController
       method_for_action(action_name).present?
     end
 
-    private
+  private
 
-      # Returns true if the name can be considered an action because
-      # it has a method defined in the controller.
-      #
-      # ==== Parameters
-      # * <tt>name</tt> - The name of an action to be tested
-      #
-      # ==== Returns
-      # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
-      #
-      # :api: private
-      def action_method?(name)
-        self.class.action_methods.include?(name)
+    # Returns true if the name can be considered an action because
+    # it has a method defined in the controller.
+    #
+    # ==== Parameters
+    # * <tt>name</tt> - The name of an action to be tested
+    #
+    # ==== Returns
+    # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
+    #
+    # :api: private
+    def action_method?(name)
+      self.class.action_methods.include?(name)
+    end
+
+    # Call the action. Override this in a subclass to modify the
+    # behavior around processing an action. This, and not #process,
+    # is the intended way to override action dispatching.
+    #
+    # Notice that the first argument is the method to be dispatched
+    # which is *not* necessarily the same as the action name.
+    def process_action(method_name, *args)
+      send_action(method_name, *args)
+    end
+
+    # Actually call the method associated with the action. Override
+    # this method if you wish to change how action methods are called,
+    # not to add additional behavior around it. For example, you would
+    # override #send_action if you want to inject arguments into the
+    # method.
+    alias send_action send
+
+    # If the action name was not found, but a method called "action_missing"
+    # was found, #method_for_action will return "_handle_action_missing".
+    # This method calls #action_missing with the current action name.
+    def _handle_action_missing(*args)
+      action_missing(@_action_name, *args)
+    end
+
+    # Takes an action name and returns the name of the method that will
+    # handle the action. In normal cases, this method returns the same
+    # name as it receives. By default, if #method_for_action receives
+    # a name that is not an action, it will look for an #action_missing
+    # method and return "_handle_action_missing" if one is found.
+    #
+    # Subclasses may override this method to add additional conditions
+    # that should be considered an action. For instance, an HTTP controller
+    # with a template matching the action name is considered to exist.
+    #
+    # If you override this method to handle additional cases, you may
+    # also provide a method (like _handle_method_missing) to handle
+    # the case.
+    #
+    # If none of these conditions are true, and method_for_action
+    # returns nil, an ActionNotFound exception will be raised.
+    #
+    # ==== Parameters
+    # * <tt>action_name</tt> - An action name to find a method name for
+    #
+    # ==== Returns
+    # * <tt>string</tt> - The name of the method that handles the action
+    # * <tt>nil</tt>    - No method name could be found. Raise ActionNotFound.
+    def method_for_action(action_name)
+      if action_method?(action_name) then action_name
+      elsif respond_to?(:action_missing, true) then "_handle_action_missing"
       end
-
-      # Call the action. Override this in a subclass to modify the
-      # behavior around processing an action. This, and not #process,
-      # is the intended way to override action dispatching.
-      #
-      # Notice that the first argument is the method to be dispatched
-      # which is *not* necessarily the same as the action name.
-      def process_action(method_name, *args)
-        send_action(method_name, *args)
-      end
-
-      # Actually call the method associated with the action. Override
-      # this method if you wish to change how action methods are called,
-      # not to add additional behavior around it. For example, you would
-      # override #send_action if you want to inject arguments into the
-      # method.
-      alias send_action send
-
-      # If the action name was not found, but a method called "action_missing"
-      # was found, #method_for_action will return "_handle_action_missing".
-      # This method calls #action_missing with the current action name.
-      def _handle_action_missing(*args)
-        action_missing(@_action_name, *args)
-      end
-
-      # Takes an action name and returns the name of the method that will
-      # handle the action. In normal cases, this method returns the same
-      # name as it receives. By default, if #method_for_action receives
-      # a name that is not an action, it will look for an #action_missing
-      # method and return "_handle_action_missing" if one is found.
-      #
-      # Subclasses may override this method to add additional conditions
-      # that should be considered an action. For instance, an HTTP controller
-      # with a template matching the action name is considered to exist.
-      #
-      # If you override this method to handle additional cases, you may
-      # also provide a method (like _handle_method_missing) to handle
-      # the case.
-      #
-      # If none of these conditions are true, and method_for_action
-      # returns nil, an ActionNotFound exception will be raised.
-      #
-      # ==== Parameters
-      # * <tt>action_name</tt> - An action name to find a method name for
-      #
-      # ==== Returns
-      # * <tt>string</tt> - The name of the method that handles the action
-      # * <tt>nil</tt>    - No method name could be found. Raise ActionNotFound.
-      def method_for_action(action_name)
-        if action_method?(action_name) then action_name
-        elsif respond_to?(:action_missing, true) then "_handle_action_missing"
-        end
-      end
+    end
   end
 end

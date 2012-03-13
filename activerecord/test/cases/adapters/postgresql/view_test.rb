@@ -39,11 +39,11 @@ class ViewTest < ActiveRecord::TestCase
     end
   end
 
-  private
-    def columns(table_name)
-      @connection.send(:column_definitions, table_name).map do |name, type, default|
-        "#{name} #{type}" + (default ? " default #{default}" : '')
-      end
+private
+  def columns(table_name)
+    @connection.send(:column_definitions, table_name).map do |name, type, default|
+      "#{name} #{type}" + (default ? " default #{default}" : '')
     end
+  end
 
 end

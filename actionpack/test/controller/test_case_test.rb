@@ -123,11 +123,11 @@ XML
       render :nothing => true
     end
 
-    private
+  private
 
-      def generate_url(opts)
-        url_for(opts.merge(:action => "test_uri"))
-      end
+    def generate_url(opts)
+      url_for(opts.merge(:action => "test_uri"))
+    end
   end
 
   def setup
@@ -787,10 +787,10 @@ class InferringClassNameTest < ActionController::TestCase
     assert_nil determine_class("NoControllerWithThisNameTest")
   end
 
-  private
-    def determine_class(name)
-      ActionController::TestCase.determine_default_controller_class(name)
-    end
+private
+  def determine_class(name)
+    ActionController::TestCase.determine_default_controller_class(name)
+  end
 end
 
 class CrazyNameTest < ActionController::TestCase

@@ -137,7 +137,7 @@ module ActiveSupport
       key
     end
 
-    protected
+  protected
 
     def _dasherize(key)
       # $2 must be a non-greedy regex for this to work

@@ -65,7 +65,7 @@ module ActiveRecord
           reflection.options
         end
 
-        private
+      private
 
         def associated_records_by_owner
           owners_map = owners_by_key

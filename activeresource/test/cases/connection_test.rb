@@ -252,24 +252,24 @@ class ConnectionTest < ActiveSupport::TestCase
     assert_equal(:basic, @conn.auth_type)
   end
 
-  protected
-    def assert_response_raises(klass, code)
-      assert_raise(klass, "Expected response code #{code} to raise #{klass}") do
-        handle_response ResponseCodeStub.new(code)
-      end
+protected
+  def assert_response_raises(klass, code)
+    assert_raise(klass, "Expected response code #{code} to raise #{klass}") do
+      handle_response ResponseCodeStub.new(code)
     end
+  end
 
-    def assert_redirect_raises(code)
-      assert_raise(ActiveResource::Redirection, "Expected response code #{code} to raise ActiveResource::Redirection") do
-        handle_response RedirectResponseStub.new(code, 'http://example.com/')
-      end
+  def assert_redirect_raises(code)
+    assert_raise(ActiveResource::Redirection, "Expected response code #{code} to raise ActiveResource::Redirection") do
+      handle_response RedirectResponseStub.new(code, 'http://example.com/')
     end
+  end
 
-    def handle_response(response)
-      @conn.__send__(:handle_response, response)
-    end
+  def handle_response(response)
+    @conn.__send__(:handle_response, response)
+  end
 
-    def decode(response)
-      @conn.format.decode(response.body)
-    end
+  def decode(response)
+    @conn.format.decode(response.body)
+  end
 end

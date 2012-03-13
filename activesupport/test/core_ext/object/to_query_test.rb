@@ -46,8 +46,8 @@ class ToQueryTest < ActiveSupport::TestCase
       :person => {:id => [20, 10]}
   end
 
-  private
-    def assert_query_equal(expected, actual, message = nil)
-      assert_equal expected.split('&'), actual.to_query.split('&')
-    end
+private
+  def assert_query_equal(expected, actual, message = nil)
+    assert_equal expected.split('&'), actual.to_query.split('&')
+  end
 end
