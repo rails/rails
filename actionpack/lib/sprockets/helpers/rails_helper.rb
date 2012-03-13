@@ -129,7 +129,7 @@ module Sprockets
         end
 
         def digest_for(logical_path)
-          if digest_assets && asset_digests && (digest = asset_digests[logical_path])
+          if asset_digests && (digest = asset_digests[logical_path])
             return digest
           end
 

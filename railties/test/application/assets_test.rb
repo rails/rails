@@ -23,6 +23,29 @@ module ApplicationTests
       end
     end
 
+    test "assets can be read when fingerprinting and compile are disabled, " do
+      app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %><%= image_path('rails.png').inspect %>"
+
+      add_to_config "config.assets.digest = false"
+      add_to_config "config.assets.compile = false"
+      add_to_config "config.assets.prefix = 'assets_prefix'"
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match '/posts', :to => "posts#index"
+        end
+      RUBY
+
+      ENV["RAILS_ENV"] = "development"
+
+      precompile!
+
+      require "#{app_path}/config/environment"
+      class ::PostsController < ActionController::Base ; end
+
+      get '/posts'
+      assert_match("<script src=\"/assets_prefix/application.js\" type=\"text/javascript\"></script>&quot;/assets_prefix/rails.png&quot;\n", last_response.body)
+    end
+
     test "assets routes have higher priority" do
       app_file "app/assets/javascripts/demo.js.erb", "a = <%= image_path('rails.png').inspect %>;"
 
