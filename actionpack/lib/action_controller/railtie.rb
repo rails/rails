@@ -14,7 +14,7 @@ module ActionController
     end
 
     initializer "action_controller.initialize_framework_caches" do
-      ActiveSupport.on_load(:action_controller) { self.cache_store ||= Rails.cache }
+      ActiveSupport.on_load(:action_controller) { self.cache_store ||= Rails.cache if respond_to?(:cache_store) }
     end
 
     initializer "action_controller.assets_config", :group => :all do |app|
@@ -37,8 +37,15 @@ module ActionController
       ActiveSupport.on_load(:action_controller) do
         include app.routes.mounted_helpers
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
-        extend ::ActionController::Railties::Paths.with(app)
-        options.each { |k,v| send("#{k}=", v) }
+        extend ::ActionController::Railties::Paths.with(app) if respond_to?(:helpers_path)
+        options.each do |k,v|
+          k = "#{k}="
+          if respond_to?(k)
+            send(k, v)
+          elsif !Base.respond_to?(k)
+            raise "Invalid option key: #{k}"
+          end
+        end
       end
     end
 

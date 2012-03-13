@@ -6,6 +6,7 @@ module ActionController
 
   autoload :Base
   autoload :Caching
+  autoload :HTTP
   autoload :Metal
   autoload :Middleware
 

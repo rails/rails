@@ -11,7 +11,6 @@ module ActionController
             else
               paths = app.helpers_paths
             end
-
             klass.helpers_path = paths
 
             if klass.superclass == ActionController::Base && ActionController::Base.include_all_helpers

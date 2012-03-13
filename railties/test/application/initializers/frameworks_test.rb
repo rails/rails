@@ -130,6 +130,33 @@ module ApplicationTests
       assert_equal "false", last_response.body
     end
 
+    test "action_controller http initializes successfully" do
+      app_file "app/controllers/application_controller.rb", <<-RUBY
+        class ApplicationController < ActionController::HTTP
+        end
+      RUBY
+
+      app_file "app/controllers/omg_controller.rb", <<-RUBY
+        class OmgController < ApplicationController
+          def show
+            render :json => { :omg => 'omg' }
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match "/:controller(/:action)"
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get '/omg/show'
+      assert_equal '{"omg":"omg"}', last_response.body
+    end
+
     # AD
     test "action_dispatch extensions are applied to ActionDispatch" do
       add_to_config "config.action_dispatch.tld_length = 2"
