@@ -7,6 +7,7 @@ require "fixtures/beast"
 require "fixtures/proxy"
 require "fixtures/address"
 require "fixtures/subscription_plan"
+require "fixtures/hierarchy"
 require 'active_support/json'
 require 'active_support/core_ext/hash/conversions'
 require 'mocha'
@@ -56,6 +57,21 @@ class BaseTest < ActiveSupport::TestCase
 
     assert_nothing_raised { Person.proxy = proxy }
     assert_equal proxy, Person.proxy
+  end
+
+  def test_connection_class_assignable_and_inheritable
+    assert_same ActiveResource::Connection, RootResource.connection_class
+    assert_same ParentConnection, ParentResource.connection_class
+    assert_same ParentConnection, ChildResource.connection_class
+  end
+
+  def test_connection_class_changes_connection
+    assert_not_same ParentResource.connection, RootResource.connection
+    assert_same ChildResource.connection, ParentResource.connection
+
+    assert_instance_of ActiveResource::Connection, RootResource.connection
+    assert_instance_of ParentConnection, ParentResource.connection
+    assert_instance_of ParentConnection, ChildResource.connection
   end
 
   def test_should_use_proxy_prefix_and_credentials

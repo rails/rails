@@ -447,6 +447,24 @@ module ActiveResource
         end
       end
 
+      # Gets the class used to establish connection.
+      def connection_class
+        if defined?(@connection_class) && @connection_class
+          @connection_class
+        elsif superclass != Object
+          superclass.connection_class
+        else
+          ActiveResource::Connection
+        end
+      end
+
+      # Sets the connection class for this model to the value in the +klass+ argument.
+      # The +klass+ should inherit from ActiveResource::Connection.
+      def connection_class=(klass)
+        @connection = nil
+        @connection_class = klass
+      end
+
       # Gets the \proxy variable if a proxy is required
       def proxy
         # Not using superclass_delegating_reader. See +site+ for explanation
@@ -573,7 +591,7 @@ module ActiveResource
       # or not (defaults to <tt>false</tt>).
       def connection(refresh = false)
         if defined?(@connection) || superclass == Object
-          @connection = Connection.new(site, format) if refresh || @connection.nil?
+          @connection = connection_class.new(site, format) if refresh || @connection.nil?
           @connection.proxy = proxy if proxy
           @connection.user = user if user
           @connection.password = password if password
