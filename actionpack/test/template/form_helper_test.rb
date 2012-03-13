@@ -387,6 +387,11 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_check_box_with_include_hidden_false
+    @post.secret = false
+    assert_dom_equal('<input id="post_secret" name="post[secret]" type="checkbox" value="1" />', check_box("post", "secret", :include_hidden => false))
+  end
+
   def test_check_box_with_explicit_checked_and_unchecked_values
     @post.secret = "on"
     assert_dom_equal(
