@@ -832,8 +832,6 @@ YAML
 
       boot_rails
 
-      require "#{rails_root}/config/environment"
-
       get("/foo")
       assert_equal "foo", last_response.body
 
@@ -867,7 +865,6 @@ YAML
       RUBY
 
       boot_rails
-      require "#{rails_root}/config/environment"
 
       app_generators = Rails.application.config.generators.options[:rails]
       assert_equal :mongoid  , app_generators[:orm]
@@ -890,7 +887,6 @@ YAML
       RUBY
 
       boot_rails
-      require "#{rails_root}/config/environment"
 
       generators = Bukkits::Engine.config.generators.options[:rails]
       assert_equal :active_record, generators[:orm]
@@ -914,7 +910,6 @@ YAML
       RUBY
 
       boot_rails
-      require "#{rails_root}/config/environment"
 
       assert_equal "foo", Bukkits.table_name_prefix
     end
@@ -928,7 +923,6 @@ YAML
       RUBY
 
       boot_rails
-      require "#{rails_root}/config/environment"
 
       assert_equal Bukkits::Engine.instance, Rails::Engine.find(@plugin.path)
 
@@ -976,7 +970,6 @@ YAML
       add_to_config("config.action_dispatch.show_exceptions = false")
 
       boot_rails
-      require "#{rails_root}/config/environment"
 
       methods = Bukkits::Engine.helpers.public_instance_methods.collect(&:to_s).sort
       expected = ["bar", "baz"]
@@ -1055,7 +1048,6 @@ YAML
       add_to_config("config.railties_order = [:all, :main_app, Blog::Engine]")
 
       boot_rails
-      require "#{rails_root}/config/environment"
 
       get("/foo")
       assert_equal "Bukkit's foo partial", last_response.body.strip
@@ -1103,7 +1095,6 @@ YAML
       add_to_config("config.railties_order = [Bukkits::Engine]")
 
       boot_rails
-      require "#{rails_root}/config/environment"
 
       get("/foo")
       assert_equal "Bukkit's foo partial", last_response.body.strip
@@ -1150,7 +1141,6 @@ YAML
       RUBY
 
       boot_rails
-      require "#{rails_root}/config/environment"
 
       expected = <<-TEXT
         script_name:
