@@ -1,8 +1,4 @@
 en:
-  attributes:
-    # Prevent confusion in form errors due to 'has_secure_password'
-    password_digest: "Password"
-
   errors:
     # The default format to use in full error messages.
     format: "%{attribute} %{message}"
