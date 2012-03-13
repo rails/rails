@@ -286,6 +286,8 @@ h4. Configuring Active Record
 
 * +config.active_record.dependent_restrict_raises+ will control the behavior when an object with a <tt>:dependent => :restrict</tt> association is deleted. Setting this to false will prevent +DeleteRestrictionError+ from being raised and instead will add an error on the model object. Defaults to false in the development mode.
 
+* +config.active_record.mass_assignment_sanitizer+ will determine the strictness of the mass assignment sanitization within Rails. Defaults to +:strict+. In this mode, mass assigning any non-+attr_accessible+ attribute in a +create+ or +update_attributes+ call will raise an exception. Setting this option to +:logger+ will only print to the log file when an attribute is being assigned and will not raise an exception.
+
 The MySQL adapter adds one additional configuration option:
 
 * +ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans+ controls whether Active Record will consider all +tinyint(1)+ columns in a MySQL database to be booleans and is true by default.
