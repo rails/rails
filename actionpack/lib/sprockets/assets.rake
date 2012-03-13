@@ -90,7 +90,16 @@ namespace :assets do
 
   namespace :cache do
     task :clean => ["assets:environment"] do
-      Rails.application.assets.cache.clear
+      cache = Rails.application.assets.cache
+      cache_path = cache.respond_to?(:cache_path) ? cache.cache_path : nil
+
+      # Sprockets cache clear
+      cache.clear
+
+      Rake::Task["tmp:cache:clear"].invoke
+    
+      # If Sprockets cache is ActiveSupport::Cache::FileStore, Rails cache path includes the assets cache path.
+      FileUtils.mkdir_p(cache_path) if cache_path
     end
   end
 

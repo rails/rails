@@ -497,11 +497,13 @@ module ApplicationTests
       precompile!
 
       quietly do
+        FileUtils.mkdir_p(File.join(app_path, "tmp", "cache", "foo"))
         Dir.chdir(app_path){ `bundle exec rake assets:cache:clean` }
       end
 
       require "#{app_path}/config/environment"
       assert_equal 0, Dir.entries(Rails.application.assets.cache.cache_path).size - 2 # reject [".", ".."]
+      assert_equal 1, Dir.entries(Rails.cache.cache_path).size - 2
     end
 
     private
