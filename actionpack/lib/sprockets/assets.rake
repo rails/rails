@@ -37,9 +37,8 @@ namespace :assets do
         path = p.gsub(root, '')
         source = File.expand_path(File.join(Rails.public_path, ActionController::Base.helpers.asset_path(path)))
         destination = "#{Rails.public_path}/#{path}"
-        unless File.exists?(destination)
-          File.symlink(source, destination)
-        end
+        File.unlink(destination) if File.exists?(destination) && File.symlink?(destination)
+        File.symlink(source, destination)
       end
     end
 
