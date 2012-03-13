@@ -234,12 +234,8 @@ module Rails
         end
 
         if config.serve_static_assets
+          middleware.use ::ActionDispatch::Static, "app/assets/public", false if Rails.env.development?
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
-        end
-
-        if Rails.env.development?
-          # Serve static assets from app/assets/public
-          middleware.use ::ActionDispatch::Static, "app/assets/public", false
         end
 
         middleware.use ::Rack::Lock unless config.allow_concurrency
