@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added a `stored_attributes` hash which contains the attributes stored
+    using ActiveRecord::Store. This allows you to retrieve the list of
+    attributes you've defined.
+
+    *Joost Baaij*
+
 *   `composed_of` was removed. You'll have to write your own accessor
     and mutator methods if you'd like to use value objects to represent some
     portion of your models. So, instead of:
