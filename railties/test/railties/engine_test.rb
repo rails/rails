@@ -753,6 +753,65 @@ module RailtiesTest
       assert_equal "Bukkit's foo partial", last_response.body.strip
     end
 
+    def require_dependency_test_block
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+          end
+        end
+      RUBY
+
+      @plugin.write "app/models/bukkits/bukkit.rb", <<-RUBY
+        module Bukkits
+          class Bukkit
+          end
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/bukkits_controller.rb", <<-RUBY
+        module Bukkits
+          class BukkitsController
+          end
+        end
+      RUBY
+
+      @plugin.write "ext/bukkits/bad_bukkit.rb", <<-RUBY
+        module Bukkits
+          class BadBukkit
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      yield
+
+      assert_nil defined?(Bukkits::Bukkit)
+      Bukkits::Engine.require_dependency 'bukkits/bukkit'
+      assert_equal "constant", defined?(Bukkits::Bukkit)
+
+      assert_nil defined?(Bukkits::BukkitsController)
+      Bukkits::Engine.require_dependency 'bukkits/bukkits_controller'
+      assert_equal "constant", defined?(Bukkits::BukkitsController)
+
+      assert_nil defined?(Bukkits::BadBukkit)
+      assert_raises LoadError, "cannot load dependency -- bad_bukkit" do
+        Bukkits::Engine.require_dependency 'bukkits/bad_bukkit'
+      end
+    end
+
+    test "require_dependency with load" do
+      require_dependency_test_block do
+        Rails.configuration.cache_classes = false
+      end
+    end
+
+    test "require_dependency with require" do
+      require_dependency_test_block do
+        Rails.configuration.cache_classes = true
+      end
+    end
+
   private
     def app
       Rails.application

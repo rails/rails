@@ -414,6 +414,32 @@ module Rails
           File.expand_path(engine.root.to_s) == expanded_path
         }
       end
+
+      def require_dependency(dependency)
+        _all_autoload_paths.each do |path|
+          file_path = File.join(path, "#{dependency}.rb")
+          if File.exist? file_path
+            load_or_require file_path
+            return
+          end
+        end
+
+        raise LoadError, "cannot find dependency -- #{dependency}"
+      end
+
+      private
+
+      def load_or_require(path)
+        if load?
+          load path
+        else
+          require path
+        end
+      end
+
+      def load?
+        !Rails.configuration.cache_classes
+      end
     end
 
     delegate :middleware, :root, :paths, :to => :config
