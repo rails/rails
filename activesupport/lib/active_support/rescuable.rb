@@ -38,14 +38,14 @@ module ActiveSupport
       #       render :xml => exception, :status => 500
       #     end
       #
-      #     protected
-      #       def deny_access
-      #         ...
-      #       end
+      #   protected
+      #     def deny_access
+      #       ...
+      #     end
       #
-      #       def show_errors(exception)
-      #         exception.record.new_record? ? ...
-      #       end
+      #     def show_errors(exception)
+      #       exception.record.new_record? ? ...
+      #     end
       #   end
       #
       def rescue_from(*klasses, &block)

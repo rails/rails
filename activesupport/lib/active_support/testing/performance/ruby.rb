@@ -17,10 +17,10 @@ module ActiveSupport
             :formats => [:flat, :graph_html, :call_tree, :call_stack] }
         end).freeze
 
-      protected
-        def run_gc
-          GC.start
-        end
+    protected
+      def run_gc
+        GC.start
+      end
 
       class Profiler < Performer
         def initialize(*args)
@@ -53,23 +53,23 @@ module ActiveSupport
           end
         end
 
-        protected
-          def output_filename(printer_class)
-            suffix =
-              case printer_class.name.demodulize
-                when 'FlatPrinter';                 'flat.txt'
-                when 'FlatPrinterWithLineNumbers';  'flat_line_numbers.txt'
-                when 'GraphPrinter';                'graph.txt'
-                when 'GraphHtmlPrinter';            'graph.html'
-                when 'GraphYamlPrinter';            'graph.yml'
-                when 'CallTreePrinter';             'tree.txt'
-                when 'CallStackPrinter';            'stack.html'
-                when 'DotPrinter';                  'graph.dot'
-                else printer_class.name.sub(/Printer$/, '').underscore
-              end
+      protected
+        def output_filename(printer_class)
+          suffix =
+            case printer_class.name.demodulize
+              when 'FlatPrinter';                 'flat.txt'
+              when 'FlatPrinterWithLineNumbers';  'flat_line_numbers.txt'
+              when 'GraphPrinter';                'graph.txt'
+              when 'GraphHtmlPrinter';            'graph.html'
+              when 'GraphYamlPrinter';            'graph.yml'
+              when 'CallTreePrinter';             'tree.txt'
+              when 'CallStackPrinter';            'stack.html'
+              when 'DotPrinter';                  'graph.dot'
+              else printer_class.name.sub(/Printer$/, '').underscore
+            end
 
-            "#{super()}_#{suffix}"
-          end
+          "#{super()}_#{suffix}"
+        end
       end
 
       module Metrics
@@ -85,14 +85,14 @@ module ActiveSupport
             RubyProf.pause
           end
 
-          protected
-            def with_gc_stats
-              GC::Profiler.enable
-              GC.start
-              yield
-            ensure
-              GC::Profiler.disable
-            end
+        protected
+          def with_gc_stats
+            GC::Profiler.enable
+            GC.start
+            yield
+          ensure
+            GC::Profiler.disable
+          end
         end
 
         class ProcessTime < Time

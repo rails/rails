@@ -433,39 +433,39 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
-      protected
-        # Add the namespace defined in the options to a pattern designed to match keys.
-        # Implementations that support delete_matched should call this method to translate
-        # a pattern that matches names into one that matches namespaced keys.
-        def key_matcher(pattern, options)
-          prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
-          if prefix
-            source = pattern.source
-            if source.start_with?('^')
-              source = source[1, source.length]
-            else
-              source = ".*#{source[0, source.length]}"
-            end
-            Regexp.new("^#{Regexp.escape(prefix)}:#{source}", pattern.options)
+    protected
+      # Add the namespace defined in the options to a pattern designed to match keys.
+      # Implementations that support delete_matched should call this method to translate
+      # a pattern that matches names into one that matches namespaced keys.
+      def key_matcher(pattern, options)
+        prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
+        if prefix
+          source = pattern.source
+          if source.start_with?('^')
+            source = source[1, source.length]
           else
-            pattern
+            source = ".*#{source[0, source.length]}"
           end
+          Regexp.new("^#{Regexp.escape(prefix)}:#{source}", pattern.options)
+        else
+          pattern
         end
+      end
 
-        # Read an entry from the cache implementation. Subclasses must implement this method.
-        def read_entry(key, options) # :nodoc:
-          raise NotImplementedError.new
-        end
+      # Read an entry from the cache implementation. Subclasses must implement this method.
+      def read_entry(key, options) # :nodoc:
+        raise NotImplementedError.new
+      end
 
-        # Write an entry to the cache implementation. Subclasses must implement this method.
-        def write_entry(key, entry, options) # :nodoc:
-          raise NotImplementedError.new
-        end
+      # Write an entry to the cache implementation. Subclasses must implement this method.
+      def write_entry(key, entry, options) # :nodoc:
+        raise NotImplementedError.new
+      end
 
-        # Delete an entry from the cache implementation. Subclasses must implement this method.
-        def delete_entry(key, options) # :nodoc:
-          raise NotImplementedError.new
-        end
+      # Delete an entry from the cache implementation. Subclasses must implement this method.
+      def delete_entry(key, options) # :nodoc:
+        raise NotImplementedError.new
+      end
 
     private
       # Merge the default options with ones specific to a method call.

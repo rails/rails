@@ -144,11 +144,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '172800', 2.days.to_json
   end
 
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
+protected
+  def with_env_tz(new_tz = 'US/Eastern')
+    old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+    yield
+  ensure
+    old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+  end
 end

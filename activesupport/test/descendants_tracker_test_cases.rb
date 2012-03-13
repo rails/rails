@@ -38,7 +38,7 @@ module DescendantsTrackerTestCases
     end
   end
 
-  protected
+protected
 
   def mark_as_autoloaded(*klasses)
     # If ActiveSupport::Dependencies is not loaded, forget about autoloading.

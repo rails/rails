@@ -28,17 +28,17 @@ module ActiveSupport
       def delete_matched(matcher, options = nil)
       end
 
-      protected
-        def read_entry(key, options) # :nodoc:
-        end
+    protected
+      def read_entry(key, options) # :nodoc:
+      end
 
-        def write_entry(key, entry, options) # :nodoc:
-          true
-        end
+      def write_entry(key, entry, options) # :nodoc:
+        true
+      end
 
-        def delete_entry(key, options) # :nodoc:
-          false
-        end
+      def delete_entry(key, options) # :nodoc:
+        false
+      end
     end
   end
 end

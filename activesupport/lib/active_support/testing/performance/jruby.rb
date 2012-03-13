@@ -13,10 +13,10 @@ module ActiveSupport
             :formats => [:flat, :graph] }
         end).freeze
 
-      protected
-        def run_gc
-          ManagementFactory.memory_mx_bean.gc
-        end
+    protected
+      def run_gc
+        ManagementFactory.memory_mx_bean.gc
+      end
 
       class Profiler < Performer
         def initialize(*args)
@@ -48,17 +48,17 @@ module ActiveSupport
           end
         end
 
-        protected
-          def output_filename(printer_class)
-            suffix =
-              case printer_class.name.demodulize
-                when 'FlatProfilePrinter';  'flat.txt'
-                when 'GraphProfilePrinter'; 'graph.txt'
-                else printer_class.name.sub(/ProfilePrinter$/, '').underscore
-              end
+      protected
+        def output_filename(printer_class)
+          suffix =
+            case printer_class.name.demodulize
+              when 'FlatProfilePrinter';  'flat.txt'
+              when 'GraphProfilePrinter'; 'graph.txt'
+              else printer_class.name.sub(/ProfilePrinter$/, '').underscore
+            end
 
-            "#{super()}_#{suffix}"
-          end
+          "#{super()}_#{suffix}"
+        end
       end
 
       module Metrics
@@ -67,11 +67,11 @@ module ActiveSupport
             yield
           end
 
-          protected
-            def with_gc_stats
-              ManagementFactory.memory_mx_bean.gc
-              yield
-            end
+        protected
+          def with_gc_stats
+            ManagementFactory.memory_mx_bean.gc
+            yield
+          end
         end
 
         class WallTime < Time

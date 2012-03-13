@@ -11,10 +11,10 @@ module ActiveSupport
             :formats => [:flat, :graph] }
         end).freeze
 
-      protected
-        def run_gc
-          GC.run(true)
-        end
+    protected
+      def run_gc
+        GC.run(true)
+      end
 
       class Performer; end
 
@@ -52,14 +52,14 @@ module ActiveSupport
           end
         end
 
-        protected
-          def create_path_and_open_file(printer_name)
-            fname = "#{output_filename}_#{printer_name}.txt"
-            FileUtils.mkdir_p(File.dirname(fname))
-            File.open(fname, 'wb') do |file|
-              yield(file)
-            end
+      protected
+        def create_path_and_open_file(printer_name)
+          fname = "#{output_filename}_#{printer_name}.txt"
+          FileUtils.mkdir_p(File.dirname(fname))
+          File.open(fname, 'wb') do |file|
+            yield(file)
           end
+        end
       end
 
       module Metrics
@@ -70,12 +70,12 @@ module ActiveSupport
             yield
           end
 
-          protected
-            def with_gc_stats
-              @loopback = Rubinius::Agent.loopback
-              GC.run(true)
-              yield
-            end
+        protected
+          def with_gc_stats
+            @loopback = Rubinius::Agent.loopback
+            GC.run(true)
+            yield
+          end
         end
 
         class WallTime < Time

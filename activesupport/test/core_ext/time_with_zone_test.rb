@@ -727,13 +727,13 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "Sun, 15 Jul 2007 10:30:00 EDT -04:00", (twz - 1.year).inspect
   end
 
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
+protected
+  def with_env_tz(new_tz = 'US/Eastern')
+    old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+    yield
+  ensure
+    old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+  end
 end
 
 class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
@@ -922,11 +922,11 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     Time.zone = nil
   end
 
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
+protected
+  def with_env_tz(new_tz = 'US/Eastern')
+    old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+    yield
+  ensure
+    old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+  end
 end

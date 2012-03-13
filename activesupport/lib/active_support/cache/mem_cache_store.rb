@@ -123,39 +123,39 @@ module ActiveSupport
         @data.stats
       end
 
-      protected
-        # Read an entry from the cache.
-        def read_entry(key, options) # :nodoc:
-          deserialize_entry(@data.get(escape_key(key), true))
-        rescue MemCache::MemCacheError => e
-          logger.error("MemCacheError (#{e}): #{e.message}") if logger
-          nil
-        end
+    protected
+      # Read an entry from the cache.
+      def read_entry(key, options) # :nodoc:
+        deserialize_entry(@data.get(escape_key(key), true))
+      rescue MemCache::MemCacheError => e
+        logger.error("MemCacheError (#{e}): #{e.message}") if logger
+        nil
+      end
 
-        # Write an entry to the cache.
-        def write_entry(key, entry, options) # :nodoc:
-          method = options && options[:unless_exist] ? :add : :set
-          value = options[:raw] ? entry.value.to_s : entry
-          expires_in = options[:expires_in].to_i
-          if expires_in > 0 && !options[:raw]
-            # Set the memcache expire a few minutes in the future to support race condition ttls on read
-            expires_in += 5.minutes
-          end
-          response = @data.send(method, escape_key(key), value, expires_in, options[:raw])
-          response == Response::STORED
-        rescue MemCache::MemCacheError => e
-          logger.error("MemCacheError (#{e}): #{e.message}") if logger
-          false
+      # Write an entry to the cache.
+      def write_entry(key, entry, options) # :nodoc:
+        method = options && options[:unless_exist] ? :add : :set
+        value = options[:raw] ? entry.value.to_s : entry
+        expires_in = options[:expires_in].to_i
+        if expires_in > 0 && !options[:raw]
+          # Set the memcache expire a few minutes in the future to support race condition ttls on read
+          expires_in += 5.minutes
         end
+        response = @data.send(method, escape_key(key), value, expires_in, options[:raw])
+        response == Response::STORED
+      rescue MemCache::MemCacheError => e
+        logger.error("MemCacheError (#{e}): #{e.message}") if logger
+        false
+      end
 
-        # Delete an entry from the cache.
-        def delete_entry(key, options) # :nodoc:
-          response = @data.delete(escape_key(key))
-          response == Response::DELETED
-        rescue MemCache::MemCacheError => e
-          logger.error("MemCacheError (#{e}): #{e.message}") if logger
-          false
-        end
+      # Delete an entry from the cache.
+      def delete_entry(key, options) # :nodoc:
+        response = @data.delete(escape_key(key))
+        response == Response::DELETED
+      rescue MemCache::MemCacheError => e
+        logger.error("MemCacheError (#{e}): #{e.message}") if logger
+        false
+      end
 
     private
 
@@ -179,8 +179,8 @@ module ActiveSupport
         end
       end
 
-    # Provide support for raw values in the local cache strategy.
-    module LocalCacheWithRaw # :nodoc:
+      # Provide support for raw values in the local cache strategy.
+      module LocalCacheWithRaw # :nodoc:
       protected
         def read_entry(key, options)
           entry = super

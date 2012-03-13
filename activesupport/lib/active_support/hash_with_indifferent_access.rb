@@ -147,20 +147,20 @@ module ActiveSupport
       Hash.new(default).merge!(self)
     end
 
-    protected
-      def convert_key(key)
-        key.kind_of?(Symbol) ? key.to_s : key
-      end
+  protected
+    def convert_key(key)
+      key.kind_of?(Symbol) ? key.to_s : key
+    end
 
-      def convert_value(value)
-        if value.is_a? Hash
-          value.nested_under_indifferent_access
-        elsif value.is_a?(Array)
-          value.dup.replace(value.map { |e| convert_value(e) })
-        else
-          value
-        end
+    def convert_value(value)
+      if value.is_a? Hash
+        value.nested_under_indifferent_access
+      elsif value.is_a?(Array)
+        value.dup.replace(value.map { |e| convert_value(e) })
+      else
+        value
       end
+    end
   end
 end
 

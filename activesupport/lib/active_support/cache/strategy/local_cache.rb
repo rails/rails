@@ -121,29 +121,29 @@ module ActiveSupport
           value
         end
 
-        protected
-          def read_entry(key, options) # :nodoc:
-            if local_cache
-              entry = local_cache.read_entry(key, options)
-              unless entry
-                entry = super
-                local_cache.write_entry(key, entry, options)
-              end
-              entry
-            else
-              super
+      protected
+        def read_entry(key, options) # :nodoc:
+          if local_cache
+            entry = local_cache.read_entry(key, options)
+            unless entry
+              entry = super
+              local_cache.write_entry(key, entry, options)
             end
-          end
-
-          def write_entry(key, entry, options) # :nodoc:
-            local_cache.write_entry(key, entry, options) if local_cache
+            entry
+          else
             super
           end
+        end
 
-          def delete_entry(key, options) # :nodoc:
-            local_cache.delete_entry(key, options) if local_cache
-            super
-          end
+        def write_entry(key, entry, options) # :nodoc:
+          local_cache.write_entry(key, entry, options) if local_cache
+          super
+        end
+
+        def delete_entry(key, options) # :nodoc:
+          local_cache.delete_entry(key, options) if local_cache
+          super
+        end
 
       private
         def thread_local_key

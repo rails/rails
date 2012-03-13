@@ -368,14 +368,14 @@ module ActiveSupport
         @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
       end
 
-      protected
+    protected
 
-        def require_tzinfo
-          require 'tzinfo' unless defined?(::TZInfo)
-        rescue LoadError
-          $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
-          raise
-        end
+      def require_tzinfo
+        require 'tzinfo' unless defined?(::TZInfo)
+      rescue LoadError
+        $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
+        raise
+      end
 
     private
 
