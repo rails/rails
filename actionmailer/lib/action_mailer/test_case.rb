@@ -63,19 +63,19 @@ module ActionMailer
           @expected.mime_version = '1.0'
         end
 
-      private
+    private
 
-        def charset
-          "UTF-8"
-        end
+      def charset
+        "UTF-8"
+      end
 
-        def encode(subject)
-          Mail::Encodings.q_value_encode(subject, charset)
-        end
+      def encode(subject)
+        Mail::Encodings.q_value_encode(subject, charset)
+      end
 
-        def read_fixture(action)
-          IO.readlines(File.join(Rails.root, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
-        end
+      def read_fixture(action)
+        IO.readlines(File.join(Rails.root, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
+      end
     end
 
     include Behavior

@@ -558,7 +558,7 @@ class BaseTest < ActiveSupport::TestCase
 
       def welcome ; mail ; end
 
-      private
+    private
       def add_special_header!
         headers('X-Special-Header' => 'Wow, so special')
       end
@@ -573,7 +573,7 @@ class BaseTest < ActiveSupport::TestCase
 
       def welcome ; mail ; end
 
-      private
+    private
       def add_special_header!
         headers('X-Special-Header' => 'Testing')
       end
@@ -588,7 +588,7 @@ class BaseTest < ActiveSupport::TestCase
 
       def welcome ; mail ; end
 
-      private
+    private
       def add_inline_attachment!
         attachments.inline["footer.jpg"] = 'hey there'
       end
