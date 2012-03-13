@@ -73,7 +73,9 @@ def setup_response
             :children => []
           }
         ]
-      }]
+      }],
+      :enemies => [{:name => 'Joker'}],
+      :mother => {:name => 'Ingeborg'}
     }
   }.to_json
   # - resource with yaml array of strings; for ARs using serialize :bar, Array

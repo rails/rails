@@ -1110,6 +1110,20 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parse_resource_with_given_has_one_resources
+    Customer.send(:has_one, :mother, :class_name => "external/person")
+    luis = Customer.find(1)
+    assert_kind_of External::Person, luis.mother
+  end
+
+  def test_parse_resources_with_given_has_many_resources
+    Customer.send(:has_many, :enemies, :class_name => "external/person")
+    luis = Customer.find(1)
+    luis.enemies.each do |enemy|
+      assert_kind_of External::Person, enemy
+    end
+  end
+
   def test_load_yaml_array
     assert_nothing_raised do
       Person.format = :xml

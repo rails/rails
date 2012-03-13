@@ -17,6 +17,8 @@ require 'active_resource/connection'
 require 'active_resource/formats'
 require 'active_resource/schema'
 require 'active_resource/log_subscriber'
+require 'active_resource/associations'
+require 'active_resource/reflection'
 
 module ActiveResource
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.
@@ -1435,6 +1437,7 @@ module ActiveResource
 
       # Tries to find a resource for a given collection name; if it fails, then the resource is created
       def find_or_create_resource_for_collection(name)
+        return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
         find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
       end
 
@@ -1455,6 +1458,8 @@ module ActiveResource
 
       # Tries to find a resource for a given name; if it fails, then the resource is created
       def find_or_create_resource_for(name)
+        return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
+
         resource_name = name.to_s.camelize
 
         const_args = [resource_name, false]
@@ -1507,9 +1512,12 @@ module ActiveResource
 
   class Base
     extend ActiveModel::Naming
+    extend ActiveResource::Associations
+
     include CustomMethods, Observing, Validations
     include ActiveModel::Conversion
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml
+    include ActiveResource::Reflection
   end
 end
