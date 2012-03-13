@@ -66,25 +66,25 @@ module ActionDispatch
         assert_equal redirect_expected, redirect_is, message
       end
 
-      private
-        # Proxy to to_param if the object will respond to it.
-        def parameterize(value)
-          value.respond_to?(:to_param) ? value.to_param : value
-        end
+    private
+      # Proxy to to_param if the object will respond to it.
+      def parameterize(value)
+        value.respond_to?(:to_param) ? value.to_param : value
+      end
 
-        def normalize_argument_to_redirection(fragment)
-          case fragment
-          when %r{^\w[A-Za-z\d+.-]*:.*}
-            fragment
-          when String
-            @request.protocol + @request.host_with_port + fragment
-          when :back
-            raise RedirectBackError unless refer = @request.headers["Referer"]
-            refer
-          else
-            @controller.url_for(fragment)
-          end.gsub(/[\r\n]/, '')
-        end
+      def normalize_argument_to_redirection(fragment)
+        case fragment
+        when %r{^\w[A-Za-z\d+.-]*:.*}
+          fragment
+        when String
+          @request.protocol + @request.host_with_port + fragment
+        when :back
+          raise RedirectBackError unless refer = @request.headers["Referer"]
+          refer
+        else
+          @controller.url_for(fragment)
+        end.gsub(/[\r\n]/, '')
+      end
     end
   end
 end

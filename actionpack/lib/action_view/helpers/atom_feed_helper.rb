@@ -131,31 +131,31 @@ module ActionView
           @xml = xml
         end
 
-        private
-          # Delegate to xml builder, first wrapping the element in a xhtml
-          # namespaced div element if the method and arguments indicate
-          # that an xhtml_block? is desired.
-          def method_missing(method, *arguments, &block)
-            if xhtml_block?(method, arguments)
-              @xml.__send__(method, *arguments) do
-                @xml.div(:xmlns => 'http://www.w3.org/1999/xhtml') do |xhtml|
-                  block.call(xhtml)
-                end
+      private
+        # Delegate to xml builder, first wrapping the element in a xhtml
+        # namespaced div element if the method and arguments indicate
+        # that an xhtml_block? is desired.
+        def method_missing(method, *arguments, &block)
+          if xhtml_block?(method, arguments)
+            @xml.__send__(method, *arguments) do
+              @xml.div(:xmlns => 'http://www.w3.org/1999/xhtml') do |xhtml|
+                block.call(xhtml)
               end
-            else
-              @xml.__send__(method, *arguments, &block)
             end
+          else
+            @xml.__send__(method, *arguments, &block)
           end
+        end
 
-          # True if the method name matches one of the five elements defined
-          # in the Atom spec as potentially containing XHTML content and
-          # if :type => 'xhtml' is, in fact, specified.
-          def xhtml_block?(method, arguments)
-            if XHTML_TAG_NAMES.include?(method.to_s)
-              last = arguments.last
-              last.is_a?(Hash) && last[:type].to_s == 'xhtml'
-            end
+        # True if the method name matches one of the five elements defined
+        # in the Atom spec as potentially containing XHTML content and
+        # if :type => 'xhtml' is, in fact, specified.
+        def xhtml_block?(method, arguments)
+          if XHTML_TAG_NAMES.include?(method.to_s)
+            last = arguments.last
+            last.is_a?(Hash) && last[:type].to_s == 'xhtml'
           end
+        end
       end
 
       class AtomFeedBuilder < AtomBuilder

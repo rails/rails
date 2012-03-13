@@ -162,10 +162,10 @@ class ReloaderTest < ActiveSupport::TestCase
     assert cleaned
   end
 
-  private
-    def call_and_return_body(&block)
-      @response ||= 'response'
-      @reloader ||= Reloader.new(block || proc {[200, {}, @response]})
-      @reloader.call({'rack.input' => StringIO.new('')})[2]
-    end
+private
+  def call_and_return_body(&block)
+    @response ||= 'response'
+    @reloader ||= Reloader.new(block || proc {[200, {}, @response]})
+    @reloader.call({'rack.input' => StringIO.new('')})[2]
+  end
 end

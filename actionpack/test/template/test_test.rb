@@ -44,15 +44,15 @@ class PeopleHelperTest < ActionView::TestCase
     end
   end
 
-  private
-    def with_test_route_set
-      with_routing do |set|
-        set.draw do
-          match 'people', :to => 'people#index', :as => :people
-        end
-        yield
+private
+  def with_test_route_set
+    with_routing do |set|
+      set.draw do
+        match 'people', :to => 'people#index', :as => :people
       end
+      yield
     end
+  end
 end
 
 class CrazyHelperTest < ActionView::TestCase

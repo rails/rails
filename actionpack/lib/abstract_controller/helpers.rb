@@ -142,7 +142,7 @@ module AbstractController
         end
       end
 
-      private
+    private
       # Makes all the (instance) methods in the helper module available to templates
       # rendered through this controller.
       #

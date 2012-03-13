@@ -134,107 +134,107 @@ module ActionDispatch
           routes.length
         end
 
-        private
-          def url_helper_name(name, kind = :url)
-            :"#{name}_#{kind}"
+      private
+        def url_helper_name(name, kind = :url)
+          :"#{name}_#{kind}"
+        end
+
+        def hash_access_name(name, kind = :url)
+          :"hash_for_#{name}_#{kind}"
+        end
+
+        def define_named_route_methods(name, route)
+          {:url => {:only_path => false}, :path => {:only_path => true}}.each do |kind, opts|
+            hash = route.defaults.merge(:use_route => name).merge(opts)
+            define_hash_access route, name, kind, hash
+            define_url_helper route, name, kind, hash
           end
+        end
 
-          def hash_access_name(name, kind = :url)
-            :"hash_for_#{name}_#{kind}"
-          end
+        def define_hash_access(route, name, kind, options)
+          selector = hash_access_name(name, kind)
 
-          def define_named_route_methods(name, route)
-            {:url => {:only_path => false}, :path => {:only_path => true}}.each do |kind, opts|
-              hash = route.defaults.merge(:use_route => name).merge(opts)
-              define_hash_access route, name, kind, hash
-              define_url_helper route, name, kind, hash
-            end
-          end
+          @module.module_eval do
+            remove_possible_method selector
 
-          def define_hash_access(route, name, kind, options)
-            selector = hash_access_name(name, kind)
+            define_method(selector) do |*args|
+              inner_options = args.extract_options!
+              result = options.dup
 
-            @module.module_eval do
-              remove_possible_method selector
-
-              define_method(selector) do |*args|
-                inner_options = args.extract_options!
-                result = options.dup
-
-                if args.any?
-                  result[:_positional_args] = args
-                  result[:_positional_keys] = route.segment_keys
-                end
-
-                result.merge(inner_options)
+              if args.any?
+                result[:_positional_args] = args
+                result[:_positional_keys] = route.segment_keys
               end
 
-              protected selector
+              result.merge(inner_options)
             end
-            helpers << selector
+
+            protected selector
           end
+          helpers << selector
+        end
 
-          # Create a url helper allowing ordered parameters to be associated
-          # with corresponding dynamic segments, so you can do:
-          #
-          #   foo_url(bar, baz, bang)
-          #
-          # Instead of:
-          #
-          #   foo_url(:bar => bar, :baz => baz, :bang => bang)
-          #
-          # Also allow options hash, so you can do:
-          #
-          #   foo_url(bar, baz, bang, :sort_by => 'baz')
-          #
-          def define_url_helper(route, name, kind, options)
-            selector = url_helper_name(name, kind)
-            hash_access_method = hash_access_name(name, kind)
+        # Create a url helper allowing ordered parameters to be associated
+        # with corresponding dynamic segments, so you can do:
+        #
+        #   foo_url(bar, baz, bang)
+        #
+        # Instead of:
+        #
+        #   foo_url(:bar => bar, :baz => baz, :bang => bang)
+        #
+        # Also allow options hash, so you can do:
+        #
+        #   foo_url(bar, baz, bang, :sort_by => 'baz')
+        #
+        def define_url_helper(route, name, kind, options)
+          selector = url_helper_name(name, kind)
+          hash_access_method = hash_access_name(name, kind)
 
-            if optimize_helper?(route)
-              @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-                remove_possible_method :#{selector}
-                def #{selector}(*args)
-                  if args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
-                    options = #{options.inspect}.merge!(url_options)
-                    options[:path] = "#{optimized_helper(route)}"
-                    ActionDispatch::Http::URL.url_for(options)
-                  else
-                    url_for(#{hash_access_method}(*args))
-                  end
-                end
-              END_EVAL
-            else
-              @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-                remove_possible_method :#{selector}
-                def #{selector}(*args)
+          if optimize_helper?(route)
+            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_possible_method :#{selector}
+              def #{selector}(*args)
+                if args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
+                  options = #{options.inspect}.merge!(url_options)
+                  options[:path] = "#{optimized_helper(route)}"
+                  ActionDispatch::Http::URL.url_for(options)
+                else
                   url_for(#{hash_access_method}(*args))
                 end
-              END_EVAL
-            end
-
-            helpers << selector
+              end
+            END_EVAL
+          else
+            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_possible_method :#{selector}
+              def #{selector}(*args)
+                url_for(#{hash_access_method}(*args))
+              end
+            END_EVAL
           end
 
-          # Clause check about when we need to generate an optimized helper.
-          def optimize_helper?(route) #:nodoc:
-            route.ast.grep(Journey::Nodes::Star).empty? && route.requirements.except(:controller, :action).empty?
+          helpers << selector
+        end
+
+        # Clause check about when we need to generate an optimized helper.
+        def optimize_helper?(route) #:nodoc:
+          route.ast.grep(Journey::Nodes::Star).empty? && route.requirements.except(:controller, :action).empty?
+        end
+
+        # Generates the interpolation to be used in the optimized helper.
+        def optimized_helper(route)
+          string_route = route.ast.to_s
+
+          while string_route.gsub!(/\([^\)]*\)/, "")
+            true
           end
 
-          # Generates the interpolation to be used in the optimized helper.
-          def optimized_helper(route)
-            string_route = route.ast.to_s
-
-            while string_route.gsub!(/\([^\)]*\)/, "")
-              true
-            end
-
-            route.required_parts.each_with_index do |part, i|
-              string_route.gsub!(part.inspect, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
-            end
-
-            string_route
+          route.required_parts.each_with_index do |part, i|
+            string_route.gsub!(part.inspect, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
           end
+
+          string_route
+        end
       end
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
@@ -566,14 +566,14 @@ module ActionDispatch
           controller.to_param != current_controller.to_param
         end
 
-        private
-          def named_route_exists?
-            named_route && set.named_routes[named_route]
-          end
+      private
+        def named_route_exists?
+          named_route && set.named_routes[named_route]
+        end
 
-          def segment_keys
-            set.named_routes[named_route].segment_keys
-          end
+        def segment_keys
+          set.named_routes[named_route].segment_keys
+        end
       end
 
       # Generate the path indicated by the arguments, and return an array of
@@ -669,25 +669,25 @@ module ActionDispatch
         raise ActionController::RoutingError, "No route matches #{path.inspect}"
       end
 
-      private
+    private
 
-        def extract_authentication(options)
-          if options[:user] && options[:password]
-            [options.delete(:user), options.delete(:password)]
-          else
-            nil
-          end
+      def extract_authentication(options)
+        if options[:user] && options[:password]
+          [options.delete(:user), options.delete(:password)]
+        else
+          nil
         end
+      end
 
-        def handle_positional_args(options)
-          return unless args = options.delete(:_positional_args)
+      def handle_positional_args(options)
+        return unless args = options.delete(:_positional_args)
 
-          keys = options.delete(:_positional_keys)
-          keys -= options.keys if args.size < keys.size - 1 # take format into account
+        keys = options.delete(:_positional_keys)
+        keys -= options.keys if args.size < keys.size - 1 # take format into account
 
-          # Tell url_for to skip default_url_options
-          options.merge!(Hash[args.zip(keys).map { |v, k| [k, v] }])
-        end
+        # Tell url_for to skip default_url_options
+        options.merge!(Hash[args.zip(keys).map { |v, k| [k, v] }])
+      end
 
     end
   end

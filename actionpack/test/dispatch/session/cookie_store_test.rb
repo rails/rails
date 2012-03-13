@@ -306,29 +306,29 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
+private
 
-    # Overwrite get to send SessionSecret in env hash
-    def get(path, parameters = nil, env = {})
-      env["action_dispatch.secret_token"] ||= SessionSecret
-      super
-    end
+  # Overwrite get to send SessionSecret in env hash
+  def get(path, parameters = nil, env = {})
+    env["action_dispatch.secret_token"] ||= SessionSecret
+    super
+  end
 
-    def with_test_route_set(options = {})
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => ::CookieStoreTest::TestController
-        end
-
-        options = { :key => SessionKey }.merge!(options)
-
-        @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::Session::CookieStore, options
-          middleware.delete "ActionDispatch::ShowExceptions"
-        end
-
-        yield
+  def with_test_route_set(options = {})
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => ::CookieStoreTest::TestController
       end
+
+      options = { :key => SessionKey }.merge!(options)
+
+      @app = self.class.build_app(set) do |middleware|
+        middleware.use ActionDispatch::Session::CookieStore, options
+        middleware.delete "ActionDispatch::ShowExceptions"
+      end
+
+      yield
     end
+  end
 
 end

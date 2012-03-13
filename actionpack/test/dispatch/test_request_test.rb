@@ -55,8 +55,8 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_cookies({"user_name" => "david"}, req.cookie_jar)
   end
 
-  private
-    def assert_cookies(expected, cookie_jar)
-      assert_equal(expected, cookie_jar.instance_variable_get("@cookies"))
-    end
+private
+  def assert_cookies(expected, cookie_jar)
+    assert_equal(expected, cookie_jar.instance_variable_get("@cookies"))
+  end
 end

@@ -111,46 +111,46 @@ module ActionController #:nodoc:
         render options.slice(:status, :content_type).merge(:text => data)
       end
 
-    private
-      def send_file_headers!(options)
-        type_provided = options.has_key?(:type)
+  private
+    def send_file_headers!(options)
+      type_provided = options.has_key?(:type)
 
-        options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
-        [:type, :disposition].each do |arg|
-          raise ArgumentError, ":#{arg} option required" if options[arg].nil?
-        end
-
-        disposition = options[:disposition]
-        disposition += %(; filename="#{options[:filename]}") if options[:filename]
-
-        content_type = options[:type]
-
-        if content_type.is_a?(Symbol)
-          extension = Mime[content_type]
-          raise ArgumentError, "Unknown MIME type #{options[:type]}" unless extension
-          self.content_type = extension
-        else
-          if !type_provided && options[:filename]
-            # If type wasn't provided, try guessing from file extension.
-            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.tr('.','')) || content_type
-          end
-          self.content_type = content_type
-        end
-
-        headers.merge!(
-          'Content-Disposition'       => disposition,
-          'Content-Transfer-Encoding' => 'binary'
-        )
-
-        response.sending_file = true
-
-        # Fix a problem with IE 6.0 on opening downloaded files:
-        # If Cache-Control: no-cache is set (which Rails does by default),
-        # IE removes the file it just downloaded from its cache immediately
-        # after it displays the "open/save" dialog, which means that if you
-        # hit "open" the file isn't there anymore when the application that
-        # is called for handling the download is run, so let's workaround that
-        response.cache_control[:public] ||= false
+      options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
+      [:type, :disposition].each do |arg|
+        raise ArgumentError, ":#{arg} option required" if options[arg].nil?
       end
+
+      disposition = options[:disposition]
+      disposition += %(; filename="#{options[:filename]}") if options[:filename]
+
+      content_type = options[:type]
+
+      if content_type.is_a?(Symbol)
+        extension = Mime[content_type]
+        raise ArgumentError, "Unknown MIME type #{options[:type]}" unless extension
+        self.content_type = extension
+      else
+        if !type_provided && options[:filename]
+          # If type wasn't provided, try guessing from file extension.
+          content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.tr('.','')) || content_type
+        end
+        self.content_type = content_type
+      end
+
+      headers.merge!(
+        'Content-Disposition'       => disposition,
+        'Content-Transfer-Encoding' => 'binary'
+      )
+
+      response.sending_file = true
+
+      # Fix a problem with IE 6.0 on opening downloaded files:
+      # If Cache-Control: no-cache is set (which Rails does by default),
+      # IE removes the file it just downloaded from its cache immediately
+      # after it displays the "open/save" dialog, which means that if you
+      # hit "open" the file isn't there anymore when the application that
+      # is called for handling the download is run, so let's workaround that
+      response.cache_control[:public] ||= false
+    end
   end
 end

@@ -25,7 +25,7 @@ module ActionView
         self
       end
 
-      private
+    private
 
       # This is the same logging logic as in ShowExceptions middleware.
       # TODO Once "exceptron" is in, refactor this piece to simply re-use exceptron.
@@ -54,7 +54,7 @@ module ActionView
       end
     end
 
-    private
+  private
 
     def delayed_render(buffer, template, layout, view, locals)
       # Wrap the given buffer in the StreamingBuffer and pass it to the

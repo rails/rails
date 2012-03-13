@@ -254,28 +254,28 @@ class ActiveRecordStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
+private
 
-    def with_test_route_set(options = {})
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => 'active_record_store_test/test'
-        end
-
-        @app = self.class.build_app(set) do |middleware|
-          middleware.use ActiveRecord::SessionStore, options.reverse_merge(:key => '_session_id')
-          middleware.delete "ActionDispatch::ShowExceptions"
-        end
-
-        yield
+  def with_test_route_set(options = {})
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => 'active_record_store_test/test'
       end
-    end
 
-    def with_store(class_name)
-      session_class, ActiveRecord::SessionStore.session_class =
-        ActiveRecord::SessionStore.session_class, "ActiveRecord::SessionStore::#{class_name.camelize}".constantize
+      @app = self.class.build_app(set) do |middleware|
+        middleware.use ActiveRecord::SessionStore, options.reverse_merge(:key => '_session_id')
+        middleware.delete "ActionDispatch::ShowExceptions"
+      end
+
       yield
-    ensure
-      ActiveRecord::SessionStore.session_class = session_class
     end
+  end
+
+  def with_store(class_name)
+    session_class, ActiveRecord::SessionStore.session_class =
+      ActiveRecord::SessionStore.session_class, "ActiveRecord::SessionStore::#{class_name.camelize}".constantize
+    yield
+  ensure
+    ActiveRecord::SessionStore.session_class = session_class
+  end
 end

@@ -79,12 +79,12 @@ module ActionController
     #       render :text => "I'm only accessible if you know the password"
     #     end
     #
-    #     private
-    #       def authenticate
-    #         authenticate_or_request_with_http_digest(REALM) do |username|
-    #           USERS[username]
-    #         end
+    #   private
+    #     def authenticate
+    #       authenticate_or_request_with_http_digest(REALM) do |username|
+    #         USERS[username]
     #       end
+    #     end
     #   end
     #
     # === Notes
@@ -326,12 +326,12 @@ module ActionController
     #       render :text => "I'm only accessible if you know the password"
     #     end
     #
-    #     private
-    #       def authenticate
-    #         authenticate_or_request_with_http_token do |token, options|
-    #           token == TOKEN
-    #         end
+    #   private
+    #     def authenticate
+    #       authenticate_or_request_with_http_token do |token, options|
+    #         token == TOKEN
     #       end
+    #     end
     #   end
     #
     #

@@ -31,7 +31,7 @@ module ActionView
           super(object_name, method_name, template_object, options)
         end
 
-        private
+      private
 
         def instantiate_builder(builder_class, item, value, text, html_options)
           builder_class.new(@template_object, @object_name, @method_name, item,

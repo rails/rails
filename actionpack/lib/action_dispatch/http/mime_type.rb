@@ -262,14 +262,14 @@ module Mime
       super || method.to_s =~ /(\w+)\?$/
     end
 
-    private
-      def method_missing(method, *args)
-        if method.to_s =~ /(\w+)\?$/
-          $1.downcase.to_sym == to_sym
-        else
-          super
-        end
+  private
+    def method_missing(method, *args)
+      if method.to_s =~ /(\w+)\?$/
+        $1.downcase.to_sym == to_sym
+      else
+        super
       end
+    end
   end
 end
 

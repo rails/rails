@@ -49,7 +49,7 @@ module ActionDispatch
       clean_backtrace(:all)
     end
 
-    private
+  private
 
     def original_exception(exception)
       if registered_original_exception?(exception)

@@ -102,26 +102,26 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
     assert_equal "DEF", person['person']['avatars']['avatar'].last.read
   end
 
-  private
-    def with_test_routing
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => ::XmlParamsParsingTest::TestController
-        end
-        yield
+private
+  def with_test_routing
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => ::XmlParamsParsingTest::TestController
       end
+      yield
     end
+  end
 
-    def default_headers
-      {'CONTENT_TYPE' => 'application/xml'}
-    end
+  def default_headers
+    {'CONTENT_TYPE' => 'application/xml'}
+  end
 end
 
 class LegacyXmlParamsParsingTest < XmlParamsParsingTest
-  private
-    def default_headers
-      {'HTTP_X_POST_DATA_FORMAT' => 'xml'}
-    end
+private
+  def default_headers
+    {'HTTP_X_POST_DATA_FORMAT' => 'xml'}
+  end
 end
 
 class RootLessXmlParamsParsingTest < ActionDispatch::IntegrationTest
@@ -151,13 +151,13 @@ class RootLessXmlParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
-    def with_test_routing
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => ::RootLessXmlParamsParsingTest::TestController
-        end
-        yield
+private
+  def with_test_routing
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => ::RootLessXmlParamsParsingTest::TestController
       end
+      yield
     end
+  end
 end

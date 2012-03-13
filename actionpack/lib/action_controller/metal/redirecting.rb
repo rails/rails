@@ -65,35 +65,35 @@ module ActionController
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.h(location)}\">redirected</a>.</body></html>"
     end
 
-    private
-      def _extract_redirect_to_status(options, response_status)
-        status = if options.is_a?(Hash) && options.key?(:status)
-          Rack::Utils.status_code(options.delete(:status))
-        elsif response_status.key?(:status)
-          Rack::Utils.status_code(response_status[:status])
-        else
-          302
-        end
+  private
+    def _extract_redirect_to_status(options, response_status)
+      status = if options.is_a?(Hash) && options.key?(:status)
+        Rack::Utils.status_code(options.delete(:status))
+      elsif response_status.key?(:status)
+        Rack::Utils.status_code(response_status[:status])
+      else
+        302
       end
+    end
 
-      def _compute_redirect_to_location(options)
-        case options
-        # The scheme name consist of a letter followed by any combination of
-        # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
-        # characters; and is terminated by a colon (":").
-        # The protocol relative scheme starts with a double slash "//"
-        when %r{^(\w[\w+.-]*:|//).*}
-          options
-        when String
-          request.protocol + request.host_with_port + options
-        when :back
-          raise RedirectBackError unless refer = request.headers["Referer"]
-          refer
-        when Proc
-          _compute_redirect_to_location options.call
-        else
-          url_for(options)
-        end.gsub(/[\r\n]/, '')
-      end
+    def _compute_redirect_to_location(options)
+      case options
+      # The scheme name consist of a letter followed by any combination of
+      # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
+      # characters; and is terminated by a colon (":").
+      # The protocol relative scheme starts with a double slash "//"
+      when %r{^(\w[\w+.-]*:|//).*}
+        options
+      when String
+        request.protocol + request.host_with_port + options
+      when :back
+        raise RedirectBackError unless refer = request.headers["Referer"]
+        refer
+      when Proc
+        _compute_redirect_to_location options.call
+      else
+        url_for(options)
+      end.gsub(/[\r\n]/, '')
+    end
   end
 end

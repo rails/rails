@@ -68,10 +68,10 @@ module ActionDispatch
       #   class ApplicationController < ActionController::Base
       #     before_filter :adjust_format_for_iphone
       #
-      #     private
-      #       def adjust_format_for_iphone
-      #         request.format = :iphone if request.env["HTTP_USER_AGENT"][/iPhone/]
-      #       end
+      #   private
+      #     def adjust_format_for_iphone
+      #       request.format = :iphone if request.env["HTTP_USER_AGENT"][/iPhone/]
+      #     end
       #   end
       def format=(extension)
         parameters[:format] = extension.to_s

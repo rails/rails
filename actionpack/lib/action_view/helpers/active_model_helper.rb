@@ -36,7 +36,7 @@ module ActionView
         object.errors[@method_name]
       end
 
-      private
+    private
 
       def object_has_errors?
         object.respond_to?(:errors) && object.errors.respond_to?(:[]) && error_message.present?

@@ -105,16 +105,16 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
-  private
-    def assert_parses(expected, actual)
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => ::QueryStringParsingTest::TestController
-        end
-
-        get "/parse", actual
-        assert_response :ok
-        assert_equal(expected, ::QueryStringParsingTest::TestController.last_query_parameters)
+private
+  def assert_parses(expected, actual)
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => ::QueryStringParsingTest::TestController
       end
+
+      get "/parse", actual
+      assert_response :ok
+      assert_equal(expected, ::QueryStringParsingTest::TestController.last_query_parameters)
     end
+  end
 end

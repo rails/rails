@@ -88,17 +88,17 @@ module ActionView
         end.join("\n").html_safe
       end
 
-      private
+    private
 
-        # Called by <tt>content_tag_for</tt> internally to render a content tag
-        # for each record.
-        def content_tag_for_single_record(tag_name, record, prefix, options, &block)
-          options = options ? options.dup : {}
-          options.merge!(:class => "#{dom_class(record, prefix)} #{options[:class]}".rstrip, :id => dom_id(record, prefix))
+      # Called by <tt>content_tag_for</tt> internally to render a content tag
+      # for each record.
+      def content_tag_for_single_record(tag_name, record, prefix, options, &block)
+        options = options ? options.dup : {}
+        options.merge!(:class => "#{dom_class(record, prefix)} #{options[:class]}".rstrip, :id => dom_id(record, prefix))
 
-          content = block.arity == 0 ? capture(&block) : capture(record, &block)
-          content_tag(tag_name, content, options)
-        end
+        content = block.arity == 0 ? capture(&block) : capture(record, &block)
+        content_tag(tag_name, content, options)
+      end
     end
   end
 end

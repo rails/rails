@@ -488,7 +488,7 @@ module ActionView
         decimal_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).strip.html_safe
       end
 
-      private
+    private
 
       def format_translations(namespace, locale)
         defaults_translations(locale).merge(translations_for(namespace, locale))

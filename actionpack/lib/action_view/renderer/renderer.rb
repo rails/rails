@@ -41,7 +41,7 @@ module ActionView
       _partial_renderer.render(context, options, block)
     end
 
-    private
+  private
 
     def _template_renderer #:nodoc:
       @_template_renderer ||= TemplateRenderer.new(@lookup_context)

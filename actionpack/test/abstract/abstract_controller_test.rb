@@ -112,7 +112,7 @@ module AbstractController
     # ====
     # * self._prefix is used when defined
     class PrefixedViews < RenderingController
-      private
+    private
       def self.prefix
         name.underscore
       end
@@ -155,7 +155,7 @@ module AbstractController
     class WithLayouts < PrefixedViews
       include Layouts
 
-      private
+    private
       def self.layout(formats)
         begin
           find_template(name.underscore, {:formats => formats}, :_prefixes => ["layouts"])

@@ -80,7 +80,7 @@ module ActionDispatch
       @validated = true
     end
 
-    private
+  private
 
     def validated? #:nodoc:
       @validated

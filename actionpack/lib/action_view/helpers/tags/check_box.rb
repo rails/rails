@@ -30,7 +30,7 @@ module ActionView
           hidden + checkbox
         end
 
-        private
+      private
 
         def checked?(value)
           case value

@@ -35,18 +35,18 @@ module HTML #:nodoc:
       update hash
     end
 
-    private
+  private
 
-      def keys_to_strings(hash)
-        Hash[hash.keys.map {|k| [k.to_s, hash[k]]}]
-      end
+    def keys_to_strings(hash)
+      Hash[hash.keys.map {|k| [k.to_s, hash[k]]}]
+    end
 
-      def keys_to_symbols(hash)
-        Hash[hash.keys.map do |k|
-          raise "illegal key #{k.inspect}" unless k.respond_to?(:to_sym)
-          [k.to_sym, hash[k]]
-        end]
-      end
+    def keys_to_symbols(hash)
+      Hash[hash.keys.map do |k|
+        raise "illegal key #{k.inspect}" unless k.respond_to?(:to_sym)
+        [k.to_sym, hash[k]]
+      end]
+    end
   end
 
   # The base class of all nodes, textual and otherwise, in an HTML document.
@@ -510,23 +510,23 @@ module HTML #:nodoc:
       attributes == node.attributes
     end
 
-    private
-      # Match the given value to the given condition.
-      def match_condition(value, condition)
-        case condition
-          when String
-            value && value == condition
-          when Regexp
-            value && value.match(condition)
-          when Numeric
-            value == condition.to_s
-          when true
-            !value.nil?
-          when false, nil
-            value.nil?
-          else
-            false
-        end
+  private
+    # Match the given value to the given condition.
+    def match_condition(value, condition)
+      case condition
+        when String
+          value && value == condition
+        when Regexp
+          value && value.match(condition)
+        when Numeric
+          value == condition.to_s
+        when true
+          !value.nil?
+        when false, nil
+          value.nil?
+        else
+          false
       end
+    end
   end
 end

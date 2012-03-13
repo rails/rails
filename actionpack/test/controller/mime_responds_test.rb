@@ -1110,19 +1110,19 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
-  private
-    def with_test_route_set
-      with_routing do |set|
-        set.draw do
+private
+  def with_test_route_set
+    with_routing do |set|
+      set.draw do
+        resources :customers
+        resources :quiz_stores do
           resources :customers
-          resources :quiz_stores do
-            resources :customers
-          end
-          match ":controller/:action"
         end
-        yield
+        match ":controller/:action"
       end
+      yield
     end
+  end
 end
 
 class AbstractPostController < ActionController::Base

@@ -384,7 +384,7 @@ module ActionView
           return value
         end
 
-        private
+      private
 
         def next_index
           step_index(1)
@@ -399,19 +399,19 @@ module ActionView
         end
       end
 
-      private
-        # The cycle helpers need to store the cycles in a place that is
-        # guaranteed to be reset every time a page is rendered, so it
-        # uses an instance variable of ActionView::Base.
-        def get_cycle(name)
-          @_cycles = Hash.new unless defined?(@_cycles)
-          return @_cycles[name]
-        end
+    private
+      # The cycle helpers need to store the cycles in a place that is
+      # guaranteed to be reset every time a page is rendered, so it
+      # uses an instance variable of ActionView::Base.
+      def get_cycle(name)
+        @_cycles = Hash.new unless defined?(@_cycles)
+        return @_cycles[name]
+      end
 
-        def set_cycle(name, cycle_object)
-          @_cycles = Hash.new unless defined?(@_cycles)
-          @_cycles[name] = cycle_object
-        end
+      def set_cycle(name, cycle_object)
+        @_cycles = Hash.new unless defined?(@_cycles)
+        @_cycles[name] = cycle_object
+      end
     end
   end
 end

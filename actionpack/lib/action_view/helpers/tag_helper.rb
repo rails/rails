@@ -121,47 +121,47 @@ module ActionView
         ERB::Util.html_escape_once(html)
       end
 
-      private
+    private
 
-        def content_tag_string(name, content, options, escape = true)
-          tag_options = tag_options(options, escape) if options
-          content     = ERB::Util.h(content) if escape
-          "<#{name}#{tag_options}>#{content}</#{name}>".html_safe
-        end
+      def content_tag_string(name, content, options, escape = true)
+        tag_options = tag_options(options, escape) if options
+        content     = ERB::Util.h(content) if escape
+        "<#{name}#{tag_options}>#{content}</#{name}>".html_safe
+      end
 
-        def tag_options(options, escape = true)
-          return if options.blank?
-          attrs = []
-          options.each_pair do |key, value|
-            if key.to_s == 'data' && value.is_a?(Hash)
-              value.each_pair do |k, v|
-                attrs << data_tag_option(k, v, escape)
-              end
-            elsif BOOLEAN_ATTRIBUTES.include?(key)
-              attrs << boolean_tag_option(key) if value
-            elsif !value.nil?
-              attrs << tag_option(key, value, escape)
+      def tag_options(options, escape = true)
+        return if options.blank?
+        attrs = []
+        options.each_pair do |key, value|
+          if key.to_s == 'data' && value.is_a?(Hash)
+            value.each_pair do |k, v|
+              attrs << data_tag_option(k, v, escape)
             end
+          elsif BOOLEAN_ATTRIBUTES.include?(key)
+            attrs << boolean_tag_option(key) if value
+          elsif !value.nil?
+            attrs << tag_option(key, value, escape)
           end
-          " #{attrs.sort * ' '}".html_safe unless attrs.empty?
         end
+        " #{attrs.sort * ' '}".html_safe unless attrs.empty?
+      end
 
-        def data_tag_option(key, value, escape)
-          key   = "data-#{key.to_s.dasherize}"
-          value = value.to_json if !value.is_a?(String) && !value.is_a?(Symbol)
+      def data_tag_option(key, value, escape)
+        key   = "data-#{key.to_s.dasherize}"
+        value = value.to_json if !value.is_a?(String) && !value.is_a?(Symbol)
 
-          tag_option(key, value, escape)
-        end
+        tag_option(key, value, escape)
+      end
 
-        def boolean_tag_option(key)
-          %(#{key}="#{key}")
-        end
+      def boolean_tag_option(key)
+        %(#{key}="#{key}")
+      end
 
-        def tag_option(key, value, escape)
-          value = value.join(" ") if value.is_a?(Array)
-          value = ERB::Util.h(value) if escape
-          %(#{key}="#{value}")
-        end
+      def tag_option(key, value, escape)
+        value = value.join(" ") if value.is_a?(Array)
+        value = ERB::Util.h(value) if escape
+        %(#{key}="#{value}")
+      end
     end
   end
 end

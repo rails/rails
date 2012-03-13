@@ -306,13 +306,13 @@ class AtomFeedTest < ActionController::TestCase
     end
   end
 
-  private
-    def with_restful_routing(resources)
-      with_routing do |set|
-        set.draw do
-          resources(resources)
-        end
-        yield
+private
+  def with_restful_routing(resources)
+    with_routing do |set|
+      set.draw do
+        resources(resources)
       end
+      yield
     end
+  end
 end

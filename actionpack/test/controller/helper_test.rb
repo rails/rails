@@ -172,22 +172,22 @@ class HelperTest < ActiveSupport::TestCase
     assert methods.include?('foobar')
   end
 
-  private
-    def expected_helper_methods
-      TestHelper.instance_methods.map {|m| m.to_s }
-    end
+private
+  def expected_helper_methods
+    TestHelper.instance_methods.map {|m| m.to_s }
+  end
 
-    def master_helper_methods
-      @controller_class._helpers.instance_methods.map {|m| m.to_s }
-    end
+  def master_helper_methods
+    @controller_class._helpers.instance_methods.map {|m| m.to_s }
+  end
 
-    def missing_methods
-      expected_helper_methods - master_helper_methods
-    end
+  def missing_methods
+    expected_helper_methods - master_helper_methods
+  end
 
-    def test_helper=(helper_module)
-      silence_warnings { self.class.const_set('TestHelper', helper_module) }
-    end
+  def test_helper=(helper_module)
+    silence_warnings { self.class.const_set('TestHelper', helper_module) }
+  end
 end
 
 

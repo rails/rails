@@ -352,10 +352,10 @@ module AbstractController
         assert_equal("/c/a?show=false", W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :show => false))
       end
 
-      private
-        def extract_params(url)
-          url.split('?', 2).last.split('&').sort
-        end
+    private
+      def extract_params(url)
+        url.split('?', 2).last.split('&').sort
+      end
     end
   end
 end

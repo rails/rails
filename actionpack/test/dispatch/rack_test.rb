@@ -51,13 +51,13 @@ class BaseRackTest < ActiveSupport::TestCase
     @alt_cookie_fmt_request = ActionDispatch::Request.new(@env.merge({"HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes"}))
   end
 
-  private
-    def set_content_data(data)
-      @request.env['REQUEST_METHOD'] = 'POST'
-      @request.env['CONTENT_LENGTH'] = data.length
-      @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
-      @request.env['rack.input'] = StringIO.new(data)
-    end
+private
+  def set_content_data(data)
+    @request.env['REQUEST_METHOD'] = 'POST'
+    @request.env['CONTENT_LENGTH'] = data.length
+    @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    @request.env['rack.input'] = StringIO.new(data)
+  end
 end
 
 class RackRequestTest < BaseRackTest

@@ -9,10 +9,10 @@ class ViewLoadPathsTest < ActionController::TestCase
     def hello_world() end
     def hello_world_at_request_time() render(:action => 'hello_world') end
 
-    private
-      def add_view_path
-        prepend_view_path "#{FIXTURE_LOAD_PATH}/override"
-      end
+  private
+    def add_view_path
+      prepend_view_path "#{FIXTURE_LOAD_PATH}/override"
+    end
   end
 
   module Test

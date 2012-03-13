@@ -338,16 +338,16 @@ class RescueTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
+private
 
-    def with_test_routing
-      with_routing do |set|
-        set.draw do
-          match 'foo', :to => ::RescueTest::TestController.action(:foo)
-          match 'invalid', :to => ::RescueTest::TestController.action(:invalid)
-          match 'b00m', :to => ::RescueTest::TestController.action(:b00m)
-        end
-        yield
+  def with_test_routing
+    with_routing do |set|
+      set.draw do
+        match 'foo', :to => ::RescueTest::TestController.action(:foo)
+        match 'invalid', :to => ::RescueTest::TestController.action(:invalid)
+        match 'b00m', :to => ::RescueTest::TestController.action(:b00m)
       end
+      yield
     end
+  end
 end

@@ -20,7 +20,7 @@ module ActionView
           tag("input", options)
         end
 
-        private
+      private
 
         def checked?(value)
           value.to_s == @tag_value.to_s

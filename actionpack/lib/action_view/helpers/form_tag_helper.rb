@@ -608,55 +608,55 @@ module ActionView
         tag(:input, :type => "hidden", :name => "utf8", :value => "&#x2713;".html_safe)
       end
 
-      private
-        def html_options_for_form(url_for_options, options)
-          options.stringify_keys.tap do |html_options|
-            html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
-            # The following URL is unescaped, this is just a hash of options, and it is the
-            # responsibility of the caller to escape all the values.
-            html_options["action"]  = url_for(url_for_options)
-            html_options["accept-charset"] = "UTF-8"
-            html_options["data-remote"] = true if html_options.delete("remote")
-            html_options["authenticity_token"] = html_options.delete("authenticity_token") if html_options.has_key?("authenticity_token")
-          end
+    private
+      def html_options_for_form(url_for_options, options)
+        options.stringify_keys.tap do |html_options|
+          html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
+          # The following URL is unescaped, this is just a hash of options, and it is the
+          # responsibility of the caller to escape all the values.
+          html_options["action"]  = url_for(url_for_options)
+          html_options["accept-charset"] = "UTF-8"
+          html_options["data-remote"] = true if html_options.delete("remote")
+          html_options["authenticity_token"] = html_options.delete("authenticity_token") if html_options.has_key?("authenticity_token")
+        end
+      end
+
+      def extra_tags_for_form(html_options)
+        authenticity_token = html_options.delete("authenticity_token")
+        method = html_options.delete("method").to_s
+
+        method_tag = case method
+          when /^get$/i # must be case-insensitive, but can't use downcase as might be nil
+            html_options["method"] = "get"
+            ''
+          when /^post$/i, "", nil
+            html_options["method"] = "post"
+            token_tag(authenticity_token)
+          else
+            html_options["method"] = "post"
+            method_tag(method) + token_tag(authenticity_token)
         end
 
-        def extra_tags_for_form(html_options)
-          authenticity_token = html_options.delete("authenticity_token")
-          method = html_options.delete("method").to_s
+        tags = utf8_enforcer_tag << method_tag
+        content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
+      end
 
-          method_tag = case method
-            when /^get$/i # must be case-insensitive, but can't use downcase as might be nil
-              html_options["method"] = "get"
-              ''
-            when /^post$/i, "", nil
-              html_options["method"] = "post"
-              token_tag(authenticity_token)
-            else
-              html_options["method"] = "post"
-              method_tag(method) + token_tag(authenticity_token)
-          end
+      def form_tag_html(html_options)
+        extra_tags = extra_tags_for_form(html_options)
+        tag(:form, html_options, true) + extra_tags
+      end
 
-          tags = utf8_enforcer_tag << method_tag
-          content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
-        end
+      def form_tag_in_block(html_options, &block)
+        content = capture(&block)
+        output = form_tag_html(html_options)
+        output << content
+        output.safe_concat("</form>")
+      end
 
-        def form_tag_html(html_options)
-          extra_tags = extra_tags_for_form(html_options)
-          tag(:form, html_options, true) + extra_tags
-        end
-
-        def form_tag_in_block(html_options, &block)
-          content = capture(&block)
-          output = form_tag_html(html_options)
-          output << content
-          output.safe_concat("</form>")
-        end
-
-        # see http://www.w3.org/TR/html4/types.html#type-name
-        def sanitize_to_id(name)
-          name.to_s.gsub(']','').gsub(/[^-a-zA-Z0-9:.]/, "_")
-        end
+      # see http://www.w3.org/TR/html4/types.html#type-name
+      def sanitize_to_id(name)
+        name.to_s.gsub(']','').gsub(/[^-a-zA-Z0-9:.]/, "_")
+      end
     end
   end
 end

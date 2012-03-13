@@ -72,8 +72,8 @@ class CaptureTest < ActionController::TestCase
     assert_equal "some todo", @response.body
   end
 
-  private
-    def expected_content_for_output
-      "<title>Putting stuff in the title!</title>\nGreat stuff!"
-    end
+private
+  def expected_content_for_output
+    "<title>Putting stuff in the title!</title>\nGreat stuff!"
+  end
 end

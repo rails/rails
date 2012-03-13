@@ -117,24 +117,24 @@ module StaticTests
     end
   end
 
-  private
+private
 
-    def assert_html(body, response)
-      assert_equal body, response.body
-      assert_equal "text/html", response.headers["Content-Type"]
-    end
+  def assert_html(body, response)
+    assert_equal body, response.body
+    assert_equal "text/html", response.headers["Content-Type"]
+  end
 
-    def get(path)
-      Rack::MockRequest.new(@app).request("GET", path)
-    end
+  def get(path)
+    Rack::MockRequest.new(@app).request("GET", path)
+  end
 
-    def with_static_file(file)
-      path = "#{FIXTURE_LOAD_PATH}/public" + file
-      File.open(path, "wb+") { |f| f.write(file) }
-      yield file
-    ensure
-      File.delete(path)
-    end
+  def with_static_file(file)
+    path = "#{FIXTURE_LOAD_PATH}/public" + file
+    File.open(path, "wb+") { |f| f.write(file) }
+    yield file
+  ensure
+    File.delete(path)
+  end
 end
 
 class StaticTest < ActiveSupport::TestCase

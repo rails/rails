@@ -24,7 +24,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
       render :text => 'All inline'
     end
 
-    private
+  private
 
     def authenticate
       authenticate_or_request_with_http_basic do |username, password|
@@ -129,7 +129,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert_response :unauthorized
   end
 
-  private
+private
 
   def encode_credentials(username, password)
     "Basic #{::Base64.encode64("#{username}:#{password}")}"

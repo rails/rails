@@ -17,7 +17,7 @@ class RequestIdTest < ActiveSupport::TestCase
     assert_match(/\w+-\w+-\w+-\w+-\w+/, stub_request.uuid)
   end
 
-  private
+private
 
   def stub_request(env = {})
     ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }).call(env)
@@ -47,7 +47,7 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
   end
 
 
-  private
+private
 
   def with_test_route_set
     with_routing do |set|

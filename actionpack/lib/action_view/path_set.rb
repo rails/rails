@@ -73,7 +73,7 @@ module ActionView #:nodoc:
       find_all(path, prefixes, *args).any?
     end
 
-    private
+  private
 
     def typecast(paths)
       paths.map do |path|

@@ -18,7 +18,7 @@ module ActionView
           end
         end
 
-        private
+      private
 
         def field_type
           self.class.field_type

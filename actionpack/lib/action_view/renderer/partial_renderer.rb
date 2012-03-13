@@ -305,7 +305,7 @@ module ActionView
       content
     end
 
-    private
+  private
 
     def setup(context, options, block)
       @view   = context

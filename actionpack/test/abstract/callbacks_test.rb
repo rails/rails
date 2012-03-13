@@ -125,7 +125,7 @@ module AbstractController
         self.response_body = (@list + [@authenticated]).join(", ")
       end
 
-      private
+    private
       def list
         @list = ["Hello", "World"]
       end
@@ -169,7 +169,7 @@ module AbstractController
         self.response_body = (@list + [@authenticated]).join(", ")
       end
 
-      private
+    private
       def list
         @list = ["Hello", "World"]
       end

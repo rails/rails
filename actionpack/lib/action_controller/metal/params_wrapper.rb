@@ -204,34 +204,34 @@ module ActionController
       super
     end
 
-    private
+  private
 
-      # Returns the wrapper key which will use to stored wrapped parameters.
-      def _wrapper_key
-        _wrapper_options[:name]
+    # Returns the wrapper key which will use to stored wrapped parameters.
+    def _wrapper_key
+      _wrapper_options[:name]
+    end
+
+    # Returns the list of enabled formats.
+    def _wrapper_formats
+      _wrapper_options[:format]
+    end
+
+    # Returns the list of parameters which will be selected for wrapped.
+    def _wrap_parameters(parameters)
+      value = if include_only = _wrapper_options[:include]
+        parameters.slice(*include_only)
+      else
+        exclude = _wrapper_options[:exclude] || []
+        parameters.except(*(exclude + EXCLUDE_PARAMETERS))
       end
 
-      # Returns the list of enabled formats.
-      def _wrapper_formats
-        _wrapper_options[:format]
-      end
+      { _wrapper_key => value }
+    end
 
-      # Returns the list of parameters which will be selected for wrapped.
-      def _wrap_parameters(parameters)
-        value = if include_only = _wrapper_options[:include]
-          parameters.slice(*include_only)
-        else
-          exclude = _wrapper_options[:exclude] || []
-          parameters.except(*(exclude + EXCLUDE_PARAMETERS))
-        end
-
-        { _wrapper_key => value }
-      end
-
-      # Checks if we should perform parameters wrapping.
-      def _wrapper_enabled?
-        ref = request.content_mime_type.try(:ref)
-        _wrapper_formats.include?(ref) && _wrapper_key && !request.request_parameters[_wrapper_key]
-      end
+    # Checks if we should perform parameters wrapping.
+    def _wrapper_enabled?
+      ref = request.content_mime_type.try(:ref)
+      _wrapper_formats.include?(ref) && _wrapper_key && !request.request_parameters[_wrapper_key]
+    end
   end
 end

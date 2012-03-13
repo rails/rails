@@ -60,7 +60,7 @@ module RenderTemplate
       render :template => "test/with_error"
     end
 
-    private
+  private
 
     def show_detailed_exceptions?
       request.local?

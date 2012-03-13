@@ -109,14 +109,14 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "4.3 cm", number_to_human(0.0432, :locale => 'ts', :units => :custom_units_for_number_to_human)
   end
 
-  private
-    def clean_i18n
-      load_path = I18n.load_path.dup
-      I18n.load_path.clear
-      I18n.reload!
-      yield
-    ensure
-      I18n.load_path = load_path
-      I18n.reload!
-    end
+private
+  def clean_i18n
+    load_path = I18n.load_path.dup
+    I18n.load_path.clear
+    I18n.reload!
+    yield
+  ensure
+    I18n.load_path = load_path
+    I18n.reload!
+  end
 end

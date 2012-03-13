@@ -53,7 +53,7 @@ module ActionDispatch
           rewritten_url
         end
 
-        private
+      private
 
         def named_host?(host)
           host && IP_HOST_REGEXP !~ host

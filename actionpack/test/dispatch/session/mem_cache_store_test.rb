@@ -169,19 +169,19 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
     $stderr.puts "Skipping MemCacheStoreTest tests. Start memcached and try again."
   end
 
-  private
-    def with_test_route_set
-      with_routing do |set|
-        set.draw do
-          match ':action', :to => ::MemCacheStoreTest::TestController
-        end
-
-        @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::Session::MemCacheStore, :key => '_session_id'
-          middleware.delete "ActionDispatch::ShowExceptions"
-        end
-
-        yield
+private
+  def with_test_route_set
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => ::MemCacheStoreTest::TestController
       end
+
+      @app = self.class.build_app(set) do |middleware|
+        middleware.use ActionDispatch::Session::MemCacheStore, :key => '_session_id'
+        middleware.delete "ActionDispatch::ShowExceptions"
+      end
+
+      yield
     end
+  end
 end

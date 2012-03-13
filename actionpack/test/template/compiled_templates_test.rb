@@ -34,30 +34,30 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
     assert_equal "Hello world!", render_without_cache(:file => "test/hello_world")
   end
 
-  private
-    def render(*args)
-      render_with_cache(*args)
-    end
+private
+  def render(*args)
+    render_with_cache(*args)
+  end
 
-    def render_with_cache(*args)
-      view_paths = ActionController::Base.view_paths
-      ActionView::Base.new(view_paths, {}).render(*args)
-    end
+  def render_with_cache(*args)
+    view_paths = ActionController::Base.view_paths
+    ActionView::Base.new(view_paths, {}).render(*args)
+  end
 
-    def render_without_cache(*args)
-      path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
-      view_paths = ActionView::PathSet.new([path])
-      ActionView::Base.new(view_paths, {}).render(*args)
-    end
+  def render_without_cache(*args)
+    path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
+    view_paths = ActionView::PathSet.new([path])
+    ActionView::Base.new(view_paths, {}).render(*args)
+  end
 
-    def modify_template(template, content)
-      filename = "#{FIXTURE_LOAD_PATH}/#{template}"
-      old_content = File.read(filename)
-      begin
-        File.open(filename, "wb+") { |f| f.write(content) }
-        yield
-      ensure
-        File.open(filename, "wb+") { |f| f.write(old_content) }
-      end
+  def modify_template(template, content)
+    filename = "#{FIXTURE_LOAD_PATH}/#{template}"
+    old_content = File.read(filename)
+    begin
+      File.open(filename, "wb+") { |f| f.write(content) }
+      yield
+    ensure
+      File.open(filename, "wb+") { |f| f.write(old_content) }
     end
+  end
 end

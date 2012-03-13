@@ -941,21 +941,21 @@ module ActionView
         Tags::RangeField.new(object_name, method, self, options).render
       end
 
-      private
+    private
 
-        def instantiate_builder(record_name, record_object, options)
-          case record_name
-          when String, Symbol
-            object = record_object
-            object_name = record_name
-          else
-            object = record_name
-            object_name = ActiveModel::Naming.param_key(object)
-          end
-
-          builder = options[:builder] || ActionView::Base.default_form_builder
-          builder.new(object_name, object, self, options)
+      def instantiate_builder(record_name, record_object, options)
+        case record_name
+        when String, Symbol
+          object = record_object
+          object_name = record_name
+        else
+          object = record_name
+          object_name = ActiveModel::Naming.param_key(object)
         end
+
+        builder = options[:builder] || ActionView::Base.default_form_builder
+        builder.new(object_name, object, self, options)
+      end
     end
 
     class FormBuilder
@@ -1131,72 +1131,72 @@ module ActionView
         @emitted_hidden_id ||= nil
       end
 
-      private
-        def objectify_options(options)
-          @default_options.merge(options.merge(:object => @object))
+    private
+      def objectify_options(options)
+        @default_options.merge(options.merge(:object => @object))
+      end
+
+      def submit_default_value
+        object = convert_to_model(@object)
+        key    = object ? (object.persisted? ? :update : :create) : :submit
+
+        model = if object.class.respond_to?(:model_name)
+          object.class.model_name.human
+        else
+          @object_name.to_s.humanize
         end
 
-        def submit_default_value
-          object = convert_to_model(@object)
-          key    = object ? (object.persisted? ? :update : :create) : :submit
+        defaults = []
+        defaults << :"helpers.submit.#{object_name}.#{key}"
+        defaults << :"helpers.submit.#{key}"
+        defaults << "#{key.to_s.humanize} #{model}"
 
-          model = if object.class.respond_to?(:model_name)
-            object.class.model_name.human
-          else
-            @object_name.to_s.humanize
+        I18n.t(defaults.shift, :model => model, :default => defaults)
+      end
+
+      def nested_attributes_association?(association_name)
+        @object.respond_to?("#{association_name}_attributes=")
+      end
+
+      def fields_for_with_nested_attributes(association_name, association, options, block)
+        name = "#{object_name}[#{association_name}_attributes]"
+        association = convert_to_model(association)
+
+        if association.respond_to?(:persisted?)
+          association = [association] if @object.send(association_name).is_a?(Array)
+        elsif !association.respond_to?(:to_ary)
+          association = @object.send(association_name)
+        end
+
+        if association.respond_to?(:to_ary)
+          explicit_child_index = options[:child_index]
+          output = ActiveSupport::SafeBuffer.new
+          association.each do |child|
+            output << fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, options, block)
           end
-
-          defaults = []
-          defaults << :"helpers.submit.#{object_name}.#{key}"
-          defaults << :"helpers.submit.#{key}"
-          defaults << "#{key.to_s.humanize} #{model}"
-
-          I18n.t(defaults.shift, :model => model, :default => defaults)
+          output
+        elsif association
+          fields_for_nested_model(name, association, options, block)
         end
+      end
 
-        def nested_attributes_association?(association_name)
-          @object.respond_to?("#{association_name}_attributes=")
-        end
+      def fields_for_nested_model(name, object, options, block)
+        object = convert_to_model(object)
 
-        def fields_for_with_nested_attributes(association_name, association, options, block)
-          name = "#{object_name}[#{association_name}_attributes]"
-          association = convert_to_model(association)
+        parent_include_id = self.options.fetch(:include_id, true)
+        include_id = options.fetch(:include_id, parent_include_id)
+        options[:hidden_field_id] = object.persisted? && include_id
+        @template.fields_for(name, object, options, &block)
+      end
 
-          if association.respond_to?(:persisted?)
-            association = [association] if @object.send(association_name).is_a?(Array)
-          elsif !association.respond_to?(:to_ary)
-            association = @object.send(association_name)
-          end
+      def nested_child_index(name)
+        @nested_child_index[name] ||= -1
+        @nested_child_index[name] += 1
+      end
 
-          if association.respond_to?(:to_ary)
-            explicit_child_index = options[:child_index]
-            output = ActiveSupport::SafeBuffer.new
-            association.each do |child|
-              output << fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, options, block)
-            end
-            output
-          elsif association
-            fields_for_nested_model(name, association, options, block)
-          end
-        end
-
-        def fields_for_nested_model(name, object, options, block)
-          object = convert_to_model(object)
-
-          parent_include_id = self.options.fetch(:include_id, true)
-          include_id = options.fetch(:include_id, parent_include_id)
-          options[:hidden_field_id] = object.persisted? && include_id
-          @template.fields_for(name, object, options, &block)
-        end
-
-        def nested_child_index(name)
-          @nested_child_index[name] ||= -1
-          @nested_child_index[name] += 1
-        end
-
-        def convert_to_model(object)
-          object.respond_to?(:to_model) ? object.to_model : object
-        end
+      def convert_to_model(object)
+        object.respond_to?(:to_model) ? object.to_model : object
+      end
     end
   end
 

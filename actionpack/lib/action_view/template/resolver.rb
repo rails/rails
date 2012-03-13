@@ -109,7 +109,7 @@ module ActionView
       super()
     end
 
-    private
+  private
 
     def find_templates(name, prefix, partial, details)
       path = Path.build(name, prefix, partial)

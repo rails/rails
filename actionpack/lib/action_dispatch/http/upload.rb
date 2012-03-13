@@ -21,7 +21,7 @@ module ActionDispatch
         class_eval "def #{method}; @tempfile.#{method}; end"
       end
 
-      private
+    private
 
       def encode_filename(filename)
         # Encode the filename in the utf8 encoding, unless it is nil

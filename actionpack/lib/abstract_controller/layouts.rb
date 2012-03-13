@@ -116,10 +116,10 @@ module AbstractController
   #       # fetching posts
   #     end
   #
-  #     private
-  #       def writers_and_readers
-  #         logged_in? ? "writer_layout" : "reader_layout"
-  #       end
+  #   private
+  #     def writers_and_readers
+  #       logged_in? ? "writer_layout" : "reader_layout"
+  #     end
   #   end
   #
   # Now when a new request for the index action is processed, the layout will vary depending on whether the person accessing

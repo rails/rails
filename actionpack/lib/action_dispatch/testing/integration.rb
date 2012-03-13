@@ -252,69 +252,69 @@ module ActionDispatch
       #   session.host! "www.example.com"
       alias :host! :host=
 
-      private
-        def _mock_session
-          @_mock_session ||= Rack::MockSession.new(@app, host)
+    private
+      def _mock_session
+        @_mock_session ||= Rack::MockSession.new(@app, host)
+      end
+
+      # Performs the actual request.
+      def process(method, path, parameters = nil, rack_env = nil)
+        rack_env ||= {}
+        if path =~ %r{://}
+          location = URI.parse(path)
+          https! URI::HTTPS === location if location.scheme
+          host! location.host if location.host
+          path = location.query ? "#{location.path}?#{location.query}" : location.path
         end
 
-        # Performs the actual request.
-        def process(method, path, parameters = nil, rack_env = nil)
-          rack_env ||= {}
-          if path =~ %r{://}
-            location = URI.parse(path)
-            https! URI::HTTPS === location if location.scheme
-            host! location.host if location.host
-            path = location.query ? "#{location.path}?#{location.query}" : location.path
+        unless ActionController::Base < ActionController::Testing
+          ActionController::Base.class_eval do
+            include ActionController::Testing
           end
-
-          unless ActionController::Base < ActionController::Testing
-            ActionController::Base.class_eval do
-              include ActionController::Testing
-            end
-          end
-
-          hostname, port = host.split(':')
-
-          env = {
-            :method => method,
-            :params => parameters,
-
-            "SERVER_NAME"     => hostname,
-            "SERVER_PORT"     => port || (https? ? "443" : "80"),
-            "HTTPS"           => https? ? "on" : "off",
-            "rack.url_scheme" => https? ? "https" : "http",
-
-            "REQUEST_URI"    => path,
-            "HTTP_HOST"      => host,
-            "REMOTE_ADDR"    => remote_addr,
-            "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
-            "HTTP_ACCEPT"    => accept
-          }
-
-          session = Rack::Test::Session.new(_mock_session)
-
-          env.merge!(rack_env)
-
-          # NOTE: rack-test v0.5 doesn't build a default uri correctly
-          # Make sure requested path is always a full uri
-          uri = URI.parse('/')
-          uri.scheme ||= env['rack.url_scheme']
-          uri.host   ||= env['SERVER_NAME']
-          uri.port   ||= env['SERVER_PORT'].try(:to_i)
-          uri += path
-
-          session.request(uri.to_s, env)
-
-          @request_count += 1
-          @request  = ActionDispatch::Request.new(session.last_request.env)
-          response = _mock_session.last_response
-          @response = ActionDispatch::TestResponse.new(response.status, response.headers, response.body)
-          @html_document = nil
-
-          @controller = session.last_request.env['action_controller.instance']
-
-          return response.status
         end
+
+        hostname, port = host.split(':')
+
+        env = {
+          :method => method,
+          :params => parameters,
+
+          "SERVER_NAME"     => hostname,
+          "SERVER_PORT"     => port || (https? ? "443" : "80"),
+          "HTTPS"           => https? ? "on" : "off",
+          "rack.url_scheme" => https? ? "https" : "http",
+
+          "REQUEST_URI"    => path,
+          "HTTP_HOST"      => host,
+          "REMOTE_ADDR"    => remote_addr,
+          "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
+          "HTTP_ACCEPT"    => accept
+        }
+
+        session = Rack::Test::Session.new(_mock_session)
+
+        env.merge!(rack_env)
+
+        # NOTE: rack-test v0.5 doesn't build a default uri correctly
+        # Make sure requested path is always a full uri
+        uri = URI.parse('/')
+        uri.scheme ||= env['rack.url_scheme']
+        uri.host   ||= env['SERVER_NAME']
+        uri.port   ||= env['SERVER_PORT'].try(:to_i)
+        uri += path
+
+        session.request(uri.to_s, env)
+
+        @request_count += 1
+        @request  = ActionDispatch::Request.new(session.last_request.env)
+        response = _mock_session.last_response
+        @response = ActionDispatch::TestResponse.new(response.status, response.headers, response.body)
+        @html_document = nil
+
+        @controller = session.last_request.env['action_controller.instance']
+
+        return response.status
+      end
     end
 
     module Runner
@@ -391,10 +391,10 @@ module ActionDispatch
         end
       end
 
-      private
-        def integration_session
-          @integration_session ||= nil
-        end
+    private
+      def integration_session
+        @integration_session ||= nil
+      end
     end
   end
 
@@ -446,32 +446,32 @@ module ActionDispatch
   #       david.speak(room, "hello!")
   #     end
   #
-  #     private
+  #   private
   #
-  #       module CustomAssertions
-  #         def enter(room)
-  #           # reference a named route, for maximum internal consistency!
-  #           get(room_url(:id => room.id))
-  #           assert(...)
-  #           ...
-  #         end
-  #
-  #         def speak(room, message)
-  #           xml_http_request "/say/#{room.id}", :message => message
-  #           assert(...)
-  #           ...
-  #         end
+  #     module CustomAssertions
+  #       def enter(room)
+  #         # reference a named route, for maximum internal consistency!
+  #         get(room_url(:id => room.id))
+  #         assert(...)
+  #         ...
   #       end
   #
-  #       def login(who)
-  #         open_session do |sess|
-  #           sess.extend(CustomAssertions)
-  #           who = people(who)
-  #           sess.post "/login", :username => who.username,
-  #             :password => who.password
-  #           assert(...)
-  #         end
+  #       def speak(room, message)
+  #         xml_http_request "/say/#{room.id}", :message => message
+  #         assert(...)
+  #         ...
   #       end
+  #     end
+  #
+  #     def login(who)
+  #       open_session do |sess|
+  #         sess.extend(CustomAssertions)
+  #         who = people(who)
+  #         sess.post "/login", :username => who.username,
+  #           :password => who.password
+  #         assert(...)
+  #       end
+  #     end
   #   end
   class IntegrationTest < ActiveSupport::TestCase
     include Integration::Runner
