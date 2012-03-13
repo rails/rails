@@ -250,10 +250,10 @@ module ActiveModel
         end
       end
 
-      protected
-        def instance_method_already_implemented?(method_name)
-          generated_attribute_methods.method_defined?(method_name)
-        end
+    protected
+      def instance_method_already_implemented?(method_name)
+        generated_attribute_methods.method_defined?(method_name)
+      end
 
     private
       # The methods +method_missing+ and +respond_to?+ of this module are
@@ -392,10 +392,10 @@ module ActiveModel
       end
     end
 
-    protected
-      def attribute_method?(attr_name)
-        respond_to_without_attributes?(:attributes) && attributes.include?(attr_name)
-      end
+  protected
+    def attribute_method?(attr_name)
+      respond_to_without_attributes?(:attributes) && attributes.include?(attr_name)
+    end
 
   private
     # Returns a struct representing the matching attribute method.

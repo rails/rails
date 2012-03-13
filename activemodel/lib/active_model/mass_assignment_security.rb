@@ -39,7 +39,7 @@ module ActiveModel
     #       ...
     #     end
     #
-    #     protected
+    #   protected
     #
     #     def account_params
     #       role = admin ? :admin : :default
