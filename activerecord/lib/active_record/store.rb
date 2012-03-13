@@ -60,7 +60,6 @@ module ActiveRecord
             send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
             send(store_attribute)[key.to_s]
           end
-
         end
 
         self.stored_attributes[store_attribute] = keys.flatten
