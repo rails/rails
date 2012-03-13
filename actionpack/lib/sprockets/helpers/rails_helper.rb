@@ -26,7 +26,9 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
-              super(dep.pathname.to_s, { :src => path_to_asset(dep, :ext => 'js', :body => true, :digest => digest) }.merge!(options))
+              unless File.basename(dep.pathname, '.js') == source
+                super(dep.pathname.to_s, { :src => path_to_asset(dep, :ext => 'js', :body => true, :digest => digest) }.merge!(options))
+              end
             }
           else
             super(source.to_s, { :src => path_to_asset(source, :ext => 'js', :body => body, :digest => digest) }.merge!(options))
