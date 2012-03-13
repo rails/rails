@@ -53,7 +53,6 @@ Handled at the ActionPack layer:
 * Resourceful Routing: If you're building a RESTful JSON API, you want to be using the Rails router. Clean and conventional mapping from HTTP to controllers means not having to spend time thinking about how to model your API in terms of HTTP.
 * URL Generation: The flip side of routing is URL generation. A good API based on HTTP includes URLs (see "the GitHub gist API":http://developer.github.com/v3/gists/ for an example).
 * Header and Redirection Responses: +head :no_content+ and +redirect_to user_url(current_user)+ come in handy. Sure, you could manually add the response headers, but why?
-* Content Negotiation: The Rails +respond_to+ and +respond_with+ features automatically figure out which MIME type to serve, based on the request's +Accept+ header and available types. If you ever need to add support for types other than JSON (XML, CSV, or some proprietary format), this will come in handy.
 * Caching: Rails provides page, action and fragment caching. Fragment caching is especially helpful when building up a nested JSON object.
 * Basic, Digest and Token Authentication: Rails comes with out-of-the-box support for three kinds of HTTP authentication.
 * Instrumentation: Rails 3.0 added an instrumentation API that will trigger registered handlers for a variety of events, such as action processing, sending a file or data, redirection, and database queries. The payload of each event comes with relevant information (for the action processing event, the payload includes the controller, action, params, request format, request method and the request's full path).
@@ -110,6 +109,7 @@ An API application comes with the following middlewares by default.
 * +Rack::Lock+: If your application is not marked as threadsafe (+config.threadsafe!+), this middleware will add a mutex around your requests.
 * +ActionDispatch::RequestId+:
 * +Rails::Rack::Logger+:
+* +Rack::Runtime+: Adds a header to the response listing the total runtime of the request.
 * +ActionDispatch::ShowExceptions+: Rescue exceptions and re-dispatch them to an exception handling application
 * +ActionDispatch::DebugExceptions+: Log exceptions
 * +ActionDispatch::RemoteIp+: Protect against IP spoofing attacks
@@ -213,8 +213,6 @@ h4. Other Middlewares
 
 Rails ships with a number of other middlewares that you might want to use in an API app, especially if one of your API clients is the browser:
 
-* +Rack::SSL+: Redirects any HTTP request to HTTPS.
-* +Rack::Runtime+: Adds a header to the response listing the total runtime of the request.
 * +Rack::MethodOverride+: Allows the use of the +_method+ hack to route POST requests to other verbs.
 * +ActionDispatch::Cookies+: Supports the +cookie+ method in +ActionController+, including support for signed and encrypted cookies.
 * +ActionDispatch::Flash+: Supports the +flash+ mechanism in +ActionController+.
@@ -241,16 +239,17 @@ h3. Choosing Controller Modules
 
 An API application (using +ActionController::HTTP+) comes with the following controller modules by default:
 
-* +AbstractController::Translation+: Support for the +l+ and +t+ localization and translation methods. These delegate to +I18n.translate+ and +I18n.localize+.
-* +ActionController::UrlFor+: Makes +url_for+ and friends available.
+* +ActionController::UrlFor+: Makes +url_for+ and friends available
 * +ActionController::Redirecting+: Support for +redirect_to+
-* +ActionController::Renderers::JSON+: Support for +render :json+
+* +ActionController::Rendering+: Basic support for rendering
+* +ActionController::Renderers::All+: Support for +render :json+ and friends
 * +ActionController::ConditionalGet+: Support for +stale?+
+* +ActionController::ForceSSL+: Support for +force_ssl+
 * +ActionController::RackDelegation+: Support for the +request+ and +response+ methods returning +ActionDispatch::Request+ and +ActionDispatch::Response+ objects.
-* +ActionController::MimeResponds+: Support for content negotiation (+respond_to+, +respond_with+)
 * +ActionController::DataStreaming+: Support for +send_file+ and +send_data+
 * +AbstractController::Callbacks+: Support for +before_filter+ and friends
 * +ActionController::Instrumentation+: Support for the instrumentation hooks defined by +ActionController+ (see "the source":https://github.com/rails/rails/blob/master/actionpack/lib/action_controller/metal/instrumentation.rb for more).
+* +ActionController::Rescue+: Support for +rescue_from+.
 
 Other plugins may add additional modules. You can get a list of all modules included into +ActionController::HTTP+ in the rails console:
 
@@ -265,11 +264,10 @@ All ActionController modules know about their dependent modules, so you can feel
 
 Some common modules you might want to add:
 
+* +AbstractController::Translation+: Support for the +l+ and +t+ localization and translation methods. These delegate to +I18n.translate+ and +I18n.localize+.
 * +ActionController::HTTPAuthentication::Basic+ (or +Digest+ or +Token): Support for basic, digest or token HTTP authentication.
-* +ActionController::Rendering+: Support for templating and +ActionView+.
 * +AbstractController::Layouts+: Support for layouts when rendering.
-* +ActionController::Renderers::XML+: Support for +render :xml+.
+* +ActionController::MimeResponds+: Support for content negotiation (+respond_to+, +respond_with+).
 * +ActionController::Cookies+: Support for +cookies+, which includes support for signed and encrypted cookies. This requires the cookie middleware.
-* +ActionController::Rescue+: Support for +rescue_from+.
 
 The best place to add a module is in your +ApplicationController+. You can also add modules to individual controllers.
