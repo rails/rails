@@ -288,8 +288,6 @@ h4. Configuring Active Record
 
 * +config.active_record.whitelist_attributes+ will create an empty whitelist of attributes available for mass-assignment security for all models in your app.
 
-* +config.active_record.identity_map+ controls whether the identity map is enabled, and is false by default.
-
 * +config.active_record.auto_explain_threshold_in_seconds+ configures the threshold for automatic EXPLAINs (+nil+ disables this feature). Queries exceeding the threshold get their query plan logged. Default is 0.5 in development mode.
 
 * +config.active_record.dependent_restrict_raises+ will control the behavior when an object with a <tt>:dependent => :restrict</tt> association is deleted. Setting this to false will prevent +DeleteRestrictionError+ from being raised and instead will add an error on the model object. Defaults to false in the development mode.

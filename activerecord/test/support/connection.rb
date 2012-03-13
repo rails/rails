@@ -12,7 +12,7 @@ module ARTest
   end
 
   def self.connect
-    puts "Using #{connection_name} with Identity Map #{ActiveRecord::IdentityMap.enabled? ? 'on' : 'off'}"
+    puts "Using #{connection_name}"
     ActiveRecord::Model.logger = ActiveSupport::Logger.new("debug.log")
     ActiveRecord::Model.configurations = connection_config
     ActiveRecord::Model.establish_connection 'arunit'

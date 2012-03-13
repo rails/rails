@@ -107,7 +107,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_find_queries
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) { Task.find(1); Task.find(1) }
+    assert_queries(2) { Task.find(1); Task.find(1) }
   end
 
   def test_find_queries_with_cache

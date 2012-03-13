@@ -22,8 +22,6 @@ module ActiveRecord
         if status = super
           @previously_changed = changes
           @changed_attributes.clear
-        elsif IdentityMap.enabled?
-          IdentityMap.remove(self)
         end
         status
       end
@@ -34,9 +32,6 @@ module ActiveRecord
           @previously_changed = changes
           @changed_attributes.clear
         end
-      rescue
-        IdentityMap.remove(self) if IdentityMap.enabled?
-        raise
       end
 
       # <tt>reload</tt> the record and clears changed attributes.

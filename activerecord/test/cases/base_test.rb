@@ -1139,7 +1139,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert g.save
 
       # Reload and check that we have all the geometric attributes.
-      h = ActiveRecord::IdentityMap.without { Geometric.find(g.id) }
+      h = Geometric.find(g.id)
 
       assert_equal '(5,6.1)', h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
@@ -1168,7 +1168,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert g.save
 
       # Reload and check that we have all the geometric attributes.
-      h = ActiveRecord::IdentityMap.without { Geometric.find(g.id) }
+      h = Geometric.find(g.id)
 
       assert_equal '(5,6.1)', h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment

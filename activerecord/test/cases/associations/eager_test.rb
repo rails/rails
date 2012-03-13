@@ -197,7 +197,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     author = authors(:david)
     post = author.post_about_thinking_with_last_comment
     last_comment = post.last_comment
-    author = assert_queries(ActiveRecord::IdentityMap.enabled? ? 2 : 3) { Author.find(author.id, :include => {:post_about_thinking_with_last_comment => :last_comment})} # find the author, then find the posts, then find the comments
+    author = assert_queries(3) { Author.find(author.id, :include => {:post_about_thinking_with_last_comment => :last_comment})} # find the author, then find the posts, then find the comments
     assert_no_queries do
       assert_equal post, author.post_about_thinking_with_last_comment
       assert_equal last_comment, author.post_about_thinking_with_last_comment.last_comment
@@ -208,7 +208,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post = posts(:welcome)
     author = post.author
     author_address = author.author_address
-    post = assert_queries(ActiveRecord::IdentityMap.enabled? ? 2 : 3) { Post.find(post.id, :include => {:author_with_address => :author_address}) } # find the post, then find the author, then find the address
+    post = assert_queries(3) { Post.find(post.id, :include => {:author_with_address => :author_address}) } # find the post, then find the author, then find the address
     assert_no_queries do
       assert_equal author, post.author_with_address
       assert_equal author_address, post.author_with_address.author_address
@@ -611,9 +611,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert posts[1].categories.include?(categories(:general))
   end
 
-  # This is only really relevant when the identity map is off. Since the preloader for habtm
-  # gets raw row hashes from the database and then instantiates them, this test ensures that
-  # it only instantiates one actual object per record from the database.
+  # Since the preloader for habtm gets raw row hashes from the database and then
+  # instantiates them, this test ensures that it only instantiates one actual
+  # object per record from the database.
   def test_has_and_belongs_to_many_should_not_instantiate_same_records_multiple_times
     welcome    = posts(:welcome)
     categories = Category.includes(:posts)
@@ -1002,18 +1002,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
-    posts = assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
+    posts = assert_queries(2) do
       Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
-    posts = assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
+    posts = assert_queries(2) do
       Post.find(:all, :include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'", :order => 'posts.id')
     end
     assert_equal posts(:welcome, :thinking), posts
 
-    posts = assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
+    posts = assert_queries(2) do
       Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2", :order => 'posts.id')
     end
     assert_equal posts(:welcome, :thinking), posts
@@ -1027,7 +1027,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
-    posts = assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
+    posts = assert_queries(2) do
       Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => ["INNER JOIN comments on comments.post_id = posts.id"], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
     end
     assert_equal [posts(:welcome)], posts
@@ -1116,7 +1116,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_preloading_empty_belongs_to_polymorphic
     t = Tagging.create!(:taggable_type => 'Post', :taggable_id => Post.maximum(:id) + 1, :tag => tags(:general))
 
-    tagging = assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) { Tagging.preload(:taggable).find(t.id) }
+    tagging = assert_queries(2) { Tagging.preload(:taggable).find(t.id) }
     assert_no_queries { assert_nil tagging.taggable }
   end
 

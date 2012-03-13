@@ -60,7 +60,6 @@ module ActiveRecord
     include AttributeMethods
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations
-    include IdentityMap
     include ActiveModel::SecurePassword
     include AutosaveAssociation, NestedAttributes
     include Aggregations, Transactions, Reflection, Serialization, Store

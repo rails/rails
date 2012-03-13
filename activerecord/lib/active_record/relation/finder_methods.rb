@@ -318,17 +318,7 @@ module ActiveRecord
     def find_one(id)
       id = id.id if ActiveRecord::Base === id
 
-      if IdentityMap.enabled? && where_values.blank? &&
-        limit_value.blank? && order_values.blank? &&
-        includes_values.blank? && preload_values.blank? &&
-        readonly_value.nil? && joins_values.blank? &&
-        !@klass.locking_enabled? &&
-        record = IdentityMap.get(@klass, id)
-        return record
-      end
-
       column = columns_hash[primary_key]
-
       substitute = connection.substitute_at(column, @bind_values.length)
       relation = where(table[primary_key].eq(substitute))
       relation.bind_values += [[column, id]]
