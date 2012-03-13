@@ -910,97 +910,97 @@ module ActiveResource
         false
       end
 
-      private
+    private
 
-        def check_prefix_options(prefix_options)
-          p_options = HashWithIndifferentAccess.new(prefix_options)
-          prefix_parameters.each do |p|
-            raise(MissingPrefixParam, "#{p} prefix_option is missing") if p_options[p].blank?
-          end
+      def check_prefix_options(prefix_options)
+        p_options = HashWithIndifferentAccess.new(prefix_options)
+        prefix_parameters.each do |p|
+          raise(MissingPrefixParam, "#{p} prefix_option is missing") if p_options[p].blank?
         end
+      end
 
-        # Find every resource
-        def find_every(options)
-          begin
-            case from = options[:from]
-            when Symbol
-              instantiate_collection(get(from, options[:params]))
-            when String
-              path = "#{from}#{query_string(options[:params])}"
-              instantiate_collection(format.decode(connection.get(path, headers).body) || [])
-            else
-              prefix_options, query_options = split_options(options[:params])
-              path = collection_path(prefix_options, query_options)
-              instantiate_collection( (format.decode(connection.get(path, headers).body) || []), prefix_options )
-            end
-          rescue ActiveResource::ResourceNotFound
-            # Swallowing ResourceNotFound exceptions and return nil - as per
-            # ActiveRecord.
-            nil
-          end
-        end
-
-        # Find a single resource from a one-off URL
-        def find_one(options)
+      # Find every resource
+      def find_every(options)
+        begin
           case from = options[:from]
           when Symbol
-            instantiate_record(get(from, options[:params]))
+            instantiate_collection(get(from, options[:params]))
           when String
             path = "#{from}#{query_string(options[:params])}"
-            instantiate_record(format.decode(connection.get(path, headers).body))
+            instantiate_collection(format.decode(connection.get(path, headers).body) || [])
+          else
+            prefix_options, query_options = split_options(options[:params])
+            path = collection_path(prefix_options, query_options)
+            instantiate_collection( (format.decode(connection.get(path, headers).body) || []), prefix_options )
           end
+        rescue ActiveResource::ResourceNotFound
+          # Swallowing ResourceNotFound exceptions and return nil - as per
+          # ActiveRecord.
+          nil
+        end
+      end
+
+      # Find a single resource from a one-off URL
+      def find_one(options)
+        case from = options[:from]
+        when Symbol
+          instantiate_record(get(from, options[:params]))
+        when String
+          path = "#{from}#{query_string(options[:params])}"
+          instantiate_record(format.decode(connection.get(path, headers).body))
+        end
+      end
+
+      # Find a single resource from the default URL
+      def find_single(scope, options)
+        prefix_options, query_options = split_options(options[:params])
+        path = element_path(scope, prefix_options, query_options)
+        instantiate_record(format.decode(connection.get(path, headers).body), prefix_options)
+      end
+
+      def instantiate_collection(collection, prefix_options = {})
+        collection.collect! { |record| instantiate_record(record, prefix_options) }
+      end
+
+      def instantiate_record(record, prefix_options = {})
+        new(record, true).tap do |resource|
+          resource.prefix_options = prefix_options
+        end
+      end
+
+
+      # Accepts a URI and creates the site URI from that.
+      def create_site_uri_from(site)
+        site.is_a?(URI) ? site.dup : URI.parse(site)
+      end
+
+      # Accepts a URI and creates the proxy URI from that.
+      def create_proxy_uri_from(proxy)
+        proxy.is_a?(URI) ? proxy.dup : URI.parse(proxy)
+      end
+
+      # contains a set of the current prefix parameters.
+      def prefix_parameters
+        @prefix_parameters ||= prefix_source.scan(/:\w+/).map { |key| key[1..-1].to_sym }.to_set
+      end
+
+      # Builds the query string for the request.
+      def query_string(options)
+        "?#{options.to_query}" unless options.nil? || options.empty?
+      end
+
+      # split an option hash into two hashes, one containing the prefix options,
+      # and the other containing the leftovers.
+      def split_options(options = {})
+        prefix_options, query_options = {}, {}
+
+        (options || {}).each do |key, value|
+          next if key.blank? || !key.respond_to?(:to_sym)
+          (prefix_parameters.include?(key.to_sym) ? prefix_options : query_options)[key.to_sym] = value
         end
 
-        # Find a single resource from the default URL
-        def find_single(scope, options)
-          prefix_options, query_options = split_options(options[:params])
-          path = element_path(scope, prefix_options, query_options)
-          instantiate_record(format.decode(connection.get(path, headers).body), prefix_options)
-        end
-
-        def instantiate_collection(collection, prefix_options = {})
-          collection.collect! { |record| instantiate_record(record, prefix_options) }
-        end
-
-        def instantiate_record(record, prefix_options = {})
-          new(record, true).tap do |resource|
-            resource.prefix_options = prefix_options
-          end
-        end
-
-
-        # Accepts a URI and creates the site URI from that.
-        def create_site_uri_from(site)
-          site.is_a?(URI) ? site.dup : URI.parse(site)
-        end
-
-        # Accepts a URI and creates the proxy URI from that.
-        def create_proxy_uri_from(proxy)
-          proxy.is_a?(URI) ? proxy.dup : URI.parse(proxy)
-        end
-
-        # contains a set of the current prefix parameters.
-        def prefix_parameters
-          @prefix_parameters ||= prefix_source.scan(/:\w+/).map { |key| key[1..-1].to_sym }.to_set
-        end
-
-        # Builds the query string for the request.
-        def query_string(options)
-          "?#{options.to_query}" unless options.nil? || options.empty?
-        end
-
-        # split an option hash into two hashes, one containing the prefix options,
-        # and the other containing the leftovers.
-        def split_options(options = {})
-          prefix_options, query_options = {}, {}
-
-          (options || {}).each do |key, value|
-            next if key.blank? || !key.respond_to?(:to_sym)
-            (prefix_parameters.include?(key.to_sym) ? prefix_options : query_options)[key.to_sym] = value
-          end
-
-          [ prefix_options, query_options ]
-        end
+        [ prefix_options, query_options ]
+      end
     end
 
     attr_accessor :attributes #:nodoc:
@@ -1422,87 +1422,87 @@ module ActiveResource
         self.class.collection_path(options || prefix_options)
       end
 
-    private
+  private
 
-      def read_attribute_for_serialization(n)
-        attributes[n]
+    def read_attribute_for_serialization(n)
+      attributes[n]
+    end
+
+    # Determine whether the response is allowed to have a body per HTTP 1.1 spec section 4.4.1
+    def response_code_allows_body?(c)
+      !((100..199).include?(c) || [204,304].include?(c))
+    end
+
+    # Tries to find a resource for a given collection name; if it fails, then the resource is created
+    def find_or_create_resource_for_collection(name)
+      find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
+    end
+
+    # Tries to find a resource in a non empty list of nested modules
+    # if it fails, then the resource is created
+    def find_or_create_resource_in_modules(resource_name, module_names)
+      receiver = Object
+      namespaces = module_names[0, module_names.size-1].map do |module_name|
+        receiver = receiver.const_get(module_name)
       end
-
-      # Determine whether the response is allowed to have a body per HTTP 1.1 spec section 4.4.1
-      def response_code_allows_body?(c)
-        !((100..199).include?(c) || [204,304].include?(c))
+      const_args = [resource_name, false]
+      if namespace = namespaces.reverse.detect { |ns| ns.const_defined?(*const_args) }
+        namespace.const_get(*const_args)
+      else
+        create_resource_for(resource_name)
       end
+    end
 
-      # Tries to find a resource for a given collection name; if it fails, then the resource is created
-      def find_or_create_resource_for_collection(name)
-        find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
-      end
+    # Tries to find a resource for a given name; if it fails, then the resource is created
+    def find_or_create_resource_for(name)
+      resource_name = name.to_s.camelize
 
-      # Tries to find a resource in a non empty list of nested modules
-      # if it fails, then the resource is created
-      def find_or_create_resource_in_modules(resource_name, module_names)
-        receiver = Object
-        namespaces = module_names[0, module_names.size-1].map do |module_name|
-          receiver = receiver.const_get(module_name)
-        end
-        const_args = [resource_name, false]
-        if namespace = namespaces.reverse.detect { |ns| ns.const_defined?(*const_args) }
-          namespace.const_get(*const_args)
+      const_args = [resource_name, false]
+      if self.class.const_defined?(*const_args)
+        self.class.const_get(*const_args)
+      else
+        ancestors = self.class.name.split("::")
+        if ancestors.size > 1
+          find_or_create_resource_in_modules(resource_name, ancestors)
         else
-          create_resource_for(resource_name)
-        end
-      end
-
-      # Tries to find a resource for a given name; if it fails, then the resource is created
-      def find_or_create_resource_for(name)
-        resource_name = name.to_s.camelize
-
-        const_args = [resource_name, false]
-        if self.class.const_defined?(*const_args)
-          self.class.const_get(*const_args)
-        else
-          ancestors = self.class.name.split("::")
-          if ancestors.size > 1
-            find_or_create_resource_in_modules(resource_name, ancestors)
+          if Object.const_defined?(*const_args)
+            Object.const_get(*const_args)
           else
-            if Object.const_defined?(*const_args)
-              Object.const_get(*const_args)
-            else
-              create_resource_for(resource_name)
-            end
+            create_resource_for(resource_name)
           end
         end
       end
+    end
 
-      # Create and return a class definition for a resource inside the current resource
-      def create_resource_for(resource_name)
-        resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
-        resource.prefix = self.class.prefix
-        resource.site   = self.class.site
-        resource
-      end
+    # Create and return a class definition for a resource inside the current resource
+    def create_resource_for(resource_name)
+      resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
+      resource.prefix = self.class.prefix
+      resource.site   = self.class.site
+      resource
+    end
 
-      def split_options(options = {})
-        self.class.__send__(:split_options, options)
-      end
+    def split_options(options = {})
+      self.class.__send__(:split_options, options)
+    end
 
-      def method_missing(method_symbol, *arguments) #:nodoc:
-        method_name = method_symbol.to_s
+    def method_missing(method_symbol, *arguments) #:nodoc:
+      method_name = method_symbol.to_s
 
-        if method_name =~ /(=|\?)$/
-          case $1
-          when "="
-            attributes[$`] = arguments.first
-          when "?"
-            attributes[$`]
-          end
-        else
-          return attributes[method_name] if attributes.include?(method_name)
-          # not set right now but we know about it
-          return nil if known_attributes.include?(method_name)
-          super
+      if method_name =~ /(=|\?)$/
+        case $1
+        when "="
+          attributes[$`] = arguments.first
+        when "?"
+          attributes[$`]
         end
+      else
+        return attributes[method_name] if attributes.include?(method_name)
+        # not set right now but we know about it
+        return nil if known_attributes.include?(method_name)
+        super
       end
+    end
   end
 
   class Base

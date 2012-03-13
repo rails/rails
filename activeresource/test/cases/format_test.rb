@@ -106,13 +106,13 @@ class FormatTest < ActiveSupport::TestCase
     end
   end
 
-  private
-    def using_format(klass, mime_type_reference)
-      previous_format = klass.format
-      klass.format = mime_type_reference
+private
+  def using_format(klass, mime_type_reference)
+    previous_format = klass.format
+    klass.format = mime_type_reference
 
-      yield
-    ensure
-      klass.format = previous_format
-    end
+    yield
+  ensure
+    klass.format = previous_format
+  end
 end

@@ -267,7 +267,7 @@ module ActiveResource
       "<#{method.to_s.upcase}: #{path} [#{headers}] (#{body})>"
     end
 
-    private
+  private
 
     def headers_match?(req)
       # Ignore format header on equality if it's not defined
@@ -322,11 +322,11 @@ module ActiveResource
   end
 
   class Connection
-    private
-      silence_warnings do
-        def http
-          @http ||= HttpMock.new(@site)
-        end
+  private
+    silence_warnings do
+      def http
+        @http ||= HttpMock.new(@site)
       end
+    end
   end
 end

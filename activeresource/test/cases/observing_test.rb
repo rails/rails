@@ -13,10 +13,10 @@ class ObservingTest < ActiveSupport::TestCase
           define_method(method) { |*| log method }
     end
 
-    private
-      def log(method)
-        (ObservingTest.history ||= []) << method.to_sym
-      end
+  private
+    def log(method)
+      (ObservingTest.history ||= []) << method.to_sym
+    end
   end
 
   def setup

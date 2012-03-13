@@ -123,7 +123,7 @@ class BaseErrorsTest < ActiveSupport::TestCase
     end
   end
 
-  private
+private
   def invalid_user_using_format(mime_type_reference)
     previous_format = Person.format
     Person.format = mime_type_reference

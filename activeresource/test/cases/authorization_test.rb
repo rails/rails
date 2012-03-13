@@ -11,10 +11,10 @@ class AuthorizationTest < ActiveSupport::TestCase
     @basic_authorization_request_header = { 'Authorization' => 'Basic ZGF2aWQ6dGVzdDEyMw==' }
   end
 
-  private
-    def decode(response)
-      @authenticated_conn.format.decode(response.body)
-    end
+private
+  def decode(response)
+    @authenticated_conn.format.decode(response.body)
+  end
 end
 
 class BasicAuthorizationTest < AuthorizationTest
@@ -236,16 +236,16 @@ class DigestAuthorizationTest < AuthorizationTest
     assert_raise(ActiveResource::InvalidRequestError) { @conn.head("/people/2.json") }
   end
 
-  private
-    def blank_digest_auth_header(uri, response)
-      %Q(Digest username="david", realm="", qop="", uri="#{uri}", nonce="", nc="0", cnonce="i-am-a-client-nonce", opaque="", response="#{response}")
-    end
+private
+  def blank_digest_auth_header(uri, response)
+    %Q(Digest username="david", realm="", qop="", uri="#{uri}", nonce="", nc="0", cnonce="i-am-a-client-nonce", opaque="", response="#{response}")
+  end
 
-    def request_digest_auth_header(uri, response)
-      %Q(Digest username="david", realm="RailsTestApp", qop="auth", uri="#{uri}", nonce="#{@nonce}", nc="0", cnonce="i-am-a-client-nonce", opaque="ef6dfb078ba22298d366f99567814ffb", response="#{response}")
-    end
+  def request_digest_auth_header(uri, response)
+    %Q(Digest username="david", realm="RailsTestApp", qop="auth", uri="#{uri}", nonce="#{@nonce}", nc="0", cnonce="i-am-a-client-nonce", opaque="ef6dfb078ba22298d366f99567814ffb", response="#{response}")
+  end
 
-    def response_digest_auth_header
-      %Q(Digest realm="RailsTestApp", qop="auth", algorithm=MD5, nonce="#{@nonce}", opaque="ef6dfb078ba22298d366f99567814ffb")
-    end
+  def response_digest_auth_header
+    %Q(Digest realm="RailsTestApp", qop="auth", algorithm=MD5, nonce="#{@nonce}", opaque="ef6dfb078ba22298d366f99567814ffb")
+  end
 end
