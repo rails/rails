@@ -332,6 +332,8 @@ When you're happy with the code on your computer, you need to commit the changes
 $ git commit -a -m "Here is a commit message on what I changed in this commit"
 </shell>
 
+TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean. 
+
 h4. Update master
 
 It’s pretty likely that other changes to master have happened while you were working. Go get them:
@@ -373,8 +375,6 @@ Navigate to the Rails repository you just pushed to (e.g. https://github.com/you
 Write your branch name in branch field (is filled with master by default) and press "Update Commit Range"
 
 Ensure the changesets you introduced are included in the "Commits" tab and that the "Files Changed" incorporate all of your changes.
-
-If possible, it is encouraged that you squash your commits into a single commit, this makes the pull to master easier, and simplifies the git log for the main repository, so your entire unit of work shows in a single line in the log.
 
 Fill in some details about your potential patch including a meaningful title. When finished, press "Send pull request." Rails Core will be notified about your submission.
 
