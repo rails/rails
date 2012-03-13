@@ -100,10 +100,10 @@ module ActiveSupport
         end
       end
 
-    private
+  private
 
-      def method_missing(method, *args, &block) #:nodoc:
-        value.send(method, *args, &block)
-      end
+    def method_missing(method, *args, &block) #:nodoc:
+      value.send(method, *args, &block)
+    end
   end
 end

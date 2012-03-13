@@ -79,7 +79,7 @@ module ActiveSupport
       self.class.__run_callbacks(kind, self, &block)
     end
 
-    private
+  private
 
     # A hook invoked everytime a before callback is halted.
     # This can be overriden in AS::Callback implementors in order
@@ -182,7 +182,7 @@ module ActiveSupport
         end
       end
 
-      private
+    private
 
       # Compile around filters with conditions into proxy methods
       # that contain the conditions.

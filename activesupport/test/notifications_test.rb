@@ -144,10 +144,10 @@ module Notifications
       assert_equal [[:foo]], @another
     end
 
-    private
-      def event(*args)
-        args
-      end
+  private
+    def event(*args)
+      args
+    end
   end
 
   class InstrumentationTest < TestCase

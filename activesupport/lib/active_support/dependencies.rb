@@ -141,7 +141,7 @@ module ActiveSupport #:nodoc:
         @watching << watching
       end
 
-      private
+    private
       def pop_modules(modules)
         modules.each { |mod| @stack[mod].pop }
       end

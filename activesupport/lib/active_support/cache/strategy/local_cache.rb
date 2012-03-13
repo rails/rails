@@ -145,24 +145,24 @@ module ActiveSupport
             super
           end
 
-        private
-          def thread_local_key
-            @thread_local_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
-          end
+      private
+        def thread_local_key
+          @thread_local_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
+        end
 
-          def local_cache
-            Thread.current[thread_local_key]
-          end
+        def local_cache
+          Thread.current[thread_local_key]
+        end
 
-          def bypass_local_cache
-            save_cache = Thread.current[thread_local_key]
-            begin
-              Thread.current[thread_local_key] = nil
-              yield
-            ensure
-              Thread.current[thread_local_key] = save_cache
-            end
+        def bypass_local_cache
+          save_cache = Thread.current[thread_local_key]
+          begin
+            Thread.current[thread_local_key] = nil
+            yield
+          ensure
+            Thread.current[thread_local_key] = save_cache
           end
+        end
       end
     end
   end

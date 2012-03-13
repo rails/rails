@@ -285,7 +285,7 @@ module ActiveSupport
       "#{number}#{ordinal(number)}"
     end
 
-    private
+  private
 
     # Mount a regular expression that will match part by part of the constant.
     # For instance, Foo::Bar::Baz will generate Foo(::Bar(::Baz)?)?

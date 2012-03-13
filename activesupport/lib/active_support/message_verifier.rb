@@ -48,21 +48,21 @@ module ActiveSupport
       "#{data}--#{generate_digest(data)}"
     end
 
-    private
-      # constant-time comparison algorithm to prevent timing attacks
-      def secure_compare(a, b)
-        return false unless a.bytesize == b.bytesize
+  private
+    # constant-time comparison algorithm to prevent timing attacks
+    def secure_compare(a, b)
+      return false unless a.bytesize == b.bytesize
 
-        l = a.unpack "C#{a.bytesize}"
+      l = a.unpack "C#{a.bytesize}"
 
-        res = 0
-        b.each_byte { |byte| res |= byte ^ l.shift }
-        res == 0
-      end
+      res = 0
+      b.each_byte { |byte| res |= byte ^ l.shift }
+      res == 0
+    end
 
-      def generate_digest(data)
-        require 'openssl' unless defined?(OpenSSL)
-        OpenSSL::HMAC.hexdigest(OpenSSL::Digest.const_get(@digest).new, @secret, data)
-      end
+    def generate_digest(data)
+      require 'openssl' unless defined?(OpenSSL)
+      OpenSSL::HMAC.hexdigest(OpenSSL::Digest.const_get(@digest).new, @secret, data)
+    end
   end
 end

@@ -364,7 +364,7 @@ module ActiveSupport
         end
       end
 
-      private
+    private
 
       def apply_mapping(string, mapping) #:nodoc:
         string.each_codepoint.map do |codepoint|

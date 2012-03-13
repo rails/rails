@@ -26,10 +26,10 @@ module ActiveSupport
         end
       end
 
-      private
-        def unique_id
-          SecureRandom.hex(10)
-        end
+    private
+      def unique_id
+        SecureRandom.hex(10)
+      end
     end
 
     class Event

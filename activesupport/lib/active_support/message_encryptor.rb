@@ -56,7 +56,7 @@ module ActiveSupport
       _decrypt(verifier.verify(value))
     end
 
-    private
+  private
 
     def _encrypt(value)
       cipher = new_cipher

@@ -385,11 +385,11 @@ module CallbacksTest
       @recorder = []
     end
 
-    private
+  private
 
-      def record1
-        @recorder << 1
-      end
+    def record1
+      @recorder << 1
+    end
   end
 
   class AroundCallbacksTest < ActiveSupport::TestCase

@@ -61,7 +61,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
 
-  private
+private
 
   def assert_not_decrypted(value)
     assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do

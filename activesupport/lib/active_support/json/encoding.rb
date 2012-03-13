@@ -67,15 +67,15 @@ module ActiveSupport
           Encoding.escape(string)
         end
 
-        private
-          def check_for_circular_references(value)
-            unless @seen.add?(value.__id__)
-              raise CircularReferenceError, 'object references itself'
-            end
-            yield
-          ensure
-            @seen.delete(value.__id__)
+      private
+        def check_for_circular_references(value)
+          unless @seen.add?(value.__id__)
+            raise CircularReferenceError, 'object references itself'
           end
+          yield
+        ensure
+          @seen.delete(value.__id__)
+        end
       end
 
 

@@ -377,19 +377,19 @@ module ActiveSupport
           raise
         end
 
-      private
+    private
 
-        def lookup(name)
-          (tzinfo = find_tzinfo(name)) && create(tzinfo.name.freeze)
+      def lookup(name)
+        (tzinfo = find_tzinfo(name)) && create(tzinfo.name.freeze)
+      end
+
+      def lazy_zones_map
+        require_tzinfo
+
+        @lazy_zones_map ||= Hash.new do |hash, place|
+          hash[place] = create(place) if MAPPING.has_key?(place)
         end
-
-        def lazy_zones_map
-          require_tzinfo
-
-          @lazy_zones_map ||= Hash.new do |hash, place|
-            hash[place] = create(place) if MAPPING.has_key?(place)
-          end
-        end
+      end
     end
   end
 end

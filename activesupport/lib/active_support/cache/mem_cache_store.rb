@@ -157,48 +157,48 @@ module ActiveSupport
           false
         end
 
-      private
+    private
 
-        # Memcache keys are binaries. So we need to force their encoding to binary
-        # before applying the regular expression to ensure we are escaping all
-        # characters properly.
-        def escape_key(key)
-          key = key.to_s.dup
-          key = key.force_encoding("BINARY")
-          key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-          key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
-          key
+      # Memcache keys are binaries. So we need to force their encoding to binary
+      # before applying the regular expression to ensure we are escaping all
+      # characters properly.
+      def escape_key(key)
+        key = key.to_s.dup
+        key = key.force_encoding("BINARY")
+        key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
+        key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
+        key
+      end
+
+      def deserialize_entry(raw_value)
+        if raw_value
+          entry = Marshal.load(raw_value) rescue raw_value
+          entry.is_a?(Entry) ? entry : Entry.new(entry)
+        else
+          nil
+        end
+      end
+
+    # Provide support for raw values in the local cache strategy.
+    module LocalCacheWithRaw # :nodoc:
+      protected
+        def read_entry(key, options)
+          entry = super
+          if options[:raw] && local_cache && entry
+             entry = deserialize_entry(entry.value)
+          end
+          entry
         end
 
-        def deserialize_entry(raw_value)
-          if raw_value
-            entry = Marshal.load(raw_value) rescue raw_value
-            entry.is_a?(Entry) ? entry : Entry.new(entry)
-          else
-            nil
+        def write_entry(key, entry, options) # :nodoc:
+          retval = super
+          if options[:raw] && local_cache && retval
+            raw_entry = Entry.new(entry.value.to_s)
+            raw_entry.expires_at = entry.expires_at
+            local_cache.write_entry(key, raw_entry, options)
           end
+          retval
         end
-
-      # Provide support for raw values in the local cache strategy.
-      module LocalCacheWithRaw # :nodoc:
-        protected
-          def read_entry(key, options)
-            entry = super
-            if options[:raw] && local_cache && entry
-               entry = deserialize_entry(entry.value)
-            end
-            entry
-          end
-
-          def write_entry(key, entry, options) # :nodoc:
-            retval = super
-            if options[:raw] && local_cache && retval
-              raw_entry = Entry.new(entry.value.to_s)
-              raw_entry.expires_at = entry.expires_at
-              local_cache.write_entry(key, raw_entry, options)
-            end
-            retval
-          end
       end
     end
   end

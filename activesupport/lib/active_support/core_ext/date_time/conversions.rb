@@ -89,7 +89,7 @@ class DateTime
     seconds_since_unix_epoch.to_i
   end
 
-  private
+private
 
   def seconds_since_unix_epoch
     seconds_per_day = 86_400

@@ -107,72 +107,72 @@ module ActiveSupport
           end
         end
 
-      private
-        # Lock a file for a block so only one process can modify it at a time.
-        def lock_file(file_name, &block) # :nodoc:
-          if File.exist?(file_name)
-            File.open(file_name, 'r+') do |f|
-              begin
-                f.flock File::LOCK_EX
-                yield
-              ensure
-                f.flock File::LOCK_UN
-              end
+    private
+      # Lock a file for a block so only one process can modify it at a time.
+      def lock_file(file_name, &block) # :nodoc:
+        if File.exist?(file_name)
+          File.open(file_name, 'r+') do |f|
+            begin
+              f.flock File::LOCK_EX
+              yield
+            ensure
+              f.flock File::LOCK_UN
             end
+          end
+        else
+          yield
+        end
+      end
+
+      # Translate a key into a file path.
+      def key_file_path(key)
+        fname = Rack::Utils.escape(key)
+        hash = Zlib.adler32(fname)
+        hash, dir_1 = hash.divmod(0x1000)
+        dir_2 = hash.modulo(0x1000)
+        fname_paths = []
+
+        # Make sure file name doesn't exceed file system limits.
+        begin
+          fname_paths << fname[0, FILENAME_MAX_SIZE]
+          fname = fname[FILENAME_MAX_SIZE..-1]
+        end until fname.blank?
+
+        File.join(cache_path, DIR_FORMATTER % dir_1, DIR_FORMATTER % dir_2, *fname_paths)
+      end
+
+      # Translate a file path into a key.
+      def file_path_key(path)
+        fname = path[cache_path.to_s.size..-1].split(File::SEPARATOR, 4).last
+        Rack::Utils.unescape(fname)
+      end
+
+      # Delete empty directories in the cache.
+      def delete_empty_directories(dir)
+        return if dir == cache_path
+        if Dir.entries(dir).reject{|f| f.in?(EXCLUDED_DIRS)}.empty?
+          File.delete(dir) rescue nil
+          delete_empty_directories(File.dirname(dir))
+        end
+      end
+
+      # Make sure a file path's directories exist.
+      def ensure_cache_path(path)
+        FileUtils.makedirs(path) unless File.exist?(path)
+      end
+
+      def search_dir(dir, &callback)
+        return if !File.exist?(dir)
+        Dir.foreach(dir) do |d|
+          next if d.in?(EXCLUDED_DIRS)
+          name = File.join(dir, d)
+          if File.directory?(name)
+            search_dir(name, &callback)
           else
-            yield
+            callback.call name
           end
         end
-
-        # Translate a key into a file path.
-        def key_file_path(key)
-          fname = Rack::Utils.escape(key)
-          hash = Zlib.adler32(fname)
-          hash, dir_1 = hash.divmod(0x1000)
-          dir_2 = hash.modulo(0x1000)
-          fname_paths = []
-
-          # Make sure file name doesn't exceed file system limits.
-          begin
-            fname_paths << fname[0, FILENAME_MAX_SIZE]
-            fname = fname[FILENAME_MAX_SIZE..-1]
-          end until fname.blank?
-
-          File.join(cache_path, DIR_FORMATTER % dir_1, DIR_FORMATTER % dir_2, *fname_paths)
-        end
-
-        # Translate a file path into a key.
-        def file_path_key(path)
-          fname = path[cache_path.to_s.size..-1].split(File::SEPARATOR, 4).last
-          Rack::Utils.unescape(fname)
-        end
-
-        # Delete empty directories in the cache.
-        def delete_empty_directories(dir)
-          return if dir == cache_path
-          if Dir.entries(dir).reject{|f| f.in?(EXCLUDED_DIRS)}.empty?
-            File.delete(dir) rescue nil
-            delete_empty_directories(File.dirname(dir))
-          end
-        end
-
-        # Make sure a file path's directories exist.
-        def ensure_cache_path(path)
-          FileUtils.makedirs(path) unless File.exist?(path)
-        end
-
-        def search_dir(dir, &callback)
-          return if !File.exist?(dir)
-          Dir.foreach(dir) do |d|
-            next if d.in?(EXCLUDED_DIRS)
-            name = File.join(dir, d)
-            if File.directory?(name)
-              search_dir(name, &callback)
-            else
-              callback.call name
-            end
-          end
-        end
+      end
     end
   end
 end
