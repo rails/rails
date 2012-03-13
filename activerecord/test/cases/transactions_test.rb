@@ -450,63 +450,63 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
-  private
-    def define_callback_method(callback_method)
-      define_method(callback_method) do
-        self.history << [callback_method, :method]
-      end
+private
+  def define_callback_method(callback_method)
+    define_method(callback_method) do
+      self.history << [callback_method, :method]
     end
+  end
 
-    def add_exception_raising_after_save_callback_to_topic
+  def add_exception_raising_after_save_callback_to_topic
+    Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+      remove_method(:after_save_for_transaction)
+      def after_save_for_transaction
+        raise 'Make the transaction rollback'
+      end
+    eoruby
+  end
+
+  def remove_exception_raising_after_save_callback_to_topic
+    Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+      remove_method :after_save_for_transaction
+      def after_save_for_transaction; end
+    eoruby
+  end
+
+  def add_exception_raising_after_create_callback_to_topic
+    Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+      remove_method(:after_create_for_transaction)
+      def after_create_for_transaction
+        raise 'Make the transaction rollback'
+      end
+    eoruby
+  end
+
+  def remove_exception_raising_after_create_callback_to_topic
+    Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+      remove_method :after_create_for_transaction
+      def after_create_for_transaction; end
+    eoruby
+  end
+
+  %w(validation save destroy).each do |filter|
+    define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
       Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-        remove_method(:after_save_for_transaction)
-        def after_save_for_transaction
-          raise 'Make the transaction rollback'
+        remove_method :before_#{filter}_for_transaction
+        def before_#{filter}_for_transaction
+          Book.create
+          false
         end
       eoruby
     end
 
-    def remove_exception_raising_after_save_callback_to_topic
+    define_method("remove_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
       Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-        remove_method :after_save_for_transaction
-        def after_save_for_transaction; end
+        remove_method :before_#{filter}_for_transaction
+        def before_#{filter}_for_transaction; end
       eoruby
     end
-
-    def add_exception_raising_after_create_callback_to_topic
-      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-        remove_method(:after_create_for_transaction)
-        def after_create_for_transaction
-          raise 'Make the transaction rollback'
-        end
-      eoruby
-    end
-
-    def remove_exception_raising_after_create_callback_to_topic
-      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-        remove_method :after_create_for_transaction
-        def after_create_for_transaction; end
-      eoruby
-    end
-
-    %w(validation save destroy).each do |filter|
-      define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
-        Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-          remove_method :before_#{filter}_for_transaction
-          def before_#{filter}_for_transaction
-            Book.create
-            false
-          end
-        eoruby
-      end
-
-      define_method("remove_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
-        Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-          remove_method :before_#{filter}_for_transaction
-          def before_#{filter}_for_transaction; end
-        eoruby
-      end
-    end
+  end
 end
 
 class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase

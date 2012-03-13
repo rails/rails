@@ -511,31 +511,31 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  private
-    def with_partial_updates(klass, on = true)
-      old = klass.partial_updates?
-      klass.partial_updates = on
-      yield
-    ensure
-      klass.partial_updates = old
-    end
+private
+  def with_partial_updates(klass, on = true)
+    old = klass.partial_updates?
+    klass.partial_updates = on
+    yield
+  ensure
+    klass.partial_updates = old
+  end
 
-    def check_pirate_after_save_failure(pirate)
-      assert pirate.changed?
-      assert pirate.parrot_id_changed?
-      assert_equal %w(parrot_id), pirate.changed
-      assert_nil pirate.parrot_id_was
-    end
+  def check_pirate_after_save_failure(pirate)
+    assert pirate.changed?
+    assert pirate.parrot_id_changed?
+    assert_equal %w(parrot_id), pirate.changed
+    assert_nil pirate.parrot_id_was
+  end
 
-    def in_time_zone(zone)
-      old_zone  = Time.zone
-      old_tz    = ActiveRecord::Base.time_zone_aware_attributes
+  def in_time_zone(zone)
+    old_zone  = Time.zone
+    old_tz    = ActiveRecord::Base.time_zone_aware_attributes
 
-      Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
-      ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
-      yield
-    ensure
-      Time.zone = old_zone
-      ActiveRecord::Base.time_zone_aware_attributes = old_tz
-    end
+    Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
+    ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
+    yield
+  ensure
+    Time.zone = old_zone
+    ActiveRecord::Base.time_zone_aware_attributes = old_tz
+  end
 end

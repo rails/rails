@@ -67,11 +67,11 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     assert_equal post.association(:comments), post.comments.scoped.the_association
   end
 
-  private
+private
 
-    def extension_name(model)
-      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, {}) { }
-      builder.send(:wrap_block_extension)
-      builder.options[:extend].first.name
-    end
+  def extension_name(model)
+    builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, {}) { }
+    builder.send(:wrap_block_extension)
+    builder.options[:extend].first.name
+  end
 end

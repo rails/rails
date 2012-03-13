@@ -727,14 +727,14 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal aircraft.engines, [engine]
   end
 
-  private
-    # create dynamic Post models to allow different dependency options
-    def find_post_with_dependency(post_id, association, association_name, dependency)
-      class_name = "PostWith#{association.to_s.classify}#{dependency.to_s.classify}"
-      Post.find(post_id).update_column :type, class_name
-      klass = Object.const_set(class_name, Class.new(ActiveRecord::Base))
-      klass.table_name = 'posts'
-      klass.send(association, association_name, :as => :taggable, :dependent => dependency)
-      klass.find(post_id)
-    end
+private
+  # create dynamic Post models to allow different dependency options
+  def find_post_with_dependency(post_id, association, association_name, dependency)
+    class_name = "PostWith#{association.to_s.classify}#{dependency.to_s.classify}"
+    Post.find(post_id).update_column :type, class_name
+    klass = Object.const_set(class_name, Class.new(ActiveRecord::Base))
+    klass.table_name = 'posts'
+    klass.send(association, association_name, :as => :taggable, :dependent => dependency)
+    klass.find(post_id)
+  end
 end

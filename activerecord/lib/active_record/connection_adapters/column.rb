@@ -246,48 +246,48 @@ module ActiveRecord
           end
       end
 
-      private
-        def extract_limit(sql_type)
-          $1.to_i if sql_type =~ /\((.*)\)/
-        end
+    private
+      def extract_limit(sql_type)
+        $1.to_i if sql_type =~ /\((.*)\)/
+      end
 
-        def extract_precision(sql_type)
-          $2.to_i if sql_type =~ /^(numeric|decimal|number)\((\d+)(,\d+)?\)/i
-        end
+      def extract_precision(sql_type)
+        $2.to_i if sql_type =~ /^(numeric|decimal|number)\((\d+)(,\d+)?\)/i
+      end
 
-        def extract_scale(sql_type)
-          case sql_type
-            when /^(numeric|decimal|number)\((\d+)\)/i then 0
-            when /^(numeric|decimal|number)\((\d+)(,(\d+))\)/i then $4.to_i
-          end
+      def extract_scale(sql_type)
+        case sql_type
+          when /^(numeric|decimal|number)\((\d+)\)/i then 0
+          when /^(numeric|decimal|number)\((\d+)(,(\d+))\)/i then $4.to_i
         end
+      end
 
-        def simplified_type(field_type)
-          case field_type
-          when /int/i
-            :integer
-          when /float|double/i
-            :float
-          when /decimal|numeric|number/i
-            extract_scale(field_type) == 0 ? :integer : :decimal
-          when /datetime/i
-            :datetime
-          when /timestamp/i
-            :timestamp
-          when /time/i
-            :time
-          when /date/i
-            :date
-          when /clob/i, /text/i
-            :text
-          when /blob/i, /binary/i
-            :binary
-          when /char/i, /string/i
-            :string
-          when /boolean/i
-            :boolean
-          end
+      def simplified_type(field_type)
+        case field_type
+        when /int/i
+          :integer
+        when /float|double/i
+          :float
+        when /decimal|numeric|number/i
+          extract_scale(field_type) == 0 ? :integer : :decimal
+        when /datetime/i
+          :datetime
+        when /timestamp/i
+          :timestamp
+        when /time/i
+          :time
+        when /date/i
+          :date
+        when /clob/i, /text/i
+          :text
+        when /blob/i, /binary/i
+          :binary
+        when /char/i, /string/i
+          :string
+        when /boolean/i
+          :boolean
         end
+      end
     end
   end
   # :startdoc:

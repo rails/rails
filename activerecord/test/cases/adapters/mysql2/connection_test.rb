@@ -29,7 +29,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert @connection.active?
   end
 
-  private
+private
 
   def run_without_connection
     original_connection = ActiveRecord::Model.remove_connection

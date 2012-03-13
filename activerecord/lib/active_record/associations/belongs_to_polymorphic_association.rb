@@ -7,28 +7,28 @@ module ActiveRecord
         type.presence && type.constantize
       end
 
-      private
+    private
 
-        def replace_keys(record)
-          super
-          owner[reflection.foreign_type] = record && record.class.base_class.name
-        end
+      def replace_keys(record)
+        super
+        owner[reflection.foreign_type] = record && record.class.base_class.name
+      end
 
-        def different_target?(record)
-          super || record.class != klass
-        end
+      def different_target?(record)
+        super || record.class != klass
+      end
 
-        def inverse_reflection_for(record)
-          reflection.polymorphic_inverse_of(record.class)
-        end
+      def inverse_reflection_for(record)
+        reflection.polymorphic_inverse_of(record.class)
+      end
 
-        def raise_on_type_mismatch(record)
-          # A polymorphic association cannot have a type mismatch, by definition
-        end
+      def raise_on_type_mismatch(record)
+        # A polymorphic association cannot have a type mismatch, by definition
+      end
 
-        def stale_state
-          [super, owner[reflection.foreign_type].to_s]
-        end
+      def stale_state
+        [super, owner[reflection.foreign_type].to_s]
+      end
     end
   end
 end

@@ -554,13 +554,13 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert !c.post_taggings.empty?
   end
 
-  private
+private
 
-    def assert_includes_and_joins_equal(query, expected, association)
-      actual = assert_queries(1) { query.joins(association).to_a.uniq }
-      assert_equal expected, actual
+  def assert_includes_and_joins_equal(query, expected, association)
+    actual = assert_queries(1) { query.joins(association).to_a.uniq }
+    assert_equal expected, actual
 
-      actual = assert_queries(1) { query.includes(association).to_a.uniq }
-      assert_equal expected, actual
-    end
+    actual = assert_queries(1) { query.includes(association).to_a.uniq }
+    assert_equal expected, actual
+  end
 end

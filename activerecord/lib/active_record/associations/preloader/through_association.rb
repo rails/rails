@@ -25,7 +25,7 @@ module ActiveRecord
           end
         end
 
-        private
+      private
 
         def through_records_by_owner
           ActiveRecord::Associations::Preloader.new(

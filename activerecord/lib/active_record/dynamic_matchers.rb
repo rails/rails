@@ -7,7 +7,7 @@ module ActiveRecord
       valid_match || super
     end
 
-    private
+  private
 
     # Enables dynamic finders like <tt>User.find_by_user_name(user_name)</tt> and
     # <tt>User.scoped_by_user_name(user_name). Refer to Dynamic attribute-based finders

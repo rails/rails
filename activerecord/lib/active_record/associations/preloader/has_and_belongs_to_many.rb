@@ -28,7 +28,7 @@ module ActiveRecord
           join_table[reflection.foreign_key]
         end
 
-        private
+      private
 
         # Once we have used the join table column (in super), we manually instantiate the
         # actual records, ensuring that we don't create more than one instances of the same

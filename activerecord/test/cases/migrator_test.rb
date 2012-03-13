@@ -344,7 +344,7 @@ module ActiveRecord
       assert_equal([], ActiveRecord::Migrator.get_all_versions)
     end
 
-    private
+  private
     def m(name, version, &block)
       x = Sensor.new name, version
       x.extend(Module.new {

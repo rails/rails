@@ -59,7 +59,7 @@ module ActiveRecord
           cache.clear
         end
 
-        private
+      private
         def cache
           @cache[$$]
         end

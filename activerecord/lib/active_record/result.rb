@@ -50,7 +50,7 @@ module ActiveRecord
       @hash_rows = nil
     end
 
-    private
+  private
     def hash_rows
       @hash_rows ||= @rows.map { |row|
         Hash[@columns.zip(row)]

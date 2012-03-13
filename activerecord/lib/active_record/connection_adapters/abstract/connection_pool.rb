@@ -264,7 +264,7 @@ module ActiveRecord
         end
       end
 
-      private
+    private
 
       def release(conn)
         thread_id = nil
@@ -402,7 +402,7 @@ module ActiveRecord
         retrieve_connection_pool klass.active_record_super
       end
 
-      private
+    private
 
       def class_to_pool
         @class_to_pool[Process.pid]

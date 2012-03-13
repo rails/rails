@@ -297,32 +297,32 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     remove_counter_column_from(Person, 'legacy_things_count')
   end
 
-  private
+private
 
-    def add_counter_column_to(model, col='test_count')
-      model.connection.add_column model.table_name, col, :integer, :null => false, :default => 0
-      model.reset_column_information
-      # OpenBase does not set a value to existing rows when adding a not null default column
-      model.update_all(col => 0) if current_adapter?(:OpenBaseAdapter)
-    end
+  def add_counter_column_to(model, col='test_count')
+    model.connection.add_column model.table_name, col, :integer, :null => false, :default => 0
+    model.reset_column_information
+    # OpenBase does not set a value to existing rows when adding a not null default column
+    model.update_all(col => 0) if current_adapter?(:OpenBaseAdapter)
+  end
 
-    def remove_counter_column_from(model, col = :test_count)
-      model.connection.remove_column model.table_name, col
-      model.reset_column_information
-    end
+  def remove_counter_column_from(model, col = :test_count)
+    model.connection.remove_column model.table_name, col
+    model.reset_column_information
+  end
 
-    def counter_test(model, expected_count)
-      add_counter_column_to(model)
-      object = model.find(:first)
-      assert_equal 0, object.test_count
-      assert_equal 0, object.send(model.locking_column)
-      yield object.id
-      object.reload
-      assert_equal expected_count, object.test_count
-      assert_equal 1, object.send(model.locking_column)
-    ensure
-      remove_counter_column_from(model)
-    end
+  def counter_test(model, expected_count)
+    add_counter_column_to(model)
+    object = model.find(:first)
+    assert_equal 0, object.test_count
+    assert_equal 0, object.send(model.locking_column)
+    yield object.id
+    object.reload
+    assert_equal expected_count, object.test_count
+    assert_equal 1, object.send(model.locking_column)
+  ensure
+    remove_counter_column_from(model)
+  end
 end
 
 

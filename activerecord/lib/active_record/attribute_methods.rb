@@ -226,7 +226,7 @@ module ActiveRecord
       defined?(@attributes) && @attributes.include?(attr_name)
     end
 
-    private
+  private
 
     # Returns a Hash of the Arel::Attributes and attribute values that have been
     # type casted for use in an Arel insert/update method.

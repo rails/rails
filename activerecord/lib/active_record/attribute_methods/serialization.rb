@@ -84,7 +84,7 @@ module ActiveRecord
           attributes
         end
 
-        private
+      private
 
         def attribute_cast_code(attr_name)
           if serialized_attributes.include?(attr_name)

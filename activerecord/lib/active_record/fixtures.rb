@@ -614,50 +614,50 @@ module ActiveRecord
       rows
     end
 
-    private
-      def primary_key_name
-        @primary_key_name ||= model_class && model_class.primary_key
-      end
+  private
+    def primary_key_name
+      @primary_key_name ||= model_class && model_class.primary_key
+    end
 
-      def has_primary_key_column?
-        @has_primary_key_column ||= primary_key_name &&
-          model_class.columns.any? { |c| c.name == primary_key_name }
-      end
+    def has_primary_key_column?
+      @has_primary_key_column ||= primary_key_name &&
+        model_class.columns.any? { |c| c.name == primary_key_name }
+    end
 
-      def timestamp_column_names
-        @timestamp_column_names ||=
-          %w(created_at created_on updated_at updated_on) & column_names
-      end
+    def timestamp_column_names
+      @timestamp_column_names ||=
+        %w(created_at created_on updated_at updated_on) & column_names
+    end
 
-      def inheritance_column_name
-        @inheritance_column_name ||= model_class && model_class.inheritance_column
-      end
+    def inheritance_column_name
+      @inheritance_column_name ||= model_class && model_class.inheritance_column
+    end
 
-      def column_names
-        @column_names ||= @connection.columns(@table_name).collect { |c| c.name }
-      end
+    def column_names
+      @column_names ||= @connection.columns(@table_name).collect { |c| c.name }
+    end
 
-      def read_fixture_files
-        yaml_files = Dir["#{@fixture_path}/**/*.yml"].select { |f|
-          ::File.file?(f)
-        } + [yaml_file_path]
+    def read_fixture_files
+      yaml_files = Dir["#{@fixture_path}/**/*.yml"].select { |f|
+        ::File.file?(f)
+      } + [yaml_file_path]
 
-        yaml_files.each do |file|
-          Fixtures::File.open(file) do |fh|
-            fh.each do |name, row|
-              fixtures[name] = ActiveRecord::Fixture.new(row, model_class)
-            end
+      yaml_files.each do |file|
+        Fixtures::File.open(file) do |fh|
+          fh.each do |name, row|
+            fixtures[name] = ActiveRecord::Fixture.new(row, model_class)
           end
         end
       end
+    end
 
-      def yaml_file_path
-        "#{@fixture_path}.yml"
-      end
+    def yaml_file_path
+      "#{@fixture_path}.yml"
+    end
 
-      def yaml_fixtures_key(path)
-        ::File.basename(@fixture_path).split(".").first
-      end
+    def yaml_fixtures_key(path)
+      ::File.basename(@fixture_path).split(".").first
+    end
   end
 
   class Fixture #:nodoc:
@@ -888,33 +888,33 @@ module ActiveRecord
       ActiveRecord::Base.connection_handler.connection_pools.values.map(&:connection)
     end
 
-    private
-      def load_fixtures
-        fixtures = ActiveRecord::Fixtures.create_fixtures(fixture_path, fixture_table_names, fixture_class_names)
-        Hash[fixtures.map { |f| [f.name, f] }]
-      end
+  private
+    def load_fixtures
+      fixtures = ActiveRecord::Fixtures.create_fixtures(fixture_path, fixture_table_names, fixture_class_names)
+      Hash[fixtures.map { |f| [f.name, f] }]
+    end
 
-      # for pre_loaded_fixtures, only require the classes once. huge speed improvement
-      @@required_fixture_classes = false
+    # for pre_loaded_fixtures, only require the classes once. huge speed improvement
+    @@required_fixture_classes = false
 
-      def instantiate_fixtures
-        if pre_loaded_fixtures
-          raise RuntimeError, 'Load fixtures before instantiating them.' if ActiveRecord::Fixtures.all_loaded_fixtures.empty?
-          unless @@required_fixture_classes
-            self.class.require_fixture_classes ActiveRecord::Fixtures.all_loaded_fixtures.keys
-            @@required_fixture_classes = true
-          end
-          ActiveRecord::Fixtures.instantiate_all_loaded_fixtures(self, load_instances?)
-        else
-          raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
-          @loaded_fixtures.each do |fixture_name, fixtures|
-            ActiveRecord::Fixtures.instantiate_fixtures(self, fixture_name, fixtures, load_instances?)
-          end
+    def instantiate_fixtures
+      if pre_loaded_fixtures
+        raise RuntimeError, 'Load fixtures before instantiating them.' if ActiveRecord::Fixtures.all_loaded_fixtures.empty?
+        unless @@required_fixture_classes
+          self.class.require_fixture_classes ActiveRecord::Fixtures.all_loaded_fixtures.keys
+          @@required_fixture_classes = true
+        end
+        ActiveRecord::Fixtures.instantiate_all_loaded_fixtures(self, load_instances?)
+      else
+        raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
+        @loaded_fixtures.each do |fixture_name, fixtures|
+          ActiveRecord::Fixtures.instantiate_fixtures(self, fixture_name, fixtures, load_instances?)
         end
       end
+    end
 
-      def load_instances?
-        use_instantiated_fixtures != :no_instances
-      end
+    def load_instances?
+      use_instantiated_fixtures != :no_instances
+    end
   end
 end

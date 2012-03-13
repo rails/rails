@@ -42,7 +42,7 @@ module ActiveRecord
       end
       alias_method :raw_write_attribute, :write_attribute
 
-      private
+    private
       # Handle *= for method_missing.
       def attribute=(attribute_name, value)
         write_attribute(attribute_name, value)

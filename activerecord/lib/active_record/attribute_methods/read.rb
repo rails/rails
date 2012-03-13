@@ -86,7 +86,7 @@ module ActiveRecord
           STR
         end
 
-        private
+      private
         def cacheable_column?(column)
           if attribute_types_cached_by_default == ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
             ! serialized_attributes.include? column.name
@@ -135,7 +135,7 @@ module ActiveRecord
         }
       end
 
-      private
+    private
 
       def attribute(attribute_name)
         read_attribute(attribute_name)

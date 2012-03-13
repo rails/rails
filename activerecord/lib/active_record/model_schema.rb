@@ -311,7 +311,7 @@ module ActiveRecord
         connection.schema_cache.clear!
       end
 
-      private
+    private
 
       # Guesses the table name, but does not decorate it with prefix and suffix information.
       def undecorated_table_name(class_name = base_class.name)

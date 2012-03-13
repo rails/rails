@@ -562,10 +562,10 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
     assert_equal 0, ActiveRecord::Base.connection.open_transactions
   end
 
-  private
-    def load_fixtures
-      raise 'argh'
-    end
+private
+  def load_fixtures
+    raise 'argh'
+  end
 end
 
 class LoadAllFixturesTest < ActiveRecord::TestCase

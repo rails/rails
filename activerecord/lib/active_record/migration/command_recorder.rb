@@ -59,7 +59,7 @@ module ActiveRecord
         EOV
       end
 
-      private
+    private
 
       def invert_create_table(args)
         [:drop_table, [args.first]]

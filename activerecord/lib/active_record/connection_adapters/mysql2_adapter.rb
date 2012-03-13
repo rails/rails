@@ -132,7 +132,7 @@ module ActiveRecord
           pp.join("\n") + "\n"
         end
 
-        private
+      private
 
         def compute_column_widths(result)
           [].tap do |widths|
@@ -240,7 +240,7 @@ module ActiveRecord
         @connection.last_id
       end
 
-      private
+    private
 
       def connect
         @connection = Mysql2::Client.new(@config)

@@ -52,7 +52,7 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :parrots
   end
 
-  private
+private
 
   def base
     ActiveRecord::Base

@@ -197,7 +197,7 @@ module ActiveRecord
       end
     end
 
-    private
+  private
 
     def perform_calculation(operation, column_name, options = {})
       operation = operation.to_s.downcase

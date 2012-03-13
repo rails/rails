@@ -59,7 +59,7 @@ module ActiveRecord
       bang? ? :save! : :save
     end
 
-    private
+  private
 
     def initialize_from_match_data(match_data)
     end

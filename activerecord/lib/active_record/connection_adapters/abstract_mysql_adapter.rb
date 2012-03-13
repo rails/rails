@@ -40,7 +40,7 @@ module ActiveRecord
           collation && !collation.match(/_ci$/)
         end
 
-        private
+      private
 
         def simplified_type(field_type)
           return :boolean if adapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
@@ -657,7 +657,7 @@ module ActiveRecord
         [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
       end
 
-      private
+    private
 
       def supports_views?
         version[0] >= 5

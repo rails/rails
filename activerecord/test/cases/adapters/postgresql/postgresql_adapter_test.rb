@@ -190,7 +190,7 @@ module ActiveRecord
         assert_equal "DISTINCT posts.title, posts.updater_id AS alias_0", @connection.distinct("posts.title", ["posts.updater_id desc nulls last"])
       end
 
-      private
+    private
       def insert(ctx, data)
         binds   = data.map { |name, value|
           [ctx.columns('ex').find { |x| x.name == name }, value]

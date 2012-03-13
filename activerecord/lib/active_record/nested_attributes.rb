@@ -312,7 +312,7 @@ module ActiveRecord
       marked_for_destruction?
     end
 
-    private
+  private
 
     # Attribute hash keys that should not be assigned as normal attributes.
     # These hash keys are nested attributes implementation details.

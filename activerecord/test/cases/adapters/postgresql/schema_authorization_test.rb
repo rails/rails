@@ -106,9 +106,9 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
     end
   end
 
-  private
-    def set_session_auth auth = nil
-       @connection.session_auth =  auth || 'default'
-    end
+private
+  def set_session_auth auth = nil
+     @connection.session_auth =  auth || 'default'
+  end
 
 end

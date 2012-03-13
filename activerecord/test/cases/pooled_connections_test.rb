@@ -59,7 +59,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   end
 
 
-  private
+private
 
   def add_record(name)
     ActiveRecord::Model.connection_pool.with_connection { Project.create! :name => name }

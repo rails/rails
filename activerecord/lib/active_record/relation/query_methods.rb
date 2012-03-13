@@ -346,7 +346,7 @@ module ActiveRecord
       arel
     end
 
-    private
+  private
 
     def custom_join_ast(table, joins)
       joins = joins.reject { |join| join.blank? }

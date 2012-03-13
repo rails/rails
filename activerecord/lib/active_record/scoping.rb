@@ -130,7 +130,7 @@ module ActiveRecord
         Thread.current["#{self}_current_scope"] = scope
       end
 
-      private
+    private
 
       def construct_finder_arel(options = {}, scope = nil)
         relation = options.is_a?(Hash) ? unscoped.apply_finder_options(options) : options

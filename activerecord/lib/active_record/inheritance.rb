@@ -137,7 +137,7 @@ module ActiveRecord
         end
       end
 
-      private
+    private
 
       def find_sti_class(type_name)
         if type_name.blank? || !columns_hash.include?(inheritance_column)
@@ -167,7 +167,7 @@ module ActiveRecord
       end
     end
 
-    private
+  private
 
     # Sets the attribute used for single table inheritance to this class name if this is not the
     # ActiveRecord::Base descendant.

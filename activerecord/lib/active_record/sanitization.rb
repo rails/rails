@@ -184,7 +184,7 @@ module ActiveRecord
       quote_value(id, column_for_attribute(self.class.primary_key))
     end
 
-    private
+  private
 
     # Quote strings appropriately for SQL statements.
     def quote_value(value, column = nil)

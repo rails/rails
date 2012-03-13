@@ -623,7 +623,7 @@ module ActiveRecord
           column_names.map {|column_name| quote_column_name(column_name) }
         end
 
-      private
+    private
       def table_definition
         TableDefinition.new(self)
       end

@@ -43,10 +43,10 @@ module ActiveRecord
   #   class Subscription < ActiveRecord::Base
   #     before_create :record_signup
   #
-  #     private
-  #       def record_signup
-  #         self.signed_up_on = Date.today
-  #       end
+  #   private
+  #     def record_signup
+  #       self.signed_up_on = Date.today
+  #     end
   #   end
   #
   #   class Firm < ActiveRecord::Base
@@ -102,10 +102,10 @@ module ActiveRecord
   #   class Topic < ActiveRecord::Base
   #     before_destroy :delete_parents
   #
-  #     private
-  #       def delete_parents
-  #         self.class.delete_all "parent_id = #{id}"
-  #       end
+  #   private
+  #     def delete_parents
+  #       self.class.delete_all "parent_id = #{id}"
+  #     end
   #   end
   #
   # The callback objects have methods named after the callback called with the record as the only parameter, such as:
@@ -127,14 +127,14 @@ module ActiveRecord
   #
   #     alias_method :after_find, :after_save
   #
-  #     private
-  #       def encrypt(value)
-  #         # Secrecy is committed
-  #       end
+  #   private
+  #      def encrypt(value)
+  #       # Secrecy is committed
+  #     end
   #
-  #       def decrypt(value)
-  #         # Secrecy is unveiled
-  #       end
+  #     def decrypt(value)
+  #       # Secrecy is unveiled
+  #     end
   #   end
   #
   # So you specify the object you want messaged on a given callback. When that callback is triggered, the object has
@@ -162,14 +162,14 @@ module ActiveRecord
   #
   #     alias_method :after_find, :after_save
   #
-  #     private
-  #       def encrypt(value)
-  #         # Secrecy is committed
-  #       end
+  #   private
+  #     def encrypt(value)
+  #       # Secrecy is committed
+  #     end
   #
-  #       def decrypt(value)
-  #         # Secrecy is unveiled
-  #       end
+  #     def decrypt(value)
+  #       # Secrecy is unveiled
+  #     end
   #   end
   #
   # The callback macros usually accept a symbol for the method they're supposed to run, but you can also

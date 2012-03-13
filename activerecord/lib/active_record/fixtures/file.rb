@@ -26,7 +26,7 @@ module ActiveRecord
 
       RESCUE_ERRORS = [ ArgumentError ] # :nodoc:
 
-      private
+    private
       if defined?(Psych) && defined?(Psych::SyntaxError)
         RESCUE_ERRORS << Psych::SyntaxError
       end

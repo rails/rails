@@ -68,7 +68,7 @@ module ActiveRecord
           end
         end
 
-        private
+      private
         def create_time_zone_conversion_attribute?(name, column)
           time_zone_aware_attributes &&
             !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) &&

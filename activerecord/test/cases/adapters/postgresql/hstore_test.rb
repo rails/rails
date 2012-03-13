@@ -134,7 +134,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert_cycle('a=>b' => 'bar', '1"foo' => '2')
   end
 
-  private
+private
   def assert_cycle hash
     x = Hstore.create!(:tags => hash)
     x.reload

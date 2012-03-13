@@ -135,7 +135,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
 
   #the following functions were added to DRY test cases
 
-  private
+private
   # custom fixture loader, uses Fixtures#create_fixtures and appends base_path to the current file's path
   def create_test_fixtures(*fixture_names)
     ActiveRecord::Fixtures.create_fixtures(FIXTURES_ROOT + "/reserved_words", fixture_names)

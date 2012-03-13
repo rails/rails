@@ -64,7 +64,7 @@ module ActiveRecord
         end
       end
 
-      private
+    private
       def cache_sql(sql, binds)
         result =
           if @query_cache[sql].key?(binds)

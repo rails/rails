@@ -7,7 +7,7 @@ module ActiveRecord
         Arel::InnerJoin
       end
 
-      private
+    private
 
       def construct_tables
         tables = []
