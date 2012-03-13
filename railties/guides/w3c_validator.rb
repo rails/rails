@@ -52,7 +52,7 @@ module RailsGuides
       show_results(errors_on_guides)
     end
 
-    private
+  private
     def guides_to_validate
       guides = Dir["./guides/output/*.html"]
       guides.delete("./guides/output/layout.html")

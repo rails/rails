@@ -7,7 +7,7 @@ module Rails
       eval "::#{old} = constant"
     end
 
-    private
+  private
 
     def target
       ::Kernel.eval @new_const.to_s

@@ -104,7 +104,7 @@ module RailsGuides
       generate_mobi if kindle?
     end
 
-    private
+  private
 
     def kindle?
       @kindle

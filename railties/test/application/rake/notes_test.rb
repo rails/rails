@@ -45,7 +45,7 @@ module ApplicationTests
 
       end
 
-      private
+    private
       def boot_rails
         super
         require "#{app_path}/config/environment"

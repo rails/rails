@@ -63,7 +63,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_equal IRB, Rails::Console.new(app).console
   end
 
-  private
+private
 
   attr_reader :output
 
