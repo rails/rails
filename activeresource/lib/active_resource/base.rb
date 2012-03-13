@@ -1017,7 +1017,7 @@ module ActiveResource
     # gathered from the provided <tt>schema</tt>, or from the attributes
     # set on this instance after it has been fetched from the remote system.
     def known_attributes
-      self.class.known_attributes + self.attributes.keys.map(&:to_s)
+      (self.class.known_attributes + self.attributes.keys.map(&:to_s)).uniq
     end
 
 
