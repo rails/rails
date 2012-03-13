@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `include_hidden` option to select tag. With `:include_hidden => true` select with `multiple` attribute doesn't generate hidden input with blank value. *Vasiliy Ermolovich*
+
 *   Removed default `size` option from the `text_field`, `search_field`, `telephone_field`, `url_field`, `email_field` helpers. *Philip Arndt*
 
 *   Removed default `cols` and `rows` options from the `text_area` helper. *Philip Arndt*
