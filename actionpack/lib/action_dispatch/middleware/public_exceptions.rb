@@ -2,17 +2,19 @@ module ActionDispatch
   # A simple Rack application that renders exceptions in the given public path.
   class PublicExceptions
     attr_accessor :public_path
+    attr_accessor :assets_public_path
 
     def initialize(public_path)
       @public_path = public_path
+      @assets_public_path = "#{Rails.root}/app/assets/public"
     end
 
     def call(env)
       status       = env["PATH_INFO"][1..-1]
       locale_path  = "#{public_path}/#{status}.#{I18n.locale}.html" if I18n.locale
       path         = "#{public_path}/#{status}.html"
-      locale_asset = "#{Rails.root}/app/assets/public/#{status}.html" if I18n.locale
-      asset        = "#{Rails.root}/app/assets/public/#{status}.html"
+      locale_asset = "#{assets_public_path}/#{status}.html" if I18n.locale
+      asset        = "#{assets_public_path}/#{status}.html"
 
       if locale_path && File.exist?(locale_path)
         render(status, File.read(locale_path))
