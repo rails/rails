@@ -46,6 +46,7 @@ module Rails
         :assets => true,
         :force_plural => false,
         :helper => true,
+        :http => false,
         :integration_tool => nil,
         :javascripts => true,
         :javascript_engine => :js,
@@ -115,6 +116,7 @@ module Rails
       options[:rails].merge!(
         :assets => false,
         :helper => false,
+        :http => true,
         :javascripts => false,
         :javascript_engine => nil,
         :stylesheets => false,

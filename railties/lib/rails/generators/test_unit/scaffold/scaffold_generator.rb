@@ -10,8 +10,13 @@ module TestUnit
 
       argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
 
+      class_option :http, :type => :boolean, :default => false,
+                          :desc => "Generate functional test with HTTP actions only"
+
       def create_test_files
-        template 'functional_test.rb',
+        template_file = options.http? ? "http_functional_test.rb" : "functional_test.rb"
+
+        template template_file,
                  File.join('test/functional', controller_class_path, "#{controller_file_name}_controller_test.rb")
       end
 

@@ -229,6 +229,16 @@ class GeneratorsTest < Rails::Generators::TestCase
     end
   end
 
+  def test_http_only_enables_http_option
+    options = Rails::Generators.options[:rails]
+
+    assert !options[:http], "http option should be disabled by default"
+
+    with_http_only! do
+      assert options[:http], "http only should enable generator http option"
+    end
+  end
+
   def test_http_only_disables_template_and_helper_and_assets_options
     options = Rails::Generators.options[:rails]
     disable_options = [:assets, :helper, :javascripts, :javascript_engine,
@@ -251,7 +261,6 @@ class GeneratorsTest < Rails::Generators::TestCase
     Rails::Generators.http_only!
     yield
   ensure
-    Rails::Generators.instance_variable_set(:@http_only, false)
     Rails::Generators.instance_variable_set(:@hidden_namespaces, nil)
     Rails::Generators.instance_variable_set(:@options, nil)
   end
