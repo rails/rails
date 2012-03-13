@@ -310,6 +310,7 @@ Rails follows a simple set of coding style conventions.
 * Two spaces, no tabs.
 * No trailing whitespace. Blank lines should not have any space.
 * Outdent private/protected from method definitions. Same indentation as the class/module.
+* Indent after private/protected.
 * Prefer +&amp;&amp;+/+||+ over +and+/+or+.
 * Prefer class << self block over self.method for class methods.
 * +MyClass.my_method(my_arg)+ not +my_method( my_arg )+ or +my_method my_arg+.
