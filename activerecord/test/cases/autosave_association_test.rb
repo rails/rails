@@ -978,10 +978,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     values = [@pirate.reload.catchphrase, @pirate.ship.name, *@pirate.ship.parts.map(&:name)]
     # Oracle saves empty string as NULL
     if current_adapter?(:OracleAdapter)
-      expected = ActiveRecord::IdentityMap.enabled? ?
-        [nil, nil, '', ''] :
-        [nil, nil, nil, nil]
-      assert_equal expected, values
+      assert_equal [nil, nil, nil, nil], values
     else
       assert_equal ['', '', '', ''], values
     end
@@ -1077,8 +1074,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     @ship.save(:validate => false)
     # Oracle saves empty string as NULL
     if current_adapter?(:OracleAdapter)
-      expected = ActiveRecord::IdentityMap.enabled? ?  [nil, ''] : [nil, nil]
-      assert_equal expected, [@ship.reload.name, @ship.pirate.catchphrase]
+      assert_equal [nil, nil], [@ship.reload.name, @ship.pirate.catchphrase]
     else
       assert_equal ['', ''], [@ship.reload.name, @ship.pirate.catchphrase]
     end

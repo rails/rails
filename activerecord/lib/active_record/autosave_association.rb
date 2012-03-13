@@ -328,7 +328,6 @@ module ActiveRecord
         autosave = reflection.options[:autosave]
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
-          begin
           records.each do |record|
             next if record.destroyed?
 
@@ -348,11 +347,6 @@ module ActiveRecord
 
             raise ActiveRecord::Rollback unless saved
           end
-          rescue
-            records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
-            raise
-          end
-
         end
 
         # reconstruct the scope now that we know the owner's id

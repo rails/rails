@@ -65,7 +65,6 @@ module ActiveRecord
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch
     autoload :Explain
-    autoload :IdentityMap
     autoload :Inheritance
     autoload :Integration
     autoload :Migration
