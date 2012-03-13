@@ -159,8 +159,10 @@ module ActiveResource
     #   # => false
     #
     def valid?
-      super
-      load_remote_errors(@remote_errors, true) if defined?(@remote_errors) && @remote_errors.present?
+      run_callbacks :validate do
+        super
+        load_remote_errors(@remote_errors, true) if defined?(@remote_errors) && @remote_errors.present?
+      end
       errors.empty?
     end
 

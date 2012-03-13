@@ -1185,7 +1185,9 @@ module ActiveResource
     #   my_company.size = 10
     #   my_company.save # sends PUT /companies/1 (update)
     def save
-      new? ? create : update
+      run_callbacks :save do
+        new? ? create : update
+      end
     end
 
     # Saves the resource.
@@ -1218,7 +1220,9 @@ module ActiveResource
     #   new_person.destroy
     #   Person.find(new_id) # 404 (Resource Not Found)
     def destroy
-      connection.delete(element_path, self.class.headers)
+      run_callbacks :destroy do
+        connection.delete(element_path, self.class.headers)
+      end
     end
 
     # Evaluates to <tt>true</tt> if this resource is not <tt>new?</tt> and is
@@ -1383,16 +1387,20 @@ module ActiveResource
 
       # Update the resource on the remote service.
       def update
-        connection.put(element_path(prefix_options), encode, self.class.headers).tap do |response|
-          load_attributes_from_response(response)
+        run_callbacks :update do
+          connection.put(element_path(prefix_options), encode, self.class.headers).tap do |response|
+            load_attributes_from_response(response)
+          end
         end
       end
 
       # Create (i.e., \save to the remote service) the \new resource.
       def create
-        connection.post(collection_path, encode, self.class.headers).tap do |response|
-          self.id = id_from_response(response)
-          load_attributes_from_response(response)
+        run_callbacks :create do
+          connection.post(collection_path, encode, self.class.headers).tap do |response|
+            self.id = id_from_response(response)
+            load_attributes_from_response(response)
+          end
         end
       end
 
@@ -1507,7 +1515,7 @@ module ActiveResource
 
   class Base
     extend ActiveModel::Naming
-    include CustomMethods, Observing, Validations
+    include Callbacks, CustomMethods, Observing, Validations
     include ActiveModel::Conversion
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml
