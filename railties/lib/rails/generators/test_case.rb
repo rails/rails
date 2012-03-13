@@ -222,26 +222,26 @@ module Rails
         Rails::Generators::GeneratedAttribute.parse([name, attribute_type, index].compact.join(':'))
       end
 
-      protected
+    protected
 
-        def destination_root_is_set? #:nodoc:
-          raise "You need to configure your Rails::Generators::TestCase destination root." unless destination_root
-        end
+      def destination_root_is_set? #:nodoc:
+        raise "You need to configure your Rails::Generators::TestCase destination root." unless destination_root
+      end
 
-        def ensure_current_path #:nodoc:
-          cd current_path
-        end
+      def ensure_current_path #:nodoc:
+        cd current_path
+      end
 
-        def prepare_destination
-          rm_rf(destination_root)
-          mkdir_p(destination_root)
-        end
+      def prepare_destination
+        rm_rf(destination_root)
+        mkdir_p(destination_root)
+      end
 
-        def migration_file_name(relative) #:nodoc:
-          absolute = File.expand_path(relative, destination_root)
-          dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
-          Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
-        end
+      def migration_file_name(relative) #:nodoc:
+        absolute = File.expand_path(relative, destination_root)
+        dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
+        Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
+      end
     end
   end
 end

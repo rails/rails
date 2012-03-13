@@ -7,7 +7,7 @@ module Rails
       class_option :javascript_engine, :desc => "Engine for JavaScripts"
       class_option :stylesheet_engine, :desc => "Engine for Stylesheets"
 
-      protected
+    protected
 
       def asset_name
         file_name

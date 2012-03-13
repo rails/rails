@@ -224,10 +224,10 @@ class ActionsTest < Rails::Generators::TestCase
     assert_equal("", action(:log, :yes, "YES"))
   end
 
-  protected
+protected
 
-    def action(*args, &block)
-      silence(:stdout){ generator.send(*args, &block) }
-    end
+  def action(*args, &block)
+    silence(:stdout){ generator.send(*args, &block) }
+  end
 
 end

@@ -160,10 +160,10 @@ module Rails
         @railtie_name ||= generate_railtie_name(self.name)
       end
 
-      protected
-        def generate_railtie_name(class_or_module)
-          ActiveSupport::Inflector.underscore(class_or_module).gsub("/", "_")
-        end
+    protected
+      def generate_railtie_name(class_or_module)
+        ActiveSupport::Inflector.underscore(class_or_module).gsub("/", "_")
+      end
     end
 
     delegate :railtie_name, :to => "self.class"

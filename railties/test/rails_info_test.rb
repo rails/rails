@@ -60,28 +60,28 @@ class InfoTest < ActiveSupport::TestCase
     end
   end
 
-  protected
-    def svn_info=(info)
-      Rails::Info.module_eval do
-        class << self
-          def svn_info
-            info
-          end
+protected
+  def svn_info=(info)
+    Rails::Info.module_eval do
+      class << self
+        def svn_info
+          info
         end
       end
     end
+  end
 
-    def properties
-      Rails::Info.properties
-    end
+  def properties
+    Rails::Info.properties
+  end
 
-    def property_defined?(property_name)
-      properties.names.include? property_name
-    end
+  def property_defined?(property_name)
+    properties.names.include? property_name
+  end
 
-    def assert_property(property_name, value)
-      raise "Property #{property_name.inspect} not defined" unless
-        property_defined? property_name
-      assert_equal value, properties.value_for(property_name)
-    end
+  def assert_property(property_name, value)
+    raise "Property #{property_name.inspect} not defined" unless
+      property_defined? property_name
+    assert_equal value, properties.value_for(property_name)
+  end
 end

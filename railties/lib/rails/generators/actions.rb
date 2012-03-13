@@ -260,30 +260,30 @@ module Rails
         log File.read(find_in_source_paths(path))
       end
 
-      protected
+    protected
 
-        # Define log for backwards compatibility. If just one argument is sent,
-        # invoke say, otherwise invoke say_status. Differently from say and
-        # similarly to say_status, this method respects the quiet? option given.
-        #
-        def log(*args)
-          if args.size == 1
-            say args.first.to_s unless options.quiet?
-          else
-            args << (self.behavior == :invoke ? :green : :red)
-            say_status(*args)
-          end
+      # Define log for backwards compatibility. If just one argument is sent,
+      # invoke say, otherwise invoke say_status. Differently from say and
+      # similarly to say_status, this method respects the quiet? option given.
+      #
+      def log(*args)
+        if args.size == 1
+          say args.first.to_s unless options.quiet?
+        else
+          args << (self.behavior == :invoke ? :green : :red)
+          say_status(*args)
         end
+      end
 
-        # Add an extension to the given name based on the platform.
-        #
-        def extify(name)
-          if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
-            "#{name}.bat"
-          else
-            name
-          end
+      # Add an extension to the given name based on the platform.
+      #
+      def extify(name)
+        if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+          "#{name}.bat"
+        else
+          name
         end
+      end
 
     end
   end

@@ -24,7 +24,7 @@ module Rails
           class_eval(&block)
         end
 
-        protected
+      protected
 
         def method_missing(*args, &block)
           instance.send(*args, &block)

@@ -3,7 +3,7 @@ require 'rails/generators/erb/controller/controller_generator'
 module Erb
   module Generators
     class MailerGenerator < ControllerGenerator
-      protected
+    protected
 
       def format
         :text
