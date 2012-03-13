@@ -753,6 +753,60 @@ module RailtiesTest
       assert_equal "Bukkit's foo partial", last_response.body.strip
     end
 
+    test "engine can be properly mounted at root" do
+      add_to_config("config.action_dispatch.show_exceptions = false")
+      add_to_config("config.serve_static_assets = false")
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace ::Bukkits
+          end
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          root "foo#index"
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/foo_controller.rb", <<-RUBY
+        module Bukkits
+          class FooController < ActionController::Base
+            def index
+              text = <<-TEXT
+                script_name: \#{request.script_name}
+                fullpath: \#{request.fullpath}
+                path: \#{request.path}
+              TEXT
+              render :text => text
+            end
+          end
+        end
+      RUBY
+
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          mount Bukkits::Engine => "/"
+        end
+      RUBY
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      expected = <<-TEXT
+        script_name:
+        fullpath: /
+        path: /
+      TEXT
+
+      get("/")
+      assert_equal expected.split("\n").map(&:strip),
+                   last_response.body.split("\n").map(&:strip)
+    end
+
   private
     def app
       Rails.application
