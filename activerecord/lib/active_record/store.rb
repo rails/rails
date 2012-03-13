@@ -55,8 +55,9 @@ module ActiveRecord
             send(store_attribute)[key]
           end
 
-          self.stored_attributes[store_attribute] = keys.flatten
         end
+
+        self.stored_attributes[store_attribute] = keys.flatten
       end
     end
   end
