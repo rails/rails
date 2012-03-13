@@ -31,7 +31,7 @@ module ActiveRecord
   #     store_accessor :settings, :privileges, :servants
   #   end
   #
-  # The stored attribute names can be retrieved using the +stored_attributes+ configuration attribute.
+  # The stored attribute names can be retrieved using +stored_attributes+.
   #
   #   User.stored_attributes[:settings] # [:color, :homepage]
   module Store
