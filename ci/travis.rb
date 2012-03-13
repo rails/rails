@@ -19,7 +19,6 @@ class Build
     'ap'   => 'actionpack',
     'am'   => 'actionmailer',
     'amo'  => 'activemodel',
-    'ares' => 'activeresource',
     'as'   => 'activesupport',
     'ar'   => 'activerecord'
   }

@@ -116,7 +116,6 @@ need to know anything about them to continue with this guide.
 * Action Mailer
 * Active Model
 * Active Record
-* Active Resource
 * Active Support
 * Railties
 
@@ -166,12 +165,6 @@ h5. Active Record
 Active Record is the base for the models in a Rails application. It provides
 database independence, basic CRUD functionality, advanced finding capabilities,
 and the ability to relate models to one another, among other services.
-
-h5. Active Resource
-
-Active Resource provides a framework for managing the connection between
-business objects and RESTful web services. It implements a way to map web-based
-resources to local objects with CRUD semantics.
 
 h5. Active Support
 

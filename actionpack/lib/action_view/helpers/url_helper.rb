@@ -60,7 +60,7 @@ module ActionView
       #
       # ==== Relying on named routes
       #
-      # Passing a record (like an Active Record or Active Resource) instead of a Hash as the options parameter will
+      # Passing a record (like an Active Record) instead of a Hash as the options parameter will
       # trigger the named route for that record. The lookup will happen on the name of the class. So passing a
       # Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
       # +admin_workshop_path+ you'll have to call that explicitly (it's impossible for +url_for+ to guess that route).
