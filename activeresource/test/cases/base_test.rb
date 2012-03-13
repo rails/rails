@@ -642,6 +642,13 @@ class BaseTest < ActiveSupport::TestCase
     Person.headers.delete('key')
   end
 
+  def test_custom_header_on_build
+    Person.headers['key'] = 'value'
+    assert_raise(ActiveResource::ResourceNotFound) { Person.build }
+  ensure
+    Person.headers.delete('key')
+  end
+
   def test_save
     rick = Person.new
     assert rick.save

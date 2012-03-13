@@ -104,6 +104,8 @@ def setup_response
     mock.get    "/people/Greg.json",            {}, @greg
     mock.get    "/people/6.json",               {}, @joe
     mock.get    "/people/4.json",               { 'key' => 'value' }, nil, 404
+    mock.get    "/people/new.json",             {}, Person.new.to_json
+    mock.get    "/people/new.json",             { 'key' => 'value' }, Person.new.to_json, 404
     mock.put    "/people/1.json",               {}, nil, 204
     mock.delete "/people/1.json",               {}, nil, 200
     mock.delete "/people/2.xml",                {}, nil, 400
