@@ -283,7 +283,30 @@ module ActionController #:nodoc:
       end
     end
 
-    class Collector #:nodoc:
+    # A container of responses available for requests with different mime-types
+    # sent to the current controller action.
+    #
+    # The public controller methods +respond_with+ and +respond_to+ may be called
+    # with a block that is used to define responses to different mime-types, e.g.
+    # for +respond_to+ :
+    #
+    #   respond_to do |format|
+    #     format.html
+    #     format.xml { render :xml => @people.to_xml }
+    #   end
+    #
+    # In this usage, the argument passed to the block (+format+ above) is an
+    # instance of the ActionController::MimeResponds::Collector class. This
+    # object serves as a container in which available responses can be stored by
+    # calling any of the dynamically generated, mime-type-specific methods such
+    # as +html+, +xml+ etc on the Collector. Each response is represented by a
+    # corresponding block if present.
+    #
+    # A subsequent call to #negotiate_format(request) will enable the Collector
+    # to determine which specific mime-type it should respond with for the current
+    # request, with this response then being accessible by calling #response.
+    #
+    class Collector
       include AbstractController::Collector
       attr_accessor :order, :format
 

@@ -136,8 +136,8 @@ module AbstractController
   #     layout "weblog_standard"
   #   end
   #
-  # If no directory is specified for the template name, the template will by default be looked for in <tt>app/views/layouts/</tt>.
-  # Otherwise, it will be looked up relative to the template root.
+  # The template will be looked always in <tt>app/views/layouts/</tt> folder. But you can point
+  # <tt>layouts</tt> folder direct also. <tt>layout "layouts/demo"</tt> is the same as <tt>layout "demo"</tt>.
   #
   # Setting the layout to nil forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
   # Setting it to nil is useful to re-enable template lookup overriding a previous configuration set in the parent:
@@ -238,8 +238,7 @@ module AbstractController
       #
       # If the specified layout is a:
       # String:: the String is the template name
-      # Symbol:: call the method specified by the symbol, which will return
-      #   the template name
+      # Symbol:: call the method specified by the symbol, which will return the template name
       # false::  There is no layout
       # true::   raise an ArgumentError
       #

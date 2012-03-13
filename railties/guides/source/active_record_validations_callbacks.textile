@@ -531,7 +531,7 @@ Person.new.valid?  => ActiveModel::StrictValidationFailed: Name can't be blank
 
 h3. Conditional Validation
 
-Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the +:if+ and +:unless+ options, which can take a symbol, a string or a +Proc+. You may use the +:if+ option when you want to specify when the validation *should* happen. If you want to specify when the validation *should not* happen, then you may use the +:unless+ option.
+Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the +:if+ and +:unless+ options, which can take a symbol, a string, a +Proc+ or an +Array+. You may use the +:if+ option when you want to specify when the validation *should* happen. If you want to specify when the validation *should not* happen, then you may use the +:unless+ option.
 
 h4. Using a Symbol with +:if+ and +:unless+
 
@@ -582,6 +582,20 @@ end
 </ruby>
 
 All validations inside of +with_options+ block will have automatically passed the condition +:if => :is_admin?+
+
+h4. Combining validation conditions
+
+On the other hand, when multiple conditions define whether or not a validation should happen, an +Array+ can be used. Moreover, you can apply both +:if:+ and +:unless+ to the same validation.
+
+<ruby>
+class Computer < ActiveRecord::Base
+  validates :mouse, :presence => true,
+                    :if => ["market.retail?", :desktop?]
+                    :unless => Proc.new { |c| c.trackpad.present? }
+end
+</ruby>
+
+The validation only runs when all the +:if+ conditions and none of the +:unless+ conditions are evaluated to +true+.
 
 h3. Performing Custom Validations
 
@@ -1107,7 +1121,7 @@ Post destroyed
 
 h3. Conditional Callbacks
 
-As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the +:if+ and +:unless+ options, which can take a symbol, a string or a +Proc+. You may use the +:if+ option when you want to specify under which conditions the callback *should* be called. If you want to specify the conditions under which the callback *should not* be called, then you may use the +:unless+ option.
+As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the +:if+ and +:unless+ options, which can take a symbol, a string, a +Proc+ or an +Array+. You may use the +:if+ option when you want to specify under which conditions the callback *should* be called. If you want to specify the conditions under which the callback *should not* be called, then you may use the +:unless+ option.
 
 h4. Using +:if+ and +:unless+ with a +Symbol+
 

@@ -332,6 +332,8 @@ When you're happy with the code on your computer, you need to commit the changes
 $ git commit -a -m "Here is a commit message on what I changed in this commit"
 </shell>
 
+TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean. 
+
 h4. Update master
 
 It’s pretty likely that other changes to master have happened while you were working. Go get them:
