@@ -104,10 +104,10 @@ module ActiveResource
   #
   #   class Person < ActiveResource::Base
   #      self.site = "https://api.people.com"
-  #      protected
-  #        def validate
-  #          errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
-  #        end
+  #    protected
+  #      def validate
+  #        errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
+  #      end
   #   end
   #
   # See the ActiveResource::Validations documentation for more information.
@@ -1376,51 +1376,51 @@ module ActiveResource
       super({ :root => self.class.element_name }.merge(options))
     end
 
-    protected
-      def connection(refresh = false)
-        self.class.connection(refresh)
-      end
+  protected
+    def connection(refresh = false)
+      self.class.connection(refresh)
+    end
 
-      # Update the resource on the remote service.
-      def update
-        connection.put(element_path(prefix_options), encode, self.class.headers).tap do |response|
-          load_attributes_from_response(response)
-        end
+    # Update the resource on the remote service.
+    def update
+      connection.put(element_path(prefix_options), encode, self.class.headers).tap do |response|
+        load_attributes_from_response(response)
       end
+    end
 
-      # Create (i.e., \save to the remote service) the \new resource.
-      def create
-        connection.post(collection_path, encode, self.class.headers).tap do |response|
-          self.id = id_from_response(response)
-          load_attributes_from_response(response)
-        end
+    # Create (i.e., \save to the remote service) the \new resource.
+    def create
+      connection.post(collection_path, encode, self.class.headers).tap do |response|
+        self.id = id_from_response(response)
+        load_attributes_from_response(response)
       end
+    end
 
-      def load_attributes_from_response(response)
-        if (response_code_allows_body?(response.code) &&
-            (response['Content-Length'].nil? || response['Content-Length'] != "0") &&
-            !response.body.nil? && response.body.strip.size > 0)
-          load(self.class.format.decode(response.body), true)
-          @persisted = true
-        end
+    def load_attributes_from_response(response)
+      if (response_code_allows_body?(response.code) &&
+          (response['Content-Length'].nil? || response['Content-Length'] != "0") &&
+          !response.body.nil? && response.body.strip.size > 0)
+        load(self.class.format.decode(response.body), true)
+        @persisted = true
       end
+    end
 
-      # Takes a response from a typical create post and pulls the ID out
-      def id_from_response(response)
-        response['Location'][/\/([^\/]*?)(\.\w+)?$/, 1] if response['Location']
-      end
+    # Takes a response from a typical create post and pulls the ID out
+    def id_from_response(response)
+      response['Location'][/\/([^\/]*?)(\.\w+)?$/, 1] if response['Location']
+    end
 
-      def element_path(options = nil)
-        self.class.element_path(to_param, options || prefix_options)
-      end
+    def element_path(options = nil)
+      self.class.element_path(to_param, options || prefix_options)
+    end
 
-      def new_element_path
-        self.class.new_element_path(prefix_options)
-      end
+    def new_element_path
+      self.class.new_element_path(prefix_options)
+    end
 
-      def collection_path(options = nil)
-        self.class.collection_path(options || prefix_options)
-      end
+    def collection_path(options = nil)
+      self.class.collection_path(options || prefix_options)
+    end
 
   private
 

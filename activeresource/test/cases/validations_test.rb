@@ -54,7 +54,7 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal ['is too long (maximum is 10 characters)'], project.errors[:description]
   end
 
-  protected
+protected
 
   # quickie helper to create a new project with all the required
   # attributes.
