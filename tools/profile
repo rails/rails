@@ -13,7 +13,7 @@ Gem.source_index
 require 'benchmark'
 
 module RequireProfiler
-  private
+private
   def require(file, *args) RequireProfiler.profile(file) { super } end
   def load(file, *args) RequireProfiler.profile(file) { super } end
 
