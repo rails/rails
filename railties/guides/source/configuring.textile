@@ -139,6 +139,8 @@ Rails 3.1, by default, is set up to use the +sprockets+ gem to manage assets wit
 
 * +config.assets.enabled+ a flag that controls whether the asset pipeline is enabled. It is explicitly initialized in +config/application.rb+.
 
+* +config.assets.nondigest_enabled+ a flag that controls whether the automatic precompilation of nondigest asset variants is enabled. It is explicitly initialized and set to true in +config/application.rb+.
+
 * +config.assets.compress+ a flag that enables the compression of compiled assets. It is explicitly set to true in +config/production.rb+.
 
 * +config.assets.css_compressor+ defines the CSS compressor to use. It is set by default by +sass-rails+. The unique alternative value at the moment is +:yui+, which uses the +yui-compressor+ gem.

@@ -63,6 +63,8 @@ module <%= app_const_base %>
 <% unless options.skip_sprockets? -%>
     # Enable the asset pipeline.
     config.assets.enabled = true
+    # Enable automatic precompilation of nondigest assets
+    config.assets.nondigest_enabled = true
 
     # Version of your assets, change this if you want to expire all your assets.
     config.assets.version = '1.0'

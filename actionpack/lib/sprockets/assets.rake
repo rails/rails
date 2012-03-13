@@ -30,6 +30,18 @@ namespace :assets do
   end
 
   namespace :precompile do
+    def symlink_public_assets(digest=nil)
+      root = "#{Rails.root}/app/assets/public/"
+      Dir["#{root}*"].each do |p|
+        origin = p
+        path = p.gsub(root, '')
+        source = File.expand_path(File.join(Rails.public_path, ActionController::Base.helpers.asset_path(path)))
+        destination = "#{Rails.public_path}/#{path}"
+        File.unlink(destination) if File.exists?(destination) && File.symlink?(destination)
+        File.symlink(source, destination)
+      end
+    end
+
     def internal_precompile(digest=nil)
       unless Rails.application.config.assets.enabled
         warn "Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true"
@@ -54,6 +66,7 @@ namespace :assets do
                                                :digest => config.assets.digest,
                                                :manifest => digest.nil?)
       compiler.compile
+      symlink_public_assets(config.assets.digest)
     end
 
     task :all do
@@ -71,7 +84,11 @@ namespace :assets do
     end
 
     task :nondigest => ["assets:cache:clean"] do
-      internal_precompile(false)
+      if Rails.application.config.assets.nondigest_enabled || Rails.application.config.assets.nondigest_enabled.nil?
+        internal_precompile(false)
+      else
+        warn "Skipping assets:precompile:nondigest set config.assets.nondigest_enabled to true if required"
+      end
     end
   end
 

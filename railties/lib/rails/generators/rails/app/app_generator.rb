@@ -96,7 +96,7 @@ module Rails
     end
 
     def public_directory
-      directory "public", "public", :recursive => false
+      empty_directory_with_gitkeep "public"
     end
 
     def script
