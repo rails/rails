@@ -610,28 +610,28 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal Set.new(["notify"]), FooMailer.action_methods
   end
 
-  protected
+protected
 
-    # Execute the block setting the given values and restoring old values after
-    # the block is executed.
-    def swap(klass, new_values)
-      old_values = {}
-      new_values.each do |key, value|
-        old_values[key] = klass.send key
-        klass.send :"#{key}=", value
-      end
-      yield
-    ensure
-      old_values.each do |key, value|
-        klass.send :"#{key}=", value
-      end
+  # Execute the block setting the given values and restoring old values after
+  # the block is executed.
+  def swap(klass, new_values)
+    old_values = {}
+    new_values.each do |key, value|
+      old_values[key] = klass.send key
+      klass.send :"#{key}=", value
     end
+    yield
+  ensure
+    old_values.each do |key, value|
+      klass.send :"#{key}=", value
+    end
+  end
 
-    def with_default(klass, new_values)
-      old = klass.default_params
-      klass.default(new_values)
-      yield
-    ensure
-      klass.default_params = old
-    end
+  def with_default(klass, new_values)
+    old = klass.default_params
+    klass.default(new_values)
+    yield
+  ensure
+    klass.default_params = old
+  end
 end

@@ -49,19 +49,19 @@ module ActionMailer
         end
       end
 
-      protected
+    protected
 
-        def initialize_test_deliveries
-          ActionMailer::Base.delivery_method = :test
-          ActionMailer::Base.perform_deliveries = true
-          ActionMailer::Base.deliveries.clear
-        end
+      def initialize_test_deliveries
+        ActionMailer::Base.delivery_method = :test
+        ActionMailer::Base.perform_deliveries = true
+        ActionMailer::Base.deliveries.clear
+      end
 
-        def set_expected_mail
-          @expected = Mail.new
-          @expected.content_type ["text", "plain", { "charset" => charset }]
-          @expected.mime_version = '1.0'
-        end
+      def set_expected_mail
+        @expected = Mail.new
+        @expected.content_type ["text", "plain", { "charset" => charset }]
+        @expected.mime_version = '1.0'
+      end
 
     private
 
