@@ -1302,14 +1302,14 @@ module ActiveResource
               value.map do |attrs|
                 if attrs.is_a?(Hash)
                   resource ||= find_or_create_resource_for_collection(key)
-                  resource.new(attrs)
+                  resource.new(attrs, attrs.has_key?(resource.primary_key.to_s))
                 else
                   attrs.duplicable? ? attrs.dup : attrs
                 end
               end
             when Hash
               resource = find_or_create_resource_for(key)
-              resource.new(value)
+              resource.new(value, value.has_key?(resource.primary_key.to_s))
             else
               value.duplicable? ? value.dup : value
           end

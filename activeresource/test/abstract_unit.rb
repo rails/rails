@@ -22,7 +22,7 @@ def setup_response
   @greg  = { :person => { :id => 3, :name => 'Greg' } }.to_json
   @addy  = { :address => { :id => 1, :street => '12345 Street', :country => 'Australia' } }.to_json
   @rick  = { :person => { :name => "Rick", :age => 25 } }.to_json
-  @joe    = { :person => { :id => 6, :name => 'Joe', :likes_hats => true }}.to_json
+  @joe    = { :person => { :id => 6, :name => 'Joe', :likes_hats => true, :street_address => { :id => 1, :street => '12345 Street', :country => 'Australia', :person_id => 6 } }}.to_json
   @people = { :people => [ { :person => { :id => 1, :name => 'Matz' } }, { :person => { :id => 2, :name => 'David' } }] }.to_json
   @people_david = { :people => [ { :person => { :id => 2, :name => 'David' } }] }.to_json
   @addresses = { :addresses => [{ :address => { :id => 1, :street => '12345 Street', :country => 'Australia' } }] }.to_json
@@ -118,6 +118,7 @@ def setup_response
     mock.get    "/people/Greg/addresses/1.json", {}, @addy
     mock.put    "/people/1/addresses/1.json",   {}, nil, 204
     mock.delete "/people/1/addresses/1.json",   {}, nil, 200
+    mock.delete "/people/6/addresses/1.json",   {}, nil, 200
     mock.post   "/people/1/addresses.json",     {}, nil, 201, 'Location' => '/people/1/addresses/5'
     mock.get    "/people/1/addresses/99.json",  {}, nil, 404
     mock.get    "/people//addresses.xml",       {}, nil, 404

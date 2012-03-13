@@ -892,6 +892,14 @@ class BaseTest < ActiveSupport::TestCase
     assert_raise(ActiveResource::ResourceNotFound) { Person.find(1).destroy }
   end
 
+  def test_destroy_nested_resource
+    assert Person.find(6).street_address.destroy
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/people/6/addresses/1.json", {}, nil, 404
+    end
+    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 6 }) }
+  end
+
   def test_destroy_with_custom_prefix
     assert StreetAddress.find(1, :params => { :person_id => 1 }).destroy
     ActiveResource::HttpMock.respond_to do |mock|
