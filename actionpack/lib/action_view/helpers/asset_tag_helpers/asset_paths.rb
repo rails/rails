@@ -25,12 +25,13 @@ module ActionView
         end
 
       private
-
         def rewrite_extension(source, dir, ext)
           source_ext = File.extname(source)
 
           source_with_ext = if source_ext.empty?
-            "#{source}.#{ext}"
+            source, query = source.split("?")
+            query = query.insert(0, "?") if query
+            "#{source}.#{ext}#{query}"
           elsif ext != source_ext[1..-1]
             with_ext = "#{source}.#{ext}"
             with_ext if File.exist?(File.join(config.assets_dir, dir, with_ext))
@@ -51,11 +52,15 @@ module ActionView
             return path % [source]
           end
 
-          asset_id = rails_asset_id(source)
-          if asset_id.empty?
-            source
+          if options[:params].blank?
+            asset_id = rails_asset_id(source)
+            if asset_id.empty?
+              source
+            else
+              "#{source}?#{asset_id}"
+            end
           else
-            "#{source}?#{asset_id}"
+            "#{source}?#{options[:params].to_query}"
           end
         end
 

@@ -19,42 +19,21 @@ module Sprockets
 
       def javascript_include_tag(*sources)
         options = sources.extract_options!
-        debug   = options.delete(:debug)  { debug_assets? }
-        body    = options.delete(:body)   { false }
-        digest  = options.delete(:digest) { digest_assets? }
-
-        sources.collect do |source|
-          if debug && asset = asset_paths.asset_for(source, 'js')
-            asset.to_a.map { |dep|
-              super(dep.pathname.to_s, { :src => path_to_asset(dep, :ext => 'js', :body => true, :digest => digest) }.merge!(options))
-            }
-          else
-            super(source.to_s, { :src => path_to_asset(source, :ext => 'js', :body => body, :digest => digest) }.merge!(options))
-          end
-        end.join("\n").html_safe
+        options.merge!({:ext => "js"})
+        asset_include_or_link_tag(sources, options) { |sources, options| super(sources, options) }
       end
 
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!
-        debug   = options.delete(:debug)  { debug_assets? }
-        body    = options.delete(:body)   { false }
-        digest  = options.delete(:digest) { digest_assets? }
-
-        sources.collect do |source|
-          if debug && asset = asset_paths.asset_for(source, 'css')
-            asset.to_a.map { |dep|
-              super(dep.pathname.to_s, { :href => path_to_asset(dep, :ext => 'css', :body => true, :protocol => :request, :digest => digest) }.merge!(options))
-            }
-          else
-            super(source.to_s, { :href => path_to_asset(source, :ext => 'css', :body => body, :protocol => :request, :digest => digest) }.merge!(options))
-          end
-        end.join("\n").html_safe
+        options.merge!(:ext => "css", :path_to_asset_options => { :protocol => :request })
+        asset_include_or_link_tag(sources, options) { |sources, options| super(sources, options) }
       end
 
       def asset_path(source, options = {})
         source = source.logical_path if source.respond_to?(:logical_path)
         path = asset_paths.compute_public_path(source, asset_prefix, options.merge(:body => true))
-        options[:body] ? "#{path}?body=1" : path
+        separator = (path =~ /\?/ ? "&" : "?")
+        (options[:body] ? "#{path}#{separator}body=1" : path).html_safe
       end
       alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route
 
@@ -79,6 +58,39 @@ module Sprockets
       alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with an stylesheet_path named route
 
     private
+      def asset_include_or_link_tag(sources, options, &block)
+        debug                 = options.delete(:debug)                 { debug_assets? }
+        body                  = options.delete(:body)                  { false }
+        digest                = options.delete(:digest)                { digest_assets? }
+        path_to_asset_options = options.delete(:path_to_asset_options) { {} }
+        params                = options.delete(:params)
+        ext                   = options.delete(:ext)
+        
+        src_or_href_symbol    = ext == "js" ? :src : :href
+
+        path_to_asset_options.merge!({ :ext => ext, 
+                                       :body => body,
+                                       :digest => digest, 
+                                       :params => params })
+
+        sources.collect do |source|
+          if debug && asset = find_asset(source, ext)
+            path_to_asset_options[:body] = true
+
+            asset.to_a.map do |dep|
+              block.call(dep.pathname.to_s, { src_or_href_symbol => path_to_asset(dep, path_to_asset_options) }.merge!(options))
+            end
+          else
+            block.call(source.to_s, { src_or_href_symbol => path_to_asset(source, path_to_asset_options) }.merge!(options))
+          end
+        end.join("\n").html_safe
+      end
+
+      def find_asset(source, ext)
+        source_without_ext = source.to_s.split(Regexp.new(".#{ext}")).first
+        asset_paths.asset_for(source_without_ext, ext)
+      end
+
       def debug_assets?
         compile_assets? && (Rails.application.config.assets.debug || params[:debug_assets])
       rescue NoMethodError
@@ -144,19 +156,25 @@ module Sprockets
         end
 
         def rewrite_asset_path(source, dir, options = {})
-          if source[0] == ?/
-            source
-          else
-            source = digest_for(source) unless options[:digest] == false
+          source, query = source.split("?")
+
+          params = options[:params].to_query if options[:params]
+          params = (params.blank? ? query : "#{params}&#{query}") if query
+            
+          if source[0] != ?/
+            source = digest_for(source.split("?").first) unless options[:digest] == false
             source = File.join(dir, source)
             source = "/#{source}" unless source =~ /^\//
-            source
           end
+
+          params ? "#{source}?#{params}" : source
         end
 
         def rewrite_extension(source, dir, ext)
-          if ext && File.extname(source) != ".#{ext}"
-            "#{source}.#{ext}"
+          if ext && (File.extname(source) =~ Regexp.new(".#{ext}")).nil?
+            source, query = source.split("?")
+            query = query.insert(0, "?") if query
+            "#{source}.#{ext}#{query}"
           else
             source
           end

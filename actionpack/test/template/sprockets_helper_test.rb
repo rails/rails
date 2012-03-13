@@ -241,10 +241,19 @@ class SprocketsHelperTest < ActionView::TestCase
 
     assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js" type="text/javascript"></script>},
       javascript_include_tag("xmlhr")
+    assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?key=value" type="text/javascript"></script>},
+      javascript_include_tag("xmlhr", :params => {:key => "value"})
     assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js" type="text/javascript"></script>},
       javascript_include_tag("xmlhr.js")
+    assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?key=value" type="text/javascript"></script>},
+      javascript_include_tag("xmlhr.js?key=value")
     assert_equal '<script src="http://www.example.com/xmlhr" type="text/javascript"></script>',
       javascript_include_tag("http://www.example.com/xmlhr")
+    
+    assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?key=value" type="text/javascript"></script>},
+      javascript_include_tag("xmlhr.js", :params => {:key => "value"})
+    assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?key[1-2]=value[1-2]&key[1-2]=value[1-2]" type="text/javascript"></script>},
+      javascript_include_tag("xmlhr.js?key1=value1", :params => {:key2 => "value2"})
 
     assert_match %r{<script src=\"/assets/xmlhr-[0-9a-f]+.js" type=\"text/javascript\"></script>\n<script src=\"/assets/extra-[0-9a-f]+.js" type=\"text/javascript\"></script>},
       javascript_include_tag("xmlhr", "extra")
@@ -252,8 +261,14 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\n<script src="/assets/application-[0-9a-f]+.js\?body=1" type="text/javascript"></script>},
       javascript_include_tag(:application, :debug => true)
 
+    assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?key=value&body=1" type="text/javascript"></script>},
+      javascript_include_tag("xmlhr.js", :params => {:key => "value"}, :debug => true)
+
     assert_match %r{<script src="/assets/jquery.plugin.js" type="text/javascript"></script>},
       javascript_include_tag('jquery.plugin', :digest => false)
+
+    assert_equal '<script src="/assets/jquery.plugin.js?key=value" type="text/javascript"></script>',
+      javascript_include_tag('jquery.plugin', :digest => false, :params => {:key => "value"})
 
     @config.assets.compile = true
     @config.assets.debug = true
@@ -299,8 +314,18 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/extra-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag("style", "extra")
 
+    assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?key=value" media="screen" rel="stylesheet" type="text/css" />},
+      stylesheet_link_tag("style", :params => {:key => "value"})
+
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag(:application, :debug => true)
+
+    assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?key[1-2]=value[1-2]&key[1-2]=value[1-2]" media="screen" rel="stylesheet" type="text/css" />},
+      stylesheet_link_tag("style.css?key1=value1", :params => {:key2 => "value2"})
+
+    assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?key[1-2]=value[1-2]&key[1-2]=value[1-2]" media="screen" rel="stylesheet" type="text/css" />},
+      stylesheet_link_tag("style?key1=value1", :params => {:key2 => "value2"})
+
 
     @config.assets.compile = true
     @config.assets.debug = true

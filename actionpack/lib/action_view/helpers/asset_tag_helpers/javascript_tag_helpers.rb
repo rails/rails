@@ -16,7 +16,7 @@ module ActionView
         end
 
         def asset_tag(source, options)
-          content_tag("script", "", { "type" => Mime::JS, "src" => path_to_asset(source) }.merge(options))
+          content_tag("script", "", { "type" => Mime::JS, "src" => path_to_asset(source, :params => options.delete("params")) }.merge(options))
         end
 
         def custom_dir
@@ -137,6 +137,11 @@ module ActionView
         #   #    <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
         #
         # * = The application.js file is only referenced if it exists
+        #
+        # You can also pass in a <tt>:params</tt> option to append a custom query string to your javascript file.
+        #
+        #   javascript_include_tag "xmlhr", :params => {:foo => "bar"}
+        #   # => <script type="text/javascript" src="/javascripts/xmlhr.js?foo=bar"></script>
         #
         # You can also include all JavaScripts in the +javascripts+ directory using <tt>:all</tt> as the source:
         #

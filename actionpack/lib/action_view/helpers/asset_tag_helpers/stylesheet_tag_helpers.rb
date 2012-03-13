@@ -17,7 +17,7 @@ module ActionView
 
         def asset_tag(source, options)
           # We force the :request protocol here to avoid a double-download bug in IE7 and IE8
-          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => path_to_asset(source, :protocol => :request) }.merge(options))
+          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => path_to_asset(source, :protocol => :request, :params => options.delete("params")) }.merge(options))
         end
 
         def custom_dir
@@ -98,6 +98,12 @@ module ActionView
         #   stylesheet_link_tag "random.styles", "/css/stylish" # =>
         #     <link href="/stylesheets/random.styles" media="screen" rel="stylesheet" type="text/css" />
         #     <link href="/css/stylish.css" media="screen" rel="stylesheet" type="text/css" />
+        #
+        # You can also pass in a <tt>:params</tt> option to append a custom query string to your stylesheet file.
+        #
+        #   stylesheetlink_tag "style", :params => {:foo => "bar"} # =>
+        #     <link href="/stylesheets/style.css?foo=bar" media="screen" rel="stylesheet" type="text/css" />
+        #
         #
         # You can also include all styles in the stylesheets directory using <tt>:all</tt> as the source:
         #
