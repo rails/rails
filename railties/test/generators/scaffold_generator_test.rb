@@ -64,8 +64,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/functional/product_lines_controller_test.rb" do |test|
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, test)
-      assert_match(/post :create, product_line: { title: @product_line.title }/, test)
-      assert_match(/put :update, id: @product_line, product_line: { title: @product_line.title }/, test)
+      assert_match(/post :create, product_line: \{ title: @product_line.title \}/, test)
+      assert_match(/put :update, id: @product_line, product_line: \{ title: @product_line.title \}/, test)
     end
 
     # Views
@@ -94,8 +94,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "test/functional/product_lines_controller_test.rb" do |content|
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post :create, product_line: {  }/, content)
-      assert_match(/put :update, id: @product_line, product_line: {  }/, content)
+      assert_match(/post :create, product_line: \{  \}/, content)
+      assert_match(/put :update, id: @product_line, product_line: \{  \}/, content)
     end
   end
 

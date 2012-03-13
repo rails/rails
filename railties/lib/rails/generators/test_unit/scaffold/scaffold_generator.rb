@@ -26,7 +26,7 @@ module TestUnit
 
           accessible_attributes.map do |a|
             name = a.name
-            "#{name}: @#{singular_table_name}.#{name}"
+            key_value name, "@#{singular_table_name}.#{name}"
           end.sort.join(', ')
         end
 
