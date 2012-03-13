@@ -92,45 +92,45 @@ module ActiveModel
       hash
     end
 
-    private
+  private
 
-      # Hook method defining how an attribute value should be retrieved for
-      # serialization. By default this is assumed to be an instance named after
-      # the attribute. Override this method in subclasses should you need to
-      # retrieve the value for a given attribute differently:
-      #
-      #   class MyClass
-      #     include ActiveModel::Validations
-      #
-      #     def initialize(data = {})
-      #       @data = data
-      #     end
-      #
-      #     def read_attribute_for_serialization(key)
-      #       @data[key]
-      #     end
-      #   end
-      #
-      alias :read_attribute_for_serialization :send
+    # Hook method defining how an attribute value should be retrieved for
+    # serialization. By default this is assumed to be an instance named after
+    # the attribute. Override this method in subclasses should you need to
+    # retrieve the value for a given attribute differently:
+    #
+    #   class MyClass
+    #     include ActiveModel::Validations
+    #
+    #     def initialize(data = {})
+    #       @data = data
+    #     end
+    #
+    #     def read_attribute_for_serialization(key)
+    #       @data[key]
+    #     end
+    #   end
+    #
+    alias :read_attribute_for_serialization :send
 
-      # Add associations specified via the <tt>:include</tt> option.
-      #
-      # Expects a block that takes as arguments:
-      #   +association+ - name of the association
-      #   +records+     - the association record(s) to be serialized
-      #   +opts+        - options for the association records
-      def serializable_add_includes(options = {}) #:nodoc:
-        return unless includes = options[:include]
+    # Add associations specified via the <tt>:include</tt> option.
+    #
+    # Expects a block that takes as arguments:
+    #   +association+ - name of the association
+    #   +records+     - the association record(s) to be serialized
+    #   +opts+        - options for the association records
+    def serializable_add_includes(options = {}) #:nodoc:
+      return unless includes = options[:include]
 
-        unless includes.is_a?(Hash)
-          includes = Hash[Array(includes).map { |n| n.is_a?(Hash) ? n.to_a.first : [n, {}] }]
-        end
+      unless includes.is_a?(Hash)
+        includes = Hash[Array(includes).map { |n| n.is_a?(Hash) ? n.to_a.first : [n, {}] }]
+      end
 
-        includes.each do |association, opts|
-          if records = send(association)
-            yield association, records, opts
-          end
+      includes.each do |association, opts|
+        if records = send(association)
+          yield association, records, opts
         end
       end
+    end
   end
 end

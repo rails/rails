@@ -101,17 +101,17 @@ module ActiveModel
         end
     end
 
-    private
-      # Fires notifications to model's observers
-      #
-      # def save
-      #   notify_observers(:before_save)
-      #   ...
-      #   notify_observers(:after_save)
-      # end
-      def notify_observers(method)
-        self.class.notify_observers(method, self)
-      end
+  private
+    # Fires notifications to model's observers
+    #
+    # def save
+    #   notify_observers(:before_save)
+    #   ...
+    #   notify_observers(:after_save)
+    # end
+    def notify_observers(method)
+      self.class.notify_observers(method, self)
+    end
   end
 
   # == Active Model Observers

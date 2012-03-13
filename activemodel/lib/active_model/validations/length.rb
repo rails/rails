@@ -51,7 +51,7 @@ module ActiveModel
         end
       end
 
-      private
+    private
 
       def tokenize(value)
         if options[:tokenizer] && value.kind_of?(String)

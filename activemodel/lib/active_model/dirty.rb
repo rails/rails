@@ -131,37 +131,37 @@ module ActiveModel
       @changed_attributes ||= {}
     end
 
-    private
+  private
 
-      # Handle <tt>*_changed?</tt> for +method_missing+.
-      def attribute_changed?(attr)
-        changed_attributes.include?(attr)
+    # Handle <tt>*_changed?</tt> for +method_missing+.
+    def attribute_changed?(attr)
+      changed_attributes.include?(attr)
+    end
+
+    # Handle <tt>*_change</tt> for +method_missing+.
+    def attribute_change(attr)
+      [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
+    end
+
+    # Handle <tt>*_was</tt> for +method_missing+.
+    def attribute_was(attr)
+      attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
+    end
+
+    # Handle <tt>*_will_change!</tt> for +method_missing+.
+    def attribute_will_change!(attr)
+      begin
+        value = __send__(attr)
+        value = value.duplicable? ? value.clone : value
+      rescue TypeError, NoMethodError
       end
 
-      # Handle <tt>*_change</tt> for +method_missing+.
-      def attribute_change(attr)
-        [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
-      end
+      changed_attributes[attr] = value unless changed_attributes.include?(attr)
+    end
 
-      # Handle <tt>*_was</tt> for +method_missing+.
-      def attribute_was(attr)
-        attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
-      end
-
-      # Handle <tt>*_will_change!</tt> for +method_missing+.
-      def attribute_will_change!(attr)
-        begin
-          value = __send__(attr)
-          value = value.duplicable? ? value.clone : value
-        rescue TypeError, NoMethodError
-        end
-
-        changed_attributes[attr] = value unless changed_attributes.include?(attr)
-      end
-
-      # Handle <tt>reset_*!</tt> for +method_missing+.
-      def reset_attribute!(attr)
-        __send__("#{attr}=", changed_attributes[attr]) if attribute_changed?(attr)
-      end
+    # Handle <tt>reset_*!</tt> for +method_missing+.
+    def reset_attribute!(attr)
+      __send__("#{attr}=", changed_attributes[attr]) if attribute_changed?(attr)
+    end
   end
 end

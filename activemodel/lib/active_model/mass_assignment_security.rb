@@ -211,7 +211,7 @@ module ActiveModel
         end
       end
 
-      private
+    private
 
       def protected_attributes_configs
         self._protected_attributes ||= begin

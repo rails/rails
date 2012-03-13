@@ -22,7 +22,7 @@ module ActiveModel
         check_options_validity(options, :without)
       end
 
-      private
+    private
 
       def option_call(record, name)
         option = options[name]

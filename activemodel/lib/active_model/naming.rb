@@ -58,7 +58,7 @@ module ActiveModel
       I18n.translate(defaults.shift, options)
     end
 
-    private
+  private
 
     def _singularize(string, replacement='_')
       ActiveSupport::Inflector.underscore(string).tr('/', replacement)
@@ -159,14 +159,14 @@ module ActiveModel
       model_name_from_record_or_class(record_or_class).param_key
     end
 
-    private
-      def self.model_name_from_record_or_class(record_or_class)
-        (record_or_class.is_a?(Class) ? record_or_class : convert_to_model(record_or_class).class).model_name
-      end
+  private
+    def self.model_name_from_record_or_class(record_or_class)
+      (record_or_class.is_a?(Class) ? record_or_class : convert_to_model(record_or_class).class).model_name
+    end
 
-      def self.convert_to_model(object)
-        object.respond_to?(:to_model) ? object.to_model : object
-      end
+    def self.convert_to_model(object)
+      object.respond_to?(:to_model) ? object.to_model : object
+    end
   end
 
 end

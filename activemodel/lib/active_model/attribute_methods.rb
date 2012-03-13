@@ -32,7 +32,7 @@ module ActiveModel
   #
   #     attr_accessor :name
   #
-  #     private
+  #   private
   #
   #     def attribute_contrived?(attr)
   #       true
@@ -88,7 +88,7 @@ module ActiveModel
       #     attribute_method_prefix 'clear_'
       #     define_attribute_methods [:name]
       #
-      #     private
+      #   private
       #
       #     def clear_attribute(attr)
       #       send("#{attr}=", nil)
@@ -126,7 +126,7 @@ module ActiveModel
       #     attribute_method_suffix '_short?'
       #     define_attribute_methods [:name]
       #
-      #     private
+      #   private
       #
       #     def attribute_short?(attr)
       #       send(attr).length < 5
@@ -164,7 +164,7 @@ module ActiveModel
       #     attribute_method_affix :prefix => 'reset_', :suffix => '_to_default!'
       #     define_attribute_methods [:name]
       #
-      #     private
+      #   private
       #
       #     def reset_attribute_to_default!(attr)
       #       ...
@@ -206,7 +206,7 @@ module ActiveModel
       #     # attribute_method_affix declares.
       #     define_attribute_methods [:name, :age, :address]
       #
-      #     private
+      #   private
       #
       #     def clear_attribute(attr)
       #       ...
@@ -255,97 +255,97 @@ module ActiveModel
           generated_attribute_methods.method_defined?(method_name)
         end
 
-      private
-        # The methods +method_missing+ and +respond_to?+ of this module are
-        # invoked often in a typical rails, both of which invoke the method
-        # +match_attribute_method?+. The latter method iterates through an
-        # array doing regular expression matches, which results in a lot of
-        # object creations. Most of the times it returns a +nil+ match. As the
-        # match result is always the same given a +method_name+, this cache is
-        # used to alleviate the GC, which ultimately also speeds up the app
-        # significantly (in our case our test suite finishes 10% faster with
-        # this cache).
-        def attribute_method_matchers_cache #:nodoc:
-          @attribute_method_matchers_cache ||= {}
+    private
+      # The methods +method_missing+ and +respond_to?+ of this module are
+      # invoked often in a typical rails, both of which invoke the method
+      # +match_attribute_method?+. The latter method iterates through an
+      # array doing regular expression matches, which results in a lot of
+      # object creations. Most of the times it returns a +nil+ match. As the
+      # match result is always the same given a +method_name+, this cache is
+      # used to alleviate the GC, which ultimately also speeds up the app
+      # significantly (in our case our test suite finishes 10% faster with
+      # this cache).
+      def attribute_method_matchers_cache #:nodoc:
+        @attribute_method_matchers_cache ||= {}
+      end
+
+      def attribute_method_matcher(method_name) #:nodoc:
+        if attribute_method_matchers_cache.key?(method_name)
+          attribute_method_matchers_cache[method_name]
+        else
+          # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
+          # will match every time.
+          matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
+          match = nil
+          matchers.detect { |method| match = method.match(method_name) }
+          attribute_method_matchers_cache[method_name] = match
+        end
+      end
+
+      # Define a method `name` in `mod` that dispatches to `send`
+      # using the given `extra` args. This fallbacks `define_method`
+      # and `send` if the given names cannot be compiled.
+      def define_optimized_call(mod, name, send, *extra) #:nodoc:
+        if name =~ NAME_COMPILABLE_REGEXP
+          defn = "def #{name}(*args)"
+        else
+          defn = "define_method(:'#{name}') do |*args|"
         end
 
-        def attribute_method_matcher(method_name) #:nodoc:
-          if attribute_method_matchers_cache.key?(method_name)
-            attribute_method_matchers_cache[method_name]
+        extra = (extra.map(&:inspect) << "*args").join(", ")
+
+        if send =~ CALL_COMPILABLE_REGEXP
+          target = "#{send}(#{extra})"
+        else
+          target = "send(:'#{send}', #{extra})"
+        end
+
+        mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+          #{defn}
+            #{target}
+          end
+        RUBY
+      end
+
+      class AttributeMethodMatcher
+        attr_reader :prefix, :suffix, :method_missing_target
+
+        AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
+
+        def initialize(options = {})
+          options.symbolize_keys!
+
+          if options[:prefix] == '' || options[:suffix] == ''
+            ActiveSupport::Deprecation.warn(
+              "Specifying an empty prefix/suffix for an attribute method is no longer " \
+              "necessary. If the un-prefixed/suffixed version of the method has not been " \
+              "defined when `define_attribute_methods` is called, it will be defined " \
+              "automatically."
+            )
+          end
+
+          @prefix, @suffix = options[:prefix] || '', options[:suffix] || ''
+          @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
+          @method_missing_target = "#{@prefix}attribute#{@suffix}"
+          @method_name = "#{prefix}%s#{suffix}"
+        end
+
+        def match(method_name)
+          if @regex =~ method_name
+            AttributeMethodMatch.new(method_missing_target, $1, method_name)
           else
-            # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
-            # will match every time.
-            matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
-            match = nil
-            matchers.detect { |method| match = method.match(method_name) }
-            attribute_method_matchers_cache[method_name] = match
+            nil
           end
         end
 
-        # Define a method `name` in `mod` that dispatches to `send`
-        # using the given `extra` args. This fallbacks `define_method`
-        # and `send` if the given names cannot be compiled.
-        def define_optimized_call(mod, name, send, *extra) #:nodoc:
-          if name =~ NAME_COMPILABLE_REGEXP
-            defn = "def #{name}(*args)"
-          else
-            defn = "define_method(:'#{name}') do |*args|"
-          end
-
-          extra = (extra.map(&:inspect) << "*args").join(", ")
-
-          if send =~ CALL_COMPILABLE_REGEXP
-            target = "#{send}(#{extra})"
-          else
-            target = "send(:'#{send}', #{extra})"
-          end
-
-          mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-            #{defn}
-              #{target}
-            end
-          RUBY
+        def method_name(attr_name)
+          @method_name % attr_name
         end
 
-        class AttributeMethodMatcher
-          attr_reader :prefix, :suffix, :method_missing_target
-
-          AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
-
-          def initialize(options = {})
-            options.symbolize_keys!
-
-            if options[:prefix] == '' || options[:suffix] == ''
-              ActiveSupport::Deprecation.warn(
-                "Specifying an empty prefix/suffix for an attribute method is no longer " \
-                "necessary. If the un-prefixed/suffixed version of the method has not been " \
-                "defined when `define_attribute_methods` is called, it will be defined " \
-                "automatically."
-              )
-            end
-
-            @prefix, @suffix = options[:prefix] || '', options[:suffix] || ''
-            @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
-            @method_missing_target = "#{@prefix}attribute#{@suffix}"
-            @method_name = "#{prefix}%s#{suffix}"
-          end
-
-          def match(method_name)
-            if @regex =~ method_name
-              AttributeMethodMatch.new(method_missing_target, $1, method_name)
-            else
-              nil
-            end
-          end
-
-          def method_name(attr_name)
-            @method_name % attr_name
-          end
-
-          def plain?
-            prefix.empty? && suffix.empty?
-          end
+        def plain?
+          prefix.empty? && suffix.empty?
         end
+      end
     end
 
     # Allows access to the object attributes, which are held in the
@@ -397,16 +397,16 @@ module ActiveModel
         respond_to_without_attributes?(:attributes) && attributes.include?(attr_name)
       end
 
-    private
-      # Returns a struct representing the matching attribute method.
-      # The struct's attributes are prefix, base and suffix.
-      def match_attribute_method?(method_name)
-        match = self.class.send(:attribute_method_matcher, method_name)
-        match && attribute_method?(match.attr_name) ? match : nil
-      end
+  private
+    # Returns a struct representing the matching attribute method.
+    # The struct's attributes are prefix, base and suffix.
+    def match_attribute_method?(method_name)
+      match = self.class.send(:attribute_method_matcher, method_name)
+      match && attribute_method?(match.attr_name) ? match : nil
+    end
 
-      def missing_attribute(attr_name, stack)
-        raise ActiveModel::MissingAttributeError, "missing attribute: #{attr_name}", stack
-      end
+    def missing_attribute(attr_name, stack)
+      raise ActiveModel::MissingAttributeError, "missing attribute: #{attr_name}", stack
+    end
   end
 end
