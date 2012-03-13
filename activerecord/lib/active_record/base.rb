@@ -442,7 +442,7 @@ module ActiveRecord #:nodoc:
           if self == ActiveRecord::Base
             ActiveRecord::Base
           else
-            connection_handler.connection_pools[name] ? self : superclass.arel_engine
+            connection_handler.retrieve_connection_pool(self) ? self : superclass.arel_engine
           end
         end
       end
