@@ -24,8 +24,17 @@ module ActiveRecord
   #   class SuperUser < User
   #     store_accessor :settings, :privileges, :servants
   #   end
+  #
+  # The stored attribute names can be retrieved using the +stored_attributes+ configuration attribute.
+  #
+  #   User.stored_attributes[:settings] # [:color, :homepage]
   module Store
     extend ActiveSupport::Concern
+
+    included do
+      config_attribute :stored_attributes
+      self.stored_attributes = {}
+    end
 
     module ClassMethods
       def store(store_attribute, options = {})
@@ -45,6 +54,8 @@ module ActiveRecord
             send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
             send(store_attribute)[key]
           end
+
+          self.stored_attributes[store_attribute] = keys.flatten
         end
       end
     end

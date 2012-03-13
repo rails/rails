@@ -40,4 +40,8 @@ class StoreTest < ActiveRecord::TestCase
     @john.remember_login = false
     assert_equal false, @john.remember_login
   end
+
+  test "stored attributes are returned" do
+    assert_equal [:color, :homepage], Admin::User.stored_attributes[:settings]
+  end
 end
