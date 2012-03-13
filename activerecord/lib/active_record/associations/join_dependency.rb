@@ -88,7 +88,7 @@ module ActiveRecord
         end
       end
 
-      protected
+    protected
 
       def cache_joined_association(association)
         associations = []

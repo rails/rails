@@ -556,7 +556,7 @@ module ActiveRecord
         where_sql
       end
 
-      protected
+    protected
 
       def add_index_length(option_strings, column_names, options = {})
         if options.is_a?(Hash) && length = options[:length]

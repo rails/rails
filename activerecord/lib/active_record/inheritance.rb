@@ -93,7 +93,7 @@ module ActiveRecord
         superclass < Model ? superclass : Model
       end
 
-      protected
+    protected
 
       # Returns the class descending directly from ActiveRecord::Base or an
       # abstract class, if any, in the inheritance hierarchy.

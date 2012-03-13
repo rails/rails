@@ -1211,26 +1211,26 @@ class FinderTest < ActiveRecord::TestCase
     assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.find(:all, :offset => "3") }
   end
 
-  protected
-    def bind(statement, *vars)
-      if vars.first.is_a?(Hash)
-        ActiveRecord::Base.send(:replace_named_bind_variables, statement, vars.first)
-      else
-        ActiveRecord::Base.send(:replace_bind_variables, statement, vars)
-      end
+protected
+  def bind(statement, *vars)
+    if vars.first.is_a?(Hash)
+      ActiveRecord::Base.send(:replace_named_bind_variables, statement, vars.first)
+    else
+      ActiveRecord::Base.send(:replace_bind_variables, statement, vars)
     end
+  end
 
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
+  def with_env_tz(new_tz = 'US/Eastern')
+    old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+    yield
+  ensure
+    old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+  end
 
-    def with_active_record_default_timezone(zone)
-      old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
-      yield
-    ensure
-      ActiveRecord::Base.default_timezone = old_zone
-    end
+  def with_active_record_default_timezone(zone)
+    old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
+    yield
+  ensure
+    ActiveRecord::Base.default_timezone = old_zone
+  end
 end

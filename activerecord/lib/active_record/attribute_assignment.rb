@@ -98,7 +98,7 @@ module ActiveRecord
       assign_multiparameter_attributes(multi_parameter_attributes)
     end
 
-    protected
+  protected
 
     def mass_assignment_options
       @mass_assignment_options ||= {}

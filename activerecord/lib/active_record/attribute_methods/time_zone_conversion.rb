@@ -30,7 +30,7 @@ module ActiveRecord
       end
 
       module ClassMethods
-        protected
+      protected
         # The enhanced read method automatically converts the UTC time stored in the database to the time
         # zone stored in Time.zone.
         def attribute_cast_code(attr_name)

@@ -551,77 +551,77 @@ module ActiveRecord
         remove_column table_name, :created_at
       end
 
-      protected
-        def add_index_sort_order(option_strings, column_names, options = {})
-          if options.is_a?(Hash) && order = options[:order]
-            case order
-            when Hash
-              column_names.each {|name| option_strings[name] += " #{order[name].to_s.upcase}" if order.has_key?(name)}
-            when String
-              column_names.each {|name| option_strings[name] += " #{order.upcase}"}
-            end
+    protected
+      def add_index_sort_order(option_strings, column_names, options = {})
+        if options.is_a?(Hash) && order = options[:order]
+          case order
+          when Hash
+            column_names.each {|name| option_strings[name] += " #{order[name].to_s.upcase}" if order.has_key?(name)}
+          when String
+            column_names.each {|name| option_strings[name] += " #{order.upcase}"}
           end
-
-          return option_strings
         end
 
-        # Overridden by the mysql adapter for supporting index lengths
-        def quoted_columns_for_index(column_names, options = {})
-          option_strings = Hash[column_names.map {|name| [name, '']}]
+        return option_strings
+      end
 
-          # add index sort order if supported
-          if supports_index_sort_order?
-            option_strings = add_index_sort_order(option_strings, column_names, options)
-          end
+      # Overridden by the mysql adapter for supporting index lengths
+      def quoted_columns_for_index(column_names, options = {})
+        option_strings = Hash[column_names.map {|name| [name, '']}]
 
-          column_names.map {|name| quote_column_name(name) + option_strings[name]}
+        # add index sort order if supported
+        if supports_index_sort_order?
+          option_strings = add_index_sort_order(option_strings, column_names, options)
         end
 
-        def options_include_default?(options)
-          options.include?(:default) && !(options[:null] == false && options[:default].nil?)
+        column_names.map {|name| quote_column_name(name) + option_strings[name]}
+      end
+
+      def options_include_default?(options)
+        options.include?(:default) && !(options[:null] == false && options[:default].nil?)
+      end
+
+      def add_index_options(table_name, column_name, options = {})
+        column_names = Array(column_name)
+        index_name   = index_name(table_name, :column => column_names)
+
+        if Hash === options # legacy support, since this param was a string
+          index_type = options[:unique] ? "UNIQUE" : ""
+          index_name = options[:name].to_s if options.key?(:name)
+          if supports_partial_index?
+            index_options = options[:where] ? " WHERE #{options[:where]}" : ""
+          end
+        else
+          index_type = options
         end
 
-        def add_index_options(table_name, column_name, options = {})
-          column_names = Array(column_name)
-          index_name   = index_name(table_name, :column => column_names)
+        if index_name.length > index_name_length
+          raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
+        end
+        if index_name_exists?(table_name, index_name, false)
+          raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
+        end
+        index_columns = quoted_columns_for_index(column_names, options).join(", ")
 
-          if Hash === options # legacy support, since this param was a string
-            index_type = options[:unique] ? "UNIQUE" : ""
-            index_name = options[:name].to_s if options.key?(:name)
-            if supports_partial_index?
-              index_options = options[:where] ? " WHERE #{options[:where]}" : ""
-            end
-          else
-            index_type = options
-          end
+        [index_name, index_type, index_columns, index_options]
+      end
 
-          if index_name.length > index_name_length
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
-          end
-          if index_name_exists?(table_name, index_name, false)
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
-          end
-          index_columns = quoted_columns_for_index(column_names, options).join(", ")
+      def index_name_for_remove(table_name, options = {})
+        index_name = index_name(table_name, options)
 
-          [index_name, index_type, index_columns, index_options]
+        unless index_name_exists?(table_name, index_name, true)
+          raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' does not exist"
         end
 
-        def index_name_for_remove(table_name, options = {})
-          index_name = index_name(table_name, options)
+        index_name
+      end
 
-          unless index_name_exists?(table_name, index_name, true)
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' does not exist"
-          end
+      def columns_for_remove(table_name, *column_names)
+        column_names = column_names.flatten
 
-          index_name
-        end
-
-        def columns_for_remove(table_name, *column_names)
-          column_names = column_names.flatten
-
-          raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.blank?
-          column_names.map {|column_name| quote_column_name(column_name) }
-        end
+        raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.blank?
+        column_names.map {|column_name| quote_column_name(column_name) }
+      end
 
     private
       def table_definition

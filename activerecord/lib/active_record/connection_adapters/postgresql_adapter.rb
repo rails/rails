@@ -1236,22 +1236,22 @@ module ActiveRecord
         end
       end
 
-      protected
-        # Returns the version of the connected PostgreSQL server.
-        def postgresql_version
-          @connection.server_version
-        end
+    protected
+      # Returns the version of the connected PostgreSQL server.
+      def postgresql_version
+        @connection.server_version
+      end
 
-        def translate_exception(exception, message)
-          case exception.message
-          when /duplicate key value violates unique constraint/
-            RecordNotUnique.new(message, exception)
-          when /violates foreign key constraint/
-            InvalidForeignKey.new(message, exception)
-          else
-            super
-          end
+      def translate_exception(exception, message)
+        case exception.message
+        when /duplicate key value violates unique constraint/
+          RecordNotUnique.new(message, exception)
+        when /violates foreign key constraint/
+          InvalidForeignKey.new(message, exception)
+        else
+          super
         end
+      end
 
     private
       def initialize_type_map

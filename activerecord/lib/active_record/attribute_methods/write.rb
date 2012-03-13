@@ -8,16 +8,16 @@ module ActiveRecord
       end
 
       module ClassMethods
-        protected
-          def define_method_attribute=(attr_name)
-            if attr_name =~ ActiveModel::AttributeMethods::NAME_COMPILABLE_REGEXP
-              generated_attribute_methods.module_eval("def #{attr_name}=(new_value); write_attribute('#{attr_name}', new_value); end", __FILE__, __LINE__)
-            else
-              generated_attribute_methods.send(:define_method, "#{attr_name}=") do |new_value|
-                write_attribute(attr_name, new_value)
-              end
+      protected
+        def define_method_attribute=(attr_name)
+          if attr_name =~ ActiveModel::AttributeMethods::NAME_COMPILABLE_REGEXP
+            generated_attribute_methods.module_eval("def #{attr_name}=(new_value); write_attribute('#{attr_name}', new_value); end", __FILE__, __LINE__)
+          else
+            generated_attribute_methods.send(:define_method, "#{attr_name}=") do |new_value|
+              write_attribute(attr_name, new_value)
             end
           end
+        end
       end
 
       # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings

@@ -5,22 +5,22 @@ module ActiveRecord
 
       delegate :source_reflection, :through_reflection, :chain, :to => :reflection
 
-      protected
+    protected
 
-        # We merge in these scopes for two reasons:
-        #
-        #   1. To get the default_scope conditions for any of the other reflections in the chain
-        #   2. To get the type conditions for any STI models in the chain
-        def target_scope
-          scope = super
-          chain[1..-1].each do |reflection|
-            scope = scope.merge(
-              reflection.klass.scoped.with_default_scope.
-                except(:select, :create_with, :includes, :preload, :joins, :eager_load)
-            )
-          end
-          scope
+      # We merge in these scopes for two reasons:
+      #
+      #   1. To get the default_scope conditions for any of the other reflections in the chain
+      #   2. To get the type conditions for any STI models in the chain
+      def target_scope
+        scope = super
+        chain[1..-1].each do |reflection|
+          scope = scope.merge(
+            reflection.klass.scoped.with_default_scope.
+              except(:select, :create_with, :includes, :preload, :joins, :eager_load)
+          )
         end
+        scope
+      end
 
     private
 

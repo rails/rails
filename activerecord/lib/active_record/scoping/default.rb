@@ -45,7 +45,7 @@ module ActiveRecord
           self.current_scope = nil
         end
 
-        protected
+      protected
 
         # Use this macro in your model to set a default scope for all operations on
         # the model.

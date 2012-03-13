@@ -14,7 +14,7 @@ module ActiveRecord
         connection.quote(object)
       end
 
-      protected
+    protected
 
       # Accepts an array, hash, or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for a WHERE clause.

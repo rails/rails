@@ -101,7 +101,7 @@ module ActiveRecord
         end
       end
 
-      protected
+    protected
 
       # Works like with_scope, but discards any nested properties.
       def with_exclusive_scope(method_scoping = {}, &block)
