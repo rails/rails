@@ -25,9 +25,15 @@ module ActionView
             add_default_name_and_id(options)
           end
 
-          hidden   = hidden_field_for_checkbox(options)
+          include_hidden = options.delete("include_hidden") { true }
           checkbox = tag("input", options)
-          hidden + checkbox
+
+          if include_hidden
+            hidden = hidden_field_for_checkbox(options)
+            hidden + checkbox
+          else
+            checkbox
+          end
         end
 
         private
