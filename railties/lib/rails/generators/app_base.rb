@@ -257,11 +257,6 @@ module Rails
       def git_keep(destination)
         create_file("#{destination}/.gitkeep") unless options[:skip_git]
       end
-
-      # Returns Ruby 1.9 style key-value pair.
-      def key_value(key, value)
-        "#{key}: #{value}"
-      end
     end
   end
 end
