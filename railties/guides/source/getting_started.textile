@@ -121,11 +121,7 @@ directly in that application:
 $ cd blog
 </shell>
 
-The 'rails new blog' command we ran above created a folder in your working directory
-called <tt>blog</tt>. The <tt>blog</tt> folder has a number of auto-generated folders
-that make up the structure of a Rails application. Most of the work in
-this tutorial will happen in the <tt>app/</tt> folder, but here's a basic
-rundown on the function of each of the files and folders that Rails created by default:
+The +rails new blog+ command we ran above created a folder in your working directory called <tt>blog</tt>. The <tt>blog</tt> directory has a number of auto-generated folders that make up the structure of a Rails application. Most of the work in this tutorial will happen in the <tt>app/</tt> folder, but here's a basic rundown on the function of each of the files and folders that Rails created by default:
 
 |_.File/Folder|_.Purpose|
 |app/|Contains the controllers, models, views and assets for your application. You'll focus on this folder for the remainder of this guide.|
