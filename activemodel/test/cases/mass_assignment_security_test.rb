@@ -4,7 +4,7 @@ require 'models/mass_assignment_specific'
 
 class CustomSanitizer < ActiveModel::MassAssignmentSecurity::Sanitizer
 
-  def process_removed_attributes(attrs)
+  def process_removed_attribute(attr)
     raise StandardError
   end
 
