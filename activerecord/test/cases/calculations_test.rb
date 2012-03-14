@@ -452,6 +452,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
   end
 
+  def test_pluck_multiple_columns
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"], 
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"]
+    ], Topic.order(:id).pluck([:id, :title])
+    assert_equal [
+      [1, "The First Topic", "David"], [2, "The Second Topic of the day", "Mary"], 
+      [3, "The Third Topic of the day", "Carl"], [4, "The Fourth Topic of the day", "Carl"]
+    ], Topic.order(:id).pluck([:id, :title, :author_name])
+  end
+
   def test_pluck_type_cast
     topic = topics(:first)
     relation = Topic.where(:id => topic.id)

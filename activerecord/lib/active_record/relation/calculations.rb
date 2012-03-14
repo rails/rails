@@ -166,35 +166,39 @@ module ActiveRecord
       0
     end
 
-    # This method is designed to perform select by a single column as direct SQL query
+    # This method is designed to perform select by a single or multiple columns as direct SQL query
     # Returns <tt>Array</tt> with values of the specified column name
     # The values has same data type as column.
     #
     # Examples:
     #
     #   Person.pluck(:id) # SELECT people.id FROM people
+    #   Person.pluck([:id, :name]) # SELECT people.id, people.name FROM people
     #   Person.uniq.pluck(:role) # SELECT DISTINCT role FROM people
     #   Person.where(:confirmed => true).limit(5).pluck(:id)
     #
-    def pluck(column_name)
-      key = column_name.to_s.split('.', 2).last
+    def pluck(column_names)
+      keys = column_names.is_a?(Array) ? column_names : [column_names.to_s.split('.', 2).last]
 
-      if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
-        column_name = "#{table_name}.#{column_name}"
+      if column_names.is_a?(Symbol) && self.column_names.include?(column_names.to_s)
+        column_names = "#{table_name}.#{column_names}"
       end
 
-      result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
+      result = klass.connection.select_all(select(column_names).arel, nil, bind_values)
       types  = result.column_types.merge klass.column_types
-      column = types[key]
+      column = types[keys[0]]
 
-      result.map do |attributes|
-        value = klass.initialize_attributes(attributes)[key]
-        if column
-          column.type_cast value
-        else
-          value
+      result = result.map do |attributes|
+        keys.map do |key|
+          value = klass.initialize_attributes(attributes)[key.to_s]
+          if column
+            column.type_cast(value)
+          else
+            value
+          end
         end
       end
+      column_names.is_a?(Array) ? result : result.flatten
     end
 
     private
