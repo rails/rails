@@ -15,7 +15,7 @@ module Arel
       def visit_Arel_Nodes_SelectCore o
         [
           "#{o.projections.map { |x| visit x }.join ', '}",
-          ("FROM #{visit o.froms}" if o.froms),
+          ("FROM #{visit(o.source)}" if o.source && !o.source.empty?),
           ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?),
           ("GROUP BY #{o.groups.map { |x| visit x }.join ', ' }" unless o.groups.empty?),
           (visit(o.having) if o.having),
