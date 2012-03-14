@@ -7,8 +7,6 @@ In this guide you will learn:
 * How to decide which middlewares you will want to include
 * How to decide which modules to use in your controller
 
-NOTE: This guide reflects features that have not yet been fully implemented. Docs first :)
-
 endprologue.
 
 h3. What is an API app?
