@@ -378,6 +378,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/application_controller.rb", /^  # protect_from_forgery/
   end
 
+  def test_http_does_not_generate_app_views_dir
+    run_generator [destination_root, "--http"]
+    assert_no_directory "app/views"
+  end
+
+  def test_http_skip_sprockets_entries_in_gemfile_and_application
+    run_generator [destination_root, "--http"]
+    assert_file "Gemfile" do |content|
+      assert_no_match(/group :assets/, content)
+    end
+    assert_file "config/application.rb" do |content|
+      assert_match(/^# require "sprockets/, content)
+      assert_no_match(/config\.assets/, content)
+    end
+  end
+
   def test_pretend_option
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)
@@ -388,7 +404,6 @@ protected
   def action(*args, &block)
     silence(:stdout) { generator.send(*args, &block) }
   end
-
 end
 
 class CustomAppGeneratorTest < Rails::Generators::TestCase

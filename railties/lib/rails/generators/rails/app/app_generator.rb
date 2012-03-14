@@ -159,6 +159,10 @@ module Rails
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
+
+        # Force sprockets to be skipped when generating http only app.
+        # Can't modify options hash as it's frozen by default.
+        self.options = options.merge(:skip_sprockets => true).freeze if options.http?
       end
 
       public_task :create_root
@@ -173,6 +177,7 @@ module Rails
 
       def create_app_files
         build(:app)
+        remove_file("app/views") if options.http?
       end
 
       def create_config_files
