@@ -171,12 +171,12 @@ A view's purpose is to display this information in a human readable format. An i
 To create a new controller, run this command:
 
 <shell>
-$ rails generate controller home index
+$ rails generate controller welcome index
 </shell>
 
-Rails will create several files for you. Most important of these are of course the controller, located at +app/controllers/home_controller.rb+ and the view, located at +app/views/home/index.html.erb+.
+Rails will create several files for you. Most important of these are of course the controller, located at +app/controllers/welcome_controller.rb+ and the view, located at +app/views/welcome/index.html.erb+.
 
-Open the +app/views/home/index/html.erb+ file in your text editor and edit it to contain a single line of code:
+Open the +app/views/welcome/index/html.erb+ file in your text editor and edit it to contain a single line of code:
 
 <code class="html">
 <h1>Hello, Rails!</h1>
@@ -317,7 +317,7 @@ invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
 h4. Adding a Link
 
 To hook the posts up to the home page you've already created, you can add a link
-to the home page. Open +app/views/home/index.html.erb+ and modify it as follows:
+to the home page. Open +app/views/welcome/index.html.erb+ and modify it as follows:
 
 <ruby>
 <h1>Hello, Rails!</h1>
@@ -904,7 +904,7 @@ Associations":association_basics.html guide.
 
 h4. Adding a Route for Comments
 
-As with the +home+ controller, we will need to add a route so that Rails knows
+As with the +welcome+ controller, we will need to add a route so that Rails knows
 where we would like to navigate to see +comments+. Open up the
 +config/routes.rb+ file again. Near the top, you will see the entry for +posts+
 that was added automatically by the scaffold generator: <tt>resources
