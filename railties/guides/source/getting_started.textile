@@ -158,7 +158,14 @@ The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it ma
 
 h4. Say "Hello", Rails
 
-To get Rails saying "Hello", you need to create at minimum a controller and a view. Fortunately, you can do that in a single command. Enter this command in your terminal:
+To get Rails saying "Hello", you need to create at minimum a _controller_ and a _view_.
+
+A controller's purpose is to receive specific requests for the application. What controller receives what request is determined by the _routing_. There is very often more than one route to each controller, and different routes can be served by different _actions_. Each action's purpose is to collect information to provide it to a view.
+
+A view's purpose is to display this information in a human readable format. An important distinction to make is that it is the _controller_, not the view, where information is collected. The view should just display that information. By default, view templates are written in a language called ERB (Embedded Ruby) which is converted by the request cycle in Rails before being sent to the user.
+
+
+To create a new controller, run this command:
 
 <shell>
 $ rails generate controller home index
