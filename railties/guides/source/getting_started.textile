@@ -186,10 +186,11 @@ Now that we have made the controller and view, we need to tell Rails when we wan
 
 To fix this, delete the +index.html+ file located inside the +public+ directory of the application.
 
+We need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content we generate from the controllers.
 
-We need to do this as Rails will deliver any static file in the +public+ directory in preference to any dynamic content we generate from the controllers.
+Next, you have to tell Rails where your actual home page is located.
 
-Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
+Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
 
 <ruby>
 Blog::Application.routes.draw do
@@ -200,11 +201,9 @@ Blog::Application.routes.draw do
   root :to => "home#index"
 </ruby>
 
-The +root :to => "home#index"+ tells Rails to map the root action to the home
-controller's index action.
+The +root :to => "home#index"+ tells Rails to map requests to the root of the application to the home controller's index action. This was created earlier when you ran the controller generator (+rails generate controller home index+).
 
-Now if you navigate to "http://localhost:3000":http://localhost:3000 in your
-browser, you'll see +Hello, Rails!+.
+If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see +Hello, Rails!+.
 
 NOTE. For more information about routing, refer to "Rails Routing from the
 Outside In":routing.html.
