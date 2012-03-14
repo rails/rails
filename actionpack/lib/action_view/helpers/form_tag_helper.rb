@@ -27,7 +27,9 @@ module ActionView
       #   is added to simulate the verb over post.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
       #   pass custom authenticity token string, or to not add authenticity_token field at all
-      #   (by passing <tt>false</tt>).
+      #   (by passing <tt>false</tt>). If this is a remote form, the authenticity_token will by default
+      #   not be included as the ajax handler will get it from the meta-tag (but you can force it to be
+      #   rendered anyway in that case by passing <tt>true</tt>).
       # * A list of parameters to feed to the URL the form will be posted to.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
@@ -610,13 +612,15 @@ module ActionView
             html_options["action"]  = url_for(url_for_options)
             html_options["accept-charset"] = "UTF-8"
             
-            if html_options.delete("remote")
-              html_options["data-remote"] = true 
+            html_options["data-remote"] = true if html_options.delete("remote")
 
+            if html_options["data-remote"] && html_options["authenticity_token"] == true
+              # Include the default authenticity_token, which is only generated when its set to nil,
+              # but we needed the true value to override the default of no authenticity_token on data-remote.
+              html_options["authenticity_token"] = nil
+            elsif html_options["data-remote"]
               # The authenticity token is taken from the meta tag in this case
               html_options["authenticity_token"] = false
-            else
-              html_options["authenticity_token"] = html_options.delete("authenticity_token") if html_options.has_key?("authenticity_token")
             end
           end
         end
