@@ -37,6 +37,7 @@ module ActiveModel
   autoload :EachValidator, 'active_model/validator'
   autoload :Errors
   autoload :Lint
+  autoload :MassAssignment
   autoload :MassAssignmentSecurity
   autoload :Name, 'active_model/naming'
   autoload :Naming
