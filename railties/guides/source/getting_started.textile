@@ -200,62 +200,49 @@ Blog::Application.routes.draw do
   #...
   # You can have the root of your site routed with "root"
   # just remember to delete public/index.html.
-  root :to => "home#index"
+  root :to => "welcome#index"
 </ruby>
 
-The +root :to => "home#index"+ tells Rails to map requests to the root of the application to the home controller's index action. This was created earlier when you ran the controller generator (+rails generate controller home index+).
+The +root :to => "welcome#index"+ tells Rails to map requests to the root of the application to the welcome controller's index action. This was created earlier when you ran the controller generator (+rails generate controller welcome index+).
 
 If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see +Hello, Rails!+.
 
-NOTE. For more information about routing, refer to "Rails Routing from the
-Outside In":routing.html.
+NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing.html.
 
-h3. Getting Up and Running Quickly with Scaffolding
+h3. Getting Up and Running
 
-Rails _scaffolding_ is a quick way to generate some of the major pieces of an
-application. If you want to create the models, views, and controllers for a new
-resource in a single operation, scaffolding is the tool for the job.
+Now that you've seen how to create a controller, an action and a view, let's create something with a bit more substance.
 
-h3. Creating a Resource
+In the Blog application, you will now create a new _resource_. A resource is the term used for a collection of similar objects, such as posts, people or animals. You can create, read, update and destroy items for a resource and these operations are referred to as _CRUD_ operations.
 
-In the case of the blog application, you can start by generating a scaffold for the
-Post resource: this will represent a single blog posting. To do this, enter this
-command in your terminal:
+In the next section, you will add the ability to create new posts in your application and be able to view them. This is the "CR" from CRUD. The form for doing this will look like this:
 
-<shell>
-$ rails generate scaffold Post name:string title:string content:text
-</shell>
+!images/getting_started/new_post.png(The new post form)!
 
-The scaffold generator will build several files in your application, along with some
-folders, and edit <tt>config/routes.rb</tt>. Here's a quick overview of what it creates:
+It will look a little basic for now, but that's ok. We'll look at improving the styling for it afterwards.
 
-|_.File                                       |_.Purpose|
-|db/migrate/20100207214725_create_posts.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
-|app/models/post.rb                           |The Post model|
-|test/unit/post_test.rb                       |Unit testing harness for the posts model|
-|test/fixtures/posts.yml                      |Sample posts for use in testing|
-|config/routes.rb                             |Edited to include routing information for posts|
-|app/controllers/posts_controller.rb          |The Posts controller|
-|app/views/posts/index.html.erb               |A view to display an index of all posts |
-|app/views/posts/edit.html.erb                |A view to edit an existing post|
-|app/views/posts/show.html.erb                |A view to display a single post|
-|app/views/posts/new.html.erb                 |A view to create a new post|
-|app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
-|test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
-|app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
-|test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
-|app/assets/javascripts/posts.js.coffee       |CoffeeScript for the posts controller|
-|app/assets/stylesheets/posts.css.scss        |Cascading style sheet for the posts controller|
-|app/assets/stylesheets/scaffolds.css.scss    |Cascading style sheet to make the scaffolded views look better|
+h4. Creating Posts
 
-NOTE. While scaffolding will get you up and running quickly, the code it
-generates is unlikely to be a perfect fit for your application. You'll most
-probably want to customize the generated code. Many experienced Rails developers
-avoid scaffolding entirely, preferring to write all or most of their source code
-from scratch. Rails, however, makes it really simple to customize templates for
-generated models, controllers, views and other source files. You'll find more
-information in the "Creating and Customizing Rails Generators &
-Templates":generators.html guide.
+The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at +/posts/new+. If you attempt to navigate to that now -- by visiting "http://localhost:3000/posts/new":http://localhost:3000/posts/new -- Rails will give you a routing error:
+
+
+!images/getting_started/routing_error_no_route_matches.png(A routing error, no route matches /posts/new)!
+
+This is because there is nowhere inside the routes for the application -- defined inside +config/routes.rb+ -- that defines this route. By default, Rails has no routes configured at all, and so you must define your routes as you need them.
+
+ To do this, you're going to need to create a route inside +config/routes.rb+ file, on a new line between the +do+ and the +end+ for the +draw+ method:
+
+<ruby>
+  get "posts/new"
+</ruby>
+
+This route is a super-simple route: it defines a new route that only responds to +GET+ requests, and that the route is at +posts/new+. But how does it know where to go without the use of the +:to+ option? Well, Rails uses a sensible default here: Rails will assume that we want this route to go to the new action inside the posts controller.
+
+With the route defined, requests can now be made to +/posts/new+ in the application. Navigate to "http://localhost:3000/posts/new":http://localhost:3000/posts/new and you'll see another routing error:
+
+!images/getting_started/routing_error_no_controller.png(Another routing error, uninitialized constant PostsController)
+
+This error is happening because this route need a controller to be defined. The route is attempting to find that controller so it can serve the request, but with the controller undefined, it just can't do that.
 
 h4. Running a Migration
 
