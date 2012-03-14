@@ -17,16 +17,12 @@ module TestUnit
 
       private
 
-        def resource_attributes
-          key_value singular_table_name, "{ #{attributes_hash} }"
-        end
-
         def attributes_hash
           return if accessible_attributes.empty?
 
           accessible_attributes.map do |a|
             name = a.name
-            key_value name, "@#{singular_table_name}.#{name}"
+            "#{name}: @#{singular_table_name}.#{name}"
           end.sort.join(', ')
         end
 

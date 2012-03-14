@@ -180,11 +180,6 @@ module Rails
             class_collisions "#{options[:prefix]}#{name}#{options[:suffix]}"
           end
         end
-
-        # Returns Ruby 1.9 style key-value pair.
-        def key_value(key, value)
-          "#{key}: #{value}"
-        end
     end
   end
 end
