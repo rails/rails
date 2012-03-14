@@ -7,7 +7,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       format.html # index.html.erb
-      format.json { render <%= key_value :json, "@#{plural_table_name}" %> }
+      format.json { render json: <%= "@#{plural_table_name}" %> }
     end
   end
 
@@ -18,7 +18,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       format.html # show.html.erb
-      format.json { render <%= key_value :json, "@#{singular_table_name}" %> }
+      format.json { render json: <%= "@#{singular_table_name}" %> }
     end
   end
 
@@ -29,7 +29,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       format.html # new.html.erb
-      format.json { render <%= key_value :json, "@#{singular_table_name}" %> }
+      format.json { render json: <%= "@#{singular_table_name}" %> }
     end
   end
 
@@ -45,11 +45,11 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       if @<%= orm_instance.save %>
-        format.html { redirect_to @<%= singular_table_name %>, <%= key_value :notice, "'#{human_name} was successfully created.'" %> }
-        format.json { render <%= key_value :json, "@#{singular_table_name}" %>, <%= key_value :status, ':created' %>, <%= key_value :location, "@#{singular_table_name}" %> }
+        format.html { redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name} was successfully created.'" %> }
+        format.json { render json: <%= "@#{singular_table_name}" %>, :status: :created, location: <%= "@#{singular_table_name}" %> }
       else
-        format.html { render <%= key_value :action, '"new"' %> }
-        format.json { render <%= key_value :json, "@#{orm_instance.errors}" %>, <%= key_value :status, ':unprocessable_entity' %> }
+        format.html { render action: "new" }
+        format.json { render json: <%= "@#{orm_instance.errors}" %>, status: :unprocessable_entity %> }
       end
     end
   end
@@ -61,11 +61,11 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       if @<%= orm_instance.update_attributes("params[:#{singular_table_name}]") %>
-        format.html { redirect_to @<%= singular_table_name %>, <%= key_value :notice, "'#{human_name} was successfully updated.'" %> }
+        format.html { redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name} was successfully updated.'" %> }
         format.json { head :no_content }
       else
-        format.html { render <%= key_value :action, '"edit"' %> }
-        format.json { render <%= key_value :json, "@#{orm_instance.errors}" %>, <%= key_value :status, ':unprocessable_entity' %> }
+        format.html { render action: "edit" }
+        format.json { render json: <%= "@#{orm_instance.errors}" %>, status: :unprocessable_entity }
       end
     end
   end

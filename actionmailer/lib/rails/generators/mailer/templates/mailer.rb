@@ -1,6 +1,6 @@
 <% module_namespacing do -%>
 class <%= class_name %> < ActionMailer::Base
-  default <%= key_value :from, '"from@example.com"' %>
+  default from: "from@example.com"
 <% actions.each do |action| -%>
 
   # Subject can be set in your I18n file at config/locales/en.yml
@@ -11,7 +11,7 @@ class <%= class_name %> < ActionMailer::Base
   def <%= action %>
     @greeting = "Hi"
 
-    mail <%= key_value :to, '"to@example.org"' %>
+    mail to: "to@example.org"
   end
 <% end -%>
 end
