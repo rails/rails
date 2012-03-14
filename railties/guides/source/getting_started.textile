@@ -97,7 +97,7 @@ the following:
 $ rails --version
 </shell>
 
-If it says something like "Rails 3.1.3" you are ready to continue.
+If it says something like "Rails 3.2.2" you are ready to continue.
 
 h4. Creating the Blog Application
 
