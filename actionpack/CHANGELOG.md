@@ -89,6 +89,9 @@
 *   check_box with `:form` html5 attribute will now replicate the `:form`
     attribute to the hidden field as well. *Carlos Antonio da Silva*
 
+*   Turn off verbose mode of rack-cache, we still have X-Rack-Cache to
+    check that info. Closes #5245. *Santiago Pastorino*
+
 *   `label` form helper accepts :for => nil to not generate the attribute. *Carlos Antonio da Silva*
 
 *   Add `:format` option to number_to_percentage *Rodrigo Flores*
@@ -122,6 +125,8 @@
 
 
 ## Rails 3.2.3 (unreleased) ##
+
+*   Do not include the authenticity token in forms where remote: true as ajax forms use the meta-tag value *DHH*
 
 *   Upgrade rack-cache to 1.2. *José Valim*
 

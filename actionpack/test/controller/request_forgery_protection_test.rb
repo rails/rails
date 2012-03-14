@@ -35,6 +35,12 @@ module RequestForgeryProtectionActions
   def form_for_without_protection
     render :inline => "<%= form_for(:some_resource, :authenticity_token => false ) {} %>"
   end
+
+  def form_for_remote
+    render :inline => "<%= form_for(:some_resource, :remote => true ) {} %>"
+  end
+
+  def rescue_action(e) raise e end
 end
 
 # sample controllers
@@ -96,6 +102,13 @@ module RequestForgeryProtectionTests
       get :show_button
     end
     assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+  end
+
+  def test_should_render_form_without_token_tag_if_remote
+    assert_not_blocked do
+      get :form_for_remote
+    end
+    assert_no_match /authenticity_token/, response.body
   end
 
   def test_should_allow_get
