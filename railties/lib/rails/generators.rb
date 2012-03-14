@@ -46,7 +46,6 @@ module Rails
         :assets => true,
         :force_plural => false,
         :helper => true,
-        :http => false,
         :integration_tool => nil,
         :javascripts => true,
         :javascript_engine => :js,
@@ -62,7 +61,6 @@ module Rails
     }
 
     def self.configure!(config) #:nodoc:
-      http_only! if config.http_only?
       no_color! unless config.colorize_logging
       aliases.deep_merge! config.aliases
       options.deep_merge! config.options
@@ -72,7 +70,7 @@ module Rails
       hide_namespaces(*config.hidden_namespaces)
     end
 
-    def self.templates_path
+    def self.templates_path #:nodoc:
       @templates_path ||= []
     end
 
@@ -104,25 +102,6 @@ module Rails
     # Remove the color from output.
     def self.no_color!
       Thor::Base.shell = Thor::Shell::Basic
-    end
-
-    # Configure generators for http only applications. It basically hides
-    # everything that is usually browser related, such as assets and session
-    # migration generators, and completely disable views, helpers and assets
-    # so generators such as scaffold won't create them.
-    def self.http_only!
-      hide_namespaces "assets", "css", "js", "session_migration"
-
-      options[:rails].merge!(
-        :assets => false,
-        :helper => false,
-        :http => true,
-        :javascripts => false,
-        :javascript_engine => nil,
-        :stylesheets => false,
-        :stylesheet_engine => nil,
-        :template_engine => nil
-      )
     end
 
     # Track all generators subclasses.

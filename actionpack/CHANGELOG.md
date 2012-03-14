@@ -1,7 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Support API apps http://edgeguides.rubyonrails.org/api_app.html *Santiago Pastorino and Carlos Antonio da Silva*
-
 *   Add `include_hidden` option to select tag. With `:include_hidden => false` select with `multiple` attribute doesn't generate hidden input with blank value. *Vasiliy Ermolovich*
 
 *   Removed default `size` option from the `text_field`, `search_field`, `telephone_field`, `url_field`, `email_field` helpers. *Philip Arndt*

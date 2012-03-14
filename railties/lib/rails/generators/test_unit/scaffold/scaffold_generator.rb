@@ -14,10 +14,8 @@ module TestUnit
                           :desc => "Generate functional test with HTTP actions only"
 
       def create_test_files
-        template_file = options.http? ? "http_functional_test.rb" : "functional_test.rb"
-
-        template template_file,
-                 File.join('test/functional', controller_class_path, "#{controller_file_name}_controller_test.rb")
+        template "functional_test.rb",
+                 File.join("test/functional", controller_class_path, "#{controller_file_name}_controller_test.rb")
       end
 
       private
