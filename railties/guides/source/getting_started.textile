@@ -99,7 +99,9 @@ If it says something like "Rails 3.2.2" you are ready to continue.
 
 h4. Creating the Blog Application
 
-To begin, open a terminal, navigate to a folder where you have rights to create files, and type:
+Rails comes with a number of generators that are designed to make your development life easier. One of these is the new application generator, which will provide you with the foundation of a Rails application so that you don't have to write it yourself.
+
+To use this generator, open a terminal, navigate to a directory where you have rights to create files, and type:
 
 <shell>
 $ rails new blog
@@ -164,14 +166,13 @@ A controller's purpose is to receive specific requests for the application. What
 
 A view's purpose is to display this information in a human readable format. An important distinction to make is that it is the _controller_, not the view, where information is collected. The view should just display that information. By default, view templates are written in a language called ERB (Embedded Ruby) which is converted by the request cycle in Rails before being sent to the user.
 
-
 To create a new controller, run this command:
 
 <shell>
 $ rails generate controller home index
 </shell>
 
-Rails will create several files for you, including +app/views/home/index.html.erb+. This is the template that will be used to display the results of the +index+ action (method) in the +home+ controller.
+Rails will create several files for you. Most important of these are of course the controller, located at +app/controllers/home_controller.rb+ and the view, located at +app/views/home/index.html.erb+.
 
 Open the +app/views/home/index/html.erb+ file in your text editor and edit it to contain a single line of code:
 
