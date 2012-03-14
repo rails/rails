@@ -81,10 +81,9 @@ TIP: The examples below use # and $ to denote terminal prompts. If you are using
 
 h4. Installing Rails
 
-In most cases, the easiest way to install Rails is to take advantage of RubyGems:
+To install Rails, use the +gem install+ command provided by RubyGems:
 
 <shell>
-Usually run this as the root user:
 # gem install rails
 </shell>
 
