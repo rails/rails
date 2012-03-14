@@ -116,7 +116,12 @@ module TestHelpers
         end
       end
 
-      add_to_config 'config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"; config.session_store :cookie_store, :key => "_myapp_session"; config.active_support.deprecation = :log'
+      add_to_config <<-RUBY
+        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        config.session_store :cookie_store, :key => "_myapp_session"
+        config.active_support.deprecation = :log
+        config.action_controller.allow_forgery_protection = false
+      RUBY
     end
 
     def teardown_app
