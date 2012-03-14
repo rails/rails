@@ -87,11 +87,9 @@ To install Rails, use the +gem install+ command provided by RubyGems:
 # gem install rails
 </shell>
 
-TIP. If you're working on Windows, you can quickly install Ruby and Rails with
-"Rails Installer":http://railsinstaller.org.
+TIP. If you're working on Windows, you can quickly install Ruby and Rails with "Rails Installer":http://railsinstaller.org.
 
-To verify that you have everything installed correctly, you should be able to run
-the following:
+To verify that you have everything installed correctly, you should be able to run the following:
 
 <shell>
 $ rails --version
@@ -101,8 +99,7 @@ If it says something like "Rails 3.2.2" you are ready to continue.
 
 h4. Creating the Blog Application
 
-To begin, open a terminal, navigate to a folder where you have rights to create
-files, and type:
+To begin, open a terminal, navigate to a folder where you have rights to create files, and type:
 
 <shell>
 $ rails new blog
@@ -110,12 +107,9 @@ $ rails new blog
 
 This will create a Rails application called Blog in a directory called blog.
 
-TIP: You can see all of the switches that the Rails application builder accepts
-by running
-<tt>rails new -h</tt>.
+TIP: You can see all of the switches that the Rails application builder accepts by running <tt>rails new -h</tt>.
 
-After you create the blog application, switch to its folder to continue work
-directly in that application:
+After you create the blog application, switch to its folder to continue work directly in that application:
 
 <shell>
 $ cd blog
@@ -142,61 +136,37 @@ The +rails new blog+ command we ran above created a folder in your working direc
 
 h3. Hello, Rails!
 
-One of the traditional places to start with a new language is by getting some
-text up on screen quickly. To do this, you need to get your Rails application
-server running.
+One of the traditional places to start with a new language is by getting some text up on screen quickly. To do this, you need to get your Rails application server running.
 
 h4. Starting up the Web Server
 
-You actually have a functional Rails application already. To see it, you need to
-start a web server on your development machine. You can do this by running:
+You actually have a functional Rails application already. To see it, you need to start a web server on your development machine. You can do this by running:
 
 <shell>
 $ rails server
 </shell>
 
-TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and
-the absence of a runtime will give you an +execjs+ error. Usually Mac OS X
-and Windows come with a JavaScript runtime installed. Rails adds the +therubyracer+ gem
-to Gemfile in a commented line for new apps and you can uncomment if you need it.
-+therubyrhino+ is the recommended runtime for JRuby users and is added by default
-to Gemfile in apps generated under JRuby. You can investigate about all the
-supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
+TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an +execjs+ error. Usually Mac OS X and Windows come with a JavaScript runtime installed. Rails adds the +therubyracer+ gem to Gemfile in a commented line for new apps and you can uncomment if you need it. +therubyrhino+ is the recommended runtime for JRuby users and is added by default to Gemfile in apps generated under JRuby. You can investigate about all the supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
 
-This will fire up an instance of the WEBrick web server by default (Rails can
-also use several other web servers). To see your application in action, open a
-browser window and navigate to "http://localhost:3000":http://localhost:3000.
-You should see Rails' default information page:
+This will fire up an instance of a webserver built into Ruby called WEBrick by default. To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see Rails' default information page:
 
 !images/rails_welcome.png(Welcome Aboard screenshot)!
 
-TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
-running. In development mode, Rails does not generally require you to stop the
-server; changes you make in files will be automatically picked up by the server.
+TIP: To stop the web server, hit Ctrl+C in the terminal window where it's running. In development mode, Rails does not generally require you to stop the server; changes you make in files will be automatically picked up by the server.
 
-The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it
-makes sure that you have your software configured correctly enough to serve a
-page. You can also click on the _About your application’s environment_ link to
-see a summary of your application's environment.
+The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. You can also click on the _About your application’s environment_ link to see a summary of your application's environment.
 
 h4. Say "Hello", Rails
 
-To get Rails saying "Hello", you need to create at minimum a controller and a
-view. Fortunately, you can do that in a single command. Enter this command in
-your terminal:
+To get Rails saying "Hello", you need to create at minimum a controller and a view. Fortunately, you can do that in a single command. Enter this command in your terminal:
 
 <shell>
 $ rails generate controller home index
 </shell>
 
-TIP: If you get a command not found error when running this command, you
-need to explicitly pass Rails +rails+ commands to Ruby: <tt>ruby
-\path\to\your\application\script\rails generate controller home index</tt>.
+Rails will create several files for you, including +app/views/home/index.html.erb+. This is the template that will be used to display the results of the +index+ action (method) in the +home+ controller.
 
-Rails will create several files for you, including
-+app/views/home/index.html.erb+. This is the template that will be used to
-display the results of the +index+ action (method) in the +home+ controller.
-Open this file in your text editor and edit it to contain a single line of code:
+Open the +app/views/home/index/html.erb+ file in your text editor and edit it to contain a single line of code:
 
 <code class="html">
 <h1>Hello, Rails!</h1>
@@ -204,29 +174,14 @@ Open this file in your text editor and edit it to contain a single line of code:
 
 h4. Setting the Application Home Page
 
-Now that we have made the controller and view, we need to tell Rails when we
-want "Hello Rails!" to show up. In our case, we want it to show up when we
-navigate to the root URL of our site,
-"http://localhost:3000":http://localhost:3000, instead of the "Welcome Aboard"
-smoke test.
+Now that we have made the controller and view, we need to tell Rails when we want "Hello Rails!" to show up. In our case, we want it to show up when we navigate to the root URL of our site, "http://localhost:3000":http://localhost:3000. At the moment, however, the "Welcome Aboard" smoke test is occupying that spot.
 
-The first step to doing this is to delete the default page from your
-application:
+To fix this, delete the +index.html+ file located inside the +public+ directory of the application.
 
-<shell>
-$ rm public/index.html
-</shell>
 
-We need to do this as Rails will deliver any static file in the +public+
-directory in preference to any dynamic content we generate from the controllers.
+We need to do this as Rails will deliver any static file in the +public+ directory in preference to any dynamic content we generate from the controllers.
 
-Now, you have to tell Rails where your actual home page is located. Open the
-file +config/routes.rb+ in your editor. This is your application's _routing
-file_ which holds entries in a special DSL (domain-specific language) that tells
-Rails how to connect incoming requests to controllers and actions. This file
-contains many sample routes on commented lines, and one of them actually shows
-you how to connect the root of your site to a specific controller and action.
-Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
+Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
 
 <ruby>
 Blog::Application.routes.draw do
