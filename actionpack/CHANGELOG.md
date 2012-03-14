@@ -1,5 +1,7 @@
 ## Rails 3.2.3 (unreleased) ##
 
+*   Do not include the authenticity token in forms where remote: true as ajax forms use the meta-tag value *DHH*
+
 *   Turn off verbose mode of rack-cache, we still have X-Rack-Cache to
     check that info. Closes #5245. *Santiago Pastorino*
 

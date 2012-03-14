@@ -609,8 +609,15 @@ module ActionView
             # responsibility of the caller to escape all the values.
             html_options["action"]  = url_for(url_for_options)
             html_options["accept-charset"] = "UTF-8"
-            html_options["data-remote"] = true if html_options.delete("remote")
-            html_options["authenticity_token"] = html_options.delete("authenticity_token") if html_options.has_key?("authenticity_token")
+            
+            if html_options.delete("remote")
+              html_options["data-remote"] = true 
+
+              # The authenticity token is taken from the meta tag in this case
+              html_options["authenticity_token"] = false
+            else
+              html_options["authenticity_token"] = html_options.delete("authenticity_token") if html_options.has_key?("authenticity_token")
+            end
           end
         end
 
