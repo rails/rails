@@ -88,7 +88,7 @@ module ActionController #:nodoc:
           end
 
           def method_missing(method, *arguments, &block)
-            return unless @controller
+            super unless @controller
             @controller.__send__(method, *arguments, &block)
           end
       end
