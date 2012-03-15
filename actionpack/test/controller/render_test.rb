@@ -560,6 +560,12 @@ class TestController < ActionController::Base
     render :template => "test/with_partial", :formats => [:text]
   end
 
+  def render_template_within_a_template_with_other_format
+    render  :template => "test/with_xml_template",
+            :formats  => [:html],
+            :layout   => "with_html_partial"
+  end
+
   def partial_with_counter
     render :partial => "counter", :locals => { :counter_counter => 5 }
   end
@@ -1287,6 +1293,13 @@ class RenderTest < ActionController::TestCase
     assert_equal "<strong>only partial</strong>\n", assigns(:html)
     assert_equal "**only partial**\n", @response.body
     assert_equal "text/plain", @response.content_type
+  end
+
+  def test_render_template_within_a_template_with_other_format
+    get :render_template_within_a_template_with_other_format
+    expected = "only html partial<p>This is grand!</p>"
+    assert_equal expected, @response.body.strip
+    assert_equal "text/html", @response.content_type
   end
 
   def test_partial_with_counter
