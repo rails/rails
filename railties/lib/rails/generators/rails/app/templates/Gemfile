@@ -12,6 +12,9 @@ source 'https://rubygems.org'
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 
+# Map RESTful resources as models
+# gem 'activeresource'
+
 # To use Jbuilder templates for JSON
 # gem 'jbuilder'
 
