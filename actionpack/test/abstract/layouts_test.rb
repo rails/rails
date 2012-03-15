@@ -72,6 +72,27 @@ module AbstractControllerTests
       end
     end
 
+    class WithZeroArityProc < Base
+      layout proc { "overwrite" }
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello zero arity proc!")
+      end
+    end
+
+    class WithProcInContextOfInstance < Base
+      def an_instance_method; end
+
+      layout proc {
+        break unless respond_to? :an_instance_method
+        "overwrite"
+      }
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello again zero arity proc!")
+      end
+    end
+
     class WithSymbol < Base
       layout :hello
 
@@ -219,6 +240,18 @@ module AbstractControllerTests
         controller = WithProc.new
         controller.process(:index)
         assert_equal "Overwrite Hello proc!", controller.response_body
+      end
+
+      test "when layout is specified as a proc without parameters it works just the same" do
+        controller = WithZeroArityProc.new
+        controller.process(:index)
+        assert_equal "Overwrite Hello zero arity proc!", controller.response_body
+      end
+
+      test "when layout is specified as a proc without parameters the block is evaluated in the context of an instance" do
+        controller = WithProcInContextOfInstance.new
+        controller.process(:index)
+        assert_equal "Overwrite Hello again zero arity proc!", controller.response_body
       end
 
       test "when layout is specified as a symbol, call the requested method and use the layout returned" do
