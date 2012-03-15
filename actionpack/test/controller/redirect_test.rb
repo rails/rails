@@ -137,7 +137,7 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_with_null_bytes
-    get :redirect_with_header_break
+    get :redirect_with_null_bytes
     assert_response :redirect
     assert_equal "http://test.host/lolwat", redirect_to_url
   end
