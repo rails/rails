@@ -159,34 +159,34 @@ module AbstractController
 
       # set up before_filter, prepend_before_filter, skip_before_filter, etc.
       # for each of before, after, and around.
-      [:before, :after, :around].each do |filter|
+      [:before, :after, :around].each do |type|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           # Append a before, after or around filter. See _insert_callbacks
           # for details on the allowed parameters.
-          def #{filter}_filter(*names, &blk)                                                 # def before_filter(*names, &blk)
+          def #{type}_filter(*names, &blk)                                                   # def before_filter(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|                                 #   _insert_callbacks(names, blk) do |name, options|
-              set_callback(:process_action, :#{filter}, name, options)                       #     set_callback(:process_action, :before, name, options)
+              set_callback(:process_action, :#{type}, name, options)                         #     set_callback(:process_action, :before, name, options)
             end                                                                              #   end
           end                                                                                # end
 
           # Prepend a before, after or around filter. See _insert_callbacks
           # for details on the allowed parameters.
-          def prepend_#{filter}_filter(*names, &blk)                                            # def prepend_before_filter(*names, &blk)
+          def prepend_#{type}_filter(*names, &blk)                                              # def prepend_before_filter(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|                                    #   _insert_callbacks(names, blk) do |name, options|
-              set_callback(:process_action, :#{filter}, name, options.merge(:prepend => true))  #     set_callback(:process_action, :before, name, options.merge(:prepend => true))
+              set_callback(:process_action, :#{type}, name, options.merge(:prepend => true))    #     set_callback(:process_action, :before, name, options.merge(:prepend => true))
             end                                                                                 #   end
           end                                                                                   # end
 
           # Skip a before, after or around filter. See _insert_callbacks
           # for details on the allowed parameters.
-          def skip_#{filter}_filter(*names)                              # def skip_before_filter(*names)
+          def skip_#{type}_filter(*names)                                # def skip_before_filter(*names)
             _insert_callbacks(names) do |name, options|                  #   _insert_callbacks(names) do |name, options|
-              skip_callback(:process_action, :#{filter}, name, options)  #     skip_callback(:process_action, :before, name, options)
+              skip_callback(:process_action, :#{type}, name, options)    #     skip_callback(:process_action, :before, name, options)
             end                                                          #   end
           end                                                            # end
 
           # *_filter is the same as append_*_filter
-          alias_method :append_#{filter}_filter, :#{filter}_filter  # alias_method :append_before_filter, :before_filter
+          alias_method :append_#{type}_filter, :#{type}_filter  # alias_method :append_before_filter, :before_filter
         RUBY_EVAL
       end
     end
