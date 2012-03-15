@@ -885,7 +885,7 @@ module ActiveRecord
       # This should be not be called manually but set in database.yml.
       def schema_search_path=(schema_csv)
         if schema_csv
-          execute "SET search_path TO #{schema_csv}"
+          execute("SET search_path TO #{schema_csv}", 'SCHEMA')
           @schema_search_path = schema_csv
         end
       end
