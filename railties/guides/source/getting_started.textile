@@ -221,7 +221,7 @@ In the next section, you will add the ability to create new posts in your applic
 
 It will look a little basic for now, but that's ok. We'll look at improving the styling for it afterwards.
 
-h4. Creating Posts
+h4. Laying down the ground work
 
 The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at +/posts/new+. If you attempt to navigate to that now -- by visiting "http://localhost:3000/posts/new":http://localhost:3000/posts/new -- Rails will give you a routing error:
 
