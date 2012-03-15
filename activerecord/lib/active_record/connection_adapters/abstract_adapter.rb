@@ -284,26 +284,25 @@ module ActiveRecord
 
       protected
 
-        def log(sql, name = "SQL", binds = [])
-          @instrumenter.instrument(
-            "sql.active_record",
-            :sql           => sql,
-            :name          => name,
-            :connection_id => object_id,
-            :binds         => binds) { yield }
-        rescue Exception => e
-          message = "#{e.class.name}: #{e.message}: #{sql}"
-          @logger.debug message if @logger
-          exception = translate_exception(e, message)
-          exception.set_backtrace e.backtrace
-          raise exception
-        end
+      def log(sql, name = "SQL", binds = [])
+        @instrumenter.instrument(
+          "sql.active_record",
+          :sql           => sql,
+          :name          => name,
+          :connection_id => object_id,
+          :binds         => binds) { yield }
+      rescue Exception => e
+        message = "#{e.class.name}: #{e.message}: #{sql}"
+        @logger.error message if @logger
+        exception = translate_exception(e, message)
+        exception.set_backtrace e.backtrace
+        raise exception
+      end
 
-        def translate_exception(e, message)
-          # override in derived class
-          ActiveRecord::StatementInvalid.new(message)
-        end
-
+      def translate_exception(e, message)
+        # override in derived class
+        ActiveRecord::StatementInvalid.new(message)
+      end
     end
   end
 end
