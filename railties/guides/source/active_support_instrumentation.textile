@@ -156,7 +156,7 @@ h4. redirect_to.action_controller
 
 <ruby>
 {
-  :status => 302, 
+  :status => 302,
   :location => "http://localhost:3000/posts/new"
 }
 </ruby>
@@ -305,7 +305,7 @@ This event is only used when +#fetch+ is called with a block.
 INFO. Options passed to fetch will be merged with the payload when writing to the store
 
 <ruby>
-{ 
+{
   :key => 'name-of-complicated-computation'
 }
 </ruby>
@@ -321,7 +321,7 @@ This event is only used when +#fetch+ is called with a block.
 INFO. Options passed to fetch will be merged with the payload.
 
 <ruby>
-{ 
+{
   :key => 'name-of-complicated-computation'
 }
 </ruby>
@@ -334,7 +334,7 @@ h4. cache_write.active_support
 INFO. Cache stores my add their own keys
 
 <ruby>
-{ 
+{
   :key => 'name-of-complicated-computation'
 }
 </ruby>
@@ -345,7 +345,7 @@ h4. cache_delete.active_support
 |+:key+  |Key used in the store|
 
 <ruby>
-{ 
+{
   :key => 'name-of-complicated-computation'
 }
 </ruby>
@@ -356,7 +356,7 @@ h4. cache_exist?.active_support
 |+:key+  |Key used in the store|
 
 <ruby>
-{ 
+{
   :key => 'name-of-complicated-computation'
 }
 </ruby>
@@ -371,7 +371,7 @@ h4. deprecation.rails
 
 h3. Subscribing to an event
 
-Subscribing to an event is easy. Use +ActiveSupport::Notifications.subscribe+ with a block to 
+Subscribing to an event is easy. Use +ActiveSupport::Notifications.subscribe+ with a block to
 listen to any notification.
 
 The block receives the following arguments:
@@ -383,7 +383,7 @@ The block receives the following arguments:
 # The payload (described in previous sections)
 
 <ruby>
-ActiveSupport::Notifications.subscribe "process_action.action_controller do |name, started, finished, unique_id, data|
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
   # your own custom stuff
   Rails.logger.info "#{name} Received!"
 end
@@ -393,7 +393,7 @@ Defining all those block arguments each time can be tedious. You can easily crea
 from block args like this:
 
 <ruby>
-ActiveSupport::Notifications.subscribe "process_action.action_controller do |*args|
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
   event = ActiveSupport::Notification::Event.new args
 
   event.name      # => "process_action.action_controller"
@@ -407,7 +407,7 @@ end
 Most times you only care about the data itself. Here is a shortuct to just get the data.
 
 <ruby>
-ActiveSupport::Notifications.subscribe "process_action.action_controller do |*args|
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
   data = args.extract_options!
   data # { :extra => :information }
 </ruby>
@@ -431,7 +431,7 @@ as well as the unique ID. All data passed into the +insturment+ call will make i
 Here's an example:
 
 <ruby>
-ActiveSupport::Notifications.instrument "my.custom.event", :this => :data do 
+ActiveSupport::Notifications.instrument "my.custom.event", :this => :data do
   # do your custom stuff here
 end
 </ruby>
@@ -444,5 +444,5 @@ ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, fini
 end
 </ruby>
 
-You should follow Rails conventions when defining your own events. The format is: +event.library+. 
+You should follow Rails conventions when defining your own events. The format is: +event.library+.
 If you application is sending Tweets, you should create an event named +tweet.twitter+.
