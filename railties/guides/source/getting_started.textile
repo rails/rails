@@ -168,7 +168,7 @@ A controller's purpose is to receive specific requests for the application. What
 
 A view's purpose is to display this information in a human readable format. An important distinction to make is that it is the _controller_, not the view, where information is collected. The view should just display that information. By default, view templates are written in a language called ERB (Embedded Ruby) which is converted by the request cycle in Rails before being sent to the user.
 
-To create a new controller, run this command:
+To create a new controller, you will need to run the "controller" generator and tell it you want a controller called "welcome" with an action called "index", just like this:
 
 <shell>
 $ rails generate controller welcome index
