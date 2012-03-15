@@ -233,7 +233,7 @@ This is because there is nowhere inside the routes for the application -- define
  To do this, you're going to need to create a route inside +config/routes.rb+ file, on a new line between the +do+ and the +end+ for the +draw+ method:
 
 <ruby>
-  get "posts/new"
+get "posts/new"
 </ruby>
 
 This route is a super-simple route: it defines a new route that only responds to +GET+ requests, and that the route is at +posts/new+. But how does it know where to go without the use of the +:to+ option? Well, Rails uses a sensible default here: Rails will assume that we want this route to go to the new action inside the posts controller.
