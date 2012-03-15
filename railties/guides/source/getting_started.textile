@@ -188,7 +188,7 @@ Now that we have made the controller and view, we need to tell Rails when we wan
 
 To fix this, delete the +index.html+ file located inside the +public+ directory of the application.
 
-We need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content we generate from the controllers.
+You need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content you generate from the controllers.
 
 Next, you have to tell Rails where your actual home page is located.
 
@@ -236,7 +236,7 @@ This is because there is nowhere inside the routes for the application -- define
 get "posts/new"
 </ruby>
 
-This route is a super-simple route: it defines a new route that only responds to +GET+ requests, and that the route is at +posts/new+. But how does it know where to go without the use of the +:to+ option? Well, Rails uses a sensible default here: Rails will assume that we want this route to go to the new action inside the posts controller.
+This route is a super-simple route: it defines a new route that only responds to +GET+ requests, and that the route is at +posts/new+. But how does it know where to go without the use of the +:to+ option? Well, Rails uses a sensible default here: Rails will assume that you want this route to go to the new action inside the posts controller.
 
 With the route defined, requests can now be made to +/posts/new+ in the application. Navigate to "http://localhost:3000/posts/new":http://localhost:3000/posts/new and you'll see another routing error:
 
@@ -274,7 +274,7 @@ With the +new+ method defined in +PostsController+, if you refresh "http://local
 
 !images/getting_started/template_is_missing_posts_new.png(Template is missing for posts/new)
 
-We're getting this error now because Rails expects plain actions like this one to have views associated with them to display their information. With no view available, Rails errors out.
+You're getting this error now because Rails expects plain actions like this one to have views associated with them to display their information. With no view available, Rails errors out.
 
 In the above image, the bottom line has been truncated. Let's see what the full thing looks like:
 
@@ -286,7 +286,7 @@ That's quite a lot of text! Let's quickly go through and understand what each pa
 
 The first part identifies what template is missing. In this case, it's the +posts/new+ template. Rails will first look for this template. If it can't find it, then it will attempt to load a template called +application/new+. It looks for one here because the +PostsController+ inherits from +ApplicationController+.
 
-The next part of the message contains a hash. The +:locale+ key in this hash simply indicates what spoken language template we want to retreive. By default, this is the English -- or "en" -- template. The next key, +:formats+ shows what formats of template we're after. The default is +:html+, and so we're looking for an HTML template. The final key, +:handlers+, is telling us what _template handlers_ could be used to render our template. +:erb+ is most commonly used for HTML templates, +:builder+ is used for XML templates, and +:coffee+ uses CoffeeScript to build JavaScript templates.
+The next part of the message contains a hash. The +:locale+ key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English -- or "en" -- template. The next key, +:formats+ shows what formats of template Rails is after. The default is +:html+, and so Rails is looking for an HTML template. The final key, +:handlers+, is telling us what _template handlers_ could be used to render our template. +:erb+ is most commonly used for HTML templates, +:builder+ is used for XML templates, and +:coffee+ uses CoffeeScript to build JavaScript templates.
 
 The final part of this message tells us where Rails has looked for the templates. Templates within a basic Rails application like this are kept in a single location, but in more complex applications it could be many different paths.
 
@@ -302,6 +302,84 @@ When you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/n
 
 h4. The first form
 
+To create a form within this template, you will use a _form builder_. The primary form builder for Rails is provided by a helper method called +form_for+. To use this method, write this code into +app/views/posts/new.html.erb+:
+
+<erb>
+<%= form_for :post do |f| %>
+  <p>
+    <%= f.label :title %><br>
+    <%= f.text_field :title %>
+  </p>
+
+  <p>
+    <%= f.label :text %><br>
+    <%= f.text_area :text %>
+  </p>
+
+  <p>
+    <%= f.submit %>
+  </p>
+<% end %>
+</erb>
+
+If you refresh the page now, you'll see the exact same form as in the example. Building forms in Rails is really just that easy!
+
+When you call +form_for+, you pass it an identifying object for this form. In this case, it's the symbol +:post+. This tells the +form_for+ helper what this form is for. Inside the block for this method, the FormBuilder object -- represented by +f+ -- is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to +submit+ on the +f+ object will create a submit button for the form.
+
+There's one problem with this form though. If you inspect the HTML that is generated, by viewing the source of the page, you will see that the +action+ attribute for the form is pointing at +/posts/new+. This is a problem because this route goes to the very page that you're on right at the moment, and that route should only be used to display the form for a new post.
+
+So the form needs to use a different URL in order to go somewhere else. This can be done quite simply with the +:url+ option of +form_for+. Typically in Rails, the action that is used for new form submissions like this is called "create", and so the form should be pointed to this action.
+
+Edit the +form_for+ line inside +app/views/posts/new.html.erb+ to look like this:
+
+<erb>
+<%= form_for :post, :url => { :action => :create } do |f| %>
+</erb>
+
+In this example, a +Hash+ object is passed to the +:url+ option. What Rails will do with this is that it will point the form to the +create+ action of the current controller, the +PostsController+, and will send a +POST+ request to that route. For this to work, you will need to add a route to +config/routes.rb+, right underneath the one for "posts/new":
+
+<ruby>
+post "posts/create"
+</ruby>
+
+By using the +post+ method rather than the +get+ method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
+
+With the form and the route for it defined now, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
+
+!images/getting_started/unknown_action_create_for_posts(Unknown action create for PostsController)!
+
+You will now need to create the +create+ action within the +PostsController+ for this to work.
+
+h4. Creating posts
+
+To make the "Unknown action" go away, you can define a +create+ action within the +PostsController+ class in +app/controllers/posts_controller.rb+, underneath the +new+ action:
+
+<ruby>
+class PostsController < ApplicationController
+  def new
+  end
+
+  def create
+  end
+
+end
+</ruby>
+
+If you re-submit the form now, you'll see another familiar error: a template is missing. That's ok, we can ignore that for now. What the +create+ action should be doing is saving our new post to a database.
+
+When a form is submitted, the fields of the form are sent to Rails as _parameters_. These parameters can then be referenced inside the controller actions, typically to perform a particular task. To see what these parameters look like, change the +create+ action to this:
+
+<ruby>
+def create
+  render :text => params.inspect
+end
+</ruby>
+
+The +render+ method here is taking a very simple hash with the key of +text+ and the value of +params.inspect+. The +params+ method here is the object which represents the parameters (or fields) coming in from the form. If you re-submit the form one more time you'll now no longer get the missing template error. Instead, you'll see something that looks like the following:
+
+<ruby>
+{"title"=>"First post!", "text"=>"This is my first post."}
+</ruby>
 
 
 
