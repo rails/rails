@@ -3,7 +3,7 @@ module ActiveRecord
   #
   # Callbacks are hooks into the life cycle of an Active Record object that allow you to trigger logic
   # before or after an alteration of the object state. This can be used to make sure that associated and
-  # dependent objects are deleted when +destroy+ is called (by overwriting +before_destroy+) or to massage attributes
+  # dependent objects are deleted when +destroy+ is called (by overwriting +before_destroy+) or to message attributes
   # before they're validated (by overwriting +before_validation+). As an example of the callbacks initiated, consider
   # the <tt>Base#save</tt> call for a new record:
   #
