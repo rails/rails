@@ -85,7 +85,7 @@ module ActionDispatch
             refer
           else
             @controller.url_for(fragment)
-          end.gsub(/[\r\n]/, '')
+          end.gsub(/[\0\r\n]/, '')
         end
 
         def validate_request!

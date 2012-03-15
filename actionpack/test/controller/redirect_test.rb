@@ -94,6 +94,14 @@ class RedirectController < ActionController::Base
     redirect_to proc { {:action => "hello_world"} }
   end
 
+  def redirect_with_header_break
+    redirect_to "/lol\r\nwat"
+  end
+
+  def redirect_with_null_bytes
+    redirect_to "\000/lol\r\nwat"
+  end
+
   def rescue_errors(e) raise e end
 
   def rescue_action(e) raise end
@@ -111,6 +119,18 @@ class RedirectTest < ActionController::TestCase
     get :simple_redirect
     assert_response :redirect
     assert_equal "http://test.host/redirect/hello_world", redirect_to_url
+  end
+
+  def test_redirect_with_header_break
+    get :redirect_with_header_break
+    assert_response :redirect
+    assert_equal "http://test.host/lolwat", redirect_to_url
+  end
+
+  def test_redirect_with_null_bytes
+    get :redirect_with_header_break
+    assert_response :redirect
+    assert_equal "http://test.host/lolwat", redirect_to_url
   end
 
   def test_redirect_with_no_status
