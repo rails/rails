@@ -160,6 +160,7 @@ module ActiveRecord
       # Sets the value of inheritance_column
       def inheritance_column=(value)
         @inheritance_column = value.to_s
+        @explicit_inheritance_column = true
       end
 
       def sequence_name
@@ -303,7 +304,7 @@ module ActiveRecord
         @column_types         = nil
         @content_columns      = nil
         @dynamic_methods_hash = nil
-        @inheritance_column   = nil
+        @inheritance_column   = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @relation             = nil
       end
 
