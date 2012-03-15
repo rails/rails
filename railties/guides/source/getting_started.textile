@@ -242,7 +242,68 @@ With the route defined, requests can now be made to +/posts/new+ in the applicat
 
 !images/getting_started/routing_error_no_controller.png(Another routing error, uninitialized constant PostsController)
 
-This error is happening because this route need a controller to be defined. The route is attempting to find that controller so it can serve the request, but with the controller undefined, it just can't do that.
+This error is happening because this route need a controller to be defined. The route is attempting to find that controller so it can serve the request, but with the controller undefined, it just can't do that. The solution to this particular problem is simple: you need to create a controller called +PostsController+. You can do this by running this command:
+
+<shell>
+$ rails g controller posts
+</shell>
+
+If you open up the newly generated +app/controllers/posts_controller.rb+ you'll see a fairly empty controller:
+
+<ruby>
+class PostsController < ApplicationController
+end
+</ruby>
+
+A controller is simply a class that is defined to inherit from +ApplicationController+. It's inside this class that you'll define methods that will become the actions for this controller. These actions will perform CRUD operations on the posts within our system.
+
+If you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new now, you'll get a new error:
+
+!images/getting_started/unknown_action_new_for_posts.png(Unknown action new for PostsController!)
+
+This error indicates that Rails cannot find the +new+ action inside the +PostsController+ that you just generated. This is because when controllers are generated in Rails they are empty by default, unless you tell it you wanted actions during the generation process.
+
+To manually define an action inside a controller, all you need to do is to define a new method inside the controller. Open +app/controllers/posts_controller.rb+ and inside the +PostsController+ class, define a +new+ method like this:
+
+<ruby>
+def new
+end
+</ruby>
+
+With the +new+ method defined in +PostsController+, if you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new you'll see another error:
+
+!images/getting_started/template_is_missing_posts_new.png(Template is missing for posts/new)
+
+We're getting this error now because Rails expects plain actions like this one to have views associated with them to display their information. With no view available, Rails errors out.
+
+In the above image, the bottom line has been truncated. Let's see what the full thing looks like:
+
+<text>
+Missing template posts/new, application/new with {:locale=>[:en], :formats=>[:html], :handlers=>[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
+</text>
+
+That's quite a lot of text! Let's quickly go through and understand what each part of it does.
+
+The first part identifies what template is missing. In this case, it's the +posts/new+ template. Rails will first look for this template. If it can't find it, then it will attempt to load a template called +application/new+. It looks for one here because the +PostsController+ inherits from +ApplicationController+.
+
+The next part of the message contains a hash. The +:locale+ key in this hash simply indicates what spoken language template we want to retreive. By default, this is the English -- or "en" -- template. The next key, +:formats+ shows what formats of template we're after. The default is +:html+, and so we're looking for an HTML template. The final key, +:handlers+, is telling us what _template handlers_ could be used to render our template. +:erb+ is most commonly used for HTML templates, +:builder+ is used for XML templates, and +:coffee+ uses CoffeeScript to build JavaScript templates.
+
+The final part of this message tells us where Rails has looked for the templates. Templates within a basic Rails application like this are kept in a single location, but in more complex applications it could be many different paths.
+
+The simplest template that would work in this case would be one located at +app/views/posts/new.html.erb+. The extension of this file name is key: the first extension is the _format_ of the template, and the second extension is the _handler_ that will be used. Rails is attempting to find a template called +posts/new+ within +app/views+ for the application. The format for this template can only be +html+ and the handler must be one of +erb+, +builder+ or +coffee+. Because you want to create a new HTML form, you will be using the +ERB+ language. Therefore the file should be called +posts/new.html.erb+ and be located inside the +app/views+ directory of the application.
+
+Go ahead now and create a new file at +app/views/posts/new.html.erb+ and write this content in it:
+
+<erb>
+<h1>New Post</h1>
+</erb>
+
+When you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new you'll now see that the page has a title. The route, controller, action and view are now working harmoniously! It's time to create the form for a new post.
+
+h4. The first form
+
+
+
 
 h4. Running a Migration
 
