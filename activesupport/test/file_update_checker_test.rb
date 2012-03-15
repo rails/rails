@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'test/unit'
 require 'fileutils'
+require 'timeout'
 
 MTIME_FIXTURES_PATH = File.expand_path("../fixtures", __FILE__)
 
@@ -79,5 +80,25 @@ class FileUpdateCheckerWithEnumerableTest < Test::Unit::TestCase
     end
     assert !checker.execute_if_updated
     assert_equal 0, i
+  end
+
+  def test_should_not_block_if_a_strange_filename_used
+    FileUtils.mkdir_p("tmp_watcher/valid,yetstrange,path,")
+    FileUtils.touch(FILES.map { |file_name| "tmp_watcher/valid,yetstrange,path,/#{file_name}" } )
+
+    timeout_process = Class.new do
+      include Process
+      def run(&block)
+        waitpid fork(&block)
+      end
+    end
+
+    Timeout::timeout(1) do
+      timeout_process.new.run do
+        checker = ActiveSupport::FileUpdateChecker.new([],"tmp_watcher/valid,yetstrange,path," => :rb){ i += 1 }
+      end
+      @finished = true
+    end
+    assert @finished
   end
 end

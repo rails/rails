@@ -107,9 +107,13 @@ module ActiveSupport
 
       globs = []
       hash.each do |key, value|
-        globs << "#{key}/**/*#{compile_ext(value)}"
+        globs << "#{escape(key)}/**/*#{compile_ext(value)}"
       end
       "{#{globs.join(",")}}"
+    end
+
+    def escape(key)
+      key.gsub(',','\,')
     end
 
     def compile_ext(array) #:nodoc:
