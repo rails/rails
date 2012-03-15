@@ -87,7 +87,7 @@ module ActionController
           refer
         else
           url_for(options)
-        end.gsub(/[\r\n]/, '')
+        end.gsub(/[\0\r\n]/, '')
       end
   end
 end
