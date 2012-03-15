@@ -361,7 +361,6 @@ h4. cache_exist?.active_support
 }
 </ruby>
 
-
 h3. Rails
 
 h4. deprecation.rails
@@ -372,5 +371,78 @@ h4. deprecation.rails
 
 h3. Subscribing to an event
 
+Subscribing to an event is easy. Use +ActiveSupport::Notifications.subscribe+ with a block to 
+listen to any notification.
+
+The block receives the following arguments:
+
+# The name of the event
+# Time when is started
+# Time when it finished
+# An unique ID for this event
+# The payload (described in previous sections)
+
+<ruby>
+ActiveSupport::Notifications.subscribe "process_action.action_controller do |name, started, finished, unique_id, data|
+  # your own custom stuff
+  Rails.logger.info "#{name} Received!"
+end
+</ruby>
+
+Defining all those block arguments each time can be tedious. You can easily create an +ActiveSupport::Notifications::Event+
+from block args like this:
+
+<ruby>
+ActiveSupport::Notifications.subscribe "process_action.action_controller do |*args|
+  event = ActiveSupport::Notification::Event.new args
+
+  event.name      # => "process_action.action_controller"
+  event.duration  # => 10 (in milliseconds)
+  event.payload   # => { :extra => :information }
+
+  Rails.logger.info "#{event} Received!"
+end
+</ruby>
+
+Most times you only care about the data itself. Here is a shortuct to just get the data.
+
+<ruby>
+ActiveSupport::Notifications.subscribe "process_action.action_controller do |*args|
+  data = args.extract_options!
+  data # { :extra => :information }
+</ruby>
+
+You may also subscribe to events matching a regular expresssion. This enables you to subscribe to
+multiple events at once. Here's you could subscribe to everything from +ActionController+.
+
+<ruby>
+ActiveSupport::Notifications.subscribe /action_controller/ do |*args|
+  # inspect all ActionController events
+end
+</ruby>
+
 h3. Creating custom events
 
+Adding your own events is easy as well. +ActiveSupport::Notifications+ will take care of
+all the heavy lifting for you. Simply call +instrument+ with a +name+, +payload+ and a block.
+The notification will be sent after the block returns. +ActiveSupport+ will generate the start and end times
+as well as the unique ID. All data passed into the +insturment+ call will make it into the payload.
+
+Here's an example:
+
+<ruby>
+ActiveSupport::Notifications.instrument "my.custom.event", :this => :data do 
+  # do your custom stuff here
+end
+</ruby>
+
+Now you can listen to this event with:
+
+<ruby>
+ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
+  puts data.inspect # { :this => :data }
+end
+</ruby>
+
+You should follow Rails conventions when defining your own events. The format is: +event.library+. 
+If you application is sending Tweets, you should create an event named +tweet.twitter+.
