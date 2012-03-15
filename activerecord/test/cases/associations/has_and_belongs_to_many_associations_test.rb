@@ -338,6 +338,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, project.developers.size
   end
 
+  def test_uniq_when_association_already_loaded
+    project = projects(:active_record)
+    project.developers << [ developers(:jamis), developers(:david), developers(:jamis), developers(:david) ]
+    assert_equal 3, Project.includes(:developers).find(project.id).developers.size
+  end
+
   def test_deleting
     david = Developer.find(1)
     active_record = Project.find(1)
