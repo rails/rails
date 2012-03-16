@@ -362,13 +362,16 @@ module Yaffle
       def acts_as_yaffle(options = {})
         cattr_accessor :yaffle_text_field
         self.yaffle_text_field = (options[:yaffle_text_field] || :last_squawk).to_s
+
+        include Yaffle::ActsAsYaffle::LocalInstanceMethods
       end
     end
 
-    def squawk(string)
-      write_attribute(self.class.yaffle_text_field, string.to_squawk)
+    module LocalInstanceMethods
+      def squawk(string)
+        write_attribute(self.class.yaffle_text_field, string.to_squawk)
+      end
     end
-
   end
 end
 
