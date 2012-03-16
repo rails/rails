@@ -1234,4 +1234,23 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.order('foo(comments.body)')
     assert_equal [], scope.references_values
   end
+
+  def test_presence
+    topics = Topic.scoped
+
+    assert_queries(1) do
+      #checking if there are topics is used before you actually display them,
+      #thus it shouldn't invoke an extra count query
+      assert topics.present?
+      assert !topics.blank?
+
+      #shows count of topics and loops after loading the query should not trigger extra queries either
+      assert_no_queries topics.size
+      assert_no_queries topics.count
+      assert_no_queries topics.length
+      assert_no_queries topics.each
+    end
+
+    assert topics.loaded?
+  end
 end
