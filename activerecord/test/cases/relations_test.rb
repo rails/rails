@@ -1238,18 +1238,21 @@ class RelationTest < ActiveRecord::TestCase
   def test_presence
     topics = Topic.scoped
 
-    assert_queries(1) do
-      #checking if there are topics is used before you actually display them,
-      #thus it shouldn't invoke an extra count query
-      assert topics.present?
-      assert !topics.blank?
+    # the fist query is triggered because there are no topics yet.
+    assert_queries(1) { assert topics.present? }
 
-      #shows count of topics and loops after loading the query should not trigger extra queries either
-      assert_no_queries { topics.size }
-      assert_no_queries { topics.count }
-      assert_no_queries { topics.length }
-      assert_no_queries { topics.each }
-    end
+    # checking if there are topics is used before you actually display them,
+    # thus it shouldn't invoke an extra count query.
+    assert_no_queries { assert topics.present? }
+    assert_no_queries { assert !topics.blank? }
+
+    # shows count of topics and loops after loading the query should not trigger extra queries either.
+    assert_no_queries { topics.size }
+    assert_no_queries { topics.length }
+    assert_no_queries { topics.each }
+
+    # count always trigger the COUNT query.
+    assert_queries(1) { topics.count }
 
     assert topics.loaded?
   end
