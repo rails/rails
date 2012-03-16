@@ -3,17 +3,15 @@ module ActiveModel
     class Sanitizer
       # Returns all attributes not denied by the authorizer.
       def sanitize(attributes, authorizer)
-        sanitized_attributes = attributes.reject { |key, value| authorizer.deny?(key) }
-        debug_protected_attribute_removal(attributes, sanitized_attributes)
+        rejected = []
+        sanitized_attributes = attributes.reject do |key, value|
+          rejected << key if authorizer.deny?(key)
+        end
+        process_removed_attributes(rejected) unless rejected.empty?
         sanitized_attributes
       end
 
     protected
-
-      def debug_protected_attribute_removal(attributes, sanitized_attributes)
-        removed_keys = attributes.keys - sanitized_attributes.keys
-        process_removed_attributes(removed_keys) if removed_keys.any?
-      end
 
       def process_removed_attributes(attrs)
         raise NotImplementedError, "#process_removed_attributes(attrs) suppose to be overwritten"
