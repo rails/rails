@@ -84,7 +84,7 @@ module ActionController
                 options.inspect, rendered.keys)
         assert_block(msg) do
           if options
-            rendered.any? { |t,num| t.match(options) }
+            rendered.any? { |t,num| t.match(options + "$") }
           else
             @templates.blank?
           end

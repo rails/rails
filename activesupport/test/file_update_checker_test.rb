@@ -86,7 +86,7 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
     FileUtils.touch(FILES.map { |file_name| "tmp_watcher/valid,yetstrange,path,/#{file_name}" } )
 
     test = Thread.new do
-      checker = ActiveSupport::FileUpdateChecker.new([],"tmp_watcher/valid,yetstrange,path," => :txt){ i += 1 }
+      ActiveSupport::FileUpdateChecker.new([],"tmp_watcher/valid,yetstrange,path," => :txt){ i += 1 }
       Thread.exit
     end
     test.priority = -1
