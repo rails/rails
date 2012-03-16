@@ -465,16 +465,15 @@ module ActiveRecord
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          unless association.loaded? || call_reject_if(association_name, attributes)
-            # Make sure we are operating on the actual object which is in the association's
-            # proxy_target array (either by finding it, or adding it if not found)
-            target_record = association.target.detect { |record| record == existing_record }
-
-            if target_record
-              existing_record = target_record
-            else
-              association.add_to_target(existing_record)
-            end
+          # Make sure we are operating on the actual object which is in the association's
+          # proxy_target array (either by finding it, or adding it if not found)
+          # Take into account that the proxy_target may have changed due to callbacks
+          target_record = association.target.detect { |record| record.id.to_s == attributes['id'].to_s }
+          if target_record
+            existing_record = target_record
+          else
+            #FIXME: there is no good way of adding the record without callback
+            association.target << existing_record
           end
 
           if !call_reject_if(association_name, attributes)
