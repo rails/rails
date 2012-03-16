@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/delegation'
-
 module ActiveSupport
   module Notifications
     class Instrumenter

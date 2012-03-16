@@ -9,15 +9,14 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, block = Proc.new)
-        subscriber = Subscriber.new(pattern, block).tap do |s|
-          @subscribers << s
-        end
+        subscriber = Subscriber.new(pattern, block)
+        @subscribers << subscriber
         @listeners_for.clear
         subscriber
       end
 
       def unsubscribe(subscriber)
-        @subscribers.reject! {|s| s.matches?(subscriber)}
+        @subscribers.reject! { |s| s.matches?(subscriber) }
         @listeners_for.clear
       end
 

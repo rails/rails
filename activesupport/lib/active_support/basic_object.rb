@@ -10,5 +10,4 @@ module ActiveSupport
       ::Object.send(:raise, *args)
     end
   end
-
 end

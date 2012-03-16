@@ -3,7 +3,7 @@ require 'active_support/core_ext/class/attribute'
 
 module ActiveSupport
   # ActiveSupport::LogSubscriber is an object set to consume ActiveSupport::Notifications
-  # with the sole purpose of logging them. The log subscriber dispatches notifications to 
+  # with the sole purpose of logging them. The log subscriber dispatches notifications to
   # a registered object based on its given namespace.
   #
   # An example would be Active Record log subscriber responsible for logging queries:
@@ -75,7 +75,8 @@ module ActiveSupport
         @@flushable_loggers ||= begin
           loggers = log_subscribers.map(&:logger)
           loggers.uniq!
-          loggers.select { |l| l.respond_to?(:flush) }
+          loggers.select! { |l| l.respond_to?(:flush) }
+          loggers
         end
       end
 
@@ -101,8 +102,7 @@ module ActiveSupport
     %w(info debug warn error fatal unknown).each do |level|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{level}(progname = nil, &block)
-          return unless logger
-          logger.#{level}(progname, &block)
+          logger.#{level}(progname, &block) if logger
         end
       METHOD
     end
