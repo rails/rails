@@ -282,7 +282,7 @@ module ActiveSupport
     #   Time.zone = 'Hawaii'  # => "Hawaii"
     #   Time.zone.now         # => Wed, 23 Jan 2008 20:24:27 HST -10:00
     def now
-      Time.now.utc.in_time_zone(self)
+      time_now.utc.in_time_zone(self)
     end
 
     # Return the current date in this time zone.
@@ -390,6 +390,12 @@ module ActiveSupport
             hash[place] = create(place) if MAPPING.has_key?(place)
           end
         end
+    end
+
+    private
+
+    def time_now
+      Time.now
     end
   end
 end
