@@ -27,6 +27,17 @@ class Object
   #     end
   #   end
   #
+  # Or, if you prefer:
+  #
+  #   class Account < ActiveRecord::Base
+  #     with_options :dependent => :destroy
+  #       has_many :customers
+  #       has_many :products
+  #       has_many :invoices
+  #       has_many :expenses
+  #     end
+  #   end
+  #
   # It can also be used with an explicit receiver:
   #
   #   I18n.with_options :locale => user.locale, :scope => "newsletter" do |i18n|
@@ -37,7 +48,11 @@ class Object
   # <tt>with_options</tt> can also be nested since the call is forwarded to its receiver.
   # Each nesting level will merge inherited defaults in addition to their own.
   #
-  def with_options(options)
-    yield ActiveSupport::OptionMerger.new(self, options)
+  def with_options(options, &block)
+    if block.arity == 0
+      ActiveSupport::OptionMerger.new(self, options).instance_eval(&block)
+    else
+      block.call ActiveSupport::OptionMerger.new(self, options)
+    end
   end
 end

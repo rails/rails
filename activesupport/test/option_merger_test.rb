@@ -16,10 +16,25 @@ class OptionMergerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_method_with_options_merges_options_when_options_are_present_without_param
+    local_options = {:cool => true}
+
+    with_options(@options) do
+      assert_equal @options.merge(local_options),
+        method_with_options(local_options)
+    end
+  end
+
   def test_method_with_options_appends_options_when_options_are_missing
     with_options(@options) do |o|
       assert_equal Hash.new, method_with_options
       assert_equal @options, o.method_with_options
+    end
+  end
+
+  def test_method_with_options_appends_options_when_options_are_missing_without_param
+    with_options(@options) do
+      assert_equal @options, method_with_options
     end
   end
 
@@ -39,11 +54,35 @@ class OptionMergerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_method_with_options_allows_to_overwrite_options_without_param
+    local_options = {:hello => 'moon'}
+    assert_equal @options.keys, local_options.keys
+
+    with_options(@options) do
+      assert_equal @options.merge(local_options),
+        method_with_options(local_options)
+      assert_equal local_options, method_with_options(local_options)
+    end
+    with_options(local_options) do
+      assert_equal local_options.merge(@options),
+        method_with_options(@options)
+    end
+  end
+
   def test_nested_method_with_options_containing_hashes_merge
     with_options :conditions => { :method => :get } do |outer|
       outer.with_options :conditions => { :domain => "www" } do |inner|
         expected = { :conditions => { :method => :get, :domain => "www" } }
         assert_equal expected, inner.method_with_options
+      end
+    end
+  end
+
+  def test_nested_method_with_options_containing_hashes_merge_with_one_level_having_param
+    with_options :conditions => { :method => :get } do |outer|
+      outer.with_options :conditions => { :domain => "www" } do
+        expected = { :conditions => { :method => :get, :domain => "www" } }
+        assert_equal expected, method_with_options
       end
     end
   end
@@ -57,6 +96,15 @@ class OptionMergerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_nested_method_with_options_containing_hashes_overwrite_with_one_level_having_param
+    with_options :conditions => { :method => :get, :domain => "www" } do |outer|
+      outer.with_options :conditions => { :method => :post } do
+        expected = { :conditions => { :method => :post, :domain => "www" } }
+        assert_equal expected, method_with_options
+      end
+    end
+  end
+
   def test_nested_method_with_options_containing_hashes_going_deep
     with_options :html => { :class => "foo", :style => { :margin => 0, :display => "block" } } do |outer|
       outer.with_options :html => { :title => "bar", :style => { :margin => "1em", :color => "#fff" } } do |inner|
@@ -66,11 +114,28 @@ class OptionMergerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_nested_method_with_options_containing_hashes_going_deep_with_no_levels_having_param
+    with_options :html => { :class => "foo", :style => { :margin => 0, :display => "block" } } do
+      with_options :html => { :title => "bar", :style => { :margin => "1em", :color => "#fff" } } do
+        expected = { :html => { :class => "foo", :title => "bar", :style => { :margin => "1em", :display => "block", :color => "#fff" } } }
+        assert_equal expected, method_with_options
+      end
+    end
+  end
+
   def test_nested_method_with_options_using_lambda
     local_lambda = lambda { { :lambda => true } }
     with_options(@options) do |o|
       assert_equal @options.merge(local_lambda.call),
         o.method_with_options(local_lambda).call
+    end
+  end
+
+  def test_nested_method_with_options_using_lambda_without_param
+    local_lambda = lambda { { :lambda => true } }
+    with_options(@options) do
+      assert_equal @options.merge(local_lambda.call),
+        method_with_options(local_lambda).call
     end
   end
 
