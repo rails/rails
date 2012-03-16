@@ -1245,10 +1245,10 @@ class RelationTest < ActiveRecord::TestCase
       assert !topics.blank?
 
       #shows count of topics and loops after loading the query should not trigger extra queries either
-      assert_no_queries topics.size
-      assert_no_queries topics.count
-      assert_no_queries topics.length
-      assert_no_queries topics.each
+      assert_no_queries { topics.size }
+      assert_no_queries { topics.count }
+      assert_no_queries { topics.length }
+      assert_no_queries { topics.each }
     end
 
     assert topics.loaded?
