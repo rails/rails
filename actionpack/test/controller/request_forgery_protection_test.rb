@@ -112,7 +112,7 @@ module RequestForgeryProtectionTests
     assert_not_blocked do
       get :form_for_remote
     end
-    assert_no_match /authenticity_token/, response.body
+    assert_no_match(/authenticity_token/, response.body)
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_authenticity_token_requested
