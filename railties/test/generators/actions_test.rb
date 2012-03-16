@@ -9,8 +9,6 @@ class ActionsTest < Rails::Generators::TestCase
   def setup
     Rails.application = TestApp::Application
     super
-    @git_plugin_uri = 'git://github.com/technoweenie/restful-authentication.git'
-    @svn_plugin_uri = 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
   end
 
   def teardown
@@ -35,41 +33,6 @@ class ActionsTest < Rails::Generators::TestCase
   def test_create_file_should_write_block_contents_to_file_path
     action(:create_file, 'lib/test_file.rb'){ 'heres block data' }
     assert_file 'lib/test_file.rb', 'heres block data'
-  end
-
-  def test_plugin_with_git_option_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/rails plugin install #{@git_plugin_uri}", :verbose => false)
-    action :plugin, 'restful-authentication', :git => @git_plugin_uri
-  end
-
-  def test_plugin_with_svn_option_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/rails plugin install #{@svn_plugin_uri}", :verbose => false)
-    action :plugin, 'restful-authentication', :svn => @svn_plugin_uri
-  end
-
-  def test_plugin_with_git_option_and_branch_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/rails plugin install -b stable #{@git_plugin_uri}", :verbose => false)
-    action :plugin, 'restful-authentication', :git => @git_plugin_uri, :branch => 'stable'
-  end
-
-  def test_plugin_with_svn_option_and_revision_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/rails plugin install -r 1234 #{@svn_plugin_uri}", :verbose => false)
-    action :plugin, 'restful-authentication', :svn => @svn_plugin_uri, :revision => 1234
-  end
-
-  def test_plugin_with_git_option_and_submodule_should_use_git_scm
-    generator.expects(:run).with("git submodule add #{@git_plugin_uri} vendor/plugins/rest_auth", :verbose => false)
-    action :plugin, 'rest_auth', :git => @git_plugin_uri, :submodule => true
-  end
-
-  def test_plugin_with_git_option_and_submodule_should_use_git_scm
-    generator.expects(:run).with("git submodule add -b stable #{@git_plugin_uri} vendor/plugins/rest_auth", :verbose => false)
-    action :plugin, 'rest_auth', :git => @git_plugin_uri, :submodule => true, :branch => 'stable'
-  end
-
-  def test_plugin_with_no_options_should_skip_method
-    generator.expects(:run).never
-    action :plugin, 'rest_auth', {}
   end
 
   def test_add_source_adds_source_to_gemfile
@@ -114,7 +77,7 @@ class ActionsTest < Rails::Generators::TestCase
     action :gem_group, :test do
       gem 'fakeweb'
     end
-    
+
     assert_file 'Gemfile', /\ngroup :development, :test do\n  gem "rspec-rails"\nend\n\ngroup :test do\n  gem "fakeweb"\nend/
   end
 
@@ -233,14 +196,14 @@ class ActionsTest < Rails::Generators::TestCase
   def test_readme
     run_generator
     Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
-    assert_match(/Welcome to Rails/, action(:readme, "README"))
+    assert_match(/Welcome to Rails/, action(:readme, "README.rdoc"))
   end
 
   def test_readme_with_quiet
     generator(default_arguments, :quiet => true)
     run_generator
     Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
-    assert_no_match(/Welcome to Rails/, action(:readme, "README"))
+    assert_no_match(/Welcome to Rails/, action(:readme, "README.rdoc"))
   end
 
   def test_log

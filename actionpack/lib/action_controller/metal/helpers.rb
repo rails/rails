@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 
 module ActionController
@@ -53,10 +52,11 @@ module ActionController
   module Helpers
     extend ActiveSupport::Concern
 
+    class << self; attr_accessor :helpers_path; end
     include AbstractController::Helpers
 
     included do
-      config_accessor :helpers_path, :include_all_helpers
+      class_attribute :helpers_path, :include_all_helpers
       self.helpers_path ||= []
       self.include_all_helpers = true
     end
@@ -94,7 +94,7 @@ module ActionController
 
       def all_helpers_from_path(path)
         helpers = []
-        Array.wrap(path).each do |_path|
+        Array(path).each do |_path|
           extract  = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
           helpers += Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
         end

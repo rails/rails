@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2011 David Heinemeier Hansson
+# Copyright (c) 2004-2012 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -39,9 +39,11 @@ module ActiveRecord
     autoload :Aggregations
     autoload :Associations
     autoload :AttributeMethods
+    autoload :AttributeAssignment
     autoload :AutosaveAssociation
 
     autoload :Relation
+    autoload :NullRelation
 
     autoload_under 'relation' do
       autoload :QueryMethods
@@ -51,32 +53,43 @@ module ActiveRecord
       autoload :SpawnMethods
       autoload :Batches
       autoload :Explain
+      autoload :Delegation
     end
 
     autoload :Base
     autoload :Callbacks
+    autoload :Core
     autoload :CounterCache
+    autoload :ConnectionHandling
+    autoload :DynamicMatchers
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch
+    autoload :Explain
+    autoload :Inheritance
+    autoload :Integration
     autoload :Migration
     autoload :Migrator, 'active_record/migration'
-    autoload :NamedScope
+    autoload :Model
+    autoload :ModelSchema
     autoload :NestedAttributes
     autoload :Observer
     autoload :Persistence
     autoload :QueryCache
+    autoload :Querying
+    autoload :ReadonlyAttributes
     autoload :Reflection
     autoload :Result
+    autoload :Sanitization
     autoload :Schema
     autoload :SchemaDumper
+    autoload :Scoping
     autoload :Serialization
-    autoload :Store
     autoload :SessionStore
+    autoload :Store
     autoload :Timestamp
     autoload :Transactions
+    autoload :Translation
     autoload :Validations
-    autoload :IdentityMap
-    autoload :Explain
   end
 
   module Coders
@@ -95,7 +108,6 @@ module ActiveRecord
       autoload :TimeZoneConversion
       autoload :Write
       autoload :Serialization
-      autoload :DeprecatedUnderscoreRead
     end
   end
 
@@ -114,6 +126,15 @@ module ActiveRecord
     eager_autoload do
       autoload :AbstractAdapter
       autoload :ConnectionManagement, "active_record/connection_adapters/abstract/connection_pool"
+    end
+  end
+
+  module Scoping
+    extend ActiveSupport::Autoload
+
+    eager_autoload do
+      autoload :Named
+      autoload :Default
     end
   end
 

@@ -4,6 +4,8 @@ require 'action_controller/metal/exceptions'
 
 module ActionView
   class AssetPaths #:nodoc:
+    URI_REGEXP = %r{^[-a-z]+://|^cid:|^//}
+
     attr_reader :config, :controller
 
     def initialize(config, controller = nil)
@@ -37,7 +39,7 @@ module ActionView
     end
 
     def is_uri?(path)
-      path =~ %r{^[-a-z]+://|^cid:|^//}
+      path =~ URI_REGEXP
     end
 
   private
@@ -115,7 +117,7 @@ module ActionView
     end
 
     def relative_url_root
-      config.relative_url_root
+      config.relative_url_root || current_request.try(:script_name)
     end
 
     def asset_host_config

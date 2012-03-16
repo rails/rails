@@ -2,10 +2,13 @@ require 'active_support/inflector'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/deprecation'
+require 'active_support/core_ext/object/blank'
 
 module ActiveModel
   class Name < String
-    attr_reader :singular, :plural, :element, :collection, :partial_path, :route_key, :param_key, :i18n_key
+    attr_reader :singular, :plural, :element, :collection, :partial_path,
+      :singular_route_key, :route_key, :param_key, :i18n_key
+
     alias_method :cache_key, :collection
 
     deprecate :partial_path => "ActiveModel::Name#partial_path is deprecated. Call #to_partial_path on model instances directly instead."
@@ -26,8 +29,12 @@ module ActiveModel
       @collection   = ActiveSupport::Inflector.tableize(self).freeze
       @partial_path = "#{@collection}/#{@element}".freeze
       @param_key    = (namespace ? _singularize(@unnamespaced) : @singular).freeze
-      @route_key    = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural).freeze
       @i18n_key     = self.underscore.to_sym
+
+      @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural.dup)
+      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key).freeze
+      @route_key << "_index" if @plural == @singular
+      @route_key.freeze
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
@@ -117,10 +124,25 @@ module ActiveModel
     # namespaced models regarding whether it's inside isolated engine.
     #
     # For isolated engine:
+    # ActiveModel::Naming.route_key(Blog::Post) #=> post
+    #
+    # For shared engine:
+    # ActiveModel::Naming.route_key(Blog::Post) #=> blog_post
+    def self.singular_route_key(record_or_class)
+      model_name_from_record_or_class(record_or_class).singular_route_key
+    end
+
+    # Returns string to use while generating route names. It differs for
+    # namespaced models regarding whether it's inside isolated engine.
+    #
+    # For isolated engine:
     # ActiveModel::Naming.route_key(Blog::Post) #=> posts
     #
     # For shared engine:
     # ActiveModel::Naming.route_key(Blog::Post) #=> blog_posts
+    #
+    # The route key also considers if the noun is uncountable and, in
+    # such cases, automatically appends _index.
     def self.route_key(record_or_class)
       model_name_from_record_or_class(record_or_class).route_key
     end

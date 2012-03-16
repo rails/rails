@@ -1,6 +1,5 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/filters'
-require 'action_view/helpers/tag_helper'
 
 module ActionView
   # = Action View Text Helpers
@@ -31,6 +30,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include SanitizeHelper
+      include TagHelper
       # The preferred method of outputting text in your views is to use the
       # <%= "text" %> eRuby syntax. The regular _puts_ and _print_ methods
       # do not operate as expected in an eRuby code block. If you absolutely must
@@ -90,11 +90,11 @@ module ActionView
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
       # as a single-quoted string with \1 where the phrase is to be inserted (defaults to
-      # '<strong class="highlight">\1</strong>')
+      # '<mark>\1</mark>')
       #
       # ==== Examples
       #   highlight('You searched for: rails', 'rails')
-      #   # => You searched for: <strong class="highlight">rails</strong>
+      #   # => You searched for: <mark>rails</mark>
       #
       #   highlight('You searched for: ruby, rails, dhh', 'actionpack')
       #   # => You searched for: ruby, rails, dhh
@@ -111,9 +111,9 @@ module ActionView
       def highlight(text, phrases, *args)
         options = args.extract_options!
         unless args.empty?
-          options[:highlighter] = args[0] || '<strong class="highlight">\1</strong>'
+          options[:highlighter] = args[0] || '<mark>\1</mark>'
         end
-        options.reverse_merge!(:highlighter => '<strong class="highlight">\1</strong>')
+        options.reverse_merge!(:highlighter => '<mark>\1</mark>')
 
         text = sanitize(text) unless options[:sanitize] == false
         if text.blank? || phrases.blank?
@@ -162,15 +162,15 @@ module ActionView
         options.reverse_merge!(:radius => 100, :omission => "...")
 
         phrase = Regexp.escape(phrase)
-        return unless found_pos = text.mb_chars =~ /(#{phrase})/i
+        return unless found_pos = text =~ /(#{phrase})/i
 
         start_pos = [ found_pos - options[:radius], 0 ].max
-        end_pos   = [ [ found_pos + phrase.mb_chars.length + options[:radius] - 1, 0].max, text.mb_chars.length ].min
+        end_pos   = [ [ found_pos + phrase.length + options[:radius] - 1, 0].max, text.length ].min
 
         prefix  = start_pos > 0 ? options[:omission] : ""
-        postfix = end_pos < text.mb_chars.length - 1 ? options[:omission] : ""
+        postfix = end_pos < text.length - 1 ? options[:omission] : ""
 
-        prefix + text.mb_chars[start_pos..end_pos].strip + postfix
+        prefix + text[start_pos..end_pos].strip + postfix
       end
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If

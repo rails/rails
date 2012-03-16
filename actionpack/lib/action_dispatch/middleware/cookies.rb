@@ -121,10 +121,6 @@ module ActionDispatch
         @cookies = {}
       end
 
-      attr_reader :closed
-      alias :closed? :closed
-      def close!; @closed = true end
-
       def each(&block)
         @cookies.each(&block)
       end
@@ -165,7 +161,6 @@ module ActionDispatch
       # Sets the cookie named +name+. The second argument may be the very cookie
       # value, or a hash of options as documented above.
       def []=(key, options)
-        raise ClosedError, :cookies if closed?
         if options.is_a?(Hash)
           options.symbolize_keys!
           value = options[:value]
@@ -194,6 +189,15 @@ module ActionDispatch
         value = @cookies.delete(key.to_s)
         @delete_cookies[key.to_s] = options
         value
+      end
+
+      # Whether the given cookie is to be deleted by this CookieJar.
+      # Like <tt>[]=</tt>, you can pass in an options hash to test if a
+      # deletion applies to a specific <tt>:path</tt>, <tt>:domain</tt> etc.
+      def deleted?(key, options = {})
+        options.symbolize_keys!
+        handle_options(options)
+        @delete_cookies[key.to_s] == options
       end
 
       # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
@@ -259,7 +263,6 @@ module ActionDispatch
       end
 
       def []=(key, options)
-        raise ClosedError, :cookies if closed?
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
@@ -298,7 +301,6 @@ module ActionDispatch
       end
 
       def []=(key, options)
-        raise ClosedError, :cookies if closed?
         if options.is_a?(Hash)
           options.symbolize_keys!
           options[:value] = @verifier.generate(options[:value])
@@ -352,9 +354,6 @@ module ActionDispatch
       end
 
       [status, headers, body]
-    ensure
-      cookie_jar = ActionDispatch::Request.new(env).cookie_jar unless cookie_jar
-      cookie_jar.close!
     end
   end
 end

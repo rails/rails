@@ -1,5 +1,4 @@
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/except'
@@ -34,7 +33,7 @@ module ActiveModel
   #   person.first_name = 'zoolander'
   #   person.valid?                   # => false
   #   person.invalid?                 # => true
-  #   person.errors                   # => #<OrderedHash {:first_name=>["starts with z."]}>
+  #   person.errors                   # => #<Hash {:first_name=>["starts with z."]}>
   #
   # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+ method
   # to your instances initialized with a new <tt>ActiveModel::Errors</tt> object, so
@@ -42,9 +41,9 @@ module ActiveModel
   #
   module Validations
     extend ActiveSupport::Concern
-    include ActiveSupport::Callbacks
 
     included do
+      extend ActiveModel::Callbacks
       extend ActiveModel::Translation
 
       extend  HelperMethods
@@ -53,7 +52,8 @@ module ActiveModel
       attr_accessor :validation_context
       define_callbacks :validate, :scope => :name
 
-      class_attribute :_validators
+      extend ActiveModel::Configuration
+      config_attribute :_validators
       self._validators = Hash.new { |h,k| h[k] = [] }
     end
 
@@ -132,7 +132,7 @@ module ActiveModel
         options = args.extract_options!
         if options.key?(:on)
           options = options.dup
-          options[:if] = Array.wrap(options[:if])
+          options[:if] = Array(options[:if])
           options[:if].unshift("validation_context == :#{options[:on]}")
         end
         args << options

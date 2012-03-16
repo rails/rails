@@ -47,10 +47,6 @@ class AssertSelectTest < ActionController::TestCase
       render :text=>@content, :layout=>false, :content_type=>Mime::XML
       @content = nil
     end
-
-    def rescue_action(e)
-      raise e
-    end
   end
 
   tests AssertSelectController

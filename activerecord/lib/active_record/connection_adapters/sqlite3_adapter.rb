@@ -4,9 +4,9 @@ gem 'sqlite3', '~> 1.3.5'
 require 'sqlite3'
 
 module ActiveRecord
-  class Base
+  module ConnectionHandling
     # sqlite3 adapter reuses sqlite_connection.
-    def self.sqlite3_connection(config) # :nodoc:
+    def sqlite3_connection(config) # :nodoc:
       # Require database.
       unless config[:database]
         raise ArgumentError, "No database file specified. Missing argument: database"
@@ -47,11 +47,7 @@ module ActiveRecord
 
       # Returns the current database encoding format as a string, eg: 'UTF-8'
       def encoding
-        if @connection.respond_to?(:encoding)
-          @connection.encoding.to_s
-        else
-          @connection.execute('PRAGMA encoding')[0]['encoding']
-        end
+        @connection.encoding.to_s
       end
 
     end

@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'active_support/core_ext/object/inclusion'
+require 'thread'
 
 module ActiveRecord
   module AttributeMethods
@@ -14,8 +15,18 @@ module ActiveRecord
 
       def setup
         @klass = Class.new do
+          def self.superclass; Base; end
+          def self.active_record_super; Base; end
+          def self.base_class; self; end
+
           include ActiveRecord::AttributeMethods
-          include ActiveRecord::AttributeMethods::Read
+
+          def self.define_attribute_methods
+            # Created in the inherited/included hook for "proper" ARs
+            @attribute_methods_mutex ||= Mutex.new
+
+            super
+          end
 
           def self.column_names
             %w{ one two three }
@@ -33,9 +44,6 @@ module ActiveRecord
               [name, FakeColumn.new(name)]
             }]
           end
-
-          def self.serialized_attributes; {}; end
-          def self.base_class; self; end
         end
       end
 

@@ -37,9 +37,7 @@ module ActiveRecord
         # situation it is more natural for the user to just create or modify their join records
         # directly as required.
         def construct_join_attributes(*records)
-          if source_reflection.macro != :belongs_to
-            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
-          end
+          ensure_mutable
 
           join_attributes = {
             source_reflection.foreign_key =>
@@ -71,6 +69,12 @@ module ActiveRecord
         def foreign_key_present?
           through_reflection.macro == :belongs_to &&
           !owner[through_reflection.foreign_key].nil?
+        end
+
+        def ensure_mutable
+          if source_reflection.macro != :belongs_to
+            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+          end
         end
 
         def ensure_not_nested

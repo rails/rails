@@ -1,11 +1,11 @@
 module ActiveSupport
-  # Backtraces often include many lines that are not relevant for the context under review. This makes it hard to find the 
+  # Backtraces often include many lines that are not relevant for the context under review. This makes it hard to find the
   # signal amongst the backtrace noise, and adds debugging time. With a BacktraceCleaner, filters and silencers are used to
   # remove the noisy lines, so that only the most relevant lines remain.
   #
   # Filters are used to modify lines of data, while silencers are used to remove lines entirely.  The typical filter use case
-  # is to remove lengthy path information from the start of each line, and view file paths relevant to the app directory 
-  # instead of the file system root.  The typical silencer use case is to exclude the output of a noisy library from the 
+  # is to remove lengthy path information from the start of each line, and view file paths relevant to the app directory
+  # instead of the file system root.  The typical silencer use case is to exclude the output of a noisy library from the
   # backtrace, so that you can focus on the rest.
   #
   # ==== Example:
@@ -15,9 +15,9 @@ module ActiveSupport
   #   bc.add_silencer { |line| line =~ /mongrel|rubygems/ }
   #   bc.clean(exception.backtrace) # will strip the Rails.root prefix and skip any lines from mongrel or rubygems
   #
-  # To reconfigure an existing BacktraceCleaner (like the default one in Rails) and show as much data as possible, you can 
-  # always call <tt>BacktraceCleaner#remove_silencers!</tt>, which will restore the backtrace to a pristine state.  If you 
-  # need to reconfigure an existing BacktraceCleaner so that it does not filter or modify the paths of any lines of the 
+  # To reconfigure an existing BacktraceCleaner (like the default one in Rails) and show as much data as possible, you can
+  # always call <tt>BacktraceCleaner#remove_silencers!</tt>, which will restore the backtrace to a pristine state.  If you
+  # need to reconfigure an existing BacktraceCleaner so that it does not filter or modify the paths of any lines of the
   # backtrace, you can call BacktraceCleaner#remove_filters! These two methods will give you a completely untouched backtrace.
   #
   # Inspired by the Quiet Backtrace gem by Thoughtbot.
@@ -50,7 +50,7 @@ module ActiveSupport
       @filters << block
     end
 
-    # Adds a silencer from the block provided. If the silencer returns true for a given line, it will be excluded from 
+    # Adds a silencer from the block provided. If the silencer returns true for a given line, it will be excluded from
     # the clean backtrace.
     #
     # Example:

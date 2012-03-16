@@ -1,7 +1,7 @@
 require "cases/helper"
 
 module ActiveRecord
-  class Base
+  module ConnectionAdapters
     class ConnectionSpecification
       class ResolverTest < ActiveRecord::TestCase
         def resolve(spec)

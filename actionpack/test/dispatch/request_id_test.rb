@@ -14,7 +14,7 @@ class RequestIdTest < ActiveSupport::TestCase
   end
 
   test "generating a request id when none is supplied" do
-    assert_match(/\w+/, stub_request.uuid)
+    assert_match(/\w+-\w+-\w+-\w+-\w+/, stub_request.uuid)
   end
 
   private

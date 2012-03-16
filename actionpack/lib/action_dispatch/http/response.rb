@@ -51,9 +51,12 @@ module ActionDispatch # :nodoc:
     # If a character set has been defined for this response (see charset=) then
     # the character set information will also be included in the content type
     # information.
-    attr_accessor :charset, :content_type
+    attr_accessor :charset
+    attr_reader   :content_type
 
-    CONTENT_TYPE = "Content-Type"
+    CONTENT_TYPE = "Content-Type".freeze
+    SET_COOKIE   = "Set-Cookie".freeze
+    LOCATION     = "Location".freeze
 
     cattr_accessor(:default_charset) { "utf-8" }
 
@@ -66,10 +69,10 @@ module ActionDispatch # :nodoc:
       @sending_file = false
       @blank = false
 
-      if content_type = self["Content-Type"]
+      if content_type = self[CONTENT_TYPE]
         type, charset = content_type.split(/;\s*charset=/)
         @content_type = Mime::Type.lookup(type)
-        @charset = charset || "UTF-8"
+        @charset = charset || self.class.default_charset
       end
 
       prepare_cache_control!
@@ -79,6 +82,10 @@ module ActionDispatch # :nodoc:
 
     def status=(status)
       @status = Rack::Utils.status_code(status)
+    end
+
+    def content_type=(content_type)
+      @content_type = content_type.to_s
     end
 
     # The response code of the request
@@ -109,9 +116,9 @@ module ActionDispatch # :nodoc:
     end
 
     def body
-      str = ''
-      each { |part| str << part.to_s }
-      str
+      strings = []
+      each { |part| strings << part.to_s }
+      strings.join
     end
 
     EMPTY = " "
@@ -119,14 +126,7 @@ module ActionDispatch # :nodoc:
     def body=(body)
       @blank = true if body == EMPTY
 
-      # Explicitly check for strings. This is *wrong* theoretically
-      # but if we don't check this, the performance on string bodies
-      # is bad on Ruby 1.8 (because strings responds to each then).
-      @body = if body.respond_to?(:to_str) || !body.respond_to?(:each)
-        [body]
-      else
-        body
-      end
+      @body = body.respond_to?(:each) ? body : [body]
     end
 
     def body_parts
@@ -142,12 +142,12 @@ module ActionDispatch # :nodoc:
     end
 
     def location
-      headers['Location']
+      headers[LOCATION]
     end
     alias_method :redirect_url, :location
 
     def location=(url)
-      headers['Location'] = url
+      headers[LOCATION] = url
     end
 
     def close
@@ -158,10 +158,10 @@ module ActionDispatch # :nodoc:
       assign_default_content_type_and_charset!
       handle_conditional_get!
 
-      @header["Set-Cookie"] = @header["Set-Cookie"].join("\n") if @header["Set-Cookie"].respond_to?(:join)
+      @header[SET_COOKIE] = @header[SET_COOKIE].join("\n") if @header[SET_COOKIE].respond_to?(:join)
 
       if [204, 304].include?(@status)
-        @header.delete "Content-Type"
+        @header.delete CONTENT_TYPE
         [@status, @header, []]
       else
         [@status, @header, self]
@@ -175,7 +175,7 @@ module ActionDispatch # :nodoc:
     #   assert_equal 'AuthorOfNewPage', r.cookies['author']
     def cookies
       cookies = {}
-      if header = self["Set-Cookie"]
+      if header = self[SET_COOKIE]
         header = header.split("\n") if header.respond_to?(:to_str)
         header.each do |cookie|
           if pair = cookie.split(';').first

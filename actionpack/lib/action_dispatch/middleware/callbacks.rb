@@ -5,7 +5,7 @@ module ActionDispatch
   class Callbacks
     include ActiveSupport::Callbacks
 
-    define_callbacks :call, :rescuable => true
+    define_callbacks :call
 
     class << self
       delegate :to_prepare, :to_cleanup, :to => "ActionDispatch::Reloader"
@@ -24,9 +24,15 @@ module ActionDispatch
     end
 
     def call(env)
-      run_callbacks :call do
-        @app.call(env)
+      error = nil
+      result = run_callbacks :call do
+        begin
+          @app.call(env)
+        rescue => error
+        end
       end
+      raise error if error
+      result
     end
   end
 end

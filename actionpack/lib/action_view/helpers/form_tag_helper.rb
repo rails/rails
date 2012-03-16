@@ -27,7 +27,9 @@ module ActionView
       #   is added to simulate the verb over post.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
       #   pass custom authenticity token string, or to not add authenticity_token field at all
-      #   (by passing <tt>false</tt>).
+      #   (by passing <tt>false</tt>). If this is a remote form, the authenticity_token will by default
+      #   not be included as the ajax handler will get it from the meta-tag (but you can force it to be
+      #   rendered anyway in that case by passing <tt>true</tt>).
       # * A list of parameters to feed to the URL the form will be posted to.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
@@ -47,7 +49,7 @@ module ActionView
       #   <% end -%>
       #   # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
       #
-      #  <%= form_tag('/posts', :remote => true) %>
+      #   <%= form_tag('/posts', :remote => true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
       #
       #   form_tag('http://far.away.com/form', :authenticity_token => false)
@@ -313,7 +315,7 @@ module ActionView
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
         end
 
-        escape = options.key?("escape") ? options.delete("escape") : true
+        escape = options.delete("escape") { true }
         content = ERB::Util.html_escape(content) if escape
 
         content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
@@ -393,21 +395,17 @@ module ActionView
       #   submit_tag "Save edits", :disabled => true
       #   # => <input disabled="disabled" name="commit" type="submit" value="Save edits" />
       #
-      #
       #   submit_tag "Complete sale", :disable_with => "Please wait..."
-      #   # => <input name="commit" data-disable-with="Please wait..."
-      #   #    type="submit" value="Complete sale" />
+      #   # => <input name="commit" data-disable-with="Please wait..." type="submit" value="Complete sale" />
       #
       #   submit_tag nil, :class => "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
       #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit_button"
-      #   # => <input class="edit_button" data-disable_with="Editing..."
-      #   #    name="commit" type="submit" value="Edit" />
+      #   # => <input class="edit_button" data-disable_with="Editing..." name="commit" type="submit" value="Edit" />
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
-      #   # => <input name='commit' type='submit' value='Save'
-      #         data-confirm="Are you sure?" />
+      #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
@@ -451,12 +449,11 @@ module ActionView
       #     content_tag(:strong, 'Ask me!')
       #   end
       #   # => <button name="button" type="button">
-      #          <strong>Ask me!</strong>
-      #        </button>
+      #   #     <strong>Ask me!</strong>
+      #   #    </button>
       #
       #   button_tag "Checkout", :disable_with => "Please wait..."
-      #   # => <button data-disable-with="Please wait..." name="button"
-      #                type="submit">Checkout</button>
+      #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
@@ -530,10 +527,9 @@ module ActionView
       #   <% end %>
       #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
       def field_set_tag(legend = nil, options = nil, &block)
-        content = capture(&block)
         output = tag(:fieldset, options, true)
         output.safe_concat(content_tag(:legend, legend)) unless legend.blank?
-        output.concat(content)
+        output.concat(capture(&block)) if block_given?
         output.safe_concat("</fieldset>")
       end
 
@@ -553,6 +549,14 @@ module ActionView
         text_field_tag(name, value, options.stringify_keys.update("type" => "tel"))
       end
       alias phone_field_tag telephone_field_tag
+
+      # Creates a text field of type "date".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def date_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
+      end
 
       # Creates a text field of type "url".
       #
@@ -582,7 +586,7 @@ module ActionView
       #
       # ==== Examples
       #   number_field_tag 'quantity', nil, :in => 1...10
-      #   => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys
         options["type"] ||= "number"
@@ -614,8 +618,17 @@ module ActionView
             # responsibility of the caller to escape all the values.
             html_options["action"]  = url_for(url_for_options)
             html_options["accept-charset"] = "UTF-8"
+            
             html_options["data-remote"] = true if html_options.delete("remote")
-            html_options["authenticity_token"] = html_options.delete("authenticity_token") if html_options.has_key?("authenticity_token")
+
+            if html_options["data-remote"] && html_options["authenticity_token"] == true
+              # Include the default authenticity_token, which is only generated when its set to nil,
+              # but we needed the true value to override the default of no authenticity_token on data-remote.
+              html_options["authenticity_token"] = nil
+            elsif html_options["data-remote"]
+              # The authenticity token is taken from the meta tag in this case
+              html_options["authenticity_token"] = false
+            end
           end
         end
 
@@ -632,7 +645,7 @@ module ActionView
               token_tag(authenticity_token)
             else
               html_options["method"] = "post"
-              tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag(authenticity_token)
+              method_tag(method) + token_tag(authenticity_token)
           end
 
           tags = utf8_enforcer_tag << method_tag
@@ -641,24 +654,14 @@ module ActionView
 
         def form_tag_html(html_options)
           extra_tags = extra_tags_for_form(html_options)
-          (tag(:form, html_options, true) + extra_tags).html_safe
+          tag(:form, html_options, true) + extra_tags
         end
 
         def form_tag_in_block(html_options, &block)
           content = capture(&block)
-          output = ActiveSupport::SafeBuffer.new
-          output.safe_concat(form_tag_html(html_options))
+          output = form_tag_html(html_options)
           output << content
           output.safe_concat("</form>")
-        end
-
-        def token_tag(token)
-          if token == false || !protect_against_forgery?
-            ''
-          else
-            token ||= form_authenticity_token
-            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
-          end
         end
 
         # see http://www.w3.org/TR/html4/types.html#type-name

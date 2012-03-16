@@ -10,8 +10,9 @@ module ActiveModel
 
       included do
         extend ActiveModel::Naming
+        extend ActiveModel::Configuration
 
-        class_attribute :include_root_in_json
+        config_attribute :include_root_in_json
         self.include_root_in_json = true
       end
 

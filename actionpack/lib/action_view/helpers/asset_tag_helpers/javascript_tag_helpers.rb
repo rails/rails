@@ -87,6 +87,13 @@ module ActionView
         end
         alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
+        # Computes the full URL to a javascript asset in the public javascripts directory.
+        # This will use +javascript_path+ internally, so most of their behaviors will be the same.
+        def javascript_url(source)
+          URI.join(current_host, path_to_javascript(source)).to_s
+        end
+        alias_method :url_to_javascript, :javascript_url # aliased to avoid conflicts with a javascript_url named route
+
         # Returns an HTML script tag for each of the +sources+ provided.
         #
         # Sources may be paths to JavaScript files. Relative paths are assumed to be relative

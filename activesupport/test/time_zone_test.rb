@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 
-class TimeZoneTest < Test::Unit::TestCase
+class TimeZoneTest < ActiveSupport::TestCase
   def test_utc_to_local
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500

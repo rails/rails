@@ -93,6 +93,7 @@ module InflectorTestCases
     "matrix_fu"   => "matrix_fus",
 
     "axis"        => "axes",
+    "taxi"        => "taxis", # prevents regression
     "testis"      => "testes",
     "crisis"      => "crises",
 
@@ -104,7 +105,11 @@ module InflectorTestCases
     "edge"        => "edges",
 
     "cow"         => "kine",
-    "database"    => "databases"
+    "database"    => "databases",
+
+    # regression tests against improper inflection regexes
+    "|ice"        => "|ices",
+    "|ouse"       => "|ouses"
   }
 
   CamelToUnderscore = {

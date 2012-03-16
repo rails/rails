@@ -99,5 +99,13 @@ module ActiveRecord
       assert_not_nil new_topic.created_at
     end
 
+    def test_dup_after_initialize_callbacks
+      topic = Topic.new
+      assert Topic.after_initialize_called
+      Topic.after_initialize_called = false
+      topic.dup
+      assert Topic.after_initialize_called
+    end
+
   end
 end

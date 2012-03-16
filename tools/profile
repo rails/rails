@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 # Example:
 #   tools/profile_requires activesupport/lib/active_support.rb
-#   tools/profile_requires activeresource/examples/simple.rb
 abort 'Use REE so you can profile memory and object allocation' unless GC.respond_to?(:enable_stats)
 
 ENV['NO_RELOAD'] ||= '1'

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/module/remove_method'
 
@@ -10,7 +9,7 @@ module ActionView
   # generate a key, given to view paths, used in the resolver cache lookup. Since
   # this key is generated just once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
-    attr_accessor :prefixes
+    attr_accessor :prefixes, :rendered_format
 
     mattr_accessor :fallbacks
     @@fallbacks = FallbackFileSystemResolver.instances
@@ -20,7 +19,7 @@ module ActionView
 
     def self.register_detail(name, options = {}, &block)
       self.registered_details << name
-      initialize = registered_details.map { |n| "self.#{n} = details[:#{n}]" }
+      initialize = registered_details.map { |n| "@details[:#{n}] = details[:#{n}] || default_#{n}" }
 
       Accessors.send :define_method, :"default_#{name}", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -29,7 +28,7 @@ module ActionView
         end
 
         def #{name}=(value)
-          value = Array.wrap(value.presence || default_#{name})
+          value = value.present? ? Array(value) : default_#{name}
           _set_detail(:#{name}, value) if value != @details[:#{name}]
         end
 
@@ -44,7 +43,7 @@ module ActionView
     module Accessors #:nodoc:
     end
 
-    register_detail(:locale)  { [I18n.locale, I18n.default_locale] }
+    register_detail(:locale)  { [I18n.locale, I18n.default_locale].uniq }
     register_detail(:formats) { Mime::SET.symbols }
     register_detail(:handlers){ Template::Handlers.extensions }
 
@@ -56,7 +55,11 @@ module ActionView
       @details_keys = Hash.new
 
       def self.get(details)
-        @details_keys[details.freeze] ||= new
+        @details_keys[details] ||= new
+      end
+
+      def self.clear
+        @details_keys.clear
       end
 
       def initialize
@@ -85,9 +88,9 @@ module ActionView
     protected
 
       def _set_detail(key, value)
+        @details = @details.dup if @details_key
         @details_key = nil
-        @details = @details.dup if @details.frozen?
-        @details[key] = value.freeze
+        @details[key] = value
       end
     end
 
@@ -98,7 +101,7 @@ module ActionView
       # Whenever setting view paths, makes a copy so we can manipulate then in
       # instance objects as we wish.
       def view_paths=(paths)
-        @view_paths = ActionView::PathSet.new(Array.wrap(paths))
+        @view_paths = ActionView::PathSet.new(Array(paths))
       end
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})
@@ -147,26 +150,17 @@ module ActionView
       # as well as incorrectly putting part of the path in the template
       # name instead of the prefix.
       def normalize_name(name, prefixes) #:nodoc:
-        name  = name.to_s.sub(handlers_regexp) do |match|
-          ActiveSupport::Deprecation.warn "Passing a template handler in the template name is deprecated. " \
-            "You can simply remove the handler name or pass render :handlers => [:#{match[1..-1]}] instead.", caller
-          ""
-        end
+        prefixes = nil if prefixes.blank?
+        parts    = name.to_s.split('/')
+        parts.shift if parts.first.empty?
+        name     = parts.pop
 
-        parts = name.split('/')
-        name  = parts.pop
+        return name, prefixes || [""] if parts.empty?
 
-        prefixes = if prefixes.blank?
-          [parts.join('/')]
-        else
-          prefixes.map { |prefix| [prefix, *parts].compact.join('/') }
-        end
+        parts    = parts.join('/')
+        prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
-      end
-
-      def handlers_regexp #:nodoc:
-        @@handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
       end
     end
 
@@ -176,21 +170,13 @@ module ActionView
 
     def initialize(view_paths, details = {}, prefixes = [])
       @details, @details_key = {}, nil
-      @frozen_formats, @skip_default_locale = false, false
+      @skip_default_locale = false
       @cache = true
       @prefixes = prefixes
+      @rendered_format = nil
 
       self.view_paths = view_paths
       initialize_details(details)
-    end
-
-    # Freeze the current formats in the lookup context. By freezing them, you
-    # that next template lookups are not going to modify the formats. The con
-    # use this, to ensure that formats won't be further modified (as it does
-    def freeze_formats(formats, unless_frozen=false) #:nodoc:
-      return if unless_frozen && @frozen_formats
-      self.formats = formats
-      @frozen_formats = true
     end
 
     # Override formats= to expand ["*/*"] values and automatically
@@ -227,7 +213,6 @@ module ActionView
     end
 
     # A method which only uses the first format in the formats array for layout lookup.
-    # This method plays straight with instance variables for performance reasons.
     def with_layout_format
       if formats.size == 1
         yield

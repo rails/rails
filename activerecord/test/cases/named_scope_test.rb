@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'active_support/core_ext/array/random_access'
 require 'models/post'
 require 'models/topic'
 require 'models/comment'
@@ -335,6 +334,11 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_no_queries do
       topics.size # use loaded (no query)
     end
+  end
+
+  def test_should_not_duplicates_where_values
+    where_values = Topic.where("1=1").scope_with_lambda.where_values
+    assert_equal ["1=1"], where_values
   end
 
   def test_chaining_with_duplicate_joins

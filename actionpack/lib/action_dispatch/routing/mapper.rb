@@ -16,7 +16,7 @@ module ActionDispatch
           end
         end
 
-        attr_reader :app
+        attr_reader :app, :constraints
 
         def initialize(app, constraints, request)
           @app, @constraints, @request = app, constraints, request
@@ -54,6 +54,7 @@ module ActionDispatch
 
         def initialize(set, scope, path, options)
           @set, @scope = set, scope
+          @segment_keys = nil
           @options = (@scope[:options] || {}).merge(options)
           @path = normalize_path(path)
           normalize_options!
@@ -213,7 +214,9 @@ module ActionDispatch
           end
 
           def segment_keys
-            @segment_keys ||= Journey::Path::Pattern.new(
+            return @segment_keys if @segment_keys
+
+            @segment_keys = Journey::Path::Pattern.new(
               Journey::Router::Strexp.compile(@path, requirements, SEPARATORS)
             ).names
           end
@@ -251,10 +254,15 @@ module ActionDispatch
         #
         # For options, see +match+, as +root+ uses it internally.
         #
+        # You can also pass a string which will expand
+        #
+        #   root 'pages#main'
+        #
         # You should put the root route at the top of <tt>config/routes.rb</tt>,
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
+          options = { :to => options } if options.is_a?(String)
           match '/', { :as => :root }.merge(options)
         end
 
@@ -325,7 +333,7 @@ module ActionDispatch
         #   +call+ or a string representing a controller's action.
         #
         #      match 'path', :to => 'controller#action'
-        #      match 'path', :to => lambda { [200, {}, "Success!"] }
+        #      match 'path', :to => lambda { |env| [200, {}, "Success!"] }
         #      match 'path', :to => RackApp
         #
         # [:on]
@@ -443,7 +451,11 @@ module ActionDispatch
             _route = @set.named_routes.routes[name.to_sym]
             _routes = @set
             app.routes.define_mounted_helper(name)
-            app.routes.class_eval do
+            app.routes.singleton_class.class_eval do
+              define_method :mounted? do
+                true
+              end
+
               define_method :_generate_prefix do |options|
                 prefix_options = options.slice(*_route.segment_keys)
                 # we must actually delete prefix segment keys to avoid passing them to next url_for
@@ -462,9 +474,9 @@ module ActionDispatch
         #
         # Example:
         #
-        # get 'bacon', :to => 'food#bacon'
+        #   get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
-          map_method(:get, *args, &block)
+          map_method(:get, args, &block)
         end
 
         # Define a route that only recognizes HTTP POST.
@@ -472,9 +484,19 @@ module ActionDispatch
         #
         # Example:
         #
-        # post 'bacon', :to => 'food#bacon'
+        #   post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
-          map_method(:post, *args, &block)
+          map_method(:post, args, &block)
+        end
+
+        # Define a route that only recognizes HTTP PATCH.
+        # For supported arguments, see <tt>Base#match</tt>.
+        #
+        # Example:
+        #
+        #   patch 'bacon', :to => 'food#bacon'
+        def patch(*args, &block)
+          map_method(:patch, args, &block)
         end
 
         # Define a route that only recognizes HTTP PUT.
@@ -482,27 +504,26 @@ module ActionDispatch
         #
         # Example:
         #
-        # put 'bacon', :to => 'food#bacon'
+        #   put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
-          map_method(:put, *args, &block)
+          map_method(:put, args, &block)
         end
 
-        # Define a route that only recognizes HTTP PUT.
+        # Define a route that only recognizes HTTP DELETE.
         # For supported arguments, see <tt>Base#match</tt>.
         #
         # Example:
         #
-        # delete 'broccoli', :to => 'food#broccoli'
+        #   delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
-          map_method(:delete, *args, &block)
+          map_method(:delete, args, &block)
         end
 
         private
-          def map_method(method, *args, &block)
+          def map_method(method, args, &block)
             options = args.extract_options!
             options[:via] = method
-            args.push(options)
-            match(*args, &block)
+            match(*args, options, &block)
             self
           end
       end
@@ -520,13 +541,13 @@ module ActionDispatch
       # This will create a number of routes for each of the posts and comments
       # controller. For <tt>Admin::PostsController</tt>, Rails will create:
       #
-      #   GET	    /admin/posts
-      #   GET	    /admin/posts/new
-      #   POST	  /admin/posts
-      #   GET	    /admin/posts/1
-      #   GET	    /admin/posts/1/edit
-      #   PUT	    /admin/posts/1
-      #   DELETE  /admin/posts/1
+      #   GET       /admin/posts
+      #   GET       /admin/posts/new
+      #   POST      /admin/posts
+      #   GET       /admin/posts/1
+      #   GET       /admin/posts/1/edit
+      #   PATCH/PUT /admin/posts/1
+      #   DELETE    /admin/posts/1
       #
       # If you want to route /posts (without the prefix /admin) to
       # <tt>Admin::PostsController</tt>, you could use
@@ -554,13 +575,13 @@ module ActionDispatch
       # not use scope. In the last case, the following paths map to
       # +PostsController+:
       #
-      #   GET	    /admin/posts
-      #   GET	    /admin/posts/new
-      #   POST	  /admin/posts
-      #   GET	    /admin/posts/1
-      #   GET	    /admin/posts/1/edit
-      #   PUT	    /admin/posts/1
-      #   DELETE  /admin/posts/1
+      #   GET       /admin/posts
+      #   GET       /admin/posts/new
+      #   POST      /admin/posts
+      #   GET       /admin/posts/1
+      #   GET       /admin/posts/1/edit
+      #   PATCH/PUT /admin/posts/1
+      #   DELETE    /admin/posts/1
       module Scoping
         # Scopes a set of routes to the given default options.
         #
@@ -649,13 +670,13 @@ module ActionDispatch
         #
         # This generates the following routes:
         #
-        #       admin_posts GET    /admin/posts(.:format)          admin/posts#index
-        #       admin_posts POST   /admin/posts(.:format)          admin/posts#create
-        #    new_admin_post GET    /admin/posts/new(.:format)      admin/posts#new
-        #   edit_admin_post GET    /admin/posts/:id/edit(.:format) admin/posts#edit
-        #        admin_post GET    /admin/posts/:id(.:format)      admin/posts#show
-        #        admin_post PUT    /admin/posts/:id(.:format)      admin/posts#update
-        #        admin_post DELETE /admin/posts/:id(.:format)      admin/posts#destroy
+        #       admin_posts GET       /admin/posts(.:format)          admin/posts#index
+        #       admin_posts POST      /admin/posts(.:format)          admin/posts#create
+        #    new_admin_post GET       /admin/posts/new(.:format)      admin/posts#new
+        #   edit_admin_post GET       /admin/posts/:id/edit(.:format) admin/posts#edit
+        #        admin_post GET       /admin/posts/:id(.:format)      admin/posts#show
+        #        admin_post PATCH/PUT /admin/posts/:id(.:format)      admin/posts#update
+        #        admin_post DELETE    /admin/posts/:id(.:format)      admin/posts#destroy
         #
         # === Options
         #
@@ -970,12 +991,12 @@ module ActionDispatch
         # the +GeoCoders+ controller (note that the controller is named after
         # the plural):
         #
-        #   GET     /geocoder/new
-        #   POST    /geocoder
-        #   GET     /geocoder
-        #   GET     /geocoder/edit
-        #   PUT     /geocoder
-        #   DELETE  /geocoder
+        #   GET       /geocoder/new
+        #   POST      /geocoder
+        #   GET       /geocoder
+        #   GET       /geocoder/edit
+        #   PATCH/PUT /geocoder
+        #   DELETE    /geocoder
         #
         # === Options
         # Takes same options as +resources+.
@@ -998,9 +1019,12 @@ module ActionDispatch
             end if parent_resource.actions.include?(:new)
 
             member do
-              get    :edit if parent_resource.actions.include?(:edit)
-              get    :show if parent_resource.actions.include?(:show)
-              put    :update if parent_resource.actions.include?(:update)
+              get :edit if parent_resource.actions.include?(:edit)
+              get :show if parent_resource.actions.include?(:show)
+              if parent_resource.actions.include?(:update)
+                patch :update
+                put   :update
+              end
               delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end
@@ -1018,13 +1042,13 @@ module ActionDispatch
         # creates seven different routes in your application, all mapping to
         # the +Photos+ controller:
         #
-        #   GET     /photos
-        #   GET     /photos/new
-        #   POST    /photos
-        #   GET     /photos/:id
-        #   GET     /photos/:id/edit
-        #   PUT     /photos/:id
-        #   DELETE  /photos/:id
+        #   GET       /photos
+        #   GET       /photos/new
+        #   POST      /photos
+        #   GET       /photos/:id
+        #   GET       /photos/:id/edit
+        #   PATCH/PUT /photos/:id
+        #   DELETE    /photos/:id
         #
         # Resources can also be nested infinitely by using this block syntax:
         #
@@ -1034,13 +1058,13 @@ module ActionDispatch
         #
         # This generates the following comments routes:
         #
-        #   GET     /photos/:photo_id/comments
-        #   GET     /photos/:photo_id/comments/new
-        #   POST    /photos/:photo_id/comments
-        #   GET     /photos/:photo_id/comments/:id
-        #   GET     /photos/:photo_id/comments/:id/edit
-        #   PUT     /photos/:photo_id/comments/:id
-        #   DELETE  /photos/:photo_id/comments/:id
+        #   GET       /photos/:photo_id/comments
+        #   GET       /photos/:photo_id/comments/new
+        #   POST      /photos/:photo_id/comments
+        #   GET       /photos/:photo_id/comments/:id
+        #   GET       /photos/:photo_id/comments/:id/edit
+        #   PATCH/PUT /photos/:photo_id/comments/:id
+        #   DELETE    /photos/:photo_id/comments/:id
         #
         # === Options
         # Takes same options as <tt>Base#match</tt> as well as:
@@ -1052,6 +1076,13 @@ module ActionDispatch
         #     resources :posts, :path_names => { :new => "brand_new" }
         #
         #   The above example will now change /posts/new to /posts/brand_new
+        #
+        # [:path]
+        #   Allows you to change the path prefix for the resource.
+        #
+        #     resources :posts, :path => 'postings'
+        #
+        #   The resource and all segments will now route to /postings instead of /posts
         #
         # [:only]
         #   Only generate routes for the given actions.
@@ -1095,13 +1126,13 @@ module ActionDispatch
         #
         #   The +comments+ resource here will have the following routes generated for it:
         #
-        #     post_comments    GET    /posts/:post_id/comments(.:format)
-        #     post_comments    POST   /posts/:post_id/comments(.:format)
-        #     new_post_comment GET    /posts/:post_id/comments/new(.:format)
-        #     edit_comment     GET    /sekret/comments/:id/edit(.:format)
-        #     comment          GET    /sekret/comments/:id(.:format)
-        #     comment          PUT    /sekret/comments/:id(.:format)
-        #     comment          DELETE /sekret/comments/:id(.:format)
+        #     post_comments    GET       /posts/:post_id/comments(.:format)
+        #     post_comments    POST      /posts/:post_id/comments(.:format)
+        #     new_post_comment GET       /posts/:post_id/comments/new(.:format)
+        #     edit_comment     GET       /sekret/comments/:id/edit(.:format)
+        #     comment          GET       /sekret/comments/:id(.:format)
+        #     comment          PATCH/PUT /sekret/comments/:id(.:format)
+        #     comment          DELETE    /sekret/comments/:id(.:format)
         #
         # === Examples
         #
@@ -1130,9 +1161,12 @@ module ActionDispatch
             end if parent_resource.actions.include?(:new)
 
             member do
-              get    :edit if parent_resource.actions.include?(:edit)
-              get    :show if parent_resource.actions.include?(:show)
-              put    :update if parent_resource.actions.include?(:update)
+              get :edit if parent_resource.actions.include?(:edit)
+              get :show if parent_resource.actions.include?(:show)
+              if parent_resource.actions.include?(:update)
+                patch :update
+                put   :update
+              end
               delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end
@@ -1240,6 +1274,9 @@ module ActionDispatch
           parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
+        # match 'path' => 'controller#action'
+        # match 'path', to: 'controller#action'
+        # match 'path', 'otherpath', on: :member, via: :get
         def match(path, *rest)
           if rest.empty? && Hash === path
             options  = path
@@ -1286,7 +1323,7 @@ module ActionDispatch
             action = nil
           end
 
-          if !options.fetch(:as) { true }
+          if !options.fetch(:as, true)
             options.delete(:as)
           else
             options[:as] = name_for_action(options[:as], action)
@@ -1432,8 +1469,7 @@ module ActionDispatch
           end
 
           def action_path(name, path = nil) #:nodoc:
-            # Ruby 1.8 can't transform empty strings to symbols
-            name = name.to_sym if name.is_a?(String) && !name.empty?
+            name = name.to_sym if name.is_a?(String)
             path || @scope[:path_names][name] || name.to_s
           end
 
@@ -1472,8 +1508,16 @@ module ActionDispatch
               [name_prefix, member_name, prefix]
             end
 
-            candidate = name.select(&:present?).join("_").presence
-            candidate unless as.nil? && @set.routes.find { |r| r.name == candidate }
+            if candidate = name.select(&:present?).join("_").presence
+              # If a name was not explicitly given, we check if it is valid
+              # and return nil in case it isn't. Otherwise, we pass the invalid name
+              # forward so the underlying router engine treats it and raises an exception.
+              if as.nil?
+                candidate unless @set.routes.find { |r| r.name == candidate } || candidate !~ /\A[_a-z]/i
+              else
+                candidate
+              end
+            end
           end
       end
 

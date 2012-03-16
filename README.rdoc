@@ -67,9 +67,12 @@ We encourage you to contribute to Ruby on Rails! Please check out the {Contribut
 guide}[http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html] for guidelines about how
 to proceed. {Join us}[http://contributors.rubyonrails.org]!
 
-== Travis Build Status {<img src="https://secure.travis-ci.org/rails/rails.png"/>}[http://travis-ci.org/rails/rails]
+== Build Status {<img src="https://secure.travis-ci.org/rails/rails.png"/>}[http://travis-ci.org/rails/rails]
+
+== Dependency Status {<img src="https://gemnasium.com/rails/rails.png?travis"/>}[https://gemnasium.com/rails/rails]
 
 == License
 
-Ruby on Rails is released under the MIT license.
+Ruby on Rails is released under the MIT license:
 
+* http://www.opensource.org/licenses/MIT

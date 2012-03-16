@@ -1,7 +1,7 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     def self.build_from_hash(engine, attributes, default_table)
-      predicates = attributes.map do |column, value|
+      attributes.map do |column, value|
         table = default_table
 
         if value.is_a?(Hash)
@@ -15,44 +15,60 @@ module ActiveRecord
             table = Arel::Table.new(table_name, engine)
           end
 
-          attribute = table[column.to_sym]
+          build(table[column.to_sym], value)
+        end
+      end.flatten
+    end
 
-          case value
-          when ActiveRecord::Relation
-            value = value.select(value.klass.arel_table[value.klass.primary_key]) if value.select_values.empty?
-            attribute.in(value.arel.ast)
-          when Array, ActiveRecord::Associations::CollectionProxy
-            values = value.to_a.map {|x| x.is_a?(ActiveRecord::Base) ? x.id : x}
-            ranges, values = values.partition {|v| v.is_a?(Range) || v.is_a?(Arel::Relation)}
+    def self.references(attributes)
+      attributes.map do |key, value|
+        if value.is_a?(Hash)
+          key
+        else
+          key = key.to_s
+          key.split('.').first.to_sym if key.include?('.')
+        end
+      end.compact
+    end
 
-            array_predicates = ranges.map {|range| attribute.in(range)}
+    private
+      def self.build(attribute, value)
+        case value
+        when ActiveRecord::Relation
+          value = value.select(value.klass.arel_table[value.klass.primary_key]) if value.select_values.empty?
+          attribute.in(value.arel.ast)
+        when Array, ActiveRecord::Associations::CollectionProxy
+          values = value.to_a.map {|x| x.is_a?(ActiveRecord::Model) ? x.id : x}
+          ranges, values = values.partition {|v| v.is_a?(Range) || v.is_a?(Arel::Relation)}
 
-            if values.include?(nil)
-              values = values.compact
-              if values.empty?
-                array_predicates << attribute.eq(nil)
-              else
-                array_predicates << attribute.in(values.compact).or(attribute.eq(nil))
-              end
+          values_predicate = if values.include?(nil)
+            values = values.compact
+
+            case values.length
+            when 0
+              attribute.eq(nil)
+            when 1
+              attribute.eq(values.first).or(attribute.eq(nil))
             else
-              array_predicates << attribute.in(values)
+              attribute.in(values).or(attribute.eq(nil))
             end
-
-            array_predicates.inject {|composite, predicate| composite.or(predicate)}
-          when Range, Arel::Relation
-            attribute.in(value)
-          when ActiveRecord::Base
-            attribute.eq(value.id)
-          when Class
-            # FIXME: I think we need to deprecate this behavior
-            attribute.eq(value.name)
           else
-            attribute.eq(value)
+            attribute.in(values)
           end
+
+          array_predicates = ranges.map { |range| attribute.in(range) }
+          array_predicates << values_predicate
+          array_predicates.inject { |composite, predicate| composite.or(predicate) }
+        when Range, Arel::Relation
+          attribute.in(value)
+        when ActiveRecord::Model
+          attribute.eq(value.id)
+        when Class
+          # FIXME: I think we need to deprecate this behavior
+          attribute.eq(value.name)
+        else
+          attribute.eq(value)
         end
       end
-
-      predicates.flatten
-    end
   end
 end

@@ -68,7 +68,7 @@ class Name
   end
 end
 
-class ModuleTest < Test::Unit::TestCase
+class ModuleTest < ActiveSupport::TestCase
   def setup
     @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
   end
@@ -212,6 +212,12 @@ class ModuleTest < Test::Unit::TestCase
   def test_local_constants
     assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
   end
+
+  def test_local_constant_names
+    ActiveSupport::Deprecation.silence do
+      assert_equal %w(Constant1 Constant3), Ab.local_constant_names
+    end
+  end
 end
 
 module BarMethodAliaser
@@ -245,7 +251,7 @@ module BarMethods
   end
 end
 
-class MethodAliasingTest < Test::Unit::TestCase
+class MethodAliasingTest < ActiveSupport::TestCase
   def setup
     Object.const_set :FooClassWithBarMethod, Class.new { def bar() 'bar' end }
     @instance = FooClassWithBarMethod.new

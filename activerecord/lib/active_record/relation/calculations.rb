@@ -168,7 +168,7 @@ module ActiveRecord
 
     # This method is designed to perform select by a single column as direct SQL query
     # Returns <tt>Array</tt> with values of the specified column name
-    # The values has same data type as column. 
+    # The values has same data type as column.
     #
     # Examples:
     #
@@ -177,9 +177,23 @@ module ActiveRecord
     #   Person.where(:confirmed => true).limit(5).pluck(:id)
     #
     def pluck(column_name)
-      scope = self.select(column_name)
-      self.connection.select_values(scope.to_sql).map! do |value|
-        type_cast_using_column(value, column_for(column_name))
+      key = column_name.to_s.split('.', 2).last
+
+      if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
+        column_name = "#{table_name}.#{column_name}"
+      end
+
+      result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
+      types  = result.column_types.merge klass.column_types
+      column = types[key]
+
+      result.map do |attributes|
+        value = klass.initialize_attributes(attributes)[key]
+        if column
+          column.type_cast value
+        else
+          value
+        end
       end
     end
 
@@ -240,7 +254,8 @@ module ActiveRecord
         query_builder = relation.arel
       end
 
-      type_cast_calculated_value(@klass.connection.select_value(query_builder), column_for(column_name), operation)
+      result = @klass.connection.select_value(query_builder, nil, relation.bind_values)
+      type_cast_calculated_value(result, column_for(column_name), operation)
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -276,7 +291,7 @@ module ActiveRecord
       relation = except(:group).group(group.join(','))
       relation.select_values = select_values
 
-      calculated_data = @klass.connection.select_all(relation)
+      calculated_data = @klass.connection.select_all(relation, nil, bind_values)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
@@ -284,7 +299,7 @@ module ActiveRecord
         key_records = Hash[key_records.map { |r| [r.id, r] }]
       end
 
-      ActiveSupport::OrderedHash[calculated_data.map do |row|
+      Hash[calculated_data.map do |row|
         key   = group_columns.map { |aliaz, column|
           type_cast_calculated_value(row[aliaz], column)
         }
@@ -334,7 +349,7 @@ module ActiveRecord
     def select_for_count
       if @select_values.present?
         select = @select_values.join(", ")
-        select if select !~ /(,|\*)/
+        select if select !~ /[,*]/
       end
     end
 

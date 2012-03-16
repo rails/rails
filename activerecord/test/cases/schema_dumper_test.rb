@@ -2,7 +2,13 @@ require "cases/helper"
 
 
 class SchemaDumperTest < ActiveRecord::TestCase
+  def initialize(*)
+    super
+    ActiveRecord::SchemaMigration.create_table
+  end
+
   def setup
+    super
     @stream = StringIO.new
   end
 
@@ -13,10 +19,18 @@ class SchemaDumperTest < ActiveRecord::TestCase
     @stream.string
   end
 
-  if "string".encoding_aware?
-    def test_magic_comment
-      assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
+  def test_dump_schema_information_outputs_lexically_ordered_versions
+    versions = %w{ 20100101010101 20100201010101 20100301010101 }
+    versions.reverse.each do |v|
+      ActiveRecord::SchemaMigration.create!(:version => v)
     end
+
+    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    assert_match(/20100201010101.*20100301010101/m, schema_info)
+  end
+
+  def test_magic_comment
+    assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
   end
 
   def test_schema_dump
@@ -171,6 +185,15 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_equal 'add_index "companies", ["firm_id", "type", "rating", "ruby_type"], :name => "company_index"', index_definition
   end
 
+  def test_schema_dumps_partial_indices
+    index_definition = standard_dump.split(/\n/).grep(/add_index.*company_partial_index/).first.strip
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_equal 'add_index "companies", ["firm_id", "type"], :name => "company_partial_index", :where => "(rating > 10)"', index_definition
+    else
+      assert_equal 'add_index "companies", ["firm_id", "type"], :name => "company_partial_index"', index_definition
+    end
+  end
+
   def test_schema_dump_should_honor_nonstandard_primary_keys
     output = standard_dump
     match = output.match(%r{create_table "movies"(.*)do})
@@ -210,6 +233,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = standard_dump
       if %r{create_table "postgresql_xml_data_type"} =~ output
         assert_match %r{t.xml "data"}, output
+      end
+    end
+
+    def test_schema_dump_includes_hstores_shorthand_definition
+      output = standard_dump
+      if %r{create_table "postgresql_hstores"} =~ output
+        assert_match %r[t.hstore "hash_store", :default => {}], output
       end
     end
 

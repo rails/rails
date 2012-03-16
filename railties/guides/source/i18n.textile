@@ -521,7 +521,7 @@ h5. Bulk and Namespace Lookup
 To look up multiple translations at once, an array of keys can be passed:
 
 <ruby>
-I18n.t [:odd, :even], :scope => 'activerecord.errors.messages'
+I18n.t [:odd, :even], :scope => 'errors.messages'
 # => ["must be odd", "must be even"]
 </ruby>
 
@@ -819,13 +819,13 @@ h5. Action View Helper Methods
 
 * The +number_to_currency+, +number_with_precision+, +number_to_percentage+, +number_with_delimiter+, and +number_to_human_size+ helpers use the number format settings located in the "number":https://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L2 scope.
 
-h5. Active Record Methods
+h5. Active Model Methods
 
 * +model_name.human+ and +human_attribute_name+ use translations for model names and attribute names if available in the "activerecord.models":https://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml#L29 scope. They also support translations for inherited class names (e.g. for use with STI) as explained above in "Error message scopes".
 
-* +ActiveRecord::Errors#generate_message+ (which is used by Active Record validations but may also be used manually) uses +model_name.human+ and +human_attribute_name+ (see above). It also translates the error message and supports translations for inherited class names as explained above in "Error message scopes".
+* +ActiveModel::Errors#generate_message+ (which is used by Active Model validations but may also be used manually) uses +model_name.human+ and +human_attribute_name+ (see above). It also translates the error message and supports translations for inherited class names as explained above in "Error message scopes".
 
-*+ ActiveRecord::Errors#full_messages+ prepends the attribute name to the error message using a separator that will be looked up from "activerecord.errors.format.separator":https://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L91 (and which defaults to +'&nbsp;'+).
+* +ActiveModel::Errors#full_messages+ prepends the attribute name to the error message using a separator that will be looked up from "errors.format":https://github.com/rails/rails/blob/master/activemodel/lib/active_model/locale/en.yml#L4 (and which defaults to +"%{attribute} %{message}"+).
 
 h5. Active Support Methods
 

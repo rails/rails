@@ -94,7 +94,7 @@ client = Client.find(10)
 The SQL equivalent of the above is:
 
 <sql>
-SELECT * FROM clients WHERE (clients.id = 10)
+SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
 </sql>
 
 <tt>Model.find(primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception if no matching record is found.
@@ -404,6 +404,8 @@ Or ordering by multiple fields:
 
 <ruby>
 Client.order("orders_count ASC, created_at DESC")
+# OR
+Client.order("orders_count ASC", "created_at DESC")
 </ruby>
 
 h3. Selecting Specific Fields
@@ -606,9 +608,33 @@ SELECT * FROM clients WHERE orders_count > 10 ORDER BY clients.id DESC
 
 This method accepts *no* arguments.
 
+h3. Null Relation
+
+The +none+ method returns a chainable relation with no records. Any subsequent conditions chained to the returned relation will continue generating empty relations. This is useful in scenarios where you need a chainable response to a method or a scope that could return zero results.
+
+<ruby>
+Post.none # returns an empty Relation and fires no queries.
+</ruby>
+
+<ruby>
+# The visible_posts method below is expected to return a Relation.
+@posts = current_user.visible_posts.where(:name => params[:name])
+
+def visible_posts
+  case role
+  when 'Country Manager'
+    Post.where(:country => country)
+  when 'Reviewer'
+    Post.published
+  when 'Bad User'
+    Post.none # => returning [] or nil breaks the caller code in this case
+  end
+end
+</ruby>
+
 h3. Readonly Objects
 
-Active Record provides +readonly+ method on a relation to explicitly disallow modification or deletion of any of the returned object. Any attempt to alter or destroy a readonly record will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception.
+Active Record provides +readonly+ method on a relation to explicitly disallow modification of any of the returned objects. Any attempt to alter a readonly record will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception.
 
 <ruby>
 client = Client.readonly.first
@@ -648,15 +674,13 @@ c2.save # Raises an ActiveRecord::StaleObjectError
 
 You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging, or otherwise apply the business logic needed to resolve the conflict.
 
-NOTE: You must ensure that your database schema defaults the +lock_version+ column to +0+.
-
 This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
 
-To override the name of the +lock_version+ column, +ActiveRecord::Base+ provides a class method called +set_locking_column+:
+To override the name of the +lock_version+ column, +ActiveRecord::Base+ provides a class attribute called +locking_column+:
 
 <ruby>
 class Client < ActiveRecord::Base
-  set_locking_column :lock_client_column
+  self.locking_column = :lock_client_column
 end
 </ruby>
 
@@ -689,6 +713,17 @@ You can also pass raw SQL to the +lock+ method for allowing different types of l
 Item.transaction do
   i = Item.lock("LOCK IN SHARE MODE").find(1)
   i.increment!(:views)
+end
+</ruby>
+
+If you already have an instance of your model, you can start a transaction and acquire the lock in one go using the following code:
+
+<ruby>
+item = Item.first
+item.with_lock do
+  # This block is called within a transaction,
+  # item is already locked.
+  item.increment!(:views)
 end
 </ruby>
 
@@ -954,7 +989,7 @@ If you're working with dates or times within scopes, due to how they are evaluat
 
 <ruby>
 class Post < ActiveRecord::Base
-  scope :last_week, lambda { where("created_at < ?", Time.zone.now ) }
+  scope :created_before_now, lambda { where("created_at < ?", Time.zone.now ) }
 end
 </ruby>
 
@@ -966,21 +1001,21 @@ When a +lambda+ is used for a +scope+, it can take arguments:
 
 <ruby>
 class Post < ActiveRecord::Base
-  scope :1_week_before, lambda { |time| where("created_at < ?", time)
+  scope :created_before, lambda { |time| where("created_at < ?", time) }
 end
 </ruby>
 
 This may then be called using this:
 
 <ruby>
-Post.1_week_before(Time.zone.now)
+Post.created_before(Time.zone.now)
 </ruby>
 
 However, this is just duplicating the functionality that would be provided to you by a class method.
 
 <ruby>
 class Post < ActiveRecord::Base
-  def self.1_week_before(time)
+  def self.created_before(time)
     where("created_at < ?", time)
   end
 end
@@ -989,7 +1024,7 @@ end
 Using a class method is the preferred way to accept arguments for scopes. These methods will still be accessible on the association objects:
 
 <ruby>
-category.posts.1_week_before(time)
+category.posts.created_before(time)
 </ruby>
 
 h4. Working with scopes
@@ -1097,6 +1132,8 @@ to your +Client+ model. If you try to create a new +Client+ without passing an +
 Client.where(:first_name => 'Andy').first_or_create!(:locked => false)
 # => ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
 </ruby>
+
+As with +first_or_create+ there is a +find_or_create_by!+ method but the +first_or_create!+ method is preferred for clarity.
 
 h4. +first_or_initialize+
 
@@ -1388,6 +1425,9 @@ A threshold of +nil+ disables automatic EXPLAINs.
 
 The default threshold in development mode is 0.5 seconds, and +nil+ in test and
 production modes.
+
+INFO. Automatic EXPLAIN gets disabled if Active Record has no logger, regardless
+of the value of the threshold.
 
 h5. Disabling Automatic EXPLAIN
 

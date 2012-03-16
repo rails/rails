@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class BestPracticesTest < Test::Unit::TestCase
+  class BestPracticesTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

@@ -39,7 +39,7 @@ When called without arguments like this, it creates a +&lt;form&gt;+ tag which, 
 </form>
 </html>
 
-Now, you'll notice that the HTML contains something extra: a +div+ element with two hidden input elements inside. This div is important, because the form cannot be successfully submitted without it. The first input element with name +utf8+ enforces browsers to properly respect your form's character encoding and is generated for all forms whether their actions are "GET" or "POST". The second input element with name +authenticity_token+ is a security feature of Rails called *cross-site request forgery protection*, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the "Security Guide":./security.html#_cross_site_reference_forgery_csrf.
+Now, you'll notice that the HTML contains something extra: a +div+ element with two hidden input elements inside. This div is important, because the form cannot be successfully submitted without it. The first input element with name +utf8+ enforces browsers to properly respect your form's character encoding and is generated for all forms whether their actions are "GET" or "POST". The second input element with name +authenticity_token+ is a security feature of Rails called *cross-site request forgery protection*, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the "Security Guide":./security.html#cross-site-request-forgery-csrf.
 
 NOTE: Throughout this guide, the +div+ with the hidden input elements will be excluded from code samples for brevity.
 
@@ -150,7 +150,7 @@ NOTE: Always use labels for checkbox and radio buttons. They associate text with
 
 h4. Other Helpers of Interest
 
-Other form controls worth mentioning are textareas, password fields, hidden fields, search fields, telephone fields, URL fields and email fields:
+Other form controls worth mentioning are textareas, password fields, hidden fields, search fields, telephone fields, date fields, URL fields and email fields:
 
 <erb>
 <%= text_area_tag(:message, "Hi, nice site", :size => "24x6") %>
@@ -158,6 +158,7 @@ Other form controls worth mentioning are textareas, password fields, hidden fiel
 <%= hidden_field_tag(:parent_id, "5") %>
 <%= search_field(:user, :name) %>
 <%= telephone_field(:user, :phone) %>
+<%= date_field(:user, :born_on) %>
 <%= url_field(:user, :homepage) %>
 <%= email_field(:user, :address) %>
 </erb>
@@ -168,15 +169,16 @@ Output:
 <textarea id="message" name="message" cols="24" rows="6">Hi, nice site</textarea>
 <input id="password" name="password" type="password" />
 <input id="parent_id" name="parent_id" type="hidden" value="5" />
-<input id="user_name" name="user[name]" size="30" type="search" />
-<input id="user_phone" name="user[phone]" size="30" type="tel" />
-<input id="user_homepage" size="30" name="user[homepage]" type="url" />
-<input id="user_address" size="30" name="user[address]" type="email" />
+<input id="user_name" name="user[name]" type="search" />
+<input id="user_phone" name="user[phone]" type="tel" />
+<input id="user_born_on" name="user[born_on]" type="date" />
+<input id="user_homepage" name="user[homepage]" type="url" />
+<input id="user_address" name="user[address]" type="email" />
 </html>
 
 Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
 
-IMPORTANT: The search, telephone, URL, and email inputs are HTML5 controls. If you require your app to have a consistent experience in older browsers, you will need an HTML5 polyfill (provided by CSS and/or JavaScript). There is definitely "no shortage of solutions for this":https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills, although a couple of popular tools at the moment are "Modernizr":http://www.modernizr.com/ and "yepnope":http://yepnopejs.com/, which provide a simple way to add functionality based on the presence of detected HTML5 features.
+IMPORTANT: The search, telephone, date, URL, and email inputs are HTML5 controls. If you require your app to have a consistent experience in older browsers, you will need an HTML5 polyfill (provided by CSS and/or JavaScript). There is definitely "no shortage of solutions for this":https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills, although a couple of popular tools at the moment are "Modernizr":http://www.modernizr.com/ and "yepnope":http://yepnopejs.com/, which provide a simple way to add functionality based on the presence of detected HTML5 features.
 
 TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the "Security Guide":security.html#logging.
 
@@ -237,7 +239,7 @@ The resulting HTML is:
 
 <html>
 <form accept-charset="UTF-8" action="/articles/create" method="post" class="nifty_form">
-  <input id="article_title" name="article[title]" size="30" type="text" />
+  <input id="article_title" name="article[title]" type="text" />
   <textarea id="article_body" name="article[body]" cols="60" rows="12"></textarea>
   <input name="commit" type="submit" value="Create" />
 </form>
@@ -262,8 +264,8 @@ which produces the following output:
 
 <html>
 <form accept-charset="UTF-8" action="/people/create" class="new_person" id="new_person" method="post">
-  <input id="person_name" name="person[name]" size="30" type="text" />
-  <input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" />
+  <input id="person_name" name="person[name]" type="text" />
+  <input id="contact_detail_phone_number" name="contact_detail[phone_number]" type="text" />
 </form>
 </html>
 
@@ -290,7 +292,7 @@ form_for(@article)
 
 ## Editing an existing article
 # long-style:
-form_for(@article, :url => article_path(@article), :html => { :method => "put" })
+form_for(@article, :url => article_path(@article), :html => { :method => "patch" })
 # short-style:
 form_for(@article)
 </ruby>
@@ -318,14 +320,14 @@ form_for [:admin, :management, @article]
 For more information on Rails' routing system and the associated conventions, please see the "routing guide":routing.html.
 
 
-h4. How do forms with PUT or DELETE methods work?
+h4. How do forms with PATCH, PUT, or DELETE methods work?
 
-The Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PUT" and "DELETE" requests (besides "GET" and "POST"). However, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms.
+The Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PATCH" and "DELETE" requests (besides "GET" and "POST"). However, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms.
 
 Rails works around this issue by emulating other methods over POST with a hidden input named +"_method"+, which is set to reflect the desired method:
 
 <ruby>
-form_tag(search_path, :method => "put")
+form_tag(search_path, :method => "patch")
 </ruby>
 
 output:
@@ -333,14 +335,14 @@ output:
 <html>
 <form accept-charset="UTF-8" action="/search" method="post">
   <div style="margin:0;padding:0">
-    <input name="_method" type="hidden" value="put" />
+    <input name="_method" type="hidden" value="patch" />
     <input name="utf8" type="hidden" value="&#x2713;" />
     <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
   </div>
   ...
 </html>
 
-When parsing POSTed data, Rails will take into account the special +_method+ parameter and acts as if the HTTP method was the one specified inside it ("PUT" in this example).
+When parsing POSTed data, Rails will take into account the special +_method+ parameter and acts as if the HTTP method was the one specified inside it ("PATCH" in this example).
 
 h3. Making Select Boxes with Ease
 
@@ -426,7 +428,7 @@ As with other helpers, if you were to use the +select+ helper on a form builder 
 <%= f.select(:city_id, ...) %>
 </erb>
 
-WARNING: If you are using +select+ (or similar helpers such as +collection_select+, +select_tag+) to set a +belongs_to+ association you must pass the name of the foreign key (in the example above +city_id+), not the name of association itself. If you specify +city+ instead of +city_id+ Active Record will raise an error along the lines of <tt> ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) </tt> when you pass the +params+ hash to +Person.new+ or +update_attributes+. Another way of looking at this is that form helpers only edit attributes. You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of +attr_protected+ and +attr_accessible+. For further details on this, see the "Ruby On Rails Security Guide":security.html#_mass_assignment.
+WARNING: If you are using +select+ (or similar helpers such as +collection_select+, +select_tag+) to set a +belongs_to+ association you must pass the name of the foreign key (in the example above +city_id+), not the name of association itself. If you specify +city+ instead of +city_id+ Active Record will raise an error along the lines of <tt> ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) </tt> when you pass the +params+ hash to +Person.new+ or +update_attributes+. Another way of looking at this is that form helpers only edit attributes. You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of +attr_protected+ and +attr_accessible+. For further details on this, see the "Ruby On Rails Security Guide":security.html#mass-assignment.
 
 h4. Option Tags from a Collection of Arbitrary Objects
 
@@ -467,7 +469,7 @@ Rails _used_ to have a +country_select+ helper for choosing countries, but this 
 
 h3. Using Date and Time Form Helpers
 
-The date and time helpers differ from all the other form helpers in two important respects:
+You can choose not to use the form helpers generating HTML5 date input fields and use the alternative date and time helpers. These date and time helpers differ from all the other form helpers in two important respects:
 
 # Dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc.) and so there is no single value in your +params+ hash with your date or time.
 # Other helpers use the +_tag+ suffix to indicate whether a helper is a barebones helper or one that operates on model objects. With dates and times, +select_date+, +select_time+ and +select_datetime+ are the barebones helpers, +date_select+, +time_select+ and +datetime_select+ are the equivalent model object helpers.
@@ -630,10 +632,10 @@ action for a Person model, +params[:model]+ would usually be a hash of all the a
 
 Fundamentally HTML forms don't know about any sort of structured data, all they generate is name–value pairs, where pairs are just plain strings. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.
 
-TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example,
+TIP: You may find you can try out examples in this section faster by using the console to directly invoke Racks' parameter parser. For example,
 
 <ruby>
-ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789"
+Rack::Utils.parse_query "name=fred&phone=0123456789"
 # => {"name"=>"fred", "phone"=>"0123456789"}
 </ruby>
 
@@ -712,9 +714,9 @@ Assuming the person had two addresses, with ids 23 and 45 this would create outp
 
 <html>
 <form accept-charset="UTF-8" action="/people/1" class="edit_person" id="edit_person_1" method="post">
-  <input id="person_name" name="person[name]" size="30" type="text" />
-  <input id="person_address_23_city" name="person[address][23][city]" size="30" type="text" />
-  <input id="person_address_45_city" name="person[address][45][city]" size="30" type="text" />
+  <input id="person_name" name="person[name]" type="text" />
+  <input id="person_address_23_city" name="person[address][23][city]" type="text" />
+  <input id="person_address_45_city" name="person[address][45][city]" type="text" />
 </form>
 </html>
 
@@ -737,7 +739,7 @@ To create more intricate nestings, you can specify the first part of the input n
 will create inputs like
 
 <html>
-<input id="person_address_primary_1_city" name="person[address][primary][1][city]" size="30" type="text" value="bologna" />
+<input id="person_address_primary_1_city" name="person[address][primary][1][city]" type="text" value="bologna" />
 </html>
 
 As a general rule the final input name is the concatenation of the name given to +fields_for+/+form_for+, the index value and the name of the attribute. You can also pass an +:index+ option directly to helpers such as +text_field+, but it is usually less repetitive to specify this at the form builder level rather than on individual input controls.
@@ -754,7 +756,7 @@ produces exactly the same output as the previous example.
 
 h3. Forms to external resources
 
-If you need to post some data to an external resource it is still great to build your from using rails form helpers. But sometimes you need to set an +authenticity_token+ for this resource. You can do it by passing an +:authenticity_token => 'your_external_token'+ parameter to the +form_tag+ options:
+If you need to post some data to an external resource it is still great to build your form using rails form helpers. But sometimes you need to set an +authenticity_token+ for this resource. You can do it by passing an +:authenticity_token => 'your_external_token'+ parameter to the +form_tag+ options:
 
 <erb>
 <%= form_tag 'http://farfar.away/form', :authenticity_token => 'external_token') do %>

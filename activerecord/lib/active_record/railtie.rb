@@ -38,7 +38,8 @@ module ActiveRecord
     # first time. Also, make it output to STDERR.
     console do |app|
       require "active_record/railties/console_sandbox" if app.sandbox?
-      ActiveRecord::Base.logger = Logger.new(STDERR)
+      console = ActiveSupport::Logger.new(STDERR)
+      Rails.logger.extend ActiveSupport::Logger.broadcast console
     end
 
     initializer "active_record.initialize_timezone" do
@@ -50,11 +51,6 @@ module ActiveRecord
 
     initializer "active_record.logger" do
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
-    end
-
-    initializer "active_record.identity_map" do |app|
-      config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-        "ActiveRecord::IdentityMap::Middleware" if config.active_record.delete(:identity_map)
     end
 
     initializer "active_record.set_configs" do |app|
@@ -85,23 +81,50 @@ module ActiveRecord
       end
     end
 
-    initializer "active_record.set_dispatch_hooks", :before => :set_clear_dependencies_hook do |app|
-      ActiveSupport.on_load(:active_record) do
-        ActionDispatch::Reloader.to_cleanup do
-          ActiveRecord::Base.clear_reloadable_connections!
-          ActiveRecord::Base.clear_cache!
+    initializer "active_record.set_reloader_hooks" do |app|
+      hook = lambda do
+        ActiveRecord::Base.clear_reloadable_connections!
+        ActiveRecord::Base.clear_cache!
+      end
+
+      if app.config.reload_classes_only_on_change
+        ActiveSupport.on_load(:active_record) do
+          ActionDispatch::Reloader.to_prepare(&hook)
+        end
+      else
+        ActiveSupport.on_load(:active_record) do
+          ActionDispatch::Reloader.to_cleanup(&hook)
         end
       end
     end
 
-    config.after_initialize do
+    initializer "active_record.add_watchable_files" do |app|
+      config.watchable_files.concat ["#{app.root}/db/schema.rb", "#{app.root}/db/structure.sql"]
+    end
+
+    config.after_initialize do |app|
       ActiveSupport.on_load(:active_record) do
-        instantiate_observers
+        ActiveRecord::Base.instantiate_observers
 
         ActionDispatch::Reloader.to_prepare do
           ActiveRecord::Base.instantiate_observers
         end
       end
+
+      ActiveSupport.on_load(:active_record) do
+        if app.config.use_schema_cache_dump
+          filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
+          if File.file?(filename)
+            cache = Marshal.load(open(filename, 'rb') { |f| f.read })
+            if cache.version == ActiveRecord::Migrator.current_version
+              ActiveRecord::Base.connection.schema_cache = cache
+            else
+              warn "schema_cache.dump is expired. Current version is #{ActiveRecord::Migrator.current_version}, but cache version is #{cache.version}."
+            end
+          end
+        end
+      end
+
     end
   end
 end

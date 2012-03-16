@@ -13,7 +13,7 @@ task :build => "all:build"
 desc "Release all gems to gemcutter and create a tag"
 task :release => "all:release"
 
-PROJECTS = %w(activesupport activemodel actionpack actionmailer activeresource activerecord railties)
+PROJECTS = %w(activesupport activemodel actionpack actionmailer activerecord railties)
 
 desc 'Run all tests by default'
 task :default => %w(test test:isolated)
@@ -77,9 +77,10 @@ RDoc::Task.new do |rdoc|
     rdoc_main.gsub!(/^(?=\S).*?\b(?=Rails)\b/) { "#$&\\" }
     rdoc_main.gsub!(%r{link:/rails/rails/blob/master/(\w+)/README\.rdoc}, "link:files/\\1/README_rdoc.html")
 
-    # Remove Travis build status image from API pages. Only GitHub README page gets this image
-    # https build image is used to avoid GitHub caching: http://about.travis-ci.org/docs/user/status-images
-    rdoc_main.gsub!(%r{^== Travis.*}, '')
+    # Remove Travis and Gemnasium status images from API pages. Only GitHub
+    # README page gets these images. Travis' https build image is used to avoid
+    # GitHub caching: http://about.travis-ci.org/docs/user/status-images
+    rdoc_main.gsub!(%r{^== (Build|Dependency) Status.*}, '')
 
     File.open(RDOC_MAIN, 'w') do |f|
       f.write(rdoc_main)
@@ -93,7 +94,7 @@ RDoc::Task.new do |rdoc|
 
   rdoc.options << '-f' << 'sdoc'
   rdoc.options << '-T' << 'rails'
-  rdoc.options << '-c' << 'utf-8'
+  rdoc.options << '-e' << 'UTF-8'
   rdoc.options << '-g' # SDoc flag, link methods to GitHub
   rdoc.options << '-m' << RDOC_MAIN
 
@@ -107,11 +108,6 @@ RDoc::Task.new do |rdoc|
   rdoc.rdoc_files.include('activerecord/CHANGELOG.md')
   rdoc.rdoc_files.include('activerecord/lib/active_record/**/*.rb')
   rdoc.rdoc_files.exclude('activerecord/lib/active_record/vendor/*')
-
-  rdoc.rdoc_files.include('activeresource/README.rdoc')
-  rdoc.rdoc_files.include('activeresource/CHANGELOG.md')
-  rdoc.rdoc_files.include('activeresource/lib/active_resource.rb')
-  rdoc.rdoc_files.include('activeresource/lib/active_resource/*')
 
   rdoc.rdoc_files.include('actionpack/README.rdoc')
   rdoc.rdoc_files.include('actionpack/CHANGELOG.md')
@@ -156,7 +152,6 @@ task :update_versions do
     "activemodel"     => "ActiveModel",
     "actionpack"      => "ActionPack",
     "actionmailer"    => "ActionMailer",
-    "activeresource"  => "ActiveResource",
     "activerecord"    => "ActiveRecord",
     "railties"        => "Rails"
   }
@@ -189,7 +184,7 @@ end
 #
 desc 'Publishes docs, run this AFTER a new stable tag has been pushed'
 task :publish_docs do
-  Net::HTTP.new('rails-hooks.hashref.com').start do |http|
+  Net::HTTP.new('api.rubyonrails.org', 8080).start do |http|
     request  = Net::HTTP::Post.new('/rails-master-hook')
     response = http.request(request)
     puts response.body

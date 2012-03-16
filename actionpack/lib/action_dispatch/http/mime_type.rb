@@ -82,6 +82,7 @@ module Mime
     class << self
 
       TRAILING_STAR_REGEXP = /(text|application)\/\*/
+      PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
 
       def lookup(string)
         LOOKUP[string]
@@ -103,11 +104,12 @@ module Mime
         SET << Mime.const_get(symbol.to_s.upcase)
 
         ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
-        ([symbol.to_s] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext] = SET.last }
+        ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = SET.last }
       end
 
       def parse(accept_header)
         if accept_header !~ /,/
+          accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
           if accept_header =~ TRAILING_STAR_REGEXP
             parse_data_with_trailing_star($1)
           else
@@ -117,7 +119,7 @@ module Mime
           # keep track of creation order to keep the subsequent sort stable
           list, index = [], 0
           accept_header.split(/,/).each do |header|
-            params, q = header.split(/;\s*q=/)
+            params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
             if params.present?
               params.strip!
 

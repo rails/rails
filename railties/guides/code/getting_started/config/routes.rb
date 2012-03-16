@@ -1,7 +1,7 @@
 Blog::Application.routes.draw do
-	resources :posts do
-		resources :comments
-	end
+  resources :posts do
+    resources :comments
+  end
 
   get "home/index"
 
@@ -60,5 +60,5 @@ Blog::Application.routes.draw do
 
   # This is a legacy wild controller route that's not recommended for RESTful applications.
   # Note: This route will make all actions in every controller accessible via GET requests.
-  # match ':controller(/:action(/:id(.:format)))'
+  # match ':controller(/:action(/:id))(.:format)'
 end

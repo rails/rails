@@ -8,8 +8,9 @@
 # Rails booted up.
 require 'fileutils'
 
-require 'test/unit'
 require 'rubygems'
+require 'minitest/autorun'
+require 'active_support/test_case'
 
 # TODO: Remove setting this magic constant
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
@@ -115,7 +116,12 @@ module TestHelpers
         end
       end
 
-      add_to_config 'config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"; config.session_store :cookie_store, :key => "_myapp_session"; config.active_support.deprecation = :log'
+      add_to_config <<-RUBY
+        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        config.session_store :cookie_store, :key => "_myapp_session"
+        config.active_support.deprecation = :log
+        config.action_controller.allow_forgery_protection = false
+      RUBY
     end
 
     def teardown_app
@@ -175,20 +181,6 @@ module TestHelpers
 
       def delete(file)
         File.delete("#{@path}/#{file}")
-      end
-    end
-
-    def plugin(name, string = "")
-      dir = "#{app_path}/vendor/plugins/#{name}"
-      FileUtils.mkdir_p(dir)
-
-      File.open("#{dir}/init.rb", 'w') do |f|
-        f.puts "::#{name.upcase} = 'loaded'"
-        f.puts string
-      end
-
-      Bukkit.new(dir).tap do |bukkit|
-        yield bukkit if block_given?
       end
     end
 
@@ -258,9 +250,11 @@ module TestHelpers
     def use_frameworks(arr)
       to_remove =  [:actionmailer,
                     :activemodel,
-                    :activerecord,
-                    :activeresource] - arr
-      remove_from_config "config.active_record.identity_map = true" if to_remove.include? :activerecord
+                    :activerecord] - arr
+      if to_remove.include? :activerecord
+        remove_from_config "config.active_record.whitelist_attributes = true"
+        remove_from_config "config.active_record.dependent_restrict_raises = false"
+      end
       $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
@@ -270,7 +264,7 @@ module TestHelpers
   end
 end
 
-class Test::Unit::TestCase
+class ActiveSupport::TestCase
   include TestHelpers::Paths
   include TestHelpers::Rack
   include TestHelpers::Generation

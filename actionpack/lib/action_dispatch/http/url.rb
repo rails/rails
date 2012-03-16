@@ -1,6 +1,8 @@
 module ActionDispatch
   module Http
     module URL
+      IP_HOST_REGEXP = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
+
       mattr_accessor :tld_length
       self.tld_length = 1
 
@@ -21,7 +23,7 @@ module ActionDispatch
         end
 
         def url_for(options = {})
-          unless options[:host].present? || options[:only_path].present?
+          if options[:host].blank? && options[:only_path].blank?
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
           end
 
@@ -38,7 +40,9 @@ module ActionDispatch
             rewritten_url << ":#{options.delete(:port)}" if options[:port]
           end
 
-          path = options.delete(:path) || ''
+          path = ""
+          path << options.delete(:script_name).to_s.chomp("/")
+          path << options.delete(:path).to_s
 
           params = options[:params] || {}
           params.reject! {|k,v| v.to_param.nil? }
@@ -52,7 +56,7 @@ module ActionDispatch
         private
 
         def named_host?(host)
-          !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
+          host && IP_HOST_REGEXP !~ host
         end
 
         def rewrite_authentication(options)
@@ -70,7 +74,7 @@ module ActionDispatch
 
           host = ""
           unless options[:subdomain] == false
-            host << (options[:subdomain] || extract_subdomain(options[:host], tld_length))
+            host << (options[:subdomain] || extract_subdomain(options[:host], tld_length)).to_param
             host << "."
           end
           host << (options[:domain] || extract_domain(options[:host], tld_length))
@@ -167,7 +171,7 @@ module ActionDispatch
       # such as 2 to catch <tt>"www"</tt> instead of <tt>"www.rubyonrails"</tt>
       # in "www.rubyonrails.co.uk".
       def subdomain(tld_length = @@tld_length)
-        subdomains(tld_length).join(".")
+        ActionDispatch::Http::URL.extract_subdomain(host, tld_length)
       end
     end
   end

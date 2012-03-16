@@ -1,5 +1,3 @@
-require 'active_support/core_ext/array/wrap'
-
 module ActiveRecord
   # = Active Record Autosave Association
   #
@@ -80,7 +78,7 @@ module ActiveRecord
   # When <tt>:autosave</tt> is not declared new children are saved when their parent is saved:
   #
   #   class Post
-  #     has_many :comments # :autosave option is no declared
+  #     has_many :comments # :autosave option is not declared
   #   end
   #
   #   post = Post.new(:title => 'ruby rocks')
@@ -95,7 +93,8 @@ module ActiveRecord
   #   post.comments.create(:body => 'hello world')
   #   post.save # => saves both post and comment
   #
-  # When <tt>:autosave</tt> is true all children is saved, no matter whether they are new records:
+  # When <tt>:autosave</tt> is true all children are saved, no matter whether they
+  # are new records or not:
   #
   #   class Post
   #     has_many :comments, :autosave => true
@@ -192,23 +191,21 @@ module ActiveRecord
             # Doesn't use after_save as that would save associations added in after_create/after_update twice
             after_create save_method
             after_update save_method
+          elsif reflection.macro == :has_one
+            define_method(save_method) { save_has_one_association(reflection) }
+            # Configures two callbacks instead of a single after_save so that
+            # the model may rely on their execution order relative to its
+            # own callbacks.
+            #
+            # For example, given that after_creates run before after_saves, if
+            # we configured instead an after_save there would be no way to fire
+            # a custom after_create callback after the child association gets
+            # created.
+            after_create save_method
+            after_update save_method
           else
-            if reflection.macro == :has_one
-              define_method(save_method) { save_has_one_association(reflection) }
-              # Configures two callbacks instead of a single after_save so that
-              # the model may rely on their execution order relative to its
-              # own callbacks.
-              #
-              # For example, given that after_creates run before after_saves, if
-              # we configured instead an after_save there would be no way to fire
-              # a custom after_create callback after the child association gets
-              # created.
-              after_create save_method
-              after_update save_method
-            else
-              define_non_cyclic_method(save_method, reflection) { save_belongs_to_association(reflection) }
-              before_save save_method
-            end
+            define_non_cyclic_method(save_method, reflection) { save_belongs_to_association(reflection) }
+            before_save save_method
           end
         end
 
@@ -297,7 +294,7 @@ module ActiveRecord
     def association_valid?(reflection, record)
       return true if record.destroyed? || record.marked_for_destruction?
 
-      unless valid = record.valid?
+      unless valid = record.valid?(validation_context)
         if reflection.options[:autosave]
           record.errors.each do |attribute, message|
             attribute = "#{reflection.name}.#{attribute}"
@@ -331,7 +328,6 @@ module ActiveRecord
         autosave = reflection.options[:autosave]
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
-          begin
           records.each do |record|
             next if record.destroyed?
 
@@ -343,7 +339,7 @@ module ActiveRecord
               if autosave
                 saved = association.insert_record(record, false)
               else
-                association.insert_record(record)
+                association.insert_record(record) unless reflection.nested?
               end
             elsif autosave
               saved = record.save(:validate => false)
@@ -351,11 +347,6 @@ module ActiveRecord
 
             raise ActiveRecord::Rollback unless saved
           end
-          rescue
-            records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
-            raise
-          end
-
         end
 
         # reconstruct the scope now that we know the owner's id

@@ -1,10 +1,12 @@
-require 'rational' unless RUBY_VERSION >= '1.9.2'
+require 'active_support/deprecation'
 
 class DateTime
   class << self
-    # DateTimes aren't aware of DST rules, so use a consistent non-DST offset when creating a DateTime with an offset in the local zone
+    # *DEPRECATED*: Use +DateTime.civil_from_format+ directly.
     def local_offset
-      ::Time.local(2007).utc_offset.to_r / 86400
+      ActiveSupport::Deprecation.warn 'DateTime.local_offset is deprecated. ' \
+        'Use DateTime.civil_from_format directly.', caller
+      ::Time.local(2012).utc_offset.to_r / 86400
     end
 
     # Returns <tt>Time.zone.now.to_datetime</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise returns <tt>Time.now.to_datetime</tt>.
@@ -79,29 +81,6 @@ class DateTime
   # Returns a new DateTime representing the end of the day (23:59:59)
   def end_of_day
     change(:hour => 23, :min => 59, :sec => 59)
-  end
-
-  # 1.9.3 defines + and - on DateTime, < 1.9.3 do not.
-  if DateTime.public_instance_methods(false).include?(:+)
-    def plus_with_duration(other) #:nodoc:
-      if ActiveSupport::Duration === other
-        other.since(self)
-      else
-        plus_without_duration(other)
-      end
-    end
-    alias_method :plus_without_duration, :+
-    alias_method :+, :plus_with_duration
-
-    def minus_with_duration(other) #:nodoc:
-      if ActiveSupport::Duration === other
-        plus_with_duration(-other)
-      else
-        minus_without_duration(other)
-      end
-    end
-    alias_method :minus_without_duration, :-
-    alias_method :-, :minus_with_duration
   end
 
   # Adjusts DateTime to UTC by adding its offset value; offset is set to 0

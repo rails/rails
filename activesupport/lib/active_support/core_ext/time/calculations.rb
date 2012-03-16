@@ -67,7 +67,7 @@ class Time
   end
 
   # Returns a new Time where one or more of the elements have been changed according to the +options+ parameter. The time options
-  # (hour, minute, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and
+  # (hour, min, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and
   # minute is passed, then sec and usec is set to 0.
   def change(options)
     ::Time.send(
@@ -78,7 +78,7 @@ class Time
       options[:hour]  || hour,
       options[:min]   || (options[:hour] ? 0 : min),
       options[:sec]   || ((options[:hour] || options[:min]) ? 0 : sec),
-      options[:usec]  || ((options[:hour] || options[:min] || options[:sec]) ? 0 : usec)
+      options[:usec]  || ((options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
     )
   end
 
@@ -145,6 +145,7 @@ class Time
   def prev_year
     years_ago(1)
   end
+  alias_method :last_year, :prev_year
 
   # Short-hand for years_since(1)
   def next_year
@@ -155,6 +156,7 @@ class Time
   def prev_month
     months_ago(1)
   end
+  alias_method :last_month, :prev_month
 
   # Short-hand for months_since(1)
   def next_month
@@ -199,6 +201,7 @@ class Time
   def prev_week(day = :monday)
     ago(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(:hour => 0)
   end
+  alias_method :last_week, :prev_week
 
   # Returns a new Time representing the start of the given day in next week (default is :monday).
   def next_week(day = :monday)
@@ -273,9 +276,9 @@ class Time
     beginning_of_day..end_of_day
   end
 
-  # Returns a Range representing the whole week of the current time.
-  def all_week
-    beginning_of_week..end_of_week
+  # Returns a Range representing the whole week of the current time. Week starts on start_day (default is :monday, i.e. end of Sunday).
+  def all_week(start_day = :monday)
+    beginning_of_week(start_day)..end_of_week(start_day)
   end
 
   # Returns a Range representing the whole month of the current time.

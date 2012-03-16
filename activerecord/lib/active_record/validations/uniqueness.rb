@@ -1,4 +1,4 @@
-require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/array/prepend_and_append'
 
 module ActiveRecord
   module Validations
@@ -25,8 +25,13 @@ module ActiveRecord
         relation = build_relation(finder_class, table, attribute, value)
         relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.send(:id))) if record.persisted?
 
-        Array.wrap(options[:scope]).each do |scope_item|
+        Array(options[:scope]).each do |scope_item|
           scope_value = record.send(scope_item)
+          reflection = record.class.reflect_on_association(scope_item)
+          if reflection
+            scope_value = record.send(reflection.foreign_key)
+            scope_item = reflection.foreign_key
+          end
           relation = relation.and(table[scope_item].eq(scope_value))
         end
 
@@ -46,21 +51,28 @@ module ActiveRecord
         class_hierarchy = [record.class]
 
         while class_hierarchy.first != @klass
-          class_hierarchy.insert(0, class_hierarchy.first.superclass)
+          class_hierarchy.prepend(class_hierarchy.first.superclass)
         end
 
         class_hierarchy.detect { |klass| !klass.abstract_class? }
       end
 
       def build_relation(klass, table, attribute, value) #:nodoc:
-        column = klass.columns_hash[attribute.to_s]
-        value = column.limit ? value.to_s.mb_chars[0, column.limit] : value.to_s if column.text?
+        reflection = klass.reflect_on_association(attribute)
+        if reflection
+          column = klass.columns_hash[reflection.foreign_key]
+          attribute = reflection.foreign_key
+          value = value.attributes[reflection.primary_key_column.name]
+        else
+          column = klass.columns_hash[attribute.to_s]
+        end
+        value = column.limit ? value.to_s[0, column.limit] : value.to_s if !value.nil? && column.text?
 
         if !options[:case_sensitive] && value && column.text?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           relation = klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
-          value    = klass.connection.case_sensitive_modifier(value)
+          value    = klass.connection.case_sensitive_modifier(value) unless value.nil?
           relation = table[attribute].eq(value)
         end
 
@@ -81,7 +93,7 @@ module ActiveRecord
       #
       #   class Person < ActiveRecord::Base
       #     validates_uniqueness_of :user_name, :scope => :account_id
-      #   end 
+      #   end
       #
       # Or even multiple scope parameters. For example, making sure that a teacher can only be on the schedule once
       # per semester for a particular class.

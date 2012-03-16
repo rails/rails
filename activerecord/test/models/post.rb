@@ -44,6 +44,10 @@ class Post < ActiveRecord::Base
     def newest
       created.last
     end
+
+    def the_association
+      proxy_association
+    end
   end
 
   has_many :author_favorites, :through => :author
@@ -111,8 +115,10 @@ class Post < ActiveRecord::Base
   has_many :named_categories, :through => :standard_categorizations
 
   has_many :readers
+  has_many :secure_readers
   has_many :readers_with_person, :include => :person, :class_name => "Reader"
   has_many :people, :through => :readers
+  has_many :secure_people, :through => :secure_readers
   has_many :single_people, :through => :readers
   has_many :people_with_callbacks, :source=>:person, :through => :readers,
               :before_add    => lambda {|owner, reader| log(:added,   :before, reader.first_name) },

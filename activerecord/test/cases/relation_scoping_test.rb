@@ -106,7 +106,7 @@ class RelationScopingTest < ActiveRecord::TestCase
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
     scoped_developers = Developer.includes(:projects).scoping do
-      Developer.where('projects.id = 2').all
+      Developer.where('projects.id' => 2).all
     end
     assert scoped_developers.include?(developers(:david))
     assert !scoped_developers.include?(developers(:jamis))
@@ -418,6 +418,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_reorder_overrides_default_scope_order
     expected = Developer.order('name DESC').collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.reorder('name DESC').collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
+  def test_order_after_reorder_combines_orders
+    expected = Developer.order('name DESC, id DESC').collect { |dev| [dev.name, dev.id] }
+    received = Developer.order('name ASC').reorder('name DESC').order('id DESC').collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
 

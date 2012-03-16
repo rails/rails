@@ -7,7 +7,7 @@ class Class #:nodoc:
 
     def descendants
       descendants = []
-      ObjectSpace.each_object(class << self; self; end) do |k|
+      ObjectSpace.each_object(singleton_class) do |k|
         descendants.unshift k unless k == self
       end
       descendants

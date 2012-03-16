@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class I18nTest < Test::Unit::TestCase
+  class I18nTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -119,6 +119,9 @@ en:
 
       get "/i18n"
       assert_equal "1", last_response.body
+
+      # Wait a full second so we have time for changes to propagate
+      sleep(1)
 
       app_file "config/locales/en.yml", <<-YAML
 en:

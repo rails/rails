@@ -497,6 +497,20 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('created_on')
   end
 
+  if ActiveRecord::Base.connection.supports_migrations?
+    class Testings < ActiveRecord::Base; end
+    def test_field_named_field
+      ActiveRecord::Base.connection.create_table :testings do |t|
+        t.string :field
+      end
+      assert_nothing_raised do
+        Testings.new.attributes
+      end
+    ensure
+      ActiveRecord::Base.connection.drop_table :testings rescue nil
+    end
+  end
+
   private
     def with_partial_updates(klass, on = true)
       old = klass.partial_updates?

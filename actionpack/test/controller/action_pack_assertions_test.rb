@@ -71,6 +71,11 @@ class ActionPackAssertionsController < ActionController::Base
     render :text => "Hello!", :content_type => Mime::RSS
   end
 
+  def render_with_layout
+    @variable_for_layout = nil
+    render "test/hello_world", :layout => "layouts/standard"
+  end
+
   def session_stuffing
     session['xmas'] = 'turkey'
     render :text => "ho ho ho"
@@ -152,20 +157,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_equal @response.body, 'request method: POST'
     get :raise_exception_on_post
     assert_equal @response.body, 'request method: GET'
-  end
-
-  def test_redirect_to_named_route
-    with_routing do |set|
-      set.draw do
-        match 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
-        match ':controller/:action'
-      end
-      set.install_helpers
-
-      process :redirect_to_named_route
-      assert_redirected_to 'http://test.host/route_one'
-      assert_redirected_to route_one_url
-    end
   end
 
   def test_string_constraint
@@ -347,7 +338,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   end
 
   def test_render_based_on_parameters
-    process :render_based_on_parameters, "name" => "David"
+    process :render_based_on_parameters, "GET", "name" => "David"
     assert_equal "Mr. David", @response.body
   end
 
@@ -469,6 +460,18 @@ class AssertTemplateTest < ActionController::TestCase
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template :hello_planet
     end
+  end
+
+  def test_fails_with_wrong_layout
+    get :render_with_layout
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :layout => "application"
+    end
+  end
+
+  def test_passes_with_correct_layout
+    get :render_with_layout
+    assert_template :layout => "layouts/standard"
   end
 
   def test_assert_template_reset_between_requests

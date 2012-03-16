@@ -24,7 +24,6 @@ module ActionController
       end
       message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in %.0fms" % event.duration
       message << " (#{additions.join(" | ")})" unless additions.blank?
-      message << "\n"
 
       info(message)
     end

@@ -6,6 +6,9 @@ require 'models/reader'
 require 'models/legacy_thing'
 require 'models/reference'
 require 'models/string_key_object'
+require 'models/car'
+require 'models/engine'
+require 'models/wheel'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -224,47 +227,17 @@ class OptimisticLockingTest < ActiveRecord::TestCase
       assert_equal lock_version, p1.lock_version
     end
   end
-end
 
-class SetLockingColumnTest < ActiveRecord::TestCase
-  def test_set_set_locking_column_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.locking_column = "foo"
-    assert_equal "foo", k.locking_column
-
-    assert_deprecated do
-      k.set_locking_column "bar"
+  def test_polymorphic_destroy_with_dependencies_and_lock_version
+    car = Car.create!
+    
+    assert_difference 'car.wheels.count'  do
+    	car.wheels << Wheel.create!
+    end 
+    assert_difference 'car.wheels.count', -1  do
+      car.destroy
     end
-    assert_equal "bar", k.locking_column
-  end
-
-  def test_set_locking_column_with_block
-    k = Class.new( ActiveRecord::Base )
-    k.locking_column = 'foo'
-
-    assert_deprecated do
-      k.set_locking_column do
-        "lock_" + ActiveSupport::Deprecation.silence { original_locking_column }
-      end
-    end
-    assert_equal "lock_foo", k.locking_column
-  end
-
-  def test_original_locking_column
-    k = Class.new(ActiveRecord::Base)
-    k.locking_column = "bar"
-
-    assert_deprecated do
-      assert_equal ActiveRecord::Locking::Optimistic::ClassMethods::DEFAULT_LOCKING_COLUMN, k.original_locking_column
-    end
-
-    k = Class.new(ActiveRecord::Base)
-    k.locking_column = "omg"
-    k.locking_column = "wtf"
-
-    assert_deprecated do
-      assert_equal "omg", k.original_locking_column
-    end
+    assert car.destroyed?
   end
 end
 
@@ -415,20 +388,30 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
       end
     end
 
+    def test_with_lock_commits_transaction
+      person = Person.find 1
+      person.with_lock do
+        person.first_name = 'fooman'
+        person.save!
+      end
+      assert_equal 'fooman', person.reload.first_name
+    end
+
+    def test_with_lock_rolls_back_transaction
+      person = Person.find 1
+      old = person.first_name
+      person.with_lock do
+        person.first_name = 'fooman'
+        person.save!
+        raise 'oops'
+      end rescue nil
+      assert_equal old, person.reload.first_name
+    end
+
     if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
       def test_no_locks_no_wait
         first, second = duel { Person.find 1 }
         assert first.end > second.end
-      end
-
-      # Hit by ruby deadlock detection since connection checkout is mutexed.
-      if RUBY_VERSION < '1.9.0'
-        def test_second_lock_waits
-          assert [0.2, 1, 5].any? { |zzz|
-            first, second = duel(zzz) { Person.find 1, :lock => true }
-            second.end > first.end
-          }
-        end
       end
 
       protected

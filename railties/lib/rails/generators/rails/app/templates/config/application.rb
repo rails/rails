@@ -7,15 +7,14 @@ require 'rails/all'
 <%= comment_if :skip_active_record %>require "active_record/railtie"
 require "action_controller/railtie"
 require "action_mailer/railtie"
-require "active_resource/railtie"
-<%= comment_if :skip_sprockets %>require "sprockets/railtie"
+<%= comment_if :skip_sprockets %>require "sprockets/rails/railtie"
 <%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
 <% end -%>
 
 if defined?(Bundler)
-  # If you precompile assets before deploying to production, use this line
+  # If you precompile assets before deploying to production, use this line.
   Bundler.require(*Rails.groups(:assets => %w(development test)))
-  # If you want your assets lazily compiled in production, use this line
+  # If you want your assets lazily compiled in production, use this line.
   # Bundler.require(:default, :assets, Rails.env)
 end
 
@@ -27,10 +26,6 @@ module <%= app_const_base %>
 
     # Custom directories with classes and modules you want to be autoloadable.
     # config.autoload_paths += %W(#{config.root}/extras)
-
-    # Only load the plugins named here, in the order given (default is alphabetical).
-    # :all can be used as a placeholder for all plugins not explicitly named.
-    # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
 
     # Activate observers that should always be running.
     # config.active_record.observers = :cacher, :garbage_collector, :forum_observer
@@ -51,14 +46,25 @@ module <%= app_const_base %>
 
     # Use SQL instead of Active Record's schema dumper when creating the database.
     # This is necessary if your schema can't be completely dumped by the schema dumper,
-    # like if you have constraints or database-specific column types
+    # like if you have constraints or database-specific column types.
     # config.active_record.schema_format = :sql
 
+    # Enforce whitelist mode for mass assignment.
+    # This will create an empty whitelist of attributes available for mass-assignment for all models
+    # in your app. As such, your models will need to explicitly whitelist or blacklist accessible
+    # parameters by using an attr_accessible or attr_protected declaration.
+    <%= comment_if :skip_active_record %>config.active_record.whitelist_attributes = true
+
+    # Specifies wether or not has_many or has_one association option :dependent => :restrict raises
+    # an exception. If set to true, then an ActiveRecord::DeleteRestrictionError exception would be
+    # raised. If set to false, then an error will be added on the model instead.
+    <%= comment_if :skip_active_record %>config.active_record.dependent_restrict_raises = false
 <% unless options.skip_sprockets? -%>
-    # Enable the asset pipeline
+
+    # Enable the asset pipeline.
     config.assets.enabled = true
 
-    # Version of your assets, change this if you want to expire all your assets
+    # Version of your assets, change this if you want to expire all your assets.
     config.assets.version = '1.0'
 <% end -%>
   end

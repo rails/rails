@@ -6,7 +6,7 @@ require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/conversions'
 require 'active_support/inflections'
 
-class HashExtTest < Test::Unit::TestCase
+class HashExtTest < ActiveSupport::TestCase
   class IndifferentHash < HashWithIndifferentAccess
   end
 
@@ -27,11 +27,7 @@ class HashExtTest < Test::Unit::TestCase
     @symbols = { :a  => 1, :b  => 2 }
     @mixed   = { :a  => 1, 'b' => 2 }
     @fixnums = {  0  => 1,  1  => 2 }
-    if RUBY_VERSION < '1.9.0'
-      @illegal_symbols = { "\0" => 1, "" => 2, [] => 3 }
-    else
-      @illegal_symbols = { [] => 3 }
-    end
+    @illegal_symbols = { [] => 3 }
   end
 
   def test_methods
@@ -121,6 +117,9 @@ class HashExtTest < Test::Unit::TestCase
 
     foo = { "foo" => NonIndifferentHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
     assert_kind_of NonIndifferentHash, foo["foo"]
+
+    foo = { "foo" => IndifferentHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
+    assert_kind_of IndifferentHash, foo["foo"]
   end
 
   def test_indifferent_assorted
@@ -487,6 +486,13 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal 'bender', slice['login']
   end
 
+  def test_extract
+    original = {:a => 1, :b => 2, :c => 3, :d => 4}
+    expected = {:a => 1, :b => 2}
+
+    assert_equal expected, original.extract!(:a, :b)
+  end
+
   def test_except
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :a => 'x', :b => 'y' }
@@ -524,7 +530,7 @@ class IWriteMyOwnXML
   end
 end
 
-class HashExtToParamTests < Test::Unit::TestCase
+class HashExtToParamTests < ActiveSupport::TestCase
   class ToParam < String
     def to_param
       "#{self}-1"
@@ -551,11 +557,11 @@ class HashExtToParamTests < Test::Unit::TestCase
   end
 
   def test_to_param_orders_by_key_in_ascending_order
-    assert_equal 'a=2&b=1&c=0', ActiveSupport::OrderedHash[*%w(b 1 c 0 a 2)].to_param
+    assert_equal 'a=2&b=1&c=0', Hash[*%w(b 1 c 0 a 2)].to_param
   end
 end
 
-class HashToXmlTest < Test::Unit::TestCase
+class HashToXmlTest < ActiveSupport::TestCase
   def setup
     @xml_options = { :root => :person, :skip_instruct => true, :indent => 0 }
   end

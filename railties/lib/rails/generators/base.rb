@@ -48,6 +48,12 @@ module Rails
         @namespace ||= super.sub(/_generator$/, '').sub(/:generators:/, ':')
       end
 
+      # Convenience method to hide this generator from the available ones when
+      # running rails generator command.
+      def self.hide!
+        Rails::Generators.hide_namespace self.namespace
+      end
+
       # Invoke a generator based on the value supplied by the user to the
       # given option named "name". A class option is created when this method
       # is invoked and you can set a hash to customize it.
@@ -91,7 +97,7 @@ module Rails
       #
       # The lookup in this case for test_unit as input is:
       #
-      #   "test_framework:awesome", "test_framework"
+      #   "test_unit:awesome", "test_unit"
       #
       # Which is not the desired the lookup. You can change it by providing the
       # :as option:
@@ -102,7 +108,7 @@ module Rails
       #
       # And now it will lookup at:
       #
-      #   "test_framework:controller", "test_framework"
+      #   "test_unit:controller", "test_unit"
       #
       # Similarly, if you want it to also lookup in the rails namespace, you just
       # need to provide the :base value:
@@ -113,7 +119,7 @@ module Rails
       #
       # And the lookup is exactly the same as previously:
       #
-      #   "rails:test_framework", "test_framework:controller", "test_framework"
+      #   "rails:test_unit", "test_unit:controller", "test_unit"
       #
       # ==== Switches
       #
@@ -128,13 +134,13 @@ module Rails
       #
       # ==== Boolean hooks
       #
-      # In some cases, you want to provide a boolean hook. For example, webrat
+      # In some cases, you may want to provide a boolean hook. For example, webrat
       # developers might want to have webrat available on controller generator.
       # This can be achieved as:
       #
       #   Rails::Generators::ControllerGenerator.hook_for :webrat, :type => :boolean
       #
-      # Then, if you want, webrat to be invoked, just supply:
+      # Then, if you want webrat to be invoked, just supply:
       #
       #   rails generate controller Account --webrat
       #
@@ -146,7 +152,7 @@ module Rails
       #
       # You can also supply a block to hook_for to customize how the hook is
       # going to be invoked. The block receives two arguments, an instance
-      # of the current class and the klass to be invoked.
+      # of the current class and the class to be invoked.
       #
       # For example, in the resource generator, the controller should be invoked
       # with a pluralized class name. But by default it is invoked with the same
@@ -254,17 +260,13 @@ module Rails
             nesting = class_name.split('::')
             last_name = nesting.pop
 
-            # Hack to limit const_defined? to non-inherited on 1.9
-            extra = []
-            extra << false unless Object.method(:const_defined?).arity == 1
-
             # Extract the last Module in the nesting
             last = nesting.inject(Object) do |last_module, nest|
-              break unless last_module.const_defined?(nest, *extra)
+              break unless last_module.const_defined?(nest, false)
               last_module.const_get(nest)
             end
 
-            if last && last.const_defined?(last_name.camelize, *extra)
+            if last && last.const_defined?(last_name.camelize, false)
               raise Error, "The name '#{class_name}' is either already used in your application " <<
                            "or reserved by Ruby on Rails. Please choose an alternative and run "  <<
                            "this generator again."

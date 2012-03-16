@@ -7,23 +7,29 @@ Description:
     under_scored, as the first argument, and an optional list of attribute
     pairs.
 
-    Attribute pairs are field:type arguments specifying the
-    model's attributes. Timestamps are added by default, so you don't have to
-    specify them by hand as 'created_at:datetime updated_at:datetime'.
+    Attributes are field arguments specifying the model's attributes. You can
+    optionally pass the type and an index to each field. For instance:
+    "title body:text tracking_id:integer:uniq" will generate a title field of
+    string type, a body with text type and a tracking_id as an integer with an
+    unique index. "index" could also be given instead of "uniq" if one desires
+    a non unique index.
+
+    Timestamps are added by default, so you don't have to specify them by hand
+    as 'created_at:datetime updated_at:datetime'.
 
     You don't have to think up every attribute up front, but it helps to
     sketch out a few so you can start working with the resource immediately.
 
-    For example, 'scaffold post title:string body:text published:boolean'
-    gives you a model with those three attributes, a controller that handles
+    For example, 'scaffold post title body:text published:boolean' gives
+    you a model with those three attributes, a controller that handles
     the create/show/update/destroy, forms to create and edit your posts, and
-    an index that lists them all, as well as a resources :posts
-    declaration in config/routes.rb.
+    an index that lists them all, as well as a resources :posts declaration
+    in config/routes.rb.
 
     If you want to remove all the generated files, run
     'rails destroy scaffold ModelName'.
 
 Examples:
     `rails generate scaffold post`
-    `rails generate scaffold post title:string body:text published:boolean`
-    `rails generate scaffold purchase order_id:integer amount:decimal`
+    `rails generate scaffold post title body:text published:boolean`
+    `rails generate scaffold purchase amount:decimal tracking_id:integer:uniq`

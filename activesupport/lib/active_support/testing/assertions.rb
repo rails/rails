@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 
 module ActiveSupport
@@ -45,7 +44,7 @@ module ActiveSupport
       #     post :delete, :id => ...
       #   end
       def assert_difference(expression, difference = 1, message = nil, &block)
-        expressions = Array.wrap expression
+        expressions = Array(expression)
 
         exps = expressions.map { |e|
           e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
@@ -87,7 +86,7 @@ module ActiveSupport
 
       # Test if an expression is not blank. Passes if object.present? is true.
       #
-      #   assert_present {:data => 'x' } # => true
+      #   assert_present({:data => 'x' }) # => true
       def assert_present(object, message=nil)
         message ||= "#{object.inspect} is blank"
         assert object.present?, message

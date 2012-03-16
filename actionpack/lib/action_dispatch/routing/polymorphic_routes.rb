@@ -165,7 +165,7 @@ module ActionDispatch
               if parent.is_a?(Symbol) || parent.is_a?(String)
                 parent
               else
-                ActiveModel::Naming.route_key(parent).singularize
+                ActiveModel::Naming.singular_route_key(parent)
               end
             end
           else
@@ -176,9 +176,11 @@ module ActionDispatch
           if record.is_a?(Symbol) || record.is_a?(String)
             route << record
           elsif record
-            route << ActiveModel::Naming.route_key(record)
-            route = [route.join("_").singularize] if inflection == :singular
-            route << "index" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
+            if inflection == :singular
+              route << ActiveModel::Naming.singular_route_key(record)
+            else
+              route << ActiveModel::Naming.route_key(record)
+            end
           else
             raise ArgumentError, "Nil location provided. Can't build URI."
           end

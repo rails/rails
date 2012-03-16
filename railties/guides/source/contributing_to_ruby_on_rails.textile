@@ -271,6 +271,8 @@ When working with documentation, please take into account the "API Documentation
 
 NOTE: As explained earlier, ordinary code patches should have proper documentation coverage. docrails is only used for isolated documentation improvements.
 
+NOTE: To help our CI servers you can add [ci skip] tag to your documentation commit message to skip build on that commit. Please remember to use it for commits containing only documentation changes.
+
 WARNING: docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
 
 h3. Contributing to the Rails Code
@@ -330,6 +332,8 @@ When you're happy with the code on your computer, you need to commit the changes
 $ git commit -a -m "Here is a commit message on what I changed in this commit"
 </shell>
 
+TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean. 
+
 h4. Update master
 
 It’s pretty likely that other changes to master have happened while you were working. Go get them:
@@ -380,9 +384,9 @@ Now you need to get other people to look at your patch, just as you've looked at
 
 h4. Iterate as Necessary
 
-It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a plugin.
+It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a gem.
 
-And then...think about your next contribution!
+And then ... think about your next contribution!
 
 h3. Rails Contributors
 

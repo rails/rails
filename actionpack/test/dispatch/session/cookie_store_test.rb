@@ -54,8 +54,6 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       request.session_options[:renew] = true
       head :ok
     end
-
-    def rescue_action(e) raise end
   end
 
   def test_setting_session_value

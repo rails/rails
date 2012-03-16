@@ -4,7 +4,6 @@ require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/inclusion'
 require 'active_support/core_ext/object/try'
 require 'rack/test'
-require 'test/unit/assertions'
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -27,8 +26,8 @@ module ActionDispatch
       # object's <tt>@response</tt> instance variable will point to the same
       # response object.
       #
-      # You can also perform POST, PUT, DELETE, and HEAD requests with +#post+,
-      # +#put+, +#delete+, and +#head+.
+      # You can also perform POST, PATCH, PUT, DELETE, and HEAD requests with
+      # +#post+, +#patch+, +#put+, +#delete+, and +#head+.
       def get(path, parameters = nil, headers = nil)
         process :get, path, parameters, headers
       end
@@ -37,6 +36,12 @@ module ActionDispatch
       # details.
       def post(path, parameters = nil, headers = nil)
         process :post, path, parameters, headers
+      end
+
+      # Performs a PATCH request with the given parameters. See +#get+ for more
+      # details.
+      def patch(path, parameters = nil, headers = nil)
+        process :patch, path, parameters, headers
       end
 
       # Performs a PUT request with the given parameters. See +#get+ for more
@@ -57,13 +62,19 @@ module ActionDispatch
         process :head, path, parameters, headers
       end
 
+      # Performs a OPTIONS request with the given parameters. See +#get+ for
+      # more details.
+      def options(path, parameters = nil, headers = nil)
+        process :options, path, parameters, headers
+      end
+
       # Performs an XMLHttpRequest request with the given parameters, mirroring
       # a request from the Prototype library.
       #
-      # The request_method is +:get+, +:post+, +:put+, +:delete+ or +:head+; the
-      # parameters are +nil+, a hash, or a url-encoded or multipart string;
-      # the headers are a hash. Keys are automatically upcased and prefixed
-      # with 'HTTP_' if not already.
+      # The request_method is +:get+, +:post+, +:patch+, +:put+, +:delete+ or
+      # +:head+; the parameters are +nil+, a hash, or a url-encoded or multipart
+      # string; the headers are a hash.  Keys are automatically upcased and
+      # prefixed with 'HTTP_' if not already.
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
         headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
@@ -103,6 +114,12 @@ module ActionDispatch
         request_via_redirect(:post, path, parameters, headers)
       end
 
+      # Performs a PATCH request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def patch_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:patch, path, parameters, headers)
+      end
+
       # Performs a PUT request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def put_via_redirect(path, parameters = nil, headers = nil)
@@ -127,7 +144,7 @@ module ActionDispatch
     class Session
       DEFAULT_HOST = "www.example.com"
 
-      include Test::Unit::Assertions
+      include MiniTest::Assertions
       include TestProcess, RequestHelpers, Assertions
 
       %w( status status_message headers body redirect? ).each do |method|
@@ -313,7 +330,7 @@ module ActionDispatch
         @integration_session = Integration::Session.new(app)
       end
 
-      %w(get post put head delete cookies assigns
+      %w(get post patch put head delete options cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
           reset! unless integration_session
@@ -463,9 +480,12 @@ module ActionDispatch
     @@app = nil
 
     def self.app
-      # DEPRECATE Rails application fallback
-      # This should be set by the initializer
-      @@app || (defined?(Rails.application) && Rails.application) || nil
+      if !@@app && !ActionDispatch.test_app
+        ActiveSupport::Deprecation.warn "Rails application fallback is deprecated " \
+          "and no longer works, please set ActionDispatch.test_app", caller
+      end
+
+      @@app || ActionDispatch.test_app
     end
 
     def self.app=(app)

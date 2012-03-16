@@ -81,6 +81,7 @@ body {
 	font-size: 87.5%;
 	line-height: 1.5em;
 	background: #222;
+	min-width: 69em;
 	color: #999;
 	}
 
@@ -335,6 +336,14 @@ h6 {
 
 #mainCol dd.work-in-progress, #subCol dd.work-in-progress {
 	background: #fff9d8 url(../images/tab_yellow.gif) no-repeat left top;
+	border: none;
+	padding: 1.25em 1em 1.25em 48px;
+	margin-left: 0;
+	margin-top: 0.25em;
+}
+
+#mainCol dd.kindle, #subCol dd.kindle {
+	background: #d5e9f6 url(../images/tab_info.gif) no-repeat left top;
 	border: none;
 	padding: 1.25em 1em 1.25em 48px;
 	margin-left: 0;

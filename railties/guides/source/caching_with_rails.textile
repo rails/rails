@@ -64,6 +64,28 @@ end
 
 If you want a more complicated expiration scheme, you can use cache sweepers to expire cached objects when things change. This is covered in the section on Sweepers.
 
+By default, page caching automatically gzips files (for example, to +products.html.gz+ if user requests +/products+) to reduce the size of data transmitted (web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once, compression ratio is maximum).
+
+Nginx is able to serve compressed content directly from disk by enabling +gzip_static+:
+
+<plain>
+location /  {
+  gzip_static on; # to serve pre-gzipped version
+}
+</plain>
+
+You can disable gzipping by setting +:gzip+ option to false (for example, if action returns image):
+
+<ruby>
+caches_page :image, :gzip => false
+</ruby>
+
+Or, you can set custom gzip compression level (level names are taken from +Zlib+ constants):
+
+<ruby>
+caches_page :image, :gzip => :best_speed
+</ruby>
+
 NOTE: Page caching ignores all parameters. For example +/products?page=1+ will be written out to the filesystem as +products.html+ with no reference to the +page+ parameter. Thus, if someone requests +/products?page=2+ later, they will get the cached first page. A workaround for this limitation is to include the parameters in the page's path, e.g. +/productions/page/1+.
 
 INFO: Page caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Typically, a redirection in some before filter that checks request preconditions does the job.
@@ -331,6 +353,14 @@ caches_action :index, :expires_in => 60.seconds, :unless_exist => true
 
 For more information about Ehcache, see "http://ehcache.org/":http://ehcache.org/ .
 For more information about Ehcache for JRuby and Rails, see "http://ehcache.org/documentation/jruby.html":http://ehcache.org/documentation/jruby.html
+
+h4. ActiveSupport::Cache::NullStore
+
+This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with +Rails.cache+, but caching may interfere with being able to see the results of code changes. With this cache store, all +fetch+ and +read+ operations will result in a miss.
+
+<ruby>
+ActionController::Base.cache_store = :null_store
+</ruby>
 
 h4. Custom Cache Stores
 

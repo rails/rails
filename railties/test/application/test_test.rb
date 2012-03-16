@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class TestTest < Test::Unit::TestCase
+  class TestTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -25,23 +25,6 @@ module ApplicationTests
       RUBY
 
       run_test_file 'unit/foo_test.rb'
-    end
-
-    # Run just in Ruby < 1.9
-    if defined?(Test::Unit::Util::BacktraceFilter)
-      test "adds backtrace cleaner" do
-        app_file 'test/unit/backtrace_test.rb', <<-RUBY
-          require 'test_helper'
-
-          class FooTest < ActiveSupport::TestCase
-            def test_truth
-              assert Test::Unit::Util::BacktraceFilter.ancestors.include?(Rails::BacktraceFilterForTestUnit)
-            end
-          end
-        RUBY
-
-        run_test_file 'unit/backtrace_test.rb'
-      end
     end
 
     test "integration test" do

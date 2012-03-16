@@ -13,7 +13,8 @@ class SerializationTest < ActiveRecord::TestCase
       :created_at     => Time.utc(2006, 8, 1),
       :awesome        => false,
       :preferences    => { :gem => '<strong>ruby</strong>' },
-      :alternative_id => nil
+      :alternative_id => nil,
+      :id             => nil
     }
   end
 
@@ -24,7 +25,7 @@ class SerializationTest < ActiveRecord::TestCase
   end
 
   def test_serialize_should_be_reversible
-    for format in FORMATS
+    FORMATS.each do |format|
       @serialized = Contact.new.send("to_#{format}")
       contact = Contact.new.send("from_#{format}", @serialized)
 
@@ -33,7 +34,7 @@ class SerializationTest < ActiveRecord::TestCase
   end
 
   def test_serialize_should_allow_attribute_only_filtering
-    for format in FORMATS
+    FORMATS.each do |format|
       @serialized = Contact.new(@contact_attributes).send("to_#{format}", :only => [ :age, :name ])
       contact = Contact.new.send("from_#{format}", @serialized)
       assert_equal @contact_attributes[:name], contact.name, "For #{format}"
@@ -42,7 +43,7 @@ class SerializationTest < ActiveRecord::TestCase
   end
 
   def test_serialize_should_allow_attribute_except_filtering
-    for format in FORMATS
+    FORMATS.each do |format|
       @serialized = Contact.new(@contact_attributes).send("to_#{format}", :except => [ :age, :name ])
       contact = Contact.new.send("from_#{format}", @serialized)
       assert_nil contact.name, "For #{format}"

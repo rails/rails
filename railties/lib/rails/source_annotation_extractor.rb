@@ -22,7 +22,7 @@ class SourceAnnotationExtractor
     # If +options+ has a flag <tt>:tag</tt> the tag is shown as in the example above.
     # Otherwise the string contains just line and text.
     def to_s(options={})
-      s = "[%3d] " % line
+      s = "[#{line.to_s.rjust(options[:indent])}]"
       s << "[#{tag}] " if options[:tag]
       s << text
     end
@@ -46,16 +46,14 @@ class SourceAnnotationExtractor
   end
 
   # Returns a hash that maps filenames under +dirs+ (recursively) to arrays
-  # with their annotations. Only files with annotations are included, and only
-  # those with extension +.builder+, +.rb+, and +.erb+
-  # are taken into account.
+  # with their annotations.
   def find(dirs=%w(app config lib script test))
     dirs.inject({}) { |h, dir| h.update(find_in(dir)) }
   end
 
   # Returns a hash that maps filenames under +dir+ (recursively) to arrays
   # with their annotations. Only files with annotations are included, and only
-  # those with extension +.builder+, +.rb+, and +.erb+
+  # those with extension +.builder+, +.rb+, +.erb+, +.haml+, +.slim+ and +.coffee+
   # are taken into account.
   def find_in(dir)
     results = {}
@@ -65,10 +63,14 @@ class SourceAnnotationExtractor
 
       if File.directory?(item)
         results.update(find_in(item))
-      elsif item =~ /\.(builder|rb)$/
+      elsif item =~ /\.(builder|rb|coffee)$/
         results.update(extract_annotations_from(item, /#\s*(#{tag}):?\s*(.*)$/))
       elsif item =~ /\.erb$/
         results.update(extract_annotations_from(item, /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/))
+      elsif item =~ /\.haml$/
+        results.update(extract_annotations_from(item, /-\s*#\s*(#{tag}):?\s*(.*)$/))
+      elsif item =~ /\.slim$/
+        results.update(extract_annotations_from(item, /\/\s*\s*(#{tag}):?\s*(.*)$/))
       end
     end
 
@@ -91,6 +93,7 @@ class SourceAnnotationExtractor
   # Prints the mapping from filenames to annotations in +results+ ordered by filename.
   # The +options+ hash is passed to each annotation's +to_s+.
   def display(results, options={})
+    options[:indent] = results.map { |f, a| a.map(&:line) }.flatten.max.to_s.size
     results.keys.sort.each do |file|
       puts "#{file}:"
       results[file].each do |note|

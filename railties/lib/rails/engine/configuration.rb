@@ -5,7 +5,6 @@ module Rails
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
       attr_writer :middleware, :eager_load_paths, :autoload_once_paths, :autoload_paths
-      attr_accessor :plugins
 
       def initialize(root=nil)
         super()
@@ -30,7 +29,7 @@ module Rails
       #
       #   config.generators.colorize_logging = false
       #
-      def generators #:nodoc
+      def generators #:nodoc:
         @generators ||= Rails::Configuration::Generators.new
         yield(@generators) if block_given?
         @generators
@@ -59,7 +58,6 @@ module Rails
           paths.add "db/seeds",            :with => "db/seeds.rb"
           paths.add "vendor",              :load_path => true
           paths.add "vendor/assets",       :glob => "*"
-          paths.add "vendor/plugins"
           paths
         end
       end

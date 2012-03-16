@@ -431,11 +431,11 @@ form("post")
 <form action='/posts/create' method='post'>
   <p>
     <label for="post_title">Title</label><br />
-    <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
+    <input id="post_title" name="post[title]" type="text" value="Hello World" />
   </p>
   <p>
     <label for="post_body">Body</label><br />
-    <textarea cols="40" id="post_body" name="post[body]" rows="20"></textarea>
+    <textarea id="post_body" name="post[body]"></textarea>
   </p>
   <input name="commit" type="submit" value="Create" />
 </form>
@@ -451,7 +451,7 @@ For example, if +@post+ has an attribute +title+ mapped to a +String+ column tha
 
 <ruby>
 input("post", "title") # =>
-  <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
+  <input id="post_title" name="post[title]" type="text" value="Hello World" />
 </ruby>
 
 h4. RecordTagHelper
@@ -535,10 +535,10 @@ h4. AssetTagHelper
 
 This module provides methods for generating HTML that links views to assets such as images, JavaScript files, stylesheets, and feeds.
 
-By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting +ActionController::Base.asset_host+ in the application configuration, typically in +config/environments/production.rb+. For example, let's say your asset host is +assets.example.com+:
+By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting +config.action_controller.asset_host+ in the application configuration, typically in +config/environments/production.rb+. For example, let's say your asset host is +assets.example.com+:
 
 <ruby>
-ActionController::Base.asset_host = "assets.example.com"
+config.action_controller.asset_host = "assets.example.com"
 image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
 </ruby>
 
@@ -570,7 +570,7 @@ stylesheet_link_tag :monkey # =>
 
 h5. auto_discovery_link_tag
 
-Returns a link tag that browsers and news readers can use to auto-detect an RSS or ATOM feed.
+Returns a link tag that browsers and news readers can use to auto-detect an RSS or Atom feed.
 
 <ruby>
 auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "RSS Feed"}) # =>
@@ -583,6 +583,14 @@ Computes the path to an image asset in the +public/images+ directory. Full paths
 
 <ruby>
 image_path("edit.png") # => /images/edit.png
+</ruby>
+
+h5. image_url
+
+Computes the url to an image asset in the +public/images+ directory. This will call +image_path+ internally and merge with your current host or your asset host.
+
+<ruby>
+image_url("edit.png") # => http://www.example.com/images/edit.png
 </ruby>
 
 h5. image_tag
@@ -629,6 +637,14 @@ Computes the path to a JavaScript asset in the +public/javascripts+ directory. I
 javascript_path "common" # => /javascripts/common.js
 </ruby>
 
+h5. javascript_url
+
+Computes the url to a JavaScript asset in the +public/javascripts+ directory. This will call +javascript_path+ internally and merge with your current host or your asset host.
+
+<ruby>
+javascript_url "common" # => http://www.example.com/javascripts/common.js
+</ruby>
+
 h5. stylesheet_link_tag
 
 Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, +.css+ will be appended automatically.
@@ -659,11 +675,19 @@ Computes the path to a stylesheet asset in the +public/stylesheets+ directory. I
 stylesheet_path "application" # => /stylesheets/application.css
 </ruby>
 
+h5. stylesheet_url
+
+Computes the url to a stylesheet asset in the +public/stylesheets+ directory. This will call +stylesheet_path+ internally and merge with your current host or your asset host.
+
+<ruby>
+stylesheet_url "application" # => http://www.example.com/stylesheets/application.css
+</ruby>
+
 h4. AtomFeedHelper
 
 h5. atom_feed
 
-This helper makes building an ATOM feed easy. Here's a full usage example:
+This helper makes building an Atom feed easy. Here's a full usage example:
 
 *config/routes.rb*
 
@@ -963,8 +987,8 @@ The HTML generated for this would be:
 
 <html>
 <form action="/persons/create" method="post">
-  <input id="person_first_name" name="person[first_name]" size="30" type="text" />
-  <input id="person_last_name" name="person[last_name]" size="30" type="text" />
+  <input id="person_first_name" name="person[first_name]" type="text" />
+  <input id="person_last_name" name="person[last_name]" type="text" />
   <input name="commit" type="submit" value="Create" />
 </form>
 </html>
@@ -1122,6 +1146,79 @@ If <tt>@post.author_id</tt> is 1, this would return:
   <option value="2">D. Thomas</option>
   <option value="3">M. Clark</option>
 </select>
+</html>
+
+h5. collection_radio_buttons
+
+Returns +radio_button+ tags for the collection of existing return values of +method+ for +object+'s class.
+
+Example object structure for use with this method:
+
+<ruby>
+class Post < ActiveRecord::Base
+  belongs_to :author
+end
+
+class Author < ActiveRecord::Base
+  has_many :posts
+  def name_with_initial
+    "#{first_name.first}. #{last_name}"
+  end
+end
+</ruby>
+
+Sample usage (selecting the associated Author for an instance of Post, +@post+):
+
+<ruby>
+collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial)
+</ruby>
+
+If <tt>@post.author_id</tt> is 1, this would return:
+
+<html>
+<input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
+<label for="post_author_id_1">D. Heinemeier Hansson</label>
+<input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
+<label for="post_author_id_2">D. Thomas</label>
+<input id="post_author_id_3" name="post[author_id]" type="radio" value="3" />
+<label for="post_author_id_3">M. Clark</label>
+</html>
+
+h5. collection_check_boxes
+
+Returns +check_box+ tags for the collection of existing return values of +method+ for +object+'s class.
+
+Example object structure for use with this method:
+
+<ruby>
+class Post < ActiveRecord::Base
+  has_and_belongs_to_many :author
+end
+
+class Author < ActiveRecord::Base
+  has_and_belongs_to_many :posts
+  def name_with_initial
+    "#{first_name.first}. #{last_name}"
+  end
+end
+</ruby>
+
+Sample usage (selecting the associated Authors for an instance of Post, +@post+):
+
+<ruby>
+collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial)
+</ruby>
+
+If <tt>@post.author_ids</tt> is [1], this would return:
+
+<html>
+<input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
+<label for="post_author_ids_1">D. Heinemeier Hansson</label>
+<input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
+<label for="post_author_ids_2">D. Thomas</label>
+<input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3" />
+<label for="post_author_ids_3">M. Clark</label>
+<input name="post[author_ids][]" type="hidden" value="" />
 </html>
 
 h5. country_options_for_select

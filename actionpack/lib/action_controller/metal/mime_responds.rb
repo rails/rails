@@ -6,8 +6,6 @@ module ActionController #:nodoc:
   module MimeResponds
     extend ActiveSupport::Concern
 
-    include ActionController::ImplicitRender
-
     included do
       class_attribute :responder, :mimes_for_respond_to
       self.responder = ActionController::Responder
@@ -58,7 +56,7 @@ module ActionController #:nodoc:
       # Clear all mime types in <tt>respond_to</tt>.
       #
       def clear_respond_to
-        self.mimes_for_respond_to = ActiveSupport::OrderedHash.new.freeze
+        self.mimes_for_respond_to = Hash.new.freeze
       end
     end
 
@@ -191,8 +189,9 @@ module ActionController #:nodoc:
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
-      if response = retrieve_response_from_mimes(mimes, &block)
-        response.call(nil)
+      if collector = retrieve_collector_from_mimes(mimes, &block)
+        response = collector.response
+        response ? response.call : render({})
       end
     end
 
@@ -232,9 +231,9 @@ module ActionController #:nodoc:
       raise "In order to use respond_with, first you need to declare the formats your " <<
             "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?
 
-      if response = retrieve_response_from_mimes(&block)
+      if collector = retrieve_collector_from_mimes(&block)
         options = resources.size == 1 ? {} : resources.extract_options!
-        options.merge!(:default_response => response)
+        options[:default_response] = collector.response
         (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
     end
@@ -260,30 +259,59 @@ module ActionController #:nodoc:
       end
     end
 
-    # Collects mimes and return the response for the negotiated format. Returns
-    # nil if :not_acceptable was sent to the client.
+    # Returns a Collector object containing the appropriate mime-type response
+    # for the current request, based on the available responses defined by a block.
+    # In typical usage this is the block passed to +respond_with+ or +respond_to+.
     #
-    def retrieve_response_from_mimes(mimes=nil, &block) #:nodoc:
+    # Sends :not_acceptable to the client and returns nil if no suitable format
+    # is available.
+    #
+    def retrieve_collector_from_mimes(mimes=nil, &block) #:nodoc:
       mimes ||= collect_mimes_from_class_level
-      collector = Collector.new(mimes) { |options| default_render(options || {}) }
+      collector = Collector.new(mimes)
       block.call(collector) if block_given?
+      format = collector.negotiate_format(request)
 
-      if format = request.negotiate_mime(collector.order)
+      if format
         self.content_type ||= format.to_s
-        lookup_context.freeze_formats([format.to_sym])
-        collector.response_for(format)
+        lookup_context.formats = [format.to_sym]
+        lookup_context.rendered_format = lookup_context.formats.first
+        collector
       else
         head :not_acceptable
         nil
       end
     end
 
-    class Collector #:nodoc:
+    # A container of responses available for requests with different mime-types
+    # sent to the current controller action.
+    #
+    # The public controller methods +respond_with+ and +respond_to+ may be called
+    # with a block that is used to define responses to different mime-types, e.g.
+    # for +respond_to+ :
+    #
+    #   respond_to do |format|
+    #     format.html
+    #     format.xml { render :xml => @people.to_xml }
+    #   end
+    #
+    # In this usage, the argument passed to the block (+format+ above) is an
+    # instance of the ActionController::MimeResponds::Collector class. This
+    # object serves as a container in which available responses can be stored by
+    # calling any of the dynamically generated, mime-type-specific methods such
+    # as +html+, +xml+ etc on the Collector. Each response is represented by a
+    # corresponding block if present.
+    #
+    # A subsequent call to #negotiate_format(request) will enable the Collector
+    # to determine which specific mime-type it should respond with for the current
+    # request, with this response then being accessible by calling #response.
+    #
+    class Collector
       include AbstractController::Collector
-      attr_accessor :order
+      attr_accessor :order, :format
 
-      def initialize(mimes, &block)
-        @order, @responses, @default_response = [], {}, block
+      def initialize(mimes)
+        @order, @responses = [], {}
         mimes.each { |mime| send(mime) }
       end
 
@@ -302,8 +330,12 @@ module ActionController #:nodoc:
         @responses[mime_type] ||= block
       end
 
-      def response_for(mime)
-        @responses[mime] || @responses[Mime::ALL] || @default_response
+      def response
+        @responses[format] || @responses[Mime::ALL]
+      end
+
+      def negotiate_format(request)
+        @format = request.negotiate_mime(order)
       end
     end
   end

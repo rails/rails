@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/to_param'
 
-class ToParamTest < Test::Unit::TestCase
+class ToParamTest < ActiveSupport::TestCase
   def test_object
     foo = Object.new
     def foo.to_s; 'foo' end

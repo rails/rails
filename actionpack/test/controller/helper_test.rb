@@ -7,16 +7,12 @@ module Fun
     def render_hello_world
       render :inline => "hello: <%= stratego %>"
     end
-
-    def rescue_action(e) raise end
   end
 
   class PdfController < ActionController::Base
     def test
       render :inline => "test: <%= foobar %>"
     end
-
-    def rescue_action(e) raise end
   end
 end
 
@@ -60,7 +56,6 @@ class HelperTest < ActiveSupport::TestCase
   class TestController < ActionController::Base
     attr_accessor :delegate_attr
     def delegate_method() end
-    def rescue_action(e) raise end
   end
 
   def setup
@@ -201,8 +196,6 @@ class IsolatedHelpersTest < ActiveSupport::TestCase
     def index
       render :inline => '<%= shout %>'
     end
-
-    def rescue_action(e) raise end
   end
 
   class B < A

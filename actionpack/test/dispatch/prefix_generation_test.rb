@@ -30,6 +30,7 @@ module TestGenerationPrefix
             match "/url_to_application", :to => "inside_engine_generating#url_to_application"
             match "/polymorphic_path_for_engine", :to => "inside_engine_generating#polymorphic_path_for_engine"
             match "/conflicting_url", :to => "inside_engine_generating#conflicting"
+            match "/foo", :to => "never#invoked", :as => :named_helper_that_should_be_invoked_only_in_respond_to_test
           end
 
           routes
@@ -152,6 +153,8 @@ module TestGenerationPrefix
       RailsApplication.routes.default_url_options = {}
     end
 
+    include BlogEngine.routes.mounted_helpers
+
     # Inside Engine
     test "[ENGINE] generating engine's url use SCRIPT_NAME from request" do
       get "/pure-awesomeness/blog/posts/1"
@@ -219,6 +222,10 @@ module TestGenerationPrefix
     end
 
     # Inside any Object
+    test "[OBJECT] proxy route should override respond_to?() as expected" do
+      assert_respond_to blog_engine, :named_helper_that_should_be_invoked_only_in_respond_to_test_path
+    end
+
     test "[OBJECT] generating engine's route includes prefix" do
       assert_equal "/awesome/blog/posts/1", engine_object.post_path(:id => 1)
     end

@@ -82,16 +82,17 @@ module ActionView
   #
   # This will render the partial "advertisement/_ad.html.erb" regardless of which controller this is being called from.
   #
-  # == Rendering objects with the RecordIdentifier
+  # == Rendering objects that respond to `to_partial_path`
   #
-  # Instead of explicitly naming the location of a partial, you can also let the RecordIdentifier do the work if
-  # you're following its conventions for RecordIdentifier#partial_path. Examples:
+  # Instead of explicitly naming the location of a partial, you can also let PartialRenderer do the work
+  # and pick the proper path by checking `to_partial_path` method.
   #
-  #  # @account is an Account instance, so it uses the RecordIdentifier to replace
+  #  # @account.to_partial_path returns 'accounts/account', so it can be used to replace:
   #  # <%= render :partial => "accounts/account", :locals => { :account => @account} %>
   #  <%= render :partial => @account %>
   #
-  #  # @posts is an array of Post instances, so it uses the RecordIdentifier to replace
+  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on `to_partial_path`,
+  #  # that's why we can replace:
   #  # <%= render :partial => "posts/post", :collection => @posts %>
   #  <%= render :partial => @posts %>
   #
@@ -106,13 +107,14 @@ module ActionView
   #  # Instead of <%= render :partial => "account", :locals => { :account => @buyer } %>
   #  <%= render "account", :account => @buyer %>
   #
-  #  # @account is an Account instance, so it uses the RecordIdentifier to replace
-  #  # <%= render :partial => "accounts/account", :locals => { :account => @account } %>
-  #  <%= render(@account) %>
+  #  # @account.to_partial_path returns 'accounts/account', so it can be used to replace:
+  #  # <%= render :partial => "accounts/account", :locals => { :account => @account} %>
+  #  <%= render @account %>
   #
-  #  # @posts is an array of Post instances, so it uses the RecordIdentifier to replace
+  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on `to_partial_path`,
+  #  # that's why we can replace:
   #  # <%= render :partial => "posts/post", :collection => @posts %>
-  #  <%= render(@posts) %>
+  #  <%= render @posts %>
   #
   # == Rendering partials with layouts
   #
@@ -155,6 +157,43 @@ module ActionView
   #     Deadline: <%= user.deadline %>
   #     Name: <%= user.name %>
   #   </div>
+  #
+  # If a collection is given, the layout will be rendered once for each item in the collection. Just think
+  # these two snippets have the same output:
+  #
+  #   <%# app/views/users/_user.html.erb %>
+  #   Name: <%= user.name %>
+  #
+  #   <%# app/views/users/index.html.erb %>
+  #   <%# This does not use layouts %>
+  #   <ul>
+  #     <% users.each do |user| -%>
+  #       <li>
+  #         <%= render :partial => "user", :locals => { :user => user } %>
+  #       </li>
+  #     <% end -%>
+  #   </ul>
+  #
+  #   <%# app/views/users/_li_layout.html.erb %>
+  #   <li>
+  #     <%= yield %>
+  #   </li>
+  #
+  #   <%# app/views/users/index.html.erb %>
+  #   <ul>
+  #     <%= render :partial => "user", :layout => "li_layout", :collection => users %>
+  #   </ul>
+  #
+  #   Given two users whose names are Alice and Bob, these snippets return:
+  #
+  #   <ul>
+  #     <li>
+  #       Name: Alice
+  #     </li>
+  #     <li>
+  #       Name: Bob
+  #     </li>
+  #   </ul>
   #
   # You can also apply a layout to a block within any template:
   #
@@ -205,7 +244,7 @@ module ActionView
   #       Deadline: <%= user.deadline %>
   #     <%- end -%>
   #   <% end %>
-  class PartialRenderer < AbstractRenderer #:nodoc:
+  class PartialRenderer < AbstractRenderer
     PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
 
     def initialize(*)
@@ -236,7 +275,14 @@ module ActionView
         spacer = find_template(@options[:spacer_template]).render(@view, @locals)
       end
 
+      if layout = @options[:layout]
+        layout = find_template(layout)
+      end
+
       result = @template ? collection_with_template : collection_without_template
+      
+      result.map!{|content| layout.render(@view, @locals) { content } } if layout
+      
       result.join(spacer).html_safe
     end
 
@@ -270,6 +316,8 @@ module ActionView
       @block   = block
       @details = extract_details(options)
 
+      @lookup_context.rendered_format ||= formats.first
+
       if String === partial
         @object     = options[:object]
         @path       = partial
@@ -297,7 +345,6 @@ module ActionView
                                 "and is followed by any combinations of letters, numbers, or underscores.")
       end
 
-      extract_format(@path, @details)
       self
     end
 
@@ -339,9 +386,10 @@ module ActionView
         locals[as] = object
         segments << template.render(@view, locals)
       end
-
+      
       segments
     end
+    
 
     def collection_without_template
       segments, locals, collection_data = [], @locals, @collection_data
@@ -366,32 +414,26 @@ module ActionView
       path = if object.respond_to?(:to_partial_path)
         object.to_partial_path
       else
-        klass = object.class
-        if klass.respond_to?(:model_name)
-          ActiveSupport::Deprecation.warn "ActiveModel-compatible objects whose classes return a #model_name that responds to #partial_path are deprecated. Please respond to #to_partial_path directly instead."
-          klass.model_name.partial_path
-        else
-          raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object that returns a valid partial path.")
-        end
+        raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.")
       end
 
-      @partial_names[path] ||= path.dup.tap do |object_path|
-        merge_prefix_into_object_path(@context_prefix, object_path)
-      end
+      @partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
     end
 
     def merge_prefix_into_object_path(prefix, object_path)
       if prefix.include?(?/) && object_path.include?(?/)
-        overlap = []
+        prefixes = []
         prefix_array = File.dirname(prefix).split('/')
         object_path_array = object_path.split('/')[0..-3] # skip model dir & partial
 
         prefix_array.each_with_index do |dir, index|
-          overlap << dir if dir == object_path_array[index]
+          break if dir == object_path_array[index]
+          prefixes << dir
         end
 
-        object_path.gsub!(/^#{overlap.join('/')}\//,'')
-        object_path.insert(0, "#{File.dirname(prefix)}/")
+        (prefixes << object_path).join("/")
+      else
+        object_path
       end
     end
 

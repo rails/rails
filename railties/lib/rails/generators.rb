@@ -38,11 +38,6 @@ module Rails
 
       :test_unit => {
         :fixture_replacement => '-r',
-      },
-
-      :plugin => {
-        :generator => '-g',
-        :tasks => '-r'
       }
     }
 
@@ -62,11 +57,6 @@ module Rails
         :stylesheet_engine => :css,
         :test_framework => false,
         :template_engine => :erb
-      },
-
-      :plugin => {
-        :generator => false,
-        :tasks => false
       }
     }
 
@@ -80,7 +70,7 @@ module Rails
       hide_namespaces(*config.hidden_namespaces)
     end
 
-    def self.templates_path
+    def self.templates_path #:nodoc:
       @templates_path ||= []
     end
 
@@ -195,7 +185,6 @@ module Rails
           "#{test}:scaffold",
           "#{test}:view",
           "#{test}:performance",
-          "#{test}:plugin",
           "#{template}:controller",
           "#{template}:scaffold",
           "#{template}:mailer",
@@ -246,7 +235,7 @@ module Rails
       rails.delete("plugin_new")
       print_list("rails", rails)
 
-      hidden_namespaces.each {|n| groups.delete(n.to_s) }
+      hidden_namespaces.each { |n| groups.delete(n.to_s) }
 
       groups.sort.each { |b, n| print_list(b, n) }
     end

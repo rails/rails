@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class OrderedOptionsTest < Test::Unit::TestCase
+class OrderedOptionsTest < ActiveSupport::TestCase
   def test_usage
     a = ActiveSupport::OrderedOptions.new
 

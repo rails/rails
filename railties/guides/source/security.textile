@@ -374,7 +374,7 @@ end
 Mass-assignment saves you much work, because you don't have to set each value individually. Simply pass a hash to the +new+ method, or +assign_attributes=+ a hash value, to set the model's attributes to the values in the hash. The problem is that it is often used in conjunction with the parameters (params) hash available in the controller, which may be manipulated by an attacker. He may do so by changing the URL like this:
 
 <pre>
-"name":http://www.example.com/user/signup?user[name]=ow3ned&user[admin]=1
+http://www.example.com/user/signup?user[name]=ow3ned&user[admin]=1
 </pre>
 
 This will set the following parameters in the controller:
@@ -385,7 +385,7 @@ params[:user] # => {:name => “ow3ned”, :admin => true}
 
 So if you create a new user using mass-assignment, it may be too easy to become an administrator.
 
-Note that this vulnerability is not restricted to database columns. Any setter method, unless explicitly protected, is accessible via the <tt>attributes=</tt> method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3+. The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+). For example:
+Note that this vulnerability is not restricted to database columns. Any setter method, unless explicitly protected, is accessible via the <tt>attributes=</tt> method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3<plus>. The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+). For example:
 
 <ruby>
   class Person < ActiveRecord::Base

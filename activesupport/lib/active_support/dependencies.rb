@@ -87,6 +87,10 @@ module ActiveSupport #:nodoc:
         @stack.each(&block)
       end
 
+      def watching?
+        !@watching.empty?
+      end
+
       # return a list of new constants found since the last call to watch_namespaces
       def new_constants
         constants = []
@@ -101,7 +105,7 @@ module ActiveSupport #:nodoc:
           next unless mod.is_a?(Module)
 
           # Get a list of the constants that were added
-          new_constants = mod.local_constant_names - original_constants
+          new_constants = mod.local_constants - original_constants
 
           # self[namespace] returns an Array of the constants that are being evaluated
           # for that namespace. For instance, if parent.rb requires child.rb, the first
@@ -129,7 +133,7 @@ module ActiveSupport #:nodoc:
         namespaces.map do |namespace|
           module_name = Dependencies.to_constant_name(namespace)
           original_constants = Dependencies.qualified_const_defined?(module_name) ?
-            Inflector.constantize(module_name).local_constant_names : []
+            Inflector.constantize(module_name).local_constants : []
 
           watching << module_name
           @stack[module_name] << original_constants
@@ -226,7 +230,7 @@ module ActiveSupport #:nodoc:
       end
 
       def load_dependency(file)
-        if Dependencies.load?
+        if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
           Dependencies.new_constants_in(Object) { yield }
         else
           yield
@@ -365,26 +369,12 @@ module ActiveSupport #:nodoc:
     end
 
     # Is the provided constant path defined?
-    if Module.method(:const_defined?).arity == 1
-      def qualified_const_defined?(path)
-        Object.qualified_const_defined?(path.sub(/^::/, ''))
-      end
-    else
-      def qualified_const_defined?(path)
-        Object.qualified_const_defined?(path.sub(/^::/, ''), false)
-      end
+    def qualified_const_defined?(path)
+      Object.qualified_const_defined?(path.sub(/^::/, ''), false)
     end
 
-    if Module.method(:const_defined?).arity == 1
-      # Does this module define this constant?
-      # Wrapper to accommodate changing Module#const_defined? in Ruby 1.9
-      def local_const_defined?(mod, const)
-        mod.const_defined?(const)
-      end
-    else
-      def local_const_defined?(mod, const) #:nodoc:
-        mod.const_defined?(const, false)
-      end
+    def local_const_defined?(mod, const) #:nodoc:
+      mod.const_defined?(const, false)
     end
 
     # Given +path+, a filesystem path to a ruby file, return an array of constant

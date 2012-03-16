@@ -4,11 +4,11 @@ require 'models/tagging'
 require 'models/post'
 require 'models/topic'
 require 'models/comment'
-require 'models/reply'
 require 'models/author'
 require 'models/comment'
 require 'models/entrant'
 require 'models/developer'
+require 'models/reply'
 require 'models/company'
 require 'models/bird'
 require 'models/car'
@@ -184,12 +184,12 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_complex_order_and_limit
-    tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
+    tags = Tag.includes(:taggings).references(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order
-    tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
+    tags = Tag.includes(:taggings).references(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
     assert_equal 3, tags.length
   end
 
@@ -213,6 +213,19 @@ class RelationTest < ActiveRecord::TestCase
   def test_select_with_block
     even_ids = Developer.scoped.select {|d| d.id % 2 == 0 }.map(&:id)
     assert_equal [2, 4, 6, 8, 10], even_ids.sort
+  end
+
+  def test_none
+    assert_no_queries do
+      assert_equal [], Developer.none
+      assert_equal [], Developer.scoped.none
+    end
+  end
+
+  def test_none_chainable
+    assert_no_queries do
+      assert_equal [], Developer.none.where(:name => 'David')
+    end
   end
 
   def test_joins_with_nil_argument
@@ -310,7 +323,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.comments.first
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
+    assert_queries(2) do
       posts = Post.preload(:comments).order('posts.id')
       assert posts.first.comments.first
     end
@@ -320,12 +333,12 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
+    assert_queries(2) do
       posts = Post.preload(:author).order('posts.id')
       assert posts.first.author
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
+    assert_queries(3) do
       posts = Post.preload(:author, :comments).order('posts.id')
       assert posts.first.author
       assert posts.first.comments.first
@@ -338,7 +351,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.comments.first
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
+    assert_queries(2) do
       posts = Post.scoped.includes(:comments).order('posts.id')
       assert posts.first.comments.first
     end
@@ -348,7 +361,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
+    assert_queries(3) do
       posts = Post.includes(:author, :comments).order('posts.id')
       assert posts.first.author
       assert posts.first.comments.first
@@ -447,6 +460,18 @@ class RelationTest < ActiveRecord::TestCase
     assert lifo.persisted?
 
     assert_equal authors(:david), authors.find_or_create_by_name(:name => 'David')
+  end
+
+  def test_dynamic_find_or_create_by_attributes_bang
+    authors = Author.scoped
+
+    assert_raises(ActiveRecord::RecordInvalid) { authors.find_or_create_by_name!('') }
+
+    lifo = authors.find_or_create_by_name!('Lifo')
+    assert_equal "Lifo", lifo.name
+    assert lifo.persisted?
+
+    assert_equal authors(:david), authors.find_or_create_by_name!(:name => 'David')
   end
 
   def test_find_id
@@ -660,10 +685,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_preload
-    ActiveRecord::IdentityMap.without do
-      [Post.scoped.merge(Post.preload(:author)), Post.preload(:author).merge(Post.scoped)].each do |posts|
-        assert_queries(2) { assert posts.first.author }
-      end
+    [Post.scoped.merge(Post.preload(:author)), Post.preload(:author).merge(Post.scoped)].each do |posts|
+      assert_queries(2) { assert posts.first.author }
     end
   end
 
@@ -1104,7 +1127,9 @@ class RelationTest < ActiveRecord::TestCase
       )
     )
 
-    assert scope.eager_loading?
+    assert_deprecated do
+      assert scope.eager_loading?
+    end
   end
 
   def test_ordering_with_extra_spaces
@@ -1163,5 +1188,50 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal ['Foo'], query.uniq(true).map(&:name)
     end
     assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
+  end
+
+  def test_references_triggers_eager_loading
+    scope = Post.includes(:comments)
+    assert !scope.eager_loading?
+    assert scope.references(:comments).eager_loading?
+  end
+
+  def test_references_doesnt_trigger_eager_loading_if_reference_not_included
+    scope = Post.references(:comments)
+    assert !scope.eager_loading?
+  end
+
+  def test_automatically_added_where_references
+    scope = Post.where(:comments => { :body => "Bla" })
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.where('comments.body' => 'Bla')
+    assert_equal ['comments'], scope.references_values
+  end
+
+  def test_automatically_added_having_references
+    scope = Post.having(:comments => { :body => "Bla" })
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.having('comments.body' => 'Bla')
+    assert_equal ['comments'], scope.references_values
+  end
+
+  def test_automatically_added_order_references
+    scope = Post.order('comments.body')
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.order('comments.body', 'yaks.body')
+    assert_equal ['comments', 'yaks'], scope.references_values
+
+    # Don't infer yaks, let's not go down that road again...
+    scope = Post.order('comments.body, yaks.body')
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.order('comments.body asc')
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.order('foo(comments.body)')
+    assert_equal [], scope.references_values
   end
 end
