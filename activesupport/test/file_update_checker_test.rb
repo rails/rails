@@ -83,10 +83,10 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
 
   def test_should_not_block_if_a_strange_filename_used
     FileUtils.mkdir_p("tmp_watcher/valid,yetstrange,path,")
-    FileUtils.touch(FILES.map { |file_name| "tmp_watcher/valid,yetstrange,path,/#{file_name}" } )
+    FileUtils.touch(FILES.map { |file_name| "tmp_watcher/valid,yetstrange,path,/#{file_name}" })
 
     test = Thread.new do
-      ActiveSupport::FileUpdateChecker.new([],"tmp_watcher/valid,yetstrange,path," => :txt){ i += 1 }
+      ActiveSupport::FileUpdateChecker.new([],"tmp_watcher/valid,yetstrange,path," => :txt) { i += 1 }
       Thread.exit
     end
     test.priority = -1

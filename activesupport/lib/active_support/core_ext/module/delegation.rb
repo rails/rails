@@ -106,9 +106,11 @@ class Module
     unless options.is_a?(Hash) && to = options[:to]
       raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, :to => :greeter)."
     end
-    prefix, to, allow_nil = options[:prefix], options[:to], options[:allow_nil]
 
-    if prefix == true && to.to_s =~ /^[^a-z_]/
+    to = to.to_s
+    prefix, allow_nil = options.values_at(:prefix, :allow_nil)
+
+    if prefix == true && to =~ /^[^a-z_]/
       raise ArgumentError, "Can only automatically set the delegation prefix when delegating to a method."
     end
 
@@ -122,10 +124,8 @@ class Module
     file, line = caller.first.split(':', 2)
     line = line.to_i
 
-    methods.each do |method|
-      method = method.to_s
-
-      if allow_nil
+    if allow_nil
+      methods.each do |method|
         module_eval(<<-EOS, file, line - 2)
           def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
             if #{to} || #{to}.respond_to?(:#{method})         #   if client || client.respond_to?(:name)
@@ -133,7 +133,9 @@ class Module
             end                                               #   end
           end                                                 # end
         EOS
-      else
+      end
+    else
+      methods.each do |method|
         exception = %(raise "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
         module_eval(<<-EOS, file, line - 1)
