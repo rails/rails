@@ -168,8 +168,7 @@ module ActiveSupport
       "Auckland"                     => "Pacific/Auckland",
       "Wellington"                   => "Pacific/Auckland",
       "Nuku'alofa"                   => "Pacific/Tongatapu"
-    }.each { |name, zone| name.freeze; zone.freeze }
-    MAPPING.freeze
+    }
 
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
