@@ -507,6 +507,10 @@ module ActiveRecord
       end
     end
 
+    def blank?
+      to_a.blank?
+    end
+
     private
 
     def references_eager_loaded_tables?
