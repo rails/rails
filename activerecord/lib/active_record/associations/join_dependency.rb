@@ -109,7 +109,7 @@ module ActiveRecord
         case associations
         when Symbol, String
           reflection = parent.reflections[associations.to_s.intern] or
-          raise ConfigurationError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
+          raise ConfigurationError, "Association named '#{ associations }' was not found on #{parent.active_record.name}; perhaps you misspelled it?"
           unless join_association = find_join_association(reflection, parent)
             @reflections << reflection
             join_association = build_join_association(reflection, parent)

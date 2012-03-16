@@ -29,7 +29,7 @@ module ActiveRecord
     end
 
     class Merger
-      attr_reader :relation, :values
+      attr_reader :relation, :other
 
       def initialize(relation, other)
         if other.default_scoped? && other.klass != relation.klass
@@ -37,13 +37,17 @@ module ActiveRecord
         end
 
         @relation = relation
-        @values   = other.values
+        @other    = other
+      end
+
+      def values
+        @other.values
       end
 
       def normal_values
         Relation::SINGLE_VALUE_METHODS +
           Relation::MULTI_VALUE_METHODS -
-          [:where, :order, :bind, :reverse_order, :lock, :create_with, :reordering]
+          [:where, :joins, :order, :bind, :reverse_order, :lock, :create_with, :reordering]
       end
 
       def merge
@@ -54,6 +58,7 @@ module ActiveRecord
 
         merge_multi_values
         merge_single_values
+        merge_joins
 
         relation
       end
@@ -81,6 +86,26 @@ module ActiveRecord
 
         unless values[:create_with].blank?
           relation.create_with_value = (relation.create_with_value || {}).merge(values[:create_with])
+        end
+      end
+
+      def merge_joins
+        return if values[:joins].blank?
+
+        if other.klass == relation.klass
+          relation.joins!(values[:joins])
+        else
+          joins_to_stash, other_joins = values[:joins].partition { |join|
+            case join
+            when Hash, Symbol, Array
+              true
+            else
+              false
+            end
+          }
+
+          join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass, joins_to_stash, [])
+          relation.joins!(join_dependency.join_associations + other_joins)
         end
       end
 
