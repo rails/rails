@@ -311,7 +311,7 @@ module AbstractController
           when false
             nil
           when true
-            raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
+            raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
           when nil
             name_clause
         end
@@ -371,7 +371,7 @@ module AbstractController
       when false, nil then nil
       else
         raise ArgumentError,
-          "String, true, or false, expected for `layout'; you passed #{name.inspect}"
+          "String, Proc, :default, true, or false, expected for `layout'; you passed #{name.inspect}"
       end
     end
 
