@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/enumerable'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
 
