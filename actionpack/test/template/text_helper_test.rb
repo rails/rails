@@ -256,6 +256,12 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("10 buffaloes", pluralize(10, "buffalo"))
     assert_equal("1 berry", pluralize(1, "berry"))
     assert_equal("12 berries", pluralize(12, "berry"))
+    assert_equal("<b>1</b> count", pluralize(1, "count"){ |count, word| "#{content_tag(:b, count)} #{word}"} )
+    assert_equal("<span>2</span> counts", pluralize(2, "count"){ |count, word| "#{content_tag(:span, count)} #{word}" })
+    assert_equal("<p>1</p> <span>count</span>", pluralize(1, "count"){ |count, word| "#{content_tag(:p, count)} #{content_tag(:span, word)}" })
+    assert_equal("1 <span>count</span>", pluralize(1, "count"){ |count, word| "#{count} #{content_tag(:span, word)}" })
+    assert_equal("<b class=\"strong\">1</b> count", pluralize(1, "count"){ |count, word| "#{content_tag(:b, count, :class => 'strong')} #{word}"} )
+    assert_equal("<b class=\"count\">1</b> <span class=\"word\">count</span>", pluralize(1, "count"){ |count, word| "#{content_tag(:b, count, :class => 'count')} #{content_tag(:span, word, :class => 'word')}"} )
   end
 
   def test_cycle_class

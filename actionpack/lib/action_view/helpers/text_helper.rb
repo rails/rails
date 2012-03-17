@@ -177,7 +177,8 @@ module ActionView
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
-      # it will use the Inflector to determine the plural form
+      # it will use the Inflector to determine the plural form. It also 
+      # supports tagging the count number.
       #
       # ==== Examples
       #   pluralize(1, 'person')
@@ -191,8 +192,18 @@ module ActionView
       #
       #   pluralize(0, 'person')
       #   # => 0 people
+      #
+      #   pluralize(1, 'person'){ |count, word| "#{content_tag(:em, count)} #{word} }
+      #   # => <em>1</em> person
+      #
+      #   pluralize(3, 'person', 'users'){ |count, word| "#{content_tag(:b, count)} #{content_tag(:span, word)}" }
+      #   # => <b>3</b> <span>users</span>
+      #
+      #   pluralize(3, 'person', 'users'){ |count, word| "#{content_tag(:b, count, :class => 'count')} #{content_tag(:span, word, :class => 'word')}" }
+      #   # => <b class="count">3</b> <span class="word">users</span>
       def pluralize(count, singular, plural = nil)
-        "#{count || 0} " + ((count == 1 || count =~ /^1(\.0+)?$/) ? singular : (plural || singular.pluralize))
+        word = ((count == 1 || count =~ /^1(\.0+)?$/) ? singular : (plural || singular.pluralize))
+        block_given? ? yield(count, word) :  "#{count || 0} #{word}"
       end
 
       # Wraps the +text+ into lines no longer than +line_width+ width. This method
