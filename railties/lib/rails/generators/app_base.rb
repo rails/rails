@@ -225,7 +225,7 @@ module Rails
         if defined?(JRUBY_VERSION)
           "gem 'therubyrhino'\n"
         else
-          "# gem 'therubyracer'\n"
+          "# gem 'therubyracer', :platform => :ruby\n"
         end
       end
 
