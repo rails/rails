@@ -6,20 +6,6 @@ require 'rails/rack'
 
 module Rails
   module Configuration
-    module HttpOnly #:nodoc:
-      def initialize
-        @http_only = false
-      end
-
-      def http_only!
-        @http_only = true
-      end
-
-      def http_only?
-        @http_only
-      end
-    end
-
     # MiddlewareStackProxy is a proxy for the Rails middleware stack that allows
     # you to configure middlewares in your application. It works basically as a
     # command recorder, saving each command to be applied after initialization
@@ -47,21 +33,8 @@ module Rails
     #
     #     config.middleware.delete ActionDispatch::BestStandardsSupport
     #
-    # In addition to these methods to handle the stack, if your application is
-    # going to be used as an API endpoint only, the middleware stack can be
-    # configured like this:
-    #
-    #     config.middleware.http_only!
-    #
-    # By doing this, Rails will create a smaller middleware stack, by not adding
-    # some middlewares that are usually useful for browser access only, such as
-    # Cookies, Session and Flash, BestStandardsSupport, and MethodOverride. You
-    # can always add any of them later manually if you want.
     class MiddlewareStackProxy
-      include HttpOnly
-
       def initialize
-        super
         @operations = []
       end
 
@@ -99,10 +72,7 @@ module Rails
       attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging
       attr_reader :hidden_namespaces
 
-      include HttpOnly
-
       def initialize
-        super
         @aliases = Hash.new { |h,k| h[k] = {} }
         @options = Hash.new { |h,k| h[k] = {} }
         @fallbacks = {}

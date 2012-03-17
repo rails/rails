@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Support API apps http://edgeguides.rubyonrails.org/api_app.html *Santiago Pastorino and Carlos Antonio da Silva*
+*   Added ActionDispatch::SSL middleware that when included force all the requests to be under HTTPS protocol. *Rafael Mendonça França*
 
 *   Add `include_hidden` option to select tag. With `:include_hidden => false` select with `multiple` attribute doesn't generate hidden input with blank value. *Vasiliy Ermolovich*
 
@@ -91,6 +91,9 @@
 *   check_box with `:form` html5 attribute will now replicate the `:form`
     attribute to the hidden field as well. *Carlos Antonio da Silva*
 
+*   Turn off verbose mode of rack-cache, we still have X-Rack-Cache to
+    check that info. Closes #5245. *Santiago Pastorino*
+
 *   `label` form helper accepts :for => nil to not generate the attribute. *Carlos Antonio da Silva*
 
 *   Add `:format` option to number_to_percentage *Rodrigo Flores*
@@ -119,11 +122,13 @@
 
 *   `favicon_link_tag` helper will now use the favicon in app/assets by default. *Lucas Caton*
 
-*    `ActionView::Helpers::TextHelper#highlight` now defaults to the
-     HTML5 `mark` element. *Brian Cardarella*
+*   `ActionView::Helpers::TextHelper#highlight` now defaults to the
+    HTML5 `mark` element. *Brian Cardarella*
 
 
 ## Rails 3.2.3 (unreleased) ##
+
+*   Do not include the authenticity token in forms where remote: true as ajax forms use the meta-tag value *DHH*
 
 *   Upgrade rack-cache to 1.2. *José Valim*
 

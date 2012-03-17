@@ -7,7 +7,7 @@ module AbstractController
 
     class ControllerWithHelpers < AbstractController::Base
       include AbstractController::Rendering
-      include Helpers
+      include AbstractController::Helpers
 
       def with_module
         render :inline => "Module <%= included_method %>"
@@ -44,7 +44,7 @@ module AbstractController
 
     class AbstractHelpersBlock < ControllerWithHelpers
       helper do
-        include ::AbstractController::Testing::HelperyTest
+        include AbstractController::Testing::HelperyTest
       end
     end
 

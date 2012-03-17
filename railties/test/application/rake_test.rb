@@ -123,12 +123,13 @@ module ApplicationTests
     end
 
     def test_scaffold_tests_pass_by_default
-      content = Dir.chdir(app_path) do
+      output = Dir.chdir(app_path) do
         `rails generate scaffold user username:string password:string;
          bundle exec rake db:migrate db:test:clone test`
       end
 
-      assert_match(/\d+ tests, \d+ assertions, 0 failures, 0 errors/, content)
+      assert_match(/7 tests, 13 assertions, 0 failures, 0 errors/, output)
+      assert_no_match(/Errors running/, output)
     end
 
     def test_rake_dump_structure_should_respect_db_structure_env_variable

@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
 
-  s.files              = Dir['CHANGELOG.md', 'README.rdoc', 'bin/**/*', 'guides/**/*', 'lib/**/{*,.[a-z]*}']
+  s.files              = Dir['CHANGELOG.md', 'README.rdoc', 'bin/**/*', 'lib/**/{*,.[a-z]*}']
   s.require_path       = 'lib'
 
   s.bindir             = 'bin'
@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency('rake',          '>= 0.8.7')
   s.add_dependency('thor',          '~> 0.14.6')
-  s.add_dependency('rack-ssl',      '~> 1.3.2')
   s.add_dependency('rdoc',          '~> 3.4')
   s.add_dependency('activesupport', version)
   s.add_dependency('actionpack',    version)

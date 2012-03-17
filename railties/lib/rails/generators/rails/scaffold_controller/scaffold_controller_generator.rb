@@ -14,8 +14,7 @@ module Rails
                           :desc => "Generate controller with HTTP actions only"
 
       def create_controller_files
-        template_file = options.http? ? "http_controller.rb" : "controller.rb"
-        template template_file, File.join('app/controllers', class_path, "#{controller_file_name}_controller.rb")
+        template "controller.rb", File.join('app/controllers', class_path, "#{controller_file_name}_controller.rb")
       end
 
       hook_for :template_engine, :test_framework, :as => :scaffold

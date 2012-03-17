@@ -67,14 +67,5 @@ module <%= app_const_base %>
     # Version of your assets, change this if you want to expire all your assets.
     config.assets.version = '1.0'
 <% end -%>
-<% if options.http? -%>
-
-    # Only loads a smaller set of middleware suitable for HTTP only apps.
-    # Middleware like session, flash, cookies can be added back manually.
-    config.middleware.http_only!
-
-    # Skip views, helpers and assets when generating a new resource.
-    config.generators.http_only!
-<% end -%>
   end
 end

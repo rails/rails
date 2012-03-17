@@ -52,36 +52,6 @@ module ApplicationTests
       ], middleware
     end
 
-    test "http only middleware stack" do
-      add_to_config "config.middleware.http_only!"
-      add_to_config "config.force_ssl = true"
-      add_to_config "config.action_dispatch.x_sendfile_header = 'X-Sendfile'"
-
-      boot!
-
-      assert_equal [
-        "Rack::SSL",
-        "Rack::Sendfile",
-        "ActionDispatch::Static",
-        "Rack::Lock",
-        "ActiveSupport::Cache::Strategy::LocalCache",
-        "Rack::Runtime",
-        "ActionDispatch::RequestId",
-        "Rails::Rack::Logger",
-        "ActionDispatch::ShowExceptions",
-        "ActionDispatch::DebugExceptions",
-        "ActionDispatch::RemoteIp",
-        "ActionDispatch::Reloader",
-        "ActionDispatch::Callbacks",
-        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
-        "ActiveRecord::QueryCache",
-        "ActionDispatch::ParamsParser",
-        "ActionDispatch::Head",
-        "Rack::ConditionalGet",
-        "Rack::ETag"
-      ], middleware
-    end
-
     test "Rack::Sendfile is not included by default" do
       boot!
 
@@ -96,13 +66,13 @@ module ApplicationTests
       assert_equal "Rack::Cache", middleware.first
     end
 
-    test "Rack::SSL is present when force_ssl is set" do
+    test "ActionDispatch::SSL is present when force_ssl is set" do
       add_to_config "config.force_ssl = true"
       boot!
-      assert middleware.include?("Rack::SSL")
+      assert middleware.include?("ActionDispatch::SSL")
     end
 
-    test "Rack::SSL is configured with options when given" do
+    test "ActionDispatch::SSL is configured with options when given" do
       add_to_config "config.force_ssl = true"
       add_to_config "config.ssl_options = { :host => 'example.com' }"
       boot!

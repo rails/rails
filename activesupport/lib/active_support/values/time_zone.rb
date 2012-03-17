@@ -168,8 +168,7 @@ module ActiveSupport
       "Auckland"                     => "Pacific/Auckland",
       "Wellington"                   => "Pacific/Auckland",
       "Nuku'alofa"                   => "Pacific/Tongatapu"
-    }.each { |name, zone| name.freeze; zone.freeze }
-    MAPPING.freeze
+    }
 
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
@@ -267,7 +266,7 @@ module ActiveSupport
     #   Time.zone.parse('22:30:00')   # => Fri, 31 Dec 1999 22:30:00 HST -10:00
     def parse(str, now=now)
       date_parts = Date._parse(str)
-      return if date_parts.blank?
+      return if date_parts.empty?
       time = Time.parse(str, now) rescue DateTime.parse(str)
       if date_parts[:offset].nil?
         ActiveSupport::TimeWithZone.new(nil, self, time)
@@ -282,7 +281,7 @@ module ActiveSupport
     #   Time.zone = 'Hawaii'  # => "Hawaii"
     #   Time.zone.now         # => Wed, 23 Jan 2008 20:24:27 HST -10:00
     def now
-      Time.now.utc.in_time_zone(self)
+      time_now.utc.in_time_zone(self)
     end
 
     # Return the current date in this time zone.
@@ -390,6 +389,12 @@ module ActiveSupport
             hash[place] = create(place) if MAPPING.has_key?(place)
           end
         end
+    end
+
+    private
+
+    def time_now
+      Time.now
     end
   end
 end

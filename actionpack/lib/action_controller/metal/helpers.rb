@@ -52,6 +52,7 @@ module ActionController
   module Helpers
     extend ActiveSupport::Concern
 
+    class << self; attr_accessor :helpers_path; end
     include AbstractController::Helpers
 
     included do

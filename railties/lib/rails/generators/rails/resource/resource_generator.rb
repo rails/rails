@@ -21,7 +21,6 @@ module Rails
         return if options[:actions].present?
         route_config =  regular_class_path.collect{ |namespace| "namespace :#{namespace} do " }.join(" ")
         route_config << "resources :#{file_name.pluralize}"
-        route_config << ", except: :edit" if options.http?
         route_config << " end" * regular_class_path.size
         route route_config
       end

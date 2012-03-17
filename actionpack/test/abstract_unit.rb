@@ -293,10 +293,6 @@ module ActionController
     end
   end
 
-  class HTTP
-    include SharedTestRoutes.url_helpers
-  end
-
   class TestCase
     include ActionDispatch::TestProcess
 

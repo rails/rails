@@ -142,41 +142,4 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/\{ render action: "new" \}/, content)
     end
   end
-
-  def test_http_only_generates_controller_without_respond_to_block_and_html_format
-    run_generator ["User", "--http"]
-
-    assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/render json: @user/, content)
-      assert_no_match(/respond_to/, content)
-      assert_no_match(/format\.html/, content)
-    end
-  end
-
-  def test_http_only_generates_functional_tests_with_json_format_and_http_status_assertions
-    run_generator ["User", "--http"]
-
-    assert_file "test/functional/users_controller_test.rb" do |content|
-      assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
-      assert_match(/@request\.accept = "application\/json"/, content)
-      assert_match(/test "should get index"/, content)
-
-      assert_match(/assert_response 201/, content)
-      assert_no_match(/assert_redirected_to/, content)
-    end
-  end
-
-  def test_http_only_does_not_generate_edit_action
-    run_generator ["User", "--http"]
-
-    assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/def index/, content)
-      assert_no_match(/def edit/, content)
-    end
-
-    assert_file "test/functional/users_controller_test.rb" do |content|
-      assert_match(/test "should get index"/, content)
-      assert_no_match(/test "should get edit"/, content)
-    end
-  end
 end
