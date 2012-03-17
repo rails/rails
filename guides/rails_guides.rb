@@ -13,8 +13,8 @@ require 'rubygems'
 
 begin
   # Guides generation in the Rails repo.
-  as_lib = File.join(pwd, "../../activesupport/lib")
-  ap_lib = File.join(pwd, "../../actionpack/lib")
+  as_lib = File.join(pwd, "../activesupport/lib")
+  ap_lib = File.join(pwd, "../actionpack/lib")
 
   $:.unshift as_lib if File.directory?(as_lib)
   $:.unshift ap_lib if File.directory?(ap_lib)
