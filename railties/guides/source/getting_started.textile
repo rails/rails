@@ -13,6 +13,8 @@ endprologue.
 WARNING. This Guide is based on Rails 3.1. Some of the code shown here will not
 work in earlier versions of Rails.
 
+WARNING: The Edge version of this guide is currently being re-worked. Please excuse us while we re-arrange the place.
+
 h3. Guide Assumptions
 
 This guide is designed for beginners who want to get started with a Rails
@@ -61,151 +63,11 @@ tremendous increase in productivity. If you persist in bringing old habits from
 other languages to your Rails development, and trying to use patterns you
 learned elsewhere, you may have a less happy experience.
 
-The Rails philosophy includes several guiding principles:
+The Rails philosophy includes two major guiding principles:
 
 * DRY - "Don't Repeat Yourself" - suggests that writing the same code over and over again is a bad thing.
 * Convention Over Configuration - means that Rails makes assumptions about what you want to do and how you're going to
 do it, rather than requiring you to specify every little thing through endless configuration files.
-* REST is the best pattern for web applications - organizing your application around resources and standard HTTP verbs
-is the fastest way to go.
-
-h4. The MVC Architecture
-
-At the core of Rails is the Model, View, Controller architecture, usually just
-called MVC. MVC benefits include:
-
-* Isolation of business logic from the user interface
-* Ease of keeping code DRY
-* Making it clear where different types of code belong for easier maintenance
-
-h5. Models
-
-A model represents the information (data) of the application and the rules to
-manipulate that data. In the case of Rails, models are primarily used for
-managing the rules of interaction with a corresponding database table. In most
-cases, each table in your database will correspond to one model in your
-application. The bulk of your application's business logic will be concentrated
-in the models.
-
-h5. Views
-
-Views represent the user interface of your application. In Rails, views are
-often HTML files with embedded Ruby code that perform tasks related solely to
-the presentation of the data. Views handle the job of providing data to the web
-browser or other tool that is used to make requests from your application.
-
-h5. Controllers
-
-Controllers provide the "glue" between models and views. In Rails, controllers
-are responsible for processing the incoming requests from the web browser,
-interrogating the models for data, and passing that data on to the views for
-presentation.
-
-h4. The Components of Rails
-
-Rails ships as many individual components.  Each of these components are briefly
-explained below.  If you are new to Rails, as you read this section, don't get
-hung up on the details of each component, as they will be explained in further
-detail later.  For instance, we will bring up Rack applications, but you don't
-need to know anything about them to continue with this guide.
-
-* Action Pack
-  ** Action Controller
-  ** Action Dispatch
-  ** Action View
-* Action Mailer
-* Active Model
-* Active Record
-* Active Support
-* Railties
-
-h5. Action Pack
-
-Action Pack is a single gem that contains Action Controller, Action View and
-Action Dispatch. The "VC" part of "MVC".
-
-h6. Action Controller
-
-Action Controller is the component that manages the controllers in a Rails
-application. The Action Controller framework processes incoming requests to a
-Rails application, extracts parameters, and dispatches them to the intended
-action.  Services provided by Action Controller include session management,
-template rendering, and redirect management.
-
-h6. Action View
-
-Action View manages the views of your Rails application. It can create both HTML
-and XML output by default. Action View manages rendering templates, including
-nested and partial templates, and includes built-in AJAX support.  View
-templates are covered in more detail in another guide called "Layouts and
-Rendering":layouts_and_rendering.html.
-
-h6. Action Dispatch
-
-Action Dispatch handles routing of web requests and dispatches them as you want,
-either to your application or any other Rack application.  Rack applications are
-a more advanced topic and are covered in a separate guide called "Rails on
-Rack":rails_on_rack.html.
-
-h5. Action Mailer
-
-Action Mailer is a framework for building e-mail services. You can use Action
-Mailer to receive and process incoming email and send simple plain text or
-complex multipart emails based on flexible templates.
-
-h5. Active Model
-
-Active Model provides a defined interface between the Action Pack gem services
-and Object Relationship Mapping gems such as Active Record. Active Model allows
-Rails to utilize other ORM frameworks in place of Active Record if your
-application needs this.
-
-h5. Active Record
-
-Active Record is the base for the models in a Rails application. It provides
-database independence, basic CRUD functionality, advanced finding capabilities,
-and the ability to relate models to one another, among other services.
-
-h5. Active Support
-
-Active Support is an extensive collection of utility classes and standard Ruby
-library extensions that are used in Rails, both by the core code and by your
-applications.
-
-h5. Railties
-
-Railties is the core Rails code that builds new Rails applications and glues the
-various frameworks and plugins together in any Rails application.
-
-h4. REST
-
-Rest stands for Representational State Transfer and is the foundation of the
-RESTful architecture. This is generally considered to be Roy Fielding's doctoral
-thesis, "Architectural Styles and the Design of Network-based Software
-Architectures":http://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm. While
-you can read through the thesis, REST in terms of Rails boils down to two main
-principles:
-
-* Using resource identifiers such as URLs to represent resources.
-* Transferring representations of the state of that resource between system components.
-
-For example, the following HTTP request:
-
-<tt>DELETE /photos/17</tt>
-
-would be understood to refer to a photo resource with the ID of 17, and to
-indicate a desired action - deleting that resource. REST is a natural style for
-the architecture of web applications, and Rails hooks into this shielding you
-from many of the RESTful complexities and browser quirks.
-
-If you'd like more details on REST as an architectural style, these resources
-are more approachable than Fielding's thesis:
-
-* "A Brief Introduction to REST":http://www.infoq.com/articles/rest-introduction by Stefan Tilkov
-* "An Introduction to REST":http://bitworking.org/news/373/An-Introduction-to-REST (video tutorial) by Joe Gregorio
-* "Representational State Transfer":http://en.wikipedia.org/wiki/Representational_State_Transfer article in Wikipedia
-* "How to GET a Cup of Coffee":http://www.infoq.com/articles/webber-rest-workflow by Jim Webber, Savas Parastatidis &
-Ian Robinson
 
 h3. Creating a New Rails Project
 
@@ -221,29 +83,27 @@ TIP: The examples below use # and $ to denote terminal prompts. If you are using
 
 h4. Installing Rails
 
-In most cases, the easiest way to install Rails is to take advantage of RubyGems:
+To install Rails, use the +gem install+ command provided by RubyGems:
 
 <shell>
-Usually run this as the root user:
 # gem install rails
 </shell>
 
-TIP. If you're working on Windows, you can quickly install Ruby and Rails with
-"Rails Installer":http://railsinstaller.org.
+TIP. If you're working on Windows, you can quickly install Ruby and Rails with "Rails Installer":http://railsinstaller.org.
 
-To verify that you have everything installed correctly, you should be able to run
-the following:
+To verify that you have everything installed correctly, you should be able to run the following:
 
 <shell>
 $ rails --version
 </shell>
 
-If it says something like "Rails 3.1.3" you are ready to continue.
+If it says something like "Rails 3.2.2" you are ready to continue.
 
 h4. Creating the Blog Application
 
-To begin, open a terminal, navigate to a folder where you have rights to create
-files, and type:
+Rails comes with a number of generators that are designed to make your development life easier. One of these is the new application generator, which will provide you with the foundation of a Rails application so that you don't have to write it yourself.
+
+To use this generator, open a terminal, navigate to a directory where you have rights to create files, and type:
 
 <shell>
 $ rails new blog
@@ -251,22 +111,15 @@ $ rails new blog
 
 This will create a Rails application called Blog in a directory called blog.
 
-TIP: You can see all of the switches that the Rails application builder accepts
-by running
-<tt>rails new -h</tt>.
+TIP: You can see all of the switches that the Rails application builder accepts by running <tt>rails new -h</tt>.
 
-After you create the blog application, switch to its folder to continue work
-directly in that application:
+After you create the blog application, switch to its folder to continue work directly in that application:
 
 <shell>
 $ cd blog
 </shell>
 
-The 'rails new blog' command we ran above created a folder in your working directory
-called <tt>blog</tt>. The <tt>blog</tt> folder has a number of auto-generated folders
-that make up the structure of a Rails application. Most of the work in
-this tutorial will happen in the <tt>app/</tt> folder, but here's a basic
-rundown on the function of each of the files and folders that Rails created by default:
+The +rails new blog+ command we ran above created a folder in your working directory called <tt>blog</tt>. The <tt>blog</tt> directory has a number of auto-generated folders that make up the structure of a Rails application. Most of the work in this tutorial will happen in the <tt>app/</tt> folder, but here's a basic rundown on the function of each of the files and folders that Rails created by default:
 
 |_.File/Folder|_.Purpose|
 |app/|Contains the controllers, models, views and assets for your application. You'll focus on this folder for the remainder of this guide.|
@@ -274,7 +127,7 @@ rundown on the function of each of the files and folders that Rails created by d
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
 |doc/|In-depth documentation for your application.|
-|Gemfile<BR />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application.|
+|Gemfile<BR />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see "the Bundler website":http://gembundler.com |
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
 |public/|The only folder seen to the world as-is. Contains the static files and compiled assets.|
@@ -285,203 +138,45 @@ rundown on the function of each of the files and folders that Rails created by d
 |tmp/|Temporary files|
 |vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems and the Rails source code (if you optionally install it into your project).|
 
-h4. Configuring a Database
-
-Just about every Rails application will interact with a database. The database
-to use is specified in a configuration file, +config/database.yml+.  If you open
-this file in a new Rails application, you'll see a default database
-configured to use SQLite3. The file contains sections for three different
-environments in which Rails can run by default:
-
-* The +development+ environment is used on your development/local computer as you interact
-manually with the application.
-* The +test+ environment is used when running automated tests.
-* The +production+ environment is used when you deploy your application for the world to use.
-
-TIP: You don't have to update the database configurations manually. If you look at the
-options of the application generator, you will see that one of the options
-is named <tt>--database</tt>. This option allows you to choose an adapter from a
-list of the most used relational databases. You can even run the generator
-repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting
- of the +config/database.yml+ file, your application will be configured for MySQL
-instead of SQLite.  Detailed examples of the common database connections are below.
-
-h5. Configuring an SQLite3 Database
-
-Rails comes with built-in support for "SQLite3":http://www.sqlite.org, which is
-a lightweight serverless database application. While a busy production
-environment may overload SQLite, it works well for development and testing.
-Rails defaults to using an SQLite database when creating a new project, but you
-can always change it later.
-
-Here's the section of the default configuration file
-(<tt>config/database.yml</tt>) with connection information for the development
-environment:
-
-<yaml>
-development:
-  adapter: sqlite3
-  database: db/development.sqlite3
-  pool: 5
-  timeout: 5000
-</yaml>
-
-NOTE: In this guide we are using an SQLite3 database for data storage, because
-it is a zero configuration database that just works. Rails also supports MySQL
-and PostgreSQL "out of the box", and has plugins for many database systems. If
-you are using a database in a production environment Rails most likely has an
-adapter for it.
-
-h5. Configuring a MySQL Database
-
-If you choose to use MySQL instead of the shipped SQLite3 database, your
-+config/database.yml+ will look a little different. Here's the development
-section:
-
-<yaml>
-development:
-  adapter: mysql2
-  encoding: utf8
-  database: blog_development
-  pool: 5
-  username: root
-  password:
-  socket: /tmp/mysql.sock
-</yaml>
-
-If your development computer's MySQL installation includes a root user with an
-empty password, this configuration should work for you. Otherwise, change the
-username and password in the +development+ section as appropriate.
-
-h5. Configuring a PostgreSQL Database
-
-If you choose to use PostgreSQL, your +config/database.yml+ will be customized
-to use PostgreSQL databases:
-
-<yaml>
-development:
-  adapter: postgresql
-  encoding: unicode
-  database: blog_development
-  pool: 5
-  username: blog
-  password:
-</yaml>
-
-h5. Configuring an SQLite3 Database for JRuby Platform
-
-If you choose to use SQLite3 and are using JRuby, your +config/database.yml+ will
-look a little different. Here's the development section:
-
-<yaml>
-development:
-  adapter: jdbcsqlite3
-  database: db/development.sqlite3
-</yaml>
-
-h5. Configuring a MySQL Database for JRuby Platform
-
-If you choose to use MySQL and are using JRuby, your +config/database.yml+ will look
-a little different. Here's the development section:
-
-<yaml>
-development:
-  adapter: jdbcmysql
-  database: blog_development
-  username: root
-  password:
-</yaml>
-
-h5. Configuring a PostgreSQL Database for JRuby Platform
-
-Finally if you choose to use PostgreSQL and are using JRuby, your
-+config/database.yml+ will look a little different. Here's the development
-section:
-
-<yaml>
-development:
-  adapter: jdbcpostgresql
-  encoding: unicode
-  database: blog_development
-  username: blog
-  password:
-</yaml>
-
-Change the username and password in the +development+ section as appropriate.
-
-h4. Creating the Database
-
-Now that you have your database configured, it's time to have Rails create an
-empty database for you. You can do this by running a rake command:
-
-<shell>
-$ rake db:create
-</shell>
-
-This will create your development and test SQLite3 databases inside the
-<tt>db/</tt> folder.
-
-TIP: Rake is a general-purpose command-runner that Rails uses for many things.
-You can see the list of available rake commands in your application by running
-+rake -T+.
-
 h3. Hello, Rails!
 
-One of the traditional places to start with a new language is by getting some
-text up on screen quickly. To do this, you need to get your Rails application
-server running.
+One of the traditional places to start with a new language is by getting some text up on screen quickly. To do this, you need to get your Rails application server running.
 
 h4. Starting up the Web Server
 
-You actually have a functional Rails application already. To see it, you need to
-start a web server on your development machine. You can do this by running:
+You actually have a functional Rails application already. To see it, you need to start a web server on your development machine. You can do this by running:
 
 <shell>
 $ rails server
 </shell>
 
-TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and
-the absence of a runtime will give you an +execjs+ error. Usually Mac OS X
-and Windows come with a JavaScript runtime installed. Rails adds the +therubyracer+ gem
-to Gemfile in a commented line for new apps and you can uncomment if you need it.
-+therubyrhino+ is the recommended runtime for JRuby users and is added by default
-to Gemfile in apps generated under JRuby. You can investigate about all the
-supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
+TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an +execjs+ error. Usually Mac OS X and Windows come with a JavaScript runtime installed. Rails adds the +therubyracer+ gem to Gemfile in a commented line for new apps and you can uncomment if you need it. +therubyrhino+ is the recommended runtime for JRuby users and is added by default to Gemfile in apps generated under JRuby. You can investigate about all the supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
 
-This will fire up an instance of the WEBrick web server by default (Rails can
-also use several other web servers). To see your application in action, open a
-browser window and navigate to "http://localhost:3000":http://localhost:3000.
-You should see Rails' default information page:
+This will fire up an instance of a webserver built into Ruby called WEBrick by default. To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see Rails' default information page:
 
 !images/rails_welcome.png(Welcome Aboard screenshot)!
 
-TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
-running. In development mode, Rails does not generally require you to stop the
-server; changes you make in files will be automatically picked up by the server.
+TIP: To stop the web server, hit Ctrl+C in the terminal window where it's running. In development mode, Rails does not generally require you to stop the server; changes you make in files will be automatically picked up by the server.
 
-The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it
-makes sure that you have your software configured correctly enough to serve a
-page. You can also click on the _About your application’s environment_ link to
-see a summary of your application's environment.
+The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. You can also click on the _About your application’s environment_ link to see a summary of your application's environment.
 
 h4. Say "Hello", Rails
 
-To get Rails saying "Hello", you need to create at minimum a controller and a
-view. Fortunately, you can do that in a single command. Enter this command in
-your terminal:
+To get Rails saying "Hello", you need to create at minimum a _controller_ and a _view_.
+
+A controller's purpose is to receive specific requests for the application. What controller receives what request is determined by the _routing_. There is very often more than one route to each controller, and different routes can be served by different _actions_. Each action's purpose is to collect information to provide it to a view.
+
+A view's purpose is to display this information in a human readable format. An important distinction to make is that it is the _controller_, not the view, where information is collected. The view should just display that information. By default, view templates are written in a language called ERB (Embedded Ruby) which is converted by the request cycle in Rails before being sent to the user.
+
+To create a new controller, you will need to run the "controller" generator and tell it you want a controller called "welcome" with an action called "index", just like this:
 
 <shell>
-$ rails generate controller home index
+$ rails generate controller welcome index
 </shell>
 
-TIP: If you get a command not found error when running this command, you
-need to explicitly pass Rails +rails+ commands to Ruby: <tt>ruby
-\path\to\your\application\script\rails generate controller home index</tt>.
+Rails will create several files for you. Most important of these are of course the controller, located at +app/controllers/welcome_controller.rb+ and the view, located at +app/views/welcome/index.html.erb+.
 
-Rails will create several files for you, including
-+app/views/home/index.html.erb+. This is the template that will be used to
-display the results of the +index+ action (method) in the +home+ controller.
-Open this file in your text editor and edit it to contain a single line of code:
+Open the +app/views/welcome/index.html.erb+ file in your text editor and edit it to contain a single line of code:
 
 <code class="html">
 <h1>Hello, Rails!</h1>
@@ -489,29 +184,15 @@ Open this file in your text editor and edit it to contain a single line of code:
 
 h4. Setting the Application Home Page
 
-Now that we have made the controller and view, we need to tell Rails when we
-want "Hello Rails!" to show up. In our case, we want it to show up when we
-navigate to the root URL of our site,
-"http://localhost:3000":http://localhost:3000, instead of the "Welcome Aboard"
-smoke test.
+Now that we have made the controller and view, we need to tell Rails when we want "Hello Rails!" to show up. In our case, we want it to show up when we navigate to the root URL of our site, "http://localhost:3000":http://localhost:3000. At the moment, however, the "Welcome Aboard" smoke test is occupying that spot.
 
-The first step to doing this is to delete the default page from your
-application:
+To fix this, delete the +index.html+ file located inside the +public+ directory of the application.
 
-<shell>
-$ rm public/index.html
-</shell>
+You need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content you generate from the controllers.
 
-We need to do this as Rails will deliver any static file in the +public+
-directory in preference to any dynamic content we generate from the controllers.
+Next, you have to tell Rails where your actual home page is located.
 
-Now, you have to tell Rails where your actual home page is located. Open the
-file +config/routes.rb+ in your editor. This is your application's _routing
-file_ which holds entries in a special DSL (domain-specific language) that tells
-Rails how to connect incoming requests to controllers and actions. This file
-contains many sample routes on commented lines, and one of them actually shows
-you how to connect the root of your site to a specific controller and action.
-Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
+Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
 
 <ruby>
 Blog::Application.routes.draw do
@@ -519,64 +200,188 @@ Blog::Application.routes.draw do
   #...
   # You can have the root of your site routed with "root"
   # just remember to delete public/index.html.
-  root :to => "home#index"
+  root :to => "welcome#index"
 </ruby>
 
-The +root :to => "home#index"+ tells Rails to map the root action to the home
-controller's index action.
+The +root :to => "welcome#index"+ tells Rails to map requests to the root of the application to the welcome controller's index action. This was created earlier when you ran the controller generator (+rails generate controller welcome index+).
 
-Now if you navigate to "http://localhost:3000":http://localhost:3000 in your
-browser, you'll see +Hello, Rails!+.
+If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see +Hello, Rails!+.
 
-NOTE. For more information about routing, refer to "Rails Routing from the
-Outside In":routing.html.
+NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing.html.
 
-h3. Getting Up and Running Quickly with Scaffolding
+h3. Getting Up and Running
 
-Rails _scaffolding_ is a quick way to generate some of the major pieces of an
-application. If you want to create the models, views, and controllers for a new
-resource in a single operation, scaffolding is the tool for the job.
+Now that you've seen how to create a controller, an action and a view, let's create something with a bit more substance.
 
-h3. Creating a Resource
+In the Blog application, you will now create a new _resource_. A resource is the term used for a collection of similar objects, such as posts, people or animals. You can create, read, update and destroy items for a resource and these operations are referred to as _CRUD_ operations.
 
-In the case of the blog application, you can start by generating a scaffold for the
-Post resource: this will represent a single blog posting. To do this, enter this
-command in your terminal:
+In the next section, you will add the ability to create new posts in your application and be able to view them. This is the "CR" from CRUD. The form for doing this will look like this:
+
+!images/getting_started/new_post.png(The new post form)!
+
+It will look a little basic for now, but that's ok. We'll look at improving the styling for it afterwards.
+
+h4. Laying down the ground work
+
+The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at +/posts/new+. If you attempt to navigate to that now -- by visiting "http://localhost:3000/posts/new":http://localhost:3000/posts/new -- Rails will give you a routing error:
+
+
+!images/getting_started/routing_error_no_route_matches.png(A routing error, no route matches /posts/new)!
+
+This is because there is nowhere inside the routes for the application -- defined inside +config/routes.rb+ -- that defines this route. By default, Rails has no routes configured at all, and so you must define your routes as you need them.
+
+ To do this, you're going to need to create a route inside +config/routes.rb+ file, on a new line between the +do+ and the +end+ for the +draw+ method:
+
+<ruby>
+get "posts/new"
+</ruby>
+
+This route is a super-simple route: it defines a new route that only responds to +GET+ requests, and that the route is at +posts/new+. But how does it know where to go without the use of the +:to+ option? Well, Rails uses a sensible default here: Rails will assume that you want this route to go to the new action inside the posts controller.
+
+With the route defined, requests can now be made to +/posts/new+ in the application. Navigate to "http://localhost:3000/posts/new":http://localhost:3000/posts/new and you'll see another routing error:
+
+!images/getting_started/routing_error_no_controller.png(Another routing error, uninitialized constant PostsController)
+
+This error is happening because this route need a controller to be defined. The route is attempting to find that controller so it can serve the request, but with the controller undefined, it just can't do that. The solution to this particular problem is simple: you need to create a controller called +PostsController+. You can do this by running this command:
 
 <shell>
-$ rails generate scaffold Post name:string title:string content:text
+$ rails g controller posts
 </shell>
 
-The scaffold generator will build several files in your application, along with some
-folders, and edit <tt>config/routes.rb</tt>. Here's a quick overview of what it creates:
+If you open up the newly generated +app/controllers/posts_controller.rb+ you'll see a fairly empty controller:
 
-|_.File                                       |_.Purpose|
-|db/migrate/20100207214725_create_posts.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
-|app/models/post.rb                           |The Post model|
-|test/unit/post_test.rb                       |Unit testing harness for the posts model|
-|test/fixtures/posts.yml                      |Sample posts for use in testing|
-|config/routes.rb                             |Edited to include routing information for posts|
-|app/controllers/posts_controller.rb          |The Posts controller|
-|app/views/posts/index.html.erb               |A view to display an index of all posts |
-|app/views/posts/edit.html.erb                |A view to edit an existing post|
-|app/views/posts/show.html.erb                |A view to display a single post|
-|app/views/posts/new.html.erb                 |A view to create a new post|
-|app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
-|test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
-|app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
-|test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
-|app/assets/javascripts/posts.js.coffee       |CoffeeScript for the posts controller|
-|app/assets/stylesheets/posts.css.scss        |Cascading style sheet for the posts controller|
-|app/assets/stylesheets/scaffolds.css.scss    |Cascading style sheet to make the scaffolded views look better|
+<ruby>
+class PostsController < ApplicationController
+end
+</ruby>
 
-NOTE. While scaffolding will get you up and running quickly, the code it
-generates is unlikely to be a perfect fit for your application. You'll most
-probably want to customize the generated code. Many experienced Rails developers
-avoid scaffolding entirely, preferring to write all or most of their source code
-from scratch. Rails, however, makes it really simple to customize templates for
-generated models, controllers, views and other source files. You'll find more
-information in the "Creating and Customizing Rails Generators &
-Templates":generators.html guide.
+A controller is simply a class that is defined to inherit from +ApplicationController+. It's inside this class that you'll define methods that will become the actions for this controller. These actions will perform CRUD operations on the posts within our system.
+
+If you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new now, you'll get a new error:
+
+!images/getting_started/unknown_action_new_for_posts.png(Unknown action new for PostsController!)
+
+This error indicates that Rails cannot find the +new+ action inside the +PostsController+ that you just generated. This is because when controllers are generated in Rails they are empty by default, unless you tell it you wanted actions during the generation process.
+
+To manually define an action inside a controller, all you need to do is to define a new method inside the controller. Open +app/controllers/posts_controller.rb+ and inside the +PostsController+ class, define a +new+ method like this:
+
+<ruby>
+def new
+end
+</ruby>
+
+With the +new+ method defined in +PostsController+, if you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new you'll see another error:
+
+!images/getting_started/template_is_missing_posts_new.png(Template is missing for posts/new)
+
+You're getting this error now because Rails expects plain actions like this one to have views associated with them to display their information. With no view available, Rails errors out.
+
+In the above image, the bottom line has been truncated. Let's see what the full thing looks like:
+
+<text>
+Missing template posts/new, application/new with {:locale=>[:en], :formats=>[:html], :handlers=>[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
+</text>
+
+That's quite a lot of text! Let's quickly go through and understand what each part of it does.
+
+The first part identifies what template is missing. In this case, it's the +posts/new+ template. Rails will first look for this template. If it can't find it, then it will attempt to load a template called +application/new+. It looks for one here because the +PostsController+ inherits from +ApplicationController+.
+
+The next part of the message contains a hash. The +:locale+ key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English -- or "en" -- template. The next key, +:formats+ shows what formats of template Rails is after. The default is +:html+, and so Rails is looking for an HTML template. The final key, +:handlers+, is telling us what _template handlers_ could be used to render our template. +:erb+ is most commonly used for HTML templates, +:builder+ is used for XML templates, and +:coffee+ uses CoffeeScript to build JavaScript templates.
+
+The final part of this message tells us where Rails has looked for the templates. Templates within a basic Rails application like this are kept in a single location, but in more complex applications it could be many different paths.
+
+The simplest template that would work in this case would be one located at +app/views/posts/new.html.erb+. The extension of this file name is key: the first extension is the _format_ of the template, and the second extension is the _handler_ that will be used. Rails is attempting to find a template called +posts/new+ within +app/views+ for the application. The format for this template can only be +html+ and the handler must be one of +erb+, +builder+ or +coffee+. Because you want to create a new HTML form, you will be using the +ERB+ language. Therefore the file should be called +posts/new.html.erb+ and be located inside the +app/views+ directory of the application.
+
+Go ahead now and create a new file at +app/views/posts/new.html.erb+ and write this content in it:
+
+<erb>
+<h1>New Post</h1>
+</erb>
+
+When you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new you'll now see that the page has a title. The route, controller, action and view are now working harmoniously! It's time to create the form for a new post.
+
+h4. The first form
+
+To create a form within this template, you will use a _form builder_. The primary form builder for Rails is provided by a helper method called +form_for+. To use this method, write this code into +app/views/posts/new.html.erb+:
+
+<erb>
+<%= form_for :post do |f| %>
+  <p>
+    <%= f.label :title %><br>
+    <%= f.text_field :title %>
+  </p>
+
+  <p>
+    <%= f.label :text %><br>
+    <%= f.text_area :text %>
+  </p>
+
+  <p>
+    <%= f.submit %>
+  </p>
+<% end %>
+</erb>
+
+If you refresh the page now, you'll see the exact same form as in the example. Building forms in Rails is really just that easy!
+
+When you call +form_for+, you pass it an identifying object for this form. In this case, it's the symbol +:post+. This tells the +form_for+ helper what this form is for. Inside the block for this method, the FormBuilder object -- represented by +f+ -- is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to +submit+ on the +f+ object will create a submit button for the form.
+
+There's one problem with this form though. If you inspect the HTML that is generated, by viewing the source of the page, you will see that the +action+ attribute for the form is pointing at +/posts/new+. This is a problem because this route goes to the very page that you're on right at the moment, and that route should only be used to display the form for a new post.
+
+So the form needs to use a different URL in order to go somewhere else. This can be done quite simply with the +:url+ option of +form_for+. Typically in Rails, the action that is used for new form submissions like this is called "create", and so the form should be pointed to this action.
+
+Edit the +form_for+ line inside +app/views/posts/new.html.erb+ to look like this:
+
+<erb>
+<%= form_for :post, :url => { :action => :create } do |f| %>
+</erb>
+
+In this example, a +Hash+ object is passed to the +:url+ option. What Rails will do with this is that it will point the form to the +create+ action of the current controller, the +PostsController+, and will send a +POST+ request to that route. For this to work, you will need to add a route to +config/routes.rb+, right underneath the one for "posts/new":
+
+<ruby>
+post "posts/create"
+</ruby>
+
+By using the +post+ method rather than the +get+ method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
+
+With the form and the route for it defined now, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
+
+!images/getting_started/unknown_action_create_for_posts(Unknown action create for PostsController)!
+
+You will now need to create the +create+ action within the +PostsController+ for this to work.
+
+h4. Creating posts
+
+To make the "Unknown action" go away, you can define a +create+ action within the +PostsController+ class in +app/controllers/posts_controller.rb+, underneath the +new+ action:
+
+<ruby>
+class PostsController < ApplicationController
+  def new
+  end
+
+  def create
+  end
+
+end
+</ruby>
+
+If you re-submit the form now, you'll see another familiar error: a template is missing. That's ok, we can ignore that for now. What the +create+ action should be doing is saving our new post to a database.
+
+When a form is submitted, the fields of the form are sent to Rails as _parameters_. These parameters can then be referenced inside the controller actions, typically to perform a particular task. To see what these parameters look like, change the +create+ action to this:
+
+<ruby>
+def create
+  render :text => params.inspect
+end
+</ruby>
+
+The +render+ method here is taking a very simple hash with the key of +text+ and the value of +params.inspect+. The +params+ method here is the object which represents the parameters (or fields) coming in from the form. If you re-submit the form one more time you'll now no longer get the missing template error. Instead, you'll see something that looks like the following:
+
+<ruby>
+{"title"=>"First post!", "text"=>"This is my first post."}
+</ruby>
+
+
 
 h4. Running a Migration
 
@@ -638,7 +443,7 @@ invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
 h4. Adding a Link
 
 To hook the posts up to the home page you've already created, you can add a link
-to the home page. Open +app/views/home/index.html.erb+ and modify it as follows:
+to the home page. Open +app/views/welcome/index.html.erb+ and modify it as follows:
 
 <ruby>
 <h1>Hello, Rails!</h1>
@@ -1225,7 +1030,7 @@ Associations":association_basics.html guide.
 
 h4. Adding a Route for Comments
 
-As with the +home+ controller, we will need to add a route so that Rails knows
+As with the +welcome+ controller, we will need to add a route so that Rails knows
 where we would like to navigate to see +comments+. Open up the
 +config/routes.rb+ file again. Near the top, you will see the entry for +posts+
 that was added automatically by the scaffold generator: <tt>resources

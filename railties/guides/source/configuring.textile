@@ -459,6 +459,99 @@ There are a few configuration options available in Active Support:
 
 * +ActiveSupport::Logger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
 
+h4. Configuring a Database
+
+Just about every Rails application will interact with a database. The database to use is specified in a configuration file called +config/database.yml+.  If you open this file in a new Rails application, you'll see a default database configured to use SQLite3. The file contains sections for three different environments in which Rails can run by default:
+
+* The +development+ environment is used on your development/local computer as you interact manually with the application.
+* The +test+ environment is used when running automated tests.
+* The +production+ environment is used when you deploy your application for the world to use.
+
+TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named <tt>--database</tt>. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting of the +config/database.yml+ file, your application will be configured for MySQL instead of SQLite.  Detailed examples of the common database connections are below.
+
+h5. Configuring an SQLite3 Database
+
+Rails comes with built-in support for "SQLite3":http://www.sqlite.org, which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
+
+Here's the section of the default configuration file (<tt>config/database.yml</tt>) with connection information for the development environment:
+
+<yaml>
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  pool: 5
+  timeout: 5000
+</yaml>
+
+NOTE: Rails uses an SQLite3 database for data storage by default because it is a zero configuration database that just works. Rails also supports MySQL and PostgreSQL "out of the box", and has plugins for many database systems. If you are using a database in a production environment Rails most likely has an adapter for it.
+
+h5. Configuring a MySQL Database
+
+If you choose to use MySQL instead of the shipped SQLite3 database, your +config/database.yml+ will look a little different. Here's the development section:
+
+<yaml>
+development:
+  adapter: mysql2
+  encoding: utf8
+  database: blog_development
+  pool: 5
+  username: root
+  password:
+  socket: /tmp/mysql.sock
+</yaml>
+
+If your development computer's MySQL installation includes a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the +development+ section as appropriate.
+
+h5. Configuring a PostgreSQL Database
+
+If you choose to use PostgreSQL, your +config/database.yml+ will be customized to use PostgreSQL databases:
+
+<yaml>
+development:
+  adapter: postgresql
+  encoding: unicode
+  database: blog_development
+  pool: 5
+  username: blog
+  password:
+</yaml>
+
+h5. Configuring an SQLite3 Database for JRuby Platform
+
+If you choose to use SQLite3 and are using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
+
+<yaml>
+development:
+  adapter: jdbcsqlite3
+  database: db/development.sqlite3
+</yaml>
+
+h5. Configuring a MySQL Database for JRuby Platform
+
+If you choose to use MySQL and are using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
+
+<yaml>
+development:
+  adapter: jdbcmysql
+  database: blog_development
+  username: root
+  password:
+</yaml>
+
+h5. Configuring a PostgreSQL Database for JRuby Platform
+
+If you choose to use PostgreSQL and are using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
+
+<yaml>
+development:
+  adapter: jdbcpostgresql
+  encoding: unicode
+  database: blog_development
+  username: blog
+  password:
+</yaml>
+
+Change the username and password in the +development+ section as appropriate.
 
 h3. Rails Environment Settings
 
