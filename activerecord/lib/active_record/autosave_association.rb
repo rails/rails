@@ -28,7 +28,7 @@ module ActiveRecord
   # Association with autosave option defines several callbacks on your
   # model (before_save, after_create, after_update). Please note that
   # callbacks are executed in the order they were defined in
-  # model. You should avoid modyfing the association content, before
+  # model. You should avoid modifying the association content, before
   # autosave callbacks are executed. Placing your callbacks after
   # associations is usually a good practice.
   #
