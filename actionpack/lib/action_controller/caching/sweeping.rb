@@ -54,6 +54,11 @@ module ActionController #:nodoc:
       class Sweeper < ActiveRecord::Observer #:nodoc:
         attr_accessor :controller
 
+        def initialize(*args)
+          super
+          @controller = nil
+        end
+
         def before(controller)
           self.controller = controller
           callback(:before) if controller.perform_caching
