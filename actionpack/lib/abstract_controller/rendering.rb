@@ -106,6 +106,7 @@ module AbstractController
     # Find and renders a template based on the options given.
     # :api: private
     def _render_template(options) #:nodoc:
+      lookup_context.rendered_format = nil if options[:formats]
       view_renderer.render(view_context, options)
     end
 
