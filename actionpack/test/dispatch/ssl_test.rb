@@ -90,20 +90,6 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Set-Cookie'].split("\n")
   end
 
-  def test_legacy_array_headers
-    self.app = ActionDispatch::SSL.new(lambda { |env|
-      headers = {
-        'Content-Type' => "text/html",
-        'Set-Cookie' => ["id=1; path=/", "token=abc; path=/; HttpOnly"]
-      }
-      [200, headers, ["OK"]]
-    })
-
-    get "https://example.org/"
-    assert_equal ["id=1; path=/; secure", "token=abc; path=/; HttpOnly; secure"],
-      response.headers['Set-Cookie'].split("\n")
-  end
-
   def test_no_cookies
     self.app = ActionDispatch::SSL.new(lambda { |env|
       [200, {'Content-Type' => "text/html"}, ["OK"]]

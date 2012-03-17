@@ -9,8 +9,8 @@ module ActionDispatch
     def initialize(app, options = {})
       @app = app
 
-      @hsts = options[:hsts]
-      @hsts = {} if @hsts.nil? || @hsts == true
+      @hsts = options.fetch(:hsts, {})
+      @hsts = {} if @hsts == true
       @hsts = self.class.default_hsts_options.merge(@hsts) if @hsts
 
       @exclude = options[:exclude]
@@ -19,33 +19,27 @@ module ActionDispatch
     end
 
     def call(env)
-      if @exclude && @exclude.call(env)
-        @app.call(env)
-      elsif scheme(env) == 'https'
+      return @app.call(env) if exclude?(env)
+
+      request = Request.new(env)
+
+      if request.ssl?
         status, headers, body = @app.call(env)
         headers = hsts_headers.merge(headers)
         flag_cookies_as_secure!(headers)
         [status, headers, body]
       else
-        redirect_to_https(env)
+        redirect_to_https(request)
       end
     end
 
     private
-      # Fixed in rack >= 1.3
-      def scheme(env)
-        if env['HTTPS'] == 'on'
-          'https'
-        elsif env['HTTP_X_FORWARDED_PROTO']
-          env['HTTP_X_FORWARDED_PROTO'].split(',')[0]
-        else
-          env['rack.url_scheme']
-        end
+      def exclude?(env)
+        @exclude && @exclude.call(env)
       end
 
-      def redirect_to_https(env)
-        req        = Request.new(env)
-        url        = URI(req.url)
+      def redirect_to_https(request)
+        url        = URI(request.url)
         url.scheme = "https"
         url.host   = @host if @host
         url.port   = @port if @port
@@ -68,11 +62,7 @@ module ActionDispatch
 
       def flag_cookies_as_secure!(headers)
         if cookies = headers['Set-Cookie']
-          # Rack 1.1's set_cookie_header! will sometimes wrap
-          # Set-Cookie in an array
-          unless cookies.respond_to?(:to_ary)
-            cookies = cookies.split("\n")
-          end
+          cookies = cookies.split("\n")
 
           headers['Set-Cookie'] = cookies.map { |cookie|
             if cookie !~ /; secure(;|$)/
