@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove Rack::SSL in favour of ActionDispatch::SSL. *Rafael Mendonça França*
+
 *   Remove Active Resource from Rails framework. *Prem Sichangrist*
 
 *   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. *Piotr Sarnacki*
