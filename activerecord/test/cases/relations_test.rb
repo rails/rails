@@ -1238,7 +1238,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_presence
     topics = Topic.scoped
 
-    # the fist query is triggered because there are no topics yet.
+    # the first query is triggered because there are no topics yet.
     assert_queries(1) { assert topics.present? }
 
     # checking if there are topics is used before you actually display them,
