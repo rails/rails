@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added ActionDispatch::SSL middleware that when included force all the requests to be under HTTPS protocol. *Rafael Mendonça França*
+
 *   Add `include_hidden` option to select tag. With `:include_hidden => false` select with `multiple` attribute doesn't generate hidden input with blank value. *Vasiliy Ermolovich*
 
 *   Removed default `size` option from the `text_field`, `search_field`, `telephone_field`, `url_field`, `email_field` helpers. *Philip Arndt*
@@ -120,8 +122,8 @@
 
 *   `favicon_link_tag` helper will now use the favicon in app/assets by default. *Lucas Caton*
 
-*    `ActionView::Helpers::TextHelper#highlight` now defaults to the
-     HTML5 `mark` element. *Brian Cardarella*
+*   `ActionView::Helpers::TextHelper#highlight` now defaults to the
+    HTML5 `mark` element. *Brian Cardarella*
 
 
 ## Rails 3.2.3 (unreleased) ##

@@ -88,7 +88,7 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.filter_parameters+ used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card numbers.
 
-* +config.force_ssl+ forces all requests to be under HTTPS protocol by using +Rack::SSL+ middleware.
+* +config.force_ssl+ forces all requests to be under HTTPS protocol by using +ActionDispatch::SSL+ middleware.
 
 * +config.log_level+ defines the verbosity of the Rails logger. This option defaults to +:debug+ for all modes except production, where it defaults to +:info+.
 
@@ -197,7 +197,7 @@ h4. Configuring Middleware
 
 Every Rails application comes with a standard set of middleware which it uses in this order in the development environment:
 
-* +Rack::SSL+ forces every request to be under HTTPS protocol. Will be available if +config.force_ssl+ is set to +true+.  Options passed to this can be configured by using +config.ssl_options+.
+* +ActionDispatch::SSL+ forces every request to be under HTTPS protocol. Will be available if +config.force_ssl+ is set to +true+. Options passed to this can be configured by using +config.ssl_options+.
 * +ActionDispatch::Static+ is used to serve static assets. Disabled if +config.serve_static_assets+ is +true+.
 * +Rack::Lock+ wraps the app in mutex so it can only be called by a single thread at a time. Only enabled if +config.action_controller.allow_concurrency+ is set to +false+, which it is by default.
 * +ActiveSupport::Cache::Strategy::LocalCache+ serves as a basic memory backed cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.

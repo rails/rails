@@ -225,8 +225,7 @@ module Rails
         end
 
         if config.force_ssl
-          require "rack/ssl"
-          middleware.use ::Rack::SSL, config.ssl_options
+          middleware.use ::ActionDispatch::SSL, config.ssl_options
         end
 
         if config.action_dispatch.x_sendfile_header.present?
