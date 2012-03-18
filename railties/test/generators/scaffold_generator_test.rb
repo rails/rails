@@ -62,8 +62,11 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_file "test/functional/product_lines_controller_test.rb",
-                /class ProductLinesControllerTest < ActionController::TestCase/
+    assert_file "test/functional/product_lines_controller_test.rb" do |test|
+      assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, test)
+      assert_match(/post :create, product_line: \{ title: @product_line.title \}/, test)
+      assert_match(/put :update, id: @product_line, product_line: \{ title: @product_line.title \}/, test)
+    end
 
     # Views
     %w(
@@ -83,6 +86,17 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/stylesheets/scaffold.css"
     assert_file "app/assets/javascripts/product_lines.js"
     assert_file "app/assets/stylesheets/product_lines.css"
+  end
+
+  def test_functional_tests_without_attributes
+    run_generator ["product_line"]
+
+    assert_file "test/functional/product_lines_controller_test.rb" do |content|
+      assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, content)
+      assert_match(/test "should get index"/, content)
+      assert_match(/post :create, product_line: \{  \}/, content)
+      assert_match(/put :update, id: @product_line, product_line: \{  \}/, content)
+    end
   end
 
   def test_scaffold_on_revoke

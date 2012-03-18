@@ -23,10 +23,6 @@ class SendFileController < ActionController::Base
   def data
     send_data(file_data, options)
   end
-
-  def multibyte_text_data
-    send_data("Кирилица\n祝您好運.", options)
-  end
 end
 
 class SendFileTest < ActionController::TestCase

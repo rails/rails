@@ -5,8 +5,6 @@ module ActionView
         include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
         include FormOptionsHelper
 
-        DEFAULT_FIELD_OPTIONS = { "size" => 30 }
-
         attr_reader :object
 
         def initialize(object_name, method_name, template_object, options = {})
@@ -124,7 +122,8 @@ module ActionView
           html_options = html_options.stringify_keys
           add_default_name_and_id(html_options)
           select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
-          if html_options["multiple"]
+
+          if html_options["multiple"] && options.fetch(:include_hidden) { true }
             tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select
           else
             select

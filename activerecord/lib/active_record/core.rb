@@ -130,7 +130,7 @@ module ActiveRecord
       end
 
       def arel_engine
-        @arel_engine ||= connection_handler.connection_pools[name] ? self : active_record_super.arel_engine
+        @arel_engine ||= connection_handler.retrieve_connection_pool(self) ? self : active_record_super.arel_engine
       end
 
       private
@@ -176,7 +176,7 @@ module ActiveRecord
       assign_attributes(attributes, options) if attributes
 
       yield self if block_given?
-      run_callbacks :initialize
+      run_callbacks :initialize if _initialize_callbacks.any?
     end
 
     # Initialize an empty model object from +coder+. +coder+ must contain

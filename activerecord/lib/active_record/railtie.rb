@@ -53,11 +53,6 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
-    initializer "active_record.identity_map" do |app|
-      config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-        "ActiveRecord::IdentityMap::Middleware" if config.active_record.delete(:identity_map)
-    end
-
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
         if app.config.active_record.delete(:whitelist_attributes)

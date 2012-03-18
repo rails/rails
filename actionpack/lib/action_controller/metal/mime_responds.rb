@@ -355,8 +355,12 @@ module ActionController #:nodoc:
       end
     end
 
-    # Collects mimes and return the response for the negotiated format. Returns
-    # nil if :not_acceptable was sent to the client.
+    # Returns a Collector object containing the appropriate mime-type response
+    # for the current request, based on the available responses defined by a block.
+    # In typical usage this is the block passed to +respond_with+ or +respond_to+.
+    #
+    # Sends :not_acceptable to the client and returns nil if no suitable format
+    # is available.
     #
     def retrieve_collector_from_mimes(mimes=nil, &block) #:nodoc:
       mimes ||= collect_mimes_from_class_level

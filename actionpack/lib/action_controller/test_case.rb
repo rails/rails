@@ -56,6 +56,9 @@ module ActionController
     #   # assert that the "new" view template was rendered
     #   assert_template "new"
     #
+    #   # assert that the exact template "admin/posts/new" was rendered
+    #   assert_template %r{\Aadmin/posts/new\Z}
+    #
     #   # assert that the "_customer" partial was rendered twice
     #   assert_template :partial => '_customer', :count => 2
     #
@@ -74,11 +77,11 @@ module ActionController
       response.body
 
       case options
-      when NilClass, String, Symbol
+      when NilClass, String, Symbol, Regexp
         options = options.to_s if Symbol === options
         rendered = @templates
         msg = message || sprintf("expecting <%s> but rendering with <%s>",
-                options, rendered.keys)
+                options.inspect, rendered.keys)
         assert_block(msg) do
           if options
             rendered.any? { |t,num| t.match(options) }
@@ -121,6 +124,8 @@ module ActionController
           assert @partials.empty?,
             "Expected no partials to be rendered"
         end
+      else
+        raise ArgumentError, "assert_template only accepts a String, Symbol, Hash, Regexp, or nil"
       end
     end
   end
@@ -498,11 +503,6 @@ module ActionController
           @controller.request = @request
           @controller.params = {}
         end
-      end
-
-      # Cause the action to be rescued according to the regular rules for rescue_action when the visitor is not local
-      def rescue_action_in_public!
-        @request.remote_addr = '208.77.188.166' # example.com
       end
 
       included do

@@ -128,10 +128,11 @@ module ActiveRecord
         @reserved_connections[current_connection_id] ||= checkout
       end
 
-      # Check to see if there is an active connection in this connection
-      # pool.
+      # Is there an open connection that is being used for the current thread?
       def active_connection?
-        active_connections.any?
+        @reserved_connections.fetch(current_connection_id) {
+          return false
+        }.in_use?
       end
 
       # Signal that the thread is finished with the current connection.
@@ -185,8 +186,9 @@ module ActiveRecord
       end
 
       def clear_stale_cached_connections! # :nodoc:
+        reap
       end
-      deprecate :clear_stale_cached_connections!
+      deprecate :clear_stale_cached_connections! => "Please use #reap instead"
 
       # Check-out a database connection from the pool, indicating that you want
       # to use it. You should call #checkin when you no longer need this.
@@ -233,6 +235,8 @@ module ActiveRecord
           conn.run_callbacks :checkin do
             conn.expire
           end
+
+          release conn
         end
       end
 
@@ -244,10 +248,7 @@ module ActiveRecord
 
           # FIXME: we might want to store the key on the connection so that removing
           # from the reserved hash will be a little easier.
-          thread_id = @reserved_connections.keys.find { |k|
-            @reserved_connections[k] == conn
-          }
-          @reserved_connections.delete thread_id if thread_id
+          release conn
         end
       end
 
@@ -264,6 +265,20 @@ module ActiveRecord
       end
 
       private
+
+      def release(conn)
+        thread_id = nil
+
+        if @reserved_connections[current_connection_id] == conn
+          thread_id = current_connection_id
+        else
+          thread_id = @reserved_connections.keys.find { |k|
+            @reserved_connections[k] == conn
+          }
+        end
+
+        @reserved_connections.delete thread_id if thread_id
+      end
 
       def new_connection
         ActiveRecord::Base.send(spec.adapter_method, spec.config)
@@ -287,10 +302,6 @@ module ActiveRecord
           c.verify!
         end
         c
-      end
-
-      def active_connections
-        @connections.find_all { |c| c.in_use? }
       end
     end
 

@@ -323,7 +323,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.comments.first
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
+    assert_queries(2) do
       posts = Post.preload(:comments).order('posts.id')
       assert posts.first.comments.first
     end
@@ -333,12 +333,12 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
+    assert_queries(2) do
       posts = Post.preload(:author).order('posts.id')
       assert posts.first.author
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
+    assert_queries(3) do
       posts = Post.preload(:author, :comments).order('posts.id')
       assert posts.first.author
       assert posts.first.comments.first
@@ -351,7 +351,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.comments.first
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
+    assert_queries(2) do
       posts = Post.scoped.includes(:comments).order('posts.id')
       assert posts.first.comments.first
     end
@@ -361,7 +361,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
+    assert_queries(3) do
       posts = Post.includes(:author, :comments).order('posts.id')
       assert posts.first.author
       assert posts.first.comments.first
@@ -460,6 +460,18 @@ class RelationTest < ActiveRecord::TestCase
     assert lifo.persisted?
 
     assert_equal authors(:david), authors.find_or_create_by_name(:name => 'David')
+  end
+
+  def test_dynamic_find_or_create_by_attributes_bang
+    authors = Author.scoped
+
+    assert_raises(ActiveRecord::RecordInvalid) { authors.find_or_create_by_name!('') }
+
+    lifo = authors.find_or_create_by_name!('Lifo')
+    assert_equal "Lifo", lifo.name
+    assert lifo.persisted?
+
+    assert_equal authors(:david), authors.find_or_create_by_name!(:name => 'David')
   end
 
   def test_find_id
@@ -673,10 +685,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_preload
-    ActiveRecord::IdentityMap.without do
-      [Post.scoped.merge(Post.preload(:author)), Post.preload(:author).merge(Post.scoped)].each do |posts|
-        assert_queries(2) { assert posts.first.author }
-      end
+    [Post.scoped.merge(Post.preload(:author)), Post.preload(:author).merge(Post.scoped)].each do |posts|
+      assert_queries(2) { assert posts.first.author }
     end
   end
 
@@ -1223,5 +1233,27 @@ class RelationTest < ActiveRecord::TestCase
 
     scope = Post.order('foo(comments.body)')
     assert_equal [], scope.references_values
+  end
+
+  def test_presence
+    topics = Topic.scoped
+
+    # the fist query is triggered because there are no topics yet.
+    assert_queries(1) { assert topics.present? }
+
+    # checking if there are topics is used before you actually display them,
+    # thus it shouldn't invoke an extra count query.
+    assert_no_queries { assert topics.present? }
+    assert_no_queries { assert !topics.blank? }
+
+    # shows count of topics and loops after loading the query should not trigger extra queries either.
+    assert_no_queries { topics.size }
+    assert_no_queries { topics.length }
+    assert_no_queries { topics.each }
+
+    # count always trigger the COUNT query.
+    assert_queries(1) { topics.count }
+
+    assert topics.loaded?
   end
 end

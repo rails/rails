@@ -52,36 +52,6 @@ module ApplicationTests
       ], middleware
     end
 
-    test "api middleware stack" do
-      add_to_config "config.middleware.api_only!"
-      add_to_config "config.force_ssl = true"
-      add_to_config "config.action_dispatch.x_sendfile_header = 'X-Sendfile'"
-
-      boot!
-
-      assert_equal [
-        "Rack::SSL",
-        "Rack::Sendfile",
-        "ActionDispatch::Static",
-        "Rack::Lock",
-        "ActiveSupport::Cache::Strategy::LocalCache",
-        "Rack::Runtime",
-        "ActionDispatch::RequestId",
-        "Rails::Rack::Logger",
-        "ActionDispatch::ShowExceptions",
-        "ActionDispatch::DebugExceptions",
-        "ActionDispatch::RemoteIp",
-        "ActionDispatch::Reloader",
-        "ActionDispatch::Callbacks",
-        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
-        "ActiveRecord::QueryCache",
-        "ActionDispatch::ParamsParser",
-        "ActionDispatch::Head",
-        "Rack::ConditionalGet",
-        "Rack::ETag"
-      ], middleware
-    end
-
     test "Rack::Sendfile is not included by default" do
       boot!
 
@@ -115,7 +85,6 @@ module ApplicationTests
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
       assert !middleware.include?("ActiveRecord::QueryCache")
-      assert !middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "removes lock if allow concurrency is set" do
@@ -173,12 +142,6 @@ module ApplicationTests
       assert_equal "Rack::Runtime", middleware.fourth
     end
 
-    test "identity map is inserted" do
-      add_to_config "config.active_record.identity_map = true"
-      boot!
-      assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
-    end
-
     test "insert middleware before" do
       add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
       boot!
@@ -216,7 +179,6 @@ module ApplicationTests
       assert_equal etag, last_response.headers["Etag"]
 
       get "/?nothing=true"
-      puts last_response.body
       assert_equal 200, last_response.status
       assert_equal "", last_response.body
       assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]

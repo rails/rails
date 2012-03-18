@@ -8,7 +8,7 @@ else
   gem 'arel'
 end
 
-gem 'rack-test', :git => "https://github.com/brynary/rack-test.git"
+gem 'rack-test', :git => "git://github.com/brynary/rack-test.git"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
 
@@ -21,6 +21,8 @@ end
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', '>= 1.0.3', :require => false
+
+gem 'sprockets-rails', :git => "git://github.com/rails/sprockets-rails.git"
 
 gem 'rake', '>= 0.8.7'
 gem 'mocha', '>= 0.9.8'

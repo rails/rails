@@ -115,10 +115,7 @@ module ActiveRecord
     # callbacks, Observer methods, or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
-      if persisted?
-        self.class.delete(id)
-        IdentityMap.remove(self) if IdentityMap.enabled?
-      end
+      self.class.delete(id) if persisted?
       @destroyed = true
       freeze
     end
@@ -129,7 +126,6 @@ module ActiveRecord
       destroy_associations
 
       if persisted?
-        IdentityMap.remove(self) if IdentityMap.enabled?
         pk         = self.class.primary_key
         column     = self.class.columns_hash[pk]
         substitute = connection.substitute_at(column, 0)
@@ -284,11 +280,9 @@ module ActiveRecord
       clear_aggregation_cache
       clear_association_cache
 
-      IdentityMap.without do
-        fresh_object = self.class.unscoped { self.class.find(id, options) }
-        @attributes.update(fresh_object.instance_variable_get('@attributes'))
-        @columns_hash = fresh_object.instance_variable_get('@columns_hash')
-      end
+      fresh_object = self.class.unscoped { self.class.find(id, options) }
+      @attributes.update(fresh_object.instance_variable_get('@attributes'))
+      @columns_hash = fresh_object.instance_variable_get('@columns_hash')
 
       @attributes_cache = {}
       self
@@ -350,7 +344,7 @@ module ActiveRecord
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
     def update(attribute_names = @attributes.keys)
-      attributes_with_values = arel_attributes_values(false, false, attribute_names)
+      attributes_with_values = arel_attributes_with_values_for_update(attribute_names)
       return 0 if attributes_with_values.empty?
       klass = self.class
       stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
@@ -360,13 +354,11 @@ module ActiveRecord
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
     def create
-      attributes_values = arel_attributes_values(!id.nil?)
+      attributes_values = arel_attributes_with_values_for_create(!id.nil?)
 
       new_id = self.class.unscoped.insert attributes_values
-
       self.id ||= new_id if self.class.primary_key
 
-      IdentityMap.add(self) if IdentityMap.enabled?
       @new_record = false
       id
     end

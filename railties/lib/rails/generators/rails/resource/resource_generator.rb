@@ -14,9 +14,12 @@ module Rails
       class_option :actions, :type => :array, :banner => "ACTION ACTION", :default => [],
                              :desc => "Actions for the resource controller"
 
+      class_option :http, :type => :boolean, :default => false,
+                          :desc => "Generate resource with HTTP actions only"
+
       def add_resource_route
         return if options[:actions].present?
-        route_config =  regular_class_path.collect{|namespace| "namespace :#{namespace} do " }.join(" ")
+        route_config =  regular_class_path.collect{ |namespace| "namespace :#{namespace} do " }.join(" ")
         route_config << "resources :#{file_name.pluralize}"
         route_config << " end" * regular_class_path.size
         route route_config

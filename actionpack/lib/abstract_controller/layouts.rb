@@ -89,7 +89,7 @@ module AbstractController
   #   class TillController < BankController
   #     layout false
   #
-  # In these examples, we have three implicit lookup scenrios:
+  # In these examples, we have three implicit lookup scenarios:
   # * The BankController uses the "bank" layout.
   # * The ExchangeController uses the "exchange" layout.
   # * The CurrencyController inherits the layout from BankController.
@@ -120,6 +120,7 @@ module AbstractController
   #       def writers_and_readers
   #         logged_in? ? "writer_layout" : "reader_layout"
   #       end
+  #   end
   #
   # Now when a new request for the index action is processed, the layout will vary depending on whether the person accessing
   # is logged in or not.
@@ -127,7 +128,14 @@ module AbstractController
   # If you want to use an inline method, such as a proc, do something like this:
   #
   #   class WeblogController < ActionController::Base
-  #     layout proc{ |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
+  #     layout proc { |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
+  #   end
+  #
+  # If an argument isn't given to the proc, it's evaluated in the context of
+  # the current controller anyway.
+  #
+  #   class WeblogController < ActionController::Base
+  #     layout proc { logged_in? ? "writer_layout" : "reader_layout" }
   #   end
   #
   # Of course, the most common way of specifying a layout is still just as a plain template name:
@@ -298,12 +306,12 @@ module AbstractController
               end
             RUBY
           when Proc
-            define_method :_layout_from_proc, &_layout
-            "_layout_from_proc(self)"
+              define_method :_layout_from_proc, &_layout
+              _layout.arity == 0 ? "_layout_from_proc" : "_layout_from_proc(self)"
           when false
             nil
           when true
-            raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
+            raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
           when nil
             name_clause
         end
@@ -363,7 +371,7 @@ module AbstractController
       when false, nil then nil
       else
         raise ArgumentError,
-          "String, true, or false, expected for `layout'; you passed #{name.inspect}"
+          "String, Proc, :default, true, or false, expected for `layout'; you passed #{name.inspect}"
       end
     end
 

@@ -70,7 +70,7 @@ module Rails
       hide_namespaces(*config.hidden_namespaces)
     end
 
-    def self.templates_path
+    def self.templates_path #:nodoc:
       @templates_path ||= []
     end
 
@@ -235,7 +235,7 @@ module Rails
       rails.delete("plugin_new")
       print_list("rails", rails)
 
-      hidden_namespaces.each {|n| groups.delete(n.to_s) }
+      hidden_namespaces.each { |n| groups.delete(n.to_s) }
 
       groups.sort.each { |b, n| print_list(b, n) }
     end

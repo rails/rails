@@ -1,6 +1,11 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 3.2.3 (unreleased) ##
 
-*   No changes
+*   Upgrade mail version to 2.4.3 *ML*
+
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
 
 
 ## Rails 3.2.1 (January 26, 2012) ##
@@ -128,6 +133,7 @@
 *   Mail does not have "quoted_body", "quoted_subject" etc.  All of these are accessed via body.encoded, subject.encoded etc
 
 *   Every object in a Mail object returns an object, never a string.  So Mail.body returns a Mail::Body class object, need to call #encoded or #decoded to get the string you want.
+
 *   Mail::Message#set_content_type does not exist, it is simply Mail::Message#content_type
 
 *   Every mail message gets a unique message_id unless you specify one, had to change all the tests that check for equality with expected.encoded == actual.encoded to first replace their message_ids with control values

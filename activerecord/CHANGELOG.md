@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove IdentityMap
+
+    IdentityMap has never graduated to be an "enabled-by-default" feature, due
+    to some inconsistencies with associations, as described in this commit:
+
+       https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6
+
+    Hence the removal from the codebase, until such issues are fixed.
+
+    *Carlos Antonio da Silva*
+
 *   Added the schema cache dump feature.
 
     `Schema cache dump` feature was implemetend. This feature can dump/load internal state of `SchemaCache` instance
@@ -151,6 +162,28 @@
 *   PostgreSQL hstore records can be created.
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
+
+
+## Rails 3.2.3 (unreleased) ##
+
+*   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
+
+*   Whitelist all attribute assignment by default. Change the default for newly generated applications to whitelist all attribute assignment.  Also update the generated model classes so users are reminded of the importance of attr_accessible. *NZKoz*
+
+*   Update ActiveRecord::AttributeMethods#attribute_present? to return false for empty strings. *Jacobkg*
+
+*   Fix associations when using per class databases. *larskanis*
+
+*   Revert setting NOT NULL constraints in add_timestamps *fxn*
+
+*   Fix mysql to use proper text types. Fixes #3931. *kennyj*
+
+*   Fix #5069 - Protect foreign key from mass assignment through association builder. *byroot*
+
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
 
 
 ## Rails 3.2.1 (January 26, 2012) ##
@@ -343,6 +376,7 @@
 
     *Aaron Christy*
 
+
 ## Rails 3.1.4 (March 1, 2012) ##
 
  *   Fix a custom primary key regression *GH 3987*
@@ -370,6 +404,7 @@
 
      *Julius de Bruijn*
 
+
 ### Rails 3.1.3 (November 20, 2011) ##
 
 *   Perf fix: If we're deleting all records in an association, don't add a IN(..) clause
@@ -382,6 +417,7 @@
 *   Fix performance bug with mysql databases on a server with lots of other databses. *GH 3678*
 
     *Christos Zisopoulos and Kenny J*
+
 
 ### Rails 3.1.2 (November 18, 2011) ##
 
@@ -429,6 +465,7 @@
 *   MySQL: use the information_schema than the describe command when we look for a primary key. *GH #3440*
 
     *Kenny J*
+
 
 ## Rails 3.1.1 (October 7, 2011) ##
 

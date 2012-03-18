@@ -378,6 +378,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Firm.find(:first, :order => "id").clients_using_sql.size
   end
 
+  def test_finding_using_sql_take_into_account_only_uniq_ids
+    firm = Firm.find(:first, :order => "id")
+    client = firm.clients_using_sql.first
+    assert_equal client, firm.clients_using_sql.find(client.id, client.id)
+    assert_equal client, firm.clients_using_sql.find(client.id, client.id.to_s)
+  end
+
   def test_counting_using_sql
     assert_equal 1, Firm.find(:first, :order => "id").clients_using_counter_sql.size
     assert Firm.find(:first, :order => "id").clients_using_counter_sql.any?

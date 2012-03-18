@@ -189,6 +189,7 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
+              gem 'sprockets-rails', :git => 'https://github.com/rails/sprockets-rails.git'
               gem 'sass-rails',   :git => 'https://github.com/rails/sass-rails.git'
               gem 'coffee-rails', :git => 'https://github.com/rails/coffee-rails.git'
 
@@ -202,6 +203,7 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
+              gem 'sprockets-rails', :git => 'https://github.com/rails/sprockets-rails.git'
               gem 'sass-rails',   '~> 4.0.0.beta'
               gem 'coffee-rails', '~> 4.0.0.beta'
 
@@ -254,11 +256,6 @@ module Rails
 
       def git_keep(destination)
         create_file("#{destination}/.gitkeep") unless options[:skip_git]
-      end
-
-      # Returns Ruby 1.9 style key-value pair.
-      def key_value(key, value)
-        "#{key}: #{value}"
       end
     end
   end

@@ -6,17 +6,36 @@ require 'rails/rack'
 
 module Rails
   module Configuration
-    class MiddlewareStackProxy #:nodoc:
+    # MiddlewareStackProxy is a proxy for the Rails middleware stack that allows
+    # you to configure middlewares in your application. It works basically as a
+    # command recorder, saving each command to be applied after initialization
+    # over the default middleware stack, so you can add, swap, or remove any
+    # middleware in Rails.
+    #
+    # You can add your own middlewares by using the +config.middleware.use+ method:
+    #
+    #     config.middleware.use Magical::Unicorns
+    #
+    # This will put the +Magical::Unicorns+ middleware on the end of the stack.
+    # You can use +insert_before+ if you wish to add a middleware before another:
+    #
+    #     config.middleware.insert_before ActionDispatch::Head, Magical::Unicorns
+    #
+    # There's also +insert_after+ which will insert a middleware after another:
+    #
+    #     config.middleware.insert_after ActionDispatch::Head, Magical::Unicorns
+    #
+    # Middlewares can also be completely swapped out and replaced with others:
+    #
+    #     config.middleware.swap ActionDispatch::BestStandardsSupport, Magical::Unicorns
+    #
+    # And finally they can also be removed from the stack completely:
+    #
+    #     config.middleware.delete ActionDispatch::BestStandardsSupport
+    #
+    class MiddlewareStackProxy
       def initialize
         @operations = []
-        @api_only   = false
-      end
-
-      attr_reader :api_only
-      alias       :api_only? :api_only
-
-      def api_only!
-        @api_only = true
       end
 
       def insert_before(*args, &block)
@@ -41,7 +60,7 @@ module Rails
         @operations << [:delete, args, block]
       end
 
-      def merge_into(other)
+      def merge_into(other) #:nodoc:
         @operations.each do |operation, args, block|
           other.send(operation, *args, &block)
         end

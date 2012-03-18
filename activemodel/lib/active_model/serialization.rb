@@ -1,7 +1,5 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/array/wrap'
-
 
 module ActiveModel
   # == Active Model Serialization
@@ -11,7 +9,6 @@ module ActiveModel
   # A minimal implementation could be:
   #
   #   class Person
-  #
   #     include ActiveModel::Serialization
   #
   #     attr_accessor :name
@@ -19,7 +16,6 @@ module ActiveModel
   #     def attributes
   #       {'name' => nil}
   #     end
-  #
   #   end
   #
   # Which would provide you with:
@@ -43,7 +39,6 @@ module ActiveModel
   # So a minimal implementation including XML and JSON would be:
   #
   #   class Person
-  #
   #     include ActiveModel::Serializers::JSON
   #     include ActiveModel::Serializers::Xml
   #
@@ -52,7 +47,6 @@ module ActiveModel
   #     def attributes
   #       {'name' => nil}
   #     end
-  #
   #   end
   #
   # Which would provide you with:
@@ -88,7 +82,7 @@ module ActiveModel
       method_names.each { |n| hash[n.to_s] = send(n) }
 
       serializable_add_includes(options) do |association, records, opts|
-        hash[association] = if records.is_a?(Enumerable)
+        hash[association.to_s] = if records.is_a?(Enumerable)
           records.map { |a| a.serializable_hash(opts) }
         else
           records.serializable_hash(opts)
@@ -126,13 +120,13 @@ module ActiveModel
       #   +records+     - the association record(s) to be serialized
       #   +opts+        - options for the association records
       def serializable_add_includes(options = {}) #:nodoc:
-        return unless include = options[:include]
+        return unless includes = options[:include]
 
-        unless include.is_a?(Hash)
-          include = Hash[Array.wrap(include).map { |n| n.is_a?(Hash) ? n.to_a.first : [n, {}] }]
+        unless includes.is_a?(Hash)
+          includes = Hash[Array(includes).map { |n| n.is_a?(Hash) ? n.to_a.first : [n, {}] }]
         end
 
-        include.each do |association, opts|
+        includes.each do |association, opts|
           if records = send(association)
             yield association, records, opts
           end

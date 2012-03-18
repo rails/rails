@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove Active Resource from Rails framework. *Prem Sichangrist*
+
 *   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. *Piotr Sarnacki*
 
     Example:
@@ -18,6 +20,11 @@
 *   Scaffold now uses `content_tag_for` in index.html.erb *José Valim*
 
 *   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
+
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
 
 
 ## Rails 3.2.1 (January 26, 2012) ##

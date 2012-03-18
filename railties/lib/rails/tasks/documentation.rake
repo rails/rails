@@ -83,12 +83,6 @@ namespace :doc do
       end
     end
 
-    gem_path('activeresource') do |activeresource|
-      %w(README.rdoc CHANGELOG.md lib/active_resource.rb lib/active_resource/*).each do |file|
-        rdoc.rdoc_files.include("#{activeresource}/#{file}")
-      end
-    end
-
     gem_path('activesupport') do |activesupport|
       %w(README.rdoc CHANGELOG.md lib/active_support/**/*.rb).each do |file|
         rdoc.rdoc_files.include("#{activesupport}/#{file}")

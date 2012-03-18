@@ -1,5 +1,3 @@
-require "active_support/core_ext/array/extract_options"
-
 module ActiveSupport
   # \FileUpdateChecker specifies the API used by Rails to watch files
   # and control reloading. The API depends on four methods:
@@ -93,10 +91,10 @@ module ActiveSupport
 
     def updated_at #:nodoc:
       @updated_at || begin
-        all = []
-        all.concat @files.select { |f| File.exists?(f) }
+        all = @files.select { |f| File.exists?(f) }
         all.concat Dir[@glob] if @glob
-        all.map { |path| File.mtime(path) }.max || Time.at(0)
+        all.map! { |path| File.mtime(path) }
+        all.max || Time.at(0)
       end
     end
 
@@ -104,11 +102,14 @@ module ActiveSupport
       hash.freeze # Freeze so changes aren't accidently pushed
       return if hash.empty?
 
-      globs = []
-      hash.each do |key, value|
-        globs << "#{key}/**/*#{compile_ext(value)}"
+      globs = hash.map do |key, value|
+        "#{escape(key)}/**/*#{compile_ext(value)}"
       end
       "{#{globs.join(",")}}"
+    end
+
+    def escape(key)
+      key.gsub(',','\,')
     end
 
     def compile_ext(array) #:nodoc:
