@@ -2865,6 +2865,10 @@ class DateHelperTest < ActionView::TestCase
     assert_match(/<time.*>Right now<\/time>/, time_tag(Time.now, 'Right now'))
   end
 
+  def test_time_tag_with_given_block
+    assert_match(/<time.*><span>Right now<\/span><\/time>/, time_tag(Time.now){ '<span>Right now</span>'.html_safe })
+  end
+
   def test_time_tag_with_different_format
     time = Time.now
     expected = "<time datetime=\"#{time.xmlschema}\">#{I18n.l(time, :format => :short)}</time>"
