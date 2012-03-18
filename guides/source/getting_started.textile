@@ -383,7 +383,7 @@ If you re-submit the form one more time you'll now no longer get the missing tem
 {"title"=>"First post!", "text"=>"This is my first post."}
 </ruby>
 
-
+This action is now displaying the parameters for the post that are coming in from the form. However, this isn't really all that helpful. Yes, you can see the parameters but nothing in particular is being done with them.
 
 h4. Running a Migration
 
