@@ -371,7 +371,7 @@ When a form is submitted, the fields of the form are sent to Rails as _parameter
 
 <ruby>
 def create
-  render :text => params.inspect
+  render :text => params[:post].inspect
 end
 </ruby>
 
