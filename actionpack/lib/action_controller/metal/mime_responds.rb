@@ -195,20 +195,105 @@ module ActionController #:nodoc:
       end
     end
 
-    # respond_with wraps a resource around a responder for default representation.
-    # First it invokes respond_to, if a response cannot be found (ie. no block
-    # for the request was given and template was not available), it instantiates
-    # an ActionController::Responder with the controller and resource.
+    # For a given controller action, respond_with generates an appropriate
+    # response based on the mime-type requested by the client.
     #
-    # ==== Example
+    # If the method is called with just a resource, as in this example -
     #
-    #   def index
-    #     @users = User.all
-    #     respond_with(@users)
+    #   class PeopleController < ApplicationController
+    #     respond_to :html, :xml, :json
+    #
+    #     def index
+    #       @people = Person.all
+    #       respond_with @people
+    #     end
     #   end
     #
-    # It also accepts a block to be given. It's used to overwrite a default
-    # response:
+    # then the mime-type of the response will be selected based on the
+    # request's Accept header and the set of available formats declared
+    # by previous calls to the controller's class method +respond_to+.
+    #
+    # If an acceptable response is not in the list of formats declared by
+    # +respond_to+, the application will return a '406 - not acceptable'
+    # status code. Otherwise, the default response will render
+    # a template named after the current action and the selected format,
+    # e.g. <tt>index.html.erb</tt>. If no template is available, the behavior
+    # depends on the selected format:
+    #
+    # * for an html response - if the request method was +get+, an exception
+    #   will be raised but for other requests such as +post+ the response
+    #   depends on whether the resource has any validation errors (i.e.
+    #   assuming that an attempt has been made to save the resource,
+    #   e.g. by a +create+ action) -
+    #   1. If there are no errors, i.e. the resource,
+    #      was saved successfully, the response will +redirect+ to the resource
+    #      i.e. its +show+ action.
+    #   2. If there are validation errors, the response
+    #      will instead render a default action, which is <tt>:new</tt> for a
+    #      +post+ request or <tt>:edit</tt> for +put+.
+    #   Thus an example like this -
+    #
+    #     respond_to :html, :xml
+    #
+    #     def create
+    #       @user = User.new(params[:user])
+    #       flash[:notice] = 'User was successfully created.' if @user.save
+    #       respond_with(@user)
+    #     end
+    #
+    #   is equivalent, in the absence of <tt>create.html.erb</tt>, to -
+    #
+    #     def create
+    #       @user = User.new(params[:user])
+    #       respond_to do |format|
+    #         if @user.save
+    #           flash[:notice] = 'User was successfully created.'
+    #           format.html { redirect_to(@user) }
+    #           format.xml { render :xml => @user }
+    #         else
+    #           format.html { render :action => "new" }
+    #           format.xml { render :xml => @user }
+    #         end
+    #       end
+    #     end
+    #
+    # * for a javascript request - if the template isn't found, an exception is
+    #   raised.
+    # * for other requests - i.e. data formats such as xml, json, csv etc, if
+    #   the resource passed to +responds_with+ responds to <code>to_<format></code>,
+    #   the method will attempt to render the resource in the requested format
+    #   directly, e.g. for an xml request, the response is equivalent to calling 
+    #   <code>render :xml => resource</code>.
+    #
+    # === Nested resources
+    #
+    # As outlined above, the +resources+ argument passed to +respond_with+
+    # can potentially play two roles. It can be used to generate the redirect url
+    # for successful html requests (e.g. for +create+ actions when
+    # no template exists), while for formats other than html and javascript
+    # it is the object that gets rendered, by being converted directly to the
+    # required format (again assuming no template exists).
+    #
+    # For the redirection of successful html requests, +respond_with+ also supports
+    # the use of nested resources, which are supplied in the same way as you do
+    # in <code>form_for</code> and <code>polymorphic_url</code>. For example -
+    #
+    #   def create
+    #     @project = Project.find(params[:project_id])
+    #     @task = @project.comments.build(params[:task])
+    #     flash[:notice] = 'Task was successfully created.' if @task.save
+    #     respond_with(@project, @task)
+    #   end
+    #
+    # This would cause +respond_with+ to redirect to <code>project_task_url</code>
+    # instead of <code>task_url</code>. For request formats other than html or
+    # javascript, if multiple resources are passed in this way, it is the last
+    # one specified that will be rendered.
+    #
+    # === Customizing response behavior
+    #
+    # Like +respond_to+, +respond_with+ may also be called with a block that
+    # can be used to overwrite any of the default responses, e.g. -
     #
     #   def create
     #     @user = User.new(params[:user])
@@ -219,13 +304,24 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # All options given to respond_with are sent to the underlying responder,
-    # except for the option :responder itself. Since the responder interface
-    # is quite simple (it just needs to respond to call), you can even give
-    # a proc to it.
+    # The argument passed to the block is an ActionController::MimeResponds::Collector
+    # object which stores the responses for the formats defined within the
+    # block. Note that formats with responses defined explicitly in this way
+    # do not have to first be declared using the class method +respond_to+.
     #
-    # In order to use respond_with, first you need to declare the formats your
-    # controller responds to in the class level with a call to <tt>respond_to</tt>.
+    # Also, a hash passed to +respond_with+ immediately after the specified
+    # resource(s) will be interpreted as a set of options relevant to all
+    # formats. Any option accepted by +render+ can be used, e.g.
+    #   respond_with @people, :status => 200
+    # However, note that these options are ignored after an unsuccessful attempt
+    # to save a resource, e.g. when automatically rendering <tt>:new</tt>
+    # after a post request.
+    #
+    # Two additional options are relevant specifically to +respond_with+ -
+    # 1. <tt>:location</tt> - overwrites the default redirect location used after
+    #    a successful html +post+ request.
+    # 2. <tt>:action</tt> - overwrites the default render action used after an
+    #    unsuccessful html +post+ request.
     #
     def respond_with(*resources, &block)
       raise "In order to use respond_with, first you need to declare the formats your " <<
@@ -279,8 +375,8 @@ module ActionController #:nodoc:
       end
     end
 
-    # A container of responses available for requests with different mime-types
-    # sent to the current controller action.
+    # A container for responses available from the current controller for
+    # requests for different mime-types sent to a particular action.
     #
     # The public controller methods +respond_with+ and +respond_to+ may be called
     # with a block that is used to define responses to different mime-types, e.g.
