@@ -407,6 +407,7 @@ db_namespace = namespace :db do
       if ActiveRecord::Base.connection.supports_migrations?
         File.open(filename, "a") { |f| f << ActiveRecord::Base.connection.dump_schema_information }
       end
+      db_namespace['structure:dump'].reenable
     end
 
     # desc "Recreate the databases from the structure.sql file"
