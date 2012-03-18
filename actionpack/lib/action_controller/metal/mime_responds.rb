@@ -209,27 +209,28 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # then the mime-type of the response will be selected based on the
+    # then the mime-type of the response is typically selected based on the
     # request's Accept header and the set of available formats declared
-    # by previous calls to the controller's class method +respond_to+.
+    # by previous calls to the controller's class method +respond_to+. Alternatively
+    # the mime-type can be selected by explicitly setting <tt>request.format</tt> in
+    # the controller.
     #
-    # If an acceptable response is not in the list of formats declared by
-    # +respond_to+, the application will return a '406 - not acceptable'
-    # status code. Otherwise, the default response will render
+    # If an acceptable response is not found, the application returns a
+    # '406 - not acceptable' status. Otherwise, the default response is to render
     # a template named after the current action and the selected format,
     # e.g. <tt>index.html.erb</tt>. If no template is available, the behavior
     # depends on the selected format:
     #
-    # * for an html response - if the request method was +get+, an exception
-    #   will be raised but for other requests such as +post+ the response
+    # * for an html response - if the request method is +get+, an exception
+    #   is raised but for other requests such as +post+ the response
     #   depends on whether the resource has any validation errors (i.e.
     #   assuming that an attempt has been made to save the resource,
     #   e.g. by a +create+ action) -
-    #   1. If there are no errors, i.e. the resource,
-    #      was saved successfully, the response will +redirect+ to the resource
+    #   1. If there are no errors, i.e. the resource
+    #      was saved successfully, the response +redirect+'s to the resource
     #      i.e. its +show+ action.
     #   2. If there are validation errors, the response
-    #      will instead render a default action, which is <tt>:new</tt> for a
+    #      renders a default action, which is <tt>:new</tt> for a
     #      +post+ request or <tt>:edit</tt> for +put+.
     #   Thus an example like this -
     #
@@ -260,22 +261,22 @@ module ActionController #:nodoc:
     # * for a javascript request - if the template isn't found, an exception is
     #   raised.
     # * for other requests - i.e. data formats such as xml, json, csv etc, if
-    #   the resource passed to +responds_with+ responds to <code>to_<format></code>,
-    #   the method will attempt to render the resource in the requested format
+    #   the resource passed to +respond_with+ responds to <code>to_<format></code>,
+    #   the method attempts to render the resource in the requested format
     #   directly, e.g. for an xml request, the response is equivalent to calling 
     #   <code>render :xml => resource</code>.
     #
     # === Nested resources
     #
     # As outlined above, the +resources+ argument passed to +respond_with+
-    # can potentially play two roles. It can be used to generate the redirect url
+    # can play two roles. It can be used to generate the redirect url
     # for successful html requests (e.g. for +create+ actions when
     # no template exists), while for formats other than html and javascript
     # it is the object that gets rendered, by being converted directly to the
     # required format (again assuming no template exists).
     #
-    # For the redirection of successful html requests, +respond_with+ also supports
-    # the use of nested resources, which are supplied in the same way as you do
+    # For redirecting successful html requests, +respond_with+ also supports
+    # the use of nested resources, which are supplied in the same way as
     # in <code>form_for</code> and <code>polymorphic_url</code>. For example -
     #
     #   def create
@@ -288,7 +289,7 @@ module ActionController #:nodoc:
     # This would cause +respond_with+ to redirect to <code>project_task_url</code>
     # instead of <code>task_url</code>. For request formats other than html or
     # javascript, if multiple resources are passed in this way, it is the last
-    # one specified that will be rendered.
+    # one specified that is rendered.
     #
     # === Customizing response behavior
     #
@@ -310,7 +311,7 @@ module ActionController #:nodoc:
     # do not have to first be declared using the class method +respond_to+.
     #
     # Also, a hash passed to +respond_with+ immediately after the specified
-    # resource(s) will be interpreted as a set of options relevant to all
+    # resource(s) is interpreted as a set of options relevant to all
     # formats. Any option accepted by +render+ can be used, e.g.
     #   respond_with @people, :status => 200
     # However, note that these options are ignored after an unsuccessful attempt
