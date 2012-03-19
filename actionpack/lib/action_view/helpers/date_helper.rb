@@ -626,7 +626,7 @@ module ActionView
       #     <time datetime="2010-11-04" pubdate="pubdate">November 04, 2010</time>
       #
       #   <%= time_tag Time.now do %>
-      #     <span>Right now</span> 
+      #     <span>Right now</span>
       #   <% end %>
       #   # => <time datetime="2010-11-04T17:55:45+01:00"><span>Right now</span></time>
       #
@@ -674,11 +674,7 @@ module ActionView
         @options[:discard_minute] ||= true if @options[:discard_hour]
         @options[:discard_second] ||= true unless @options[:include_seconds] && !@options[:discard_minute]
 
-        # If the day is hidden, the day should be set to the 1st so all month and year choices are valid. Otherwise,
-        # February 31st or February 29th, 2011 can be selected, which are invalid.
-        if @datetime && @options[:discard_day]
-          @datetime = @datetime.change(:day => 1)
-        end
+        set_day_if_discarded
 
         if @options[:tag] && @options[:ignore_date]
           select_time
@@ -701,11 +697,7 @@ module ActionView
         @options[:discard_month]  ||= true unless order.include?(:month)
         @options[:discard_day]    ||= true if @options[:discard_month] || !order.include?(:day)
 
-        # If the day is hidden, the day should be set to the 1st so all month and year choices are valid. Otherwise,
-        # February 31st or February 29th, 2011 can be selected, which are invalid.
-        if @datetime && @options[:discard_day]
-          @datetime = @datetime.change(:day => 1)
-        end
+        set_day_if_discarded
 
         [:day, :month, :year].each { |o| order.unshift(o) unless order.include?(o) }
 
@@ -804,6 +796,14 @@ module ActionView
         %w( sec min hour day month year ).each do |method|
           define_method(method) do
             @datetime.kind_of?(Fixnum) ? @datetime : @datetime.send(method) if @datetime
+          end
+        end
+
+        # If the day is hidden, the day should be set to the 1st so all month and year choices are
+        # valid. Otherwise, February 31st or February 29th, 2011 can be selected, which are invalid.
+        def set_day_if_discarded
+          if @datetime && @options[:discard_day]
+            @datetime = @datetime.change(:day => 1)
           end
         end
 
