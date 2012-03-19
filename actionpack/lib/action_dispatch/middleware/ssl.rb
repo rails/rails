@@ -13,14 +13,11 @@ module ActionDispatch
       @hsts = {} if @hsts == true
       @hsts = self.class.default_hsts_options.merge(@hsts) if @hsts
 
-      @exclude = options[:exclude]
       @host    = options[:host]
       @port    = options[:port]
     end
 
     def call(env)
-      return @app.call(env) if exclude?(env)
-
       request = Request.new(env)
 
       if request.ssl?
@@ -34,10 +31,6 @@ module ActionDispatch
     end
 
     private
-      def exclude?(env)
-        @exclude && @exclude.call(env)
-      end
-
       def redirect_to_https(request)
         url        = URI(request.url)
         url.scheme = "https"
