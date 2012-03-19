@@ -84,6 +84,34 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Set-Cookie'].split("\n")
   end
 
+  def test_flag_cookies_as_secure_with_more_spaces_before
+    self.app = ActionDispatch::SSL.new(lambda { |env|
+      headers = {
+        'Content-Type' => "text/html",
+        'Set-Cookie' => "problem=def; path=/; HttpOnly;  secure"
+      }
+      [200, headers, ["OK"]]
+    })
+
+    get "https://example.org/"
+    assert_equal ["problem=def; path=/; HttpOnly;  secure"],
+      response.headers['Set-Cookie'].split("\n")
+  end
+
+  def test_flag_cookies_as_secure_with_more_spaces_after
+    self.app = ActionDispatch::SSL.new(lambda { |env|
+      headers = {
+        'Content-Type' => "text/html",
+        'Set-Cookie' => "problem=def; path=/; secure;  HttpOnly"
+      }
+      [200, headers, ["OK"]]
+    })
+
+    get "https://example.org/"
+    assert_equal ["problem=def; path=/; secure;  HttpOnly"],
+      response.headers['Set-Cookie'].split("\n")
+  end
+
   def test_no_cookies
     self.app = ActionDispatch::SSL.new(lambda { |env|
       [200, {'Content-Type' => "text/html"}, ["OK"]]
