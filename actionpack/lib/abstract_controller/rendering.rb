@@ -82,16 +82,16 @@ module AbstractController
 
     # Normalize arguments, options and then delegates render_to_body and
     # sticks the result in self.response_body.
-    def render(*args, &block)
-      options = _normalize_render(*args, &block)
+    def render(*args)
+      options = _normalize_render(*args)
       self.response_body = render_to_body(options)
     end
 
     # Raw rendering of a template to a string. Just convert the results of
     # render_response into a String.
     # :api: plugin
-    def render_to_string(*args, &block)
-      options = _normalize_render(*args, &block)
+    def render_to_string(*args)
+      options = _normalize_render(*args)
       render_to_body(options)
     end
 
@@ -130,8 +130,8 @@ module AbstractController
 
     # Normalize args and options.
     # :api: private
-    def _normalize_render(*args, &block)
-      options = _normalize_args(*args, &block)
+    def _normalize_render(*args)
+      options = _normalize_args(*args)
       _normalize_options(options)
       options
     end
