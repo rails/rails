@@ -45,7 +45,7 @@ module ActiveSupport
       tags     = formatter.current_tags
       new_tags = new_tags.flatten.reject(&:blank?)
       tags.concat new_tags
-      yield
+      yield self
     ensure
       tags.pop(new_tags.size)
     end
