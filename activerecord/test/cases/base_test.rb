@@ -163,7 +163,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_select_symbol
     topic_ids = Topic.select(:id).map(&:id).sort
-    assert_equal Topic.all.map(&:id).sort, topic_ids
+    assert_equal Topic.pluck(:id).sort, topic_ids
   end
 
   def test_table_exists
