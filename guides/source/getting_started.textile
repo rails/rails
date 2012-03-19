@@ -371,17 +371,19 @@ When a form is submitted, the fields of the form are sent to Rails as _parameter
 
 <ruby>
 def create
-  render :text => params.inspect
+  render :text => params[:post].inspect
 end
 </ruby>
 
-The +render+ method here is taking a very simple hash with the key of +text+ and the value of +params.inspect+. The +params+ method here is the object which represents the parameters (or fields) coming in from the form. If you re-submit the form one more time you'll now no longer get the missing template error. Instead, you'll see something that looks like the following:
+The +render+ method here is taking a very simple hash with the key of +text+ and the value of +params[:post].inspect+. The +params+ method here is the object which represents the parameters (or fields) coming in from the form. The +params+ method returns a +HashWithIndifferentAccess+ object, which allows you to access the keys of the hash using either strings or symbols. In this situation, the only parameters that matter are the ones from the form.
+
+If you re-submit the form one more time you'll now no longer get the missing template error. Instead, you'll see something that looks like the following:
 
 <ruby>
 {"title"=>"First post!", "text"=>"This is my first post."}
 </ruby>
 
-
+This action is now displaying the parameters for the post that are coming in from the form. However, this isn't really all that helpful. Yes, you can see the parameters but nothing in particular is being done with them.
 
 h4. Running a Migration
 

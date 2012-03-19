@@ -47,7 +47,7 @@ can read more about Action Pack in its {README}[link:/rails/rails/blob/master/ac
 
     cd myapp; rails server
 
-   Run with <tt>--help</tt> for options.
+   Run with <tt>--help</tt> or <tt>-h</tt> for options.
 
 4. Go to http://localhost:3000 and you'll see:
 
