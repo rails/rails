@@ -128,26 +128,50 @@ module ActiveRecord
       result
     end
 
-    VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset, :extend, :references,
-                           :order, :select, :readonly, :group, :having, :from, :lock ]
+    VALID_FIND_OPTIONS = [ :conditions, :where, :include, :includes, :joins,
+                           :limit, :offset, :extend, :extending, :references,
+                           :order, :select, :readonly, :group, :having, :from,
+                           :lock ]
 
     def apply_finder_options(options)
       relation = clone
       return relation unless options
 
-      options.assert_valid_keys(VALID_FIND_OPTIONS)
-      finders = options.dup
-      finders.delete_if { |key, value| value.nil? && key != :limit }
+      finders = sanitize_finder_options(options.dup)
 
-      ((VALID_FIND_OPTIONS - [:conditions, :include, :extend]) & finders.keys).each do |finder|
-        relation = relation.send(finder, finders[finder])
+      finders.keys.inject(relation) do |rel, finder|
+        rel.send(finder, finders[finder])
       end
+    end
 
-      relation = relation.where(finders[:conditions]) if options.has_key?(:conditions)
-      relation = relation.includes(finders[:include]) if options.has_key?(:include)
-      relation = relation.extending(finders[:extend]) if options.has_key?(:extend)
+    private
 
-      relation
+    def sanitize_finder_options(options)
+      filter_invalid options
+      filter_empty options
+      substitute_keys options
+    end
+
+    def filter_invalid(options)
+      options.assert_valid_keys(VALID_FIND_OPTIONS)
+    end
+
+    def filter_empty(options)
+      options.delete_if { |key, value| value.nil? && key != :limit }
+    end
+
+    # Substitutes keys for which Relation::QueryMethods has no method by ones
+    # for which there is a method.
+    def substitute_keys(options)
+      options.inject({}) do |finders, (key, value)|
+
+        key = :where     if key == :conditions
+        key = :includes  if key == :include
+        key = :extending if key == :extend
+
+        finders[key] = value
+        finders
+      end
     end
 
   end
