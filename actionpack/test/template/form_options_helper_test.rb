@@ -921,17 +921,15 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_option_html_attributes_with_multiple_element_hash
-    assert_dom_equal(
-      " class=\"fancy\" onclick=\"alert('Hello World');\"",
-      option_html_attributes([ 'foo', 'bar', { :class => 'fancy', 'onclick' => "alert('Hello World');" } ])
-    )
+    output = option_html_attributes([ 'foo', 'bar', { :class => 'fancy', 'onclick' => "alert('Hello World');" } ])
+    assert output.include?(" class=\"fancy\"")
+    assert output.include?(" onclick=\"alert('Hello World');\"")
   end
 
   def test_option_html_attributes_with_multiple_hashes
-    assert_dom_equal(
-      " class=\"fancy\" onclick=\"alert('Hello World');\"",
-      option_html_attributes([ 'foo', 'bar', { :class => 'fancy' }, { 'onclick' => "alert('Hello World');" } ])
-    )
+    output = option_html_attributes([ 'foo', 'bar', { :class => 'fancy' }, { 'onclick' => "alert('Hello World');" } ])
+    assert output.include?(" class=\"fancy\"")
+    assert output.include?(" onclick=\"alert('Hello World');\"")
   end
 
   def test_option_html_attributes_with_special_characters
