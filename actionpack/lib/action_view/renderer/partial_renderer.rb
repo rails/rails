@@ -32,7 +32,7 @@ module ActionView
   #
   #   <%= render :partial => "account", :object => @buyer %>
   #
-  # would provide the +@buyer+ object to the partial, available under the local variable +account+ and is
+  # would provide the <tt>@buyer</tt> object to the partial, available under the local variable +account+ and is
   # equivalent to:
   #
   #   <%= render :partial => "account", :locals => { :account => @buyer } %>
