@@ -256,7 +256,7 @@ module ActiveRecord
     #   # Update all books with 'Rails' in their title
     #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
     #
-    #   # Update all avatars migrated more than a week ago
+    #   # Update all avatars migrated more recently than a week ago
     #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
     #
     #   # Update all books that match conditions, but limit it to 5 ordered by date
