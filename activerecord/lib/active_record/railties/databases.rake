@@ -48,6 +48,12 @@ db_namespace = namespace :db do
   end
 
   def create_database(config)
+    # Let adapters implement their own create_database mechanism.
+    tasks = ActiveRecord::Base.database_tasks(config)
+    if tasks.respond_to?(:create_database)
+      return tasks.create_database
+    end
+    # FIXME: move the following implementations into the individual adapters.
     begin
       if config['adapter'] =~ /sqlite/
         if File.exist?(config['database'])
@@ -585,6 +591,12 @@ end
 task 'test:prepare' => 'db:test:prepare'
 
 def drop_database(config)
+  # Let adapters implement their own drop_database mechanism.
+  tasks = ActiveRecord::Base.database_tasks(config)
+  if tasks.respond_to?(:drop_database)
+    return tasks.drop_database
+  end
+  # FIXME: move the following implementations into the individual adapters.
   case config['adapter']
   when /mysql/
     ActiveRecord::Base.establish_connection(config)
