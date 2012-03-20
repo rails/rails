@@ -105,6 +105,7 @@ class Module
   end
 end
 
+require 'bigdecimal'
 class BigDecimal
   begin
     BigDecimal.new('4.56').dup
