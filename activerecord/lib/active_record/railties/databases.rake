@@ -255,16 +255,9 @@ db_namespace = namespace :db do
   # desc "Retrieves the charset for the current environment's database"
   task :charset => :environment do
     config = ActiveRecord::Base.configurations[Rails.env || 'development']
-    case config['adapter']
-    when /mysql/
-      ActiveRecord::Base.establish_connection(config)
-      puts ActiveRecord::Base.connection.charset
-    when /postgresql/
-      ActiveRecord::Base.establish_connection(config)
-      puts ActiveRecord::Base.connection.encoding
-    when /sqlite/
-      ActiveRecord::Base.establish_connection(config)
-      puts ActiveRecord::Base.connection.encoding
+    tasks = ActiveRecord::Base.database_tasks(config)
+    if tasks.respond_to?(:database_encoding)
+      puts tasks.database_encoding
     else
       $stderr.puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
     end

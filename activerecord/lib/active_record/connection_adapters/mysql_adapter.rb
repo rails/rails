@@ -37,6 +37,10 @@ module ActiveRecord
       options = [host, username, password, database, port, socket, default_flags]
       ConnectionAdapters::MysqlAdapter.new(mysql, logger, options, config)
     end
+
+    def mysql_database_tasks(config)  # :nodoc:
+      ConnectionAdapters::AbstractMysqlAdapter::Tasks.new(config)
+    end
   end
 
   module ConnectionAdapters

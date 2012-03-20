@@ -30,6 +30,10 @@ module ActiveRecord
       # so just pass a nil connection object for the time being.
       ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, conn_params, config)
     end
+
+    def postgresql_database_tasks(config)  # :nodoc:
+      ConnectionAdapters::PostgreSQLAdapter::Tasks.new(config)
+    end
   end
 
   module ConnectionAdapters
@@ -267,6 +271,16 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
+
+      class Tasks < AbstractAdapter::Tasks
+
+        def database_encoding
+          temp_klass.establish_connection(config)
+          temp_klass.connection.encoding
+        end
+
+      end
+
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def xml(*args)
           options = args.extract_options!

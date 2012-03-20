@@ -48,6 +48,11 @@ module ActiveRecord
       connection_handler.establish_connection name, spec
     end
 
+    def database_tasks(spec = ENV["DATABASE_URL"])
+      resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(spec, configurations)
+      resolver.spec.database_tasks(self)
+    end
+
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.
