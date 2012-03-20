@@ -4,7 +4,7 @@ module ActiveRecord
       attr_reader :config, :adapter_method
 
       def initialize(config, adapter_method, tasks_method=nil)
-        database_adapter_method ||= adapter_method.to_s.sub(/_connection$/, '_database_adapter')
+        tasks_method ||= adapter_method.to_s.sub(/_connection$/, '_database_tasks')
         @config, @adapter_method, @tasks_method = config, adapter_method, tasks_method
       end
 
