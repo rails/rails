@@ -5,7 +5,7 @@ module ActiveSupport
   # people can write <tt>params[:key]</tt> instead of <tt>params['key']</tt>
   # and they get the same value for both keys.
   class HashWithIndifferentAccess < Hash
-    
+
     # Always returns true, so that <tt>Array#extract_options!</tt> finds members of this class.
     def extractable_options?
       true
