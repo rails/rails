@@ -479,7 +479,6 @@ module ActionController
         @request.session["flash"].sweep
 
         @controller.request = @request
-        @controller.params.merge!(parameters)
         build_request_uri(action, parameters)
         @controller.class.class_eval { include Testing }
         @controller.recycle!
