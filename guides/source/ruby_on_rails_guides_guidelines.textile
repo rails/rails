@@ -44,7 +44,7 @@ h3. HTML Guides
 
 h4. Generation
 
-To generate all the guides, just +cd+ into the +railties+ directory and execute:
+To generate all the guides, just +cd+ into the *+guides+* directory and execute:
 
 <plain>
 bundle exec rake generate_guides
