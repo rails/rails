@@ -9,7 +9,7 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, block = Proc.new)
-        subscriber = Subscriber.new(pattern, block)
+        subscriber = Subscribers.new pattern, block
         @subscribers << subscriber
         @listeners_for.clear
         subscriber
@@ -36,23 +36,41 @@ module ActiveSupport
       def wait
       end
 
-      class Subscriber #:nodoc:
-        def initialize(pattern, delegate)
-          @pattern = pattern
-          @delegate = delegate
+      module Subscribers # :nodoc:
+        def self.new(pattern, block)
+          if pattern
+            Subscriber.new pattern, block
+          else
+            AllMessages.new pattern, block
+          end
         end
 
-        def publish(message, *args)
-          @delegate.call(message, *args)
+        class Subscriber #:nodoc:
+          def initialize(pattern, delegate)
+            @pattern = pattern
+            @delegate = delegate
+          end
+
+          def publish(message, *args)
+            @delegate.call(message, *args)
+          end
+
+          def subscribed_to?(name)
+            @pattern === name.to_s
+          end
+
+          def matches?(subscriber_or_name)
+            self === subscriber_or_name ||
+              @pattern && @pattern === subscriber_or_name
+          end
         end
 
-        def subscribed_to?(name)
-          !@pattern || @pattern === name.to_s
-        end
+        class AllMessages < Subscriber # :nodoc:
+          def subscribed_to?(name)
+            true
+          end
 
-        def matches?(subscriber_or_name)
-          self === subscriber_or_name ||
-            @pattern && @pattern === subscriber_or_name
+          alias :matches? :===
         end
       end
     end
