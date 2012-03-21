@@ -27,8 +27,8 @@ class Person < ActiveRecord::Base
   has_many :agents_posts,         :through => :agents,       :source => :posts
   has_many :agents_posts_authors, :through => :agents_posts, :source => :author
 
-  scope :males,   :conditions => { :gender => 'M' }
-  scope :females, :conditions => { :gender => 'F' }
+  scope :males,   -> { where(:gender => 'M') }
+  scope :females, -> { where(:gender => 'F') }
 end
 
 class PersonWithDependentDestroyJobs < ActiveRecord::Base

@@ -1,5 +1,36 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate eager-evaluated scopes.
+
+    Don't use this:
+
+        scope :red, where(color: 'red')
+        default_scope where(color: 'red')
+
+    Use this:
+
+        scope :red, -> { where(color: 'red') }
+        default_scope { where(color: 'red') }
+
+    The former has numerous issues. It is a common newbie gotcha to do
+    the following:
+
+        scope :recent, where(published_at: Time.now - 2.weeks)
+
+    Or a more subtle variant:
+
+        scope :recent, -> { where(published_at: Time.now - 2.weeks) }
+        scope :recent_red, recent.where(color: 'red')
+
+    Eager scopes are also very complex to implement within Active
+    Record, and there are still bugs. For example, the following does
+    not do what you expect:
+
+        scope :remove_conditions, except(:where)
+        where(...).remove_conditions # => still has conditions
+
+    *Jon Leighton*
+
 *   Remove IdentityMap
 
     IdentityMap has never graduated to be an "enabled-by-default" feature, due

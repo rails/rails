@@ -3,6 +3,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Named \Scopes
@@ -171,11 +172,24 @@ module ActiveRecord
         #   Article.published.featured.latest_article
         #   Article.featured.titles
 
-        def scope(name, scope_options = {}, &block)
+        def scope(name, body = {}, &block)
           extension = Module.new(&block) if block
 
+          # Check body.is_a?(Relation) to prevent the relation actually being
+          # loaded by respond_to?
+          if body.is_a?(Relation) || !body.respond_to?(:call)
+            ActiveSupport::Deprecation.warn(
+              "Using #scope without passing a callable object is deprecated. For " \
+              "example `scope :red, where(color: 'red')` should be changed to " \
+              "`scope :red, -> { where(color: 'red') }`. There are numerous gotchas " \
+              "in the former usage and it makes the implementation more complicated " \
+              "and buggy. (If you prefer, you can just define a class method named " \
+              "`self.red`.)"
+            )
+          end
+
           singleton_class.send(:define_method, name) do |*args|
-            options = scope_options.respond_to?(:call) ? unscoped { scope_options.call(*args) } : scope_options
+            options = body.respond_to?(:call) ? unscoped { body.call(*args) } : body
             options = scoped.apply_finder_options(options) if options.is_a?(Hash)
 
             relation = scoped.merge(options)
