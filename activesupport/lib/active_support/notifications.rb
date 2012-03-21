@@ -1,3 +1,7 @@
+require 'active_support/notifications/instrumenter'
+require 'active_support/notifications/instrumenter'
+require 'active_support/notifications/fanout'
+
 module ActiveSupport
   # = Notifications
   #
@@ -105,10 +109,6 @@ module ActiveSupport
   # to log subscribers in a thread. You can use any queue implementation you want.
   #
   module Notifications
-    autoload :Instrumenter, 'active_support/notifications/instrumenter'
-    autoload :Event, 'active_support/notifications/instrumenter'
-    autoload :Fanout, 'active_support/notifications/fanout'
-
     @instrumenters = Hash.new { |h,k| h[k] = notifier.listening?(k) }
 
     class << self
