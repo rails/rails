@@ -26,7 +26,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration
     <%= migration_action == 'add' ? 'remove' : 'add' %>_column :<%= table_name %>, :<%= attribute.name %><% if migration_action == 'remove' %>, :<%= attribute.type %><%= attribute.inject_options %><% end %>
     <%- if attribute.has_index? && migration_action == 'remove' -%>
     add_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>
-    <%- end %>
+    <%- end -%>
   <%- end -%>
 <%- end -%>
   end
