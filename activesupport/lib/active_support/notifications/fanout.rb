@@ -20,6 +20,14 @@ module ActiveSupport
         @listeners_for.clear
       end
 
+      def start(name, id, payload)
+        listeners_for(name).each { |s| s.start(name, id, payload) }
+      end
+
+      def finish(name, id, payload)
+        listeners_for(name).each { |s| s.finish(name, id, payload) }
+      end
+
       def publish(name, *args)
         listeners_for(name).each { |s| s.publish(name, *args) }
       end
@@ -39,7 +47,7 @@ module ActiveSupport
       module Subscribers # :nodoc:
         def self.new(pattern, block)
           if pattern
-            Subscriber.new pattern, block
+            TimedSubscriber.new pattern, block
           else
             AllMessages.new pattern, block
           end
@@ -51,8 +59,12 @@ module ActiveSupport
             @delegate = delegate
           end
 
-          def publish(message, *args)
-            @delegate.call(message, *args)
+          def start(name, id, payload)
+            raise NotImplementedError
+          end
+
+          def finish(name, id, payload)
+            raise NotImplementedError
           end
 
           def subscribed_to?(name)
@@ -65,7 +77,29 @@ module ActiveSupport
           end
         end
 
-        class AllMessages < Subscriber # :nodoc:
+        class TimedSubscriber < Subscriber
+          def initialize(pattern, delegate)
+            @timestack = Hash.new { |h,id|
+              h[id] = Hash.new { |ids,name| ids[name] = [] }
+            }
+            super
+          end
+
+          def publish(name, *args)
+            @delegate.call name, *args
+          end
+
+          def start(name, id, payload)
+            @timestack[id][name].push Time.now
+          end
+
+          def finish(name, id, payload)
+            started = @timestack[id][name].pop
+            @delegate.call(name, started, Time.now, id, payload)
+          end
+        end
+
+        class AllMessages < TimedSubscriber # :nodoc:
           def subscribed_to?(name)
             true
           end
