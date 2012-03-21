@@ -176,7 +176,7 @@ module ActiveRecord
           valid_scope_name?(name)
           extension = Module.new(&Proc.new) if block_given?
 
-          scope_proc = lambda do |*args|
+          singleton_class.send(:redefine_method, name) do |*args|
             options = scope_options.respond_to?(:call) ? unscoped { scope_options.call(*args) } : scope_options
             options = scoped.apply_finder_options(options) if options.is_a?(Hash)
 
@@ -184,8 +184,6 @@ module ActiveRecord
 
             extension ? relation.extending(extension) : relation
           end
-
-          singleton_class.send(:redefine_method, name, &scope_proc)
         end
 
       protected
