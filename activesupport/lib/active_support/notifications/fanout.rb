@@ -47,17 +47,19 @@ module ActiveSupport
       module Subscribers # :nodoc:
         def self.new(pattern, listener)
           if listener.respond_to?(:call)
-            if pattern
-              TimedSubscriber.new pattern, listener
-            else
-              AllMessages.new pattern, listener
-            end
+            subscriber = Timed.new pattern, listener
           else
-            Subscriber.new pattern, listener
+            subscriber = Evented.new pattern, listener
+          end
+
+          unless pattern
+            AllMessages.new(subscriber)
+          else
+            subscriber
           end
         end
 
-        class Subscriber #:nodoc:
+        class Evented #:nodoc:
           def initialize(pattern, delegate)
             @pattern = pattern
             @delegate = delegate
@@ -81,7 +83,7 @@ module ActiveSupport
           end
         end
 
-        class TimedSubscriber < Subscriber
+        class Timed < Evented
           def initialize(pattern, delegate)
             @timestack = Hash.new { |h,id|
               h[id] = Hash.new { |ids,name| ids[name] = [] }
@@ -103,7 +105,23 @@ module ActiveSupport
           end
         end
 
-        class AllMessages < TimedSubscriber # :nodoc:
+        class AllMessages # :nodoc:
+          def initialize(delegate)
+            @delegate = delegate
+          end
+
+          def start(name, id, payload)
+            @delegate.start name, id, payload
+          end
+
+          def finish(name, id, payload)
+            @delegate.finish name, id, payload
+          end
+
+          def publish(name, *args)
+            @delegate.publish name, *args
+          end
+
           def subscribed_to?(name)
             true
           end
