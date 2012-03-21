@@ -287,6 +287,43 @@ class TransactionObserverCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
+    assert topic.id.nil?
+    assert !topic.persisted?
     assert_equal %w{ after_rollback }, topic.history
+  end
+
+  class TopicWithManualRollbackObserverAttached < ActiveRecord::Base
+    self.table_name = :topics
+    def history
+      @history ||= []
+    end
+  end
+
+  class TopicWithManualRollbackObserverAttachedObserver < ActiveRecord::Observer
+    def after_save(record)
+      record.history.push "after_save"
+      raise ActiveRecord::Rollback
+    end
+  end
+
+  def test_after_save_called_with_manual_rollback
+    assert TopicWithManualRollbackObserverAttachedObserver.instance, 'should have observer'
+
+    topic = TopicWithManualRollbackObserverAttached.new
+    
+    assert !topic.save
+    assert_equal nil, topic.id
+    assert !topic.persisted?
+    assert_equal %w{ after_save }, topic.history
+  end
+  def test_after_save_called_with_manual_rollback_bang
+    assert TopicWithManualRollbackObserverAttachedObserver.instance, 'should have observer'
+
+    topic = TopicWithManualRollbackObserverAttached.new
+    
+    topic.save!
+    assert_equal nil, topic.id
+    assert !topic.persisted?
+    assert_equal %w{ after_save }, topic.history
   end
 end
