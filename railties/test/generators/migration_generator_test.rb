@@ -41,6 +41,24 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_remove_migration_with_indexed_attribute
+    migration = "remove_title_body_from_posts"
+    run_generator [migration, "title:string:index", "body:text"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :up, content do |up|
+        assert_match(/remove_column :posts, :title/, up)
+        assert_match(/remove_column :posts, :body/, up)
+      end
+
+      assert_method :down, content do |down|
+        assert_match(/add_column :posts, :title, :string/, down)
+        assert_match(/add_column :posts, :body, :text/, down)
+        assert_match(/add_index :posts, :title/, down)
+      end
+    end
+  end
+
   def test_remove_migration_with_attributes
     migration = "remove_title_body_from_posts"
     run_generator [migration, "title:string", "body:text"]
