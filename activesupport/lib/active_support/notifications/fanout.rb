@@ -45,11 +45,15 @@ module ActiveSupport
       end
 
       module Subscribers # :nodoc:
-        def self.new(pattern, block)
-          if pattern
-            TimedSubscriber.new pattern, block
+        def self.new(pattern, listener)
+          if listener.respond_to?(:call)
+            if pattern
+              TimedSubscriber.new pattern, listener
+            else
+              AllMessages.new pattern, listener
+            end
           else
-            AllMessages.new pattern, block
+            Subscriber.new pattern, listener
           end
         end
 
@@ -60,11 +64,11 @@ module ActiveSupport
           end
 
           def start(name, id, payload)
-            raise NotImplementedError
+            @delegate.start name, id, payload
           end
 
           def finish(name, id, payload)
-            raise NotImplementedError
+            @delegate.finish name, id, payload
           end
 
           def subscribed_to?(name)
