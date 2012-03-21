@@ -171,8 +171,8 @@ module ActiveRecord
         #   Article.published.featured.latest_article
         #   Article.featured.titles
 
-        def scope(name, scope_options = {})
-          extension = Module.new(&Proc.new) if block_given?
+        def scope(name, scope_options = {}, &block)
+          extension = Module.new(&block) if block
 
           singleton_class.send(:define_method, name) do |*args|
             options = scope_options.respond_to?(:call) ? unscoped { scope_options.call(*args) } : scope_options
