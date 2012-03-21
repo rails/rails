@@ -172,25 +172,15 @@ module ActiveRecord
         #   Article.featured.titles
 
         def scope(name, scope_options = {})
-          valid_scope_name?(name)
           extension = Module.new(&Proc.new) if block_given?
 
-          singleton_class.send(:redefine_method, name) do |*args|
+          singleton_class.send(:define_method, name) do |*args|
             options = scope_options.respond_to?(:call) ? unscoped { scope_options.call(*args) } : scope_options
             options = scoped.apply_finder_options(options) if options.is_a?(Hash)
 
             relation = scoped.merge(options)
 
             extension ? relation.extending(extension) : relation
-          end
-        end
-
-      protected
-
-        def valid_scope_name?(name)
-          if respond_to?(name, true)
-            logger.warn "Creating scope :#{name}. " \
-                        "Overwriting existing method #{self.name}.#{name}."
           end
         end
       end
