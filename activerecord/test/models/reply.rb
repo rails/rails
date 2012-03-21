@@ -1,7 +1,7 @@
 require 'models/topic'
 
 class Reply < Topic
-  scope :base
+  scope :base, -> { scoped }
 
   belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true
   belongs_to :topic_with_primary_key, :class_name => "Topic", :primary_key => "title", :foreign_key => "parent_title", :counter_cache => "replies_count"
