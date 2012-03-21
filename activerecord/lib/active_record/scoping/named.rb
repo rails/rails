@@ -172,7 +172,6 @@ module ActiveRecord
         #   Article.featured.titles
 
         def scope(name, scope_options = {})
-          name = name.to_sym
           valid_scope_name?(name)
           extension = Module.new(&Proc.new) if block_given?
 
