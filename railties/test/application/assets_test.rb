@@ -492,6 +492,18 @@ module ApplicationTests
       assert_match 'src="/sub/uri/assets/rails.png"', File.read("#{app_path}/public/assets/app.js")
     end
 
+    test "html assets are compiled when executing precompile" do
+      app_file "app/assets/pages/page.html.erb", "<%= javascript_include_tag :application %>"
+      ENV["RAILS_ENV"]   = "production"
+      ENV["RAILS_GROUP"] = "assets"
+
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      assert File.exists?("#{app_path}/public/assets/page.html")
+    end
+
     private
 
     def app_with_assets_in_view

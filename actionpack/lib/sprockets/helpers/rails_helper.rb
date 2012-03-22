@@ -81,7 +81,7 @@ module Sprockets
     private
       def debug_assets?
         compile_assets? && (Rails.application.config.assets.debug || params[:debug_assets])
-      rescue NoMethodError
+      rescue NameError
         false
       end
 
