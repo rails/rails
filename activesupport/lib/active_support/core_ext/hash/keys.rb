@@ -7,7 +7,14 @@ class Hash
   # Destructively convert all keys to strings.
   def stringify_keys!
     keys.each do |key|
-      self[key.to_s] = delete(key)
+      self[stringified_key = key.to_s] = delete(key)
+      if self[stringified_key].instance_of? Array
+        self[stringified_key].each  do |i| 
+          i.stringify_keys! if i.respond_to? :stringify_keys!
+        end
+      elsif self[stringified_key].respond_to? :stringify_keys!
+        self[stringified_key].stringify_keys!
+      end
     end
     self
   end
@@ -22,7 +29,13 @@ class Hash
   # to +to_sym+.
   def symbolize_keys!
     keys.each do |key|
-      self[(key.to_sym rescue key) || key] = delete(key)
+      self[symbolized_key = (key.to_sym rescue key) || key] = delete(key)
+      if self[symbolized_key].instance_of? Array
+        self[symbolized_key].map! { |i| i.symbolize_keys }
+      elsif self[symbolized_key].respond_to? :symbolize_keys
+        self[symbolized_key] = self[symbolized_key].symbolize_keys
+        # self[symbolized_key].symbolize_keys!
+      end
     end
     self
   end
