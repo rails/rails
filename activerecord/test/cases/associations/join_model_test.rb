@@ -384,7 +384,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_has_one
-    assert_equal Tagging.find(1,2).sort_by { |t| t.id }, authors(:david).taggings
+    assert_equal Tagging.find(1,2).sort_by { |t| t.id }, authors(:david).taggings.order(:id)
   end
 
   def test_has_many_through_polymorphic_has_many
@@ -441,7 +441,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_uses_conditions_specified_on_the_has_many_association
-    author = Author.find(:first)
+    author = Author.order(:id).first
     assert_present author.comments
     assert_blank author.nonexistant_comments
   end
@@ -634,7 +634,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_preload_polymorph_many_types
-    taggings = Tagging.find :all, :include => :taggable, :conditions => ['taggable_type != ?', 'FakeModel']
+    taggings = Tagging.find :all, :include => :taggable, :conditions => ['taggable_type != ?', 'FakeModel'], :order => 'id'
     assert_no_queries do
       taggings.first.taggable.id
       taggings[1].taggable.id
