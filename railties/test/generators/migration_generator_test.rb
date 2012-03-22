@@ -37,7 +37,6 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       assert_method :change, content do |up|
         assert_match(/add_column :posts, :title, :string/, up)
         assert_match(/add_column :posts, :body, :text/, up)
-        assert_no_match(/\n\n/, up)
       end
     end
   end
