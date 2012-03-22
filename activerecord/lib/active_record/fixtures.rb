@@ -4,16 +4,12 @@ require 'zlib'
 require 'active_support/dependencies'
 require 'active_support/core_ext/object/blank'
 require 'active_record/fixtures/file'
-
-if defined? ActiveRecord
-  class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
-  end
-else
-  class FixtureClassNotFound < StandardError #:nodoc:
-  end
-end
+require 'active_record/errors'
 
 module ActiveRecord
+  class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
+  end
+
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
   #
   # They are stored in YAML files, one file per model, which are placed in the directory
