@@ -114,6 +114,12 @@ module Arel
         end
       end
 
+      def test_Arel_Nodes_InfixOperation
+        binary = Arel::Nodes::InfixOperation.new(:o, :a, :b)
+        @visitor.accept binary
+        assert_equal [:a, :b, binary], @collector.calls
+      end
+
       # N-ary
       [
         Arel::Nodes::And,

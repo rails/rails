@@ -70,6 +70,7 @@ module Arel
       alias :visit_Arel_Nodes_GreaterThan        :binary
       alias :visit_Arel_Nodes_GreaterThanOrEqual :binary
       alias :visit_Arel_Nodes_In                 :binary
+      alias :visit_Arel_Nodes_InfixOperation     :binary
       alias :visit_Arel_Nodes_JoinSource         :binary
       alias :visit_Arel_Nodes_InnerJoin          :binary
       alias :visit_Arel_Nodes_LessThan           :binary
