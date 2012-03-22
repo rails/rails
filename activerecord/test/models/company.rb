@@ -104,7 +104,7 @@ class Firm < Company
 end
 
 class DependentFirm < Company
-  has_one :account, :foreign_key => "firm_id", :dependent => :nullify
+  has_one :account, :foreign_key => "firm_id", :dependent => :nullify, :order => "accounts.id"
   has_many :companies, :foreign_key => 'client_of', :dependent => :nullify
 end
 
