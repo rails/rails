@@ -108,7 +108,7 @@ module ActiveSupport
       when Symbol
         method(rescuer)
       when Proc
-        rescuer.bind(self)
+        Proc.new { |*args| instance_exec(*args, &rescuer) }
       end
     end
   end
