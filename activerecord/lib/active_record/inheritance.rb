@@ -48,6 +48,20 @@ module ActiveRecord
       end
 
       # Set this to true if this is an abstract class (see <tt>abstract_class?</tt>).
+      # If you are using inheritance with ActiveRecord and don't want child classes
+      # to utilize the implied STI table name of the parent class, this will need to be true.
+      # For example, given the following:
+      #
+      #   class SuperClass < ActiveRecord::Base
+      #     self.abstract_class = true
+      #   end
+      #   class Child < SuperClass
+      #     self.table_name = 'the_table_i_really_want'
+      #   end
+      # 
+      #
+      # <tt>self.abstract_class = true</tt> is required to make <tt>Child<.find,.create, or any Arel method></tt> use <tt>the_table_i_really_want</tt> instead of a table called <tt>super_classes</tt>
+      #
       attr_accessor :abstract_class
 
       # Returns whether this class is an abstract class or not.
