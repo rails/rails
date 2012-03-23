@@ -55,7 +55,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_with_has_many_through_source_reflection_preload
-    authors = assert_queries(5) { Author.includes(:tags).to_a }
+    authors = assert_queries(5) { Author.includes(:tags).order(:id).to_a }
     general = tags(:general)
 
     assert_no_queries do
@@ -84,7 +84,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_many_through_with_has_many_source_reflection_preload
     luke, david = subscribers(:first), subscribers(:second)
-    authors = assert_queries(4) { Author.includes(:subscribers).to_a }
+    authors = assert_queries(4) { Author.includes(:subscribers).order(:id).to_a }
     assert_no_queries do
       assert_equal [luke, david, david], authors.first.subscribers.sort_by(&:nick)
     end
@@ -106,10 +106,10 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_one_with_has_one_through_source_reflection_preload
-    members = assert_queries(4) { Member.includes(:nested_member_types).to_a }
+    members = assert_queries(4) { Member.includes(:nested_member_types).order(:id).to_a }
     founding = member_types(:founding)
     assert_no_queries do
-      assert_equal [founding], members.first.nested_member_types
+      assert_equal [founding], members.first.nested_member_types.to_a
     end
   end
 
@@ -128,10 +128,10 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_one_through_with_has_one_source_reflection_preload
-    members = assert_queries(4) { Member.includes(:nested_sponsors).to_a }
+    members = assert_queries(4) { Member.includes(:nested_sponsors).order(:id).to_a }
     mustache = sponsors(:moustache_club_sponsor_for_groucho)
     assert_no_queries do
-      assert_equal [mustache], members.first.nested_sponsors
+      assert_equal [mustache], members.first.nested_sponsors.to_a
     end
   end
 
@@ -163,7 +163,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_one_with_has_many_through_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Member.where('member_details.id' => member_details(:groucho).id).order('member_details.id'),
+      Member.where('member_details.id' => member_details(:groucho).id).order('members.id'),
       [members(:groucho), members(:some_other_guy)], :organization_member_details
     )
 
@@ -193,7 +193,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_one_through_with_has_many_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Member.where('member_details.id' => member_details(:groucho).id).order('member_details.id'),
+      Member.where('member_details.id' => member_details(:groucho).id).order('members.id'),
       [members(:groucho), members(:some_other_guy)], :organization_member_details_2
     )
 
@@ -285,7 +285,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_through_with_belongs_to_source_reflection_preload
-    authors = assert_queries(5) { Author.includes(:tagging_tags).to_a }
+    authors = assert_queries(5) { Author.includes(:tagging_tags).order(:id).to_a }
     general = tags(:general)
 
     assert_no_queries do

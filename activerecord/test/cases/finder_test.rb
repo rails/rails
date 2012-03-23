@@ -53,8 +53,8 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists_with_nil_arg
     assert !Topic.exists?(nil)
     assert Topic.exists?
-    assert !Topic.first.replies.exists?(nil)
-    assert Topic.first.replies.exists?
+    assert !Topic.order(:id).first.replies.exists?(nil)
+    assert Topic.order(:id).first.replies.exists?
   end
 
   def test_does_not_exist_with_empty_table_and_no_args_given

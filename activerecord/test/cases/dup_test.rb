@@ -10,14 +10,14 @@ module ActiveRecord
     end
 
     def test_not_readonly
-      topic = Topic.first
+      topic = Topic.order(:id).first
 
       duped = topic.dup
       assert !duped.readonly?, 'should not be readonly'
     end
 
     def test_is_readonly
-      topic = Topic.first
+      topic = Topic.order(:id).first
       topic.readonly!
 
       duped = topic.dup
@@ -25,7 +25,7 @@ module ActiveRecord
     end
 
     def test_dup_not_persisted
-      topic = Topic.first
+      topic = Topic.order(:id).first
       duped = topic.dup
 
       assert !duped.persisted?, 'topic not persisted'
@@ -33,20 +33,20 @@ module ActiveRecord
     end
 
     def test_dup_has_no_id
-      topic = Topic.first
+      topic = Topic.order(:id).first
       duped = topic.dup
       assert_nil duped.id
     end
 
     def test_dup_with_modified_attributes
-      topic = Topic.first
+      topic = Topic.order(:id).first
       topic.author_name = 'Aaron'
       duped = topic.dup
       assert_equal 'Aaron', duped.author_name
     end
 
     def test_dup_with_changes
-      dbtopic = Topic.first
+      dbtopic = Topic.order(:id).first
       topic = Topic.new
 
       topic.attributes = dbtopic.attributes
@@ -61,7 +61,7 @@ module ActiveRecord
     end
 
     def test_dup_topics_are_independent
-      topic = Topic.first
+      topic = Topic.order(:id).first
       topic.author_name = 'Aaron'
       duped = topic.dup
 
@@ -71,7 +71,7 @@ module ActiveRecord
     end
 
     def test_dup_attributes_are_independent
-      topic = Topic.first
+      topic = Topic.order(:id).first
       duped = topic.dup
 
       duped.author_name = 'meow'
@@ -82,7 +82,7 @@ module ActiveRecord
     end
 
     def test_dup_timestamps_are_cleared
-      topic = Topic.first
+      topic = Topic.order(:id).first
       assert_not_nil topic.updated_at
       assert_not_nil topic.created_at
 
@@ -98,6 +98,5 @@ module ActiveRecord
       assert_not_nil new_topic.updated_at
       assert_not_nil new_topic.created_at
     end
-
   end
 end
