@@ -114,7 +114,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate.ship_attributes = { :name => 'Hello Pearl' }
     assert_difference('Ship.count') { pirate.save! }
   end
-  
+
   def test_has_many_association_updating_a_single_record
     Man.accepts_nested_attributes_for(:interests)
     man = Man.create(:name => 'John')
@@ -306,7 +306,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
     @ship.delete
-    
+
     @pirate.reload.update_attributes(:update_only_ship_attributes => { :name => 'Mayflower' })
 
     assert_not_nil @pirate.ship
@@ -459,7 +459,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     pirate = @ship.pirate
-    
+
     @ship.attributes = { :pirate_attributes => { :id => pirate.id, '_destroy' => true } }
     assert_nothing_raised(ActiveRecord::RecordNotFound) { Pirate.find(pirate.id) }
     @ship.save
@@ -607,9 +607,13 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_automatically_build_new_associated_models_for_each_entry_in_a_hash_where_the_id_is_missing
+    attributes = ActiveSupport::OrderedHash.new
+    attributes['foo'] = { :name => 'Grace OMalley' }
+    attributes['bar'] = { :name => 'Privateers Greed' }
+
     @pirate.send(@association_name).destroy_all
     @pirate.reload.attributes = {
-      association_getter => { 'foo' => { :name => 'Grace OMalley' }, 'bar' => { :name => 'Privateers Greed' }}
+      association_getter => attributes
     }
 
     assert @pirate.send(@association_name).first.new_record?
