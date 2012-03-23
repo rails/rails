@@ -301,20 +301,20 @@ class IdentityMapTest < ActiveRecord::TestCase
     posts = Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
-    assert_same posts.first.author, Author.first
+    assert_same posts.first.author, Author.order(:id).first
 
     posts = Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
-    assert_same posts.first.author, Author.first
+    assert_same posts.first.author, Author.order(:id).first
 
     posts = Post.find(:all, :include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'", :order => 'posts.id')
     assert_equal posts(:welcome, :thinking), posts
-    assert_same posts.first.author, Author.first
+    assert_same posts.first.author, Author.order(:id).first
 
     posts = Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2", :order => 'posts.id')
     assert_equal posts(:welcome, :thinking), posts
-    assert_same posts.first.author, Author.first
+    assert_same posts.first.author, Author.order(:id).first
   end
 
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
@@ -336,12 +336,12 @@ class IdentityMapTest < ActiveRecord::TestCase
   ##############################################################################
 
   def test_reload_object_if_save_failed
-    developer = Developer.first
+    developer = Developer.order(:id).first
     developer.salary = 0
 
     assert !developer.save
 
-    same_developer = Developer.first
+    same_developer = Developer.order(:id).first
 
     assert_not_same  developer, same_developer
     assert_not_equal 0, same_developer.salary
@@ -349,12 +349,12 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_reload_object_if_forced_save_failed
-    developer = Developer.first
+    developer = Developer.order(:id).first
     developer.salary = 0
 
     assert_raise(ActiveRecord::RecordInvalid) { developer.save! }
 
-    same_developer = Developer.first
+    same_developer = Developer.order(:id).first
 
     assert_not_same  developer, same_developer
     assert_not_equal 0, same_developer.salary
@@ -362,12 +362,12 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_reload_object_if_update_attributes_fails
-    developer = Developer.first
+    developer = Developer.order(:id).first
     developer.salary = 0
 
     assert !developer.update_attributes(:salary => 0)
 
-    same_developer = Developer.first
+    same_developer = Developer.order(:id).first
 
     assert_not_same  developer, same_developer
     assert_not_equal 0, same_developer.salary
@@ -379,10 +379,10 @@ class IdentityMapTest < ActiveRecord::TestCase
   ##############################################################################
 
   def test_find_using_identity_map_respects_readonly_when_loading_associated_object_first
-    author  = Author.first
+    author  = Author.order(:id).first
     readonly_comment = author.readonly_comments.first
 
-    comment = Comment.first
+    comment = Comment.order(:id).first
     assert !comment.readonly?
 
     assert readonly_comment.readonly?
@@ -392,10 +392,10 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_find_using_identity_map_respects_readonly
-    comment = Comment.first
+    comment = Comment.order(:id).first
     assert !comment.readonly?
 
-    author  = Author.first
+    author  = Author.order(:id).first
     readonly_comment = author.readonly_comments.first
 
     assert readonly_comment.readonly?
@@ -405,13 +405,13 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_find_using_select_and_identity_map
-    author_id, author = Author.select('id').first, Author.first
+    author_id, author = Author.select('id').order(:id).first, Author.order(:id).first
 
     assert_equal author_id, author
     assert_same author_id, author
     assert_not_nil author.name
 
-    post, post_id = Post.first, Post.select('id').first
+    post, post_id = Post.order(:id).first, Post.select('id').order(:id).first
 
     assert_equal post_id, post
     assert_same post_id, post
