@@ -211,7 +211,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
     ['"name":"David"', '"posts":[', '{"id":1}', '{"id":2}', '{"id":4}',
      '{"id":5}', '{"id":6}', '"name":"Mary"', '"posts":[', '{"id":7}', '{"id":9}'].each do |fragment|
       assert json.include?(fragment), json
-     end
+    end
   end
 
   def test_should_allow_options_for_hash_of_authors
@@ -223,7 +223,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
   end
 
   def test_should_be_able_to_encode_relation
-    authors_relation = Author.where(:id => [@david.id, @mary.id])
+    authors_relation = Author.where(:id => [@david.id, @mary.id]).order(:id)
 
     json = ActiveSupport::JSON.encode authors_relation, :only => :name
     assert_equal '[{"author":{"name":"David"}},{"author":{"name":"Mary"}}]', json
