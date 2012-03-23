@@ -653,7 +653,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_relation_merging_with_preload
     ActiveRecord::IdentityMap.without do
       [Post.scoped.merge(Post.preload(:author)), Post.preload(:author).merge(Post.scoped)].each do |posts|
-        assert_queries(2) { assert posts.first.author }
+        assert_queries(2) { assert posts.order(:id).first.author }
       end
     end
   end
