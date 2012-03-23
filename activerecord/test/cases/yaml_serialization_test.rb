@@ -12,7 +12,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_roundtrip
-    topic = Topic.first
+    topic = Topic.order(:id).first
     assert topic
     t = YAML.load YAML.dump topic
     assert_equal topic, t
@@ -24,7 +24,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_encode_with_coder
-    topic = Topic.first
+    topic = Topic.order(:id).first
     coder = {}
     topic.encode_with coder
     assert_equal({'attributes' => topic.attributes}, coder)
@@ -34,7 +34,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
     require 'psych'
 
     def test_psych_roundtrip
-      topic = Topic.first
+      topic = Topic.order(:id).first
       assert topic
       t = Psych.load Psych.dump topic
       assert_equal topic, t

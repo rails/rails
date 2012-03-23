@@ -912,7 +912,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_clearing_updates_counter_cache
-    topic = Topic.first
+    topic = Topic.order(:id).first
 
     assert_difference 'topic.reload.replies_count', -1 do
       topic.replies.clear
@@ -1001,14 +1001,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_delete_all_association_with_primary_key_deletes_correct_records
-    firm = Firm.find(:first)
+    firm = Firm.order(:id).first
     # break the vanilla firm_id foreign key
     assert_equal 2, firm.clients.count
     firm.clients.first.update_column(:firm_id, nil)
     assert_equal 1, firm.clients(true).count
     assert_equal 1, firm.clients_using_primary_key_with_delete_all.count
     old_record = firm.clients_using_primary_key_with_delete_all.first
-    firm = Firm.find(:first)
+    firm = Firm.order(:id).first
     firm.destroy
     assert_nil Client.find_by_id(old_record.id)
   end
@@ -1168,12 +1168,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     core = companies(:rails_core)
     assert_equal accounts(:rails_core_account), core.account
-    assert_equal companies(:leetsoft, :jadedpixel), core.companies
+    assert_equal companies(:leetsoft, :jadedpixel), core.companies.order(:id)
     core.destroy
     assert_nil accounts(:rails_core_account).reload.firm_id
     assert_nil companies(:leetsoft).reload.client_of
     assert_nil companies(:jadedpixel).reload.client_of
-
 
     assert_equal num_accounts, Account.count
   end

@@ -53,8 +53,8 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists_with_nil_arg
     assert !Topic.exists?(nil)
     assert Topic.exists?
-    assert !Topic.first.replies.exists?(nil)
-    assert Topic.first.replies.exists?
+    assert !Topic.order(:id).first.replies.exists?(nil)
+    assert Topic.order(:id).first.replies.exists?
   end
 
   # ensures +exists?+ runs valid SQL by excluding order value
