@@ -55,6 +55,25 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match /Loading \w+ environment in sandbox \(Rails/, output
   end
 
+  def test_console_with_environment
+    app.expects(:sandbox=).with(nil)
+    FakeConsole.expects(:start)
+
+    start ["-e production"]
+
+    assert_match /production/, output
+  end
+
+  def test_console_with_rails_environment
+    app.expects(:sandbox=).with(nil)
+    FakeConsole.expects(:start)
+
+    start ["RAILS_ENV=production"]
+
+    assert_match /production/, output
+  end
+
+
   def test_console_defaults_to_IRB
     config = mock("config", :console => nil)
     app = mock("app", :config => config)
