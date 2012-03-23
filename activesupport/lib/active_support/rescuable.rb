@@ -108,7 +108,11 @@ module ActiveSupport
       when Symbol
         method(rescuer)
       when Proc
-        Proc.new { |*args| instance_exec(*args, &rescuer) }
+        if rescuer.arity == 0
+          Proc.new { instance_exec(&rescuer) }
+        else
+          Proc.new { |exception| instance_exec(exception, &rescuer) }
+        end
       end
     end
   end
