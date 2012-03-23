@@ -269,6 +269,11 @@ module ActiveSupport
       date_parts = Date._parse(str)
       return if date_parts.blank?
       time = Time.parse(str, now) rescue DateTime.parse(str)
+
+      if date_parts[:hour] && time.hour != date_parts[:hour]
+        time = DateTime.parse(str)
+      end
+
       if date_parts[:offset].nil?
         ActiveSupport::TimeWithZone.new(nil, self, time)
       else
