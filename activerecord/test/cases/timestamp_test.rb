@@ -10,7 +10,7 @@ class TimestampTest < ActiveRecord::TestCase
   fixtures :developers, :owners, :pets, :toys, :cars, :tasks
 
   def setup
-    @developer = Developer.first
+    @developer = Developer.order(:id).first
     @developer.update_attribute(:updated_at, Time.now.prev_month)
     @previously_updated_at = @developer.updated_at
   end

@@ -17,15 +17,16 @@ require 'rexml/document'
 require 'active_support/core_ext/exception'
 
 class PersistencesTest < ActiveRecord::TestCase
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics,
+    'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans
 
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans
-
-  # Oracle UPDATE does not support ORDER BY
-  unless current_adapter?(:OracleAdapter)
+  # Skip databases that don't support UPDATE + ORDER BY
+  unless current_adapter?(:OracleAdapter, :PostgreSQLAdapter)
     def test_update_all_ignores_order_without_limit_from_association
       author = authors(:david)
       assert_nothing_raised do
-        assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
+        assert_equal author.posts_with_comments_and_categories.length,
+          author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
       end
     end
 
