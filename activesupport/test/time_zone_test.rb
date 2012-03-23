@@ -167,7 +167,7 @@ class TimeZoneTest < Test::Unit::TestCase
     (-11..13).each do |timezone_offset|
       zone = ActiveSupport::TimeZone[timezone_offset]
       twz = zone.parse('1999-12-31 19:00:00')
-      assert_equal twz, zone.parse(twz.to_s)
+      assert_equal twz.to_a, zone.parse(twz.to_s).to_a
     end
   end
 
@@ -196,6 +196,24 @@ class TimeZoneTest < Test::Unit::TestCase
     zone.stubs(:now).returns zone.local(1999,12,31)
     twz = zone.parse('19:00:00')
     assert_equal Time.utc(1999,12,31,19), twz.time
+  end
+
+  def test_parse_should_not_black_out_system_timezone_dst_jump
+    zone = ActiveSupport::TimeZone['Pacific Time (US & Canada)']
+    zone.stubs(:now).returns(zone.now)
+    Time.stubs(:parse).with('2012-03-25 03:29', zone.now).
+                       returns(Time.local(0,29,4,25,3,2012,nil,nil,true,"+03:00"))
+    twz = zone.parse('2012-03-25 03:29')
+    assert_equal [0, 29, 3, 25, 3, 2012], twz.to_a[0,6]
+  end
+
+  def test_parse_should_black_out_app_timezone_dst_jump
+    zone = ActiveSupport::TimeZone['Pacific Time (US & Canada)']
+    zone.stubs(:now).returns(zone.now)
+    Time.stubs(:parse).with('2012-03-11 02:29', zone.now).
+                       returns(Time.local(0,29,2,11,3,2012,nil,nil,false,"+02:00"))
+    twz = zone.parse('2012-03-11 02:29')
+    assert_equal [0, 29, 3, 11, 3, 2012], twz.to_a[0,6]
   end
 
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
