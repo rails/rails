@@ -388,6 +388,15 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, hash
   end
 
+  def test_constructor_on_indifferent_access
+    hash = HashWithIndifferentAccess[:foo, 1]
+    assert_equal 1, hash[:foo]
+    assert_equal 1, hash['foo']
+    hash[:foo] = 3
+    assert_equal 3, hash[:foo]
+    assert_equal 3, hash['foo']
+  end
+
   def test_reverse_merge
     defaults = { :a => "x", :b => "y", :c => 10 }.freeze
     options  = { :a => 1, :b => 2 }
