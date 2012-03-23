@@ -12,7 +12,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_roundtrip
-    topic = Topic.first
+    topic = Topic.order(:id).first
     assert topic
     t = YAML.load YAML.dump topic
     assert_equal topic, t
