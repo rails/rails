@@ -4,18 +4,18 @@ module RenderRjs
   class BasicController < ActionController::Base
     layout "application", :only => :index_respond_to
 
-    self.view_paths = [ActionView::FixtureResolver.new(
-      "layouts/application.html.erb"           => "",
-      "render_rjs/basic/index.js.rjs"          => "page[:customer].replace_html render(:partial => 'customer')",
-      "render_rjs/basic/index_html.js.rjs"     => "page[:customer].replace_html :partial => 'customer'",
-      "render_rjs/basic/index_no_js.js.erb"    => "<%= render(:partial => 'developer') %>",
-      "render_rjs/basic/_customer.js.erb"      => "JS Partial",
-      "render_rjs/basic/_customer.html.erb"    => "HTML Partial",
-      "render_rjs/basic/_developer.html.erb"   => "HTML Partial",
-      "render_rjs/basic/index_locale.js.rjs"   => "page[:customer].replace_html :partial => 'customer'",
-      "render_rjs/basic/_customer.da.html.erb" => "Danish HTML Partial",
-      "render_rjs/basic/_customer.da.js.erb"   => "Danish JS Partial"
-    )]
+    self.view_paths = [ActionView::FixtureResolver.new(ActiveSupport::OrderedHash[
+      "layouts/application.html.erb"           , "",
+      "render_rjs/basic/index.js.rjs"          , "page[:customer].replace_html render(:partial => 'customer')",
+      "render_rjs/basic/index_html.js.rjs"     , "page[:customer].replace_html :partial => 'customer'",
+      "render_rjs/basic/index_no_js.js.erb"    , "<%= render(:partial => 'developer') %>",
+      "render_rjs/basic/_customer.js.erb"      , "JS Partial",
+      "render_rjs/basic/_customer.html.erb"    , "HTML Partial",
+      "render_rjs/basic/_developer.html.erb"   , "HTML Partial",
+      "render_rjs/basic/index_locale.js.rjs"   , "page[:customer].replace_html :partial => 'customer'",
+      "render_rjs/basic/_customer.da.html.erb" , "Danish HTML Partial",
+      "render_rjs/basic/_customer.da.js.erb"   , "Danish JS Partial"
+    ])]
 
     def index
       render
