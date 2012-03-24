@@ -548,6 +548,22 @@ file in this standard layout directory. Hence,
 
 will not work.
 
+<b>Gotcha: Watch out if your view renders any partial</b>
+
+If your view renders any partial, when asserting for the layout, you have to assert for the partial at the same time.
+Otherwise, assertion will fail.
+
+Hence:
+
+<ruby>
+test "new should render correct layout" do
+  get :new
+  assert_template :layout => "layouts/application", :partial => "_form"
+end
+</ruby>
+
+is the correct way to assert for the layout when the view renders a partial with name +_form+. Omitting the +:partial+ key in your +assert_template+ call will complain.
+
 h4. A Fuller Functional Test Example
 
 Here's another example that uses +flash+, +assert_redirected_to+, and +assert_difference+:
