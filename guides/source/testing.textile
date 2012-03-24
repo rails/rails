@@ -524,6 +524,31 @@ You also have access to three instance variables in your functional tests:
 * +@request+ - The request
 * +@response+ - The response
 
+h4. Testing Template and Layout Example
+
+If you want to make sure that the response rendered the correct template and layout, you can use the +assert_template+ 
+method:
+
+<ruby>
+test "index should render correct template and layout" do
+  get :index
+  assert_template :index
+  assert_template :layout => "layouts/application"
+end
+</ruby>
+
+Note that you cannot test for template and layout at the same time, with one call to +assert_template+ method.
+Also, for the +layout+ test, you can give a regular expression instead of a string, but using the string, makes
+things clearer. On the other hand, you have to include the "layouts" directory name even if you save your layout
+file in this standard layout directory. Hence,
+
+<ruby>
+assert_template :layout => "application"
+</ruby>
+
+will not work.
+
+
 h4. A Fuller Functional Test Example
 
 Here's another example that uses +flash+, +assert_redirected_to+, and +assert_difference+:
