@@ -111,7 +111,7 @@ module ActiveSupport
         if rescuer.arity == 0
           Proc.new { instance_exec(&rescuer) }
         else
-          Proc.new { |exception| instance_exec(exception, &rescuer) }
+          Proc.new { |_exception| instance_exec(_exception, &rescuer) }
         end
       end
     end
