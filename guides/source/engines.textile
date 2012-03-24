@@ -723,6 +723,21 @@ You can also specify these assets as dependencies of other assets using the Asse
 */
 </css>
 
+h4. Separate Assets & Precompiling
+
+There are some situations where your engine's assets not required by the host application. For example, say that you've created
+an admin functionality that only exists for your engine. In this case, the host application doesn't need to require +admin.css+
+or +admin.js+. Only the gem's admin layout needs these assets. It doesn't make sense for the host app to include +"blorg/admin.css"+ in it's stylesheets. In this situation, you should explicitly define these assets for precompilation.
+This tells sprockets to add you engine assets when +rake assets:precompile+ is ran. 
+
+You can define assets for precompilation in +engine.rb+
+
+<ruby>
+initializer do |app|
+  app.config.assets.precompile += %w(admin.css admin.js)
+end
+</ruby
+
 For more information, read the "Asset Pipeline guide":http://guides.rubyonrails.org/asset_pipeline.html
 
 h4. Other gem dependencies

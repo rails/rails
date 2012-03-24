@@ -14,15 +14,15 @@ module ActionMailer #:nodoc:
   #
   #   $ rails generate mailer Notifier
   #
-  # The generated model inherits from <tt>ActionMailer::Base</tt>. Emails are defined by creating methods
-  # within the model which are then used to set variables to be used in the mail template, to
-  # change options on the mail, or to add attachments.
+  # The generated model inherits from <tt>ActionMailer::Base</tt>. A mailer model defines methods
+  # used to generate an email message. In these methods, you can setup variables to be used in
+  # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
   #
   # Examples:
   #
   #   class Notifier < ActionMailer::Base
   #     default :from => 'no-reply@example.com',
-  #            :return_path => 'system@example.com'
+  #             :return_path => 'system@example.com'
   #
   #     def welcome(recipient)
   #       @account = recipient
