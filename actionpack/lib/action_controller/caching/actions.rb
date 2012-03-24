@@ -40,7 +40,7 @@ module ActionController #:nodoc:
     #
     # You can modify the default action cache path by passing a
     # <tt>:cache_path</tt> option. This will be passed directly to
-    # <tt>ActionCachePath.path_for</tt>. This is handy for actions with
+    # <tt>ActionCachePath.new</tt>. This is handy for actions with
     # multiple possible routes that should be cached differently. If a
     # block is given, it is called with the current controller instance.
     #
