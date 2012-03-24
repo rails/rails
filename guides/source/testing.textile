@@ -543,11 +543,10 @@ things clearer. On the other hand, you have to include the "layouts" directory n
 file in this standard layout directory. Hence,
 
 <ruby>
-assert_template :layout => "application"
+  assert_template :layout => "application"
 </ruby>
 
 will not work.
-
 
 h4. A Fuller Functional Test Example
 
