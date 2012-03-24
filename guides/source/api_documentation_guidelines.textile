@@ -1,4 +1,4 @@
-	h2. API Documentation Guidelines
+h2. API Documentation Guidelines
 
 This guide documents the Ruby on Rails API documentation guidelines.
 
