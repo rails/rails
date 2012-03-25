@@ -5,6 +5,8 @@ class Hash
   end
 
   # Destructively convert all keys to strings.
+  # If the option :recursive => true is passed, the
+  # all keys within the hash are converted to strings
   def stringify_keys!(options={})
     keys.each do |key|
       self[stringified_key = key.to_s] = delete(key)
@@ -29,6 +31,8 @@ class Hash
 
   # Destructively convert all keys to symbols, as long as they respond
   # to +to_sym+.
+  # If the option :recursive => true is passed, the
+  # all keys within the hash are converted to symbols
   def symbolize_keys!(options={})
     keys.each do |key|
       self[symbolized_key = (key.to_sym rescue key) || key] = delete(key)
@@ -37,7 +41,6 @@ class Hash
           self[symbolized_key].map! { |i| i.symbolize_keys }
         elsif self[symbolized_key].respond_to? :symbolize_keys
           self[symbolized_key] = self[symbolized_key].symbolize_keys
-          # self[symbolized_key].symbolize_keys!
         end
       end
     end
