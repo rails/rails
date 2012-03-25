@@ -42,6 +42,10 @@ module ActiveSupport
       end
     end
 
+    def self.[](*args)
+      new.merge(Hash[*args])
+    end
+
     alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
     alias_method :regular_update, :update unless method_defined?(:regular_update)
 
