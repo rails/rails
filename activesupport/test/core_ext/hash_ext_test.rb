@@ -24,13 +24,13 @@ class HashExtTest < ActiveSupport::TestCase
 
   def setup
     
-    @strings = { 'a' => 1, 'b' => 2, 'z' => { 'c' => 'd'}, 'e' => [ { 'foo1' => 'bar1'}, { 'foo2' => 'bar2' } ] }
-    @symbols = { :a  => 1, :b  => 2, :z => { :c => 'd' }, :e => [ { :foo1 => 'bar1' }, { :foo2 => 'bar2' } ] }
-    @mixed   = { :a  => 1, 'b' => 2, :z => { 'c' => 'd'}, :e => [ { 'foo1' => 'bar1'}, { :foo2 => 'bar2' } ] }
+    @strings_recursive = { 'a' => 1, 'b' => 2, 'z' => { 'c' => 'd'}, 'e' => [ { 'foo1' => 'bar1'}, { 'foo2' => 'bar2' } ] }
+    @symbols_recursive = { :a  => 1, :b  => 2, :z => { :c => 'd' }, :e => [ { :foo1 => 'bar1' }, { :foo2 => 'bar2' } ] }
+    @mixed_recursive   = { :a  => 1, 'b' => 2, :z => { 'c' => 'd'}, :e => [ { 'foo1' => 'bar1'}, { :foo2 => 'bar2' } ] }
     # @fixnums = {  0  => 1,  1 => { 2 => 3 }, 4 => [ { 10 => 11 }, { 11 => 12 } ] }
-    # @strings = { 'a' => 1, 'b' => 2 }
-    # @symbols = { :a  => 1, :b  => 2 }
-    # @mixed   = { :a  => 1, 'b' => 2 }
+    @strings = { 'a' => 1, 'b' => 2 }
+    @symbols = { :a  => 1, :b  => 2 }
+    @mixed   = { :a  => 1, 'b' => 2 }
     @fixnums = {  0  => 1,  1  => 2 }
     @illegal_symbols = { [] => 3 }
   end
@@ -56,6 +56,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @symbols, @strings.dup.symbolize_keys!
     assert_equal @symbols, @mixed.dup.symbolize_keys!
   end
+  
+  def test_symbolize_keys_are_recursive
+    assert_equal @symbols_recursive, @symbols_recursive.symbolize_keys(recursive: true)
+    assert_equal @symbols_recursive, @strings_recursive.symbolize_keys(recursive: true)
+    assert_equal @symbols_recursive, @mixed_recursive.symbolize_keys(recursive: true)
+  end
 
   def test_symbolize_keys_preserves_keys_that_cant_be_symbolized
     assert_equal @illegal_symbols, @illegal_symbols.symbolize_keys
@@ -77,6 +83,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @strings, @symbols.dup.stringify_keys!
     assert_equal @strings, @strings.dup.stringify_keys!
     assert_equal @strings, @mixed.dup.stringify_keys!
+  end
+  
+  def test_stringify_keys
+    assert_equal @strings_recursive, @symbols_recursive.stringify_keys(recursive: true)
+    assert_equal @strings_recursive, @strings_recursive.stringify_keys(recursive: true)
+    assert_equal @strings_recursive, @mixed_recursive.stringify_keys(recursive: true)
   end
 
   def test_symbolize_keys_for_hash_with_indifferent_access
