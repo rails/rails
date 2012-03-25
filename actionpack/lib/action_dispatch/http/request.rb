@@ -150,9 +150,9 @@ module ActionDispatch
       super.to_i
     end
 
-    # Returns true if the "X-Requested-With" header contains "XMLHttpRequest"
-    # (case-insensitive). All major JavaScript libraries send this header with
-    # every Ajax request.
+    # Returns 0 if the "X-Requested-With" header contains "XMLHttpRequest"
+    # (case-insensitive), nil otherwise. All major JavaScript libraries
+    # send this header with every Ajax request.
     def xml_http_request?
       @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
     end
