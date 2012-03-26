@@ -155,7 +155,7 @@ module Rails
         each do |p|
           path = File.expand_path(p, @root.path)
 
-          if @glob
+          if @glob && File.directory?(path)
             result.concat Dir.chdir(path) {
               Dir.glob(@glob).map { |file| File.join path, file }.sort
             }
