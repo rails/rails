@@ -21,6 +21,6 @@ class String
   # that amount of leading whitespace.
   def strip_heredoc
     indent = scan(/^[ \t]*(?=\S)/).min.try(:size) || 0
-    gsub(/^[ \t]{#{indent}}/, '')
+    gsub(/^[ \t]{#{indent}}/, '').chomp
   end
 end
