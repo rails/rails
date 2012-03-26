@@ -95,13 +95,7 @@ class CodeStatistics #:nodoc:
       m_over_c   = (statistics["methods"] / statistics["classes"])   rescue m_over_c = 0
       loc_over_m = (statistics["codelines"] / statistics["methods"]) - 2 rescue loc_over_m = 0
 
-      start = if TEST_TYPES.include? name
-        "| #{name.ljust(20)} "
-      else
-        "| #{name.ljust(20)} "
-      end
-
-      puts start +
+      puts "| #{name.ljust(20)} " +
            "| #{statistics["lines"].to_s.rjust(5)} " +
            "| #{statistics["codelines"].to_s.rjust(5)} " +
            "| #{statistics["classes"].to_s.rjust(7)} " +
