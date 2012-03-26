@@ -174,7 +174,7 @@ module ActiveRecord
     #
     #   Person.pluck(:id) # SELECT people.id FROM people
     #   Person.uniq.pluck(:role) # SELECT DISTINCT role FROM people
-    #   Person.where(:confirmed => true).limit(5).pluck(:id)
+    #   Person.where(:age => 21).limit(5).pluck(:id) # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #
     def pluck(column_name)
       key = column_name.to_s.split('.', 2).last
