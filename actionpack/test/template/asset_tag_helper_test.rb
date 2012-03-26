@@ -375,6 +375,11 @@ class AssetTagHelperTest < ActionView::TestCase
     ENV["RAILS_ASSET_ID"] = ""
     assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag(:defaults, :defaults)
   end
+  
+  def test_javascript_include_tag_with_block_should_render_block_inside_the_tag
+    ENV["RAILS_ASSET_ID"] = ""
+    assert_dom_equal %(<script src="/javascripts/controls.js" type="text/javascript">\nvar bar = 'baz'\n</script>), javascript_include_tag('controls') { "var bar = 'baz'" }
+  end
 
   def test_single_javascript_asset_keys_should_take_precedence_over_expansions
     ENV["RAILS_ASSET_ID"] = ""
