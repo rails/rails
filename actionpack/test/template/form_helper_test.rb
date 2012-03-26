@@ -1063,6 +1063,14 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_namespace_with_date_select
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.date_select(:written_on)
+    end
+
+    assert_select 'select#namespace_post_written_on_1i'
+  end
+
   def test_form_for_with_namespace_with_label
     form_for(@post, :namespace => 'namespace') do |f|
       concat f.label(:title)
