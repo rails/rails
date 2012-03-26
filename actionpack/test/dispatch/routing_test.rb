@@ -475,6 +475,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get :preview, :on => :member
       end
 
+      resources :profiles, :param => :username do
+        get :details, :on => :member
+        resources :messages
+      end
+
       scope :as => "routes" do
         get "/c/:id", :as => :collision, :to => "collision#show"
         get "/collision", :to => "collision#show"
@@ -2181,6 +2186,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get "/posts/1/admin"
     assert_equal "admin/index#index", @response.body
     assert_equal "/posts/1/admin", post_admin_root_path(:post_id => '1')
+  end
+
+  def test_custom_param
+    get '/profiles/bob'
+    assert_equal 'profiles#show', @response.body
+    assert_equal 'bob', @request.params[:username]
+
+    get '/profiles/bob/details'
+    assert_equal 'bob', @request.params[:username]
+
+    get '/profiles/bob/messages/34'
+    assert_equal 'bob', @request.params[:profile_username]
+    assert_equal '34', @request.params[:id]
   end
 
 private
