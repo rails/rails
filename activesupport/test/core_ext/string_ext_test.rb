@@ -36,7 +36,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_strip_heredoc_on_a_regular_indented_heredoc
-    assert_equal "foo\n  bar\nbaz\n", <<-EOS.strip_heredoc
+    assert_equal "foo\n  bar\nbaz", <<-EOS.strip_heredoc
       foo
         bar
       baz
@@ -44,7 +44,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_strip_heredoc_on_a_regular_indented_heredoc_with_blank_lines
-    assert_equal "foo\n  bar\n\nbaz\n", <<-EOS.strip_heredoc
+    assert_equal "foo\n  bar\n\nbaz", <<-EOS.strip_heredoc
       foo
         bar
 
