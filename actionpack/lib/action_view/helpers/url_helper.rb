@@ -334,7 +334,7 @@ module ActionView
         remote = html_options.delete('remote')
 
         method     = html_options.delete('method').to_s
-        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ""
+        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ''.html_safe
 
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
@@ -347,7 +347,8 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
         html_options.merge!("type" => "submit", "value" => name || url)
 
-        "#{tag(:form, form_options, true)}<div>#{method_tag}#{tag("input", html_options)}#{request_token_tag}</div></form>".html_safe
+        inner_tags = method_tag.safe_concat tag('input', html_options).safe_concat request_token_tag
+        content_tag('form', content_tag('div', inner_tags), form_options)
       end
 
 
