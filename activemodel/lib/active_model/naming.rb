@@ -25,18 +25,17 @@ module ActiveModel
 
       @unnamespaced = @name.sub(/^#{namespace.name}::/, '') if namespace
       @klass        = klass
-      @singular     = _singularize(@name).freeze
-      @plural       = ActiveSupport::Inflector.pluralize(@singular).freeze
-      @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@name)).freeze
-      @human        = ActiveSupport::Inflector.humanize(@element).freeze
-      @collection   = ActiveSupport::Inflector.tableize(@name).freeze
-      @param_key    = (namespace ? _singularize(@unnamespaced) : @singular).freeze
+      @singular     = _singularize(@name)
+      @plural       = ActiveSupport::Inflector.pluralize(@singular)
+      @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@name))
+      @human        = ActiveSupport::Inflector.humanize(@element)
+      @collection   = ActiveSupport::Inflector.tableize(@name)
+      @param_key    = (namespace ? _singularize(@unnamespaced) : @singular)
       @i18n_key     = @name.underscore.to_sym
 
       @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural.dup)
-      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key).freeze
+      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key)
       @route_key << "_index" if @plural == @singular
-      @route_key.freeze
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
