@@ -228,6 +228,13 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_none_chained_to_methods_firing_queries_straight_to_db
+    assert_equal [], Developer.none.pluck(:id) # => uses select_all
+    assert_equal 0,  Developer.none.delete_all
+    assert_equal 0,  Developer.none.update_all(:name => 'David')
+    assert_equal 0,  Developer.none.delete(Developer.first.id)
+  end
+
   def test_joins_with_nil_argument
     assert_nothing_raised { DependentFirm.joins(nil).first }
   end
