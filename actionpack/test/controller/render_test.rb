@@ -553,6 +553,10 @@ class TestController < ActionController::Base
     render :partial => 'partial'
   end
 
+  def partial_html_erb
+    render :partial => 'partial_html_erb'
+  end
+
   def render_to_string_with_partial
     @partial_only = render_to_string :partial => "partial_only"
     @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }
@@ -1269,6 +1273,15 @@ class RenderTest < ActionController::TestCase
   def test_should_render_html_formatted_partial
     get :partial
     assert_equal "partial html", @response.body
+    assert_equal "text/html", @response.content_type
+  end
+
+  def test_render_html_formatted_partial_even_with_other_mime_time_in_accept
+    @request.accept = "text/javascript, text/html"
+
+    get :partial_html_erb
+
+    assert_equal "partial.html.erb", @response.body.strip
     assert_equal "text/html", @response.content_type
   end
 
