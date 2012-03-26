@@ -12,7 +12,7 @@ class Hash
       self[stringified_key = key.to_s] = delete(key)
       if options[:recursive]
         if self[stringified_key].instance_of? Array
-          self[stringified_key].each  do |i| 
+          self[stringified_key].each do |i|
             i.stringify_keys! if i.respond_to? :stringify_keys!
           end
         elsif self[stringified_key].respond_to? :stringify_keys!
