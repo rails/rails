@@ -7,6 +7,15 @@ module ActionView
     module AssetTagHelper
 
       class JavascriptIncludeTag < AssetIncludeTag
+        include ActionView::Context
+        attr_reader :content
+        
+        def initialize(config, asset_paths, &block)
+          @config = config
+          @asset_paths = asset_paths
+          self.content = capture(&block) if block_given?
+        end
+        
         def asset_name
           'javascript'
         end
@@ -16,7 +25,7 @@ module ActionView
         end
 
         def asset_tag(source, options)
-          content_tag("script", "", { "type" => Mime::JS, "src" => path_to_asset(source) }.merge(options))
+          content_tag("script", content, { "type" => Mime::JS, "src" => path_to_asset(source) }.merge(options))
         end
 
         def custom_dir
@@ -24,6 +33,10 @@ module ActionView
         end
 
         private
+        
+          def content=(text)
+            @content = "\n#{text.strip}\n"
+          end
 
           def expand_sources(sources, recursive = false)
             if sources.include?(:all)
@@ -189,8 +202,21 @@ module ActionView
         # The <tt>:recursive</tt> option is also available for caching:
         #
         #   javascript_include_tag :all, :cache => true, :recursive => true
-        def javascript_include_tag(*sources)
-          @javascript_include ||= JavascriptIncludeTag.new(config, asset_paths)
+        # 
+        # == Rendering a javascript inside the script tag
+        # 
+        # Sometimes you need to render a text inside the script tag with source. You may use a block to do it.
+        # 
+        # === Examples
+        #   
+        #   javascript_include_tag("https://apis.google.com/js/plusone.js") do
+        #     { parsetags: 'explicit' }
+        #   # => <script type="text/javascript" src="https://apis.google.com/js/plusone.js">
+        #   #    { parsetags: 'explicit' }
+        #   #    </script>
+        #   
+        def javascript_include_tag(*sources, &block)
+          @javascript_include ||= JavascriptIncludeTag.new(config, asset_paths, &block)
           @javascript_include.include_tag(*sources)
         end
       end
