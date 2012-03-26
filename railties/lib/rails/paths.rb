@@ -156,25 +156,9 @@ module Rails
           path = File.expand_path(p, @root.path)
 
           if @glob
-            if File.directory? path
-              result.concat expand_dir(path, @glob)
-            else
-              # FIXME: I think we can remove this branch, but I'm not sure.
-              # Say the filesystem has this file:
-              #
-              #   /tmp/foobar
-              #
-              # and someone adds this path:
-              #
-              #   /tmp/foo
-              #
-              # with a glob of "*", then this function will return
-              #
-              #   /tmp/foobar
-              #
-              # We need to figure out if that is desired behavior.
-              result.concat expand_file(path, @glob)
-            end
+            result.concat Dir.chdir(path) {
+              Dir.glob(@glob).map { |file| File.join path, file }.sort
+            }
           else
             result << path
           end
@@ -194,17 +178,6 @@ module Rails
       end
 
       alias to_a expanded
-
-      private
-      def expand_file(path, glob)
-        Dir[File.join(path, glob)].sort
-      end
-
-      def expand_dir(path, glob)
-        Dir.chdir(path) do
-          Dir.glob(glob).map { |file| File.join path, file }.sort
-        end
-      end
     end
   end
 end
