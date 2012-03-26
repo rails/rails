@@ -880,17 +880,18 @@ module ActionDispatch
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
-          attr_reader :controller, :path, :options
+          attr_reader :controller, :path, :options, :param
 
           def initialize(entities, options = {})
             @name       = entities.to_s
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
             @as         = options[:as]
+            @param      = options[:param] || :id
             @options    = options
           end
 
@@ -935,7 +936,7 @@ module ActionDispatch
           alias :collection_scope :path
 
           def member_scope
-            "#{path}/:id"
+            "#{path}/:#{param}"
           end
 
           def new_scope(new_path)
@@ -943,7 +944,7 @@ module ActionDispatch
           end
 
           def nested_scope
-            "#{path}/:#{singular}_id"
+            "#{path}/:#{singular}_#{param}"
           end
 
         end
