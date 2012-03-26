@@ -4,11 +4,18 @@ module ActiveRecord
   class Base
     class ConnectionSpecification
       class ResolverTest < ActiveRecord::TestCase
-        def resolve(spec)
-          Resolver.new(spec, {}).spec.config
+				
+				def resolve(spec)
+					@configurations = ActiveRecord::Base.configurations.merge({'arunit_alias' => 'arunit'})
+          Resolver.new(spec, @configurations).spec.config
         end
 
-        def test_url_host_no_db
+				def test_alias_host
+          spec = resolve 'arunit_alias'
+          assert_equal(@configurations['arunit'].symbolize_keys, spec)
+				end
+
+				def test_url_host_no_db
           spec = resolve 'mysql://foo?encoding=utf8'
           assert_equal({
             :adapter  => "mysql",
