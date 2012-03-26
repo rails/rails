@@ -90,7 +90,7 @@ module ActiveRecord
       end
 
       def add(record)
-        repository[record.class.symbolized_sti_name][record.id] = record
+        repository[record.class.symbolized_sti_name][record.id] = record if record.class.column_names - record.attribute_names == []
       end
 
       def remove(record)
