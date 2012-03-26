@@ -203,7 +203,7 @@ module Rails
 
       def expand_dir(path, glob)
         Dir.chdir(path) do
-          Dir.glob(@glob).map { |file| File.join path, file }.sort
+          Dir.glob(glob).map { |file| File.join path, file }.sort
         end
       end
     end
