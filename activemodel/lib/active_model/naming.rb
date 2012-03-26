@@ -2,31 +2,36 @@ require 'active_support/inflector'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/deprecation'
+require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/blank'
 
 module ActiveModel
-  class Name < String
+  class Name
+    include Comparable
+
     attr_reader :singular, :plural, :element, :collection,
-      :singular_route_key, :route_key, :param_key, :i18n_key
+      :singular_route_key, :route_key, :param_key, :i18n_key,
+      :name
 
     alias_method :cache_key, :collection
 
+    delegate :==, :===, :<=>, :=~, :"!~", :eql?, :to_s,
+             :to_str, :to => :name
+
     def initialize(klass, namespace = nil, name = nil)
-      name ||= klass.name
+      @name = name || klass.name
 
-      raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if name.blank?
+      raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if @name.blank?
 
-      super(name)
-
-      @unnamespaced = self.sub(/^#{namespace.name}::/, '') if namespace
+      @unnamespaced = @name.sub(/^#{namespace.name}::/, '') if namespace
       @klass        = klass
-      @singular     = _singularize(self).freeze
+      @singular     = _singularize(@name).freeze
       @plural       = ActiveSupport::Inflector.pluralize(@singular).freeze
-      @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
+      @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@name)).freeze
       @human        = ActiveSupport::Inflector.humanize(@element).freeze
-      @collection   = ActiveSupport::Inflector.tableize(self).freeze
+      @collection   = ActiveSupport::Inflector.tableize(@name).freeze
       @param_key    = (namespace ? _singularize(@unnamespaced) : @singular).freeze
-      @i18n_key     = self.underscore.to_sym
+      @i18n_key     = @name.underscore.to_sym
 
       @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural.dup)
       @singular_route_key = ActiveSupport::Inflector.singularize(@route_key).freeze
