@@ -55,13 +55,13 @@ module Rails
       end
 
       def []=(path, value)
-        value = Path.new(self, path, value) unless value.is_a?(Path)
+        value = Path.new(self, path, [value].flatten) unless value.is_a?(Path)
         super(path, value)
       end
 
       def add(path, options={})
         with = options[:with] || path
-        self[path] = Path.new(self, path, with, options)
+        self[path] = Path.new(self, path, [with].flatten, options)
       end
 
       def all_paths
@@ -104,9 +104,8 @@ module Rails
       attr_reader :path
       attr_accessor :glob
 
-      def initialize(root, current, *paths)
-        options = paths.last.is_a?(::Hash) ? paths.pop : {}
-        super(paths.flatten)
+      def initialize(root, current, paths, options = {})
+        super(paths)
 
         @current  = current
         @root     = root
