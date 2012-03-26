@@ -17,7 +17,7 @@ module ActiveRecord
         end
 
         def spec
-          case config
+					case config
           when nil
             raise AdapterNotSpecified unless defined?(Rails.env)
             resolve_string_connection Rails.env
@@ -36,7 +36,7 @@ module ActiveRecord
 
           raise(AdapterNotSpecified, "#{spec} database is not configured") unless hash
 
-          resolve_hash_connection hash
+          hash.is_a?(Hash) ? resolve_hash_connection(hash) : resolve_string_connection(hash)
         end
 
         def resolve_hash_connection(spec) # :nodoc:
