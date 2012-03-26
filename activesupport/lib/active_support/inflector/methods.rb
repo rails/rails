@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'active_support/inflector/inflections'
 
 module ActiveSupport
@@ -112,7 +114,7 @@ module ActiveSupport
     #   "TheManWithoutAPast".titleize       # => "The Man Without A Past"
     #   "raiders_of_the_lost_ark".titleize  # => "Raiders Of The Lost Ark"
     def titleize(word)
-      humanize(underscore(word)).gsub(/\b('?[a-z])/) { $1.capitalize }
+      humanize(underscore(word)).gsub(/\b(['’`]?[a-z])/) { $1.capitalize }
     end
 
     # Create the name of a table like Rails does for models to table names. This method
@@ -209,7 +211,7 @@ module ActiveSupport
     def constantize(camel_cased_word) #:nodoc:
       names = camel_cased_word.split('::')
       names.shift if names.empty? || names.first.empty?
- 
+
       names.inject(Object) do |constant, name|
         constant.const_get(name, false)
       end
