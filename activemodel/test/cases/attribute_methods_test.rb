@@ -219,6 +219,12 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_raises(NoMethodError) { m.protected_method }
   end
 
+  class ClassWithProtected
+    protected
+    def protected_method
+    end
+  end
+
   test 'should not interfere with respond_to? if the attribute has a private/protected method' do
     m = ModelWithAttributes2.new
     m.attributes = { 'private_method' => '<3', 'protected_method' => 'O_o' }
@@ -226,9 +232,11 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert !m.respond_to?(:private_method)
     assert m.respond_to?(:private_method, true)
 
+    c = ClassWithProtected.new
+
     # This is messed up, but it's how Ruby works at the moment. Apparently it will be changed
     # in the future.
-    assert m.respond_to?(:protected_method)
+    assert_equal c.respond_to?(:protected_method), m.respond_to?(:protected_method)
     assert m.respond_to?(:protected_method, true)
   end
 
