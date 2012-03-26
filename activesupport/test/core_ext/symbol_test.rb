@@ -16,12 +16,13 @@ class SymbolTests < ActiveSupport::TestCase
   def test_tilde_operator_in_case
     case ExamplePredicateClass.new
     when ~:not_true?
-      fail 'Reached not_true? clause'
+      clause = 'not-true'
     when ~:so_true?
-      pass
+      clause = 'so-true'
     else
-      fail 'Reached else clause'
+      clause = 'else'
     end
-  end
 
+    assert_equal 'so-true', clause
+  end
 end
