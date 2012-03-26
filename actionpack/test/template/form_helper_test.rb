@@ -2238,7 +2238,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    assert_deprecated /Giving a block to FormBuilder is deprecated and has no effect anymore/ do
+    assert_deprecated(/Giving a block to FormBuilder is deprecated and has no effect anymore/) do
       builder_class.new(:foo, nil, nil, {}, proc {})
     end
   end
