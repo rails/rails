@@ -59,7 +59,7 @@ module ActionDispatch
       end
 
       def set_session(env, sid, session_data, options)
-        session_data.merge("session_id" => sid)
+        session_data.merge!("session_id" => sid)
       end
 
       def set_cookie(env, session_id, cookie)
