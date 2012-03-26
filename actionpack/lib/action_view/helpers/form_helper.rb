@@ -9,6 +9,7 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/deprecation'
 
 module ActionView
   # = Action View Form Helpers
@@ -22,7 +23,7 @@ module ActionView
     # being routed to the appropriate controller action (with the appropriate <tt>:id</tt>
     # parameter in the case of an existing resource), (ii) input fields should
     # be named in such a way that in the controller their values appear in the
-    # appropriate places within the +params+ hash, and (iii) for an existing record, 
+    # appropriate places within the +params+ hash, and (iii) for an existing record,
     # when the form is initially displayed, input fields corresponding to attributes
     # of the resource should show the current values of those attributes.
     #
@@ -156,7 +157,7 @@ module ActionView
       # if <tt>:person</tt> also happens to be the name of an instance variable
       # <tt>@person</tt>, the default value of the field shown when the form is
       # initially displayed (e.g. in the situation where you are editing an
-      # existing record) will be the value of the corresponding attribute of 
+      # existing record) will be the value of the corresponding attribute of
       # <tt>@person</tt>.
       #
       # The rightmost argument to +form_for+ is an
@@ -1057,7 +1058,12 @@ module ActionView
         self
       end
 
-      def initialize(object_name, object, template, options)
+      def initialize(object_name, object, template, options, block=nil)
+        if block
+          ActiveSupport::Deprecation.warn(
+            "Giving a block to FormBuilder is deprecated and has no effect anymore.")
+        end
+
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
         @parent_builder = options[:parent_builder]
