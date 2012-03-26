@@ -263,7 +263,7 @@ create      test/fixtures/blorgh/comments.yml
 
 This generator call will generate just the necessary model files it needs, namespacing the files under a +blorgh+ directory and creating a model class called +Blorgh::Comment+.
 
-To show the comments on a post, edit +app/views/posts/show.html.erb+ and add this line before the "Edit" link:
+To show the comments on a post, edit +app/views/blorgh/posts/show.html.erb+ and add this line before the "Edit" link:
 
 <erb>
 <h3>Comments</h3>
