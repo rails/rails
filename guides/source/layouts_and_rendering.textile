@@ -1266,7 +1266,7 @@ jQuery('form#new_post').submit(function() {
 
 NOTE: Handling JSON is optimized for computers, we'll cover that here too
 
-h4. Programmer-optimized way
+h4. Optimize for Humans
 
 Instead of letting that code lost in some file, a better approach is write it close to the MVC structure. See how it's done in Rails:
 
@@ -1319,7 +1319,7 @@ end
 
 TIP: The +j+ helper escapes special caracters to be used safely in javascript strings
 
-h4. Computer-optimized way
+h4. Optimize for Machines
 
 Let's see how to handle JSON values in a very railsy style:
 
