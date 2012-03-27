@@ -200,7 +200,7 @@ module ActiveRecord
         relation = relation.where(table[primary_key].eq(id)) if id
       end
 
-      connection.select_value(relation, "#{name} Exists", relation.bind_values)
+      connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
     end
 
     protected
