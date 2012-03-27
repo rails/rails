@@ -10,6 +10,14 @@ module ActiveSupport
   #   Rails.env.production?
   #
   class StringInquirer < String
+    def self.dump(value)
+      value.presence.try(:parameterize, "_")
+    end
+
+    def self.load(value)
+      value.present? ? new(dump(value)) : nil
+    end
+
     def method_missing(method_name, *arguments)
       if method_name[-1, 1] == "?"
         self == method_name[0..-2]
