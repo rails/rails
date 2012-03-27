@@ -620,6 +620,20 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_time_zone_aware_attribute_saved
+    old_default, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, :utc
+
+    in_time_zone 1 do
+      record = @target.create(:written_on => '2012-02-20 10:00')
+
+      record.written_on = '2012-02-20 09:00'
+      record.save
+      assert_equal Time.zone.local(2012, 02, 20, 9), record.reload.written_on
+    end
+  ensure
+    ActiveRecord::Base.default_timezone = old_default
+  end
+
   def test_setting_time_zone_aware_attribute_to_blank_string_returns_nil
     in_time_zone "Pacific Time (US & Canada)" do
       record   = @target.new
