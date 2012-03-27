@@ -16,13 +16,13 @@ module Rails
     #   path.eager_load?               # => true
     #   path.is_a?(Rails::Paths::Path) # => true
     #
-    # The +Path+ object is simply an array and allows you to easily add extra paths:
+    # The +Path+ object is simply an enumerable and allows you to easily add extra paths:
     #
-    #   path.is_a?(Array) # => true
-    #   path.inspect      # => ["app/controllers"]
+    #   path.is_a?(Enumerable) # => true
+    #   path.to_ary.inspect    # => ["app/controllers"]
     #
     #   path << "lib/controllers"
-    #   path.inspect      # => ["app/controllers", "lib/controllers"]
+    #   path.to_ary.inspect    # => ["app/controllers", "lib/controllers"]
     #
     # Notice that when you add a path using +add+, the path object created already
     # contains the path with the same path value given to +add+. In some situations,
@@ -100,13 +100,14 @@ module Rails
       end
     end
 
-    class Path < Array
+    class Path
+      include Enumerable
+
       attr_reader :path
       attr_accessor :glob
 
       def initialize(root, current, paths, options = {})
-        super(paths)
-
+        @paths    = paths
         @current  = current
         @root     = root
         @glob     = options[:glob]
@@ -145,6 +146,27 @@ module Rails
             @#{m}          #   @eager_load
           end              # end
         RUBY
+      end
+
+      def each(&block)
+        @paths.each &block
+      end
+
+      def <<(path)
+        @paths << path
+      end
+      alias :push :<<
+
+      def concat(paths)
+        @paths.concat paths
+      end
+
+      def unshift(path)
+        @paths.unshift path
+      end
+
+      def to_ary
+        @paths
       end
 
       # Expands all paths against the root and return all unique values.
