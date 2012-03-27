@@ -1237,12 +1237,11 @@ That's it. The News views will use the new layout, hiding the top menu and addin
 There are several ways of getting similar results with different sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the +ActionView::render+ method via +render :template => 'layouts/news'+ to base a new layout on the News layout. If you are sure you will not subtemplate the +News+ layout, you can replace the +content_for?(:news_content) ? yield(:news_content) : yield+ with simply +yield+.
 
 
-h3. Submitting Forms with Ajax
+h3. Rendering in Ajax Forms
 
 There are a lot of situations when we want to submit a form with ajax. Creating a post can be often seen as one of them. Let us see one nice way to create a post without refreshing the entire page:
 
-
-TIP: The jQuery way looks neat at first, but as your app grows you start losing control of where that code was and what exactly it did:
+TIP: jQuery hooks are just fine, but they may grow in complexity. This section covers how to write your ajax requests closer to the MVC structure, so it's easier to maintain:
 
 * +app/assets/javascripts/posts.js+
 
@@ -1265,9 +1264,9 @@ jQuery('form#new_post').submit(function() {
 });
 </erb>
 
-NOTE: Handling JSON seems fast at first, we'll cover that here too
+NOTE: Handling JSON is optimized for computers, we'll cover that here too
 
-h4. Programmer-fast way
+h4. Programmer-optimized way
 
 Instead of letting that code lost in some file, a better approach is write it close to the MVC structure. See how it's done in Rails:
 
@@ -1320,7 +1319,7 @@ end
 
 TIP: The +j+ helper escapes special caracters to be used safely in javascript strings
 
-h4. Computer-fast way
+h4. Computer-optimized way
 
 Let's see how to handle JSON values in a very railsy style:
 
