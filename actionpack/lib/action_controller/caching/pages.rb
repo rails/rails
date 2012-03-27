@@ -99,7 +99,7 @@ module ActionController #:nodoc:
         #   caches_page :index
         #
         #   # cache the index action except for JSON requests
-        #   caches_page :index, :if => Proc.new { |c| !c.request.format.json? }
+        #   caches_page :index, :if => Proc.new { !request.format.json? }
         #
         #   # don't gzip images
         #   caches_page :image, :gzip => false
