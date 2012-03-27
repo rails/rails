@@ -1117,9 +1117,16 @@ module ActionView
         @template.fields_for(record_name, record_object, fields_options, &block)
       end
 
-      def label(method, text = nil, options = {}, &block)
-        @template.label(@object_name, method, text, objectify_options(options), &block)
+      def label(method, content_or_options = nil, options = {}, &block)
+        if content_or_options.is_a?(Hash)
+          content_or_options = objectify_options(content_or_options)
+        else
+          options = objectify_options(options)
+        end
+
+        @template.label(@object_name, method, content_or_options, options, &block)
       end
+
 
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
         @template.check_box(@object_name, method, objectify_options(options), checked_value, unchecked_value)
