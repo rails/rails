@@ -2,8 +2,8 @@ module ActionPack
   module VERSION #:nodoc:
     MAJOR = 3
     MINOR = 2
-    TINY  = 2
-    PRE   = nil
+    TINY  = 3
+    PRE   = "rc1"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end
