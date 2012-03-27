@@ -3,15 +3,15 @@ module ActionView
     module Tags
       class Label < Base #:nodoc:
         def initialize(object_name, method_name, template_object, content_or_options = nil, options = nil)
+          options ||= {}
+
           content_is_options = content_or_options.is_a?(Hash)
           if content_is_options
-            options = content_or_options
+            options.merge! content_or_options
             @content = nil
           else
             @content = content_or_options
           end
-
-          options ||= {}
 
           super(object_name, method_name, template_object, options)
         end
