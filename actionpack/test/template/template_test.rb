@@ -82,12 +82,11 @@ class TestERBTemplate < ActiveSupport::TestCase
     # is set to something other than UTF-8, we don't
     # get any errors and get back a UTF-8 String.
     def test_default_external_works
-      Encoding.default_external = "ISO-8859-1"
-      @template = new_template("hello \xFCmlat")
-      assert_equal Encoding::UTF_8, render.encoding
-      assert_equal "hello \u{fc}mlat", render
-    ensure
-      Encoding.default_external = "UTF-8"
+      with_external_encoding "ISO-8859-1" do
+        @template = new_template("hello \xFCmlat")
+        assert_equal Encoding::UTF_8, render.encoding
+        assert_equal "hello \u{fc}mlat", render
+      end
     end
 
     def test_encoding_can_be_specified_with_magic_comment
@@ -123,10 +122,12 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
 
     def with_external_encoding(encoding)
-      old, Encoding.default_external = Encoding.default_external, encoding
+      old = Encoding.default_external
+      Encoding::Converter.new old, encoding if old != encoding
+      silence_warnings { Encoding.default_external = encoding }
       yield
     ensure
-      Encoding.default_external = old
+      silence_warnings { Encoding.default_external = old }
     end
 
     def test_render_inline_safebuffer_should_not_raise_error
