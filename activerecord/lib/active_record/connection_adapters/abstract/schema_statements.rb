@@ -174,7 +174,7 @@ module ActiveRecord
       end
 
       # Creates a new join table with the name created using the lexical order of the first two
-      # arguments. These arguments can be be a String or a Symbol.
+      # arguments. These arguments can be a String or a Symbol.
       #
       #  # Creates a table called 'assemblies_parts' with no id.
       #  create_join_table(:assemblies, :parts)

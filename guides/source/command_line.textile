@@ -278,6 +278,12 @@ The +console+ command lets you interact with your Rails application from the com
 
 You can also use the alias "c" to invoke the console: <tt>rails c</tt>.
 
+You can specify the environment in which the +console+ command should operate using the +-e+ switch.
+
+<shell>
+$ rails console -e staging
+</shell>
+
 If you wish to test out some code without changing any data, you can do that by invoking +rails console --sandbox+.
 
 <shell>
