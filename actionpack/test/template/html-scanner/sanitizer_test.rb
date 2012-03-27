@@ -125,6 +125,20 @@ class SanitizerTest < ActionController::TestCase
     assert_equal(text, sanitizer.sanitize(text, :attributes => ['foo']))
   end
 
+  def test_should_raise_argument_error_if_tags_is_not_enumerable
+    sanitizer = HTML::WhiteListSanitizer.new
+    assert_raise(ArgumentError, "You should pass :tags as an Enumerable") do
+      sanitizer.sanitize('', :tags => 'foo')
+    end
+  end
+
+  def test_should_raise_argument_error_if_attributes_is_not_enumerable
+    sanitizer = HTML::WhiteListSanitizer.new
+    assert_raise(ArgumentError, "You should pass :attributes as an Enumerable") do
+      sanitizer.sanitize('', :attributes => 'foo')
+    end
+  end
+
   [%w(img src), %w(a href)].each do |(tag, attr)|
     define_method "test_should_strip_#{attr}_attribute_in_#{tag}_with_bad_protocols" do
       assert_sanitized %(<#{tag} #{attr}="javascript:bang" title="1">boo</#{tag}>), %(<#{tag} title="1">boo</#{tag}>)
