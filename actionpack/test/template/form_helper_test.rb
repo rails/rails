@@ -1046,6 +1046,28 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_label_error_wrapping_without_conventional_instance_variable
+    post = remove_instance_variable :@post
+    default_field_error_proc = ActionView::Base.field_error_proc
+    ActionView::Base.field_error_proc = Proc.new{ |html_tag, instance| "<div class='error'>#{html_tag}</div>".html_safe }
+
+    form_for(post) do |f|
+      concat f.label(:author_name, :class => 'label')
+      concat f.text_field(:author_name)
+      concat f.submit('Create post')
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123' , 'edit_post', 'patch') do
+      "<div class='error'><label for='post_author_name' class='label'>Author name</label></div>" +
+      "<div class='error'><input name='post[author_name]' type='text' id='post_author_name' value='' /></div>" +
+      "<input name='commit' type='submit' value='Create post' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  ensure
+    ActionView::Base.field_error_proc = default_field_error_proc
+  end
+
   def test_form_for_with_namespace
     form_for(@post, :namespace => 'namespace') do |f|
       concat f.text_field(:title)
