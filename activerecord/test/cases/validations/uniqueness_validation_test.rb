@@ -328,8 +328,8 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   
   def test_validate_uniqueness_with_conditions
     Topic.validates_uniqueness_of(:title, :conditions => Topic.where('approved = ?', true))
-    t1 = Topic.create("title" => "I'm a topic", "approved" => true)
-    t2 = Topic.create("title" => "I'm an unapproved topic", "approved" => false)
+    Topic.create("title" => "I'm a topic", "approved" => true)
+    Topic.create("title" => "I'm an unapproved topic", "approved" => false)
     
     t3 = Topic.new("title" => "I'm a topic", "approved" => true)
     assert !t3.valid?, "t3 shouldn't be valid"
