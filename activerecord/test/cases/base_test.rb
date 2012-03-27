@@ -61,7 +61,11 @@ end
 
 class Weird < ActiveRecord::Base; end
 
-class Boolean < ActiveRecord::Base; end
+class Boolean < ActiveRecord::Base
+  def has_fun
+    super
+  end
+end
 
 class LintTest < ActiveRecord::TestCase
   include ActiveModel::Lint::Tests
@@ -928,6 +932,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert !b_false.value?
     b_true = Boolean.find(true_id)
     assert b_true.value?
+  end
+
+  def test_boolean_without_questionmark
+    b_true = Boolean.create({ "value" => true })
+    true_id = b_true.id
+
+    subclass   = Class.new(Boolean).find true_id
+    superclass = Boolean.find true_id
+
+    assert_equal superclass.read_attribute(:has_fun), subclass.read_attribute(:has_fun)
   end
 
   def test_boolean_cast_from_string
