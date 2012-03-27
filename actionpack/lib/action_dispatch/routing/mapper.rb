@@ -1138,7 +1138,7 @@ module ActionDispatch
         # [:shallow_prefix]
         #   Prefixes nested shallow route names with specified prefix.
         #
-        #     scope :shallow_prefix => "sekret"
+        #     scope :shallow_prefix => "sekret" do
         #       resources :posts do
         #         resources :comments, :shallow => true
         #       end
