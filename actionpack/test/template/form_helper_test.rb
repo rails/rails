@@ -943,6 +943,41 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_label_error_wrapping
+    form_for(@post) do |f|
+      concat f.label(:author_name, :class => 'label')
+      concat f.text_field(:author_name)
+      concat f.submit('Create post')
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123" , "edit_post", :method => "put") do
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Author name</label></div>" +
+      "<div class='field_with_errors'><input name='post[author_name]' size='30' type='text' id='post_author_name' value='' /></div>" +
+      "<input name='commit' type='submit' value='Create post' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+
+  def test_form_for_label_error_wrapping_without_conventional_instance_variable
+    post = remove_instance_variable :@post
+
+    form_for(post) do |f|
+      concat f.label(:author_name, :class => 'label')
+      concat f.text_field(:author_name)
+      concat f.submit('Create post')
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123" , "edit_post", :method => "put") do
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Author name</label></div>" +
+      "<div class='field_with_errors'><input name='post[author_name]' size='30' type='text' id='post_author_name' value='' /></div>" +
+      "<input name='commit' type='submit' value='Create post' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_namespace
     form_for(@post, :namespace => 'namespace') do |f|
       concat f.text_field(:title)

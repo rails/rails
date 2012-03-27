@@ -656,15 +656,16 @@ module ActionView
       #     'Accept <a href="/terms">Terms</a>.'.html_safe
       #   end
       def label(object_name, method, content_or_options = nil, options = nil, &block)
+        options ||= {}
+
         content_is_options = content_or_options.is_a?(Hash)
         if content_is_options || block_given?
-          options = content_or_options if content_is_options
+          options.merge!(content_or_options) if content_is_options
           text = nil
         else
           text = content_or_options
         end
 
-        options ||= {}
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_label_tag(text, options, &block)
       end
 
