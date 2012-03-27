@@ -12,8 +12,6 @@ require 'arel/attributes'
 require 'arel/compatibility/wheres'
 
 #### these are deprecated
-# The Arel::Relation constant is referenced in Rails
-require 'arel/relation'
 require 'arel/expression'
 ####
 

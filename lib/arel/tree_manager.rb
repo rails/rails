@@ -1,7 +1,5 @@
 module Arel
   class TreeManager
-    # FIXME: Remove this.
-    include Arel::Relation
     include Arel::FactoryMethods
 
     attr_reader :ast, :engine
