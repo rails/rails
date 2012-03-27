@@ -139,13 +139,13 @@ module Rails
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
             gem 'journey',   :git => 'git://github.com/rails/journey.git'
-            gem 'arel',      :git => 'git://github.com/rails/arel.git'
+            gem 'arel',      :git => 'git://github.com/rails/arel.git', :branch => '3-0-stable'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :git => 'git://github.com/rails/rails.git', :branch => '3-2-stable'
             gem 'journey',   :git => 'git://github.com/rails/journey.git'
-            gem 'arel',      :git => 'git://github.com/rails/arel.git'
+            gem 'arel',      :git => 'git://github.com/rails/arel.git', :branch => '3-0-stable'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
