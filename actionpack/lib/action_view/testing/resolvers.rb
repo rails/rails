@@ -22,10 +22,11 @@ module ActionView #:nodoc:
       end
 
       templates = []
-      @hash.select { |k,v| k =~ /^#{query}$/ }.each do |path, source|
-        handler, format = extract_handler_and_format(path, formats)
-        templates << Template.new(source, path, handler,
-          :virtual_path => path, :format => format)
+      @hash.each do |_path, source|
+        next unless _path =~ /^#{query}$/
+        handler, format = extract_handler_and_format(_path, formats)
+        templates << Template.new(source, _path, handler,
+          :virtual_path => _path, :format => format)
       end
 
       templates.sort_by {|t| -t.identifier.match(/^#{query}$/).captures.reject(&:blank?).size }
