@@ -292,6 +292,7 @@ module ActionView
           precision = precision > 0 ? precision : 0  #don't let it be negative
         else
           rounded_number = BigDecimal.new(number.to_s).round(precision).to_f
+          rounded_number = rounded_number.zero? ? rounded_number.abs : rounded_number #prevent showing negative zeros
         end
         formatted_number = number_with_delimiter("%01.#{precision}f" % rounded_number, options)
         if strip_insignificant_zeros
