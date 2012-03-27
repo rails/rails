@@ -3,33 +3,6 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/kernel/singleton_class'
 
-if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'ruby' && RUBY_VERSION == '1.9.3' && RUBY_PATCHLEVEL == 0
-  # This is a hack to work around a bug in Ruby 1.9.3p0:
-  # http://redmine.ruby-lang.org/issues/5564
-  #
-  # Basically, at runtime we may need to perform some encoding conversions on the templates,
-  # but if the converter hasn't been loaded by Ruby beforehand (i.e. now), then it won't be
-  # able to find it (due to a  bug).
-  #
-  # However, we don't know what conversions we may need to do a runtime. So we load up a
-  # text file which contains a pre-generated list of all the possible conversions,
-  # and we load all of them.
-  #
-  # In my testing this increased the process size by about 3.9 MB (after the conversions array
-  # is GC'd) and took around 170ms to run, which seems acceptable for a workaround.
-  #
-  # The script to dump the conversions is: https://gist.github.com/1371499
-
-  filename    = File.join(File.dirname(__FILE__), 'data', 'encoding_conversions.txt')
-  conversions = File.read(filename)
-  conversions.split("\n").map do |line|
-    from, to_array = line.split(':')
-    to_array.split(',').each do |to|
-      Encoding::Converter.new(from, to)
-    end
-  end
-end
-
 module ActionView
   # = Action View Template
   class Template
