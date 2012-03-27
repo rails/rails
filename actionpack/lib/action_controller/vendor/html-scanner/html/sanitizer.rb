@@ -5,6 +5,7 @@ require 'active_support/core_ext/class/attribute'
 module HTML
   class Sanitizer
     def sanitize(text, options = {})
+      validate_options(options)
       return text unless sanitizeable?(text)
       tokenize(text, options).join
     end
@@ -26,6 +27,16 @@ module HTML
 
     def process_node(node, result, options)
       result << node.to_s
+    end
+
+    def validate_options(options)
+      if options[:tags] && !options[:tags].is_a?(Enumerable)
+        raise ArgumentError, "You should pass :tags as an Enumerable"
+      end
+
+      if options[:attributes] && !options[:attributes].is_a?(Enumerable)
+        raise ArgumentError, "You should pass :attributes as an Enumerable"
+      end
     end
   end
 
