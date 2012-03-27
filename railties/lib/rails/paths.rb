@@ -43,25 +43,40 @@ module Rails
     #   root["app/controllers"].existent # => ["/rails/app/controllers"]
     #
     # Check the <tt>Rails::Paths::Path</tt> documentation for more information.
-    class Root < ::Hash
+    class Root
       attr_accessor :path
 
       def initialize(path)
         raise "Argument should be a String of the physical root path" if path.is_a?(Array)
         @current = nil
         @path = path
-        @root = self
-        super()
+        @root = {}
       end
 
       def []=(path, value)
         value = Path.new(self, path, [value].flatten) unless value.is_a?(Path)
-        super(path, value)
+        @root[path] = value
       end
 
       def add(path, options={})
         with = options[:with] || path
-        self[path] = Path.new(self, path, [with].flatten, options)
+        @root[path] = Path.new(self, path, [with].flatten, options)
+      end
+
+      def [](path)
+        @root[path]
+      end
+
+      def values
+        @root.values
+      end
+
+      def keys
+        @root.keys
+      end
+
+      def values_at(*list)
+        @root.values_at(*list)
       end
 
       def all_paths
