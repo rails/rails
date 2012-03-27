@@ -404,11 +404,12 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert comment.save
   end
 
-  def test_do_not_add_to_identity_map_if_record_do_not_contain_all_columns
-    post = Post.select(:id).first
-    comment = post.comments[0]
+  def test_do_not_add_to_repository_if_record_does_not_contain_all_columns
+    author = Author.select(:id).first
+    post = author.posts.first
+
     assert_nothing_raised do
-      assert_not_nil comment.post.title
+      assert_not_nil post.author.name
     end
   end
 
