@@ -524,7 +524,7 @@ You also have access to three instance variables in your functional tests:
 * +@request+ - The request
 * +@response+ - The response
 
-h4. Testing Template and Layout Example
+h4. Testing Templates and Layouts
 
 If you want to make sure that the response rendered the correct template and layout, you can use the +assert_template+ 
 method:
@@ -543,12 +543,10 @@ things clearer. On the other hand, you have to include the "layouts" directory n
 file in this standard layout directory. Hence,
 
 <ruby>
-  assert_template :layout => "application"
+assert_template :layout => "application"
 </ruby>
 
 will not work.
-
-<b>Gotcha: Watch out if your view renders any partial</b>
 
 If your view renders any partial, when asserting for the layout, you have to assert for the partial at the same time.
 Otherwise, assertion will fail.
