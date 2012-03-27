@@ -22,7 +22,7 @@ class PathsTest < ActiveSupport::TestCase
     root = Rails::Paths::Root.new(nil)
     root.add "app"
     root.path = "/root"
-    assert_equal ["app"], root["app"]
+    assert_equal ["app"], root["app"].to_ary
     assert_equal ["/root/app"], root["app"].to_a
   end
 
