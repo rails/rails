@@ -95,7 +95,7 @@ module ActionView
       #   # => <select id="colors" multiple="multiple" name="colors[]"><option>Red</option>
       #   #    <option>Green</option><option>Blue</option></select>
       #
-      #   select_tag "locations", "<option>Home</option><option selected="selected">Work</option><option>Out</option>".html_safe
+      #   select_tag "locations", "<option>Home</option><option selected='selected'>Work</option><option>Out</option>".html_safe
       #   # => <select id="locations" name="locations"><option>Home</option><option selected='selected'>Work</option>
       #   #    <option>Out</option></select>
       #
