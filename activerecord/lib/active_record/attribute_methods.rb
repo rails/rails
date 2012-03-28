@@ -64,6 +64,7 @@ module ActiveRecord
           return if attribute_methods_generated?
           superclass.define_attribute_methods unless self == base_class
           super(column_names)
+          column_names.each { |name| define_external_attribute_method(name) }
           @attribute_methods_generated = true
         end
       end
