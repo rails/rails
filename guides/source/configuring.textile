@@ -395,6 +395,8 @@ And can reference in the view with the following code:
 
 * +config.action_view.cache_asset_ids+ With the cache enabled, the asset tag helper methods will make fewer expensive file system calls (the default implementation checks the file system timestamp). However this prevents you from modifying any asset files while the server is running.
 
+* +config.action_view.embed_authenticity_token_in_remote_forms+ This is by default set to true. If you set it to false, authenticity_token will not be added to forms with +:remote => true+ by default. You can force +authenticity_token+ to be added to such remote form by passing +:authenticity_token => true+ option.
+
 h4. Configuring Action Mailer
 
 There are a number of settings available on +config.action_mailer+:
