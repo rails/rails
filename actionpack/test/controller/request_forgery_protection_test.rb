@@ -44,6 +44,14 @@ module RequestForgeryProtectionActions
     render :inline => "<%= form_for(:some_resource, :remote => true, :authenticity_token => true ) {} %>"
   end
 
+  def form_for_with_token
+    render :inline => "<%= form_for(:some_resource, :authenticity_token => true ) {} %>"
+  end
+
+  def form_for_remote_with_external_token
+    render :inline => "<%= form_for(:some_resource, :remote => true, :authenticity_token => 'external_token') {} %>"
+  end
+
   def rescue_action(e) raise e end
 end
 
@@ -108,16 +116,54 @@ module RequestForgeryProtectionTests
     assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
-  def test_should_render_form_without_token_tag_if_remote
+  def test_should_render_form_with_token_tag_if_remote
     assert_not_blocked do
       get :form_for_remote
     end
-    assert_no_match(/authenticity_token/, response.body)
+    assert_match(/authenticity_token/, response.body)
+  end
+
+  def test_should_render_form_without_token_tag_if_remote_and_embedding_token_is_off
+    begin
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = false
+      assert_not_blocked do
+        get :form_for_remote
+      end
+      assert_no_match(/authenticity_token/, response.body)
+    ensure
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
+    end
+  end
+
+  def test_should_render_form_with_token_tag_if_remote_and_embedding_token_is_off_but_true_option_passed
+     begin
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = false
+      assert_not_blocked do
+        get :form_for_remote_with_token
+      end
+      assert_match(/authenticity_token/, response.body)
+    ensure
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
+    end
+  end
+
+  def test_should_render_form_with_token_tag_if_remote_and_external_authenticity_token_requested
+    assert_not_blocked do
+      get :form_for_remote_with_external_token
+    end
+    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_authenticity_token_requested
     assert_not_blocked do
       get :form_for_remote_with_token
+    end
+    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+  end
+
+  def test_should_render_form_with_token_tag_with_authenticity_token_requested
+    assert_not_blocked do
+      get :form_for_with_token
     end
     assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
