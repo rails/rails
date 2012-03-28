@@ -2,6 +2,7 @@
 require 'fileutils'
 include FileUtils
 
+
 commands = [
   'mysql -e "create database activerecord_unittest;"',
   'mysql -e "create database activerecord_unittest2;"',
