@@ -11,8 +11,8 @@ module ActionView
       context  = @lookup_context
 
       unless context.rendered_format
-        context.rendered_format = template.formats.first
-        context.formats = template.formats
+        context.formats = template.formats unless template.formats.empty?
+        context.rendered_format = context.formats.first
       end
 
       render_template(template, options[:layout], options[:locals])
