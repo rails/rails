@@ -134,6 +134,10 @@ module Rails
       self
     end
 
+    def initialized?
+      @initialized
+    end
+
     # Load the application and its railties tasks and invoke the registered hooks.
     # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
     def load_tasks(app=self)

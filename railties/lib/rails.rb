@@ -42,11 +42,7 @@ module Rails
     end
 
     def initialized?
-      @@initialized || false
-    end
-
-    def initialized=(initialized)
-      @@initialized ||= initialized
+      application.initialized?
     end
 
     def logger

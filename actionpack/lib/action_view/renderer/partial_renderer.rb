@@ -257,6 +257,14 @@ module ActionView
       setup(context, options, block)
       identifier = (@template = find_partial) ? @template.identifier : @path
 
+      @lookup_context.rendered_format ||= begin
+        if @template && @template.formats.present?
+          @template.formats.first
+        else
+          formats.first
+        end
+      end
+
       if @collection
         instrument(:collection, :identifier => identifier || "collection", :count => @collection.size) do
           render_collection
@@ -315,8 +323,6 @@ module ActionView
       @locals  = options[:locals] || {}
       @block   = block
       @details = extract_details(options)
-
-      @lookup_context.rendered_format ||= formats.first
 
       if String === partial
         @object     = options[:object]

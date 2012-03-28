@@ -118,7 +118,7 @@ module ActiveRecord
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         # If it's cached, just return it
-        @attributes_cache.fetch(attr_name) { |name|
+        @attributes_cache.fetch(attr_name.to_s) { |name|
           column = @columns_hash.fetch(name) {
             return self.class.type_cast_attribute(name, @attributes, @attributes_cache)
           }

@@ -16,6 +16,10 @@ module AbstractController
         W.default_url_options[:host] = 'www.basecamphq.com'
       end
 
+      def add_port!
+        W.default_url_options[:port] = 3000
+      end
+
       def add_numeric_host!
         W.default_url_options[:host] = '127.0.0.1'
       end
@@ -118,6 +122,14 @@ module AbstractController
         add_host!
         assert_equal('http://www.basecamphq.com:3000/c/a/i',
           W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :port => 3000)
+        )
+      end
+
+      def test_default_port
+        add_host!
+        add_port!
+        assert_equal('http://www.basecamphq.com:3000/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i')
         )
       end
 

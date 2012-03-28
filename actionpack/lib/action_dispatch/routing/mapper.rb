@@ -1135,6 +1135,25 @@ module ActionDispatch
         #     comment          PATCH/PUT /sekret/comments/:id(.:format)
         #     comment          DELETE    /sekret/comments/:id(.:format)
         #
+        # [:shallow_prefix]
+        #   Prefixes nested shallow route names with specified prefix.
+        #
+        #     scope :shallow_prefix => "sekret" do
+        #       resources :posts do
+        #         resources :comments, :shallow => true
+        #       end
+        #     end
+        #
+        #   The +comments+ resource here will have the following routes generated for it:
+        #
+        #     post_comments           GET       /posts/:post_id/comments(.:format)
+        #     post_comments           POST      /posts/:post_id/comments(.:format)
+        #     new_post_comment        GET       /posts/:post_id/comments/new(.:format)
+        #     edit_sekret_comment     GET       /comments/:id/edit(.:format)
+        #     sekret_comment          GET       /comments/:id(.:format)
+        #     sekret_comment          PATCH/PUT /comments/:id(.:format)
+        #     sekret_comment          DELETE    /comments/:id(.:format)
+        #
         # === Examples
         #
         #   # routes call <tt>Admin::PostsController</tt>
