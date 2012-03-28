@@ -130,13 +130,13 @@ class RenderPartialWithRecordIdentificationAndNestedControllersTest < ActiveReco
 
   def test_render_with_record_in_nested_controller
     get :render_with_record_in_nested_controller
-    assert_template 'fun/games/_game'
+    assert_template %r{\Afun/games/_game\Z}
     assert_equal 'Pong', @response.body
   end
 
   def test_render_with_record_collection_in_nested_controller
     get :render_with_record_collection_in_nested_controller
-    assert_template 'fun/games/_game'
+    assert_template %r{\Afun/games/_game\Z}
     assert_equal 'PongTank', @response.body
   end
 end
@@ -146,13 +146,13 @@ class RenderPartialWithRecordIdentificationAndNestedDeeperControllersTest < Acti
 
   def test_render_with_record_in_deeper_nested_controller
     get :render_with_record_in_deeper_nested_controller
-    assert_template 'fun/serious/games/_game'
+    assert_template %r{\Afun/serious/games/_game\Z}
     assert_equal 'Chess', @response.body
   end
 
   def test_render_with_record_collection_in_deeper_nested_controller
     get :render_with_record_collection_in_deeper_nested_controller
-    assert_template 'fun/serious/games/_game'
+    assert_template %r{\Afun/serious/games/_game\Z}
     assert_equal 'ChessSudokuSolitaire', @response.body
   end
 end
