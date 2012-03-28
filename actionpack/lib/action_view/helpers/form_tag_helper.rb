@@ -629,7 +629,7 @@ module ActionView
 
             if html_options["data-remote"] &&
                !embed_authenticity_token_in_remote_forms &&
-               html_options["authenticity_token"] != true
+               html_options["authenticity_token"].blank?
               # The authenticity token is taken from the meta tag in this case
               html_options["authenticity_token"] = false
             elsif html_options["authenticity_token"] == true
