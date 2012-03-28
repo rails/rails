@@ -1256,4 +1256,22 @@ class RelationTest < ActiveRecord::TestCase
 
     assert topics.loaded?
   end
+
+  test "first with hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.order(:id).first(author_id: 2)
+  end
+
+  test "first with non-hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.order(:id).first("author_id = 2")
+  end
+
+  test "first with multi-arg conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.order(:id).first('author_id = ?', 2)
+  end
+
+  test "first with deprecated finder options conditions returns the first record matching the condition" do
+    assert_deprecated do
+      assert_equal posts(:eager_other), Post.first(conditions: { author_id: 2 }, order: :id)
+    end
+  end
 end
