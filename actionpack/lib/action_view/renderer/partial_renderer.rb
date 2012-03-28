@@ -334,7 +334,7 @@ module ActionView
       end
 
       if @path
-        @variable, @variable_counter = retrieve_variable(@path)
+        @variable, @variable_counter, @variable_is_first, @variable_is_last = retrieve_variable(@path)
       else
         paths.map! { |path| retrieve_variable(path).unshift(path) }
       end
@@ -365,7 +365,11 @@ module ActionView
       if path = @path
         locals = @locals.keys
         locals << @variable
-        locals << @variable_counter if @collection
+        if @collection
+          locals << @variable_counter
+          locals << @variable_is_first
+          locals << @variable_is_last
+        end
         find_template(path, locals)
       end
     end
@@ -377,12 +381,14 @@ module ActionView
 
     def collection_with_template
       segments, locals, template = [], @locals, @template
-      as, counter = @variable, @variable_counter
+      as, counter, is_first, is_last = @variable, @variable_counter, @variable_is_first, @variable_is_last
 
       locals[counter] = -1
 
       @collection.each do |object|
         locals[counter] += 1
+        locals[is_first] = locals[counter] == 0
+        locals[is_last] = locals[counter] == @collection.size-1
         locals[as] = object
         segments << template.render(@view, locals)
       end
@@ -439,8 +445,12 @@ module ActionView
 
     def retrieve_variable(path)
       variable = @options[:as].try(:to_sym) || path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
-      variable_counter = :"#{variable}_counter" if @collection
-      [variable, variable_counter]
+      if @collection
+        variable_counter = :"#{variable}_counter"
+        variable_is_first = :"#{variable}_is_first"
+        variable_is_last = :"#{variable}_is_last"
+      end
+      [variable, variable_counter, variable_is_first, variable_is_last]
     end
   end
 end
