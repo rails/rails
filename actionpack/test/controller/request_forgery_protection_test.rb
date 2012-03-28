@@ -127,27 +127,33 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_render_form_without_token_tag_if_remote_and_embedding_token_is_off
-    begin
-      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = false
-      assert_not_blocked do
-        get :form_for_remote
-      end
-      assert_no_match(/authenticity_token/, response.body)
-    ensure
-      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
+    ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = false
+    assert_not_blocked do
+      get :form_for_remote
     end
+    assert_no_match(/authenticity_token/, response.body)
+  ensure
+    ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_embedding_token_is_off_but_true_option_passed
-     begin
-      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = false
-      assert_not_blocked do
-        get :form_for_remote_with_token
-      end
-      assert_match(/authenticity_token/, response.body)
-    ensure
-      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
+    ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = false
+    assert_not_blocked do
+      get :form_for_remote_with_token
     end
+    assert_match(/authenticity_token/, response.body)
+  ensure
+    ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
+  end
+
+  def test_should_render_form_with_token_tag_if_remote_and_external_authenticity_token_requested_and_embedding_is_off
+    ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = false
+    assert_not_blocked do
+      get :form_for_remote_with_external_token
+    end
+    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
+  ensure
+    ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_external_authenticity_token_requested
