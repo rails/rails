@@ -24,6 +24,7 @@ module ActionView #:nodoc:
     autoload :TagHelper
     autoload :TextHelper
     autoload :TranslationHelper
+    autoload :UnorderedListHelper
     autoload :UrlHelper
 
     extend ActiveSupport::Concern
@@ -54,6 +55,7 @@ module ActionView #:nodoc:
     include TagHelper
     include TextHelper
     include TranslationHelper
+    include UnorderedListHelper
     include UrlHelper
   end
 end
