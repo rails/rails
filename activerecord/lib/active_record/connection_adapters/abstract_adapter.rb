@@ -301,7 +301,7 @@ module ActiveRecord
 
       def translate_exception(e, message)
         # override in derived class
-        ActiveRecord::StatementInvalid.new(message)
+        ActiveRecord::WrappedDatabaseException.new(message,e)
       end
     end
   end
