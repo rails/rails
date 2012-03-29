@@ -45,7 +45,6 @@ module Rails
       attr_accessor :path
 
       def initialize(path)
-        raise "Argument should be a String of the physical root path" if path.is_a?(Array)
         @current = nil
         @path = path
         @root = {}
