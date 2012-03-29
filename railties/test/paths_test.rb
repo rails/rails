@@ -91,10 +91,6 @@ class PathsTest < ActiveSupport::TestCase
     assert_equal ["/foo/bar/app2", "/foo/bar/app"], @root["app"].to_a
   end
 
-  test "the root can only have one physical path" do
-    assert_raise(RuntimeError) { Rails::Paths::Root.new(["/fiz", "/biz"]) }
-  end
-
   test "it is possible to add a path that should be autoloaded only once" do
     @root.add "app", :with => "/app"
     @root["app"].autoload_once!
