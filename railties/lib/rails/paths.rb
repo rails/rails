@@ -51,8 +51,7 @@ module Rails
       end
 
       def []=(path, value)
-        value = Path.new(self, path, [value].flatten) unless value.is_a?(Path)
-        @root[path] = value
+        add(path, :with => value)
       end
 
       def add(path, options={})
