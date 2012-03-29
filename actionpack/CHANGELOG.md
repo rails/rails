@@ -1,5 +1,7 @@
 ## Rails 3.2.3 (unreleased) ##
 
+*   Fix textarea rendering when using plugins like HAML. Such plugins encode the first newline character in the content. This issue was introduced in #5191 *James Coleman*
+
 *   Add `config.action_view.embed_authenticity_token_in_remote_forms` (defaults to true) which allows to set if authenticity token will be included by default in remote forms. If you change it to false, you can still force authenticity token by passing `:authenticity_token => true` in form options *Piotr Sarnacki*
 
 *   Do not include the authenticity token in forms where remote: true as ajax forms use the meta-tag value *DHH*
