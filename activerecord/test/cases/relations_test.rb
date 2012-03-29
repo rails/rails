@@ -968,6 +968,77 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordInvalid) { Bird.where(:color => 'green').first_or_create!([ {:name => 'parrot'}, {:pirate_id => 1} ]) }
   end
 
+  def test_create_or_update
+    parrot = Bird.where(:color => 'green').create_or_update(:name => 'parrot')
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'parrot', parrot.name
+    assert_equal 'green', parrot.color
+
+    same_parrot = Bird.where(:color => 'green').create_or_update(:name => 'parakeet')
+    assert_kind_of Bird, same_parrot
+    assert same_parrot.persisted?
+    assert_equal parrot, same_parrot
+  end
+
+  def test_create_or_update_with_no_parameters
+    parrot = Bird.where(:color => 'green').create_or_update
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert_equal 'green', parrot.color
+  end
+
+  def test_create_or_update_with_block
+    parrot = Bird.where(:color => 'green').create_or_update { |bird| bird.name = 'parrot' }
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'green', parrot.color
+    assert_equal 'parrot', parrot.name
+
+    same_parrot = Bird.where(:color => 'green').create_or_update { |bird| bird.name = 'parakeet' }
+    assert_equal parrot, same_parrot
+    # this test differentiates create_or_update from first_or_create
+    assert_equal 'parakeet', same_parrot.name
+  end
+
+  def test_create_or_update_bang_with_valid_options
+    parrot = Bird.where(:color => 'green').create_or_update!(:name => 'parrot')
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'parrot', parrot.name
+    assert_equal 'green', parrot.color
+
+    same_parrot = Bird.where(:color => 'green').create_or_update!(:name => 'parakeet')
+    assert_kind_of Bird, same_parrot
+    assert same_parrot.persisted?
+    assert_equal parrot, same_parrot
+  end
+
+  def test_create_or_update_bang_with_invalid_options
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.where(:color => 'green').create_or_update!(:pirate_id => 1) }
+  end
+
+  def test_create_or_update_bang_with_no_parameters
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.where(:color => 'green').create_or_update! }
+  end
+
+  def test_create_or_update_bang_with_valid_block
+    parrot = Bird.where(:color => 'green').create_or_update! { |bird| bird.name = 'parrot' }
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'green', parrot.color
+    assert_equal 'parrot', parrot.name
+
+    same_parrot = Bird.where(:color => 'green').create_or_update! { |bird| bird.name = 'parakeet' }
+    assert_equal parrot, same_parrot
+  end
+
+  def test_create_or_update_bang_with_invalid_block
+    assert_raise(ActiveRecord::RecordInvalid) do
+      Bird.where(:color => 'green').create_or_update! { |bird| bird.pirate_id = 1 }
+    end
+  end
+
   def test_first_or_initialize
     parrot = Bird.where(:color => 'green').first_or_initialize(:name => 'parrot')
     assert_kind_of Bird, parrot
