@@ -372,8 +372,8 @@ class SchemaTest < ActiveModel::TestCase
 
     assert_nothing_raised { Person.schema = new_schema }
 
-    assert_equal new_schema.keys, Person.known_attributes
-    assert_equal new_schema.keys, Person.new.known_attributes
+    assert_equal new_schema.keys.sort, Person.known_attributes.sort
+    assert_equal new_schema.keys.sort, Person.new.known_attributes.sort
   end
 
   test "known attributes on a fetched resource should return all the attributes of the instance" do
