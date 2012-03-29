@@ -249,6 +249,7 @@ module AbstractController
       # Symbol:: call the method specified by the symbol, which will return the template name
       # false::  There is no layout
       # true::   raise an ArgumentError
+      # nil::    Force default layout behavior with inheritance
       #
       # ==== Parameters
       # * <tt>layout</tt> - The layout to use.
