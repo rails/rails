@@ -602,14 +602,14 @@ module ActiveRecord
       # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
       #
       #   class Person < ActiveRecord::Base
-      #     validates_length_of :first_name, :maximum=>30
-      #     validates_length_of :last_name, :maximum=>30, :message=>"less than %{count} if you don't mind"
+      #     validates_length_of :first_name, :maximum => 30
+      #     validates_length_of :last_name, :maximum => 30, :message => "less than %{count} if you don't mind"
       #     validates_length_of :fax, :in => 7..32, :allow_nil => true
       #     validates_length_of :phone, :in => 7..32, :allow_blank => true
       #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
-      #     validates_length_of :fav_bra_size, :minimum => 1, :too_short => "please enter at least %{count} character"
-      #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with %{count} characters... don't play me."
-      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least %{count} words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
+      #     validates_length_of :zip_code, :minimum => 5, :too_short => "please enter at least %{count} characters"
+      #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with %{count} characters... don't play me"
+      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least %{count} words"), :tokenizer => lambda {|str| str.scan(/\w+/) }
       #   end
       #
       # Configuration options:
