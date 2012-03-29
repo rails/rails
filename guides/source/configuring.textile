@@ -354,8 +354,7 @@ h4. Configuring Action Dispatch
 
 h4. Configuring Action View
 
-There are only a few configuration options for Action View, starting with six on +ActionView::Base+:
-
+<tt>config.action_view</tt> includes a small number of configuration settings:
 
 * +config.action_view.field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is
 
@@ -396,6 +395,14 @@ And can reference in the view with the following code:
 * +config.action_view.cache_asset_ids+ With the cache enabled, the asset tag helper methods will make fewer expensive file system calls (the default implementation checks the file system timestamp). However this prevents you from modifying any asset files while the server is running.
 
 * +config.action_view.embed_authenticity_token_in_remote_forms+ allows you to set the default behavior for +authenticity_token+ in forms with +:remote => true+. By default it's set to false, which means that remote forms will not include +authenticity_token+, which is helpful when you're fragment-caching the form. Remote forms get the authenticity from the +meta+ tag, so embedding is unnecessary unless you support browsers without JavaScript. In such case you can either pass +:authenticity_token => true+ as a form option or set this config setting to +true+
+
+* +config.action_view.prefix_partial_path_with_controller_namespace+ determines whether or not partials are looked up from a subdirectory in templates rendered from namespaced controllers. For example, consider a controller named +Admin::PostsController+ which renders this template:
+
+<erb>
+<%= render @post %>
+<erb>
+
+The default setting is +true+, which uses the partial at +/admin/posts/_post.erb+. Setting the value to +false+ would render +/posts/_post.erb+, which is the same behavior as rendering from a non-namespaced controller such as +PostsController+.
 
 h4. Configuring Action Mailer
 
