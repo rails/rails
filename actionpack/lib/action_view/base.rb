@@ -141,6 +141,12 @@ module ActionView #:nodoc:
     cattr_accessor :streaming_completion_on_exception
     @@streaming_completion_on_exception = %("><script type="text/javascript">window.location = "/500.html"</script></html>)
 
+    # Specify whether rendering within namespaced controllers should prefix
+    # the partial paths for ActiveModel objects with the namespace.
+    # (e.g., an Admin::PostsController would render @post using /admin/posts/_post.erb)
+    cattr_accessor :prefix_partial_path_with_controller_namespace
+    @@prefix_partial_path_with_controller_namespace = true
+
     class_attribute :helpers
     class_attribute :_routes
     class_attribute :logger
