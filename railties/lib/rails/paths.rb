@@ -1,5 +1,3 @@
-require 'set'
-
 module Rails
   module Paths
     # This object is an extended hash that behaves as root of the <tt>Rails::Paths</tt> system.
@@ -47,15 +45,13 @@ module Rails
       attr_accessor :path
 
       def initialize(path)
-        raise "Argument should be a String of the physical root path" if path.is_a?(Array)
         @current = nil
         @path = path
         @root = {}
       end
 
       def []=(path, value)
-        value = Path.new(self, path, [value].flatten) unless value.is_a?(Path)
-        @root[path] = value
+        add(path, :with => value)
       end
 
       def add(path, options={})
