@@ -80,7 +80,7 @@ body {
 	font-family: Helvetica, Arial, sans-serif;
 	font-size: 87.5%;
 	line-height: 1.5em;
-	background: #222;
+	background: #fff;
 	min-width: 69em;
 	color: #999;
 	}
@@ -94,6 +94,7 @@ body {
 #topNav {
 	padding: 1em 0;
 	color: #565656;
+	background: #222;
 }
 
 #header {
@@ -111,7 +112,6 @@ body {
 }
 
 #container {
-	background: #FFF;
 	color: #333;
 	padding: 0.5em 0 1.5em 0;
 	}
@@ -137,7 +137,7 @@ body {
 
 #footer {
 	padding: 2em 0;
-	background: url(../images/footer_tile.gif) repeat-x;
+	background: #222 url(../images/footer_tile.gif) repeat-x;
 	}
 #footer .wrapper {
 	padding-left: 2em;
