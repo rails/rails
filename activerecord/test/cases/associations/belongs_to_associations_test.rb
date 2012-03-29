@@ -705,4 +705,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_equal toy, sponsor.reload.sponsorable
   end
+
+  def test_reflect_the_most_recent_change
+    author1, author2 = Author.limit(2)
+    post = Post.new(:title => "foo", :body=> "bar")
+
+    post.author    = author1
+    post.author_id = author2.id
+
+    assert post.save
+    assert_equal post.author_id, author2.id
+  end
 end
