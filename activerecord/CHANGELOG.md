@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added ActiveRecord::Base#slice to return a hash of the given methods with
+    their names as keys and returned values as values.
+
+    *Guillermo Iguaran*
+
 *   Deprecate eager-evaluated scopes.
 
     Don't use this:
