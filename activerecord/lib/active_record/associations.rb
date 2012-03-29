@@ -1596,7 +1596,7 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
       #   has_and_belongs_to_many :categories, :readonly => true
       #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql =>
-      #   "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}"
+      #   proc { |record| "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}" }
       def has_and_belongs_to_many(name, options = {}, &extension)
         Builder::HasAndBelongsToMany.build(self, name, options, &extension)
       end
