@@ -302,6 +302,46 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal parrot, the_same_parrot
   end
 
+  def test_create_or_update
+    # base case
+    parrot = Bird.create_or_update(:color => 'green', :name => 'parrot')
+    assert parrot.persisted?
+    assert parrot.color, 'green'
+
+    # test create will use conditions and options for attributes
+    other_parrot = Bird.where(:color => 'red').
+      create_or_update(:name => 'macaw')
+    assert_equal other_parrot.name, 'macaw'
+    assert_equal other_parrot.color, 'red'
+    assert_not_equal parrot, other_parrot
+
+    # find other_parrot and update the name
+    other_parrot_again = Bird.where(:color => 'red').
+      create_or_update(:name => 'parrot')
+    assert_equal other_parrot, other_parrot_again
+    assert_equal other_parrot_again.name, 'parrot'
+  end
+
+  def test_create_or_update_bang
+    # base case
+    parrot = Bird.create_or_update!(:color => 'green', :name => 'parrot')
+    assert parrot.persisted?
+    assert parrot.color, 'green'
+
+    # test create will use conditions and options for attributes
+    other_parrot = Bird.where(:color => 'red').
+      create_or_update!(:name => 'macaw')
+    assert_equal other_parrot.name, 'macaw'
+    assert_equal other_parrot.color, 'red'
+    assert_not_equal parrot, other_parrot
+
+    # find other_parrot and update the name
+    other_parrot_again = Bird.where(:color => 'red').
+      create_or_update!(:name => 'parrot')
+    assert_equal other_parrot, other_parrot_again
+    assert_equal other_parrot_again.name, 'parrot'
+  end
+
   def test_first_or_create_bang
     assert_raises(ActiveRecord::RecordInvalid) { Bird.first_or_create! }
     parrot = Bird.first_or_create!(:color => 'green', :name => 'parrot')

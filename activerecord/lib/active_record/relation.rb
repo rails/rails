@@ -126,6 +126,60 @@ module ActiveRecord
       first || create!(attributes, options, &block)
     end
 
+    # Tries to load the first record; it it succeeds then it calls
+    # <tt>update_attributes</tt>, else it will call <tt>create</tt> with
+    # the same arguments to the method
+    #
+    # Expects arguments in the same format as <tt>Base.update_attributes</tt>
+    # but accepts a block in the format of <tt>Base.create</tt>.
+    #
+    # ==== Examples
+    #   # Find the first user named Penélope or create a new one.
+    #   User.where(:first_name => 'Penélope').update_or_create
+    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
+    #
+    #   # Find the first user named Penélope or create a new one.
+    #   # We already have one so the existing record will be returned.
+    #   User.where(:first_name => 'Penélope').create_or_update
+    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
+    #
+    #   # Find the first user named Scarlett and update last name to 'Johansson'
+    #   # or create a new one with a particular last name.
+    #   User.where(:first_name => 'Scarlett').create_or_update(:last_name => 'Johansson')
+    #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
+    #
+    #   # Find the first user named Scarlett and update to a different last name
+    #   # or create a new one with a different last name.
+    #   # We already have one so the existing record will be returned.
+    #   User.where(:first_name => 'Scarlett').first_or_create do |user|
+    #     user.last_name = "O'Hara"
+    #   end
+    #   # => <User id: 2, first_name: "Scarlett", last_name: "O'Hara">
+    def create_or_update(attributes = nil, options = {}, &block)
+      if record = first
+        record.tap(&block) if block_given?
+        record.update_attributes(attributes, options)
+        record
+      else
+        create(attributes, options, &block)
+      end
+    end
+
+    # Like <tt>create_or_update</tt> but calls <tt>create!</tt> and
+    # <tt>update_attributes</tt> so an exception is raised if the created or
+    # updated record is invalid.
+    #
+    # Expects arguments in the same format as <tt>Base.update_attributes!</tt>.
+    def create_or_update!(attributes = nil, options = {}, &block)
+      if record = first
+        record.tap(&block) if block_given?
+        record.update_attributes!(attributes, options)
+        record
+      else
+        create!(attributes, options, &block)
+      end
+    end
+
     # Like <tt>first_or_create</tt> but calls <tt>new</tt> instead of <tt>create</tt>.
     #
     # Expects arguments in the same format as <tt>Base.new</tt>.
