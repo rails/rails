@@ -3,6 +3,7 @@ require 'rails/version'
 require 'active_support/concern'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveSupport
   module Testing
