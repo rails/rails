@@ -13,12 +13,14 @@ require 'models/warehouse_thing'
 require 'models/parrot'
 require 'models/minivan'
 require 'models/person'
+require 'models/pet'
+require 'models/toy'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
 class PersistencesTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics,
-    'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans
+    'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans, :pets, :toys
 
   # Skip databases that don't support UPDATE + ORDER BY
   unless current_adapter?(:OracleAdapter, :PostgreSQLAdapter)
@@ -75,6 +77,22 @@ class PersistencesTest < ActiveRecord::TestCase
     assert Topic.count > 0
 
     assert_equal Topic.count, Topic.delete_all
+  end
+
+  def test_delete_all_with_joins_and_where_part_is_hash
+    where_args = {:toys => {:name => 'Bone'}}
+    count = Pet.joins(:toys).where(where_args).count
+
+    assert_equal count, 1
+    assert_equal count, Pet.joins(:toys).where(where_args).delete_all
+  end
+
+  def test_delete_all_with_joins_and_where_part_is_not_hash
+    where_args = ['toys.name = ?', 'Bone']
+    count = Pet.joins(:toys).where(where_args).count
+
+    assert_equal count, 1
+    assert_equal count, Pet.joins(:toys).where(where_args).delete_all
   end
 
   def test_update_by_condition
