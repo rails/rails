@@ -1,5 +1,7 @@
 ## Rails 3.2.3 (unreleased) ##
 
+*   Fix #5632, render :inline set the proper rendered format. *Santiago Pastorino*
+
 *   Add `config.action_view.embed_authenticity_token_in_remote_forms` (defaults to true) which allows to set if authenticity token will be included by default in remote forms. If you change it to false, you can still force authenticity token by passing `:authenticity_token => true` in form options *Piotr Sarnacki*
 
 *   Do not include the authenticity token in forms where remote: true as ajax forms use the meta-tag value *DHH*
