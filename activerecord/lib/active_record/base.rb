@@ -954,15 +954,7 @@ module ActiveRecord #:nodoc:
         record_id = sti_class.primary_key && record[sti_class.primary_key]
 
         if ActiveRecord::IdentityMap.enabled? && record_id
-          if (column = sti_class.columns_hash[sti_class.primary_key]) && column.number?
-            record_id = record_id.to_i
-          end
-          if instance = IdentityMap.get(sti_class, record_id)
-            instance.reinit_with('attributes' => record)
-          else
-            instance = sti_class.allocate.init_with('attributes' => record)
-            IdentityMap.add(instance)
-          end
+          instance = use_identity_map(sti_class, record_id, record)
         else
           instance = sti_class.allocate.init_with('attributes' => record)
         end
@@ -971,6 +963,21 @@ module ActiveRecord #:nodoc:
       end
 
       private
+
+        def use_identity_map(sti_class, record_id, record)
+          if (column = sti_class.columns_hash[sti_class.primary_key]) && column.number?
+            record_id = record_id.to_i
+          end
+
+          if instance = IdentityMap.get(sti_class, record_id)
+            instance.reinit_with('attributes' => record)
+          else
+            instance = sti_class.allocate.init_with('attributes' => record)
+            IdentityMap.add(instance)
+          end
+
+          instance
+        end
 
         def relation #:nodoc:
           @relation ||= Relation.new(self, arel_table)
