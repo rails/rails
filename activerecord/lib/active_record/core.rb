@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'active_support/core_ext/hash/indifferent_access'
 require 'thread'
 
 module ActiveRecord
@@ -324,6 +325,11 @@ module ActiveRecord
                      "not initialized"
                    end
       "#<#{self.class} #{inspection}>"
+    end
+
+    # Returns a hash of the given methods with their names as keys and returned values as values.
+    def slice(*methods)
+      Hash[methods.map { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
     private
