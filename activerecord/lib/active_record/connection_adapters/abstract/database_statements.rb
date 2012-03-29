@@ -312,13 +312,27 @@ module ActiveRecord
       # on mysql (even when aliasing the tables), but mysql allows using JOIN directly in
       # an UPDATE statement, so in the mysql adapters we redefine this to do that.
       def join_to_update(update, select) #:nodoc:
-        subselect = select.clone
-        subselect.projections = [update.key]
+        key = update.key
+        subselect = subquery_for(key, select)
 
-        update.where update.key.in(subselect)
+        update.where key.in(subselect)
+      end
+
+      def join_to_delete(delete, select, key) #:nodoc:
+        subselect = subquery_for(key, select)
+
+        delete.where key.in(subselect)
       end
 
       protected
+
+        # Return a subquery for the given key using the join information.
+        def subquery_for(key, select)
+          subselect = select.clone
+          subselect.projections = [key]
+          subselect
+        end
+
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
         def select(sql, name = nil, binds = [])
