@@ -85,7 +85,11 @@ db_namespace = namespace :db do
         rescue error_class => sqlerr
           if sqlerr.errno == access_denied_error
             print "#{sqlerr.error}. \nPlease provide the root password for your mysql installation\n>"
+            
+            system "stty -echo"
             root_password = $stdin.gets.strip
+            system "stty echo"
+            
             grant_statement = "GRANT ALL PRIVILEGES ON #{config['database']}.* " \
               "TO '#{config['username']}'@'localhost' " \
               "IDENTIFIED BY '#{config['password']}' WITH GRANT OPTION;"
