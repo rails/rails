@@ -404,18 +404,13 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert comment.save
   end
 
-  def test_find_using_select_and_identity_map
-    author_id, author = Author.select('id').order(:id).first, Author.order(:id).first
+  def test_do_not_add_to_repository_if_record_does_not_contain_all_columns
+    author = Author.select(:id).first
+    post = author.posts.first
 
-    assert_equal author_id, author
-    assert_same author_id, author
-    assert_not_nil author.name
-
-    post, post_id = Post.order(:id).first, Post.select('id').order(:id).first
-
-    assert_equal post_id, post
-    assert_same post_id, post
-    assert_not_nil post.title
+    assert_nothing_raised do
+      assert_not_nil post.author.name
+    end
   end
 
 # Currently AR is not allowing changing primary key (see Persistence#update)

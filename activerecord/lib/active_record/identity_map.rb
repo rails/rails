@@ -90,7 +90,7 @@ module ActiveRecord
       end
 
       def add(record)
-        repository[record.class.symbolized_sti_name][record.id] = record
+        repository[record.class.symbolized_sti_name][record.id] = record if contain_all_columns?(record)
       end
 
       def remove(record)
@@ -104,6 +104,12 @@ module ActiveRecord
       def clear
         repository.clear
       end
+
+      private
+
+        def contain_all_columns?(record)
+          (record.class.column_names - record.attribute_names).empty?
+        end
     end
 
     # Reinitialize an Identity Map model object from +coder+.
