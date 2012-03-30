@@ -1,3 +1,4 @@
+require 'active_support/deprecation'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/indifferent_access'
 
@@ -109,14 +110,40 @@ module ActiveRecord
       end
     end
 
-    # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
-    # same arguments to this method as you can to <tt>find(:first)</tt>.
+    # Get the first record(s) in the relation. You can optionally specify some conditions
+    # or a limit.
+    #
+    #   Post.first
+    #   # => first post
+    #
+    #   Post.first(name: 'Spartacus')
+    #   # => first post named 'Spartacus'
+    #
+    #   Post.first("published_at < ?", Time.now)
+    #   # => first post already published
+    #
+    #   Post.first(5)
+    #   # => first 5 posts
+    #
+    #   Post.where(name: 'Spartacus').first(5)
+    #   # => first 5 posts named 'Spartacus'
+    #
     def first(*args)
       if args.any?
         if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
           limit(*args).to_a
         else
-          apply_finder_options(args.first).first
+          if !args.first.is_a?(Hash) || (args.first.keys - SpawnMethods::VALID_FIND_OPTIONS).any?
+            where(*args).first
+          else
+            ActiveSupport::Deprecation.warn(
+              "Passing finder options to #first is deprecated. For example please " \
+              "rewrite Post.first(conditions: { name: 'lol' }, order: :id) to " \
+              "Post.order(:id).where(name: 'lol').first or " \
+              "Post.order(:id).first(name: 'lol')"
+            )
+            apply_finder_options(args.first).first
+          end
         end
       else
         find_first

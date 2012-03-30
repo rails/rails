@@ -165,7 +165,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_first_and_last_should_support_find_options
-    assert_equal Topic.base.first(:order => 'title'), Topic.base.find(:first, :order => 'title')
+    assert_deprecated do
+      assert_equal Topic.base.first(:order => 'title'), Topic.base.find(:first, :order => 'title')
+    end
     assert_equal Topic.base.last(:order => 'title'), Topic.base.find(:last, :order => 'title')
   end
 
@@ -187,7 +189,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     topics = Topic.base
     topics.reload # force load
     assert_queries(2) do
-      topics.first(:order => 'title')
+      topics.order('title').first
       topics.last(:order => 'title')
     end
   end
