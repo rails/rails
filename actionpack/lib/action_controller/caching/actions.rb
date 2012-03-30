@@ -149,7 +149,7 @@ module ActionController #:nodoc:
             controller.action_has_layout = true
             body = controller._save_fragment(cache_path.path, @store_options)
           end
-          has_layout = !controller.send(:_layout).nil?
+          has_layout = controller.send(:_layout)
           body = controller.render_to_string(:text => body, :layout => has_layout) unless @cache_layout
 
           controller.response_body = body
