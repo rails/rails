@@ -1,4 +1,5 @@
 require 'set'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # :stopdoc:
@@ -107,6 +108,9 @@ module ActiveRecord
       end
 
       def type_cast_code(var_name)
+        ActiveSupport::Deprecation.warn("Column#type_cast_code is deprecated in favor of" \
+          "using Column#type_cast only, and it is going to be removed in future Rails versions.")
+
         klass = self.class.name
 
         case type
