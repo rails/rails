@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added `#find_by` and `#find_by!` to mirror the functionality
+    provided by dynamic finders in a way that allows dynamic input more
+    easily:
+
+        Post.find_by name: 'Spartacus', rating: 4
+        Post.find_by "published_at < ?", 2.weeks.ago
+        Post.find_by! name: 'Spartacus'
+
+    *Jon Leighton*
+
 *   Added ActiveRecord::Base#slice to return a hash of the given methods with
     their names as keys and returned values as values.
 

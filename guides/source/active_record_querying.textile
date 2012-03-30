@@ -133,6 +133,24 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 
 <tt>Model.last</tt> returns +nil+ if no matching record is found. No exception will be raised.
 
+h5. +find_by+
+
+<tt>Model.find_by</tt> finds the first record matching some conditions. For example:
+
+<ruby>
+Client.find_by first_name: 'Lifo'
+# => #<Client id: 1, first_name: "Lifo">
+
+Client.find_by first_name: 'Jon'
+# => nil
+</ruby>
+
+It is equivalent to writing:
+
+<ruby>
+Client.where(first_name: 'Lifo').first
+</ruby>
+
 h5(#first_1). +first!+
 
 <tt>Model.first!</tt> finds the first record. For example:
@@ -166,6 +184,24 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 </sql>
 
 <tt>Model.last!</tt> raises +RecordNotFound+ if no matching record is found.
+
+h5(#find_by_1). +find_by!+
+
+<tt>Model.find_by!</tt> finds the first record matching some conditions. It raises +RecordNotFound+ if no matching record is found. For example:
+
+<ruby>
+Client.find_by! first_name: 'Lifo'
+# => #<Client id: 1, first_name: "Lifo">
+
+Client.find_by! first_name: 'Jon'
+# => RecordNotFound
+</ruby>
+
+It is equivalent to writing:
+
+<ruby>
+Client.where(first_name: 'Lifo').first!
+</ruby>
 
 h4. Retrieving Multiple Objects
 
