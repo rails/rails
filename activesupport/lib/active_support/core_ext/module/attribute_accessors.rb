@@ -4,20 +4,16 @@ class Module
   def mattr_reader(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        @@#{sym} = nil unless defined? @@#{sym}
+      class_variable_set(:"@@#{sym}", nil) unless class_variable_defined?(:"@@#{sym}")
 
-        def self.#{sym}
-          @@#{sym}
-        end
-      EOS
+      define_singleton_method(sym) do
+        class_variable_get(:"@@#{sym}")
+      end
 
       unless options[:instance_reader] == false || options[:instance_accessor] == false
-        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-          def #{sym}
-            @@#{sym}
-          end
-        EOS
+        define_method(sym) do
+          self.class.class_variable_get(:"@@#{sym}")
+        end
       end
     end
   end
@@ -25,18 +21,14 @@ class Module
   def mattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        def self.#{sym}=(obj)
-          @@#{sym} = obj
-        end
-      EOS
+      define_singleton_method("#{sym}=") do |obj|
+        class_variable_set(:"@@#{sym}", obj)
+      end
 
       unless options[:instance_writer] == false || options[:instance_accessor] == false
-        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-          def #{sym}=(obj)
-            @@#{sym} = obj
-          end
-        EOS
+        define_method("#{sym}=") do |obj|
+          self.class.class_variable_set(:"@@#{sym}", obj)
+        end
       end
     end
   end
