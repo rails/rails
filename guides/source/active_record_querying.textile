@@ -1023,7 +1023,7 @@ category.posts.published # => [published posts belonging to this category]
 
 h4. Passing in arguments
 
-You scope can take arguments:
+Your scope can take arguments:
 
 <ruby>
 class Post < ActiveRecord::Base
