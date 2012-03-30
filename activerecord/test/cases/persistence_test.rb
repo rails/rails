@@ -178,6 +178,16 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal("null", topic.author_name)
   end
 
+  def test_save_without_callbacks!
+    topic = Topic.new(:title => "New Topic")
+    assert topic.save!
+    assert !topic.send(:_skip_callbacks?)
+
+    reply = WrongReply.new
+    assert_raise(ActiveRecord::RecordInvalid) { reply.save!(:callbacks => false) }
+    assert !reply.send(:_skip_callbacks?)
+  end
+
   def test_save_nil_string_attributes
     topic = Topic.find(1)
     topic.title = nil

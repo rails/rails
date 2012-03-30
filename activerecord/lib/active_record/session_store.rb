@@ -281,7 +281,7 @@ module ActiveRecord
         end
       end
 
-      def destroy
+      def destroy(*)
         return if @new_record
 
         connect = connection

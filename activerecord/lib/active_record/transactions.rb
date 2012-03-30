@@ -232,18 +232,24 @@ module ActiveRecord
       self.class.transaction(options, &block)
     end
 
-    def destroy #:nodoc:
-      with_transaction_returning_status { super }
+    def destroy(*) #:nodoc:
+      with_transaction_returning_status do
+        super
+      end
     end
 
     def save(*) #:nodoc:
       rollback_active_record_state! do
-        with_transaction_returning_status { super }
+        with_transaction_returning_status do
+          super
+        end
       end
     end
 
     def save!(*) #:nodoc:
-      with_transaction_returning_status { super }
+      with_transaction_returning_status do
+        super
+      end
     end
 
     # Reset id and @new_record if the transaction rolls back.

@@ -15,12 +15,18 @@ module ActiveRecord
       # +create+ respects mass-assignment security and accepts either +:as+ or +:without_protection+ options
       # in the +options+ parameter.
       #
+      # A newly created object will trigger the callbacks <tt>before_save</tt> <tt>before_create</tt> 
+      # <tt>after_save</tt> and <tt>after_create</tt>.  To skip these callbacks, pass in :callbacks => false
+      #
       # ==== Examples
       #   # Create a single new object
       #   User.create(:first_name => 'Jamie')
       #
       #   # Create a single new object using the :admin mass-assignment security role
       #   User.create({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
+      #
+      #   # Create a single new object and skip callbacks
+      #   User.create({ :first_name => 'Jamie'}, :callbacks => false)
       #
       #   # Create a single new object bypassing mass-assignment security
       #   User.create({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
@@ -42,7 +48,7 @@ module ActiveRecord
           attributes.collect { |attr| create(attr, options, &block) }
         else
           object = new(attributes, options, &block)
-          object.save
+          object.save(:callbacks => options[:callbacks])
           object
         end
       end
@@ -77,8 +83,8 @@ module ActiveRecord
     #
     # There's a series of callbacks associated with +save+. If any of the
     # <tt>before_*</tt> callbacks return +false+ the action is cancelled and
-    # +save+ returns +false+. See ActiveRecord::Callbacks for further
-    # details.
+    # +save+ returns +false+. To skip callbacks, pass in :callbacks => false
+    # See ActiveRecord::Callbacks for further details.
     def save(*)
       begin
         create_or_update
@@ -97,9 +103,9 @@ module ActiveRecord
     # for more information.
     #
     # There's a series of callbacks associated with <tt>save!</tt>. If any of
-    # the <tt>before_*</tt> callbacks return +false+ the action is cancelled
-    # and <tt>save!</tt> raises ActiveRecord::RecordNotSaved. See
-    # ActiveRecord::Callbacks for further details.
+    # the <tt>before_*</tt> callbacks return +false+ the action is cancelled and 
+    # <tt>save!</tt> raises ActiveRecord::RecordNotSaved. To skip callbacks, pass
+    # in :callbacks => false. See ActiveRecord::Callbacks for further details.
     def save!(*)
       create_or_update || raise(RecordNotSaved)
     end
@@ -122,7 +128,10 @@ module ActiveRecord
 
     # Deletes the record in the database and freezes this instance to reflect
     # that no changes should be made (since they can't be persisted).
-    def destroy
+    # Destroying a record executes the <tt>before_destroy</tt> and
+    # <tt>after_destroy</tt> callbacks.  Pass in :callbacks => false to skip
+    # them.
+    def destroy(*) 
       destroy_associations
 
       if persisted?
@@ -166,15 +175,15 @@ module ActiveRecord
     # This is especially useful for boolean flags on existing records. Also note that
     #
     # * Validation is skipped.
-    # * Callbacks are invoked.
+    # * Callbacks are invoked unless <tt>:callbacks => false</tt> is supplied.
     # * updated_at/updated_on column is updated if that column is available.
     # * Updates all the attributes that are dirty in this object.
     #
-    def update_attribute(name, value)
+    def update_attribute(name, value, options = {})
       name = name.to_s
       verify_readonly_attribute(name)
       send("#{name}=", value)
-      save(:validate => false)
+      save(:validate => false, :callbacks => options[:callbacks])
     end
 
     # Updates a single attribute of an object, without calling save.
@@ -201,12 +210,14 @@ module ActiveRecord
     # If no +:as+ option is supplied then the +:default+ role will be used.
     # If you want to bypass the protection given by +attr_protected+ and
     # +attr_accessible+ then you can do so using the +:without_protection+ option.
+    # You can also skip the <tt>before_save</tt> </tt>after_save</tt> <tt>before_update</tt> 
+    # <tt>after_update</tt> callbacks by passing in :callbacks => false
     def update_attributes(attributes, options = {})
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
         assign_attributes(attributes, options)
-        save
+        save(:callbacks => options[:callbacks])
       end
     end
 
@@ -217,7 +228,7 @@ module ActiveRecord
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
         assign_attributes(attributes, options)
-        save!
+        save!(:callbacks => options[:callbacks])
       end
     end
 

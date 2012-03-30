@@ -101,7 +101,7 @@ module ActiveRecord
           end
         end
 
-        def destroy #:nodoc:
+        def destroy(*) #:nodoc:
           return super unless locking_enabled?
 
           destroy_associations

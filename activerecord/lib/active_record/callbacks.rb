@@ -275,9 +275,17 @@ module ActiveRecord
       define_model_callbacks :save, :create, :update, :destroy
     end
 
-    def destroy #:nodoc:
-      run_callbacks(:destroy) { super }
+    def destroy(options = {}) #:nodoc:
+      options[:callbacks] == false ? super : run_callbacks(:destroy) { super }
     end
+
+    def save(options = {}) #:nodoc:
+      options[:callbacks] == false ? without_callbacks { super } : super
+    end
+
+    def save!(options = {}) #:nodoc:
+      options[:callbacks] == false ? without_callbacks { super } : super
+    end 
 
     def touch(*) #:nodoc:
       run_callbacks(:touch) { super }
@@ -286,15 +294,38 @@ module ActiveRecord
   private
 
     def create_or_update #:nodoc:
-      run_callbacks(:save) { super }
+      _skip_callbacks? ? super : run_callbacks(:save) { super }
     end
 
     def create #:nodoc:
-      run_callbacks(:create) { super }
+      _skip_callbacks? ? super : run_callbacks(:create) { super }
     end
 
     def update(*) #:nodoc:
-      run_callbacks(:update) { super }
+      _skip_callbacks? ? super : run_callbacks(:update) { super }
     end
+
+    # A wrapper method for +save(!)+ which sets @_skip_callbacks to true so
+    # that methods +create_or_update+, +create+, and +update+ can know to not
+    # trigger the callbacks for a given action.
+    def without_callbacks(&block)
+      begin
+        self._skip_callbacks = true
+        result = yield
+      ensure
+        self._skip_callbacks = nil
+      end
+
+      result
+    end
+
+    def _skip_callbacks?
+      @_skip_callbacks if defined?(@_skip_callbacks)
+    end
+
+    def _skip_callbacks=(value)
+      @_skip_callbacks = value
+    end
+
   end
 end
