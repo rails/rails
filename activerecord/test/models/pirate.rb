@@ -84,3 +84,9 @@ end
 class DestructivePirate < Pirate
   has_one :dependent_ship, :class_name => 'Ship', :foreign_key => :pirate_id, :dependent => :destroy
 end
+
+class OrnithologistPirate < Pirate
+  has_many :birds, :foreign_key => :pirate_id
+
+  validates_presence_of :birds
+end

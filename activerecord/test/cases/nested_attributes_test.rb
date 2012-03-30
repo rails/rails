@@ -289,6 +289,27 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     end
   end
 
+  def test_should_return_false_if_record_not_deleted
+    @ornithologist_pirate = OrnithologistPirate.create!({
+      :catchphrase => 'Chirp!',
+      :birds_attributes => [{:name => 'Tweetie'}]
+    })
+
+    bird = @ornithologist_pirate.birds.first
+    assert !@ornithologist_pirate.update_attributes({:birds_attributes => [{:id => bird.id, :_destroy => '1'}]})
+  end
+
+  def test_should_not_delete_records_to_make_object_invalid
+    @ornithologist_pirate = OrnithologistPirate.create!({
+      :catchphrase => 'Chirp!',
+      :birds_attributes => [{:name => 'Tweetie'}]
+    })
+
+    bird = @ornithologist_pirate.birds.first
+    @ornithologist_pirate.update_attributes({:birds_attributes => [{:id => bird.id, :_destroy => '1'}]})
+    assert_equal 1, @ornithologist_pirate.reload.birds.count
+  end
+
   def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
     Pirate.accepts_nested_attributes_for :ship, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
 
