@@ -101,26 +101,29 @@ module ActiveRecord
           end
         end
 
-        def destroy #:nodoc:
-          return super unless locking_enabled?
+        def destroy_row
+          affected_rows = super
 
-          destroy_associations
-
-          if persisted?
-            table = self.class.arel_table
-            lock_col = self.class.locking_column
-            predicate = table[self.class.primary_key].eq(id).
-              and(table[lock_col].eq(send(lock_col).to_i))
-
-            affected_rows = self.class.unscoped.where(predicate).delete_all
-
-            unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError.new(self, "destroy")
-            end
+          if locking_enabled? && affected_rows != 1
+            raise ActiveRecord::StaleObjectError.new(self, "destroy")
           end
 
-          @destroyed = true
-          freeze
+          affected_rows
+        end
+
+        def relation_for_destroy
+          relation = super
+
+          if locking_enabled?
+            column_name = self.class.locking_column
+            column      = self.class.columns_hash[column_name]
+            substitute  = connection.substitute_at(column, relation.bind_values.length)
+
+            relation = relation.where(self.class.arel_table[column_name].eq(substitute))
+            relation.bind_values << [column, self[column_name].to_i]
+          end
+
+          relation
         end
 
       module ClassMethods
