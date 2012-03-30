@@ -124,19 +124,7 @@ module ActiveRecord
     # that no changes should be made (since they can't be persisted).
     def destroy
       destroy_associations
-
-      if persisted?
-        pk         = self.class.primary_key
-        column     = self.class.columns_hash[pk]
-        substitute = connection.substitute_at(column, 0)
-
-        relation = self.class.unscoped.where(
-          self.class.arel_table[pk].eq(substitute))
-
-        relation.bind_values = [[column, id]]
-        relation.delete_all
-      end
-
+      destroy_row if persisted?
       @destroyed = true
       freeze
     end
@@ -333,6 +321,22 @@ module ActiveRecord
 
     # A hook to be overridden by association modules.
     def destroy_associations
+    end
+
+    def destroy_row
+      relation_for_destroy.delete_all
+    end
+
+    def relation_for_destroy
+      pk         = self.class.primary_key
+      column     = self.class.columns_hash[pk]
+      substitute = connection.substitute_at(column, 0)
+
+      relation = self.class.unscoped.where(
+        self.class.arel_table[pk].eq(substitute))
+
+      relation.bind_values = [[column, id]]
+      relation
     end
 
     def create_or_update
