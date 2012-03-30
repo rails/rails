@@ -1256,4 +1256,38 @@ class RelationTest < ActiveRecord::TestCase
 
     assert topics.loaded?
   end
+
+  test "find_by with hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.order(:id).find_by(author_id: 2)
+  end
+
+  test "find_by with non-hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.order(:id).find_by("author_id = 2")
+  end
+
+  test "find_by with multi-arg conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.order(:id).find_by('author_id = ?', 2)
+  end
+
+  test "find_by returns nil if the record is missing" do
+    assert_equal nil, Post.scoped.find_by("1 = 0")
+  end
+
+  test "find_by! with hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.order(:id).find_by!(author_id: 2)
+  end
+
+  test "find_by! with non-hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.order(:id).find_by!("author_id = 2")
+  end
+
+  test "find_by! with multi-arg conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.order(:id).find_by!('author_id = ?', 2)
+  end
+
+  test "find_by! raises RecordNotFound if the record is missing" do
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Post.scoped.find_by!("1 = 0")
+    end
+  end
 end

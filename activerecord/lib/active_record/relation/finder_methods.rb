@@ -109,6 +109,25 @@ module ActiveRecord
       end
     end
 
+    # Finds the first record matching the specified conditions. There
+    # is no implied ording so if order matters, you should specify it
+    # yourself.
+    #
+    # If no record is found, returns <tt>nil</tt>.
+    #
+    #   Post.find_by name: 'Spartacus', rating: 4
+    #   Post.find_by "published_at < ?", 2.weeks.ago
+    #
+    def find_by(*args)
+      where(*args).first
+    end
+
+    # Like <tt>find_by</tt>, except that if no record is found, raises
+    # an <tt>ActiveRecord::RecordNotFound</tt> error.
+    def find_by!(*args)
+      where(*args).first!
+    end
+
     # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
     # same arguments to this method as you can to <tt>find(:first)</tt>.
     def first(*args)

@@ -2069,4 +2069,18 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil hash[:firm_name]
     assert_nil hash['firm_name']
   end
+
+  ["find_by", "find_by!"].each do |meth|
+    test "#{meth} delegates to scoped" do
+      record = stub
+
+      scope = mock
+      scope.expects(meth).with(:foo, :bar).returns(record)
+
+      klass = Class.new(ActiveRecord::Base)
+      klass.stubs(:scoped => scope)
+
+      assert_equal record, klass.public_send(meth, :foo, :bar)
+    end
+  end
 end
