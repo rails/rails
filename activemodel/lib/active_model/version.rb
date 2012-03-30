@@ -3,7 +3,7 @@ module ActiveModel
     MAJOR = 3
     MINOR = 2
     TINY  = 3
-    PRE   = "rc2"
+    PRE   = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end
