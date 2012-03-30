@@ -469,7 +469,7 @@ ActiveRecord::Schema.define do
     t.references :best_friend_of
     t.timestamps
   end
-  
+
   create_table :peoples_treasures, :id => false, :force => true do |t|
     t.column :rich_person_id, :integer
     t.column :treasure_id, :integer

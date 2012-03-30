@@ -230,16 +230,16 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_polymorphic_destroy_with_dependencies_and_lock_version
     car = Car.create!
-    
+
     assert_difference 'car.wheels.count'  do
     	car.wheels << Wheel.create!
-    end 
+    end
     assert_difference 'car.wheels.count', -1  do
       car.destroy
     end
     assert car.destroyed?
   end
-  
+
   def test_removing_has_and_belongs_to_many_associations_upon_destroy
     p = RichPerson.create!
     p.treasures.create!
@@ -248,7 +248,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert p.treasures.empty?
     assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
   end
-  
 end
 
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
