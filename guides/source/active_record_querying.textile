@@ -985,15 +985,17 @@ To define a simple scope, we use the +scope+ method inside the class, passing th
 
 <ruby>
 class Post < ActiveRecord::Base
-  scope :published, where(:published => true)
+  scope :published, -> { where(published: true) }
 end
 </ruby>
 
-Just like before, these methods are also chainable:
+This is exactly the same as defining a class method, and which you use is a matter of personal preference:
 
 <ruby>
 class Post < ActiveRecord::Base
-  scope :published, where(:published => true).joins(:category)
+  def self.published
+    where(published: true)
+  end
 end
 </ruby>
 
@@ -1001,8 +1003,8 @@ Scopes are also chainable within scopes:
 
 <ruby>
 class Post < ActiveRecord::Base
-  scope :published, where(:published => true)
-  scope :published_and_commented, published.and(self.arel_table[:comments_count].gt(0))
+  scope :published,               -> { where(:published => true) }
+  scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
 end
 </ruby>
 
@@ -1019,25 +1021,13 @@ category = Category.first
 category.posts.published # => [published posts belonging to this category]
 </ruby>
 
-h4. Working with times
-
-If you're working with dates or times within scopes, due to how they are evaluated, you will need to use a lambda so that the scope is evaluated every time.
-
-<ruby>
-class Post < ActiveRecord::Base
-  scope :created_before_now, lambda { where("created_at < ?", Time.zone.now ) }
-end
-</ruby>
-
-Without the +lambda+, this +Time.zone.now+ will only be called once.
-
 h4. Passing in arguments
 
-When a +lambda+ is used for a +scope+, it can take arguments:
+You scope can take arguments:
 
 <ruby>
 class Post < ActiveRecord::Base
-  scope :created_before, lambda { |time| where("created_at < ?", time) }
+  scope :created_before, ->(time) { where("created_at < ?", time) }
 end
 </ruby>
 
@@ -1084,7 +1074,7 @@ If we wish for a scope to be applied across all queries to the model we can use 
 
 <ruby>
 class Client < ActiveRecord::Base
-  default_scope where("removed_at IS NULL")
+  default_scope { where("removed_at IS NULL") }
 end
 </ruby>
 
