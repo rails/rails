@@ -7,6 +7,7 @@ require 'models/ship'
 require 'models/legacy_thing'
 require 'models/reference'
 require 'models/string_key_object'
+require 'models/treasure'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -267,16 +268,15 @@ class SetLockingColumnTest < ActiveRecord::TestCase
       assert_equal "omg", k.original_locking_column
     end
   end
-  
+
   def test_removing_has_and_belongs_to_many_associations_upon_destroy
-    p = RichPerson.create!
+    p = RichPerson.create! :first_name => 'Jon'
     p.treasures.create!
     assert !p.treasures.empty?
     p.destroy
     assert p.treasures.empty?
     assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
   end
-  
 end
 
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
