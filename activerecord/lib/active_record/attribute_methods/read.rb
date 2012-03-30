@@ -67,7 +67,10 @@ module ActiveRecord
         @attributes_cache.fetch(attr_name.to_s) { |name|
           column = @columns_hash.fetch(name) {
             return @attributes.fetch(name) {
-              @attributes[self.class.primary_key] if name == 'id'
+              if name == 'id'
+                primary_key = self.class.primary_key
+                @columns_hash[primary_key].type_cast(@attributes[primary_key])
+              end
             }
           }
 
