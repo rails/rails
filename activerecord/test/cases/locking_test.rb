@@ -9,6 +9,7 @@ require 'models/string_key_object'
 require 'models/car'
 require 'models/engine'
 require 'models/wheel'
+require 'models/treasure'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -241,7 +242,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_removing_has_and_belongs_to_many_associations_upon_destroy
-    p = RichPerson.create!
+    p = RichPerson.create! first_name: 'Jon'
     p.treasures.create!
     assert !p.treasures.empty?
     p.destroy
