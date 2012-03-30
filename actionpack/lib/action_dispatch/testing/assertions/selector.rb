@@ -269,6 +269,7 @@ module ActionDispatch
               end
             end
             text.strip! unless NO_STRIP.include?(match.name)
+            text.sub!(/\A\n/, '') if match.name == "textarea"
             unless match_with.is_a?(Regexp) ? (text =~ match_with) : (text == match_with.to_s)
               content_mismatch ||= build_message(message, "<?> expected but was\n<?>.", match_with, text)
               true

@@ -1,5 +1,7 @@
 ## Rails 3.2.3 (unreleased) ##
 
+*   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
+
 *   Fix #5632, render :inline set the proper rendered format. *Santiago Pastorino*
 
 *   Fix textarea rendering when using plugins like HAML. Such plugins encode the first newline character in the content. This issue was introduced in https://github.com/rails/rails/pull/5191 *James Coleman*

@@ -135,6 +135,13 @@ class AssertSelectTest < ActionController::TestCase
     assert_raise(Assertion) { assert_select "pre", :html=>text }
   end
 
+  def test_strip_textarea
+    render_html %Q{<textarea>\n\nfoo\n</textarea>}
+    assert_select "textarea", "\nfoo\n"
+    render_html %Q{<textarea>\nfoo</textarea>}
+    assert_select "textarea", "foo"
+  end
+
   def test_counts
     render_html %Q{<div id="1">foo</div><div id="2">foo</div>}
     assert_nothing_raised               { assert_select "div", 2 }
