@@ -488,6 +488,51 @@ db_namespace = namespace :db do
         db_namespace["structure:load"].invoke
       ensure
         ENV['RAILS_ENV'] = old_env
+        #here problem rise! I have environment lite(for tests on sqlite)
+        #when I invoke RAILS_ENV=lite rake test I purge test database
+        #but my lite database for tests untouched=( and I get connection error.
+        #could we add something like 
+        #if %w(production development).include? Rails.env
+        #  ENV['RAILS_ENV'] = 'test'
+        #end
+        #or add to adapters parameter like testable(dropable,purgable,etc):
+        #production:
+        #  adapter: sqlserver
+        #  dataserver: development
+        #  database: development
+        #  username: development
+        #  password: development
+        #  pool: 5
+        #  timeout: 5000
+
+        #staging:
+        #  adapter: sqlserver
+        #  host: staging
+        #  port: staging
+        #  database: staging
+        #  username: staging
+        #  password: staging
+        #  pool: 5
+        #  timeout: 5000
+        #  testable(dropable,purgable,etc): false
+      
+        #lite:
+        #  adapter: sqlite3
+        #  database: db/test.sqlite3   
+        #  pool: 5
+        #  timeout: 5000
+        #  testable: true
+        
+        #test:
+        #  adapter: sqlserver
+        #  host: test
+        #  port: test
+        #  database: test
+        #  username: test
+        #  password: test
+        #  pool: 5
+        #  timeout: 5000
+        #  testable(dropable,purgable,etc): test
       end
     end
 
