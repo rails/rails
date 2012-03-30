@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
+
 *   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`
     to `false`. This change breaks remote forms that need to work also without javascript,
     so if you need such behavior, you can either set it to `true` or explicitly pass
