@@ -1,8 +1,8 @@
 script: "rake test"
 rvm:
   - 1.8.7
-  - rbx  
-  - rbx-2.0
+  - rbx-18mode
+  - rbx-19mode
   - jruby
   - 1.9.2
   - 1.9.3
