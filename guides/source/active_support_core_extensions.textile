@@ -1823,6 +1823,17 @@ The method +multiple_of?+ tests whether an integer is multiple of the argument:
 
 NOTE: Defined in +active_support/core_ext/integer/multiple.rb+.
 
+h4. +to_range+
+
+The method +to_range+ converts an integer into a range with or without the integer included:
+
+<ruby>
+5.to_range # => 0..5
+5.to_range(:exclude => true) # => 0...5
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/integer/conversions.rb+.
+
 h4. +ordinal+
 
 The method +ordinal+ returns the ordinal suffix string corresponding to the receiver integer:
