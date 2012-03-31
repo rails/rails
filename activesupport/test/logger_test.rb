@@ -3,11 +3,9 @@ require 'multibyte_test_helpers'
 require 'stringio'
 require 'fileutils'
 require 'tempfile'
-require 'active_support/testing/deprecation'
 
 class LoggerTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
-  include ActiveSupport::Testing::Deprecation
 
   Logger = ActiveSupport::Logger
 
