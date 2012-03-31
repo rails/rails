@@ -31,10 +31,9 @@ module Rails
       # root otherwise uses a default description.
       def self.desc(description=nil)
         return super if description
-        usage = source_root && File.expand_path("../USAGE", source_root)
 
-        @desc ||= if usage && File.exist?(usage)
-          ERB.new(File.read(usage)).result(binding)
+        @desc ||= if usage_path
+          ERB.new(File.read(usage_path)).result(binding)
         else
           "Description:\n    Create #{base_name.humanize.downcase} files for #{generator_name} generator."
         end
@@ -213,7 +212,8 @@ module Rails
       # root, you should use source_root.
       def self.default_source_root
         return unless base_name && generator_name
-        path = File.expand_path(File.join(base_name, generator_name, 'templates'), base_root)
+        return unless default_generator_root
+        path = File.join(default_generator_root, 'templates')
         path if File.exists?(path)
       end
 
@@ -371,6 +371,19 @@ module Rails
               end
             end
           }
+        end
+
+        def self.usage_path
+          paths = [
+            source_root && File.expand_path("../USAGE", source_root),
+            default_generator_root && File.join(default_generator_root, "USAGE")
+          ]
+          paths.compact.detect { |path| File.exists? path }
+        end
+
+        def self.default_generator_root
+          path = File.expand_path(File.join(base_name, generator_name), base_root)
+          path if File.exists?(path)
         end
 
     end
