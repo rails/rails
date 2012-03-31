@@ -316,7 +316,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_default_usage
-    File.expects(:exist?).returns(false)
+    Rails::Generators::AppGenerator.expects(:usage_path).returns(nil)
     assert_match(/Create rails files for app generator/, Rails::Generators::AppGenerator.desc)
   end
 

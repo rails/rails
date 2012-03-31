@@ -157,4 +157,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
+
+  def test_properly_identifies_usage_file
+    assert generator_class.send(:usage_path)
+  end
 end
