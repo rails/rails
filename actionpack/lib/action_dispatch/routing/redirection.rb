@@ -102,7 +102,8 @@ module ActionDispatch
         if block && block.respond_to?(:arity) && block.arity < 2
           msg = "redirect blocks with arity of #{block.arity} are deprecated. Your block must take 2 parameters: the environment, and a request object"
           ActiveSupport::Deprecation.warn msg
-          block = lambda { |params, _| block.call(params) }
+          deprecated_block = block
+          block = lambda { |params, _| deprecated_block.call(params) }
         end
 
         raise ArgumentError, "redirection argument not supported" unless block
