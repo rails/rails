@@ -4,6 +4,11 @@ require 'active_support/core_ext/integer'
 class IntegerExtTest < ActiveSupport::TestCase
   PRIME = 22953686867719691230002707821868552601124472329079
 
+  def test_to_range
+    assert_equal 0..5, 5.to_range
+    assert_equal 0...5, 5.to_range(:exclude => true)
+  end
+
   def test_multiple_of
     [ -7, 0, 7, 14 ].each { |i| assert i.multiple_of?(7) }
     [ -7, 7, 14 ].each { |i| assert ! i.multiple_of?(6) }
