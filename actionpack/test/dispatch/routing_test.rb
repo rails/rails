@@ -694,6 +694,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_redirect_proc
     with_test_routes do
       get '/account/proc/person'
+
+      verify_redirect 'http://www.example.com/people'
+    end
+  end
+
+  def test_redirect_deprecated_proc
+    assert_deprecated do
+      self.class.stub_controllers do |routes|
+        routes.draw { match 'account/deprecated_proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" } }
+      end
+    end
+
+    with_test_routes do
+      get '/account/proc/person'
+
       verify_redirect 'http://www.example.com/people'
     end
   end
