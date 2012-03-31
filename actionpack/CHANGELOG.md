@@ -1,5 +1,10 @@
 ## Rails 3.1.4 (unreleased) ##
 
+*   :subdomain can now be specified with a value of false in url_for, 
+    allowing for subdomain(s) removal from the host during link generation. GH #4083
+
+    *Arun Agrawal*
+
 *   Skip assets group in Gemfile and all assets configurations options
     when the application is generated with --skip-sprockets option.
 
