@@ -49,6 +49,15 @@ module ActiveRecord
         assert_equal expect, id
       end
 
+      def test_insert_sql_with_returning_disabled
+        @connection.use_returning = false
+        id = @connection.insert_sql("insert into postgresql_partitioned_table_parent (number) VALUES (1)")
+        expect = @connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
+        assert_equal expect, id
+      ensure
+        @connection.use_returning = true
+      end
+
       def test_serial_sequence
         assert_equal 'public.accounts_id_seq',
           @connection.serial_sequence('accounts', 'id')

@@ -406,6 +406,7 @@ module ActiveRecord
 
         initialize_type_map
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
+        self.use_returning = true
       end
 
       # Clears the prepared statements cache.
@@ -667,8 +668,11 @@ module ActiveRecord
           pk = primary_key(table_ref) if table_ref
         end
 
-        if pk
+        if pk && use_returning?
           select_value("#{sql} RETURNING #{quote_column_name(pk)}")
+        elsif pk
+          super
+          last_insert_id_value(sequence_name || default_sequence_name(table_ref, pk))
         else
           super
         end
@@ -783,9 +787,33 @@ module ActiveRecord
           pk = primary_key(table_ref) if table_ref
         end
 
-        sql = "#{sql} RETURNING #{quote_column_name(pk)}" if pk
+        if pk && use_returning?
+          sql = "#{sql} RETURNING #{quote_column_name(pk)}"
+        end
 
         [sql, binds]
+      end
+
+      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
+        val = exec_query(sql, name, binds)
+        if !use_returning? && pk
+          if sequence_name
+            last_insert_id_value(sequence_name)
+          else
+            table_ref = extract_table_ref_from_insert_sql(sql)
+            sequence_name = default_sequence_name(table_ref, pk)
+            return val unless sequence_name
+            last_insert_id(sequence_name)
+          end
+        else
+          val
+        end
+      end
+
+      def last_inserted_id(result)
+        return result if result.kind_of?(Integer)
+        row = result.rows.first
+        row && row.first
       end
 
       # Executes an UPDATE query and returns the number of affected tuples.
@@ -1028,7 +1056,9 @@ module ActiveRecord
 
       # Returns the sequence name for a table's primary key or some other specified key.
       def default_sequence_name(table_name, pk = nil) #:nodoc:
-        serial_sequence(table_name, pk || 'id').split('.').last
+        result = serial_sequence(table_name, pk || 'id')
+        return nil unless result
+        result.split('.').last
       rescue ActiveRecord::StatementInvalid
         "#{table_name}_#{pk || 'id'}_seq"
       end
@@ -1236,6 +1266,14 @@ module ActiveRecord
         end
       end
 
+      def use_returning=(val)
+        @use_returning = val
+      end
+
+      def use_returning?
+        @use_returning
+      end
+
       protected
         # Returns the version of the connected PostgreSQL server.
         def postgresql_version
@@ -1365,8 +1403,12 @@ module ActiveRecord
 
         # Returns the current ID of a table's sequence.
         def last_insert_id(sequence_name) #:nodoc:
+          Integer(last_insert_id_value(sequence_name))
+        end
+
+        def last_insert_id_value(sequence_name) #:nodoc:
           r = exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
-          Integer(r.rows.first.first)
+          r.rows.first.first
         end
 
         # Executes a SELECT query and returns the results, performing any data type
