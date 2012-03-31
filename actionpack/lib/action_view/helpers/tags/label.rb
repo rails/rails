@@ -33,7 +33,8 @@ module ActionView
           options["for"] = name_and_id["id"] unless options.key?("for")
 
           if block_given?
-            @template_object.label_tag(name_and_id["id"], options, &block)
+            content = @template_object.capture(&block)
+            label_tag(name_and_id["id"], content, options)
           else
             content = if @content.blank?
                         @object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
