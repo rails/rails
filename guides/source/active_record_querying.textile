@@ -284,6 +284,18 @@ Another example would be if you wanted multiple workers handling the same proces
 
 NOTE: The +:include+ option allows you to name associations that should be loaded alongside with the models.
 
+*+:max_records+* 
+
+The +:max_records+ option allows you to limit the number of records returned across all batches. 
+
+For example, to return the first 10000 records in batches of 500:
+
+<ruby>
+User.find_each(:batch_size => 500, :max_records => 10000) do |user|
+  NewsLetter.weekly_deliver(user)
+end
+</ruby>
+
 h5. +find_in_batches+
 
 The +find_in_batches+ method is similar to +find_each+, since both retrieve batches of records. The difference is that +find_in_batches+ yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1000 invoices at a time, with the final block containing any remaining invoices:

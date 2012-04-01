@@ -10,6 +10,10 @@ class EachTest < ActiveRecord::TestCase
     Post.count('id') # preheat arel's table cache
   end
 
+  def tests_are_sane
+    assert_equal 11, @total, "Tests valid only for 11 Post records" 
+  end 
+
   def test_each_should_excecute_one_query_per_batch
     assert_queries(Post.count + 1) do
       Post.find_each(:batch_size => 1) do |post|
@@ -70,11 +74,23 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_should_not_change_number_of_queries_when_give_max_records_option
+    assert_queries(Post.count + 1) do
+      Post.find_in_batches(:batch_size => 1, :max_records => 100) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+      end
+    end
+  end
+
   def test_find_in_batches_should_start_from_the_start_option
+    first_batch = true
     assert_queries(Post.count) do
       Post.find_in_batches(:batch_size => 1, :start => 2) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
+        assert_equal 2, batch.first.id if first_batch
+        first_batch = false
       end
     end
   end
@@ -136,4 +152,27 @@ class EachTest < ActiveRecord::TestCase
     assert_equal special_posts_ids, posts.map(&:id)
   end
 
+  def test_find_in_batches_should_limit_number_of_records_returned_with_max_records_option
+    post_count = 0
+    Post.find_in_batches(:max_records => 5) do |batch|
+      post_count += batch.size
+    end 
+    assert_equal 5, post_count
+  end 
+
+  def test_find_in_batches_should_limit_number_of_records_returned_with_max_records_option_independent_of_batch_size
+    post_count = 0
+    Post.find_in_batches(:batch_size => 2, :max_records => 5) do |batch|
+      post_count += batch.size
+    end 
+    assert_equal 5, post_count
+  end 
+
+  def test_find_in_batches_should_limit_the_queries_with_max_records_option
+    assert_queries(5) do
+      Post.find_in_batches(:batch_size => 1, :max_records => 5) do |batch|
+        # test queries only
+      end
+    end
+  end
 end
