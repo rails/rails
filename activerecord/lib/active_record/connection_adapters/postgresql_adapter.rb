@@ -797,23 +797,15 @@ module ActiveRecord
       def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
         val = exec_query(sql, name, binds)
         if !use_returning? && pk
-          if sequence_name
-            last_insert_id_value(sequence_name)
-          else
+          unless sequence_name
             table_ref = extract_table_ref_from_insert_sql(sql)
             sequence_name = default_sequence_name(table_ref, pk)
             return val unless sequence_name
-            last_insert_id(sequence_name)
           end
+          last_insert_id_result(sequence_name)
         else
           val
         end
-      end
-
-      def last_inserted_id(result)
-        return result if result.kind_of?(Integer)
-        row = result.rows.first
-        row && row.first
       end
 
       # Executes an UPDATE query and returns the number of affected tuples.
@@ -1406,9 +1398,12 @@ module ActiveRecord
           Integer(last_insert_id_value(sequence_name))
         end
 
-        def last_insert_id_value(sequence_name) #:nodoc:
-          r = exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
-          r.rows.first.first
+        def last_insert_id_value(sequence_name)
+          last_insert_id_result(sequence_name).rows.first.first
+        end
+
+        def last_insert_id_result(sequence_name) #:nodoc:
+          exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
         end
 
         # Executes a SELECT query and returns the results, performing any data type
