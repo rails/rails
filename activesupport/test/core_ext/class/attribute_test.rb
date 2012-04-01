@@ -72,6 +72,13 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_equal 'foo', object.setting
   end
 
+  test 'override singleton with instance value' do
+    object = @klass.new
+    object.singleton_class.setting = 'foo'
+    object.setting = 'bar'
+    assert_equal 'bar', object.setting
+  end
+
   test 'setter returns set value' do
     val = @klass.send(:setting=, 1)
     assert_equal 1, val

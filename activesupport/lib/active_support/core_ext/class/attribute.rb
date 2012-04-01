@@ -76,31 +76,23 @@ class Class
         def self.#{name}?() !!#{name} end
 
         def self.#{name}=(val)
-          singleton_class.class_eval do
-            remove_possible_method(:#{name})
-            define_method(:#{name}) { val }
-          end
+          singleton_class.redefine_method(:#{name}) { val }
 
           if singleton_class?
-            class_eval do
-              remove_possible_method(:#{name})
-              def #{name}
-                defined?(@#{name}) ? @#{name} : singleton_class.#{name}
-              end
+            redefine_method(:#{name}) do
+              defined?(@#{name}) ? @#{name} : singleton_class.#{name}
             end
           end
+
           val
         end
 
         if instance_reader
-          remove_possible_method :#{name}
-          def #{name}
+          redefine_method(:#{name}) do
             defined?(@#{name}) ? @#{name} : self.class.#{name}
           end
 
-          def #{name}?
-            !!#{name}
-          end
+          def #{name}?() !!#{name} end
         end
       RUBY
 
