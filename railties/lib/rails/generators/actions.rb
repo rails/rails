@@ -239,7 +239,7 @@ module Rails
       #
       # === Example
       #
-      #   route "root :to => 'welcome'"
+      #   route "root :to => 'welcome#index'"
       #
       def route(routing_code)
         log :route, routing_code
