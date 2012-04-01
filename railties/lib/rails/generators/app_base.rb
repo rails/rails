@@ -145,11 +145,26 @@ module Rails
             gem 'arel',      :git => 'https://github.com/rails/arel.git'
           GEMFILE
         else
+          railties_gemfile_entry
+        end
+      end
+
+      def railties_gemfile_entry
+        if include_all_railties?
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
             # gem 'rails', :git => 'https://github.com/rails/rails.git'
+          GEMFILE
+        else
+          <<-GEMFILE.strip_heredoc
+            gem 'activesupport', '#{Rails::VERSION::STRING}'
+            gem 'actionpack', '#{Rails::VERSION::STRING}'
+            #{comment_if :skip_active_record}gem 'activerecord', '#{Rails::VERSION::STRING}'
+            gem 'actionmailer', '#{Rails::VERSION::STRING}'
+            gem 'railties', '#{Rails::VERSION::STRING}'
+            #{comment_if :skip_sprockets}gem 'sprockets-rails', '~> 1.0'
           GEMFILE
         end
       end
