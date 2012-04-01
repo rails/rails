@@ -37,6 +37,9 @@ module Rails
         class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
                                           :desc => "Skip Active Record files"
 
+        class_option :skip_action_mailer, :type => :boolean, :aliases => "-M", :default => false,
+                                          :desc => "Skip Action Mailer files"
+
         class_option :skip_sprockets,     :type => :boolean, :aliases => "-S", :default => false,
                                           :desc => "Skip Sprockets files"
 
@@ -124,7 +127,7 @@ module Rails
       end
 
       def include_all_railties?
-        !options[:skip_active_record] && !options[:skip_test_unit] && !options[:skip_sprockets]
+        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test_unit, :skip_sprockets).none?
       end
 
       def comment_if(value)
@@ -162,7 +165,7 @@ module Rails
             gem 'activesupport', '#{Rails::VERSION::STRING}'
             gem 'actionpack', '#{Rails::VERSION::STRING}'
             #{comment_if :skip_active_record}gem 'activerecord', '#{Rails::VERSION::STRING}'
-            gem 'actionmailer', '#{Rails::VERSION::STRING}'
+            #{comment_if :skip_action_mailer}gem 'actionmailer', '#{Rails::VERSION::STRING}'
             gem 'railties', '#{Rails::VERSION::STRING}'
             #{comment_if :skip_sprockets}gem 'sprockets-rails', '~> 1.0'
           GEMFILE

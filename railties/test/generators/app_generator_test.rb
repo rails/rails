@@ -219,6 +219,29 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/performance/browsing_test.rb"
   end
 
+  def test_generator_if_skip_action_mailer_is_given
+    run_generator [destination_root, "--skip-action-mailer"]
+    assert_file "Gemfile" do |gemfile_content|
+      assert_no_match(/gem ["']rails["']/, gemfile_content)
+      assert_match(/gem ["']activesupport["']/, gemfile_content)
+      assert_match(/gem ["']actionpack["']/, gemfile_content)
+      assert_match(/gem ["']activerecord["']/, gemfile_content)
+      assert_match(/# gem ["']actionmailer["']/, gemfile_content)
+      assert_match(/gem ["']railties["']/, gemfile_content)
+      assert_match(/gem ["']sprockets-rails["'], '~> 1\.0'/, gemfile_content)
+    end
+    assert_file "config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
+    assert_file "config/environments/development.rb" do |content|
+      assert_no_match(/config\.action_mailer\.raise_delivery_errors = false/, content)
+    end
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
+    end
+    assert_file "config/environments/test.rb" do |content|
+      assert_no_match(/config\.action_mailer\.delivery_method = :test/, content)
+    end
+  end
+
   def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
     assert_file "Gemfile" do |gemfile_content|
