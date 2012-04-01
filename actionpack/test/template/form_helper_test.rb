@@ -1080,6 +1080,20 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_label_error_wrapping_block_and_non_block_versions
+    form_for(@post) do |f|
+      concat f.label(:author_name, 'Name', :class => 'label')
+      concat f.label(:author_name, :class => 'label') { 'Name' }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123' , 'edit_post', 'patch') do
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Name</label></div>" +
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Name</label></div>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_namespace
     form_for(@post, :namespace => 'namespace') do |f|
       concat f.text_field(:title)
