@@ -26,6 +26,14 @@ class ForceSSLExceptAction < ForceSSLController
   force_ssl :except => :banana
 end
 
+class ForceSSLIfCondition < ForceSSLController
+  force_ssl :if => :use_force_ssl?
+
+  def use_force_ssl?
+    action_name == 'cheeseburger'
+  end
+end
+
 class ForceSSLFlash < ForceSSLController
   force_ssl :except => [:banana, :set_flash, :use_flash]
 
@@ -106,6 +114,21 @@ class ForceSSLExceptActionTest < ActionController::TestCase
     get :cheeseburger
     assert_response 301
     assert_equal "https://test.host/force_ssl_except_action/cheeseburger", redirect_to_url
+  end
+end
+
+class ForceSSLIfConditionTest < ActionController::TestCase
+  tests ForceSSLIfCondition
+
+  def test_banana_not_redirects_to_https
+    get :banana
+    assert_response 200
+  end
+
+  def test_cheeseburger_redirects_to_https
+    get :cheeseburger
+    assert_response 301
+    assert_equal "https://test.host/force_ssl_if_condition/cheeseburger", redirect_to_url
   end
 end
 
