@@ -34,7 +34,6 @@ module ActionView
 
           if block_given?
             content = @template_object.capture(&block)
-            label_tag(name_and_id["id"], content, options)
           else
             content = if @content.blank?
                         @object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
@@ -56,9 +55,9 @@ module ActionView
                         end
 
             content ||= @method_name.humanize
-
-            label_tag(name_and_id["id"], content, options)
           end
+
+          label_tag(name_and_id["id"], content, options)
         end
       end
     end
