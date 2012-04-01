@@ -8,7 +8,7 @@ module ActionDispatch
 
       # Asserts that the response is one of the following types:
       #
-      # * <tt>:success</tt>   - Status code was 200
+      # * <tt>:success</tt>   - Status code was in the 200-299 range
       # * <tt>:redirect</tt>  - Status code was in the 300-399 range
       # * <tt>:missing</tt>   - Status code was 404
       # * <tt>:error</tt>     - Status code was in the 500-599 range

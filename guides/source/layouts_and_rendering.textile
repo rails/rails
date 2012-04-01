@@ -1134,13 +1134,6 @@ In Rails 3.0, there is also a shorthand for this. Assuming +@products+ is a coll
 
 Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection:
 
-In the event that the collection is empty, +render+ will return nil, so it should be fairly simple to provide alternative content.
-
-<erb>
-<h1>Products</h1>
-<%= render(@products) || 'There are no products available.' %>
-</erb>
-
 * +index.html.erb+
 
 <erb>
@@ -1161,6 +1154,13 @@ In the event that the collection is empty, +render+ will return nil, so it shoul
 </erb>
 
 In this case, Rails will use the customer or employee partials as appropriate for each member of the collection.
+
+In the event that the collection is empty, +render+ will return nil, so it should be fairly simple to provide alternative content.
+
+<erb>
+<h1>Products</h1>
+<%= render(@products) || 'There are no products available.' %>
+</erb>
 
 h5. Local Variables
 

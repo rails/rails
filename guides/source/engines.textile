@@ -77,7 +77,7 @@ end
 
 By inheriting from the +Rails::Engine+ class, this gem notifies Rails that there's an engine at the specified path, and will correctly mount the engine inside the application, performing tasks such as adding the +app+ directory of the engine to the load path for models, mailers, controllers and views.
 
-The +isolate_namespace+ method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace, away from similar components inside hte application. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption, or that important engine components could be overriden by similarly named things within the application. One of the examples of such conflicts are helpers. Without calling +isolate_namespace+, engine's helpers would be included in application's controllers.
+The +isolate_namespace+ method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace, away from similar components inside the application. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption, or that important engine components could be overridden by similarly named things within the application. One of the examples of such conflicts are helpers. Without calling +isolate_namespace+, engine's helpers would be included in application's controllers.
 
 NOTE: It is *highly* recommended that the +isolate_namespace+ line be left within the +Engine+ class definition. Without it, classes generated in an engine *may* conflict with an application.
 
@@ -665,7 +665,7 @@ Try this now by creating a new file at +app/views/blorgh/posts/index.html.erb+ a
 
 Rather than looking like the default scaffold, the page will now look like this:
 
-!images/engines_post_override.png(Engine scaffold overriden)!
+!images/engines_post_override.png(Engine scaffold overridden)!
 
 h4. Routes
 
@@ -736,7 +736,7 @@ You can define assets for precompilation in +engine.rb+
 initializer do |app|
   app.config.assets.precompile += %w(admin.css admin.js)
 end
-</ruby
+</ruby>
 
 For more information, read the "Asset Pipeline guide":http://guides.rubyonrails.org/asset_pipeline.html
 
