@@ -544,7 +544,7 @@ TwitterClone::Application.routes.draw do
 end
 </ruby>
 
-The +matches?+ method or the lambda is passed the "+request+ object":http://guides.rubyonrails.org/action_controller_overview.html#the-request-object, which means the constraint can check +request.path_parameters+, +request.headers+ or any other property of the request.
+Both the +matches?+ method and the lambda gets the +request+ object as an argument.
 
 h4. Route Globbing
 
