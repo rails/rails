@@ -93,6 +93,12 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_match(/ActiveRecord/, File.read(File.join(destination_root, "test/test_helper.rb")))
   end
 
+  def test_action_mailer_is_removed_from_frameworks_if_skip_action_mailer_is_given
+    run_generator [destination_root, "--skip-action-mailer"]
+    assert_file "test/dummy/config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
+  end
+
+
   def test_ensure_that_database_option_is_passed_to_app_generator
     run_generator [destination_root, "--database", "postgresql"]
     assert_file "test/dummy/config/database.yml", /postgres/
