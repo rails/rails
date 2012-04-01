@@ -406,7 +406,7 @@ module ActiveRecord
 
         initialize_type_map
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
-        self.use_returning = true
+        self.enable_insert_returning!
       end
 
       # Clears the prepared statements cache.
@@ -668,7 +668,7 @@ module ActiveRecord
           pk = primary_key(table_ref) if table_ref
         end
 
-        if pk && use_returning?
+        if pk && use_insert_returning?
           select_value("#{sql} RETURNING #{quote_column_name(pk)}")
         elsif pk
           super
@@ -787,7 +787,7 @@ module ActiveRecord
           pk = primary_key(table_ref) if table_ref
         end
 
-        if pk && use_returning?
+        if pk && use_insert_returning?
           sql = "#{sql} RETURNING #{quote_column_name(pk)}"
         end
 
@@ -796,7 +796,7 @@ module ActiveRecord
 
       def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
         val = exec_query(sql, name, binds)
-        if !use_returning? && pk
+        if !use_insert_returning? && pk
           unless sequence_name
             table_ref = extract_table_ref_from_insert_sql(sql)
             sequence_name = default_sequence_name(table_ref, pk)
@@ -1258,12 +1258,20 @@ module ActiveRecord
         end
       end
 
-      def use_returning=(val)
-        @use_returning = val
+      # Enable insert statements to use INSERT ... RETURNING ... statements. On by default.
+      def enable_insert_returning!
+        @use_insert_returning = true
       end
 
-      def use_returning?
-        @use_returning
+      # Disable INSERT ... RETURNING ... statements, using currval() instead.
+      # Useful for trigger based insertions where INSERT RETURNING does the wrong thing.
+      def disable_insert_returning!
+        @use_insert_returning = false
+      end
+
+
+      def use_insert_returning?
+        @use_insert_returning
       end
 
       protected

@@ -50,38 +50,38 @@ module ActiveRecord
       end
 
       def test_insert_sql_with_returning_disabled
-        @connection.use_returning = false
+        @connection.disable_insert_returning!
         id = @connection.insert_sql("insert into postgresql_partitioned_table_parent (number) VALUES (1)")
         expect = @connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
         assert_equal expect, id
       ensure
-        @connection.use_returning = true
+        @connection.enable_insert_returning!
       end
 
       def test_exec_insert_with_returning_disabled
-        @connection.use_returning = false
+        @connection.disable_insert_returning!
         result = @connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id', 'postgresql_partitioned_table_parent_id_seq')
         expect = @connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
         assert_equal expect, result.rows.first.first
       ensure
-        @connection.use_returning = true
+        @connection.enable_insert_returning!
       end
 
       def test_exec_insert_with_returning_disabled_and_no_sequence_name_given
-        @connection.use_returning = false
+        @connection.disable_insert_returning!
         result = @connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id')
         expect = @connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
         assert_equal expect, result.rows.first.first
       ensure
-        @connection.use_returning = true
+        @connection.enable_insert_returning!
       end
 
       def test_sql_for_insert_with_returning_disabled
-        @connection.use_returning = false
+        @connection.disable_insert_returning!
         result = @connection.sql_for_insert('sql', nil, nil, nil, 'binds')
         assert_equal ['sql', 'binds'], result
       ensure
-        @connection.use_returning = true
+        @connection.enable_insert_returning!
       end
 
       def test_serial_sequence
