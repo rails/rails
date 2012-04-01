@@ -273,10 +273,6 @@ module ActionDispatch
         @parent_jar[key] = options
       end
 
-      def signed
-        @signed ||= SignedCookieJar.new(self, @secret)
-      end
-
       def method_missing(method, *arguments, &block)
         @parent_jar.send(method, *arguments, &block)
       end
