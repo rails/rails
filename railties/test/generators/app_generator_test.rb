@@ -198,6 +198,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_gemfile_without_skips
+    run_generator
+    assert_file "Gemfile" do |gemfile_content|
+      assert_match(/^gem ["']rails["']/, gemfile_content)
+      assert_match(/# gem ["']activesupport["']/, gemfile_content)
+      assert_match(/# gem ["']actionpack["']/, gemfile_content)
+      assert_match(/# gem ["']activerecord["']/, gemfile_content)
+      assert_match(/# gem ["']actionmailer["']/, gemfile_content)
+      assert_match(/# gem ["']railties["']/, gemfile_content)
+      assert_match(/# gem ["']sprockets-rails["'], '~> 1\.0'/, gemfile_content)
+    end
+  end
+
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"

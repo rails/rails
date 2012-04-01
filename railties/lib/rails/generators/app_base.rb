@@ -159,6 +159,14 @@ module Rails
 
             # Bundle edge Rails instead:
             # gem 'rails', :git => 'https://github.com/rails/rails.git'
+
+            # Or pick the frameworks you want:
+            # gem 'activesupport', '#{Rails::VERSION::STRING}'
+            # gem 'actionpack', '#{Rails::VERSION::STRING}'
+            # gem 'activerecord', '#{Rails::VERSION::STRING}'
+            # gem 'actionmailer', '#{Rails::VERSION::STRING}'
+            # gem 'railties', '#{Rails::VERSION::STRING}'
+            # gem 'sprockets-rails', '~> 1.0'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
