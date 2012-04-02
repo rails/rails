@@ -189,7 +189,7 @@ module ActionView
               @xml.updated((options[:updated] || record.updated_at).xmlschema)
             end
 
-            type = options.fetch(:type) { 'text/html' }
+            type = options.fetch(:type, 'text/html')
 
             @xml.link(:rel => 'alternate', :type => type, :href => options[:url] || @view.polymorphic_url(record))
 
