@@ -325,7 +325,7 @@ module ActiveModel
             end
 
             @prefix, @suffix = options[:prefix] || '', options[:suffix] || ''
-            @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
+            @regex = /^(?:#{Regexp.escape(@prefix)})(.+)(?:#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
           end
