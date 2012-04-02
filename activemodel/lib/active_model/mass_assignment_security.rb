@@ -182,11 +182,8 @@ module ActiveModel
         self._accessible_attributes = accessible_attributes_configs.dup
 
         Array(role).each do |name|
-          if inherited_role
-            self._accessible_attributes[name] = self.accessible_attributes(inherited_role) + args
-          else
-            self._accessible_attributes[name] = self.accessible_attributes(name) + args
-          end
+          role = inherited_role || name # Use name role if inherited_role doesn't exist
+          self._accessible_attributes[name] = self.accessible_attributes(role) + args
         end
 
         self._active_authorizer = self._accessible_attributes
