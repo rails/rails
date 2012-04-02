@@ -47,7 +47,7 @@ module RailsGuides
     end
 
     def code(body)
-      body.gsub!(%r{<(yaml|shell|ruby|erb|html|sql|css|plain)>(.*?)</\1>}m) do |m|
+      body.gsub!(%r{<(yaml|shell|ruby|erb|html|sql|plain)>(.*?)</\1>}m) do |m|
         <<HTML
 <notextile>
 <div class="code_container">
