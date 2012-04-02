@@ -202,11 +202,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "Gemfile" do |gemfile_content|
       assert_match(/^gem ["']rails["']/, gemfile_content)
-      assert_match(/# gem ["']activesupport["']/, gemfile_content)
-      assert_match(/# gem ["']actionpack["']/, gemfile_content)
+      assert_match(/# gem ["']railties["']/, gemfile_content)
       assert_match(/# gem ["']activerecord["']/, gemfile_content)
       assert_match(/# gem ["']actionmailer["']/, gemfile_content)
-      assert_match(/# gem ["']railties["']/, gemfile_content)
       assert_match(/# gem ["']sprockets-rails["'], '~> 1\.0'/, gemfile_content)
     end
   end
@@ -216,11 +214,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/database.yml"
     assert_file "Gemfile" do |gemfile_content|
       assert_no_match(/gem ["']rails["']/, gemfile_content)
-      assert_match(/gem ["']activesupport["']/, gemfile_content)
-      assert_match(/gem ["']actionpack["']/, gemfile_content)
+      assert_match(/gem ["']railties["']/, gemfile_content)
       assert_match(/# gem ["']activerecord["']/, gemfile_content)
       assert_match(/gem ["']actionmailer["']/, gemfile_content)
-      assert_match(/gem ["']railties["']/, gemfile_content)
       assert_match(/gem ["']sprockets-rails["'], '~> 1\.0'/, gemfile_content)
     end
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
@@ -236,11 +232,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-action-mailer"]
     assert_file "Gemfile" do |gemfile_content|
       assert_no_match(/gem ["']rails["']/, gemfile_content)
-      assert_match(/gem ["']activesupport["']/, gemfile_content)
-      assert_match(/gem ["']actionpack["']/, gemfile_content)
+      assert_match(/gem ["']railties["']/, gemfile_content)
       assert_match(/gem ["']activerecord["']/, gemfile_content)
       assert_match(/# gem ["']actionmailer["']/, gemfile_content)
-      assert_match(/gem ["']railties["']/, gemfile_content)
       assert_match(/gem ["']sprockets-rails["'], '~> 1\.0'/, gemfile_content)
     end
     assert_file "config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
@@ -259,8 +253,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-sprockets"]
     assert_file "Gemfile" do |gemfile_content|
       assert_no_match(/gem ["']rails["']/, gemfile_content)
-      assert_match(/gem ["']activesupport["']/, gemfile_content)
-      assert_match(/gem ["']actionpack["']/, gemfile_content)
       assert_match(/gem ["']activerecord["']/, gemfile_content)
       assert_match(/gem ["']actionmailer["']/, gemfile_content)
       assert_match(/gem ["']railties["']/, gemfile_content)
