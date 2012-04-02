@@ -102,7 +102,6 @@ module ActiveModel
       #   person.name          # => nil
       def attribute_method_prefix(*prefixes)
         self.attribute_method_matchers += prefixes.map { |prefix| AttributeMethodMatcher.new :prefix => prefix }
-        undefine_attribute_methods
       end
 
       # Declares a method available for all attributes with the given suffix.
@@ -139,7 +138,6 @@ module ActiveModel
       #   person.name_short?   # => true
       def attribute_method_suffix(*suffixes)
         self.attribute_method_matchers += suffixes.map { |suffix| AttributeMethodMatcher.new :suffix => suffix }
-        undefine_attribute_methods
       end
 
       # Declares a method available for all attributes with the given prefix
@@ -177,7 +175,6 @@ module ActiveModel
       #   person.name                         # => 'Gemma'
       def attribute_method_affix(*affixes)
         self.attribute_method_matchers += affixes.map { |affix| AttributeMethodMatcher.new :prefix => affix[:prefix], :suffix => affix[:suffix] }
-        undefine_attribute_methods
       end
 
 
@@ -225,6 +222,7 @@ module ActiveModel
       #     end
       #   end
       def define_attribute_methods(*attr_names)
+        undefine_attribute_methods
         attr_names.flatten.each { |attr_name| define_attribute_method(attr_name) }
       end
 
