@@ -50,6 +50,13 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
     assert_equal expected, sanitized
   end
 
+  def test_role_inheritance_on_attr_accessible
+    user = InheritedUser.new
+    expected = { "name" => "John Smith", "email" => "john@smith.com", "admin" => true }
+    sanitized = user.sanitize_for_mass_assignment(expected, :admin)
+    assert_equal expected, sanitized
+  end
+
   def test_attributes_accessible_with_roles_given_as_array
     user = Account.new
     expected = { "name" => "John Smith", "email" => "john@smith.com" }
