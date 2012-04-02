@@ -672,7 +672,6 @@ module Arel
       end
 
       it 'returns string join sql' do
-        table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
         manager.from Nodes::StringJoin.new('hello')
         manager.join_sql.must_be_like %{ 'hello' }
@@ -1140,7 +1139,6 @@ module Arel
 
     describe 'source' do
       it 'returns the join source of the select core' do
-        table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
         manager.source.must_equal manager.ast.cores.last.source
       end
@@ -1148,7 +1146,6 @@ module Arel
 
     describe 'distinct' do
       it 'sets the quantifier' do
-        table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
 
         manager.distinct

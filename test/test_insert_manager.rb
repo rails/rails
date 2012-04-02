@@ -10,7 +10,6 @@ module Arel
 
     describe 'insert' do
       it 'can create a Values node' do
-        table   = Table.new(:users)
         manager = Arel::InsertManager.new Table.engine
         values  = manager.create_values %w{ a b }, %w{ c d }
 
@@ -20,7 +19,6 @@ module Arel
       end
 
       it 'allows sql literals' do
-        table          = Table.new(:users)
         manager        = Arel::InsertManager.new Table.engine
         manager.values = manager.create_values [Arel.sql('*')], %w{ a }
         manager.to_sql.must_be_like %{
