@@ -100,4 +100,10 @@ class RecordTagHelperTest < ActionView::TestCase
     content_tag_for(:li, @post, options) { }
     assert_equal({ :class => "important" }, options)
   end
+
+  def test_content_tag_for_with_string_options
+    expected = %(<li class="record_tag_post custom" id="record_tag_post_45"></li>)
+    actual = content_tag_for(:li, @post, 'class' => 'custom') { }
+    assert_dom_equal expected, actual
+  end
 end
