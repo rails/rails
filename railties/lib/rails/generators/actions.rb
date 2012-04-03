@@ -171,13 +171,13 @@ module Rails
       #     <<-TASK
       #       namespace :#{project} do
       #         task :bootstrap do
-      #           puts "i like boots!"
+      #           puts "I like boots!"
       #         end
       #       end
       #     TASK
       #   end
       #
-      #   rakefile("seed.rake", "puts i'm plantin ur seedz'")
+      #   rakefile("seed.rake", "puts 'I\'m planting your seeds'")
       #
       def rakefile(filename, data=nil, &block)
         log :rakefile, filename
@@ -276,7 +276,6 @@ module Rails
         # Define log for backwards compatibility. If just one argument is sent,
         # invoke say, otherwise invoke say_status. Differently from say and
         # similarly to say_status, this method respects the quiet? option given.
-        #
         def log(*args)
           if args.size == 1
             say args.first.to_s unless options.quiet?
@@ -287,7 +286,6 @@ module Rails
         end
 
         # Add an extension to the given name based on the platform.
-        #
         def extify(name)
           if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
             "#{name}.bat"

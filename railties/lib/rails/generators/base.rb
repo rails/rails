@@ -22,7 +22,6 @@ module Rails
       add_runtime_options!
 
       # Returns the source root for this generator using default_source_root as default.
-      #
       def self.source_root(path=nil)
         @_source_root = path if path
         @_source_root ||= default_source_root
@@ -30,7 +29,6 @@ module Rails
 
       # Tries to get the description from a USAGE file one folder above the source
       # root otherwise uses a default description.
-      #
       def self.desc(description=nil)
         return super if description
 
@@ -44,7 +42,6 @@ module Rails
       # Convenience method to get the namespace from the class name. It's the
       # same as Thor default except that the Generator at the end of the class
       # is removed.
-      #
       def self.namespace(name=nil)
         return super if name
         @namespace ||= super.sub(/_generator$/, '').sub(/:generators:/, ':')
@@ -52,7 +49,6 @@ module Rails
 
       # Convenience method to hide this generator from the available ones when
       # running rails generator command.
-      #
       def self.hide!
         Rails::Generators.hide_namespace self.namespace
       end
@@ -204,7 +200,6 @@ module Rails
       end
 
       # Make class option aware of Rails::Generators.options and Rails::Generators.aliases.
-      #
       def self.class_option(name, options={}) #:nodoc:
         options[:desc]    = "Indicates when to generate #{name.to_s.humanize.downcase}" unless options.key?(:desc)
         options[:aliases] = default_aliases_for_option(name, options)
@@ -215,7 +210,6 @@ module Rails
       # Returns the default source root for a given generator. This is used internally
       # by rails to set its generators source root. If you want to customize your source
       # root, you should use source_root.
-      #
       def self.default_source_root
         return unless base_name && generator_name
         return unless default_generator_root
@@ -225,14 +219,12 @@ module Rails
 
       # Returns the base root for a common set of generators. This is used to dynamically
       # guess the default source root.
-      #
       def self.base_root
         File.dirname(__FILE__)
       end
 
       # Cache source root and add lib/generators/base/generator/templates to
       # source paths.
-      #
       def self.inherited(base) #:nodoc:
         super
 
@@ -256,7 +248,6 @@ module Rails
 
         # Check whether the given class names are already taken by user
         # application or Ruby on Rails.
-        #
         def class_collisions(*class_names) #:nodoc:
           return unless behavior == :invoke
 
@@ -283,13 +274,11 @@ module Rails
         end
 
         # Use Rails default banner.
-        #
         def self.banner
           "rails generate #{namespace.sub(/^rails:/,'')} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]".gsub(/\s+/, ' ')
         end
 
         # Sets the base_name taking into account the current class namespace.
-        #
         def self.base_name
           @base_name ||= begin
             if base = name.to_s.split('::').first
@@ -300,7 +289,6 @@ module Rails
 
         # Removes the namespaces and get the generator name. For example,
         # Rails::Generators::ModelGenerator will return "model" as generator name.
-        #
         def self.generator_name
           @generator_name ||= begin
             if generator = name.to_s.split('::').last
@@ -312,20 +300,17 @@ module Rails
 
         # Return the default value for the option name given doing a lookup in
         # Rails::Generators.options.
-        #
         def self.default_value_for_option(name, options)
           default_for_option(Rails::Generators.options, name, options, options[:default])
         end
 
         # Return default aliases for the option name given doing a lookup in
         # Rails::Generators.aliases.
-        #
         def self.default_aliases_for_option(name, options)
           default_for_option(Rails::Generators.aliases, name, options, options[:aliases])
         end
 
         # Return default for the option name given doing a lookup in config.
-        #
         def self.default_for_option(config, name, options, default)
           if generator_name and c = config[generator_name.to_sym] and c.key?(name)
             c[name]
@@ -339,14 +324,12 @@ module Rails
         end
 
         # Keep hooks configuration that are used on prepare_for_invocation.
-        #
         def self.hooks #:nodoc:
           @hooks ||= from_superclass(:hooks, {})
         end
 
         # Prepare class invocation to search on Rails namespace if a previous
         # added hook is being used.
-        #
         def self.prepare_for_invocation(name, value) #:nodoc:
           return super unless value.is_a?(String) || value.is_a?(Symbol)
 
@@ -362,7 +345,6 @@ module Rails
 
         # Small macro to add ruby as an option to the generator with proper
         # default value plus an instance helper method called shebang.
-        #
         def self.add_shebang_option!
           class_option :ruby, :type => :string, :aliases => "-r", :default => Thor::Util.ruby_command,
                               :desc => "Path to the Ruby binary of your choice", :banner => "PATH"
