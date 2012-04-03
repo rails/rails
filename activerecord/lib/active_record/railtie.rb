@@ -115,7 +115,7 @@ module ActiveRecord
         if app.config.use_schema_cache_dump
           filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
           if File.file?(filename)
-            cache = Marshal.load(open(filename, 'rb') { |f| f.read })
+            cache = Marshal.load File.binread filename
             if cache.version == ActiveRecord::Migrator.current_version
               ActiveRecord::Base.connection.schema_cache = cache
             else
