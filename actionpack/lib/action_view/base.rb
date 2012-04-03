@@ -200,7 +200,7 @@ module ActionView #:nodoc:
       # TODO Provide a new API for AV::Base and deprecate this one.
       if context.is_a?(ActionView::Renderer)
         @view_renderer = context
-      elsif
+      else
         lookup_context = context.is_a?(ActionView::LookupContext) ?
           context : ActionView::LookupContext.new(context)
         lookup_context.formats  = formats if formats
