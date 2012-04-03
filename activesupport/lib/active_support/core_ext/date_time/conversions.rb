@@ -22,6 +22,7 @@ class DateTime
   #   datetime.to_formatted_s(:long)          # => "December 04, 2007 00:00"
   #   datetime.to_formatted_s(:long_ordinal)  # => "December 4th, 2007 00:00"
   #   datetime.to_formatted_s(:rfc822)        # => "Tue, 04 Dec 2007 00:00:00 +0000"
+  #   datetime.to_formatted_s("%Y")           # => "2007"
   #
   # == Adding your own datetime formats to to_formatted_s
   # DateTime formats are shared with Time. You can add your own to the
@@ -35,6 +36,8 @@ class DateTime
   def to_formatted_s(format = :default)
     if formatter = ::Time::DATE_FORMATS[format]
       formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
+    elsif format.is_a?(String)
+      strftime(format)
     else
       to_default_s
     end
