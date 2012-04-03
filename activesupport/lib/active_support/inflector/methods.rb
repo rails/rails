@@ -146,7 +146,7 @@ module ActiveSupport
     # Replaces underscores with dashes in the string.
     #
     # Example:
-    #   "puni_puni" # => "puni-puni"
+    #   "puni_puni".dasherize # => "puni-puni"
     def dasherize(underscored_word)
       underscored_word.tr('_', '-')
     end
