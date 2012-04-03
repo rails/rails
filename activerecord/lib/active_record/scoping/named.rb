@@ -35,7 +35,7 @@ module ActiveRecord
             if current_scope
               current_scope.clone
             else
-              scope = relation.clone
+              scope = relation
               scope.default_scoped = true
               scope
             end
@@ -49,7 +49,7 @@ module ActiveRecord
           if current_scope
             current_scope.scope_for_create
           else
-            scope = relation.clone
+            scope = relation
             scope.default_scoped = true
             scope.scope_for_create
           end
