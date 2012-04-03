@@ -25,6 +25,7 @@ module ActionView
       autoload :TelField
       autoload :TextArea
       autoload :TextField
+      autoload :TimeField
       autoload :TimeSelect
       autoload :TimeZoneSelect
       autoload :UrlField
