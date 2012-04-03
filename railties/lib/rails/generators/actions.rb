@@ -69,6 +69,7 @@ module Rails
       # ==== Example
       #
       #   add_source "http://gems.github.com/"
+      #
       def add_source(source, options={})
         log :source, source
 
@@ -81,6 +82,16 @@ module Rails
       #
       # If options :env is specified, the line is appended to the corresponding
       # file in config/environments.
+      #
+      # ==== Examples
+      #
+      #   environment do
+      #     "config.autoload_paths += %W(#{config.root}/extras)"
+      #   end
+      #
+      #   environment(nil,:env => "development") do
+      #     "config.active_record.observers = :cacher"
+      #   end
       #
       def environment(data=nil, options={}, &block)
         sentinel = /class [a-z_:]+ < Rails::Application/i
@@ -166,7 +177,7 @@ module Rails
       #     TASK
       #   end
       #
-      #   rakefile("seed.rake", "puts 'im plantin ur seedz'")
+      #   rakefile("seed.rake", "puts i'm plantin ur seedz'")
       #
       def rakefile(filename, data=nil, &block)
         log :rakefile, filename

@@ -22,6 +22,7 @@ module Rails
       add_runtime_options!
 
       # Returns the source root for this generator using default_source_root as default.
+      #
       def self.source_root(path=nil)
         @_source_root = path if path
         @_source_root ||= default_source_root
@@ -29,6 +30,7 @@ module Rails
 
       # Tries to get the description from a USAGE file one folder above the source
       # root otherwise uses a default description.
+      #
       def self.desc(description=nil)
         return super if description
 
@@ -42,6 +44,7 @@ module Rails
       # Convenience method to get the namespace from the class name. It's the
       # same as Thor default except that the Generator at the end of the class
       # is removed.
+      #
       def self.namespace(name=nil)
         return super if name
         @namespace ||= super.sub(/_generator$/, '').sub(/:generators:/, ':')
@@ -49,6 +52,7 @@ module Rails
 
       # Convenience method to hide this generator from the available ones when
       # running rails generator command.
+      #
       def self.hide!
         Rails::Generators.hide_namespace self.namespace
       end
@@ -200,6 +204,7 @@ module Rails
       end
 
       # Make class option aware of Rails::Generators.options and Rails::Generators.aliases.
+      #
       def self.class_option(name, options={}) #:nodoc:
         options[:desc]    = "Indicates when to generate #{name.to_s.humanize.downcase}" unless options.key?(:desc)
         options[:aliases] = default_aliases_for_option(name, options)
@@ -210,6 +215,7 @@ module Rails
       # Returns the default source root for a given generator. This is used internally
       # by rails to set its generators source root. If you want to customize your source
       # root, you should use source_root.
+      #
       def self.default_source_root
         return unless base_name && generator_name
         return unless default_generator_root
@@ -219,12 +225,14 @@ module Rails
 
       # Returns the base root for a common set of generators. This is used to dynamically
       # guess the default source root.
+      #
       def self.base_root
         File.dirname(__FILE__)
       end
 
       # Cache source root and add lib/generators/base/generator/templates to
       # source paths.
+      #
       def self.inherited(base) #:nodoc:
         super
 
