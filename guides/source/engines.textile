@@ -355,11 +355,11 @@ end
 
 This is the final part required to get the new comment form working. Displaying the comments however, is not quite right yet. If you were to create a comment right now you would see this error:
 
-<text>
+<plain>
   Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder], :formats=>[:html], :locale=>[:en, :en]}. Searched in:
     * "/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"
     * "/Users/ryan/Sites/side_projects/blorgh/app/views"
-</text>
+</plain>
 
 The engine is unable to find the partial required for rendering the comments. Rails has looked firstly in the application's (+test/dummy+) +app/views+ directory and then in the engine's +app/views+ directory. When it can't find it, it will throw this error. The engine knows to look for +blorgh/comments/comment+ because the model object it is receiving is from the +Blorgh::Comment+ class.
 
@@ -536,9 +536,9 @@ Finally, the author's name should be displayed on the post's page. Add this code
 
 By outputting +@post.author+ using the +<%=+ tag the +to_s+ method will be called on the object. By default, this will look quite ugly:
 
-<text>
+<plain>
 #<User:0x00000100ccb3b0>
-</text>
+</plain>
 
 This is undesirable and it would be much better to have the user's name there. To do this, add a +to_s+ method to the +User+ class within the application:
 
