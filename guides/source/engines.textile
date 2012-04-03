@@ -717,11 +717,11 @@ Imagine that you did have an asset located at +app/assets/stylesheets/blorgh/sty
 
 You can also specify these assets as dependencies of other assets using the Asset Pipeline require statements in processed files:
 
-<css>
+<plain>
 /*
  *= require blorgh/style
 */
-</css>
+</plain>
 
 h4. Separate Assets & Precompiling
 
