@@ -137,12 +137,12 @@ module ActionView
 
         begin
           value = number_with_precision(number, options.merge(:raise => true))
-          format.gsub(/%n/, value).gsub(/%u/, unit).html_safe
+          format.gsub('%n', value).gsub('%u', unit).html_safe
         rescue InvalidNumberError => e
           if options[:raise]
             raise
           else
-            formatted_number = format.gsub(/%n/, e.number).gsub(/%u/, unit)
+            formatted_number = format.gsub('%n', e.number).gsub('%u', unit)
             e.number.to_s.html_safe? ? formatted_number.html_safe : formatted_number
           end
         end
