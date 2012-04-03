@@ -68,7 +68,9 @@ module ActiveRecord
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
       ActiveSupport.on_load(:active_record) do
-        self.configurations = app.config.database_configuration
+        unless ENV['DATABASE_URL']
+          self.configurations = app.config.database_configuration
+        end
         establish_connection
       end
     end
@@ -115,7 +117,7 @@ module ActiveRecord
         if app.config.use_schema_cache_dump
           filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
           if File.file?(filename)
-            cache = Marshal.load(open(filename, 'rb') { |f| f.read })
+            cache = Marshal.load File.binread filename
             if cache.version == ActiveRecord::Migrator.current_version
               ActiveRecord::Base.connection.schema_cache = cache
             else
