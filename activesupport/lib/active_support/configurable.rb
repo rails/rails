@@ -60,6 +60,8 @@ module ActiveSupport
           singleton_class.class_eval writer, __FILE__, line
           class_eval reader, __FILE__, line unless options[:instance_reader] == false
           class_eval writer, __FILE__, line unless options[:instance_writer] == false
+
+          config[name] = options[:default] if options[:default]
         end
       end
     end

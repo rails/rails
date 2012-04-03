@@ -71,6 +71,16 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_method_defined child.new.config, :bar
   end
 
+  test "configuration can take defaults" do
+    parent = Class.new do
+      include ActiveSupport::Configurable
+      config_accessor :foo, :bar, :default => 'bar'
+    end
+
+    assert_equal parent.config.foo, 'bar'
+    assert_equal parent.config.bar, 'bar'
+  end
+
   def assert_method_defined(object, method)
     methods = object.public_methods.map(&:to_s)
     assert methods.include?(method.to_s), "Expected #{methods.inspect} to include #{method.to_s.inspect}"
