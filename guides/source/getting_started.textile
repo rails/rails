@@ -152,11 +152,11 @@ $ rails server
 
 TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an +execjs+ error. Usually Mac OS X and Windows come with a JavaScript runtime installed. Rails adds the +therubyracer+ gem to Gemfile in a commented line for new apps and you can uncomment if you need it. +therubyrhino+ is the recommended runtime for JRuby users and is added by default to Gemfile in apps generated under JRuby. You can investigate about all the supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
 
-This will fire up an instance of a webserver built into Ruby called WEBrick by default. To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see Rails' default information page:
+This will fire up an instance of a webserver built into Ruby called WEBrick by default. To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see the Rails default information page:
 
 !images/rails_welcome.png(Welcome Aboard screenshot)!
 
-TIP: To stop the web server, hit Ctrl+C in the terminal window where it's running. In development mode, Rails does not generally require you to stop the server; changes you make in files will be automatically picked up by the server.
+TIP: To stop the web server, hit Ctrl+C in the terminal window where it's running. In development mode, Rails does not generally require you to restart the server; changes you make in files will be automatically picked up by the server.
 
 The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. You can also click on the _About your application’s environment_ link to see a summary of your application's environment.
 
