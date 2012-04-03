@@ -44,8 +44,8 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
     i = 0
     checker = ActiveSupport::FileUpdateChecker.new(FILES){ i += 1 }
     FileUtils.rm(FILES)
-    assert !checker.execute_if_updated
-    assert_equal 0, i
+    assert checker.execute_if_updated
+    assert_equal 1, i
   end
 
   def test_should_cache_updated_result_until_execute
