@@ -64,14 +64,16 @@ module ActionDispatch
         end
 
         def host_or_subdomain_and_domain(options)
-          return options[:host] unless (options[:subdomain] || options[:domain]) && named_host?(options[:host])
+          return options[:host] if !named_host?(options[:host]) || (options[:subdomain].nil? && options[:domain].nil?)
 
           tld_length = options[:tld_length] || @@tld_length
 
           host = ""
-          host << (options[:subdomain] || extract_subdomain(options[:host], tld_length))
-          host << "."
-          host << (options[:domain]    || extract_domain(options[:host], tld_length))
+          unless options[:subdomain] == false
+            host << (options[:subdomain] || extract_subdomain(options[:host], tld_length)).to_param
+            host << "."
+          end
+          host << (options[:domain] || extract_domain(options[:host], tld_length))
           host
         end
       end
