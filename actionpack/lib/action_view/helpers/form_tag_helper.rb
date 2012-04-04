@@ -482,6 +482,9 @@ module ActionView
       #   prompt with the question specified. If the user accepts, the form is
       #   processed normally, otherwise no action is taken.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
+      #   disabled version of the submit button when the form is submitted. This feature is
+      #   provided by the unobtrusive JavaScript driver.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -498,6 +501,10 @@ module ActionView
       #   # => <input class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
+
+        if disable_with = options.delete("disable_with")
+          options["data-disable-with"] = disable_with
+        end
 
         if confirm = options.delete("confirm")
           options["data-confirm"] = confirm
@@ -618,7 +625,7 @@ module ActionView
             # responsibility of the caller to escape all the values.
             html_options["action"]  = url_for(url_for_options)
             html_options["accept-charset"] = "UTF-8"
-            
+
             html_options["data-remote"] = true if html_options.delete("remote")
 
             if html_options["data-remote"] && html_options["authenticity_token"] == true

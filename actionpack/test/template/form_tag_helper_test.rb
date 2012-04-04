@@ -458,6 +458,13 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_image_submit_tag_with_confirmation_amd_disable_with
+    assert_dom_equal(
+      %(<input type="image" src="/images/save.gif" data-disable-with="Saving..." data-confirm="Are you sure?" />),
+      image_submit_tag("save.gif", :confirm => "Are you sure?", :disable_with => 'Saving...')
+    )
+  end
+
   def test_search_field_tag
     expected = %{<input id="query" name="query" type="search" />}
     assert_dom_equal(expected, search_field_tag("query"))
