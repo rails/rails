@@ -53,7 +53,7 @@ A short rundown of some of the major features:
         end
     end
 
-  {Learn more}[link:classes/ActionController/Base.html]
+  {Learn more}[link:lib/action_controller/base.rb]
 
 
 * ERB templates (static content mixed with dynamic output from ruby)
@@ -68,7 +68,7 @@ A short rundown of some of the major features:
       Not for clients to see...
     <% end %>
 
-  {Learn more}[link:classes/ActionView.html]
+  {Learn more}[link:lib/action_view/base.rb]
 
 
 * "Builder" templates (great for XML content, like RSS)
@@ -93,7 +93,7 @@ A short rundown of some of the major features:
       end
     end
 
-  {Learn more}[link:classes/ActionView/Base.html]
+  {Learn more}[link:lib/action_view/base.rb]
 
 
 * Filters for pre- and post-processing of the response
@@ -123,7 +123,7 @@ A short rundown of some of the major features:
         end
     end
 
-  {Learn more}[link:classes/ActionController/Filters/ClassMethods.html]
+  {Learn more}[link:lib/abstract_controller/callbacks.rb]
 
 
 * Helpers for forms, dates, action links, and text
@@ -132,7 +132,7 @@ A short rundown of some of the major features:
     <%= link_to "New post", :controller => "post", :action => "new" %>
     <%= truncate(post.title, :length => 25) %>
 
-  {Learn more}[link:classes/ActionView/Helpers.html]
+  {Learn more}[link:lib/action_view/helpers]
 
 
 * Layout sharing for template reuse
@@ -153,7 +153,7 @@ A short rundown of some of the major features:
     Result of running hello_world action:
       <html><body><h1>Hello world</h1></body></html>
 
-  {Learn more}[link:classes/ActionController/Layout/ClassMethods.html]
+  {Learn more}[link:lib/abstract_controller/layouts.rb]
 
 
 * Routing makes pretty URLs incredibly easy
@@ -171,7 +171,7 @@ A short rundown of some of the major features:
     redirect_to(:client_name => "nextangle", :project_name => "rails") =>
       /clients/nextangle/rails/project/index
 
-  {Learn more}[link:classes/ActionDispatch/Routing.html]
+  {Learn more}[link:lib/action_dispatch/routing.rb]
 
 
 * Easy testing of both controller and rendered template through ActionController::TestCase
@@ -184,7 +184,7 @@ A short rundown of some of the major features:
       end
     end
 
-  {Learn more}[link:classes/ActionController/TestCase.html]
+  {Learn more}[link:lib/action_controller/test_case.rb]
 
 
 * Automated benchmarking and integrated logging
@@ -235,7 +235,7 @@ A short rundown of some of the major features:
       end
     end
 
-  {Learn more}[link:classes/ActionController/Caching.html]
+  {Learn more}[link:lib/action_controller/caching.rb]
 
 
 * Powerful debugging mechanism for local requests
@@ -245,7 +245,7 @@ A short rundown of some of the major features:
     message, stack trace, request parameters, session contents, and the
     half-finished response.
 
-  {Learn more}[link:classes/ActionController/Rescue.html]
+  {Learn more}[link:lib/action_controller/metal/rescue.rb]
 
 
 == Simple example (from outside of Rails)
