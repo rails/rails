@@ -60,6 +60,17 @@ class TestController < ActionController::Base
     end
   end
 
+  def conditional_hello_with_multiple_records
+    records = [ [Time.now.utc.beginning_of_day, "foo/123"], [Time.new.yesterday.utc.beginning_of_day, "bar/123"] ]
+    records.collect! do |record|
+      Struct.new(:updated_at, :cache_key).new(record[0], record[1])
+    end
+
+    if stale?(records)
+      render :action => 'hello_world'
+    end
+  end
+
   def conditional_hello_with_public_header
     if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
       render :action => 'hello_world'
@@ -1557,9 +1568,38 @@ class LastModifiedRenderTest < ActionController::TestCase
     assert_response :success
   end
 
-  def test_request_modified_with_record
+
+  def test_request_modified_with_multiple_records
     @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
-    get :conditional_hello_with_record
+    get :conditional_hello_with_multiple_records
+    assert_equal 200, @response.status.to_i
+    assert_present @response.body
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_responds_with_last_modified_with_multiple_records
+    get :conditional_hello_with_multiple_records
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_with_multiple_records
+    @request.if_modified_since = @last_modified
+    get :conditional_hello_with_multiple_records
+    assert_equal 304, @response.status.to_i
+    assert_blank @response.body
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_but_etag_differs_with_multiple_records
+    @request.if_modified_since = @last_modified
+    @request.if_none_match = "234"
+    get :conditional_hello_with_multiple_records
+    assert_response :success
+  end
+
+  def test_request_modified_with_multiple_records
+    @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
+    get :conditional_hello_with_multiple_records
     assert_equal 200, @response.status.to_i
     assert_present @response.body
     assert_equal @last_modified, @response.headers['Last-Modified']

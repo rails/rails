@@ -30,6 +30,14 @@ module ActionController
     #     fresh_when(@article)
     #   end
     #
+    # Similarly, you can pass an array of objects where the most recently updated model will be used:
+    #
+    #   def show
+    #     @category = Category.find(params[:category_id])
+    #     @article = @category.articles.find(params[:id])
+    #     fresh_when([@category, @article])
+    #   end
+    #
     # When passing a record, you can still set whether the public header:
     #
     #   def show
@@ -40,6 +48,13 @@ module ActionController
       if record_or_options.is_a? Hash
         options = record_or_options
         options.assert_valid_keys(:etag, :last_modified, :public)
+      elsif record_or_options.is_a? Array
+        records = record_or_options
+        most_recent_record = records.sort_by { |record| record.try(:updated_at) }.last
+        options = { 
+          :etag => most_recent_record,
+          :last_modified => most_recent_record.try(:updated_at)
+        }.merge(additional_options)
       else
         record  = record_or_options
         options = { :etag => record, :last_modified => record.try(:updated_at) }.merge(additional_options)
