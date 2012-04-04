@@ -248,7 +248,6 @@ module Rails
 
         # Check whether the given class names are already taken by user
         # application or Ruby on Rails.
-        #
         def class_collisions(*class_names) #:nodoc:
           return unless behavior == :invoke
 
@@ -275,13 +274,11 @@ module Rails
         end
 
         # Use Rails default banner.
-        #
         def self.banner
           "rails generate #{namespace.sub(/^rails:/,'')} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]".gsub(/\s+/, ' ')
         end
 
         # Sets the base_name taking into account the current class namespace.
-        #
         def self.base_name
           @base_name ||= begin
             if base = name.to_s.split('::').first
@@ -292,7 +289,6 @@ module Rails
 
         # Removes the namespaces and get the generator name. For example,
         # Rails::Generators::ModelGenerator will return "model" as generator name.
-        #
         def self.generator_name
           @generator_name ||= begin
             if generator = name.to_s.split('::').last
@@ -304,20 +300,17 @@ module Rails
 
         # Return the default value for the option name given doing a lookup in
         # Rails::Generators.options.
-        #
         def self.default_value_for_option(name, options)
           default_for_option(Rails::Generators.options, name, options, options[:default])
         end
 
         # Return default aliases for the option name given doing a lookup in
         # Rails::Generators.aliases.
-        #
         def self.default_aliases_for_option(name, options)
           default_for_option(Rails::Generators.aliases, name, options, options[:aliases])
         end
 
         # Return default for the option name given doing a lookup in config.
-        #
         def self.default_for_option(config, name, options, default)
           if generator_name and c = config[generator_name.to_sym] and c.key?(name)
             c[name]
@@ -331,14 +324,12 @@ module Rails
         end
 
         # Keep hooks configuration that are used on prepare_for_invocation.
-        #
         def self.hooks #:nodoc:
           @hooks ||= from_superclass(:hooks, {})
         end
 
         # Prepare class invocation to search on Rails namespace if a previous
         # added hook is being used.
-        #
         def self.prepare_for_invocation(name, value) #:nodoc:
           return super unless value.is_a?(String) || value.is_a?(Symbol)
 
@@ -354,7 +345,6 @@ module Rails
 
         # Small macro to add ruby as an option to the generator with proper
         # default value plus an instance helper method called shebang.
-        #
         def self.add_shebang_option!
           class_option :ruby, :type => :string, :aliases => "-r", :default => Thor::Util.ruby_command,
                               :desc => "Path to the Ruby binary of your choice", :banner => "PATH"
