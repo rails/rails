@@ -22,6 +22,20 @@ module ActionController #:nodoc:
           flash.update(other_flashes)
         end
 
+        if options.is_a?(Hash)
+          if options_alert = options.delete(:alert)
+            flash[:alert] = options_alert
+          end
+
+          if options_notice = options.delete(:notice)
+            flash[:notice] = options_notice
+          end
+
+          if options_other_flashes = options.delete(:flash)
+            flash.update(options_other_flashes)
+          end
+        end
+
         super(options, response_status_and_flash)
       end
   end

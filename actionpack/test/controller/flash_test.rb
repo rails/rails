@@ -77,6 +77,14 @@ class FlashTest < ActionController::TestCase
       redirect_to '/somewhere', :notice => "Good luck in the somewheres!"
     end
 
+    def redirect_to_action_with_alert
+      redirect_to :action => 'nowhere', :alert => "Beware the nowheres!"
+    end
+
+    def redirect_to_action_with_notice
+      redirect_to :action => 'somewhere', :notice => "Good luck in the somewheres!"
+    end
+
     def render_with_flash_now_alert
       flash.now.alert = "Beware the nowheres now!"
       render :inline => "hello"
@@ -89,6 +97,10 @@ class FlashTest < ActionController::TestCase
 
     def redirect_with_other_flashes
       redirect_to '/wonderland', :flash => { :joyride => "Horses!" }
+    end
+
+    def redirect_to_action_with_other_flashes
+      redirect_to :action => 'wonderland', :flash => { :joyride => "Horses!" }
     end
   end
 
@@ -189,6 +201,16 @@ class FlashTest < ActionController::TestCase
     assert_equal "Good luck in the somewheres!", @controller.send(:flash)[:notice]
   end
 
+  def test_redirect_to_action_with_alert
+    get :redirect_to_action_with_alert
+    assert_equal "Beware the nowheres!", @controller.send(:flash)[:alert]
+  end
+
+  def test_redirect_to_action_with_notice
+    get :redirect_to_action_with_notice
+    assert_equal "Good luck in the somewheres!", @controller.send(:flash)[:notice]
+  end
+
   def test_render_with_flash_now_alert
     get :render_with_flash_now_alert
     assert_equal "Beware the nowheres now!", @controller.send(:flash)[:alert]
@@ -201,6 +223,11 @@ class FlashTest < ActionController::TestCase
 
   def test_redirect_to_with_other_flashes
     get :redirect_with_other_flashes
+    assert_equal "Horses!", @controller.send(:flash)[:joyride]
+  end
+
+  def test_redirect_to_action_with_other_flashes
+    get :redirect_to_action_with_other_flashes
     assert_equal "Horses!", @controller.send(:flash)[:joyride]
   end
 end
