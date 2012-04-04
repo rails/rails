@@ -244,7 +244,7 @@ module ActionDispatch
       end
 
       def self.normalize_name(name)
-        normalize_path(name)[1..-1].gsub("/", "_")
+        normalize_path(name)[1..-1].tr("/", "_")
       end
 
       module Base
@@ -441,7 +441,7 @@ module ActionDispatch
               app.railtie_name
             else
               class_name = app.class.is_a?(Class) ? app.name : app.class.name
-              ActiveSupport::Inflector.underscore(class_name).gsub("/", "_")
+              ActiveSupport::Inflector.underscore(class_name).tr("/", "_")
             end
           end
 

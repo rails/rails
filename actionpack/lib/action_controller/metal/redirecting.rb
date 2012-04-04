@@ -93,7 +93,7 @@ module ActionController
           _compute_redirect_to_location options.call
         else
           url_for(options)
-        end.gsub(/[\0\r\n]/, '')
+        end.delete("\0\r\n")
       end
   end
 end
