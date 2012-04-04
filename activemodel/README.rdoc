@@ -11,10 +11,10 @@ code from Rails, or monkey patch entire helpers to make them handle objects
 that did not exactly conform to the Active Record interface. This would result
 in code duplication and fragile applications that broke on upgrades. Active
 Model solves this by defining an explicit API. You can read more about the
-API in ActiveModel::Lint::Tests.
+API in <tt>ActiveModel::Lint::Tests</tt>.
 
 Active Model provides a default module that implements the basic API required
-to integrate with Action Pack out of the box: +ActiveModel::Model+.
+to integrate with Action Pack out of the box:
 
     class Person
       include ActiveModel::Model
@@ -30,7 +30,7 @@ to integrate with Action Pack out of the box: +ActiveModel::Model+.
 
 It includes model name introspections, conversions, translations and
 validations, resulting in a class suitable to be used with Action Pack.
-See +ActiveModel::Model+ for more examples.
+See <tt>ActiveModel::Model</tt> for more examples.
 
 Active Model also provides the following functionality to have ORM-like
 behavior out of the box:
@@ -53,7 +53,7 @@ behavior out of the box:
     person.clear_name
     person.clear_age
 
-  {Learn more}[link:classes/ActiveModel/AttributeMethods.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/AttributeMethods.html]
 
 * Callbacks for certain operations
 
@@ -71,7 +71,7 @@ behavior out of the box:
   This generates +before_create+, +around_create+ and +after_create+
   class methods that wrap your create method.
 
-  {Learn more}[link:classes/ActiveModel/CallBacks.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Callbacks.html]
 
 * Tracking value changes
 
@@ -88,7 +88,7 @@ behavior out of the box:
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
 
-  {Learn more}[link:classes/ActiveModel/Dirty.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Dirty.html]
 
 * Adding +errors+ interface to objects
 
@@ -119,7 +119,7 @@ behavior out of the box:
     person.errors.full_messages
     # => ["Name can not be nil"]
 
-  {Learn more}[link:classes/ActiveModel/Errors.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Errors.html]
 
 * Model name introspection
 
@@ -130,7 +130,7 @@ behavior out of the box:
     NamedPerson.model_name        # => "NamedPerson"
     NamedPerson.model_name.human  # => "Named person"
 
-  {Learn more}[link:classes/ActiveModel/Naming.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Naming.html]
 
 * Observer support
 
@@ -150,7 +150,7 @@ behavior out of the box:
     s.to_json             # => "{\"name\":null}"
     s.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
 
-  {Learn more}[link:classes/ActiveModel/Serialization.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Serialization.html]
 
 * Internationalization (i18n) support
 
@@ -161,7 +161,7 @@ behavior out of the box:
     Person.human_attribute_name('my_attribute')
     # => "My attribute"
 
-  {Learn more}[link:classes/ActiveModel/Translation.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Translation.html]
 
 * Validation support
 
@@ -179,7 +179,7 @@ behavior out of the box:
    person.first_name = 'zoolander'
    person.valid?  # => false
 
-  {Learn more}[link:classes/ActiveModel/Validations.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Validations.html]
 
 * Custom validators
 
@@ -201,7 +201,7 @@ behavior out of the box:
    p.name = "Bob"
    p.valid?                  # =>  true
 
-  {Learn more}[link:classes/ActiveModel/Validator.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Validator.html]
 
 
 == Download and installation
