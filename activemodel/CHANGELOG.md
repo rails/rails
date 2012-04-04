@@ -6,6 +6,8 @@
 
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
 
+*   Add `ActiveModel::Configuration` to the public api *Oscar Del Ben*
+
 
 ## Rails 3.2.2 (March 1, 2012) ##
 
