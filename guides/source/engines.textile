@@ -125,7 +125,7 @@ Also in the test directory is the +test/integration+ directory, where integratio
 
 h3. Providing engine functionality
 
-The engine that this guide covers will provide posting and commenting functionality and follows a similar thread to the "Getting Started Guide":getting-started.html, with some new twists.
+The engine that this guide covers will provide posting and commenting functionality and follows a similar thread to the "Getting Started Guide":getting_started.html, with some new twists.
 
 h4. Generating a post resource
 

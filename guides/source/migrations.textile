@@ -497,7 +497,7 @@ and
 h4. Using the +change+ Method
 
 The +change+ method removes the need to write both +up+ and +down+ methods in
-those cases that Rails know how to revert the changes automatically. Currently,
+those cases that Rails knows how to revert the changes automatically. Currently,
 the +change+ method supports only these migration definitions:
 
 * +add_column+
