@@ -209,6 +209,15 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = developers(:david)
     assert_equal david.association(:projects), david.projects.proxy_association
   end
+
+  def test_proxy_association_reset_unloads
+    david = developers(:david)
+    assert !david.projects.loaded?
+    david.projects.reload
+    assert david.projects.loaded?
+    david.projects.reset
+    assert !david.projects.loaded?
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
