@@ -39,5 +39,24 @@ module ApplicationTests
       # clean up
       FileUtils.rm("#{app_path}/#{database_path}")
     end
+
+    test "DATABASE_URL env var takes precedence over config/database.yml" do
+      database_path = "/db/foo.sqlite3"
+      ENV['DATABASE_URL'] = "sqlite3://#{database_path}"
+      simple_controller
+
+      get '/foo'
+      assert File.read("#{app_path}/log/production.log").include?("DATABASE_URL")
+
+      # clean up
+      FileUtils.rm("#{app_path}/#{database_path}")
+    end
+
+    test "logs the use of config/database.yml" do
+      simple_controller
+
+      get '/foo'
+      assert File.read("#{app_path}/log/production.log").include?("database.yml")
+    end
   end
 end
