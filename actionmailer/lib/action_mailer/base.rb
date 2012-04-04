@@ -696,7 +696,7 @@ module ActionMailer #:nodoc:
     # If it does not find a translation for the +subject+ under the specified scope it will default to a
     # humanized version of the <tt>action_name</tt>.
     def default_i18n_subject #:nodoc:
-      mailer_scope = self.class.mailer_name.gsub('/', '.')
+      mailer_scope = self.class.mailer_name.tr('/', '.')
       I18n.t(:subject, :scope => [mailer_scope, action_name], :default => action_name.humanize)
     end
 

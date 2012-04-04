@@ -99,7 +99,7 @@ module Rails
         end
 
         def i18n_scope
-          @i18n_scope ||= file_path.gsub('/', '.')
+          @i18n_scope ||= file_path.tr('/', '.')
         end
 
         def table_name
