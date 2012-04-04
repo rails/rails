@@ -3,10 +3,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
 
 module ActiveModel
-  # This API is for Rails' internal use and is not currently considered 'public', so
-  # it may change in the future without warning.
-  #
-  # It creates configuration attributes that can be inherited from a module down
+  # This class allows the creation of configuration attributes that can be inherited from a module down
   # to a class that includes the module. E.g.
   #
   #   module MyModel
