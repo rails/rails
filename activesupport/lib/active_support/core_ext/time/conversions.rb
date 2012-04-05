@@ -27,6 +27,7 @@ class Time
   #   time.to_formatted_s(:long)          # => "January 18, 2007 06:10"
   #   time.to_formatted_s(:long_ordinal)  # => "January 18th, 2007 06:10"
   #   time.to_formatted_s(:rfc822)        # => "Thu, 18 Jan 2007 06:10:17 -0600"
+  #   time.to_formatted_s("%Y")           # => "2007"
   #
   # == Adding your own time formats to +to_formatted_s+
   # You can add your own formats to the Time::DATE_FORMATS hash.
@@ -39,6 +40,8 @@ class Time
   def to_formatted_s(format = :default)
     if formatter = DATE_FORMATS[format]
       formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
+    elsif format.is_a?(String)
+      strftime(format)
     else
       to_default_s
     end

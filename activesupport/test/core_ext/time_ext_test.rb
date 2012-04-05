@@ -572,6 +572,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     Time::DATE_FORMATS.delete(:custom)
   end
 
+  def test_direct_format
+    assert_equal "2012", Time.local(2012, 4, 3, 11, 42, 0).to_s("%Y")
+  end
+
   def test_to_date
     assert_equal Date.new(2005, 2, 21), Time.local(2005, 2, 21, 17, 44, 30).to_date
   end
