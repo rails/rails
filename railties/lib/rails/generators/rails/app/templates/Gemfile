@@ -23,3 +23,6 @@ source 'https://rubygems.org'
 
 # To use debugger
 # gem 'ruby-debug19', :require => 'ruby-debug'
+
+# The roflscale is going up!
+gem 'rofl_copter'
