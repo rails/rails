@@ -2,9 +2,9 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/array/extract_options'
 
 module ActiveSupport
-  class << Deprecation
+  module Deprecation
     # Declare that a method has been deprecated.
-    def deprecate_methods(target_module, *method_names)
+    def self.deprecate_methods(target_module, *method_names)
       options = method_names.extract_options!
       method_names += options.keys
 
