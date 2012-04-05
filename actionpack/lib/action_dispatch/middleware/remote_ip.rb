@@ -74,7 +74,7 @@ module ActionDispatch
     protected
 
       def ips_from(header, allow_proxies = false)
-        ips = @env[header] ? @env[header].strip.split(/[,\s]+/) : []
+        ips = @env[header] ? @env[header].strip.split(/[,\s]+/).grep(/\d\./) : []
         allow_proxies ? ips : ips.reject{|ip| ip =~ @middleware.proxies }
       end
     end
