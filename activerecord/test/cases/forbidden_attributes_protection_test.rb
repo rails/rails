@@ -1,6 +1,7 @@
 require 'cases/helper'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'models/person'
+require 'models/company'
 
 class ProtectedParams < ActiveSupport::HashWithIndifferentAccess
   attr_accessor :permitted
@@ -38,6 +39,20 @@ class ForbiddenAttributesProtectionTest < ActiveRecord::TestCase
 
     assert_equal 'Guille', person.first_name
     assert_equal 'm', person.gender
+  end
+
+  def test_forbidden_attributes_cannot_be_used_for_sti_inheritance_column
+    params = ProtectedParams.new(type: 'Client')
+    assert_raises(ActiveModel::ForbiddenAttributesError) do
+      Company.new(params)
+    end
+  end
+
+  def test_permitted_attributes_can_be_used_for_sti_inheritance_column
+    params = ProtectedParams.new(type: 'Client')
+    params.permit!
+    person = Company.new(params)
+    assert_equal person.class, Client
   end
 
   def test_regular_hash_should_still_be_used_for_mass_assignment

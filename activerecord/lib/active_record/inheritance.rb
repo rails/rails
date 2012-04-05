@@ -9,6 +9,19 @@ module ActiveRecord
     end
 
     module ClassMethods
+      # Determines if one of the attributes passed in is the inheritance column,
+      # and if the inheritance column is attr accessible, it initializes an
+      # instance of the given subclass instead of the base class
+      def new(*args, &block)
+        if (attrs = args.first).is_a?(Hash)
+          if subclass = subclass_from_attrs(attrs)
+            return subclass.new(*args, &block)
+          end
+        end
+        # Delegate to the original .new
+        super
+      end
+
       # True if this isn't a concrete subclass needing a STI type condition.
       def descends_from_active_record?
         if self == Base
@@ -144,6 +157,19 @@ module ActiveRecord
         sti_names  = ([self] + descendants).map { |model| model.sti_name }
 
         sti_column.in(sti_names)
+      end
+
+      # Detect the subclass from the inheritance column of attrs. If the inheritance column value
+      # is not self or a valid subclass, raises ActiveRecord::SubclassNotFound
+      # If this is a StrongParameters hash, and access to inheritance_column is not permitted,
+      # this will ignore the inheritance column and return nil
+      def subclass_from_attrs(attrs)
+        subclass_name = attrs.with_indifferent_access[inheritance_column]
+        return nil if subclass_name.blank? || subclass_name == self.name
+        unless subclass = subclasses.detect { |sub| sub.name == subclass_name }
+          raise ActiveRecord::SubclassNotFound.new("Invalid single-table inheritance type: #{subclass_name} is not a subclass of #{name}")
+        end
+        subclass
       end
     end
 

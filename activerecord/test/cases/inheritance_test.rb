@@ -156,6 +156,29 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of Cabbage, savoy
   end
 
+  def test_inheritance_new_with_default_class
+    company = Company.new
+    assert_equal company.class, Company
+  end
+
+  def test_inheritance_new_with_base_class
+    company = Company.new(:type => 'Company')
+    assert_equal company.class, Company
+  end
+
+  def test_inheritance_new_with_subclass
+    firm = Company.new(:type => 'Firm')
+    assert_equal firm.class, Firm
+  end
+
+  def test_new_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.new(:type => 'InvalidType') }
+  end
+
+  def test_new_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.new(:type => 'Account') }
+  end
+
   def test_inheritance_condition
     assert_equal 10, Company.count
     assert_equal 2, Firm.count

@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add STI support to init and building associations.
+    Allows you to do BaseClass.new(:type => "SubClass") as well as
+    parent.children.build(:type => "SubClass") or parent.build_child
+    to initialize an STI subclass. Ensures that the class name is a
+    valid class and that it is in the ancestors of the super class
+    that the association is expecting.
+
+    *Jason Rush*
+
 *   Observers was extracted from Active Record as `rails-observers` gem.
 
     *Rafael Mendonça França*
