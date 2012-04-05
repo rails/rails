@@ -144,32 +144,27 @@ module ActionDispatch
       #    # => 'http://somehost.org/tasks/testing?number=33'
       def url_for(options = nil)
         case options
+        when nil
+          _routes.url_for(url_options)
+        when Hash
+          symbolized = {}
+          options.keys.each do |k|
+            sym = k.to_sym
+            symbolized[sym] = options[k] unless symbolized.has_key?(sym)
+          end
+          url_options.keys.each do |k|
+            sym = k.to_sym
+            symbolized[sym] = url_options[k] unless symbolized.has_key?(sym)
+          end
+          _routes.url_for(symbolized)
         when String
           options
-        when nil, Hash
-          _routes.url_for(_merge_url_for_options(options, url_options))
         else
           polymorphic_url(options)
         end
       end
 
       protected
-
-      def _merge_url_for_options(h1, h2)
-        opts = {}
-
-        h1.keys.each do |k|
-          s = k.to_sym
-          opts[s] = h1[k] unless opts.has_key?(s)
-        end if h1
-
-        h2.keys.each do |k|
-          s = k.to_sym
-          opts[s] = h2[k] unless opts.has_key?(s)
-        end if h2
-
-        opts
-      end
 
       def optimize_routes_generation?
         return @_optimized_routes if defined?(@_optimized_routes)
