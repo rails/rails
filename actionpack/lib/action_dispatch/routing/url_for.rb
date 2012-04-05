@@ -145,7 +145,7 @@ module ActionDispatch
       def url_for(options = nil)
         case options
         when nil
-          _routes.url_for(url_options)
+          _routes.url_for(url_options.symbolize_keys)
         when Hash
           symbolized = {}
           options.keys.each do |k|
