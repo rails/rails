@@ -32,6 +32,13 @@ pre,code {
     font-family: "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
     line-height: 1.5;
 }
+pre,tt,code,.note>p {
+ white-space: pre-wrap;       /* css-3 */
+ white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
+ white-space: -pre-wrap;      /* Opera 4-6 */
+ white-space: -o-pre-wrap;    /* Opera 7 */
+ word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
 
 abbr, acronym { border-bottom: 1px dotted #666; }
 address { margin: 0 0 1.5em; font-style: italic; }
@@ -91,6 +98,7 @@ body {
   text-align: left;
   margin: 0 auto;
   max-width: 960px;
+  padding: 0 1em;
   }
 
 .red-button {
@@ -238,7 +246,19 @@ body {
   width: 17em;
   font-size: 0.9285em;
   line-height: 1.3846em;
+  margin-right: 1em;
   }
+
+
+@media screen and (max-width: 800px) {
+  #subCol {
+    position: static;
+    width: inherit;
+    margin-left: -1em;
+    margin-right: 0;
+    padding-right: 1.25em;
+  }
+}
 
 #extraCol {display: none;}
 
@@ -254,7 +274,7 @@ body {
 #header .wrapper, #topNav .wrapper, #feature .wrapper {padding-left: 1em; max-width: 960px;}
 #feature .wrapper {max-width: 640px; padding-right: 23em; position: relative; z-index: 0;}
 
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 800px) {
   #feature .wrapper { padding-right: 0; }
 }
 
@@ -360,6 +380,7 @@ a, a:link, a:visited {
     font-size: .95em;
     background-position: 96% -65px;
     -webkit-appearance: none;
+  }
 }
 
 #guides {
@@ -415,12 +436,24 @@ h2 {
   font-weight: bold;
   }
 
+@media screen and (max-width: 480px) {
+  h2 {
+    font-size: 1.45em;
+  }
+}
+
 h3 {
   font-size: 1.7142em;
   line-height: 1.286em;
   margin: 0.875em 0 0.2916em;
   font-weight: bold;
   }
+
+@media screen and (max-width: 480px) {
+  h3 {
+    font-size: 1.45em;
+  }
+}
 
 h4 {
   font-size: 1.2857em;
@@ -484,6 +517,12 @@ h6 {
   margin-bottom: 0.75em;
 }
 
+@media screen and (max-width: 480px) {
+  #feature p {
+    font-size: 1em;
+  }
+}
+
 #feature ul {margin-left: 0;}
 #feature ul li {
   list-style: none;
@@ -503,7 +542,7 @@ h6 {
 }
 
 #mainCol dt, #subCol dt {
-  font-size: 1.2857em;
+  font-size: 1em;
   padding: 0.125em 0 0.25em 0;
   margin-bottom: 0;
   /*background: url(../images/book_icon.gif) no-repeat left top;
@@ -634,4 +673,29 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
   top: 0px;
   z-index: 100;
   border: none;
+}
+
+/* Foundation v2.1.4 http://foundation.zurb.com */
+/* Artfully masterminded by ZURB  */
+
+table th { font-weight: bold; }
+table td, table th { padding: 9px 10px; text-align: left; }
+
+/* Mobile */
+@media only screen and (max-width: 767px) {
+	
+	table.responsive { margin-bottom: 0; }
+	
+	.pinned { position: absolute; left: 0; top: 0; background: #fff; width: 35%; overflow: hidden; overflow-x: scroll; border-right: 1px solid #ccc; border-left: 1px solid #ccc; }
+	.pinned table { border-right: none; border-left: none; width: 100%; }
+	.pinned table th, .pinned table td { white-space: nowrap; }
+	.pinned td:last-child { border-bottom: 0; }
+	
+	div.table-wrapper { position: relative; margin-bottom: 20px; overflow: hidden; border-right: 1px solid #ccc; }
+	div.table-wrapper div.scrollable table { margin-left: 35%; }
+	div.table-wrapper div.scrollable { overflow: scroll; overflow-y: hidden; }	
+	
+	table.responsive td, table.responsive th { position: relative; white-space: nowrap; overflow: hidden; }
+	table.responsive th:first-child, table.responsive td:first-child, table.responsive td:first-child, table.responsive.pinned td { display: none; }
+	
 }
