@@ -148,19 +148,32 @@ You can swap an existing middleware in the middleware stack using +config.middle
 <ruby>
 # config/application.rb
 
-# Replace ActionController::Failsafe with Lifo::Failsafe
-config.middleware.swap ActionController::Failsafe, Lifo::Failsafe
+# Replace ActionDispatch::ShowExceptions with Lifo::ShowExceptions
+config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
 </ruby>
 
 h5. Middleware Stack is an Array
 
 The middleware stack behaves just like a normal +Array+. You can use any +Array+ methods to insert, reorder, or remove items from the stack. Methods described in the section above are just convenience methods.
 
-For example, the following removes the middleware matching the supplied class name:
+Append following lines to your application configuration:
 
 <ruby>
-config.middleware.delete(middleware)
+# config/application.rb
+config.middleware.delete "Rack::Lock"
 </ruby>
+
+And now if you inspect the middleware stack, you'll find that +Rack::Lock+ will not be part of it.
+
+<shell>
+$ rake middleware
+(in /Users/lifo/Rails/blog)
+use ActionDispatch::Static
+use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
+use Rack::Runtime
+...
+run Myapp::Application.routes
+</shell>
 
 h4. Internal Middleware Stack
 
@@ -233,32 +246,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 * Enables “best standards support” so that IE8 renders some elements correctly.
 
 TIP: It's possible to use any of the above middlewares in your custom Rack stack.
-
-h4. Customizing Internal Middleware Stack
-
-It's possible to replace the entire middleware stack with a custom stack using <tt>ActionController::Dispatcher.middleware=</tt>.
-
-Put the following in an initializer:
-
-<ruby>
-# config/initializers/stack.rb
-ActionController::Dispatcher.middleware = ActionController::MiddlewareStack.new do |m|
-  m.use ActionController::Failsafe
-  m.use ActiveRecord::QueryCache
-  m.use Rack::Head
-end
-</ruby>
-
-And now inspecting the middleware stack:
-
-<shell>
-$ rake middleware
-(in /Users/lifo/Rails/blog)
-use ActionController::Failsafe
-use ActiveRecord::QueryCache
-use Rack::Head
-run ActionController::Dispatcher.new
-</shell>
 
 h4. Using Rack Builder
 

@@ -53,6 +53,7 @@ module ActionController
     # If you need to address multiple instances of the same class in the same view, you can prefix the dom_id:
     #
     #   dom_id(Post.find(45), :edit) # => "edit_post_45"
+    #   dom_id(Post.new, :custom)    # => "custom_post"
     def dom_id(record, prefix = nil)
       if record_id = record_key_for_dom_id(record)
         "#{dom_class(record, prefix)}#{JOIN}#{record_id}"
