@@ -1,4 +1,4 @@
-require 'active_support/deprecation'
+require 'active_support/deprecation/method_wrappers'
 
 class Module
   # Declare that a method has been deprecated.
