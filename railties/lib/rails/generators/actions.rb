@@ -89,7 +89,7 @@ module Rails
       #     "config.autoload_paths += %W(#{config.root}/extras)"
       #   end
       #
-      #   environment(nil,:env => "development") do
+      #   environment(nil, :env => "development") do
       #     "config.active_record.observers = :cacher"
       #   end
       #
@@ -177,7 +177,7 @@ module Rails
       #     TASK
       #   end
       #
-      #   rakefile('seed.rake', 'puts "I'm planting your seeds"')
+      #   rakefile('seed.rake', 'puts "Planting seeds"')
       #
       def rakefile(filename, data=nil, &block)
         log :rakefile, filename
