@@ -54,6 +54,9 @@ module ActiveSupport
       @glob  = compile_glob(dirs)
       @block = block
 
+      @watched    = nil
+      @updated_at = nil
+
       @last_watched   = watched
       @last_update_at = updated_at(@last_watched)
     end
