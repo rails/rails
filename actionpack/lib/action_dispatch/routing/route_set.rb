@@ -606,7 +606,7 @@ module ActionDispatch
       end
 
       def url_for(options)
-        options = (options || {}).reverse_merge!(default_url_options)
+        options = default_url_options.merge(options || {})
 
         handle_positional_args(options)
 
