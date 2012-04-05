@@ -356,6 +356,15 @@ module AbstractController
         assert_equal("/c/a", W.new.url_for(HashWithIndifferentAccess.new('controller' => 'c', 'action' => 'a', 'only_path' => true)))
       end
 
+      def test_with_stringified_default_url_options
+        W.default_url_options['controller'] = 'd'
+        W.default_url_options['only_path']  = false
+        assert_equal("/c", W.new.url_for(:controller => 'c', :only_path => true))
+
+        W.default_url_options['action'] = 'b'
+        assert_equal("/c/a", W.new.url_for(:controller => 'c', :action => 'a', :only_path => true))
+      end
+
       def test_url_params_with_nil_to_param_are_not_in_url
         assert_equal("/c/a", W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :id => Struct.new(:to_param).new(nil)))
       end
