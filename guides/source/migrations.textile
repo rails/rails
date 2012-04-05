@@ -728,7 +728,7 @@ class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
     Product.all.each do |product|
-      product.update_attributes!(:flag => 'false')
+      product.update_attributes!(:flag => false)
     end
   end
 end
