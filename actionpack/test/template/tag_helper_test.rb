@@ -30,8 +30,8 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_converts_boolean_option
-    assert_equal '<p disabled="disabled" multiple="multiple" readonly="readonly" itemscope="itemscope" />',
-      tag("p", :disabled => true, :multiple => true, :readonly => true, :itemscope => true)
+    assert_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" />',
+      tag("p", :disabled => true, :itemscope => true, :multiple => true, :readonly => true)
   end
 
   def test_content_tag
