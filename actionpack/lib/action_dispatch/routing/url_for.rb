@@ -147,16 +147,8 @@ module ActionDispatch
         when nil
           _routes.url_for(url_options)
         when Hash
-          symbolized = {}
-          options.keys.each do |k|
-            sym = k.to_sym
-            symbolized[sym] = options[k] unless symbolized.has_key?(sym)
-          end
-          url_options.keys.each do |k|
-            sym = k.to_sym
-            symbolized[sym] = url_options[k] unless symbolized.has_key?(sym)
-          end
-          _routes.url_for(symbolized)
+          merged = Hash[ (url_options.to_a + options.to_a).each{|kv| kv[0] = kv[0].to_sym} ]
+          _routes.url_for(merged)
         when String
           options
         else
