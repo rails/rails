@@ -619,7 +619,7 @@ module Rails
     end
 
     def routes?
-      defined?(@routes)
+      defined?(@routes) && @routes
     end
 
     def has_migrations?
