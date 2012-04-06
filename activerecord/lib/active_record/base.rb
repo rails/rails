@@ -114,23 +114,29 @@ module ActiveRecord #:nodoc:
   #   Student.joins(:schools).where(:schools => { :category => 'public' })
   #   Student.joins(:schools).where('schools.category' => 'public' )
   #
+  # == Dynamic assignment
+  #
+  # Sometimes it can be useful to assign some attributes dynamically. You can use
+  # <tt>read_attribute(attr_name, value)</tt>/<tt>write_attribute(attr_name)</tt>
+  # or through model[attr_name]/model[attr_name]=:
+  #
+  #   [:deleted, :disabled].each{|p| model[p] = params[p] == 'true' }
+  #
   # == Overwriting default accessors
   #
   # All column values are automatically available through basic accessors on the Active Record
   # object, but sometimes you want to specialize this behavior. This can be done by overwriting
-  # the default accessors (using the same name as the attribute) and calling
-  # <tt>read_attribute(attr_name)</tt> and <tt>write_attribute(attr_name, value)</tt> to actually
-  # change things.
+  # the default accessors (using the same name as the attribute):
   #
   #   class Song < ActiveRecord::Base
   #     # Uses an integer of seconds to hold the length of the song
   #
   #     def length=(minutes)
-  #       write_attribute(:length, minutes.to_i * 60)
+  #       write_attribute(:length, minutes.to_i * 60) # or: self[:length] = minutes.to_i * 60
   #     end
   #
   #     def length
-  #       read_attribute(:length) / 60
+  #       read_attribute(:length) / 60 # or: self[:length] / 60
   #     end
   #   end
   #
