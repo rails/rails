@@ -870,7 +870,7 @@ In other contexts you might want to change this behaviour, though. E.g. the defa
 
 <ruby>
 module I18n
-  class JustRaiseHandler < ExceptionHandler
+  class JustRaiseExceptionHandler < ExceptionHandler
     def call(exception, locale, key, options)
       if exception.is_a?(MissingTranslation)
         raise exception.to_exception
@@ -881,7 +881,7 @@ module I18n
   end
 end
 
-I18n.exception_handler = I18n::JustRaiseHandler.new
+I18n.exception_handler = I18n::JustRaiseExceptionHandler.new
 </ruby>
 
 This would re-raise only the +MissingTranslationData+ exception, passing all other input to the default exception handler.
