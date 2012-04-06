@@ -349,6 +349,14 @@ class NamedScopeTest < ActiveRecord::TestCase
       Comment.for_first_post.for_first_author.all
     end
   end
+
+  def test_invoking_scopes_on_different_classes_should_not_leak
+    SpecialPost.with_type_self.count
+
+    assert_no_difference 'Symbol.all_symbols.size' do
+      SpecialPost.with_type_self.count
+    end
+  end
 end
 
 class DynamicScopeMatchTest < ActiveRecord::TestCase  
