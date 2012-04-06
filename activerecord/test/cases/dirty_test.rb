@@ -41,6 +41,7 @@ class DirtyTest < ActiveRecord::TestCase
     pirate.catchphrase = 'arrr'
     assert pirate.catchphrase_changed?
     assert_nil pirate.catchphrase_was
+    assert pirate.catchphrase_was? nil
     assert_equal [nil, 'arrr'], pirate.catchphrase_change
 
     # Saved - no changes.
@@ -50,6 +51,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     # Same value - no changes.
     pirate.catchphrase = 'arrr'
+    assert pirate.catchphrase_was? 'arrr'
     assert !pirate.catchphrase_changed?
     assert_nil pirate.catchphrase_change
   end

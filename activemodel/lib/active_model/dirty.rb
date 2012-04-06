@@ -59,6 +59,7 @@ module ActiveModel
   #   person.changed?       # => true
   #   person.name_changed?  # => true
   #   person.name_was       # => 'Uncle Bob'
+  #   person.name_was? 'UncleBob' # => true
   #   person.name_change    # => ['Uncle Bob', 'Bob']
   #   person.name = 'Bill'
   #   person.name_change    # => ['Uncle Bob', 'Bill']
@@ -90,7 +91,7 @@ module ActiveModel
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
+      attribute_method_suffix '_changed?', '_change', '_will_change!', '_was', '_was?'
       attribute_method_affix :prefix => 'reset_', :suffix => '!'
     end
 
@@ -147,6 +148,11 @@ module ActiveModel
       # Handle <tt>*_was</tt> for +method_missing+.
       def attribute_was(attr)
         attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
+      end
+
+      # Handle <tt>*_was?</tt> for +method_missing+.
+      def attribute_was?(attr, old_value)
+        old_value == attribute_was(attr)
       end
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
