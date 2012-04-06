@@ -52,32 +52,32 @@ module ActiveModel
   #
   # A newly instantiated object is unchanged:
   #   person = Person.find_by_name('Uncle Bob')
-  #   person.changed?       # => false
+  #   person.changed?             # => false
   #
   # Change the name:
   #   person.name = 'Bob'
-  #   person.changed?       # => true
-  #   person.name_changed?  # => true
-  #   person.name_was       # => 'Uncle Bob'
+  #   person.changed?             # => true
+  #   person.name_changed?        # => true
+  #   person.name_was             # => 'Uncle Bob'
   #   person.name_was? 'UncleBob' # => true
-  #   person.name_change    # => ['Uncle Bob', 'Bob']
+  #   person.name_change          # => ['Uncle Bob', 'Bob']
   #   person.name = 'Bill'
-  #   person.name_change    # => ['Uncle Bob', 'Bill']
+  #   person.name_change          # => ['Uncle Bob', 'Bill']
   #
   # Save the changes:
   #   person.save
-  #   person.changed?       # => false
-  #   person.name_changed?  # => false
+  #   person.changed?             # => false
+  #   person.name_changed?        # => false
   #
   # Assigning the same value leaves the attribute unchanged:
   #   person.name = 'Bill'
-  #   person.name_changed?  # => false
-  #   person.name_change    # => nil
+  #   person.name_changed?        # => false
+  #   person.name_change          # => nil
   #
   # Which attributes have changed?
   #   person.name = 'Bob'
-  #   person.changed        # => ['name']
-  #   person.changes        # => { 'name' => ['Bill', 'Bob'] }
+  #   person.changed              # => ['name']
+  #   person.changes              # => { 'name' => ['Bill', 'Bob'] }
   #
   # If an attribute is modified in-place then make use of <tt>[attribute_name]_will_change!</tt>
   # to mark that the attribute is changing. Otherwise ActiveModel can't track changes to
