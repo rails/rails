@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*
+
 *   Session arguments passed to `process` calls in functional tests are now merged into
     the existing session, whereas previously they would replace the existing session.
     This change may break some existing tests if they are asserting the exact contents of
