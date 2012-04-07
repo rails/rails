@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/filters'
+require 'active_support/core_ext/array/extract_options'
 
 module ActionView
   # = Action View Text Helpers
@@ -306,12 +307,9 @@ module ActionView
       #    </tr>
       #  <% end %>
       def cycle(first_value, *values)
-        if (values.last.instance_of? Hash)
-          params = values.pop
-          name = params[:name]
-        else
-          name = "default"
-        end
+        options = values.extract_options!
+        name = options.fetch(:name, "default")
+
         values.unshift(first_value)
 
         cycle = get_cycle(name)
