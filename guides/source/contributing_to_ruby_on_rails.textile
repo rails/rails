@@ -42,7 +42,7 @@ h4. Install Git
 
 Ruby on Rails uses git for source code control. The "git homepage":http://git-scm.com/ has installation instructions. There are a variety of resources on the net that will help you get familiar with git:
 
-* "Everyday Git":http://www.kernel.org/pub/software/scm/git/docs/everyday.html will teach you just enough about git to get by.
+* "Everyday Git":http://schacon.github.com/git/everyday.html will teach you just enough about git to get by.
 * The "PeepCode screencast":https://peepcode.com/products/git on git ($9) is easier to follow.
 * "GitHub":http://help.github.com offers links to a variety of git resources.
 * "Pro Git":http://progit.org/book/ is an entire book about git with a Creative Commons license.
