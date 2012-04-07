@@ -1004,7 +1004,7 @@ Scopes are also chainable within scopes:
 <ruby>
 class Post < ActiveRecord::Base
   scope :published,               -> { where(:published => true) }
-  scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
+  scope :published_and_commented, -> { published.where("comments_count > 0") }
 end
 </ruby>
 
