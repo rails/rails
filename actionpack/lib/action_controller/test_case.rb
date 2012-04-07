@@ -87,7 +87,9 @@ module ActionController
           case options
           when String
             rendered.any? do |t, num|
-              (options.split(File::SEPARATOR) - t.split(File::SEPARATOR)).empty?
+              options_splited = options.split(File::SEPARATOR)
+              t_splited = t.split(File::SEPARATOR)
+              t_splited.last(options_splited.size) == options_splited
             end
           when Regexp
             rendered.any? { |t,num| t.match(options) }

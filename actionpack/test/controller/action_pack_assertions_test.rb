@@ -7,6 +7,7 @@ class ActionPackAssertionsController < ActionController::Base
   def nothing() head :ok end
 
   def hello_world() render :template => "test/hello_world"; end
+  def hello_repeating_in_path() render :template => "test/hello/hello"; end
 
   def hello_xml_world() render :template => "test/hello_xml_world"; end
 
@@ -459,6 +460,13 @@ class AssertTemplateTest < ActionController::TestCase
     get :hello_world
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template 'est/he'
+    end
+  end
+
+  def test_fails_with_repeated_name_in_path
+    get :hello_repeating_in_path
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template 'test/hello'
     end
   end
 
