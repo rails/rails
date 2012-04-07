@@ -455,10 +455,24 @@ class AssertTemplateTest < ActionController::TestCase
     end
   end
 
+  def test_fails_with_incorrect_string_that_matches
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template 'est/he'
+    end
+  end
+
   def test_fails_with_incorrect_symbol
     get :hello_world
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template :hello_planet
+    end
+  end
+
+  def test_fails_with_incorrect_symbol_that_matches
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :"est/he"
     end
   end
 
