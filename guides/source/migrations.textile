@@ -927,13 +927,3 @@ features, the +execute+ method can be used to execute arbitrary SQL. You could
 also use some plugin like "foreigner":https://github.com/matthuhiggins/foreigner
 which add foreign key support to Active Record (including support for dumping
 foreign keys in +db/schema.rb+).
-
-h3. Where you may get into trouble ?
-
-While running specific migrations with VERSION specified,  By mistake if you misspell
-command you may get into big trouble.
-
-Consider scenario where you want to run down migration +db:migrate:down VERSION=324213490000+
-By mistake if you type something like +db:migrate :down VERSION=324213490000+ then it will
-change the complete meaning of migration command and it will be migrated like you are 
-executing +db:migrate VERSION=32421349000+ 
