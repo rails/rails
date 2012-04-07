@@ -25,11 +25,11 @@ module Rails
 
   class << self
     def application
-      @@application ||= nil
+      @application ||= nil
     end
 
     def application=(application)
-      @@application = application
+      @application = application
     end
 
     # The Configuration instance used to configure the Rails environment
@@ -46,15 +46,15 @@ module Rails
     end
 
     def logger
-      @@logger ||= nil
+      @logger ||= nil
     end
 
     def logger=(logger)
-      @@logger = logger
+      @logger = logger
     end
 
     def backtrace_cleaner
-      @@backtrace_cleaner ||= begin
+      @backtrace_cleaner ||= begin
         # Relies on Active Support, so we have to lazy load to postpone definition until AS has been loaded
         require 'rails/backtrace_cleaner'
         Rails::BacktraceCleaner.new
@@ -74,11 +74,11 @@ module Rails
     end
 
     def cache
-      @@cache ||= nil
+      @cache ||= nil
     end
 
     def cache=(cache)
-      @@cache = cache
+      @cache = cache
     end
 
     # Returns all rails groups for loading based on:
