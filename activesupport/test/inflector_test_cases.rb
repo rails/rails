@@ -224,6 +224,7 @@ module InflectorTestCases
     "sgt. pepper's"         => "Sgt. Pepper's",
     "i've just seen a face" => "I've Just Seen A Face",
     "maybe you'll be there" => "Maybe You'll Be There",
+    "¿por qué?"             => '¿Por Qué?',
     "Fred’s"                => "Fred’s",
     "Fred`s"                => "Fred`s"
   }
