@@ -305,7 +305,7 @@ module ActiveRecord #:nodoc:
   # * AssociationTypeMismatch - The object assigned to the association wasn't of the type
   #   specified in the association definition.
   # * SerializationTypeMismatch - The serialized object wasn't of the class specified as the second parameter.
-  # * ConnectionNotEstablished+ - No connection has been established. Use <tt>establish_connection</tt>
+  # * ConnectionNotEstablished - No connection has been established. Use <tt>establish_connection</tt>
   #   before querying.
   # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
   #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
