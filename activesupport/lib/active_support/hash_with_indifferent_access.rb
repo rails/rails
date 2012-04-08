@@ -143,7 +143,12 @@ module ActiveSupport
     def stringify_keys!; self end
     def stringify_keys; dup end
     undef :symbolize_keys!
-    def symbolize_keys; to_hash.symbolize_keys end
+
+    # If recursive is set to true, keys at all levels will be symbolized
+    def symbolize_keys(recursive = false)
+      to_hash.symbolize_keys(recursive)
+    end
+
     def to_options!; self end
 
     # Convert to a Hash with String keys.
