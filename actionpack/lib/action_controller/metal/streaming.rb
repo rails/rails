@@ -162,7 +162,7 @@ module ActionController #:nodoc:
   # Currently, when an exception happens in development or production, Rails
   # will automatically stream to the client:
   #
-  #   "><script type="text/javascript">window.location = "/500.html"</script></html>
+  #   "><script>window.location = "/500.html"</script></html>
   #
   # The first two characters (">) are required in case the exception happens
   # while rendering attributes for a given tag. You can check the real cause

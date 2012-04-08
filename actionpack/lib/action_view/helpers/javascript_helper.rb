@@ -37,7 +37,7 @@ module ActionView
       #   javascript_tag "alert('All is good')"
       #
       # Returns:
-      #   <script type="text/javascript">
+      #   <script>
       #   //<![CDATA[
       #   alert('All is good')
       #   //]]>
@@ -46,7 +46,7 @@ module ActionView
       # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
       # tag. Example:
       #   javascript_tag "alert('All is good')", :defer => 'defer'
-      #   # => <script defer="defer" type="text/javascript">alert('All is good')</script>
+      #   # => <script defer="defer">alert('All is good')</script>
       #
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
@@ -62,7 +62,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        content_tag(:script, javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
+        content_tag(:script, javascript_cdata_section(content), html_options)
       end
 
       def javascript_cdata_section(content) #:nodoc:
