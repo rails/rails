@@ -50,38 +50,30 @@ module ActiveRecord
       end
 
       def test_insert_sql_with_returning_disabled
-        @connection.disable_insert_returning!
-        id = @connection.insert_sql("insert into postgresql_partitioned_table_parent (number) VALUES (1)")
-        expect = @connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
+        connection = connection_without_insert_returning
+        id = connection.insert_sql("insert into postgresql_partitioned_table_parent (number) VALUES (1)")
+        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
         assert_equal expect, id
-      ensure
-        @connection.enable_insert_returning!
       end
 
       def test_exec_insert_with_returning_disabled
-        @connection.disable_insert_returning!
-        result = @connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id', 'postgresql_partitioned_table_parent_id_seq')
-        expect = @connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
+        connection = connection_without_insert_returning
+        result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id', 'postgresql_partitioned_table_parent_id_seq')
+        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
         assert_equal expect, result.rows.first.first
-      ensure
-        @connection.enable_insert_returning!
       end
 
       def test_exec_insert_with_returning_disabled_and_no_sequence_name_given
-        @connection.disable_insert_returning!
-        result = @connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id')
-        expect = @connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
+        connection = connection_without_insert_returning
+        result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id')
+        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
         assert_equal expect, result.rows.first.first
-      ensure
-        @connection.enable_insert_returning!
       end
 
       def test_sql_for_insert_with_returning_disabled
-        @connection.disable_insert_returning!
-        result = @connection.sql_for_insert('sql', nil, nil, nil, 'binds')
+        connection = connection_without_insert_returning
+        result = connection.sql_for_insert('sql', nil, nil, nil, 'binds')
         assert_equal ['sql', 'binds'], result
-      ensure
-        @connection.enable_insert_returning!
       end
 
       def test_serial_sequence
@@ -238,6 +230,10 @@ module ActiveRecord
                VALUES (#{bind_subs.join(', ')})"
 
         ctx.exec_insert(sql, 'SQL', binds)
+      end
+
+      def connection_without_insert_returning
+        ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations['arunit'].merge(:insert_returning => false))
       end
     end
   end
