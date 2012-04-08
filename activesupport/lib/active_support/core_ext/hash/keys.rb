@@ -1,28 +1,48 @@
 class Hash
   # Return a new hash with all keys converted to strings.
-  def stringify_keys
-    dup.stringify_keys!
+  def stringify_keys(options={})
+    dup.stringify_keys!(options)
   end
 
   # Destructively convert all keys to strings.
-  def stringify_keys!
+  # If the option :recursive => true is passed, the
+  # all keys within the hash are converted to strings
+  def stringify_keys!(options={})
     keys.each do |key|
-      self[key.to_s] = delete(key)
+      self[stringified_key = key.to_s] = delete(key)
+      if options[:recursive]
+        if self[stringified_key].instance_of? Array
+          self[stringified_key].each do |i|
+            i.stringify_keys! if i.respond_to? :stringify_keys!
+          end
+        elsif self[stringified_key].respond_to? :stringify_keys!
+          self[stringified_key].stringify_keys!
+        end
+      end
     end
     self
   end
 
   # Return a new hash with all keys converted to symbols, as long as
   # they respond to +to_sym+.
-  def symbolize_keys
-    dup.symbolize_keys!
+  def symbolize_keys(options={})
+    dup.symbolize_keys!(options)
   end
 
   # Destructively convert all keys to symbols, as long as they respond
   # to +to_sym+.
-  def symbolize_keys!
+  # If the option :recursive => true is passed, the
+  # all keys within the hash are converted to symbols
+  def symbolize_keys!(options={})
     keys.each do |key|
-      self[(key.to_sym rescue key) || key] = delete(key)
+      self[symbolized_key = (key.to_sym rescue key) || key] = delete(key)
+      if options[:recursive]
+        if self[symbolized_key].instance_of? Array
+          self[symbolized_key].map! { |i| i.symbolize_keys }
+        elsif self[symbolized_key].respond_to? :symbolize_keys
+          self[symbolized_key] = self[symbolized_key].symbolize_keys
+        end
+      end
     end
     self
   end
