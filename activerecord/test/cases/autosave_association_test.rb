@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'models/article'
 require 'models/bird'
 require 'models/company'
 require 'models/customer'
@@ -11,6 +12,7 @@ require 'models/person'
 require 'models/pirate'
 require 'models/post'
 require 'models/reader'
+require 'models/section'
 require 'models/ship'
 require 'models/ship_part'
 require 'models/tag'
@@ -1297,6 +1299,16 @@ class TestAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase
   end
 
   include AutosaveAssociationOnACollectionAssociationTests
+end
+
+class TestAutosaveInverseAssociationOnAHasManyAssociation < ActiveRecord::TestCase
+
+  self.use_transactional_fixtures = false
+
+  def test_should_save_the_inverse_association_model
+    Article.create(:sections_attributes => [{:name => 'First'}, {:name => 'Last'}])
+  end
+
 end
 
 class TestAutosaveAssociationOnAHasAndBelongsToManyAssociation < ActiveRecord::TestCase

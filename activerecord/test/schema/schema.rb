@@ -46,6 +46,10 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :articles, :force => true do |t|
+    t.string :name
+  end
+
   create_table :audit_logs, :force => true do |t|
     t.column :message, :string, :null=>false
     t.column :developer_id, :integer, :null=>false
@@ -546,6 +550,11 @@ ActiveRecord::Schema.define do
     t.integer :job_id
     t.boolean :favourite
     t.integer :lock_version, :default => 0
+  end
+
+  create_table :sections, :force => true do |t|
+    t.string :name
+    t.integer :article_id
   end
 
   create_table :shape_expressions, :force => true do |t|
