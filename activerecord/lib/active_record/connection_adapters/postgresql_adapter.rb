@@ -17,7 +17,7 @@ module ActiveRecord
       # Forward any unused config params to PGconn.connect.
       [:statement_limit, :encoding, :min_messages, :schema_search_path,
        :schema_order, :adapter, :pool, :wait_timeout, :template,
-       :reaping_frequency].each do |key|
+       :reaping_frequency, :insert_returning].each do |key|
         conn_params.delete key
       end
       conn_params.delete_if { |k,v| v.nil? }
@@ -259,6 +259,8 @@ module ActiveRecord
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
+    # * <tt>:insert_returning</tt> - An optional boolean to control the use or <tt>RETURNING</tt> for <tt>INSERT<tt> statements
+    #   defaults to true.
     #
     # Any further options are used as connection parameters to libpq. See
     # http://www.postgresql.org/docs/9.1/static/libpq-connect.html for the
@@ -406,7 +408,7 @@ module ActiveRecord
 
         initialize_type_map
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
-        self.enable_insert_returning!
+        @use_insert_returning = @config.key?(:insert_returning) ? @config[:insert_returning] : true
       end
 
       # Clears the prepared statements cache.
@@ -1257,18 +1259,6 @@ module ActiveRecord
           [schema, table]
         end
       end
-
-      # Enable insert statements to use INSERT ... RETURNING ... statements. On by default.
-      def enable_insert_returning!
-        @use_insert_returning = true
-      end
-
-      # Disable INSERT ... RETURNING ... statements, using currval() instead.
-      # Useful for trigger based insertions where INSERT RETURNING does the wrong thing.
-      def disable_insert_returning!
-        @use_insert_returning = false
-      end
-
 
       def use_insert_returning?
         @use_insert_returning
