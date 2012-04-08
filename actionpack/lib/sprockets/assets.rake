@@ -80,11 +80,31 @@ namespace :assets do
     invoke_or_reboot_rake_task "assets:clean:all"
   end
 
+  desc "Remove only outdated (not in the manifest) assets"
+  task :clean_outdated  do
+    invoke_or_reboot_rake_task "assets:clean:outdated"
+  end
+  
   namespace :clean do
     task :all => ["assets:environment", "tmp:cache:clear"] do
       config = Rails.application.config
       public_asset_path = File.join(Rails.public_path, config.assets.prefix)
       rm_rf public_asset_path, :secure => true
+    end
+    
+    task :outdated => ["assets:environment", "tmp:cache:clear"] do
+      config = Rails.application.config
+      public_asset_path = File.join(Rails.public_path, config.assets.prefix)
+      manifest_path = config.assets.manifest || Pathname.new(public_asset_path)
+
+      assets_on_disk = Dir.glob(File.join(public_asset_path, '**/*.*')).reject{|a| a =~ /[^0-9a-fA-F]{32}|\.gz$/}
+
+      assets_in_manifest = YAML::load(File.open("#{manifest_path}/manifest.yml")).values.map{|p| File.join(public_asset_path, p) }
+
+      (assets_on_disk - assets_in_manifest).each do |asset|
+        rm asset
+        rm asset + '.gz' if asset =~ /\.(css|js)$/
+      end
     end
   end
 
