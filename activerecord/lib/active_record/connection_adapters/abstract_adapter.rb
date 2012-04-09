@@ -198,7 +198,7 @@ module ActiveRecord
           end
         rescue Exception => e
           message = "#{e.class.name}: #{e.message}: #{sql}"
-          @logger.debug message if @logger
+          @logger.debug message if (@logger &&(@logger.class != Proc))
           raise translate_exception(e, message)
         end
 
