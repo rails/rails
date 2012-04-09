@@ -14,7 +14,7 @@ Model solves this by defining an explicit API. You can read more about the
 API in ActiveModel::Lint::Tests.
 
 Active Model provides a default module that implements the basic API required
-to integrate with Action Pack out of the box: +ActiveModel::Model+.
+to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
 
     class Person
       include ActiveModel::Model
@@ -71,7 +71,7 @@ behavior out of the box:
   This generates +before_create+, +around_create+ and +after_create+
   class methods that wrap your create method.
 
-  {Learn more}[link:classes/ActiveModel/CallBacks.html]
+  {Learn more}[link:classes/ActiveModel/Callbacks.html]
 
 * Tracking value changes
 
