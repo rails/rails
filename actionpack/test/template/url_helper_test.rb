@@ -548,7 +548,7 @@ class UrlHelperControllerTest < ActionController::TestCase
 
   def test_named_route_should_show_host_and_path_using_controller_default_url_options
     class << @controller
-      def default_url_options(options = nil)
+      def default_url_options
         {:host => 'testtwo.host'}
       end
     end
