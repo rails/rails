@@ -131,11 +131,11 @@ module ActiveRecord
       end
 
       def grouped_records(association)
-        Hash[
-          records_by_reflection(association).map do |reflection, records|
-            [reflection, records.group_by { |record| association_klass(reflection, record) }]
+        {}.tap do |grouped|
+          records_by_reflection(association).each do |reflection, records|
+            grouped[reflection] = records.group_by { |record| association_klass(reflection, record) }
           end
-        ]
+        end
       end
 
       def records_by_reflection(association)
