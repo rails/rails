@@ -152,6 +152,7 @@ You can set global default parameters that will be used when generating URLs wit
 
 <ruby>
 class ApplicationController < ActionController::Base
+  # This method must return a hash with symbolized keys.
   def default_url_options
     {:locale => I18n.locale}
   end
