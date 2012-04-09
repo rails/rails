@@ -980,6 +980,16 @@ module ActionView
         Tags::DateField.new(object_name, method, self, options).render
       end
 
+      # Returns a text_field of type "month".
+      #
+      #   month_field("credit_card", "expires_on")
+      #   # => <input id="credit_card_expires_on" name="credit_card[expires_on]" type="month" />
+      # Month type allows to select a month and year in YYYY-MM format.
+      #
+      def month_field(object_name, method, options = {})
+        Tags::MonthField.new(object_name, method, self, options).render
+      end
+
       # Returns a text_field of type "url".
       #
       #   url_field("user", "homepage")

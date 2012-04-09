@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `month_field` and `month_field_tag` helpers which render an `input[type="month"]` tag *Vishnu Atrai*
+
 *   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
 
 *   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`
