@@ -74,11 +74,11 @@ module ActionView
           number.slice!(0, 1) if number.start_with?(delimiter) && !delimiter.blank?
         end
 
-        str = []
+        str = ''
         str << "+#{country_code}#{delimiter}" unless country_code.blank?
         str << number
         str << " x #{extension}" unless extension.blank?
-        ERB::Util.html_escape(str.join)
+        ERB::Util.html_escape(str)
       end
 
       # Formats a +number+ into a currency string (e.g., $13.65). You can customize the format
