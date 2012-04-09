@@ -283,11 +283,7 @@ module ActiveRecord
       # Executes an SQL query and returns a MySQL::Result object. Note that you have to free
       # the Result object after you're done using it.
       def execute(sql, name = nil) #:nodoc:
-        if name == :skip_logging
-          @connection.query(sql)
-        else
-          log(sql, name) { @connection.query(sql) }
-        end
+        @connection.query(sql)
       rescue ActiveRecord::StatementInvalid => exception
         if exception.message.split(":").first =~ /Packets out of order/
           raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information.  If you're on Windows, use the Instant Rails installer to get the updated mysql bindings."
