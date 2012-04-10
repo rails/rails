@@ -22,7 +22,7 @@ received and serialized into a usable Ruby object.
 
 == Download and installation
 
-The latest version of Active Support can be installed with RubyGems:
+The latest version of Active Resource can be installed with RubyGems:
 
   % [sudo] gem install activeresource
 
@@ -172,7 +172,7 @@ Destruction of a resource can be invoked as a class and instance method of the r
 
 == License
 
-Active Support is released under the MIT license.
+Active Resource is released under the MIT license.
 
 == Support
 
