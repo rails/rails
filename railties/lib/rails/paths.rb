@@ -160,7 +160,7 @@ module Rails
       end
 
       def each(&block)
-        @paths.each &block
+        @paths.each(&block)
       end
 
       def <<(path)

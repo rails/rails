@@ -605,8 +605,9 @@ module ActionDispatch
         nil
       end
 
+      # The +options+ argument must be +nil+ or a hash whose keys are *symbols*.
       def url_for(options)
-        options = (options || {}).reverse_merge!(default_url_options)
+        options = default_url_options.merge(options || {})
 
         handle_positional_args(options)
 

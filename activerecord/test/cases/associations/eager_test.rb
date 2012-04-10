@@ -1174,6 +1174,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal Comment.find(1), Comment.preload(:post => :comments).scoping { Comment.find(1) }
   end
 
+  test "circular preload does not modify unscoped" do
+    expected = FirstPost.unscoped.find(2)
+    FirstPost.preload(:comments => :first_post).find(1)
+    assert_equal expected, FirstPost.unscoped.find(2)
+  end
+
   test "preload ignores the scoping" do
     assert_equal(
       Comment.find(1).post,

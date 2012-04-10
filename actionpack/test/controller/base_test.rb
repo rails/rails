@@ -45,7 +45,7 @@ class DefaultUrlOptionsController < ActionController::Base
     render :inline => "<%= #{params[:route]} %>"
   end
 
-  def default_url_options(options = nil)
+  def default_url_options
     { :host => 'www.override.com', :action => 'new', :locale => 'en' }
   end
 end

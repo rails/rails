@@ -535,6 +535,17 @@ TwitterClone::Application.routes.draw do
 end
 </ruby>
 
+You can also specify constraints as a lambda:
+
+<ruby>
+TwitterClone::Application.routes.draw do
+  match "*path" => "blacklist#index",
+    :constraints => lambda { |request| Blacklist.retrieve_ips.include?(request.remote_ip) }
+end
+</ruby>
+
+Both the +matches?+ method and the lambda gets the +request+ object as an argument.
+
 h4. Route Globbing
 
 Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example

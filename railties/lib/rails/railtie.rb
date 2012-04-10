@@ -162,7 +162,7 @@ module Rails
 
       protected
         def generate_railtie_name(class_or_module)
-          ActiveSupport::Inflector.underscore(class_or_module).gsub("/", "_")
+          ActiveSupport::Inflector.underscore(class_or_module).tr("/", "_")
         end
     end
 

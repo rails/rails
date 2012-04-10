@@ -695,7 +695,7 @@ Optimistic locking allows multiple users to access the same record for edits, an
 
 <strong>Optimistic locking column</strong>
 
-In order to use optimistic locking, the table needs to have a column called +lock_version+. Each time the record is updated, Active Record increments the +lock_version+ column. If an update request is made with a lower value in the +lock_version+ field than is currently in the +lock_version+ column in the database, the update request will fail with an +ActiveRecord::StaleObjectError+. Example:
+In order to use optimistic locking, the table needs to have a column called +lock_version+ of type integer. Each time the record is updated, Active Record increments the +lock_version+ column. If an update request is made with a lower value in the +lock_version+ field than is currently in the +lock_version+ column in the database, the update request will fail with an +ActiveRecord::StaleObjectError+. Example:
 
 <ruby>
 c1 = Client.find(1)
@@ -1004,7 +1004,7 @@ Scopes are also chainable within scopes:
 <ruby>
 class Post < ActiveRecord::Base
   scope :published,               -> { where(:published => true) }
-  scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
+  scope :published_and_commented, -> { published.where("comments_count > 0") }
 end
 </ruby>
 

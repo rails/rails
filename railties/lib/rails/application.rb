@@ -1,4 +1,3 @@
-require 'active_support/core_ext/hash/reverse_merge'
 require 'fileutils'
 require 'rails/engine'
 

@@ -119,10 +119,10 @@ After you create the blog application, switch to its folder to continue work dir
 $ cd blog
 </shell>
 
-The +rails new blog+ command we ran above created a folder in your working directory called <tt>blog</tt>. The <tt>blog</tt> directory has a number of auto-generated folders that make up the structure of a Rails application. Most of the work in this tutorial will happen in the <tt>app/</tt> folder, but here's a basic rundown on the function of each of the files and folders that Rails created by default:
+The +rails new blog+ command we ran above created a folder in your working directory called <tt>blog</tt>. The <tt>blog</tt> directory has a number of auto-generated files and folders that make up the structure of a Rails application. Most of the work in this tutorial will happen in the <tt>app/</tt> folder, but here's a basic rundown on the function of each of the files and folders that Rails created by default:
 
 |_.File/Folder|_.Purpose|
-|app/|Contains the controllers, models, views and assets for your application. You'll focus on this folder for the remainder of this guide.|
+|app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in "Configuring Rails Applications":configuring.html|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
@@ -152,11 +152,11 @@ $ rails server
 
 TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an +execjs+ error. Usually Mac OS X and Windows come with a JavaScript runtime installed. Rails adds the +therubyracer+ gem to Gemfile in a commented line for new apps and you can uncomment if you need it. +therubyrhino+ is the recommended runtime for JRuby users and is added by default to Gemfile in apps generated under JRuby. You can investigate about all the supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
 
-This will fire up an instance of a webserver built into Ruby called WEBrick by default. To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see Rails' default information page:
+This will fire up an instance of a webserver built into Ruby called WEBrick by default. To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see the Rails default information page:
 
 !images/rails_welcome.png(Welcome Aboard screenshot)!
 
-TIP: To stop the web server, hit Ctrl+C in the terminal window where it's running. In development mode, Rails does not generally require you to stop the server; changes you make in files will be automatically picked up by the server.
+TIP: To stop the web server, hit Ctrl+C in the terminal window where it's running. In development mode, Rails does not generally require you to restart the server; changes you make in files will be automatically picked up by the server.
 
 The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. You can also click on the _About your application’s environment_ link to see a summary of your application's environment.
 
@@ -284,13 +284,13 @@ Missing template posts/new, application/new with {:locale=>[:en], :formats=>[:ht
 
 That's quite a lot of text! Let's quickly go through and understand what each part of it does.
 
-The first part identifies what template is missing. In this case, it's the +posts/new+ template. Rails will first look for this template. If it can't find it, then it will attempt to load a template called +application/new+. It looks for one here because the +PostsController+ inherits from +ApplicationController+.
+The first part identifies what template is missing. In this case, it's the +posts/new+ template. Rails will first look for this template. If not found, then it will attempt to load a template called +application/new+. It looks for one here because the +PostsController+ inherits from +ApplicationController+.
 
-The next part of the message contains a hash. The +:locale+ key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English -- or "en" -- template. The next key, +:formats+ shows what formats of template Rails is after. The default is +:html+, and so Rails is looking for an HTML template. The final key, +:handlers+, is telling us what _template handlers_ could be used to render our template. +:erb+ is most commonly used for HTML templates, +:builder+ is used for XML templates, and +:coffee+ uses CoffeeScript to build JavaScript templates.
+The next part of the message contains a hash. The +:locale+ key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English -- or "en" -- template. The next key, +:formats+ specifies the format of template to be served in response . The default format is +:html+, and so Rails is looking for an HTML template. The final key, +:handlers+, is telling us what _template handlers_ could be used to render our template. +:erb+ is most commonly used for HTML templates, +:builder+ is used for XML templates, and +:coffee+ uses CoffeeScript to build JavaScript templates.
 
 The final part of this message tells us where Rails has looked for the templates. Templates within a basic Rails application like this are kept in a single location, but in more complex applications it could be many different paths.
 
-The simplest template that would work in this case would be one located at +app/views/posts/new.html.erb+. The extension of this file name is key: the first extension is the _format_ of the template, and the second extension is the _handler_ that will be used. Rails is attempting to find a template called +posts/new+ within +app/views+ for the application. The format for this template can only be +html+ and the handler must be one of +erb+, +builder+ or +coffee+. Because you want to create a new HTML form, you will be using the +ERB+ language. Therefore the file should be called +posts/new.html.erb+ and be located inside the +app/views+ directory of the application.
+The simplest template that would work in this case would be one located at +app/views/posts/new.html.erb+. The extension of this file name is key: the first extension is the _format_ of the template, and the second extension is the _handler_ that will be used. Rails is attempting to find a template called +posts/new+ within +app/views+ for the application. The format for this template can only be +html+ and the handler must be one of +erb+, +builder+ or +coffee+. Because you want to create a new HTML form, you will be using the +ERB+ language. Therefore the file should be called +posts/new.html.erb+ and needs to be located inside the +app/views+ directory of the application.
 
 Go ahead now and create a new file at +app/views/posts/new.html.erb+ and write this content in it:
 

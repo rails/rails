@@ -139,7 +139,7 @@ module ActionView #:nodoc:
     # How to complete the streaming when an exception occurs.
     # This is our best guess: first try to close the attribute, then the tag.
     cattr_accessor :streaming_completion_on_exception
-    @@streaming_completion_on_exception = %("><script type="text/javascript">window.location = "/500.html"</script></html>)
+    @@streaming_completion_on_exception = %("><script>window.location = "/500.html"</script></html>)
 
     # Specify whether rendering within namespaced controllers should prefix
     # the partial paths for ActiveModel objects with the namespace.
@@ -200,7 +200,7 @@ module ActionView #:nodoc:
       # TODO Provide a new API for AV::Base and deprecate this one.
       if context.is_a?(ActionView::Renderer)
         @view_renderer = context
-      elsif
+      else
         lookup_context = context.is_a?(ActionView::LookupContext) ?
           context : ActionView::LookupContext.new(context)
         lookup_context.formats  = formats if formats

@@ -51,7 +51,7 @@ end
 
 This migration adds a table called +products+ with a string column called +name+
 and a text column called +description+. A primary key column called +id+ will
-also be added, however since this is the default we do not need to ask for this.
+also be added, however since this is the default we do not need to explicitly specify it.
 The timestamp columns +created_at+ and +updated_at+ which Active Record
 populates automatically will also be added. Reversing this migration is as
 simple as dropping the table.
@@ -65,7 +65,7 @@ class AddReceiveNewsletterToUsers < ActiveRecord::Migration
     change_table :users do |t|
       t.boolean :receive_newsletter, :default => false
     end
-    User.update_all ["receive_newsletter = ?", true]
+    User.update_all :receive_newsletter => true
   end
 
   def down
@@ -497,7 +497,7 @@ and
 h4. Using the +change+ Method
 
 The +change+ method removes the need to write both +up+ and +down+ methods in
-those cases that Rails know how to revert the changes automatically. Currently,
+those cases that Rails knows how to revert the changes automatically. Currently,
 the +change+ method supports only these migration definitions:
 
 * +add_column+
@@ -635,10 +635,9 @@ example,
 $ rake db:migrate:up VERSION=20080906120000
 </shell>
 
-will run the +up+ method from the 20080906120000 migration. These tasks still
-check whether the migration has already run, so for example +db:migrate:up
-VERSION=20080906120000+ will do nothing if Active Record believes that
-20080906120000 has already been run.
+will run the +up+ method from the 20080906120000 migration. This task will first
+check whether the migration is already performed and will do nothing if Active Record believes
+that it has already been run.
 
 h4. Changing the output of running migrations
 
@@ -728,7 +727,7 @@ class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
     Product.all.each do |product|
-      product.update_attributes!(:flag => 'false')
+      product.update_attributes!(:flag => false)
     end
   end
 end
@@ -804,7 +803,7 @@ class AddFlagToProduct < ActiveRecord::Migration
   end
 
   def change
-    add_column :products, :flag, :integer
+    add_column :products, :flag, :boolean
     Product.reset_column_information
     Product.all.each do |product|
       product.update_attributes!(:flag => false)

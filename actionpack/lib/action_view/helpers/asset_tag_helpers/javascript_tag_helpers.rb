@@ -16,7 +16,7 @@ module ActionView
         end
 
         def asset_tag(source, options)
-          content_tag("script", "", { "type" => Mime::JS, "src" => path_to_asset(source) }.merge(options))
+          content_tag("script", "", { "src" => path_to_asset(source) }.merge(options))
         end
 
         def custom_dir
@@ -60,9 +60,9 @@ module ActionView
           #   ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
           #
           #   javascript_include_tag :monkey # =>
-          #     <script type="text/javascript" src="/javascripts/head.js"></script>
-          #     <script type="text/javascript" src="/javascripts/body.js"></script>
-          #     <script type="text/javascript" src="/javascripts/tail.js"></script>
+          #     <script src="/javascripts/head.js"></script>
+          #     <script src="/javascripts/body.js"></script>
+          #     <script src="/javascripts/tail.js"></script>
           def register_javascript_expansion(expansions)
             js_expansions = JavascriptIncludeTag.expansions
             expansions.each do |key, values|
@@ -116,36 +116,36 @@ module ActionView
         #
         # ==== Examples
         #   javascript_include_tag "xmlhr"
-        #   # => <script type="text/javascript" src="/javascripts/xmlhr.js?1284139606"></script>
+        #   # => <script src="/javascripts/xmlhr.js?1284139606"></script>
         #
         #   javascript_include_tag "xmlhr.js"
-        #   # => <script type="text/javascript" src="/javascripts/xmlhr.js?1284139606"></script>
+        #   # => <script src="/javascripts/xmlhr.js?1284139606"></script>
         #
         #   javascript_include_tag "common.javascript", "/elsewhere/cools"
-        #   # => <script type="text/javascript" src="/javascripts/common.javascript?1284139606"></script>
-        #   #    <script type="text/javascript" src="/elsewhere/cools.js?1423139606"></script>
+        #   # => <script src="/javascripts/common.javascript?1284139606"></script>
+        #   #    <script src="/elsewhere/cools.js?1423139606"></script>
         #
         #   javascript_include_tag "http://www.example.com/xmlhr"
-        #   # => <script type="text/javascript" src="http://www.example.com/xmlhr"></script>
+        #   # => <script src="http://www.example.com/xmlhr"></script>
         #
         #   javascript_include_tag "http://www.example.com/xmlhr.js"
-        #   # => <script type="text/javascript" src="http://www.example.com/xmlhr.js"></script>
+        #   # => <script src="http://www.example.com/xmlhr.js"></script>
         #
         #   javascript_include_tag :defaults
-        #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/rails.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
+        #   # => <script src="/javascripts/jquery.js?1284139606"></script>
+        #   #    <script src="/javascripts/rails.js?1284139606"></script>
+        #   #    <script src="/javascripts/application.js?1284139606"></script>
         #
         # * = The application.js file is only referenced if it exists
         #
         # You can also include all JavaScripts in the +javascripts+ directory using <tt>:all</tt> as the source:
         #
         #   javascript_include_tag :all
-        #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/rails.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/shop.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/checkout.js?1284139606"></script>
+        #   # => <script src="/javascripts/jquery.js?1284139606"></script>
+        #   #    <script src="/javascripts/rails.js?1284139606"></script>
+        #   #    <script src="/javascripts/application.js?1284139606"></script>
+        #   #    <script src="/javascripts/shop.js?1284139606"></script>
+        #   #    <script src="/javascripts/checkout.js?1284139606"></script>
         #
         # Note that your defaults of choice will be included first, so they will be available to all subsequently
         # included files.
@@ -166,25 +166,25 @@ module ActionView
         #
         #   # assuming config.perform_caching is false
         #   javascript_include_tag :all, :cache => true
-        #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/rails.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/shop.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/checkout.js?1284139606"></script>
+        #   # => <script src="/javascripts/jquery.js?1284139606"></script>
+        #   #    <script src="/javascripts/rails.js?1284139606"></script>
+        #   #    <script src="/javascripts/application.js?1284139606"></script>
+        #   #    <script src="/javascripts/shop.js?1284139606"></script>
+        #   #    <script src="/javascripts/checkout.js?1284139606"></script>
         #
         #   # assuming config.perform_caching is true
         #   javascript_include_tag :all, :cache => true
-        #   # => <script type="text/javascript" src="/javascripts/all.js?1344139789"></script>
+        #   # => <script src="/javascripts/all.js?1344139789"></script>
         #
         #   # assuming config.perform_caching is false
         #   javascript_include_tag "jquery", "cart", "checkout", :cache => "shop"
-        #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/cart.js?1289139157"></script>
-        #   #    <script type="text/javascript" src="/javascripts/checkout.js?1299139816"></script>
+        #   # => <script src="/javascripts/jquery.js?1284139606"></script>
+        #   #    <script src="/javascripts/cart.js?1289139157"></script>
+        #   #    <script src="/javascripts/checkout.js?1299139816"></script>
         #
         #   # assuming config.perform_caching is true
         #   javascript_include_tag "jquery", "cart", "checkout", :cache => "shop"
-        #   # => <script type="text/javascript" src="/javascripts/shop.js?1299139816"></script>
+        #   # => <script src="/javascripts/shop.js?1299139816"></script>
         #
         # The <tt>:recursive</tt> option is also available for caching:
         #

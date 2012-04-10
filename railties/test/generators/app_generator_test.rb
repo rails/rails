@@ -83,6 +83,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal false, $?.success?
   end
 
+  def test_application_new_show_help_message_inside_existing_rails_directory
+    app_root = File.join(destination_root, 'myfirstapp')
+    run_generator [app_root]
+    output = Dir.chdir(app_root) do
+      `rails new --help`
+    end
+    assert_match /rails new APP_PATH \[options\]/, output
+    assert_equal true, $?.success?
+  end
+
   def test_application_name_is_detected_if_it_exists_and_app_folder_renamed
     app_root       = File.join(destination_root, "myapp")
     app_moved_root = File.join(destination_root, "myapp_moved")
@@ -302,7 +312,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_default_usage
-    File.expects(:exist?).returns(false)
+    Rails::Generators::AppGenerator.expects(:usage_path).returns(nil)
     assert_match(/Create rails files for app generator/, Rails::Generators::AppGenerator.desc)
   end
 

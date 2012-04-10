@@ -57,21 +57,21 @@ module ActiveRecord
       end
 
       # Executes insert +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_insert(sql, name, binds)
         exec_query(sql, name, binds)
       end
 
       # Executes delete +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_delete(sql, name, binds)
         exec_query(sql, name, binds)
       end
 
       # Executes update +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_update(sql, name, binds)
         exec_query(sql, name, binds)
