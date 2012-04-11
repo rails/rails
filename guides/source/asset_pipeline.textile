@@ -290,11 +290,7 @@ In this example +require_self+ is used. This puts the CSS contained within the f
 
 NOTE. If you want to use multiple Sass files, you should generally use the "Sass +@import+ rule":http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import instead of these Sprockets directives. Using Sprockets directives all Sass files exist within their own scope, making variables or mixins only available within the document they were defined in.
 
-You can have as many manifest files as you need. For example the +admin.css+ and +admin.js+ manifest could contain the JS and CSS files that are used for the admin section of an application.  In order for the pipeline to know about the additional manifest, it has to be added to application.rb.
-
-<plain>
-config.assets.precompile += %w( admin.css )
-</plain>
+You can have as many manifest files as you need. For example the +admin.css+ and +admin.js+ manifest could contain the JS and CSS files that are used for the admin section of an application.
 
 The same remarks about ordering made above apply. In particular, you can specify individual files and they are compiled in the order specified. For example, you might concatenate three CSS files together this way:
 
