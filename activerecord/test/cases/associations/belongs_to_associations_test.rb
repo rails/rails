@@ -383,6 +383,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal post.author_id, author2.id
   end
 
+  def test_association_id_assignment_updates_cached_association
+    author1, author2 = Author.limit(2)
+    post = Post.new(:title => "foo", :body=> "bar")
+    post.author    = author1
+
+    post.author_id = author2.id
+
+    assert_equal author2.id, post.author.id 
+  end
+
+  def test_association_id_assignment_updates_uncached_association
+    author1, author2 = Author.limit(2)
+    post = Post.new(:title => "foo", :body=> "bar")
+    post.author    = author1
+    post.save
+
+    # Reload w/o cached association
+    post = Post.find(post.id)
+
+    post.author_id = author2.id
+
+    assert_equal author2.id, post.author.id 
+  end
+
   def test_cant_save_readonly_association
     assert_raise(ActiveRecord::ReadOnlyRecord) { companies(:first_client).readonly_firm.save! }
     assert companies(:first_client).readonly_firm.readonly?
