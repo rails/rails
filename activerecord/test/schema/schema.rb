@@ -39,6 +39,8 @@ ActiveRecord::Schema.define do
     t.string :name
     t.text :settings, :null => true
     t.text :preferences, :null => false, :default => ""
+    t.text :json_data, :null => true
+    t.text :json_data_empty, :null => false, :default => ""
     t.references :account
   end
 
