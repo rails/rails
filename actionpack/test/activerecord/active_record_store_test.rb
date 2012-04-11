@@ -16,6 +16,12 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
       render :text => "foo: #{session[:foo].inspect}"
     end
 
+    def test_param
+      raise MiniTest::Assertion.new("param not set") unless 'bar' == params[:test_param]
+
+      head :ok
+    end
+
     def get_session_id
       render :text => "#{request.session_options[:id]}"
     end
@@ -181,8 +187,23 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     end
   end
 
+  class NastySessionMiddleware
+    def initialize(app, args={})
+      @app = app
+      @args = args
+    end
+    
+    def call(env, options={})
+      # Call params, which sets env variable
+      session_middleware = ActiveRecord::SessionStore.new(@app, @args)
+      session_middleware.send :extract_session_id, env
+      session_middleware.call(env)
+      @app.call(env)
+    end
+  end
+
   def test_allows_session_fixation
-    with_test_route_set(:cookie_only => false) do
+    with_test_route_set_and_middleware(ActiveRecordStoreTest::NastySessionMiddleware, :cookie_only => false) do
       get '/set_session_value'
       assert_response :success
       assert cookies['_session_id']
@@ -198,6 +219,15 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
       get '/set_session_value', :_session_id => session_id, :foo => "baz"
       assert_response :success
       assert_equal session_id, cookies['_session_id']
+      assert_equal 'baz', request.params[:foo]
+
+      reset!
+
+      get '/test_param/bar'
+      assert_response :success
+      assert_equal 'bar', request.params[:test_param]
+
+      reset!
 
       get '/get_session_value', :_session_id => session_id
       assert_response :success
@@ -208,14 +238,19 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
 
   private
 
-    def with_test_route_set(options = {})
+    def with_test_route_set(options = {}, &block)
+      with_test_route_set_and_middleware(nil, options, &block)
+    end
+
+    def with_test_route_set_and_middleware(session_middleware, options = {})
       with_routing do |set|
         set.draw do |map|
           match ':action', :to => 'active_record_store_test/test'
+          match '/test_param/:test_param', :to => 'active_record_store_test/test#test_param'
         end
 
         @app = self.class.build_app(set) do |middleware|
-          middleware.use ActiveRecord::SessionStore, options.reverse_merge(:key => '_session_id')
+          middleware.use (session_middleware || ActiveRecord::SessionStore), options.reverse_merge(:key => '_session_id')
           middleware.delete "ActionDispatch::ShowExceptions"
         end
 
