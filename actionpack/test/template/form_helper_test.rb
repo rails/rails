@@ -1305,6 +1305,20 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_nested_fields_for_can_retrieve_current_index
+    output_buffer = form_for(@post) do |f|
+      concat f.fields_for(:comments) { |c|
+        concat c.text_field(:nested_index, :value => c.current_nested_index)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', 'put') do
+      "<input id='post_comments_attributes_0_nested_index' name='post[comments_attributes][0][nested_index]' size='30' type='text' value='0' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_nested_fields_for_with_index_on_both
     form_for(@post, :index => 1) do |f|
       concat f.fields_for(:comment, @post, :index => 5) { |c|

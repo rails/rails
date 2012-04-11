@@ -1036,6 +1036,7 @@ module ActionView
       class_attribute :field_helpers
       self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model]
 
+      attr_reader :current_nested_name
       attr_accessor :object_name, :object, :options
 
       attr_reader :multipart, :parent_builder
@@ -1209,6 +1210,53 @@ module ActionView
         @emitted_hidden_id ||= nil
       end
 
+      # Retrieve the auto-generated nested index for the current level. For example:
+      #
+      #   <%= form_for @post do |post_form| %>
+      #     <%= post_form.text_field :title %>
+      #     <% post_form.fields_for :comments do |comment_form| %>
+      #       <%= comment_form.text_field :author_name %>
+      #       Comment index: <%= comment_form.current_nested_index %>
+      #     <% end %>
+      #   <% end %>
+      #
+      # For each comment that the post contains, the form builder runs the
+      # block `post_form.fields_for :comments`. It generates parameter hashes
+      # that look like:
+      #
+      #   { "post[title]" => "Post Title",
+      #     "post[coments_attributes][0][author_name]" => "Bob",
+      #     "post[coments_attributes][1][author_name]" => "Pete" }
+      #
+      # when given a post with the title "Post Title" that contains a comments collection
+      # with two entries with the author names "Bob" and "Pete" respectively.
+      #
+      # Suppose each comment has a has_many collection called mentions. The param
+      # hash might look like:
+      #
+      #   { "post[title]" => "Post Title",
+      #     "post[coments_attributes][0][author_name]" => "Bob",
+      #     "post[coments_attributes][0][mentions_attributes][0][name]" => "Ruby",
+      #     "post[coments_attributes][0][mentions_attributes][1][name]" => "JavaScript",
+      #     "post[coments_attributes][1][author_name]" => "Pete",
+      #     "post[coments_attributes][0][mentions_attributes][0][name]" => "Python" }
+      #
+      # If you need to add fields to the form with JavaScript (say allowing dynamically
+      # adding multiple new mentions for a new comment) you need to be able to retrieve the
+      # comment's nested index to plug into your template so that the new mention can be
+      # associated with the correct comment.
+      #
+      # FormBuilder#current_nested_index allows you to retrieve that index. In the example
+      # above, you'd call `comment_form.current_nested_index` to retrieve that comment's
+      # generated form index for embedding in your view.
+      def current_nested_index
+        parent_builder.nested_child_index_for(parent_builder.current_nested_name)
+      end
+
+      def nested_child_index_for(name)
+        @nested_child_index[name]
+      end
+
       private
         def objectify_options(options)
           @default_options.merge(options.merge(:object => @object))
@@ -1237,6 +1285,9 @@ module ActionView
         end
 
         def fields_for_with_nested_attributes(association_name, association, options, block)
+          @current_nested_name ||= nil
+          original_current_nested_name = @current_nested_name
+
           name = "#{object_name}[#{association_name}_attributes]"
           association = convert_to_model(association)
 
@@ -1246,16 +1297,22 @@ module ActionView
             association = @object.send(association_name)
           end
 
-          if association.respond_to?(:to_ary)
-            explicit_child_index = options[:child_index]
-            output = ActiveSupport::SafeBuffer.new
-            association.each do |child|
-              output << fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, options, block)
+          result =
+            if association.respond_to?(:to_ary)
+              @current_nested_name = "#{object_name}[#{association_name}_attributes]"
+              explicit_child_index = options[:child_index]
+              output = ActiveSupport::SafeBuffer.new
+              association.each do |child|
+                output << fields_for_nested_model("#{name}[#{explicit_child_index || next_nested_child_index_for!(name)}]", child, options, block)
+              end
+              output
+            elsif association
+              fields_for_nested_model(name, association, options, block)
             end
-            output
-          elsif association
-            fields_for_nested_model(name, association, options, block)
-          end
+
+          @current_nested_name = original_current_nested_name
+
+          result
         end
 
         def fields_for_nested_model(name, object, options, block)
@@ -1267,7 +1324,7 @@ module ActionView
           @template.fields_for(name, object, options, &block)
         end
 
-        def nested_child_index(name)
+        def next_nested_child_index_for!(name)
           @nested_child_index[name] ||= -1
           @nested_child_index[name] += 1
         end
