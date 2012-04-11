@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added ActionController::Metal#param method that can handle with nested params hashes.
+    For instance, param("user.id") is the same as params[:user].is_a?(Hash) && params[:user][:id].
+
+    *Guillermo Iguaran*
+
 *   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
 
 *   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`

@@ -110,6 +110,8 @@ When this form is submitted, the value of +params[:client]+ will be <tt>{"name" 
 
 Note that the +params+ hash is actually an instance of +HashWithIndifferentAccess+ from Active Support, which acts like a hash that lets you use symbols and strings interchangeably as keys.
 
+For convenience the +params+ hash also can be accessed using with the +param+ method. For instance, param("client.name") is the same as params[:client][:name].
+
 h4. JSON/XML parameters
 
 If you're writing a web service application, you might find yourself more comfortable on accepting parameters in JSON or XML format. Rails will automatically convert your parameters into +params+ hash, which you'll be able to access like you would normally do with form data.
