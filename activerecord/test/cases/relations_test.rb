@@ -219,6 +219,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal [], Developer.none
       assert_equal [], Developer.scoped.none
+      assert           Developer.none.is_a?(ActiveRecord::NullRelation)
     end
   end
 
@@ -226,6 +227,38 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal [], Developer.none.where(:name => 'David')
     end
+  end
+
+  def test_none_chained_to_methods_firing_queries_straight_to_db
+    assert_no_queries do
+      assert_equal [],    Developer.none.pluck(:id) # => uses select_all
+      assert_equal 0,     Developer.none.delete_all
+      assert_equal 0,     Developer.none.update_all(:name => 'David')
+      assert_equal 0,     Developer.none.delete(1)
+      assert_equal false, Developer.none.exists?(1)
+    end
+  end
+
+  def test_null_relation_content_size_methods
+    assert_no_queries do
+      assert_equal 0,     Developer.none.size
+      assert_equal 0,     Developer.none.count
+      assert_equal true,  Developer.none.empty?
+      assert_equal false, Developer.none.any?
+      assert_equal false, Developer.none.many?
+    end
+  end
+
+  def test_null_relation_calculations_methods
+    assert_no_queries do
+      assert_equal 0,     Developer.none.count
+      assert_equal nil,   Developer.none.calculate(:average, 'salary')
+    end
+  end
+  
+  def test_null_relation_metadata_methods
+    assert_equal "", Developer.none.to_sql
+    assert_equal({}, Developer.none.where_values_hash)
   end
 
   def test_joins_with_nil_argument
