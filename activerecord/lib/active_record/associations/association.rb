@@ -39,7 +39,7 @@ module ActiveRecord
       #   post.comments.aliased_table_name # => "comments"
       #
       def aliased_table_name
-        reflection.klass.table_name
+        klass.table_name
       end
 
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
