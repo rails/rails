@@ -30,7 +30,7 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
 
 It includes model name introspections, conversions, translations and
 validations, resulting in a class suitable to be used with Action Pack.
-See +ActiveModel::Model+ for more examples.
+See <tt>ActiveModel::Model</tt> for more examples.
 
 Active Model also provides the following functionality to have ORM-like
 behavior out of the box:
