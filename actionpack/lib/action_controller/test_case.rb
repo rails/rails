@@ -20,7 +20,9 @@ module ActionController
 
       ActiveSupport::Notifications.subscribe("render_template.action_view") do |name, start, finish, id, payload|
         path = payload[:layout]
-        @layouts[path] += 1
+        if path
+          @layouts[path] += 1
+        end
       end
 
       ActiveSupport::Notifications.subscribe("!render_template.action_view") do |name, start, finish, id, payload|
@@ -90,7 +92,8 @@ module ActionController
           end
         end
       when Hash
-        if expected_layout = options[:layout]
+        if options.key?(:layout)
+          expected_layout = options[:layout]
           msg = message || sprintf("expecting layout <%s> but action rendered <%s>",
                   expected_layout, @layouts.keys)
 
