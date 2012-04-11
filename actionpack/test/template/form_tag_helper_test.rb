@@ -473,6 +473,32 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, date_field_tag("cell"))
   end
 
+  def test_month_field_tag
+    expected = %{<input id="cell" name="cell" type="month" />}
+    assert_dom_equal(expected, month_field_tag("cell"))
+  end
+
+  def test_month_field_with_value
+    @post = Post.new
+    @post.written_on = '2004-06'
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
+    assert_dom_equal(expected, month_field("post", "written_on"))
+  end
+
+  def test_month_field_with_blank_value
+    @post = Post.new
+    @post.written_on = ''
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="" />}
+    assert_dom_equal(expected, month_field("post", "written_on"))
+  end
+
+  def test_month_field_with_nil_value
+    @post = Post.new
+    @post.written_on = nil
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" />}
+    assert_dom_equal(expected, month_field("post", "written_on"))
+  end
+
   def test_url_field_tag
     expected = %{<input id="homepage" name="homepage" type="url" />}
     assert_dom_equal(expected, url_field_tag("homepage"))
