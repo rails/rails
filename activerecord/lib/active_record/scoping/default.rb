@@ -31,7 +31,7 @@ module ActiveRecord
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
         #   }
         #
-        # It is recommended to use the block form of unscoped because chaining
+        # It is recommended that you use the block form of unscoped because chaining
         # unscoped with <tt>scope</tt> does not work.  Assuming that
         # <tt>published</tt> is a <tt>scope</tt>, the following two statements
         # are equal: the default_scope is applied on both.
