@@ -299,7 +299,7 @@ end
 
 h5(#actionview_deprecations). Deprecations
 
-* Passing formats or handlers to render :template and friends like <tt>render :template => "foo.html.erb"</tt> is deprecated. Instead, you can provide :handlers and :formats directly as an options: <tt> render :template => "foo", :formats => [:html, :js], :handlers => :erb</tt>.
+* Passing formats or handlers to render :template and friends like <tt>render :template => "foo.html.erb"</tt> is deprecated. Instead, you can provide :handlers and :formats directly as options: <tt> render :template => "foo", :formats => [:html, :js], :handlers => :erb</tt>.
 
 h4. Sprockets
 
