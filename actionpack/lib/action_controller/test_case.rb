@@ -120,7 +120,7 @@ module ActionController
                     options[:partial], @partials.keys)
             assert_includes @partials, expected_partial, msg
           end
-        else
+        elsif options.key?(:partial)
           assert @partials.empty?,
             "Expected no partials to be rendered"
         end

@@ -76,6 +76,11 @@ class ActionPackAssertionsController < ActionController::Base
     render "test/hello_world", :layout => "layouts/standard"
   end
 
+  def render_with_layout_and_partial
+    @variable_for_layout = nil
+    render "test/hello_world_with_partial", :layout => "layouts/standard"
+  end
+
   def session_stuffing
     session['xmas'] = 'turkey'
     render :text => "ho ho ho"
@@ -471,6 +476,11 @@ class AssertTemplateTest < ActionController::TestCase
 
   def test_passes_with_correct_layout
     get :render_with_layout
+    assert_template :layout => "layouts/standard"
+  end
+
+  def test_passes_with_layout_and_partial
+    get :render_with_layout_and_partial
     assert_template :layout => "layouts/standard"
   end
 
