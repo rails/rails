@@ -22,6 +22,9 @@ module ActionController
         path = payload[:layout]
         if path
           @layouts[path] += 1
+          if path =~ /^layouts\/(.*)/
+            @layouts[$1] += 1
+          end
         end
       end
 
@@ -61,6 +64,15 @@ module ActionController
     #   # assert that the exact template "admin/posts/new" was rendered
     #   assert_template %r{\Aadmin/posts/new\Z}
     #
+    #   # assert that the layout 'admin' was rendered
+    #   assert_template :layout => 'admin'
+    #   assert_template :layout => 'layouts/admin'
+    #   assert_template :layout => :admin
+    #
+    #   # assert that no layout was rendered
+    #   assert_template :layout => nil
+    #   assert_template :layout => false
+    #
     #   # assert that the "_customer" partial was rendered twice
     #   assert_template :partial => '_customer', :count => 2
     #
@@ -98,11 +110,11 @@ module ActionController
                   expected_layout, @layouts.keys)
 
           case expected_layout
-          when String
-            assert_includes @layouts.keys, expected_layout, msg
+          when String, Symbol
+            assert_includes @layouts.keys, expected_layout.to_s, msg
           when Regexp
             assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
-          when nil
+          when nil, false
             assert(@layouts.empty?, msg)
           end
         end

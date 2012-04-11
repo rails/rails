@@ -500,6 +500,21 @@ class AssertTemplateTest < ActionController::TestCase
     assert_template :layout => nil
   end
 
+  def test_passed_with_no_layout_false
+    get :hello_world
+    assert_template :layout => false
+  end
+
+  def test_passes_with_correct_layout_without_layouts_prefix
+    get :render_with_layout
+    assert_template :layout => "standard"
+  end
+
+  def test_passes_with_correct_layout_symbol
+    get :render_with_layout
+    assert_template :layout => :standard
+  end
+
   def test_assert_template_reset_between_requests
     get :hello_world
     assert_template 'test/hello_world'
