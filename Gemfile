@@ -18,6 +18,12 @@ else
   gem 'journey', :git => "git://github.com/rails/journey"
 end
 
+if ENV['AR_DEPRECATED_FINDERS']
+  gem 'active_record_deprecated_finders', path: ENV['AR_DEPRECATED_FINDERS']
+else
+  gem 'active_record_deprecated_finders', git: 'git://github.com/rails/active_record_deprecated_finders'
+end
+
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', '>= 1.0.3', :require => false
