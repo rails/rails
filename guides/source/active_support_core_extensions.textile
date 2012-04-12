@@ -883,26 +883,6 @@ delegate :size, :to => :attachment, :prefix => :avatar
 
 In the previous example the macro generates +avatar_size+ rather than +size+.
 
-WARNING: You can only delegate to public methods on the target object. Trying to delegate to a private or protected method will raise a +NoMethodError+ when the delegate is called.
-
-If you need to delegate to a private or protected method, you will need to implement the delegation method yourself. It's usually rather simple to do using +__send__+:
-
-<ruby>
-class Wrapper
-  def initialize
-    # Target#zizzle is a private method.
-    @target = Target.new
-  end
-
-  def zizzle(*args, &block)
-    # __send__ circumvents the private/protected mechanism.
-    @target.__send__(:zizzle, *args, &block)
-  end
-end
-</ruby>
-
-Since +__send__+ can be used to call private and protected methods, this will not raise a +NoMethodError+.
-
 NOTE: Defined in +active_support/core_ext/module/delegation.rb+
 
 h4. Redefining Methods
