@@ -126,6 +126,19 @@ module ActiveRecord
         proxy_association.reload
         self
       end
+
+      # Define array public methods because we know it should be invoked over
+      # the target, so we can have a performance improvement using those methods
+      # in association collections
+      Array.public_instance_methods.each do |m|
+        unless method_defined?(m)
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def #{m}(*args, &block)
+              target.public_send(:#{m}, *args, &block) if load_target
+            end
+          RUBY
+        end
+      end
     end
   end
 end
