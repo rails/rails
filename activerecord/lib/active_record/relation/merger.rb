@@ -14,7 +14,18 @@ module ActiveRecord
       end
 
       def merge
-        Relation::ASSOCIATION_METHODS.each do |method|
+        merge_multi_values
+        merge_single_values
+
+        relation
+      end
+
+      private
+
+      def merge_multi_values
+        values = Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS - [:where, :order, :bind]
+
+        values.each do |method|
           value = other.send(:"#{method}_values")
 
           unless value.empty?
@@ -22,19 +33,43 @@ module ActiveRecord
           end
         end
 
-        (Relation::MULTI_VALUE_METHODS - [:joins, :where, :order, :binds]).each do |method|
-          value = other.send(:"#{method}_values")
-          next if value.empty?
+        relation.where_values = merged_wheres
+        relation.bind_values  = merged_binds
 
-          value += relation.send(:"#{method}_values")
-          relation.send :"#{method}_values=", value
+        if other.reordering_value
+          # override any order specified in the original relation
+          relation.reorder! other.order_values
+        else
+          # merge in order_values from r
+          relation.order_values += other.order_values
         end
 
-        relation.joins_values += other.joins_values
+        # Apply scope extension modules
+        relation.send :apply_modules, other.extensions
+      end
 
+      def merge_single_values
+        values = Relation::SINGLE_VALUE_METHODS - [:reverse_order, :lock, :create_with, :reordering]
+
+        values.each do |method|
+          value = other.send(:"#{method}_value")
+          relation.send("#{method}!", value) if value
+        end
+
+        relation.lock_value          = other.lock_value unless relation.lock_value
+        relation.reverse_order_value = other.reverse_order_value
+
+        unless other.create_with_value.empty?
+          relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
+        end
+      end
+
+      def merged_binds
+        (relation.bind_values + other.bind_values).uniq(&:first)
+      end
+
+      def merged_wheres
         merged_wheres = relation.where_values + other.where_values
-
-        merged_binds = (relation.bind_values + other.bind_values).uniq(&:first)
 
         unless relation.where_values.empty?
           # Remove duplicates, last one wins.
@@ -51,33 +86,7 @@ module ActiveRecord
           }.reverse
         end
 
-        relation.where_values = merged_wheres
-        relation.bind_values = merged_binds
-
-        (Relation::SINGLE_VALUE_METHODS - [:lock, :create_with, :reordering]).each do |method|
-          value = other.send(:"#{method}_value")
-          relation.send(:"#{method}_value=", value) unless value.nil?
-        end
-
-        relation.lock_value = other.lock_value unless relation.lock_value
-
-        unless other.create_with_value.empty?
-          relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
-        end
-
-        if other.reordering_value
-          # override any order specified in the original relation
-          relation.reordering_value = true
-          relation.order_values = other.order_values
-        else
-          # merge in order_values from r
-          relation.order_values += other.order_values
-        end
-
-        # Apply scope extension modules
-        relation.send :apply_modules, other.extensions
-
-        relation
+        merged_wheres
       end
     end
   end
