@@ -50,7 +50,7 @@ modules:
   This generates +before_create+, +around_create+ and +after_create+
   class methods that wrap your create method.
 
-  {Learn more}[link:classes/ActiveModel/CallBacks.html]
+  {Learn more}[link:classes/ActiveModel/Callbacks.html]
 
 * Tracking value changes
 
