@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added bang methods for mutating `ActiveRecord::Relation` objects.
+    For example, while `foo.where(:bar)` will return a new object
+    leaving `foo` unchanged, `foo.where!(:bar)` will mutate the foo
+    object
+
+    *Jon Leighton*
+
 *   Added `#find_by` and `#find_by!` to mirror the functionality
     provided by dynamic finders in a way that allows dynamic input more
     easily:

@@ -13,29 +13,32 @@ module ActiveRecord
                   :uniq_value, :references_values
 
     def includes(*args)
+      args.empty? ? self : clone.includes!(*args)
+    end
+
+    def includes!(*args)
       args.reject! {|a| a.blank? }
 
-      return self if args.empty?
-
-      relation = clone
-      relation.includes_values = (relation.includes_values + args).flatten.uniq
-      relation
+      self.includes_values = (includes_values + args).flatten.uniq
+      self
     end
 
     def eager_load(*args)
-      return self if args.blank?
+      args.blank? ? self : clone.eager_load!(*args)
+    end
 
-      relation = clone
-      relation.eager_load_values += args
-      relation
+    def eager_load!(*args)
+      self.eager_load_values += args
+      self
     end
 
     def preload(*args)
-      return self if args.blank?
+      args.blank? ? self : clone.preload!(*args)
+    end
 
-      relation = clone
-      relation.preload_values += args
-      relation
+    def preload!(*args)
+      self.preload_values += args
+      self
     end
 
     # Used to indicate that an association is referenced by an SQL string, and should
@@ -49,11 +52,12 @@ module ActiveRecord
     #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
     #   # => Query now knows the string references posts, so adds a JOIN
     def references(*args)
-      return self if args.blank?
+      args.blank? ? self : clone.references!(*args)
+    end
 
-      relation = clone
-      relation.references_values = (references_values + args.flatten.map(&:to_s)).uniq
-      relation
+    def references!(*args)
+      self.references_values = (references_values + args.flatten.map(&:to_s)).uniq
+      self
     end
 
     # Works in two unique ways.
@@ -87,34 +91,45 @@ module ActiveRecord
     #   => ActiveModel::MissingAttributeError: missing attribute: other_field
     def select(value = Proc.new)
       if block_given?
-        to_a.select {|*block_args| value.call(*block_args) }
+        to_a.select { |*block_args| value.call(*block_args) }
       else
-        relation = clone
-        relation.select_values += Array.wrap(value)
-        relation
+        clone.select!(value)
+      end
+    end
+
+    def select!(value = Proc.new)
+      if block_given?
+        # TODO: test
+        to_a.select! { |*block_args| value.call(*block_args) }
+      else
+        self.select_values += Array.wrap(value)
+        self
       end
     end
 
     def group(*args)
-      return self if args.blank?
+      args.blank? ? self : clone.group!(*args)
+    end
 
-      relation = clone
-      relation.group_values += args.flatten
-      relation
+    def group!(*args)
+      self.group_values += args.flatten
+      self
     end
 
     def order(*args)
-      return self if args.blank?
+      args.blank? ? self : clone.order!(*args)
+    end
 
+    def order!(*args)
       args       = args.flatten
+
       references = args.reject { |arg| Arel::Node === arg }
                        .map { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }
                        .compact
+      references!(references) if references.any?
 
-      relation = clone
-      relation = relation.references(references) if references.any?
-      relation.order_values += args
-      relation
+      self.order_values += args
+      self
     end
 
     # Replaces any existing order defined on the relation with the specified order.
@@ -128,72 +143,88 @@ module ActiveRecord
     # generates a query with 'ORDER BY id ASC, name ASC'.
     #
     def reorder(*args)
-      return self if args.blank?
+      args.blank? ? self : clone.reorder!(*args)
+    end
 
-      relation = clone
-      relation.reordering_value = true
-      relation.order_values = args.flatten
-      relation
+    def reorder!(*args)
+      self.reordering_value = true
+      self.order_values = args.flatten
+      self
     end
 
     def joins(*args)
-      return self if args.compact.blank?
+      args.compact.blank? ? self : clone.joins!(*args)
+    end
 
-      relation = clone
-
+    def joins!(*args)
       args.flatten!
-      relation.joins_values += args
 
-      relation
+      self.joins_values += args
+      self
     end
 
     def bind(value)
-      relation = clone
-      relation.bind_values += [value]
-      relation
+      clone.bind!(value)
+    end
+
+    def bind!(value)
+      self.bind_values += [value]
+      self
     end
 
     def where(opts, *rest)
-      return self if opts.blank?
+      opts.blank? ? self : clone.where!(opts, *rest)
+    end
 
-      relation = clone
-      relation = relation.references(PredicateBuilder.references(opts)) if Hash === opts
-      relation.where_values += build_where(opts, rest)
-      relation
+    def where!(opts, *rest)
+      references!(PredicateBuilder.references(opts)) if Hash === opts
+
+      self.where_values += build_where(opts, rest)
+      self
     end
 
     def having(opts, *rest)
-      return self if opts.blank?
+      opts.blank? ? self : clone.having!(opts, *rest)
+    end
 
-      relation = clone
-      relation = relation.references(PredicateBuilder.references(opts)) if Hash === opts
-      relation.having_values += build_where(opts, rest)
-      relation
+    def having!(opts, *rest)
+      references!(PredicateBuilder.references(opts)) if Hash === opts
+
+      self.having_values += build_where(opts, rest)
+      self
     end
 
     def limit(value)
-      relation = clone
-      relation.limit_value = value
-      relation
+      clone.limit!(value)
+    end
+
+    def limit!(value)
+      self.limit_value = value
+      self
     end
 
     def offset(value)
-      relation = clone
-      relation.offset_value = value
-      relation
+      clone.offset!(value)
+    end
+
+    def offset!(value)
+      self.offset_value = value
+      self
     end
 
     def lock(locks = true)
-      relation = clone
+      clone.lock!(locks)
+    end
 
+    def lock!(locks = true)
       case locks
       when String, TrueClass, NilClass
-        relation.lock_value = locks || true
+        self.lock_value = locks || true
       else
-        relation.lock_value = false
+        self.lock_value = false
       end
 
-      relation
+      self
     end
 
     # Returns a chainable relation with zero records, specifically an
@@ -230,21 +261,30 @@ module ActiveRecord
     end
 
     def readonly(value = true)
-      relation = clone
-      relation.readonly_value = value
-      relation
+      clone.readonly!(value)
+    end
+
+    def readonly!(value = true)
+      self.readonly_value = value
+      self
     end
 
     def create_with(value)
-      relation = clone
-      relation.create_with_value = value ? create_with_value.merge(value) : {}
-      relation
+      clone.create_with!(value)
+    end
+
+    def create_with!(value)
+      self.create_with_value = value ? create_with_value.merge(value) : {}
+      self
     end
 
     def from(value)
-      relation = clone
-      relation.from_value = value
-      relation
+      clone.from!(value)
+    end
+
+    def from!(value)
+      self.from_value = value
+      self
     end
 
     # Specifies whether the records should be unique or not. For example:
@@ -258,9 +298,12 @@ module ActiveRecord
     #   User.select(:name).uniq.uniq(false)
     #   # => You can also remove the uniqueness
     def uniq(value = true)
-      relation = clone
-      relation.uniq_value = value
-      relation
+      clone.uniq!(value)
+    end
+
+    def uniq!(value = true)
+      self.uniq_value = value
+      self
     end
 
     # Used to extend a scope with additional methods, either through
@@ -299,20 +342,28 @@ module ActiveRecord
     #       # pagination code goes here
     #     end
     #   end
-    def extending(*modules)
-      modules << Module.new(&Proc.new) if block_given?
+    def extending(*modules, &block)
+      if modules.any? || block
+        clone.extending!(*modules, &block)
+      else
+        self
+      end
+    end
 
-      return self if modules.empty?
+    def extending!(*modules, &block)
+      modules << Module.new(&block) if block_given?
 
-      relation = clone
-      relation.send(:apply_modules, modules.flatten)
-      relation
+      self.send(:apply_modules, modules.flatten)
+      self
     end
 
     def reverse_order
-      relation = clone
-      relation.reverse_order_value = !relation.reverse_order_value
-      relation
+      clone.reverse_order!
+    end
+
+    def reverse_order!
+      self.reverse_order_value = !reverse_order_value
+      self
     end
 
     def arel

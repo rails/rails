@@ -155,4 +155,56 @@ module ActiveRecord
       assert_equal ['foo'], relation.references_values
     end
   end
+
+  class RelationMutationTest < ActiveSupport::TestCase
+    def relation
+      @relation ||= Relation.new :a, :b
+    end
+
+    (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS - [:references]).each do |method|
+      test "##{method}!" do
+        assert relation.public_send("#{method}!", :foo).equal?(relation)
+        assert_equal [:foo], relation.public_send("#{method}_values")
+      end
+    end
+
+    test '#references!' do
+      assert relation.references!(:foo).equal?(relation)
+      assert relation.references_values.include?('foo')
+    end
+
+    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order]).each do |method|
+      test "##{method}!" do
+        assert relation.public_send("#{method}!", :foo).equal?(relation)
+        assert_equal :foo, relation.public_send("#{method}_value")
+      end
+    end
+
+    test '#lock!' do
+      assert relation.lock!('foo').equal?(relation)
+      assert_equal 'foo', relation.lock_value
+    end
+
+    test '#reorder!' do
+      relation = self.relation.order('foo')
+
+      assert relation.reorder!('bar').equal?(relation)
+      assert_equal ['bar'], relation.order_values
+      assert relation.reordering_value
+    end
+
+    test 'reverse_order!' do
+      assert relation.reverse_order!.equal?(relation)
+      assert relation.reverse_order_value
+      relation.reverse_order!
+      assert !relation.reverse_order_value
+    end
+
+    test 'extending!' do
+      mod = Module.new
+
+      assert relation.extending!(mod).equal?(relation)
+      assert relation.is_a?(mod)
+    end
+  end
 end
