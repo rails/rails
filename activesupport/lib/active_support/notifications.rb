@@ -57,6 +57,33 @@ module ActiveSupport
   # is able to take the arguments as they come and provide an object-oriented
   # interface to that data.
   #
+  # It is also possible to pass an object as the second parameter passed to the
+  # <tt>subscribe</tt> method instead of a block:
+  #
+  #   module ActionController
+  #     class PageRequest
+  #       def call(name, started, finished, unique_id, payload)
+  #         Rails.logger.debug ["notification:", name, started, finished, unique_id, payload].join(" ")
+  #       end
+  #     end
+  #   end
+  #
+  #   ActiveSupport::Notifications.subscribe('process_action.action_controller', ActionController::PageRequest.new)
+  #
+  # resulting in the following output within the logs including a hash with the payload:
+  #
+  #   notification: process_action.action_controller 2012-04-13 01:08:35 +0300 2012-04-13 01:08:35 +0300 af358ed7fab884532ec7 {
+  #      :controller=>"Devise::SessionsController",
+  #      :action=>"new",
+  #      :params=>{"action"=>"new", "controller"=>"devise/sessions"},
+  #      :format=>:html,
+  #      :method=>"GET",
+  #      :path=>"/login/sign_in",
+  #      :status=>200,
+  #      :view_runtime=>279.3080806732178,
+  #      :db_runtime=>40.053
+  #    }
+  #
   # You can also subscribe to all events whose name matches a certain regexp:
   #
   #   ActiveSupport::Notifications.subscribe(/render/) do |*args|
