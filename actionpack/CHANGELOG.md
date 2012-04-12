@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `index` method to FormBuilder class. *Jorge Bejar*
+
 *   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
 
 *   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`
