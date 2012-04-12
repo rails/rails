@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Make Module#delegate stop using `send` - can no longer delegate to private methods. *dasch*
+
 *    AS::Callbacks: deprecate `:rescuable` option. *Bogdan Gusiev*
 
 *    Adds Integer#ordinal to get the ordinal suffix string of an integer. *Tim Gildea*
