@@ -25,6 +25,7 @@ require 'active_support'
 require 'active_support/i18n'
 require 'active_model'
 require 'arel'
+require 'active_record_deprecated_finders'
 
 require 'active_record/version'
 
