@@ -25,10 +25,7 @@ module ActiveRecord
       def initialize(owner, reflection)
         reflection.check_validity!
 
-        @target = nil
         @owner, @reflection = owner, reflection
-        @updated = false
-        @stale_state = nil
 
         reset
         reset_scope
@@ -46,6 +43,7 @@ module ActiveRecord
       def reset
         @loaded = false
         @target = nil
+        @stale_state = nil
       end
 
       # Reloads the \target and returns +self+ on success.
@@ -213,10 +211,6 @@ module ActiveRecord
         #
         # This is only relevant to certain associations, which is why it returns nil by default.
         def stale_state
-        end
-
-        def association_class
-          @reflection.klass
         end
 
         def build_record(attributes, options)
