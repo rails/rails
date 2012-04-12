@@ -44,16 +44,16 @@ module ActiveSupport
   #   event.duration  # => 10 (in milliseconds)
   #   event.payload   # => { :extra => :information }
   #
-  # The block in the +subscribe+ call gets the name of the event, start
+  # The block in the <tt>subscribe</tt> call gets the name of the event, start
   # timestamp, end timestamp, a string with a unique identifier for that event
   # (something like "535801666f04d0298cd6"), and a hash with the payload, in
   # that order.
   #
   # If an exception happens during that particular instrumentation the payload will
-  # have a key +:exception+ with an array of two elements as value: a string with
+  # have a key <tt>:exception</tt> with an array of two elements as value: a string with
   # the name of the exception class, and the exception message.
   #
-  # As the previous example depicts, the class +ActiveSupport::Notifications::Event+
+  # As the previous example depicts, the class <tt>ActiveSupport::Notifications::Event</tt>
   # is able to take the arguments as they come and provide an object-oriented
   # interface to that data.
   #
@@ -63,7 +63,7 @@ module ActiveSupport
   #     ...
   #   end
   #
-  # and even pass no argument to +subscribe+, in which case you are subscribing
+  # and even pass no argument to <tt>subscribe</tt>, in which case you are subscribing
   # to all events.
   #
   # == Temporary Subscriptions
