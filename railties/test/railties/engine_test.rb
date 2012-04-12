@@ -112,6 +112,37 @@ module RailtiesTest
       end
     end
 
+    test "mountable engine should copy migrations within engine_path" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace Bukkits
+          end
+        end
+      RUBY
+
+      @plugin.write "db/migrate/0_add_first_name_to_users.rb", <<-RUBY
+        class AddFirstNameToUsers < ActiveRecord::Migration
+        end
+      RUBY
+
+      @plugin.write "Rakefile", <<-RUBY
+        APP_RAKEFILE = '#{app_path}/Rakefile'
+        load 'rails/tasks/engine.rake'
+      RUBY
+
+      add_to_config "ActiveRecord::Base.timestamped_migrations = false"
+
+      boot_rails
+
+      Dir.chdir(@plugin.path) do
+        output = `bundle exec rake app:bukkits:install:migrations`
+        assert File.exists?("#{app_path}/db/migrate/0_add_first_name_to_users.bukkits.rb")
+        assert_match(/Copied migration 0_add_first_name_to_users.bukkits.rb from bukkits/, output)
+        assert_equal 1, Dir["#{app_path}/db/migrate/*.rb"].length
+      end
+    end
+
     test "no rake task without migrations" do
       boot_rails
       require 'rake'
