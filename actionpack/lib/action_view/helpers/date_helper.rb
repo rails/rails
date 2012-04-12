@@ -12,11 +12,11 @@ module ActionView
     # elements. All of the select-type methods share a number of common options that are as follows:
     #
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
-    # would give birthday[month] instead of date[month] if passed to the <tt>select_month</tt> method.
+    # would give \birthday[month] instead of \date[month] if passed to the <tt>select_month</tt> method.
     # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true,
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
-    #   of "date[month]".
+    #   of \date[month].
     module DateHelper
       # Reports the approximate distance in time between two Time, Date or DateTime objects or integers as seconds.
       # Set <tt>include_seconds</tt> to true if you want more detailed approximations when distance < 1 min, 29 secs.
