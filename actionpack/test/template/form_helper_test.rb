@@ -1835,6 +1835,56 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_index_method_with_existing_records_on_a_nested_attributes_collection_association
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+
+    form_for(@post) do |f|
+      expected = 0
+      @post.comments.each do |comment|
+        f.fields_for(:comments, comment) { |cf|
+          assert_equal cf.index, expected
+          expected += 1
+        }
+      end
+    end
+  end
+
+  def test_nested_fields_for_index_method_with_existing_and_new_records_on_a_nested_attributes_collection_association
+    @post.comments = [Comment.new(321), Comment.new]
+
+    form_for(@post) do |f|
+      expected = 0
+      @post.comments.each do |comment|
+        f.fields_for(:comments, comment) { |cf|
+          assert_equal cf.index, expected
+          expected += 1
+        }
+      end
+    end
+  end
+
+  def test_nested_fields_for_index_method_with_existing_records_on_a_supplied_nested_attributes_collection
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+
+    form_for(@post) do |f|
+      expected = 0
+      f.fields_for(:comments, @post.comments) { |cf|
+        assert_equal cf.index, expected
+        expected += 1
+      }
+    end
+  end
+
+  def test_nested_fields_for_index_method_with_child_index_option_override_on_a_nested_attributes_collection_association
+    @post.comments = []
+
+    form_for(@post) do |f|
+      f.fields_for(:comments, Comment.new(321), :child_index => 'abc') { |cf|
+        assert_equal cf.index, 'abc'
+      }
+    end
+  end
+
   def test_nested_fields_uses_unique_indices_for_different_collection_associations
     @post.comments = [Comment.new(321)]
     @post.tags = [Tag.new(123), Tag.new(456)]
