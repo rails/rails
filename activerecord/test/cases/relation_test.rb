@@ -149,6 +149,19 @@ module ActiveRecord
     test 'merging a hash with unknown keys raises' do
       assert_raises(ArgumentError) { Relation::HashMerger.new(nil, omg: 'lol') }
     end
+
+    test '#values returns a dup of the values' do
+      relation = Relation.new(:a, :b).where! :foo
+      values   = relation.values
+
+      values[:where] = nil
+      assert_not_nil relation.where_values
+    end
+
+    test 'relations can be created with a values hash' do
+      relation = Relation.new(:a, :b, where: [:foo])
+      assert_equal [:foo], relation.where_values
+    end
   end
 
   class RelationMutationTest < ActiveSupport::TestCase

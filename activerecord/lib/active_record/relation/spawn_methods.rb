@@ -1,4 +1,6 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/hash/slice'
 require 'active_record/relation/merger'
 
 module ActiveRecord
@@ -29,19 +31,9 @@ module ActiveRecord
     #   Post.where('id > 10').order('id asc').except(:where) # discards the where condition but keeps the order
     #
     def except(*skips)
-      result = self.class.new(@klass, table)
+      result = self.class.new(@klass, table, values.except(*skips))
       result.default_scoped = default_scoped
-
-      (Relation::MULTI_VALUE_METHODS - skips).each do |method|
-        result.send(:"#{method}_values=", send(:"#{method}_values"))
-      end
-
-      (Relation::SINGLE_VALUE_METHODS - skips).each do |method|
-        result.send(:"#{method}_value=", send(:"#{method}_value"))
-      end
-
       result.extend(*extending_values) if extending_values.any?
-
       result
     end
 
@@ -53,19 +45,9 @@ module ActiveRecord
     #   Post.order('id asc').only(:where, :order) # uses the specified order
     #
     def only(*onlies)
-      result = self.class.new(@klass, table)
+      result = self.class.new(@klass, table, values.slice(*onlies))
       result.default_scoped = default_scoped
-
-      (Relation::MULTI_VALUE_METHODS & onlies).each do |method|
-        result.send(:"#{method}_values=", send(:"#{method}_values"))
-      end
-
-      (Relation::SINGLE_VALUE_METHODS & onlies).each do |method|
-        result.send(:"#{method}_value=", send(:"#{method}_value"))
-      end
-
       result.extend(*extending_values) if extending_values.any?
-
       result
     end
 
