@@ -19,11 +19,6 @@ module ActiveRecord
       assert !relation.loaded, 'relation is not loaded'
     end
 
-    def test_single_values
-      assert_equal [:limit, :offset, :lock, :readonly, :from, :reordering, :reverse_order, :uniq].map(&:to_s).sort,
-        Relation::SINGLE_VALUE_METHODS.map(&:to_s).sort
-    end
-
     def test_initialize_single_values
       relation = Relation.new :a, :b
       Relation::SINGLE_VALUE_METHODS.each do |method|
@@ -31,21 +26,11 @@ module ActiveRecord
       end
     end
 
-    def test_association_methods
-      assert_equal [:includes, :eager_load, :preload].map(&:to_s).sort,
-        Relation::ASSOCIATION_METHODS.map(&:to_s).sort
-    end
-
     def test_initialize_association_methods
       relation = Relation.new :a, :b
       Relation::ASSOCIATION_METHODS.each do |method|
         assert_equal [], relation.send("#{method}_values"), method.to_s
       end
-    end
-
-    def test_multi_value_methods
-      assert_equal [:select, :group, :order, :joins, :where, :having, :bind, :references].map(&:to_s).sort,
-        Relation::MULTI_VALUE_METHODS.map(&:to_s).sort
     end
 
     def test_multi_value_initialize
