@@ -26,13 +26,6 @@ module ActiveRecord
       end
     end
 
-    def test_initialize_association_methods
-      relation = Relation.new :a, :b
-      Relation::ASSOCIATION_METHODS.each do |method|
-        assert_equal [], relation.send("#{method}_values"), method.to_s
-      end
-    end
-
     def test_multi_value_initialize
       relation = Relation.new :a, :b
       Relation::MULTI_VALUE_METHODS.each do |method|
@@ -146,7 +139,7 @@ module ActiveRecord
       @relation ||= Relation.new :a, :b
     end
 
-    (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS - [:references]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:references]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")

@@ -23,7 +23,7 @@ module ActiveRecord
       private
 
       def merge_multi_values
-        values = Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS - [:where, :order, :bind]
+        values = Relation::MULTI_VALUE_METHODS - [:where, :order, :bind]
 
         values.each do |method|
           value = other.send(:"#{method}_values")
