@@ -49,12 +49,12 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_get_maximum_of_field_with_include
-    assert_equal 55, Account.maximum(:credit_limit, :include => :firm, :references => :companies, :conditions => "companies.name != 'Summit'")
+    assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(:credit_limit)
   end
 
   def test_should_get_maximum_of_field_with_scoped_include
-    Account.send :with_scope, :find => { :include => :firm, :references => :companies, :conditions => "companies.name != 'Summit'" } do
-      assert_equal 55, Account.maximum(:credit_limit)
+    Account.send :with_scope, :find => { :include => :firm } do
+      assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).maximum(:credit_limit)
     end
   end
 
@@ -270,10 +270,10 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_not_modify_options_when_using_includes
-    options = {:conditions => 'companies.id > 1', :include => :firm, :references => :companies}
+    options = {:conditions => 'companies.id > 1', :include => :firm}
     options_copy = options.dup
 
-    Account.count(:all, options)
+    Account.references(:companies).count(:all, options)
     assert_equal options_copy, options
   end
 
