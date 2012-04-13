@@ -11,7 +11,7 @@ module ActiveRecord
                             :order, :joins, :where, :having, :bind, :references]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
-                            :reverse_order, :uniq]
+                            :reverse_order, :uniq, :create_with]
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
