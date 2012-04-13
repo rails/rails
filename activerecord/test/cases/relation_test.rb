@@ -206,5 +206,10 @@ module ActiveRecord
       assert relation.create_with!(foo: 'bar').equal?(relation)
       assert_equal({foo: 'bar'}, relation.create_with_value)
     end
+
+    test 'merge!' do
+      assert relation.merge!(where: ['foo']).equal?(relation)
+      assert_equal ['foo'], relation.where_values
+    end
   end
 end

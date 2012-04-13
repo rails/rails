@@ -4,17 +4,20 @@ require 'active_record/relation/merger'
 module ActiveRecord
   module SpawnMethods
     def merge(other)
-      if other
-        case other
-        when Array
-          to_a & other
-        when Hash
-          Relation::HashMerger.new(clone, other).merge
-        else
-          Relation::Merger.new(clone, other).merge
-        end
+      if other.is_a?(Array)
+        to_a & other
+      elsif other
+        clone.merge!(other)
       else
         self
+      end
+    end
+
+    def merge!(other)
+      if other.is_a?(Hash)
+        Relation::HashMerger.new(self, other).merge
+      else
+        Relation::Merger.new(self, other).merge
       end
     end
 
