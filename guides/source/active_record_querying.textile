@@ -539,7 +539,9 @@ And this will give you a single +Order+ object for each date where there are ord
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at)
+SELECT date(created_at) as ordered_date, sum(price) as total_price 
+FROM orders 
+GROUP BY date(created_at)
 </sql>
 
 h3. Having
@@ -555,7 +557,10 @@ Order.select("date(created_at) as ordered_date, sum(price) as total_price").grou
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at) HAVING sum(price) > 100
+SELECT date(created_at) as ordered_date, sum(price) as total_price 
+FROM orders 
+GROUP BY date(created_at) 
+HAVING sum(price) > 100
 </sql>
 
 This will return single order objects for each day, but only those that are ordered more than $100 in a day.
