@@ -17,16 +17,7 @@ module ActiveRecord
       end
 
       def merge
-        HashMerger.new(relation, other_hash).merge
-      end
-
-      private
-
-      def other_hash
-        hash = {}
-        Relation::MULTI_VALUE_METHODS.map  { |name| hash[name] = other.send("#{name}_values") }
-        Relation::SINGLE_VALUE_METHODS.map { |name| hash[name] = other.send("#{name}_value")  }
-        hash
+        HashMerger.new(relation, other.values).merge
       end
     end
 

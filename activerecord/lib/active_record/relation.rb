@@ -23,13 +23,13 @@ module ActiveRecord
     alias :loaded? :loaded
     alias :default_scoped? :default_scoped
 
-    def initialize(klass, table)
-      @klass, @table = klass, table
-
+    def initialize(klass, table, values = {})
+      @klass             = klass
+      @table             = table
+      @values            = values
       @implicit_readonly = nil
       @loaded            = false
       @default_scoped    = false
-      @values            = {}
     end
 
     def insert(values)
@@ -520,6 +520,10 @@ module ActiveRecord
 
     def blank?
       to_a.blank?
+    end
+
+    def values
+      @values.dup
     end
 
     private
