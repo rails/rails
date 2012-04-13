@@ -15,18 +15,19 @@ module ActiveRecord
 
       def scope
         scope = klass.unscoped
-        scope = scope.extending(*Array(options[:extend]))
+
+        scope.extending!(*Array(options[:extend]))
 
         # It's okay to just apply all these like this. The options will only be present if the
         # association supports that option; this is enforced by the association builder.
-        scope = scope.apply_finder_options(options.slice(
-          :readonly, :include, :references, :order, :limit, :joins, :group, :having, :offset, :select))
+        scope.merge!(options.slice(
+          :readonly, :references, :order, :limit, :joins, :group, :having, :offset, :select, :uniq))
 
-        if options[:through] && !options[:include]
-          scope = scope.includes(source_options[:include])
+        if options[:include]
+          scope.includes! options[:include]
+        elsif options[:through]
+          scope.includes! source_options[:include]
         end
-
-        scope = scope.uniq if options[:uniq]
 
         add_constraints(scope)
       end

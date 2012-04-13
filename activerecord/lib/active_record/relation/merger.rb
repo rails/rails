@@ -69,7 +69,7 @@ module ActiveRecord
           relation.reorder! values[:order]
         elsif values[:order]
           # merge in order_values from r
-          relation.order_values += values[:order]
+          relation.order! values[:order]
         end
 
         relation.extend(*values[:extending]) unless values[:extending].blank?
