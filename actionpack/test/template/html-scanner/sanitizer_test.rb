@@ -242,6 +242,12 @@ class SanitizerTest < ActionController::TestCase
     assert_equal expected, sanitize_css(raw)
   end
 
+  def test_should_downcase_css_properties
+    raw      = %(cOlOr: red;bOrDer-LEFt: 1px solid black)
+    expected = %(color: red; border-left: 1px solid black;)
+    assert_equal expected, sanitize_css(raw)
+  end
+
   def test_should_sanitize_with_trailing_space
     raw = "display:block; "
     expected = "display: block;"

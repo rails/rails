@@ -129,13 +129,13 @@ module HTML
       clean = []
       style.scan(/([-\w]+)\s*:\s*([^:;]*)/) do |prop,val|
         if allowed_css_properties.include?(prop.downcase)
-          clean <<  prop + ': ' + val + ';'
+          clean <<  prop.downcase + ': ' + val + ';'
         elsif shorthand_css_properties.include?(prop.split('-')[0].downcase)
           unless val.split().any? do |keyword|
             !allowed_css_keywords.include?(keyword) &&
               keyword !~ /^(#[0-9a-f]+|rgb\(\d+%?,\d*%?,?\d*%?\)?|\d{0,2}\.?\d{0,2}(cm|em|ex|in|mm|pc|pt|px|%|,|\))?)$/
           end
-            clean << prop + ': ' + val + ';'
+            clean << prop.downcase + ': ' + val + ';'
           end
         end
       end
