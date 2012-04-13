@@ -99,14 +99,9 @@ module ActiveRecord
       end
     end
 
-    def select!(value = Proc.new)
-      if block_given?
-        # TODO: test
-        to_a.select! { |*block_args| value.call(*block_args) }
-      else
-        self.select_values += Array.wrap(value)
-        self
-      end
+    def select!(value)
+      self.select_values += Array.wrap(value)
+      self
     end
 
     def group(*args)
