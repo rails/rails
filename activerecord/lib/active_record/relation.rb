@@ -13,6 +13,8 @@ module ActiveRecord
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
                             :reverse_order, :uniq, :create_with]
 
+    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
+
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded

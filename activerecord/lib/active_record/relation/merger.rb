@@ -1,3 +1,6 @@
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/keys'
+
 module ActiveRecord
   class Relation
     class Merger
@@ -32,6 +35,8 @@ module ActiveRecord
       attr_reader :relation, :values
 
       def initialize(relation, values)
+        values.assert_valid_keys(*Relation::VALUE_METHODS)
+
         @relation = relation
         @values   = values
       end
