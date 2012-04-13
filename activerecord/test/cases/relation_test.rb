@@ -145,6 +145,10 @@ module ActiveRecord
     test 'merging an empty hash into a relation' do
       assert_equal [], Relation.new(:a, :b).merge({}).where_values
     end
+
+    test 'merging a hash with unknown keys raises' do
+      assert_raises(ArgumentError) { Relation::HashMerger.new(nil, omg: 'lol') }
+    end
   end
 
   class RelationMutationTest < ActiveSupport::TestCase
