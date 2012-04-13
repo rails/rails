@@ -128,12 +128,6 @@ module ActiveRecord
       assert_equal ['foo'], relation.references_values
     end
 
-    def test_apply_finder_options_takes_references
-      relation = Relation.new :a, :b
-      relation = relation.apply_finder_options(:references => :foo)
-      assert_equal ['foo'], relation.references_values
-    end
-
     test 'merging a hash into a relation' do
       relation = Relation.new :a, :b
       relation = relation.merge where: ['lol'], readonly: true

@@ -61,8 +61,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_conditions_with_or
-    posts = authors(:david).posts.find(
-      :all, :include => :comments, :references => :comments,
+    posts = authors(:david).posts.references(:comments).find(
+      :all, :include => :comments,
       :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE} = 'SpecialComment'"
     )
     assert_nil posts.detect { |p| p.author_id != authors(:david).id },
@@ -276,25 +276,25 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_nested_loading_through_has_one_association_with_conditions
-    aa = AuthorAddress.find(
+    aa = AuthorAddress.references(:author_addresses).find(
       author_addresses(:david_address).id, :include => {:author => :posts},
-      :conditions => "author_addresses.id > 0", :references => :author_addresses
+      :conditions => "author_addresses.id > 0"
     )
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
   def test_nested_loading_through_has_one_association_with_conditions_on_association
-    aa = AuthorAddress.find(
+    aa = AuthorAddress.references(:authors).find(
       author_addresses(:david_address).id, :include => {:author => :posts},
-      :conditions => "authors.id > 0", :references => :authors
+      :conditions => "authors.id > 0"
     )
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
   def test_nested_loading_through_has_one_association_with_conditions_on_nested_association
-    aa = AuthorAddress.find(
+    aa = AuthorAddress.references(:posts).find(
       author_addresses(:david_address).id, :include => {:author => :posts},
-      :conditions => "posts.id > 0", :references => :posts
+      :conditions => "posts.id > 0"
     )
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
@@ -564,9 +564,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_has_many_and_limit_and_high_offset_and_multiple_array_conditions
     assert_queries(1) do
-      posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :offset => 10,
-        :conditions => [ "authors.name = ? and comments.body = ?", 'David', 'go crazy' ],
-        :references => [:authors, :comments])
+      posts = Post.references(:authors, :comments).
+        find(:all, :include => [ :author, :comments ], :limit => 2, :offset => 10,
+          :conditions => [ "authors.name = ? and comments.body = ?", 'David', 'go crazy' ])
       assert_equal 0, posts.size
     end
   end
@@ -592,7 +592,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_count_performed_on_a_has_many_association_with_multi_table_conditional
     author = authors(:david)
     author_posts_without_comments = author.posts.select { |post| post.comments.blank? }
-    assert_equal author_posts_without_comments.size, author.posts.count(:all, :include => :comments, :conditions => 'comments.id is null', :references => :comments)
+    assert_equal author_posts_without_comments.size, author.posts.includes(:comments).where('comments.id is null').references(:comments).count
   end
 
   def test_eager_count_performed_on_a_has_many_through_association_with_multi_table_conditional
@@ -628,75 +628,75 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_on_the_eagers
-    posts = authors(:david).posts.find(:all,
-      :include    => :comments,
-      :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'",
-      :references => :comments,
-      :limit      => 2
-    )
+    posts =
+      authors(:david).posts
+        .includes(:comments)
+        .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
+        .references(:comments)
+        .limit(2)
+        .to_a
     assert_equal 2, posts.size
 
-    count = Post.count(
-      :include    => [ :comments, :author ],
-      :conditions => "authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')",
-      :references => [:authors, :comments],
-      :limit      => 2
-    )
+    count =
+      Post.includes(:comments, :author)
+        .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
+        .references(:authors, :comments)
+        .limit(2)
+        .count
     assert_equal count, posts.size
   end
 
   def test_eager_with_has_many_and_limit_and_scoped_conditions_on_the_eagers
     posts = nil
-    Post.send(:with_scope, :find => {
-      :include    => :comments,
-      :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'",
-      :references => :comments
-    }) do
-      posts = authors(:david).posts.find(:all, :limit => 2)
+    Post.includes(:comments)
+      .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
+      .references(:comments)
+      .scoping do
+
+      posts = authors(:david).posts.limit(2).to_a
       assert_equal 2, posts.size
     end
 
-    Post.send(:with_scope, :find => {
-      :include    => [ :comments, :author ],
-      :conditions => "authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')",
-      :references => [:authors, :comments]
-    }) do
-      count = Post.count(:limit => 2)
+    Post.includes(:comments, :author)
+      .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
+      .references(:authors, :comments)
+      .scoping do
+
+      count = Post.limit(2).count
       assert_equal count, posts.size
     end
   end
 
   def test_eager_with_has_many_and_limit_and_scoped_and_explicit_conditions_on_the_eagers
     Post.send(:with_scope, :find => { :conditions => "1=1" }) do
-      posts = authors(:david).posts.find(:all,
-        :include    => :comments,
-        :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'",
-        :references => :comments,
-        :limit      => 2
-      )
+      posts =
+        authors(:david).posts
+          .includes(:comments)
+          .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
+          .references(:comments)
+          .limit(2)
+          .to_a
       assert_equal 2, posts.size
 
-      count = Post.count(
-        :include    => [ :comments, :author ],
-        :conditions => "authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')",
-        :references => [:authors, :comments],
-        :limit      => 2
-      )
+      count = Post.includes(:comments, :author)
+        .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
+        .references(:authors, :comments)
+        .limit(2)
+        .count
       assert_equal count, posts.size
     end
   end
 
   def test_eager_with_scoped_order_using_association_limiting_without_explicit_scope
-    posts_with_explicit_order = Post.find(
-      :all, :conditions => 'comments.id is not null', :references => :comments,
-      :include => :comments, :order => 'posts.id DESC', :limit => 2
-    )
-    posts_with_scoped_order = Post.send(:with_scope, :find => {:order => 'posts.id DESC'}) do
-      Post.find(
-        :all, :conditions => 'comments.id is not null',
-        :references => :comments, :include => :comments, :limit => 2
-      )
+    posts_with_explicit_order =
+      Post.where('comments.id is not null').references(:comments)
+        .includes(:comments).order('posts.id DESC').limit(2)
+
+    posts_with_scoped_order = Post.order('posts.id DESC').scoping do
+      Post.where('comments.id is not null').references(:comments)
+        .includes(:comments).limit(2)
     end
+
     assert_equal posts_with_explicit_order, posts_with_scoped_order
   end
 
@@ -844,10 +844,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_limited_eager_with_numeric_in_association
     assert_equal(
       people(:david, :susan),
-      Person.find(
+      Person.references(:number1_fans_people).find(
         :all, :include => [:readers, :primary_contact, :number1_fan],
         :conditions => "number1_fans_people.first_name like 'M%'",
-        :references => :number1_fans_people,
         :order => 'people.id', :limit => 2, :offset => 0
       )
     )
@@ -965,11 +964,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_count_with_include
     if current_adapter?(:SybaseAdapter)
-      assert_equal 3, authors(:david).posts_with_comments.count(:conditions => "len(comments.body) > 15", :references => :comments)
+      assert_equal 3, authors(:david).posts_with_comments.where("len(comments.body) > 15").references(:comments).count
     elsif current_adapter?(:OpenBaseAdapter)
-      assert_equal 3, authors(:david).posts_with_comments.count(:conditions => "length(FETCHBLOB(comments.body)) > 15", :references => :comments)
+      assert_equal 3, authors(:david).posts_with_comments.where("length(FETCHBLOB(comments.body)) > 15").references(:comments).count
     else
-      assert_equal 3, authors(:david).posts_with_comments.count(:conditions => "length(comments.body) > 15", :references => :comments)
+      assert_equal 3, authors(:david).posts_with_comments.where("length(comments.body) > 15").references(:comments).count
     end
   end
 
