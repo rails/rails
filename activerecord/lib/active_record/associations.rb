@@ -1097,15 +1097,12 @@ module ActiveRecord
       #   alongside this object by calling their +destroy+ method. If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their +destroy+ method. If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
-      #   <tt>:restrict</tt> an error will be added to the object, preventing its deletion, if any associated
+      #   <tt>:restrict</tt> an error will be added to the object, preventing its deletion, if any associated 
       #   objects are present.
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
       #   the associated records.
-      #
-      #   If you don't set any values, all associated objects remain untouched and with an invalid
-      #   foreign key.
       #
       # [:finder_sql]
       #   Specify a complete SQL statement to fetch the association. This is a good way to go for complex
@@ -1385,7 +1382,7 @@ module ActiveRecord
       #   and +decrement_counter+. The counter cache is incremented when an object of this
       #   class is created and decremented when it's destroyed. This requires that a column
       #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
-      #   is used on the associate class (such as a Post class) - that is the migration for
+      #   is used on the associate class (such as a Post class) - that is the migration for 
       #   <tt>#{table_name}_count</tt> is created on the associate class (such that Post.comments_count will
       #   return the count cached, see note below). You can also specify a custom counter
       #   cache column by providing a column name instead of a +true+/+false+ value to this
