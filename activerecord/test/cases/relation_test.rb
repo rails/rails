@@ -156,7 +156,7 @@ module ActiveRecord
       @relation ||= Relation.new :a, :b
     end
 
-    (Relation::MULTI_VALUE_METHODS - [:references]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:references, :extending]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
@@ -166,6 +166,14 @@ module ActiveRecord
     test '#references!' do
       assert relation.references!(:foo).equal?(relation)
       assert relation.references_values.include?('foo')
+    end
+
+    test 'extending!' do
+      mod = Module.new
+
+      assert relation.extending!(mod).equal?(relation)
+      assert [mod], relation.extending_values
+      assert relation.is_a?(mod)
     end
 
     (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with]).each do |method|
@@ -193,13 +201,6 @@ module ActiveRecord
       assert relation.reverse_order_value
       relation.reverse_order!
       assert !relation.reverse_order_value
-    end
-
-    test 'extending!' do
-      mod = Module.new
-
-      assert relation.extending!(mod).equal?(relation)
-      assert relation.is_a?(mod)
     end
 
     test 'create_with!' do
