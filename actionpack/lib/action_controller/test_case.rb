@@ -140,9 +140,6 @@ module ActionController
 
     class Result < ::Array #:nodoc:
       def to_s() join '/' end
-      def self.new_escaped(strings)
-        new strings.collect {|str| uri_parser.unescape str}
-      end
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
