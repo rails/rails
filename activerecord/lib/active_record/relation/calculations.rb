@@ -216,7 +216,7 @@ module ActiveRecord
         distinct = nil if column_name =~ /\s*DISTINCT\s+/i
       end
 
-      if @group_values.any?
+      if group_values.any?
         execute_grouped_calculation(operation, column_name, distinct)
       else
         execute_simple_calculation(operation, column_name, distinct)
@@ -259,7 +259,7 @@ module ActiveRecord
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
-      group_attr      = @group_values
+      group_attr      = group_values
       association     = @klass.reflect_on_association(group_attr.first.to_sym)
       associated      = group_attr.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
       group_fields  = Array(associated ? association.foreign_key : group_attr)
@@ -282,7 +282,7 @@ module ActiveRecord
           operation,
           distinct).as(aggregate_alias)
       ]
-      select_values += @select_values unless @having_values.empty?
+      select_values += select_values unless having_values.empty?
 
       select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
         "#{field} AS #{aliaz}"
@@ -347,8 +347,8 @@ module ActiveRecord
     end
 
     def select_for_count
-      if @select_values.present?
-        select = @select_values.join(", ")
+      if select_values.present?
+        select = select_values.join(", ")
         select if select !~ /[,*]/
       end
     end

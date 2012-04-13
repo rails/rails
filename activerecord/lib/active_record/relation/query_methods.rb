@@ -5,12 +5,37 @@ module ActiveRecord
   module QueryMethods
     extend ActiveSupport::Concern
 
-    attr_accessor :includes_values, :eager_load_values, :preload_values,
-                  :select_values, :group_values, :order_values, :joins_values,
-                  :where_values, :having_values, :bind_values,
-                  :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value,
-                  :from_value, :reordering_value, :reverse_order_value,
-                  :uniq_value, :references_values, :extending_values
+    Relation::MULTI_VALUE_METHODS.each do |name|
+      class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}_values            # def select_values
+          @values[:#{name}] || []     #   @values[:select] || []
+        end                           # end
+                                      #
+        def #{name}_values=(values)   # def select_values=(values)
+          @values[:#{name}] = values  #   @values[:select] = values
+        end                           # end
+      CODE
+    end
+
+    (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |name|
+      class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}_value             # def readonly_value
+          @values[:#{name}]           #   @values[:readonly]
+        end                           # end
+                                      #
+        def #{name}_value=(value)     # def readonly_value=(value)
+          @values[:#{name}] = value   #   @values[:readonly] = value
+        end                           # end
+      CODE
+    end
+
+    def create_with_value
+      @values[:create_with] || {}
+    end
+
+    def create_with_value=(value)
+      @values[:create_with] = value
+    end
 
     alias extensions extending_values
 
@@ -372,26 +397,26 @@ module ActiveRecord
     def build_arel
       arel = table.from table
 
-      build_joins(arel, @joins_values) unless @joins_values.empty?
+      build_joins(arel, joins_values) unless joins_values.empty?
 
-      collapse_wheres(arel, (@where_values - ['']).uniq)
+      collapse_wheres(arel, (where_values - ['']).uniq)
 
-      arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
+      arel.having(*having_values.uniq.reject{|h| h.blank?}) unless having_values.empty?
 
-      arel.take(connection.sanitize_limit(@limit_value)) if @limit_value
-      arel.skip(@offset_value.to_i) if @offset_value
+      arel.take(connection.sanitize_limit(limit_value)) if limit_value
+      arel.skip(offset_value.to_i) if offset_value
 
-      arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
+      arel.group(*group_values.uniq.reject{|g| g.blank?}) unless group_values.empty?
 
-      order = @order_values
-      order = reverse_sql_order(order) if @reverse_order_value
+      order = order_values
+      order = reverse_sql_order(order) if reverse_order_value
       arel.order(*order.uniq.reject{|o| o.blank?}) unless order.empty?
 
-      build_select(arel, @select_values.uniq)
+      build_select(arel, select_values.uniq)
 
-      arel.distinct(@uniq_value)
-      arel.from(@from_value) if @from_value
-      arel.lock(@lock_value) if @lock_value
+      arel.distinct(uniq_value)
+      arel.from(from_value) if from_value
+      arel.lock(lock_value) if lock_value
 
       arel
     end
