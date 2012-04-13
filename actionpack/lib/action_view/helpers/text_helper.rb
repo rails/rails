@@ -112,9 +112,9 @@ module ActionView
       def highlight(text, phrases, *args)
         options = args.extract_options!
         unless args.empty?
-          options[:highlighter] = args[0] || '<mark>\1</mark>'
+          options[:highlighter] = args[0]
         end
-        options.reverse_merge!(:highlighter => '<mark>\1</mark>')
+        options[:highlighter] ||= '<mark>\1</mark>'
 
         text = sanitize(text) unless options[:sanitize] == false
         if text.blank? || phrases.blank?
@@ -157,19 +157,20 @@ module ActionView
 
         options = args.extract_options!
         unless args.empty?
-          options[:radius] = args[0] || 100
-          options[:omission] = args[1] || "..."
+          options[:radius]   = args[0]
+          options[:omission] = args[1]
         end
-        options.reverse_merge!(:radius => 100, :omission => "...")
+        radius   = options[:radius]   || 100
+        omission = options[:omission] || "..."
 
         phrase = Regexp.escape(phrase)
         return unless found_pos = text =~ /(#{phrase})/i
 
-        start_pos = [ found_pos - options[:radius], 0 ].max
-        end_pos   = [ [ found_pos + phrase.length + options[:radius] - 1, 0].max, text.length ].min
+        start_pos = [ found_pos - radius, 0 ].max
+        end_pos   = [ [ found_pos + phrase.length + radius - 1, 0].max, text.length ].min
 
-        prefix  = start_pos > 0 ? options[:omission] : ""
-        postfix = end_pos < text.length - 1 ? options[:omission] : ""
+        prefix  = start_pos > 0 ? omission : ""
+        postfix = end_pos < text.length - 1 ? omission : ""
 
         prefix + text[start_pos..end_pos].strip + postfix
       end
@@ -218,12 +219,12 @@ module ActionView
       def word_wrap(text, *args)
         options = args.extract_options!
         unless args.blank?
-          options[:line_width] = args[0] || 80
+          options[:line_width] = args[0]
         end
-        options.reverse_merge!(:line_width => 80)
+        line_width = options[:line_width] || 80
 
         text.split("\n").collect do |line|
-          line.length > options[:line_width] ? line.gsub(/(.{1,#{options[:line_width]}})(\s+|$)/, "\\1\n").strip : line
+          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip : line
         end * "\n"
       end
 
