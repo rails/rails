@@ -236,12 +236,12 @@ module ActiveRecord
     end
 
     def construct_join_dependency_for_association_find
-      including = (@eager_load_values + @includes_values).uniq
+      including = (eager_load_values + includes_values).uniq
       ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
     end
 
     def construct_relation_for_association_calculations
-      including = (@eager_load_values + @includes_values).uniq
+      including = (eager_load_values + includes_values).uniq
       join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, arel.froms.first)
       relation = except(:includes, :eager_load, :preload)
       apply_join_dependency(relation, join_dependency)
@@ -340,7 +340,7 @@ module ActiveRecord
       id = id.id if ActiveRecord::Base === id
 
       column = columns_hash[primary_key]
-      substitute = connection.substitute_at(column, @bind_values.length)
+      substitute = connection.substitute_at(column, bind_values.length)
       relation = where(table[primary_key].eq(substitute))
       relation.bind_values += [[column, id]]
       record = relation.first
@@ -358,15 +358,15 @@ module ActiveRecord
       result = where(table[primary_key].in(ids)).all
 
       expected_size =
-        if @limit_value && ids.size > @limit_value
-          @limit_value
+        if limit_value && ids.size > limit_value
+          limit_value
         else
           ids.size
         end
 
       # 11 ids with limit 3, offset 9 should give 2 results.
-      if @offset_value && (ids.size - @offset_value < expected_size)
-        expected_size = ids.size - @offset_value
+      if offset_value && (ids.size - offset_value < expected_size)
+        expected_size = ids.size - offset_value
       end
 
       if result.size == expected_size

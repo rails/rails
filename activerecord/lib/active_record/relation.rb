@@ -29,11 +29,7 @@ module ActiveRecord
       @implicit_readonly = nil
       @loaded            = false
       @default_scoped    = false
-
-      SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
-      MULTI_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_values", [])}
-
-      @create_with_value = {}
+      @values            = {}
     end
 
     def insert(values)
@@ -84,7 +80,8 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      @bind_values = @bind_values.dup
+      @values        = @values.dup
+      @values[:bind] = @values[:bind].dup if @values[:bind]
       reset
     end
 
@@ -174,17 +171,17 @@ module ActiveRecord
       default_scoped = with_default_scope
 
       if default_scoped.equal?(self)
-        @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
+        @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
 
-        preload = @preload_values
-        preload +=  @includes_values unless eager_loading?
+        preload = preload_values
+        preload +=  includes_values unless eager_loading?
         preload.each do |associations|
           ActiveRecord::Associations::Preloader.new(@records, associations).run
         end
 
         # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
         # are JOINS and no explicit SELECT.
-        readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
+        readonly = readonly_value.nil? ? @implicit_readonly : readonly_value
         @records.each { |record| record.readonly! } if readonly
       else
         @records = default_scoped.to_a
@@ -224,7 +221,7 @@ module ActiveRecord
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
       else
-        @limit_value ? to_a.many? : size > 1
+        limit_value ? to_a.many? : size > 1
       end
     end
 
@@ -460,7 +457,7 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= klass.connection.to_sql(arel, @bind_values.dup)
+      @to_sql ||= klass.connection.to_sql(arel, bind_values.dup)
     end
 
     def where_values_hash
@@ -482,8 +479,8 @@ module ActiveRecord
 
     def eager_loading?
       @should_eager_load ||=
-        @eager_load_values.any? ||
-        @includes_values.any? && (joined_includes_values.any? || references_eager_loaded_tables?)
+        eager_load_values.any? ||
+        includes_values.any? && (joined_includes_values.any? || references_eager_loaded_tables?)
     end
 
     # Joins that are also marked for preloading. In which case we should just eager load them.
@@ -491,7 +488,7 @@ module ActiveRecord
     # represent the same association, but that aren't matched by this. Also, we could have
     # nested hashes which partially match, e.g. { :a => :b } & { :a => [:b, :c] }
     def joined_includes_values
-      @includes_values & @joins_values
+      includes_values & joins_values
     end
 
     def ==(other)
