@@ -26,7 +26,7 @@ module ActiveRecord
       result = self.class.new(@klass, table)
       result.default_scoped = default_scoped
 
-      ((Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS) - skips).each do |method|
+      (Relation::MULTI_VALUE_METHODS - skips).each do |method|
         result.send(:"#{method}_values=", send(:"#{method}_values"))
       end
 
@@ -51,7 +51,7 @@ module ActiveRecord
       result = self.class.new(@klass, table)
       result.default_scoped = default_scoped
 
-      ((Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS) & onlies).each do |method|
+      (Relation::MULTI_VALUE_METHODS & onlies).each do |method|
         result.send(:"#{method}_values=", send(:"#{method}_values"))
       end
 
