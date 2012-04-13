@@ -6,7 +6,8 @@ module ActiveRecord
     # Find operates with four different retrieval approaches:
     #
     # * Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
-    #   If no record can be found for all of the listed ids, then RecordNotFound will be raised.
+    #   If no record can be found for all of the listed ids, then RecordNotFound will be raised. Find by id coerces
+    #   its arguments to integers using #to_i.
     # * Find first - This will return the first record matched by the options used. These options can either be specific
     #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
     #   <tt>Model.find(:first, *args)</tt> or its shortcut <tt>Model.first(*args)</tt>.
@@ -51,6 +52,7 @@ module ActiveRecord
     #
     #   # find by id
     #   Person.find(1)       # returns the object for ID = 1
+    #   Person.find("1")     # returns the object for ID = 1
     #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
     #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
     #   Person.find([1])     # returns an array for the object with ID = 1
