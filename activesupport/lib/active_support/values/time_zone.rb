@@ -28,7 +28,7 @@ module ActiveSupport
     MAPPING = {
       "International Date Line West" => "Pacific/Midway",
       "Midway Island"                => "Pacific/Midway",
-      "Samoa"                        => "Pacific/Pago_Pago",
+      "American Samoa"               => "Pacific/Pago_Pago",
       "Hawaii"                       => "Pacific/Honolulu",
       "Alaska"                       => "America/Juneau",
       "Pacific Time (US & Canada)"   => "America/Los_Angeles",
@@ -167,7 +167,9 @@ module ActiveSupport
       "Marshall Is."                 => "Pacific/Majuro",
       "Auckland"                     => "Pacific/Auckland",
       "Wellington"                   => "Pacific/Auckland",
-      "Nuku'alofa"                   => "Pacific/Tongatapu"
+      "Nuku'alofa"                   => "Pacific/Tongatapu",
+      "Tokelau Is."                  => "Pacific/Fakaofo",
+      "Samoa"                        => "Pacific/Apia"
     }.each { |name, zone| name.freeze; zone.freeze }
     MAPPING.freeze
 
