@@ -21,9 +21,10 @@ module ActiveRecord
 
     def test_initialize_single_values
       relation = Relation.new :a, :b
-      Relation::SINGLE_VALUE_METHODS.each do |method|
+      (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |method|
         assert_nil relation.send("#{method}_value"), method.to_s
       end
+      assert_equal({}, relation.create_with_value)
     end
 
     def test_multi_value_initialize
@@ -132,6 +133,18 @@ module ActiveRecord
       relation = relation.apply_finder_options(:references => :foo)
       assert_equal ['foo'], relation.references_values
     end
+
+    test 'merging a hash into a relation' do
+      relation = Relation.new :a, :b
+      relation = relation.merge where: ['lol'], readonly: true
+
+      assert_equal ['lol'], relation.where_values
+      assert_equal true, relation.readonly_value
+    end
+
+    test 'merging an empty hash into a relation' do
+      assert_equal [], Relation.new(:a, :b).merge({}).where_values
+    end
   end
 
   class RelationMutationTest < ActiveSupport::TestCase
@@ -151,7 +164,7 @@ module ActiveRecord
       assert relation.references_values.include?('foo')
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order]).each do |method|
+    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")
@@ -183,6 +196,11 @@ module ActiveRecord
 
       assert relation.extending!(mod).equal?(relation)
       assert relation.is_a?(mod)
+    end
+
+    test 'create_with!' do
+      assert relation.create_with!(foo: 'bar').equal?(relation)
+      assert_equal({foo: 'bar'}, relation.create_with_value)
     end
   end
 end

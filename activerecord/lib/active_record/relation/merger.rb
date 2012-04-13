@@ -14,6 +14,40 @@ module ActiveRecord
       end
 
       def merge
+        HashMerger.new(relation, other_hash).merge
+      end
+
+      private
+
+      def other_hash
+        hash = {}
+        Relation::MULTI_VALUE_METHODS.map  { |name| hash[name] = other.send("#{name}_values") }
+        Relation::SINGLE_VALUE_METHODS.map { |name| hash[name] = other.send("#{name}_value")  }
+        hash[:extensions] = other.extensions
+        hash
+      end
+    end
+
+    class HashMerger
+      attr_reader :relation, :values
+
+      def initialize(relation, values)
+        @relation = relation
+        @values   = values
+      end
+
+      def normal_values
+        Relation::SINGLE_VALUE_METHODS +
+          Relation::MULTI_VALUE_METHODS -
+          [:where, :order, :bind, :reverse_order, :lock, :create_with, :reordering]
+      end
+
+      def merge
+        normal_values.each do |name|
+          value = values[name]
+          relation.send("#{name}!", value) unless value.blank?
+        end
+
         merge_multi_values
         merge_single_values
 
@@ -23,70 +57,61 @@ module ActiveRecord
       private
 
       def merge_multi_values
-        values = Relation::MULTI_VALUE_METHODS - [:where, :order, :bind]
-
-        values.each do |method|
-          value = other.send(:"#{method}_values")
-
-          unless value.empty?
-            relation.send("#{method}!", value)
-          end
-        end
-
         relation.where_values = merged_wheres
         relation.bind_values  = merged_binds
 
-        if other.reordering_value
+        if values[:reordering]
           # override any order specified in the original relation
-          relation.reorder! other.order_values
-        else
+          relation.reorder! values[:order]
+        elsif values[:order]
           # merge in order_values from r
-          relation.order_values += other.order_values
+          relation.order_values += values[:order]
         end
 
         # Apply scope extension modules
-        relation.send :apply_modules, other.extensions
+        relation.send :apply_modules, values[:extensions] if values[:extensions]
       end
 
       def merge_single_values
-        values = Relation::SINGLE_VALUE_METHODS - [:reverse_order, :lock, :create_with, :reordering]
+        relation.lock_value          = values[:lock] unless relation.lock_value
+        relation.reverse_order_value = values[:reverse_order]
 
-        values.each do |method|
-          value = other.send(:"#{method}_value")
-          relation.send("#{method}!", value) if value
-        end
-
-        relation.lock_value          = other.lock_value unless relation.lock_value
-        relation.reverse_order_value = other.reverse_order_value
-
-        unless other.create_with_value.empty?
-          relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
+        unless values[:create_with].blank?
+          relation.create_with_value = (relation.create_with_value || {}).merge(values[:create_with])
         end
       end
 
       def merged_binds
-        (relation.bind_values + other.bind_values).uniq(&:first)
+        if values[:bind]
+          (relation.bind_values + values[:bind]).uniq(&:first)
+        else
+          relation.bind_values
+        end
       end
 
       def merged_wheres
-        merged_wheres = relation.where_values + other.where_values
+        if values[:where]
+          merged_wheres = relation.where_values + values[:where]
 
-        unless relation.where_values.empty?
-          # Remove duplicates, last one wins.
-          seen = Hash.new { |h,table| h[table] = {} }
-          merged_wheres = merged_wheres.reverse.reject { |w|
-            nuke = false
-            if w.respond_to?(:operator) && w.operator == :==
-              name              = w.left.name
-              table             = w.left.relation.name
-              nuke              = seen[table][name]
-              seen[table][name] = true
-            end
-            nuke
-          }.reverse
+          unless relation.where_values.empty?
+            # Remove duplicates, last one wins.
+            seen = Hash.new { |h,table| h[table] = {} }
+            merged_wheres = merged_wheres.reverse.reject { |w|
+              nuke = false
+              if w.respond_to?(:operator) && w.operator == :==
+                name              = w.left.name
+                table             = w.left.relation.name
+                nuke              = seen[table][name]
+                seen[table][name] = true
+              end
+              nuke
+            }.reverse
+          end
+
+          merged_wheres
+        else
+          relation.where_values
         end
-
-        merged_wheres
       end
     end
   end

@@ -5,10 +5,13 @@ module ActiveRecord
   module SpawnMethods
     def merge(other)
       if other
-        if other.is_a?(Array)
+        case other
+        when Array
           to_a & other
+        when Hash
+          Relation::HashMerger.new(clone, other).merge
         else
-          ActiveRecord::Relation::Merger.new(clone, other).merge
+          Relation::Merger.new(clone, other).merge
         end
       else
         self
