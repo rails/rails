@@ -257,39 +257,26 @@ module ActiveRecord
     #   Customer.update_all :wants_email => true
     #
     #   # Update all books with 'Rails' in their title
-    #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
-    #
-    #   # Update all avatars migrated more recently than a week ago
-    #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
-    #
-    #   # Update all books that match conditions, but limit it to 5 ordered by date
-    #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
-    #
-    #   # Conditions from the current relation also works
     #   Book.where('title LIKE ?', '%Rails%').update_all(:author => 'David')
     #
-    #   # The same idea applies to limit and order
+    #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
-    def update_all(updates, conditions = nil, options = {})
-      if conditions || options.present?
-        where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
+    def update_all(updates)
+      stmt = Arel::UpdateManager.new(arel.engine)
+
+      stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
+      stmt.table(table)
+      stmt.key = table[primary_key]
+
+      if joins_values.any?
+        @klass.connection.join_to_update(stmt, arel)
       else
-        stmt = Arel::UpdateManager.new(arel.engine)
-
-        stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
-        stmt.table(table)
-        stmt.key = table[primary_key]
-
-        if joins_values.any?
-          @klass.connection.join_to_update(stmt, arel)
-        else
-          stmt.take(arel.limit)
-          stmt.order(*arel.orders)
-          stmt.wheres = arel.constraints
-        end
-
-        @klass.connection.update stmt, 'SQL', bind_values
+        stmt.take(arel.limit)
+        stmt.order(*arel.orders)
+        stmt.wheres = arel.constraints
       end
+
+      @klass.connection.update stmt, 'SQL', bind_values
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
