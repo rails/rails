@@ -19,6 +19,13 @@ class Array
     self.first position + 1
   end
 
+  # Returns the all of the elements in the array but the first.
+  #
+  #   %w( a b c d ).rest # => %w( b c d )
+  def rest
+    self[1, length] || []
+  end
+
   # Equal to <tt>self[1]</tt>.
   def second
     self[1]
