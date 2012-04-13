@@ -1503,7 +1503,11 @@ class BasicsTest < ActiveRecord::TestCase
     after_seq     = Joke.sequence_name
 
     assert_not_equal before_columns, after_columns
-    assert_not_equal before_seq, after_seq unless before_seq.blank? && after_seq.blank?
+    unless before_seq.nil? && after_seq.nil?
+      assert_not_equal before_seq, after_seq
+      assert_equal "cold_jokes_id_seq", before_seq
+      assert_equal "funny_jokes_id_seq", after_seq
+    end
   end
 
   def test_dont_clear_sequence_name_when_setting_explicitly
@@ -1514,7 +1518,7 @@ class BasicsTest < ActiveRecord::TestCase
     Joke.table_name    = "funny_jokes"
     after_seq          = Joke.sequence_name
 
-    assert_equal before_seq, after_seq unless before_seq.blank? && after_seq.blank?
+    assert_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
   end
 
   def test_dont_clear_inheritnce_column_when_setting_explicitly
