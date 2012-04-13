@@ -398,6 +398,23 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Company.count(:type, :conditions => {:type => "Firm"}),
         Company.count(:type, :conditions => {:type => "Firm"}, :from => 'companies')
   end
+  
+  def test_count_with_block_acts_as_array
+    accounts = Account.where('id > 0')
+    assert_equal Account.count, accounts.count{ true }
+    assert_equal 0, accounts.count{ false }
+    assert_equal Account.where('credit_limit > 50').size, accounts.count{|account| account.credit_limit > 50}
+    assert_equal Account.where('credit_limit > 50').size, Account.count{|account| account.credit_limit > 50}
+    assert_equal Account.count, Account.count{true}
+    assert_equal 0, Account.count{false}
+  end
+
+  def test_sum_with_block_acts_as_array
+    accounts = Account.where('id > 0')
+    assert_equal Account.sum(:credit_limit), accounts.sum{|account| account.credit_limit }
+    assert_equal Account.sum(:credit_limit) + Account.count, accounts.sum{|account| account.credit_limit + 1 }
+    assert_equal 0, accounts.sum{|account| 0 }
+  end
 
   def test_sum_with_from_option
     assert_equal Account.sum(:credit_limit), Account.sum(:credit_limit, :from => 'accounts')

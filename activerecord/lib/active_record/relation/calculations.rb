@@ -3,12 +3,13 @@ require 'active_support/core_ext/object/try'
 
 module ActiveRecord
   module Calculations
-    # Count operates using three different approaches.
+    # Count operates using four different approaches.
     #
     # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.
     # * Count using column: By passing a column name to count, it will return a count of all the
     #   rows for the model with supplied column present.
     # * Count using options will find the row count matched by the options used.
+    # * Count using a block will acts as Array#count
     #
     # The third approach, count using options, accepts an option hash as the only parameter. The options are:
     #
@@ -51,11 +52,25 @@ module ActiveRecord
     #   Person.count('id', :conditions => "age > 26") # Performs a COUNT(id)
     #   Person.count(:all, :conditions => "age > 26") # Performs a COUNT(*) (:all is an alias for '*')
     #
-    # Note: <tt>Person.count(:all)</tt> will not work because it will use <tt>:all</tt> as the condition.
-    # Use Person.count instead.
-    def count(column_name = nil, options = {})
-      column_name, options = nil, column_name if column_name.is_a?(Hash)
-      calculate(:count, column_name, options)
+    # Examples for count with a block:
+    #   Person.where(:conditions => "age > 26").count{|person| person.gender=='female' }
+    #
+    #   Person.count{|person| person.age > 26 && person.gender=='female' }
+    def count(*args)
+      if block_given?
+        self.to_a.count {|*block_args| yield(*block_args)}
+      else
+        raise ArgumentError, "Too many arguments. No more than 2 are allowed." if args.size > 2
+        if args.blank?
+          column_name, options = nil, {}
+        elsif args.first.is_a?(Hash)
+          column_name, options = nil, args.first
+        else
+          column_name = args.shift
+          options = args.shift || {}
+        end
+        calculate(:count, column_name, options)
+      end
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -84,6 +99,12 @@ module ActiveRecord
       calculate(:maximum, column_name, options)
     end
 
+    # Sum operates using two different approaches:
+    # * Sum using a block will act as Array#sum
+    #
+    #   Person.where('age > 100').sum{|person| person.age - 100} # => 11
+    #
+    # * Sum as a Calculation on a given column.
     # Calculates the sum of values on a given column. The value is returned
     # with the same data type of the column, 0 if there's no row. See
     # +calculate+ for examples with options.
