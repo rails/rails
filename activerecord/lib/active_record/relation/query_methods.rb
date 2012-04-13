@@ -356,7 +356,7 @@ module ActiveRecord
       modules << Module.new(&block) if block_given?
 
       self.extending_values = modules.flatten
-      extend(*extending_values)
+      extend(*extending_values) if extending_values.any?
 
       self
     end

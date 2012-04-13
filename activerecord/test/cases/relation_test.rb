@@ -176,6 +176,11 @@ module ActiveRecord
       assert relation.is_a?(mod)
     end
 
+    test 'extending! with empty args' do
+      relation.extending!
+      assert_equal [], relation.extending_values
+    end
+
     (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
