@@ -16,10 +16,12 @@ module ActiveRecord
     # large amounts of records that wouldn't fit in memory all at once. If
     # you just need to loop over less than 1000 records, it's probably
     # better just to use the regular find methods.
-    def find_each(options = {})
-      find_in_batches(options) do |records|
-        records.each { |record| yield record }
-      end
+    def find_each(options = {}, &block)
+      Enumerator.new do |yielder|
+        find_in_batches(options) do |records|
+          records.each { |record| yielder.yield record }
+        end
+      end.tap{|enum| enum.each(&block) if block_given?}
     end
 
     # Yields each batch of records that was found by the find +options+ as
@@ -45,7 +47,7 @@ module ActiveRecord
     #     sleep(50) # Make sure it doesn't get too crowded in there!
     #     group.each { |person| person.party_all_night! }
     #   end
-    def find_in_batches(options = {})
+    def find_in_batches(options = {}, &block)
       relation = self
 
       unless arel.orders.blank? && arel.taken.blank?
@@ -65,20 +67,22 @@ module ActiveRecord
       relation = relation.reorder(batch_order).limit(batch_size)
       records = relation.where(table[primary_key].gteq(start)).all
 
-      while records.any?
-        records_size = records.size
-        primary_key_offset = records.last.id
+      Enumerator.new do |yielder|
+        while records.any?
+          records_size = records.size
+          primary_key_offset = records.last.id
 
-        yield records
+          yielder.yield records
 
-        break if records_size < batch_size
+          break if records_size < batch_size
 
-        if primary_key_offset
-          records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
-        else
-          raise "Primary key not included in the custom select clause"
+          if primary_key_offset
+            records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
+          else
+            raise "Primary key not included in the custom select clause"
+          end
         end
-      end
+      end.tap{|enum| enum.each(&block) if block_given?}
     end
 
     private

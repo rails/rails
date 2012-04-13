@@ -18,10 +18,10 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_each_should_not_return_query_chain_and_execcute_only_one_query
+  def test_each_should_not_return_query_chain_and_execute_only_one_query
     assert_queries(1) do
       result = Post.find_each(:batch_size => 100000){ }
-      assert_nil result
+      assert_kind_of Enumerator, result
     end
   end
 
@@ -134,6 +134,31 @@ class EachTest < ActiveRecord::TestCase
       posts.concat(batch)
     end
     assert_equal special_posts_ids, posts.map(&:id)
+  end
+
+
+  def test_find_in_batches_without_a_block_should_return_an_enumerator
+    enumerator = Post.find_in_batches(:batch_size=>1000000)
+    assert_kind_of Enumerator, enumerator
+
+    batches = {}
+    enumerator.each_with_index do |batch, i|
+      assert_kind_of Array, batch
+      assert_kind_of Post, batch.first
+      batches[i] = batch.length
+    end
+    assert_equal 1, batches.keys.length
+    assert_equal @total, batches[0]
+  end
+
+  def test_find_each_without_a_block_should_return_an_enumerator
+    enumerator = Post.find_each
+    assert_kind_of Enumerator, enumerator
+    each_post = []
+    enumerator.each do |post|
+      each_post << post
+    end
+    assert_equal Post.count, each_post.length
   end
 
 end
