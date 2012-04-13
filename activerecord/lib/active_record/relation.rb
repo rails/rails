@@ -8,7 +8,8 @@ module ActiveRecord
     JoinOperation = Struct.new(:relation, :join_class, :on)
 
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :where, :having, :bind, :references]
+                            :order, :joins, :where, :having, :bind, :references,
+                            :extending]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
                             :reverse_order, :uniq, :create_with]
@@ -18,7 +19,7 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
-    attr_accessor :extensions, :default_scoped
+    attr_accessor :default_scoped
     alias :loaded? :loaded
     alias :default_scoped? :default_scoped
 
@@ -31,7 +32,7 @@ module ActiveRecord
 
       SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
       MULTI_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_values", [])}
-      @extensions = []
+
       @create_with_value = {}
     end
 

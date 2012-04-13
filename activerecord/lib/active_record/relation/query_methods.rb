@@ -10,7 +10,9 @@ module ActiveRecord
                   :where_values, :having_values, :bind_values,
                   :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value,
                   :from_value, :reordering_value, :reverse_order_value,
-                  :uniq_value, :references_values
+                  :uniq_value, :references_values, :extending_values
+
+    alias extensions extending_values
 
     def includes(*args)
       args.empty? ? self : clone.includes!(*args)
@@ -353,7 +355,9 @@ module ActiveRecord
     def extending!(*modules, &block)
       modules << Module.new(&block) if block_given?
 
-      self.send(:apply_modules, modules.flatten)
+      self.extending_values = modules.flatten
+      extend(*extending_values)
+
       self
     end
 
@@ -491,13 +495,6 @@ module ActiveRecord
         arel.project(*selects)
       else
         arel.project(@klass.arel_table[Arel.star])
-      end
-    end
-
-    def apply_modules(modules)
-      unless modules.empty?
-        @extensions += modules
-        modules.each {|extension| extend(extension) }
       end
     end
 

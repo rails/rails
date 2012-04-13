@@ -26,7 +26,6 @@ module ActiveRecord
         hash = {}
         Relation::MULTI_VALUE_METHODS.map  { |name| hash[name] = other.send("#{name}_values") }
         Relation::SINGLE_VALUE_METHODS.map { |name| hash[name] = other.send("#{name}_value")  }
-        hash[:extensions] = other.extensions
         hash
       end
     end
@@ -73,8 +72,7 @@ module ActiveRecord
           relation.order_values += values[:order]
         end
 
-        # Apply scope extension modules
-        relation.send :apply_modules, values[:extensions] if values[:extensions]
+        relation.extend(*values[:extending]) unless values[:extending].blank?
       end
 
       def merge_single_values
