@@ -167,11 +167,11 @@ module ActionView
   #   <%# app/views/users/index.html.erb %>
   #   <%# This does not use layouts %>
   #   <ul>
-  #     <% users.each do |user| %>
+  #     <% users.each do |user| -%>
   #       <li>
   #         <%= render :partial => "user", :locals => { :user => user } %>
   #       </li>
-  #     <% end %>
+  #     <% end -%>
   #   </ul>
   #
   #   <%# app/views/users/_li_layout.html.erb %>
@@ -238,11 +238,11 @@ module ActionView
   #
   #   <%# app/views/users/index.html.erb &>
   #   <%= render :layout => @users do |user, section| %>
-  #     <%- case section when :header %>
+  #     <%- case section when :header -%>
   #       Title: <%= user.title %>
-  #     <%- when :footer %>
+  #     <%- when :footer -%>
   #       Deadline: <%= user.deadline %>
-  #     <%- end %>
+  #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer
     PREFIXED_PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
