@@ -56,6 +56,11 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal 'person gender attribute', Person::Gender.human_attribute_name('attribute')
   end
 
+  def test_translated_deeply_nested_model_attributes
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:"person/contacts/addresses" => {:street => 'Deeply Nested Address Street'}}}
+    assert_equal 'Deeply Nested Address Street', Person.human_attribute_name('contacts.addresses.street')
+  end
+
   def test_translated_nested_model_attributes
     I18n.backend.store_translations 'en', :activemodel => {:attributes => {:"person/addresses" => {:street => 'Person Address Street'}}}
     assert_equal 'Person Address Street', Person.human_attribute_name('addresses.street')
