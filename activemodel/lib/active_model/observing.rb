@@ -4,6 +4,7 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/enumerable'
+require 'active_support/deprecation'
 require 'active_support/descendants_tracker'
 
 module ActiveModel
@@ -74,8 +75,14 @@ module ActiveModel
       end
 
       # Total number of observers.
-      def count_observers
+      def observers_count
         observer_instances.size
+      end
+
+      def count_observers
+        msg = "count_observers is deprecated in favor of observers_count"
+        ActiveSupport::Deprecation.warn(msg)
+        observers_count
       end
 
       protected
