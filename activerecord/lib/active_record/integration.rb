@@ -33,14 +33,13 @@ module ActiveRecord
     #
     #   Product.new.cache_key     # => "products/new"
     #   Product.find(5).cache_key # => "products/5" (updated_at not available)
-    #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
+    #   Person.find(5).cache_key  # => "people/5-1334398193.832774" (updated_at available)
     def cache_key
       case
       when new_record?
         "#{self.class.model_name.cache_key}/new"
       when timestamp = self[:updated_at]
-        timestamp = timestamp.utc.to_s(:number)
-        "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
+        "#{self.class.model_name.cache_key}/#{id}-#{timestamp.utc.to_f}"
       else
         "#{self.class.model_name.cache_key}/#{id}"
       end
