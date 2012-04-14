@@ -227,6 +227,7 @@ module InflectorTestCases
     "¿por qué?"             => '¿Por Qué?',
     "Fred’s"                => "Fred’s",
     "Fred`s"                => "Fred`s"
+    "down-case - test"      => "Down-Case - Test"
   }
 
   OrdinalNumbers = {
