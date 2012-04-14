@@ -171,6 +171,7 @@ module ActiveRecord
         create_sql << td.to_sql
         create_sql << ") #{options[:options]}"
         execute create_sql
+        td.indexes.each_pair { |c,o| add_index table_name, c, o }
       end
 
       # Creates a new join table with the name created using the lexical order of the first two

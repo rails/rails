@@ -404,6 +404,7 @@ end
 class ChangeTableMigrationsTest < ActiveRecord::TestCase
   def setup
     @connection = Person.connection
+    @connection.stubs(:add_index)
     @connection.create_table :delete_me, :force => true do |t|
     end
   end
