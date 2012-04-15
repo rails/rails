@@ -41,8 +41,9 @@ module ActiveSupport
        },
        :notify => Proc.new { |message, callstack|
           ActiveSupport::Notifications.instrument("deprecation.rails",
-            :message => message, :callstack => callstack)
-       }
+          :message => message, :callstack => callstack)
+       },
+       :silence => Proc.new { |message, callstack| }
     }
   end
 end
