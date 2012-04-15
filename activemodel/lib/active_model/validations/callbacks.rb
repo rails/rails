@@ -8,7 +8,8 @@ module ActiveModel
       # Provides an interface for any class to have <tt>before_validation</tt> and
       # <tt>after_validation</tt> callbacks.
       #
-      # First, extend ActiveModel::Callbacks from the class you are creating:
+      # First, include ActiveModel::Validations::Callbacks from the class you are
+      # creating:
       #
       #   class MyModel
       #     include ActiveModel::Validations::Callbacks
