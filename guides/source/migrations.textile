@@ -779,7 +779,7 @@ Both migrations work for Alice.
 
 Bob comes back from vacation and:
 
-# Updates the source - which contains both migrations and the latests version of
+# Updates the source - which contains both migrations and the latest version of
 the Product model.
 # Runs outstanding migrations with +rake db:migrate+, which
 includes the one that updates the +Product+ model.
