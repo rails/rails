@@ -283,7 +283,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/add_index/, up)
+        assert_match(/index: true/, up)
       end
     end
   end
@@ -293,7 +293,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/add_index/, up)
+        assert_match(/index: true/, up)
       end
     end
   end
@@ -303,7 +303,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/add_index/, up)
+        assert_no_match(/index: true/, up)
       end
     end
   end
@@ -313,7 +313,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/add_index/, up)
+        assert_no_match(/index: true/, up)
       end
     end
   end
