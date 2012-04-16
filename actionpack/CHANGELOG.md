@@ -135,7 +135,7 @@
     HTML5 `mark` element. *Brian Cardarella*
 
 
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.3 (March 30, 2012) ##
 
 *   Add `config.action_view.embed_authenticity_token_in_remote_forms` (defaults to true) which allows to set if authenticity token will be included by default in remote forms. If you change it to false, you can still force authenticity token by passing `:authenticity_token => true` in form options *Piotr Sarnacki*
 
