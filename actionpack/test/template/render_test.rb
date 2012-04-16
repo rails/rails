@@ -161,6 +161,15 @@ module RenderTestCases
                                 "and is followed by any combinations of letters, numbers, or underscores.", e.message
   end
 
+  def test_render_partial_with_missing_filename
+    @view.render(:partial => "test/")
+    flunk "Render did not raise ArgumentError"
+  rescue ArgumentError => e
+    assert_equal "The partial name (test/) is not a valid Ruby identifier; " +
+                                "make sure your partial name starts with a letter or underscore, " +
+                                "and is followed by any combinations of letters, numbers, or underscores.", e.message
+  end
+
   def test_render_partial_with_incompatible_object
     @view.render(:partial => nil)
     flunk "Render did not raise ArgumentError"
