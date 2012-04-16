@@ -66,7 +66,7 @@ module ActiveModel
     def initialize(params={})
       params.each do |attr, value|
         self.public_send("#{attr}=", value)
-      end
+      end if params
     end
 
     def persisted?
