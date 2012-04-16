@@ -239,7 +239,7 @@
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
 
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.3 (March 30, 2012) ##
 
 *   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
 
