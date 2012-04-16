@@ -85,16 +85,12 @@ module ActiveModel
           @builder.tag!(*args) do
             add_attributes_and_methods
             add_includes
-            add_extra_behavior
             add_procs
             yield @builder if block_given?
           end
         end
 
       private
-
-        def add_extra_behavior
-        end
 
         def add_attributes_and_methods
           serializable_collection.each do |attribute|
