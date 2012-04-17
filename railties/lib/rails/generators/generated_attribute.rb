@@ -22,7 +22,7 @@ module Rails
 
           type, attr_options = *parse_type_and_options(type)
 
-          references_index = (type.in?(%w(references belongs_to)) and UNIQ_INDEX_OPTIONS.include?(has_index) ? {:unique => true} : true)
+          references_index = type.in?(%w(references belongs_to)) && UNIQ_INDEX_OPTIONS.include?(has_index) ? {:unique => true} : true
           attr_options.merge!({:index => references_index}) if references_index
 
           new(name, type, has_index, attr_options)
