@@ -294,10 +294,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_ruby_debug19
+  def test_inclusion_of_debugger
     run_generator
     assert_file "Gemfile" do |contents|
-      assert_match(/gem 'ruby-debug19', :require => 'ruby-debug'/, contents)
+      assert_match(/gem 'debugger'/, contents)
     end
   end
 
