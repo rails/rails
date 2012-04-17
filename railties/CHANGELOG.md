@@ -1,3 +1,8 @@
+## Rails 3.2.4 (unreleased) ##
+
+*   Add hook for resource route's generator. *Santiago Pastorino*
+
+
 ## Rails 3.2.3 (unreleased) ##
 
 *   No changes.
