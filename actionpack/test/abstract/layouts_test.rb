@@ -16,7 +16,9 @@ module AbstractControllerTests
         "abstract_controller_tests/layouts/with_string_implied_child.erb" =>
                                            "With Implied <%= yield %>",
         "abstract_controller_tests/layouts/with_grand_child_of_implied.erb" =>
-                                           "With Grand Child <%= yield %>"
+                                           "With Grand Child <%= yield %>",
+        "abstract_controller_tests/layouts/with_implied_layout.erb" =>
+                                           "With Implied Layout <%= yield %>"
 
       )]
     end
@@ -168,6 +170,15 @@ module AbstractControllerTests
       end
     end
 
+    class WithImpliedLayout < Base
+      def index
+        render :template => ActionView::Template::Text.new("Hello!")
+      end
+    end
+
+    class WithImpliedLayoutChild < WithImpliedLayout
+    end
+
     class TestBase < ActiveSupport::TestCase
       test "when no layout is specified, and no default is available, render without a layout" do
         controller = Blank.new
@@ -311,6 +322,25 @@ module AbstractControllerTests
         controller = WithExceptConditional.new
         controller.process(:index)
         assert_equal "Overwrite Hello index!", controller.response_body
+      end
+
+      test "when no layout is specified and an implied layout exists, use the implied layout" do
+        controller = WithImpliedLayout.new
+        controller.process(:index)
+        assert_equal "With Implied Layout Hello!", controller.response_body
+      end
+
+      test "when no layout is specified and the parent has an implied layout, use the parent's implied layout" do
+        controller = WithImpliedLayoutChild.new
+        controller.process(:index)
+        assert_equal "With Implied Layout Hello!", controller.response_body
+      end
+
+      test "when an anonymous child has no layout specified and the parent has an implied layout, use the parent's implied layout" do
+        klass = Class.new(WithImpliedLayout)
+        controller = klass.new
+        controller.process(:index)
+        assert_equal "With Implied Layout Hello!", controller.response_body
       end
     end
   end
