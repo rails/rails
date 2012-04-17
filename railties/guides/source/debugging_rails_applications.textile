@@ -205,7 +205,7 @@ The debugger used by Rails, +ruby-debug+, comes as a gem. To install it, just ru
 $ sudo gem install ruby-debug
 </shell>
 
-TIP: If you are using Ruby 1.9, you can install a compatible version of +ruby-debug+ by running +sudo gem install ruby-debug19+
+TIP: If you are using Ruby 1.9, you can install a compatible version of +debugger+ by running +sudo gem install debugger+
 
 In case you want to download a particular version or get the source code, refer to the "project's page on rubyforge":http://rubyforge.org/projects/ruby-debug/.
 
