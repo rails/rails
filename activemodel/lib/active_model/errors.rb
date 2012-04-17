@@ -130,12 +130,12 @@ module ActiveModel
     # has more than one error message, yields once for each error message.
     #
     #   p.errors.add(:name, "can't be blank")
-    #   p.errors.each do |attribute, errors_array|
+    #   p.errors.each do |attribute, error|
     #     # Will yield :name and "can't be blank"
     #   end
     #
     #   p.errors.add(:name, "must be specified")
-    #   p.errors.each do |attribute, errors_array|
+    #   p.errors.each do |attribute, error|
     #     # Will yield :name and "can't be blank"
     #     # then yield :name and "must be specified"
     #   end
