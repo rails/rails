@@ -150,5 +150,28 @@ module ApplicationTests
       # expect only Invoke db:structure:dump (first_time)
       assert_no_match(/^\*\* Invoke db:structure:dump\s+$/, output)
     end
+
+    def test_load_activerecord_base_when_we_use_observers
+      Dir.chdir(app_path) do
+        `bundle exec rails g model user;
+         bundle exec rake db:migrate;
+         bundle exec rails g observer user;`
+
+        add_to_config "config.active_record.observers = :user_observer"
+
+        assert_equal "0", `bundle exec rails r "puts User.count"`.strip
+
+        app_file "lib/tasks/count_user.rake", <<-RUBY
+          namespace :user do
+            task :count => :environment do
+              puts User.count
+            end
+          end
+        RUBY
+
+        assert_equal "0", `bundle exec rake user:count`.strip
+      end
+    end
+
   end
 end
