@@ -3,6 +3,8 @@ require 'abstract_unit'
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
+  include RenderERBUtils
+
   def _evaluate_assigns_and_ivars() end
 
   attr_accessor :formats, :output_buffer
@@ -70,6 +72,11 @@ class JavaScriptHelperTest < ActionView::TestCase
   def test_function_with_href
     assert_dom_equal %(<a href="http://example.com/" onclick="alert('Hello world!'); return false;">Greeting</a>),
       link_to_function("Greeting", "alert('Hello world!')", :href => 'http://example.com/')
+  end
+
+  def test_link_to_function_tag_using_block_in_erb
+    out = render_erb %{<%= link_to_function("alert('Hello world!')", :href => "http://example.com") do %>Example site<% end %>}
+    assert_equal '<a href="http://example.com" onclick="alert(\'Hello world!\'); return false;">Example site</a>', out
   end
 
   def test_javascript_tag
