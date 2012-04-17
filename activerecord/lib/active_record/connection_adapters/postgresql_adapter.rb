@@ -916,22 +916,22 @@ module ActiveRecord
         binds = [[nil, table]]
         binds << [nil, schema] if schema
 
-        exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
+        exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0
             SELECT COUNT(*)
             FROM pg_class c
             LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
             WHERE c.relkind in ('v','r')
-            AND c.relname = $1
-            AND n.nspname = #{schema ? '$2' : 'ANY (current_schemas(false))'}
+            AND c.relname = '#{table.gsub(/(^"|"$)/,'')}'
+            AND n.nspname = #{schema ? "'#{schema}'" : 'ANY (current_schemas(false))'}
         SQL
       end
 
       # Returns true if schema exists.
       def schema_exists?(name)
-        exec_query(<<-SQL, 'SCHEMA', [[nil, name]]).rows.first[0].to_i > 0
+        exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0
           SELECT COUNT(*)
           FROM pg_namespace
-          WHERE nspname = $1
+          WHERE nspname = '#{name}'
         SQL
       end
 
@@ -1062,8 +1062,8 @@ module ActiveRecord
       end
 
       def serial_sequence(table, column)
-        result = exec_query(<<-eosql, 'SCHEMA', [[nil, table], [nil, column]])
-          SELECT pg_get_serial_sequence($1, $2)
+        result = exec_query(<<-eosql, 'SCHEMA')
+          SELECT pg_get_serial_sequence('#{table}', '#{column}')
         eosql
         result.rows.first.first
       end
@@ -1140,13 +1140,13 @@ module ActiveRecord
 
       # Returns just a table's primary key
       def primary_key(table)
-        row = exec_query(<<-end_sql, 'SCHEMA', [[nil, table]]).rows.first
+        row = exec_query(<<-end_sql, 'SCHEMA').rows.first
           SELECT DISTINCT(attr.attname)
           FROM pg_attribute attr
           INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
           INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
           WHERE cons.contype = 'p'
-            AND dep.refobjid = $1::regclass
+            AND dep.refobjid = '#{table}'::regclass
         end_sql
 
         row && row.first
@@ -1408,7 +1408,7 @@ module ActiveRecord
         end
 
         def last_insert_id_result(sequence_name) #:nodoc:
-          exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
+          exec_query("SELECT currval('#{sequence_name}')", 'SQL')
         end
 
         # Executes a SELECT query and returns the results, performing any data type
