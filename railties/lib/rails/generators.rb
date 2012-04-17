@@ -52,6 +52,7 @@ module Rails
         :orm => false,
         :performance_tool => nil,
         :resource_controller => :controller,
+        :resource_route => true,
         :scaffold_controller => :scaffold_controller,
         :stylesheets => true,
         :stylesheet_engine => :css,
@@ -172,6 +173,7 @@ module Rails
 
         [
           "rails",
+          "resource_route",
           "#{orm}:migration",
           "#{orm}:model",
           "#{orm}:observer",
