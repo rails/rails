@@ -76,7 +76,7 @@ module Rails
         require 'debugger'
         puts "=> Debugger enabled"
       rescue Exception
-        puts "You need to install debugger to run the console in debugging mode. With gems, use 'gem install debugger'"
+        puts "You need to install a debugger to run the console in debugging mode. With gems, use 'gem install debugger'"
         exit
       end
     end

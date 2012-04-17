@@ -191,7 +191,7 @@ Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localh
 
 Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels, to avoid filling your production logs with useless trivia.
 
-h3. Debugging with +debugger+
+h3. Debugging with +debugger+ gem
 
 When your code is behaving in unexpected ways, you can try printing to logs or the console to diagnose the problem. Unfortunately, there are times when this sort of error tracking is not effective in finding the root cause of a problem. When you actually need to journey into your running source code, the debugger is your best companion.
 
@@ -244,7 +244,7 @@ TIP: In development mode, you can dynamically +require \'debugger\'+ instead of 
 
 h4. The Shell
 
-As soon as your application calls the +debugger+ method, the debugger will be started in a debugger shell inside the terminal window where you launched your application server, and you will be placed at debugger's prompt +(rdb:n)+. The _n_ is the thread number. The prompt will also show you the next line of code that is waiting to run.
+As soon as your application calls the +debugger+ method, the debugger will be started in a debugger shell inside the terminal window where you launched your application server, and you will be placed at the debugger's prompt +(rdb:n)+. The _n_ is the thread number. The prompt will also show you the next line of code that is waiting to run.
 
 If you got there by a browser request, the browser tab containing the request will be hung until the debugger has finished and the trace has finished processing the entire request.
 
@@ -272,7 +272,7 @@ continue   edit     frame   method  putl  set      tmate   where
 
 TIP: To view the help menu for any command use +help &lt;command-name&gt;+ in active debug mode. For example: _+help var+_
 
-The next command to learn is one of the most useful: +list+. You can also abbreviate debugger commands by supplying just enough letters to distinguish them from other commands, so you can also use +l+ for the +list+ command.
+The next command to learn is one of the most useful: +list+. You can also abbreviate the debugging commands by supplying just enough letters to distinguish them from other commands, so you can also use +l+ for the +list+ command.
 
 This command shows you where you are in the code by printing 10 lines centered around the current line; the current line in this particular case is line 6 and is marked by +=>+.
 
@@ -349,7 +349,7 @@ h4. The Context
 
 When you start debugging your application, you will be placed in different contexts as you go through the different parts of the stack.
 
-debugger creates a context when a stopping point or an event is reached. The context has information about the suspended program which enables a debugger to inspect the frame stack, evaluate variables from the perspective of the debugged program, and contains information about the place where the debugged program is stopped.
+The debugger creates a context when a stopping point or an event is reached. The context has information about the suspended program which enables a debugger to inspect the frame stack, evaluate variables from the perspective of the debugged program, and contains information about the place where the debugged program is stopped.
 
 At any time you can call the +backtrace+ command (or its alias +where+) to print the backtrace of the application. This can be very helpful to know how you got where you are. If you ever wondered about how you got somewhere in your code, then +backtrace+ will supply the answer.
 
@@ -465,7 +465,7 @@ h4. Step by Step
 
 Now you should know where you are in the running trace and be able to print the available variables. But lets continue and move on with the application execution.
 
-Use +step+ (abbreviated +s+) to continue running your program until the next logical stopping point and return control to debugger.
+Use +step+ (abbreviated +s+) to continue running your program until the next logical stopping point and return control to the debugger.
 
 TIP: You can also use <tt>step<plus> n</tt> and <tt>step- n</tt> to move forward or backward +n+ steps respectively.
 
@@ -487,7 +487,7 @@ class Author < ActiveRecord::Base
 end
 </ruby>
 
-TIP: You can use debugger while using +rails console+. Just remember to +require "debugger"+ before calling the +debugger+ method.
+TIP: You can use a debugger while using +rails console+. Just remember to +require "debugger"+ before calling the +debugger+ method.
 
 <shell>
 $ rails console
@@ -605,7 +605,7 @@ A simple quit tries to terminate all threads in effect. Therefore your server wi
 
 h4. Settings
 
-There are some settings that can be configured in debugger to make it easier to debug your code. Here are a few of the available options:
+There are some settings that can be configured in the +debugger+ gem to make it easier to debug your code. Here are a few of the available options:
 
 * +set reload+: Reload source code when changed.
 * +set autolist+: Execute +list+ command on every breakpoint.
@@ -614,7 +614,7 @@ There are some settings that can be configured in debugger to make it easier to 
 
 You can see the full list by using +help set+. Use +help set _subcommand_+ to learn about a particular +set+ command.
 
-TIP: You can include any number of these configuration lines inside a +.rdebugrc+ file in your HOME directory. debugger will read this file every time it is loaded and configure itself accordingly.
+TIP: You can include any number of these configuration lines inside a +.rdebugrc+ file in your HOME directory. +debugger+ gem will read this file every time it is loaded and configure itself accordingly.
 
 Here's a good start for an +.rdebugrc+:
 
