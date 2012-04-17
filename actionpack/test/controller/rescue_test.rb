@@ -60,11 +60,6 @@ class RescueController < ActionController::Base
     render :text => exception.message
   end
 
-  # This is a Dispatcher exception and should be in ApplicationController.
-  rescue_from ActionController::RoutingError do
-    render :text => 'no way'
-  end
-
   rescue_from ActionView::TemplateError do
     render :text => 'action_view templater error'
   end
