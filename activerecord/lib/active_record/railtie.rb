@@ -121,5 +121,10 @@ module ActiveRecord
         end
       end
     end
+
+    config.after_initialize do
+      # We should load ActiveRecord::Base class before loading an application model.
+      require "active_record/base"
+    end
   end
 end
