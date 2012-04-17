@@ -65,6 +65,7 @@ module ActiveSupport
     autoload :MessageVerifier
     autoload :Multibyte
     autoload :OptionMerger
+    autoload :OrderedHash
     autoload :OrderedOptions
     autoload :Rescuable
     autoload :StringInquirer
