@@ -202,16 +202,16 @@ h4. Setup
 The debugger used by Rails, +debugger+, comes as a gem. To install it, just run:
 
 <shell>
-$ sudo gem install debugger
+$ gem install debugger
 </shell>
 
-TIP: If you are using Ruby 1.9, you can install a compatible version of +ruby-debug+ by running +sudo gem install debugger+
+TIP: If you are using Ruby 1.9, you can install a compatible version of +ruby-debug+ by running +gem install debugger+
 
 In case you want to download a particular version or get the source code, refer to the "project's page on rubyforge":http://rubyforge.org/projects/ruby-debug/.
 
 Rails has had built-in support for ruby-debug since Rails 2.0. Inside any Rails application you can invoke the debugger by calling the +debugger+ method.
 
-ruby-debug19 has had a number of compatibility issues with ruby 1.9.3+ and as such the ball has been picked to maintain the ruby debugging gem in the newer "debugger" gem.
++ruby-debug19+ gem has been replaced by the +debugger+ gem due to multiple issues on Ruby 1.9.3.
 
 Here's an example:
 
@@ -639,7 +639,7 @@ If a Ruby object does not go out of scope, the Ruby Garbage Collector won't swee
 To install it run:
 
 <shell>
-$ sudo gem install bleak_house
+$ gem install bleak_house
 </shell>
 
 Then setup your application for profiling. Then add the following at the bottom of config/environment.rb:
