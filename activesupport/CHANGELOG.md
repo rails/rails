@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Add ActiveSupport::Deprecations.behavior = :slience to to completely ignore *twinturbo*
+
 *    Make Module#delegate stop using `send` - can no longer delegate to private methods. *dasch*
 
 *    AS::Callbacks: deprecate `:rescuable` option. *Bogdan Gusiev*
