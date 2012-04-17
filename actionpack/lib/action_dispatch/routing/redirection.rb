@@ -68,8 +68,8 @@ module ActionDispatch
       # return value.
       #
       #   match 'jokes/:number', :to => redirect { |params, request|
-      #     path = (params[:number].to_i.even? ? "/wheres-the-beef" : "/i-love-lamp")
-      #     "http://#{request.host_with_port}#{path}"
+      #     path = (params[:number].to_i.even? ? "wheres-the-beef" : "i-love-lamp")
+      #     "http://#{request.host_with_port}/#{path}"
       #   }
       #
       # Note that the `do end` syntax for the redirect block wouldn't work, as Ruby would pass
