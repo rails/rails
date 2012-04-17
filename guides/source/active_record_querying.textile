@@ -539,7 +539,9 @@ And this will give you a single +Order+ object for each date where there are ord
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at)
+SELECT date(created_at) as ordered_date, sum(price) as total_price 
+FROM orders 
+GROUP BY date(created_at)
 </sql>
 
 h3. Having
@@ -555,7 +557,10 @@ Order.select("date(created_at) as ordered_date, sum(price) as total_price").grou
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at) HAVING sum(price) > 100
+SELECT date(created_at) as ordered_date, sum(price) as total_price 
+FROM orders 
+GROUP BY date(created_at) 
+HAVING sum(price) > 100
 </sql>
 
 This will return single order objects for each day, but only those that are ordered more than $100 in a day.
@@ -829,7 +834,7 @@ SELECT categories.* FROM categories
   INNER JOIN posts ON posts.category_id = categories.id
 </sql>
 
-Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use Category.joins(:post).select("distinct(categories.id)").
+Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use Category.joins(:posts).select("distinct(categories.id)").
 
 h5. Joining Multiple Associations
 
