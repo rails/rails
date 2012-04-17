@@ -40,11 +40,14 @@ module ActionDispatch
       alias :options :block
 
       def path(params, request)
+        path = options.delete(:path){ request.path }
+        path = (!params.empty? && String === path && path.match(/%\{\w*\}/)) ? (path % params) : path
+
         url_options = {
           :protocol => request.protocol,
           :host     => request.host,
           :port     => request.optional_port,
-          :path     => request.path,
+          :path     => path,
           :params   => request.query_parameters
         }.merge options
 
