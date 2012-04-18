@@ -191,7 +191,7 @@ module ActiveRecord
       protected
 
         def valid_scope_name?(name)
-          if respond_to?(name, true)
+          if logger && respond_to?(name, true)
             logger.warn "Creating scope :#{name}. " \
                         "Overwriting existing method #{self.name}.#{name}."
           end
