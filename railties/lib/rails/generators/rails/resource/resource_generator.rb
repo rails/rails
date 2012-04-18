@@ -14,9 +14,6 @@ module Rails
       class_option :actions, :type => :array, :banner => "ACTION ACTION", :default => [],
                              :desc => "Actions for the resource controller"
 
-      class_option :http, :type => :boolean, :default => false,
-                          :desc => "Generate resource with HTTP actions only"
-
       hook_for :resource_route, :required => true
     end
   end
