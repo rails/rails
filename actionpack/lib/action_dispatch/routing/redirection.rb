@@ -72,8 +72,8 @@ module ActionDispatch
       #     "http://#{request.host_with_port}/#{path}"
       #   }
       #
-      # Note that the `do end` syntax for the redirect block wouldn't work, as Ruby would pass
-      # the block to `match` instead of `redirect`. Use `{ ... }` instead.
+      # Note that the +do end+ syntax for the redirect block wouldn't work, as Ruby would pass
+      # the block to +match+ instead of +redirect+. Use <tt>{ ... }</tt> instead.
       #
       # The options version of redirect allows you to supply only the parts of the url which need
       # to change, it also supports interpolation of the path similar to the first example.
