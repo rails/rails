@@ -46,7 +46,7 @@ module ActiveSupport
       @@autoloads.values.each { |file| require file }
     end
 
-    def autoloads
+    def self.autoloads
       @@autoloads
     end
   end
