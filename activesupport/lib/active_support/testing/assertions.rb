@@ -28,15 +28,19 @@ module ActiveSupport
       #     post :create, :article => {...}
       #   end
       #
-      # An array of values corresponding to each expression in an expression array can
-      # also be passed.
+      # A lambda or a list of lambdas can be passed in and evaluated:
       #
-      #   assert_difference [ 'Article.count', 'Post.count' ], [+2, +1] do
+      #   assert_difference lambda { Article.count }, 2 do
       #     post :create, :article => {...}
       #   end
       #
-      # This can also be done in the form of an a Hash. So the above example
-      # would could be rewritten as:
+      #   assert_difference [->{ Article.count }, ->{ Post.count }], 2 do
+      #     post :create, :article => {...}
+      #   end
+      #
+      # If different expressions should change by differing values,
+      # a Hash can also be passed with each hash key corresponding to a different
+      # value.
       #
       #   assert_difference {'Article.count'=>+2, 'Post.count'=>+1} do
       #     post :create, :article => {...}
@@ -49,15 +53,6 @@ module ActiveSupport
       #     post :create, :article => {...}
       #   end
       #
-      # A lambda or a list of lambdas can be passed in and evaluated:
-      #
-      #   assert_difference lambda { Article.count }, 2 do
-      #     post :create, :article => {...}
-      #   end
-      #
-      #   assert_difference [->{ Article.count }, ->{ Post.count }], 2 do
-      #     post :create, :article => {...}
-      #   end
       #
       # A error message can be specified.
       #
