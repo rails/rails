@@ -214,6 +214,7 @@ module ActiveModel
     end
 
     # Start observing the declared classes and their subclasses.
+    # Called automatically by the instance method.
     def initialize
       observed_classes.each { |klass| add_observer!(klass) }
     end
@@ -242,6 +243,7 @@ module ActiveModel
         klass.add_observer(self)
       end
 
+      # Returns true if notifications are disabled for this object.
       def disabled_for?(object)
         klass = object.class
         return false unless klass.respond_to?(:observers)
