@@ -525,6 +525,13 @@ development:
   password:
 </yaml>
 
+If you use external connection pool manager, you can disable prepared statements in rails:
+<yaml>
+production:
+  adapter: postgresql
+  prepared_statements: false
+</yaml>
+
 h5. Configuring an SQLite3 Database for JRuby Platform
 
 If you choose to use SQLite3 and are using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
