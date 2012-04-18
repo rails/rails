@@ -4,6 +4,8 @@ module Rails
   class DeprecatedConstant < ActiveSupport::Deprecation::DeprecatedConstantProxy
     def self.deprecate(old, current)
       constant = new(old, current)
+      # The _ = assignments are to prevent warnings
+      _ = constant
       eval "::#{old} = constant"
     end
 
