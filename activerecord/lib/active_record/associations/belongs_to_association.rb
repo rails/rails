@@ -14,6 +14,11 @@ module ActiveRecord
         self.target = record
       end
 
+      def reset
+        super
+        @updated = false
+      end
+
       def updated?
         @updated
       end

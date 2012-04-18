@@ -10,6 +10,7 @@ class MultipleDbTest < ActiveRecord::TestCase
 
   def setup
     @courses  = create_fixtures("courses") { Course.retrieve_connection }
+    @colleges = create_fixtures("colleges") { College.retrieve_connection }
     @entrants = create_fixtures("entrants")
   end
 
@@ -85,6 +86,25 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   def test_arel_table_engines
-    assert_equal Entrant.arel_engine, Bird.arel_engine
+    assert_not_equal Entrant.arel_engine, Bird.arel_engine
+    assert_not_equal Entrant.arel_engine, Course.arel_engine
+  end
+
+  def test_connection
+    assert_equal Entrant.arel_engine.connection, Bird.arel_engine.connection
+    assert_not_equal Entrant.arel_engine.connection, Course.arel_engine.connection
+  end
+
+  unless in_memory_db?
+    def test_associations_should_work_when_model_has_no_connection
+      begin
+        ActiveRecord::Model.remove_connection
+        assert_nothing_raised ActiveRecord::ConnectionNotEstablished do
+          College.first.courses.first
+        end
+      ensure
+        ActiveRecord::Model.establish_connection 'arunit'
+      end
+    end
   end
 end

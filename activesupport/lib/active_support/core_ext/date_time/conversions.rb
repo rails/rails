@@ -6,7 +6,7 @@ require 'active_support/values/time_zone'
 class DateTime
   # Ruby 1.9 has DateTime#to_time which internally relies on Time. We define our own #to_time which allows
   # DateTimes outside the range of what can be created with Time.
-  remove_method :to_time if instance_methods.include?(:to_time)
+  remove_method :to_time
 
   # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
   #
@@ -58,31 +58,26 @@ class DateTime
   alias_method :default_inspect, :inspect
   alias_method :inspect, :readable_inspect
 
-  # Converts self to a Ruby Date object; time portion is discarded.
-  def to_date
-    ::Date.new(year, month, day)
-  end unless instance_methods(false).include?(:to_date)
-
   # Attempts to convert self to a Ruby Time object; returns self if out of range of Ruby Time class.
   # If self has an offset other than 0, self will just be returned unaltered, since there's no clean way to map it to a Time.
   def to_time
-    self.offset == 0 ? ::Time.utc_time(year, month, day, hour, min, sec, sec_fraction * (RUBY_VERSION < '1.9' ? 86400000000 : 1000000)) : self
+    self.offset == 0 ? ::Time.utc_time(year, month, day, hour, min, sec, sec_fraction * 1000000) : self
   end
 
-  # To be able to keep Times, Dates and DateTimes interchangeable on conversions.
-  def to_datetime
-    self
-  end unless instance_methods(false).include?(:to_datetime)
-
+  # Returns DateTime with local offset for given year if format is local else offset is zero
+  #
+  #   DateTime.civil_from_format :local, 2012
+  #   # => Sun, 01 Jan 2012 00:00:00 +0300
+  #   DateTime.civil_from_format :local, 2012, 12, 17
+  #   # => Mon, 17 Dec 2012 00:00:00 +0000
   def self.civil_from_format(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0)
-    offset = utc_or_local.to_sym == :local ? local_offset : 0
+    if utc_or_local.to_sym == :local
+      offset = ::Time.local(year, month, day).utc_offset.to_r / 86400
+    else
+      offset = 0
+    end
     civil(year, month, day, hour, min, sec, offset)
   end
-
-  # Converts datetime to an appropriate format for use in XML.
-  def xmlschema
-    strftime("%Y-%m-%dT%H:%M:%S%Z")
-  end unless instance_methods(false).include?(:xmlschema)
 
   # Converts self to a floating-point number of seconds since the Unix epoch.
   def to_f

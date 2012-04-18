@@ -7,24 +7,6 @@ require 'active_support/core_ext/time/zones'
 class Date
   DAYS_INTO_WEEK = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6 }
 
-  if RUBY_VERSION < '1.9'
-    undef :>>
-
-    # Backported from 1.9. The one in 1.8 leads to incorrect next_month and
-    # friends for dates where the calendar reform is involved. It additionally
-    # prevents an infinite loop fixed in r27013.
-    def >>(n)
-      y, m = (year * 12 + (mon - 1) + n).divmod(12)
-      m,   = (m + 1)                    .divmod(1)
-      d = mday
-      until jd2 = self.class.valid_civil?(y, m, d, start)
-        d -= 1
-        raise ArgumentError, 'invalid date' unless d > 0
-      end
-      self + (jd2 - jd)
-    end
-  end
-
   class << self
     # Returns a new Date representing the date 1 day ago (i.e. yesterday's date).
     def yesterday
@@ -154,26 +136,6 @@ class Date
     advance(:years => years)
   end
 
-  # Shorthand for years_ago(1)
-  def prev_year
-    years_ago(1)
-  end unless method_defined?(:prev_year)
-
-  # Shorthand for years_since(1)
-  def next_year
-    years_since(1)
-  end unless method_defined?(:next_year)
-
-  # Shorthand for months_ago(1)
-  def prev_month
-    months_ago(1)
-  end unless method_defined?(:prev_month)
-
-  # Shorthand for months_since(1)
-  def next_month
-    months_since(1)
-  end unless method_defined?(:next_month)
-
   # Returns number of days to start of this week. Week is assumed to start on
   # +start_day+, default is +:monday+.
   def days_to_week_start(start_day = :monday)
@@ -220,6 +182,13 @@ class Date
     result = (self - 7).beginning_of_week + DAYS_INTO_WEEK[day]
     self.acts_like?(:time) ? result.change(:hour => 0) : result
   end
+  alias :last_week :prev_week
+
+  # Alias of prev_month
+  alias :last_month :prev_month
+
+  # Alias of prev_year
+  alias :last_year :prev_year
 
   # Returns a new Date/DateTime representing the start of the given day in next week (default is :monday).
   def next_week(day = :monday)

@@ -25,12 +25,6 @@ class NamingTest < ActiveModel::TestCase
     assert_equal 'post/track_backs', @model_name.collection
   end
 
-  def test_partial_path
-    assert_deprecated(/#partial_path.*#to_partial_path/) do
-      assert_equal 'post/track_backs/track_back', @model_name.partial_path
-    end
-  end
-
   def test_human
     assert_equal 'Track back', @model_name.human
   end
@@ -59,12 +53,6 @@ class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
 
   def test_collection
     assert_equal 'blog/posts', @model_name.collection
-  end
-
-  def test_partial_path
-    assert_deprecated(/#partial_path.*#to_partial_path/) do
-      assert_equal 'blog/posts/post', @model_name.partial_path
-    end
   end
 
   def test_human
@@ -105,12 +93,6 @@ class NamingWithNamespacedModelInSharedNamespaceTest < ActiveModel::TestCase
     assert_equal 'blog/posts', @model_name.collection
   end
 
-  def test_partial_path
-    assert_deprecated(/#partial_path.*#to_partial_path/) do
-      assert_equal 'blog/posts/post', @model_name.partial_path
-    end
-  end
-
   def test_human
     assert_equal 'Post', @model_name.human
   end
@@ -147,12 +129,6 @@ class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
 
   def test_collection
     assert_equal 'articles', @model_name.collection
-  end
-
-  def test_partial_path
-    assert_deprecated(/#partial_path.*#to_partial_path/) do
-      assert_equal 'articles/article', @model_name.partial_path
-    end
   end
 
   def test_human
@@ -210,7 +186,7 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
   end
 end
 
-class NamingHelpersTest < Test::Unit::TestCase
+class NamingHelpersTest < ActiveModel::TestCase
   def setup
     @klass  = Contact
     @record = @klass.new
@@ -276,7 +252,7 @@ class NamingHelpersTest < Test::Unit::TestCase
     end
 end
 
-class NameWithAnonymousClassTest < Test::Unit::TestCase
+class NameWithAnonymousClassTest < ActiveModel::TestCase
   def test_anonymous_class_without_name_argument
     assert_raises(ArgumentError) do
       ActiveModel::Name.new(Class.new)

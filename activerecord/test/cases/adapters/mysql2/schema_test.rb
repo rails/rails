@@ -35,6 +35,17 @@ module ActiveRecord
       def test_table_exists_wrong_schema
         assert(!@connection.table_exists?("#{@db_name}.zomg"), "table should not exist")
       end
+
+      def test_tables_quoting
+        begin
+          @connection.tables(nil, "foo-bar", nil)
+          flunk
+        rescue => e
+          # assertion for *quoted* database properly
+          assert_match(/database 'foo-bar'/, e.inspect)
+        end
+      end
+
     end
   end
 end

@@ -19,7 +19,7 @@ module ConstantizeTestCases
     assert_raise(NameError) { yield("Ace::ConstantizeTestCases") }
     assert_raise(NameError) { yield("Ace::Base::ConstantizeTestCases") }
   end
-  
+
   def run_safe_constantize_tests_on
     assert_nothing_raised { assert_equal Ace::Base::Case, yield("Ace::Base::Case") }
     assert_nothing_raised { assert_equal Ace::Base::Case, yield("::Ace::Base::Case") }
@@ -33,5 +33,6 @@ module ConstantizeTestCases
     assert_nothing_raised { assert_equal nil, yield("blargle") }
     assert_nothing_raised { assert_equal nil, yield("Ace::ConstantizeTestCases") }
     assert_nothing_raised { assert_equal nil, yield("Ace::Base::ConstantizeTestCases") }
+    assert_nothing_raised { assert_equal nil, yield("#<Class:0x7b8b718b>::Nested_1") }
   end
 end

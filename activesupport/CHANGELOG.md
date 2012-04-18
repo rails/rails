@@ -1,6 +1,54 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 4.0.0 (unreleased) ##
 
-*   Added Enumerable#pluck to wrap the common pattern of collect(&:method) *DHH*
+*    Make Module#delegate stop using `send` - can no longer delegate to private methods. *dasch*
+
+*    AS::Callbacks: deprecate `:rescuable` option. *Bogdan Gusiev*
+
+*    Adds Integer#ordinal to get the ordinal suffix string of an integer. *Tim Gildea*
+
+*    AS::Callbacks: `:per_key` option is no longer supported
+
+*    `AS::Callbacks#define_callbacks`: add `:skip_after_callbacks_if_terminated` option.
+
+*    Add html_escape_once to ERB::Util, and delegate escape_once tag helper to it. *Carlos Antonio da Silva*
+
+*    Remove ActiveSupport::TestCase#pending method, use `skip` instead. *Carlos Antonio da Silva*
+
+*    Deprecates the compatibility method Module#local_constant_names,
+     use Module#local_constants instead (which returns symbols). *fxn*
+
+*    Deletes the compatibility method Module#method_names,
+     use Module#methods from now on (which returns symbols). *fxn*
+
+*    Deletes the compatibility method Module#instance_method_names,
+     use Module#instance_methods from now on (which returns symbols). *fxn*
+
+*    BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger
+     from Ruby stdlib.
+
+*    Unicode database updated to 6.1.0.
+
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   Documentation fixes and improvements.
+
+*   Update time zone offset information. *Ravil Bayramgalin*
+
+*   The deprecated `ActiveSupport::Base64.decode64` calls `::Base64.decode64`
+    now. *Jonathan Viney*
+
+*   Fixes uninitialized constant `ActiveSupport::TaggedLogging::ERROR`. *kennyj*
+
+
+## Rails 3.2.0 (January 20, 2012) ##
+
+*   ActiveSupport::Base64 is deprecated in favor of ::Base64. *Sergey Nartimov*
 
 *   Module#synchronize is deprecated with no replacement.  Please use `monitor`
     from ruby's standard library.
@@ -69,6 +117,37 @@
 *   ActiveSupport::BufferedLogger#flush is deprecated.  Set sync on your
     filehandle, or tune your filesystem.
 
+
+## Rails 3.1.4 (March 1, 2012) ##
+
+*   No changes
+
+
+## Rails 3.1.3 (November 20, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.2 (November 18, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.1 (October 7, 2011) ##
+
+*   ruby193: String#prepend is also unsafe *Akira Matsuda*
+
+*   Fix obviously breakage of Time.=== for Time subclasses *jeremyevans*
+
+*   Added fix so that file store does not raise an exception when cache dir does
+    not exist yet. This can happen if a delete_matched is called before anything
+    is saved in the cache. *Philippe Huibonhoa*
+
+*   Fixed performance issue where TimeZone lookups would require tzinfo each time *Tim Lucas*
+
+*   ActiveSupport::OrderedHash is now marked as extractable when using Array#extract_options! *Prem Sichanugrist*
+
+
 ## Rails 3.1.0 (August 30, 2011) ##
 
 *   ActiveSupport::Dependencies#load and ActiveSupport::Dependencies#require now
@@ -111,12 +190,38 @@
 *   JSON decoding now uses the multi_json gem which also vendors a json engine called OkJson. The yaml backend has been removed in favor of OkJson as a default engine for 1.8.x, while the built in 1.9.x json implementation will be used by default. *Josh Kalderimis*
 
 
+## Rails 3.0.12 (March 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*  Delayed backtrace scrubbing in `load_missing_constant` until we actually
+   raise the exception
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   No changes.
+
+
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   Hash.from_xml no longer loses attributes on tags containing only whitespace *André Arko*
 
 
-*   Rails 3.0.6 (April 5, 2011)
+##   Rails 3.0.6 (April 5, 2011) ##
 
 *   No changes.
 

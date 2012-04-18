@@ -1,12 +1,13 @@
 require 'set'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
     # An abstract definition of a column in a table.
     class Column
-      TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE'].to_set
-      FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE'].to_set
+      TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE', 'on', 'ON'].to_set
+      FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE', 'off', 'OFF'].to_set
 
       module Format
         ISO_DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
@@ -66,6 +67,25 @@ module ActiveRecord
         end
       end
 
+      def binary?
+        type == :binary
+      end
+
+      # Casts a Ruby value to something appropriate for writing to the database.
+      def type_cast_for_write(value)
+        return value unless number?
+
+        if value == false
+          0
+        elsif value == true
+          1
+        elsif value.is_a?(String) && value.blank?
+          nil
+        else
+          value
+        end
+      end
+
       # Casts value (which is a String) to an appropriate instance.
       def type_cast(value)
         return nil if value.nil?
@@ -80,7 +100,7 @@ module ActiveRecord
         when :decimal              then klass.value_to_decimal(value)
         when :datetime, :timestamp then klass.string_to_time(value)
         when :time                 then klass.string_to_dummy_time(value)
-        when :date                 then klass.string_to_date(value)
+        when :date                 then klass.value_to_date(value)
         when :binary               then klass.binary_to_string(value)
         when :boolean              then klass.value_to_boolean(value)
         else value
@@ -88,6 +108,9 @@ module ActiveRecord
       end
 
       def type_cast_code(var_name)
+        ActiveSupport::Deprecation.warn("Column#type_cast_code is deprecated in favor of" \
+          "using Column#type_cast only, and it is going to be removed in future Rails versions.")
+
         klass = self.class.name
 
         case type
@@ -97,9 +120,10 @@ module ActiveRecord
         when :decimal              then "#{klass}.value_to_decimal(#{var_name})"
         when :datetime, :timestamp then "#{klass}.string_to_time(#{var_name})"
         when :time                 then "#{klass}.string_to_dummy_time(#{var_name})"
-        when :date                 then "#{klass}.string_to_date(#{var_name})"
+        when :date                 then "#{klass}.value_to_date(#{var_name})"
         when :binary               then "#{klass}.binary_to_string(#{var_name})"
         when :boolean              then "#{klass}.value_to_boolean(#{var_name})"
+        when :hstore               then "#{klass}.string_to_hstore(#{var_name})"
         else var_name
         end
       end
@@ -132,11 +156,15 @@ module ActiveRecord
           value
         end
 
-        def string_to_date(string)
-          return string unless string.is_a?(String)
-          return nil if string.empty?
-
-          fast_string_to_date(string) || fallback_string_to_date(string)
+        def value_to_date(value)
+          if value.is_a?(String)
+            return nil if value.empty?
+            fast_string_to_date(value) || fallback_string_to_date(value)
+          elsif value.respond_to?(:to_date)
+            value.to_date
+          else
+            value
+          end
         end
 
         def string_to_time(string)

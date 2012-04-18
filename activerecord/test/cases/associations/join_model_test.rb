@@ -362,7 +362,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     end
 
     assert_raise ActiveRecord::EagerLoadPolymorphicError do
-      tags(:general).taggings.find(:all, :include => :taggable, :conditions => 'bogus_table.column = 1')
+      tags(:general).taggings.includes(:taggable).where('bogus_table.column = 1').references(:bogus_table).to_a
     end
   end
 

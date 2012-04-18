@@ -67,10 +67,13 @@ module ActionDispatch
       # params, depending of how many arguments your block accepts. A string is required as a
       # return value.
       #
-      #   match 'jokes/:number', :to => redirect do |params, request|
-      #     path = (params[:number].to_i.even? ? "/wheres-the-beef" : "/i-love-lamp")
+      #   match 'jokes/:number', :to => redirect { |params, request|
+      #     path = (params[:number].to_i.even? ? "wheres-the-beef" : "i-love-lamp")
       #     "http://#{request.host_with_port}/#{path}"
-      #   end
+      #   }
+      #
+      # Note that the `do end` syntax for the redirect block wouldn't work, as Ruby would pass
+      # the block to `match` instead of `redirect`. Use `{ ... }` instead.
       #
       # The options version of redirect allows you to supply only the parts of the url which need
       # to change, it also supports interpolation of the path similar to the first example.
@@ -97,16 +100,7 @@ module ActionDispatch
         } if String === path
 
         block = path if path.respond_to? :call
-
-        # :FIXME: remove in Rails 4.0
-        if block && block.respond_to?(:arity) && block.arity < 2
-          msg = "redirect blocks with arity of #{block.arity} are deprecated. Your block must take 2 parameters: the environment, and a request object"
-          ActiveSupport::Deprecation.warn msg
-          block = lambda { |params, _| block.call(params) }
-        end
-
         raise ArgumentError, "redirection argument not supported" unless block
-
         Redirect.new status, block
       end
     end

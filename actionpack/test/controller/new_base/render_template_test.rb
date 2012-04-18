@@ -59,6 +59,12 @@ module RenderTemplate
     def with_error
       render :template => "test/with_error"
     end
+
+    private
+
+    def show_detailed_exceptions?
+      request.local?
+    end
   end
 
   class TestWithoutLayout < Rack::TestCase

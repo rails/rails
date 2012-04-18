@@ -1,9 +1,7 @@
 require 'abstract_unit'
-require 'testing_sandbox'
 
 class OutputSafetyHelperTest < ActionView::TestCase
   tests ActionView::Helpers::OutputSafetyHelper
-  include TestingSandbox
 
   def setup
     @string = "hello"

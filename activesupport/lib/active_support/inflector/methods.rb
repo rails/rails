@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'active_support/inflector/inflections'
 
 module ActiveSupport
@@ -42,10 +44,10 @@ module ActiveSupport
     # +camelize+ will also convert '/' to '::' which is useful for converting paths to namespaces.
     #
     # Examples:
-    #   "active_record".camelize                # => "ActiveRecord"
-    #   "active_record".camelize(:lower)        # => "activeRecord"
-    #   "active_record/errors".camelize         # => "ActiveRecord::Errors"
-    #   "active_record/errors".camelize(:lower) # => "activeRecord::Errors"
+    #   "active_model".camelize                # => "ActiveModel"
+    #   "active_model".camelize(:lower)        # => "activeModel"
+    #   "active_model/errors".camelize         # => "ActiveModel::Errors"
+    #   "active_model/errors".camelize(:lower) # => "activeModel::Errors"
     #
     # As a rule of thumb you can think of +camelize+ as the inverse of +underscore+,
     # though there are cases where that does not hold:
@@ -66,8 +68,8 @@ module ActiveSupport
     # Changes '::' to '/' to convert namespaces to paths.
     #
     # Examples:
-    #   "ActiveRecord".underscore         # => "active_record"
-    #   "ActiveRecord::Errors".underscore # => active_record/errors
+    #   "ActiveModel".underscore         # => "active_model"
+    #   "ActiveModel::Errors".underscore # => "active_model/errors"
     #
     # As a rule of thumb you can think of +underscore+ as the inverse of +camelize+,
     # though there are cases where that does not hold:
@@ -75,7 +77,7 @@ module ActiveSupport
     #   "SSLError".underscore.camelize # => "SslError"
     def underscore(camel_cased_word)
       word = camel_cased_word.to_s.dup
-      word.gsub!(/::/, '/')
+      word.gsub!('::', '/')
       word.gsub!(/(?:([A-Za-z\d])|^)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1}#{$1 && '_'}#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
       word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
@@ -92,9 +94,12 @@ module ActiveSupport
     #   "author_id"       # => "Author"
     def humanize(lower_case_and_underscored_word)
       result = lower_case_and_underscored_word.to_s.dup
-      inflections.humans.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+      inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
       result.gsub!(/_id$/, "")
-      result.gsub(/(_)?([a-z\d]*)/i) { "#{$1 && ' '}#{inflections.acronyms[$2] || $2.downcase}" }.gsub(/^\w/) { $&.upcase }
+      result.tr!('_', ' ')
+      result.gsub(/([a-z\d]*)/i) { |match|
+        "#{inflections.acronyms[match] || match.downcase}"
+      }.gsub(/^\w/) { $&.upcase }
     end
 
     # Capitalizes all the words and replaces some characters in the string to create
@@ -109,7 +114,7 @@ module ActiveSupport
     #   "TheManWithoutAPast".titleize       # => "The Man Without A Past"
     #   "raiders_of_the_lost_ark".titleize  # => "Raiders Of The Lost Ark"
     def titleize(word)
-      humanize(underscore(word)).gsub(/\b('?[a-z])/) { $1.capitalize }
+      humanize(underscore(word)).gsub(/\b(?<!['’`])[a-z]/) { $&.capitalize }
     end
 
     # Create the name of a table like Rails does for models to table names. This method
@@ -141,9 +146,9 @@ module ActiveSupport
     # Replaces underscores with dashes in the string.
     #
     # Example:
-    #   "puni_puni" # => "puni-puni"
+    #   "puni_puni".dasherize # => "puni-puni"
     def dasherize(underscored_word)
-      underscored_word.gsub(/_/, '-')
+      underscored_word.tr('_', '-')
     end
 
     # Removes the module part from the expression in the string:
@@ -186,46 +191,29 @@ module ActiveSupport
       underscore(demodulize(class_name)) + (separate_class_name_and_id_with_underscore ? "_id" : "id")
     end
 
-    # Ruby 1.9 introduces an inherit argument for Module#const_get and
-    # #const_defined? and changes their default behavior.
-    if Module.method(:const_get).arity == 1
-      # Tries to find a constant with the name specified in the argument string:
-      #
-      #   "Module".constantize     # => Module
-      #   "Test::Unit".constantize # => Test::Unit
-      #
-      # The name is assumed to be the one of a top-level constant, no matter whether
-      # it starts with "::" or not. No lexical context is taken into account:
-      #
-      #   C = 'outside'
-      #   module M
-      #     C = 'inside'
-      #     C               # => 'inside'
-      #     "C".constantize # => 'outside', same as ::C
-      #   end
-      #
-      # NameError is raised when the name is not in CamelCase or the constant is
-      # unknown.
-      def constantize(camel_cased_word)
-        names = camel_cased_word.split('::')
-        names.shift if names.empty? || names.first.empty?
+    # Tries to find a constant with the name specified in the argument string:
+    #
+    #   "Module".constantize     # => Module
+    #   "Test::Unit".constantize # => Test::Unit
+    #
+    # The name is assumed to be the one of a top-level constant, no matter whether
+    # it starts with "::" or not. No lexical context is taken into account:
+    #
+    #   C = 'outside'
+    #   module M
+    #     C = 'inside'
+    #     C               # => 'inside'
+    #     "C".constantize # => 'outside', same as ::C
+    #   end
+    #
+    # NameError is raised when the name is not in CamelCase or the constant is
+    # unknown.
+    def constantize(camel_cased_word) #:nodoc:
+      names = camel_cased_word.split('::')
+      names.shift if names.empty? || names.first.empty?
 
-        constant = Object
-        names.each do |name|
-          constant = constant.const_defined?(name) ? constant.const_get(name) : constant.const_missing(name)
-        end
-        constant
-      end
-    else
-      def constantize(camel_cased_word) #:nodoc:
-        names = camel_cased_word.split('::')
-        names.shift if names.empty? || names.first.empty?
-
-        constant = Object
-        names.each do |name|
-          constant = constant.const_defined?(name, false) ? constant.const_get(name) : constant.const_missing(name)
-        end
-        constant
+      names.inject(Object) do |constant, name|
+        constant.const_get(name, false)
       end
     end
 
@@ -255,10 +243,33 @@ module ActiveSupport
       begin
         constantize(camel_cased_word)
       rescue NameError => e
-        raise unless e.message =~ /uninitialized constant #{const_regexp(camel_cased_word)}$/ ||
+        raise unless e.message =~ /(uninitialized constant|wrong constant name) #{const_regexp(camel_cased_word)}$/ ||
           e.name.to_s == camel_cased_word.to_s
       rescue ArgumentError => e
         raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
+      end
+    end
+
+    # Returns the suffix that should be added to a number to denote the position
+    # in an ordered sequence such as 1st, 2nd, 3rd, 4th.
+    #
+    # Examples:
+    #   ordinal(1)     # => "st"
+    #   ordinal(2)     # => "nd"
+    #   ordinal(1002)  # => "nd"
+    #   ordinal(1003)  # => "rd"
+    #   ordinal(-11)   # => "th"
+    #   ordinal(-1021) # => "st"
+    def ordinal(number)
+      if (11..13).include?(number.to_i.abs % 100)
+        "th"
+      else
+        case number.to_i.abs % 10
+          when 1; "st"
+          when 2; "nd"
+          when 3; "rd"
+          else    "th"
+        end
       end
     end
 
@@ -273,16 +284,7 @@ module ActiveSupport
     #   ordinalize(-11)   # => "-11th"
     #   ordinalize(-1021) # => "-1021st"
     def ordinalize(number)
-      if (11..13).include?(number.to_i.abs % 100)
-        "#{number}th"
-      else
-        case number.to_i.abs % 10
-          when 1; "#{number}st"
-          when 2; "#{number}nd"
-          when 3; "#{number}rd"
-          else    "#{number}th"
-        end
-      end
+      "#{number}#{ordinal(number)}"
     end
 
     private
@@ -306,10 +308,10 @@ module ActiveSupport
     def apply_inflections(word, rules)
       result = word.to_s.dup
 
-      if word.empty? || inflections.uncountables.any? { |inflection| result =~ /\b#{inflection}\Z/i }
+      if word.empty? || inflections.uncountables.include?(result.downcase[/\b\w+\Z/])
         result
       else
-        rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+        rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
         result
       end
     end

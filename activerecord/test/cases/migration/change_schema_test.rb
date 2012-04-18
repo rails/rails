@@ -1,0 +1,328 @@
+require 'cases/helper'
+
+module ActiveRecord
+  class Migration
+    class ChangeSchemaTest < ActiveRecord::TestCase
+      attr_reader :connection, :table_name
+
+      def setup
+        super
+        @connection = ActiveRecord::Base.connection
+        @table_name = :testings
+      end
+
+      def teardown
+        super
+        connection.drop_table :testings rescue nil
+        ActiveRecord::Base.primary_key_prefix_type = nil
+      end
+
+      def test_create_table_without_id
+        testing_table_with_only_foo_attribute do
+          assert_equal connection.columns(:testings).size, 1
+        end
+      end
+
+      def test_add_column_with_primary_key_attribute
+        testing_table_with_only_foo_attribute do
+          connection.add_column :testings, :id, :primary_key
+          assert_equal connection.columns(:testings).size, 2
+        end
+      end
+
+      def test_create_table_adds_id
+        connection.create_table :testings do |t|
+          t.column :foo, :string
+        end
+
+        assert_equal %w(foo id), connection.columns(:testings).map(&:name).sort
+      end
+
+      def test_create_table_with_not_null_column
+        connection.create_table :testings do |t|
+          t.column :foo, :string, :null => false
+        end
+
+        assert_raises(ActiveRecord::StatementInvalid) do
+          connection.execute "insert into testings (foo) values (NULL)"
+        end
+      end
+
+      def test_create_table_with_defaults
+        # MySQL doesn't allow defaults on TEXT or BLOB columns.
+        mysql = current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+
+        connection.create_table :testings do |t|
+          t.column :one, :string, :default => "hello"
+          t.column :two, :boolean, :default => true
+          t.column :three, :boolean, :default => false
+          t.column :four, :integer, :default => 1
+          t.column :five, :text, :default => "hello" unless mysql
+        end
+
+        columns = connection.columns(:testings)
+        one = columns.detect { |c| c.name == "one" }
+        two = columns.detect { |c| c.name == "two" }
+        three = columns.detect { |c| c.name == "three" }
+        four = columns.detect { |c| c.name == "four" }
+        five = columns.detect { |c| c.name == "five" } unless mysql
+
+        assert_equal "hello", one.default
+        assert_equal true, two.default
+        assert_equal false, three.default
+        assert_equal 1, four.default
+        assert_equal "hello", five.default unless mysql
+      end
+
+      def test_create_table_with_limits
+        connection.create_table :testings do |t|
+          t.column :foo, :string, :limit => 255
+
+          t.column :default_int, :integer
+
+          t.column :one_int,    :integer, :limit => 1
+          t.column :four_int,   :integer, :limit => 4
+          t.column :eight_int,  :integer, :limit => 8
+          t.column :eleven_int, :integer, :limit => 11
+        end
+
+        columns = connection.columns(:testings)
+        foo = columns.detect { |c| c.name == "foo" }
+        assert_equal 255, foo.limit
+
+        default = columns.detect { |c| c.name == "default_int" }
+        one     = columns.detect { |c| c.name == "one_int"     }
+        four    = columns.detect { |c| c.name == "four_int"    }
+        eight   = columns.detect { |c| c.name == "eight_int"   }
+        eleven  = columns.detect { |c| c.name == "eleven_int"   }
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal 'integer', default.sql_type
+          assert_equal 'smallint', one.sql_type
+          assert_equal 'integer', four.sql_type
+          assert_equal 'bigint', eight.sql_type
+          assert_equal 'integer', eleven.sql_type
+        elsif current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+          assert_match 'int(11)', default.sql_type
+          assert_match 'tinyint', one.sql_type
+          assert_match 'int', four.sql_type
+          assert_match 'bigint', eight.sql_type
+          assert_match 'int(11)', eleven.sql_type
+        elsif current_adapter?(:OracleAdapter)
+          assert_equal 'NUMBER(38)', default.sql_type
+          assert_equal 'NUMBER(1)', one.sql_type
+          assert_equal 'NUMBER(4)', four.sql_type
+          assert_equal 'NUMBER(8)', eight.sql_type
+        end
+      end
+
+      def test_create_table_with_primary_key_prefix_as_table_name_with_underscore
+        ActiveRecord::Base.primary_key_prefix_type = :table_name_with_underscore
+
+        connection.create_table :testings do |t|
+          t.column :foo, :string
+        end
+
+        assert_equal %w(foo testing_id), connection.columns(:testings).map(&:name).sort
+      end
+
+      def test_create_table_with_primary_key_prefix_as_table_name
+        ActiveRecord::Base.primary_key_prefix_type = :table_name
+
+        connection.create_table :testings do |t|
+          t.column :foo, :string
+        end
+
+        assert_equal %w(foo testingid), connection.columns(:testings).map(&:name).sort
+      end
+
+      def test_create_table_with_timestamps_should_create_datetime_columns
+        connection.create_table table_name do |t|
+          t.timestamps
+        end
+        created_columns = connection.columns(table_name)
+
+        created_at_column = created_columns.detect {|c| c.name == 'created_at' }
+        updated_at_column = created_columns.detect {|c| c.name == 'updated_at' }
+
+        assert !created_at_column.null
+        assert !updated_at_column.null
+      end
+
+      def test_create_table_with_timestamps_should_create_datetime_columns_with_options
+        connection.create_table table_name do |t|
+          t.timestamps :null => false
+        end
+        created_columns = connection.columns(table_name)
+
+        created_at_column = created_columns.detect {|c| c.name == 'created_at' }
+        updated_at_column = created_columns.detect {|c| c.name == 'updated_at' }
+
+        assert !created_at_column.null
+        assert !updated_at_column.null
+      end
+
+      def test_create_table_without_a_block
+        connection.create_table table_name
+      end
+
+      def test_add_column_not_null_without_default
+        # Sybase, and SQLite3 will not allow you to add a NOT NULL
+        # column to a table without a default value.
+        if current_adapter?(:SybaseAdapter, :SQLite3Adapter)
+          skip "not supported on #{connection.class}"
+        end
+
+        connection.create_table :testings do |t|
+          t.column :foo, :string
+        end
+        connection.add_column :testings, :bar, :string, :null => false
+
+        assert_raise(ActiveRecord::StatementInvalid) do
+          connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
+        end
+      end
+
+      def test_add_column_not_null_with_default
+        connection.create_table :testings do |t|
+          t.column :foo, :string
+        end
+
+        con = connection
+        connection.enable_identity_insert("testings", true) if current_adapter?(:SybaseAdapter)
+        connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
+        connection.enable_identity_insert("testings", false) if current_adapter?(:SybaseAdapter)
+        assert_nothing_raised {connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
+
+        assert_raises(ActiveRecord::StatementInvalid) do
+          unless current_adapter?(:OpenBaseAdapter)
+            connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
+          else
+            connection.insert("INSERT INTO testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) VALUES (2, 'hello', NULL)",
+                                     "Testing Insert","id",2)
+          end
+        end
+      end
+
+      def test_change_column_quotes_column_names
+        connection.create_table :testings do |t|
+          t.column :select, :string
+        end
+
+        connection.change_column :testings, :select, :string, :limit => 10
+
+        # Oracle needs primary key value from sequence
+        if current_adapter?(:OracleAdapter)
+          connection.execute "insert into testings (id, #{connection.quote_column_name('select')}) values (testings_seq.nextval, '7 chars')"
+        else
+          connection.execute "insert into testings (#{connection.quote_column_name('select')}) values ('7 chars')"
+        end
+      end
+
+      def test_keeping_default_and_notnull_constaint_on_change
+        connection.create_table :testings do |t|
+          t.column :title, :string
+        end
+        person_klass = Class.new(ActiveRecord::Base)
+        person_klass.table_name = 'testings'
+
+        person_klass.connection.add_column "testings", "wealth", :integer, :null => false, :default => 99
+        person_klass.reset_column_information
+        assert_equal 99, person_klass.columns_hash["wealth"].default
+        assert_equal false, person_klass.columns_hash["wealth"].null
+        # Oracle needs primary key value from sequence
+        if current_adapter?(:OracleAdapter)
+          assert_nothing_raised {person_klass.connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')")}
+        else
+          assert_nothing_raised {person_klass.connection.execute("insert into testings (title) values ('tester')")}
+        end
+
+        # change column default to see that column doesn't lose its not null definition
+        person_klass.connection.change_column_default "testings", "wealth", 100
+        person_klass.reset_column_information
+        assert_equal 100, person_klass.columns_hash["wealth"].default
+        assert_equal false, person_klass.columns_hash["wealth"].null
+
+        # rename column to see that column doesn't lose its not null and/or default definition
+        person_klass.connection.rename_column "testings", "wealth", "money"
+        person_klass.reset_column_information
+        assert_nil person_klass.columns_hash["wealth"]
+        assert_equal 100, person_klass.columns_hash["money"].default
+        assert_equal false, person_klass.columns_hash["money"].null
+
+        # change column
+        person_klass.connection.change_column "testings", "money", :integer, :null => false, :default => 1000
+        person_klass.reset_column_information
+        assert_equal 1000, person_klass.columns_hash["money"].default
+        assert_equal false, person_klass.columns_hash["money"].null
+
+        # change column, make it nullable and clear default
+        person_klass.connection.change_column "testings", "money", :integer, :null => true, :default => nil
+        person_klass.reset_column_information
+        assert_nil person_klass.columns_hash["money"].default
+        assert_equal true, person_klass.columns_hash["money"].null
+
+        # change_column_null, make it not nullable and set null values to a default value
+        person_klass.connection.execute('UPDATE testings SET money = NULL')
+        person_klass.connection.change_column_null "testings", "money", false, 2000
+        person_klass.reset_column_information
+        assert_nil person_klass.columns_hash["money"].default
+        assert_equal false, person_klass.columns_hash["money"].null
+        assert_equal 2000, connection.select_values("SELECT money FROM testings").first.to_i
+      end
+
+      def test_column_exists
+        connection.create_table :testings do |t|
+          t.column :foo, :string
+        end
+
+        assert connection.column_exists?(:testings, :foo)
+        refute connection.column_exists?(:testings, :bar)
+      end
+
+      def test_column_exists_with_type
+        connection.create_table :testings do |t|
+          t.column :foo, :string
+          t.column :bar, :decimal, :precision => 8, :scale => 2
+        end
+
+        assert connection.column_exists?(:testings, :foo, :string)
+        refute connection.column_exists?(:testings, :foo, :integer)
+
+        assert connection.column_exists?(:testings, :bar, :decimal)
+        refute connection.column_exists?(:testings, :bar, :integer)
+      end
+
+      def test_column_exists_with_definition
+        connection.create_table :testings do |t|
+          t.column :foo, :string, :limit => 100
+          t.column :bar, :decimal, :precision => 8, :scale => 2
+        end
+
+        assert connection.column_exists?(:testings, :foo, :string, :limit => 100)
+        refute connection.column_exists?(:testings, :foo, :string, :limit => 50)
+        assert connection.column_exists?(:testings, :bar, :decimal, :precision => 8, :scale => 2)
+        refute connection.column_exists?(:testings, :bar, :decimal, :precision => 10, :scale => 2)
+      end
+
+      def test_column_exists_on_table_with_no_options_parameter_supplied
+        connection.create_table :testings do |t|
+          t.string :foo
+        end
+        connection.change_table :testings do |t|
+          assert t.column_exists?(:foo)
+          assert !(t.column_exists?(:bar))
+        end
+      end
+
+      private
+      def testing_table_with_only_foo_attribute
+        connection.create_table :testings, :id => false do |t|
+          t.column :foo, :string
+        end
+
+        yield
+      end
+    end
+  end
+end

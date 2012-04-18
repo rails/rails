@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 
 module ActiveSupport
@@ -76,10 +75,6 @@ module ActiveSupport
           differences = Array.wrap differences
         end
 
-        unless differences.size == 1 || differences.size == expressions.count
-          raise "The number of differences passed should either be one, or equal to the number of expressions you passed. You passed #{differences.count}."
-        end
-
         exps = expressions.map { |e|
           e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
         }
@@ -121,7 +116,7 @@ module ActiveSupport
 
       # Test if an expression is not blank. Passes if object.present? is true.
       #
-      #   assert_present {:data => 'x' } # => true
+      #   assert_present({:data => 'x' }) # => true
       def assert_present(object, message=nil)
         message ||= "#{object.inspect} is blank"
         assert object.present?, message

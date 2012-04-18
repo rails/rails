@@ -41,7 +41,7 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parses single file" do
     with_test_routing do
-      xml = "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{ActiveSupport::Base64.encode64('ABC')}</avatar></person>"
+      xml = "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{::Base64.encode64('ABC')}</avatar></person>"
       post "/parse", xml, default_headers
       assert_response :ok
 
@@ -55,8 +55,8 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
   test "logs error if parsing unsuccessful" do
     with_test_routing do
       output = StringIO.new
-      xml = "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{ActiveSupport::Base64.encode64('ABC')}</avatar></pineapple>"
-      post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => Logger.new(output))
+      xml = "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{::Base64.encode64('ABC')}</avatar></pineapple>"
+      post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => ActiveSupport::Logger.new(output))
       assert_response :error
       output.rewind && err = output.read
       assert err =~ /Error occurred while parsing request parameters/
@@ -80,8 +80,8 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
       <person>
         <name>David</name>
         <avatars>
-          <avatar type='file' name='me.jpg' content_type='image/jpg'>#{ActiveSupport::Base64.encode64('ABC')}</avatar>
-          <avatar type='file' name='you.gif' content_type='image/gif'>#{ActiveSupport::Base64.encode64('DEF')}</avatar>
+          <avatar type='file' name='me.jpg' content_type='image/jpg'>#{::Base64.encode64('ABC')}</avatar>
+          <avatar type='file' name='you.gif' content_type='image/gif'>#{::Base64.encode64('DEF')}</avatar>
         </avatars>
       </person>
     end_body

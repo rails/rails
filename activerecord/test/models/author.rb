@@ -49,12 +49,12 @@ class Author < ActiveRecord::Base
   has_many :sti_post_comments, :through => :sti_posts, :source => :comments
 
   has_many :special_nonexistant_posts, :class_name => "SpecialPost", :conditions => "posts.body = 'nonexistant'"
-  has_many :special_nonexistant_post_comments, :through => :special_nonexistant_posts, :source => :comments, :conditions => "comments.post_id = 0"
+  has_many :special_nonexistant_post_comments, :through => :special_nonexistant_posts, :source => :comments, :conditions => { 'comments.post_id' => 0 }
   has_many :nonexistant_comments, :through => :posts
 
   has_many :hello_posts, :class_name => "Post", :conditions => "posts.body = 'hello'"
   has_many :hello_post_comments, :through => :hello_posts, :source => :comments
-  has_many :posts_with_no_comments, :class_name => 'Post', :conditions => 'comments.id is null', :include => :comments
+  has_many :posts_with_no_comments, :class_name => 'Post', :conditions => { 'comments.id' => nil }, :include => :comments
 
   has_many :hello_posts_with_hash_conditions, :class_name => "Post",
 :conditions => {:body => 'hello'}
@@ -140,8 +140,8 @@ class Author < ActiveRecord::Base
   has_many :posts_with_default_include, :class_name => 'PostWithDefaultInclude'
   has_many :comments_on_posts_with_default_include, :through => :posts_with_default_include, :source => :comments
 
-  scope :relation_include_posts, includes(:posts)
-  scope :relation_include_tags, includes(:tags)
+  scope :relation_include_posts, -> { includes(:posts) }
+  scope :relation_include_tags,  -> { includes(:tags) }
 
   attr_accessor :post_log
   after_initialize :set_post_log

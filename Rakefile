@@ -13,7 +13,7 @@ task :build => "all:build"
 desc "Release all gems to gemcutter and create a tag"
 task :release => "all:release"
 
-PROJECTS = %w(activesupport activemodel actionpack actionmailer activeresource activerecord railties)
+PROJECTS = %w(activesupport activemodel actionpack actionmailer activerecord railties)
 
 desc 'Run all tests by default'
 task :default => %w(test test:isolated)
@@ -94,7 +94,7 @@ RDoc::Task.new do |rdoc|
 
   rdoc.options << '-f' << 'sdoc'
   rdoc.options << '-T' << 'rails'
-  rdoc.options << '-c' << 'utf-8'
+  rdoc.options << '-e' << 'UTF-8'
   rdoc.options << '-g' # SDoc flag, link methods to GitHub
   rdoc.options << '-m' << RDOC_MAIN
 
@@ -108,11 +108,6 @@ RDoc::Task.new do |rdoc|
   rdoc.rdoc_files.include('activerecord/CHANGELOG.md')
   rdoc.rdoc_files.include('activerecord/lib/active_record/**/*.rb')
   rdoc.rdoc_files.exclude('activerecord/lib/active_record/vendor/*')
-
-  rdoc.rdoc_files.include('activeresource/README.rdoc')
-  rdoc.rdoc_files.include('activeresource/CHANGELOG.md')
-  rdoc.rdoc_files.include('activeresource/lib/active_resource.rb')
-  rdoc.rdoc_files.include('activeresource/lib/active_resource/*')
 
   rdoc.rdoc_files.include('actionpack/README.rdoc')
   rdoc.rdoc_files.include('actionpack/CHANGELOG.md')
@@ -157,7 +152,6 @@ task :update_versions do
     "activemodel"     => "ActiveModel",
     "actionpack"      => "ActionPack",
     "actionmailer"    => "ActionMailer",
-    "activeresource"  => "ActiveResource",
     "activerecord"    => "ActiveRecord",
     "railties"        => "Rails"
   }

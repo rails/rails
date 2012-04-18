@@ -81,8 +81,8 @@ module ActionView
       #   <%# This is the layout %>
       #   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
       #   <head>
-      #	    <title>My Website</title>
-      #	    <%= yield :script %>
+      #     <title>My Website</title>
+      #     <%= yield :script %>
       #   </head>
       #   <body>
       #     <%= yield %>
@@ -96,7 +96,7 @@ module ActionView
       #   Please login!
       #
       #   <% content_for :script do %>
-      #     <script type="text/javascript">alert('You are not authorized to view this page!')</script>
+      #     <script>alert('You are not authorized to view this page!')</script>
       #   <% end %>
       #
       # Then, in another view, you could to do something like this:
@@ -110,7 +110,7 @@ module ActionView
       # That will place +script+ tags for your default set of JavaScript files on the page;
       # this technique is useful if you'll only be using these scripts in a few views.
       #
-      # Note that content_for concatenates the blocks it is given for a particular
+      # Note that content_for concatenates (default) the blocks it is given for a particular
       # identifier in order. For example:
       #
       #   <% content_for :navigation do %>
@@ -127,16 +127,37 @@ module ActionView
       #
       #   <ul><%= content_for :navigation %></ul>
       #
+      # If the flush parameter is true content_for replaces the blocks it is given. For example:
+      #
+      #   <% content_for :navigation do %>
+      #     <li><%= link_to 'Home', :action => 'index' %></li>
+      #   <% end %>
+      #
+      #   <%#  Add some other content, or use a different template: %>
+      #
+      #   <% content_for :navigation, true do %>
+      #     <li><%= link_to 'Login', :action => 'login' %></li>
+      #   <% end %>
+      #
+      # Then, in another template or layout, this code would render only the last link:
+      #
+      #   <ul><%= content_for :navigation %></ul>
+      #
       # Lastly, simple content can be passed as a parameter:
       #
       #   <% content_for :script, javascript_include_tag(:defaults) %>
       #
       # WARNING: content_for is ignored in caches. So you shouldn't use it
       # for elements that will be fragment cached.
-      def content_for(name, content = nil, &block)
+      def content_for(name, content = nil, flush = false, &block)
         if content || block_given?
-          content = capture(&block) if block_given?
-          @view_flow.append(name, content) if content
+          if block_given?
+            flush = content if content
+            content = capture(&block)
+          end
+          if content
+            flush ? @view_flow.set(name, content) : @view_flow.append(name, content)
+          end
           nil
         else
           @view_flow.get(name)
@@ -164,8 +185,8 @@ module ActionView
       #   <%# This is the layout %>
       #   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
       #   <head>
-      #	    <title>My Website</title>
-      #	    <%= yield :script %>
+      #     <title>My Website</title>
+      #     <%= yield :script %>
       #   </head>
       #   <body class="<%= content_for?(:right_col) ? 'one-column' : 'two-column' %>">
       #     <%= yield %>
@@ -181,7 +202,7 @@ module ActionView
       def with_output_buffer(buf = nil) #:nodoc:
         unless buf
           buf = ActionView::OutputBuffer.new
-          buf.force_encoding(output_buffer.encoding) if output_buffer.respond_to?(:encoding) && buf.respond_to?(:force_encoding)
+          buf.force_encoding(output_buffer.encoding) if output_buffer
         end
         self.output_buffer, old_buffer = buf, output_buffer
         yield
@@ -194,7 +215,7 @@ module ActionView
       def flush_output_buffer #:nodoc:
         if output_buffer && !output_buffer.empty?
           response.body_parts << output_buffer
-          self.output_buffer = output_buffer[0,0]
+          self.output_buffer = output_buffer.respond_to?(:clone_empty) ? output_buffer.clone_empty : output_buffer[0, 0]
           nil
         end
       end

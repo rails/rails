@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 
-class TimeZoneTest < Test::Unit::TestCase
+class TimeZoneTest < ActiveSupport::TestCase
   def test_utc_to_local
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
@@ -48,8 +48,8 @@ class TimeZoneTest < Test::Unit::TestCase
 
   def test_now
     with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns(Time.local(2000))
-      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)'].dup
+      def zone.time_now; Time.local(2000); end
       assert_instance_of ActiveSupport::TimeWithZone, zone.now
       assert_equal Time.utc(2000,1,1,5), zone.now.utc
       assert_equal Time.utc(2000), zone.now.time
@@ -59,8 +59,11 @@ class TimeZoneTest < Test::Unit::TestCase
 
   def test_now_enforces_spring_dst_rules
     with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns(Time.local(2006,4,2,2)) # 2AM springs forward to 3AM
-      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)'].dup
+      def zone.time_now
+        Time.local(2006,4,2,2) # 2AM springs forward to 3AM
+      end
+
       assert_equal Time.utc(2006,4,2,3), zone.now.time
       assert_equal true, zone.now.dst?
     end
@@ -68,8 +71,10 @@ class TimeZoneTest < Test::Unit::TestCase
 
   def test_now_enforces_fall_dst_rules
     with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns(Time.at(1162098000)) # equivalent to 1AM DST
-      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)'].dup
+      def zone.time_now
+        Time.at(1162098000) # equivalent to 1AM DST
+      end
       assert_equal Time.utc(2006,10,29,1), zone.now.time
       assert_equal true, zone.now.dst?
     end

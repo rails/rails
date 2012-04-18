@@ -49,12 +49,12 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_get_maximum_of_field_with_include
-    assert_equal 55, Account.maximum(:credit_limit, :include => :firm, :conditions => "companies.name != 'Summit'")
+    assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(:credit_limit)
   end
 
   def test_should_get_maximum_of_field_with_scoped_include
-    Account.send :with_scope, :find => { :include => :firm, :conditions => "companies.name != 'Summit'" } do
-      assert_equal 55, Account.maximum(:credit_limit)
+    Account.send :with_scope, :find => { :include => :firm } do
+      assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).maximum(:credit_limit)
     end
   end
 
@@ -273,7 +273,7 @@ class CalculationsTest < ActiveRecord::TestCase
     options = {:conditions => 'companies.id > 1', :include => :firm}
     options_copy = options.dup
 
-    Account.count(:all, options)
+    Account.references(:companies).count(:all, options)
     assert_equal options_copy, options
   end
 
@@ -458,7 +458,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.approved ], relation.pluck(:approved)
     assert_equal [ topic.last_read ], relation.pluck(:last_read)
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
-
   end
 
   def test_pluck_and_uniq
@@ -471,4 +470,22 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [contract.id], company.contracts.pluck(:id)
   end
 
+  def test_pluck_with_serialization
+    t = Topic.create!(:content => { :foo => :bar })
+    assert_equal [{:foo => :bar}], Topic.where(:id => t.id).pluck(:content)
+  end
+
+  def test_pluck_with_qualified_column_name
+    assert_equal [1,2,3,4], Topic.order(:id).pluck("topics.id")
+  end
+
+  def test_pluck_auto_table_name_prefix
+    c = Company.create!(:name => "test", :contracts => [Contract.new])
+    assert_equal [c.id], Company.joins(:contracts).pluck(:id)
+  end
+
+  def test_pluck_not_auto_table_name_prefix_if_column_joined
+    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
+  end
 end

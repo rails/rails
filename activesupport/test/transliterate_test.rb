@@ -3,7 +3,7 @@ require 'abstract_unit'
 require 'active_support/inflector/transliterate'
 require 'active_support/core_ext/object/inclusion'
 
-class TransliterateTest < Test::Unit::TestCase
+class TransliterateTest < ActiveSupport::TestCase
 
   def test_transliterate_should_not_change_ascii_chars
     (0..127).each do |byte|

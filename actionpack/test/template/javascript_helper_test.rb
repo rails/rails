@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'active_support/core_ext/string/encoding'
 
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
@@ -28,11 +27,9 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
     assert_equal %(backslash\\\\test), escape_javascript( %(backslash\\test) )
     assert_equal %(dont <\\/close> tags), escape_javascript(%(dont </close> tags))
-    if "ruby".encoding_aware?
-      assert_equal %(unicode &#x2028; newline), escape_javascript(%(unicode \342\200\250 newline).force_encoding('UTF-8').encode!)
-    else
-      assert_equal %(unicode &#x2028; newline), escape_javascript(%(unicode \342\200\250 newline))
-    end
+    assert_equal %(unicode &#x2028; newline), escape_javascript(%(unicode \342\200\250 newline).force_encoding('UTF-8').encode!)
+    assert_equal %(unicode &#x2029; newline), escape_javascript(%(unicode \342\200\251 newline).force_encoding('UTF-8').encode!)
+
     assert_equal %(dont <\\/close> tags), j(%(dont </close> tags))
   end
 
@@ -78,14 +75,14 @@ class JavaScriptHelperTest < ActionView::TestCase
   def test_javascript_tag
     self.output_buffer = 'foo'
 
-    assert_dom_equal "<script type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
+    assert_dom_equal "<script>\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
       javascript_tag("alert('hello')")
 
     assert_equal 'foo', output_buffer, 'javascript_tag without a block should not concat to output_buffer'
   end
 
   def test_javascript_tag_with_options
-    assert_dom_equal "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
+    assert_dom_equal "<script id=\"the_js_tag\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
       javascript_tag("alert('hello')", :id => "the_js_tag")
   end
 

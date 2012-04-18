@@ -10,11 +10,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "app/mailers/notifier.rb" do |mailer|
       assert_match(/class Notifier < ActionMailer::Base/, mailer)
-      if RUBY_VERSION < "1.9"
-        assert_match(/default :from => "from@example.com"/, mailer)
-      else
-        assert_match(/default from: "from@example.com"/, mailer)
-      end
+      assert_match(/default from: "from@example.com"/, mailer)
     end
   end
 
@@ -77,32 +73,13 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/mailers/notifier.rb" do |mailer|
       assert_instance_method :foo, mailer do |foo|
-        if RUBY_VERSION < "1.9"
-          assert_match(/mail :to => "to@example.org"/, foo)
-        else
-          assert_match(/mail to: "to@example.org"/, foo)
-        end
+        assert_match(/mail to: "to@example.org"/, foo)
         assert_match(/@greeting = "Hi"/, foo)
       end
 
       assert_instance_method :bar, mailer do |bar|
-        if RUBY_VERSION < "1.9"
-          assert_match(/mail :to => "to@example.org"/, bar)
-        else
-          assert_match(/mail to: "to@example.org"/, bar)
-        end
+        assert_match(/mail to: "to@example.org"/, bar)
         assert_match(/@greeting = "Hi"/, bar)
-      end
-    end
-  end
-
-  def test_force_old_style_hash
-    run_generator ["notifier", "foo", "--old-style-hash"]
-    assert_file "app/mailers/notifier.rb" do |mailer|
-      assert_match(/default :from => "from@example.com"/, mailer)
-
-      assert_instance_method :foo, mailer do |foo|
-        assert_match(/mail :to => "to@example.org"/, foo)
       end
     end
   end

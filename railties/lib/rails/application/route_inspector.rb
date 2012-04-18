@@ -1,11 +1,70 @@
+require 'delegate'
+
 module Rails
   class Application
+    class RouteWrapper < SimpleDelegator
+      def endpoint
+        rack_app ? rack_app.inspect : "#{controller}##{action}"
+      end
+
+      def constraints
+        requirements.except(:controller, :action)
+      end
+
+      def rack_app(app = self.app)
+        @rack_app ||= begin
+          class_name = app.class.name.to_s
+          if class_name == "ActionDispatch::Routing::Mapper::Constraints"
+            rack_app(app.app)
+          elsif class_name !~ /^ActionDispatch::Routing/
+            app
+          end
+        end
+      end
+
+      def verb
+        super.source.gsub(/[$^]/, '')
+      end
+
+      def path
+        super.spec.to_s
+      end
+
+      def name
+        super.to_s
+      end
+
+      def reqs
+        @reqs ||= begin
+          reqs = endpoint
+          reqs += " #{constraints.inspect}" unless constraints.empty?
+          reqs
+        end
+      end
+
+      def controller
+        requirements[:controller] || ':controller'
+      end
+
+      def action
+        requirements[:action] || ':action'
+      end
+
+      def internal?
+        path =~ %r{/rails/info/properties|^#{Rails.application.config.assets.prefix}}
+      end
+
+      def engine?
+        rack_app && rack_app.respond_to?(:routes)
+      end
+    end
+
     ##
     # This class is just used for displaying route information when someone
     # executes `rake routes`.  People should not use this class.
     class RouteInspector # :nodoc:
       def initialize
-        @engines = ActiveSupport::OrderedHash.new
+        @engines = Hash.new
       end
 
       def format all_routes, filter = nil
@@ -21,35 +80,22 @@ module Rails
 
       def collect_routes(routes)
         routes = routes.collect do |route|
-          route_reqs = route.requirements
+          RouteWrapper.new(route)
+        end.reject do |route|
+          route.internal?
+        end.collect do |route|
+          collect_engine_routes(route)
 
-          rack_app = route.app unless route.app.class.name.to_s =~ /^ActionDispatch::Routing/
-
-          controller = route_reqs[:controller] || ':controller'
-          action     = route_reqs[:action]     || ':action'
-
-          endpoint = rack_app ? rack_app.inspect : "#{controller}##{action}"
-          constraints = route_reqs.except(:controller, :action)
-
-          reqs = endpoint
-          reqs += " #{constraints.inspect}" unless constraints.empty?
-
-          verb = route.verb.source.gsub(/[$^]/, '')
-
-          collect_engine_routes(reqs, rack_app)
-
-          {:name => route.name.to_s, :verb => verb, :path => route.path.spec.to_s, :reqs => reqs }
+          {:name => route.name, :verb => route.verb, :path => route.path, :reqs => route.reqs }
         end
-
-        # Skip the route if it's internal info route
-        routes.reject { |r| r[:path] =~ %r{/rails/info/properties|^/assets} }
       end
 
-      def collect_engine_routes(name, rack_app)
-        return unless rack_app && rack_app.respond_to?(:routes)
+      def collect_engine_routes(route)
+        name = route.endpoint
+        return unless route.engine?
         return if @engines[name]
 
-        routes = rack_app.routes
+        routes = route.rack_app.routes
         if routes.is_a?(ActionDispatch::Routing::RouteSet)
           @engines[name] = collect_routes(routes.routes)
         end

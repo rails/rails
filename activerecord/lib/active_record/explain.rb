@@ -1,5 +1,13 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActiveRecord
   module Explain
+    def self.extended(base)
+      # If a query takes longer than these many seconds we log its query plan
+      # automatically. nil disables this feature.
+      base.config_attribute :auto_explain_threshold_in_seconds, :global => true
+    end
+
     # If auto explain is enabled, this method triggers EXPLAIN logging for the
     # queries triggered by the block if it takes more than the threshold as a
     # whole. That is, the threshold is not checked against each individual
@@ -11,6 +19,8 @@ module ActiveRecord
     # currently collected. A false value indicates collecting is turned
     # off. Otherwise it is an array of queries.
     def logging_query_plan # :nodoc:
+      return yield unless logger
+
       threshold = auto_explain_threshold_in_seconds
       current   = Thread.current
       if threshold && current[:available_queries_for_explain].nil?

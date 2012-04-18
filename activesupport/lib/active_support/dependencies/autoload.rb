@@ -9,13 +9,16 @@ module ActiveSupport
     @@eager_autoload = false
 
     def autoload(const_name, path = @@at_path)
-      full = [self.name, @@under_path, const_name.to_s, path].compact.join("::")
-      location = path || Inflector.underscore(full)
+      unless path
+        full = [name, @@under_path, const_name.to_s, path].compact.join("::")
+        path = Inflector.underscore(full)
+      end
 
       if @@eager_autoload
-        @@autoloads[const_name] = location
+        @@autoloads[const_name] = path
       end
-      super const_name, location
+
+      super const_name, path
     end
 
     def autoload_under(path)

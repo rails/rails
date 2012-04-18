@@ -1,11 +1,10 @@
 module ActionMailer
   module MailHelper
-    # Uses Text::Format to take the text and format it, indented two spaces for
-    # each line, and wrapped at 72 columns.
+    # Take the text and format it, indented two spaces for each line, and wrapped at 72 columns.
     def block_format(text)
-      formatted = text.split(/\n\r\n/).collect { |paragraph|
+      formatted = text.split(/\n\r?\n/).collect { |paragraph|
         format_paragraph(paragraph)
-      }.join("\n")
+      }.join("\n\n")
 
       # Make list points stand on their own line
       formatted.gsub!(/[ ]*([*]+) ([^*]*)/) { |s| "  #{$1} #{$2.strip}\n" }
@@ -41,7 +40,7 @@ module ActionMailer
       sentences = [[]]
 
       text.split.each do |word|
-        if (sentences.last + [word]).join(' ').length > len
+        if sentences.first.present? && (sentences.last + [word]).join(' ').length > len
           sentences << [word]
         else
           sentences.last << word

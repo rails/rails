@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2011 David Heinemeier Hansson
+# Copyright (c) 2004-2012 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -31,7 +31,6 @@ require 'action_mailer/version'
 # Common Active Support usage in Action Mailer
 require 'active_support/core_ext/class'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/array/uniq_by'
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/string/inflections'

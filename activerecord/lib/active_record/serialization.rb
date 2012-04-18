@@ -7,8 +7,8 @@ module ActiveRecord #:nodoc:
     def serializable_hash(options = nil)
       options = options.try(:clone) || {}
 
-      options[:except] = Array.wrap(options[:except]).map { |n| n.to_s }
-      options[:except] |= Array.wrap(self.class.inheritance_column)
+      options[:except] = Array(options[:except]).map { |n| n.to_s }
+      options[:except] |= Array(self.class.inheritance_column)
 
       super(options)
     end

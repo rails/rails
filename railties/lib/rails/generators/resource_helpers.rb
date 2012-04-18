@@ -50,7 +50,7 @@ module Rails
         end
 
         def controller_i18n_scope
-          @controller_i18n_scope ||= controller_file_path.gsub('/', '.')
+          @controller_i18n_scope ||= controller_file_path.tr('/', '.')
         end
 
         # Loads the ORM::Generators::ActiveModel class. This class is responsible

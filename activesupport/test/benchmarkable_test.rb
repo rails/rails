@@ -19,7 +19,7 @@ class BenchmarkableTest < ActiveSupport::TestCase
 
   def setup
     @buffer = Buffer.new
-    @logger = ActiveSupport::BufferedLogger.new(@buffer)
+    @logger = ActiveSupport::Logger.new(@buffer)
   end
 
   def test_without_block
@@ -42,17 +42,17 @@ class BenchmarkableTest < ActiveSupport::TestCase
   end
 
   def test_within_level
-    logger.level = ActiveSupport::BufferedLogger::DEBUG
+    logger.level = ActiveSupport::Logger::DEBUG
     benchmark('included_debug_run', :level => :debug) { }
     assert_last_logged 'included_debug_run'
   end
 
   def test_outside_level
-    logger.level = ActiveSupport::BufferedLogger::ERROR
+    logger.level = ActiveSupport::Logger::ERROR
     benchmark('skipped_debug_run', :level => :debug) { }
     assert_no_match(/skipped_debug_run/, buffer.last)
   ensure
-    logger.level = ActiveSupport::BufferedLogger::DEBUG
+    logger.level = ActiveSupport::Logger::DEBUG
   end
 
   private

@@ -1,6 +1,5 @@
 require 'singleton'
 require 'active_model/observer_array'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
@@ -64,14 +63,14 @@ module ActiveModel
       # raises an +ArgumentError+ exception.
       def add_observer(observer)
         unless observer.respond_to? :update
-          raise ArgumentError, "observer needs to respond to `update'"
+          raise ArgumentError, "observer needs to respond to 'update'"
         end
         observer_instances << observer
       end
 
       # Notify list of observers of a change.
-      def notify_observers(*arg)
-        observer_instances.each { |observer| observer.update(*arg) }
+      def notify_observers(*args)
+        observer_instances.each { |observer| observer.update(*args) }
       end
 
       # Total number of observers.
@@ -200,7 +199,7 @@ module ActiveModel
       #     end
       #   end
       def observed_classes
-        Array.wrap(observed_class)
+        Array(observed_class)
       end
 
       # The class observed by default is inferred from the observer's class name:

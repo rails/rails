@@ -46,10 +46,6 @@ module RailtiesTests
 
             gem 'rails', :path => '#{RAILS_FRAMEWORK_ROOT}'
             gem 'sqlite3'
-
-            if RUBY_VERSION < '1.9'
-              gem "ruby-debug", ">= 0.10.3"
-            end
           GEMFILE
         end
       end

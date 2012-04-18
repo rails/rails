@@ -1,3 +1,4 @@
+require 'active_support/core_ext/module/deprecation'
 require 'active_support/deprecation/behaviors'
 require 'active_support/deprecation/reporting'
 require 'active_support/deprecation/method_wrappers'

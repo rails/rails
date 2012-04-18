@@ -1,4 +1,3 @@
-require 'active_support/core_ext/file/path'
 require 'rack/chunked'
 
 module ActionController #:nodoc:
@@ -163,7 +162,7 @@ module ActionController #:nodoc:
   # Currently, when an exception happens in development or production, Rails
   # will automatically stream to the client:
   #
-  #   "><script type="text/javascript">window.location = "/500.html"</script></html>
+  #   "><script>window.location = "/500.html"</script></html>
   #
   # The first two characters (">) are required in case the exception happens
   # while rendering attributes for a given tag. You can check the real cause
@@ -195,7 +194,7 @@ module ActionController #:nodoc:
   # ==== Passenger
   #
   # To be described.
-  # 
+  #
   module Streaming
     extend ActiveSupport::Concern
 
@@ -217,7 +216,7 @@ module ActionController #:nodoc:
       end
     end
 
-    # Call render_to_body if we are streaming instead of usual +render+.
+    # Call render_body if we are streaming instead of usual +render+.
     def _render_template(options) #:nodoc:
       if options.delete(:stream)
         Rack::Chunked::Body.new view_renderer.render_body(view_context, options)

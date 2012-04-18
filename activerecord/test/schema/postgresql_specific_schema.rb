@@ -1,6 +1,6 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_tsvectors postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
+  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
       postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones).each do |table_name|
     execute "DROP TABLE  IF EXISTS #{quote_table_name table_name}"
   end
@@ -62,6 +62,15 @@ _SQL
     text_vector tsvector
   );
 _SQL
+
+  if 't' == select_value("select 'hstore'=ANY(select typname from pg_type)")
+  execute <<_SQL
+  CREATE TABLE postgresql_hstores (
+    id SERIAL PRIMARY KEY,
+    hash_store hstore default ''::hstore
+  );
+_SQL
+  end
 
   execute <<_SQL
   CREATE TABLE postgresql_moneys (

@@ -60,6 +60,14 @@ Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
 end
 
+class ParameterSet
+  delegate :[], :[]=, :to => :@params
+
+  def initialize
+    @params = {:foo => "bar"}
+  end
+end
+
 class Name
   delegate :upcase, :to => :@full_name
 
@@ -68,7 +76,7 @@ class Name
   end
 end
 
-class ModuleTest < Test::Unit::TestCase
+class ModuleTest < ActiveSupport::TestCase
   def setup
     @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
   end
@@ -81,6 +89,17 @@ class ModuleTest < Test::Unit::TestCase
   def test_delegation_to_assignment_method
     @david.place_name = "Fred"
     assert_equal "Fred", @david.place.name
+  end
+
+  def test_delegation_to_index_get_method
+    @params = ParameterSet.new
+    assert_equal "bar", @params[:foo]
+  end
+
+  def test_delegation_to_index_set_method
+    @params = ParameterSet.new
+    @params[:foo] = "baz"
+    assert_equal "baz", @params[:foo]
   end
 
   def test_delegation_down_hierarchy
@@ -212,6 +231,12 @@ class ModuleTest < Test::Unit::TestCase
   def test_local_constants
     assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
   end
+
+  def test_local_constant_names
+    ActiveSupport::Deprecation.silence do
+      assert_equal %w(Constant1 Constant3), Ab.local_constant_names
+    end
+  end
 end
 
 module BarMethodAliaser
@@ -245,7 +270,7 @@ module BarMethods
   end
 end
 
-class MethodAliasingTest < Test::Unit::TestCase
+class MethodAliasingTest < ActiveSupport::TestCase
   def setup
     Object.const_set :FooClassWithBarMethod, Class.new { def bar() 'bar' end }
     @instance = FooClassWithBarMethod.new

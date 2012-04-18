@@ -120,7 +120,7 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.warn 'abc'
       ActiveSupport::Deprecation.warn 'def'
     end
-  rescue Test::Unit::AssertionFailedError
+  rescue MiniTest::Assertion
     flunk 'assert_deprecated should match any warning in block, not just the last one'
   end
 
@@ -165,23 +165,5 @@ class DeprecationTest < ActiveSupport::TestCase
 
   def test_deprecation_with_explicit_message
     assert_deprecated(/you now need to do something extra for this one/) { @dtc.d }
-  end
-
-  unless defined?(::MiniTest)
-    def test_assertion_failed_error_doesnt_spout_deprecation_warnings
-      error_class = Class.new(StandardError) do
-        def message
-          ActiveSupport::Deprecation.warn 'warning in error message'
-          super
-        end
-      end
-
-      raise error_class.new('hmm')
-
-    rescue => e
-      error = Test::Unit::Error.new('testing ur doodz', e)
-      assert_not_deprecated { error.message }
-      assert_nil @last_message
-    end
   end
 end

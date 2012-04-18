@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'active_support/core_ext/array/random_access'
 require 'models/post'
 require 'models/topic'
 require 'models/comment'
@@ -122,16 +121,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     objects = Topic.with_object
     assert_operator objects.length, :>, 0
     assert objects.all?(&:approved?), 'all objects should be approved'
-  end
-
-  def test_extensions
-    assert_equal 1, Topic.anonymous_extension.one
-    assert_equal 2, Topic.named_extension.two
-  end
-
-  def test_multiple_extensions
-    assert_equal 2, Topic.multiple_extensions.extension_two
-    assert_equal 1, Topic.multiple_extensions.extension_one
   end
 
   def test_has_many_associations_have_access_to_scopes
@@ -337,6 +326,11 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
   end
 
+  def test_should_not_duplicates_where_values
+    where_values = Topic.where("1=1").scope_with_lambda.where_values
+    assert_equal ["1=1"], where_values
+  end
+
   def test_chaining_with_duplicate_joins
     join = "INNER JOIN comments ON comments.post_id = posts.id"
     post = Post.find(1)
@@ -386,25 +380,6 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_table_names_for_chaining_scopes_with_and_without_table_name_included
     assert_nothing_raised do
       Comment.for_first_post.for_first_author.all
-    end
-  end
-
-  def test_scopes_with_reserved_names
-    class << Topic
-      def public_method; end
-      public :public_method
-
-      def protected_method; end
-      protected :protected_method
-
-      def private_method; end
-      private :private_method
-    end
-
-    [:public_method, :protected_method, :private_method].each do |reserved_method|
-      assert Topic.respond_to?(reserved_method, true)
-      ActiveRecord::Base.logger.expects(:warn)
-      Topic.scope(reserved_method)
     end
   end
 
@@ -478,6 +453,41 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_nothing_raised do
       require "models/without_table"
     end
+  end
+
+  def test_eager_scopes_are_deprecated
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = 'posts'
+
+    assert_deprecated do
+      klass.scope :welcome, { :conditions => { :id => posts(:welcome).id } }
+    end
+    assert_equal [posts(:welcome).title], klass.welcome.map(&:title)
+
+    assert_deprecated do
+      klass.scope :welcome_2, klass.where(:id => posts(:welcome).id)
+    end
+    assert_equal [posts(:welcome).title], klass.welcome_2.map(&:title)
+  end
+
+  def test_eager_default_scope_hashes_are_deprecated
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = 'posts'
+
+    assert_deprecated do
+      klass.send(:default_scope, :conditions => { :id => posts(:welcome).id })
+    end
+    assert_equal [posts(:welcome).title], klass.all.map(&:title)
+  end
+
+  def test_eager_default_scope_relations_are_deprecated
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = 'posts'
+
+    assert_deprecated do
+      klass.send(:default_scope, klass.where(:id => posts(:welcome).id))
+    end
+    assert_equal [posts(:welcome).title], klass.all.map(&:title)
   end
 end
 

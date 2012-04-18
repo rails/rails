@@ -7,7 +7,7 @@ class SummablePayment < Payment
   def +(p) self.class.new(price + p.price) end
 end
 
-class EnumerableTests < Test::Unit::TestCase
+class EnumerableTests < ActiveSupport::TestCase
   Enumerator = [].each.class
 
   class GenericEnumerable
@@ -86,15 +86,6 @@ class EnumerableTests < Test::Unit::TestCase
     assert_equal 'abc', ('a'..'c').sum
   end
 
-  def test_each_with_object
-    enum = GenericEnumerable.new(%w(foo bar))
-    result = enum.each_with_object({}) { |str, hsh| hsh[str] = str.upcase }
-    assert_equal({'foo' => 'FOO', 'bar' => 'BAR'}, result)
-    assert_equal Enumerator, enum.each_with_object({}).class
-    result2 = enum.each_with_object({}).each{|str, hsh| hsh[str] = str.upcase}
-    assert_equal result, result2
-  end
-
   def test_index_by
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal({ 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) },
@@ -125,12 +116,5 @@ class EnumerableTests < Test::Unit::TestCase
   def test_exclude?
     assert_equal true,  GenericEnumerable.new([ 1 ]).exclude?(2)
     assert_equal false, GenericEnumerable.new([ 1 ]).exclude?(1)
-  end
-  
-  def test_pluck_single_method
-    person = Struct.new(:name)
-    people = [ person.new("David"), person.new("Jamie") ]
-    
-    assert_equal [ "David", "Jamie" ], people.pluck(:name)
   end
 end

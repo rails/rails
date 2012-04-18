@@ -1,5 +1,4 @@
 require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/string/encoding'
 
 module ActionView
   module Helpers
@@ -14,11 +13,9 @@ module ActionView
         "'"     => "\\'"
       }
 
-      if "ruby".encoding_aware?
-        JS_ESCAPE_MAP["\342\200\250".force_encoding('UTF-8').encode!] = '&#x2028;'
-      else
-        JS_ESCAPE_MAP["\342\200\250"] = '&#x2028;'
-      end
+      JS_ESCAPE_MAP["\342\200\250".force_encoding('UTF-8').encode!] = '&#x2028;'
+      JS_ESCAPE_MAP["\342\200\251".force_encoding('UTF-8').encode!] = '&#x2029;'
+      
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #
@@ -27,7 +24,7 @@ module ActionView
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
-          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
+          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
           javascript.html_safe? ? result.html_safe : result
         else
           ''
@@ -40,7 +37,7 @@ module ActionView
       #   javascript_tag "alert('All is good')"
       #
       # Returns:
-      #   <script type="text/javascript">
+      #   <script>
       #   //<![CDATA[
       #   alert('All is good')
       #   //]]>
@@ -49,7 +46,7 @@ module ActionView
       # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
       # tag. Example:
       #   javascript_tag "alert('All is good')", :defer => 'defer'
-      #   # => <script defer="defer" type="text/javascript">alert('All is good')</script>
+      #   # => <script defer="defer">alert('All is good')</script>
       #
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
@@ -65,7 +62,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        content_tag(:script, javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
+        content_tag(:script, javascript_cdata_section(content), html_options)
       end
 
       def javascript_cdata_section(content) #:nodoc:

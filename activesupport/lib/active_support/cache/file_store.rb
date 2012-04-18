@@ -13,7 +13,7 @@ module ActiveSupport
       attr_reader :cache_path
 
       DIR_FORMATTER = "%03X"
-      FILENAME_MAX_SIZE = 230 # max filename size on file system is 255, minus room for timestamp and random characters appended by Tempfile (used by atomic write)
+      FILENAME_MAX_SIZE = 228 # max filename size on file system is 255, minus room for timestamp and random characters appended by Tempfile (used by atomic write)
       EXCLUDED_DIRS = ['.', '..'].freeze
 
       def initialize(cache_path, options = nil)
@@ -143,7 +143,7 @@ module ActiveSupport
 
         # Translate a file path into a key.
         def file_path_key(path)
-          fname = path[cache_path.size, path.size].split(File::SEPARATOR, 4).last
+          fname = path[cache_path.to_s.size..-1].split(File::SEPARATOR, 4).last
           Rack::Utils.unescape(fname)
         end
 

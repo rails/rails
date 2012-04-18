@@ -37,7 +37,7 @@ module ActiveModel
       # attribute.
       #
       # NOTE: This check is performed only if +password_confirmation+ is not
-      # +nil+, and by default only on save. To require confirmation, make sure
+      # +nil+. To require confirmation, make sure
       # to add a presence check for the confirmation attribute:
       #
       #   validates_presence_of :password_confirmation, :if => :password_changed?

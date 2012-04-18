@@ -72,6 +72,7 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_with_layout
+    @variable_for_layout = nil
     render "test/hello_world", :layout => "layouts/standard"
   end
 
@@ -156,20 +157,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_equal @response.body, 'request method: POST'
     get :raise_exception_on_post
     assert_equal @response.body, 'request method: GET'
-  end
-
-  def test_redirect_to_named_route
-    with_routing do |set|
-      set.draw do
-        match 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
-        match ':controller/:action'
-      end
-      set.install_helpers
-
-      process :redirect_to_named_route
-      assert_redirected_to 'http://test.host/route_one'
-      assert_redirected_to route_one_url
-    end
   end
 
   def test_string_constraint
@@ -351,7 +338,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   end
 
   def test_render_based_on_parameters
-    process :render_based_on_parameters, "name" => "David"
+    process :render_based_on_parameters, "GET", "name" => "David"
     assert_equal "Mr. David", @response.body
   end
 

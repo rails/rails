@@ -5,8 +5,8 @@ class Post < ActiveRecord::Base
     end
   end
 
-  scope :containing_the_letter_a, where("body LIKE '%a%'")
-  scope :ranked_by_comments, order("comments_count DESC")
+  scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
+  scope :ranked_by_comments,      -> { order("comments_count DESC") }
 
   scope :limit_by, lambda {|l| limit(l) }
   scope :with_authors_at_address, lambda { |address| {
@@ -30,8 +30,8 @@ class Post < ActiveRecord::Base
   has_one :first_comment, :class_name => 'Comment', :order => 'id ASC'
   has_one :last_comment, :class_name => 'Comment', :order => 'id desc'
 
-  scope :with_special_comments, :joins => :comments, :conditions => {:comments => {:type => 'SpecialComment'} }
-  scope :with_very_special_comments, joins(:comments).where(:comments => {:type => 'VerySpecialComment'})
+  scope :with_special_comments, -> { joins(:comments).where(:comments => {:type => 'SpecialComment'}) }
+  scope :with_very_special_comments, -> { joins(:comments).where(:comments => {:type => 'VerySpecialComment'}) }
   scope :with_post, lambda {|post_id|
     { :joins => :comments, :conditions => {:comments => {:post_id => post_id} } }
   }
@@ -115,8 +115,10 @@ class Post < ActiveRecord::Base
   has_many :named_categories, :through => :standard_categorizations
 
   has_many :readers
+  has_many :secure_readers
   has_many :readers_with_person, :include => :person, :class_name => "Reader"
   has_many :people, :through => :readers
+  has_many :secure_people, :through => :secure_readers
   has_many :single_people, :through => :readers
   has_many :people_with_callbacks, :source=>:person, :through => :readers,
               :before_add    => lambda {|owner, reader| log(:added,   :before, reader.first_name) },
@@ -169,7 +171,7 @@ end
 
 class FirstPost < ActiveRecord::Base
   self.table_name = 'posts'
-  default_scope where(:id => 1)
+  default_scope { where(:id => 1) }
 
   has_many :comments, :foreign_key => :post_id
   has_one  :comment,  :foreign_key => :post_id
@@ -177,16 +179,16 @@ end
 
 class PostWithDefaultInclude < ActiveRecord::Base
   self.table_name = 'posts'
-  default_scope includes(:comments)
+  default_scope { includes(:comments) }
   has_many :comments, :foreign_key => :post_id
 end
 
 class PostWithDefaultScope < ActiveRecord::Base
   self.table_name = 'posts'
-  default_scope :order => :title
+  default_scope { order(:title) }
 end
 
 class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.table_name = 'posts'
-  default_scope where(:id => [1, 5,6])
+  default_scope { where(:id => [1, 5,6]) }
 end

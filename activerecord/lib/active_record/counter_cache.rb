@@ -19,15 +19,10 @@ module ActiveRecord
       counters.each do |association|
         has_many_association = reflect_on_association(association.to_sym)
 
-        expected_name = if has_many_association.options[:as]
-          has_many_association.options[:as].to_s.classify
-        else
-          self.name
-        end
-
+        foreign_key  = has_many_association.foreign_key.to_s
         child_class  = has_many_association.klass
         belongs_to   = child_class.reflect_on_all_associations(:belongs_to)
-        reflection   = belongs_to.find { |e| e.class_name == expected_name }
+        reflection   = belongs_to.find { |e| e.foreign_key.to_s == foreign_key }
         counter_name = reflection.counter_cache_column
 
         stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
@@ -65,7 +60,7 @@ module ActiveRecord
     #   Post.update_counters [10, 15], :comment_count => 1
     #   # Executes the following SQL:
     #   # UPDATE posts
-    #   #    SET comment_count = COALESCE(comment_count, 0) + 1,
+    #   #    SET comment_count = COALESCE(comment_count, 0) + 1
     #   #  WHERE id IN (10, 15)
     def update_counters(id, counters)
       updates = counters.map do |counter_name, value|
@@ -74,9 +69,7 @@ module ActiveRecord
         "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
       end
 
-      IdentityMap.remove_by_id(symbolized_base_class, id) if IdentityMap.enabled?
-
-      update_all(updates.join(', '), primary_key => id )
+      update_all(updates.join(', '), primary_key => id)
     end
 
     # Increment a number field by one, usually representing a count.

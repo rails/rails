@@ -228,7 +228,7 @@ module Rails
   #     resources :articles
   #   end
   #
-  # The routes above will automatically point to <tt>MyEngine::ApplicationContoller</tt>. Furthermore, you don't
+  # The routes above will automatically point to <tt>MyEngine::ArticlesController</tt>. Furthermore, you don't
   # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you should simply use
   # <tt>articles_path</tt> as you would do with your application.
   #
@@ -245,7 +245,7 @@ module Rails
   #
   # Additionally, an isolated engine will set its name according to namespace, so
   # MyEngine::Engine.engine_name will be "my_engine". It will also set MyEngine.table_name_prefix
-  # to "my_engine_", changing the MyEngine::Article model to use the my_engine_article table.
+  # to "my_engine_", changing the MyEngine::Article model to use the my_engine_articles table.
   #
   # == Using Engine's routes outside Engine
   #
@@ -300,7 +300,7 @@ module Rails
   #     helper MyEngine::SharedEngineHelper
   #   end
   #
-  # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
+  # If you want to include all of the engine's helpers, you can use #helper method on an engine's
   # instance:
   #
   #   class ApplicationController < ActionController::Base
@@ -326,7 +326,7 @@ module Rails
   # migration in the application and rerun copying migrations.
   #
   # If your engine has migrations, you may also want to prepare data for the database in
-  # the <tt>seeds.rb</tt> file. You can load that data using the <tt>load_seed</tt> method, e.g.
+  # the <tt>db/seeds.rb</tt> file. You can load that data using the <tt>load_seed</tt> method, e.g.
   #
   #   MyEngine::Engine.load_seed
   #
@@ -517,7 +517,7 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds"].existent.first
-      load(seed_file) if seed_file && File.exist?(seed_file)
+      load(seed_file) if seed_file
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
@@ -561,7 +561,7 @@ module Rails
     initializer :add_view_paths do
       views = paths["app/views"].existent
       unless views.empty?
-        ActiveSupport.on_load(:action_controller){ prepend_view_path(views) }
+        ActiveSupport.on_load(:action_controller){ prepend_view_path(views) if respond_to?(:prepend_view_path) }
         ActiveSupport.on_load(:action_mailer){ prepend_view_path(views) }
       end
     end

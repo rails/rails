@@ -93,8 +93,9 @@ module ActionDispatch
     end
 
     def swap(target, *args, &block)
-      insert_before(target, *args, &block)
-      delete(target)
+      index = assert_index(target, :before)
+      insert(index, *args, &block)
+      middlewares.delete_at(index + 1)
     end
 
     def delete(target)

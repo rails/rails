@@ -30,7 +30,7 @@ module ActionDispatch
 
       def generate_sid
         sid = SecureRandom.hex(16)
-        sid.encode!('UTF-8') if sid.respond_to?(:encode!)
+        sid.encode!('UTF-8')
         sid
       end
 
@@ -74,10 +74,6 @@ module ActionDispatch
     class AbstractStore < Rack::Session::Abstract::ID
       include Compatibility
       include StaleSessionCheck
-
-      def destroy_session(env, sid, options)
-        raise '#destroy_session needs to be implemented.'
-      end
     end
   end
 end

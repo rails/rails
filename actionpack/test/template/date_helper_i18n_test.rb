@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
+class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
   include ActionView::Helpers::DateHelper
   attr_reader :request
 
@@ -71,7 +71,7 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
   end
 end
 
-class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
+class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
   include ActionView::Helpers::DateHelper
   attr_reader :request
 
@@ -103,7 +103,7 @@ class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
       I18n.expects(:translate).with(('datetime.prompts.' + key.to_s).to_sym, :locale => 'en').returns prompt
     end
 
-    I18n.expects(:translate).with(:'date.order', :locale => 'en').returns [:year, :month, :day]
+    I18n.expects(:translate).with(:'date.order', :locale => 'en', :default => []).returns [:year, :month, :day]
     datetime_select('post', 'updated_at', :locale => 'en', :include_seconds => true, :prompt => true)
   end
 
@@ -115,7 +115,15 @@ class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
   end
 
   def test_date_or_time_select_given_no_order_options_translates_order
-    I18n.expects(:translate).with(:'date.order', :locale => 'en').returns [:year, :month, :day]
+    I18n.expects(:translate).with(:'date.order', :locale => 'en', :default => []).returns [:year, :month, :day]
     datetime_select('post', 'updated_at', :locale => 'en')
+  end
+
+  def test_date_or_time_select_given_invalid_order
+    I18n.expects(:translate).with(:'date.order', :locale => 'en', :default => []).returns [:invalid, :month, :day]
+
+    assert_raise StandardError do
+      datetime_select('post', 'updated_at', :locale => 'en')
+    end
   end
 end

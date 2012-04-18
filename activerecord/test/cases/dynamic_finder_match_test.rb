@@ -83,6 +83,14 @@ module ActiveRecord
       assert_equal :create, m.instantiator
     end
 
+    def test_find_or_create!
+      m = DynamicFinderMatch.match(:find_or_create_by_foo!)
+      assert_equal :first, m.finder
+      assert m.bang?, 'should be banging'
+      assert_equal %w{ foo }, m.attribute_names
+      assert_equal :create, m.instantiator
+    end
+
     def test_find_or_initialize
       m = DynamicFinderMatch.match(:find_or_initialize_by_foo)
       assert_equal :first, m.finder

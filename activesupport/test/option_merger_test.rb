@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/with_options'
 
-class OptionMergerTest < Test::Unit::TestCase
+class OptionMergerTest < ActiveSupport::TestCase
   def setup
     @options = {:hello => 'world'}
   end

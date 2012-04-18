@@ -1,0 +1,30 @@
+<% content_for :page_title do %>
+Ruby on Rails Guides
+<% end %>
+
+<% content_for :header_section do %>
+<%= render 'welcome' %>
+<% end %>
+
+<% content_for :index_section do %>
+<div id="subCol">
+  <dl>
+    <dd class="kindle">Rails Guides are also available for the <%= link_to 'Kindle', 'https://kindle.amazon.com' %>
+and <%= link_to 'Free Kindle Reading Apps', 'http://www.amazon.com/gp/kindle/kcp' %> for the iPad,
+iPhone, Mac, Android, etc. Download them from <%= link_to 'here', @mobi %>.
+    </dd>
+    <dd class="work-in-progress">Guides marked with this icon are currently being worked on. While they might still be useful to you, they may contain incomplete information and even errors. You can help by reviewing them and posting your comments and corrections to the author.</dd>
+  </dl>
+</div>
+<% end %>
+
+<% documents_by_section.each do |section| %>
+  <h3><%= section['name'] %></h3>
+  <dl>
+    <% section['documents'].each do |document| %>
+      <%= guide(document['name'], document['url'], :work_in_progress => document['work_in_progress']) do %>
+        <p><%= document['description'] %></p>
+      <% end %>
+    <% end %>
+  </dl>
+<% end %>

@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2005-2011 David Heinemeier Hansson
+# Copyright (c) 2005-2012 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -38,10 +38,12 @@ end
 
 require "active_support/dependencies/autoload"
 require "active_support/version"
+require "active_support/logger"
 
 module ActiveSupport
   extend ActiveSupport::Autoload
 
+  autoload :Concern
   autoload :DescendantsTracker
   autoload :FileUpdateChecker
   autoload :LogSubscriber
@@ -50,19 +52,15 @@ module ActiveSupport
   # TODO: Narrow this list down
   eager_autoload do
     autoload :BacktraceCleaner
-    autoload :Base64
     autoload :BasicObject
     autoload :Benchmarkable
-    autoload :BufferedLogger
     autoload :Cache
     autoload :Callbacks
-    autoload :Concern
     autoload :Configurable
     autoload :Deprecation
     autoload :Gzip
     autoload :Inflector
     autoload :JSON
-    autoload :Memoizable
     autoload :MessageEncryptor
     autoload :MessageVerifier
     autoload :Multibyte

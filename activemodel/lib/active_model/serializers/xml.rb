@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/hash/conversions'
@@ -56,7 +55,7 @@ module ActiveModel
         end
 
         def serializable_collection
-          methods = Array.wrap(options[:methods]).map(&:to_s)
+          methods = Array(options[:methods]).map(&:to_s)
           serializable_hash.map do |name, value|
             name = name.to_s
             if methods.include?(name)
@@ -146,7 +145,7 @@ module ActiveModel
 
         def add_procs
           if procs = options.delete(:procs)
-            Array.wrap(procs).each do |proc|
+            Array(procs).each do |proc|
               if proc.arity == 1
                 proc.call(options)
               else

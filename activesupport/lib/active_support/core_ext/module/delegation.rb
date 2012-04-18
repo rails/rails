@@ -1,5 +1,5 @@
 class Module
-  # Provides a delegate class method to easily expose contained objects' methods
+  # Provides a delegate class method to easily expose contained objects' public methods
   # as your own. Pass one or more methods (specified as symbols or strings)
   # and the name of the target object via the <tt>:to</tt> option (also a symbol
   # or string). At least one method and the <tt>:to</tt> option are required.
@@ -81,34 +81,36 @@ class Module
   # no matter whether +nil+ responds to the delegated method. You can get a
   # +nil+ instead with the +:allow_nil+ option.
   #
-  #  class Foo
-  #    attr_accessor :bar
-  #    def initialize(bar = nil)
-  #      @bar = bar
-  #    end
-  #    delegate :zoo, :to => :bar
-  #  end
+  #   class Foo
+  #     attr_accessor :bar
+  #     def initialize(bar = nil)
+  #       @bar = bar
+  #     end
+  #     delegate :zoo, :to => :bar
+  #   end
   #
-  #  Foo.new.zoo   # raises NoMethodError exception (you called nil.zoo)
+  #   Foo.new.zoo   # raises NoMethodError exception (you called nil.zoo)
   #
-  #  class Foo
-  #    attr_accessor :bar
-  #    def initialize(bar = nil)
-  #      @bar = bar
-  #    end
-  #    delegate :zoo, :to => :bar, :allow_nil => true
-  #  end
+  #   class Foo
+  #     attr_accessor :bar
+  #     def initialize(bar = nil)
+  #       @bar = bar
+  #     end
+  #     delegate :zoo, :to => :bar, :allow_nil => true
+  #   end
   #
-  #  Foo.new.zoo   # returns nil
+  #   Foo.new.zoo   # returns nil
   #
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
       raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, :to => :greeter)."
     end
-    prefix, to, allow_nil = options[:prefix], options[:to], options[:allow_nil]
 
-    if prefix == true && to.to_s =~ /^[^a-z_]/
+    to = to.to_s
+    prefix, allow_nil = options.values_at(:prefix, :allow_nil)
+
+    if prefix == true && to =~ /^[^a-z_]/
       raise ArgumentError, "Can only automatically set the delegation prefix when delegating to a method."
     end
 
@@ -125,11 +127,15 @@ class Module
     methods.each do |method|
       method = method.to_s
 
+      # Attribute writer methods only accept one argument. Makes sure []=
+      # methods still accept two arguments.
+      definition = (method =~ /[^\]]=$/) ? "arg" : "*args, &block"
+
       if allow_nil
         module_eval(<<-EOS, file, line - 2)
-          def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
+          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
             if #{to} || #{to}.respond_to?(:#{method})         #   if client || client.respond_to?(:name)
-              #{to}.__send__(:#{method}, *args, &block)       #     client.__send__(:name, *args, &block)
+              #{to}.#{method}(#{definition})                  #     client.name(*args, &block)
             end                                               #   end
           end                                                 # end
         EOS
@@ -137,8 +143,8 @@ class Module
         exception = %(raise "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
         module_eval(<<-EOS, file, line - 1)
-          def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
-            #{to}.__send__(:#{method}, *args, &block)         #   client.__send__(:name, *args, &block)
+          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
+            #{to}.#{method}(#{definition})                    #   client.name(*args, &block)
           rescue NoMethodError                                # rescue NoMethodError
             if #{to}.nil?                                     #   if client.nil?
               #{exception}                                    #     # add helpful message to the exception

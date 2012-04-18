@@ -5,27 +5,18 @@ require 'pathname'
 require 'active_support'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/logger'
 
 require 'rails/application'
 require 'rails/version'
+require 'rails/deprecation'
 
 require 'active_support/railtie'
 require 'action_dispatch/railtie'
 
-# For Ruby 1.8, this initialization sets $KCODE to 'u' to enable the
-# multibyte safe operations. Plugin authors supporting other encodings
-# should override this behavior and set the relevant +default_charset+
-# on ActionController::Base.
-#
 # For Ruby 1.9, UTF-8 is the default internal and external encoding.
-if RUBY_VERSION < '1.9'
-  $KCODE='u'
-else
-  silence_warnings do
-    Encoding.default_external = Encoding::UTF_8
-    Encoding.default_internal = Encoding::UTF_8
-  end
+silence_warnings do
+  Encoding.default_external = Encoding::UTF_8
+  Encoding.default_internal = Encoding::UTF_8
 end
 
 module Rails
@@ -34,11 +25,11 @@ module Rails
 
   class << self
     def application
-      @@application ||= nil
+      @application ||= nil
     end
 
     def application=(application)
-      @@application = application
+      @application = application
     end
 
     # The Configuration instance used to configure the Rails environment
@@ -51,23 +42,19 @@ module Rails
     end
 
     def initialized?
-      @@initialized || false
-    end
-
-    def initialized=(initialized)
-      @@initialized ||= initialized
+      application.initialized?
     end
 
     def logger
-      @@logger ||= nil
+      @logger ||= nil
     end
 
     def logger=(logger)
-      @@logger = logger
+      @logger = logger
     end
 
     def backtrace_cleaner
-      @@backtrace_cleaner ||= begin
+      @backtrace_cleaner ||= begin
         # Relies on Active Support, so we have to lazy load to postpone definition until AS has been loaded
         require 'rails/backtrace_cleaner'
         Rails::BacktraceCleaner.new
@@ -87,7 +74,11 @@ module Rails
     end
 
     def cache
-      RAILS_CACHE
+      @cache ||= nil
+    end
+
+    def cache=(cache)
+      @cache = cache
     end
 
     # Returns all rails groups for loading based on:

@@ -22,7 +22,7 @@ module ActionMailer #:nodoc:
 
     def custom(mime, options={})
       options.reverse_merge!(:content_type => mime.to_s)
-      @context.freeze_formats([mime.to_sym])
+      @context.formats = [mime.to_sym]
       options[:body] = block_given? ? yield : @default_render.call
       @responses << options
     end

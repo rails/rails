@@ -75,6 +75,19 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "test/functional/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
+      assert_match(/post :create, user: \{ age: @user.age, name: @user.name \}/, content)
+      assert_match(/put :update, id: @user, user: \{ age: @user.age, name: @user.name \}/, content)
+    end
+  end
+
+  def test_functional_tests_without_attributes
+    run_generator ["User"]
+
+    assert_file "test/functional/users_controller_test.rb" do |content|
+      assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
+      assert_match(/test "should get index"/, content)
+      assert_match(/post :create, user: \{  \}/, content)
+      assert_match(/put :update, id: @user, user: \{  \}/, content)
     end
   end
 
@@ -126,18 +139,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_new_hash_style
     run_generator
     assert_file "app/controllers/users_controller.rb" do |content|
-      if RUBY_VERSION < "1.9"
-        assert_match(/\{ render :action => "new" \}/, content)
-      else
-        assert_match(/\{ render action: "new" \}/, content)
-      end
-    end
-  end
-
-  def test_force_old_style_hash
-    run_generator ["User", "--old-style-hash"]
-    assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/\{ render :action => "new" \}/, content)
+      assert_match(/\{ render action: "new" \}/, content)
     end
   end
 end

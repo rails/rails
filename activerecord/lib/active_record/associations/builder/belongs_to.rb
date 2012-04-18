@@ -33,8 +33,10 @@ module ActiveRecord::Associations::Builder
 
         method_name = "belongs_to_counter_cache_before_destroy_for_#{name}"
         mixin.redefine_method(method_name) do
-          record = send(name)
-          record.class.decrement_counter(cache_column, record.id) unless record.nil?
+          unless marked_for_destruction?
+            record = send(name)
+            record.class.decrement_counter(cache_column, record.id) unless record.nil?
+          end
         end
         model.before_destroy(method_name)
 

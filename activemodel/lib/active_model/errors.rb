@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/reverse_merge'
-require 'active_support/ordered_hash'
 
 module ActiveModel
   # == Active Model Errors
   #
-  # Provides a modified +OrderedHash+ that you can include in your object
+  # Provides a modified +Hash+ that you can include in your object
   # for handling error messages and interacting with Action Pack helpers.
   #
   # A minimal implementation could be:
@@ -76,7 +74,12 @@ module ActiveModel
     #   end
     def initialize(base)
       @base     = base
-      @messages = ActiveSupport::OrderedHash.new
+      @messages = {}
+    end
+
+    def initialize_dup(other)
+      @messages = other.messages.dup
+      super
     end
 
     # Clear the messages
@@ -100,6 +103,11 @@ module ActiveModel
       messages[key] = value
     end
 
+    # Delete messages for +key+
+    def delete(key)
+      messages.delete(key)
+    end
+
     # When passed a symbol or a name of a method, returns an array of errors
     # for the method.
     #
@@ -114,7 +122,7 @@ module ActiveModel
     #   p.errors[:name] = "must be set"
     #   p.errors[:name] # => ['must be set']
     def []=(attribute, error)
-      self[attribute.to_sym] << error
+      self[attribute] << error
     end
 
     # Iterates through each error key, value pair in the error messages hash.
@@ -122,12 +130,12 @@ module ActiveModel
     # has more than one error message, yields once for each error message.
     #
     #   p.errors.add(:name, "can't be blank")
-    #   p.errors.each do |attribute, errors_array|
+    #   p.errors.each do |attribute, error|
     #     # Will yield :name and "can't be blank"
     #   end
     #
     #   p.errors.add(:name, "must be specified")
-    #   p.errors.each do |attribute, errors_array|
+    #   p.errors.each do |attribute, error|
     #     # Will yield :name and "can't be blank"
     #     # then yield :name and "must be specified"
     #   end
@@ -176,8 +184,9 @@ module ActiveModel
     end
 
     # Returns true if no errors are found, false otherwise.
+    # If the error message is a string it can be empty.
     def empty?
-      all? { |k, v| v && v.empty? }
+      all? { |k, v| v && v.empty? && !v.is_a?(String) }
     end
     alias_method :blank?, :empty?
 
@@ -196,25 +205,36 @@ module ActiveModel
       to_a.to_xml options.reverse_merge(:root => "errors", :skip_types => true)
     end
 
-    # Returns an ActiveSupport::OrderedHash that can be used as the JSON representation for this object.
+    # Returns an Hash that can be used as the JSON representation for this object.
+    # Options:
+    # * <tt>:full_messages</tt> - determines if json object should contain 
+    #   full messages or not. Default: <tt>false</tt>.
     def as_json(options=nil)
-      to_hash
+      to_hash(options && options[:full_messages])
     end
 
-    def to_hash
-      messages.dup
+    def to_hash(full_messages = false)
+      if full_messages
+        messages = {}
+        self.messages.each do |attribute, array|
+          messages[attribute] = array.map{|message| full_message(attribute, message) }
+        end
+        messages
+      else
+        self.messages.dup
+      end
     end
 
     # Adds +message+ to the error messages on +attribute+. More than one error can be added to the same
     # +attribute+.
     # If no +message+ is supplied, <tt>:invalid</tt> is assumed.
     #
-    # If +message+ is a symbol, it will be translated using the appropriate scope (see +translate_error+).
+    # If +message+ is a symbol, it will be translated using the appropriate scope (see +generate_message+).
     # If +message+ is a proc, it will be called, allowing for things like <tt>Time.now</tt> to be used within an error.
     def add(attribute, message = nil, options = {})
       message = normalize_message(attribute, message, options)
       if options[:strict]
-        raise ActiveModel::StrictValidationFailed,  message
+        raise ActiveModel::StrictValidationFailed, full_message(attribute, message)
       end
 
       self[attribute] << message
@@ -266,7 +286,7 @@ module ActiveModel
     #     "Name is invalid"
     def full_message(attribute, message)
       return message if attribute == :base
-      attr_name = attribute.to_s.gsub('.', '_').humanize
+      attr_name = attribute.to_s.tr('.', '_').humanize
       attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
       I18n.t(:"errors.format", {
         :default   => "%{attribute} %{message}",

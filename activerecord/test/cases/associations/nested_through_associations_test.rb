@@ -505,7 +505,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_nested_has_many_through_with_conditions_on_through_associations_preload_via_joins
     # Pointless condition to force single-query loading
     assert_includes_and_joins_equal(
-      Author.where('tags.id = tags.id'),
+      Author.where('tags.id = tags.id').references(:tags),
       [authors(:bob)], :misc_post_first_blue_tags
     )
   end
@@ -526,7 +526,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_nested_has_many_through_with_conditions_on_source_associations_preload_via_joins
     # Pointless condition to force single-query loading
     assert_includes_and_joins_equal(
-      Author.where('tags.id = tags.id'),
+      Author.where('tags.id = tags.id').references(:tags),
       [authors(:bob)], :misc_post_first_blue_tags_2
     )
   end
@@ -543,6 +543,15 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     organizations = Organization.joins(:author_owned_essay_category).
                                  where('categories.id' => categories(:general).id)
     assert_equal [organizations(:nsa)], organizations
+  end
+
+  def test_nested_has_many_through_should_not_be_autosaved
+    c = Categorization.new
+    c.author = authors(:david)
+    c.post_taggings.to_a
+    assert !c.post_taggings.empty?
+    c.save
+    assert !c.post_taggings.empty?
   end
 
   private

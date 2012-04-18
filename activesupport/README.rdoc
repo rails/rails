@@ -19,7 +19,9 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 == License
 
-Active Support is released under the MIT license.
+Active Support is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
 
 
 == Support

@@ -172,6 +172,19 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     man.interests_attributes = [{:id => interest.id, :topic => 'gardening'}]
     assert_equal man.interests.first.topic, man.interests[0].topic
   end
+
+  def test_allows_class_to_override_setter_and_call_super
+    mean_pirate_class = Class.new(Pirate) do
+      accepts_nested_attributes_for :parrot
+      def parrot_attributes=(attrs)
+        super(attrs.merge(:color => "blue"))
+      end
+    end
+    mean_pirate = mean_pirate_class.new
+    mean_pirate.parrot_attributes = { :name => "James" }
+    assert_equal "James", mean_pirate.parrot.name
+    assert_equal "blue", mean_pirate.parrot.color
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
@@ -663,7 +676,7 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_sort_the_hash_by_the_keys_before_building_new_associated_models
-    attributes = ActiveSupport::OrderedHash.new
+    attributes = {}
     attributes['123726353'] = { :name => 'Grace OMalley' }
     attributes['2'] = { :name => 'Privateers Greed' } # 2 is lower then 123726353
     @pirate.send(association_setter, attributes)
@@ -673,7 +686,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_raise_an_argument_error_if_something_else_than_a_hash_is_passed
     assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, {}) }
-    assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, ActiveSupport::OrderedHash.new) }
+    assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, Hash.new) }
 
     assert_raise_with_message ArgumentError, 'Hash or Array expected, got String ("foo")' do
       @pirate.send(association_setter, "foo")

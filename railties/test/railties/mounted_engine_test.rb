@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class ApplicationRoutingTest < Test::Unit::TestCase
+  class ApplicationRoutingTest < ActiveSupport::TestCase
      require 'rack/test'
      include Rack::Test::Methods
      include ActiveSupport::Testing::Isolation
