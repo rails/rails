@@ -71,8 +71,8 @@ module ActiveSupport
           differences = []
           expression.each {|k,v| differences << v; expressions << k }
         else
-          expressions = Array.wrap expression
-          differences = Array.wrap differences
+          expressions = Array(expression)
+          differences = Array(differences)
         end
 
         exps = expressions.map { |e|

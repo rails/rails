@@ -68,160 +68,11 @@ class AssertDifferenceTest < ActiveSupport::TestCase
       end
     end
 
-    def test_array_of_expressions_identify_failure_with_array_of_differences
-      assert_difference ['@object.num', '1 + 1'], [+1, +1] do
-        @object.increment
-      end
-      fail 'should not get to here'
-    rescue Exception => e
-      assert_match(/didn't change by/, e.message)
-      assert_match(/expected but was/, e.message)
-    end
-
     def test_array_of_expressions_identify_failure_when_message_provided
       assert_raises(MiniTest::Assertion) do
         assert_difference ['@object.num', '1 + 1'], 1, 'something went wrong' do
           @object.increment
         end
-      end
-    end
-
-    def test_array_of_expressions_and_array_of_differences
-      assert_difference [ '@object.num', '@object.num + 1' ], [+1, +1] do
-        @object.increment
-      end
-    end
-
-    def test_array_of_expressions_and_array_of_negative_differences
-      assert_difference [ '@object.num', '@object.num - 1' ], [-1, -1] do
-        @object.decrement
-      end
-    end
-
-    def test_array_of_expressions_and_array_of_differences_of_size_1
-      assert_difference [ '@object.num', '@object.num + 1' ], [+1] do
-        @object.increment
-      end
-    end
-
-    def test_array_of_expressions_and_array_of_differences_with_array_too_short
-      assert_difference [ '@object.num', '@object.num + 1', '@object.num + 2' ], [+1, +1] do
-        @object.increment
-      end
-    rescue Exception => e
-      assert_match(/The number of differences passed should either be one, or.*You passed.*\d+\.$/, e.message)
-    end
-
-    def test_array_of_expressions_and_array_of_differences_with_array_too_long
-      assert_difference [ '@object.num', '@object.num + 1' ], [+2, +2, -1] do
-        @object.increment
-        @object.increment
-      end
-    rescue Exception => e
-      assert_match(/The number of differences passed should either be one, or.*You passed.*\d+\.$/, e.message)
-    end
-
-    def test_array_of_expressions_with_difference_of_more_than_1
-      assert_difference [ '@object.num', '@object.num + 1' ], +2 do
-        @object.increment
-        @object.increment
-      end
-    end
-
-    def test_array_of_expressions_and_array_of_differences_with_message
-      assert_difference [ '@object.num', '@object.num + 1' ], [+1, -1], "Foo! Expected @object to decrease by one" do
-        @object.increment
-      end
-    rescue Exception => e
-      assert_match(/Foo! Expected @object to decrease by one/, e.message)
-      assert_match(/expected but was/, e.message)
-    end
-
-    def test_array_of_expressions_and_array_of_differences_with_mixed_negatives_and_positives
-      cl = Class.new do
-        attr_accessor :num
-        def decrement
-          @num -= 1
-        end
-      end.new
-      cl.num = 0
-
-      assert_difference [ '@object.num', 'cl.num' ], [+1, -1] do
-        @object.increment
-        cl.decrement
-      end
-    end
-
-    def test_array_of_lambdas_and_array_of_differences
-      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], [+1, +1] do
-        @object.increment
-      end
-    end
-
-    def test_array_of_lambdas_and_array_of_negative_differences
-      assert_difference [ lambda{@object.num}, lambda{@object.num - 1} ], [-1, -1] do
-        @object.decrement
-      end
-    end
-
-    def test_array_of_lambdas_and_array_of_differences_of_size_1
-      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], [+1] do
-        @object.increment
-      end
-    end
-
-    def test_array_of_lambdas_and_array_of_differences_with_array_too_short
-      assert_difference [ lambda{@object.num}, lambda{@object.num + 1}, lambda{@object.num + 1} ], [+1, +1] do
-        @object.increment
-        @object.increment
-      end
-    rescue Exception => e
-      assert_match(/The number of differences passed should either be one, or.*You passed.*\d+\.$/, e.message)
-    end
-
-    def test_array_of_lambdas_and_array_of_differences_with_array_too_long
-      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], [+1, +1, +1] do
-        @object.increment
-      end
-    rescue Exception => e
-      assert_match(/The number of differences passed should either be one, or.*You passed.*\d+\.$/, e.message)
-    end
-
-    def test_array_of_lambdas_with_difference_of_more_than_1
-      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], +2 do
-        @object.increment
-        @object.increment
-      end
-    end
-
-    def test_array_of_lambdas_and_an_array_of_differences_with_difference_of_more_than_1
-      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], [+2, +2] do
-        @object.increment
-        @object.increment
-      end
-    end
-
-    def test_array_of_lambdas_and_array_of_differences_with_message
-      assert_difference [ lambda{@object.num}, lambda{@object.num + 1} ], [+1, -1], "Foo! Expected @object to decrease by one" do
-        @object.increment
-      end
-    rescue Exception => e
-      assert_match(/Foo! Expected @object to decrease by one/, e.message)
-      assert_match(/expected but was/, e.message)
-    end
-
-    def test_array_of_lambdas_and_array_of_differences_with_mixed_negatives_and_positives
-      cl = Class.new do
-        attr_accessor :num
-        def decrement
-          @num -= 1
-        end
-      end.new
-      cl.num = 0
-
-      assert_difference [ lambda{@object.num}, lambda{cl.num} ], [+1, -1] do
-        @object.increment
-        cl.decrement
       end
     end
 
@@ -255,7 +106,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
       assert_difference( { '@object.num' => -1,
                            '@object.num + 1' => -1,
                            :message => "Foo! Expected @object to decrease by one" } ) do
-        @object.increment
+        @object.decrement
       end
     rescue Exception => e
       assert_match(/Foo! Expected @object to decrease by one/, e.message)
@@ -307,7 +158,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
       assert_difference( { lambda{@object.num} => -1,
                            lambda{@object.num + 1} => -1,
                            :message => "Foo! Expected @object to decrease by one" } ) do
-        @object.increment
+        @object.decrement
       end
     rescue Exception => e
       assert_match(/Foo! Expected @object to decrease by one/, e.message)
