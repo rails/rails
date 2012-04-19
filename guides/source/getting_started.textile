@@ -10,8 +10,10 @@ you should be familiar with:
 
 endprologue.
 
-WARNING. This Guide is based on Rails 3.1. Some of the code shown here will not
+WARNING. This Guide is based on Rails 3.2. Some of the code shown here will not
 work in earlier versions of Rails.
+
+WARNING: The Edge version of this guide is currently being re-worked. Please excuse us while we re-arrange the place.
 
 h3. Guide Assumptions
 
