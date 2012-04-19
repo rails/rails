@@ -13,8 +13,6 @@ endprologue.
 WARNING. This Guide is based on Rails 3.1. Some of the code shown here will not
 work in earlier versions of Rails.
 
-WARNING: The Edge version of this guide is currently being re-worked. Please excuse us while we re-arrange the place.
-
 h3. Guide Assumptions
 
 This guide is designed for beginners who want to get started with a Rails
@@ -73,7 +71,8 @@ h3. Creating a New Rails Project
 
 The best way to use this guide is to follow each step as it happens, no code or
 step needed to make this example application has been left out, so you can
-literally follow along step by step. You can get the complete code "here":https://github.com/lifo/docrails/tree/master/guides/code/getting_started.
+literally follow along step by step. You can get the complete code
+"here":https://github.com/lifo/docrails/tree/master/guides/code/getting_started.
 
 By following along with this guide, you'll create a Rails project called <tt>blog</tt>, a
 (very) simple weblog. Before you can start building the application, you need to
@@ -97,7 +96,7 @@ To verify that you have everything installed correctly, you should be able to ru
 $ rails --version
 </shell>
 
-If it says something like "Rails 3.2.2" you are ready to continue.
+If it says something like "Rails 3.2.3" you are ready to continue.
 
 h4. Creating the Blog Application
 
@@ -111,7 +110,7 @@ $ rails new blog
 
 This will create a Rails application called Blog in a directory called blog.
 
-TIP: You can see all of the switches that the Rails application builder accepts by running <tt>rails new -h</tt>.
+TIP: You can see all of the command line options that the Rails application builder accepts by running <tt>rails new -h</tt>.
 
 After you create the blog application, switch to its folder to continue work directly in that application:
 
