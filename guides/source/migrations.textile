@@ -82,6 +82,8 @@ it to default to +false+ for new users, but existing users are considered to
 have already opted in, so we use the User model to set the flag to +true+ for
 existing users.
 
+h4. Using the change method
+
 Rails 3.1 makes migrations smarter by providing a new <tt>change</tt> method.
 This method is preferred for writing constructive migrations (adding columns or
 tables). The migration knows how to migrate your database and reverse it when
