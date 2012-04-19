@@ -1095,4 +1095,28 @@ class EagerAssociationTest < ActiveRecord::TestCase
       Post.includes(:comments).order(nil).where(:comments => {:body => "Thank you for the welcome"}).first
     end
   end
+
+  def test_deep_including_through_habtm
+    posts = Post.find(:all, :include => {:categories => :categorizations}, :order => "posts.id")
+    assert_no_queries { assert_equal 2, posts[0].categories[0].categorizations.length }
+    assert_no_queries { assert_equal 1, posts[0].categories[1].categorizations.length }
+    assert_no_queries { assert_equal 2, posts[1].categories[0].categorizations.length }
+  end
+
+  test "scoping with a circular preload" do
+    assert_equal Comment.find(1), Comment.preload(:post => :comments).scoping { Comment.find(1) }
+  end
+
+  test "circular preload does not modify unscoped" do
+    expected = FirstPost.unscoped.find(2)
+    FirstPost.preload(:comments => :first_post).find(1)
+    assert_equal expected, FirstPost.unscoped.find(2)
+  end
+
+  test "preload ignores the scoping" do
+    assert_equal(
+      Comment.find(1).post,
+      Post.where('1 = 0').scoping { Comment.preload(:post).find(1).post }
+    )
+  end
 end
