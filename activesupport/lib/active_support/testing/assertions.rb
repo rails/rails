@@ -64,6 +64,8 @@ module ActiveSupport
         if expression.is_a? Hash
           message = expression.delete(:message){nil}
           differences = []
+          # Hashes in Ruby 1.9 are ordered. Once support for 1.8 is
+          # dropped, this can be changed.
           expression.each {|k,v| differences << v; expressions << k }
         else
           expressions = Array(expression)
