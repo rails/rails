@@ -516,7 +516,7 @@ module ActiveRecord
       def pk_and_sequence_for(table)
         execute_and_free("SHOW CREATE TABLE #{quote_table_name(table)}", 'SCHEMA') do |result|
           create_table = each_hash(result).first[:"Create Table"]
-          if create_table.to_s =~ /PRIMARY KEY\s+\((.+)\)/
+          if create_table.to_s =~ /PRIMARY KEY\s+(?:USING\s+\w+\s+)?\((.+)\)/
             keys = $1.split(",").map { |key| key.delete('`"') }
             keys.length == 1 ? [keys.first, nil] : nil
           else
