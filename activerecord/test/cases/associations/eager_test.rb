@@ -1095,15 +1095,4 @@ class EagerAssociationTest < ActiveRecord::TestCase
       Post.includes(:comments).order(nil).where(:comments => {:body => "Thank you for the welcome"}).first
     end
   end
-
-  test "scoping with a circular preload" do
-    assert_equal Comment.find(1), Comment.preload(:post => :comments).scoping { Comment.find(1) }
-  end
-
-  test "preload ignores the scoping" do
-    assert_equal(
-      Comment.find(1).post,
-      Post.where('1 = 0').scoping { Comment.preload(:post).find(1).post }
-    )
-  end
 end

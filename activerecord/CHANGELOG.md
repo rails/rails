@@ -1,9 +1,3 @@
-## Rails 3.2.4 (unreleased) ##
-
-*   Association preloading shouldn't be affected by the current scoping.
-    This could cause infinite recursion and potentially other problems.
-    See GH #5667. *Jon Leighton*
-
 ## Rails 3.2.3 (unreleased) ##
 
 *   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
