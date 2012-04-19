@@ -302,7 +302,9 @@ When you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/n
 
 h4. The first form
 
-To create a form within this template, you will use a _form builder_. The primary form builder for Rails is provided by a helper method called +form_for+. To use this method, write this code into +app/views/posts/new.html.erb+:
+To create a form within this template, you will use a <em>form
+builder</em>. The primary form builder for Rails is provided by a helper
+method called +form_for+. To use this method, add this code into +app/views/posts/new.html.erb+:
 
 <erb>
 <%= form_for :post do |f| %>
@@ -385,10 +387,30 @@ If you re-submit the form one more time you'll now no longer get the missing tem
 
 This action is now displaying the parameters for the post that are coming in from the form. However, this isn't really all that helpful. Yes, you can see the parameters but nothing in particular is being done with them.
 
+h4. Creating the Post model
+
+Rails uses models to manage database objects, so if you want to save
+data to the database you'll have to create a model. In our blog
+application you want to save posts, so you'll create a +Post+ model.
+
+You can create a model with the following command:
+
+<shell>
+$ rails generate model Post title:string text:text
+</shell>
+
+With that command we told Rails that we want a +Post+ model, which in
+turn should have a title attribute of type string, and a text attribute
+of type text. Rails in turn responded by creating a bunch of files. For
+now, we're only interested in +app/models/post.rb+ and
++db/migrate/20120419084633_create_posts.rb+. The latter is responsible
+for creating the dabase structure, which is what we'll look at next.
+
 h4. Running a Migration
 
-One of the products of the +rails generate scaffold+ command is a _database
-migration_. Migrations are Ruby classes that are designed to make it simple to
+As we've just seen, +rails generate model+ created a _database
+migration_ file inside the +db/migrate+ directory.
+Migrations are Ruby classes that are designed to make it simple to
 create and modify database tables. Rails uses rake commands to run migrations,
 and it's possible to undo a migration after it's been applied to your database.
 Migration filenames include a timestamp to ensure that they're processed in the
@@ -401,9 +423,8 @@ yours will have a slightly different name), here's what you'll find:
 class CreatePosts < ActiveRecord::Migration
   def change
     create_table :posts do |t|
-      t.string :name
       t.string :title
-      t.text :content
+      t.text :text
 
       t.timestamps
     end
@@ -415,7 +436,7 @@ The above migration creates a method named +change+ which will be called when yo
 run this migration. The action defined in this method is also reversible, which
 means Rails knows how to reverse the change made by this migration, in case you
 want to reverse it later. When you run this migration it will create a
-+posts+ table with two string columns and a text column. It also creates two
++posts+ table with one string column and a text column. It also creates two
 timestamp fields to allow Rails to track post creation and update times. More
 information about Rails migrations can be found in the "Rails Database
 Migrations":migrations.html guide.
