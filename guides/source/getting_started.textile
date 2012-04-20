@@ -463,6 +463,33 @@ command will apply to the database defined in the +development+ section of your
 environment, for instance in production, you must explicitly pass it when
 invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
 
+h4. Saving data in the controller
+
+Back into +posts_controller+, we need to change the +create+ action
+to use the new +Post+ model to save data in the database. Open that file
+and change the +create+ action to look like the following:
+
+<ruby>
+def create
+  @post = Post.new(params[:post])
+
+  @post.save
+  redirect_to :action => :index
+end
+</ruby>
+
+Here's what's going on: every Rails model can be initialized with its
+respective attributes, which are automatically mapped to its
+database columns. In the first line we do just that (remember that
++params[:post]+ contains the attributes we're interested in). Then,
++@post.save+ is responsible for saving the model in the database.
+Finally, on the last line we redirect the user to the +index+ action,
+wich we have not defined yet.
+
+TIP: As we'll see later, +@post.save+ returns a boolean indicating
+wherever the model was saved or not, and you can (and usually do) take
+different actions depending on the result of calling +@post.save+.
+
 h4. Adding a Link
 
 To hook the posts up to the home page you've already created, you can add a link
