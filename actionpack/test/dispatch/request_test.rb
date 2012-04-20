@@ -435,6 +435,13 @@ class RequestTest < ActiveSupport::TestCase
 
   test "parameters" do
     request = stub_request
+
+    request.instance_eval do
+      def method(method)
+        self.superclass.method(method)
+      end
+    end
+
     request.stubs(:request_parameters).returns({ "foo" => 1 })
     request.stubs(:query_parameters).returns({ "bar" => 2 })
 
