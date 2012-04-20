@@ -80,6 +80,7 @@ module ActionDispatch
     end
 
     def insert(index, *args, &block)
+      ensure_not_built_yet!
       index = assert_index(index, :before)
       middleware = self.class::Middleware.new(*args, &block)
       middlewares.insert(index, middleware)
@@ -88,21 +89,25 @@ module ActionDispatch
     alias_method :insert_before, :insert
 
     def insert_after(index, *args, &block)
+      ensure_not_built_yet!
       index = assert_index(index, :after)
       insert(index + 1, *args, &block)
     end
 
     def swap(target, *args, &block)
+      ensure_not_built_yet!
       index = assert_index(target, :before)
       insert(index, *args, &block)
       middlewares.delete_at(index + 1)
     end
 
     def delete(target)
+      ensure_not_built_yet!
       middlewares.delete target
     end
 
     def use(*args, &block)
+      ensure_not_built_yet!
       middleware = self.class::Middleware.new(*args, &block)
       middlewares.push(middleware)
     end
@@ -110,7 +115,9 @@ module ActionDispatch
     def build(app = nil, &block)
       app ||= block
       raise "MiddlewareStack#build requires an app" unless app
-      middlewares.reverse.inject(app) { |a, e| e.build(a) }
+      value = middlewares.reverse.inject(app) { |a, e| e.build(a) }
+      @built = true
+      value
     end
 
   protected
@@ -120,5 +127,13 @@ module ActionDispatch
       raise "No such middleware to insert #{where}: #{index.inspect}" unless i
       i
     end
+
+  private
+    
+    def ensure_not_build_yet!
+      raise "Adding middlewares to stack after the application has been " +
+        "built is not allowed!" if @built
+    end
+
   end
 end
