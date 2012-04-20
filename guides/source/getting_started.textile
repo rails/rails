@@ -540,19 +540,120 @@ be able to create a post. Try it!
 
 !images/getting_started/show_action_for_posts.png(Show action for posts)!
 
-h4. Adding a Link
+h4. Listing all posts
 
-To hook the posts up to the home page you've already created, you can add a link
-to the home page. Open +app/views/welcome/index.html.erb+ and modify it as follows:
+We still need a way to list all our posts, so let's do that. As usual,
+we'll need a route, a controller action, and a view:
+
+<ruby>
+# Add to config/routes.rb
+get "posts" => "posts#index"
+
+# Add to app/controllers/posts_controller.rb
+def index
+  @posts = Post.all
+end
+</ruby>
+
++app/view/posts/index.html.erb+:
+
+<erb>
+<h1>Listing posts</h1>
+
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+  </tr>
+
+<% @posts.each do |post| %>
+  <tr>
+    <td><%= post.title %></td>
+    <td><%= post.text %></td>
+  </tr>
+<% end %>
+</table>
+</erb>
+
+h4. Adding links
+
+You can now create, show, and list posts. But it's difficult to navigate
+through pages, so let's add some links.
+
+Open +app/views/welcome/index.html.erb+ and modify it as follows:
 
 <ruby>
 <h1>Hello, Rails!</h1>
-<%= link_to "My Blog", posts_path %>
+<%= link_to "My Blog", :controller => "posts" %>
 </ruby>
 
 The +link_to+ method is one of Rails' built-in view helpers. It creates a
 hyperlink based on text to display and where to go - in this case, to the path
 for posts.
+
+Let's add links to the other views as well.
+
+<erb>
+# app/views/posts/index.html.erb
+
+<h1>Listing posts</h1>
+
+<%= link_to 'New post', :action => :new %>
+
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+    <th></th>
+  </tr>
+
+<% @posts.each do |post| %>
+  <tr>
+    <td><%= post.title %></td>
+    <td><%= post.text %></td>
+    <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
+  </tr>
+<% end %>
+</table>
+
+# app/views/posts/new.html.erb
+
+<%= form_for :post do |f| %>
+  <p>
+    <%= f.label :title %><br>
+    <%= f.text_field :title %>
+  </p>
+
+  <p>
+    <%= f.label :text %><br>
+    <%= f.text_area :text %>
+  </p>
+
+  <p>
+    <%= f.submit %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', :action => :index %>
+
+# app/views/posts/show.html.erb
+
+<p>
+  <strong>Title:</strong>
+  <%= @post.title %>
+</p>
+
+<p>
+  <strong>Text:</strong>
+  <%= @post.text %>
+</p>
+
+<%= link_to 'Back', :action => :index %>
+</erb>
+
+TIP: If you want to link to an action in the same controller, you don't
+need to specify the +:controller+ option, as Rails will use the current
+controller by default.
 
 h4. Working with Posts in the Browser
 
