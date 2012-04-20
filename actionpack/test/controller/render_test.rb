@@ -612,6 +612,10 @@ class TestController < ActionController::Base
     render :partial => "customer_counter_with_as", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :client
   end
 
+  def partial_collection_with_first_and_last
+    render :partial => "customer_first_last", :collection => [ Customer.new("david"), Customer.new("mary"), Customer.new("joseph") ]
+  end
+
   def partial_collection_with_locals
     render :partial => "customer_greeting", :collection => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
   end

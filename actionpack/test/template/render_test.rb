@@ -223,8 +223,13 @@ module RenderTestCases
   end
 
   def test_render_partial_collection_without_as
-    assert_equal "local_inspector,local_inspector_counter",
+    assert_equal "local_inspector,local_inspector_counter,local_inspector_is_first,local_inspector_is_last",
       @view.render(:partial => "test/local_inspector", :collection => [ Customer.new("mary") ])
+  end
+
+  def test_render_partial_collection_with_first_and_last
+    assert_equal "davidtruefalsemaryfalsefalsejosephfalsetrue",
+      @view.render(:partial => "test/customer_first_last", :collection => [ Customer.new("david"), Customer.new("mary"), Customer.new("joseph") ])
   end
 
   def test_render_partial_with_empty_collection_should_return_nil
