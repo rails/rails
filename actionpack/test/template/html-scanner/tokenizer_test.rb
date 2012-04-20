@@ -72,6 +72,13 @@ class TokenizerTest < ActiveSupport::TestCase
     assert_next %{<html>}
   end
 
+  def test_doctype_ugly_camel_case_tag
+    tokenize %{<!DocType "blah" "blah" "blah">\n    <html>}
+    assert_next %{<!DocType "blah" "blah" "blah">}
+    assert_next %{\n    }
+    assert_next %{<html>}
+  end
+
   def test_cdata_tag
     tokenize %{<![CDATA[<br>]]>}
     assert_next %{<![CDATA[<br>]]>}
