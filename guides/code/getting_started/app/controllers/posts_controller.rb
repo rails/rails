@@ -1,5 +1,10 @@
 class PostsController < ApplicationController
 
+
+  def show
+    @post = Post.find(params[:id])
+  end
+
   def new
   end
 
@@ -7,6 +12,6 @@ class PostsController < ApplicationController
     @post = Post.new(params[:post])
 
     @post.save
-    redirect_to :action => :index
+    redirect_to :action => :show, :id => @post.id
   end
 end
