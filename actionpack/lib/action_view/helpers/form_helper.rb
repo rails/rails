@@ -184,7 +184,7 @@ module ActionView
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
-      #     Admin?    : <%= check_box_tag "person[admin]", @person.company.admin? %>
+      #     Admin?    : <%= check_box_tag "person[admin]", "1", @person.company.admin? %>
       #     <%= f.submit %>
       #   <% end %>
       #
