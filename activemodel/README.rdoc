@@ -26,7 +26,7 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
     person = Person.new(:name => 'bob', :age => '18')
     person.name # => 'bob'
     person.age # => 18
-    person.valid? # => false
+    person.valid? # => true
 
 It includes model name introspections, conversions, translations and
 validations, resulting in a class suitable to be used with Action Pack.
@@ -112,9 +112,6 @@ behavior out of the box:
         "Name"
       end
     end
-
-    person.errors.full_messages
-    # => ["Name can not be nil"]
 
     person.errors.full_messages
     # => ["Name can not be nil"]
