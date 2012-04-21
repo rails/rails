@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
+
 *   Make current object and counter (when it applies) variables accessible when
     rendering templates with :object / :collection. *Carlos Antonio da Silva*
 
