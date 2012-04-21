@@ -3,5 +3,8 @@ module <%= camelized %>
 <% if mountable? -%>
     isolate_namespace <%= camelized %>
 <% end -%>
+
+  # Tie your engine into Rails.application.config
+  config.<%= underscored %> = <%= camelized %>
   end
 end
