@@ -442,7 +442,7 @@ module ActionView
       #    <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       #  video_tag(["trailer.ogg", "trailer.flv"]) # =>
       #    <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
-      #  video_tag(["trailer.ogg", "trailer.flv"] :size => "160x120") # =>
+      #  video_tag(["trailer.ogg", "trailer.flv"], :size => "160x120") # =>
       #    <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       def video_tag(*sources)
         multiple_sources_tag('video', sources) do |options|
