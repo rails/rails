@@ -655,25 +655,11 @@ TIP: If you want to link to an action in the same controller, you don't
 need to specify the +:controller+ option, as Rails will use the current
 controller by default.
 
-h4. Working with Posts in the Browser
-
-Now you're ready to start working with posts. To do that, navigate to
-"http://localhost:3000":http://localhost:3000/ and then click the "My Blog"
-link:
-
-!images/posts_index.png(Posts Index screenshot)!
-
-This is the result of Rails rendering the +index+ view of your posts. There
-aren't currently any posts in the database, but if you click the +New Post+ link
-you can create one. After that, you'll find that you can edit posts, look at
-their details, or destroy them. All of the logic and HTML to handle this was
-built by the single +rails generate scaffold+ command.
-
 TIP: In development mode (which is what you're working in by default), Rails
 reloads your application with every browser request, so there's no need to stop
 and restart the web server.
 
-Congratulations, you're riding the rails! Now it's time to see how it all works.
+Congratulations, you're riding the rails! Now it’s time to see how it all works.
 
 h4. The Model
 
@@ -697,17 +683,99 @@ Open the +app/models/post.rb+ file and edit it:
 
 <ruby>
 class Post < ActiveRecord::Base
-  validates :name,  :presence => true
   validates :title, :presence => true,
                     :length => { :minimum => 5 }
 end
 </ruby>
 
-These changes will ensure that all posts have a name and a title, and that the
-title is at least five characters long. Rails can validate a variety of
-conditions in a model, including the presence or uniqueness of columns, their
+These changes will ensure that all posts have a title that is at least five characters long.
+Rails can validate a variety of conditions in a model, including the presence or uniqueness of columns, their
 format, and the existence of associated objects. Validations are covered in detail
-in "Active Record Validations and Callbacks":active_record_validations_callbacks.html#validations-overview
+in "Active Record Validations and
+Callbacks":active_record_validations_callbacks.html#validations-overview
+
+If you open +posts_controller+ again, you'll notice that we don't check
+the result of calling +@post.save+, but now if we don't pass a valid
+title, +save+ will return false and we need to show the form back to the
+user. To do that, modify the +create+ action to look like the following:
+
+<ruby>
+def new
+  @post = Post.new
+end
+
+def create
+  @post = Post.new(params[:post])
+
+  if @post.save
+    redirect_to :action => :show, :id => @post.id
+  else
+    render 'new'
+  end
+end
+</ruby>
+
+Notice that I've also added +@post = Post.new+ to the +new+ action. I'll
+explain why I did that in the next section.
+
+Now, if validations fail and +save+ returns false, we show the form back
+to the user. Note that we use +render+ instead of +redirect_to+. We do
+that because +render+ will pass the +@post+ variable back to the form,
+which contains the error information that we need.
+
+If you reload
+"http://localhost:3000/posts/new":http://localhost:3000/posts/new and
+try to save a post without a title, Rails will send you back to the
+form, but that's not very useful. You need to tell the user that
+something went wrong. To do that, you'll modify
++app/views/posts/index.html.erb+ to check for error messages:
+
+<erb>
+<%= form_for :post do |f| %>
+  <% if @post.errors.any? %>
+  <div id="errorExplanation">
+    <h2><%= pluralize(@post.errors.count, "error") %> prohibited
+	    this post from being saved:</h2>
+    <ul>
+    <% @post.errors.full_messages.each do |msg| %>
+      <li><%= msg %></li>
+    <% end %>
+    </ul>
+  </div>
+  <% end %>
+  <p>
+    <%= f.label :title %><br>
+    <%= f.text_field :title %>
+  </p>
+
+  <p>
+    <%= f.label :text %><br>
+    <%= f.text_area :text %>
+  </p>
+
+  <p>
+    <%= f.submit %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', :action => :index %>
+</erb>
+
+A few things are going on. We check if there are any errors with
++@post.errors.any?+, and if that returns true we show the list of all
+errors with +@post.errors.full_messages+. +pluralize+ is a rails helper
+that takes a number and a string as its arguments. If the number is
+greater than one, the string will be automatically pluralized.
+
+The reason why we added +@post = Post.new+ in +posts_controller+ is that
+otherwise +@post+ would be +nil+ in our view, and calling
++@post.errors.any?+ would throw an error.
+
+TIP: Rails automatically wraps fields that contain an error with a div
+with class +field_with_errors+. You can define a css rule to make them
+standout.
+
+
 
 h4. Using the Console
 

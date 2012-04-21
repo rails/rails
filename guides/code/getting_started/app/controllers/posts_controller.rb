@@ -14,7 +14,10 @@ class PostsController < ApplicationController
   def create
     @post = Post.new(params[:post])
 
-    @post.save
-    redirect_to :action => :show, :id => @post.id
+    if @post.save
+      redirect_to :action => :show, :id => @post.id
+    else
+      render 'new'
+    end
   end
 end
