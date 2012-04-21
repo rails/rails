@@ -695,9 +695,8 @@ in "Active Record Validations and
 Callbacks":active_record_validations_callbacks.html#validations-overview
 
 If you open +posts_controller+ again, you'll notice that we don't check
-the result of calling +@post.save+, but now if we don't pass a valid
-title, +save+ will return false and we need to show the form back to the
-user. To do that, modify the +create+ action to look like the following:
+the result of calling +@post.save+. We need to change its behavior to
+show the form back to the user if any error occur:
 
 <ruby>
 def new
@@ -716,12 +715,12 @@ end
 </ruby>
 
 Notice that I've also added +@post = Post.new+ to the +new+ action. I'll
-explain why I did that in the next section.
+explain why I did that in the next section, for now add that to your
+controller as well.
 
-Now, if validations fail and +save+ returns false, we show the form back
-to the user. Note that we use +render+ instead of +redirect_to+. We do
-that because +render+ will pass the +@post+ variable back to the form,
-which contains the error information that we need.
+Also notice that we use +render+ instead of +redirect_to+ when +save+
+returns false. We can use +render+ so that the +@post+ object is passed
+back to the view.
 
 If you reload
 "http://localhost:3000/posts/new":http://localhost:3000/posts/new and
@@ -762,8 +761,10 @@ something went wrong. To do that, you'll modify
 </erb>
 
 A few things are going on. We check if there are any errors with
-+@post.errors.any?+, and if that returns true we show the list of all
-errors with +@post.errors.full_messages+. +pluralize+ is a rails helper
++@post.errors.any?+, and in that case we show a list of all
+errors with +@post.errors.full_messages+.
+
++pluralize+ is a rails helper
 that takes a number and a string as its arguments. If the number is
 greater than one, the string will be automatically pluralized.
 
@@ -775,7 +776,9 @@ TIP: Rails automatically wraps fields that contain an error with a div
 with class +field_with_errors+. You can define a css rule to make them
 standout.
 
+Now you'll get a nice error message when saving a post without title:
 
+!images/getting_started/form_with_errors.png(Form With Errors)!
 
 h4. Using the Console
 
