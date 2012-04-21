@@ -1,4 +1,9 @@
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.4 (unreleased) ##
+
+*   Deprecate `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
+
+
+## Rails 3.2.3 (March 30, 2012) ##
 
 *   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*
 
