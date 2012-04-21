@@ -1,5 +1,4 @@
 require 'active_support/duration'
-require 'active_support/core_ext/time/zones'
 require 'active_support/core_ext/time/conversions'
 
 class Time
