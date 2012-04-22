@@ -90,7 +90,7 @@ module ActiveRecord
         def default_scope(scope = {})
           scope = Proc.new if block_given?
 
-          if scope.is_a?(Relation) || !scope.respond_to?(:call)
+          if scope.is_a?(Relation) || !scope.is_a?(Hash) && !scope.respond_to?(:call)
             ActiveSupport::Deprecation.warn(
               "Calling #default_scope without a block is deprecated. For example instead " \
               "of `default_scope where(color: 'red')`, please use " \
