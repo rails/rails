@@ -171,7 +171,7 @@ module ActiveRecord
         #   Article.published.featured.latest_article
         #   Article.featured.titles
 
-        def scope(name, body = {}, &block)
+        def scope(name, body, &block)
           extension = Module.new(&block) if block
 
           # Check body.is_a?(Relation) to prevent the relation actually being
@@ -188,9 +188,7 @@ module ActiveRecord
           end
 
           singleton_class.send(:define_method, name) do |*args|
-            options = body.respond_to?(:call) ? unscoped { body.call(*args) } : body
-            options = scoped.apply_finder_options(options) if options.is_a?(Hash)
-
+            options  = body.respond_to?(:call) ? unscoped { body.call(*args) } : body
             relation = scoped.merge(options)
 
             extension ? relation.extending(extension) : relation
