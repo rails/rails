@@ -85,7 +85,7 @@ module ActiveRecord
 
       def merged_wheres
         if values[:where]
-          merged_wheres = relation.where_values + values[:where]
+          merged_wheres = relation.where_values + Array(values[:where])
 
           unless relation.where_values.empty?
             # Remove duplicates, last one wins.
