@@ -156,6 +156,12 @@ module ActiveRecord
       relation = Relation.new(:a, :b, where: [:foo])
       assert_equal [:foo], relation.where_values
     end
+
+    test 'merging a single where value' do
+      relation = Relation.new(:a, :b)
+      relation.merge!(where: :foo)
+      assert_equal [:foo], relation.where_values
+    end
   end
 
   class RelationMutationTest < ActiveSupport::TestCase
