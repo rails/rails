@@ -3,32 +3,41 @@ require 'active_support/core_ext/hash/keys'
 
 module ActiveRecord
   class Relation
-    class Merger
-      attr_reader :relation, :other
+    class HashMerger
+      attr_reader :relation, :hash
 
-      def initialize(relation, other)
+      def initialize(relation, hash)
+        hash.assert_valid_keys(*Relation::VALUE_METHODS)
+
         @relation = relation
-
-        if other.default_scoped? && other.klass != relation.klass
-          @other = other.with_default_scope
-        else
-          @other = other
-        end
+        @hash     = hash
       end
 
       def merge
-        HashMerger.new(relation, other.values).merge
+        Merger.new(relation, other).merge
+      end
+
+      # Applying values to a relation has some side effects. E.g.
+      # interpolation might take place for where values. So we should
+      # build a relation to merge in rather than directly merging
+      # the values.
+      def other
+        other = Relation.new(relation.klass, relation.table)
+        hash.each { |k, v| other.send("#{k}!", v) }
+        other
       end
     end
 
-    class HashMerger
+    class Merger
       attr_reader :relation, :values
 
-      def initialize(relation, values)
-        values.assert_valid_keys(*Relation::VALUE_METHODS)
+      def initialize(relation, other)
+        if other.default_scoped? && other.klass != relation.klass
+          other = other.with_default_scope
+        end
 
         @relation = relation
-        @values   = values
+        @values   = other.values
       end
 
       def normal_values
@@ -85,7 +94,7 @@ module ActiveRecord
 
       def merged_wheres
         if values[:where]
-          merged_wheres = relation.where_values + Array(values[:where])
+          merged_wheres = relation.where_values + values[:where]
 
           unless relation.where_values.empty?
             # Remove duplicates, last one wins.
