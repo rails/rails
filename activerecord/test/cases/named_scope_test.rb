@@ -460,11 +460,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     klass.table_name = 'posts'
 
     assert_deprecated do
-      klass.scope :welcome, { :conditions => { :id => posts(:welcome).id } }
-    end
-    assert_equal [posts(:welcome).title], klass.welcome.map(&:title)
-
-    assert_deprecated do
       klass.scope :welcome_2, klass.where(:id => posts(:welcome).id)
     end
     assert_equal [posts(:welcome).title], klass.welcome_2.map(&:title)

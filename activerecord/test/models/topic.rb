@@ -45,8 +45,8 @@ class Topic < ActiveRecord::Base
       2
     end
   end
-  scope :named_extension, -> { { :extend => NamedExtension } }
-  scope :multiple_extensions, -> { { :extend => [MultipleExtensionTwo, MultipleExtensionOne] } }
+  scope :named_extension, :extend => NamedExtension
+  scope :multiple_extensions, :extend => [MultipleExtensionTwo, MultipleExtensionOne]
 
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   has_many :replies_with_primary_key, :class_name => "Reply", :dependent => :destroy, :primary_key => "title", :foreign_key => "parent_title"
