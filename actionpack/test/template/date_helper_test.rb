@@ -133,6 +133,8 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "about 1 hour", distance_of_time_in_words(60*60)
     assert_equal "1 minute", distance_of_time_in_words(0, 59)
     assert_equal "about 1 hour", distance_of_time_in_words(60*60, 0)
+    assert_equal "about 3 years", distance_of_time_in_words(10**8)
+    assert_equal "about 3 years", distance_of_time_in_words(0, 10**8)
   end
 
   def test_distance_in_words_with_times
