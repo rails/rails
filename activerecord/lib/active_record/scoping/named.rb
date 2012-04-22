@@ -29,17 +29,16 @@ module ActiveRecord
         # You can define a \scope that applies to all finders using
         # ActiveRecord::Base.default_scope.
         def scoped(options = nil)
-          if options
-            scoped.apply_finder_options(options)
+          if current_scope
+            scope = current_scope.clone
           else
-            if current_scope
-              current_scope.clone
-            else
-              scope = relation
-              scope.default_scoped = true
-              scope
-            end
+            scope = relation
+            scope.default_scoped = true
+            scope
           end
+
+          scope.merge!(options) if options
+          scope
         end
 
         ##
