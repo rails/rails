@@ -17,6 +17,9 @@ module ApplicationTests
         app_file "app/views/home/index.html.haml", "-# TODO: note in haml"
         app_file "app/views/home/index.html.slim", "/ TODO: note in slim"
         app_file "app/assets/javascripts/application.js.coffee", "# TODO: note in coffee"
+        app_file "app/assets/javascripts/application.js", "// TODO: note in js"
+        app_file "app/assets/stylesheets/application.css", "// TODO: note in css"
+        app_file "app/assets/stylesheets/application.css.scss", "// TODO: note in scss"
         app_file "app/controllers/application_controller.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in ruby"
 
         boot_rails
@@ -35,8 +38,11 @@ module ApplicationTests
           assert_match /note in slim/, output
           assert_match /note in ruby/, output
           assert_match /note in coffee/, output
+          assert_match /note in js/, output
+          assert_match /note in css/, output
+          assert_match /note in scss/, output
 
-          assert_equal 5, lines.size
+          assert_equal 8, lines.size
 
           lines.each do |line|
             assert_equal 4, line[0].size
