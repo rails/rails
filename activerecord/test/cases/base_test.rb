@@ -2087,4 +2087,9 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal record, klass.public_send(meth, :foo, :bar)
     end
   end
+
+  test "scoped can take a values hash" do
+    klass = Class.new(ActiveRecord::Base)
+    assert_equal ['foo'], klass.scoped(select: 'foo').select_values
+  end
 end
