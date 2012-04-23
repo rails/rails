@@ -17,31 +17,32 @@ module ApplicationTests
     end
 
     test "show exceptions middleware filter backtrace before logging" do
-      my_middleware = Struct.new(:app) do
-        def call(env)
-          raise "Failure"
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            raise 'oops'
+          end
         end
-      end
+      RUBY
 
-      app.config.middleware.use my_middleware
+      get "/foo"
+      assert_equal 500, last_response.status
 
-      stringio = StringIO.new
-      Rails.logger = Logger.new(stringio)
-
-      get "/"
-      assert_no_match(/action_dispatch/, stringio.string)
+      log = File.read(Rails.application.config.paths["log"].first)
+      assert_no_match(/action_dispatch/, log, log)
+      assert_match(/oops/, log, log)
     end
 
     test "renders active record exceptions as 404" do
-      my_middleware = Struct.new(:app) do
-        def call(env)
-          raise ActiveRecord::RecordNotFound
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            raise ActiveRecord::RecordNotFound
+          end
         end
-      end
+      RUBY
 
-      app.config.middleware.use my_middleware
-
-      get "/"
+      get "/foo"
       assert_equal 404, last_response.status
     end
 

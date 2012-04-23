@@ -222,19 +222,19 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_area_tag_size_string
     actual = text_area_tag "body", "hello world", "size" => "20x40"
-    expected = %(<textarea cols="20" id="body" name="body" rows="40">hello world</textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_size_symbol
     actual = text_area_tag "body", "hello world", :size => "20x40"
-    expected = %(<textarea cols="20" id="body" name="body" rows="40">hello world</textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_should_disregard_size_if_its_given_as_an_integer
     actual = text_area_tag "body", "hello world", :size => 20
-    expected = %(<textarea id="body" name="body">hello world</textarea>)
+    expected = %(<textarea id="body" name="body">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
@@ -245,19 +245,19 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_area_tag_escape_content
     actual = text_area_tag "body", "<b>hello world</b>", :size => "20x40"
-    expected = %(<textarea cols="20" id="body" name="body" rows="40">&lt;b&gt;hello world&lt;/b&gt;</textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\n&lt;b&gt;hello world&lt;/b&gt;</textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_unescaped_content
     actual = text_area_tag "body", "<b>hello world</b>", :size => "20x40", :escape => false
-    expected = %(<textarea cols="20" id="body" name="body" rows="40"><b>hello world</b></textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\n<b>hello world</b></textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_unescaped_nil_content
     actual = text_area_tag "body", nil, :escape => false
-    expected = %(<textarea id="body" name="body"></textarea>)
+    expected = %(<textarea id="body" name="body">\n</textarea>)
     assert_dom_equal expected, actual
   end
 

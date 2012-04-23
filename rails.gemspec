@@ -10,18 +10,19 @@ Gem::Specification.new do |s|
   s.required_ruby_version     = '>= 1.9.3'
   s.required_rubygems_version = ">= 1.8.11"
 
-  s.author            = 'David Heinemeier Hansson'
-  s.email             = 'david@loudthinking.com'
-  s.homepage          = 'http://www.rubyonrails.org'
+  s.author   = 'David Heinemeier Hansson'
+  s.email    = 'david@loudthinking.com'
+  s.homepage = 'http://www.rubyonrails.org'
 
-  s.bindir             = 'bin'
-  s.executables        = []
+  s.bindir      = 'bin'
+  s.executables = []
+  s.files       = Dir['guides/**/*']
 
-  s.add_dependency('activesupport',  version)
-  s.add_dependency('actionpack',     version)
-  s.add_dependency('activerecord',   version)
-  s.add_dependency('activeresource', version)
-  s.add_dependency('actionmailer',   version)
-  s.add_dependency('railties',       version)
-  s.add_dependency('bundler',        '~> 1.1')
+  s.add_dependency('activesupport',   version)
+  s.add_dependency('actionpack',      version)
+  s.add_dependency('activerecord',    version)
+  s.add_dependency('actionmailer',    version)
+  s.add_dependency('railties',        version)
+  s.add_dependency('bundler',         '~> 1.1')
+  s.add_dependency('sprockets-rails', '~> 1.0')
 end

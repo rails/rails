@@ -40,7 +40,7 @@ module ActionController #:nodoc:
     #
     # You can modify the default action cache path by passing a
     # <tt>:cache_path</tt> option. This will be passed directly to
-    # <tt>ActionCachePath.path_for</tt>. This is handy for actions with
+    # <tt>ActionCachePath.new</tt>. This is handy for actions with
     # multiple possible routes that should be cached differently. If a
     # block is given, it is called with the current controller instance.
     #
@@ -170,14 +170,14 @@ module ActionController #:nodoc:
             options.reverse_merge!(:format => @extension) if options.is_a?(Hash)
           end
 
-          path = controller.url_for(options).split(%r{://}).last
+          path = controller.url_for(options).split('://', 2).last
           @path = normalize!(path)
         end
 
       private
         def normalize!(path)
           path << 'index' if path[-1] == ?/
-          path << ".#{extension}" if extension and !path.split('?').first.ends_with?(".#{extension}")
+          path << ".#{extension}" if extension and !path.split('?', 2).first.ends_with?(".#{extension}")
           URI.parser.unescape(path)
         end
       end

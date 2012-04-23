@@ -62,7 +62,11 @@ end
 
 class Weird < ActiveRecord::Base; end
 
-class Boolean < ActiveRecord::Base; end
+class Boolean < ActiveRecord::Base
+  def has_fun
+    super
+  end
+end
 
 class LintTest < ActiveRecord::TestCase
   include ActiveModel::Lint::Tests
@@ -163,7 +167,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_select_symbol
     topic_ids = Topic.select(:id).map(&:id).sort
-    assert_equal Topic.all.map(&:id).sort, topic_ids
+    assert_equal Topic.pluck(:id).sort, topic_ids
   end
 
   def test_table_exists
@@ -957,6 +961,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert b_true.value?
   end
 
+  def test_boolean_without_questionmark
+    b_true = Boolean.create({ "value" => true })
+    true_id = b_true.id
+
+    subclass   = Class.new(Boolean).find true_id
+    superclass = Boolean.find true_id
+
+    assert_equal superclass.read_attribute(:has_fun), subclass.read_attribute(:has_fun)
+  end
+
   def test_boolean_cast_from_string
     b_blank = Boolean.create({ "value" => "" })
     blank_id = b_blank.id
@@ -1139,7 +1153,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert g.save
 
       # Reload and check that we have all the geometric attributes.
-      h = ActiveRecord::IdentityMap.without { Geometric.find(g.id) }
+      h = Geometric.find(g.id)
 
       assert_equal '(5,6.1)', h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
@@ -1168,7 +1182,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert g.save
 
       # Reload and check that we have all the geometric attributes.
-      h = ActiveRecord::IdentityMap.without { Geometric.find(g.id) }
+      h = Geometric.find(g.id)
 
       assert_equal '(5,6.1)', h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
@@ -1489,7 +1503,11 @@ class BasicsTest < ActiveRecord::TestCase
     after_seq     = Joke.sequence_name
 
     assert_not_equal before_columns, after_columns
-    assert_not_equal before_seq, after_seq unless before_seq.blank? && after_seq.blank?
+    unless before_seq.nil? && after_seq.nil?
+      assert_not_equal before_seq, after_seq
+      assert_equal "cold_jokes_id_seq", before_seq
+      assert_equal "funny_jokes_id_seq", after_seq
+    end
   end
 
   def test_dont_clear_sequence_name_when_setting_explicitly
@@ -1500,7 +1518,17 @@ class BasicsTest < ActiveRecord::TestCase
     Joke.table_name    = "funny_jokes"
     after_seq          = Joke.sequence_name
 
-    assert_equal before_seq, after_seq unless before_seq.blank? && after_seq.blank?
+    assert_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
+  end
+
+  def test_dont_clear_inheritnce_column_when_setting_explicitly
+    Joke.inheritance_column = "my_type"
+    before_inherit = Joke.inheritance_column
+
+    Joke.reset_column_information
+    after_inherit = Joke.inheritance_column
+
+    assert_equal before_inherit, after_inherit unless before_inherit.blank? && after_inherit.blank?
   end
 
   def test_set_table_name_symbol_converted_to_string
@@ -2032,5 +2060,31 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_typecasting_aliases
     assert_equal 10, Topic.select('10 as tenderlove').first.tenderlove
+  end
+
+  def test_slice
+    company = Company.new(:rating => 1, :name => "37signals", :firm_name => "37signals")
+    hash = company.slice(:name, :rating, "arbitrary_method")
+    assert_equal hash[:name], company.name
+    assert_equal hash['name'], company.name
+    assert_equal hash[:rating], company.rating
+    assert_equal hash['arbitrary_method'], company.arbitrary_method
+    assert_equal hash[:arbitrary_method], company.arbitrary_method
+    assert_nil hash[:firm_name]
+    assert_nil hash['firm_name']
+  end
+
+  ["find_by", "find_by!"].each do |meth|
+    test "#{meth} delegates to scoped" do
+      record = stub
+
+      scope = mock
+      scope.expects(meth).with(:foo, :bar).returns(record)
+
+      klass = Class.new(ActiveRecord::Base)
+      klass.stubs(:scoped => scope)
+
+      assert_equal record, klass.public_send(meth, :foo, :bar)
+    end
   end
 end

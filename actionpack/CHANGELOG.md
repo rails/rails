@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `index` method to FormBuilder class. *Jorge Bejar*
+
+*   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
+
+*   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`
+    to `false`. This change breaks remote forms that need to work also without javascript,
+    so if you need such behavior, you can either set it to `true` or explicitly pass
+    `:authenticity_token => true` in form options
+
+*   Added ActionDispatch::SSL middleware that when included force all the requests to be under HTTPS protocol. *Rafael Mendonça França*
+
+*   Add `include_hidden` option to select tag. With `:include_hidden => false` select with `multiple` attribute doesn't generate hidden input with blank value. *Vasiliy Ermolovich*
+
 *   Removed default `size` option from the `text_field`, `search_field`, `telephone_field`, `url_field`, `email_field` helpers. *Philip Arndt*
 
 *   Removed default `cols` and `rows` options from the `text_area` helper. *Philip Arndt*
@@ -87,6 +100,9 @@
 *   check_box with `:form` html5 attribute will now replicate the `:form`
     attribute to the hidden field as well. *Carlos Antonio da Silva*
 
+*   Turn off verbose mode of rack-cache, we still have X-Rack-Cache to
+    check that info. Closes #5245. *Santiago Pastorino*
+
 *   `label` form helper accepts :for => nil to not generate the attribute. *Carlos Antonio da Silva*
 
 *   Add `:format` option to number_to_percentage *Rodrigo Flores*
@@ -115,11 +131,15 @@
 
 *   `favicon_link_tag` helper will now use the favicon in app/assets by default. *Lucas Caton*
 
-*    `ActionView::Helpers::TextHelper#highlight` now defaults to the
-     HTML5 `mark` element. *Brian Cardarella*
+*   `ActionView::Helpers::TextHelper#highlight` now defaults to the
+    HTML5 `mark` element. *Brian Cardarella*
 
 
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.3 (March 30, 2012) ##
+
+*   Add `config.action_view.embed_authenticity_token_in_remote_forms` (defaults to true) which allows to set if authenticity token will be included by default in remote forms. If you change it to false, you can still force authenticity token by passing `:authenticity_token => true` in form options *Piotr Sarnacki*
+
+*   Do not include the authenticity token in forms where remote: true as ajax forms use the meta-tag value *DHH*
 
 *   Upgrade rack-cache to 1.2. *José Valim*
 

@@ -116,7 +116,12 @@ module TestHelpers
         end
       end
 
-      add_to_config 'config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"; config.session_store :cookie_store, :key => "_myapp_session"; config.active_support.deprecation = :log'
+      add_to_config <<-RUBY
+        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        config.session_store :cookie_store, :key => "_myapp_session"
+        config.active_support.deprecation = :log
+        config.action_controller.allow_forgery_protection = false
+      RUBY
     end
 
     def teardown_app
@@ -245,8 +250,7 @@ module TestHelpers
     def use_frameworks(arr)
       to_remove =  [:actionmailer,
                     :activemodel,
-                    :activerecord,
-                    :activeresource] - arr
+                    :activerecord] - arr
       if to_remove.include? :activerecord
         remove_from_config "config.active_record.whitelist_attributes = true"
         remove_from_config "config.active_record.dependent_restrict_raises = false"

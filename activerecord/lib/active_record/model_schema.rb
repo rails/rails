@@ -160,6 +160,7 @@ module ActiveRecord
       # Sets the value of inheritance_column
       def inheritance_column=(value)
         @inheritance_column = value.to_s
+        @explicit_inheritance_column = true
       end
 
       def sequence_name
@@ -171,8 +172,8 @@ module ActiveRecord
       end
 
       def reset_sequence_name #:nodoc:
-        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
         @explicit_sequence_name = false
+        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -303,7 +304,7 @@ module ActiveRecord
         @column_types         = nil
         @content_columns      = nil
         @dynamic_methods_hash = nil
-        @inheritance_column   = nil
+        @inheritance_column   = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @relation             = nil
       end
 

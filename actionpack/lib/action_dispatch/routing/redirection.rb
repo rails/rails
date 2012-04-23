@@ -67,10 +67,13 @@ module ActionDispatch
       # params, depending of how many arguments your block accepts. A string is required as a
       # return value.
       #
-      #   match 'jokes/:number', :to => redirect do |params, request|
-      #     path = (params[:number].to_i.even? ? "/wheres-the-beef" : "/i-love-lamp")
+      #   match 'jokes/:number', :to => redirect { |params, request|
+      #     path = (params[:number].to_i.even? ? "wheres-the-beef" : "i-love-lamp")
       #     "http://#{request.host_with_port}/#{path}"
-      #   end
+      #   }
+      #
+      # Note that the +do end+ syntax for the redirect block wouldn't work, as Ruby would pass
+      # the block to +match+ instead of +redirect+. Use <tt>{ ... }</tt> instead.
       #
       # The options version of redirect allows you to supply only the parts of the url which need
       # to change, it also supports interpolation of the path similar to the first example.

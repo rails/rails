@@ -48,6 +48,20 @@ module ActiveRecord
       end
 
       # Set this to true if this is an abstract class (see <tt>abstract_class?</tt>).
+      # If you are using inheritance with ActiveRecord and don't want child classes
+      # to utilize the implied STI table name of the parent class, this will need to be true.
+      # For example, given the following:
+      #
+      #   class SuperClass < ActiveRecord::Base
+      #     self.abstract_class = true
+      #   end
+      #   class Child < SuperClass
+      #     self.table_name = 'the_table_i_really_want'
+      #   end
+      # 
+      #
+      # <tt>self.abstract_class = true</tt> is required to make <tt>Child<.find,.create, or any Arel method></tt> use <tt>the_table_i_really_want</tt> instead of a table called <tt>super_classes</tt>
+      #
       attr_accessor :abstract_class
 
       # Returns whether this class is an abstract class or not.
@@ -63,26 +77,9 @@ module ActiveRecord
       # single-table inheritance model that makes it possible to create
       # objects of different types from the same table.
       def instantiate(record, column_types = {})
-        sti_class = find_sti_class(record[inheritance_column])
-        record_id = sti_class.primary_key && record[sti_class.primary_key]
-
-        if ActiveRecord::IdentityMap.enabled? && record_id
-          if (column = sti_class.columns_hash[sti_class.primary_key]) && column.number?
-            record_id = record_id.to_i
-          end
-          if instance = IdentityMap.get(sti_class, record_id)
-            instance.reinit_with('attributes' => record)
-          else
-            instance = sti_class.allocate.init_with('attributes' => record)
-            IdentityMap.add(instance)
-          end
-        else
-          column_types = sti_class.decorate_columns(column_types)
-          instance = sti_class.allocate.init_with('attributes' => record,
-                                                  'column_types' => column_types)
-        end
-
-        instance
+        sti_class    = find_sti_class(record[inheritance_column])
+        column_types = sti_class.decorate_columns(column_types)
+        sti_class.allocate.init_with('attributes' => record, 'column_types' => column_types)
       end
 
       # For internal use.

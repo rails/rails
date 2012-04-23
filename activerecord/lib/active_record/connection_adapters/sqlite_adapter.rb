@@ -339,9 +339,9 @@ module ActiveRecord
           when /^null$/i
             field["dflt_value"] = nil
           when /^'(.*)'$/
-            field["dflt_value"] = $1.gsub(/''/, "'")
+            field["dflt_value"] = $1.gsub("''", "'")
           when /^"(.*)"$/
-            field["dflt_value"] = $1.gsub(/""/, '"')
+            field["dflt_value"] = $1.gsub('""', '"')
           end
 
           SQLiteColumn.new(field['name'], field['dflt_value'], field['type'], field['notnull'].to_i == 0)

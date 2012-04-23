@@ -17,7 +17,7 @@ module ActionDispatch
   #     def create
   #       # save post
   #       flash[:notice] = "Post successfully created"
-  #       redirect_to posts_path(@post)
+  #       redirect_to @post
   #     end
   #
   #     def show

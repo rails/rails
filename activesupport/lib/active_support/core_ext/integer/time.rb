@@ -24,9 +24,9 @@ class Integer
   #   1.year.to_f.from_now
   #
   # In such cases, Ruby's core
-  # Date[http://stdlib.rubyonrails.org/libdoc/date/rdoc/index.html] and
-  # Time[http://stdlib.rubyonrails.org/libdoc/time/rdoc/index.html] should be used for precision
-  # date and time arithmetic
+  # Date[http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
+  # Time[http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
+  # date and time arithmetic.
   def months
     ActiveSupport::Duration.new(self * 30.days, [[:months, self]])
   end

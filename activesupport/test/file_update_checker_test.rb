@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'fileutils'
+require 'thread'
 
 MTIME_FIXTURES_PATH = File.expand_path("../fixtures", __FILE__)
 
@@ -43,8 +44,8 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
     i = 0
     checker = ActiveSupport::FileUpdateChecker.new(FILES){ i += 1 }
     FileUtils.rm(FILES)
-    assert !checker.execute_if_updated
-    assert_equal 0, i
+    assert checker.execute_if_updated
+    assert_equal 1, i
   end
 
   def test_should_cache_updated_result_until_execute
@@ -78,5 +79,19 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
     end
     assert !checker.execute_if_updated
     assert_equal 0, i
+  end
+
+  def test_should_not_block_if_a_strange_filename_used
+    FileUtils.mkdir_p("tmp_watcher/valid,yetstrange,path,")
+    FileUtils.touch(FILES.map { |file_name| "tmp_watcher/valid,yetstrange,path,/#{file_name}" })
+
+    test = Thread.new do
+      ActiveSupport::FileUpdateChecker.new([],"tmp_watcher/valid,yetstrange,path," => :txt) { i += 1 }
+      Thread.exit
+    end
+    test.priority = -1
+    test.join(5)
+
+    assert !test.alive?
   end
 end

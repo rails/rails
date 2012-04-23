@@ -681,8 +681,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_join_table_alias
     assert_equal(
       3,
-      Developer.find(
-        :all, :include => {:projects => :developers}, :references => :developers_projects_join,
+      Developer.references(:developers_projects_join).find(
+        :all, :include => {:projects => :developers},
         :conditions => 'developers_projects_join.joined_on IS NOT NULL'
       ).size
     )
@@ -697,9 +697,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(
       3,
-      Developer.find(
+      Developer.references(:developers_projects_join).find(
         :all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL',
-        :references => :developers_projects_join, :group => group.join(",")
+        :group => group.join(",")
       ).size
     )
   end

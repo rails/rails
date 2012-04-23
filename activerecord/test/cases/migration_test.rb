@@ -36,7 +36,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.initialize_schema_migrations_table
     ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::Migrator.schema_migrations_table_name}"
 
-    %w(things awesome_things prefix_things_suffix prefix_awesome_things_suffix).each do |table|
+    %w(things awesome_things prefix_things_suffix p_awesome_things_s ).each do |table|
       Thing.connection.drop_table(table) rescue nil
     end
     Thing.reset_column_information
@@ -278,8 +278,8 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_rename_table_with_prefix_and_suffix
     assert !Thing.table_exists?
-    ActiveRecord::Base.table_name_prefix = 'prefix_'
-    ActiveRecord::Base.table_name_suffix = '_suffix'
+    ActiveRecord::Base.table_name_prefix = 'p_'
+    ActiveRecord::Base.table_name_suffix = '_s'
     Thing.reset_table_name
     Thing.reset_sequence_name
     WeNeedThings.up
@@ -288,7 +288,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal "hello world", Thing.find(:first).content
 
     RenameThings.up
-    Thing.table_name = "prefix_awesome_things_suffix"
+    Thing.table_name = "p_awesome_things_s"
 
     assert_equal "hello world", Thing.find(:first).content
   ensure
@@ -404,6 +404,7 @@ end
 class ChangeTableMigrationsTest < ActiveRecord::TestCase
   def setup
     @connection = Person.connection
+    @connection.stubs(:add_index)
     @connection.create_table :delete_me, :force => true do |t|
     end
   end

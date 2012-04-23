@@ -45,7 +45,7 @@ class DefaultUrlOptionsController < ActionController::Base
     render :inline => "<%= #{params[:route]} %>"
   end
 
-  def default_url_options(options = nil)
+  def default_url_options
     { :host => 'www.override.com', :action => 'new', :locale => 'en' }
   end
 end
@@ -130,8 +130,6 @@ class PerformActionTest < ActionController::TestCase
     @request     = ActionController::TestRequest.new
     @response    = ActionController::TestResponse.new
     @request.host = "www.nextangle.com"
-
-    rescue_action_in_public!
   end
 
   def test_process_should_be_precise
@@ -155,7 +153,6 @@ class UrlOptionsTest < ActionController::TestCase
   def setup
     super
     @request.host = 'www.example.com'
-    rescue_action_in_public!
   end
 
   def test_url_for_query_params_included
@@ -206,7 +203,6 @@ class DefaultUrlOptionsTest < ActionController::TestCase
   def setup
     super
     @request.host = 'www.example.com'
-    rescue_action_in_public!
   end
 
   def test_default_url_options_override
@@ -257,7 +253,6 @@ class EmptyUrlOptionsTest < ActionController::TestCase
   def setup
     super
     @request.host = 'www.example.com'
-    rescue_action_in_public!
   end
 
   def test_ensure_url_for_works_as_expected_when_called_with_no_options_if_default_url_options_is_not_set

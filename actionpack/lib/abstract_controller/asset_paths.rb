@@ -1,5 +1,5 @@
 module AbstractController
-  module AssetPaths
+  module AssetPaths #:nodoc:
     extend ActiveSupport::Concern
 
     included do

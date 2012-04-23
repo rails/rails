@@ -514,7 +514,7 @@ class InvalidTableNameFixturesTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def test_raises_error
-    assert_raise FixtureClassNotFound do
+    assert_raise ActiveRecord::FixtureClassNotFound do
       funny_jokes(:a_joke)
     end
   end

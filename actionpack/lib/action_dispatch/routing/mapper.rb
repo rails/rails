@@ -1,6 +1,6 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/object/inclusion'
+require 'active_support/core_ext/enumerable'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
 
@@ -244,7 +244,7 @@ module ActionDispatch
       end
 
       def self.normalize_name(name)
-        normalize_path(name)[1..-1].gsub("/", "_")
+        normalize_path(name)[1..-1].tr("/", "_")
       end
 
       module Base
@@ -441,7 +441,7 @@ module ActionDispatch
               app.railtie_name
             else
               class_name = app.class.is_a?(Class) ? app.name : app.class.name
-              ActiveSupport::Inflector.underscore(class_name).gsub("/", "_")
+              ActiveSupport::Inflector.underscore(class_name).tr("/", "_")
             end
           end
 
@@ -880,17 +880,18 @@ module ActionDispatch
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
-          attr_reader :controller, :path, :options
+          attr_reader :controller, :path, :options, :param
 
           def initialize(entities, options = {})
             @name       = entities.to_s
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
             @as         = options[:as]
+            @param      = options[:param] || :id
             @options    = options
           end
 
@@ -935,7 +936,7 @@ module ActionDispatch
           alias :collection_scope :path
 
           def member_scope
-            "#{path}/:id"
+            "#{path}/:#{param}"
           end
 
           def new_scope(new_path)
@@ -943,7 +944,7 @@ module ActionDispatch
           end
 
           def nested_scope
-            "#{path}/:#{singular}_id"
+            "#{path}/:#{singular}_#{param}"
           end
 
         end
@@ -1133,6 +1134,25 @@ module ActionDispatch
         #     comment          GET       /sekret/comments/:id(.:format)
         #     comment          PATCH/PUT /sekret/comments/:id(.:format)
         #     comment          DELETE    /sekret/comments/:id(.:format)
+        #
+        # [:shallow_prefix]
+        #   Prefixes nested shallow route names with specified prefix.
+        #
+        #     scope :shallow_prefix => "sekret" do
+        #       resources :posts do
+        #         resources :comments, :shallow => true
+        #       end
+        #     end
+        #
+        #   The +comments+ resource here will have the following routes generated for it:
+        #
+        #     post_comments           GET       /posts/:post_id/comments(.:format)
+        #     post_comments           POST      /posts/:post_id/comments(.:format)
+        #     new_post_comment        GET       /posts/:post_id/comments/new(.:format)
+        #     edit_sekret_comment     GET       /comments/:id/edit(.:format)
+        #     sekret_comment          GET       /comments/:id(.:format)
+        #     sekret_comment          PATCH/PUT /comments/:id(.:format)
+        #     sekret_comment          DELETE    /comments/:id(.:format)
         #
         # === Examples
         #

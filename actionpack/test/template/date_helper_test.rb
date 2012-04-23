@@ -711,7 +711,7 @@ class DateHelperTest < ActionView::TestCase
     # Since the order is incomplete nothing will be shown
     expected = %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003" />\n)
     expected << %(<input id="date_first_month" name="date[first][month]" type="hidden" value="8" />\n)
-    expected << %(<input id="date_first_day" name="date[first][day]" type="hidden" value="16" />\n)
+    expected << %(<input id="date_first_day" name="date[first][day]" type="hidden" value="1" />\n)
 
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), :start_year => 2003, :end_year => 2005, :prefix => "date[first]", :order => [:day])
   end
@@ -943,7 +943,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     expected << %(<input type="hidden" id="date_first_month" name="date[first][month]" value="8" />\n)
-    expected << %(<input type="hidden" id="date_first_day" name="date[first][day]" value="16" />\n)
+    expected << %(<input type="hidden" id="date_first_day" name="date[first][day]" value="1" />\n)
 
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { :date_separator => " / ", :discard_month => true, :discard_day => true, :start_year => 2003, :end_year => 2005, :prefix => "date[first]"})
   end
@@ -1394,6 +1394,20 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", :order => [ :month, :year ])
+  end
+
+  def test_date_select_without_day_and_month
+    @post = Post.new
+    @post.written_on = Date.new(2004, 2, 29)
+
+    expected = "<input type=\"hidden\" id=\"post_written_on_2i\" name=\"post[written_on(2i)]\" value=\"2\" />\n"
+    expected << "<input type=\"hidden\" id=\"post_written_on_3i\" name=\"post[written_on(3i)]\" value=\"1\" />\n"
+
+    expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << "</select>\n"
+
+    assert_dom_equal expected, date_select("post", "written_on", :order => [ :year ])
   end
 
   def test_date_select_without_day_with_separator
@@ -2118,6 +2132,18 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, datetime_select("post", "updated_at", { :date_separator => " / ", :datetime_separator => " , ", :time_separator => " - ", :include_seconds => true })
   end
 
+  def test_datetime_select_with_integer
+    @post = Post.new
+    @post.updated_at = 3
+    datetime_select("post", "updated_at")
+  end
+
+  def test_datetime_select_with_infinity # Float
+    @post = Post.new
+    @post.updated_at = (-1.0/0)
+    datetime_select("post", "updated_at")
+  end
+
   def test_datetime_select_with_default_prompt
     @post = Post.new
     @post.updated_at = nil
@@ -2427,7 +2453,7 @@ class DateHelperTest < ActionView::TestCase
     1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
     expected << "</select>\n"
     expected << %{<input type="hidden" id="post_updated_at_2i" name="post[updated_at(2i)]" value="6" />\n}
-    expected << %{<input type="hidden" id="post_updated_at_3i" name="post[updated_at(3i)]" value="15" />\n}
+    expected << %{<input type="hidden" id="post_updated_at_3i" name="post[updated_at(3i)]" value="1" />\n}
 
     expected << " &mdash; "
 
@@ -2448,7 +2474,7 @@ class DateHelperTest < ActionView::TestCase
 
     expected = %{<input type="hidden" id="post_updated_at_1i" name="post[updated_at(1i)]" value="2004" />\n}
     expected << %{<input type="hidden" id="post_updated_at_2i" name="post[updated_at(2i)]" value="6" />\n}
-    expected << %{<input type="hidden" id="post_updated_at_3i" name="post[updated_at(3i)]" value="15" />\n}
+    expected << %{<input type="hidden" id="post_updated_at_3i" name="post[updated_at(3i)]" value="1" />\n}
 
     expected << %{<select id="post_updated_at_4i" name="post[updated_at(4i)]">\n}
     0.upto(23) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 15}>#{sprintf("%02d", i)}</option>\n) }
@@ -2467,7 +2493,7 @@ class DateHelperTest < ActionView::TestCase
 
     expected = %{<input type="hidden" id="post_updated_at_1i" disabled="disabled" name="post[updated_at(1i)]" value="2004" />\n}
     expected << %{<input type="hidden" id="post_updated_at_2i" disabled="disabled" name="post[updated_at(2i)]" value="6" />\n}
-    expected << %{<input type="hidden" id="post_updated_at_3i" disabled="disabled" name="post[updated_at(3i)]" value="15" />\n}
+    expected << %{<input type="hidden" id="post_updated_at_3i" disabled="disabled" name="post[updated_at(3i)]" value="1" />\n}
 
     expected << %{<select id="post_updated_at_4i" disabled="disabled" name="post[updated_at(4i)]">\n}
     0.upto(23) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 15}>#{sprintf("%02d", i)}</option>\n) }
@@ -2863,6 +2889,10 @@ class DateHelperTest < ActionView::TestCase
 
   def test_time_tag_with_given_text
     assert_match(/<time.*>Right now<\/time>/, time_tag(Time.now, 'Right now'))
+  end
+
+  def test_time_tag_with_given_block
+    assert_match(/<time.*><span>Right now<\/span><\/time>/, time_tag(Time.now){ '<span>Right now</span>'.html_safe })
   end
 
   def test_time_tag_with_different_format

@@ -39,6 +39,7 @@ module ActionDispatch
     end
 
     def escape_glob_chars(path)
+      path.force_encoding('binary') if path.respond_to? :force_encoding
       path.gsub(/[*?{}\[\]]/, "\\\\\\&")
     end
   end

@@ -5,7 +5,7 @@ rvm:
   - 1.9.3
 env:
   - "GEM=railties"
-  - "GEM=ap,am,amo,ares,as"
+  - "GEM=ap,am,amo,as"
   - "GEM=ar:mysql"
   - "GEM=ar:mysql2"
   - "GEM=ar:sqlite3"

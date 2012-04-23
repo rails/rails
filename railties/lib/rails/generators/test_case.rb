@@ -135,7 +135,7 @@ module Rails
       # Asserts a given migration does not exist. You need to supply an absolute path or a
       # path relative to the configured destination:
       #
-      #   assert_no_file "config/random.rb"
+      #   assert_no_migration "db/migrate/create_products.rb"
       #
       def assert_no_migration(relative)
         file_name = migration_file_name(relative)
@@ -182,7 +182,7 @@ module Rails
 
       # Asserts the given attribute type gets a proper default value:
       #
-      #   assert_field_type :string, "MyString"
+      #   assert_field_default_value :string, "MyString"
       #
       def assert_field_default_value(attribute_type, value)
         assert_equal(value, create_generated_attribute(attribute_type).default)

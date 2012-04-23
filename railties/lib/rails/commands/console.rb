@@ -24,6 +24,9 @@ module Rails
         OptionParser.new do |opt|
           opt.banner = "Usage: console [environment] [options]"
           opt.on('-s', '--sandbox', 'Rollback database modifications on exit.') { |v| options[:sandbox] = v }
+          opt.on("-e", "--environment=name", String,
+                  "Specifies the environment to run this console under (test/development/production).",
+                  "Default: development") { |v| options[:environment] = v.strip }
           opt.on("--debugger", 'Enable ruby-debugging for the console.') { |v| options[:debugger] = v }
           opt.parse!(arguments)
         end
@@ -36,6 +39,14 @@ module Rails
       options[:sandbox]
     end
 
+    def environment?
+      options[:environment]
+    end
+
+    def set_environment!
+      Rails.env = options[:environment]
+    end
+
     def debugger?
       options[:debugger]
     end
@@ -44,6 +55,8 @@ module Rails
       app.sandbox = sandbox?
 
       require_debugger if debugger?
+
+      set_environment! if environment?
 
       if sandbox?
         puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"

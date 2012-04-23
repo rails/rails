@@ -99,7 +99,7 @@ module Rails
         end
 
         def i18n_scope
-          @i18n_scope ||= file_path.gsub('/', '.')
+          @i18n_scope ||= file_path.tr('/', '.')
         end
 
         def table_name
@@ -179,11 +179,6 @@ module Rails
 
             class_collisions "#{options[:prefix]}#{name}#{options[:suffix]}"
           end
-        end
-
-        # Returns Ruby 1.9 style key-value pair.
-        def key_value(key, value)
-          "#{key}: #{value}"
         end
     end
   end

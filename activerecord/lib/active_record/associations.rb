@@ -1382,7 +1382,9 @@ module ActiveRecord
       #   and +decrement_counter+. The counter cache is incremented when an object of this
       #   class is created and decremented when it's destroyed. This requires that a column
       #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
-      #   is used on the associate class (such as a Post class). You can also specify a custom counter
+      #   is used on the associate class (such as a Post class) - that is the migration for 
+      #   <tt>#{table_name}_count</tt> is created on the associate class (such that Post.comments_count will
+      #   return the count cached, see note below). You can also specify a custom counter
       #   cache column by providing a column name instead of a +true+/+false+ value to this
       #   option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
       #   Note: Specifying a counter cache will add it to that model's list of readonly attributes

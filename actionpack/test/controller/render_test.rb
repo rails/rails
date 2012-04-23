@@ -553,10 +553,31 @@ class TestController < ActionController::Base
     render :partial => 'partial'
   end
 
+  def partial_html_erb
+    render :partial => 'partial_html_erb'
+  end
+
   def render_to_string_with_partial
     @partial_only = render_to_string :partial => "partial_only"
     @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }
     render :template => "test/hello_world"
+  end
+
+  def render_to_string_with_template_and_html_partial
+    @text = render_to_string :template => "test/with_partial", :formats => [:text]
+    @html = render_to_string :template => "test/with_partial", :formats => [:html]
+    render :template => "test/with_html_partial"
+  end
+
+  def render_to_string_and_render_with_different_formats
+    @html = render_to_string :template => "test/with_partial", :formats => [:html]
+    render :template => "test/with_partial", :formats => [:text]
+  end
+
+  def render_template_within_a_template_with_other_format
+    render  :template => "test/with_xml_template",
+            :formats  => [:html],
+            :layout   => "with_html_partial"
   end
 
   def partial_with_counter
@@ -1001,6 +1022,7 @@ class RenderTest < ActionController::TestCase
   def test_accessing_local_assigns_in_inline_template
     get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
     assert_equal "Goodbye, Local David", @response.body
+    assert_equal "text/html", @response.content_type
   end
 
   def test_should_implicitly_render_html_template_from_xhr_request
@@ -1255,6 +1277,15 @@ class RenderTest < ActionController::TestCase
     assert_equal "text/html", @response.content_type
   end
 
+  def test_render_html_formatted_partial_even_with_other_mime_time_in_accept
+    @request.accept = "text/javascript, text/html"
+
+    get :partial_html_erb
+
+    assert_equal "partial.html.erb", @response.body.strip
+    assert_equal "text/html", @response.content_type
+  end
+
   def test_should_render_html_partial_with_formats
     get :partial_formats_html
     assert_equal "partial html", @response.body
@@ -1265,6 +1296,28 @@ class RenderTest < ActionController::TestCase
     get :render_to_string_with_partial
     assert_equal "only partial", assigns(:partial_only)
     assert_equal "Hello: david", assigns(:partial_with_locals)
+    assert_equal "text/html", @response.content_type
+  end
+
+  def test_render_to_string_with_template_and_html_partial
+    get :render_to_string_with_template_and_html_partial
+    assert_equal "**only partial**\n", assigns(:text)
+    assert_equal "<strong>only partial</strong>\n", assigns(:html)
+    assert_equal "<strong>only html partial</strong>\n", @response.body
+    assert_equal "text/html", @response.content_type
+  end
+
+  def test_render_to_string_and_render_with_different_formats
+    get :render_to_string_and_render_with_different_formats
+    assert_equal "<strong>only partial</strong>\n", assigns(:html)
+    assert_equal "**only partial**\n", @response.body
+    assert_equal "text/plain", @response.content_type
+  end
+
+  def test_render_template_within_a_template_with_other_format
+    get :render_template_within_a_template_with_other_format
+    expected = "only html partial<p>This is grand!</p>"
+    assert_equal expected, @response.body.strip
     assert_equal "text/html", @response.content_type
   end
 

@@ -14,8 +14,12 @@ module ActionView
       BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
                            autoplay controls loop selected hidden scoped async
                            defer reversed ismap seemless muted required
-                           autofocus novalidate formnovalidate open pubdate).to_set
+                           autofocus novalidate formnovalidate open pubdate itemscope).to_set
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
+
+      PRE_CONTENT_STRINGS = {
+        :textarea => "\n"
+      }
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
@@ -126,7 +130,7 @@ module ActionView
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
           content     = ERB::Util.h(content) if escape
-          "<#{name}#{tag_options}>#{content}</#{name}>".html_safe
+          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name.to_sym]}#{content}</#{name}>".html_safe
         end
 
         def tag_options(options, escape = true)

@@ -33,27 +33,9 @@ module Rails
     #
     #     config.middleware.delete ActionDispatch::BestStandardsSupport
     #
-    # In addition to these methods to handle the stack, if your application is
-    # going to be used as an API endpoint only, the middleware stack can be
-    # configured like this:
-    #
-    #     config.middleware.http_only!
-    #
-    # By doing this, Rails will create a smaller middleware stack, by not adding
-    # some middlewares that are usually useful for browser access only, such as
-    # Cookies, Session and Flash, BestStandardsSupport, and MethodOverride. You
-    # can always add any of them later manually if you want.
     class MiddlewareStackProxy
       def initialize
         @operations = []
-        @http_only  = false
-      end
-
-      attr_reader :http_only
-      alias       :http_only? :http_only
-
-      def http_only!
-        @http_only = true
       end
 
       def insert_before(*args, &block)

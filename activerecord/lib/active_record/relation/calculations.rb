@@ -3,56 +3,19 @@ require 'active_support/core_ext/object/try'
 
 module ActiveRecord
   module Calculations
-    # Count operates using three different approaches.
+    # Count the records.
     #
-    # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.
-    # * Count using column: By passing a column name to count, it will return a count of all the
-    #   rows for the model with supplied column present.
-    # * Count using options will find the row count matched by the options used.
+    #   Person.count
+    #   # => the total count of all people
     #
-    # The third approach, count using options, accepts an option hash as the only parameter. The options are:
+    #   Person.count(:age)
+    #   # => returns the total count of all people whose age is present in database
     #
-    # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
-    #   See conditions in the intro to ActiveRecord::Base.
-    # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id"
-    #   (rarely needed) or named associations in the same form used for the <tt>:include</tt> option, which will
-    #   perform an INNER JOIN on the associated table(s). If the value is a string, then the records
-    #   will be returned read-only since they will have attributes that do not correspond to the table's columns.
-    #   Pass <tt>:readonly => false</tt> to override.
-    # * <tt>:include</tt>: Named associations that should be loaded alongside using LEFT OUTER JOINs.
-    #   The symbols named refer to already defined associations. When using named associations, count
-    #   returns the number of DISTINCT items for the model you're counting.
-    #   See eager loading under Associations.
-    # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name" (really only used with GROUP BY calculations).
-    # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
-    # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you, for example,
-    #   want to do a join but not include the joined columns.
-    # * <tt>:distinct</tt>: Set this to true to make this a distinct calculation, such as
-    #   SELECT COUNT(DISTINCT posts.id) ...
-    # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an
-    #   alternate table name (or even the name of a database view).
+    #   Person.count(:all)
+    #   # => performs a COUNT(*) (:all is an alias for '*')
     #
-    # Examples for counting all:
-    #   Person.count         # returns the total count of all people
-    #
-    # Examples for counting by column:
-    #   Person.count(:age)  # returns the total count of all people whose age is present in database
-    #
-    # Examples for count with options:
-    #   Person.count(:conditions => "age > 26")
-    #
-    #   # because of the named association, it finds the DISTINCT count using LEFT OUTER JOIN.
-    #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :include => :job)
-    #
-    #   # finds the number of rows matching the conditions and joins.
-    #   Person.count(:conditions => "age > 26 AND job.salary > 60000",
-    #                :joins => "LEFT JOIN jobs on jobs.person_id = person.id")
-    #
-    #   Person.count('id', :conditions => "age > 26") # Performs a COUNT(id)
-    #   Person.count(:all, :conditions => "age > 26") # Performs a COUNT(*) (:all is an alias for '*')
-    #
-    # Note: <tt>Person.count(:all)</tt> will not work because it will use <tt>:all</tt> as the condition.
-    # Use Person.count instead.
+    #   Person.count(:age, distinct: true)
+    #   # => counts the number of different age values
     def count(column_name = nil, options = {})
       column_name, options = nil, column_name if column_name.is_a?(Hash)
       calculate(:count, column_name, options)
@@ -98,21 +61,22 @@ module ActiveRecord
     end
 
     # This calculates aggregate values in the given column. Methods for count, sum, average,
-    # minimum, and maximum have been added as shortcuts. Options such as <tt>:conditions</tt>,
-    # <tt>:order</tt>, <tt>:group</tt>, <tt>:having</tt>, and <tt>:joins</tt> can be passed to customize the query.
+    # minimum, and maximum have been added as shortcuts.
     #
     # There are two basic forms of output:
+    #
     #   * Single aggregate value: The single value is type cast to Fixnum for COUNT, Float
     #     for AVG, and the given column's type for everything else.
-    #   * Grouped values: This returns an ordered hash of the values and groups them by the
-    #     <tt>:group</tt> option. It takes either a column name, or the name of a belongs_to association.
     #
-    #       values = Person.maximum(:age, :group => 'last_name')
+    #   * Grouped values: This returns an ordered hash of the values and groups them. It
+    #     takes either a column name, or the name of a belongs_to association.
+    #
+    #       values = Person.group('last_name').maximum(:age)
     #       puts values["Drake"]
     #       => 43
     #
     #       drake  = Family.find_by_last_name('Drake')
-    #       values = Person.maximum(:age, :group => :family) # Person belongs_to :family
+    #       values = Person.group(:family).maximum(:age) # Person belongs_to :family
     #       puts values[drake]
     #       => 43
     #
@@ -120,47 +84,25 @@ module ActiveRecord
     #       ...
     #       end
     #
-    # Options:
-    # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
-    #   See conditions in the intro to ActiveRecord::Base.
-    # * <tt>:include</tt>: Eager loading, see Associations for details. Since calculations don't load anything,
-    #   the purpose of this is to access fields on joined tables in your conditions, order, or group clauses.
-    # * <tt>:joins</tt> - An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id".
-    #   (Rarely needed).
-    #   The records will be returned read-only since they will have attributes that do not correspond to the
-    #   table's columns.
-    # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name" (really only used with GROUP BY calculations).
-    # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
-    # * <tt>:select</tt> - By default, this is * as in SELECT * FROM, but can be changed if you for example
-    #   want to do a join, but not include the joined columns.
-    # * <tt>:distinct</tt> - Set this to true to make this a distinct calculation, such as
-    #   SELECT COUNT(DISTINCT posts.id) ...
-    #
     # Examples:
     #   Person.calculate(:count, :all) # The same as Person.count
     #   Person.average(:age) # SELECT AVG(age) FROM people...
-    #   Person.minimum(:age, :conditions => ['last_name != ?', 'Drake']) # Selects the minimum age for
-    #                                                                    # everyone with a last name other than 'Drake'
     #
     #   # Selects the minimum age for any family without any minors
-    #   Person.minimum(:age, :having => 'min(age) > 17', :group => :last_name)
+    #   Person.group(:last_name).having("min(age) > 17").minimum(:age)
     #
     #   Person.sum("2 * age")
     def calculate(operation, column_name, options = {})
-      if options.except(:distinct).present?
-        apply_finder_options(options.except(:distinct)).calculate(operation, column_name, :distinct => options[:distinct])
-      else
-        relation = with_default_scope
+      relation = with_default_scope
 
-        if relation.equal?(self)
-          if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
-            construct_relation_for_association_calculations.calculate(operation, column_name, options)
-          else
-            perform_calculation(operation, column_name, options)
-          end
+      if relation.equal?(self)
+        if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
+          construct_relation_for_association_calculations.calculate(operation, column_name, options)
         else
-          relation.calculate(operation, column_name, options)
+          perform_calculation(operation, column_name, options)
         end
+      else
+        relation.calculate(operation, column_name, options)
       end
     rescue ThrowResult
       0
@@ -174,7 +116,7 @@ module ActiveRecord
     #
     #   Person.pluck(:id) # SELECT people.id FROM people
     #   Person.uniq.pluck(:role) # SELECT DISTINCT role FROM people
-    #   Person.where(:confirmed => true).limit(5).pluck(:id)
+    #   Person.where(:age => 21).limit(5).pluck(:id) # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #
     def pluck(column_name)
       key = column_name.to_s.split('.', 2).last
@@ -216,7 +158,7 @@ module ActiveRecord
         distinct = nil if column_name =~ /\s*DISTINCT\s+/i
       end
 
-      if @group_values.any?
+      if group_values.any?
         execute_grouped_calculation(operation, column_name, distinct)
       else
         execute_simple_calculation(operation, column_name, distinct)
@@ -259,7 +201,7 @@ module ActiveRecord
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
-      group_attr      = @group_values
+      group_attr      = group_values
       association     = @klass.reflect_on_association(group_attr.first.to_sym)
       associated      = group_attr.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
       group_fields  = Array(associated ? association.foreign_key : group_attr)
@@ -282,7 +224,7 @@ module ActiveRecord
           operation,
           distinct).as(aggregate_alias)
       ]
-      select_values += @select_values unless @having_values.empty?
+      select_values += select_values unless having_values.empty?
 
       select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
         "#{field} AS #{aliaz}"
@@ -347,8 +289,8 @@ module ActiveRecord
     end
 
     def select_for_count
-      if @select_values.present?
-        select = @select_values.join(", ")
+      if select_values.present?
+        select = select_values.join(", ")
         select if select !~ /[,*]/
       end
     end

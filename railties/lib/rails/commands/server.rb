@@ -32,6 +32,11 @@ module Rails
 
         opt_parser.parse! args
 
+        # Handle's environment like RAILS_ENV=production passed in directly
+        if index = args.index {|arg| arg.include?("RAILS_ENV")}
+          options[:environment] ||= args.delete_at(index).split('=').last
+        end
+
         options[:server] = args.shift
         options
       end

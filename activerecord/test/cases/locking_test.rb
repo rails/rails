@@ -9,6 +9,7 @@ require 'models/string_key_object'
 require 'models/car'
 require 'models/engine'
 require 'models/wheel'
+require 'models/treasure'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -22,7 +23,7 @@ class ReadonlyFirstNamePerson < Person
 end
 
 class OptimisticLockingTest < ActiveRecord::TestCase
-  fixtures :people, :legacy_things, :references, :string_key_objects
+  fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
 
   def test_non_integer_lock_existing
     s1 = StringKeyObject.find("record1")
@@ -230,14 +231,23 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_polymorphic_destroy_with_dependencies_and_lock_version
     car = Car.create!
-    
+
     assert_difference 'car.wheels.count'  do
     	car.wheels << Wheel.create!
-    end 
+    end
     assert_difference 'car.wheels.count', -1  do
       car.destroy
     end
     assert car.destroyed?
+  end
+
+  def test_removing_has_and_belongs_to_many_associations_upon_destroy
+    p = RichPerson.create! first_name: 'Jon'
+    p.treasures.create!
+    assert !p.treasures.empty?
+    p.destroy
+    assert p.treasures.empty?
+    assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
   end
 end
 

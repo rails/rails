@@ -140,9 +140,6 @@ module ActionController
 
     class Result < ::Array #:nodoc:
       def to_s() join '/' end
-      def self.new_escaped(strings)
-        new strings.collect {|str| uri_parser.unescape str}
-      end
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
@@ -479,7 +476,6 @@ module ActionController
         @request.session["flash"].sweep
 
         @controller.request = @request
-        @controller.params.merge!(parameters)
         build_request_uri(action, parameters)
         @controller.class.class_eval { include Testing }
         @controller.recycle!
@@ -503,11 +499,6 @@ module ActionController
           @controller.request = @request
           @controller.params = {}
         end
-      end
-
-      # Cause the action to be rescued according to the regular rules for rescue_action when the visitor is not local
-      def rescue_action_in_public!
-        @request.remote_addr = '208.77.188.166' # example.com
       end
 
       included do

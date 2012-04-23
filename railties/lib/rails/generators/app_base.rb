@@ -120,7 +120,7 @@ module Rails
       end
 
       def database_gemfile_entry
-        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'\n"
+        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
       end
 
       def include_all_railties?
@@ -137,12 +137,14 @@ module Rails
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
             gem 'journey',   :git => 'https://github.com/rails/journey.git'
             gem 'arel',      :git => 'https://github.com/rails/arel.git'
+            gem 'active_record_deprecated_finders', :git => 'git://github.com/rails/active_record_deprecated_finders.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :git => 'https://github.com/rails/rails.git'
             gem 'journey',   :git => 'https://github.com/rails/journey.git'
             gem 'arel',      :git => 'https://github.com/rails/arel.git'
+            gem 'active_record_deprecated_finders', :git => 'git://github.com/rails/active_record_deprecated_finders.git'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
@@ -189,6 +191,7 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
+              gem 'sprockets-rails', :git => 'https://github.com/rails/sprockets-rails.git'
               gem 'sass-rails',   :git => 'https://github.com/rails/sass-rails.git'
               gem 'coffee-rails', :git => 'https://github.com/rails/coffee-rails.git'
 
@@ -202,6 +205,7 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
+              gem 'sprockets-rails', :git => 'https://github.com/rails/sprockets-rails.git'
               gem 'sass-rails',   '~> 4.0.0.beta'
               gem 'coffee-rails', '~> 4.0.0.beta'
 
@@ -223,7 +227,7 @@ module Rails
         if defined?(JRUBY_VERSION)
           "gem 'therubyrhino'\n"
         else
-          "# gem 'therubyracer'\n"
+          "# gem 'therubyracer', :platform => :ruby\n"
         end
       end
 
@@ -254,11 +258,6 @@ module Rails
 
       def git_keep(destination)
         create_file("#{destination}/.gitkeep") unless options[:skip_git]
-      end
-
-      # Returns Ruby 1.9 style key-value pair.
-      def key_value(key, value)
-        "#{key}: #{value}"
       end
     end
   end

@@ -144,10 +144,12 @@ module ActionDispatch
       #    # => 'http://somehost.org/tasks/testing?number=33'
       def url_for(options = nil)
         case options
+        when nil
+          _routes.url_for(url_options.symbolize_keys)
+        when Hash
+          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
         when String
           options
-        when nil, Hash
-          _routes.url_for((options || {}).symbolize_keys.reverse_merge!(url_options))
         else
           polymorphic_url(options)
         end

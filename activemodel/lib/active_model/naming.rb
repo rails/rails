@@ -1,40 +1,40 @@
 require 'active_support/inflector'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
-require 'active_support/core_ext/module/deprecation'
+require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/blank'
 
 module ActiveModel
-  class Name < String
-    attr_reader :singular, :plural, :element, :collection, :partial_path,
-      :singular_route_key, :route_key, :param_key, :i18n_key
+  class Name
+    include Comparable
+
+    attr_reader :singular, :plural, :element, :collection,
+      :singular_route_key, :route_key, :param_key, :i18n_key,
+      :name
 
     alias_method :cache_key, :collection
 
-    deprecate :partial_path => "ActiveModel::Name#partial_path is deprecated. Call #to_partial_path on model instances directly instead."
+    delegate :==, :===, :<=>, :=~, :"!~", :eql?, :to_s,
+             :to_str, :to => :name
 
     def initialize(klass, namespace = nil, name = nil)
-      name ||= klass.name
+      @name = name || klass.name
 
-      raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if name.blank?
+      raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if @name.blank?
 
-      super(name)
-
-      @unnamespaced = self.sub(/^#{namespace.name}::/, '') if namespace
+      @unnamespaced = @name.sub(/^#{namespace.name}::/, '') if namespace
       @klass        = klass
-      @singular     = _singularize(self).freeze
-      @plural       = ActiveSupport::Inflector.pluralize(@singular).freeze
-      @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
-      @human        = ActiveSupport::Inflector.humanize(@element).freeze
-      @collection   = ActiveSupport::Inflector.tableize(self).freeze
-      @partial_path = "#{@collection}/#{@element}".freeze
-      @param_key    = (namespace ? _singularize(@unnamespaced) : @singular).freeze
-      @i18n_key     = self.underscore.to_sym
+      @singular     = _singularize(@name)
+      @plural       = ActiveSupport::Inflector.pluralize(@singular)
+      @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@name))
+      @human        = ActiveSupport::Inflector.humanize(@element)
+      @collection   = ActiveSupport::Inflector.tableize(@name)
+      @param_key    = (namespace ? _singularize(@unnamespaced) : @singular)
+      @i18n_key     = @name.underscore.to_sym
 
       @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural.dup)
-      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key).freeze
+      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key)
       @route_key << "_index" if @plural == @singular
-      @route_key.freeze
     end
 
     # Transform the model name into a more humane format, using I18n. By default,

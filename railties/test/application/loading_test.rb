@@ -95,7 +95,7 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal [ActiveRecord::SchemaMigration], ActiveRecord::Base.descendants
   end
 
-  test "initialize_cant_be_called_twice" do
+  test "initialize cant be called twice" do
     require "#{app_path}/config/environment"
     assert_raise(RuntimeError) { ::AppTemplate::Application.initialize! }
   end
@@ -254,6 +254,45 @@ class LoadingTest < ActiveSupport::TestCase
 
     get "/body"
     assert_equal "BODY", last_response.body
+  end
+
+  test "AC load hooks can be used with metal" do
+    app_file "app/controllers/omg_controller.rb", <<-RUBY
+      begin
+        class OmgController < ActionController::Metal
+          ActiveSupport.run_load_hooks(:action_controller, self)
+          def show
+            self.response_body = ["OK"]
+          end
+        end
+      rescue => e
+        puts "Error loading metal: \#{e.class} \#{e.message}"
+      end
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      AppTemplate::Application.routes.draw do
+        match "/:controller(/:action)"
+      end
+    RUBY
+
+    require "#{rails_root}/config/environment"
+
+    require 'rack/test'
+    extend Rack::Test::Methods
+
+    get '/omg/show'
+    assert_equal 'OK', last_response.body
+  end
+
+  def test_initialize_can_be_called_at_any_time
+    require "#{app_path}/config/application"
+
+    assert !Rails.initialized?
+    assert !AppTemplate::Application.initialized?
+    Rails.initialize!
+    assert Rails.initialized?
+    assert AppTemplate::Application.initialized?
   end
 
   protected

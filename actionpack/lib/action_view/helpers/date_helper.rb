@@ -12,11 +12,11 @@ module ActionView
     # elements. All of the select-type methods share a number of common options that are as follows:
     #
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
-    # would give birthday[month] instead of date[month] if passed to the <tt>select_month</tt> method.
+    # would give \birthday[month] instead of \date[month] if passed to the <tt>select_month</tt> method.
     # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true,
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
-    #   of "date[month]".
+    #   of \date[month].
     module DateHelper
       # Reports the approximate distance in time between two Time, Date or DateTime objects or integers as seconds.
       # Set <tt>include_seconds</tt> to true if you want more detailed approximations when distance < 1 min, 29 secs.
@@ -625,13 +625,18 @@ module ActionView
       #   time_tag Date.today, :pubdate => true  # =>
       #     <time datetime="2010-11-04" pubdate="pubdate">November 04, 2010</time>
       #
-      def time_tag(date_or_time, *args)
+      #   <%= time_tag Time.now do %>
+      #     <span>Right now</span>
+      #   <% end %>
+      #   # => <time datetime="2010-11-04T17:55:45+01:00"><span>Right now</span></time>
+      #
+      def time_tag(date_or_time, *args, &block)
         options  = args.extract_options!
         format   = options.delete(:format) || :long
         content  = args.first || I18n.l(date_or_time, :format => format)
         datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.rfc3339
 
-        content_tag(:time, content, options.reverse_merge(:datetime => datetime))
+        content_tag(:time, content, options.reverse_merge(:datetime => datetime), &block)
       end
     end
 
@@ -669,11 +674,7 @@ module ActionView
         @options[:discard_minute] ||= true if @options[:discard_hour]
         @options[:discard_second] ||= true unless @options[:include_seconds] && !@options[:discard_minute]
 
-        # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are
-        # valid (otherwise it could be 31 and February wouldn't be a valid date)
-        if @datetime && @options[:discard_day] && !@options[:discard_month]
-          @datetime = @datetime.change(:day => 1)
-        end
+        set_day_if_discarded
 
         if @options[:tag] && @options[:ignore_date]
           select_time
@@ -696,11 +697,7 @@ module ActionView
         @options[:discard_month]  ||= true unless order.include?(:month)
         @options[:discard_day]    ||= true if @options[:discard_month] || !order.include?(:day)
 
-        # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are
-        # valid (otherwise it could be 31 and February wouldn't be a valid date)
-        if @datetime && @options[:discard_day] && !@options[:discard_month]
-          @datetime = @datetime.change(:day => 1)
-        end
+        set_day_if_discarded
 
         [:day, :month, :year].each { |o| order.unshift(o) unless order.include?(o) }
 
@@ -798,7 +795,15 @@ module ActionView
       private
         %w( sec min hour day month year ).each do |method|
           define_method(method) do
-            @datetime.kind_of?(Fixnum) ? @datetime : @datetime.send(method) if @datetime
+            @datetime.kind_of?(Numeric) ? @datetime : @datetime.send(method) if @datetime
+          end
+        end
+
+        # If the day is hidden, the day should be set to the 1st so all month and year choices are
+        # valid. Otherwise, February 31st or February 29th, 2011 can be selected, which are invalid.
+        def set_day_if_discarded
+          if @datetime && @options[:discard_day]
+            @datetime = @datetime.change(:day => 1)
           end
         end
 
@@ -972,7 +977,10 @@ module ActionView
         # Returns the id attribute for the input tag.
         #  => "post_written_on_1i"
         def input_id_from_type(type)
-          input_name_from_type(type).gsub(/([\[\(])|(\]\[)/, '_').gsub(/[\]\)]/, '')
+          id = input_name_from_type(type).gsub(/([\[\(])|(\]\[)/, '_').gsub(/[\]\)]/, '')
+          id = @options[:namespace] + '_' + id if @options[:namespace]
+
+          id
         end
 
         # Given an ordering of datetime components, create the selection HTML

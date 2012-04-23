@@ -60,7 +60,7 @@ module ActionView
       #
       # ==== Relying on named routes
       #
-      # Passing a record (like an Active Record or Active Resource) instead of a Hash as the options parameter will
+      # Passing a record (like an Active Record) instead of a Hash as the options parameter will
       # trigger the named route for that record. The lookup will happen on the name of the class. So passing a
       # Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
       # +admin_workshop_path+ you'll have to call that explicitly (it's impossible for +url_for+ to guess that route).
@@ -334,7 +334,7 @@ module ActionView
         remote = html_options.delete('remote')
 
         method     = html_options.delete('method').to_s
-        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ""
+        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ''.html_safe
 
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
@@ -347,7 +347,8 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
         html_options.merge!("type" => "submit", "value" => name || url)
 
-        "#{tag(:form, form_options, true)}<div>#{method_tag}#{tag("input", html_options)}#{request_token_tag}</div></form>".html_safe
+        inner_tags = method_tag.safe_concat tag('input', html_options).safe_concat request_token_tag
+        content_tag('form', content_tag('div', inner_tags), form_options)
       end
 
 
@@ -480,7 +481,7 @@ module ActionView
       #   # => <a href="mailto:me@domain.com">me@domain.com</a>
       #
       #   mail_to "me@domain.com", "My email", :encode => "javascript"
-      #   # => <script type="text/javascript">eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
+      #   # => <script>eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
       #
       #   mail_to "me@domain.com", "My email", :encode => "hex"
       #   # => <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
@@ -514,7 +515,7 @@ module ActionView
           "document.write('#{html}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
-          "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
+          "<script>eval(decodeURIComponent('#{string}'))</script>".html_safe
         when "hex"
           email_address_encoded = email_address_obfuscated.unpack('C*').map {|c|
             sprintf("&#%d;", c)

@@ -69,8 +69,8 @@ module ActiveModel
       end
 
       # Notify list of observers of a change.
-      def notify_observers(*arg)
-        observer_instances.each { |observer| observer.update(*arg) }
+      def notify_observers(*args)
+        observer_instances.each { |observer| observer.update(*args) }
       end
 
       # Total number of observers.
@@ -214,6 +214,7 @@ module ActiveModel
     end
 
     # Start observing the declared classes and their subclasses.
+    # Called automatically by the instance method.
     def initialize
       observed_classes.each { |klass| add_observer!(klass) }
     end
@@ -242,6 +243,7 @@ module ActiveModel
         klass.add_observer(self)
       end
 
+      # Returns true if notifications are disabled for this object.
       def disabled_for?(object)
         klass = object.class
         return false unless klass.respond_to?(:observers)

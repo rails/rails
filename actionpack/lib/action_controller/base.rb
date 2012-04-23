@@ -171,11 +171,11 @@ module ActionController
   class Base < Metal
     abstract!
 
-    # Shortcut helper that returns all the ActionController modules except the ones passed in the argument:
+    # Shortcut helper that returns all the ActionController::Base modules except the ones passed in the argument:
     #
     #   class MetalController
-    #     ActionController::Base.without_modules(:ParamsWrapper, :Streaming).each do |module|
-    #       include module
+    #     ActionController::Base.without_modules(:ParamsWrapper, :Streaming).each do |left|
+    #       include left
     #     end
     #   end
     #
