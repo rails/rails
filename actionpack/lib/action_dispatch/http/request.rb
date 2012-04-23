@@ -215,7 +215,6 @@ module ActionDispatch
     # be included by the session middleware.
     def reset_session
       session.destroy if session && session.respond_to?(:destroy)
-      self.session = {}
       @env['action_dispatch.request.flash_hash'] = nil
     end
 
