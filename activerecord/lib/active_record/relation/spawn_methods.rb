@@ -5,6 +5,20 @@ require 'active_record/relation/merger'
 
 module ActiveRecord
   module SpawnMethods
+    
+    # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an <tt>ActiveRecord::Relation</tt>.
+    # Returns an array representing the union of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
+    #
+    # ==== Examples
+    #
+    #   Post.where(:published => true).joins(:comments).merge( Comment.where(:spam => false) )
+    #   # Performs a single join query with both where conditions.
+    #
+    #   recent_posts = Post.order('created_at DESC').first(5)
+    #   Post.where(:published => true).merge(recent_posts)
+    #   # Returns the union of all published posts with the 5 most recently created posts.
+    #   # (This is just an example. You'd probably want to do this with a single query!)
+    #
     def merge(other)
       if other.is_a?(Array)
         to_a & other
