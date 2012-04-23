@@ -76,8 +76,15 @@ module ActionDispatch
     # Returns the original value of the environment's REQUEST_METHOD,
     # even if it was overridden by middleware. See #request_method for
     # more information.
-    def method
-      @method ||= check_method(env["rack.methodoverride.original_method"] || env['REQUEST_METHOD'])
+    #
+    # Note: Calling this method with an argument will pass your argument
+    # to Object#method. This is implemented to fix compatibility issue.
+    def method(superclass_argument = nil)
+      if superclass_argument
+        super
+      else
+        @method ||= check_method(env["rack.methodoverride.original_method"] || env['REQUEST_METHOD'])
+      end
     end
 
     # Returns a symbol form of the #method

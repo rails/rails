@@ -320,6 +320,11 @@ class RequestTest < ActiveSupport::TestCase
     end
   end
 
+  test "Calling method method with an argument" do
+    request = stub_request
+    assert_kind_of Method, request.method(:method)
+  end
+
   test "Symbol forms of request methods via method_symbol" do
     [:get, :post, :put, :delete].each do |method|
       request = stub_request 'REQUEST_METHOD' => method.to_s.upcase
