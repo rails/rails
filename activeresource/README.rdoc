@@ -28,7 +28,7 @@ The latest version of Active Resource can be installed with RubyGems:
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* https://github.com/rails/rails/tree/master/activeresource
+* https://github.com/rails/rails/tree/3-2-stable/activeresource
 
 === Configuration and Usage
 
