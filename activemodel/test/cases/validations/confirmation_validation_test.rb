@@ -44,7 +44,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     p.karma_confirmation = "None"
     assert p.invalid?
 
-    assert_equal ["doesn't match confirmation"], p.errors[:karma]
+    assert_equal ["doesn't match karma"], p.errors[:karma_confirmation]
 
     p.karma = "None"
     assert p.valid?

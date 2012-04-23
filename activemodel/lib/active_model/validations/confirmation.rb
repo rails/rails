@@ -5,7 +5,7 @@ module ActiveModel
     class ConfirmationValidator < EachValidator
       def validate_each(record, attribute, value)
         if (confirmed = record.send("#{attribute}_confirmation")) && (value != confirmed)
-          record.errors.add(attribute, :confirmation, options)
+          record.errors.add(:"#{attribute}_confirmation", :confirmation, options.merge(:attribute => attribute))
         end
       end
 
