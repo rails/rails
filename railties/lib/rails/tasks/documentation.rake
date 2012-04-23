@@ -8,7 +8,7 @@ end
 
 # Monkey-patch to remove redoc'ing and clobber descriptions to cut down on rake -T noise
 class RDocTaskWithoutDescriptions < RDoc::Task
-  include ::Rake::DSL
+  include ::Rake::DSL if defined?(::Rake::DSL)
 
   def define
     task rdoc_task_name
