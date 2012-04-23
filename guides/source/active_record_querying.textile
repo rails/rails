@@ -388,6 +388,8 @@ The field name can also be a string:
 Client.where('locked' => true)
 </ruby>
 
+NOTE: A `Symbol` value is not supported and should not be used. Always use a `String` instead: `Client.where(:status => 'active')`, but NOT `Client.where(:status => :active)`.
+
 h5(#hash-range_conditions). Range Conditions
 
 The good thing about this is that we can pass in a range for our fields without it generating a large query as shown in the preamble of this section.
