@@ -166,7 +166,7 @@ module RenderTestCases
 
   def test_render_partial_with_incompatible_object
     e = assert_raises(ArgumentError) { @view.render(:partial => nil) }
-    assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.", e.message
+    assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object that returns a valid partial path.", e.message
   end
 
   def test_render_partial_with_errors
@@ -470,16 +470,18 @@ class LazyViewRenderTest < ActiveSupport::TestCase
       end
     end
 
-  def test_render_utf8_template_with_incompatible_external_encoding
-    with_external_encoding Encoding::SHIFT_JIS do
-      e = assert_raises(ActionView::Template::Error) { @view.render(:file => "test/utf8", :formats => [:html], :layouts => "layouts/yield") }
-      assert_match 'Your template was not saved as valid Shift_JIS', e.original_exception.message
+    def test_render_utf8_template_with_incompatible_external_encoding
+      with_external_encoding Encoding::SHIFT_JIS do
+        e = assert_raises(ActionView::Template::Error) { @view.render(:file => "test/utf8", :formats => [:html], :layouts => "layouts/yield") }
+        assert_match 'Your template was not saved as valid Shift_JIS', e.original_exception.message
+      end
     end
 
-  def test_render_utf8_template_with_partial_with_incompatible_encoding
-    with_external_encoding Encoding::SHIFT_JIS do
-      e = assert_raises(ActionView::Template::Error) { @view.render(:file => "test/utf8_magic_with_bare_partial", :formats => [:html], :layouts => "layouts/yield") }
-      assert_match 'Your template was not saved as valid Shift_JIS', e.original_exception.message
+    def test_render_utf8_template_with_partial_with_incompatible_encoding
+      with_external_encoding Encoding::SHIFT_JIS do
+        e = assert_raises(ActionView::Template::Error) { @view.render(:file => "test/utf8_magic_with_bare_partial", :formats => [:html], :layouts => "layouts/yield") }
+        assert_match 'Your template was not saved as valid Shift_JIS', e.original_exception.message
+      end
     end
 
     def with_external_encoding(encoding)
