@@ -619,19 +619,7 @@ Let's add links to the other views as well.
 # app/views/posts/new.html.erb
 
 <%= form_for :post do |f| %>
-  <p>
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
-  </p>
-
-  <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
-  </p>
-
-  <p>
-    <%= f.submit %>
-  </p>
+  ...
 <% end %>
 
 <%= link_to 'Back', :action => :index %>
