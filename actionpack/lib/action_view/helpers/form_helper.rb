@@ -902,7 +902,7 @@ module ActionView
       #   # Let's say that @post.validated? is 1:
       #   check_box("post", "validated")
       #   # => <input name="post[validated]" type="hidden" value="0" />
-      #   #    <input type="checkbox" id="post_validated" name="post[validated]" value="1" />
+      #   #    <input checked="checked" type="checkbox" id="post_validated" name="post[validated]" value="1" />
       #
       #   # Let's say that @puppy.gooddog is "no":
       #   check_box("puppy", "gooddog", {}, "yes", "no")
