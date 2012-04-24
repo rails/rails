@@ -194,6 +194,17 @@ module ActiveRecord
       self
     end
 
+    def where_not(opts, *rest)
+      opts.blank? ? self : clone.where_not!(opts, *rest)
+    end
+
+    def where_not!(opts, *rest)
+      references!(PredicateBuilder.references(opts)) if Hash === opts
+
+      self.where_values += build_where(opts, rest, :not)
+      self
+    end
+
     def where(opts, *rest)
       opts.blank? ? self : clone.where!(opts, *rest)
     end
@@ -452,13 +463,13 @@ module ActiveRecord
       end
     end
 
-    def build_where(opts, other = [])
+    def build_where(opts, other = [], operator = nil)
       case opts
       when String, Array
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
-        PredicateBuilder.build_from_hash(table.engine, attributes, table)
+        PredicateBuilder.build_from_hash(table.engine, attributes, table, operator)
       else
         [opts]
       end
