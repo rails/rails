@@ -98,6 +98,7 @@ module ActionDispatch
           @helpers = []
           @module  = Module.new do
             protected
+
             def handle_positional_args(args, options, route)
               inner_options = args.extract_options!
               result = options.dup
@@ -105,10 +106,10 @@ module ActionDispatch
               if args.any?
                 keys = route.segment_keys
                 if args.size < keys.size - 1 # take format into account
-                  keys -= self.url_options.keys  if self.respond_to?(:url_options)
+                  keys -= self.url_options.keys if self.respond_to?(:url_options)
                   keys -= options.keys
                 end
-                result.merge!(Hash[args.zip(keys).map { |v, k| [k, v] }])
+                result.merge!(Hash[keys.zip(args)])
               end
 
               result.merge!(inner_options)
@@ -161,7 +162,7 @@ module ActionDispatch
           end
 
           def hash_access_name(name, only_path)
-            if only_path 
+            if only_path
               :"hash_for_#{name}_path"
             else
               :"hash_for_#{name}_url"
