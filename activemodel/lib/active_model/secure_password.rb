@@ -58,7 +58,8 @@ module ActiveModel
         BCrypt::Password.new(password_digest) == unencrypted_password && self
       end
 
-      # Encrypts the password into the password_digest attribute.
+      # Encrypts the password into the password_digest attribute, only if the
+      # new password is not blank.
       def password=(unencrypted_password)
         @password = unencrypted_password
         unless unencrypted_password.blank?
