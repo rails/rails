@@ -64,6 +64,11 @@ module ActiveRecord
             end
           end
 
+          define_method("#{key}?") do
+            attribute = initialize_store_attribute(store_attribute)
+            query_value(attribute[key])
+          end
+
           define_method(key) do
             initialize_store_attribute(store_attribute)[key]
           end
