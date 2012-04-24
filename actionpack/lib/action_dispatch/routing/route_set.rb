@@ -135,24 +135,32 @@ module ActionDispatch
         end
 
         private
-          def url_helper_name(name, kind = :url)
-            :"#{name}_#{kind}"
-          end
-
-          def hash_access_name(name, kind = :url)
-            :"hash_for_#{name}_#{kind}"
-          end
-
-          def define_named_route_methods(name, route)
-            {:url => {:only_path => false}, :path => {:only_path => true}}.each do |kind, opts|
-              hash = route.defaults.merge(:use_route => name).merge(opts)
-              define_hash_access route, name, kind, hash
-              define_url_helper route, name, kind, hash
+          def url_helper_name(name, only_path)
+            if only_path
+              :"#{name}_path"
+            else
+              :"#{name}_url"
             end
           end
 
-          def define_hash_access(route, name, kind, options)
-            selector = hash_access_name(name, kind)
+          def hash_access_name(name, only_path)
+            if only_path 
+              :"hash_for_#{name}_path"
+            else
+              :"hash_for_#{name}_url"
+            end
+          end
+
+          def define_named_route_methods(name, route)
+            [true, false].each do |only_path|
+              hash = route.defaults.merge(:use_route => name, :only_path => only_path)
+              define_hash_access route, name, hash
+              define_url_helper route, name, hash
+            end
+          end
+
+          def define_hash_access(route, name, options)
+            selector = hash_access_name(name, options[:only_path])
 
             @module.module_eval do
               remove_possible_method selector
@@ -187,9 +195,9 @@ module ActionDispatch
           #
           #   foo_url(bar, baz, bang, :sort_by => 'baz')
           #
-          def define_url_helper(route, name, kind, options)
-            selector = url_helper_name(name, kind)
-            hash_access_method = hash_access_name(name, kind)
+          def define_url_helper(route, name, options)
+            selector = url_helper_name(name, options[:only_path])
+            hash_access_method = hash_access_name(name, options[:only_path])
 
             if optimize_helper?(route)
               @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
