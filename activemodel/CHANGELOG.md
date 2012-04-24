@@ -1,12 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute` *Brian Cardarella*
+
 *   Added ActiveModel::Model, a mixin to make Ruby objects work with AP out of box *Guillermo Iguaran*
 
 *   `AM::Errors#to_json`: support `:full_messages` parameter *Bogdan Gusiev*
 
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
-
-*   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute` *Brian Cardarella*
 
 
 ## Rails 3.2.2 (March 1, 2012) ##
