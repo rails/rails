@@ -516,7 +516,7 @@ end
 
 A couple of things to note. We use +Post.find+ to find the post we're
 interested in. We also use an instance variable (prefixed by +@+) to
-hold our reference to the post object. We do this because Rails will pass all instance
+hold a reference to the post object. We do this because Rails will pass all instance
 variables to the view.
 
 Now, create a new file +app/view/posts/show.html.erb+ with the following
@@ -577,8 +577,8 @@ end
 
 h4. Adding links
 
-You can now create, show, and list posts. But it's difficult to navigate
-through pages, so let's add some links.
+You can now create, show, and list posts. Now let's add some links to
+navigate through pages.
 
 Open +app/views/welcome/index.html.erb+ and modify it as follows:
 
@@ -657,11 +657,9 @@ controller by default.
 
 TIP: In development mode (which is what you're working in by default), Rails
 reloads your application with every browser request, so there's no need to stop
-and restart the web server.
+and restart the web server when a change is made.
 
-Congratulations, you're riding the rails! Now it’s time to see how it all works.
-
-h4. The Model
+h4. Adding Some Validation
 
 The model file, +app/models/post.rb+ is about as simple as it can get:
 
@@ -675,8 +673,6 @@ There isn't much to this file - but note that the +Post+ class inherits from
 your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
 and the ability to relate multiple models to one another.
-
-h4. Adding Some Validation
 
 Rails includes methods to help you validate the data that you send to models.
 Open the +app/models/post.rb+ file and edit it:
