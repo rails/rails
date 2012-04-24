@@ -451,6 +451,27 @@ Adds a specified source to +Gemfile+:
 add_source "http://gems.github.com"
 </ruby>
 
+h4. +inject_into_file+
+
+Injects a block of code into a defined position in your file.
+
+<ruby>
+inject_into_file 'name_of_file.rb', :after => "#The code goes below this line. Don't for get the Line break at the end\n" do <<-'RUBY'
+  puts "Hello World"
+RUBY
+end
+</ruby>
+
+h4. +gsub_file+
+
+Replaces text inside a file.
+
+<ruby>
+  gsub_file 'name_of_file.rb', 'method.to_be_replaced', 'method.the_replacing_code' 
+</ruby
+
+Regular Expressions can be used to make this method more precise. You can also use append_file and prepend_file in the same way to place code at the beginning and end of a file respectively.
+
 h4. +application+
 
 Adds a line to +config/application.rb+ directly after the application class definition.
