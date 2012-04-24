@@ -229,6 +229,22 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_basic_arel_predicates
+    assert_equal [authors(:david)], Author.where(:name.matches => "%avid").all
+    assert_equal [authors(:bob)], Author.where(:name.not_eq => "Mary").where(:name.not_eq => "David").all
+    assert_equal [authors(:bob)], Author.where(:name.not_in => ["David", "Mary"]).all
+    assert_equal [authors(:mary)], Author.where(:name.in => ["Mary", "Sue"]).all
+    assert_equal [authors(:bob)], Author.where(:name.does_not_match => "%a%").all
+    assert_equal [authors(:david)], Author.where(:organization_id.not_eq => nil).all
+    assert_equal [authors(:david)], Author.where(:id.lt => 2).all
+    assert_equal [authors(:bob)], Author.where(:id.gt => 2).all
+  end
+
+  def test_smarter_arel_predicates
+    assert_equal [authors(:david)], Author.where(:organization_id.not => nil).all
+    assert_equal [authors(:bob)], Author.where(:name.not => ["David", "Mary"]).all
+  end
+
   def test_model_class_responds_to_first_bang
     assert Topic.first!
     Topic.delete_all
