@@ -143,7 +143,13 @@ module ActiveRecord
     end
 
     def order!(*args)
-      args       = args.flatten
+      if args.size == 1 && ::Array === args.first &&
+          !args.first.find{ |arg| ::String === arg && arg =~ /\?/ }
+        args = args.first
+      elsif ::String === args.first && args.first =~ /\?/
+        args = [args]
+      end
+      args.map!{ |arg| ::Array === arg ? @klass.send(:sanitize_sql, arg) : arg }
 
       references = args.reject { |arg| Arel::Node === arg }
                        .map { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }
