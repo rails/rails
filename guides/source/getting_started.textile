@@ -726,7 +726,7 @@ something went wrong. To do that, you'll modify
 +app/views/posts/index.html.erb+ to check for error messages:
 
 <erb>
-<%= form_for :post do |f| %>
+<%= form_for :post, :url => { :action => :create } do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
@@ -775,6 +775,136 @@ standout.
 Now you'll get a nice error message when saving a post without title:
 
 !images/getting_started/form_with_errors.png(Form With Errors)!
+
+h4. Updating Posts
+
+We've covered the "CR" part of CRUD. Now let's focus on the "U" part,
+updating posts.
+
+The first step we'll take is adding a +edit+ action to
++posts_controller+.
+
+Start by adding a route to +config/routes.rb+:
+
+<ruby>
+get "posts/:id/edit" => "posts#edit"
+</ruby>
+
+And then add the controller action:
+
+<ruby>
+def edit
+  @post = Post.find(params[:id])
+end
+</ruby>
+
+The view will contain a form similar to the one we used when creating
+new posts. Create a file called +app/views/posts/edit.html.erb+ and make
+it look as follows:
+
+<erb>
+<h1>Editing post</h1>
+
+<%= form_for :post, :url => { :action => :update, :id => @post.id },
+:method => :put do |f| %>
+  <% if @post.errors.any? %>
+  <div id="errorExplanation">
+    <h2><%= pluralize(@post.errors.count, "error") %> prohibited
+	    this post from being saved:</h2>
+    <ul>
+    <% @post.errors.full_messages.each do |msg| %>
+      <li><%= msg %></li>
+    <% end %>
+    </ul>
+  </div>
+  <% end %>
+  <p>
+    <%= f.label :title %><br>
+    <%= f.text_field :title %>
+  </p>
+
+  <p>
+    <%= f.label :text %><br>
+    <%= f.text_area :text %>
+  </p>
+
+  <p>
+    <%= f.submit %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', :action => :index %>
+</erb>
+
+This time we point the form to the +update+ action (not defined yet).
+The +:method => :put+ option tells Rails that we want this form to be
+submitted via +put+, which is the http method you're expected to use to
+*update* resources according to the REST protocol.
+
+TIP: By default forms built with the +form_for_ helper are sent via +POST+.
+
+Moving on, we need to add the +update+ action. The file
++config/routes.rb+ will need just one more line:
+
+<ruby>
+put "posts/:id/update"
+</ruby>
+
+And the +update+ action in +posts_controller+ itself should not look too complicated by now:
+
+<ruby>
+def update
+  @post = Post.find(params[:id])
+
+  if @post.update_attributes(params[:post])
+    redirect_to :action => :show, :id => @post.id
+  else
+    render 'edit'
+  end
+end
+</ruby>
+
+The new method +update_attributes+ is used when you want to update a record
+that already exists, and it accepts an hash containing the attributes
+that you want to update. As before, if there was an error updating the
+post we want to show the form back to the user.
+
+TIP: you don't need to pass all attributes to +update_attributes+. For
+example, if you'd call +@post.update_attributes(:title => 'A new title')
+Rails would only update the +title+ attribute, leaving all other
+attributes untouched.
+
+Finally, we want to show a link to the +edit+ action in the +index+ and
++show+ views:
+
+<erb>
+# app/view/posts/index.html.erb
+
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+    <th></th>
+    <th></th>
+  </tr>
+
+<% @posts.each do |post| %>
+  <tr>
+    <td><%= post.title %></td>
+    <td><%= post.text %></td>
+    <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
+    <td><%= link_to 'Edit', :action => :edit, :id => post.id %></td>
+  </tr>
+<% end %>
+</table>
+
+# app/view/posts/show.html.erb
+
+...
+
+<%= link_to 'Back', :action => :index %>
+| <%= link_to 'Edit', :action => :edit, :id => @post.id %>
+</erb>
 
 h4. Using the Console
 
