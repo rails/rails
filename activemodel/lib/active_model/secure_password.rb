@@ -55,11 +55,7 @@ module ActiveModel
     module InstanceMethodsOnActivation
       # Returns self if the password is correct, otherwise false.
       def authenticate(unencrypted_password)
-        if BCrypt::Password.new(password_digest) == unencrypted_password
-          self
-        else
-          false
-        end
+        BCrypt::Password.new(password_digest) == unencrypted_password && self
       end
 
       # Encrypts the password into the password_digest attribute.
