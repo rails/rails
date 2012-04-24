@@ -96,7 +96,24 @@ module ActionDispatch
         def initialize
           @routes  = {}
           @helpers = []
-          @module  = Module.new
+          @module  = Module.new do
+            protected
+            def handle_positional_args(args, options, route)
+              inner_options = args.extract_options!
+              result = options.dup
+
+              if args.any?
+                keys = route.segment_keys
+                if args.size < keys.size - 1 # take format into account
+                  keys -= self.url_options.keys  if self.respond_to?(:url_options)
+                  keys -= options.keys
+                end
+                result.merge!(Hash[args.zip(keys).map { |v, k| [k, v] }])
+              end
+
+              result.merge!(inner_options)
+            end
+          end
         end
 
         def helper_names
@@ -163,20 +180,9 @@ module ActionDispatch
             selector = hash_access_name(name, options[:only_path])
 
             @module.module_eval do
-              remove_possible_method selector
-
-              define_method(selector) do |*args|
-                inner_options = args.extract_options!
-                result = options.dup
-
-                if args.any?
-                  result[:_positional_args] = args
-                  result[:_positional_keys] = route.segment_keys
-                end
-
-                result.merge(inner_options)
+              redefine_method(selector) do |*args|
+                self.handle_positional_args(args, options, route)
               end
-
               protected selector
             end
             helpers << selector
@@ -617,8 +623,6 @@ module ActionDispatch
       def url_for(options)
         options = default_url_options.merge(options || {})
 
-        handle_positional_args(options)
-
         user, password = extract_authentication(options)
         path_segments  = options.delete(:_path_segments)
         script_name    = options.delete(:script_name).presence || _generate_prefix(options)
@@ -686,16 +690,6 @@ module ActionDispatch
           else
             nil
           end
-        end
-
-        def handle_positional_args(options)
-          return unless args = options.delete(:_positional_args)
-
-          keys = options.delete(:_positional_keys)
-          keys -= options.keys if args.size < keys.size - 1 # take format into account
-
-          # Tell url_for to skip default_url_options
-          options.merge!(Hash[args.zip(keys).map { |v, k| [k, v] }])
         end
 
     end
