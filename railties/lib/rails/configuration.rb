@@ -1,6 +1,8 @@
 require 'active_support/deprecation'
 require 'active_support/ordered_options'
+require 'active_support/core_ext/object'
 require 'active_support/core_ext/hash/deep_dup'
+require 'active_support/core_ext/array/deep_dup'
 require 'rails/paths'
 require 'rails/rack'
 
