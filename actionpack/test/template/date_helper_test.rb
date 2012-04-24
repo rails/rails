@@ -125,6 +125,7 @@ class DateHelperTest < ActionView::TestCase
     start_date = Date.new 1982, 12, 3
     end_date = Date.new 2010, 11, 30
     assert_equal("almost 28 years", distance_of_time_in_words(start_date, end_date))
+    assert_equal("almost 28 years", distance_of_time_in_words(end_date, start_date))
   end
 
   def test_distance_in_words_with_integers
