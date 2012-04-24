@@ -81,7 +81,7 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_confirmation_of on generated message #{name}" do
       Person.validates_confirmation_of :title, validation_options
       @person.title_confirmation = 'foo'
-      @person.errors.expects(:generate_message).with(:title_confirmation, :confirmation, generate_message_options.merge(:attribute => :title))
+      @person.errors.expects(:generate_message).with(:title_confirmation, :confirmation, generate_message_options.merge(:attribute => 'Title'))
       @person.valid?
     end
   end
