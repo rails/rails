@@ -28,7 +28,9 @@ if ActiveRecord::Base.connection.supports_explain?
       original = base.logger
       base.logger = nil
 
-      base.logger.expects(:warn).never
+      class << base.logger
+        def warn; raise "Should not be called" end
+      end
 
       with_threshold(0) do
         car = Car.where(:name => 'honda').first
