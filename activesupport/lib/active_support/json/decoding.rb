@@ -9,7 +9,7 @@ module ActiveSupport
   module JSON
     class << self
       def decode(json, options ={})
-        data = MultiJson.decode(json, options)
+        data = MultiJson.load(json, options)
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
         else
