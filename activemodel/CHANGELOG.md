@@ -6,6 +6,8 @@
 
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
 
+*   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute` *Brian Cardarella*
+
 
 ## Rails 3.2.2 (March 1, 2012) ##
 
