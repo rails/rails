@@ -166,6 +166,30 @@ module ApplicationTests
       assert_equal 'WIN', last_response.body
     end
 
+    test "routes drawing from config/routes" do
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          draw :external
+        end
+      RUBY
+
+      app_file 'config/routes/external.rb', <<-RUBY
+        get ':controller/:action'
+      RUBY
+
+      controller :success, <<-RUBY
+        class SuccessController < ActionController::Base
+          def index
+            render :text => "success!"
+          end
+        end
+      RUBY
+
+      app 'development'
+      get '/success/index'
+      assert_equal 'success!', last_response.body
+    end
+
     {"development" => "baz", "production" => "bar"}.each do |mode, expected|
       test "reloads routes when configuration is changed in #{mode}" do
         controller :foo, <<-RUBY
