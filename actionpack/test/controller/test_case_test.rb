@@ -138,7 +138,7 @@ XML
     @request.env['PATH_INFO'] = nil
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        match ':controller(/:action(/:id))'
+        get ':controller(/:action(/:id))'
       end
     end
   end
@@ -524,7 +524,7 @@ XML
     with_routing do |set|
       set.draw do
         namespace :admin do
-          match 'user' => 'user#index'
+          get 'user' => 'user#index'
         end
       end
 
@@ -534,7 +534,7 @@ XML
 
   def test_assert_routing_with_glob
     with_routing do |set|
-      set.draw { match('*path' => "pages#show") }
+      set.draw { get('*path' => "pages#show") }
       assert_routing('/company/about', { :controller => 'pages', :action => 'show', :path => 'company/about' })
     end
   end
@@ -585,8 +585,8 @@ XML
   def test_array_path_parameter_handled_properly
     with_routing do |set|
       set.draw do
-        match 'file/*path', :to => 'test_case_test/test#test_params'
-        match ':controller/:action'
+        get 'file/*path', :to => 'test_case_test/test#test_params'
+        get ':controller/:action'
       end
 
       get :test_params, :path => ['hello', 'world']

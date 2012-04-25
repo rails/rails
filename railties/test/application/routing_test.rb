@@ -53,7 +53,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          get ':controller(/:action)'
         end
       RUBY
 
@@ -94,7 +94,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          get ':controller(/:action)'
         end
       RUBY
 
@@ -126,8 +126,8 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match 'admin/foo', :to => 'admin/foo#index'
-          match 'foo', :to => 'foo#index'
+          get 'admin/foo', :to => 'admin/foo#index'
+          get 'foo', :to => 'foo#index'
         end
       RUBY
 
@@ -141,13 +141,13 @@ module ApplicationTests
     test "routes appending blocks" do
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller/:action'
+          get ':controller/:action'
         end
       RUBY
 
       add_to_config <<-R
         routes.append do
-          match '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
+          get '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
         end
       R
 
@@ -158,7 +158,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-R
         AppTemplate::Application.routes.draw do
-          match 'lol' => 'hello#index'
+          get 'lol' => 'hello#index'
         end
       R
 
@@ -182,7 +182,7 @@ module ApplicationTests
 
         app_file 'config/routes.rb', <<-RUBY
           AppTemplate::Application.routes.draw do
-            match 'foo', :to => 'foo#bar'
+            get 'foo', :to => 'foo#bar'
           end
         RUBY
 
@@ -193,7 +193,7 @@ module ApplicationTests
 
         app_file 'config/routes.rb', <<-RUBY
           AppTemplate::Application.routes.draw do
-            match 'foo', :to => 'foo#baz'
+            get 'foo', :to => 'foo#baz'
           end
         RUBY
 
@@ -214,7 +214,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match 'foo', :to => ::InitializeRackApp
+          get 'foo', :to => ::InitializeRackApp
         end
       RUBY
 

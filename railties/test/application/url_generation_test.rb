@@ -31,7 +31,7 @@ module ApplicationTests
       end
 
       MyApp.routes.draw do
-        match "/" => "omg#index", :as => :omg
+        get "/" => "omg#index", :as => :omg
       end
 
       require 'rack/test'

@@ -388,7 +388,7 @@ The field name can also be a string:
 Client.where('locked' => true)
 </ruby>
 
-NOTE: A +Symbol+ value is not supported and should not be used. Always use a +String+ instead: +Client.where(:status => 'active')+, but NOT +Client.where(:status => :active)+.
+NOTE: The values cannot be symbols. For example, you cannot do +Client.where(:status => :active)+.
 
 h5(#hash-range_conditions). Range Conditions
 
