@@ -21,6 +21,7 @@ class ModelTest < ActiveModel::TestCase
     assert_nothing_raised do
       BasicModel.new()
       BasicModel.new({})
+      BasicModel.new(nil)
     end
   end
 end
