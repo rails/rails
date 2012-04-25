@@ -77,7 +77,7 @@ module ActiveRecord
         end
 
         def stale_state
-          owner[reflection.foreign_key].to_s
+          owner[reflection.foreign_key] && owner[reflection.foreign_key].to_s
         end
     end
   end
