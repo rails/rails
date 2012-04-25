@@ -899,6 +899,37 @@ And here's how our app looks so far:
 !images/getting_started/index_action_with_edit_link.png(Index action
 with edit link)!
 
+h4. Using partials to clean up duplication in views
+
++partials+ are what Rails uses to remove duplication in views. Here's a
+simple example:
+
+<erb>
+# app/views/user/show.html.erb
+
+<h1><%= @user.name %></h1>
+
+<%= render 'user_details' %>
+
+# app/views/user/_user_details.html.erb
+
+<%= @user.location %>
+
+<%= @user.about_me %>
+</erb>
+
+The +show+ view will automatically include the content of the
++_user_details+ view. Note that partials are prefixed by an underscore,
+as to not be confused with regular views. However, you don't include the
+underscore when including them with the +helper+ method.
+
+TIP: You can red more about partials in the "Layouts and Rendering in
+Rails":layouts_and_rendering.html guide.
+
+Our +edit+ action looks very similar to the +new+ action, in fact they
+both share the same code for displaying the form. Lets clean them up by
+using a +_form+ partial.
+
 h4. Using the Console
 
 To see your validations in action, you can use the console. The console is a
