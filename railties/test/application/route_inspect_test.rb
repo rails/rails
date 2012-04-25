@@ -78,7 +78,7 @@ module ApplicationTests
         root :to => 'pages#main'
       end
       output = @inspector.format @set.routes
-      assert_equal ["root  / pages#main"], output
+      assert_equal ["root GET / pages#main"], output
     end
 
     def test_inspect_routes_shows_dynamic_action_route
@@ -86,7 +86,7 @@ module ApplicationTests
         get 'api/:action' => 'api'
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /api/:action(.:format) api#:action"], output
+      assert_equal [" GET /api/:action(.:format) api#:action"], output
     end
 
     def test_inspect_routes_shows_controller_and_action_only_route
@@ -94,7 +94,7 @@ module ApplicationTests
         get ':controller/:action'
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /:controller/:action(.:format) :controller#:action"], output
+      assert_equal [" GET /:controller/:action(.:format) :controller#:action"], output
     end
 
     def test_inspect_routes_shows_controller_and_action_route_with_constraints
@@ -102,7 +102,7 @@ module ApplicationTests
         get ':controller(/:action(/:id))', :id => /\d+/
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"], output
+      assert_equal [" GET /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"], output
     end
 
     def test_rake_routes_shows_route_with_defaults
@@ -110,7 +110,7 @@ module ApplicationTests
         get 'photos/:id' => 'photos#show', :defaults => {:format => 'jpg'}
       end
       output = @inspector.format @set.routes
-      assert_equal [%Q[  /photos/:id(.:format) photos#show {:format=>"jpg"}]], output
+      assert_equal [%Q[ GET /photos/:id(.:format) photos#show {:format=>"jpg"}]], output
     end
 
     def test_rake_routes_shows_route_with_constraints
@@ -118,7 +118,7 @@ module ApplicationTests
         get 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"], output
+      assert_equal [" GET /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"], output
     end
 
     class RackApp
@@ -131,7 +131,7 @@ module ApplicationTests
         get 'foo/:id' => RackApp, :id => /[A-Z]\d{5}/
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"], output
+      assert_equal [" GET /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"], output
     end
 
     def test_rake_routes_shows_route_with_rack_app_nested_with_dynamic_constraints
