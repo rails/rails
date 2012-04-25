@@ -667,39 +667,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_eager_with_has_many_and_limit_and_scoped_and_explicit_conditions_on_the_eagers
-    Post.send(:with_scope, :find => { :conditions => "1=1" }) do
-      posts =
-        authors(:david).posts
-          .includes(:comments)
-          .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
-          .references(:comments)
-          .limit(2)
-          .to_a
-      assert_equal 2, posts.size
-
-      count = Post.includes(:comments, :author)
-        .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
-        .references(:authors, :comments)
-        .limit(2)
-        .count
-      assert_equal count, posts.size
-    end
-  end
-
-  def test_eager_with_scoped_order_using_association_limiting_without_explicit_scope
-    posts_with_explicit_order =
-      Post.where('comments.id is not null').references(:comments)
-        .includes(:comments).order('posts.id DESC').limit(2)
-
-    posts_with_scoped_order = Post.order('posts.id DESC').scoping do
-      Post.where('comments.id is not null').references(:comments)
-        .includes(:comments).limit(2)
-    end
-
-    assert_equal posts_with_explicit_order, posts_with_scoped_order
-  end
-
   def test_eager_association_loading_with_habtm
     posts = Post.find(:all, :include => :categories, :order => "posts.id")
     assert_equal 2, posts[0].categories.size

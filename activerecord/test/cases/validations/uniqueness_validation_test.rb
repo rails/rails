@@ -261,10 +261,10 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert i1.errors[:value].any?, "Should not be empty"
   end
 
-  def test_validates_uniqueness_inside_with_scope
+  def test_validates_uniqueness_inside_scoping
     Topic.validates_uniqueness_of(:title)
 
-    Topic.send(:with_scope, :find => { :conditions => { :author_name => "David" } }) do
+    Topic.where(:author_name => "David").scoping do
       t1 = Topic.new("title" => "I'm unique!", "author_name" => "Mary")
       assert t1.save
       t2 = Topic.new("title" => "I'm unique!", "author_name" => "David")

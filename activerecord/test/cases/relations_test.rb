@@ -330,7 +330,6 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_respond_to_class_methods_and_scopes
-    assert DeveloperOrderedBySalary.scoped.respond_to?(:all_ordered_by_name)
     assert Topic.scoped.respond_to?(:by_lifo)
   end
 

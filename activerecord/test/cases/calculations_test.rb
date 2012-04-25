@@ -52,12 +52,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(:credit_limit)
   end
 
-  def test_should_get_maximum_of_field_with_scoped_include
-    Account.send :with_scope, :find => { :include => :firm } do
-      assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).maximum(:credit_limit)
-    end
-  end
-
   def test_should_get_minimum_of_field
     assert_equal 50, Account.minimum(:credit_limit)
   end

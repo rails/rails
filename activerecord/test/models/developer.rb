@@ -102,12 +102,6 @@ class DeveloperOrderedBySalary < ActiveRecord::Base
   default_scope { order('salary DESC') }
 
   scope :by_name, -> { order('name DESC') }
-
-  def self.all_ordered_by_name
-    with_scope(:find => { :order => 'name DESC' }) do
-      find(:all)
-    end
-  end
 end
 
 class DeveloperCalledDavid < ActiveRecord::Base
