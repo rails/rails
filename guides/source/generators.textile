@@ -456,7 +456,7 @@ h4. +inject_into_file+
 Injects a block of code into a defined position in your file.
 
 <ruby>
-inject_into_file 'name_of_file.rb', :after => "#The code goes below this line. Don't for get the Line break at the end\n" do <<-'RUBY'
+inject_into_file 'name_of_file.rb', :after => "#The code goes below this line. Don't forget the Line break at the end\n" do <<-'RUBY'
   puts "Hello World"
 RUBY
 end
