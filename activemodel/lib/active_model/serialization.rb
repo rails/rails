@@ -78,8 +78,7 @@ module ActiveModel
       hash = {}
       attribute_names.each { |n| hash[n] = read_attribute_for_serialization(n) }
 
-      method_names = Array(options[:methods]).select { |n| respond_to?(n) }
-      method_names.each { |n| hash[n.to_s] = send(n) }
+      Array(options[:methods]).each { |m| hash[m.to_s] = send(m) if respond_to?(m) }
 
       serializable_add_includes(options) do |association, records, opts|
         hash[association.to_s] = if records.is_a?(Enumerable)
