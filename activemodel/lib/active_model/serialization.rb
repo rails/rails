@@ -64,7 +64,12 @@ module ActiveModel
   #   person.to_json             # => "{\"name\":\"Bob\"}"
   #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   #
-  # Valid options are <tt>:only</tt>, <tt>:except</tt> and <tt>:methods</tt> .
+  # Valid options are <tt>:only</tt>, <tt>:except</tt>, <tt>:methods</tt> and <tt>include</tt>.
+  # The following are all valid examples:
+  #
+  #   person.serializable_hash(:only => 'name')
+  #   person.serializable_hash(:include => :address)
+  #   person.serializable_hash(:include => { :address => { :only => 'city' }})
   module Serialization
     def serializable_hash(options = nil)
       options ||= {}
