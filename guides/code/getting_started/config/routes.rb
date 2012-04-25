@@ -7,6 +7,8 @@ Blog::Application.routes.draw do
   get "posts/new"
   post "posts/create"
   get "posts/:id" => "posts#show"
+  get "posts/:id/edit" => "posts#edit"
+  put "posts/:id/update" => "posts#update"
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

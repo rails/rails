@@ -26,17 +26,18 @@ module ActiveModel
   #   person.serializable_hash   # => {"name"=>"Bob"}
   #
   # You need to declare an attributes hash which contains the attributes
-  # you want to serialize. When called, serializable hash will use
+  # you want to serialize. Attributes must be strings, not symbols.
+  # When called, serializable hash will use
   # instance methods that match the name of the attributes hash's keys.
   # In order to override this behavior, take a look at the private
-  # method read_attribute_for_serialization.
+  # method +read_attribute_for_serialization+.
   #
   # Most of the time though, you will want to include the JSON or XML
   # serializations. Both of these modules automatically include the
-  # ActiveModel::Serialization module, so there is no need to explicitly
+  # +ActiveModel::Serialization+ module, so there is no need to explicitly
   # include it.
   #
-  # So a minimal implementation including XML and JSON would be:
+  # A minimal implementation including XML and JSON would be:
   #
   #   class Person
   #     include ActiveModel::Serializers::JSON
@@ -63,7 +64,12 @@ module ActiveModel
   #   person.to_json             # => "{\"name\":\"Bob\"}"
   #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   #
-  # Valid options are <tt>:only</tt>, <tt>:except</tt> and <tt>:methods</tt> .
+  # Valid options are <tt>:only</tt>, <tt>:except</tt>, <tt>:methods</tt> and <tt>include</tt>.
+  # The following are all valid examples:
+  #
+  #   person.serializable_hash(:only => 'name')
+  #   person.serializable_hash(:include => :address)
+  #   person.serializable_hash(:include => { :address => { :only => 'city' }})
   module Serialization
     def serializable_hash(options = nil)
       options ||= {}

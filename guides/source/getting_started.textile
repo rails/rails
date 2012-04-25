@@ -516,7 +516,7 @@ end
 
 A couple of things to note. We use +Post.find+ to find the post we're
 interested in. We also use an instance variable (prefixed by +@+) to
-hold our reference to the post object. We do this because Rails will pass all instance
+hold a reference to the post object. We do this because Rails will pass all instance
 variables to the view.
 
 Now, create a new file +app/view/posts/show.html.erb+ with the following
@@ -577,8 +577,8 @@ end
 
 h4. Adding links
 
-You can now create, show, and list posts. But it's difficult to navigate
-through pages, so let's add some links.
+You can now create, show, and list posts. Now let's add some links to
+navigate through pages.
 
 Open +app/views/welcome/index.html.erb+ and modify it as follows:
 
@@ -619,19 +619,7 @@ Let's add links to the other views as well.
 # app/views/posts/new.html.erb
 
 <%= form_for :post do |f| %>
-  <p>
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
-  </p>
-
-  <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
-  </p>
-
-  <p>
-    <%= f.submit %>
-  </p>
+  ...
 <% end %>
 
 <%= link_to 'Back', :action => :index %>
@@ -657,11 +645,9 @@ controller by default.
 
 TIP: In development mode (which is what you're working in by default), Rails
 reloads your application with every browser request, so there's no need to stop
-and restart the web server.
+and restart the web server when a change is made.
 
-Congratulations, you're riding the rails! Now it’s time to see how it all works.
-
-h4. The Model
+h4. Adding Some Validation
 
 The model file, +app/models/post.rb+ is about as simple as it can get:
 
@@ -675,8 +661,6 @@ There isn't much to this file - but note that the +Post+ class inherits from
 your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
 and the ability to relate multiple models to one another.
-
-h4. Adding Some Validation
 
 Rails includes methods to help you validate the data that you send to models.
 Open the +app/models/post.rb+ file and edit it:
@@ -730,7 +714,7 @@ something went wrong. To do that, you'll modify
 +app/views/posts/index.html.erb+ to check for error messages:
 
 <erb>
-<%= form_for :post do |f| %>
+<%= form_for :post, :url => { :action => :create } do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
@@ -779,6 +763,172 @@ standout.
 Now you'll get a nice error message when saving a post without title:
 
 !images/getting_started/form_with_errors.png(Form With Errors)!
+
+h4. Updating Posts
+
+We've covered the "CR" part of CRUD. Now let's focus on the "U" part,
+updating posts.
+
+The first step we'll take is adding a +edit+ action to
++posts_controller+.
+
+Start by adding a route to +config/routes.rb+:
+
+<ruby>
+get "posts/:id/edit" => "posts#edit"
+</ruby>
+
+And then add the controller action:
+
+<ruby>
+def edit
+  @post = Post.find(params[:id])
+end
+</ruby>
+
+The view will contain a form similar to the one we used when creating
+new posts. Create a file called +app/views/posts/edit.html.erb+ and make
+it look as follows:
+
+<erb>
+<h1>Editing post</h1>
+
+<%= form_for :post, :url => { :action => :update, :id => @post.id },
+:method => :put do |f| %>
+  <% if @post.errors.any? %>
+  <div id="errorExplanation">
+    <h2><%= pluralize(@post.errors.count, "error") %> prohibited
+	    this post from being saved:</h2>
+    <ul>
+    <% @post.errors.full_messages.each do |msg| %>
+      <li><%= msg %></li>
+    <% end %>
+    </ul>
+  </div>
+  <% end %>
+  <p>
+    <%= f.label :title %><br>
+    <%= f.text_field :title %>
+  </p>
+
+  <p>
+    <%= f.label :text %><br>
+    <%= f.text_area :text %>
+  </p>
+
+  <p>
+    <%= f.submit %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', :action => :index %>
+</erb>
+
+This time we point the form to the +update+ action (not defined yet).
+The +:method => :put+ option tells Rails that we want this form to be
+submitted via +put+, which is the http method you're expected to use to
+*update* resources according to the REST protocol.
+
+TIP: By default forms built with the +form_for_ helper are sent via +POST+.
+
+Moving on, we need to add the +update+ action. The file
++config/routes.rb+ will need just one more line:
+
+<ruby>
+put "posts/:id/update"
+</ruby>
+
+And the +update+ action in +posts_controller+ itself should not look too complicated by now:
+
+<ruby>
+def update
+  @post = Post.find(params[:id])
+
+  if @post.update_attributes(params[:post])
+    redirect_to :action => :show, :id => @post.id
+  else
+    render 'edit'
+  end
+end
+</ruby>
+
+The new method +update_attributes+ is used when you want to update a record
+that already exists, and it accepts an hash containing the attributes
+that you want to update. As before, if there was an error updating the
+post we want to show the form back to the user.
+
+TIP: you don't need to pass all attributes to +update_attributes+. For
+example, if you'd call +@post.update_attributes(:title => 'A new title')+
+Rails would only update the +title+ attribute, leaving all other
+attributes untouched.
+
+Finally, we want to show a link to the +edit+ action in the +index+ and
++show+ views:
+
+<erb>
+# app/view/posts/index.html.erb
+
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+    <th></th>
+    <th></th>
+  </tr>
+
+<% @posts.each do |post| %>
+  <tr>
+    <td><%= post.title %></td>
+    <td><%= post.text %></td>
+    <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
+    <td><%= link_to 'Edit', :action => :edit, :id => post.id %></td>
+  </tr>
+<% end %>
+</table>
+
+# app/view/posts/show.html.erb
+
+...
+
+<%= link_to 'Back', :action => :index %>
+| <%= link_to 'Edit', :action => :edit, :id => @post.id %>
+</erb>
+
+And here's how our app looks so far:
+
+!images/getting_started/index_action_with_edit_link.png(Index action
+with edit link)!
+
+h4. Using partials to clean up duplication in views
+
++partials+ are what Rails uses to remove duplication in views. Here's a
+simple example:
+
+<erb>
+# app/views/user/show.html.erb
+
+<h1><%= @user.name %></h1>
+
+<%= render 'user_details' %>
+
+# app/views/user/_user_details.html.erb
+
+<%= @user.location %>
+
+<%= @user.about_me %>
+</erb>
+
+The +show+ view will automatically include the content of the
++_user_details+ view. Note that partials are prefixed by an underscore,
+as to not be confused with regular views. However, you don't include the
+underscore when including them with the +helper+ method.
+
+TIP: You can red more about partials in the "Layouts and Rendering in
+Rails":layouts_and_rendering.html guide.
+
+Our +edit+ action looks very similar to the +new+ action, in fact they
+both share the same code for displaying the form. Lets clean them up by
+using a +_form+ partial.
 
 h4. Using the Console
 

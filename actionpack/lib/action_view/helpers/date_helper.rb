@@ -64,6 +64,9 @@ module ActionView
       #   distance_of_time_in_words(to_time, from_time, true)     # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)           # => less than a minute
       #
+      #   distance_of_time_in_words(70)         # => 1 minute
+      #   distance_of_time_in_words(60*60)      # => about 1 hour
+      #
       def distance_of_time_in_words(from_time, to_time = 0, include_seconds = false, options = {})
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
