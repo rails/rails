@@ -299,7 +299,7 @@ module ActiveRecord
         raise exception
       end
 
-      def translate_exception(e, message)
+      def translate_exception(exception, message)
         # override in derived class
         ActiveRecord::StatementInvalid.new(message)
       end
