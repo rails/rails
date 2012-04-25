@@ -27,7 +27,7 @@ module Rails
           opt.on("-e", "--environment=name", String,
                   "Specifies the environment to run this console under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v.strip }
-          opt.on("--debugger", 'Enable ruby debugging for the console.') { |v| options[:debugger] = v }
+          opt.on("--debugger", 'Enable the debugger.') { |v| options[:debugger] = v }
           opt.parse!(arguments)
         end
 
@@ -76,7 +76,7 @@ module Rails
         require 'debugger'
         puts "=> Debugger enabled"
       rescue Exception
-        puts "You need to install a debugger to run the console in debugging mode. With gems, use 'gem install debugger'"
+        puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle, and try again."
         exit
       end
     end

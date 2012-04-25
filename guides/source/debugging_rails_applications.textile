@@ -191,7 +191,7 @@ Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localh
 
 Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels, to avoid filling your production logs with useless trivia.
 
-h3. Debugging with +debugger+ gem
+h3. Debugging with the +debugger+ gem
 
 When your code is behaving in unexpected ways, you can try printing to logs or the console to diagnose the problem. Unfortunately, there are times when this sort of error tracking is not effective in finding the root cause of a problem. When you actually need to journey into your running source code, the debugger is your best companion.
 
@@ -199,19 +199,13 @@ The debugger can also help you if you want to learn about the Rails source code 
 
 h4. Setup
 
-The debugger used by Rails, +debugger+, comes as a gem. To install it, just run:
+Rails uses the +debugger+ gem to set breakpoints and step through live code. To install it, just run:
 
 <shell>
 $ gem install debugger
 </shell>
 
-TIP: If you are using Ruby 1.9, you can install a compatible version of +ruby-debug+ by running +gem install debugger+
-
-In case you want to download a particular version or get the source code, refer to the "project's page on rubyforge":http://rubyforge.org/projects/ruby-debug/.
-
-Rails has had built-in support for ruby-debug since Rails 2.0. Inside any Rails application you can invoke the debugger by calling the +debugger+ method.
-
-+ruby-debug19+ gem has been replaced by the +debugger+ gem due to multiple issues on Ruby 1.9.3.
+Rails has had built-in support for debugging since Rails 2.0. Inside any Rails application you can invoke the debugger by calling the +debugger+ method.
 
 Here's an example:
 
@@ -272,7 +266,7 @@ continue   edit     frame   method  putl  set      tmate   where
 
 TIP: To view the help menu for any command use +help &lt;command-name&gt;+ in active debug mode. For example: _+help var+_
 
-The next command to learn is one of the most useful: +list+. You can also abbreviate the debugging commands by supplying just enough letters to distinguish them from other commands, so you can also use +l+ for the +list+ command.
+The next command to learn is one of the most useful: +list+. You can abbreviate any debugging command by supplying just enough letters to distinguish them from other commands, so you can also use +l+ for the +list+ command.
 
 This command shows you where you are in the code by printing 10 lines centered around the current line; the current line in this particular case is line 6 and is marked by +=>+.
 
@@ -487,7 +481,7 @@ class Author < ActiveRecord::Base
 end
 </ruby>
 
-TIP: You can use a debugger while using +rails console+. Just remember to +require "debugger"+ before calling the +debugger+ method.
+TIP: You can use the debugger while using +rails console+. Just remember to +require "debugger"+ before calling the +debugger+ method.
 
 <shell>
 $ rails console
@@ -605,7 +599,7 @@ A simple quit tries to terminate all threads in effect. Therefore your server wi
 
 h4. Settings
 
-There are some settings that can be configured in the +debugger+ gem to make it easier to debug your code. Here are a few of the available options:
+The +debugger+ gem can automatically show the code you're stepping through and reload it when you change it in an editor. Here are a few of the available options:
 
 * +set reload+: Reload source code when changed.
 * +set autolist+: Execute +list+ command on every breakpoint.
@@ -614,7 +608,7 @@ There are some settings that can be configured in the +debugger+ gem to make it 
 
 You can see the full list by using +help set+. Use +help set _subcommand_+ to learn about a particular +set+ command.
 
-TIP: You can include any number of these configuration lines inside a +.rdebugrc+ file in your HOME directory. +debugger+ gem will read this file every time it is loaded and configure itself accordingly.
+TIP: You can save these settings in an +.rdebugrc+ file in your home directory. The debugger reads these global settings when it starts.
 
 Here's a good start for an +.rdebugrc+:
 
@@ -708,7 +702,6 @@ h3. References
 * "debugger Homepage":http://github.com/cldwalker/debugger
 * "Article: Debugging a Rails application with ruby-debug":http://www.sitepoint.com/article/debug-rails-app-ruby-debug/
 * "ruby-debug Basics screencast":http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/
-* "Ryan Bates' ruby-debug screencast":http://railscasts.com/episodes/54-debugging-with-ruby-debug
 * "Ryan Bates' debugging ruby (revised) screencast":http://railscasts.com/episodes/54-debugging-ruby-revised
 * "Ryan Bates' stack trace screencast":http://railscasts.com/episodes/24-the-stack-trace
 * "Ryan Bates' logger screencast":http://railscasts.com/episodes/56-the-logger
