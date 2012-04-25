@@ -57,8 +57,8 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     UrlTestMailer.delivery_method = :test
 
     AppRoutes.draw do
-      match ':controller(/:action(/:id))'
-      match '/welcome' => "foo#bar", :as => "welcome"
+      get ':controller(/:action(/:id))'
+      get '/welcome' => "foo#bar", :as => "welcome"
     end
 
     expected = new_mail
