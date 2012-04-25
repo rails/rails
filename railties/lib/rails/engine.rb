@@ -487,6 +487,7 @@ module Rails
 
     def routes
       @routes ||= ActionDispatch::Routing::RouteSet.new
+      @routes.draw_paths.concat paths["config/routes"].paths
       @routes.append(&Proc.new) if block_given?
       @routes
     end
@@ -544,7 +545,7 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      paths = self.paths["config/routes"].existent
+      paths = self.paths["config/routes.rb"].existent
 
       if routes? || paths.any?
         app.routes_reloader.paths.unshift(*paths)
