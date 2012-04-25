@@ -23,7 +23,6 @@ module ActionDispatch
         end
 
         def url_for(options = {})
-
           path = ""
           path << options.delete(:script_name).to_s.chomp("/")
           path << options.delete(:path).to_s
