@@ -148,7 +148,7 @@ module Rails
   #
   #   # ENGINE/config/routes.rb
   #   MyEngine::Engine.routes.draw do
-  #     match "/" => "posts#index"
+  #     get "/" => "posts#index"
   #   end
   #
   # == Mount priority
@@ -158,7 +158,7 @@ module Rails
   #
   #   MyRailsApp::Application.routes.draw do
   #     mount MyEngine::Engine => "/blog"
-  #     match "/blog/omg" => "main#omg"
+  #     get "/blog/omg" => "main#omg"
   #   end
   #
   # +MyEngine+ is mounted at <tt>/blog</tt>, and <tt>/blog/omg</tt> points to application's
@@ -167,7 +167,7 @@ module Rails
   # It's much better to swap that:
   #
   #   MyRailsApp::Application.routes.draw do
-  #     match "/blog/omg" => "main#omg"
+  #     get "/blog/omg" => "main#omg"
   #     mount MyEngine::Engine => "/blog"
   #   end
   #
@@ -256,7 +256,7 @@ module Rails
   #   # config/routes.rb
   #   MyApplication::Application.routes.draw do
   #     mount MyEngine::Engine => "/my_engine", :as => "my_engine"
-  #     match "/foo" => "foo#index"
+  #     get "/foo" => "foo#index"
   #   end
   #
   # Now, you can use the <tt>my_engine</tt> helper inside your application:

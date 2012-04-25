@@ -105,7 +105,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          post ':controller(/:action)'
         end
       RUBY
 

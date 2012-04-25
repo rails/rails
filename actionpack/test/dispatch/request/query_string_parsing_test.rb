@@ -109,7 +109,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     def assert_parses(expected, actual)
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::QueryStringParsingTest::TestController
+          get ':action', :to => ::QueryStringParsingTest::TestController
         end
 
         get "/parse", actual

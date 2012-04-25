@@ -59,6 +59,16 @@ module ActionDispatch
           @options = (@scope[:options] || {}).merge(options)
           @path = normalize_path(path)
           normalize_options!
+
+          via_all = @options.delete(:via) if @options[:via] == :all
+
+          if !via_all && request_method_condition.empty?
+            msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
+                  "If you want to expose your action to GET, use `get` in the router:\n\n" \
+                  "  Instead of: match \"controller#action\"\n" \
+                  "  Do: get \"controller#action\""
+            raise msg
+          end
         end
 
         def to_route
@@ -264,7 +274,7 @@ module ActionDispatch
         # of most Rails applications, this is beneficial.
         def root(options = {})
           options = { :to => options } if options.is_a?(String)
-          match '/', { :as => :root }.merge(options)
+          match '/', { :as => :root, :via => :get }.merge(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
@@ -417,7 +427,7 @@ module ActionDispatch
 
           options[:as] ||= app_name(app)
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false))
+          match(path, options.merge(:to => app, :anchor => false, :format => false, :via => :all))
 
           define_generate_prefix(app, options[:as])
           self

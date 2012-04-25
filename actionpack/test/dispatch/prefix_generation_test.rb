@@ -25,12 +25,12 @@ module TestGenerationPrefix
         @routes ||= begin
           routes = ActionDispatch::Routing::RouteSet.new
           routes.draw do
-            match "/posts/:id", :to => "inside_engine_generating#show", :as => :post
-            match "/posts", :to => "inside_engine_generating#index", :as => :posts
-            match "/url_to_application", :to => "inside_engine_generating#url_to_application"
-            match "/polymorphic_path_for_engine", :to => "inside_engine_generating#polymorphic_path_for_engine"
-            match "/conflicting_url", :to => "inside_engine_generating#conflicting"
-            match "/foo", :to => "never#invoked", :as => :named_helper_that_should_be_invoked_only_in_respond_to_test
+            get "/posts/:id", :to => "inside_engine_generating#show", :as => :post
+            get "/posts", :to => "inside_engine_generating#index", :as => :posts
+            get "/url_to_application", :to => "inside_engine_generating#url_to_application"
+            get "/polymorphic_path_for_engine", :to => "inside_engine_generating#polymorphic_path_for_engine"
+            get "/conflicting_url", :to => "inside_engine_generating#conflicting"
+            get "/foo", :to => "never#invoked", :as => :named_helper_that_should_be_invoked_only_in_respond_to_test
           end
 
           routes
@@ -51,12 +51,12 @@ module TestGenerationPrefix
             scope "/:omg", :omg => "awesome" do
               mount BlogEngine => "/blog", :as => "blog_engine"
             end
-            match "/posts/:id", :to => "outside_engine_generating#post", :as => :post
-            match "/generate", :to => "outside_engine_generating#index"
-            match "/polymorphic_path_for_app", :to => "outside_engine_generating#polymorphic_path_for_app"
-            match "/polymorphic_path_for_engine", :to => "outside_engine_generating#polymorphic_path_for_engine"
-            match "/polymorphic_with_url_for", :to => "outside_engine_generating#polymorphic_with_url_for"
-            match "/conflicting_url", :to => "outside_engine_generating#conflicting"
+            get "/posts/:id", :to => "outside_engine_generating#post", :as => :post
+            get "/generate", :to => "outside_engine_generating#index"
+            get "/polymorphic_path_for_app", :to => "outside_engine_generating#polymorphic_path_for_app"
+            get "/polymorphic_path_for_engine", :to => "outside_engine_generating#polymorphic_path_for_engine"
+            get "/polymorphic_with_url_for", :to => "outside_engine_generating#polymorphic_with_url_for"
+            get "/conflicting_url", :to => "outside_engine_generating#conflicting"
             root :to => "outside_engine_generating#index"
           end
 
@@ -282,7 +282,7 @@ module TestGenerationPrefix
         @routes ||= begin
           routes = ActionDispatch::Routing::RouteSet.new
           routes.draw do
-            match "/posts/:id", :to => "posts#show", :as => :post
+            get "/posts/:id", :to => "posts#show", :as => :post
           end
 
           routes

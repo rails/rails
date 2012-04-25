@@ -97,7 +97,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    match "/foo", :to => "controller#action"
+    get "/foo", :to => "controller#action"
     root :to => "main#index"
   end
 

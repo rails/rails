@@ -46,7 +46,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          get ':controller(/:action)'
         end
       RUBY
     end
