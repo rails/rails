@@ -56,7 +56,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
     run_generator
     assert_file "config/routes.rb", /get "account\/foo"/, /get "account\/bar"/
   end
-#
+
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["account"]
     assert_file "app/views/test_app/account"
