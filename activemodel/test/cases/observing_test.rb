@@ -73,7 +73,7 @@ class ObservingTest < ActiveModel::TestCase
   test "passes observers to subclasses" do
     FooObserver.instance
     bar = Class.new(Foo)
-    assert_equal Foo.count_observers, bar.count_observers
+    assert_equal Foo.observers_count, bar.observers_count
   end
 end
 
