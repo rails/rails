@@ -56,7 +56,7 @@ module Rails
           paths.add "config/routes",       :glob => "**/*.rb"
           paths.add "db"
           paths.add "db/migrate"
-          paths.add "db/seeds",            :with => "db/seeds.rb"
+          paths.add "db/seeds.rb"
           paths.add "vendor",              :load_path => true
           paths.add "vendor/assets",       :glob => "*"
           paths
