@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "cases/helper"
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
@@ -134,13 +136,19 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert_cycle('a=>b' => 'bar', '1"foo' => '2')
   end
 
+  def test_quoting_special_characters
+    assert_cycle('ca' => 'cà', 'ac' => 'àc')
+  end
+
   private
   def assert_cycle hash
+    # test creation
     x = Hstore.create!(:tags => hash)
     x.reload
     assert_equal(hash, x.tags)
 
-    # make sure updates work
+    # test updating
+    x = Hstore.create!(:tags => {})
     x.tags = hash
     x.save!
     x.reload

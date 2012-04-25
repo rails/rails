@@ -88,9 +88,8 @@ module ActiveRecord
 
         def escape_hstore(value)
             value.nil?         ? 'NULL'
-          : value =~ /[=\s,>]/ ? '"%s"' % value.gsub(/(["\\])/, '\\\\\1')
           : value == ""        ? '""'
-          :                      value.to_s.gsub(/(["\\])/, '\\\\\1')
+          :                      '"%s"' % value.to_s.gsub(/(["\\])/, '\\\\\1')
         end
       end
       # :startdoc:
