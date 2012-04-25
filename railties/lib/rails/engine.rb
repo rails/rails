@@ -517,7 +517,7 @@ module Rails
     #
     # Blog::Engine.load_seed
     def load_seed
-      seed_file = paths["db/seeds"].existent.first
+      seed_file = paths["db/seeds.rb"].existent.first
       load(seed_file) if seed_file
     end
 
