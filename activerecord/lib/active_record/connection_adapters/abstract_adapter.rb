@@ -163,11 +163,6 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      # Override to return the quoted table name. Defaults to column quoting.
-      def quote_table_name(name)
-        quote_column_name(name)
-      end
-
       # Returns a bind substitution value given a +column+ and list of current
       # +binds+
       def substitute_at(column, index)
