@@ -162,7 +162,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_string_constraint
     with_routing do |set|
       set.draw do
-        match "photos", :to => 'action_pack_assertions#nothing', :constraints => {:subdomain => "admin"}
+        get "photos", :to => 'action_pack_assertions#nothing', :constraints => {:subdomain => "admin"}
       end
     end
   end
@@ -170,9 +170,9 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_assert_redirect_to_named_route_failure
     with_routing do |set|
       set.draw do
-        match 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
-        match 'route_two', :to => 'action_pack_assertions#nothing', :id => 'two', :as => :route_two
-        match ':controller/:action'
+        get 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
+        get 'route_two', :to => 'action_pack_assertions#nothing', :id => 'two', :as => :route_two
+        get ':controller/:action'
       end
       process :redirect_to_named_route
       assert_raise(ActiveSupport::TestCase::Assertion) do
@@ -192,8 +192,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
     with_routing do |set|
       set.draw do
-        match 'admin/inner_module', :to => 'admin/inner_module#index', :as => :admin_inner_module
-        match ':controller/:action'
+        get 'admin/inner_module', :to => 'admin/inner_module#index', :as => :admin_inner_module
+        get ':controller/:action'
       end
       process :redirect_to_index
       # redirection is <{"action"=>"index", "controller"=>"admin/admin/inner_module"}>
@@ -206,8 +206,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
     with_routing do |set|
       set.draw do
-        match '/action_pack_assertions/:id', :to => 'action_pack_assertions#index', :as => :top_level
-        match ':controller/:action'
+        get '/action_pack_assertions/:id', :to => 'action_pack_assertions#index', :as => :top_level
+        get ':controller/:action'
       end
       process :redirect_to_top_level_named_route
       # assert_redirected_to "http://test.host/action_pack_assertions/foo" would pass because of exact match early return
@@ -221,8 +221,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         # this controller exists in the admin namespace as well which is the only difference from previous test
-        match '/user/:id', :to => 'user#index', :as => :top_level
-        match ':controller/:action'
+        get '/user/:id', :to => 'user#index', :as => :top_level
+        get ':controller/:action'
       end
       process :redirect_to_top_level_named_route
       # assert_redirected_to top_level_url('foo') would pass because of exact match early return

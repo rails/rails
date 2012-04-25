@@ -83,7 +83,7 @@ module ApplicationTests
 
     def test_inspect_routes_shows_dynamic_action_route
       @set.draw do
-        match 'api/:action' => 'api'
+        get 'api/:action' => 'api'
       end
       output = @inspector.format @set.routes
       assert_equal ["  /api/:action(.:format) api#:action"], output
@@ -91,7 +91,7 @@ module ApplicationTests
 
     def test_inspect_routes_shows_controller_and_action_only_route
       @set.draw do
-        match ':controller/:action'
+        get ':controller/:action'
       end
       output = @inspector.format @set.routes
       assert_equal ["  /:controller/:action(.:format) :controller#:action"], output
@@ -99,7 +99,7 @@ module ApplicationTests
 
     def test_inspect_routes_shows_controller_and_action_route_with_constraints
       @set.draw do
-        match ':controller(/:action(/:id))', :id => /\d+/
+        get ':controller(/:action(/:id))', :id => /\d+/
       end
       output = @inspector.format @set.routes
       assert_equal ["  /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"], output
@@ -107,7 +107,7 @@ module ApplicationTests
 
     def test_rake_routes_shows_route_with_defaults
       @set.draw do
-        match 'photos/:id' => 'photos#show', :defaults => {:format => 'jpg'}
+        get 'photos/:id' => 'photos#show', :defaults => {:format => 'jpg'}
       end
       output = @inspector.format @set.routes
       assert_equal [%Q[  /photos/:id(.:format) photos#show {:format=>"jpg"}]], output
@@ -115,7 +115,7 @@ module ApplicationTests
 
     def test_rake_routes_shows_route_with_constraints
       @set.draw do
-        match 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
+        get 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
       end
       output = @inspector.format @set.routes
       assert_equal ["  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"], output
@@ -128,7 +128,7 @@ module ApplicationTests
 
     def test_rake_routes_shows_route_with_rack_app
       @set.draw do
-        match 'foo/:id' => RackApp, :id => /[A-Z]\d{5}/
+        get 'foo/:id' => RackApp, :id => /[A-Z]\d{5}/
       end
       output = @inspector.format @set.routes
       assert_equal ["  /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"], output
@@ -153,7 +153,7 @@ module ApplicationTests
 
     def test_rake_routes_dont_show_app_mounted_in_assets_prefix
       @set.draw do
-        match '/sprockets' => RackApp
+        get '/sprockets' => RackApp
       end
       output = @inspector.format @set.routes
       assert_no_match(/RackApp/, output.first)

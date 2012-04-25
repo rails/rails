@@ -15,9 +15,9 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   routes = ActionDispatch::Routing::RouteSet.new
   routes.draw do
-    match "/" => "foo#bar"
-    match "/other" => "foo#other"
-    match "/article/:id" => "foo#article", :as => :article
+    get "/" => "foo#bar"
+    get "/other" => "foo#other"
+    get "/article/:id" => "foo#article", :as => :article
   end
 
   include routes.url_helpers
@@ -471,25 +471,25 @@ end
 class UrlHelperControllerTest < ActionController::TestCase
   class UrlHelperController < ActionController::Base
     test_routes do
-      match 'url_helper_controller_test/url_helper/show/:id',
+      get 'url_helper_controller_test/url_helper/show/:id',
         :to => 'url_helper_controller_test/url_helper#show',
         :as => :show
 
-      match 'url_helper_controller_test/url_helper/profile/:name',
+      get 'url_helper_controller_test/url_helper/profile/:name',
         :to => 'url_helper_controller_test/url_helper#show',
         :as => :profile
 
-      match 'url_helper_controller_test/url_helper/show_named_route',
+      get 'url_helper_controller_test/url_helper/show_named_route',
         :to => 'url_helper_controller_test/url_helper#show_named_route',
         :as => :show_named_route
 
-      match "/:controller(/:action(/:id))"
+      get "/:controller(/:action(/:id))"
 
-      match 'url_helper_controller_test/url_helper/normalize_recall_params',
+      get 'url_helper_controller_test/url_helper/normalize_recall_params',
         :to => UrlHelperController.action(:normalize_recall),
         :as => :normalize_recall_params
 
-      match '/url_helper_controller_test/url_helper/override_url_helper/default',
+      get '/url_helper_controller_test/url_helper/override_url_helper/default',
         :to => 'url_helper_controller_test/url_helper#override_url_helper',
         :as => :override_url_helper
     end

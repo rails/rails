@@ -15,7 +15,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          get '/posts', :to => "posts#index"
         end
       RUBY
 

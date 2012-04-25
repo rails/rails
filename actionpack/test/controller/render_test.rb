@@ -1188,7 +1188,7 @@ class RenderTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :customers
-        match ':controller/:action'
+        get ':controller/:action'
       end
 
       get :head_with_location_object
