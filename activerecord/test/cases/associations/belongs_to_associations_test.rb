@@ -705,4 +705,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_equal toy, sponsor.reload.sponsorable
   end
+
+  test "stale tracking doesn't care about the type" do
+    apple = Firm.create("name" => "Apple")
+    citibank = Account.create("credit_limit" => 10)
+
+    citibank.firm_id = apple.id
+    citibank.firm # load it
+
+    citibank.firm_id = apple.id.to_s
+
+    assert !citibank.association(:firm).stale_target?
+  end
 end
