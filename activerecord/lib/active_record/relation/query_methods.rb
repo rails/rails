@@ -144,9 +144,9 @@ module ActiveRecord
 
     def order!(*args)
       if args.size == 1 && ::Array === args.first &&
-          !args.first.find{ |arg| ::String === arg && arg =~ /\?/ }
+          !args.first.find{ |arg| ::String === arg && arg =~ /\?|:\w/ }
         args = args.first
-      elsif ::String === args.first && args.first =~ /\?/
+      elsif ::String === args.first && args.first =~ /\?|:\w/
         args = [args]
       end
       args.map!{ |arg| ::Array === arg ? @klass.send(:sanitize_sql, arg) : arg }
