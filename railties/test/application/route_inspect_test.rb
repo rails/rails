@@ -13,6 +13,7 @@ module ApplicationTests
       app.config.assets = ActiveSupport::OrderedOptions.new
       app.config.assets.prefix = '/sprockets'
       Rails.stubs(:application).returns(app)
+      Rails.stubs(:env).returns("development")
     end
 
     def test_displaying_routes_for_engines
