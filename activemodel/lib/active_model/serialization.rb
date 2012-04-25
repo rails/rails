@@ -30,11 +30,11 @@ module ActiveModel
   # When called, serializable hash will use
   # instance methods that match the name of the attributes hash's keys.
   # In order to override this behavior, take a look at the private
-  # method ++read_attribute_for_serialization++.
+  # method +read_attribute_for_serialization+.
   #
   # Most of the time though, you will want to include the JSON or XML
   # serializations. Both of these modules automatically include the
-  # ++ActiveModel::Serialization++ module, so there is no need to explicitly
+  # +ActiveModel::Serialization+ module, so there is no need to explicitly
   # include it.
   #
   # A minimal implementation including XML and JSON would be:
