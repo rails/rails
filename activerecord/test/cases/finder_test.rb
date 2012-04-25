@@ -82,12 +82,6 @@ class FinderTest < ActiveRecord::TestCase
       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
-  def test_exists_with_scoped_include
-    Developer.send(:with_scope, :find => { :include => :projects, :order => "projects.name" }) do
-      assert Developer.exists?
-    end
-  end
-
   def test_exists_does_not_instantiate_records
     Developer.expects(:instantiate).never
     Developer.exists?
@@ -1188,14 +1182,6 @@ class FinderTest < ActiveRecord::TestCase
     )
     assert_equal 3, posts.size
     assert_equal [0, 1, 1], posts.map(&:author_id).sort
-  end
-
-  def test_finder_with_scoped_from
-    all_topics = Topic.find(:all)
-
-    Topic.send(:with_scope, :find => { :from => 'fake_topics' }) do
-      assert_equal all_topics, Topic.from('topics').to_a
-    end
   end
 
   def test_find_one_message_with_custom_primary_key

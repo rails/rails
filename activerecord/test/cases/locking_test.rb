@@ -363,17 +363,6 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
       end
     end
 
-    # Test scoped lock.
-    def test_sane_find_with_scoped_lock
-      assert_nothing_raised do
-        Person.transaction do
-          Person.send(:with_scope, :find => { :lock => true }) do
-            Person.find 1
-          end
-        end
-      end
-    end
-
     # PostgreSQL protests SELECT ... FOR UPDATE on an outer join.
     unless current_adapter?(:PostgreSQLAdapter)
       # Test locked eager find.
