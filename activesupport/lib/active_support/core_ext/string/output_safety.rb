@@ -92,7 +92,10 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
-    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase", "prepend"].freeze
+    UNSAFE_STRING_METHODS = %w(
+      capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
+      slice squeeze strip sub succ swapcase tr tr_s upcase prepend
+    )
 
     alias_method :original_concat, :concat
     private :original_concat
@@ -104,14 +107,16 @@ module ActiveSupport #:nodoc:
     end
 
     def [](*args)
-      return super if args.size < 2
-
-      if html_safe?
-        new_safe_buffer = super
-        new_safe_buffer.instance_eval { @html_safe = true }
-        new_safe_buffer
+      if args.size < 2
+        super
       else
-        to_str[*args]
+        if html_safe?
+          new_safe_buffer = super
+          new_safe_buffer.instance_eval { @html_safe = true }
+          new_safe_buffer
+        else
+          to_str[*args]
+        end
       end
     end
 

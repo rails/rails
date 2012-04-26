@@ -9,7 +9,10 @@ class Date
     :long         => "%B %e, %Y",
     :db           => "%Y-%m-%d",
     :number       => "%Y%m%d",
-    :long_ordinal => lambda { |date| date.strftime("%B #{ActiveSupport::Inflector.ordinalize(date.day)}, %Y") }, # => "April 25th, 2007"
+    :long_ordinal => lambda { |date|
+      day_format = ActiveSupport::Inflector.ordinalize(date.day)
+      date.strftime("%B #{day_format}, %Y") # => "April 25th, 2007"
+    },
     :rfc822       => "%e %b %Y"
   }
 

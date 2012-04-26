@@ -8,8 +8,14 @@ class Time
     :time         => "%H:%M",
     :short        => "%d %b %H:%M",
     :long         => "%B %d, %Y %H:%M",
-    :long_ordinal => lambda { |time| time.strftime("%B #{ActiveSupport::Inflector.ordinalize(time.day)}, %Y %H:%M") },
-    :rfc822       => lambda { |time| time.strftime("%a, %d %b %Y %H:%M:%S #{time.formatted_offset(false)}") }
+    :long_ordinal => lambda { |time|
+      day_format = ActiveSupport::Inflector.ordinalize(time.day)
+      time.strftime("%B #{day_format}, %Y %H:%M")
+    },
+    :rfc822       => lambda { |time|
+      offset_format = time.formatted_offset(false)
+      time.strftime("%a, %d %b %Y %H:%M:%S #{offset_format}")
+    }
   }
 
   # Converts to a formatted string. See DATE_FORMATS for builtin formats.

@@ -46,7 +46,7 @@ class Array
   def to_formatted_s(format = :default)
     case format
       when :db
-        if respond_to?(:empty?) && self.empty?
+        if respond_to?(:empty?) && empty?
           "null"
         else
           collect { |element| element.id }.join(",")

@@ -71,7 +71,7 @@ class Class
           end
         EOS
       end
-      self.send("#{sym}=", yield) if block_given?
+      send("#{sym}=", yield) if block_given?
     end
   end
 

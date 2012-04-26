@@ -62,8 +62,11 @@ class Range #:nodoc:
   # Optimize range sum to use arithmetic progression if a block is not given and
   # we have a range of numeric values.
   def sum(identity = 0)
-    return super if block_given? || !(first.instance_of?(Integer) && last.instance_of?(Integer))
-    actual_last = exclude_end? ? (last - 1) : last
-    (actual_last - first + 1) * (actual_last + first) / 2
+    if block_given? || !(first.instance_of?(Integer) && last.instance_of?(Integer))
+      super
+    else
+      actual_last = exclude_end? ? (last - 1) : last
+      (actual_last - first + 1) * (actual_last + first) / 2
+    end
   end
 end

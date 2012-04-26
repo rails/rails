@@ -51,13 +51,21 @@ class Time
 
     # Returns a TimeZone instance or nil, or raises an ArgumentError for invalid timezones.
     def find_zone!(time_zone)
-      return time_zone if time_zone.nil? || time_zone.is_a?(ActiveSupport::TimeZone)
-      # lookup timezone based on identifier (unless we've been passed a TZInfo::Timezone)
-      unless time_zone.respond_to?(:period_for_local)
-        time_zone = ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone)
+      if !time_zone || time_zone.is_a?(ActiveSupport::TimeZone)
+        time_zone
+      else
+        # lookup timezone based on identifier (unless we've been passed a TZInfo::Timezone)
+        unless time_zone.respond_to?(:period_for_local)
+          time_zone = ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone)
+        end
+
+        # Return if a TimeZone instance, or wrap in a TimeZone instance if a TZInfo::Timezone
+        if time_zone.is_a?(ActiveSupport::TimeZone)
+          time_zone
+        else
+          ActiveSupport::TimeZone.create(time_zone.name, nil, time_zone)
+        end
       end
-      # Return if a TimeZone instance, or wrap in a TimeZone instance if a TZInfo::Timezone
-      time_zone.is_a?(ActiveSupport::TimeZone) ? time_zone : ActiveSupport::TimeZone.create(time_zone.name, nil, time_zone)
     rescue TZInfo::InvalidTimezoneIdentifier
       raise ArgumentError, "Invalid Timezone: #{time_zone}"
     end
@@ -80,8 +88,10 @@ class Time
   #
   #   Time.utc(2000).in_time_zone('Alaska')  # => Fri, 31 Dec 1999 15:00:00 AKST -09:00
   def in_time_zone(zone = ::Time.zone)
-    return self unless zone
-
-    ActiveSupport::TimeWithZone.new(utc? ? self : getutc, ::Time.find_zone!(zone))
+    if zone
+      ActiveSupport::TimeWithZone.new(utc? ? self : getutc, ::Time.find_zone!(zone))
+    else
+      self
+    end
   end
 end
