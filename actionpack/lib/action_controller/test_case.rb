@@ -27,13 +27,13 @@ module ActionController
         path = payload[:virtual_path]
         next unless path
         partial = path =~ /^.*\/_[^\/]*$/
+
         if partial
           @partials[path] += 1
           @partials[path.split("/").last] += 1
-          @templates[path] += 1
-        else
-          @templates[path] += 1
         end
+
+        @templates[path] += 1
       end
     end
 
