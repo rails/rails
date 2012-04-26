@@ -2,7 +2,7 @@ class Topic < ActiveRecord::Base
   scope :base, -> { scoped }
   scope :written_before, lambda { |time|
     if time
-      { :conditions => ['written_on < ?', time] }
+      where 'written_on < ?', time
     end
   }
   scope :approved, -> { where(:approved => true) }
@@ -35,18 +35,6 @@ class Topic < ActiveRecord::Base
       2
     end
   end
-  module MultipleExtensionOne
-    def extension_one
-      1
-    end
-  end
-  module MultipleExtensionTwo
-    def extension_two
-      2
-    end
-  end
-  scope :named_extension, :extend => NamedExtension
-  scope :multiple_extensions, :extend => [MultipleExtensionTwo, MultipleExtensionOne]
 
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   has_many :replies_with_primary_key, :class_name => "Reply", :dependent => :destroy, :primary_key => "title", :foreign_key => "parent_title"

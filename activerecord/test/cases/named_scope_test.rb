@@ -98,25 +98,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal all_topics, Topic.written_before(nil)
   end
 
-  def test_scopes_with_joins
-    address = author_addresses(:david_address)
-    posts_with_authors_at_address = Post.find(
-      :all, :joins => 'JOIN authors ON authors.id = posts.author_id',
-      :conditions => [ 'authors.author_address_id = ?', address.id ]
-    )
-    assert_equal posts_with_authors_at_address, Post.with_authors_at_address(address)
-  end
-
-  def test_scopes_with_joins_respects_custom_select
-    address = author_addresses(:david_address)
-    posts_with_authors_at_address_titles = Post.find(:all,
-      :select => 'title',
-      :joins => 'JOIN authors ON authors.id = posts.author_id',
-      :conditions => [ 'authors.author_address_id = ?', address.id ]
-    )
-    assert_equal posts_with_authors_at_address_titles.map(&:title), Post.with_authors_at_address(address).find(:all, :select => 'title').map(&:title)
-  end
-
   def test_scope_with_object
     objects = Topic.with_object
     assert_operator objects.length, :>, 0
