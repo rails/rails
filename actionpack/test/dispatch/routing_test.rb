@@ -802,6 +802,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal original_options, options
   end
 
+  # checks that url_for doesn't change controller and action
+  def test_url_for_with_no_side_effects_on_strings
+    # freeze controller and action to be sure they are not changed
+    # we'll get RuntimeError if somebody tries to modify them
+    options = {:controller => '/projects'.freeze, :action => 'status'.freeze}
+
+    url_for options
+  end
+
   # tests the arguments modification free version of define_hash_access
   def test_named_route_with_no_side_effects
     original_options = { :host => 'test.host' }
