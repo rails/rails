@@ -87,6 +87,9 @@ module ActiveRecord
       first or raise RecordNotFound
     end
 
+    # Find the last record (or last N records if a parameter is supplied).
+    # If no order is defined it will order by primary key.
+    #
     # Examples:
     #
     #   Person.last # returns the last object fetched by SELECT * FROM people
@@ -94,8 +97,8 @@ module ActiveRecord
     #   Person.order("created_on DESC").offset(5).last
     def last(limit = nil)
       if limit
-        if order_values.empty?
-          order("#{primary_key} DESC").limit(limit).reverse
+        if order_values.empty? && primary_key
+          order("#{quoted_table_name}.#{quoted_primary_key} DESC").limit(limit).reverse
         else
           to_a.last(limit)
         end
