@@ -465,7 +465,7 @@ invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
 
 h4. Saving data in the controller
 
-Back into +posts_controller+, we need to change the +create+ action
+Back in +posts_controller+, we need to change the +create+ action
 to use the new +Post+ model to save data in the database. Open that file
 and change the +create+ action to look like the following:
 
