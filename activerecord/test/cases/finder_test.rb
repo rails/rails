@@ -640,7 +640,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_one_attribute_with_conditions
-    assert_equal accounts(:rails_core_account), Account.find_by_credit_limit(50, :conditions => ['firm_id = ?', 6])
+    assert_equal accounts(:rails_core_account), Account.where('firm_id = ?', 6).find_by_credit_limit(50)
   end
 
   def test_find_by_one_attribute_that_is_an_aggregate
@@ -680,12 +680,12 @@ class FinderTest < ActiveRecord::TestCase
   def test_dynamic_finder_on_one_attribute_with_conditions_returns_same_results_after_caching
     # ensure this test can run independently of order
     class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
-    a = Account.find_by_credit_limit(50, :conditions => ['firm_id = ?', 6])
-    assert_equal a, Account.find_by_credit_limit(50, :conditions => ['firm_id = ?', 6]) # find_by_credit_limit has been cached
+    a = Account.where('firm_id = ?', 6).find_by_credit_limit(50)
+    assert_equal a, Account.where('firm_id = ?', 6).find_by_credit_limit(50) # find_by_credit_limit has been cached
   end
 
   def test_find_by_one_attribute_with_several_options
-    assert_equal accounts(:unknown), Account.find_by_credit_limit(50, :order => 'id DESC', :conditions => ['id != ?', 3])
+    assert_equal accounts(:unknown), Account.order('id DESC').where('id != ?', 3).find_by_credit_limit(50)
   end
 
   def test_find_by_one_missing_attribute
@@ -719,7 +719,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_last_by_one_attribute_with_several_options
-    assert_equal accounts(:signals37), Account.find_last_by_credit_limit(50, :order => 'id DESC', :conditions => ['id != ?', 3])
+    assert_equal accounts(:signals37), Account.order('id DESC').where('id != ?', 3).find_last_by_credit_limit(50)
   end
 
   def test_find_last_by_one_missing_attribute

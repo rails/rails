@@ -246,7 +246,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_polymorphic_has_one
-    post    = Post.find_by_id(posts(:welcome).id, :include => :tagging)
+    post    = Post.includes(:tagging).find posts(:welcome).id
     tagging = taggings(:welcome_general)
     assert_no_queries do
       assert_equal tagging, post.tagging
@@ -254,7 +254,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_polymorphic_has_one_defined_in_abstract_parent
-    item    = Item.find_by_id(items(:dvd).id, :include => :tagging)
+    item    = Item.includes(:tagging).find items(:dvd).id
     tagging = taggings(:godfather)
     assert_no_queries do
       assert_equal tagging, item.tagging
@@ -403,7 +403,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_has_many_through_polymorphic_has_many
-    author            = Author.find_by_id(authors(:david).id, :include => :taggings)
+    author            = Author.includes(:taggings).find authors(:david).id
     expected_taggings = taggings(:welcome_general, :thinking_general)
     assert_no_queries do
       assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
