@@ -465,7 +465,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
 
     assert_queries(2) do
-      firm.clients.find_each(:batch_size => 1, :conditions => {:name => "Microsoft"}) do |c|
+      firm.clients.where(name: 'Microsoft').find_each(batch_size: 1) do |c|
         assert_equal firm.id, c.firm_id
         assert_equal "Microsoft", c.name
       end
