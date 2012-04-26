@@ -60,6 +60,9 @@ module ActiveRecord
       where(*args).first!
     end
 
+    # Find the first record (or first N records if a parameter is supplied).
+    # If no order is defined it will order by primary key.
+    #
     # Examples:
     #
     #   Person.first # returns the first object fetched by SELECT * FROM people
@@ -67,7 +70,15 @@ module ActiveRecord
     #   Person.where(["user_name = :u", { :u => user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
     def first(limit = nil)
-      limit ? limit(limit).to_a : find_first
+      if limit
+        if order_values.empty? && primary_key
+          order("#{quoted_table_name}.#{quoted_primary_key} ASC").limit(limit).to_a
+        else
+          limit(limit).to_a
+        end
+      else
+        find_first
+      end
     end
 
     # Same as +first+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -319,7 +330,12 @@ module ActiveRecord
       if loaded?
         @records.first
       else
-        @first ||= limit(1).to_a[0]
+        @first ||=
+          if order_values.empty? && primary_key
+            order("#{quoted_table_name}.#{quoted_primary_key} ASC").limit(1).to_a[0]
+          else
+            limit(1).to_a[0]
+          end
       end
     end
 

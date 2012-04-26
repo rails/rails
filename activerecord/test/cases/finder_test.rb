@@ -163,6 +163,12 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_first_have_primary_key_order_by_default
+    expected = topics(:first)
+    expected.touch # PostgreSQL changes the default order if no order clause is used
+    assert_equal expected, Topic.first
+  end
+
   def test_model_class_responds_to_first_bang
     assert Topic.first!
     Topic.delete_all
