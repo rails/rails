@@ -94,12 +94,6 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal count, Pet.joins(:toys).where(where_args).delete_all
   end
 
-  def test_update_by_condition
-    Topic.update_all "content = 'bulk updated!'", ["approved = ?", true]
-    assert_equal "Have a nice day", Topic.find(1).content
-    assert_equal "bulk updated!", Topic.find(2).content
-  end
-
   def test_increment_attribute
     assert_equal 50, accounts(:signals37).credit_limit
     accounts(:signals37).increment! :credit_limit
@@ -338,7 +332,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_non_standard_table_name
-    assert_equal 1, WarehouseThing.update_all(['value = ?', 0], ['id = ?', 1])
+    assert_equal 1, WarehouseThing.where(id: 1).update_all(['value = ?', 0])
     assert_equal 0, WarehouseThing.find(1).value
   end
 

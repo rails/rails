@@ -178,7 +178,7 @@ module ActiveRecord
       verify_readonly_attribute(name)
       raise ActiveRecordError, "can not update on a new record object" unless persisted?
       raw_write_attribute(name, value)
-      self.class.update_all({ name => value }, self.class.primary_key => id) == 1
+      self.class.where(self.class.primary_key => id).update_all(name => value) == 1
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -313,7 +313,7 @@ module ActiveRecord
 
         @changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
-        self.class.unscoped.update_all(changes, { primary_key => self[primary_key] }) == 1
+        self.class.unscoped.where(primary_key => self[primary_key]).update_all(changes) == 1
       end
     end
 
