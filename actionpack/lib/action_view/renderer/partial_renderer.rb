@@ -283,7 +283,7 @@ module ActionView
       end
 
       if layout = @options[:layout]
-        layout = find_template(layout, @locals.keys + [@variable])
+        layout = find_template(layout, @locals.keys + [@variable, @variable_counter])
       end
 
       result = @template ? collection_with_template : collection_without_template
@@ -292,6 +292,7 @@ module ActionView
         locals = @locals
         result.map! do |content|
           locals[@variable] = @collection[result.index(content)]
+          locals[@variable_counter] = result.index(content)
           layout.render(@view, @locals) { content }
         end
       end
