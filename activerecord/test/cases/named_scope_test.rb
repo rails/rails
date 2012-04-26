@@ -140,9 +140,10 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_active_records_have_scope_named__scoped__
-    assert !Topic.find(:all, scope = {:conditions => "content LIKE '%Have%'"}).empty?
+    scope = Topic.where("content LIKE '%Have%'")
+    assert !scope.empty?
 
-    assert_equal Topic.find(:all, scope), Topic.scoped(scope)
+    assert_equal scope, Topic.scoped(where: "content LIKE '%Have%'")
   end
 
   def test_first_and_last_should_support_find_options
@@ -235,9 +236,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_many_should_return_false_if_none_or_one
-    topics = Topic.base.scoped(:conditions => {:id => 0})
+    topics = Topic.base.where(:id => 0)
     assert !topics.many?
-    topics = Topic.base.scoped(:conditions => {:id => 1})
+    topics = Topic.base.where(:id => 1)
     assert !topics.many?
   end
 
@@ -315,7 +316,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_chaining_with_duplicate_joins
     join = "INNER JOIN comments ON comments.post_id = posts.id"
     post = Post.find(1)
-    assert_equal post.comments.size, Post.scoped(:joins => join).scoped(:joins => join, :conditions => "posts.id = #{post.id}").size
+    assert_equal post.comments.size, Post.joins(join).joins(join).where("posts.id = #{post.id}").size
   end
 
   def test_chaining_should_use_latest_conditions_when_creating
