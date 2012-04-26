@@ -546,10 +546,12 @@ module Rails
 
     initializer :add_routing_paths do |app|
       paths = self.paths["config/routes.rb"].existent
+      external_paths = self.paths["config/routes"].paths
 
       if routes? || paths.any?
         app.routes_reloader.paths.unshift(*paths)
         app.routes_reloader.route_sets << routes
+        app.routes_reloader.external_routes.unshift(*external_paths)
       end
     end
 
