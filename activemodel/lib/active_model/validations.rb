@@ -128,6 +128,19 @@ module ActiveModel
       #     end
       #   end
       #
+      # Options:
+      # * <tt>:on</tt> - Specifies the context where this validation is active
+      #   (e.g. <tt>:on => :create</tt> or <tt>:on => :custom_validation_context</tt>)
+      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
+      # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
+      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a true or false value.
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or
+      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
+      #   method, proc or string should return or evaluate to a true or false value.
       def validate(*args, &block)
         options = args.extract_options!
         if options.key?(:on)
