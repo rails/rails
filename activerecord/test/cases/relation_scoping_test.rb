@@ -53,8 +53,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_last_preserves_scope
-    lowest_salary  = Developer.first :order => "salary ASC"
-    highest_salary = Developer.first :order => "salary DESC"
+    lowest_salary  = Developer.order("salary ASC").first
+    highest_salary = Developer.order("salary DESC").first
 
     Developer.order("salary").scoping do
       assert_equal highest_salary, Developer.last

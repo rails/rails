@@ -805,7 +805,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_deleting_updates_counter_cache
-    topic = Topic.first(:order => "id ASC")
+    topic = Topic.order("id ASC").first
     assert_equal topic.replies.to_a.size, topic.replies_count
 
     topic.replies.delete(topic.replies.first)
@@ -1488,17 +1488,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_queries 0 do
       assert_equal 0, author.essays.size
-    end
-  end
-
-  def test_calling_first_or_last_with_find_options_on_loaded_association_should_fetch_with_query
-    firm = companies(:first_firm)
-    firm.clients.class # force load target
-
-    assert_queries 2 do
-      assert firm.clients.loaded?
-      firm.clients.first(:order => 'name')
-      firm.clients.last(:order => 'name')
     end
   end
 
