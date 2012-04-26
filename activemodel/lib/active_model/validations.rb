@@ -158,7 +158,7 @@ module ActiveModel
         _validators.values.flatten.uniq
       end
 
-      # List all validators that being used to validate a specific attribute.
+      # List all validators that are being used to validate a specific attribute.
       def validators_on(*attributes)
         attributes.map do |attribute|
           _validators[attribute.to_sym]
