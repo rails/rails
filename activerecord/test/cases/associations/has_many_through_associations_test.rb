@@ -533,7 +533,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_include_should_alias_join_table
-    assert_equal 2, people(:michael).posts.count(:include => :readers)
+    assert_equal 2, people(:michael).posts.includes(:readers).count
   end
 
   def test_inner_join_with_quoted_table_name

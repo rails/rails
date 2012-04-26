@@ -580,12 +580,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_count_eager_with_has_many_and_limit_and_high_offset
-    posts = Post.count(:all, :include => [ :author, :comments ], :limit => 2, :offset => 10, :conditions => { 'authors.name' => 'David' })
+    posts = Post.scoped(:includes => [ :author, :comments ], :limit => 2, :offset => 10, :where => { 'authors.name' => 'David' }).count(:all)
     assert_equal 0, posts
   end
 
   def test_eager_with_has_many_and_limit_with_no_results
-    posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => "posts.title = 'magic forest'")
+    posts = Post.scoped(:includes => [ :author, :comments ], :limit => 2, :where => "posts.title = 'magic forest'").find(:all)
     assert_equal 0, posts.size
   end
 

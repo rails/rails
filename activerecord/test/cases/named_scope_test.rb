@@ -61,7 +61,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert !Topic.find(:all, :conditions => {:approved => true}).empty?
 
     assert_equal Topic.find(:all, :conditions => {:approved => true}), Topic.approved
-    assert_equal Topic.count(:conditions => {:approved => true}), Topic.approved.count
+    assert_equal Topic.where(:approved => true).count, Topic.approved.count
   end
 
   def test_scopes_with_string_name_can_be_composed
