@@ -22,7 +22,7 @@ module Mime
 
   SET              = Mimes.new
   EXTENSION_LOOKUP = {}
-  LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
+  LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) if k.present? }
 
   def self.[](type)
     return type if type.is_a?(Type)
