@@ -120,7 +120,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_destroy_all
     conditions = "author_name = 'Mary'"
-    topics_by_mary = Topic.all(:conditions => conditions, :order => 'id')
+    topics_by_mary = Topic.scoped(:where => conditions, :order => 'id').to_a
     assert ! topics_by_mary.empty?
 
     assert_difference('Topic.count', -topics_by_mary.size) do

@@ -335,7 +335,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_hash_conditions_on_joined_table_and_with_range
-    firms = DependentFirm.all :joins => :account, :conditions => {:name => 'RailsCore', :accounts => { :credit_limit => 55..60 }}
+    firms = DependentFirm.scoped :joins => :account, :where => {:name => 'RailsCore', :accounts => { :credit_limit => 55..60 }}
     assert_equal 1, firms.size
     assert_equal companies(:rails_core), firms.first
   end
