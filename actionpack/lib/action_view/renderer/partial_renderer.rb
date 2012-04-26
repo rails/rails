@@ -283,13 +283,19 @@ module ActionView
       end
 
       if layout = @options[:layout]
-        layout = find_template(layout)
+        layout = find_template(layout, @locals.keys + [@variable])
       end
 
       result = @template ? collection_with_template : collection_without_template
-      
-      result.map!{|content| layout.render(@view, @locals) { content } } if layout
-      
+
+      if layout
+        locals = @locals
+        result.map! do |content|
+          locals[@variable] = @collection[result.index(content)]
+          layout.render(@view, @locals) { content }
+        end
+      end
+
       result.join(spacer).html_safe
     end
 
@@ -391,10 +397,9 @@ module ActionView
         locals[as] = object
         segments << template.render(@view, locals)
       end
-      
+
       segments
     end
-    
 
     def collection_without_template
       segments, locals, collection_data = [], @locals, @collection_data
