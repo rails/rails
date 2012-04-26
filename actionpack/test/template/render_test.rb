@@ -242,6 +242,10 @@ module RenderTestCases
     assert_equal '<b class="amazon">Hello: Amazon</b><b class="yahoo">Hello: Yahoo</b>', @view.render(:partial => "test/customer", :layout => 'test/b_layout_for_partial_with_object', :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
   end
 
+  def test_render_partial_with_layout_using_object_and_template_makes_object_available_in_template
+    assert_equal '<b class="amazon">Hello: Amazon</b>', @view.render(:partial => "test/customer", :layout => 'test/b_layout_for_partial_with_object', :object => Customer.new("Amazon"))
+  end
+
   def test_render_partial_with_empty_array_should_return_nil
     assert_nil @view.render(:partial => [])
   end
