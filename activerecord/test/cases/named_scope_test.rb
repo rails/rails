@@ -465,16 +465,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome).title], klass.welcome_2.map(&:title)
   end
 
-  def test_eager_default_scope_hashes_are_not_deprecated
-    klass = Class.new(ActiveRecord::Base)
-    klass.table_name = 'posts'
-
-    assert_not_deprecated do
-      klass.send(:default_scope, :conditions => { :id => posts(:welcome).id })
-    end
-    assert_equal [posts(:welcome).title], klass.all.map(&:title)
-  end
-
   def test_eager_default_scope_relations_are_deprecated
     klass = Class.new(ActiveRecord::Base)
     klass.table_name = 'posts'
