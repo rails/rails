@@ -394,7 +394,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_assignment_sticks
-    post = Post.find(:first)
+    post = Post.first
 
     author1, author2 = Author.find(:all, :limit => 2)
     assert_not_nil author1

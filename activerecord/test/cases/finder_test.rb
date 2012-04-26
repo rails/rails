@@ -104,7 +104,7 @@ class FinderTest < ActiveRecord::TestCase
     # Also test an edge case: If you have 11 results, and you set a
     #   limit of 3 and offset of 9, then you should find that there
     #   will be only 2 results, regardless of the limit.
-    devs = Developer.find :all
+    devs = Developer.all
     last_devs = Developer.find devs.map(&:id), :limit => 3, :offset => 9
     assert_equal 2, last_devs.size
   end

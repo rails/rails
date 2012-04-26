@@ -585,7 +585,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_with_no_results
-    posts = Post.scoped(:includes => [ :author, :comments ], :limit => 2, :where => "posts.title = 'magic forest'").find(:all)
+    posts = Post.scoped(:includes => [ :author, :comments ], :limit => 2, :where => "posts.title = 'magic forest'").all
     assert_equal 0, posts.size
   end
 
@@ -1036,7 +1036,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preload_has_many_using_primary_key
-    expected = Firm.find(:first).clients_using_primary_key.to_a
+    expected = Firm.first.clients_using_primary_key.to_a
     firm = Firm.find :first, :include => :clients_using_primary_key
     assert_no_queries do
       assert_equal expected, firm.clients_using_primary_key

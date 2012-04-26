@@ -568,7 +568,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
     Tag.expects(:transaction)
-    Post.find(:first).tags.transaction do
+    Post.first.tags.transaction do
       # nothing
     end
   end
@@ -651,7 +651,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_collection_singular_ids_setter
     company = companies(:rails_core)
-    dev = Developer.find(:first)
+    dev = Developer.first
 
     company.developer_ids = [dev.id]
     assert_equal [dev], company.developers
@@ -671,7 +671,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
-    ids =  [Developer.find(:first).id, -9999]
+    ids =  [Developer.first.id, -9999]
     assert_raises(ActiveRecord::RecordNotFound) {company.developer_ids= ids}
   end
 

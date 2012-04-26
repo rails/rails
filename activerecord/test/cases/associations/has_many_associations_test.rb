@@ -279,7 +279,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_many_with_merged_options
     assert_equal 1, companies(:first_firm).limited_clients.size
-    assert_equal 1, companies(:first_firm).limited_clients.find(:all).size
+    assert_equal 1, companies(:first_firm).limited_clients.all.size
     assert_equal 2, companies(:first_firm).limited_clients.find(:all, :limit => nil).size
   end
 
@@ -310,11 +310,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_dynamic_find_all_limit_should_override_association_limit
     assert_equal 2, companies(:first_firm).limited_clients.find(:all, :conditions => "type = 'Client'", :limit => 9_000).length
     assert_equal 2, companies(:first_firm).limited_clients.find_all_by_type('Client', :limit => 9_000).length
-  end
-
-  def test_dynamic_find_all_should_respect_readonly_access
-    companies(:first_firm).readonly_clients.find(:all).each { |c| assert_raise(ActiveRecord::ReadOnlyRecord) { c.save!  } }
-    companies(:first_firm).readonly_clients.find(:all).each { |c| assert c.readonly? }
   end
 
   def test_dynamic_find_or_create_from_two_attributes_using_an_association
@@ -1000,14 +995,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_delete_all_association_with_primary_key_deletes_correct_records
-    firm = Firm.find(:first)
+    firm = Firm.first
     # break the vanilla firm_id foreign key
     assert_equal 2, firm.clients.count
     firm.clients.first.update_column(:firm_id, nil)
     assert_equal 1, firm.clients(true).count
     assert_equal 1, firm.clients_using_primary_key_with_delete_all.count
     old_record = firm.clients_using_primary_key_with_delete_all.first
-    firm = Firm.find(:first)
+    firm = Firm.first
     firm.destroy
     assert_nil Client.find_by_id(old_record.id)
   end
@@ -1216,12 +1211,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_adding_array_and_collection
-    assert_nothing_raised { Firm.find(:first).clients + Firm.find(:all).last.clients }
+    assert_nothing_raised { Firm.first.clients + Firm.all.last.clients }
   end
 
   def test_find_all_without_conditions
     firm = companies(:first_firm)
-    assert_equal 2, firm.clients.find(:all).length
+    assert_equal 2, firm.clients.all.length
   end
 
   def test_replace_with_less
@@ -1561,7 +1556,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
     Comment.expects(:transaction)
-    Post.find(:first).comments.transaction do
+    Post.first.comments.transaction do
       # nothing
     end
   end

@@ -244,7 +244,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     # DB2 is not case-sensitive
     return true if current_adapter?(:DB2Adapter)
 
-    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.find(:first).attributes
+    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.first.attributes
   end
 
   def test_hashes_not_mangled
