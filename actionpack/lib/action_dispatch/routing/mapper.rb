@@ -1306,14 +1306,14 @@ module ActionDispatch
         end
 
         def draw(name)
-          path = @draw_paths.find do |path|
-            path.join("#{name}.rb").file?
+          path = @draw_paths.find do |_path|
+            _path.join("#{name}.rb").file?
           end
 
           unless path
             msg  = "Your router tried to #draw the external file #{name}.rb,\n" \
                    "but the file was not found in:\n\n"
-            msg += @draw_paths.map { |path| " * #{path}" }.join("\n")
+            msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
             raise msg
           end
 
