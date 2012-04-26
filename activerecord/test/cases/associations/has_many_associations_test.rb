@@ -1214,11 +1214,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { Firm.first.clients + Firm.all.last.clients }
   end
 
-  def test_find_all_without_conditions
-    firm = companies(:first_firm)
-    assert_equal 2, firm.clients.all.length
-  end
-
   def test_replace_with_less
     firm = Firm.find(:first, :order => "id")
     firm.clients = [companies(:first_client)]
