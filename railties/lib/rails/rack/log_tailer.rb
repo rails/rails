@@ -4,7 +4,7 @@ module Rails
       def initialize(app, log = nil)
         @app = app
 
-        path = Pathname.new(log || "#{::File.expand_path(Rails.root)}/log/#{Rails.env}.log").cleanpath
+        path = Pathname.new(log || ::File.join(::File.expand_path(Rails.root),'log',"#{Rails.env}.log")).cleanpath
 
         @cursor = @file = nil
         if ::File.exists?(path)
