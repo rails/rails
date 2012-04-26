@@ -16,7 +16,7 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
   end
 
   def render_with_has_many_through_association
-    @developer = Developer.find(:first)
+    @developer = Developer.first
     render :partial => @developer.topics
   end
 
@@ -31,7 +31,7 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
   end
 
   def render_with_record
-    @developer = Developer.find(:first)
+    @developer = Developer.first
     render :partial => @developer
   end
 
