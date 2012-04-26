@@ -51,7 +51,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_uniq_through_find
-    assert_equal 1, authors(:mary).unique_categorized_posts.find(:all).size
+    assert_equal 1, authors(:mary).unique_categorized_posts.all.size
   end
 
   def test_has_many_uniq_through_dynamic_find
@@ -71,7 +71,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_has_many_going_through_join_model_with_find
-    assert_equal tags(:general), tag = posts(:welcome).tags.find(:first)
+    assert_equal tags(:general), tag = posts(:welcome).tags.first
     assert_no_queries do
       tag.tagging
     end
@@ -85,7 +85,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_has_many_going_through_join_model_with_include_on_source_reflection_with_find
-    assert_equal tags(:general), tag = posts(:welcome).funky_tags.find(:first)
+    assert_equal tags(:general), tag = posts(:welcome).funky_tags.first
     assert_no_queries do
       tag.tagging
     end
@@ -280,15 +280,15 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_find_all
-    assert_equal [categories(:general)], authors(:david).categories.find(:all)
+    assert_equal [categories(:general)], authors(:david).categories.all
   end
 
   def test_has_many_find_first
-    assert_equal categories(:general), authors(:david).categories.find(:first)
+    assert_equal categories(:general), authors(:david).categories.first
   end
 
   def test_has_many_with_hash_conditions
-    assert_equal categories(:general), authors(:david).categories_like_general.find(:first)
+    assert_equal categories(:general), authors(:david).categories_like_general.first
   end
 
   def test_has_many_find_conditions
@@ -444,7 +444,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_uses_conditions_specified_on_the_has_many_association
-    author = Author.find(:first)
+    author = Author.first
     assert_present author.comments
     assert_blank author.nonexistant_comments
   end

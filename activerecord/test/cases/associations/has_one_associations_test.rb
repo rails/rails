@@ -294,13 +294,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_dependence_with_missing_association_and_nullify
     Account.destroy_all
-    firm = DependentFirm.find(:first)
+    firm = DependentFirm.first
     assert_nil firm.account
     firm.destroy
   end
 
   def test_finding_with_interpolated_condition
-    firm = Firm.find(:first)
+    firm = Firm.first
     superior = firm.clients.create(:name => 'SuperiorCo')
     superior.rating = 10
     superior.save

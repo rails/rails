@@ -27,7 +27,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
 
   def test_find_with_readonly_option
-    Developer.find(:all).each { |d| assert !d.readonly? }
+    Developer.all.each { |d| assert !d.readonly? }
     Developer.readonly(false).each { |d| assert !d.readonly? }
     Developer.readonly(true).each { |d| assert d.readonly? }
     Developer.readonly.each { |d| assert d.readonly? }
@@ -48,7 +48,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
     post = Post.find(1)
     assert !post.comments.empty?
     assert !post.comments.any?(&:readonly?)
-    assert !post.comments.find(:all).any?(&:readonly?)
+    assert !post.comments.all.any?(&:readonly?)
     assert post.comments.readonly(true).all?(&:readonly?)
   end
 

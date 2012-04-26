@@ -109,7 +109,7 @@ class MigrationTest < ActiveRecord::TestCase
       :value_of_e => BigDecimal("2.7182818284590452353602875")
     )
 
-    b = BigNumber.find(:first)
+    b = BigNumber.first
     assert_not_nil b
 
     assert_not_nil b.bank_balance
@@ -153,7 +153,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     GiveMeBigNumbers.down
-    assert_raise(ActiveRecord::StatementInvalid) { BigNumber.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { BigNumber.first }
   end
 
   def test_filtering_migrations
@@ -165,13 +165,13 @@ class MigrationTest < ActiveRecord::TestCase
 
     Person.reset_column_information
     assert Person.column_methods_hash.include?(:last_name)
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", &name_filter)
 
     Person.reset_column_information
     assert !Person.column_methods_hash.include?(:last_name)
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   end
 
   class MockMigration < ActiveRecord::Migration
@@ -285,12 +285,12 @@ class MigrationTest < ActiveRecord::TestCase
     WeNeedThings.up
 
     assert Thing.create("content" => "hello world")
-    assert_equal "hello world", Thing.find(:first).content
+    assert_equal "hello world", Thing.first.content
 
     RenameThings.up
     Thing.table_name = "p_awesome_things_s"
 
-    assert_equal "hello world", Thing.find(:first).content
+    assert_equal "hello world", Thing.first.content
   ensure
     ActiveRecord::Base.table_name_prefix = ''
     ActiveRecord::Base.table_name_suffix = ''
@@ -306,10 +306,10 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.reset_sequence_name
     WeNeedReminders.up
     assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
+    assert_equal "hello world", Reminder.first.content
 
     WeNeedReminders.down
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   ensure
     ActiveRecord::Base.table_name_prefix = ''
     ActiveRecord::Base.table_name_suffix = ''

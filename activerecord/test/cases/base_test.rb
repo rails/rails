@@ -192,7 +192,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_previously_changed
-    topic = Topic.find :first
+    topic = Topic.first
     topic.title = '<3<3<3'
     assert_equal({}, topic.previous_changes)
 
@@ -202,7 +202,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_previously_changed_dup
-    topic = Topic.find :first
+    topic = Topic.first
     topic.title = '<3<3<3'
     topic.save!
 
@@ -1600,7 +1600,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_last
-    last  = Developer.find :last
+    last  = Developer.last
     assert_equal last, Developer.find(:first, :order => 'id desc')
   end
 
@@ -1611,7 +1611,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_all
     developers = Developer.all
     assert_kind_of Array, developers
-    assert_equal Developer.find(:all), developers
+    assert_equal Developer.all, developers
   end
 
   def test_all_with_conditions
@@ -1720,7 +1720,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_to_param_should_return_string
-    assert_kind_of String, Client.find(:first).to_param
+    assert_kind_of String, Client.first.to_param
   end
 
   def test_inspect_class

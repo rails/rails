@@ -15,7 +15,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_class_with_blank_sti_name
-    company = Company.find(:first)
+    company = Company.first
     company = company.dup
     company.extend(Module.new {
       def read_attribute(name)
@@ -24,7 +24,7 @@ class InheritanceTest < ActiveRecord::TestCase
       end
     })
     company.save!
-    company = Company.find(:all).find { |x| x.id == company.id }
+    company = Company.all.find { |x| x.id == company.id }
     assert_equal '  ', company.type
   end
 
@@ -149,7 +149,7 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_update_all_within_inheritance
     Client.update_all "name = 'I am a client'"
-    assert_equal "I am a client", Client.find(:all).first.name
+    assert_equal "I am a client", Client.all.first.name
     # Order by added as otherwise Oracle tests were failing because of different order of results
     assert_equal "37signals", Firm.find(:all, :order => "id").first.name
   end
@@ -259,7 +259,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 
   def test_instantiation_doesnt_try_to_require_corresponding_file
     ActiveRecord::Base.store_full_sti_class = false
-    foo = Firm.find(:first).clone
+    foo = Firm.first.clone
     foo.ruby_type = foo.type = 'FirmOnTheFly'
     foo.save!
 
