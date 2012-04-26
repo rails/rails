@@ -612,12 +612,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "'something; select table'", ActiveRecord::Base.sanitize("something; select table")
   end
 
-  def test_count
-    assert_equal(0, Entrant.count(:conditions => "id > 3"))
-    assert_equal(1, Entrant.count(:conditions => ["id > ?", 2]))
-    assert_equal(2, Entrant.count(:conditions => ["id > ?", 1]))
-  end
-
   def test_count_by_sql
     assert_equal(0, Entrant.count_by_sql("SELECT COUNT(*) FROM entrants WHERE id > 3"))
     assert_equal(1, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 2]))
