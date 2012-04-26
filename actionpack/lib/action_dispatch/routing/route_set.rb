@@ -494,11 +494,11 @@ module ActionDispatch
 
           if options[:controller]
             options[:action]     ||= 'index'
-            options[:controller]   = options[:controller].to_s
+            options[:controller]   = options[:controller].to_s.dup
           end
 
           if options[:action]
-            options[:action] = options[:action].to_s
+            options[:action] = options[:action].to_s.dup
           end
         end
 
