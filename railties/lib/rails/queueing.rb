@@ -34,7 +34,11 @@ module Rails
       def start
         @thread = Thread.new do
           while job = @queue.pop
-            job.run
+            begin
+              job.run
+            rescue Exception => e
+              Rails.logger.error "Job Error: #{e.message}\n#{e.backtrace.join("\n")}"
+            end
           end
         end
         self
