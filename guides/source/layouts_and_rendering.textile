@@ -1193,6 +1193,16 @@ h5. Spacer Templates
 
 Rails will render the +_product_ruler+ partial (with no data passed in to it) between each pair of +_product+ partials.
 
+h5. Partial Layouts
+
+When rendering collections it is also possible to use the +:layout+ option:
+
+<erb>
+<%= render :partial => "product", :collection => @products, :layout => "special_layout" %>
+</erb>
+
+The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they do within the partial.
+
 h4. Using Nested Layouts
 
 You may find that your application requires a layout that differs slightly from your regular application layout to support one particular controller. Rather than repeating the main layout and editing it, you can accomplish this by using nested layouts (sometimes called sub-templates). Here's an example:
