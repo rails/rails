@@ -478,6 +478,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [c.id], Company.joins(:contracts).pluck(:id)
   end
 
+  def test_pluck_if_table_included
+    c = Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    assert_equal [c.id], Company.includes(:contracts).where("contracts.id" => c.contracts.first).pluck(:id)
+  end
+
   def test_pluck_not_auto_table_name_prefix_if_column_joined
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
     assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
