@@ -7,27 +7,11 @@ module Rails
     #
     # Jobs are run in a separate thread to catch mistakes where code
     # assumes that the job is run in the same thread.
-    class TestQueue
-      attr_reader :contents
-
-      def initialize
-        @contents = []
-      end
-
+    class TestQueue < ::Queue
       def drain
         # run the jobs in a separate thread so assumptions of synchronous
         # jobs are caught in test mode.
-        t = Thread.new do
-          while job = @contents.shift
-            job.run
-          end
-        end
-        t.join
-      end
-
-      # implement the Queue API
-      def push(object)
-        @contents << object
+        Thread.new { pop.run until empty? }.join
       end
     end
 
