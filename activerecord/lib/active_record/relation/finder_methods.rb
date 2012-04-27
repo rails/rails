@@ -91,7 +91,7 @@ module ActiveRecord
     def first(limit = nil)
       if limit
         if order_values.empty? && primary_key
-          order("#{quoted_table_name}.#{quoted_primary_key} ASC").limit(limit).to_a
+          order(arel_table[primary_key].asc).limit(limit).to_a
         else
           limit(limit).to_a
         end
@@ -117,7 +117,7 @@ module ActiveRecord
     def last(limit = nil)
       if limit
         if order_values.empty? && primary_key
-          order("#{quoted_table_name}.#{quoted_primary_key} DESC").limit(limit).reverse
+          order(arel_table[primary_key].desc).limit(limit).reverse
         else
           to_a.last(limit)
         end
@@ -362,7 +362,7 @@ module ActiveRecord
       else
         @first ||=
           if order_values.empty? && primary_key
-            order("#{quoted_table_name}.#{quoted_primary_key} ASC").limit(1).to_a.first
+            order(arel_table[primary_key].asc).limit(1).to_a.first
           else
             limit(1).to_a.first
           end
