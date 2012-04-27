@@ -22,6 +22,16 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLiteAdapter < AbstractAdapter
+
+      class Tasks < AbstractAdapter::Tasks
+
+        def database_encoding
+          temp_klass.establish_connection(config)
+          temp_klass.connection.encoding
+        end
+
+      end
+
       class Version
         include Comparable
 

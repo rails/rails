@@ -4,6 +4,16 @@ require 'arel/visitors/bind_visitor'
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
+
+      class Tasks < AbstractAdapter::Tasks
+
+        def database_encoding
+          temp_klass.establish_connection(config)
+          temp_klass.connection.charset
+        end
+
+      end
+
       class Column < ConnectionAdapters::Column # :nodoc:
         attr_reader :collation
 

@@ -32,6 +32,10 @@ module ActiveRecord
 
       ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
     end
+
+    def sqlite3_database_tasks(config)  # :nodoc:
+      ConnectionAdapters::SQLiteAdapter::Tasks.new(config)
+    end
   end
 
   module ConnectionAdapters #:nodoc:

@@ -3,12 +3,24 @@ module ActiveRecord
     class ConnectionSpecification #:nodoc:
       attr_reader :config, :adapter_method
 
-      def initialize(config, adapter_method)
-        @config, @adapter_method = config, adapter_method
+      def initialize(config, adapter_method, tasks_method=nil)
+        tasks_method ||= adapter_method.to_s.sub(/_connection$/, '_database_tasks')
+        @config, @adapter_method, @tasks_method = config, adapter_method, tasks_method
       end
 
       def initialize_dup(original)
         @config = original.config.dup
+      end
+
+      def database_tasks(klass)
+        unless defined?(@tasks)
+          if klass.respond_to?(@tasks_method)
+            @tasks = klass.send(@tasks_method, @config)
+          else
+            @tasks = nil
+          end
+        end
+        @tasks
       end
 
       ##
@@ -56,8 +68,9 @@ module ActiveRecord
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
+          tasks_method = "#{spec[:adapter]}_database_tasks"
 
-          ConnectionSpecification.new(spec, adapter_method)
+          ConnectionSpecification.new(spec, adapter_method, tasks_method)
         end
 
         def connection_url_to_hash(url) # :nodoc:

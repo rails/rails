@@ -298,6 +298,53 @@ module ActiveRecord
         # override in derived class
         ActiveRecord::StatementInvalid.new(message)
       end
+
+      # A base class for objects that implement auxiliary database
+      # tasks that do not necessarily require that a connection be
+      # established beforehand. Such tasks are useful for rake tasks
+      # and other one-time operations.
+      #
+      # To implement tasks for a particular adapter, subclass this
+      # class and implement methods. The presence or absence of a
+      # method definition, as determined by respond_to?, should be
+      # used to determine whether a given adapter can perform a given
+      # task. Finally, the adapter should implement the
+      # ADAPTERNAME_database_tasks method in the ConnectionHandling
+      # module to create a tasks object given the database config
+      # hash (similar to how the ADAPTERNAME_connection method 
+      # creates a connection adapter object.)
+      #
+      # If a task wants to call establish_connection or some other
+      # mechanism that will clobber connection state, it should use
+      # the provided temp_klass, which is an internal subclass of
+      # ActiveRecord::Base, to silo the operation.
+      #
+      # The following are well-known task names (method names) that
+      # can be implemented:
+      #
+      # [<tt>database_encoding</tt>]
+      #   Return the database encoding as a string.
+      #   Used by rake db:charset.
+      class Tasks
+
+        class TempAR < ActiveRecord::Base  # :nodoc:
+        end
+
+        # The db configuration, suitable for establishing a connection
+        attr_reader :config
+
+        # A temporary ActiveRecord class, which can be used to silo a
+        # connection for internal use, to avoid clobbering the state
+        # of any other connections.
+        attr_reader :temp_klass
+
+        def initialize(config)
+          @temp_klass = TempAR
+          @config = config
+        end
+
+      end
+
     end
   end
 end
