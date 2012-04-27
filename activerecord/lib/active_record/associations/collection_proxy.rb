@@ -61,11 +61,15 @@ module ActiveRecord
         @association
       end
 
-      def scoped
+      def scoped(options = nil)
         association = @association
-        association.scoped.extending do
+        scope       = association.scoped
+
+        scope.extending! do
           define_method(:proxy_association) { association }
         end
+        scope.merge!(options) if options
+        scope
       end
 
       def respond_to?(name, include_private = false)
