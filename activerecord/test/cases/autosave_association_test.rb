@@ -155,7 +155,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_not_resaved_when_unchanged
-    firm = Firm.find(:first, :include => :account)
+    firm = Firm.scoped(:include => :account).first
     firm.name += '-changed'
     assert_queries(1) { firm.save! }
 

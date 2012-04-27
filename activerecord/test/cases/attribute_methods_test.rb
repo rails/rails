@@ -484,9 +484,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.find(:first, :select => "topics.*, 0 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 0 as is_test").first
     else
-      topic = Topic.find(:first, :select => "topics.*, 1=2 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 1=2 as is_test").first
     end
     assert !topic.is_test?
   end
@@ -495,9 +495,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.find(:first, :select => "topics.*, 1 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 1 as is_test").first
     else
-      topic = Topic.find(:first, :select => "topics.*, 2=2 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 2=2 as is_test").first
     end
     assert topic.is_test?
   end

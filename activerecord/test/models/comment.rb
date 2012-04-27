@@ -19,7 +19,7 @@ class Comment < ActiveRecord::Base
   end
 
   def self.search_by_type(q)
-    self.find(:all, :conditions => ["#{QUOTED_TYPE} = ?", q])
+    self.scoped(:conditions => ["#{QUOTED_TYPE} = ?", q]).all
   end
 
   def self.all_as_method

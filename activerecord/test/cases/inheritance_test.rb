@@ -98,7 +98,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_find_all
-    companies = Company.find(:all, :order => 'id')
+    companies = Company.scoped(:order => 'id').all
     assert_kind_of Firm, companies[0], "37signals should be a firm"
     assert_kind_of Client, companies[1], "Summit should be a client"
   end
@@ -151,7 +151,7 @@ class InheritanceTest < ActiveRecord::TestCase
     Client.update_all "name = 'I am a client'"
     assert_equal "I am a client", Client.all.first.name
     # Order by added as otherwise Oracle tests were failing because of different order of results
-    assert_equal "37signals", Firm.find(:all, :order => "id").first.name
+    assert_equal "37signals", Firm.scoped(:order => "id").all.first.name
   end
 
   def test_alt_update_all_within_inheritance
@@ -173,9 +173,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_find_first_within_inheritance
-    assert_kind_of Firm, Company.find(:first, :conditions => "name = '37signals'")
-    assert_kind_of Firm, Firm.find(:first, :conditions => "name = '37signals'")
-    assert_nil Client.find(:first, :conditions => "name = '37signals'")
+    assert_kind_of Firm, Company.scoped(:conditions => "name = '37signals'").first
+    assert_kind_of Firm, Firm.scoped(:conditions => "name = '37signals'").first
+    assert_nil Client.scoped(:conditions => "name = '37signals'").first
   end
 
   def test_alt_find_first_within_inheritance
@@ -187,10 +187,10 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_complex_inheritance
     very_special_client = VerySpecialClient.create("name" => "veryspecial")
     assert_equal very_special_client, VerySpecialClient.where("name = 'veryspecial'").first
-    assert_equal very_special_client, SpecialClient.find(:first, :conditions => "name = 'veryspecial'")
-    assert_equal very_special_client, Company.find(:first, :conditions => "name = 'veryspecial'")
-    assert_equal very_special_client, Client.find(:first, :conditions => "name = 'veryspecial'")
-    assert_equal 1, Client.find(:all, :conditions => "name = 'Summit'").size
+    assert_equal very_special_client, SpecialClient.scoped(:conditions => "name = 'veryspecial'").first
+    assert_equal very_special_client, Company.scoped(:conditions => "name = 'veryspecial'").first
+    assert_equal very_special_client, Client.scoped(:conditions => "name = 'veryspecial'").first
+    assert_equal 1, Client.scoped(:conditions => "name = 'Summit'").all.size
     assert_equal very_special_client, Client.find(very_special_client.id)
   end
 
@@ -230,7 +230,7 @@ class InheritanceTest < ActiveRecord::TestCase
   private
     def switch_to_alt_inheritance_column
       # we don't want misleading test results, so get rid of the values in the type column
-      Company.find(:all, :order => 'id').each do |c|
+      Company.scoped(:order => 'id').all.each do |c|
         c['type'] = nil
         c.save
       end

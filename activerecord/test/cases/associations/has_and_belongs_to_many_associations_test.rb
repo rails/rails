@@ -549,14 +549,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_find_with_merged_options
     assert_equal 1, projects(:active_record).limited_developers.size
     assert_equal 1, projects(:active_record).limited_developers.all.size
-    assert_equal 3, projects(:active_record).limited_developers.find(:all, :limit => nil).size
+    assert_equal 3, projects(:active_record).limited_developers.scoped(:limit => nil).all.size
   end
 
   def test_dynamic_find_should_respect_association_order
     # Developers are ordered 'name DESC, id DESC'
     high_id_jamis = projects(:active_record).developers.create(:name => 'Jamis')
 
-    assert_equal high_id_jamis, projects(:active_record).developers.find(:first, :conditions => "name = 'Jamis'")
+    assert_equal high_id_jamis, projects(:active_record).developers.scoped(:conditions => "name = 'Jamis'").first
     assert_equal high_id_jamis, projects(:active_record).developers.find_by_name('Jamis')
   end
 
@@ -566,7 +566,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     middle_id_jamis = developers(:poor_jamis)
     high_id_jamis = projects(:active_record).developers.create(:name => 'Jamis')
 
-    assert_equal [high_id_jamis, middle_id_jamis, low_id_jamis], projects(:active_record).developers.find(:all, :conditions => "name = 'Jamis'")
+    assert_equal [high_id_jamis, middle_id_jamis, low_id_jamis], projects(:active_record).developers.scoped(:conditions => "name = 'Jamis'").all
     assert_equal [high_id_jamis, middle_id_jamis, low_id_jamis], projects(:active_record).developers.find_all_by_name('Jamis')
   end
 
@@ -576,12 +576,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_all_should_respect_association_limit
-    assert_equal 1, projects(:active_record).limited_developers.find(:all, :conditions => "name = 'Jamis'").length
+    assert_equal 1, projects(:active_record).limited_developers.scoped(:conditions => "name = 'Jamis'").all.length
     assert_equal 1, projects(:active_record).limited_developers.find_all_by_name('Jamis').length
   end
 
   def test_dynamic_find_all_order_should_override_association_limit
-    assert_equal 2, projects(:active_record).limited_developers.find(:all, :conditions => "name = 'Jamis'", :limit => 9_000).length
+    assert_equal 2, projects(:active_record).limited_developers.scoped(:conditions => "name = 'Jamis'", :limit => 9_000).all.length
     assert_equal 2, projects(:active_record).limited_developers.find_all_by_name('Jamis', :limit => 9_000).length
   end
 
@@ -705,8 +705,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_grouped
-    all_posts_from_category1 = Post.find(:all, :conditions => "category_id = 1", :joins => :categories)
-    grouped_posts_of_category1 = Post.find(:all, :conditions => "category_id = 1", :group => "author_id", :select => 'count(posts.id) as posts_count', :joins => :categories)
+    all_posts_from_category1 = Post.scoped(:conditions => "category_id = 1", :joins => :categories).all
+    grouped_posts_of_category1 = Post.scoped(:conditions => "category_id = 1", :group => "author_id", :select => 'count(posts.id) as posts_count', :joins => :categories).all
     assert_equal 5, all_posts_from_category1.size
     assert_equal 2, grouped_posts_of_category1.size
   end

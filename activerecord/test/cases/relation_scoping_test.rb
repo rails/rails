@@ -323,7 +323,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts
 
   def test_default_scope
-    expected = Developer.find(:all, :order => 'salary DESC').collect { |dev| dev.salary }
+    expected = Developer.scoped(:order => 'salary DESC').all.collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.all.collect { |dev| dev.salary }
     assert_equal expected, received
   end
@@ -396,7 +396,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_scope_overwrites_default
-    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.name }
+    expected = Developer.scoped(:order => 'salary DESC, name DESC').all.collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.by_name.all.collect { |dev| dev.name }
     assert_equal expected, received
   end
@@ -414,8 +414,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_in_default_scope_should_prevail
-    expected = Developer.find(:all, :order => 'salary desc').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
+    expected = Developer.scoped(:order => 'salary desc').all.collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.scoped(:order => 'salary').all.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 

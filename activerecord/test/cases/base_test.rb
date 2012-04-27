@@ -350,13 +350,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_load
-    topics = Topic.find(:all, :order => 'id')
+    topics = Topic.scoped(:order => 'id').all
     assert_equal(4, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
 
   def test_load_with_condition
-    topics = Topic.find(:all, :conditions => "author_name = 'Mary'")
+    topics = Topic.scoped(:conditions => "author_name = 'Mary'").all
 
     assert_equal(1, topics.size)
     assert_equal(topics(:second).title, topics.first.title)
@@ -1264,10 +1264,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_quoting_arrays
-    replies = Reply.find(:all, :conditions => [ "id IN (?)", topics(:first).replies.collect(&:id) ])
+    replies = Reply.scoped(:conditions => [ "id IN (?)", topics(:first).replies.collect(&:id) ]).all
     assert_equal topics(:first).replies.size, replies.size
 
-    replies = Reply.find(:all, :conditions => [ "id IN (?)", [] ])
+    replies = Reply.scoped(:conditions => [ "id IN (?)", [] ]).all
     assert_equal 0, replies.size
   end
 
@@ -1595,17 +1595,17 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_no_limit_offset
     assert_nothing_raised do
-      Developer.find(:all, :offset => 2)
+      Developer.scoped(:offset => 2).all
     end
   end
 
   def test_find_last
     last  = Developer.last
-    assert_equal last, Developer.find(:first, :order => 'id desc')
+    assert_equal last, Developer.scoped(:order => 'id desc').first
   end
 
   def test_last
-    assert_equal Developer.find(:first, :order => 'id desc'), Developer.last
+    assert_equal Developer.scoped(:order => 'id desc').first, Developer.last
   end
 
   def test_all
@@ -1615,37 +1615,37 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_all_with_conditions
-    assert_equal Developer.find(:all, :order => 'id desc'), Developer.order('id desc').all
+    assert_equal Developer.scoped(:order => 'id desc').all, Developer.order('id desc').all
   end
 
   def test_find_ordered_last
-    last  = Developer.find :last, :order => 'developers.salary ASC'
-    assert_equal last, Developer.find(:all, :order => 'developers.salary ASC').last
+    last  = Developer.scoped(:order => 'developers.salary ASC').last
+    assert_equal last, Developer.scoped(:order => 'developers.salary ASC').all.last
   end
 
   def test_find_reverse_ordered_last
-    last  = Developer.find :last, :order => 'developers.salary DESC'
-    assert_equal last, Developer.find(:all, :order => 'developers.salary DESC').last
+    last  = Developer.scoped(:order => 'developers.salary DESC').last
+    assert_equal last, Developer.scoped(:order => 'developers.salary DESC').all.last
   end
 
   def test_find_multiple_ordered_last
-    last  = Developer.find :last, :order => 'developers.name, developers.salary DESC'
-    assert_equal last, Developer.find(:all, :order => 'developers.name, developers.salary DESC').last
+    last  = Developer.scoped(:order => 'developers.name, developers.salary DESC').last
+    assert_equal last, Developer.scoped(:order => 'developers.name, developers.salary DESC').all.last
   end
 
   def test_find_keeps_multiple_order_values
-    combined = Developer.find(:all, :order => 'developers.name, developers.salary')
-    assert_equal combined, Developer.find(:all, :order => ['developers.name', 'developers.salary'])
+    combined = Developer.scoped(:order => 'developers.name, developers.salary').all
+    assert_equal combined, Developer.scoped(:order => ['developers.name', 'developers.salary']).all
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.find(:all, :group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at')
-    assert_equal combined, Developer.find(:all, :group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at'])
+    combined = Developer.scoped(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at').all
+    assert_equal combined, Developer.scoped(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at']).all
   end
 
   def test_find_symbol_ordered_last
-    last  = Developer.find :last, :order => :salary
-    assert_equal last, Developer.find(:all, :order => :salary).last
+    last  = Developer.scoped(:order => :salary).last
+    assert_equal last, Developer.scoped(:order => :salary).all.last
   end
 
   def test_abstract_class
@@ -1739,8 +1739,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_inspect_limited_select_instance
-    assert_equal %(#<Topic id: 1>), Topic.find(:first, :select => 'id', :conditions => 'id = 1').inspect
-    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.find(:first, :select => 'id, title', :conditions => 'id = 1').inspect
+    assert_equal %(#<Topic id: 1>), Topic.scoped(:select => 'id', :conditions => 'id = 1').first.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.scoped(:select => 'id, title', :conditions => 'id = 1').first.inspect
   end
 
   def test_inspect_class_without_table
