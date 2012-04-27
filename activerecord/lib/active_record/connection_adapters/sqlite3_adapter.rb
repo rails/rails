@@ -123,9 +123,9 @@ module ActiveRecord
         'SQLite'
       end
 
-      # Returns true if SQLite version is '2.0.0' or greater, false otherwise.
+      # Returns true
       def supports_ddl_transactions?
-        sqlite_version >= '2.0.0'
+        true
       end
 
       # Returns true if SQLite version is '3.6.8' or greater, false otherwise.
@@ -153,9 +153,9 @@ module ActiveRecord
         true
       end
 
-      # Returns true if SQLite version is '3.1.6' or greater, false otherwise.
+      # Returns true
       def supports_add_column?
-        sqlite_version >= '3.1.6'
+        true
       end
 
       # Disconnects from the database if already connected. Otherwise, this
@@ -171,18 +171,18 @@ module ActiveRecord
         @statements.clear
       end
 
-      # Returns true if SQLite version is '3.2.6' or greater, false otherwise.
+      # Returns true
       def supports_count_distinct? #:nodoc:
-        sqlite_version >= '3.2.6'
+        true
       end
 
-      # Returns true if SQLite version is '3.1.0' or greater, false otherwise.
+      # Returns true
       def supports_autoincrement? #:nodoc:
-        sqlite_version >= '3.1.0'
+        true
       end
 
       def supports_index_sort_order?
-        sqlite_version >= '3.3.0'
+        true
       end
 
       def native_database_types #:nodoc:
