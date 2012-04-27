@@ -223,6 +223,11 @@ module ActiveModel
     def to_hash
       messages.dup
     end
+    
+    #Return true if the instance other is the same of base
+    def has_base?(other)
+      @base.equal? other
+    end
 
     # Adds +message+ to the error messages on +attribute+. More than one error can be added to the same
     # +attribute+.

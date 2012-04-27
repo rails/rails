@@ -167,7 +167,7 @@ module ActiveModel
 
     # Returns the +Errors+ object that holds all information about attribute error messages.
     def errors
-      @errors ||= Errors.new(self)
+      @errors = (defined? @errors) && @errors.has_base?(self) ? @errors : Errors.new(self)
     end
 
     # Runs all the specified validations and returns true if no errors were added
