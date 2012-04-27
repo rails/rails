@@ -143,6 +143,26 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [Account], accounts.collect(&:class).uniq
   end
 
+  def test_take
+    assert_equal topics(:first), Topic.take
+  end
+
+  def test_take_failing
+    assert_nil Topic.where("title = 'This title does not exist'").take
+  end
+
+  def test_take_bang_present
+    assert_nothing_raised do
+      assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").take!
+    end
+  end
+
+  def test_take_bang_missing
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.where("title = 'This title does not exist'").take!
+    end
+  end
+
   def test_first
     assert_equal topics(:second).title, Topic.where("title = 'The Second Topic of the day'").first.title
   end
@@ -197,7 +217,8 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  def test_first_and_last_with_integer_should_use_sql_limit
+  def test_take_and_first_and_last_with_integer_should_use_sql_limit
+    assert_sql(/LIMIT 3|ROWNUM <= 3/) { Topic.take(3).entries }
     assert_sql(/LIMIT 2|ROWNUM <= 2/) { Topic.first(2).entries }
     assert_sql(/LIMIT 5|ROWNUM <= 5/) { Topic.last(5).entries }
   end
@@ -218,7 +239,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_no_match(/LIMIT/, query.first)
   end
 
-  def test_first_and_last_with_integer_should_return_an_array
+  def test_take_and_first_and_last_with_integer_should_return_an_array
+    assert_kind_of Array, Topic.take(5)
     assert_kind_of Array, Topic.first(5)
     assert_kind_of Array, Topic.last(5)
   end

@@ -60,6 +60,25 @@ module ActiveRecord
       where(*args).first!
     end
 
+    # Gives a record (or N records if a parameter is supplied) without any implied
+    # order. The order will depend on the database implementation.
+    # If an order is supplied it will be respected.
+    #
+    # Examples:
+    #
+    #   Person.take # returns an object fetched by SELECT * FROM people
+    #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
+    #   Person.where(["name LIKE '%?'", name]).take
+    def take(limit = nil)
+      limit ? limit(limit).to_a : find_take
+    end
+
+    # Same as +take+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # is found. Note that <tt>take!</tt> accepts no arguments.
+    def take!
+      take or raise RecordNotFound
+    end
+
     # Find the first record (or first N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
@@ -326,6 +345,14 @@ module ActiveRecord
         error = "Couldn't find all #{@klass.name.pluralize} with IDs "
         error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
         raise RecordNotFound, error
+      end
+    end
+
+    def find_take
+      if loaded?
+        @records.take(1)[0]
+      else
+        @take ||= limit(1).to_a[0]
       end
     end
 
