@@ -93,6 +93,13 @@ module Rails
           ActiveSupport::Dependencies.unhook!
         end
       end
+
+      initializer :activate_queue_consumer do |app|
+        if config.queue == Queue
+          consumer = Rails::Queueing::ThreadedConsumer.start(app.queue)
+          at_exit { consumer.shutdown }
+        end
+      end
     end
   end
 end
