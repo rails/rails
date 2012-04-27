@@ -18,7 +18,7 @@ module Rails
         # run the jobs in a separate thread so assumptions of synchronous
         # jobs are caught in test mode.
         t = Thread.new do
-          while job = @contents.pop
+          while job = @contents.shift
             job.run
           end
         end
