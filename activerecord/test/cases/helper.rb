@@ -36,7 +36,7 @@ def current_adapter?(*types)
 end
 
 def in_memory_db?
-  current_adapter?(:SQLiteAdapter) &&
+  current_adapter?(:SQLite3Adapter) &&
   ActiveRecord::Base.connection_pool.spec.config[:database] == ":memory:"
 end
 
