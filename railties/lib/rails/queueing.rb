@@ -1,7 +1,7 @@
 module Rails
   module Queueing
     # In test mode, the Rails queue is backed by an Array so that assertions
-    # can be made about its contents. The test queue provides a +contents+
+    # can be made about its contents. The test queue provides a +jobs+
     # method to make assertions about the queue's contents and a +drain+
     # method to drain the queue and run the jobs.
     #
