@@ -282,21 +282,7 @@ module ActionView
         spacer = find_template(@options[:spacer_template]).render(@view, @locals)
       end
 
-      if layout = @options[:layout]
-        layout = find_template(layout, @locals.keys + [@variable, @variable_counter])
-      end
-
       result = @template ? collection_with_template : collection_without_template
-
-      if layout
-        locals = @locals
-        result.map! do |content|
-          locals[@variable] = @collection[result.index(content)]
-          locals[@variable_counter] = result.index(content)
-          layout.render(@view, @locals) { content }
-        end
-      end
-
       result.join(spacer).html_safe
     end
 
@@ -391,12 +377,19 @@ module ActionView
       segments, locals, template = [], @locals, @template
       as, counter = @variable, @variable_counter
 
+      if layout = @options[:layout]
+        layout = find_template(layout, @locals.keys + [@variable, @variable_counter])
+      end
+
       locals[counter] = -1
 
       @collection.each do |object|
         locals[counter] += 1
         locals[as] = object
-        segments << template.render(@view, locals)
+
+        content = template.render(@view, locals)
+        content = layout.render(@view, locals) { content } if layout
+        segments << content
       end
 
       segments
