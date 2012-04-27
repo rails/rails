@@ -34,7 +34,7 @@ module ActiveModel
   #
   # Most of the time though, you will want to include the JSON or XML
   # serializations. Both of these modules automatically include the
-  # +ActiveModel::Serialization+ module, so there is no need to explicitly
+  # <tt>ActiveModel::Serialization</tt> module, so there is no need to explicitly
   # include it.
   #
   # A minimal implementation including XML and JSON would be:

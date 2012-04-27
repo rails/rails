@@ -465,7 +465,7 @@ invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
 
 h4. Saving data in the controller
 
-Back into +posts_controller+, we need to change the +create+ action
+Back in +posts_controller+, we need to change the +create+ action
 to use the new +Post+ model to save data in the database. Open that file
 and change the +create+ action to look like the following:
 
@@ -835,7 +835,7 @@ Moving on, we need to add the +update+ action. The file
 +config/routes.rb+ will need just one more line:
 
 <ruby>
-put "posts/:id/update"
+put "posts/:id" => "posts#update"
 </ruby>
 
 And the +update+ action in +posts_controller+ itself should not look too complicated by now:
@@ -929,6 +929,175 @@ Rails":layouts_and_rendering.html guide.
 Our +edit+ action looks very similar to the +new+ action, in fact they
 both share the same code for displaying the form. Lets clean them up by
 using a +_form+ partial.
+
+Create a new file +app/views/posts/_form.html.erb+ with the following
+content:
+
+<erb>
+<%= form_for @post do |f| %>
+  <% if @post.errors.any? %>
+  <div id="errorExplanation">
+    <h2><%= pluralize(@post.errors.count, "error") %> prohibited
+	    this post from being saved:</h2>
+    <ul>
+    <% @post.errors.full_messages.each do |msg| %>
+      <li><%= msg %></li>
+    <% end %>
+    </ul>
+  </div>
+  <% end %>
+  <p>
+    <%= f.label :title %><br>
+    <%= f.text_field :title %>
+  </p>
+
+  <p>
+    <%= f.label :text %><br>
+    <%= f.text_area :text %>
+  </p>
+
+  <p>
+    <%= f.submit %>
+  </p>
+<% end %>
+</erb>
+
+Everything except for the +form_for+ declaration remained the same. I'll
+explain later how +form_for+ can figure out the right +action+ and
++method+ attributes when building the form, for now let's update the
++new+ and +edit+ views:
+
+<erb>
+# app/views/posts/new.html.erb
+
+<h1>New post</h1>
+
+<%= render 'form' %>
+
+<%= link_to 'Back', :action => :index %>
+
+
+# app/views/posts/edit.html.erb
+
+<h1>Edit post</h1>
+
+<%= render 'form' %>
+
+<%= link_to 'Back', :action => :index %>
+</erb>
+
+Point your browser to
+"http://localhost:3000/posts/new":http://localhost:3000/posts/new and
+try creating a new post. Everything still works. Now try editing the
+post and you'll receive the following error:
+
+!images/getting_started/undefined_method_post_path.png(Undefined method
+post_path)!
+
+To understand this error, you need to understand how +form_for+ works.
+When you pass an object to +form_for+ and you don't specify a +:url+
+option, Rails will try to guess the +action+ and +method+ options by
+checking if the passed object is a new record or not. Rails follows the
+REST convention, so to create a new +Post+ object it will look for a
+route named +posts_path+, and to update a +Post+ object it will look for
+a route named +post_path+ and pass the current object. Similarly, rails
+knows that it should create new objects via POST and update them via
+PUT.
+
+If you run +rake routes+ from the console you'll see that we already
+have a +posts_path+ route, which was created automatically by Rails.
+However, we don't have a +post_path+ yet, which is the reason why we
+received an error before.
+
+<shell>
+# rake routes
+
+       posts GET  /posts(.:format)            posts#index
+   posts_new GET  /posts/new(.:format)        posts#new
+posts_create POST /posts/create(.:format)     posts#create
+             GET  /posts/:id(.:format)        posts#show
+             GET  /posts/:id/edit(.:format)   posts#edit
+             PUT  /posts/:id(.:format)        posts#update
+        root      /                           welcome#index
+</shell>
+
+To fix this, open +config/routes.rb+ and modify the +get "posts/:id"+
+line like this:
+
+<ruby>
+get "posts/:id" => "posts#show", :as => :post
+</ruby>
+
+Now you'll be able to update posts again.
+
+h4. Deleting Posts
+
+We're now ready to cover the "D" part of CRUD, deleting posts from the
+database. Following the REST convention, we're going to add a route for
+deleting posts:
+
+<ruby>
+# config/routes.rb
+
+delete "posts/:id" => "posts#destroy"
+</ruby>
+
+We use the +delete+ method for destroying resources, which is mapped to
+the +destroy+ action, which is provided below:
+
+<ruby>
+# app/controllers/posts_controller.rb
+
+def destroy
+  @post = Post.find(params[:id])
+  @post.destroy
+
+  redirect_to :action => :index
+end
+</ruby>
+
+You can call +destroy+ on Active Record objects when you want to delete
+them from the dabase. Note that we don't need to add a view for this
+action since we're redirecting to the +index+ action.
+
+Finally, add a 'destroy' link to your +index+ action to wrap everything
+together.
+
+<erb>
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+    <th></th>
+    <th></th>
+    <th></th>
+  </tr>
+
+<% @posts.each do |post| %>
+  <tr>
+    <td><%= post.title %></td>
+    <td><%= post.text %></td>
+    <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
+    <td><%= link_to 'Edit', :action => :edit, :id => post.id %></td>
+    <td><%= link_to 'Destroy', { :action => :destroy, :id => post.id }, :method => :delete, :confirm => 'Are you sure?' %></td>
+  </tr>
+<% end %>
+</table>
+</erb>
+
+Here we're using +link_to+ in a different way. We wrap the
++:action+ and +:id+ attributes in a hash so that we can pass other
+arguments to +link_to+. The +:method+ and +:confirm+
+options are used as html5 attributes so that when the click is linked,
+Rails will first show a confirm dialog to the user, and then submit the
+link with method +delete+. This is done via javascript automatically.
+
+!images/getting_started/confirm_dialog.png(Confirm Dialog)!
+
+Congratulations, you can now create, show, list, update and destroy
+posts. In the next section will see how Rails can aid us when creating
+REST applications, and how we can refactor our Blog app to take
+advantage of it.
 
 h4. Using the Console
 

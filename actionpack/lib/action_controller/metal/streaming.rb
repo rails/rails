@@ -139,17 +139,17 @@ module ActionController #:nodoc:
   # session or flash after the template starts rendering will not propagate
   # to the client.
   #
-  # If you try to modify cookies, session or flash, an +ActionDispatch::ClosedError+
+  # If you try to modify cookies, session or flash, an <tt>ActionDispatch::ClosedError</tt>
   # will be raised, showing those objects are closed for modification.
   #
   # == Middlewares
   #
   # Middlewares that need to manipulate the body won't work with streaming.
   # You should disable those middlewares whenever streaming in development
-  # or production. For instance, +Rack::Bug+ won't work when streaming as it
+  # or production. For instance, <tt>Rack::Bug</tt> won't work when streaming as it
   # needs to inject contents in the HTML body.
   #
-  # Also +Rack::Cache+ won't work with streaming as it does not support
+  # Also <tt>Rack::Cache</tt> won't work with streaming as it does not support
   # streaming bodies yet. Whenever streaming Cache-Control is automatically
   # set to "no-cache".
   #

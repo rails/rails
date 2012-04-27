@@ -486,7 +486,7 @@ module ActionMailer #:nodoc:
       self.class.mailer_name
     end
 
-    # Allows you to pass random and unusual headers to the new +Mail::Message+ object
+    # Allows you to pass random and unusual headers to the new <tt>Mail::Message</tt> object
     # which will add them to itself.
     #
     #   headers['X-Special-Domain-Specific-Header'] = "SecretValue"
@@ -497,7 +497,7 @@ module ActionMailer #:nodoc:
     #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
     #           'In-Reply-To' => incoming.message_id
     #
-    # The resulting Mail::Message will have the following in it's header:
+    # The resulting Mail::Message will have the following in its header:
     #
     #   X-Special-Domain-Specific-Header: SecretValue
     def headers(args=nil)

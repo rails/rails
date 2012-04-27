@@ -695,7 +695,7 @@ If a template is rendered from within an engine and it's attempting to use one o
 
 h4. Assets
 
-Assets within an engine work in an identical way to a full application. Because the engine class inherits from +Rails::Engine+, the application will know to look up in the engine's +app/assets+ directory for potential assets.
+Assets within an engine work in an identical way to a full application. Because the engine class inherits from +Rails::Engine+, the application will know to look up in the engine's +app/assets+ and +lib/assets+ directories for potential assets.
 
 Much like all the other components of an engine, the assets should also be namespaced. This means if you have an asset called +style.css+, it should be placed at +app/assets/stylesheets/[engine name]/style.css+, rather than +app/assets/stylesheets/style.css+. If this asset wasn't namespaced, then there is a possibility that the host application could have an asset named identically, in which case the application's asset would take precedence and the engine's one would be all but ignored.
 
