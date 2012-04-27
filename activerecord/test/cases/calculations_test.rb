@@ -421,6 +421,22 @@ class CalculationsTest < ActiveRecord::TestCase
         Account.maximum(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
   end
 
+  def test_maximum_with_not_auto_table_name_prefix_if_column_included
+    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    assert_equal "7", Company.includes(:contracts).maximum(:developer_id)
+  end
+
+  def test_minimum_with_not_auto_table_name_prefix_if_column_included
+    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    assert_equal "7", Company.includes(:contracts).minimum(:developer_id)
+  end
+
+  def test_sum_with_not_auto_table_name_prefix_if_column_included
+    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    assert_equal "7", Company.includes(:contracts).sum(:developer_id)
+  end
+
+
   def test_from_option_with_specified_index
     if Edge.connection.adapter_name == 'MySQL' or Edge.connection.adapter_name == 'Mysql2'
       assert_equal Edge.count(:all), Edge.count(:all, :from => 'edges USE INDEX(unique_edge_index)')
@@ -487,4 +503,10 @@ class CalculationsTest < ActiveRecord::TestCase
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
     assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
   end
+
+    def test_pluck_not_auto_table_name_prefix_if_column_included
+    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    assert_equal [7] + [nil]*(Company.count-1), Company.includes(:contracts).pluck(:developer_id)
+  end
+
 end
