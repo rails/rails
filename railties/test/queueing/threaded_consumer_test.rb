@@ -62,4 +62,20 @@ class TestThreadConsumer < ActiveSupport::TestCase
 
     assert_equal true, ran
   end
+
+  test "log job that raises an exception" do
+    require "active_support/log_subscriber/test_helper"
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    Rails.logger = logger
+
+    job = Job.new(1) do
+      raise "RuntimeError: Error!"
+    end
+
+    @queue.push job
+    sleep 0.1
+
+    assert_equal 1, logger.logged(:error).size
+    assert_match /Job Error: RuntimeError: Error!/, logger.logged(:error).last
+  end
 end
