@@ -214,6 +214,10 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = developers(:david)
     assert_equal david.association(:projects), david.projects.proxy_association
   end
+
+  def test_scoped_allows_conditions
+    assert developers(:david).projects.scoped(where: 'foo').where_values.include?('foo')
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
