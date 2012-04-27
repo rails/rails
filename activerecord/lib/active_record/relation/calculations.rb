@@ -107,7 +107,8 @@ module ActiveRecord
       relation = with_default_scope
 
       if relation.equal?(self)
-        if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
+
+        if eager_loading? || (includes_values.present? && (column_name || references_eager_loaded_tables?))
           construct_relation_for_association_calculations.calculate(operation, column_name, options)
         else
           perform_calculation(operation, column_name, options)
@@ -153,6 +154,10 @@ module ActiveRecord
     def pluck(column_name)
       if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
         column_name = "#{table_name}.#{column_name}"
+      end
+
+      if eager_loading? || (includes_values.present? && (column_name || references_eager_loaded_tables?))
+        return construct_relation_for_association_calculations.pluck(column_name)
       end
 
       result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
