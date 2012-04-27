@@ -151,13 +151,15 @@ module ActiveModel
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
       def attribute_will_change!(attr)
+        return if attribute_changed?(attr)
+
         begin
           value = __send__(attr)
           value = value.duplicable? ? value.clone : value
         rescue TypeError, NoMethodError
         end
 
-        changed_attributes[attr] = value unless changed_attributes.include?(attr)
+        changed_attributes[attr] = value
       end
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
