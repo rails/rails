@@ -16,6 +16,11 @@ class TestQueueTest < ActiveSupport::TestCase
     @queue = Rails::Queueing::TestQueue.new
   end
 
+  def test_drain_raises
+    @queue.push Job.new { raise }
+    assert_raises(RuntimeError) { @queue.drain }
+  end
+
   def test_jobs
     @queue.push 1
     @queue.push 2
