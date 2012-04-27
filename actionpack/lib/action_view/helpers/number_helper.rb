@@ -233,7 +233,7 @@ module ActionView
 
         parts = number.to_s.to_str.split('.')
         parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
-        parts.join(options[:separator]).html_safe
+        safe_join(parts, options[:separator])
       end
 
       # Formats a +number+ with the specified level of <tt>:precision</tt> (e.g., 112.32 has a precision
