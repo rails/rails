@@ -8,7 +8,7 @@ module Rails
     #   root.add "app/controllers", :eager_load => true
     #
     # The command above creates a new root object and add "app/controllers" as a path.
-    # This means we can get a +Rails::Paths::Path+ object back like below:
+    # This means we can get a <tt>Rails::Paths::Path</tt> object back like below:
     #
     #   path = root["app/controllers"]
     #   path.eager_load?               # => true
