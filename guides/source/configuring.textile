@@ -525,7 +525,8 @@ development:
   password:
 </yaml>
 
-If you use external connection pool manager, you can disable prepared statements in rails:
+Prepared Statements can be disabled thus:
+
 <yaml>
 production:
   adapter: postgresql
