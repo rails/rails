@@ -3,8 +3,10 @@ require 'models/bird'
 require 'models/company'
 require 'models/customer'
 require 'models/developer'
+require 'models/face'
 require 'models/invoice'
 require 'models/line_item'
+require 'models/man'
 require 'models/order'
 require 'models/parrot'
 require 'models/person'
@@ -877,6 +879,16 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_not_load_the_associated_model
     assert_queries(1) { @pirate.catchphrase = 'Arr'; @pirate.save! }
+  end
+end
+
+class TestAutosaveInverseAssociationOnAHasOneAssociation < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def test_should_save_the_inverse_association_model
+    man = Man.new
+    man.build_face
+    man.face.save
   end
 end
 
