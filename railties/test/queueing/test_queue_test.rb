@@ -13,7 +13,6 @@ class TestQueueTest < ActiveSupport::TestCase
   end
 
   def setup
-    #@queue = Rails::Queueing::TestQueue.new
     @queue = Rails::Queueing::TestQueue.new
   end
 
