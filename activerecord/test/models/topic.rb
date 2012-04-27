@@ -12,10 +12,8 @@ class Topic < ActiveRecord::Base
 
   scope :by_lifo, -> { where(:author_name => 'lifo') }
 
-  ActiveSupport::Deprecation.silence do
-    scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
-    scope :replied, :conditions => ['replies_count > 0']
-  end
+  scope :approved_as_hash_condition, -> { where(:topics => {:approved => true})}
+  scope :replied, -> { where('replies_count > 0')}
 
   scope 'approved_as_string', -> { where(:approved => true) }
   scope :anonymous_extension, -> { scoped } do
