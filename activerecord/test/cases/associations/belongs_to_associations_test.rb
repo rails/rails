@@ -73,14 +73,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_eager_loading_with_primary_key
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.scoped(:conditions => {:name => "Citibank"}, :include => :firm_with_primary_key).first
+    citibank_result = Client.scoped(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key).first
     assert citibank_result.association_cache.key?(:firm_with_primary_key)
   end
 
   def test_eager_loading_with_primary_key_as_symbol
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.scoped(:conditions => {:name => "Citibank"}, :include => :firm_with_primary_key_symbols).first
+    citibank_result = Client.scoped(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key_symbols).first
     assert citibank_result.association_cache.key?(:firm_with_primary_key_symbols)
   end
 

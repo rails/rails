@@ -173,9 +173,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_find_first_within_inheritance
-    assert_kind_of Firm, Company.scoped(:conditions => "name = '37signals'").first
-    assert_kind_of Firm, Firm.scoped(:conditions => "name = '37signals'").first
-    assert_nil Client.scoped(:conditions => "name = '37signals'").first
+    assert_kind_of Firm, Company.scoped(:where => "name = '37signals'").first
+    assert_kind_of Firm, Firm.scoped(:where => "name = '37signals'").first
+    assert_nil Client.scoped(:where => "name = '37signals'").first
   end
 
   def test_alt_find_first_within_inheritance
@@ -187,10 +187,10 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_complex_inheritance
     very_special_client = VerySpecialClient.create("name" => "veryspecial")
     assert_equal very_special_client, VerySpecialClient.where("name = 'veryspecial'").first
-    assert_equal very_special_client, SpecialClient.scoped(:conditions => "name = 'veryspecial'").first
-    assert_equal very_special_client, Company.scoped(:conditions => "name = 'veryspecial'").first
-    assert_equal very_special_client, Client.scoped(:conditions => "name = 'veryspecial'").first
-    assert_equal 1, Client.scoped(:conditions => "name = 'Summit'").all.size
+    assert_equal very_special_client, SpecialClient.scoped(:where => "name = 'veryspecial'").first
+    assert_equal very_special_client, Company.scoped(:where => "name = 'veryspecial'").first
+    assert_equal very_special_client, Client.scoped(:where => "name = 'veryspecial'").first
+    assert_equal 1, Client.scoped(:where => "name = 'Summit'").all.size
     assert_equal very_special_client, Client.find(very_special_client.id)
   end
 

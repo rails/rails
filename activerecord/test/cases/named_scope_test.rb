@@ -58,9 +58,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
-    assert !Topic.scoped(:conditions => {:approved => true}).all.empty?
+    assert !Topic.scoped(:where => {:approved => true}).all.empty?
 
-    assert_equal Topic.scoped(:conditions => {:approved => true}).all, Topic.approved
+    assert_equal Topic.scoped(:where => {:approved => true}).all, Topic.approved
     assert_equal Topic.where(:approved => true).count, Topic.approved.count
   end
 
@@ -71,8 +71,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scopes_are_composable
-    assert_equal((approved = Topic.scoped(:conditions => {:approved => true}).all), Topic.approved)
-    assert_equal((replied = Topic.scoped(:conditions => 'replies_count > 0').all), Topic.replied)
+    assert_equal((approved = Topic.scoped(:where => {:approved => true}).all), Topic.approved)
+    assert_equal((replied = Topic.scoped(:where => 'replies_count > 0').all), Topic.replied)
     assert !(approved == replied)
     assert !(approved & replied).empty?
 
@@ -464,7 +464,7 @@ class DynamicScopeTest < ActiveRecord::TestCase
 
   def test_dynamic_scope
     assert_equal @test_klass.scoped_by_author_id(1).find(1), @test_klass.find(1)
-    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.scoped(:conditions => { :author_id => 1, :title => "Welcome to the weblog"}).first
+    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.scoped(:where => { :author_id => 1, :title => "Welcome to the weblog"}).first
   end
 
   def test_dynamic_scope_should_create_methods_after_hitting_method_missing

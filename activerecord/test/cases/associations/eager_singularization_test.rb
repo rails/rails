@@ -103,43 +103,43 @@ class EagerSingularizationTest < ActiveRecord::TestCase
   def test_eager_no_extra_singularization_belongs_to
     return unless @have_tables
     assert_nothing_raised do
-      Virus.scoped(:include => :octopus).all
+      Virus.scoped(:includes => :octopus).all
     end
   end
 
   def test_eager_no_extra_singularization_has_one
     return unless @have_tables
     assert_nothing_raised do
-      Octopus.scoped(:include => :virus).all
+      Octopus.scoped(:includes => :virus).all
     end
   end
 
   def test_eager_no_extra_singularization_has_many
     return unless @have_tables
     assert_nothing_raised do
-      Bus.scoped(:include => :passes).all
+      Bus.scoped(:includes => :passes).all
     end
   end
 
   def test_eager_no_extra_singularization_has_and_belongs_to_many
     return unless @have_tables
     assert_nothing_raised do
-      Crisis.scoped(:include => :messes).all
-      Mess.scoped(:include => :crises).all
+      Crisis.scoped(:includes => :messes).all
+      Mess.scoped(:includes => :crises).all
     end
   end
 
   def test_eager_no_extra_singularization_has_many_through_belongs_to
     return unless @have_tables
     assert_nothing_raised do
-      Crisis.scoped(:include => :successes).all
+      Crisis.scoped(:includes => :successes).all
     end
   end
 
   def test_eager_no_extra_singularization_has_many_through_has_many
     return unless @have_tables
     assert_nothing_raised do
-      Crisis.scoped(:include => :compresses).all
+      Crisis.scoped(:includes => :compresses).all
     end
   end
 end

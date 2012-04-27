@@ -281,23 +281,23 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions_with_range
-    assert_equal [1,2], Topic.scoped(:conditions => { :id => 1..2 }).all.map(&:id).sort
+    assert_equal [1,2], Topic.scoped(:where => { :id => 1..2 }).all.map(&:id).sort
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :id => 2..3 }) }
   end
 
   def test_find_on_hash_conditions_with_end_exclusive_range
-    assert_equal [1,2,3], Topic.scoped(:conditions => { :id => 1..3 }).all.map(&:id).sort
-    assert_equal [1,2], Topic.scoped(:conditions => { :id => 1...3 }).all.map(&:id).sort
+    assert_equal [1,2,3], Topic.scoped(:where => { :id => 1..3 }).all.map(&:id).sort
+    assert_equal [1,2], Topic.scoped(:where => { :id => 1...3 }).all.map(&:id).sort
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(3, :conditions => { :id => 2...3 }) }
   end
 
   def test_find_on_hash_conditions_with_multiple_ranges
-    assert_equal [1,2,3], Comment.scoped(:conditions => { :id => 1..3, :post_id => 1..2 }).all.map(&:id).sort
-    assert_equal [1], Comment.scoped(:conditions => { :id => 1..1, :post_id => 1..10 }).all.map(&:id).sort
+    assert_equal [1,2,3], Comment.scoped(:where => { :id => 1..3, :post_id => 1..2 }).all.map(&:id).sort
+    assert_equal [1], Comment.scoped(:where => { :id => 1..1, :post_id => 1..10 }).all.map(&:id).sort
   end
 
   def test_find_on_hash_conditions_with_array_of_integers_and_ranges
-    assert_equal [1,2,3,5,6,7,8,9], Comment.scoped(:conditions => {:id => [1..2, 3, 5, 6..8, 9]}).all.map(&:id).sort
+    assert_equal [1,2,3,5,6,7,8,9], Comment.scoped(:where => {:id => [1..2, 3, 5, 6..8, 9]}).all.map(&:id).sort
   end
 
   def test_find_on_multiple_hash_conditions
@@ -309,43 +309,43 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_condition_interpolation
     assert_kind_of Firm, Company.where("name = '%s'", "37signals").first
-    assert_nil Company.scoped(:conditions => ["name = '%s'", "37signals!"]).first
-    assert_nil Company.scoped(:conditions => ["name = '%s'", "37signals!' OR 1=1"]).first
-    assert_kind_of Time, Topic.scoped(:conditions => ["id = %d", 1]).first.written_on
+    assert_nil Company.scoped(:where => ["name = '%s'", "37signals!"]).first
+    assert_nil Company.scoped(:where => ["name = '%s'", "37signals!' OR 1=1"]).first
+    assert_kind_of Time, Topic.scoped(:where => ["id = %d", 1]).first.written_on
   end
 
   def test_condition_array_interpolation
-    assert_kind_of Firm, Company.scoped(:conditions => ["name = '%s'", "37signals"]).first
-    assert_nil Company.scoped(:conditions => ["name = '%s'", "37signals!"]).first
-    assert_nil Company.scoped(:conditions => ["name = '%s'", "37signals!' OR 1=1"]).first
-    assert_kind_of Time, Topic.scoped(:conditions => ["id = %d", 1]).first.written_on
+    assert_kind_of Firm, Company.scoped(:where => ["name = '%s'", "37signals"]).first
+    assert_nil Company.scoped(:where => ["name = '%s'", "37signals!"]).first
+    assert_nil Company.scoped(:where => ["name = '%s'", "37signals!' OR 1=1"]).first
+    assert_kind_of Time, Topic.scoped(:where => ["id = %d", 1]).first.written_on
   end
 
   def test_condition_hash_interpolation
-    assert_kind_of Firm, Company.scoped(:conditions => { :name => "37signals"}).first
-    assert_nil Company.scoped(:conditions => { :name => "37signals!"}).first
-    assert_kind_of Time, Topic.scoped(:conditions => {:id => 1}).first.written_on
+    assert_kind_of Firm, Company.scoped(:where => { :name => "37signals"}).first
+    assert_nil Company.scoped(:where => { :name => "37signals!"}).first
+    assert_kind_of Time, Topic.scoped(:where => {:id => 1}).first.written_on
   end
 
   def test_hash_condition_find_malformed
     assert_raise(ActiveRecord::StatementInvalid) {
-      Company.scoped(:conditions => { :id => 2, :dhh => true }).first
+      Company.scoped(:where => { :id => 2, :dhh => true }).first
     }
   end
 
   def test_hash_condition_find_with_escaped_characters
     Company.create("name" => "Ain't noth'n like' \#stuff")
-    assert Company.scoped(:conditions => { :name => "Ain't noth'n like' \#stuff" }).first
+    assert Company.scoped(:where => { :name => "Ain't noth'n like' \#stuff" }).first
   end
 
   def test_hash_condition_find_with_array
     p1, p2 = Post.scoped(:limit => 2, :order => 'id asc').all
-    assert_equal [p1, p2], Post.scoped(:conditions => { :id => [p1, p2] }, :order => 'id asc').all
-    assert_equal [p1, p2], Post.scoped(:conditions => { :id => [p1, p2.id] }, :order => 'id asc').all
+    assert_equal [p1, p2], Post.scoped(:where => { :id => [p1, p2] }, :order => 'id asc').all
+    assert_equal [p1, p2], Post.scoped(:where => { :id => [p1, p2.id] }, :order => 'id asc').all
   end
 
   def test_hash_condition_find_with_nil
-    topic = Topic.scoped(:conditions => { :last_read => nil } ).first
+    topic = Topic.scoped(:where => { :last_read => nil } ).first
     assert_not_nil topic
     assert_nil topic.last_read
   end
@@ -353,42 +353,42 @@ class FinderTest < ActiveRecord::TestCase
   def test_hash_condition_find_with_aggregate_having_one_mapping
     balance = customers(:david).balance
     assert_kind_of Money, balance
-    found_customer = Customer.scoped(:conditions => {:balance => balance}).first
+    found_customer = Customer.scoped(:where => {:balance => balance}).first
     assert_equal customers(:david), found_customer
   end
 
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
     gps_location = customers(:david).gps_location
     assert_kind_of GpsLocation, gps_location
-    found_customer = Customer.scoped(:conditions => {:gps_location => gps_location}).first
+    found_customer = Customer.scoped(:where => {:gps_location => gps_location}).first
     assert_equal customers(:david), found_customer
   end
 
   def test_hash_condition_find_with_aggregate_having_one_mapping_and_key_value_being_attribute_value
     balance = customers(:david).balance
     assert_kind_of Money, balance
-    found_customer = Customer.scoped(:conditions => {:balance => balance.amount}).first
+    found_customer = Customer.scoped(:where => {:balance => balance.amount}).first
     assert_equal customers(:david), found_customer
   end
 
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_attribute_value
     gps_location = customers(:david).gps_location
     assert_kind_of GpsLocation, gps_location
-    found_customer = Customer.scoped(:conditions => {:gps_location => gps_location.gps_location}).first
+    found_customer = Customer.scoped(:where => {:gps_location => gps_location.gps_location}).first
     assert_equal customers(:david), found_customer
   end
 
   def test_hash_condition_find_with_aggregate_having_three_mappings
     address = customers(:david).address
     assert_kind_of Address, address
-    found_customer = Customer.scoped(:conditions => {:address => address}).first
+    found_customer = Customer.scoped(:where => {:address => address}).first
     assert_equal customers(:david), found_customer
   end
 
   def test_hash_condition_find_with_one_condition_being_aggregate_and_another_not
     address = customers(:david).address
     assert_kind_of Address, address
-    found_customer = Customer.scoped(:conditions => {:address => address, :name => customers(:david).name}).first
+    found_customer = Customer.scoped(:where => {:address => address, :name => customers(:david).name}).first
     assert_equal customers(:david), found_customer
   end
 
@@ -396,7 +396,7 @@ class FinderTest < ActiveRecord::TestCase
     with_env_tz 'America/New_York' do
       with_active_record_default_timezone :local do
         topic = Topic.first
-        assert_equal topic, Topic.scoped(:conditions => ['written_on = ?', topic.written_on.getutc]).first
+        assert_equal topic, Topic.scoped(:where => ['written_on = ?', topic.written_on.getutc]).first
       end
     end
   end
@@ -405,7 +405,7 @@ class FinderTest < ActiveRecord::TestCase
     with_env_tz 'America/New_York' do
       with_active_record_default_timezone :local do
         topic = Topic.first
-        assert_equal topic, Topic.scoped(:conditions => {:written_on => topic.written_on.getutc}).first
+        assert_equal topic, Topic.scoped(:where => {:written_on => topic.written_on.getutc}).first
       end
     end
   end
@@ -414,7 +414,7 @@ class FinderTest < ActiveRecord::TestCase
     with_env_tz 'America/New_York' do
       with_active_record_default_timezone :utc do
         topic = Topic.first
-        assert_equal topic, Topic.scoped(:conditions => ['written_on = ?', topic.written_on.getlocal]).first
+        assert_equal topic, Topic.scoped(:where => ['written_on = ?', topic.written_on.getlocal]).first
       end
     end
   end
@@ -423,32 +423,32 @@ class FinderTest < ActiveRecord::TestCase
     with_env_tz 'America/New_York' do
       with_active_record_default_timezone :utc do
         topic = Topic.first
-        assert_equal topic, Topic.scoped(:conditions => {:written_on => topic.written_on.getlocal}).first
+        assert_equal topic, Topic.scoped(:where => {:written_on => topic.written_on.getlocal}).first
       end
     end
   end
 
   def test_bind_variables
-    assert_kind_of Firm, Company.scoped(:conditions => ["name = ?", "37signals"]).first
-    assert_nil Company.scoped(:conditions => ["name = ?", "37signals!"]).first
-    assert_nil Company.scoped(:conditions => ["name = ?", "37signals!' OR 1=1"]).first
-    assert_kind_of Time, Topic.scoped(:conditions => ["id = ?", 1]).first.written_on
+    assert_kind_of Firm, Company.scoped(:where => ["name = ?", "37signals"]).first
+    assert_nil Company.scoped(:where => ["name = ?", "37signals!"]).first
+    assert_nil Company.scoped(:where => ["name = ?", "37signals!' OR 1=1"]).first
+    assert_kind_of Time, Topic.scoped(:where => ["id = ?", 1]).first.written_on
     assert_raise(ActiveRecord::PreparedStatementInvalid) {
-      Company.scoped(:conditions => ["id=? AND name = ?", 2]).first
+      Company.scoped(:where => ["id=? AND name = ?", 2]).first
     }
     assert_raise(ActiveRecord::PreparedStatementInvalid) {
-     Company.scoped(:conditions => ["id=?", 2, 3, 4]).first
+     Company.scoped(:where => ["id=?", 2, 3, 4]).first
     }
   end
 
   def test_bind_variables_with_quotes
     Company.create("name" => "37signals' go'es agains")
-    assert Company.scoped(:conditions => ["name = ?", "37signals' go'es agains"]).first
+    assert Company.scoped(:where => ["name = ?", "37signals' go'es agains"]).first
   end
 
   def test_named_bind_variables_with_quotes
     Company.create("name" => "37signals' go'es agains")
-    assert Company.scoped(:conditions => ["name = :name", {:name => "37signals' go'es agains"}]).first
+    assert Company.scoped(:where => ["name = :name", {:name => "37signals' go'es agains"}]).first
   end
 
   def test_bind_arity
@@ -466,10 +466,10 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_nothing_raised { bind("'+00:00'", :foo => "bar") }
 
-    assert_kind_of Firm, Company.scoped(:conditions => ["name = :name", { :name => "37signals" }]).first
-    assert_nil Company.scoped(:conditions => ["name = :name", { :name => "37signals!" }]).first
-    assert_nil Company.scoped(:conditions => ["name = :name", { :name => "37signals!' OR 1=1" }]).first
-    assert_kind_of Time, Topic.scoped(:conditions => ["id = :id", { :id => 1 }]).first.written_on
+    assert_kind_of Firm, Company.scoped(:where => ["name = :name", { :name => "37signals" }]).first
+    assert_nil Company.scoped(:where => ["name = :name", { :name => "37signals!" }]).first
+    assert_nil Company.scoped(:where => ["name = :name", { :name => "37signals!' OR 1=1" }]).first
+    assert_kind_of Time, Topic.scoped(:where => ["id = :id", { :id => 1 }]).first.written_on
   end
 
   class SimpleEnumerable
@@ -1035,8 +1035,8 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_records
     p1, p2 = Post.scoped(:limit => 2, :order => 'id asc').all
-    assert_equal [p1, p2], Post.scoped(:conditions => ['id in (?)', [p1, p2]], :order => 'id asc')
-    assert_equal [p1, p2], Post.scoped(:conditions => ['id in (?)', [p1, p2.id]], :order => 'id asc')
+    assert_equal [p1, p2], Post.scoped(:where => ['id in (?)', [p1, p2]], :order => 'id asc')
+    assert_equal [p1, p2], Post.scoped(:where => ['id in (?)', [p1, p2.id]], :order => 'id asc')
   end
 
   def test_select_value
@@ -1063,7 +1063,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
-    assert_equal 2, Post.scoped(:include => { :authors => :author_address }, :order => 'author_addresses.id DESC ', :limit => 2).all.size
+    assert_equal 2, Post.scoped(:includes => { :authors => :author_address }, :order => 'author_addresses.id DESC ', :limit => 2).all.size
 
     assert_equal 3, Post.scoped(:include => { :author => :author_address, :authors => :author_address},
                               :order => 'author_addresses_authors.id DESC ', :limit => 3).all.size

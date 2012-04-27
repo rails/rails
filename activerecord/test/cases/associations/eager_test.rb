@@ -40,22 +40,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_with_one_association
-    posts = Post.scoped(:include => :comments).all
+    posts = Post.scoped(:includes => :comments).all
     post = posts.find { |p| p.id == 1 }
     assert_equal 2, post.comments.size
     assert post.comments.include?(comments(:greetings))
 
-    post = Post.scoped(:include => :comments, :conditions => "posts.title = 'Welcome to the weblog'").first
+    post = Post.scoped(:includes => :comments, :where => "posts.title = 'Welcome to the weblog'").first
     assert_equal 2, post.comments.size
     assert post.comments.include?(comments(:greetings))
 
-    posts = Post.scoped(:include => :last_comment).all
+    posts = Post.scoped(:includes => :last_comment).all
     post = posts.find { |p| p.id == 1 }
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
   def test_loading_with_one_association_with_non_preload
-    posts = Post.scoped(:include => :last_comment, :order => 'comments.id DESC').all
+    posts = Post.scoped(:includes => :last_comment, :order => 'comments.id DESC').all
     post = posts.find { |p| p.id == 1 }
     assert_equal Post.find(1).last_comment, post.last_comment
   end
@@ -70,7 +70,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_with_ordering
-    list = Post.scoped(:include => :comments, :order => "posts.id DESC").all
+    list = Post.scoped(:includes => :comments, :order => "posts.id DESC").all
     [:other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,
      :sti_habtm, :sti_post_and_comments, :sti_comments, :authorless, :thinking, :welcome
     ].each_with_index do |post, index|
@@ -84,14 +84,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_with_multiple_associations
-    posts = Post.scoped(:include => [ :comments, :author, :categories ], :order => "posts.id").all
+    posts = Post.scoped(:includes => [ :comments, :author, :categories ], :order => "posts.id").all
     assert_equal 2, posts.first.comments.size
     assert_equal 2, posts.first.categories.size
     assert posts.first.comments.include?(comments(:greetings))
   end
 
   def test_duplicate_middle_objects
-    comments = Comment.scoped(:conditions => 'post_id = 1', :include => [:post => :author]).all
+    comments = Comment.scoped(:where => 'post_id = 1', :includes => [:post => :author]).all
     assert_no_queries do
       comments.each {|comment| comment.post.author.name}
     end
@@ -99,25 +99,25 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_preloading_has_many_in_multiple_queries_with_more_ids_than_database_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(5)
-    posts = Post.scoped(:include=>:comments).all
+    posts = Post.scoped(:includes=>:comments).all
     assert_equal 11, posts.size
   end
 
   def test_preloading_has_many_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
-    posts = Post.scoped(:include=>:comments).all
+    posts = Post.scoped(:includes=>:comments).all
     assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_multiple_queries_with_more_ids_than_database_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(5)
-    posts = Post.scoped(:include=>:categories).all
+    posts = Post.scoped(:includes=>:categories).all
     assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
-    posts = Post.scoped(:include=>:categories).all
+    posts = Post.scoped(:includes=>:categories).all
     assert_equal 11, posts.size
   end
 
@@ -234,13 +234,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_from_an_association
-    posts = authors(:david).posts.scoped(:include => :comments, :order => "posts.id").all
+    posts = authors(:david).posts.scoped(:includes => :comments, :order => "posts.id").all
     assert_equal 2, posts.first.comments.size
   end
 
   def test_loading_from_an_association_that_has_a_hash_of_conditions
     assert_nothing_raised do
-      Author.scoped(:include => :hello_posts_with_hash_conditions).all
+      Author.scoped(:includes => :hello_posts_with_hash_conditions).all
     end
     assert !Author.find(authors(:david).id, :include => :hello_posts_with_hash_conditions).hello_posts.empty?
   end
@@ -300,12 +300,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_foreign_keys
-    pets = Pet.scoped(:include => :owner).all
+    pets = Pet.scoped(:includes => :owner).all
     assert_equal 3, pets.length
   end
 
   def test_eager_association_loading_with_belongs_to
-    comments = Comment.scoped(:include => :post).all
+    comments = Comment.scoped(:includes => :post).all
     assert_equal 11, comments.length
     titles = comments.map { |c| c.post.title }
     assert titles.include?(posts(:welcome).title)
@@ -313,31 +313,31 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit
-    comments = Comment.scoped(:include => :post, :limit => 5, :order => 'comments.id').all
+    comments = Comment.scoped(:includes => :post, :limit => 5, :order => 'comments.id').all
     assert_equal 5, comments.length
     assert_equal [1,2,3,5,6], comments.collect { |c| c.id }
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_conditions
-    comments = Comment.scoped(:include => :post, :conditions => 'post_id = 4', :limit => 3, :order => 'comments.id').all
+    comments = Comment.scoped(:includes => :post, :where => 'post_id = 4', :limit => 3, :order => 'comments.id').all
     assert_equal 3, comments.length
     assert_equal [5,6,7], comments.collect { |c| c.id }
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset
-    comments = Comment.scoped(:include => :post, :limit => 3, :offset => 2, :order => 'comments.id').all
+    comments = Comment.scoped(:includes => :post, :limit => 3, :offset => 2, :order => 'comments.id').all
     assert_equal 3, comments.length
     assert_equal [3,5,6], comments.collect { |c| c.id }
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_conditions
-    comments = Comment.scoped(:include => :post, :conditions => 'post_id = 4', :limit => 3, :offset => 1, :order => 'comments.id').all
+    comments = Comment.scoped(:includes => :post, :where => 'post_id = 4', :limit => 3, :offset => 1, :order => 'comments.id').all
     assert_equal 3, comments.length
     assert_equal [6,7,8], comments.collect { |c| c.id }
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_conditions_array
-    comments = Comment.scoped(:include => :post, :conditions => ['post_id = ?',4], :limit => 3, :offset => 1, :order => 'comments.id').all
+    comments = Comment.scoped(:includes => :post, :where => ['post_id = ?',4], :limit => 3, :offset => 1, :order => 'comments.id').all
     assert_equal 3, comments.length
     assert_equal [6,7,8], comments.collect { |c| c.id }
   end
@@ -345,7 +345,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_unquoted_table_name
     assert_nothing_raised do
       ActiveSupport::Deprecation.silence do
-        Comment.scoped(:include => :post, :conditions => ['posts.id = ?',4]).all
+        Comment.scoped(:includes => :post, :where => ['posts.id = ?',4]).all
       end
     end
   end
@@ -353,7 +353,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_and_conditions_hash
     comments = []
     assert_nothing_raised do
-      comments = Comment.scoped(:include => :post, :conditions => {:posts => {:id => 4}}, :limit => 3, :order => 'comments.id').all
+      comments = Comment.scoped(:includes => :post, :where => {:posts => {:id => 4}}, :limit => 3, :order => 'comments.id').all
     end
     assert_equal 3, comments.length
     assert_equal [5,6,7], comments.collect { |c| c.id }
@@ -366,14 +366,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
     quoted_posts_id= Comment.connection.quote_table_name('posts') + '.' + Comment.connection.quote_column_name('id')
     assert_nothing_raised do
       ActiveSupport::Deprecation.silence do
-        Comment.scoped(:include => :post, :conditions => ["#{quoted_posts_id} = ?",4]).all
+        Comment.scoped(:includes => :post, :where => ["#{quoted_posts_id} = ?",4]).all
       end
     end
   end
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_unquoted_table_name
     assert_nothing_raised do
-      Comment.scoped(:include => :post, :order => 'posts.id').all
+      Comment.scoped(:includes => :post, :order => 'posts.id').all
     end
   end
 
@@ -381,25 +381,25 @@ class EagerAssociationTest < ActiveRecord::TestCase
     quoted_posts_id= Comment.connection.quote_table_name('posts') + '.' + Comment.connection.quote_column_name('id')
     assert_nothing_raised do
       ActiveSupport::Deprecation.silence do
-        Comment.scoped(:include => :post, :order => quoted_posts_id).all
+        Comment.scoped(:includes => :post, :order => quoted_posts_id).all
       end
     end
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_multiple_associations
-    posts = Post.scoped(:include => [:author, :very_special_comment], :limit => 1, :order => 'posts.id').all
+    posts = Post.scoped(:includes => [:author, :very_special_comment], :limit => 1, :order => 'posts.id').all
     assert_equal 1, posts.length
     assert_equal [1], posts.collect { |p| p.id }
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_multiple_associations
-    posts = Post.scoped(:include => [:author, :very_special_comment], :limit => 1, :offset => 1, :order => 'posts.id').all
+    posts = Post.scoped(:includes => [:author, :very_special_comment], :limit => 1, :offset => 1, :order => 'posts.id').all
     assert_equal 1, posts.length
     assert_equal [2], posts.collect { |p| p.id }
   end
 
   def test_eager_association_loading_with_belongs_to_inferred_foreign_key_from_association_name
-    author_favorite = AuthorFavorite.scoped(:include => :favorite_author).first
+    author_favorite = AuthorFavorite.scoped(:includes => :favorite_author).first
     assert_equal authors(:mary), assert_no_queries { author_favorite.favorite_author }
   end
 
@@ -458,14 +458,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_explicit_join
-    posts = Post.scoped(:include => :comments, :joins => "INNER JOIN authors ON posts.author_id = authors.id AND authors.name = 'Mary'", :limit => 1, :order => 'author_id').all
+    posts = Post.scoped(:includes => :comments, :joins => "INNER JOIN authors ON posts.author_id = authors.id AND authors.name = 'Mary'", :limit => 1, :order => 'author_id').all
     assert_equal 1, posts.length
   end
 
   def test_eager_with_has_many_through
-    posts_with_comments = people(:michael).posts.scoped(:include => :comments, :order => 'posts.id').all
-    posts_with_author = people(:michael).posts.scoped(:include => :author, :order => 'posts.id').all
-    posts_with_comments_and_author = people(:michael).posts.scoped(:include => [ :comments, :author ], :order => 'posts.id').all
+    posts_with_comments = people(:michael).posts.scoped(:includes => :comments, :order => 'posts.id').all
+    posts_with_author = people(:michael).posts.scoped(:includes => :author, :order => 'posts.id').all
+    posts_with_comments_and_author = people(:michael).posts.scoped(:includes => [ :comments, :author ], :order => 'posts.id').all
     assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum += post.comments.size }
     assert_equal authors(:david), assert_no_queries { posts_with_author.first.author }
     assert_equal authors(:david), assert_no_queries { posts_with_comments_and_author.first.author }
@@ -476,17 +476,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
     Post.create!(:author => author, :title => "TITLE", :body => "BODY")
     author.author_favorites.create(:favorite_author_id => 1)
     author.author_favorites.create(:favorite_author_id => 2)
-    posts_with_author_favorites = author.posts.scoped(:include => :author_favorites).all
+    posts_with_author_favorites = author.posts.scoped(:includes => :author_favorites).all
     assert_no_queries { posts_with_author_favorites.first.author_favorites.first.author_id }
   end
 
   def test_eager_with_has_many_through_an_sti_join_model
-    author = Author.scoped(:include => :special_post_comments, :order => 'authors.id').first
+    author = Author.scoped(:includes => :special_post_comments, :order => 'authors.id').first
     assert_equal [comments(:does_it_hurt)], assert_no_queries { author.special_post_comments }
   end
 
   def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
-    author = Author.scoped(:include => :special_nonexistant_post_comments, :order => 'authors.id').first
+    author = Author.scoped(:includes => :special_nonexistant_post_comments, :order => 'authors.id').first
     assert_equal [], author.special_nonexistant_post_comments
   end
 
@@ -520,16 +520,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit
-    posts = Post.scoped(:order => 'posts.id asc', :include => [ :author, :comments ], :limit => 2).all
+    posts = Post.scoped(:order => 'posts.id asc', :includes => [ :author, :comments ], :limit => 2).all
     assert_equal 2, posts.size
     assert_equal 3, posts.inject(0) { |sum, post| sum += post.comments.size }
   end
 
   def test_eager_with_has_many_and_limit_and_conditions
     if current_adapter?(:OpenBaseAdapter)
-      posts = Post.scoped(:include => [ :author, :comments ], :limit => 2, :conditions => "FETCHBLOB(posts.body) = 'hello'", :order => "posts.id").all
+      posts = Post.scoped(:includes => [ :author, :comments ], :limit => 2, :where => "FETCHBLOB(posts.body) = 'hello'", :order => "posts.id").all
     else
-      posts = Post.scoped(:include => [ :author, :comments ], :limit => 2, :conditions => "posts.body = 'hello'", :order => "posts.id").all
+      posts = Post.scoped(:includes => [ :author, :comments ], :limit => 2, :where => "posts.body = 'hello'", :order => "posts.id").all
     end
     assert_equal 2, posts.size
     assert_equal [4,5], posts.collect { |p| p.id }
@@ -537,9 +537,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_has_many_and_limit_and_conditions_array
     if current_adapter?(:OpenBaseAdapter)
-      posts = Post.scoped(:include => [ :author, :comments ], :limit => 2, :conditions => [ "FETCHBLOB(posts.body) = ?", 'hello' ], :order => "posts.id").all
+      posts = Post.scoped(:includes => [ :author, :comments ], :limit => 2, :where => [ "FETCHBLOB(posts.body) = ?", 'hello' ], :order => "posts.id").all
     else
-      posts = Post.scoped(:include => [ :author, :comments ], :limit => 2, :conditions => [ "posts.body = ?", 'hello' ], :order => "posts.id").all
+      posts = Post.scoped(:includes => [ :author, :comments ], :limit => 2, :where => [ "posts.body = ?", 'hello' ], :order => "posts.id").all
     end
     assert_equal 2, posts.size
     assert_equal [4,5], posts.collect { |p| p.id }
@@ -547,7 +547,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_has_many_and_limit_and_conditions_array_on_the_eagers
     posts = ActiveSupport::Deprecation.silence do
-      Post.scoped(:include => [ :author, :comments ], :limit => 2, :conditions => [ "authors.name = ?", 'David' ]).all
+      Post.scoped(:includes => [ :author, :comments ], :limit => 2, :where => [ "authors.name = ?", 'David' ]).all
     end
     assert_equal 2, posts.size
 
@@ -558,7 +558,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_high_offset
-    posts = Post.scoped(:include => [ :author, :comments ], :limit => 2, :offset => 10, :conditions => { 'authors.name' => 'David' }).all
+    posts = Post.scoped(:includes => [ :author, :comments ], :limit => 2, :offset => 10, :where => { 'authors.name' => 'David' }).all
     assert_equal 0, posts.size
   end
 
@@ -602,7 +602,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_and_belongs_to_many_and_limit
-    posts = Post.scoped(:include => :categories, :order => "posts.id", :limit => 3).all
+    posts = Post.scoped(:includes => :categories, :order => "posts.id", :limit => 3).all
     assert_equal 3, posts.size
     assert_equal 2, posts[0].categories.size
     assert_equal 1, posts[1].categories.size
@@ -668,7 +668,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_habtm
-    posts = Post.scoped(:include => :categories, :order => "posts.id").all
+    posts = Post.scoped(:includes => :categories, :order => "posts.id").all
     assert_equal 2, posts[0].categories.size
     assert_equal 1, posts[1].categories.size
     assert_equal 0, posts[2].categories.size
@@ -677,7 +677,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_inheritance
-    SpecialPost.scoped(:include => [ :comments ]).all
+    SpecialPost.scoped(:includes => [ :comments ]).all
   end
 
   def test_eager_has_one_with_association_inheritance
@@ -771,7 +771,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def find_all_ordered(className, include=nil)
-    className.scoped(:order=>"#{className.table_name}.#{className.primary_key}", :include=>include).all
+    className.scoped(:order=>"#{className.table_name}.#{className.primary_key}", :includes=>include).all
   end
 
   def test_limited_eager_with_order
@@ -881,13 +881,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
   def test_eager_with_valid_association_as_string_not_symbol
-    assert_nothing_raised { Post.scoped(:include => 'comments').all }
+    assert_nothing_raised { Post.scoped(:includes => 'comments').all }
   end
 
   def test_eager_with_floating_point_numbers
     assert_queries(2) do
       # Before changes, the floating point numbers will be interpreted as table names and will cause this to run in one query
-      Comment.scoped(:conditions => "123.456 = 123.456", :include => :post).all
+      Comment.scoped(:where => "123.456 = 123.456", :includes => :post).all
     end
   end
 
@@ -946,16 +946,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_conditions_on_join_table_with_include_and_limit
-    assert_equal 3, Developer.scoped(:include => 'projects', :conditions => { 'developers_projects.access_level' => 1 }, :limit => 5).all.size
+    assert_equal 3, Developer.scoped(:includes => 'projects', :where => { 'developers_projects.access_level' => 1 }, :limit => 5).all.size
   end
 
   def test_order_on_join_table_with_include_and_limit
-    assert_equal 5, Developer.scoped(:include => 'projects', :order => 'developers_projects.joined_on DESC', :limit => 5).all.size
+    assert_equal 5, Developer.scoped(:includes => 'projects', :order => 'developers_projects.joined_on DESC', :limit => 5).all.size
   end
 
   def test_eager_loading_with_order_on_joined_table_preloads
     posts = assert_queries(2) do
-      Post.scoped(:joins => :comments, :include => :author, :order => 'comments.id DESC').all
+      Post.scoped(:joins => :comments, :includes => :author, :order => 'comments.id DESC').all
     end
     assert_equal posts(:eager_other), posts[1]
     assert_equal authors(:mary), assert_no_queries { posts[1].author}
@@ -963,24 +963,24 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_loading_with_conditions_on_joined_table_preloads
     posts = assert_queries(2) do
-      Post.scoped(:select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id').all
+      Post.scoped(:select => 'distinct posts.*', :includes => :author, :joins => [:comments], :where => "comments.body like 'Thank you%'", :order => 'posts.id').all
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
     posts = assert_queries(2) do
-      Post.scoped(:select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id').all
+      Post.scoped(:select => 'distinct posts.*', :includes => :author, :joins => [:comments], :where => "comments.body like 'Thank you%'", :order => 'posts.id').all
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
     posts = assert_queries(2) do
-      Post.scoped(:include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'", :order => 'posts.id').all
+      Post.scoped(:includes => :author, :joins => {:taggings => :tag}, :where => "tags.name = 'General'", :order => 'posts.id').all
     end
     assert_equal posts(:welcome, :thinking), posts
 
     posts = assert_queries(2) do
-      Post.scoped(:include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2", :order => 'posts.id').all
+      Post.scoped(:includes => :author, :joins => {:taggings => {:tag => :taggings}}, :where => "taggings_tags.super_tag_id=2", :order => 'posts.id').all
     end
     assert_equal posts(:welcome, :thinking), posts
 
@@ -988,13 +988,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
     posts = assert_queries(2) do
-      Post.scoped(:select => 'distinct posts.*', :include => :author, :joins => "INNER JOIN comments on comments.post_id = posts.id", :conditions => "comments.body like 'Thank you%'", :order => 'posts.id').all
+      Post.scoped(:select => 'distinct posts.*', :includes => :author, :joins => "INNER JOIN comments on comments.post_id = posts.id", :where => "comments.body like 'Thank you%'", :order => 'posts.id').all
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
     posts = assert_queries(2) do
-      Post.scoped(:select => 'distinct posts.*', :include => :author, :joins => ["INNER JOIN comments on comments.post_id = posts.id"], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id').all
+      Post.scoped(:select => 'distinct posts.*', :includes => :author, :joins => ["INNER JOIN comments on comments.post_id = posts.id"], :where => "comments.body like 'Thank you%'", :order => 'posts.id').all
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
@@ -1003,7 +1003,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_loading_with_select_on_joined_table_preloads
     posts = assert_queries(2) do
-      Post.scoped(:select => 'posts.*, authors.name as author_name', :include => :comments, :joins => :author, :order => 'posts.id').all
+      Post.scoped(:select => 'posts.*, authors.name as author_name', :includes => :comments, :joins => :author, :order => 'posts.id').all
     end
     assert_equal 'David', posts[0].author_name
     assert_equal posts(:welcome).comments, assert_no_queries { posts[0].comments}
@@ -1013,14 +1013,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
     Author.columns
 
     authors = assert_queries(2) do
-      Author.scoped(:include => :author_address, :joins => :comments, :conditions => "posts.title like 'Welcome%'").all
+      Author.scoped(:includes => :author_address, :joins => :comments, :where => "posts.title like 'Welcome%'").all
     end
     assert_equal authors(:david), authors[0]
     assert_equal author_addresses(:david_address), authors[0].author_address
   end
 
   def test_preload_belongs_to_uses_exclusive_scope
-    people = Person.males.scoped(:include => :primary_contact).all
+    people = Person.males.scoped(:includes => :primary_contact).all
     assert_not_equal people.length, 0
     people.each do |person|
       assert_no_queries {assert_not_nil person.primary_contact}
@@ -1058,7 +1058,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_preload_has_one_using_primary_key
     expected = accounts(:signals37)
-    firm = Firm.scoped(:include => :account_using_primary_key, :order => 'companies.id').first
+    firm = Firm.scoped(:includes => :account_using_primary_key, :order => 'companies.id').first
     assert_no_queries do
       assert_equal expected, firm.account_using_primary_key
     end
@@ -1066,7 +1066,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_include_has_one_using_primary_key
     expected = accounts(:signals37)
-    firm = Firm.scoped(:include => :account_using_primary_key, :order => 'accounts.id').all.detect {|f| f.id == 1}
+    firm = Firm.scoped(:includes => :account_using_primary_key, :order => 'accounts.id').all.detect {|f| f.id == 1}
     assert_no_queries do
       assert_equal expected, firm.account_using_primary_key
     end
@@ -1130,7 +1130,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_deep_including_through_habtm
-    posts = Post.scoped(:include => {:categories => :categorizations}, :order => "posts.id").all
+    posts = Post.scoped(:includes => {:categories => :categorizations}, :order => "posts.id").all
     assert_no_queries { assert_equal 2, posts[0].categories[0].categorizations.length }
     assert_no_queries { assert_equal 1, posts[0].categories[1].categorizations.length }
     assert_no_queries { assert_equal 2, posts[1].categories[0].categorizations.length }

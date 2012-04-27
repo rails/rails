@@ -273,14 +273,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_with_blank_conditions
     [[], {}, nil, ""].each do |blank|
-      assert_equal 2, Firm.scoped(:order => "id").first.clients.scoped(:conditions => blank).all.size
+      assert_equal 2, Firm.scoped(:order => "id").first.clients.where(blank).all.size
     end
   end
 
   def test_find_many_with_merged_options
     assert_equal 1, companies(:first_firm).limited_clients.size
     assert_equal 1, companies(:first_firm).limited_clients.all.size
-    assert_equal 2, companies(:first_firm).limited_clients.scoped(:limit => nil).all.size
+    assert_equal 2, companies(:first_firm).limited_clients.limit(nil).all.size
   end
 
   def test_find_should_append_to_association_order
@@ -293,22 +293,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_should_respect_association_order
-    assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.scoped(:conditions => "type = 'Client'").first
+    assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.scoped(:where => "type = 'Client'").first
     assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.find_by_type('Client')
   end
 
   def test_dynamic_find_all_should_respect_association_order
-    assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.scoped(:conditions => "type = 'Client'").all
+    assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.scoped(:where => "type = 'Client'").all
     assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.find_all_by_type('Client')
   end
 
   def test_dynamic_find_all_should_respect_association_limit
-    assert_equal 1, companies(:first_firm).limited_clients.scoped(:conditions => "type = 'Client'").all.length
+    assert_equal 1, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'").all.length
     assert_equal 1, companies(:first_firm).limited_clients.find_all_by_type('Client').length
   end
 
   def test_dynamic_find_all_limit_should_override_association_limit
-    assert_equal 2, companies(:first_firm).limited_clients.scoped(:conditions => "type = 'Client'", :limit => 9_000).all.length
+    assert_equal 2, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'", :limit => 9_000).all.length
     assert_equal 2, companies(:first_firm).limited_clients.find_all_by_type('Client', :limit => 9_000).length
   end
 
@@ -432,8 +432,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_all
     firm = Firm.scoped(:order => "id").first
-    assert_equal 2, firm.clients.scoped(:conditions => "#{QUOTED_TYPE} = 'Client'").all.length
-    assert_equal 1, firm.clients.scoped(:conditions => "name = 'Summit'").all.length
+    assert_equal 2, firm.clients.scoped(:where => "#{QUOTED_TYPE} = 'Client'").all.length
+    assert_equal 1, firm.clients.scoped(:where => "name = 'Summit'").all.length
   end
 
   def test_find_each
@@ -478,28 +478,28 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_find_all_sanitized
     # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
     firm = Firm.scoped(:order => "id").first
-    summit = firm.clients.scoped(:conditions => "name = 'Summit'").all
-    assert_equal summit, firm.clients.scoped(:conditions => ["name = ?", "Summit"]).all
-    assert_equal summit, firm.clients.scoped(:conditions => ["name = :name", { :name => "Summit" }]).all
+    summit = firm.clients.scoped(:where => "name = 'Summit'").all
+    assert_equal summit, firm.clients.scoped(:where => ["name = ?", "Summit"]).all
+    assert_equal summit, firm.clients.scoped(:where => ["name = :name", { :name => "Summit" }]).all
   end
 
   def test_find_first
     firm = Firm.scoped(:order => "id").first
     client2 = Client.find(2)
     assert_equal firm.clients.first, firm.clients.scoped(:order => "id").first
-    assert_equal client2, firm.clients.scoped(:conditions => "#{QUOTED_TYPE} = 'Client'", :order => "id").first
+    assert_equal client2, firm.clients.scoped(:where => "#{QUOTED_TYPE} = 'Client'", :order => "id").first
   end
 
   def test_find_first_sanitized
     firm = Firm.scoped(:order => "id").first
     client2 = Client.find(2)
-    assert_equal client2, firm.clients.scoped(:conditions => ["#{QUOTED_TYPE} = ?", 'Client'], :order => "id").first
-    assert_equal client2, firm.clients.scoped(:conditions => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }], :order => "id").first
+    assert_equal client2, firm.clients.scoped(:where => ["#{QUOTED_TYPE} = ?", 'Client'], :order => "id").first
+    assert_equal client2, firm.clients.scoped(:where => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }], :order => "id").first
   end
 
   def test_find_all_with_include_and_conditions
     assert_nothing_raised do
-      Developer.scoped(:joins => :audit_logs, :conditions => {'audit_logs.message' => nil, :name => 'Smith'}).all
+      Developer.scoped(:joins => :audit_logs, :where => {'audit_logs.message' => nil, :name => 'Smith'}).all
     end
   end
 
@@ -509,8 +509,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_grouped
-    all_clients_of_firm1 = Client.scoped(:conditions => "firm_id = 1").all
-    grouped_clients_of_firm1 = Client.scoped(:conditions => "firm_id = 1", :group => "firm_id", :select => 'firm_id, count(id) as clients_count').all
+    all_clients_of_firm1 = Client.scoped(:where => "firm_id = 1").all
+    grouped_clients_of_firm1 = Client.scoped(:where => "firm_id = 1", :group => "firm_id", :select => 'firm_id, count(id) as clients_count').all
     assert_equal 2, all_clients_of_firm1.size
     assert_equal 1, grouped_clients_of_firm1.size
   end
@@ -1110,7 +1110,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     assert_equal 2, firm.clients.size
     firm.destroy
-    assert Client.scoped(:conditions => "firm_id=#{firm.id}").all.empty?
+    assert Client.scoped(:where => "firm_id=#{firm.id}").all.empty?
   end
 
   def test_dependence_for_associations_with_hash_condition
@@ -1148,7 +1148,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     firm.destroy rescue "do nothing"
 
-    assert_equal 2, Client.scoped(:conditions => "firm_id=#{firm.id}").all.size
+    assert_equal 2, Client.scoped(:where => "firm_id=#{firm.id}").all.size
   end
 
   def test_dependence_on_account
@@ -1329,27 +1329,27 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_should_respect_association_order_for_through
-    assert_equal Comment.find(10), authors(:david).comments_desc.scoped(:conditions => "comments.type = 'SpecialComment'").first
+    assert_equal Comment.find(10), authors(:david).comments_desc.scoped(:where => "comments.type = 'SpecialComment'").first
     assert_equal Comment.find(10), authors(:david).comments_desc.find_by_type('SpecialComment')
   end
 
   def test_dynamic_find_all_should_respect_association_order_for_through
-    assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.scoped(:conditions => "comments.type = 'SpecialComment'").all
+    assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.scoped(:where => "comments.type = 'SpecialComment'").all
     assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.find_all_by_type('SpecialComment')
   end
 
   def test_dynamic_find_all_should_respect_association_limit_for_through
-    assert_equal 1, authors(:david).limited_comments.scoped(:conditions => "comments.type = 'SpecialComment'").all.length
+    assert_equal 1, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'").all.length
     assert_equal 1, authors(:david).limited_comments.find_all_by_type('SpecialComment').length
   end
 
   def test_dynamic_find_all_order_should_override_association_limit_for_through
-    assert_equal 4, authors(:david).limited_comments.scoped(:conditions => "comments.type = 'SpecialComment'", :limit => 9_000).all.length
+    assert_equal 4, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'", :limit => 9_000).all.length
     assert_equal 4, authors(:david).limited_comments.find_all_by_type('SpecialComment', :limit => 9_000).length
   end
 
   def test_find_all_include_over_the_same_table_for_through
-    assert_equal 2, people(:michael).posts.scoped(:include => :people).all.length
+    assert_equal 2, people(:michael).posts.scoped(:includes => :people).all.length
   end
 
   def test_has_many_through_respects_hash_conditions

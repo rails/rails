@@ -282,7 +282,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions
-    assert_equal Topic.scoped(:conditions => {:approved => false}).all, Topic.where({ :approved => false }).to_a
+    assert_equal Topic.scoped(:where => {:approved => false}).all, Topic.where({ :approved => false }).to_a
   end
 
   def test_joins_with_string_array
