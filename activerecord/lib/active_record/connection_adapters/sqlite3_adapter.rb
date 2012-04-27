@@ -48,8 +48,8 @@ module ActiveRecord
       end
     end
 
-    # The SQLite adapter works with both the 2.x and 3.x series of SQLite with the sqlite-ruby
-    # drivers (available both as gems and from http://rubyforge.org/projects/sqlite-ruby/).
+    # The SQLite3 adapter works SQLite 3.6.16 or newer
+    # with the sqlite3-ruby drivers (available as gem from https://rubygems.org/gems/sqlite3).
     #
     # Options:
     #
