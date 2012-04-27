@@ -200,7 +200,11 @@ module Rails
     end
 
     def queue #:nodoc:
-      @queue ||= config.queue.new
+      @queue ||= build_queue
+    end
+
+    def build_queue # :nodoc:
+      config.queue.new
     end
 
     def to_app
