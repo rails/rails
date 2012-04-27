@@ -2,7 +2,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
 require 'arel/visitors/bind_visitor'
 
-gem 'sqlite3', '~> 1.3.5'
+gem 'sqlite3', '~> 1.3.6'
 require 'sqlite3'
 
 module ActiveRecord
