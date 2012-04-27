@@ -1017,7 +1017,7 @@ received an error before.
 posts_create POST /posts/create(.:format)     posts#create
              GET  /posts/:id(.:format)        posts#show
              GET  /posts/:id/edit(.:format)   posts#edit
-             PUT  /posts/:id(.:format) posts#update
+             PUT  /posts/:id(.:format)        posts#update
         root      /                           welcome#index
 </shell>
 
@@ -1029,6 +1029,75 @@ get "posts/:id" => "posts#show", :as => :post
 </ruby>
 
 Now you'll be able to update posts again.
+
+h4. Deleting Posts
+
+We're now ready to cover the "D" part of CRUD, deleting posts from the
+database. Following the REST convention, we're going to add a route for
+deleting posts:
+
+<ruby>
+# config/routes.rb
+
+delete "posts/:id" => "posts#destroy"
+</ruby>
+
+We use the +delete+ method for destroying resources, which is mapped to
+the +destroy+ action, which is provided below:
+
+<ruby>
+# app/controllers/posts_controller.rb
+
+def destroy
+  @post = Post.find(params[:id])
+  @post.destroy
+
+  redirect_to :action => :index
+end
+</ruby>
+
+You can call +destroy+ on Active Record objects when you want to delete
+them from the dabase. Note that we don't need to add a view for this
+action since we're redirecting to the +index+ action.
+
+Finally, add a 'destroy' link to your +index+ action to wrap everything
+together.
+
+<erb>
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+    <th></th>
+    <th></th>
+    <th></th>
+  </tr>
+
+<% @posts.each do |post| %>
+  <tr>
+    <td><%= post.title %></td>
+    <td><%= post.text %></td>
+    <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
+    <td><%= link_to 'Edit', :action => :edit, :id => post.id %></td>
+    <td><%= link_to 'Destroy', { :action => :destroy, :id => post.id }, :method => :delete, :confirm => 'Are you sure?' %></td>
+  </tr>
+<% end %>
+</table>
+</erb>
+
+Here we're using +link_to+ in a different way. We wrap the
++:action+ and +:id+ attributes in a hash so that we can pass other
+arguments to +link_to+. The +:method+ and +:confirm+
+options are used as html5 attributes so that when the click is linked,
+Rails will first show a confirm dialog to the user, and then submit the
+link with method +delete+. This is done via javascript automatically.
+
+!images/getting_started/confirm_dialog.png(Confirm Dialog)!
+
+Congratulations, you can now create, show, list, update and destroy
+posts. In the next section will see how Rails can aid us when creating
+REST applications, and how we can refactor our Blog app to take
+advantage of it.
 
 h4. Using the Console
 
