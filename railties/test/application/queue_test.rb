@@ -78,7 +78,7 @@ module ApplicationTests
         Rails.queue.push job
       end
 
-      assert_equal jobs, Rails.queue.contents
+      assert_equal jobs, Rails.queue.jobs
     end
 
     test "a custom queue implementation can be provided" do
