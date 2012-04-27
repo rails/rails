@@ -61,10 +61,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_conditions_with_or
-    posts = authors(:david).posts.references(:comments).find(
-      :all, :include => :comments,
-      :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE} = 'SpecialComment'"
-    )
+    posts = authors(:david).posts.references(:comments).scoped(
+      :includes => :comments,
+      :where => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE} = 'SpecialComment'"
+    ).all
     assert_nil posts.detect { |p| p.author_id != authors(:david).id },
       "expected to find only david's posts"
   end
@@ -154,8 +154,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     popular_post.readers.create!(:person => people(:michael))
     popular_post.readers.create!(:person => people(:david))
 
-    readers = Reader.scoped(:conditions => ["post_id = ?", popular_post.id],
-                                :include => {:post => :comments}).all
+    readers = Reader.scoped(:where => ["post_id = ?", popular_post.id],
+                                :includes => {:post => :comments}).all
     readers.each do |reader|
       assert_equal [comment], reader.post.comments
     end
@@ -167,8 +167,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     car_post.categories << categories(:technology)
 
     comment = car_post.comments.create!(:body => "hmm")
-    categories = Category.scoped(:conditions => { 'posts.id' => car_post.id },
-                                 :include => {:posts => :comments}).all
+    categories = Category.scoped(:where => { 'posts.id' => car_post.id },
+                                 :includes => {:posts => :comments}).all
     categories.each do |category|
       assert_equal [comment], category.posts[0].comments
     end
@@ -491,7 +491,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_through_join_model_with_conditions
-    assert_equal Author.scoped(:include => :hello_post_comments,
+    assert_equal Author.scoped(:includes => :hello_post_comments,
                              :order => 'authors.id').first.hello_post_comments.sort_by(&:id),
                  Author.scoped(:order => 'authors.id').first.hello_post_comments.sort_by(&:id)
   end
@@ -565,16 +565,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_and_limit_and_high_offset_and_multiple_array_conditions
     assert_queries(1) do
       posts = Post.references(:authors, :comments).
-        scoped(:include => [ :author, :comments ], :limit => 2, :offset => 10,
-          :conditions => [ "authors.name = ? and comments.body = ?", 'David', 'go crazy' ]).all
+        scoped(:includes => [ :author, :comments ], :limit => 2, :offset => 10,
+          :where => [ "authors.name = ? and comments.body = ?", 'David', 'go crazy' ]).all
       assert_equal 0, posts.size
     end
   end
 
   def test_eager_with_has_many_and_limit_and_high_offset_and_multiple_hash_conditions
     assert_queries(1) do
-      posts = Post.scoped(:include => [ :author, :comments ], :limit => 2, :offset => 10,
-        :conditions => { 'authors.name' => 'David', 'comments.body' => 'go crazy' }).all
+      posts = Post.scoped(:includes => [ :author, :comments ], :limit => 2, :offset => 10,
+        :where => { 'authors.name' => 'David', 'comments.body' => 'go crazy' }).all
       assert_equal 0, posts.size
     end
   end
@@ -702,8 +702,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_has_one_dependent_does_not_destroy_dependent
     assert_not_nil companies(:first_firm).account
-    f = Firm.scoped(:include => :account,
-            :conditions => ["companies.name = ?", "37signals"]).first
+    f = Firm.scoped(:includes => :account,
+            :where => ["companies.name = ?", "37signals"]).first
     assert_not_nil f.account
     assert_equal companies(:first_firm, :reload).account, f.account
   end
@@ -777,45 +777,45 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_limited_eager_with_order
     assert_equal(
       posts(:thinking, :sti_comments),
-      Post.find(
-        :all, :include => [:author, :comments], :conditions => { 'authors.name' => 'David' },
+      Post.scoped(
+        :includes => [:author, :comments], :where => { 'authors.name' => 'David' },
         :order => 'UPPER(posts.title)', :limit => 2, :offset => 1
-      )
+      ).all
     )
     assert_equal(
       posts(:sti_post_and_comments, :sti_comments),
-      Post.find(
-        :all, :include => [:author, :comments], :conditions => { 'authors.name' => 'David' },
+      Post.scoped(
+        :includes => [:author, :comments], :where => { 'authors.name' => 'David' },
         :order => 'UPPER(posts.title) DESC', :limit => 2, :offset => 1
-      )
+      ).all
     )
   end
 
   def test_limited_eager_with_multiple_order_columns
     assert_equal(
       posts(:thinking, :sti_comments),
-      Post.find(
-        :all, :include => [:author, :comments], :conditions => { 'authors.name' => 'David' },
+      Post.scoped(
+        :includes => [:author, :comments], :where => { 'authors.name' => 'David' },
         :order => ['UPPER(posts.title)', 'posts.id'], :limit => 2, :offset => 1
-      )
+      ).all
     )
     assert_equal(
       posts(:sti_post_and_comments, :sti_comments),
-      Post.find(
-        :all, :include => [:author, :comments], :conditions => { 'authors.name' => 'David' },
+      Post.scoped(
+        :includes => [:author, :comments], :where => { 'authors.name' => 'David' },
         :order => ['UPPER(posts.title) DESC', 'posts.id'], :limit => 2, :offset => 1
-      )
+      ).all
     )
   end
 
   def test_limited_eager_with_numeric_in_association
     assert_equal(
       people(:david, :susan),
-      Person.references(:number1_fans_people).find(
-        :all, :include => [:readers, :primary_contact, :number1_fan],
-        :conditions => "number1_fans_people.first_name like 'M%'",
+      Person.references(:number1_fans_people).scoped(
+        :includes => [:readers, :primary_contact, :number1_fan],
+        :where => "number1_fans_people.first_name like 'M%'",
         :order => 'people.id', :limit => 2, :offset => 0
-      )
+      ).all
     )
   end
 

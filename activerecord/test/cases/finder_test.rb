@@ -981,11 +981,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_all_with_join
-    developers_on_project_one = Developer.find(
-      :all,
+    developers_on_project_one = Developer.scoped(
       :joins => 'LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id',
-      :conditions => 'project_id=1'
-    )
+      :where => 'project_id=1'
+    ).all
     assert_equal 3, developers_on_project_one.length
     developer_names = developers_on_project_one.map { |d| d.name }
     assert developer_names.include?('David')
@@ -993,17 +992,15 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_joins_dont_clobber_id
-    first = Firm.find(
-      :first,
+    first = Firm.scoped(
       :joins => 'INNER JOIN companies clients ON clients.firm_id = companies.id',
-      :conditions => 'companies.id = 1'
-    )
+      :where => 'companies.id = 1'
+    ).first
     assert_equal 1, first.id
   end
 
   def test_joins_with_string_array
-    person_with_reader_and_post = Post.find(
-      :all,
+    person_with_reader_and_post = Post.scoped(
       :joins => [
         "INNER JOIN categorizations ON categorizations.post_id = posts.id",
         "INNER JOIN categories ON categories.id = categorizations.category_id AND categories.type = 'SpecialCategory'"
@@ -1065,14 +1062,13 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
     assert_equal 2, Post.scoped(:includes => { :authors => :author_address }, :order => 'author_addresses.id DESC ', :limit => 2).all.size
 
-    assert_equal 3, Post.scoped(:include => { :author => :author_address, :authors => :author_address},
+    assert_equal 3, Post.scoped(:includes => { :author => :author_address, :authors => :author_address},
                               :order => 'author_addresses_authors.id DESC ', :limit => 3).all.size
   end
 
   def test_find_with_nil_inside_set_passed_for_one_attribute
-    client_of = Company.find(
-      :all,
-      :conditions => {
+    client_of = Company.scoped(
+      :where => {
         :client_of => [2, 1, nil],
         :name => ['37signals', 'Summit', 'Microsoft'] },
       :order => 'client_of DESC'
@@ -1083,9 +1079,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_nil_inside_set_passed_for_attribute
-    client_of = Company.find(
-      :all,
-      :conditions => { :client_of => [nil] },
+    client_of = Company.scoped(
+      :where => { :client_of => [nil] },
       :order => 'client_of DESC'
     ).map { |x| x.client_of }
 
@@ -1093,10 +1088,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_with_limiting_with_custom_select
-    posts = Post.references(:authors).find(
-      :all, :include => :author, :select => ' posts.*, authors.id as "author_id"',
+    posts = Post.references(:authors).scoped(
+      :includes => :author, :select => ' posts.*, authors.id as "author_id"',
       :limit => 3, :order => 'posts.id'
-    )
+    ).all
     assert_equal 3, posts.size
     assert_equal [0, 1, 1], posts.map(&:author_id).sort
   end
