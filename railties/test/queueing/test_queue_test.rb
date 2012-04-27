@@ -16,6 +16,12 @@ class TestQueueTest < ActiveSupport::TestCase
     @queue = Rails::Queueing::TestQueue.new
   end
 
+  def test_jobs
+    @queue.push 1
+    @queue.push 2
+    assert_equal [1,2], @queue.jobs
+  end
+
   def test_contents
     assert @queue.empty?
     job = Job.new
