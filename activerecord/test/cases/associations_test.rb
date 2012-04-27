@@ -74,8 +74,8 @@ class AssociationsTest < ActiveRecord::TestCase
 
 
   def test_include_with_order_works
-    assert_nothing_raised {Account.scoped(:order => 'id', :include => :firm).first}
-    assert_nothing_raised {Account.scoped(:order => :id, :include => :firm).first}
+    assert_nothing_raised {Account.scoped(:order => 'id', :includes => :firm).first}
+    assert_nothing_raised {Account.scoped(:order => :id, :includes => :firm).first}
   end
 
   def test_bad_collection_keys

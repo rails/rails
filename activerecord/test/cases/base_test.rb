@@ -356,7 +356,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_load_with_condition
-    topics = Topic.scoped(:conditions => "author_name = 'Mary'").all
+    topics = Topic.scoped(:where => "author_name = 'Mary'").all
 
     assert_equal(1, topics.size)
     assert_equal(topics(:second).title, topics.first.title)
@@ -1264,10 +1264,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_quoting_arrays
-    replies = Reply.scoped(:conditions => [ "id IN (?)", topics(:first).replies.collect(&:id) ]).all
+    replies = Reply.scoped(:where => [ "id IN (?)", topics(:first).replies.collect(&:id) ]).all
     assert_equal topics(:first).replies.size, replies.size
 
-    replies = Reply.scoped(:conditions => [ "id IN (?)", [] ]).all
+    replies = Reply.scoped(:where => [ "id IN (?)", [] ]).all
     assert_equal 0, replies.size
   end
 
@@ -1739,8 +1739,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_inspect_limited_select_instance
-    assert_equal %(#<Topic id: 1>), Topic.scoped(:select => 'id', :conditions => 'id = 1').first.inspect
-    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.scoped(:select => 'id, title', :conditions => 'id = 1').first.inspect
+    assert_equal %(#<Topic id: 1>), Topic.scoped(:select => 'id', :where => 'id = 1').first.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.scoped(:select => 'id, title', :where => 'id = 1').first.inspect
   end
 
   def test_inspect_class_without_table
