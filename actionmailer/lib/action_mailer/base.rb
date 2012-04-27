@@ -497,7 +497,7 @@ module ActionMailer #:nodoc:
     #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
     #           'In-Reply-To' => incoming.message_id
     #
-    # The resulting Mail::Message will have the following in it's header:
+    # The resulting Mail::Message will have the following in its header:
     #
     #   X-Special-Domain-Specific-Header: SecretValue
     def headers(args=nil)
