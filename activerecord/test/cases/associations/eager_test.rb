@@ -35,7 +35,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
-    member = Member.find(members(:some_other_guy).id, :include => :favourite_club)
+    member = Member.scoped(:includes => :favourite_club).find(members(:some_other_guy).id)
     assert_nil member.favourite_club
   end
 
@@ -186,7 +186,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_finding_with_includes_on_has_many_association_with_same_include_includes_only_once
     author_id = authors(:david).id
-    author = assert_queries(3) { Author.find(author_id, :include => {:posts_with_comments => :comments}) } # find the author, then find the posts, then find the comments
+    author = assert_queries(3) { Author.scoped(:includes => {:posts_with_comments => :comments}).find(author_id) } # find the author, then find the posts, then find the comments
     author.posts_with_comments.each do |post_with_comments|
       assert_equal post_with_comments.comments.length, post_with_comments.comments.count
       assert_nil post_with_comments.comments.uniq!
@@ -197,7 +197,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     author = authors(:david)
     post = author.post_about_thinking_with_last_comment
     last_comment = post.last_comment
-    author = assert_queries(3) { Author.find(author.id, :include => {:post_about_thinking_with_last_comment => :last_comment})} # find the author, then find the posts, then find the comments
+    author = assert_queries(3) { Author.scoped(:includes => {:post_about_thinking_with_last_comment => :last_comment}).find(author.id)} # find the author, then find the posts, then find the comments
     assert_no_queries do
       assert_equal post, author.post_about_thinking_with_last_comment
       assert_equal last_comment, author.post_about_thinking_with_last_comment.last_comment
@@ -208,7 +208,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post = posts(:welcome)
     author = post.author
     author_address = author.author_address
-    post = assert_queries(3) { Post.find(post.id, :include => {:author_with_address => :author_address}) } # find the post, then find the author, then find the address
+    post = assert_queries(3) { Post.scoped(:includes => {:author_with_address => :author_address}).find(post.id) } # find the post, then find the author, then find the address
     assert_no_queries do
       assert_equal author, post.author_with_address
       assert_equal author_address, post.author_with_address.author_address
@@ -218,7 +218,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_finding_with_includes_on_null_belongs_to_association_with_same_include_includes_only_once
     post = posts(:welcome)
     post.update_attributes!(:author => nil)
-    post = assert_queries(1) { Post.find(post.id, :include => {:author_with_address => :author_address}) } # find the post, then find the author which is null so no query for the author or address
+    post = assert_queries(1) { Post.scoped(:includes => {:author_with_address => :author_address}).find(post.id) } # find the post, then find the author which is null so no query for the author or address
     assert_no_queries do
       assert_equal nil, post.author_with_address
     end
@@ -227,7 +227,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_finding_with_includes_on_null_belongs_to_polymorphic_association
     sponsor = sponsors(:moustache_club_sponsor_for_groucho)
     sponsor.update_attributes!(:sponsorable => nil)
-    sponsor = assert_queries(1) { Sponsor.find(sponsor.id, :include => :sponsorable) }
+    sponsor = assert_queries(1) { Sponsor.scoped(:includes => :sponsorable).find(sponsor.id) }
     assert_no_queries do
       assert_equal nil, sponsor.sponsorable
     end
@@ -242,60 +242,60 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nothing_raised do
       Author.scoped(:includes => :hello_posts_with_hash_conditions).all
     end
-    assert !Author.find(authors(:david).id, :include => :hello_posts_with_hash_conditions).hello_posts.empty?
+    assert !Author.scoped(:includes => :hello_posts_with_hash_conditions).find(authors(:david).id).hello_posts.empty?
   end
 
   def test_loading_with_no_associations
-    assert_nil Post.find(posts(:authorless).id, :include => :author).author
+    assert_nil Post.scoped(:includes => :author).find(posts(:authorless).id).author
   end
 
   def test_nested_loading_with_no_associations
     assert_nothing_raised do
-      Post.find(posts(:authorless).id, :include => {:author => :author_addresss})
+      Post.scoped(:includes => {:author => :author_addresss}).find(posts(:authorless).id)
     end
   end
 
   def test_nested_loading_through_has_one_association
-    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts})
+    aa = AuthorAddress.scoped(:includes => {:author => :posts}).find(author_addresses(:david_address).id)
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
   def test_nested_loading_through_has_one_association_with_order
-    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts}, :order => 'author_addresses.id')
+    aa = AuthorAddress.scoped(:includes => {:author => :posts}, :order => 'author_addresses.id').find(author_addresses(:david_address).id)
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
   def test_nested_loading_through_has_one_association_with_order_on_association
-    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts}, :order => 'authors.id')
+    aa = AuthorAddress.scoped(:includes => {:author => :posts}, :order => 'authors.id').find(author_addresses(:david_address).id)
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
   def test_nested_loading_through_has_one_association_with_order_on_nested_association
-    aa = AuthorAddress.find(author_addresses(:david_address).id, :include => {:author => :posts}, :order => 'posts.id')
+    aa = AuthorAddress.scoped(:includes => {:author => :posts}, :order => 'posts.id').find(author_addresses(:david_address).id)
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
   def test_nested_loading_through_has_one_association_with_conditions
-    aa = AuthorAddress.references(:author_addresses).find(
-      author_addresses(:david_address).id, :include => {:author => :posts},
-      :conditions => "author_addresses.id > 0"
-    )
+    aa = AuthorAddress.references(:author_addresses).scoped(
+      :includes => {:author => :posts},
+      :where => "author_addresses.id > 0"
+    ).find author_addresses(:david_address).id
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
   def test_nested_loading_through_has_one_association_with_conditions_on_association
-    aa = AuthorAddress.references(:authors).find(
-      author_addresses(:david_address).id, :include => {:author => :posts},
-      :conditions => "authors.id > 0"
-    )
+    aa = AuthorAddress.references(:authors).scoped(
+      :includes => {:author => :posts},
+      :where => "authors.id > 0"
+    ).find author_addresses(:david_address).id
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
   def test_nested_loading_through_has_one_association_with_conditions_on_nested_association
-    aa = AuthorAddress.references(:posts).find(
-      author_addresses(:david_address).id, :include => {:author => :posts},
-      :conditions => "posts.id > 0"
-    )
+    aa = AuthorAddress.references(:posts).scoped(
+      :includes => {:author => :posts},
+      :where => "posts.id > 0"
+    ).find author_addresses(:david_address).id
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
@@ -404,32 +404,32 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_belongs_to_quotes_table_and_column_names
-    job = Job.find jobs(:unicyclist).id, :include => :ideal_reference
+    job = Job.includes(:ideal_reference).find jobs(:unicyclist).id
     references(:michael_unicyclist)
     assert_no_queries{ assert_equal references(:michael_unicyclist), job.ideal_reference}
   end
 
   def test_eager_load_has_one_quotes_table_and_column_names
-    michael = Person.find(people(:michael), :include => :favourite_reference)
+    michael = Person.scoped(:includes => :favourite_reference).find(people(:michael))
     references(:michael_unicyclist)
     assert_no_queries{ assert_equal references(:michael_unicyclist), michael.favourite_reference}
   end
 
   def test_eager_load_has_many_quotes_table_and_column_names
-    michael = Person.find(people(:michael), :include => :references)
+    michael = Person.scoped(:includes => :references).find(people(:michael))
     references(:michael_magician,:michael_unicyclist)
     assert_no_queries{ assert_equal references(:michael_magician,:michael_unicyclist), michael.references.sort_by(&:id) }
   end
 
   def test_eager_load_has_many_through_quotes_table_and_column_names
-    michael = Person.find(people(:michael), :include => :jobs)
+    michael = Person.scoped(:includes => :jobs).find(people(:michael))
     jobs(:magician, :unicyclist)
     assert_no_queries{ assert_equal jobs(:unicyclist, :magician), michael.jobs.sort_by(&:id) }
   end
 
   def test_eager_load_has_many_with_string_keys
     subscriptions = subscriptions(:webster_awdr, :webster_rfr)
-    subscriber =Subscriber.find(subscribers(:second).id, :include => :subscriptions)
+    subscriber =Subscriber.scoped(:includes => :subscriptions).find(subscribers(:second).id)
     assert_equal subscriptions, subscriber.subscriptions.sort_by(&:id)
   end
 
@@ -447,13 +447,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_load_has_many_through_with_string_keys
     books = books(:awdr, :rfr)
-    subscriber = Subscriber.find(subscribers(:second).id, :include => :books)
+    subscriber = Subscriber.scoped(:includes => :books).find(subscribers(:second).id)
     assert_equal books, subscriber.books.sort_by(&:id)
   end
 
   def test_eager_load_belongs_to_with_string_keys
     subscriber = subscribers(:second)
-    subscription = Subscription.find(subscriptions(:webster_awdr).id, :include => :subscriber)
+    subscription = Subscription.scoped(:includes => :subscriber).find(subscriptions(:webster_awdr).id)
     assert_equal subscriber, subscription.subscriber
   end
 
@@ -497,11 +497,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_through_join_model_with_conditions_on_top_level
-    assert_equal comments(:more_greetings), Author.find(authors(:david).id, :include => :comments_with_order_and_conditions).comments_with_order_and_conditions.first
+    assert_equal comments(:more_greetings), Author.scoped(:includes => :comments_with_order_and_conditions).find(authors(:david).id).comments_with_order_and_conditions.first
   end
 
   def test_eager_with_has_many_through_join_model_with_include
-    author_comments = Author.find(authors(:david).id, :include => :comments_with_include).comments_with_include.to_a
+    author_comments = Author.scoped(:includes => :comments_with_include).find(authors(:david).id).comments_with_include.to_a
     assert_no_queries do
       author_comments.first.post.title
     end
@@ -509,7 +509,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_has_many_through_with_conditions_join_model_with_include
     post_tags = Post.find(posts(:welcome).id).misc_tags
-    eager_post_tags = Post.find(1, :include => :misc_tags).misc_tags
+    eager_post_tags = Post.scoped(:includes => :misc_tags).find(1).misc_tags
     assert_equal post_tags, eager_post_tags
   end
 
@@ -681,19 +681,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_has_one_with_association_inheritance
-    post = Post.find(4, :include => [ :very_special_comment ])
+    post = Post.scoped(:includes => [ :very_special_comment ]).find(4)
     assert_equal "VerySpecialComment", post.very_special_comment.class.to_s
   end
 
   def test_eager_has_many_with_association_inheritance
-    post = Post.find(4, :include => [ :special_comments ])
+    post = Post.scoped(:includes => [ :special_comments ]).find(4)
     post.special_comments.each do |special_comment|
       assert special_comment.is_a?(SpecialComment)
     end
   end
 
   def test_eager_habtm_with_association_inheritance
-    post = Post.find(6, :include => [ :special_categories ])
+    post = Post.scoped(:includes => [ :special_categories ]).find(6)
     assert_equal 1, post.special_categories.size
     post.special_categories.each do |special_category|
       assert_equal "SpecialCategory", special_category.class.to_s
@@ -717,16 +717,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_invalid_association_reference
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      Post.find(6, :include=> :monkeys )
+      Post.scoped(:includes=> :monkeys ).find(6)
     }
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      Post.find(6, :include=>[ :monkeys ])
+      Post.scoped(:includes=>[ :monkeys ]).find(6)
     }
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      Post.find(6, :include=>[ 'monkeys' ])
+      Post.scoped(:includes=>[ 'monkeys' ]).find(6)
     }
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
-      Post.find(6, :include=>[ :monkeys, :elephants ])
+      Post.scoped(:includes=>[ :monkeys, :elephants ]).find(6)
     }
   end
 
@@ -828,9 +828,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_type_condition
-    post = Post.find(posts(:thinking).id, :include => :taggings)
+    post = Post.scoped(:includes => :taggings).find(posts(:thinking).id)
     assert post.taggings.include?(taggings(:thinking_general))
-    post = SpecialPost.find(posts(:thinking).id, :include => :taggings)
+    post = SpecialPost.scoped(:includes => :taggings).find(posts(:thinking).id)
     assert post.taggings.include?(taggings(:thinking_general))
   end
 
@@ -1047,9 +1047,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
     expected = Firm.find(1).clients_using_primary_key.sort_by(&:name)
     # Oracle adapter truncates alias to 30 characters
     if current_adapter?(:OracleAdapter)
-      firm = Firm.find 1, :include => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies'[0,30]+'.name'
+      firm = Firm.scoped(:includes => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies'[0,30]+'.name').find(1)
     else
-      firm = Firm.find 1, :include => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies.name'
+      firm = Firm.scoped(:includes => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies.name').find(1)
     end
     assert_no_queries do
       assert_equal expected, firm.clients_using_primary_key

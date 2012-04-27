@@ -89,14 +89,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_with_conditions_eager_loading
     # conditions on the through table
-    assert_equal clubs(:moustache_club), Member.find(@member.id, :include => :favourite_club).favourite_club
+    assert_equal clubs(:moustache_club), Member.scoped(:includes => :favourite_club).find(@member.id).favourite_club
     memberships(:membership_of_favourite_club).update_column(:favourite, false)
-    assert_equal nil,                    Member.find(@member.id, :include => :favourite_club).reload.favourite_club
+    assert_equal nil,                    Member.scoped(:includes => :favourite_club).find(@member.id).reload.favourite_club
 
     # conditions on the source table
-    assert_equal clubs(:moustache_club), Member.find(@member.id, :include => :hairy_club).hairy_club
+    assert_equal clubs(:moustache_club), Member.scoped(:includes => :hairy_club).find(@member.id).hairy_club
     clubs(:moustache_club).update_column(:name, "Association of Clean-Shaven Persons")
-    assert_equal nil,                    Member.find(@member.id, :include => :hairy_club).reload.hairy_club
+    assert_equal nil,                    Member.scoped(:includes => :hairy_club).find(@member.id).reload.hairy_club
   end
 
   def test_has_one_through_polymorphic_with_source_type
@@ -210,14 +210,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Club.find(@club.id).save!
-      Club.find(@club.id, :include => :sponsored_member).save!
+      Club.scoped(:includes => :sponsored_member).find(@club.id).save!
     end
 
     @club.sponsor.destroy
 
     assert_nothing_raised do
       Club.find(@club.id).save!
-      Club.find(@club.id, :include => :sponsored_member).save!
+      Club.scoped(:includes => :sponsored_member).find(@club.id).save!
     end
   end
 

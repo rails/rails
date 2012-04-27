@@ -1538,11 +1538,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Namespaced::Firm.create({ :name => 'Some Company' })
     firm.clients.create({ :name => 'Some Client' })
 
-    stats = Namespaced::Firm.find(firm.id, {
+    stats = Namespaced::Firm.scoped(
       :select => "#{Namespaced::Firm.table_name}.id, COUNT(#{Namespaced::Client.table_name}.id) AS num_clients",
       :joins  => :clients,
       :group  => "#{Namespaced::Firm.table_name}.id"
-    })
+    ).find firm.id
     assert_equal 1, stats.num_clients.to_i
 
   ensure
