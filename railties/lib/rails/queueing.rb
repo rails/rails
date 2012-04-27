@@ -8,6 +8,14 @@ module Rails
     # Jobs are run in a separate thread to catch mistakes where code
     # assumes that the job is run in the same thread.
     class TestQueue < ::Queue
+      # Get a list of the jobs off this queue.  This method may not be
+      # available on production queues.
+      def jobs
+        @que.dup
+      end
+
+      # Drain the queue, running all jobs in a different thread.  This method
+      # may not be available on production queues.
       def drain
         # run the jobs in a separate thread so assumptions of synchronous
         # jobs are caught in test mode.
