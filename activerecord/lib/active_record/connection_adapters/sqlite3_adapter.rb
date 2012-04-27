@@ -37,7 +37,7 @@ module ActiveRecord
   end
 
   module ConnectionAdapters #:nodoc:
-    class SQLiteColumn < Column #:nodoc:
+    class SQLite3Column < Column #:nodoc:
       class <<  self
         def binary_to_string(value)
           if value.encoding != Encoding::ASCII_8BIT
@@ -380,7 +380,7 @@ module ActiveRecord
         name && tables('SCHEMA', name).any?
       end
 
-      # Returns an array of +SQLiteColumn+ objects for the table specified by +table_name+.
+      # Returns an array of +SQLite3Column+ objects for the table specified by +table_name+.
       def columns(table_name) #:nodoc:
         table_structure(table_name).map do |field|
           case field["dflt_value"]
@@ -392,7 +392,7 @@ module ActiveRecord
             field["dflt_value"] = $1.gsub('""', '"')
           end
 
-          SQLiteColumn.new(field['name'], field['dflt_value'], field['type'], field['notnull'].to_i == 0)
+          SQLite3Column.new(field['name'], field['dflt_value'], field['type'], field['notnull'].to_i == 0)
         end
       end
 
