@@ -350,9 +350,9 @@ module ActiveRecord
 
     def find_take
       if loaded?
-        @records.take(1)[0]
+        @records.take(1).first
       else
-        @take ||= limit(1).to_a[0]
+        @take ||= limit(1).to_a.first
       end
     end
 
@@ -362,9 +362,9 @@ module ActiveRecord
       else
         @first ||=
           if order_values.empty? && primary_key
-            order("#{quoted_table_name}.#{quoted_primary_key} ASC").limit(1).to_a[0]
+            order("#{quoted_table_name}.#{quoted_primary_key} ASC").limit(1).to_a.first
           else
-            limit(1).to_a[0]
+            limit(1).to_a.first
           end
       end
     end
@@ -377,7 +377,7 @@ module ActiveRecord
           if offset_value || limit_value
             to_a.last
           else
-            reverse_order.limit(1).to_a[0]
+            reverse_order.limit(1).to_a.first
           end
       end
     end
