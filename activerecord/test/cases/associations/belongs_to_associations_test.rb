@@ -73,14 +73,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_eager_loading_with_primary_key
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.find(:first, :conditions => {:name => "Citibank"}, :include => :firm_with_primary_key)
+    citibank_result = Client.scoped(:conditions => {:name => "Citibank"}, :include => :firm_with_primary_key).first
     assert citibank_result.association_cache.key?(:firm_with_primary_key)
   end
 
   def test_eager_loading_with_primary_key_as_symbol
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.find(:first, :conditions => {:name => "Citibank"}, :include => :firm_with_primary_key_symbols)
+    citibank_result = Client.scoped(:conditions => {:name => "Citibank"}, :include => :firm_with_primary_key_symbols).first
     assert citibank_result.association_cache.key?(:firm_with_primary_key_symbols)
   end
 
@@ -334,7 +334,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_new_record_with_foreign_key_but_no_object
     c = Client.new("firm_id" => 1)
     # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    assert_equal Firm.find(:first, :order => "id"), c.firm_with_basic_id
+    assert_equal Firm.scoped(:order => "id").first, c.firm_with_basic_id
   end
 
   def test_setting_foreign_key_after_nil_target_loaded
@@ -396,7 +396,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_association_assignment_sticks
     post = Post.first
 
-    author1, author2 = Author.find(:all, :limit => 2)
+    author1, author2 = Author.scoped(:limit => 2).all
     assert_not_nil author1
     assert_not_nil author2
 

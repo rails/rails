@@ -96,7 +96,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 
 
   def test_parent_instance_should_be_shared_with_eager_loaded_child_on_find
-    m = Man.find(:first, :conditions => {:name => 'Gordon'}, :include => :face)
+    m = Man.scoped(:conditions => {:name => 'Gordon'}, :include => :face).first
     f = m.face
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
@@ -104,7 +104,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
     f.man.name = 'Mungo'
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to child-owned instance"
 
-    m = Man.find(:first, :conditions => {:name => 'Gordon'}, :include => :face, :order => 'faces.id')
+    m = Man.scoped(:conditions => {:name => 'Gordon'}, :include => :face, :order => 'faces.id').first
     f = m.face
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
@@ -179,7 +179,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
   end
 
   def test_parent_instance_should_be_shared_with_eager_loaded_children
-    m = Man.find(:first, :conditions => {:name => 'Gordon'}, :include => :interests)
+    m = Man.scoped(:conditions => {:name => 'Gordon'}, :include => :interests).first
     is = m.interests
     is.each do |i|
       assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
@@ -189,7 +189,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
     end
 
-    m = Man.find(:first, :conditions => {:name => 'Gordon'}, :include => :interests, :order => 'interests.id')
+    m = Man.scoped(:conditions => {:name => 'Gordon'}, :include => :interests, :order => 'interests.id').first
     is = m.interests
     is.each do |i|
       assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
@@ -278,7 +278,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_eager_loaded_child_instance_should_be_shared_with_parent_on_find
-    f = Face.find(:first, :include => :man, :conditions => {:description => 'trusting'})
+    f = Face.scoped(:include => :man, :conditions => {:description => 'trusting'}).first
     m = f.man
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
     f.description = 'gormless'
@@ -286,7 +286,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     m.face.description = 'pleasing'
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to parent-owned instance"
 
-    f = Face.find(:first, :include => :man, :order => 'men.id', :conditions => {:description => 'trusting'})
+    f = Face.scoped(:include => :man, :order => 'men.id', :conditions => {:description => 'trusting'}).first
     m = f.man
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
     f.description = 'gormless'
@@ -351,7 +351,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
   fixtures :men, :faces, :interests
 
   def test_child_instance_should_be_shared_with_parent_on_find
-    f = Face.find(:first, :conditions => {:description => 'confused'})
+    f = Face.scoped(:conditions => {:description => 'confused'}).first
     m = f.polymorphic_man
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same before changes to child instance"
     f.description = 'gormless'
@@ -361,7 +361,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_eager_loaded_child_instance_should_be_shared_with_parent_on_find
-    f = Face.find(:first, :conditions => {:description => 'confused'}, :include => :man)
+    f = Face.scoped(:conditions => {:description => 'confused'}, :include => :man).first
     m = f.polymorphic_man
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same before changes to child instance"
     f.description = 'gormless'
@@ -369,7 +369,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     m.polymorphic_face.description = 'pleasing'
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same after changes to parent-owned instance"
 
-    f = Face.find(:first, :conditions => {:description => 'confused'}, :include => :man, :order => 'men.id')
+    f = Face.scoped(:conditions => {:description => 'confused'}, :include => :man, :order => 'men.id').first
     m = f.polymorphic_man
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same before changes to child instance"
     f.description = 'gormless'

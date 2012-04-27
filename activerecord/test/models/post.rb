@@ -31,7 +31,7 @@ class Post < ActiveRecord::Base
 
   has_many   :comments do
     def find_most_recent
-      find(:first, :order => "id DESC")
+      scoped(:order => "id DESC").first
     end
 
     def newest
@@ -64,8 +64,8 @@ class Post < ActiveRecord::Base
   has_many :taggings, :as => :taggable
   has_many :tags, :through => :taggings do
     def add_joins_and_select
-      find :all, :select => 'tags.*, authors.id as author_id',
-        :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
+      scoped(:select => 'tags.*, authors.id as author_id',
+        :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id').all
     end
   end
 

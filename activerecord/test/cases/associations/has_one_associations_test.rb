@@ -25,7 +25,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { assert_nil firm.account }
     assert_queries(0) { assert_nil firm.account }
 
-    firms = Firm.find(:all, :include => :account)
+    firms = Firm.scoped(:include => :account).all
     assert_queries(0) { firms.each(&:account) }
   end
 

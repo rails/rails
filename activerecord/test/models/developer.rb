@@ -2,20 +2,20 @@ require 'ostruct'
 
 module DeveloperProjectsAssociationExtension
   def find_most_recent
-    find(:first, :order => "id DESC")
+    scoped(:order => "id DESC").first
   end
 end
 
 module DeveloperProjectsAssociationExtension2
   def find_least_recent
-    find(:first, :order => "id ASC")
+    scoped(:order => "id ASC").first
   end
 end
 
 class Developer < ActiveRecord::Base
   has_and_belongs_to_many :projects do
     def find_most_recent
-      find(:first, :order => "id DESC")
+      scoped(:order => "id DESC").first
     end
   end
 
@@ -37,7 +37,7 @@ class Developer < ActiveRecord::Base
       :association_foreign_key => "project_id",
       :extend => DeveloperProjectsAssociationExtension do
         def find_least_recent
-          find(:first, :order => "id ASC")
+          scoped(:order => "id ASC").first
         end
       end
 

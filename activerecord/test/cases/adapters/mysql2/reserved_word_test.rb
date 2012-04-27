@@ -130,7 +130,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   end
 
   def test_associations_work_with_reserved_words
-    assert_nothing_raised { Select.find(:all, :include => [:groups]) }
+    assert_nothing_raised { Select.scoped(:include => [:groups]).all }
   end
 
   #the following functions were added to DRY test cases

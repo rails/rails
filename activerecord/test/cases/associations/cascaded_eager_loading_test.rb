@@ -16,7 +16,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
            :categorizations, :people, :categories, :edges, :vertices
 
   def test_eager_association_loading_with_cascaded_two_levels
-    authors = Author.find(:all, :include=>{:posts=>:comments}, :order=>"authors.id")
+    authors = Author.scoped(:include=>{:posts=>:comments}, :order=>"authors.id").all
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
@@ -24,7 +24,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_one_level
-    authors = Author.find(:all, :include=>[{:posts=>:comments}, :categorizations], :order=>"authors.id")
+    authors = Author.scoped(:include=>[{:posts=>:comments}, :categorizations], :order=>"authors.id").all
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
@@ -84,7 +84,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations
-    authors = Author.find(:all, :include=>{:posts=>[:comments, :categorizations]}, :order=>"authors.id")
+    authors = Author.scoped(:include=>{:posts=>[:comments, :categorizations]}, :order=>"authors.id").all
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
@@ -92,7 +92,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_self_table_reference
-    authors = Author.find(:all, :include=>{:posts=>[:comments, :author]}, :order=>"authors.id")
+    authors = Author.scoped(:include=>{:posts=>[:comments, :author]}, :order=>"authors.id").all
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal authors(:david).name, authors[0].name
@@ -100,13 +100,13 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_with_condition
-    authors = Author.find(:all, :include=>{:posts=>:comments}, :conditions=>"authors.id=1", :order=>"authors.id")
+    authors = Author.scoped(:include=>{:posts=>:comments}, :conditions=>"authors.id=1", :order=>"authors.id").all
     assert_equal 1, authors.size
     assert_equal 5, authors[0].posts.size
   end
 
   def test_eager_association_loading_with_cascaded_three_levels_by_ping_pong
-    firms = Firm.find(:all, :include=>{:account=>{:firm=>:account}}, :order=>"companies.id")
+    firms = Firm.scoped(:include=>{:account=>{:firm=>:account}}, :order=>"companies.id").all
     assert_equal 2, firms.size
     assert_equal firms.first.account, firms.first.account.firm.account
     assert_equal companies(:first_firm).account, assert_no_queries { firms.first.account.firm.account }
@@ -114,7 +114,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_has_many_sti
-    topics = Topic.find(:all, :include => :replies, :order => 'topics.id')
+    topics = Topic.scoped(:include => :replies, :order => 'topics.id').all
     first, second, = topics(:first).replies.size, topics(:second).replies.size
     assert_no_queries do
       assert_equal first, topics[0].replies.size
@@ -127,7 +127,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     silly.parent_id = 1
     assert silly.save
 
-    topics = Topic.find(:all, :include => :replies, :order => ['topics.id', 'replies_topics.id'])
+    topics = Topic.scoped(:include => :replies, :order => ['topics.id', 'replies_topics.id']).all
     assert_no_queries do
       assert_equal 2, topics[0].replies.size
       assert_equal 0, topics[1].replies.size
@@ -135,14 +135,14 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_sti
-    replies = Reply.find(:all, :include => :topic, :order => 'topics.id')
+    replies = Reply.scoped(:include => :topic, :order => 'topics.id').all
     assert replies.include?(topics(:second))
     assert !replies.include?(topics(:first))
     assert_equal topics(:first), assert_no_queries { replies.first.topic }
   end
 
   def test_eager_association_loading_with_multiple_stis_and_order
-    author = Author.find(:first, :include => { :posts => [ :special_comments , :very_special_comment ] }, :order => ['authors.name', 'comments.body', 'very_special_comments_posts.body'], :conditions => 'posts.id = 4')
+    author = Author.scoped(:include => { :posts => [ :special_comments , :very_special_comment ] }, :order => ['authors.name', 'comments.body', 'very_special_comments_posts.body'], :conditions => 'posts.id = 4').first
     assert_equal authors(:david), author
     assert_no_queries do
       author.posts.first.special_comments
@@ -151,7 +151,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_of_stis_with_multiple_references
-    authors = Author.find(:all, :include => { :posts => { :special_comments => { :post => [ :special_comments, :very_special_comment ] } } }, :order => 'comments.body, very_special_comments_posts.body', :conditions => 'posts.id = 4')
+    authors = Author.scoped(:include => { :posts => { :special_comments => { :post => [ :special_comments, :very_special_comment ] } } }, :order => 'comments.body, very_special_comments_posts.body', :conditions => 'posts.id = 4').all
     assert_equal [authors(:david)], authors
     assert_no_queries do
       authors.first.posts.first.special_comments.first.post.special_comments
@@ -160,7 +160,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_where_first_level_returns_nil
-    authors = Author.find(:all, :include => {:post_about_thinking => :comments}, :order => 'authors.id DESC')
+    authors = Author.scoped(:include => {:post_about_thinking => :comments}, :order => 'authors.id DESC').all
     assert_equal [authors(:bob), authors(:mary), authors(:david)], authors
     assert_no_queries do
       authors[2].post_about_thinking.comments.first
@@ -168,12 +168,12 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through
-    source = Vertex.find(:first, :include=>{:sinks=>{:sinks=>{:sinks=>:sinks}}}, :order => 'vertices.id')
+    source = Vertex.scoped(:include=>{:sinks=>{:sinks=>{:sinks=>:sinks}}}, :order => 'vertices.id').first
     assert_equal vertices(:vertex_4), assert_no_queries { source.sinks.first.sinks.first.sinks.first }
   end
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_and_belongs_to_many
-    sink = Vertex.find(:first, :include=>{:sources=>{:sources=>{:sources=>:sources}}}, :order => 'vertices.id DESC')
+    sink = Vertex.scoped(:include=>{:sources=>{:sources=>{:sources=>:sources}}}, :order => 'vertices.id DESC').first
     assert_equal vertices(:vertex_1), assert_no_queries { sink.sources.first.sources.first.sources.first.sources.first }
   end
 end
