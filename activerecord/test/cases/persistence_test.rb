@@ -131,7 +131,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_destroy_many
-    clients = Client.find([2, 3], :order => 'id')
+    clients = Client.scoped(:order => 'id').find([2, 3])
 
     assert_difference('Client.count', -2) do
       destroyed = Client.destroy([2, 3]).sort_by(&:id)

@@ -364,7 +364,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_eager_has_many_polymorphic_with_source_type
-    tag_with_include = Tag.find(tags(:general).id, :include => :tagged_posts)
+    tag_with_include = Tag.scoped(:includes => :tagged_posts).find(tags(:general).id)
     desired = posts(:welcome, :thinking)
     assert_no_queries do
       # added sort by ID as otherwise test using JRuby was failing as array elements were in different order
@@ -614,7 +614,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_polymorphic_has_many
     expected = taggings(:welcome_general)
-    p = Post.find(posts(:welcome).id, :include => :taggings)
+    p = Post.scoped(:includes => :taggings).find(posts(:welcome).id)
     assert_no_queries {assert p.taggings.include?(expected)}
     assert posts(:welcome).taggings.include?(taggings(:welcome_general))
   end
@@ -622,12 +622,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_polymorphic_has_one
     expected = posts(:welcome)
 
-    tagging  = Tagging.find(taggings(:welcome_general).id, :include => :taggable)
+    tagging  = Tagging.scoped(:includes => :taggable).find(taggings(:welcome_general).id)
     assert_no_queries { assert_equal expected, tagging.taggable}
   end
 
   def test_polymorphic_belongs_to
-    p = Post.find(posts(:welcome).id, :include => {:taggings => :taggable})
+    p = Post.scoped(:includes => {:taggings => :taggable}).find(posts(:welcome).id)
     assert_no_queries {assert_equal posts(:welcome), p.taggings.first.taggable}
   end
 

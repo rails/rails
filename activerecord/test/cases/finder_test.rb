@@ -98,14 +98,14 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_ids_with_limit_and_offset
-    assert_equal 2, Entrant.find([1,3,2], :limit => 2).size
-    assert_equal 1, Entrant.find([1,3,2], :limit => 3, :offset => 2).size
+    assert_equal 2, Entrant.scoped(:limit => 2).find([1,3,2]).size
+    assert_equal 1, Entrant.scoped(:limit => 3, :offset => 2).find([1,3,2]).size
 
     # Also test an edge case: If you have 11 results, and you set a
     #   limit of 3 and offset of 9, then you should find that there
     #   will be only 2 results, regardless of the limit.
     devs = Developer.all
-    last_devs = Developer.find devs.map(&:id), :limit => 3, :offset => 9
+    last_devs = Developer.scoped(:limit => 3, :offset => 9).find devs.map(&:id)
     assert_equal 2, last_devs.size
   end
 
@@ -226,7 +226,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_only_some_columns
-    topic = Topic.find(1, :select => "author_name")
+    topic = Topic.scoped(:select => "author_name").find(1)
     assert_raise(ActiveModel::MissingAttributeError) {topic.title}
     assert_nil topic.read_attribute("title")
     assert_equal "David", topic.author_name
@@ -237,23 +237,23 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_array_conditions
-    assert Topic.find(1, :conditions => ["approved = ?", false])
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => ["approved = ?", true]) }
+    assert Topic.scoped(:where => ["approved = ?", false]).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => ["approved = ?", true]).find(1) }
   end
 
   def test_find_on_hash_conditions
-    assert Topic.find(1, :conditions => { :approved => false })
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :approved => true }) }
+    assert Topic.scoped(:where => { :approved => false }).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => { :approved => true }).find(1) }
   end
 
   def test_find_on_hash_conditions_with_explicit_table_name
-    assert Topic.find(1, :conditions => { 'topics.approved' => false })
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { 'topics.approved' => true }) }
+    assert Topic.scoped(:where => { 'topics.approved' => false }).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => { 'topics.approved' => true }).find(1) }
   end
 
   def test_find_on_hash_conditions_with_hashed_table_name
-    assert Topic.find(1, :conditions => {:topics => { :approved => false }})
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => {:topics => { :approved => true }}) }
+    assert Topic.scoped(:where => {:topics => { :approved => false }}).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => {:topics => { :approved => true }}).find(1) }
   end
 
   def test_find_with_hash_conditions_on_joined_table
@@ -270,9 +270,9 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_on_hash_conditions_with_explicit_table_name_and_aggregate
     david = customers(:david)
-    assert Customer.find(david.id, :conditions => { 'customers.name' => david.name, :address => david.address })
+    assert Customer.scoped(:where => { 'customers.name' => david.name, :address => david.address }).find(david.id)
     assert_raise(ActiveRecord::RecordNotFound) {
-      Customer.find(david.id, :conditions => { 'customers.name' => david.name + "1", :address => david.address })
+      Customer.scoped(:where => { 'customers.name' => david.name + "1", :address => david.address }).find(david.id)
     }
   end
 
@@ -282,13 +282,13 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_on_hash_conditions_with_range
     assert_equal [1,2], Topic.scoped(:where => { :id => 1..2 }).all.map(&:id).sort
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :id => 2..3 }) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => { :id => 2..3 }).find(1) }
   end
 
   def test_find_on_hash_conditions_with_end_exclusive_range
     assert_equal [1,2,3], Topic.scoped(:where => { :id => 1..3 }).all.map(&:id).sort
     assert_equal [1,2], Topic.scoped(:where => { :id => 1...3 }).all.map(&:id).sort
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(3, :conditions => { :id => 2...3 }) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => { :id => 2...3 }).find(3) }
   end
 
   def test_find_on_hash_conditions_with_multiple_ranges
@@ -301,10 +301,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_multiple_hash_conditions
-    assert Topic.find(1, :conditions => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => false })
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }) }
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :author_name => "David", :title => "HHC", :replies_count => 1, :approved => false }) }
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }) }
+    assert Topic.scoped(:where => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => false }).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }).find(1) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => { :author_name => "David", :title => "HHC", :replies_count => 1, :approved => false }).find(1) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }).find(1) }
   end
 
   def test_condition_interpolation
@@ -1011,8 +1011,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_id_with_conditions_with_or
     assert_nothing_raised do
-      Post.find([1,2,3],
-        :conditions => "posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'")
+      Post.where("posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'").find([1,2,3])
     end
   end
 

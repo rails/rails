@@ -182,7 +182,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_with_select
     assert_equal Company.find(2).firm_with_select.attributes.size, 1
-    assert_equal Company.find(2, :include => :firm_with_select ).firm_with_select.attributes.size, 1
+    assert_equal Company.scoped(:includes => :firm_with_select ).find(2).firm_with_select.attributes.size, 1
   end
 
   def test_belongs_to_counter
@@ -498,14 +498,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Account.find(@account.id).save!
-      Account.find(@account.id, :include => :firm).save!
+      Account.scoped(:includes => :firm).find(@account.id).save!
     end
 
     @account.firm.delete
 
     assert_nothing_raised do
       Account.find(@account.id).save!
-      Account.find(@account.id, :include => :firm).save!
+      Account.scoped(:includes => :firm).find(@account.id).save!
     end
   end
 
