@@ -27,14 +27,14 @@ class TestQueueTest < ActiveSupport::TestCase
 
   def test_order
     time1 = time2 = nil
-    
+
     job1 = Job.new(1) { time1 = Time.now }
     job2 = Job.new(2) { time2 = Time.now }
-    
+
     @queue.push job1
     @queue.push job2
     @queue.drain
-    
+
     assert time1 < time2, "Jobs run in the same order they were added"
   end
 
