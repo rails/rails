@@ -358,7 +358,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
     def test_sane_find_with_lock
       assert_nothing_raised do
         Person.transaction do
-          Person.find 1, :lock => true
+          Person.lock.find(1)
         end
       end
     end
@@ -369,7 +369,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
       def test_eager_find_with_lock
         assert_nothing_raised do
           Person.transaction do
-            Person.find 1, :include => :readers, :lock => true
+            Person.includes(:readers).lock.find(1)
           end
         end
       end
