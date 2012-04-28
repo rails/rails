@@ -274,6 +274,17 @@ class TestJSONEncoding < ActiveSupport::TestCase
                  JSON.parse(json_string_and_date))
   end
 
+  def test_opt_out_big_decimal_string_serialization
+    big_decimal = BigDecimal('2.5')
+
+    begin
+      ActiveSupport.encode_big_decimal_as_string = false
+      assert_equal big_decimal.to_s, big_decimal.to_json
+    ensure
+      ActiveSupport.encode_big_decimal_as_string = true
+    end
+  end
+
   protected
 
     def object_keys(json_object)

@@ -32,6 +32,9 @@
 
 *    Unicode database updated to 6.1.0.
 
+*    Adds `encode_big_decimal_as_string` option to force JSON serialization of BigDecimals as numeric instead
+     of wrapping them in strings for safety.
+
 
 ## Rails 3.2.2 (March 1, 2012) ##
 
