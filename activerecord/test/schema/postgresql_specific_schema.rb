@@ -127,28 +127,36 @@ _SQL
   );
 _SQL
 
-  execute <<_SQL
-  CREATE TABLE postgresql_partitioned_table_parent (
-    id SERIAL PRIMARY KEY,
-    number integer
-  );
-  CREATE TABLE postgresql_partitioned_table ( )
-    INHERITS (postgresql_partitioned_table_parent);
+begin
+    execute <<_SQL
+    CREATE TABLE postgresql_partitioned_table_parent (
+      id SERIAL PRIMARY KEY,
+      number integer
+    );
+    CREATE TABLE postgresql_partitioned_table ( )
+      INHERITS (postgresql_partitioned_table_parent);
 
-  CREATE OR REPLACE FUNCTION partitioned_insert_trigger()
-  RETURNS TRIGGER AS $$
-  BEGIN
-    INSERT INTO postgresql_partitioned_table VALUES (NEW.*);
-    RETURN NULL;
-  END;
-  $$
-  LANGUAGE plpgsql;
+    CREATE OR REPLACE FUNCTION partitioned_insert_trigger()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      INSERT INTO postgresql_partitioned_table VALUES (NEW.*);
+      RETURN NULL;
+    END;
+    $$
+    LANGUAGE plpgsql;
 
-  CREATE TRIGGER insert_partitioning_trigger
-    BEFORE INSERT ON postgresql_partitioned_table_parent
-    FOR EACH ROW EXECUTE PROCEDURE partitioned_insert_trigger();
+    CREATE TRIGGER insert_partitioning_trigger
+      BEFORE INSERT ON postgresql_partitioned_table_parent
+      FOR EACH ROW EXECUTE PROCEDURE partitioned_insert_trigger();
 _SQL
-
+rescue ActiveRecord::StatementInvalid => e
+  if e.message =~ /language "plpgsql" does not exist/
+    execute "CREATE LANGUAGE 'plpgsql';"
+    retry
+  else
+    raise e
+  end
+end
 
   begin
     execute <<_SQL
