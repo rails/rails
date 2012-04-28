@@ -76,6 +76,6 @@ class TestThreadConsumer < ActiveSupport::TestCase
     sleep 0.1
 
     assert_equal 1, logger.logged(:error).size
-    assert_match /Job Error: RuntimeError: Error!/, logger.logged(:error).last
+    assert_match(/Job Error: RuntimeError: Error!/, logger.logged(:error).last)
   end
 end
