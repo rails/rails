@@ -22,9 +22,9 @@ environment variable:
 
 You can run all the tests for a given database via rake:
 
-  $ rake test_mysql
+  $ rake test_mysql2
 
-The 'rake test' task will run all the tests for mysql, mysql2, sqlite3 and postgresql.
+The 'rake test' task will run all the tests for mysql2, sqlite3 and postgresql.
 
 == Config file
 

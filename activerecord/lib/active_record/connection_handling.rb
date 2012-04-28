@@ -7,7 +7,7 @@ module ActiveRecord
     # example for regular databases (MySQL, Postgresql, etc):
     #
     #   ActiveRecord::Base.establish_connection(
-    #     :adapter  => "mysql",
+    #     :adapter  => "mysql2",
     #     :host     => "localhost",
     #     :username => "myuser",
     #     :password => "mypass",
