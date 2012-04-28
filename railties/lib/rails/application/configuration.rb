@@ -43,7 +43,7 @@ module Rails
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
         @use_schema_cache_dump         = true
-        @queue                         = Queue
+        @queue                         = Rails::Queueing::Queue
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false

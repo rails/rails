@@ -26,8 +26,8 @@ module ApplicationTests
 
     test "the queue is a Queue in development mode" do
       app("development")
-      assert_kind_of Queue, Rails.application.queue
-      assert_kind_of Queue, Rails.queue
+      assert_kind_of Rails::Queueing::Queue, Rails.application.queue
+      assert_kind_of Rails::Queueing::Queue, Rails.queue
     end
 
     test "in development mode, an enqueued job will be processed in a separate thread" do

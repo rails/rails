@@ -15,7 +15,7 @@ class TestThreadConsumer < ActiveSupport::TestCase
   end
 
   def setup
-    @queue = Queue.new
+    @queue = Rails::Queueing::Queue.new
     @consumer = Rails::Queueing::ThreadedConsumer.start(@queue)
   end
 

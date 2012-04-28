@@ -1,5 +1,13 @@
+require "thread"
+
 module Rails
   module Queueing
+    # A Queue that simply inherits from STDLIB's Queue. Everytime this
+    # queue is used, Rails automatically sets up a ThreadedConsumer
+    # to consume it.
+    class Queue < ::Queue
+    end
+
     # In test mode, the Rails queue is backed by an Array so that assertions
     # can be made about its contents. The test queue provides a +jobs+
     # method to make assertions about the queue's contents and a +drain+
