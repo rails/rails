@@ -224,6 +224,26 @@ XML
     assert_equal 'value2', session[:symbol]
   end
 
+  def test_process_merges_session_arg
+    session[:foo] = 'bar'
+    get :no_op, nil, { :bar => 'baz' }
+    assert_equal 'bar', session[:foo]
+    assert_equal 'baz', session[:bar]
+  end
+
+  def test_merged_session_arg_is_retained_across_requests
+    get :no_op, nil, { :foo => 'bar' }
+    assert_equal 'bar', session[:foo]
+    get :no_op
+    assert_equal 'bar', session[:foo]
+  end
+
+  def test_process_overwrites_existing_session_arg
+    session[:foo] = 'bar'
+    get :no_op, nil, { :foo => 'baz' }
+    assert_equal 'baz', session[:foo]
+  end
+
   def test_session_is_cleared_from_controller_after_reset_session
     process :set_session
     process :reset_the_session

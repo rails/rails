@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Session arguments passed to `process` calls in functional tests are now merged into
+    the existing session, whereas previously they would replace the existing session.
+    This change may break some existing tests if they are asserting the exact contents of
+    the session but should not break existing tests that only assert individual keys.
+
+    *Andrew White*
+
 *   Add `index` method to FormBuilder class. *Jorge Bejar*
 
 *   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
