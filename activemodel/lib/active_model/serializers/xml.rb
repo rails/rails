@@ -82,12 +82,16 @@ module ActiveModel
           args << {:xmlns => options[:namespace]} if options[:namespace]
           args << {:type => options[:type]} if options[:type] && !options[:skip_types]
 
-          @builder.tag!(*args) do
-            add_attributes_and_methods
-            add_includes
-            add_extra_behavior
-            add_procs
-            yield @builder if block_given?
+          if serializable_hash.empty?
+            @builder.tag! *args
+          else
+            @builder.tag!(*args) do
+              add_attributes_and_methods
+              add_includes
+              add_extra_behavior
+              add_procs
+              yield @builder if block_given?
+            end
           end
         end
 

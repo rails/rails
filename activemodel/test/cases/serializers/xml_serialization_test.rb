@@ -65,6 +65,11 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{</contact>$}, @xml
   end
 
+  test "should not serialize an object without attributes as a new line string" do
+    xml = Address.new.to_xml
+    assert xml.include?("<address/>")
+  end
+
   test "should serialize namespaced root" do
     @xml = Admin::Contact.new(@contact.attributes).to_xml
     assert_match %r{^<contact>},  @xml
@@ -185,14 +190,14 @@ class XmlSerializationTest < ActiveModel::TestCase
   test "include option with plural association" do
     xml = @contact.to_xml :include => :friends, :indent => 0
     assert_match %r{<friends type="array">}, xml
-    assert_match %r{<friend type="Contact">}, xml
+    assert_match %r{<friend type="Contact"/>}, xml
   end
 
   test "multiple includes" do
     xml = @contact.to_xml :indent => 0, :skip_instruct => true, :include => [ :address, :friends ]
     assert xml.include?(@contact.address.to_xml(:indent => 0, :skip_instruct => true))
     assert_match %r{<friends type="array">}, xml
-    assert_match %r{<friend type="Contact">}, xml
+    assert_match %r{<friend type="Contact"/>}, xml
   end
 
   test "include with options" do
@@ -203,6 +208,6 @@ class XmlSerializationTest < ActiveModel::TestCase
   test "propagates skip_types option to included associations" do
     xml = @contact.to_xml :include => :friends, :indent => 0, :skip_types => true
     assert_match %r{<friends>}, xml
-    assert_match %r{<friend>}, xml
+    assert_match %r{<friend/>}, xml
   end
 end
