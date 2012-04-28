@@ -371,9 +371,7 @@ module Rails
       end
 
       def endpoint(endpoint = nil)
-        @endpoint ||= nil
-        @endpoint = endpoint if endpoint
-        @endpoint
+        @endpoint ||= endpoint
       end
 
       def isolate_namespace(mod)
