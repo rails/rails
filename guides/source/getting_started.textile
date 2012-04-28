@@ -1099,6 +1099,55 @@ posts. In the next section will see how Rails can aid us when creating
 REST applications, and how we can refactor our Blog app to take
 advantage of it.
 
+h4. Going Deeper into REST
+
+We've now covered all the CRUD actions of a REST app. We did so by
+declaring separate routes with the appropriate verbs into
++config/routes.rb+. Here's how that file looks so far:
+
+<ruby>
+get "posts" => "posts#index"
+get "posts/new"
+post "posts/create"
+get "posts/:id" => "posts#show", :as => :post
+get "posts/:id/edit" => "posts#edit"
+put "posts/:id" => "posts#update"
+delete "posts/:id" => "posts#destroy"
+</ruby>
+
+That's a lot to type for covering a single *resource*. Fortunately,
+Rails provides a +resources+ method which can be used to declare a
+standard REST resource. Here's how +config/routes/rb+ looks after the
+cleanup:
+
+<ruby>
+Blog::Application.routes.draw do
+
+  resources :posts
+
+  root :to => "welcome#index"
+end
+</ruby>
+
+If you run +rake routes+, you'll see that all the routes that we
+declared before are still available, and the app still works as before.
+
+<shell>
+# rake routes
+    posts GET    /posts(.:format)          posts#index
+          POST   /posts(.:format)          posts#create
+ new_post GET    /posts/new(.:format)      posts#new
+edit_post GET    /posts/:id/edit(.:format) posts#edit
+     post GET    /posts/:id(.:format)      posts#show
+          PUT    /posts/:id(.:format)      posts#update
+          DELETE /posts/:id(.:format)      posts#destroy
+     root        /                         welcome#index
+</shell>
+
+TIP: In general, Rails encourages the use of resources objects in place
+of declaring routes manually. For more information about routing, see
+"Rails Routing from the Outside In":routing.html.
+
 h4. Using the Console
 
 To see your validations in action, you can use the console. The console is a
