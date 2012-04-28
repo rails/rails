@@ -87,7 +87,7 @@ module ActiveRecord
         #       # Should return a scope, you can call 'super' here etc.
         #     end
         #   end
-        def default_scope(scope = {})
+        def default_scope(scope = nil)
           scope = Proc.new if block_given?
 
           if scope.is_a?(Relation) || !scope.respond_to?(:call)
@@ -103,14 +103,13 @@ module ActiveRecord
         end
 
         def build_default_scope #:nodoc:
-          if method(:default_scope).owner != ActiveRecord::Scoping::Default::ClassMethods
+          if !Base.is_a?(method(:default_scope).owner)
+            # The user has defined their own default scope method, so call that
             evaluate_default_scope { default_scope }
           elsif default_scopes.any?
             evaluate_default_scope do
               default_scopes.inject(relation) do |default_scope, scope|
-                if scope.is_a?(Hash)
-                  default_scope.apply_finder_options(scope)
-                elsif !scope.is_a?(Relation) && scope.respond_to?(:call)
+                if !scope.is_a?(Relation) && scope.respond_to?(:call)
                   default_scope.merge(unscoped { scope.call })
                 else
                   default_scope.merge(scope)

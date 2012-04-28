@@ -282,7 +282,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions
-    assert_equal Topic.find(:all, :conditions => {:approved => false}), Topic.where({ :approved => false }).to_a
+    assert_equal Topic.scoped(:where => {:approved => false}).all, Topic.where({ :approved => false }).to_a
   end
 
   def test_joins_with_string_array
@@ -330,7 +330,6 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_respond_to_class_methods_and_scopes
-    assert DeveloperOrderedBySalary.scoped.respond_to?(:all_ordered_by_name)
     assert Topic.scoped.respond_to?(:by_lifo)
   end
 
@@ -1060,10 +1059,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.all, all_posts.all
   end
 
-  def test_extensions_with_except
-    assert_equal 2, Topic.named_extension.order(:author_name).except(:order).two
-  end
-
   def test_only
     relation = Post.where(:author_id => 1).order('id ASC').limit(1)
     assert_equal [posts(:welcome)], relation.all
@@ -1073,10 +1068,6 @@ class RelationTest < ActiveRecord::TestCase
 
     all_posts = relation.only(:limit)
     assert_equal Post.limit(1).all.first, all_posts.first
-  end
-
-  def test_extensions_with_only
-    assert_equal 2, Topic.named_extension.order(:author_name).only(:order).two
   end
 
   def test_anonymous_extension
@@ -1100,36 +1091,26 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.order(Post.arel_table[:title]).all, Post.order("title").all
   end
 
-  def test_order_with_find_with_order
-    assert_equal 'zyke', CoolCar.order('name desc').find(:first, :order => 'id').name
-    assert_equal 'zyke', FastCar.order('name desc').find(:first, :order => 'id').name
-  end
-
   def test_default_scope_order_with_scope_order
     assert_equal 'zyke', CoolCar.order_using_new_style.limit(1).first.name
-    assert_equal 'zyke', CoolCar.order_using_old_style.limit(1).first.name
     assert_equal 'zyke', FastCar.order_using_new_style.limit(1).first.name
-    assert_equal 'zyke', FastCar.order_using_old_style.limit(1).first.name
   end
 
   def test_order_using_scoping
     car1 = CoolCar.order('id DESC').scoping do
-      CoolCar.find(:first, :order => 'id asc')
+      CoolCar.scoped(:order => 'id asc').first
     end
     assert_equal 'zyke', car1.name
 
     car2 = FastCar.order('id DESC').scoping do
-      FastCar.find(:first, :order => 'id asc')
+      FastCar.scoped(:order => 'id asc').first
     end
     assert_equal 'zyke', car2.name
   end
 
   def test_unscoped_block_style
     assert_equal 'honda', CoolCar.unscoped { CoolCar.order_using_new_style.limit(1).first.name}
-    assert_equal 'honda', CoolCar.unscoped { CoolCar.order_using_old_style.limit(1).first.name}
-
     assert_equal 'honda', FastCar.unscoped { FastCar.order_using_new_style.limit(1).first.name}
-    assert_equal 'honda', FastCar.unscoped { FastCar.order_using_old_style.limit(1).first.name}
   end
 
   def test_intersection_with_array
@@ -1138,10 +1119,6 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal [rails_author], [rails_author] & relation
     assert_equal [rails_author], relation & [rails_author]
-  end
-
-  def test_removing_limit_with_options
-    assert_not_equal 1, Post.limit(1).all(:limit => nil).count
   end
 
   def test_primary_key

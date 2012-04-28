@@ -62,7 +62,7 @@ module ActiveRecord
         # properly support stale-checking for nested associations.
         def stale_state
           if through_reflection.macro == :belongs_to
-            owner[through_reflection.foreign_key].to_s
+            owner[through_reflection.foreign_key] && owner[through_reflection.foreign_key].to_s
           end
         end
 

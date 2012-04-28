@@ -233,7 +233,7 @@ module ActionView
 
         parts = number.to_s.to_str.split('.')
         parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
-        parts.join(options[:separator]).html_safe
+        safe_join(parts, options[:separator])
       end
 
       # Formats a +number+ with the specified level of <tt>:precision</tt> (e.g., 112.32 has a precision
@@ -392,10 +392,10 @@ module ActionView
       #   * *integers*: <tt>:unit</tt>, <tt>:ten</tt>, <tt>:hundred</tt>, <tt>:thousand</tt>,  <tt>:million</tt>,  <tt>:billion</tt>, <tt>:trillion</tt>, <tt>:quadrillion</tt>
       #   * *fractionals*: <tt>:deci</tt>, <tt>:centi</tt>, <tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>, <tt>:pico</tt>, <tt>:femto</tt>
       # * <tt>:format</tt> - Sets the format of the output string (defaults to "%n %u"). The field types are:
-      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
-      #
       #     %u  The quantifier (ex.: 'thousand')
       #     %n  The number
+      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when the argument is invalid.
+      #
       #
       # ==== Examples
       #  number_to_human(123)                                          # => "123"

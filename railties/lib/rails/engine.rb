@@ -332,7 +332,7 @@ module Rails
   #
   # == Loading priority
   #
-  # In order to change engine's priority you can use config.railties_order in main application.
+  # In order to change engine's priority you can use +config.railties_order+ in main application.
   # It will affect the priority of loading views, helpers, assets and all the other files
   # related to engine or application.
   #
@@ -487,6 +487,7 @@ module Rails
 
     def routes
       @routes ||= ActionDispatch::Routing::RouteSet.new
+      @routes.draw_paths.concat paths["config/routes"].paths
       @routes.append(&Proc.new) if block_given?
       @routes
     end
@@ -516,7 +517,7 @@ module Rails
     #
     # Blog::Engine.load_seed
     def load_seed
-      seed_file = paths["db/seeds"].existent.first
+      seed_file = paths["db/seeds.rb"].existent.first
       load(seed_file) if seed_file
     end
 
@@ -544,11 +545,13 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      paths = self.paths["config/routes"].existent
+      paths = self.paths["config/routes.rb"].existent
+      external_paths = self.paths["config/routes"].paths
 
       if routes? || paths.any?
         app.routes_reloader.paths.unshift(*paths)
         app.routes_reloader.route_sets << routes
+        app.routes_reloader.external_routes.unshift(*external_paths)
       end
     end
 

@@ -3,12 +3,13 @@ require "active_support/core_ext/module/delegation"
 module Rails
   class Application
     class RoutesReloader
-      attr_reader :route_sets, :paths
+      attr_reader :route_sets, :paths, :external_routes
       delegate :execute_if_updated, :execute, :updated?, :to => :updater
 
       def initialize
-        @paths      = []
-        @route_sets = []
+        @paths           = []
+        @route_sets      = []
+        @external_routes = []
       end
 
       def reload!
@@ -23,7 +24,12 @@ module Rails
 
       def updater
         @updater ||= begin
-          updater = ActiveSupport::FileUpdateChecker.new(paths) { reload! }
+          dirs = @external_routes.inject({}) do |hash, dir|
+            hash.merge(dir.to_s => ["rb"])
+          end
+
+          updater = ActiveSupport::FileUpdateChecker.new(paths, dirs) { reload! }
+
           updater.execute
           updater
         end

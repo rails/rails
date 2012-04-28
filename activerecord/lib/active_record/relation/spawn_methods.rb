@@ -30,11 +30,8 @@ module ActiveRecord
     end
 
     def merge!(other)
-      if other.is_a?(Hash)
-        Relation::HashMerger.new(self, other).merge
-      else
-        Relation::Merger.new(self, other).merge
-      end
+      klass = other.is_a?(Hash) ? Relation::HashMerger : Relation::Merger
+      klass.new(self, other).merge
     end
 
     # Removes from the query the condition(s) specified in +skips+.

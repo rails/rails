@@ -61,6 +61,15 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
     run_generator ["account"]
     assert_file "app/views/test_app/account"
   end
+
+  def test_namespaced_controller_dont_indent_blank_lines
+    run_generator
+    assert_file "app/controllers/test_app/account_controller.rb" do |content|
+      content.split("\n").each do |line|
+        assert_no_match line, /^\s+$/, "Don't indent blank lines"
+      end
+    end
+  end
 end
 
 class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase

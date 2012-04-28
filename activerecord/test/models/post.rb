@@ -9,11 +9,6 @@ class Post < ActiveRecord::Base
   scope :ranked_by_comments,      -> { order("comments_count DESC") }
 
   scope :limit_by, lambda {|l| limit(l) }
-  scope :with_authors_at_address, lambda { |address| {
-      :conditions => [ 'authors.author_address_id = ?', address.id ],
-      :joins => 'JOIN authors ON authors.id = posts.author_id'
-    }
-  }
 
   belongs_to :author do
     def greeting
@@ -32,13 +27,11 @@ class Post < ActiveRecord::Base
 
   scope :with_special_comments, -> { joins(:comments).where(:comments => {:type => 'SpecialComment'}) }
   scope :with_very_special_comments, -> { joins(:comments).where(:comments => {:type => 'VerySpecialComment'}) }
-  scope :with_post, lambda {|post_id|
-    { :joins => :comments, :conditions => {:comments => {:post_id => post_id} } }
-  }
+  scope :with_post, ->(post_id) { joins(:comments).where(:comments => { :post_id => post_id }) }
 
   has_many   :comments do
     def find_most_recent
-      find(:first, :order => "id DESC")
+      scoped(:order => "id DESC").first
     end
 
     def newest
@@ -71,8 +64,8 @@ class Post < ActiveRecord::Base
   has_many :taggings, :as => :taggable
   has_many :tags, :through => :taggings do
     def add_joins_and_select
-      find :all, :select => 'tags.*, authors.id as author_id',
-        :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
+      scoped(:select => 'tags.*, authors.id as author_id',
+        :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id').all
     end
   end
 

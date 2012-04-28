@@ -1305,6 +1305,21 @@ module ActionDispatch
           parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
+        def draw(name)
+          path = @draw_paths.find do |_path|
+            _path.join("#{name}.rb").file?
+          end
+
+          unless path
+            msg  = "Your router tried to #draw the external file #{name}.rb,\n" \
+                   "but the file was not found in:\n\n"
+            msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
+            raise msg
+          end
+
+          instance_eval(path.join("#{name}.rb").read)
+        end
+
         # match 'path' => 'controller#action'
         # match 'path', to: 'controller#action'
         # match 'path', 'otherpath', on: :member, via: :get
@@ -1554,6 +1569,7 @@ module ActionDispatch
 
       def initialize(set) #:nodoc:
         @set = set
+        @draw_paths = set.draw_paths
         @scope = { :path_names => @set.resources_path_names }
       end
 

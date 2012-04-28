@@ -926,7 +926,7 @@ This code looks fine at the first sight. But the problem lies within the total n
 
 Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the +includes+ method of the +Model.find+ call. With +includes+, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
 
-Revisiting the above case, we could rewrite +Client.all+ to use eager load addresses:
+Revisiting the above case, we could rewrite +Client.limit(10)+ to use eager load addresses:
 
 <ruby>
 clients = Client.includes(:address).limit(10)

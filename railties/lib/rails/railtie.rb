@@ -22,7 +22,7 @@ module Rails
   #
   # * creating initializers
   # * configuring a Rails framework for the application, like setting a generator
-  # * adding config.* keys to the environment
+  # * +adding config.*+ keys to the environment
   # * setting up a subscriber with ActiveSupport::Notifications
   # * adding rake tasks
   #
