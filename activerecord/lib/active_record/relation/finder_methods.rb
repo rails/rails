@@ -232,8 +232,13 @@ module ActiveRecord
           unprotected_attributes_for_create[attributes[i]] = args[i]
         end
       end
+      attributes_for_create = protected_attributes_for_create.merge(unprotected_attributes_for_create)
 
-      conditions = (protected_attributes_for_create.merge(unprotected_attributes_for_create)).slice(*attributes).symbolize_keys
+      if attributes_for_create.length < attributes.length
+        attributes.each { |attrib| attributes_for_create[attrib] ||= nil }
+      end
+
+      conditions = (attributes_for_create).slice(*attributes).symbolize_keys
 
       record = where(conditions).first
 

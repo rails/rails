@@ -808,6 +808,18 @@ class FinderTest < ActiveRecord::TestCase
     assert created_customer.persisted?
   end
 
+  def test_find_or_create_from_two_attributes_with_one_not_included
+    assert Author.find_by_name('David')
+    assert_no_difference 'Author.count' do
+      Author.find_or_create_by_name('David')
+    end
+
+    assert_nil Author.find_by_name_and_author_address_id('David')
+    assert_difference 'Author.count' do
+      Author.find_or_create_by_name_and_author_address_id('David')
+    end
+  end
+
   def test_find_or_create_from_one_attribute_and_hash
     number_of_companies = Company.count
     sig38 = Company.find_or_create_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
