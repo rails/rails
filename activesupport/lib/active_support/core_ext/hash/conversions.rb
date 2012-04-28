@@ -8,7 +8,7 @@ require 'active_support/core_ext/string/inflections'
 class Hash
   # Returns a string containing an XML representation of its receiver:
   #
-  #   {"foo" => 1, "bar" => 2}.to_xml
+  #   {'foo' => 1, 'bar' => 2}.to_xml
   #   # =>
   #   # <?xml version="1.0" encoding="UTF-8"?>
   #   # <hash>
@@ -26,20 +26,20 @@ class Hash
   #
   # * If +value+ is a callable object it must expect one or two arguments. Depending
   #   on the arity, the callable is invoked with the +options+ hash as first argument
-  #   with +key+ as <tt>:root</tt>, and +key+ singularized as second argument. The 
+  #   with +key+ as <tt>:root</tt>, and +key+ singularized as second argument. The
   #   callable can add nodes by using <tt>options[:builder]</tt>.
   #
-  #     "foo".to_xml(lambda { |options, key| options[:builder].b(key) })
+  #     'foo'.to_xml(lambda { |options, key| options[:builder].b(key) })
   #     # => "<b>foo</b>"
   #
   # * If +value+ responds to +to_xml+ the method is invoked with +key+ as <tt>:root</tt>.
-  #     
+  #
   #     class Foo
   #       def to_xml(options)
-  #         options[:builder].bar "fooing!"
+  #         options[:builder].bar 'fooing!'
   #       end
   #     end
-  #          
+  #
   #     {:foo => Foo.new}.to_xml(:skip_instruct => true)
   #     # => "<hash><bar>fooing!</bar></hash>"
   #
@@ -71,7 +71,7 @@ class Hash
 
     options = options.dup
     options[:indent]  ||= 2
-    options[:root]    ||= "hash"
+    options[:root]    ||= 'hash'
     options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
 
     builder = options[:builder]
@@ -100,24 +100,24 @@ class Hash
                 []
               else
                 case entries.class.to_s   # something weird with classes not matching here.  maybe singleton methods breaking is_a?
-                when "Array"
+                when 'Array'
                   entries.collect { |v| typecast_xml_value(v) }
-                when "Hash"
+                when 'Hash'
                   [typecast_xml_value(entries)]
                 else
                   raise "can't typecast #{entries.inspect}"
                 end
               end
-            elsif value['type'] == 'file' || 
-               (value["__content__"] && (value.keys.size == 1 || value["__content__"].present?))
-              content = value["__content__"]
-              if parser = ActiveSupport::XmlMini::PARSING[value["type"]]
+            elsif value['type'] == 'file' ||
+               (value['__content__'] && (value.keys.size == 1 || value['__content__'].present?))
+              content = value['__content__']
+              if parser = ActiveSupport::XmlMini::PARSING[value['type']]
                 parser.arity == 1 ? parser.call(content) : parser.call(content, value)
               else
                 content
               end
             elsif value['type'] == 'string' && value['nil'] != 'true'
-              ""
+              ''
             # blank or nil parsed values are represented by nil
             elsif value.blank? || value['nil'] == 'true'
               nil
@@ -131,7 +131,7 @@ class Hash
 
               # Turn { :files => { :file => #<StringIO> } into { :files => #<StringIO> } so it is compatible with
               # how multipart uploaded files from HTML appear
-              xml_value["file"].is_a?(StringIO) ? xml_value["file"] : xml_value
+              xml_value['file'].is_a?(StringIO) ? xml_value['file'] : xml_value
             end
           when 'Array'
             value.map! { |i| typecast_xml_value(i) }
@@ -145,9 +145,9 @@ class Hash
 
       def unrename_keys(params)
         case params.class.to_s
-          when "Hash"
-            Hash[params.map { |k,v| [k.to_s.tr("-", "_"), unrename_keys(v)] } ]
-          when "Array"
+          when 'Hash'
+            Hash[params.map { |k,v| [k.to_s.tr('-', '_'), unrename_keys(v)] } ]
+          when 'Array'
             params.map { |v| unrename_keys(v) }
           else
             params
