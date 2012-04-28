@@ -486,8 +486,10 @@ module Rails
     end
 
     def routes
-      @routes ||= ActionDispatch::Routing::RouteSet.new
-      @routes.draw_paths.concat paths["config/routes"].paths
+      @routes ||= ActionDispatch::Routing::RouteSet.new.tap do |routes|
+        routes.draw_paths.concat paths["config/routes"].paths
+      end
+
       @routes.append(&Proc.new) if block_given?
       @routes
     end
