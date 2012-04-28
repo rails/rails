@@ -48,7 +48,7 @@ module ActionController
   # method attribute_names.
   #
   # If you're going to pass the parameters to an +ActiveModel+ object (such as
-  # +User.new(params[:user])+), you might consider passing the model class to
+  # <tt>User.new(params[:user])</tt>), you might consider passing the model class to
   # the method instead. The +ParamsWrapper+ will actually try to determine the
   # list of attribute names from the model and only wrap those attributes:
   #
