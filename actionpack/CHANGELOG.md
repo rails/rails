@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Restored support for the "%" ERb/Erubis _trim mode_.  This can be activated with:
+
+        config.action_view.erb_trim_mode = "%"  # or "%-" whitespace trim
+
+    With that mode active, you can use a single percent sign at the beginning of a line to engage Ruby mode (without inserting results).  It allows for template code like this:
+
+        % if current_user.try(:admin?)
+          <%= render "edit_links" %>
+        % end
+
+    *James Edward Gray II*
+
 *   Add `index` method to FormBuilder class. *Jorge Bejar*
 
 *   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
