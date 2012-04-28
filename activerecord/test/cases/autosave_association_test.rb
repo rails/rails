@@ -87,7 +87,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_save_fails_for_invalid_has_one
-    firm = Firm.find(:first)
+    firm = Firm.first
     assert firm.valid?
 
     firm.build_account
@@ -99,7 +99,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_save_succeeds_for_invalid_has_one_with_validate_false
-    firm = Firm.find(:first)
+    firm = Firm.first
     assert firm.valid?
 
     firm.build_unvalidated_account
@@ -155,20 +155,20 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_not_resaved_when_unchanged
-    firm = Firm.find(:first, :include => :account)
+    firm = Firm.scoped(:includes => :account).first
     firm.name += '-changed'
     assert_queries(1) { firm.save! }
 
-    firm = Firm.find(:first)
-    firm.account = Account.find(:first)
+    firm = Firm.first
+    firm.account = Account.first
     assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
 
-    firm = Firm.find(:first).dup
-    firm.account = Account.find(:first)
+    firm = Firm.first.dup
+    firm.account = Account.first
     assert_queries(2) { firm.save! }
 
-    firm = Firm.find(:first).dup
-    firm.account = Account.find(:first).dup
+    firm = Firm.first.dup
+    firm.account = Account.first.dup
     assert_queries(2) { firm.save! }
   end
 
@@ -228,7 +228,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
   end
 
   def test_assignment_before_parent_saved
-    client = Client.find(:first)
+    client = Client.first
     apple = Firm.new("name" => "Apple")
     client.firm = apple
     assert_equal apple, client.firm
@@ -342,7 +342,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
   end
 
   def test_build_and_then_save_parent_should_not_reload_target
-    client = Client.find(:first)
+    client = Client.first
     apple = client.build_firm(:name => "Apple")
     client.save!
     assert_no_queries { assert_equal apple, client.firm }
@@ -384,7 +384,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 
   def test_invalid_adding_with_validate_false
-    firm = Firm.find(:first)
+    firm = Firm.first
     client = Client.new
     firm.unvalidated_clients_of_firm << client
 
@@ -397,7 +397,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   def test_valid_adding_with_validate_false
     no_of_clients = Client.count
 
-    firm = Firm.find(:first)
+    firm = Firm.first
     client = Client.new("name" => "Apple")
 
     assert firm.valid?

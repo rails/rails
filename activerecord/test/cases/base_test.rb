@@ -192,7 +192,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_previously_changed
-    topic = Topic.find :first
+    topic = Topic.first
     topic.title = '<3<3<3'
     assert_equal({}, topic.previous_changes)
 
@@ -202,7 +202,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_previously_changed_dup
-    topic = Topic.find :first
+    topic = Topic.first
     topic.title = '<3<3<3'
     topic.save!
 
@@ -228,7 +228,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLiteAdapter)
+    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -350,13 +350,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_load
-    topics = Topic.find(:all, :order => 'id')
+    topics = Topic.scoped(:order => 'id').all
     assert_equal(4, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
 
   def test_load_with_condition
-    topics = Topic.find(:all, :conditions => "author_name = 'Mary'")
+    topics = Topic.scoped(:where => "author_name = 'Mary'").all
 
     assert_equal(1, topics.size)
     assert_equal(topics(:second).title, topics.first.title)
@@ -1264,10 +1264,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_quoting_arrays
-    replies = Reply.find(:all, :conditions => [ "id IN (?)", topics(:first).replies.collect(&:id) ])
+    replies = Reply.scoped(:where => [ "id IN (?)", topics(:first).replies.collect(&:id) ]).all
     assert_equal topics(:first).replies.size, replies.size
 
-    replies = Reply.find(:all, :conditions => [ "id IN (?)", [] ])
+    replies = Reply.scoped(:where => [ "id IN (?)", [] ]).all
     assert_equal 0, replies.size
   end
 
@@ -1568,22 +1568,19 @@ class BasicsTest < ActiveRecord::TestCase
   def test_count_with_join
     res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
 
-    res2 = Post.count(:conditions => "posts.#{QUOTED_TYPE} = 'Post'", :joins => "LEFT JOIN comments ON posts.id=comments.post_id")
+    res2 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
     assert_equal res, res2
 
     res3 = nil
     assert_nothing_raised do
-      res3 = Post.count(:conditions => "posts.#{QUOTED_TYPE} = 'Post'",
-                        :joins => "LEFT JOIN comments ON posts.id=comments.post_id")
+      res3 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
     end
     assert_equal res, res3
 
     res4 = Post.count_by_sql "SELECT COUNT(p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res5 = nil
     assert_nothing_raised do
-      res5 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id",
-                        :joins => "p, comments co",
-                        :select => "p.id")
+      res5 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count
     end
 
     assert_equal res4, res5
@@ -1591,67 +1588,64 @@ class BasicsTest < ActiveRecord::TestCase
     res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res7 = nil
     assert_nothing_raised do
-      res7 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id",
-                        :joins => "p, comments co",
-                        :select => "p.id",
-                        :distinct => true)
+      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count(distinct: true)
     end
     assert_equal res6, res7
   end
 
   def test_no_limit_offset
     assert_nothing_raised do
-      Developer.find(:all, :offset => 2)
+      Developer.scoped(:offset => 2).all
     end
   end
 
   def test_find_last
-    last  = Developer.find :last
-    assert_equal last, Developer.find(:first, :order => 'id desc')
+    last  = Developer.last
+    assert_equal last, Developer.scoped(:order => 'id desc').first
   end
 
   def test_last
-    assert_equal Developer.find(:first, :order => 'id desc'), Developer.last
+    assert_equal Developer.scoped(:order => 'id desc').first, Developer.last
   end
 
   def test_all
     developers = Developer.all
     assert_kind_of Array, developers
-    assert_equal Developer.find(:all), developers
+    assert_equal Developer.all, developers
   end
 
   def test_all_with_conditions
-    assert_equal Developer.find(:all, :order => 'id desc'), Developer.order('id desc').all
+    assert_equal Developer.scoped(:order => 'id desc').all, Developer.order('id desc').all
   end
 
   def test_find_ordered_last
-    last  = Developer.find :last, :order => 'developers.salary ASC'
-    assert_equal last, Developer.find(:all, :order => 'developers.salary ASC').last
+    last  = Developer.scoped(:order => 'developers.salary ASC').last
+    assert_equal last, Developer.scoped(:order => 'developers.salary ASC').all.last
   end
 
   def test_find_reverse_ordered_last
-    last  = Developer.find :last, :order => 'developers.salary DESC'
-    assert_equal last, Developer.find(:all, :order => 'developers.salary DESC').last
+    last  = Developer.scoped(:order => 'developers.salary DESC').last
+    assert_equal last, Developer.scoped(:order => 'developers.salary DESC').all.last
   end
 
   def test_find_multiple_ordered_last
-    last  = Developer.find :last, :order => 'developers.name, developers.salary DESC'
-    assert_equal last, Developer.find(:all, :order => 'developers.name, developers.salary DESC').last
+    last  = Developer.scoped(:order => 'developers.name, developers.salary DESC').last
+    assert_equal last, Developer.scoped(:order => 'developers.name, developers.salary DESC').all.last
   end
 
   def test_find_keeps_multiple_order_values
-    combined = Developer.find(:all, :order => 'developers.name, developers.salary')
-    assert_equal combined, Developer.find(:all, :order => ['developers.name', 'developers.salary'])
+    combined = Developer.scoped(:order => 'developers.name, developers.salary').all
+    assert_equal combined, Developer.scoped(:order => ['developers.name', 'developers.salary']).all
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.find(:all, :group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at')
-    assert_equal combined, Developer.find(:all, :group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at'])
+    combined = Developer.scoped(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at').all
+    assert_equal combined, Developer.scoped(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at']).all
   end
 
   def test_find_symbol_ordered_last
-    last  = Developer.find :last, :order => :salary
-    assert_equal last, Developer.find(:all, :order => :salary).last
+    last  = Developer.scoped(:order => :salary).last
+    assert_equal last, Developer.scoped(:order => :salary).all.last
   end
 
   def test_abstract_class
@@ -1726,7 +1720,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_to_param_should_return_string
-    assert_kind_of String, Client.find(:first).to_param
+    assert_kind_of String, Client.first.to_param
   end
 
   def test_inspect_class
@@ -1745,8 +1739,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_inspect_limited_select_instance
-    assert_equal %(#<Topic id: 1>), Topic.find(:first, :select => 'id', :conditions => 'id = 1').inspect
-    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.find(:first, :select => 'id, title', :conditions => 'id = 1').inspect
+    assert_equal %(#<Topic id: 1>), Topic.scoped(:select => 'id', :where => 'id = 1').first.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.scoped(:select => 'id, title', :where => 'id = 1').first.inspect
   end
 
   def test_inspect_class_without_table

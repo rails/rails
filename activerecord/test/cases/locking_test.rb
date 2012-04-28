@@ -323,7 +323,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
 
     def counter_test(model, expected_count)
       add_counter_column_to(model)
-      object = model.find(:first)
+      object = model.first
       assert_equal 0, object.test_count
       assert_equal 0, object.send(model.locking_column)
       yield object.id

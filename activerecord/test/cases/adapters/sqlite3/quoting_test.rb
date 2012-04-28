@@ -5,7 +5,7 @@ require 'securerandom'
 
 module ActiveRecord
   module ConnectionAdapters
-    class SQLiteAdapter
+    class SQLite3Adapter
       class QuotingTest < ActiveRecord::TestCase
         def setup
           @conn = Base.sqlite3_connection :database => ':memory:',

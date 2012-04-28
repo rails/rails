@@ -8,7 +8,7 @@
 # Rails booted up.
 require 'fileutils'
 
-require 'rubygems'
+require 'bundler/setup'
 require 'minitest/autorun'
 require 'active_support/test_case'
 

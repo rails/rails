@@ -10,12 +10,12 @@ class NamedScopeTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
 
   def test_implements_enumerable
-    assert !Topic.find(:all).empty?
+    assert !Topic.all.empty?
 
-    assert_equal Topic.find(:all),   Topic.base
-    assert_equal Topic.find(:all),   Topic.base.to_a
-    assert_equal Topic.find(:first), Topic.base.first
-    assert_equal Topic.find(:all),   Topic.base.map { |i| i }
+    assert_equal Topic.all,   Topic.base
+    assert_equal Topic.all,   Topic.base.to_a
+    assert_equal Topic.first, Topic.base.first
+    assert_equal Topic.all,   Topic.base.map { |i| i }
   end
 
   def test_found_items_are_cached
@@ -38,10 +38,10 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_delegates_finds_and_calculations_to_the_base_class
-    assert !Topic.find(:all).empty?
+    assert !Topic.all.empty?
 
-    assert_equal Topic.find(:all),               Topic.base.find(:all)
-    assert_equal Topic.find(:first),             Topic.base.find(:first)
+    assert_equal Topic.all,               Topic.base.all
+    assert_equal Topic.first,             Topic.base.first
     assert_equal Topic.count,                    Topic.base.count
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
   end
@@ -58,10 +58,10 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
-    assert !Topic.find(:all, :conditions => {:approved => true}).empty?
+    assert !Topic.scoped(:where => {:approved => true}).all.empty?
 
-    assert_equal Topic.find(:all, :conditions => {:approved => true}), Topic.approved
-    assert_equal Topic.count(:conditions => {:approved => true}), Topic.approved.count
+    assert_equal Topic.scoped(:where => {:approved => true}).all, Topic.approved
+    assert_equal Topic.where(:approved => true).count, Topic.approved.count
   end
 
   def test_scopes_with_string_name_can_be_composed
@@ -70,13 +70,9 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.replied.approved, Topic.replied.approved_as_string
   end
 
-  def test_scopes_can_be_specified_with_deep_hash_conditions
-    assert_equal Topic.replied.approved, Topic.replied.approved_as_hash_condition
-  end
-
   def test_scopes_are_composable
-    assert_equal((approved = Topic.find(:all, :conditions => {:approved => true})), Topic.approved)
-    assert_equal((replied = Topic.find(:all, :conditions => 'replies_count > 0')), Topic.replied)
+    assert_equal((approved = Topic.scoped(:where => {:approved => true}).all), Topic.approved)
+    assert_equal((replied = Topic.scoped(:where => 'replies_count > 0').all), Topic.replied)
     assert !(approved == replied)
     assert !(approved & replied).empty?
 
@@ -84,8 +80,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_procedural_scopes
-    topics_written_before_the_third = Topic.find(:all, :conditions => ['written_on < ?', topics(:third).written_on])
-    topics_written_before_the_second = Topic.find(:all, :conditions => ['written_on < ?', topics(:second).written_on])
+    topics_written_before_the_third = Topic.where('written_on < ?', topics(:third).written_on)
+    topics_written_before_the_second = Topic.where('written_on < ?', topics(:second).written_on)
     assert_not_equal topics_written_before_the_second, topics_written_before_the_third
 
     assert_equal topics_written_before_the_third, Topic.written_before(topics(:third).written_on)
@@ -93,7 +89,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_procedural_scopes_returning_nil
-    all_topics = Topic.find(:all)
+    all_topics = Topic.all
 
     assert_equal all_topics, Topic.written_before(nil)
   end
@@ -134,9 +130,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_active_records_have_scope_named__all__
-    assert !Topic.find(:all).empty?
+    assert !Topic.all.empty?
 
-    assert_equal Topic.find(:all), Topic.base
+    assert_equal Topic.all, Topic.base
   end
 
   def test_active_records_have_scope_named__scoped__
@@ -144,11 +140,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert !scope.empty?
 
     assert_equal scope, Topic.scoped(where: "content LIKE '%Have%'")
-  end
-
-  def test_first_and_last_should_support_find_options
-    assert_equal Topic.base.first(:order => 'title'), Topic.base.find(:first, :order => 'title')
-    assert_equal Topic.base.last(:order => 'title'), Topic.base.find(:last, :order => 'title')
   end
 
   def test_first_and_last_should_allow_integers_for_limit
@@ -162,15 +153,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_no_queries do
       topics.first
       topics.last
-    end
-  end
-
-  def test_first_and_last_find_options_should_use_query_when_results_are_loaded
-    topics = Topic.base
-    topics.reload # force load
-    assert_queries(2) do
-      topics.first(:order => 'title')
-      topics.last(:order => 'title')
     end
   end
 
@@ -482,7 +464,7 @@ class DynamicScopeTest < ActiveRecord::TestCase
 
   def test_dynamic_scope
     assert_equal @test_klass.scoped_by_author_id(1).find(1), @test_klass.find(1)
-    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.find(:first, :conditions => { :author_id => 1, :title => "Welcome to the weblog"})
+    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.scoped(:where => { :author_id => 1, :title => "Welcome to the weblog"}).first
   end
 
   def test_dynamic_scope_should_create_methods_after_hitting_method_missing
