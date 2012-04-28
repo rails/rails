@@ -113,7 +113,7 @@ module ActionView
         # == Caching multiple stylesheets into one
         #
         # You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be
-        # compressed by gzip (leading to faster transfers). Caching will only happen if config.perform_caching
+        # compressed by gzip (leading to faster transfers). Caching will only happen if +config.perform_caching+
         # is set to true (which is the case by default for the Rails production environment, but not for the development
         # environment). Examples:
         #

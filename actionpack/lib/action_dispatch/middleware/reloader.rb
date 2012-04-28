@@ -18,7 +18,7 @@ module ActionDispatch
   # classes before they are unloaded.
   #
   # By default, ActionDispatch::Reloader is included in the middleware stack
-  # only in the development environment; specifically, when config.cache_classes
+  # only in the development environment; specifically, when +config.cache_classes+
   # is false. Callbacks may be registered even when it is not included in the
   # middleware stack, but are executed only when <tt>ActionDispatch::Reloader.prepare!</tt>
   # or <tt>ActionDispatch::Reloader.cleanup!</tt> are called manually.

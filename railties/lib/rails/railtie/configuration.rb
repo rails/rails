@@ -43,7 +43,7 @@ module Rails
         ActiveSupport.on_load(:before_configuration, :yield => true, &block)
       end
 
-      # Third configurable block to run. Does not run if config.cache_classes
+      # Third configurable block to run. Does not run if +config.cache_classes+
       # set to false.
       def before_eager_load(&block)
         ActiveSupport.on_load(:before_eager_load, :yield => true, &block)
