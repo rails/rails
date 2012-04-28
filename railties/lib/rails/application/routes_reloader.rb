@@ -24,12 +24,11 @@ module Rails
 
       def updater
         @updater ||= begin
-          dirs = @external_routes.inject({}) do |hash, dir|
-            hash.merge(dir.to_s => ["rb"])
+          dirs = @external_routes.each_with_object({}) do |dir, hash|
+            hash[dir.to_s] = %w(rb)
           end
 
           updater = ActiveSupport::FileUpdateChecker.new(paths, dirs) { reload! }
-
           updater.execute
           updater
         end
