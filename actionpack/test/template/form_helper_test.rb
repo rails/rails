@@ -1159,6 +1159,33 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected_2, output_buffer
   end
 
+  def test_form_for_with_lock_version
+    def @post.lock_version; 42; end
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123" , "edit_post", :method => 'patch') do
+      '<input id="post_title" name="post[title]" type="text" value="Hello World" />' +
+      '<input id="post_lock_version" name="post[lock_version]" type="hidden" value="42" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_lock_version_not_displayed
+    def @post.lock_version; 42; end
+    form_for(@post, :hidden_lock_version => false) do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123" , "edit_post", :method => 'patch') do
+      '<input id="post_title" name="post[title]" type="text" value="Hello World" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_fields_for_with_namespace
     @comment.body = 'Hello World'
     form_for(@post, :namespace => 'namespace') do |f|

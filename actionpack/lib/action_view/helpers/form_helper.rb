@@ -416,6 +416,7 @@ module ActionView
         options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
         options[:html][:method] = options.delete(:method) if options.has_key?(:method)
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
+        options[:hidden_lock_version] = record.respond_to?(:lock_version) unless options.has_key?(:hidden_lock_version)
 
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options)
         fields_for = fields_for(object_name, object, options, &proc)
@@ -690,6 +691,7 @@ module ActionView
         builder = instantiate_builder(record_name, record_object, options)
         output = capture(builder, &block)
         output.concat builder.hidden_field(:id) if output && options[:hidden_field_id] && !builder.emitted_hidden_id?
+        output.concat builder.hidden_field(:lock_version) if output && options[:hidden_lock_version] && !builder.emitted_lock_version?
         output
       end
 
@@ -1147,6 +1149,7 @@ module ActionView
 
       def hidden_field(method, options = {})
         @emitted_hidden_id = true if method == :id
+        @emitted_lock_version = true if method == :lock_version
         @template.hidden_field(@object_name, method, objectify_options(options))
       end
 
@@ -1223,6 +1226,10 @@ module ActionView
 
       def emitted_hidden_id?
         @emitted_hidden_id ||= nil
+      end
+
+      def emitted_lock_version?
+        @emitted_lock_version ||= nil
       end
 
       private
