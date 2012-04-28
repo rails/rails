@@ -12,7 +12,14 @@ class String
 
   def to_date
     return nil if self.blank?
-    ::Date.new(*::Date._parse(self, false).values_at(:year, :mon, :mday))
+    
+    tokens = ::Date._parse(self, false).values_at(:year, :mon, :mday)
+    
+    if tokens.compact.length == 3
+      ::Date.new(*tokens)
+    else
+      nil 
+    end
   end
 
   def to_datetime
