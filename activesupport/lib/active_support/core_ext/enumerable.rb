@@ -11,7 +11,7 @@ module Enumerable
   # It can also calculate the sum without the use of a block.
   #
   #  [5, 15, 10].sum # => 30
-  #  ["foo", "bar"].sum # => "foobar"
+  #  ['foo', 'bar'].sum # => "foobar"
   #  [[1, 2], [3, 1, 5]].sum => [1, 2, 3, 1, 5]
   #
   # The default sum of an empty list is zero. You can override this default:

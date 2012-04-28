@@ -20,7 +20,7 @@ end
 #--
 # Qualified names are required to be relative because we are extending existing
 # methods that expect constant names, ie, relative paths of length 1. For example,
-# Object.const_get("::String") raises NameError and so does qualified_const_get.
+# Object.const_get('::String') raises NameError and so does qualified_const_get.
 #++
 class Module
   def qualified_const_defined?(path, search_parents=true)

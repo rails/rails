@@ -30,7 +30,7 @@ class DateTime
   # datetime argument as the value.
   #
   #   # config/initializers/time_formats.rb
-  #   Time::DATE_FORMATS[:month_and_year] = "%B %Y"
+  #   Time::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Time::DATE_FORMATS[:short_ordinal] = lambda { |time| time.strftime("%B #{time.day.ordinalize}") }
   def to_formatted_s(format = :default)
     if formatter = ::Time::DATE_FORMATS[format]

@@ -2,15 +2,15 @@ class File
   # Write to a file atomically. Useful for situations where you don't
   # want other processes or threads to see half-written files.
   #
-  #   File.atomic_write("important.file") do |file|
-  #     file.write("hello")
+  #   File.atomic_write('important.file') do |file|
+  #     file.write('hello')
   #   end
   #
   # If your temp directory is not on the same filesystem as the file you're
   # trying to write, you can provide a different temporary directory.
   #
-  #   File.atomic_write("/data/something.important", "/data/tmp") do |file|
-  #     file.write("hello")
+  #   File.atomic_write('/data/something.important', '/data/tmp') do |file|
+  #     file.write('hello')
   #   end
   def self.atomic_write(file_name, temp_dir = Dir.tmpdir)
     require 'tempfile' unless defined?(Tempfile)

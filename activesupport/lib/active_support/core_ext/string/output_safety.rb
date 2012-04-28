@@ -15,7 +15,7 @@ class ERB
     #   <%=h @person.name %>
     #
     # ==== Example:
-    #   puts html_escape("is a > 0 & a < 10?")
+    #   puts html_escape('is a > 0 & a < 10?')
     #   # => is a &gt; 0 &amp; a &lt; 10?
     def html_escape(s)
       s = s.to_s
@@ -38,10 +38,10 @@ class ERB
     # A utility method for escaping HTML without affecting existing escaped entities.
     #
     # ==== Examples
-    #   html_escape_once("1 < 2 &amp; 3")
+    #   html_escape_once('1 < 2 &amp; 3')
     #   # => "1 &lt; 2 &amp; 3"
     #
-    #   html_escape_once("&lt;&lt; Accept & Checkout")
+    #   html_escape_once('&lt;&lt; Accept & Checkout')
     #   # => "&lt;&lt; Accept &amp; Checkout"
     def html_escape_once(s)
       result = s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP) { |special| HTML_ESCAPE[special] }
@@ -53,7 +53,7 @@ class ERB
     # A utility method for escaping HTML entities in JSON strings
     # using \uXXXX JavaScript escape sequences for string literals:
     #
-    #   json_escape("is a > 0 & a < 10?")
+    #   json_escape('is a > 0 & a < 10?')
     #   # => is a \u003E 0 \u0026 a \u003C 10?
     #
     # Note that after this operation is performed the output is not
@@ -102,7 +102,7 @@ module ActiveSupport #:nodoc:
 
     class SafeConcatError < StandardError
       def initialize
-        super "Could not concatenate to the buffer because it is not html safe."
+        super 'Could not concatenate to the buffer because it is not html safe.'
       end
     end
 

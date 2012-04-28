@@ -8,11 +8,11 @@ class Module
   #
   #   class Greeter < ActiveRecord::Base
   #     def hello
-  #       "hello"
+  #       'hello'
   #     end
   #
   #     def goodbye
-  #       "goodbye"
+  #       'goodbye'
   #     end
   #   end
   #
@@ -62,7 +62,7 @@ class Module
   #     delegate :name, :address, :to => :client, :prefix => true
   #   end
   #
-  #   john_doe = Person.new("John Doe", "Vimmersvej 13")
+  #   john_doe = Person.new('John Doe', 'Vimmersvej 13')
   #   invoice = Invoice.new(john_doe)
   #   invoice.client_name    # => "John Doe"
   #   invoice.client_address # => "Vimmersvej 13"
@@ -74,8 +74,8 @@ class Module
   #   end
   #
   #   invoice = Invoice.new(john_doe)
-  #   invoice.customer_name    # => "John Doe"
-  #   invoice.customer_address # => "Vimmersvej 13"
+  #   invoice.customer_name    # => 'John Doe'
+  #   invoice.customer_address # => 'Vimmersvej 13'
   #
   # If the delegate object is +nil+ an exception is raised, and that happens
   # no matter whether +nil+ responds to the delegated method. You can get a
@@ -104,14 +104,14 @@ class Module
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
-      raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, :to => :greeter)."
+      raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, :to => :greeter).'
     end
 
     to = to.to_s
     prefix, allow_nil = options.values_at(:prefix, :allow_nil)
 
     if prefix == true && to =~ /^[^a-z_]/
-      raise ArgumentError, "Can only automatically set the delegation prefix when delegating to a method."
+      raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
     end
 
     method_prefix = \
@@ -129,7 +129,7 @@ class Module
 
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
-      definition = (method =~ /[^\]]=$/) ? "arg" : "*args, &block"
+      definition = (method =~ /[^\]]=$/) ? 'arg' : '*args, &block'
 
       if allow_nil
         module_eval(<<-EOS, file, line - 2)
