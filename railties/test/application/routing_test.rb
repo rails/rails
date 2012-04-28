@@ -249,9 +249,7 @@ module ApplicationTests
           assert_equal 404, last_response.status
         end
       end
-    end
 
-    {"development" => "baz", "production" => "bar"}.each do |mode, expected|
       test "reloads routes when configuration is changed in #{mode}" do
         controller :foo, <<-RUBY
           class FooController < ApplicationController
