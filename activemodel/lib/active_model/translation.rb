@@ -1,5 +1,3 @@
-require 'active_support/core_ext/hash/reverse_merge'
-
 module ActiveModel
 
   # == Active Model Translation
@@ -43,6 +41,7 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human_attribute_name(attribute, options = {})
+      options   = { :count => 1 }.merge!(options)
       defaults  = []
       parts     = attribute.to_s.split(".", 2)
       attribute = parts.pop
@@ -63,7 +62,7 @@ module ActiveModel
       defaults << options.delete(:default) if options[:default]
       defaults << attribute.humanize
 
-      options.reverse_merge! :count => 1, :default => defaults
+      options[:default] = defaults
       I18n.translate(defaults.shift, options)
     end
   end
