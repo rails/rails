@@ -77,8 +77,10 @@ class String
   #   "active_record/errors".camelize(:lower) # => "activeRecord::Errors"
   def camelize(first_letter = :upper)
     case first_letter
-      when :upper then ActiveSupport::Inflector.camelize(self, true)
-      when :lower then ActiveSupport::Inflector.camelize(self, false)
+    when :upper
+      ActiveSupport::Inflector.camelize(self, true)
+    when :lower
+      ActiveSupport::Inflector.camelize(self, false)
     end
   end
   alias_method :camelcase, :camelize

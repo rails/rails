@@ -9,28 +9,32 @@ class Array
   # * <tt>:two_words_connector</tt> - The sign or word used to join the elements in arrays with two elements (default: " and ")
   # * <tt>:last_word_connector</tt> - The sign or word used to join the last element in arrays with three or more elements (default: ", and ")
   def to_sentence(options = {})
+    options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
+
+    default_connectors = {
+      :words_connector     => ', ',
+      :two_words_connector => ' and ',
+      :last_word_connector => ', and '
+    }
     if defined?(I18n)
-      default_words_connector     = I18n.translate(:'support.array.words_connector',     :locale => options[:locale])
-      default_two_words_connector = I18n.translate(:'support.array.two_words_connector', :locale => options[:locale])
-      default_last_word_connector = I18n.translate(:'support.array.last_word_connector', :locale => options[:locale])
-    else
-      default_words_connector     = ", "
-      default_two_words_connector = " and "
-      default_last_word_connector = ", and "
+      namespace = 'support.array.'
+      default_connectors.each_key do |name|
+        i18n_key = (namespace + name.to_s).to_sym
+        default_connectors[name] = I18n.translate i18n_key, :locale => options[:locale]
+      end
     end
 
-    options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
-    options.reverse_merge! :words_connector => default_words_connector, :two_words_connector => default_two_words_connector, :last_word_connector => default_last_word_connector
+    options.reverse_merge! default_connectors
 
     case length
-      when 0
-        ""
-      when 1
-        self[0].to_s.dup
-      when 2
-        "#{self[0]}#{options[:two_words_connector]}#{self[1]}"
-      else
-        "#{self[0...-1].join(options[:words_connector])}#{options[:last_word_connector]}#{self[-1]}"
+    when 0
+      ''
+    when 1
+      self[0].to_s.dup
+    when 2
+      "#{self[0]}#{options[:two_words_connector]}#{self[1]}"
+    else
+      "#{self[0...-1].join(options[:words_connector])}#{options[:last_word_connector]}#{self[-1]}"
     end
   end
 
@@ -45,14 +49,14 @@ class Array
   #   Blog.all.to_formatted_s(:db) # => "1,2,3"
   def to_formatted_s(format = :default)
     case format
-      when :db
-        if respond_to?(:empty?) && empty?
-          "null"
-        else
-          collect { |element| element.id }.join(",")
-        end
+    when :db
+      if empty?
+        'null'
       else
-        to_default_s
+        collect { |element| element.id }.join(',')
+      end
+    else
+      to_default_s
     end
   end
   alias_method :to_default_s, :to_s
@@ -86,20 +90,20 @@ class Array
   #     </project>
   #   </projects>
   #
-  # Otherwise the root element is "records":
+  # Otherwise the root element is "objects":
   #
   #   [{:foo => 1, :bar => 2}, {:baz => 3}].to_xml
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
-  #   <records type="array">
-  #     <record>
+  #   <objects type="array">
+  #     <object>
   #       <bar type="integer">2</bar>
   #       <foo type="integer">1</foo>
-  #     </record>
-  #     <record>
+  #     </object>
+  #     <object>
   #       <baz type="integer">3</baz>
-  #     </record>
-  #   </records>
+  #     </object>
+  #   </objects>
   #
   # If the collection is empty the root element is "nil-classes" by default:
   #
@@ -139,26 +143,28 @@ class Array
     options = options.dup
     options[:indent]  ||= 2
     options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
-    options[:root]    ||= if first.class.to_s != "Hash" && all? { |e| e.is_a?(first.class) }
-      underscored = ActiveSupport::Inflector.underscore(first.class.name)
-      ActiveSupport::Inflector.pluralize(underscored).tr('/', '_')
-    else
-      "objects"
-    end
+    options[:root]    ||= \
+      if first.class != Hash && all? { |e| e.is_a?(first.class) }
+        underscored = ActiveSupport::Inflector.underscore(first.class.name)
+        ActiveSupport::Inflector.pluralize(underscored).tr('/', '_')
+      else
+        'objects'
+      end
 
     builder = options[:builder]
     builder.instruct! unless options.delete(:skip_instruct)
 
     root = ActiveSupport::XmlMini.rename_key(options[:root].to_s, options)
     children = options.delete(:children) || root.singularize
+    attributes = options[:skip_types] ? {} : {:type => 'array'}
 
-    attributes = options[:skip_types] ? {} : {:type => "array"}
-    return builder.tag!(root, attributes) if empty?
-
-    builder.__send__(:method_missing, root, attributes) do
-      each { |value| ActiveSupport::XmlMini.to_tag(children, value, options) }
-      yield builder if block_given?
+    if empty?
+      builder.tag!(root, attributes)
+    else
+      builder.__send__(:method_missing, root, attributes) do
+        each { |value| ActiveSupport::XmlMini.to_tag(children, value, options) }
+        yield builder if block_given?
+      end
     end
   end
-
 end

@@ -22,8 +22,11 @@ class Time
     # Return the number of days in the given month.
     # If no year is specified, it will use the current year.
     def days_in_month(month, year = now.year)
-      return 29 if month == 2 && ::Date.gregorian_leap?(year)
-      COMMON_YEAR_DAYS_IN_MONTH[month]
+      if month == 2 && ::Date.gregorian_leap?(year)
+        29
+      else
+        COMMON_YEAR_DAYS_IN_MONTH[month]
+      end
     end
 
     # Returns a new Time if requested year can be accommodated by Ruby's Time class

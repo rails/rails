@@ -34,8 +34,11 @@ module Enumerable
   #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
   #
   def index_by
-    return to_enum :index_by unless block_given?
-    Hash[map { |elem| [yield(elem), elem] }]
+    if block_given?
+      Hash[map { |elem| [yield(elem), elem] }]
+    else
+      to_enum :index_by
+    end
   end
 
   # Returns true if the enumerable has more than 1 element. Functionally equivalent to enum.to_a.size > 1.
@@ -48,7 +51,7 @@ module Enumerable
         cnt > 1
       end
     else
-      any?{ (cnt += 1) > 1 }
+      any? { (cnt += 1) > 1 }
     end
   end
 

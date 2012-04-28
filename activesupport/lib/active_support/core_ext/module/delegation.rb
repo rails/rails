@@ -114,7 +114,7 @@ class Module
       raise ArgumentError, "Can only automatically set the delegation prefix when delegating to a method."
     end
 
-    method_prefix =
+    method_prefix = \
       if prefix
         "#{prefix == true ? to : prefix}_"
       else

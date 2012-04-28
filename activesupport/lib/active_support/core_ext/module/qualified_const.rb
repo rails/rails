@@ -5,7 +5,7 @@ require 'active_support/core_ext/string/inflections'
 #++
 module QualifiedConstUtils
   def self.raise_if_absolute(path)
-    raise NameError, "wrong constant name #$&" if path =~ /\A::[^:]+/
+    raise NameError.new("wrong constant name #$&") if path =~ /\A::[^:]+/
   end
 
   def self.names(path)

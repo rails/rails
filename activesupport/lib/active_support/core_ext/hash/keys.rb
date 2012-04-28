@@ -25,6 +25,7 @@ class Hash
     end
     result
   end
+  alias_method :to_options,  :symbolize_keys
 
   # Destructively convert all keys to symbols, as long as they respond
   # to +to_sym+.
@@ -34,8 +35,6 @@ class Hash
     end
     self
   end
-
-  alias_method :to_options,  :symbolize_keys
   alias_method :to_options!, :symbolize_keys!
 
   # Validate all keys in a hash match *valid keys, raising ArgumentError on a mismatch.
@@ -49,7 +48,7 @@ class Hash
   def assert_valid_keys(*valid_keys)
     valid_keys.flatten!
     each_key do |k|
-      raise(ArgumentError, "Unknown key: #{k}") unless valid_keys.include?(k)
+      raise ArgumentError.new("Unknown key: #{k}") unless valid_keys.include?(k)
     end
   end
 end
