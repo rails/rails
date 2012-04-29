@@ -1,4 +1,5 @@
 require 'action_dispatch/http/request'
+require 'active_support/core_ext/uri'
 require 'rack/utils'
 
 module ActionDispatch
@@ -47,8 +48,17 @@ module ActionDispatch
           :params   => request.query_parameters
         }.merge options
 
+        if !params.empty? && url_options[:path].match(/%\{\w*\}/)
+          url_options[:path] = (url_options[:path] % escape_path(params))
+        end
+
         ActionDispatch::Http::URL.url_for url_options
       end
+
+      private
+        def escape_path(params)
+          Hash[params.map{ |k,v| [k, URI.parser.escape(v)] }]
+        end
     end
 
     module Redirection
