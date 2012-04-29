@@ -379,7 +379,7 @@ module ActionView
     end
 
     def find_template(path, locals)
-      prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
+      prefixes = path.start_with?("/") ? [] : @lookup_context.prefixes
       @lookup_context.find_template(path, prefixes, true, locals, @details)
     end
 
@@ -448,7 +448,7 @@ module ActionView
     end
 
     def merge_prefix_into_object_path(prefix, object_path)
-      if prefix.include?(?/) && object_path.include?(?/)
+      if prefix.start_with?("/") && object_path.start_with?("/")
         prefixes = []
         prefix_array = File.dirname(prefix).split('/')
         object_path_array = object_path.split('/')[0..-3] # skip model dir & partial
