@@ -690,7 +690,7 @@ class TestController < ActionController::Base
   end
 
   def partial_with_nested_object
-    render :partial => "quiz/questions/question", :object => Quiz::Question.new("first")
+    render :partial => "/quiz/questions/question", :object => Quiz::Question.new("first")
   end
 
   def partial_with_nested_object_shorthand

@@ -119,7 +119,7 @@ module ActionView
       @controller.controller_path = 'test'
 
       @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
-      assert_match(/Hello: EloyHello: Manfred/, render(:partial => 'test/from_helper'))
+      assert_match(/Hello: EloyHello: Manfred/, render(:partial => '/test/from_helper'))
     end
   end
 

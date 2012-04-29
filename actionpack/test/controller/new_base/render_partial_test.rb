@@ -12,7 +12,13 @@ module RenderPartial
       "render_partial/basic/_final.json.erb"      => "{ final: json }",
       "render_partial/basic/overridden.html.erb"  => "<%= @test_unchanged = 'goodbye' %><%= render :partial => 'overridden' %><%= @test_unchanged %>",
       "render_partial/basic/_overridden.html.erb" => "ParentPartial!",
-      "render_partial/child/_overridden.html.erb" => "OverriddenPartial!"
+      "render_partial/child/_overridden.html.erb" => "OverriddenPartial!",
+      "render_partial/basic/hierarhical.html.erb"               => "<%= @test_unchanged = 'goodbye' %><%= render :partial => 'subfolder/hierarhical' %><%= @test_unchanged %>",
+      "render_partial/basic/subfolder/_hierarhical.html.erb"    => "SubfolderBasicHierarhicalPartial!",
+      "render_partial/basic/hierarhical_with_child.html.erb"               => "<%= @test_unchanged = 'goodbye' %><%= render :partial => 'subfolder/hierarhical_with_child' %><%= @test_unchanged %>",
+      "render_partial/child/subfolder/_hierarhical_with_child.html.erb"    => "SubfolderBasicHierarhicalWithChildPartial!",
+      "render_partial/child/absolute.html.erb"               => "<%= @test_unchanged = 'goodbye' %><%= render :partial => '/render_partial/shared/absolute_partial' %><%= @test_unchanged %>",
+      "render_partial/shared/_absolute_partial.html.erb"    => "AbsolutePartial!"
     )]
 
     def html_with_json_inside_json
@@ -58,6 +64,22 @@ module RenderPartial
       get :overridden
       assert_response("goodbyeOverriddenPartial!goodbye")
     end
+
+    test "partial from contoller from subfolder gets picked" do
+      get :hierarhical
+      assert_response("goodbyeSubfolderBasicHierarhicalPartial!goodbye")
+    end
+
+    test "partial from child contoller from subfolder gets picked" do
+      get :hierarhical_with_child
+      assert_response("goodbyeSubfolderBasicHierarhicalWithChildPartial!goodbye")
+    end
+
+    test "partial with absolute path gets picked" do
+      get :absolute
+      assert_response("goodbyeAbsolutePartial!goodbye")
+    end
+
   end
 
 end

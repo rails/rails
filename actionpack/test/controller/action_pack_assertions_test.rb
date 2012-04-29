@@ -21,7 +21,7 @@ class ActionPackAssertionsController < ActionController::Base
     render :template => "test/hello_xml_world"
   end
 
-  def partial() render :partial => 'test/partial'; end
+  def partial() render :partial => '/test/partial'; end
 
   def redirect_internal() redirect_to "/nothing"; end
 
