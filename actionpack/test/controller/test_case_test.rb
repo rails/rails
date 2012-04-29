@@ -45,6 +45,10 @@ class TestCaseTest < ActionController::TestCase
       render :text => request.fullpath
     end
 
+    def test_format
+      render :text => request.format
+    end
+
     def test_query_string
       render :text => request.query_string
     end
@@ -579,14 +583,34 @@ XML
     )
   end
 
+  def test_params_passing_with_fixnums_when_not_html_request
+    get :test_params, :format => 'json', :count => 999
+    parsed_params = eval(@response.body)
+    assert_equal(
+      {'controller' => 'test_case_test/test', 'action' => 'test_params',
+       'format' => 'json', 'count' => 999 },
+      parsed_params
+    )
+  end
+
+  def test_params_passing_path_parameter_is_string_when_not_html_request
+    get :test_params, :format => 'json', :id => 1
+    parsed_params = eval(@response.body)
+    assert_equal(
+      {'controller' => 'test_case_test/test', 'action' => 'test_params',
+       'format' => 'json', 'id' => '1' },
+      parsed_params
+    )
+  end
+
   def test_params_passing_with_frozen_values
     assert_nothing_raised do
-      get :test_params, :frozen => 'icy'.freeze, :frozens => ['icy'.freeze].freeze
+      get :test_params, :frozen => 'icy'.freeze, :frozens => ['icy'.freeze].freeze, :deepfreeze => { :frozen => 'icy'.freeze }.freeze
     end
     parsed_params = eval(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
-       'frozen' => 'icy', 'frozens' => ['icy']},
+       'frozen' => 'icy', 'frozens' => ['icy'], 'deepfreeze' => { 'frozen' => 'icy' }},
       parsed_params
     )
   end
@@ -685,6 +709,20 @@ XML
     @request.env.delete("HTTPS")
     get :test_protocol
     assert_equal "http://", @response.body
+  end
+
+  def test_request_format
+    get :test_format, :format => 'html'
+    assert_equal 'text/html', @response.body
+
+    get :test_format, :format => 'json'
+    assert_equal 'application/json', @response.body
+
+    get :test_format, :format => 'xml'
+    assert_equal 'application/xml', @response.body
+
+    get :test_format
+    assert_equal 'text/html', @response.body
   end
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
