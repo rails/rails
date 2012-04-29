@@ -41,17 +41,15 @@ module ActionView
         def checked?(value)
           case value
           when TrueClass, FalseClass
-            value
+            value == !!@checked_value
           when NilClass
             false
-          when Integer
-            value != 0
           when String
             value == @checked_value
           when Array
             value.include?(@checked_value)
           else
-            value.to_i != 0
+            value.to_i == @checked_value.to_i
           end
         end
 
