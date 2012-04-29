@@ -66,9 +66,10 @@ module Rails
       end
     end
 
-    attr_accessor :assets, :sandbox, :queue
+    attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders
+    attr_writer :queue
 
     delegate :default_url_options, :default_url_options=, :to => :routes
 
