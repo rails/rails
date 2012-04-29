@@ -91,7 +91,10 @@ module ActionController
 
     add :json do |json, options|
       json = json.to_json(options) unless json.kind_of?(String)
-      json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
+      unless options[:callback].blank?
+        json = "#{options[:callback]}(#{json})"
+        self.content_type ||= Mime::JS
+      end
       self.content_type ||= Mime::JSON
       json
     end
