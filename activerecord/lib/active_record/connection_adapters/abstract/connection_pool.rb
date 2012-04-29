@@ -286,12 +286,10 @@ module ActiveRecord
       private
 
       def release(conn)
-        thread_id = nil
-
-        if @reserved_connections[current_connection_id] == conn
-          thread_id = current_connection_id
+        thread_id = if @reserved_connections[current_connection_id] == conn
+          current_connection_id
         else
-          thread_id = @reserved_connections.keys.find { |k|
+          @reserved_connections.keys.find { |k|
             @reserved_connections[k] == conn
           }
         end
