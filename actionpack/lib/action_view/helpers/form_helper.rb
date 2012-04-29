@@ -9,6 +9,7 @@ require 'active_support/core_ext/module/method_names'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/string/inflections'
 
 module ActionView
   # = Action View Form Helpers
@@ -959,8 +960,13 @@ module ActionView
             object_name = ActiveModel::Naming.param_key(object)
           end
 
-          builder = options[:builder] || ActionView::Base.default_form_builder
+          builder = options[:builder] || default_form_builder
           builder.new(object_name, object, self, options, block)
+        end
+
+        def default_form_builder
+          builder = ActionView::Base.default_form_builder
+          builder.respond_to?(:constantize) ? builder.constantize : builder
         end
     end
 

@@ -2033,6 +2033,23 @@ class FormHelperTest < ActionView::TestCase
     ActionView::Base.default_form_builder = old_default_form_builder
   end
 
+  def test_lazy_loading_default_form_builder
+    old_default_form_builder, ActionView::Base.default_form_builder =
+      ActionView::Base.default_form_builder, "FormHelperTest::LabelledFormBuilder"
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'patch') do
+      "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  ensure
+    ActionView::Base.default_form_builder = old_default_form_builder
+  end
+
   def test_fields_for_with_labelled_builder
     output_buffer = fields_for(:post, @post, :builder => LabelledFormBuilder) do |f|
       concat f.text_field(:title)

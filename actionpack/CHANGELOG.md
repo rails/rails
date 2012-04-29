@@ -1,5 +1,7 @@
 ## Rails 3.2.3 (unreleased) ##
 
+*   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*
+
 *   Fix #5632, render :inline set the proper rendered format. *Santiago Pastorino*
 
 *   Fix textarea rendering when using plugins like HAML. Such plugins encode the first newline character in the content. This issue was introduced in https://github.com/rails/rails/pull/5191 *James Coleman*
