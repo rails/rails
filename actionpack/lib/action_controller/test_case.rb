@@ -424,6 +424,11 @@ module ActionController
         process(action, "HEAD", parameters, session, flash)
       end
 
+      # Executes a request simulating OPTIONS HTTP method and set/volley the response
+      def options(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "OPTIONS")
+      end
+
       def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
         @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
         @request.env['HTTP_ACCEPT'] ||=  [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')

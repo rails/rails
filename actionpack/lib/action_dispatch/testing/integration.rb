@@ -56,6 +56,12 @@ module ActionDispatch
         process :delete, path, parameters, headers
       end
 
+      # Performs a OPTIONS request with the given parameters. See +#get+ for
+      # more details.
+      def options(path, parameters = nil, headers = nil)
+        process :options, path, parameters, headers
+      end
+
       # Performs a HEAD request with the given parameters. See +#get+ for more
       # details.
       def head(path, parameters = nil, headers = nil)
@@ -130,6 +136,12 @@ module ActionDispatch
       # See +request_via_redirect+ for more information.
       def delete_via_redirect(path, parameters = nil, headers = nil)
         request_via_redirect(:delete, path, parameters, headers)
+      end
+
+      # Performs a OPTIONS request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def options_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:options, path, parameters, headers)
       end
     end
 
