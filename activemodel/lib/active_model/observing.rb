@@ -195,7 +195,9 @@ module ActiveModel
       def observe(*models)
         models.flatten!
         models.collect! { |model| model.respond_to?(:to_sym) ? model.to_s.camelize.constantize : model }
-        redefine_method(:observed_classes) { models }
+        unless self.singleton_class.respond_to?(:observed_classes)
+          define_singleton_method(:observed_classes) { models }
+        end
       end
 
       # Returns an array of Classes to observe.
