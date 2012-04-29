@@ -21,7 +21,6 @@ class DurationTest < ActiveSupport::TestCase
     assert ActiveSupport::Duration === 1.day
     assert !(ActiveSupport::Duration === 1.day.to_i)
     assert !(ActiveSupport::Duration === 'foo')
-    assert !(ActiveSupport::Duration === ActiveSupport::BasicObject.new)
   end
 
   def test_equals
@@ -39,6 +38,21 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '10 years, 2 months, and 1 day',   (10.years + 2.months + 1.day).inspect
     assert_equal '7 days',                          1.week.inspect
     assert_equal '14 days',                         1.fortnight.inspect
+  end
+
+  def test_comparison
+    assert_equal(-1, 1.days <=> 1.year)
+    assert_equal 1, 3.years <=> 4.seconds
+    assert_equal 0, (60.seconds <=> 1.minute)
+  end
+
+  def test_unproxied_object_methods
+    assert 1.day.try(:is_a?, ActiveSupport::Duration),
+      "Duration#try should invoke Duration's instance methods"
+    assert 1.day.send(:is_a?, ActiveSupport::Duration),
+      "Duration#send should invoke Duration's instance methods"
+    assert 1.day.tap {|d| d }.is_a?(ActiveSupport::Duration),
+      "Duration#send should invoke Duration's instance methods"
   end
 
   def test_minus_with_duration_does_not_break_subtraction_of_date_from_date
@@ -131,7 +145,7 @@ class DurationTest < ActiveSupport::TestCase
       assert_equal Time.local(2009,3,29,0,0,0) + 1.day, Time.local(2009,3,30,0,0,0)
     end
   end
-  
+
   def test_delegation_with_block_works
     counter = 0
     assert_nothing_raised do

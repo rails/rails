@@ -8,7 +8,7 @@ module ActiveSupport
   # Example:
   #
   #   1.month.ago       # equivalent to Time.now.advance(:months => -1)
-  class Duration < BasicObject
+  class Duration
     attr_accessor :value, :parts
 
     def initialize(value, parts) #:nodoc:
@@ -83,6 +83,12 @@ module ActiveSupport
     def as_json(options = nil) #:nodoc:
       to_i
     end
+
+    PROXIED_OBJECT_METHODS = (Object.public_instance_methods | [:duplicable?]) -
+                               BasicObject.public_instance_methods -
+                               public_instance_methods(false) -
+                               [:object_id, :send, :tap, :try]
+    delegate(*PROXIED_OBJECT_METHODS, to: :value)
 
     protected
 
