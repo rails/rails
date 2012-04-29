@@ -63,7 +63,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get 'secure', :to => redirect("/secure/login")
 
       get 'mobile', :to => redirect(:subdomain => 'mobile')
+      get 'documentation', :to => redirect(:domain => 'example-documentation.com', :path => '')
+      get 'new_documentation', :to => redirect(:path => '/documentation/new')
       get 'super_new_documentation', :to => redirect(:host => 'super-docs.com')
+
+      get 'stores/:name',        :to => redirect(:subdomain => 'stores', :path => '/%{name}')
+      get 'stores/:name(*rest)', :to => redirect(:subdomain => 'stores', :path => '/%{name}%{rest}')
 
       get 'youtube_favorites/:youtube_id/:name', :to => redirect(YoutubeFavoritesRedirector)
 
@@ -693,9 +698,29 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     verify_redirect 'http://mobile.example.com/mobile'
   end
 
+  def test_redirect_hash_with_domain_and_path
+    get '/documentation'
+    verify_redirect 'http://www.example-documentation.com'
+  end
+
+  def test_redirect_hash_with_path
+    get '/new_documentation'
+    verify_redirect 'http://www.example.com/documentation/new'
+  end
+
   def test_redirect_hash_with_host
     get '/super_new_documentation?section=top'
     verify_redirect 'http://super-docs.com/super_new_documentation?section=top'
+  end
+
+  def test_redirect_hash_path_substitution
+    get '/stores/iernest'
+    verify_redirect 'http://stores.example.com/iernest'
+  end
+
+  def test_redirect_hash_path_substitution_with_catch_all
+    get '/stores/iernest/products'
+    verify_redirect 'http://stores.example.com/iernest/products'
   end
 
   def test_redirect_class
@@ -2459,14 +2484,20 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
 
       get "/foo/:id" => redirect("/foo/bar/%{id}")
+      get "/bar/:id" => redirect(:path => "/foo/bar/%{id}")
       get "/foo/bar/:id" => ok
     end
   end
 
   def app; Routes end
 
-  test "redirect escapes interpolated parameters" do
+  test "redirect escapes interpolated parameters with redirect proc" do
     get "/foo/1%3E"
+    verify_redirect "http://www.example.com/foo/bar/1%3E"
+  end
+
+  test "redirect escapes interpolated parameters with option proc" do
+    get "/bar/1%3E"
     verify_redirect "http://www.example.com/foo/bar/1%3E"
   end
 
