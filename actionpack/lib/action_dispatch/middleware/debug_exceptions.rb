@@ -18,7 +18,7 @@ module ActionDispatch
         if response[1]['X-Cascade'] == 'pass'
           body = response[2]
           body.close if body.respond_to?(:close)
-          raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
+          raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect} blah"
         end
       rescue Exception => exception
         raise exception if env['action_dispatch.show_exceptions'] == false

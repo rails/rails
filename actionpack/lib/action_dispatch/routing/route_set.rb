@@ -575,7 +575,7 @@ module ActionDispatch
         end
 
         def raise_routing_error
-          raise ActionController::RoutingError, "No route matches #{options.inspect}"
+          raise ActionController::RoutingError, "No route matches #{options.inspect} blah2"
         end
 
         def different_controller?
@@ -682,7 +682,7 @@ module ActionDispatch
           end
         end
 
-        raise ActionController::RoutingError, "No route matches #{path.inspect}"
+        raise ActionController::RoutingError, "No route matches #{path.inspect} blah3"
       end
 
       private

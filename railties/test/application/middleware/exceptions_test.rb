@@ -83,7 +83,7 @@ module ApplicationTests
 
       assert_nothing_raised(ActionController::RoutingError) do
         get '/foo'
-        assert_match "No route matches", last_response.body
+        assert_match "No route matches blah4", last_response.body
       end
     end
 
