@@ -48,6 +48,34 @@ module ActiveRecord
           column.type_cast(false)
         end
       end
+
+      def test_type_cast_time
+        column = Column.new("field", nil, "time")
+        assert_equal nil, column.type_cast('')
+        assert_equal nil, column.type_cast('  ')
+
+        time_string = Time.now.utc.strftime("%T")
+        assert_equal time_string, column.type_cast(time_string).strftime("%T")
+      end
+
+      def test_type_cast_datetime_and_timestamp
+        [Column.new("field", nil, "datetime"), Column.new("field", nil, "timestamp")].each do |column|
+          assert_equal nil, column.type_cast('')
+          assert_equal nil, column.type_cast('  ')
+
+          datetime_string = Time.now.utc.strftime("%FT%T")
+          assert_equal datetime_string, column.type_cast(datetime_string).strftime("%FT%T")
+        end
+      end
+
+      def test_type_cast_date
+        column = Column.new("field", nil, "date")
+        assert_equal nil, column.type_cast('')
+        assert_equal nil, column.type_cast('  ')
+
+        date_string = Time.now.utc.strftime("%F")
+        assert_equal date_string, column.type_cast(date_string).strftime("%F")
+      end
     end
   end
 end
