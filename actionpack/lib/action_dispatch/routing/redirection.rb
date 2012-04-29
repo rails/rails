@@ -1,4 +1,6 @@
 require 'action_dispatch/http/request'
+require 'active_support/core_ext/uri'
+require 'rack/utils'
 
 module ActionDispatch
   module Routing
@@ -43,7 +45,7 @@ module ActionDispatch
         path = args.shift
 
         path_proc = if path.is_a?(String)
-          proc { |params| (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params) }
+          proc { |params| (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % escape(params)) }
         elsif options.any?
           options_proc(options)
         elsif path.respond_to?(:call)
@@ -66,7 +68,7 @@ module ActionDispatch
             elsif params.empty? || !options[:path].match(/%\{\w*\}/)
               options.delete(:path)
             else
-              (options.delete(:path) % params)
+              (options.delete(:path) % escape_path(params))
             end
 
             default_options = {
@@ -103,6 +105,14 @@ module ActionDispatch
 
             [ status, headers, [body] ]
           end
+        end
+
+        def escape(params)
+          Hash[params.map{ |k,v| [k, Rack::Utils.escape(v)] }]
+        end
+
+        def escape_path(params)
+          Hash[params.map{ |k,v| [k, URI.parser.escape(v)] }]
         end
 
     end
