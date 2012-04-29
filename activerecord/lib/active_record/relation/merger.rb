@@ -43,7 +43,7 @@ module ActiveRecord
       def normal_values
         Relation::SINGLE_VALUE_METHODS +
           Relation::MULTI_VALUE_METHODS -
-          [:where, :order, :bind, :reverse_order, :lock, :create_with, :reordering]
+          [:where, :order, :bind, :reverse_order, :lock, :create_with, :reordering, :from]
       end
 
       def merge
@@ -76,6 +76,7 @@ module ActiveRecord
       end
 
       def merge_single_values
+        relation.from_value          = values[:from] unless relation.from_value
         relation.lock_value          = values[:lock] unless relation.lock_value
         relation.reverse_order_value = values[:reverse_order]
 
