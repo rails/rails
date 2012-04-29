@@ -83,9 +83,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 2, posts.first.comments.size
   end
 
-  def test_with_full_qualified_table_name
+  def test_with_fully_qualified_table_name
     assert_equal "Research", Emp.find(1, :include => :dept).dept.nombre
-    assert_equal "Research", Emp.find(:first, :include => :dept).dept.nombre
   end
 
   def test_loading_with_multiple_associations
