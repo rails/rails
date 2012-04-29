@@ -356,20 +356,6 @@ Client.where("created_at >= :start_date AND created_at <= :end_date",
 
 This makes for clearer readability if you have a large number of variable conditions.
 
-h5(#array-range_conditions). Range Conditions
-
-If you're looking for a range inside of a table (for example, users created in a certain timeframe) you can use the conditions option coupled with the +IN+ SQL statement for this. If you had two dates coming in from a controller you could do something like this to look for a range:
-
-<ruby>
-Client.where(:created_at => (params[:start_date].to_date)..(params[:end_date].to_date))
-</ruby>
-
-This query will generate something similar to the following SQL:
-
-<sql>
-  SELECT "clients".* FROM "clients" WHERE ("clients"."created_at" BETWEEN '2010-09-29' AND '2010-11-30')
-</sql>
-
 h4. Hash Conditions
 
 Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
@@ -391,8 +377,6 @@ Client.where('locked' => true)
 NOTE: The values cannot be symbols. For example, you cannot do +Client.where(:status => :active)+.
 
 h5(#hash-range_conditions). Range Conditions
-
-The good thing about this is that we can pass in a range for our fields without it generating a large query as shown in the preamble of this section.
 
 <ruby>
 Client.where(:created_at => (Time.now.midnight - 1.day)..Time.now.midnight)
