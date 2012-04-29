@@ -14,8 +14,8 @@ class FooObserver < ActiveModel::Observer
 
   attr_accessor :stub
 
-  def on_spec(record)
-    stub.event_with(record) if stub
+  def on_spec(record, *args)
+    stub.event_with(record, *args) if stub
   end
 
   def around_save(record)
@@ -131,6 +131,13 @@ class ObserverTest < ActiveModel::TestCase
     FooObserver.instance.stub = stub
     FooObserver.instance.stub.expects(:event_with).with(foo)
     Foo.send(:notify_observers, :on_spec, foo)
+  end
+
+  test "passes extra arguments" do
+    foo = Foo.new
+    FooObserver.instance.stub = stub
+    FooObserver.instance.stub.expects(:event_with).with(foo, :bar)
+    Foo.send(:notify_observers, :on_spec, foo, :bar)
   end
 
   test "skips nonexistent observer event" do
