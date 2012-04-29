@@ -93,7 +93,7 @@ module ActionDispatch
         path = args.shift
 
         block = lambda { |params, request|
-          (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params)
+          (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % escape(params))
         } if String === path
 
         block = path if path.respond_to? :call
@@ -110,6 +110,11 @@ module ActionDispatch
 
         Redirect.new status, block
       end
+
+      private
+        def escape(params)
+          Hash[params.map{ |k,v| [k, Rack::Utils.escape(v)] }]
+        end
     end
   end
 end

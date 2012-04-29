@@ -2635,3 +2635,31 @@ class TestMultipleNestedController < ActionDispatch::IntegrationTest
 
 end
 
+class TestRedirectInterpolation < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      get "/foo/:id" => redirect("/foo/bar/%{id}")
+      get "/foo/bar/:id" => ok
+    end
+  end
+
+  def app; Routes end
+
+  test "redirect escapes interpolated parameters" do
+    get "/foo/1%3E"
+    verify_redirect "http://www.example.com/foo/bar/1%3E"
+  end
+
+private
+  def verify_redirect(url, status=301)
+    assert_equal status, @response.status
+    assert_equal url, @response.headers['Location']
+    assert_equal expected_redirect_body(url), @response.body
+  end
+
+  def expected_redirect_body(url)
+    %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
+  end
+end
