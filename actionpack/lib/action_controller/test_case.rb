@@ -145,17 +145,23 @@ module ActionController
       extra_keys = routes.extra_keys(parameters)
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
-        if value.is_a? Fixnum
-          value = value.to_s
-        elsif value.is_a? Array
-          value = Result.new(value.map { |v| v.is_a?(String) ? v.dup : v })
-        elsif value.is_a? String
+        if value.is_a?(Array) && (value.frozen? || value.any?(&:frozen?))
+          value = value.map{ |v| v.duplicable? ? v.dup : v }
+        elsif value.is_a?(Hash) && (value.frozen? || value.any?{ |k,v| v.frozen? })
+          value = Hash[value.map{ |k,v| [k, v.duplicable? ? v.dup : v] }]
+        elsif value.frozen? && value.duplicable?
           value = value.dup
         end
 
         if extra_keys.include?(key.to_sym)
           non_path_parameters[key] = value
         else
+          if value.is_a?(Array)
+            value = Result.new(value.map(&:to_param))
+          else
+            value = value.to_param
+          end
+
           path_parameters[key.to_s] = value
         end
       end
@@ -411,7 +417,7 @@ module ActionController
       def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
-        parameters = paramify_values(parameters)
+        parameters = paramify_values(parameters) if html_format?(parameters)
 
         # Sanity check for required instance variables so we can give an
         # understandable error message.
@@ -442,7 +448,6 @@ module ActionController
         @request.session["flash"].sweep
 
         @controller.request = @request
-        @controller.params.merge!(parameters)
         build_request_uri(action, parameters)
         @controller.class.class_eval { include Testing }
         @controller.recycle!
@@ -498,6 +503,12 @@ module ActionController
           @request.env["PATH_INFO"] = url
           @request.env["QUERY_STRING"] = query_string || ""
         end
+      end
+
+      def html_format?(parameters)
+        return true unless parameters.is_a?(Hash)
+        format = Mime[parameters[:format]]
+        format.nil? || format.html?
       end
     end
 
