@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Change mimetype to Mime::JS if JSONP is used *omjokine*
+
 *   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*
 
 *   Session arguments passed to `process` calls in functional tests are now merged into
