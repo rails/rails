@@ -42,7 +42,10 @@ module ActionDispatch
           :application_trace => wrapper.application_trace,
           :framework_trace => wrapper.framework_trace,
           :full_trace => wrapper.full_trace,
-          :routes => formatted_routes(exception)
+          :routes => formatted_routes(exception),
+          :source_extract => wrapper.source_extract,
+          :line_number => wrapper.line_number,
+          :file => wrapper.file
         )
 
         file = "rescues/#{wrapper.rescue_template}"

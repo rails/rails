@@ -1,0 +1,8 @@
+<% if @source_extract %>
+Extracted source (around line <strong>#<%= @line_number %></strong>):
+<pre>
+<% @source_extract.each do |line, source| %>
+<%= "#{(@line_number == line) ? "> " : "  "}#{line}: #{source}" -%>
+<% end %>
+</pre>
+<% end %>
