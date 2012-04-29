@@ -1,4 +1,9 @@
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.4 (unreleased) ##
+
+*  Upgrade sprockets dependency to 2.2.0, this version fixes encoding issues under Ruby 1.9. *Guillermo Iguaran*
+
+
+## Rails 3.2.3 (March 30, 2012) ##
 
 *   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*
 
