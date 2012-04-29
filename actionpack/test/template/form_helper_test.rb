@@ -2041,8 +2041,8 @@ class FormHelperTest < ActionView::TestCase
       concat f.text_field(:title)
     end
 
-    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'patch') do
-      "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>"
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>"
     end
 
     assert_dom_equal expected, output_buffer
