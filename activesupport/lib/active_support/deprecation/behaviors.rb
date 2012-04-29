@@ -11,12 +11,30 @@ module ActiveSupport
         @behavior ||= [DEFAULT_BEHAVIORS[:stderr]]
       end
 
-      # Sets the behavior to the specified value. Can be a single value or an array.
+      # Sets the behavior to the specified value. Can be a single value, array, or
+      # and object that responds to +call+.
+      #
+      # Available options:
+      #
+      # [+stderr+]  Log all deprecation warnings to $stderr
+      # [+log+]  Log all deprecation warnins to +Rails.logger+
+      # [+notify] Use +ActiveSupport::Notifications+ to notify of +deprecation.rails+.
+      # [+silence+] Do nothing
+      #
+      # Note, setting behaviors only effects deprecations that happen afterwards.
+      # For example, All gems are required before Rails boots. Those gems may
+      # raise deprecation warnings according to the default setting. Setting
+      # behavior in a config file only effects code after boot time. So, the
+      # set behavior applies to deprecations raised at runtime.
       #
       # Examples
       #
       #   ActiveSupport::Deprecation.behavior = :stderr
       #   ActiveSupport::Deprecation.behavior = [:stderr, :log]
+      #   ActiveSupport::Deprecation.behavior = proc { |message, callstack| 
+      #     # custom stuff
+      #   }
+      #   ActiveSupport::Deprecation.behavior = MyCustomHandler
       def behavior=(behavior)
         @behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || b }
       end
