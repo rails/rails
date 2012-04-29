@@ -59,8 +59,9 @@ module RailsGuides
 
     def title_to_idx(title)
       idx = title.strip.parameterize.sub(/^\d+/, '')
-      if warnings && idx.blank?
-        puts "BLANK ID: please put an explicit ID for section #{title}, as in h5(#my-id)"
+      if idx.blank?
+        puts "BLANK ID: please put an explicit ID for section #{title}, as in h5(#my-id)" if warnings
+        idx = ("id-"+Digest::MD5.hexdigest(title.strip)).parameterize.sub(/^\d+/, '')
       end
       idx
     end
