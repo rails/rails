@@ -41,6 +41,16 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '14 days',                         1.fortnight.inspect
   end
 
+  def test_try
+    assert 1.day.try(:is_a?, ActiveSupport::Duration),
+      "Duration#try should invoke Duration's instance methods"
+  end
+
+  def test_send
+    assert 1.day.send(:is_a?, ActiveSupport::Duration),
+      "Duration#send should invoke Duration's instance methods"
+  end
+
   def test_minus_with_duration_does_not_break_subtraction_of_date_from_date
     assert_nothing_raised { Date.today - Date.today }
   end
