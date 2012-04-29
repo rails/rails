@@ -692,6 +692,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::ActiveRecordError) { Author.limit(10).delete_all }
   end
 
+  def test_select_takes_a_variable_list_of_args
+    assert_nothing_raised do
+      Developer.select(:name)
+      Developer.select(:name, :salary)
+    end
+  end
+
   def test_select_argument_error
     assert_raises(ArgumentError) { Developer.select }
   end
