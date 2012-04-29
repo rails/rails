@@ -75,12 +75,7 @@ module ActionController
     def record_key_for_dom_id(record)
       record = record.to_model if record.respond_to?(:to_model)
       key = record.to_key
-      key ? sanitize_dom_id(key.join('_')) : key
-    end
-
-    # Replaces characters that are invalid in HTML DOM ids with valid ones.
-    def sanitize_dom_id(candidate_id)
-      candidate_id # TODO implement conversion to valid DOM id values
+      key ? key.join('_') : key
     end
   end
 end
