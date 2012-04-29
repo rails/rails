@@ -23,23 +23,6 @@ module ActionDispatch
         end
 
         def url_for(options = {})
-          if options[:host].blank? && options[:only_path].blank?
-            raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
-          end
-
-          rewritten_url = ""
-
-          unless options[:only_path]
-            unless options[:protocol] == false
-              rewritten_url << (options[:protocol] || "http")
-              rewritten_url << ":" unless rewritten_url.match(%r{:|//})
-            end
-            rewritten_url << "//" unless rewritten_url.match("//")
-            rewritten_url << rewrite_authentication(options)
-            rewritten_url << host_or_subdomain_and_domain(options)
-            rewritten_url << ":#{options.delete(:port)}" if options[:port]
-          end
-
           path = ""
           path << options.delete(:script_name).to_s.chomp("/")
           path << options.delete(:path).to_s
@@ -47,13 +30,35 @@ module ActionDispatch
           params = options[:params] || {}
           params.reject! {|k,v| v.to_param.nil? }
 
-          rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
-          rewritten_url << "?#{params.to_query}" unless params.empty?
-          rewritten_url << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
-          rewritten_url
+          result = build_host_url(options)
+
+          result << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
+          result << "?#{params.to_query}" unless params.empty?
+          result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
+          result
         end
 
         private
+
+        def build_host_url(options)
+          if options[:host].blank? && options[:only_path].blank?
+            raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
+          end
+
+          result = ""
+
+          unless options[:only_path]
+            unless options[:protocol] == false
+              result << (options[:protocol] || "http")
+              result << ":" unless result.match(%r{:|//})
+            end
+            result << "//" unless result.match("//")
+            result << rewrite_authentication(options)
+            result << host_or_subdomain_and_domain(options)
+            result << ":#{options.delete(:port)}" if options[:port]
+          end
+          result
+        end
 
         def named_host?(host)
           host && IP_HOST_REGEXP !~ host

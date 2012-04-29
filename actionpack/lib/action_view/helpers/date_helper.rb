@@ -12,11 +12,11 @@ module ActionView
     # elements. All of the select-type methods share a number of common options that are as follows:
     #
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
-    # would give birthday[month] instead of date[month] if passed to the <tt>select_month</tt> method.
+    # would give \birthday[month] instead of \date[month] if passed to the <tt>select_month</tt> method.
     # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true,
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
-    #   of "date[month]".
+    #   of \date[month].
     module DateHelper
       # Reports the approximate distance in time between two Time, Date or DateTime objects or integers as seconds.
       # Set <tt>include_seconds</tt> to true if you want more detailed approximations when distance < 1 min, 29 secs.
@@ -64,11 +64,15 @@ module ActionView
       #   distance_of_time_in_words(to_time, from_time, true)     # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)           # => less than a minute
       #
+      #   distance_of_time_in_words(70)         # => 1 minute
+      #   distance_of_time_in_words(60*60)      # => about 1 hour
+      #
       def distance_of_time_in_words(from_time, to_time = 0, include_seconds = false, options = {})
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
-        distance_in_minutes = (((to_time - from_time).abs)/60).round
-        distance_in_seconds = ((to_time - from_time).abs).round
+        from_time, to_time = to_time, from_time if from_time > to_time
+        distance_in_minutes = ((to_time - from_time)/60.0).round
+        distance_in_seconds = (to_time - from_time).round
 
         I18n.with_options :locale => options[:locale], :scope => :'datetime.distance_in_words' do |locale|
           case distance_in_minutes
@@ -94,18 +98,22 @@ module ActionView
             when 43200..86399    then locale.t :about_x_months, :count => 1
             when 86400..525599   then locale.t :x_months,       :count => (distance_in_minutes.to_f / 43200.0).round
             else
-              fyear = from_time.year
-              fyear += 1 if from_time.month >= 3
-              tyear = to_time.year
-              tyear -= 1 if to_time.month < 3
-              leap_years = (fyear > tyear) ? 0 : (fyear..tyear).count{|x| Date.leap?(x)}
-              minute_offset_for_leap_year = leap_years * 1440
-              # Discount the leap year days when calculating year distance.
-              # e.g. if there are 20 leap year days between 2 dates having the same day
-              # and month then the based on 365 days calculation
-              # the distance in years will come out to over 80 years when in written
-              # english it would read better as about 80 years.
-              minutes_with_offset         = distance_in_minutes - minute_offset_for_leap_year
+              if from_time.acts_like?(:time) && to_time.acts_like?(:time)
+                fyear = from_time.year
+                fyear += 1 if from_time.month >= 3
+                tyear = to_time.year
+                tyear -= 1 if to_time.month < 3
+                leap_years = (fyear > tyear) ? 0 : (fyear..tyear).count{|x| Date.leap?(x)}
+                minute_offset_for_leap_year = leap_years * 1440
+                # Discount the leap year days when calculating year distance.
+                # e.g. if there are 20 leap year days between 2 dates having the same day
+                # and month then the based on 365 days calculation
+                # the distance in years will come out to over 80 years when in written
+                # english it would read better as about 80 years.
+                minutes_with_offset = distance_in_minutes - minute_offset_for_leap_year
+              else
+                minutes_with_offset = distance_in_minutes
+              end
               remainder                   = (minutes_with_offset % 525600)
               distance_in_years           = (minutes_with_offset / 525600)
               if remainder < 131400
@@ -795,7 +803,7 @@ module ActionView
       private
         %w( sec min hour day month year ).each do |method|
           define_method(method) do
-            @datetime.kind_of?(Fixnum) ? @datetime : @datetime.send(method) if @datetime
+            @datetime.kind_of?(Numeric) ? @datetime : @datetime.send(method) if @datetime
           end
         end
 

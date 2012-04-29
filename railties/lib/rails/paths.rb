@@ -1,4 +1,4 @@
-require 'set'
+require "pathname"
 
 module Rails
   module Paths
@@ -10,7 +10,7 @@ module Rails
     #   root.add "app/controllers", :eager_load => true
     #
     # The command above creates a new root object and add "app/controllers" as a path.
-    # This means we can get a +Rails::Paths::Path+ object back like below:
+    # This means we can get a <tt>Rails::Paths::Path</tt> object back like below:
     #
     #   path = root["app/controllers"]
     #   path.eager_load?               # => true
@@ -47,15 +47,13 @@ module Rails
       attr_accessor :path
 
       def initialize(path)
-        raise "Argument should be a String of the physical root path" if path.is_a?(Array)
         @current = nil
         @path = path
         @root = {}
       end
 
       def []=(path, value)
-        value = Path.new(self, path, [value].flatten) unless value.is_a?(Path)
-        @root[path] = value
+        add(path, :with => value)
       end
 
       def add(path, options={})
@@ -118,7 +116,7 @@ module Rails
     class Path
       include Enumerable
 
-      attr_reader :path
+      attr_reader :path, :root
       attr_accessor :glob
 
       def initialize(root, current, paths, options = {})
@@ -164,7 +162,7 @@ module Rails
       end
 
       def each(&block)
-        @paths.each &block
+        @paths.each(&block)
       end
 
       def <<(path)
@@ -182,6 +180,14 @@ module Rails
 
       def to_ary
         @paths
+      end
+
+      def paths
+        raise "You need to set a path root" unless @root.path
+
+        map do |p|
+          Pathname.new(@root.path).join(p)
+        end
       end
 
       # Expands all paths against the root and return all unique values.

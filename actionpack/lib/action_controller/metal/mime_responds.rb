@@ -74,7 +74,7 @@ module ActionController #:nodoc:
     #
     #     respond_to do |format|
     #       format.html
-    #       format.xml { render :xml => @people.to_xml }
+    #       format.xml { render :xml => @people }
     #     end
     #   end
     #
@@ -389,7 +389,7 @@ module ActionController #:nodoc:
     #
     #   respond_to do |format|
     #     format.html
-    #     format.xml { render :xml => @people.to_xml }
+    #     format.xml { render :xml => @people }
     #   end
     #
     # In this usage, the argument passed to the block (+format+ above) is an

@@ -22,7 +22,7 @@ module Rails
       initializer :add_builtin_route do |app|
         if Rails.env.development?
           app.routes.append do
-            match '/rails/info/properties' => "rails/info#properties"
+            get '/rails/info/properties' => "rails/info#properties"
           end
         end
       end
@@ -91,6 +91,13 @@ module Rails
       initializer :disable_dependency_loading do
         if config.cache_classes && !config.dependency_loading
           ActiveSupport::Dependencies.unhook!
+        end
+      end
+
+      initializer :activate_queue_consumer do |app|
+        if config.queue == Queue
+          consumer = Rails::Queueing::ThreadedConsumer.start(app.queue)
+          at_exit { consumer.shutdown }
         end
       end
     end

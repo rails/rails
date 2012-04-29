@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `index` method to FormBuilder class. *Jorge Bejar*
+
+*   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
+
+*   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`
+    to `false`. This change breaks remote forms that need to work also without javascript,
+    so if you need such behavior, you can either set it to `true` or explicitly pass
+    `:authenticity_token => true` in form options
+
 *   Added ActionDispatch::SSL middleware that when included force all the requests to be under HTTPS protocol. *Rafael Mendonça França*
 
 *   Add `include_hidden` option to select tag. With `:include_hidden => false` select with `multiple` attribute doesn't generate hidden input with blank value. *Vasiliy Ermolovich*
@@ -126,7 +135,9 @@
     HTML5 `mark` element. *Brian Cardarella*
 
 
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.3 (March 30, 2012) ##
+
+*   Add `config.action_view.embed_authenticity_token_in_remote_forms` (defaults to true) which allows to set if authenticity token will be included by default in remote forms. If you change it to false, you can still force authenticity token by passing `:authenticity_token => true` in form options *Piotr Sarnacki*
 
 *   Do not include the authenticity token in forms where remote: true as ajax forms use the meta-tag value *DHH*
 

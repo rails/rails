@@ -1,5 +1,49 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added an :index option to automatically create indexes for references
+    and belongs_to statements in migrations.
+
+    The `references` and `belongs_to` methods now support an `index`
+    option that receives either a boolean value or an options hash
+    that is identical to options available to the add_index method:
+
+      create_table :messages do |t|
+        t.references :person, :index => true
+      end
+
+      Is the same as:
+
+      create_table :messages do |t|
+        t.references :person
+      end
+      add_index :messages, :person_id
+
+    Generators have also been updated to use the new syntax.
+
+    [Joshua Wood]
+
+*   Added bang methods for mutating `ActiveRecord::Relation` objects.
+    For example, while `foo.where(:bar)` will return a new object
+    leaving `foo` unchanged, `foo.where!(:bar)` will mutate the foo
+    object
+
+    *Jon Leighton*
+
+*   Added `#find_by` and `#find_by!` to mirror the functionality
+    provided by dynamic finders in a way that allows dynamic input more
+    easily:
+
+        Post.find_by name: 'Spartacus', rating: 4
+        Post.find_by "published_at < ?", 2.weeks.ago
+        Post.find_by! name: 'Spartacus'
+
+    *Jon Leighton*
+
+*   Added ActiveRecord::Base#slice to return a hash of the given methods with
+    their names as keys and returned values as values.
+
+    *Guillermo Iguaran*
+
 *   Deprecate eager-evaluated scopes.
 
     Don't use this:
@@ -195,7 +239,7 @@
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
 
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.3 (March 30, 2012) ##
 
 *   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
 

@@ -15,7 +15,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
+    #   # => <link href="/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
     #
     # === Using asset hosts
     #
@@ -34,7 +34,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="http://assets.example.com/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
+    #   # => <link href="http://assets.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
     #
     # Browsers typically open at most two simultaneous connections to a single
     # host, which means your assets often have to wait for other assets to finish
@@ -47,7 +47,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="http://assets0.example.com/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets2.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
+    #   # => <link href="http://assets2.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
     #
     # To do this, you can either setup four actual hosts, or you can use wildcard
     # DNS to CNAME the wildcard to a single asset host. You can read more about
@@ -66,7 +66,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="http://assets1.example.com/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets2.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
+    #   # => <link href="http://assets2.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
     #
     # The example above generates "http://assets1.example.com" and
     # "http://assets2.example.com". This option is useful for example if
@@ -86,7 +86,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="http://images.example.com/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
+    #   # => <link href="http://assets.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
     #
     # Alternatively you may ask for a second parameter +request+. That one is
     # particularly useful for serving assets from an SSL-protected page. The
@@ -163,7 +163,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="/release-12345/images/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="/release-12345/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
+    #   # => <link href="/release-12345/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
     #
     # Changing the asset_path does require that your web servers have
     # knowledge of the asset template paths that you rewrite to so it's not
@@ -385,7 +385,7 @@ module ActionView
       #  image_tag("mouse.png", :mouseover => image_path("mouse_over.png")) # =>
       #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
       def image_tag(source, options={})
-        options = options.dup.symbolize_keys!
+        options = options.symbolize_keys
 
         src = options[:src] = path_to_image(source)
 
@@ -442,7 +442,7 @@ module ActionView
       #    <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       #  video_tag(["trailer.ogg", "trailer.flv"]) # =>
       #    <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
-      #  video_tag(["trailer.ogg", "trailer.flv"] :size => "160x120") # =>
+      #  video_tag(["trailer.ogg", "trailer.flv"], :size => "160x120") # =>
       #    <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       def video_tag(*sources)
         multiple_sources_tag('video', sources) do |options|
@@ -478,7 +478,7 @@ module ActionView
         end
 
         def multiple_sources_tag(type, sources)
-          options = sources.extract_options!.dup.symbolize_keys!
+          options = sources.extract_options!.symbolize_keys
           sources.flatten!
 
           yield options if block_given?

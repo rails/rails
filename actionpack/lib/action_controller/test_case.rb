@@ -27,13 +27,13 @@ module ActionController
         path = payload[:virtual_path]
         next unless path
         partial = path =~ /^.*\/_[^\/]*$/
+
         if partial
           @partials[path] += 1
           @partials[path.split("/").last] += 1
-          @templates[path] += 1
-        else
-          @templates[path] += 1
         end
+
+        @templates[path] += 1
       end
     end
 
@@ -140,9 +140,6 @@ module ActionController
 
     class Result < ::Array #:nodoc:
       def to_s() join '/' end
-      def self.new_escaped(strings)
-        new strings.collect {|str| uri_parser.unescape str}
-      end
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})

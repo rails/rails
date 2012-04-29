@@ -125,13 +125,33 @@ class DateHelperTest < ActionView::TestCase
     start_date = Date.new 1982, 12, 3
     end_date = Date.new 2010, 11, 30
     assert_equal("almost 28 years", distance_of_time_in_words(start_date, end_date))
+    assert_equal("almost 28 years", distance_of_time_in_words(end_date, start_date))
   end
 
   def test_distance_in_words_with_integers
-    assert_equal "less than a minute", distance_of_time_in_words(59)
+    assert_equal "1 minute", distance_of_time_in_words(59)
     assert_equal "about 1 hour", distance_of_time_in_words(60*60)
-    assert_equal "less than a minute", distance_of_time_in_words(0, 59)
+    assert_equal "1 minute", distance_of_time_in_words(0, 59)
     assert_equal "about 1 hour", distance_of_time_in_words(60*60, 0)
+    assert_equal "about 3 years", distance_of_time_in_words(10**8)
+    assert_equal "about 3 years", distance_of_time_in_words(0, 10**8)
+  end
+
+  def test_distance_in_words_with_times
+    assert_equal "1 minute", distance_of_time_in_words(30.seconds)
+    assert_equal "1 minute", distance_of_time_in_words(59.seconds)
+    assert_equal "2 minutes", distance_of_time_in_words(119.seconds)
+    assert_equal "2 minutes", distance_of_time_in_words(1.minute + 59.seconds)
+    assert_equal "3 minutes", distance_of_time_in_words(2.minute + 30.seconds)
+    assert_equal "44 minutes", distance_of_time_in_words(44.minutes + 29.seconds)
+    assert_equal "about 1 hour", distance_of_time_in_words(44.minutes + 30.seconds)
+    assert_equal "about 1 hour", distance_of_time_in_words(60.minutes)
+
+    # include seconds
+    assert_equal "half a minute", distance_of_time_in_words(39.seconds, 0, true)
+    assert_equal "less than a minute", distance_of_time_in_words(40.seconds, 0, true)
+    assert_equal "less than a minute", distance_of_time_in_words(59.seconds, 0, true)
+    assert_equal "1 minute", distance_of_time_in_words(60.seconds, 0, true)
   end
 
   def test_time_ago_in_words
@@ -2130,6 +2150,18 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, datetime_select("post", "updated_at", { :date_separator => " / ", :datetime_separator => " , ", :time_separator => " - ", :include_seconds => true })
+  end
+
+  def test_datetime_select_with_integer
+    @post = Post.new
+    @post.updated_at = 3
+    datetime_select("post", "updated_at")
+  end
+
+  def test_datetime_select_with_infinity # Float
+    @post = Post.new
+    @post.updated_at = (-1.0/0)
+    datetime_select("post", "updated_at")
   end
 
   def test_datetime_select_with_default_prompt

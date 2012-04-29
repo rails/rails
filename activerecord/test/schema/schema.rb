@@ -91,6 +91,7 @@ ActiveRecord::Schema.define do
 
   create_table :booleans, :force => true do |t|
     t.boolean :value
+    t.boolean :has_fun, :null => false, :default => false
   end
 
   create_table :bulbs, :force => true do |t|
@@ -438,6 +439,7 @@ ActiveRecord::Schema.define do
 
   create_table :parrots, :force => true do |t|
     t.column :name, :string
+    t.column :color, :string
     t.column :parrot_sti_class, :string
     t.column :killer_id, :integer
     t.column :created_at, :datetime
@@ -466,6 +468,11 @@ ActiveRecord::Schema.define do
     t.references :best_friend
     t.references :best_friend_of
     t.timestamps
+  end
+
+  create_table :peoples_treasures, :id => false, :force => true do |t|
+    t.column :rich_person_id, :integer
+    t.column :treasure_id, :integer
   end
 
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|

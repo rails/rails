@@ -71,7 +71,7 @@ module ActiveRecord
       end
 
       def reset
-        @loaded = false
+        super
         @target = []
       end
 

@@ -42,7 +42,7 @@ h4. Install Git
 
 Ruby on Rails uses git for source code control. The "git homepage":http://git-scm.com/ has installation instructions. There are a variety of resources on the net that will help you get familiar with git:
 
-* "Everyday Git":http://www.kernel.org/pub/software/scm/git/docs/everyday.html will teach you just enough about git to get by.
+* "Everyday Git":http://schacon.github.com/git/everyday.html will teach you just enough about git to get by.
 * The "PeepCode screencast":https://peepcode.com/products/git on git ($9) is easier to follow.
 * "GitHub":http://help.github.com offers links to a variety of git resources.
 * "Pro Git":http://progit.org/book/ is an entire book about git with a Creative Commons license.
@@ -103,6 +103,13 @@ If you want to run the tests located in a specific directory use the +TEST_DIR+ 
 <shell>
 $ cd railties
 $ TEST_DIR=generators bundle exec rake test
+</shell>
+
+You can run any single test separately too:
+
+<shell>
+$ cd actionpack
+$ ruby -Itest test/template/form_helper_test.rb
 </shell>
 
 h4. Warnings
@@ -200,6 +207,12 @@ $ bundle exec rake test
 </shell>
 
 will now run the four of them in turn.
+
+You can also run any single test separately:
+
+<shell>
+$ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.rb
+</shell>
 
 You can invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql+ also. See the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/travis.rb+ for the test suite run by the continuous integration server.
 

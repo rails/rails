@@ -124,19 +124,7 @@ module ActiveRecord
     # that no changes should be made (since they can't be persisted).
     def destroy
       destroy_associations
-
-      if persisted?
-        pk         = self.class.primary_key
-        column     = self.class.columns_hash[pk]
-        substitute = connection.substitute_at(column, 0)
-
-        relation = self.class.unscoped.where(
-          self.class.arel_table[pk].eq(substitute))
-
-        relation.bind_values = [[column, id]]
-        relation.delete_all
-      end
-
+      destroy_row if persisted?
       @destroyed = true
       freeze
     end
@@ -190,7 +178,7 @@ module ActiveRecord
       verify_readonly_attribute(name)
       raise ActiveRecordError, "can not update on a new record object" unless persisted?
       raw_write_attribute(name, value)
-      self.class.update_all({ name => value }, self.class.primary_key => id) == 1
+      self.class.where(self.class.primary_key => id).update_all(name => value) == 1
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -325,7 +313,7 @@ module ActiveRecord
 
         @changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
-        self.class.unscoped.update_all(changes, { primary_key => self[primary_key] }) == 1
+        self.class.unscoped.where(primary_key => self[primary_key]).update_all(changes) == 1
       end
     end
 
@@ -333,6 +321,22 @@ module ActiveRecord
 
     # A hook to be overridden by association modules.
     def destroy_associations
+    end
+
+    def destroy_row
+      relation_for_destroy.delete_all
+    end
+
+    def relation_for_destroy
+      pk         = self.class.primary_key
+      column     = self.class.columns_hash[pk]
+      substitute = connection.substitute_at(column, 0)
+
+      relation = self.class.unscoped.where(
+        self.class.arel_table[pk].eq(substitute))
+
+      relation.bind_values = [[column, id]]
+      relation
     end
 
     def create_or_update

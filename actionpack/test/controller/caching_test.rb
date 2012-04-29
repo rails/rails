@@ -102,8 +102,8 @@ class PageCachingTest < ActionController::TestCase
   def test_page_caching_resources_saves_to_correct_path_with_extension_even_if_default_route
     with_routing do |set|
       set.draw do
-        match 'posts.:format', :to => 'posts#index', :as => :formatted_posts
-        match '/', :to => 'posts#index', :as => :main
+        get 'posts.:format', :to => 'posts#index', :as => :formatted_posts
+        get '/', :to => 'posts#index', :as => :main
       end
       @params[:format] = 'rss'
       assert_equal '/posts.rss', @routes.url_for(@params)
@@ -560,7 +560,7 @@ class ActionCacheTest < ActionController::TestCase
   def test_xml_version_of_resource_is_treated_as_different_cache
     with_routing do |set|
       set.draw do
-        match ':controller(/:action(.:format))'
+        get ':controller(/:action(.:format))'
       end
 
       get :index, :format => 'xml'

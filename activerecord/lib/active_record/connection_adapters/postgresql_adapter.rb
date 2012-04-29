@@ -17,7 +17,7 @@ module ActiveRecord
       # Forward any unused config params to PGconn.connect.
       [:statement_limit, :encoding, :min_messages, :schema_search_path,
        :schema_order, :adapter, :pool, :wait_timeout, :template,
-       :reaping_frequency].each do |key|
+       :reaping_frequency, :insert_returning].each do |key|
         conn_params.delete key
       end
       conn_params.delete_if { |k,v| v.nil? }
@@ -88,9 +88,8 @@ module ActiveRecord
 
         def escape_hstore(value)
             value.nil?         ? 'NULL'
-          : value =~ /[=\s,>]/ ? '"%s"' % value.gsub(/(["\\])/, '\\\\\1')
           : value == ""        ? '""'
-          :                      value.to_s.gsub(/(["\\])/, '\\\\\1')
+          :                      '"%s"' % value.to_s.gsub(/(["\\])/, '\\\\\1')
         end
       end
       # :startdoc:
@@ -259,6 +258,8 @@ module ActiveRecord
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
+    # * <tt>:insert_returning</tt> - An optional boolean to control the use or <tt>RETURNING</tt> for <tt>INSERT<tt> statements
+    #   defaults to true.
     #
     # Any further options are used as connection parameters to libpq. See
     # http://www.postgresql.org/docs/9.1/static/libpq-connect.html for the
@@ -406,6 +407,7 @@ module ActiveRecord
 
         initialize_type_map
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
+        @use_insert_returning = @config.key?(:insert_returning) ? @config[:insert_returning] : true
       end
 
       # Clears the prepared statements cache.
@@ -667,8 +669,11 @@ module ActiveRecord
           pk = primary_key(table_ref) if table_ref
         end
 
-        if pk
+        if pk && use_insert_returning?
           select_value("#{sql} RETURNING #{quote_column_name(pk)}")
+        elsif pk
+          super
+          last_insert_id_value(sequence_name || default_sequence_name(table_ref, pk))
         else
           super
         end
@@ -783,9 +788,25 @@ module ActiveRecord
           pk = primary_key(table_ref) if table_ref
         end
 
-        sql = "#{sql} RETURNING #{quote_column_name(pk)}" if pk
+        if pk && use_insert_returning?
+          sql = "#{sql} RETURNING #{quote_column_name(pk)}"
+        end
 
         [sql, binds]
+      end
+
+      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
+        val = exec_query(sql, name, binds)
+        if !use_insert_returning? && pk
+          unless sequence_name
+            table_ref = extract_table_ref_from_insert_sql(sql)
+            sequence_name = default_sequence_name(table_ref, pk)
+            return val unless sequence_name
+          end
+          last_insert_id_result(sequence_name)
+        else
+          val
+        end
       end
 
       # Executes an UPDATE query and returns the number of affected tuples.
@@ -1028,7 +1049,9 @@ module ActiveRecord
 
       # Returns the sequence name for a table's primary key or some other specified key.
       def default_sequence_name(table_name, pk = nil) #:nodoc:
-        serial_sequence(table_name, pk || 'id').split('.').last
+        result = serial_sequence(table_name, pk || 'id')
+        return nil unless result
+        result.split('.').last
       rescue ActiveRecord::StatementInvalid
         "#{table_name}_#{pk || 'id'}_seq"
       end
@@ -1236,6 +1259,10 @@ module ActiveRecord
         end
       end
 
+      def use_insert_returning?
+        @use_insert_returning
+      end
+
       protected
         # Returns the version of the connected PostgreSQL server.
         def postgresql_version
@@ -1365,8 +1392,15 @@ module ActiveRecord
 
         # Returns the current ID of a table's sequence.
         def last_insert_id(sequence_name) #:nodoc:
-          r = exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
-          Integer(r.rows.first.first)
+          Integer(last_insert_id_value(sequence_name))
+        end
+
+        def last_insert_id_value(sequence_name)
+          last_insert_id_result(sequence_name).rows.first.first
+        end
+
+        def last_insert_id_result(sequence_name) #:nodoc:
+          exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
         end
 
         # Executes a SELECT query and returns the results, performing any data type

@@ -245,12 +245,11 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer
-    PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
+    PREFIXED_PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
 
     def initialize(*)
       super
       @context_prefix = @lookup_context.prefixes.first
-      @partial_names = PARTIAL_NAMES[@context_prefix]
     end
 
     def render(context, options, block)
@@ -423,7 +422,15 @@ module ActionView
         raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.")
       end
 
-      @partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
+      if @view.prefix_partial_path_with_controller_namespace
+        prefixed_partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
+      else
+        path
+      end
+    end
+
+    def prefixed_partial_names
+      @prefixed_partial_names ||= PREFIXED_PARTIAL_NAMES[@context_prefix]
     end
 
     def merge_prefix_into_object_path(prefix, object_path)
@@ -444,7 +451,7 @@ module ActionView
     end
 
     def retrieve_variable(path)
-      variable = @options[:as].try(:to_sym) || path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
+      variable = @options.fetch(:as) { path[%r'_?(\w+)(\.\w+)*$', 1] }.try(:to_sym)
       variable_counter = :"#{variable}_counter" if @collection
       [variable, variable_counter]
     end

@@ -225,7 +225,7 @@ module ActionDispatch
       # cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
       # be raised.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's config.secret_token.
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_token+.
       #
       # Example:
       #
@@ -271,10 +271,6 @@ module ActionDispatch
 
         options[:expires] = 20.years.from_now
         @parent_jar[key] = options
-      end
-
-      def signed
-        @signed ||= SignedCookieJar.new(self, @secret)
       end
 
       def method_missing(method, *arguments, &block)

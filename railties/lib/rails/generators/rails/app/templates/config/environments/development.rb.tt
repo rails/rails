@@ -35,4 +35,7 @@
   # Expands the lines which load the assets.
   config.assets.debug = true
   <%- end -%>
+
+  # In development, use an in-memory queue for queueing
+  config.queue = Queue
 end

@@ -96,7 +96,25 @@ module ActionDispatch
         def initialize
           @routes  = {}
           @helpers = []
-          @module  = Module.new
+          @module  = Module.new do
+            protected
+
+            def handle_positional_args(args, options, route)
+              inner_options = args.extract_options!
+              result = options.dup
+
+              if args.any?
+                keys = route.segment_keys
+                if args.size < keys.size - 1 # take format into account
+                  keys -= self.url_options.keys if self.respond_to?(:url_options)
+                  keys -= options.keys
+                end
+                result.merge!(Hash[keys.zip(args)])
+              end
+
+              result.merge!(inner_options)
+            end
+          end
         end
 
         def helper_names
@@ -135,40 +153,37 @@ module ActionDispatch
         end
 
         private
-          def url_helper_name(name, kind = :url)
-            :"#{name}_#{kind}"
-          end
-
-          def hash_access_name(name, kind = :url)
-            :"hash_for_#{name}_#{kind}"
-          end
-
-          def define_named_route_methods(name, route)
-            {:url => {:only_path => false}, :path => {:only_path => true}}.each do |kind, opts|
-              hash = route.defaults.merge(:use_route => name).merge(opts)
-              define_hash_access route, name, kind, hash
-              define_url_helper route, name, kind, hash
+          def url_helper_name(name, only_path)
+            if only_path
+              :"#{name}_path"
+            else
+              :"#{name}_url"
             end
           end
 
-          def define_hash_access(route, name, kind, options)
-            selector = hash_access_name(name, kind)
+          def hash_access_name(name, only_path)
+            if only_path
+              :"hash_for_#{name}_path"
+            else
+              :"hash_for_#{name}_url"
+            end
+          end
+
+          def define_named_route_methods(name, route)
+            [true, false].each do |only_path|
+              hash = route.defaults.merge(:use_route => name, :only_path => only_path)
+              define_hash_access route, name, hash
+              define_url_helper route, name, hash
+            end
+          end
+
+          def define_hash_access(route, name, options)
+            selector = hash_access_name(name, options[:only_path])
 
             @module.module_eval do
-              remove_possible_method selector
-
-              define_method(selector) do |*args|
-                inner_options = args.extract_options!
-                result = options.dup
-
-                if args.any?
-                  result[:_positional_args] = args
-                  result[:_positional_keys] = route.segment_keys
-                end
-
-                result.merge(inner_options)
+              redefine_method(selector) do |*args|
+                self.handle_positional_args(args, options, route)
               end
-
               protected selector
             end
             helpers << selector
@@ -187,9 +202,9 @@ module ActionDispatch
           #
           #   foo_url(bar, baz, bang, :sort_by => 'baz')
           #
-          def define_url_helper(route, name, kind, options)
-            selector = url_helper_name(name, kind)
-            hash_access_method = hash_access_name(name, kind)
+          def define_url_helper(route, name, options)
+            selector = url_helper_name(name, options[:only_path])
+            hash_access_method = hash_access_name(name, options[:only_path])
 
             if optimize_helper?(route)
               @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
@@ -240,6 +255,7 @@ module ActionDispatch
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class, :valid_conditions
+      attr_accessor :draw_paths
 
       alias :routes :set
 
@@ -251,6 +267,7 @@ module ActionDispatch
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.default_url_options = {}
+        self.draw_paths = []
 
         self.request_class = request_class
         @valid_conditions = {}
@@ -605,10 +622,9 @@ module ActionDispatch
         nil
       end
 
+      # The +options+ argument must be +nil+ or a hash whose keys are *symbols*.
       def url_for(options)
-        options = (options || {}).reverse_merge!(default_url_options)
-
-        handle_positional_args(options)
+        options = default_url_options.merge(options || {})
 
         user, password = extract_authentication(options)
         path_segments  = options.delete(:_path_segments)
@@ -677,16 +693,6 @@ module ActionDispatch
           else
             nil
           end
-        end
-
-        def handle_positional_args(options)
-          return unless args = options.delete(:_positional_args)
-
-          keys = options.delete(:_positional_keys)
-          keys -= options.keys if args.size < keys.size - 1 # take format into account
-
-          # Tell url_for to skip default_url_options
-          options.merge!(Hash[args.zip(keys).map { |v, k| [k, v] }])
         end
 
     end

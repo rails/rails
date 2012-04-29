@@ -2,6 +2,7 @@ require 'cgi'
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionView
   # = Action View Form Tag Helpers
@@ -17,6 +18,9 @@ module ActionView
       include UrlHelper
       include TextHelper
 
+      mattr_accessor :embed_authenticity_token_in_remote_forms
+      self.embed_authenticity_token_in_remote_forms = false
+
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
@@ -27,9 +31,11 @@ module ActionView
       #   is added to simulate the verb over post.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
       #   pass custom authenticity token string, or to not add authenticity_token field at all
-      #   (by passing <tt>false</tt>). If this is a remote form, the authenticity_token will by default
-      #   not be included as the ajax handler will get it from the meta-tag (but you can force it to be
-      #   rendered anyway in that case by passing <tt>true</tt>).
+      #   (by passing <tt>false</tt>).  Remote forms may omit the embedded authenticity token
+      #   by setting <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
+      #   This is helpful when you're fragment-caching the form. Remote forms get the
+      #   authenticity from the <tt>meta</tt> tag, so embedding is unnecessary unless you
+      #   support browsers without JavaScript.
       # * A list of parameters to feed to the URL the form will be posted to.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
@@ -116,11 +122,11 @@ module ActionView
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
 
         if options.delete(:include_blank)
-          option_tags = "<option value=\"\"></option>".html_safe + option_tags
+          option_tags = content_tag(:option, '', :value => '').safe_concat(option_tags)
         end
 
         if prompt = options.delete(:prompt)
-          option_tags = "<option value=\"\">#{prompt}</option>".html_safe + option_tags
+          option_tags = content_tag(:option, prompt, :value => '').safe_concat(option_tags)
         end
 
         content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
@@ -618,16 +624,18 @@ module ActionView
             # responsibility of the caller to escape all the values.
             html_options["action"]  = url_for(url_for_options)
             html_options["accept-charset"] = "UTF-8"
-            
+
             html_options["data-remote"] = true if html_options.delete("remote")
 
-            if html_options["data-remote"] && html_options["authenticity_token"] == true
+            if html_options["data-remote"] &&
+               !embed_authenticity_token_in_remote_forms &&
+               html_options["authenticity_token"].blank?
+              # The authenticity token is taken from the meta tag in this case
+              html_options["authenticity_token"] = false
+            elsif html_options["authenticity_token"] == true
               # Include the default authenticity_token, which is only generated when its set to nil,
               # but we needed the true value to override the default of no authenticity_token on data-remote.
               html_options["authenticity_token"] = nil
-            elsif html_options["data-remote"]
-              # The authenticity token is taken from the meta tag in this case
-              html_options["authenticity_token"] = false
             end
           end
         end

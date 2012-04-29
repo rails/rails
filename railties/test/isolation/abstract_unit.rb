@@ -8,7 +8,7 @@
 # Rails booted up.
 require 'fileutils'
 
-require 'rubygems'
+require 'bundler/setup'
 require 'minitest/autorun'
 require 'active_support/test_case'
 
@@ -112,7 +112,7 @@ module TestHelpers
       routes = File.read("#{app_path}/config/routes.rb")
       if routes =~ /(\n\s*end\s*)\Z/
         File.open("#{app_path}/config/routes.rb", 'w') do |f|
-          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)'\n" + $1
+          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)', :via => :all\n" + $1
         end
       end
 
@@ -143,7 +143,7 @@ module TestHelpers
       app.initialize!
 
       app.routes.draw do
-        match "/" => "omg#index"
+        get "/" => "omg#index"
       end
 
       require 'rack/test'
@@ -161,7 +161,7 @@ module TestHelpers
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          get ':controller(/:action)'
         end
       RUBY
     end

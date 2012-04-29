@@ -96,6 +96,30 @@ module ActiveRecord
         end
       end
 
+      def test_full_pool_blocks
+        cs = @pool.size.times.map { @pool.checkout }
+        t = Thread.new { @pool.checkout }
+
+        # make sure our thread is in the timeout section
+        Thread.pass until t.status == "sleep"
+
+        connection = cs.first
+        connection.close
+        assert_equal connection, t.join.value
+      end
+
+      def test_removing_releases_latch
+        cs = @pool.size.times.map { @pool.checkout }
+        t = Thread.new { @pool.checkout }
+
+        # make sure our thread is in the timeout section
+        Thread.pass until t.status == "sleep"
+
+        connection = cs.first
+        @pool.remove connection
+        assert_respond_to t.join.value, :execute
+      end
+
       def test_reap_and_active
         @pool.checkout
         @pool.checkout

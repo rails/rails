@@ -65,6 +65,12 @@ module ActionDispatch
       end
     end
 
+    def test_delegate_eof_to_tempfile
+      tf = Class.new { def eof?; true end; }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert uf.eof?
+    end
+
     def test_respond_to?
       tf = Class.new { def read; yield end }
       uf = Http::UploadedFile.new(:tempfile => tf.new)

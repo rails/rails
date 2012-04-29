@@ -57,21 +57,21 @@ module ActiveRecord
       end
 
       # Executes insert +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_insert(sql, name, binds)
+      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
         exec_query(sql, name, binds)
       end
 
       # Executes delete +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_delete(sql, name, binds)
         exec_query(sql, name, binds)
       end
 
       # Executes update +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_update(sql, name, binds)
         exec_query(sql, name, binds)
@@ -87,7 +87,7 @@ module ActiveRecord
       # passed in as +id_value+.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
         sql, binds = sql_for_insert(to_sql(arel, binds), pk, id_value, sequence_name, binds)
-        value      = exec_insert(sql, name, binds)
+        value      = exec_insert(sql, name, binds, pk, sequence_name)
         id_value || last_inserted_id(value)
       end
 
@@ -312,13 +312,27 @@ module ActiveRecord
       # on mysql (even when aliasing the tables), but mysql allows using JOIN directly in
       # an UPDATE statement, so in the mysql adapters we redefine this to do that.
       def join_to_update(update, select) #:nodoc:
-        subselect = select.clone
-        subselect.projections = [update.key]
+        key = update.key
+        subselect = subquery_for(key, select)
 
-        update.where update.key.in(subselect)
+        update.where key.in(subselect)
+      end
+
+      def join_to_delete(delete, select, key) #:nodoc:
+        subselect = subquery_for(key, select)
+
+        delete.where key.in(subselect)
       end
 
       protected
+
+        # Return a subquery for the given key using the join information.
+        def subquery_for(key, select)
+          subselect = select.clone
+          subselect.projections = [key]
+          subselect
+        end
+
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
         def select(sql, name = nil, binds = [])

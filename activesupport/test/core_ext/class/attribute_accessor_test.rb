@@ -42,4 +42,18 @@ class ClassAttributeAccessorTest < ActiveSupport::TestCase
     assert !@object.respond_to?(:camp)
     assert !@object.respond_to?(:camp=)
   end
+
+  def test_should_raise_name_error_if_attribute_name_is_invalid
+    assert_raises NameError do
+      Class.new do
+        cattr_reader "invalid attribute name"
+      end
+    end
+
+    assert_raises NameError do
+      Class.new do
+        cattr_writer "invalid attribute name"
+      end
+    end
+  end
 end

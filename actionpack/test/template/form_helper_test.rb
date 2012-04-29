@@ -97,7 +97,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    match "/foo", :to => "controller#action"
+    get "/foo", :to => "controller#action"
     root :to => "main#index"
   end
 
@@ -1046,6 +1046,54 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_label_error_wrapping
+    form_for(@post) do |f|
+      concat f.label(:author_name, :class => 'label')
+      concat f.text_field(:author_name)
+      concat f.submit('Create post')
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123' , 'edit_post', 'patch') do
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Author name</label></div>" +
+      "<div class='field_with_errors'><input name='post[author_name]' type='text' id='post_author_name' value='' /></div>" +
+      "<input name='commit' type='submit' value='Create post' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_label_error_wrapping_without_conventional_instance_variable
+    post = remove_instance_variable :@post
+
+    form_for(post) do |f|
+      concat f.label(:author_name, :class => 'label')
+      concat f.text_field(:author_name)
+      concat f.submit('Create post')
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123' , 'edit_post', 'patch') do
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Author name</label></div>" +
+      "<div class='field_with_errors'><input name='post[author_name]' type='text' id='post_author_name' value='' /></div>" +
+      "<input name='commit' type='submit' value='Create post' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_label_error_wrapping_block_and_non_block_versions
+    form_for(@post) do |f|
+      concat f.label(:author_name, 'Name', :class => 'label')
+      concat f.label(:author_name, :class => 'label') { 'Name' }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123' , 'edit_post', 'patch') do
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Name</label></div>" +
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Name</label></div>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_namespace
     form_for(@post, :namespace => 'namespace') do |f|
       concat f.text_field(:title)
@@ -1785,6 +1833,56 @@ class FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_index_method_with_existing_records_on_a_nested_attributes_collection_association
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+
+    form_for(@post) do |f|
+      expected = 0
+      @post.comments.each do |comment|
+        f.fields_for(:comments, comment) { |cf|
+          assert_equal cf.index, expected
+          expected += 1
+        }
+      end
+    end
+  end
+
+  def test_nested_fields_for_index_method_with_existing_and_new_records_on_a_nested_attributes_collection_association
+    @post.comments = [Comment.new(321), Comment.new]
+
+    form_for(@post) do |f|
+      expected = 0
+      @post.comments.each do |comment|
+        f.fields_for(:comments, comment) { |cf|
+          assert_equal cf.index, expected
+          expected += 1
+        }
+      end
+    end
+  end
+
+  def test_nested_fields_for_index_method_with_existing_records_on_a_supplied_nested_attributes_collection
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+
+    form_for(@post) do |f|
+      expected = 0
+      f.fields_for(:comments, @post.comments) { |cf|
+        assert_equal cf.index, expected
+        expected += 1
+      }
+    end
+  end
+
+  def test_nested_fields_for_index_method_with_child_index_option_override_on_a_nested_attributes_collection_association
+    @post.comments = []
+
+    form_for(@post) do |f|
+      f.fields_for(:comments, Comment.new(321), :child_index => 'abc') { |cf|
+        assert_equal cf.index, 'abc'
+      }
+    end
   end
 
   def test_nested_fields_uses_unique_indices_for_different_collection_associations

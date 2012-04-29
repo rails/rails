@@ -21,7 +21,7 @@ class UrlRewriterTests < ActionController::TestCase
     @rewriter = Rewriter.new(@request) #.new(@request, @params)
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        match ':controller(/:action(/:id))'
+        get ':controller(/:action(/:id))'
       end
     end
   end

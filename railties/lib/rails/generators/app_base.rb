@@ -120,7 +120,7 @@ module Rails
       end
 
       def database_gemfile_entry
-        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'\n"
+        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
       end
 
       def include_all_railties?
@@ -137,12 +137,14 @@ module Rails
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
             gem 'journey',   :git => 'https://github.com/rails/journey.git'
             gem 'arel',      :git => 'https://github.com/rails/arel.git'
+            gem 'active_record_deprecated_finders', :git => 'git://github.com/rails/active_record_deprecated_finders.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :git => 'https://github.com/rails/rails.git'
             gem 'journey',   :git => 'https://github.com/rails/journey.git'
             gem 'arel',      :git => 'https://github.com/rails/arel.git'
+            gem 'active_record_deprecated_finders', :git => 'git://github.com/rails/active_record_deprecated_finders.git'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc

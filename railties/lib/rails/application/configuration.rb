@@ -11,7 +11,7 @@ module Rails
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags, :preload_frameworks,
                     :railties_order, :relative_url_root, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
-                    :time_zone, :reload_classes_only_on_change, :use_schema_cache_dump
+                    :time_zone, :reload_classes_only_on_change, :use_schema_cache_dump, :queue
 
       attr_writer :log_level
       attr_reader :encoding
@@ -43,6 +43,7 @@ module Rails
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
         @use_schema_cache_dump         = true
+        @queue                         = Queue
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false
@@ -106,7 +107,7 @@ module Rails
       # YAML::load.
       def database_configuration
         require 'erb'
-        YAML::load(ERB.new(IO.read(paths["config/database"].first)).result)
+        YAML.load ERB.new(IO.read(paths["config/database"].first)).result
       end
 
       def log_level
