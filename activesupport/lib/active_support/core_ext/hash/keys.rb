@@ -64,4 +64,48 @@ class Hash
       raise ArgumentError.new("Unknown key: #{k}") unless valid_keys.include?(k)
     end
   end
+
+  # Return a new hash with all keys converted to strings.
+  # This includes the keys from the root hash and from all
+  # nested hashes.
+  def deep_stringify_keys
+    result = {}
+    each do |key, value|
+      result[key.to_s] = value.is_a?(Hash) ? value.deep_stringify_keys : value
+    end
+    result
+  end
+
+  # Destructively convert all keys to strings.
+  # This includes the keys from the root hash and from all
+  # nested hashes.
+  def deep_stringify_keys!
+    keys.each do |key|
+      val = delete(key)
+      self[key.to_s] = val.is_a?(Hash) ? val.deep_stringify_keys! : val
+    end
+    self
+  end
+
+  # Destructively convert all keys to symbols, as long as they respond
+  # to +to_sym+. This includes the keys from the root hash and from all
+  # nested hashes.
+  def deep_symbolize_keys!
+    keys.each do |key|
+      val = delete(key)
+      self[(key.to_sym rescue key)] = val.is_a?(Hash) ? val.deep_stringify_keys! : val
+    end
+    self
+  end
+
+  # Return a new hash with all keys converted to symbols, as long as
+  # they respond to +to_sym+. This includes the keys from the root hash
+  # and from all nested hashes.
+  def deep_symbolize_keys
+    result = {}
+    each do |key, value|
+      result[(key.to_sym rescue key)] = value.is_a?(Hash) ? value.deep_symbolize_keys : value
+    end
+    result
+  end
 end
