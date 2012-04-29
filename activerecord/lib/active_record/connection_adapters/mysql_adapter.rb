@@ -404,6 +404,11 @@ module ActiveRecord
         # By default, MySQL 'where id is null' selects the last inserted id.
         # Turn this off. http://dev.rubyonrails.org/ticket/6778
         execute("SET SQL_AUTO_IS_NULL=0", :skip_logging)
+
+        # Make MySQL reject illegal values rather than truncating or
+        # blanking them. See
+        # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables
+        execute("SET SQL_MODE='STRICT_ALL_TABLES'", :skip_logging)
       end
 
       def select(sql, name = nil, binds = [])
