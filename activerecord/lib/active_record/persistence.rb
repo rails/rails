@@ -268,7 +268,13 @@ module ActiveRecord
       clear_aggregation_cache
       clear_association_cache
 
-      fresh_object = self.class.unscoped { self.class.find(id, options) }
+      fresh_object =
+      if options.present? && (options[:lock] || options['lock'])
+        self.class.unscoped { self.class.lock.find(id) }
+      else
+        self.class.unscoped { self.class.find(id) }
+      end
+
       @attributes.update(fresh_object.instance_variable_get('@attributes'))
       @columns_hash = fresh_object.instance_variable_get('@columns_hash')
 
