@@ -1,4 +1,5 @@
 require 'action_dispatch/http/request'
+require 'rack/utils'
 
 module ActionDispatch
   module Routing
