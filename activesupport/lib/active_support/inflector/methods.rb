@@ -106,7 +106,7 @@ module ActiveSupport
     # a nicer looking title. +titleize+ is meant for creating pretty output. It is not
     # used in the Rails internals.
     #
-    # +titleize+ is also aliased as as +titlecase+.
+    # +titleize+ is also aliased as +titlecase+.
     #
     # Examples:
     #   "man from the boondocks".titleize   # => "Man From The Boondocks"
