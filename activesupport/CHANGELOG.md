@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*    Add ActiveSupport::Deprecations.behavior = :slience to completely ignore *twinturbo*
+*    Add `ActiveSupport::Deprecations.behavior = :silence` to completely ignore *twinturbo*
 
 *    Make Module#delegate stop using `send` - can no longer delegate to private methods. *dasch*
 
