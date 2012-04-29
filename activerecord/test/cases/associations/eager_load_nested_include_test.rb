@@ -92,7 +92,6 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
   end
 
   def test_include_query
-    res = 0
     res = ShapeExpression.scoped(:includes => [ :shape, { :paint => :non_poly } ]).all
     assert_equal NUM_SHAPE_EXPRESSIONS, res.size
     assert_queries(0) do
