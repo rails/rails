@@ -25,9 +25,12 @@ class String
   #   'Once upon a time in a world far far away'.truncate(27)
   #   # => "Once upon a time in a wo..."
   #
-  # Pass a <tt>:separator</tt> to truncate +text+ at a natural break:
+  # Pass a string or regexp <tt>:separator</tt> to truncate +text+ at a natural break:
   #
   #   'Once upon a time in a world far far away'.truncate(27, :separator => ' ')
+  #   # => "Once upon a time in a..."
+  #
+  #   'Once upon a time in a world far far away'.truncate(27, :separator => /\s/)
   #   # => "Once upon a time in a..."
   #
   # The last characters will be replaced with the <tt>:omission</tt> string (defaults to "...")
