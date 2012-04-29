@@ -95,9 +95,9 @@ module ActiveModel
             observer.instance
           else
             raise ArgumentError,
-              "#{observer} must be a lowercase, underscored class name (or an " +
-              "instance of the class itself) responding to the instance " +
-              "method. Example: Person.observers = :big_brother # calls " +
+              "#{observer} must be a lowercase, underscored class name (or " +
+              "the class itself) responding to the method :instance. " +
+              "Example: Person.observers = :big_brother # calls " +
               "BigBrother.instance"
           end
         end
