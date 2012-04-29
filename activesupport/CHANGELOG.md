@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Remove ActiveSupport Ruby 1.8 backports, we're only support 1.9+ from now on *Larz Conwell*
+
 *    Add ActiveSupport::Deprecations.behavior = :slience to to completely ignore *twinturbo*
 
 *    Make Module#delegate stop using `send` - can no longer delegate to private methods. *dasch*
