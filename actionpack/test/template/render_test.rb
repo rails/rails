@@ -199,6 +199,18 @@ module RenderTestCases
     assert_equal "Hello: david", @view.render(:partial => "test/customer", :object => Customer.new("david"))
   end
 
+  def test_render_partial_object_with_template_and_as
+    assert_equal "[3, 2, 1]\n[1, 2, 3]\n",
+      @view.render(:partial => "test/object_inspector", :object => [1, 2, 3],
+                   :as => :object_inspector, :layout => "test/reverse_object_inspector_layout")
+  end
+
+  def test_render_partial_collection_with_template_and_as
+    assert_equal "[4, 3]\n[1, 2]\n[4, 3]\n[3, 4]\n",
+      @view.render(:partial => "test/object_inspector", :collection => [[1,2], [3,4]],
+                   :as => :object_inspector, :layout => "test/reverse_object_inspector_layout")
+  end
+
   def test_render_object_with_array
     assert_equal "[1, 2, 3]", @view.render(:partial => "test/object_inspector", :object => [1, 2, 3])
   end
@@ -233,7 +245,7 @@ module RenderTestCases
   def test_render_partial_with_nil_values_in_collection
     assert_equal "Hello: davidHello: Anonymous", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), nil ])
   end
-  
+
   def test_render_partial_with_layout_using_collection_and_template
     assert_equal "<b>Hello: Amazon</b><b>Hello: Yahoo</b>", @view.render(:partial => "test/customer", :layout => 'test/b_layout_for_partial', :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
   end
@@ -310,7 +322,7 @@ module RenderTestCases
     ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
-  
+
   def test_render_knows_about_types_registered_when_extensions_are_checked_earlier_in_initialization
     ActionView::Template::Handlers.extensions
     ActionView::Template.register_template_handler :foo, CustomHandler
