@@ -70,6 +70,21 @@ class ObservingTest < ActiveModel::TestCase
     ObservedModel.instantiate_observers
   end
 
+  test "raises an appropriate error when a developer accidentally adds the wrong class (i.e. Widget instead of WidgetObserver)" do
+    assert_raise ArgumentError do
+      ObservedModel.observers = ['string']
+      ObservedModel.instantiate_observers
+    end
+    assert_raise ArgumentError do
+      ObservedModel.observers = [:string]
+      ObservedModel.instantiate_observers
+    end
+    assert_raise ArgumentError do
+      ObservedModel.observers = [String]
+      ObservedModel.instantiate_observers
+    end
+  end
+
   test "passes observers to subclasses" do
     FooObserver.instance
     bar = Class.new(Foo)

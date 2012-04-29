@@ -90,14 +90,15 @@ module ActiveModel
         def instantiate_observer(observer) #:nodoc:
           # string/symbol
           if observer.respond_to?(:to_sym)
-            observer.to_s.camelize.constantize.instance
-          elsif observer.respond_to?(:instance)
+            observer = observer.to_s.camelize.constantize
+          end
+          if observer.respond_to?(:instance)
             observer.instance
           else
             raise ArgumentError,
-              "#{observer} must be a lowercase, underscored class name (or an " +
-              "instance of the class itself) responding to the instance " +
-              "method. Example: Person.observers = :big_brother # calls " +
+              "#{observer} must be a lowercase, underscored class name (or " +
+              "the class itself) responding to the method :instance. " +
+              "Example: Person.observers = :big_brother # calls " +
               "BigBrother.instance"
           end
         end
