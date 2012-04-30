@@ -49,7 +49,6 @@ module ApplicationTests
             assert_equal ' ', line[1]
           end
         end
-
       end
 
       test 'notes finds notes in default directories' do
@@ -86,11 +85,9 @@ module ApplicationTests
             assert_equal 4, line_number.size
           end
         end
-
       end
 
       test 'notes finds notes in custom directories' do
-
         app_file "app/controllers/some_controller.rb", "# TODO: note in app directory"
         app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
         app_file "lib/some_file.rb", "# TODO: note in lib directory"
@@ -125,7 +122,6 @@ module ApplicationTests
             assert_equal 4, line_number.size
           end
         end
-
       end
 
       private
