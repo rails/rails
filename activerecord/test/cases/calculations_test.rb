@@ -467,6 +467,6 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_plucks_with_ids
-    assert_equal Company.all.map(&:id), Company.ids
+    assert_equal Company.all.map(&:id).sort, Company.ids.sort
   end
 end
