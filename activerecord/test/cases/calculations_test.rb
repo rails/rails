@@ -478,4 +478,9 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_with_qualified_column_name
     assert_equal [1,2,3,4], Topic.order(:id).pluck("topics.id")
   end
+
+  def test_pluck_if_table_included
+    c = Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    assert_equal [c.id], Company.includes(:contracts).where("contracts.id" => c.contracts.first).pluck(:id)
+  end
 end
