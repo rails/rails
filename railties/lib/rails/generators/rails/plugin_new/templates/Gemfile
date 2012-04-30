@@ -20,4 +20,4 @@ gem "jquery-rails"
 
 <% end -%>
 # To use debugger
-# <%= ruby_debugger_gemfile_entry %>
+# gem 'debugger'

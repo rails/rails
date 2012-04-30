@@ -67,7 +67,7 @@ module RenderText
 
     test "rendering text from a action with default options renders the text with the layout" do
       with_routing do |set|
-        set.draw { match ':controller', :action => 'index' }
+        set.draw { get ':controller', :action => 'index' }
 
         get "/render_text/simple"
         assert_body "hello david"
@@ -77,7 +77,7 @@ module RenderText
 
     test "rendering text from a action with default options renders the text without the layout" do
       with_routing do |set|
-        set.draw { match ':controller', :action => 'index' }
+        set.draw { get ':controller', :action => 'index' }
 
         get "/render_text/with_layout"
 

@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2011 David Heinemeier Hansson
+# Copyright (c) 2004-2012 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -29,6 +29,7 @@ $:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include
 
 require 'active_support'
 require 'active_support/dependencies/autoload'
+require 'active_support/core_ext/module/attribute_accessors'
 
 require 'action_pack'
 require 'active_model'
@@ -56,14 +57,14 @@ module ActionDispatch
     autoload :Flash
     autoload :Head
     autoload :ParamsParser
+    autoload :PublicExceptions
     autoload :Reloader
     autoload :RemoteIp
-    autoload :Rescue
     autoload :ShowExceptions
+    autoload :SSL
     autoload :Static
   end
 
-  autoload :ClosedError, 'action_dispatch/middleware/closed_error'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
   autoload :Routing
 
@@ -87,6 +88,8 @@ module ActionDispatch
     autoload :MemCacheStore, 'action_dispatch/middleware/session/mem_cache_store'
     autoload :CacheStore,    'action_dispatch/middleware/session/cache_store'
   end
+
+  mattr_accessor :test_app
 
   autoload_under 'testing' do
     autoload :Assertions

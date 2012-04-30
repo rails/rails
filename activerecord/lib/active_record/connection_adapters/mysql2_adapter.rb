@@ -4,9 +4,9 @@ gem 'mysql2', '~> 0.3.10'
 require 'mysql2'
 
 module ActiveRecord
-  class Base
+  module ConnectionHandling
     # Establishes a connection to the database that's used by all Active Record objects.
-    def self.mysql2_connection(config)
+    def mysql2_connection(config)
       config[:username] = 'root' if config[:username].nil?
 
       if Mysql2::Client.const_defined? :FOUND_ROWS
@@ -32,6 +32,7 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super
+        @visitor = BindSubstitution.new self
         configure_connection
       end
 
@@ -65,10 +66,6 @@ module ActiveRecord
         @connection.escape(string)
       end
 
-      def substitute_at(column, index)
-        Arel.sql "\0"
-      end
-
       # CONNECTION MANAGEMENT ====================================
 
       def active?
@@ -80,6 +77,7 @@ module ActiveRecord
         disconnect!
         connect
       end
+      alias :reset! :reconnect!
 
       # Disconnects from the database if already connected.
       # Otherwise, this method does nothing.
@@ -90,15 +88,10 @@ module ActiveRecord
         end
       end
 
-      def reset!
-        disconnect!
-        connect
-      end
-
       # DATABASE STATEMENTS ======================================
 
       def explain(arel, binds = [])
-        sql     = "EXPLAIN #{to_sql(arel)}"
+        sql     = "EXPLAIN #{to_sql(arel, binds.dup)}"
         start   = Time.now
         result  = exec_query(sql, 'EXPLAIN', binds)
         elapsed = Time.now - start
@@ -224,8 +217,7 @@ module ActiveRecord
       # Returns an array of record hashes with the column names as keys and
       # column values as values.
       def select(sql, name = nil, binds = [])
-        binds = binds.dup
-        exec_query(sql.gsub("\0") { quote(*binds.shift.reverse) }, name).to_a
+        exec_query(sql, name)
       end
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
@@ -234,18 +226,12 @@ module ActiveRecord
       end
       alias :create :insert_sql
 
-      def exec_insert(sql, name, binds)
-        binds = binds.dup
-
-        # Pretend to support bind parameters
-        execute sql.gsub("\0") { quote(*binds.shift.reverse) }, name
+      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
+        execute to_sql(sql, binds), name
       end
 
       def exec_delete(sql, name, binds)
-        binds = binds.dup
-
-        # Pretend to support bind parameters
-        execute sql.gsub("\0") { quote(*binds.shift.reverse) }, name
+        execute to_sql(sql, binds), name
         @connection.affected_rows
       end
       alias :exec_update :exec_delete

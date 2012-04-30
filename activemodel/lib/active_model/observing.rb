@@ -1,10 +1,11 @@
 require 'singleton'
 require 'active_model/observer_array'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/enumerable'
+require 'active_support/deprecation'
+require 'active_support/core_ext/object/try'
 require 'active_support/descendants_tracker'
 
 module ActiveModel
@@ -64,33 +65,40 @@ module ActiveModel
       # raises an +ArgumentError+ exception.
       def add_observer(observer)
         unless observer.respond_to? :update
-          raise ArgumentError, "observer needs to respond to `update'"
+          raise ArgumentError, "observer needs to respond to 'update'"
         end
         observer_instances << observer
       end
 
       # Notify list of observers of a change.
-      def notify_observers(*arg)
-        observer_instances.each { |observer| observer.update(*arg) }
+      def notify_observers(*args)
+        observer_instances.each { |observer| observer.update(*args) }
       end
 
       # Total number of observers.
-      def count_observers
+      def observers_count
         observer_instances.size
+      end
+
+      def count_observers
+        msg = "count_observers is deprecated in favor of observers_count"
+        ActiveSupport::Deprecation.warn(msg)
+        observers_count
       end
 
       protected
         def instantiate_observer(observer) #:nodoc:
           # string/symbol
           if observer.respond_to?(:to_sym)
-            observer.to_s.camelize.constantize.instance
-          elsif observer.respond_to?(:instance)
+            observer = observer.to_s.camelize.constantize
+          end
+          if observer.respond_to?(:instance)
             observer.instance
           else
             raise ArgumentError,
-              "#{observer} must be a lowercase, underscored class name (or an " +
-              "instance of the class itself) responding to the instance " +
-              "method. Example: Person.observers = :big_brother # calls " +
+              "#{observer} must be a lowercase, underscored class name (or " +
+              "the class itself) responding to the method :instance. " +
+              "Example: Person.observers = :big_brother # calls " +
               "BigBrother.instance"
           end
         end
@@ -187,7 +195,7 @@ module ActiveModel
       def observe(*models)
         models.flatten!
         models.collect! { |model| model.respond_to?(:to_sym) ? model.to_s.camelize.constantize : model }
-        redefine_method(:observed_classes) { models }
+        singleton_class.redefine_method(:observed_classes) { models }
       end
 
       # Returns an array of Classes to observe.
@@ -200,21 +208,18 @@ module ActiveModel
       #     end
       #   end
       def observed_classes
-        Array.wrap(observed_class)
+        Array(observed_class)
       end
 
       # The class observed by default is inferred from the observer's class name:
       #   assert_equal Person, PersonObserver.observed_class
       def observed_class
-        if observed_class_name = name[/(.*)Observer/, 1]
-          observed_class_name.constantize
-        else
-          nil
-        end
+        name[/(.*)Observer/, 1].try :constantize
       end
     end
 
     # Start observing the declared classes and their subclasses.
+    # Called automatically by the instance method.
     def initialize
       observed_classes.each { |klass| add_observer!(klass) }
     end
@@ -243,6 +248,7 @@ module ActiveModel
         klass.add_observer(self)
       end
 
+      # Returns true if notifications are disabled for this object.
       def disabled_for?(object)
         klass = object.class
         return false unless klass.respond_to?(:observers)

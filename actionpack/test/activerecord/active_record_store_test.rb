@@ -33,8 +33,6 @@ class ActiveRecordStoreTest < ActionDispatch::IntegrationTest
       session[:foo] = "baz"
       head :ok
     end
-
-    def rescue_action(e) raise end
   end
 
   def setup
@@ -225,16 +223,16 @@ class ActiveRecordStoreTest < ActionDispatch::IntegrationTest
       assert_equal session_id, cookies['_session_id']
     end
   end
-  
+
   def test_incoming_invalid_session_id_via_cookie_should_be_ignored
     with_test_route_set do
       open_session do |sess|
         sess.cookies['_session_id'] = 'INVALID'
-        
+
         sess.get '/set_session_value'
         new_session_id = sess.cookies['_session_id']
         assert_not_equal 'INVALID', new_session_id
-        
+
         sess.get '/get_session_value'
         new_session_id_2 = sess.cookies['_session_id']
         assert_equal new_session_id, new_session_id_2
@@ -248,11 +246,18 @@ class ActiveRecordStoreTest < ActionDispatch::IntegrationTest
         sess.get '/set_session_value', :_session_id => 'INVALID'
         new_session_id = sess.cookies['_session_id']
         assert_not_equal 'INVALID', new_session_id
-        
+
         sess.get '/get_session_value'
         new_session_id_2 = sess.cookies['_session_id']
         assert_equal new_session_id, new_session_id_2
       end
+    end
+  end
+
+  def test_session_store_with_all_domains
+    with_test_route_set(:domain => :all) do
+      get '/set_session_value'
+      assert_response :success
     end
   end
 
@@ -261,7 +266,7 @@ class ActiveRecordStoreTest < ActionDispatch::IntegrationTest
     def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do
-          match ':action', :to => 'active_record_store_test/test'
+          get ':action', :to => 'active_record_store_test/test'
         end
 
         @app = self.class.build_app(set) do |middleware|

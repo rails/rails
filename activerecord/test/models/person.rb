@@ -1,9 +1,12 @@
 class Person < ActiveRecord::Base
   has_many :readers
+  has_many :secure_readers
   has_one  :reader
 
   has_many :posts, :through => :readers
-  has_many :posts_with_no_comments, :through => :readers, :source => :post, :include => :comments, :conditions => 'comments.id is null'
+  has_many :secure_posts, :through => :secure_readers
+  has_many :posts_with_no_comments, :through => :readers, :source => :post, :include => :comments,
+                                    :conditions => 'comments.id is null', :references => :comments
 
   has_many :references
   has_many :bad_references
@@ -24,8 +27,8 @@ class Person < ActiveRecord::Base
   has_many :agents_posts,         :through => :agents,       :source => :posts
   has_many :agents_posts_authors, :through => :agents_posts, :source => :author
 
-  scope :males,   :conditions => { :gender => 'M' }
-  scope :females, :conditions => { :gender => 'F' }
+  scope :males,   -> { where(:gender => 'M') }
+  scope :females, -> { where(:gender => 'F') }
 end
 
 class PersonWithDependentDestroyJobs < ActiveRecord::Base
@@ -54,7 +57,7 @@ class LoosePerson < ActiveRecord::Base
   self.table_name = 'people'
   self.abstract_class = true
 
-  attr_protected :comments
+  attr_protected :comments, :best_friend_id, :best_friend_of_id
   attr_protected :as => :admin
 
   has_one    :best_friend,    :class_name => 'LoosePerson', :foreign_key => :best_friend_id
@@ -82,3 +85,9 @@ class TightPerson < ActiveRecord::Base
 end
 
 class TightDescendant < TightPerson; end
+
+class RichPerson < ActiveRecord::Base
+  self.table_name = 'people'
+  
+  has_and_belongs_to_many :treasures, :join_table => 'peoples_treasures'
+end

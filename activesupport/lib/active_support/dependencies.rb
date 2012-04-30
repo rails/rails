@@ -105,7 +105,7 @@ module ActiveSupport #:nodoc:
           next unless mod.is_a?(Module)
 
           # Get a list of the constants that were added
-          new_constants = mod.local_constant_names - original_constants
+          new_constants = mod.local_constants - original_constants
 
           # self[namespace] returns an Array of the constants that are being evaluated
           # for that namespace. For instance, if parent.rb requires child.rb, the first
@@ -129,16 +129,14 @@ module ActiveSupport #:nodoc:
 
       # Add a set of modules to the watch stack, remembering the initial constants
       def watch_namespaces(namespaces)
-        watching = []
-        namespaces.map do |namespace|
+        @watching << namespaces.map do |namespace|
           module_name = Dependencies.to_constant_name(namespace)
           original_constants = Dependencies.qualified_const_defined?(module_name) ?
-            Inflector.constantize(module_name).local_constant_names : []
+            Inflector.constantize(module_name).local_constants : []
 
-          watching << module_name
           @stack[module_name] << original_constants
+          module_name
         end
-        @watching << watching
       end
 
       private
@@ -365,30 +363,16 @@ module ActiveSupport #:nodoc:
 
       # Record history *after* loading so first load gets warnings.
       history << expanded
-      return result
+      result
     end
 
     # Is the provided constant path defined?
-    if Module.method(:const_defined?).arity == 1
-      def qualified_const_defined?(path)
-        Object.qualified_const_defined?(path.sub(/^::/, ''))
-      end
-    else
-      def qualified_const_defined?(path)
-        Object.qualified_const_defined?(path.sub(/^::/, ''), false)
-      end
+    def qualified_const_defined?(path)
+      Object.qualified_const_defined?(path.sub(/^::/, ''), false)
     end
 
-    if Module.method(:const_defined?).arity == 1
-      # Does this module define this constant?
-      # Wrapper to accommodate changing Module#const_defined? in Ruby 1.9
-      def local_const_defined?(mod, const)
-        mod.const_defined?(const)
-      end
-    else
-      def local_const_defined?(mod, const) #:nodoc:
-        mod.const_defined?(const, false)
-      end
+    def local_const_defined?(mod, const) #:nodoc:
+      mod.const_defined?(const, false)
     end
 
     # Given +path+, a filesystem path to a ruby file, return an array of constant
@@ -448,7 +432,7 @@ module ActiveSupport #:nodoc:
       mod = Module.new
       into.const_set const_name, mod
       autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
-      return mod
+      mod
     end
 
     # Load the file at the provided path. +const_paths+ is a set of qualified
@@ -472,7 +456,7 @@ module ActiveSupport #:nodoc:
       autoloaded_constants.concat newly_defined_paths unless load_once_path?(path)
       autoloaded_constants.uniq!
       log "loading #{path} defined #{newly_defined_paths * ', '}" unless newly_defined_paths.empty?
-      return result
+      result
     end
 
     # Return the constant path for the provided parent and constant name.
@@ -519,7 +503,7 @@ module ActiveSupport #:nodoc:
 
       raise NameError,
             "uninitialized constant #{qualified_name}",
-            caller.reject {|l| l.starts_with? __FILE__ }
+            caller.reject { |l| l.starts_with? __FILE__ }
     end
 
     # Remove the constants that have been autoloaded, and those that have been
@@ -557,10 +541,7 @@ module ActiveSupport #:nodoc:
 
       def safe_get(key)
         key = key.name if key.respond_to?(:name)
-        @store[key] || begin
-          klass = Inflector.safe_constantize(key)
-          @store[key] = klass
-        end
+        @store[key] ||= Inflector.safe_constantize(key)
       end
 
       def store(klass)
@@ -614,10 +595,10 @@ module ActiveSupport #:nodoc:
     def mark_for_unload(const_desc)
       name = to_constant_name const_desc
       if explicitly_unloadable_constants.include? name
-        return false
+        false
       else
         explicitly_unloadable_constants << name
-        return true
+        true
       end
     end
 
@@ -645,10 +626,10 @@ module ActiveSupport #:nodoc:
         return new_constants unless aborting
 
         log "Error during loading, removing partially loaded constants "
-        new_constants.each {|c| remove_constant(c) }.clear
+        new_constants.each { |c| remove_constant(c) }.clear
       end
 
-      return []
+      []
     end
 
     # Convert the provided const desc to a qualified constant name (as a string).
@@ -677,7 +658,7 @@ module ActiveSupport #:nodoc:
       constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
       parent.instance_eval { remove_const to_remove }
 
-      return true
+      true
     end
 
     protected

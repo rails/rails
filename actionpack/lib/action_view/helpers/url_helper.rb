@@ -23,19 +23,24 @@ module ActionView
       include ActionDispatch::Routing::UrlFor
       include TagHelper
 
-      def _routes_context
-        controller
-      end
+      # We need to override url_optoins, _routes_context
+      # and optimize_routes_generation? to consider the controller.
 
-      # Need to map default url options to controller one.
-      # def default_url_options(*args) #:nodoc:
-      #   controller.send(:default_url_options, *args)
-      # end
-      #
-      def url_options
+      def url_options #:nodoc:
         return super unless controller.respond_to?(:url_options)
         controller.url_options
       end
+
+      def _routes_context #:nodoc:
+        controller
+      end
+      protected :_routes_context
+
+      def optimize_routes_generation? #:nodoc:
+        controller.respond_to?(:optimize_routes_generation?) ?
+          controller.optimize_routes_generation? : super
+      end
+      protected :optimize_routes_generation?
 
       # Returns the URL for the set of +options+ provided. This takes the
       # same options as +url_for+ in Action Controller (see the
@@ -55,7 +60,7 @@ module ActionView
       #
       # ==== Relying on named routes
       #
-      # Passing a record (like an Active Record or Active Resource) instead of a Hash as the options parameter will
+      # Passing a record (like an Active Record) instead of a Hash as the options parameter will
       # trigger the named route for that record. The lookup will happen on the name of the class. So passing a
       # Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
       # +admin_workshop_path+ you'll have to call that explicitly (it's impossible for +url_for+ to guess that route).
@@ -97,12 +102,12 @@ module ActionView
       #   <%= url_for(:back) %>
       #   # if request.env["HTTP_REFERER"] is not set or is blank
       #   # => javascript:history.back()
-      def url_for(options = {})
-        options ||= {}
+      def url_for(options = nil)
         case options
         when String
           options
-        when Hash
+        when nil, Hash
+          options ||= {}
           options = options.symbolize_keys.reverse_merge!(:only_path => options[:host].nil?)
           super
         when :back
@@ -146,12 +151,12 @@ module ActionView
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
       #   in dangerous actions like deleting a record (which search bots can follow
-      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt> and <tt>:put</tt>.
+      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>.
       #   Note that if the user has JavaScript disabled, the request will fall back
       #   to using GET. If <tt>:href => '#'</tt> is used and the user has JavaScript
       #   disabled clicking the link will have no effect. If you are relying on the
       #   POST behavior, you should check for it in your controller's action by using
-      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt> or <tt>put?</tt>.
+      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>:patch</tt>, or <tt>put?</tt>.
       # * <tt>:remote => true</tt> - This will allow the unobtrusive JavaScript
       #   driver to make an Ajax request to the URL in question instead of following
       #   the link. The drivers each provide mechanisms for listening for the
@@ -272,7 +277,7 @@ module ActionView
       #
       # There are a few special +html_options+:
       # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
-      #   <tt>:delete</tt> and <tt>:put</tt>. By default it will be <tt>:post</tt>.
+      #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
       # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
       #   prompt with the question specified. If the user accepts, the link is
@@ -301,7 +306,7 @@ module ActionView
       #   #      <div><input value="Create" type="submit" /></div>
       #   #    </form>"
       #
-      #      
+      #
       #   <%= button_to "Delete Image", { :action => "delete", :id => @image.id },
       #             :confirm => "Are you sure?", :method => :delete %>
       #   # => "<form method="post" action="/images/delete/1" class="button_to">
@@ -323,35 +328,27 @@ module ActionView
       #   #
       def button_to(name, options = {}, html_options = {})
         html_options = html_options.stringify_keys
-        convert_boolean_attributes!(html_options, %w( disabled ))
+        convert_boolean_attributes!(html_options, %w(disabled))
 
-        method_tag = ''
-        if (method = html_options.delete('method')) && %w{put delete}.include?(method.to_s)
-          method_tag = tag('input', :type => 'hidden', :name => '_method', :value => method.to_s)
-        end
+        url    = options.is_a?(String) ? options : url_for(options)
+        remote = html_options.delete('remote')
 
-        form_method = method.to_s == 'get' ? 'get' : 'post'
+        method     = html_options.delete('method').to_s
+        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ''.html_safe
+
+        form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
         form_options[:class] ||= html_options.delete('form_class') || 'button_to'
-        
-        remote = html_options.delete('remote')
-        
-        request_token_tag = ''
-        if form_method == 'post' && protect_against_forgery?
-          request_token_tag = tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
-        end
-
-        url = options.is_a?(String) ? options : self.url_for(options)
-        name ||= url
-
-        html_options = convert_options_to_data_attributes(options, html_options)
-
-        html_options.merge!("type" => "submit", "value" => name)
-
         form_options.merge!(:method => form_method, :action => url)
         form_options.merge!("data-remote" => "true") if remote
-        
-        "#{tag(:form, form_options, true)}<div>#{method_tag}#{tag("input", html_options)}#{request_token_tag}</div></form>".html_safe
+
+        request_token_tag = form_method == 'post' ? token_tag : ''
+
+        html_options = convert_options_to_data_attributes(options, html_options)
+        html_options.merge!("type" => "submit", "value" => name || url)
+
+        inner_tags = method_tag.safe_concat tag('input', html_options).safe_concat request_token_tag
+        content_tag('form', content_tag('div', inner_tags), form_options)
       end
 
 
@@ -476,7 +473,7 @@ module ActionView
       #   string given as the value.
       # * <tt>:subject</tt> - Preset the subject line of the email.
       # * <tt>:body</tt> - Preset the body of the email.
-      # * <tt>:cc</tt> - Carbon Copy addition recipients on the email.
+      # * <tt>:cc</tt> - Carbon Copy additional recipients on the email.
       # * <tt>:bcc</tt> - Blind Carbon Copy additional recipients on the email.
       #
       # ==== Examples
@@ -484,7 +481,7 @@ module ActionView
       #   # => <a href="mailto:me@domain.com">me@domain.com</a>
       #
       #   mail_to "me@domain.com", "My email", :encode => "javascript"
-      #   # => <script type="text/javascript">eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
+      #   # => <script>eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
       #
       #   mail_to "me@domain.com", "My email", :encode => "hex"
       #   # => <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
@@ -503,7 +500,7 @@ module ActionView
 
         extras = %w{ cc bcc body subject }.map { |item|
           option = html_options.delete(item) || next
-          "#{item}=#{Rack::Utils.escape(option).gsub("+", "%20")}"
+          "#{item}=#{Rack::Utils.escape_path(option)}"
         }.compact
         extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
 
@@ -518,7 +515,7 @@ module ActionView
           "document.write('#{html}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
-          "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
+          "<script>eval(decodeURIComponent('#{string}'))</script>".html_safe
         when "hex"
           email_address_encoded = email_address_obfuscated.unpack('C*').map {|c|
             sprintf("&#%d;", c)
@@ -599,11 +596,7 @@ module ActionView
         # We ignore any extra parameters in the request_uri if the
         # submitted url doesn't have any either. This lets the function
         # work with things like ?order=asc
-        if url_string.index("?")
-          request_uri = request.fullpath
-        else
-          request_uri = request.path
-        end
+        request_uri = url_string.index("?") ? request.fullpath : request.path
 
         if url_string =~ /^\w+:\/\//
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
@@ -624,7 +617,7 @@ module ActionView
 
             html_options["data-disable-with"] = disable_with if disable_with
             html_options["data-confirm"] = confirm if confirm
-            add_method_to_attributes!(html_options, method)   if method
+            add_method_to_attributes!(html_options, method) if method
 
             html_options
           else
@@ -633,30 +626,14 @@ module ActionView
         end
 
         def link_to_remote_options?(options)
-          options.is_a?(Hash) && options.key?('remote') && options.delete('remote')
+          options.is_a?(Hash) && options.delete('remote')
         end
 
         def add_method_to_attributes!(html_options, method)
           if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
-            html_options["rel"] = "#{html_options["rel"]} nofollow".strip
+            html_options["rel"] = "#{html_options["rel"]} nofollow".lstrip
           end
           html_options["data-method"] = method
-        end
-
-        def options_for_javascript(options)
-          if options.empty?
-            '{}'
-          else
-            "{#{options.keys.map { |k| "#{k}:#{options[k]}" }.sort.join(', ')}}"
-          end
-        end
-
-        def array_or_string_for_javascript(option)
-          if option.kind_of?(Array)
-            "['#{option.join('\',\'')}']"
-          elsif !option.nil?
-            "'#{option}'"
-          end
         end
 
         # Processes the +html_options+ hash, converting the boolean
@@ -685,6 +662,19 @@ module ActionView
         def convert_boolean_attributes!(html_options, bool_attrs)
           bool_attrs.each { |x| html_options[x] = x if html_options.delete(x) }
           html_options
+        end
+
+        def token_tag(token=nil)
+          if token == false || !protect_against_forgery?
+            ''
+          else
+            token ||= form_authenticity_token
+            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
+          end
+        end
+
+        def method_tag(method)
+          tag('input', :type => 'hidden', :name => '_method', :value => method.to_s)
         end
     end
   end

@@ -181,15 +181,13 @@ module ActionController
       @_status = Rack::Utils.status_code(status)
     end
 
-    def response_body=(val)
-      body = if val.is_a?(String)
-        [val]
-      elsif val.nil? || val.respond_to?(:each)
-        val
-      else
-        [val]
-      end
-      super body
+    def response_body=(body)
+      body = [body] unless body.nil? || body.respond_to?(:each)
+      super
+    end
+
+    def performed?
+      !!response_body
     end
 
     def dispatch(name, request) #:nodoc:

@@ -78,6 +78,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_tag_with_method_patch
+    actual = form_tag({}, { :method => :patch })
+    expected = whole_form("http://www.example.com", :method => :patch)
+    assert_dom_equal expected, actual
+  end
+
   def test_form_tag_with_method_put
     actual = form_tag({}, { :method => :put })
     expected = whole_form("http://www.example.com", :method => :put)
@@ -216,19 +222,19 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_area_tag_size_string
     actual = text_area_tag "body", "hello world", "size" => "20x40"
-    expected = %(<textarea cols="20" id="body" name="body" rows="40">hello world</textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_size_symbol
     actual = text_area_tag "body", "hello world", :size => "20x40"
-    expected = %(<textarea cols="20" id="body" name="body" rows="40">hello world</textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_should_disregard_size_if_its_given_as_an_integer
     actual = text_area_tag "body", "hello world", :size => 20
-    expected = %(<textarea id="body" name="body">hello world</textarea>)
+    expected = %(<textarea id="body" name="body">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
@@ -239,19 +245,19 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_area_tag_escape_content
     actual = text_area_tag "body", "<b>hello world</b>", :size => "20x40"
-    expected = %(<textarea cols="20" id="body" name="body" rows="40">&lt;b&gt;hello world&lt;/b&gt;</textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\n&lt;b&gt;hello world&lt;/b&gt;</textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_unescaped_content
     actual = text_area_tag "body", "<b>hello world</b>", :size => "20x40", :escape => false
-    expected = %(<textarea cols="20" id="body" name="body" rows="40"><b>hello world</b></textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\n<b>hello world</b></textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_unescaped_nil_content
     actual = text_area_tag "body", nil, :escape => false
-    expected = %(<textarea id="body" name="body"></textarea>)
+    expected = %(<textarea id="body" name="body">\n</textarea>)
     assert_dom_equal expected, actual
   end
 
@@ -457,9 +463,14 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, search_field_tag("query"))
   end
 
-  def telephone_field_tag
+  def test_telephone_field_tag
     expected = %{<input id="cell" name="cell" type="tel" />}
     assert_dom_equal(expected, telephone_field_tag("cell"))
+  end
+
+  def test_date_field_tag
+    expected = %{<input id="cell" name="cell" type="date" />}
+    assert_dom_equal(expected, date_field_tag("cell"))
   end
 
   def test_url_field_tag
@@ -482,10 +493,6 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, range_field_tag("volume", nil, :in => 0..11, :step => 0.1))
   end
 
-  def test_pass
-    assert_equal 1, 1
-  end
-
   def test_field_set_tag_in_erb
     output_buffer = render_erb("<%= field_set_tag('Your details') do %>Hello world!<% end %>")
 
@@ -505,6 +512,16 @@ class FormTagHelperTest < ActionView::TestCase
     output_buffer = render_erb("<%= field_set_tag('', :class => 'format') do %>Hello world!<% end %>")
 
     expected = %(<fieldset class="format">Hello world!</fieldset>)
+    assert_dom_equal expected, output_buffer
+
+    output_buffer = render_erb("<%= field_set_tag %>")
+
+    expected = %(<fieldset></fieldset>)
+    assert_dom_equal expected, output_buffer
+
+    output_buffer = render_erb("<%= field_set_tag('You legend!') %>")
+
+    expected = %(<fieldset><legend>You legend!</legend></fieldset>)
     assert_dom_equal expected, output_buffer
   end
 

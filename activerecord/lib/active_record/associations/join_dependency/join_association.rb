@@ -95,8 +95,11 @@ module ActiveRecord
             conditions = self.conditions[i].dup
             conditions << { reflection.type => foreign_klass.base_class.name } if reflection.type
 
-            unless conditions.empty?
-              constraint = constraint.and(sanitize(conditions, table))
+            conditions.each do |condition|
+              condition = active_record.send(:sanitize_sql, interpolate(condition), table.table_alias || table.name)
+              condition = Arel.sql(condition) unless condition.is_a?(Arel::Node)
+
+              constraint = constraint.and(condition)
             end
 
             relation.from(join(table, constraint))

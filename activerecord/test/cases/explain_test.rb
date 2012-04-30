@@ -14,7 +14,7 @@ if ActiveRecord::Base.connection.supports_explain?
       base.connection
     end
 
-    def test_logging_query_plan
+    def test_logging_query_plan_with_logger
       base.logger.expects(:warn).with do |message|
         message.starts_with?('EXPLAIN for:')
       end
@@ -22,6 +22,22 @@ if ActiveRecord::Base.connection.supports_explain?
       with_threshold(0) do
         Car.where(:name => 'honda').all
       end
+    end
+
+    def test_logging_query_plan_without_logger
+      original = base.logger
+      base.logger = nil
+
+      class << base.logger
+        def warn; raise "Should not be called" end
+      end
+
+      with_threshold(0) do
+        car = Car.where(:name => 'honda').first
+        assert_equal 'honda', car.name
+      end
+    ensure
+      base.logger = original
     end
 
     def test_collect_queries_for_explain

@@ -1,5 +1,5 @@
 class Reply < ActiveRecord::Base
-  scope :base
+  scope :base, -> { scoped }
   belongs_to :topic, :include => [:replies]
   belongs_to :developer
 

@@ -2,7 +2,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class RakeTest < Test::Unit::TestCase
+  class RakeTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -63,26 +63,23 @@ module ApplicationTests
     def test_rake_test_error_output
       Dir.chdir(app_path){ `rake db:migrate` }
 
-      app_file "config/database.yml", <<-RUBY
-        development:
-      RUBY
-
       app_file "test/unit/one_unit_test.rb", <<-RUBY
+        raise 'unit'
       RUBY
 
       app_file "test/functional/one_functional_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'functional'
       RUBY
 
       app_file "test/integration/one_integration_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'integration'
       RUBY
 
       silence_stderr do
-        output = Dir.chdir(app_path){ `rake test` }
-        assert_match(/Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output)
-        assert_match(/Errors running test:functionals! #<RuntimeError/, output)
-        assert_match(/Errors running test:integration! #<RuntimeError/, output)
+        output = Dir.chdir(app_path) { `rake test 2>&1` }
+        assert_match 'unit', output
+        assert_match 'functional', output
+        assert_match 'integration', output
       end
     end
 
@@ -110,9 +107,9 @@ module ApplicationTests
 
     def test_loading_specific_fixtures
       Dir.chdir(app_path) do
-        `rails generate model user username:string password:string`
-        `rails generate model product name:string`
-        `rake db:migrate`
+        `rails generate model user username:string password:string;
+         rails generate model product name:string;
+         rake db:migrate`
       end
 
       require "#{rails_root}/config/environment"
@@ -126,12 +123,49 @@ module ApplicationTests
     end
 
     def test_scaffold_tests_pass_by_default
-      content = Dir.chdir(app_path) do
-        `rails generate scaffold user username:string password:string`
-        `bundle exec rake db:migrate db:test:clone test`
+      output = Dir.chdir(app_path) do
+        `rails generate scaffold user username:string password:string;
+         bundle exec rake db:migrate db:test:clone test`
       end
 
-      assert_match(/7 tests, 10 assertions, 0 failures, 0 errors/, content)
+      assert_match(/7 tests, 13 assertions, 0 failures, 0 errors/, output)
+      assert_no_match(/Errors running/, output)
+    end
+
+    def test_rake_dump_structure_should_respect_db_structure_env_variable
+      Dir.chdir(app_path) do
+        # ensure we have a schema_migrations table to dump
+        `bundle exec rake db:migrate db:structure:dump DB_STRUCTURE=db/my_structure.sql`
+      end
+      assert File.exists?(File.join(app_path, 'db', 'my_structure.sql'))
+    end
+
+    def test_rake_dump_structure_should_be_called_twice_when_migrate_redo
+      add_to_config "config.active_record.schema_format = :sql"
+
+      output = Dir.chdir(app_path) do
+        `rails g model post title:string;
+         bundle exec rake db:migrate:redo 2>&1 --trace;`
+      end
+
+      # expect only Invoke db:structure:dump (first_time)
+      assert_no_match(/^\*\* Invoke db:structure:dump\s+$/, output)
+    end
+
+    def test_rake_dump_schema_cache
+      Dir.chdir(app_path) do
+        `rails generate model post title:string;
+         rails generate model product name:string;
+         bundle exec rake db:migrate db:schema:cache:dump`
+      end
+      assert File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
+    end
+
+    def test_rake_clear_schema_cache
+      Dir.chdir(app_path) do
+        `bundle exec rake db:schema:cache:dump db:schema:cache:clear`
+      end
+      assert !File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
     end
   end
 end

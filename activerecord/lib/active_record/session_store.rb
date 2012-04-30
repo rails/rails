@@ -51,11 +51,11 @@ module ActiveRecord
   class SessionStore < ActionDispatch::Session::AbstractStore
     module ClassMethods # :nodoc:
       def marshal(data)
-        ActiveSupport::Base64.encode64(Marshal.dump(data)) if data
+        ::Base64.encode64(Marshal.dump(data)) if data
       end
 
       def unmarshal(data)
-        Marshal.load(ActiveSupport::Base64.decode64(data)) if data
+        Marshal.load(::Base64.decode64(data)) if data
       end
 
       def drop_table!
@@ -116,10 +116,10 @@ module ActiveRecord
               define_method(:session_id)  { sessid }
               define_method(:session_id=) { |session_id| self.sessid = session_id }
             else
-              class << self; remove_method :find_by_session_id; end
+              class << self; remove_possible_method :find_by_session_id; end
 
               def self.find_by_session_id(session_id)
-                find :first, :conditions => {:session_id=>session_id}
+                where(session_id: session_id).first
               end
             end
           end
@@ -169,11 +169,11 @@ module ActiveRecord
     # are implemented as class methods that you may override. By default,
     # marshaling data is
     #
-    #   ActiveSupport::Base64.encode64(Marshal.dump(data))
+    #   ::Base64.encode64(Marshal.dump(data))
     #
     # and unmarshaling data is
     #
-    #   Marshal.load(ActiveSupport::Base64.decode64(data))
+    #   Marshal.load(::Base64.decode64(data))
     #
     # This marshaling behavior is intended to store the widest range of
     # binary session data in a +text+ column. For higher performance,

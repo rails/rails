@@ -25,13 +25,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { assert_nil firm.account }
     assert_queries(0) { assert_nil firm.account }
 
-    firms = Firm.find(:all, :include => :account)
+    firms = Firm.scoped(:includes => :account).all
     assert_queries(0) { firms.each(&:account) }
   end
 
   def test_with_select
     assert_equal Firm.find(1).account_with_select.attributes.size, 2
-    assert_equal Firm.find(1, :include => :account_with_select).account_with_select.attributes.size, 2
+    assert_equal Firm.scoped(:includes => :account_with_select).find(1).account_with_select.attributes.size, 2
   end
 
   def test_finding_using_primary_key
@@ -157,11 +157,62 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dependence_with_restrict
-    firm = RestrictedFirm.new(:name => 'restrict')
-    firm.save!
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = true
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
     firm.create_account(:credit_limit => 10)
+
     assert_not_nil firm.account
+
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.account.present?
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
+  end
+
+  def test_dependence_with_restrict_with_dependent_restrict_raises_config_set_to_false
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = false
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
+    firm.create_account(:credit_limit => 10)
+
+    assert_not_nil firm.account
+
+    firm.destroy
+
+    assert !firm.errors.empty?
+    assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.account.present?
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
+  end
+
+  def test_dependence_with_restrict_with_dependent_restrict_raises_config_set_to_false_and_attribute_name
+    old_backend = I18n.backend
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations 'en', :activerecord => {:attributes => {:restricted_firm => {:account => "account model"}}}
+
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = false
+
+    firm = RestrictedFirm.create!(:name => 'restrict')
+    firm.create_account(:credit_limit => 10)
+
+    assert_not_nil firm.account
+
+    firm.destroy
+
+    assert !firm.errors.empty?
+    assert_equal "Cannot delete record because a dependent account model exists", firm.errors[:base].first
+    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert firm.account.present?
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
+    I18n.backend = old_backend
   end
 
   def test_successful_build_association
@@ -243,13 +294,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_dependence_with_missing_association_and_nullify
     Account.destroy_all
-    firm = DependentFirm.find(:first)
+    firm = DependentFirm.first
     assert_nil firm.account
     firm.destroy
   end
 
   def test_finding_with_interpolated_condition
-    firm = Firm.find(:first)
+    firm = Firm.first
     superior = firm.clients.create(:name => 'SuperiorCo')
     superior.rating = 10
     superior.save
@@ -295,14 +346,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Firm.find(@firm.id).save!
-      Firm.find(@firm.id, :include => :account).save!
+      Firm.scoped(:includes => :account).find(@firm.id).save!
     end
 
     @firm.account.destroy
 
     assert_nothing_raised do
       Firm.find(@firm.id).save!
-      Firm.find(@firm.id, :include => :account).save!
+      Firm.scoped(:includes => :account).find(@firm.id).save!
     end
   end
 
@@ -397,6 +448,22 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal car.id, bulb.car_id
   end
 
+  def test_association_protect_foreign_key
+    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+
+    ship = pirate.build_ship
+    assert_equal pirate.id, ship.pirate_id
+
+    ship = pirate.build_ship :pirate_id => pirate.id + 1
+    assert_equal pirate.id, ship.pirate_id
+
+    ship = pirate.create_ship
+    assert_equal pirate.id, ship.pirate_id
+
+    ship = pirate.create_ship :pirate_id => pirate.id + 1
+    assert_equal pirate.id, ship.pirate_id
+  end
+
   def test_association_conditions_bypass_attribute_protection
     car = Car.create(:name => 'honda')
 
@@ -455,5 +522,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     bulb = car.create_bulb
 
     assert_equal car.id, bulb.attributes_after_initialize['car_id']
+  end
+
+  def test_building_has_one_association_with_dependent_restrict
+    option_before = ActiveRecord::Base.dependent_restrict_raises
+    ActiveRecord::Base.dependent_restrict_raises = true
+
+    klass = Class.new(ActiveRecord::Base)
+
+    assert_deprecated     { klass.has_one :account, :dependent => :restrict }
+    assert_not_deprecated { klass.has_one :account }
+  ensure
+    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 end

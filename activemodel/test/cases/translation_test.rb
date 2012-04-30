@@ -82,9 +82,15 @@ class ActiveModelI18nTests < ActiveModel::TestCase
   end
 
   def test_human_does_not_modify_options
-    options = {:default => 'person model'}
+    options = { :default => 'person model' }
     Person.model_name.human(options)
-    assert_equal({:default => 'person model'}, options)
+    assert_equal({ :default => 'person model' }, options)
+  end
+
+  def test_human_attribute_name_does_not_modify_options
+    options = { :default => 'Cool gender' }
+    Person.human_attribute_name('gender', options)
+    assert_equal({ :default => 'Cool gender' }, options)
   end
 end
 

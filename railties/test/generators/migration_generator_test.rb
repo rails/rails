@@ -41,6 +41,24 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_remove_migration_with_indexed_attribute
+    migration = "remove_title_body_from_posts"
+    run_generator [migration, "title:string:index", "body:text"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :up, content do |up|
+        assert_match(/remove_column :posts, :title/, up)
+        assert_match(/remove_column :posts, :body/, up)
+      end
+
+      assert_method :down, content do |down|
+        assert_match(/add_column :posts, :title, :string/, down)
+        assert_match(/add_column :posts, :body, :text/, down)
+        assert_match(/add_index :posts, :title/, down)
+      end
+    end
+  end
+
   def test_remove_migration_with_attributes
     migration = "remove_title_body_from_posts"
     run_generator [migration, "title:string", "body:text"]
@@ -58,6 +76,68 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_with_attributes_and_indices
+    migration = "add_title_with_index_and_body_to_posts"
+    run_generator [migration, "title:string:index", "body:text", "user_id:integer:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/add_column :posts, :title, :string/, up)
+        assert_match(/add_column :posts, :body, :text/, up)
+        assert_match(/add_column :posts, :user_id, :integer/, up)
+      end
+      assert_match(/add_index :posts, :title/, content)
+      assert_match(/add_index :posts, :user_id, unique: true/, content)
+    end
+  end
+
+  def test_add_migration_with_attributes_and_wrong_index_declaration
+    migration = "add_title_and_content_to_books"
+    run_generator [migration, "title:string:inex", "content:text", "user_id:integer:unik"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/add_column :books, :title, :string/, up)
+        assert_match(/add_column :books, :content, :text/, up)
+        assert_match(/add_column :books, :user_id, :integer/, up)
+      end
+      assert_no_match(/add_index :books, :title/, content)
+      assert_no_match(/add_index :books, :user_id/, content)
+    end
+  end
+
+  def test_add_migration_with_attributes_without_type_and_index
+    migration = "add_title_with_index_and_body_to_posts"
+    run_generator [migration, "title:index", "body:text", "user_uuid:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/add_column :posts, :title, :string/, up)
+        assert_match(/add_column :posts, :body, :text/, up)
+        assert_match(/add_column :posts, :user_uuid, :string/, up)
+      end
+      assert_match(/add_index :posts, :title/, content)
+      assert_match(/add_index :posts, :user_uuid, unique: true/, content)
+    end
+  end
+
+  def test_add_migration_with_attributes_index_declaration_and_attribute_options
+    migration = "add_title_and_content_to_books"
+    run_generator [migration, "title:string{40}:index", "content:string{255}", "price:decimal{1,2}:index", "discount:decimal{3.4}:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/add_column :books, :title, :string, limit: 40/, up)
+        assert_match(/add_column :books, :content, :string, limit: 255/, up)
+        assert_match(/add_column :books, :price, :decimal, precision: 1, scale: 2/, up)
+        assert_match(/add_column :books, :discount, :decimal, precision: 3, scale: 4/, up)
+      end
+      assert_match(/add_index :books, :title/, content)
+      assert_match(/add_index :books, :price/, content)
+      assert_match(/add_index :books, :discount, unique: true/, content)
+    end
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove
     migration = "create_books"
     run_generator [migration, "title:string", "content:text"]
@@ -71,5 +151,9 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
         assert_match(/^\s*$/, down)
       end
     end
+  end
+
+  def test_properly_identifies_usage_file
+    assert generator_class.send(:usage_path)
   end
 end

@@ -9,7 +9,7 @@ module ActiveSupport
   module JSON
     class << self
       def decode(json, options ={})
-        data = MultiJson.decode(json, options)
+        data = MultiJson.load(json, options)
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
         else
@@ -18,12 +18,12 @@ module ActiveSupport
       end
 
       def engine
-        MultiJson.engine
+        MultiJson.adapter
       end
       alias :backend :engine
 
       def engine=(name)
-        MultiJson.engine = name
+        MultiJson.use(name)
       end
       alias :backend= :engine=
 

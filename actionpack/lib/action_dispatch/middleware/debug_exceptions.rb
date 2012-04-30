@@ -15,8 +15,9 @@ module ActionDispatch
       begin
         response = @app.call(env)
 
-        # TODO: Maybe this should be in the router itself
         if response[1]['X-Cascade'] == 'pass'
+          body = response[2]
+          body.close if body.respond_to?(:close)
           raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
         end
       rescue Exception => exception
@@ -59,10 +60,13 @@ module ActionDispatch
 
       exception = wrapper.exception
 
+      trace = wrapper.application_trace
+      trace = wrapper.framework_trace if trace.empty?
+
       ActiveSupport::Deprecation.silence do
         message = "\n#{exception.class} (#{exception.message}):\n"
         message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
-        message << "  " << wrapper.application_trace.join("\n  ")
+        message << "  " << trace.join("\n  ")
         logger.fatal("#{message}\n\n")
       end
     end
@@ -72,7 +76,7 @@ module ActionDispatch
     end
 
     def stderr_logger
-      @stderr_logger ||= Logger.new($stderr)
+      @stderr_logger ||= ActiveSupport::Logger.new($stderr)
     end
   end
 end

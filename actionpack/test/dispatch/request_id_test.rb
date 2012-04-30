@@ -14,7 +14,7 @@ class RequestIdTest < ActiveSupport::TestCase
   end
 
   test "generating a request id when none is supplied" do
-    assert_match(/\w+/, stub_request.uuid)
+    assert_match(/\w+-\w+-\w+-\w+-\w+/, stub_request.uuid)
   end
 
   private
@@ -52,7 +52,7 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
   def with_test_route_set
     with_routing do |set|
       set.draw do
-        match '/', :to => ::RequestIdResponseTest::TestController.action(:index)
+        get '/', :to => ::RequestIdResponseTest::TestController.action(:index)
       end
 
       @app = self.class.build_app(set) do |middleware|

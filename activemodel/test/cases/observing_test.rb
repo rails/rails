@@ -70,23 +70,38 @@ class ObservingTest < ActiveModel::TestCase
     ObservedModel.instantiate_observers
   end
 
+  test "raises an appropriate error when a developer accidentally adds the wrong class (i.e. Widget instead of WidgetObserver)" do
+    assert_raise ArgumentError do
+      ObservedModel.observers = ['string']
+      ObservedModel.instantiate_observers
+    end
+    assert_raise ArgumentError do
+      ObservedModel.observers = [:string]
+      ObservedModel.instantiate_observers
+    end
+    assert_raise ArgumentError do
+      ObservedModel.observers = [String]
+      ObservedModel.instantiate_observers
+    end
+  end
+
   test "passes observers to subclasses" do
     FooObserver.instance
     bar = Class.new(Foo)
-    assert_equal Foo.count_observers, bar.count_observers
+    assert_equal Foo.observers_count, bar.observers_count
   end
 end
 
 class ObserverTest < ActiveModel::TestCase
   def setup
     ObservedModel.observers = :foo_observer
-    FooObserver.instance_eval do
+    FooObserver.singleton_class.instance_eval do
       alias_method :original_observed_classes, :observed_classes
     end
   end
 
   def teardown
-    FooObserver.instance_eval do
+    FooObserver.singleton_class.instance_eval do
       undef_method :observed_classes
       alias_method :observed_classes, :original_observed_classes
     end
@@ -98,32 +113,25 @@ class ObserverTest < ActiveModel::TestCase
 
   test "tracks implicit observable models" do
     instance = FooObserver.new
-    assert  instance.send(:observed_classes).include?(Foo), "Foo not in #{instance.send(:observed_classes).inspect}"
-    assert !instance.send(:observed_classes).include?(ObservedModel), "ObservedModel in #{instance.send(:observed_classes).inspect}"
+    assert_equal [Foo], instance.observed_classes
   end
 
   test "tracks explicit observed model class" do
-    old_instance = FooObserver.new
-    assert !old_instance.send(:observed_classes).include?(ObservedModel), "ObservedModel in #{old_instance.send(:observed_classes).inspect}"
     FooObserver.observe ObservedModel
     instance = FooObserver.new
-    assert instance.send(:observed_classes).include?(ObservedModel), "ObservedModel not in #{instance.send(:observed_classes).inspect}"
+    assert_equal [ObservedModel], instance.observed_classes
   end
 
   test "tracks explicit observed model as string" do
-    old_instance = FooObserver.new
-    assert !old_instance.send(:observed_classes).include?(ObservedModel), "ObservedModel in #{old_instance.send(:observed_classes).inspect}"
     FooObserver.observe 'observed_model'
     instance = FooObserver.new
-    assert instance.send(:observed_classes).include?(ObservedModel), "ObservedModel not in #{instance.send(:observed_classes).inspect}"
+    assert_equal [ObservedModel], instance.observed_classes
   end
 
   test "tracks explicit observed model as symbol" do
-    old_instance = FooObserver.new
-    assert !old_instance.send(:observed_classes).include?(ObservedModel), "ObservedModel in #{old_instance.send(:observed_classes).inspect}"
     FooObserver.observe :observed_model
     instance = FooObserver.new
-    assert instance.send(:observed_classes).include?(ObservedModel), "ObservedModel not in #{instance.send(:observed_classes).inspect}"
+    assert_equal [ObservedModel], instance.observed_classes
   end
 
   test "calls existing observer event" do
@@ -144,5 +152,16 @@ class ObserverTest < ActiveModel::TestCase
       yielded_value = val
     end
     assert_equal :in_around_save, yielded_value
+  end
+
+  test "observe redefines observed_classes class method" do
+    class BarObserver < ActiveModel::Observer
+      observe :foo
+    end
+
+    assert_equal [Foo], BarObserver.observed_classes
+
+    BarObserver.observe(ObservedModel)
+    assert_equal [ObservedModel], BarObserver.observed_classes
   end
 end

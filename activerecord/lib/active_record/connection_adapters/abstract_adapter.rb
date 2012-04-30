@@ -11,23 +11,26 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :Column
+    autoload :ConnectionSpecification
+
+    autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
+      autoload :IndexDefinition
+      autoload :ColumnDefinition
+      autoload :TableDefinition
+      autoload :Table
+    end
+
+    autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
+      autoload :ConnectionHandler
+      autoload :ConnectionManagement
+    end
 
     autoload_under 'abstract' do
-      autoload :IndexDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :ColumnDefinition, 'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :TableDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :Table,            'active_record/connection_adapters/abstract/schema_definitions'
-
       autoload :SchemaStatements
       autoload :DatabaseStatements
       autoload :DatabaseLimits
       autoload :Quoting
-
       autoload :ConnectionPool
-      autoload :ConnectionHandler,       'active_record/connection_adapters/abstract/connection_pool'
-      autoload :ConnectionManagement,    'active_record/connection_adapters/abstract/connection_pool'
-      autoload :ConnectionSpecification
-
       autoload :QueryCache
     end
 
@@ -54,7 +57,7 @@ module ActiveRecord
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :last_use, :in_use
+      attr_reader :schema_cache, :last_use, :in_use, :logger
       alias :in_use? :in_use
 
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
@@ -81,6 +84,11 @@ module ActiveRecord
             @last_use = Time.now
           end
         end
+      end
+
+      def schema_cache=(cache)
+        cache.connection = self
+        @schema_cache = cache
       end
 
       def expire
@@ -142,6 +150,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support partial indices?
+      def supports_partial_index?
+        false
+      end
+
       # Does this adapter support explain? As of this writing sqlite3,
       # mysql2, and postgresql are the only ones that do.
       def supports_explain?
@@ -150,15 +163,10 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      # Override to return the quoted table name. Defaults to column quoting.
-      def quote_table_name(name)
-        quote_column_name(name)
-      end
-
       # Returns a bind substitution value given a +column+ and list of current
       # +binds+
       def substitute_at(column, index)
-        Arel.sql '?'
+        Arel::Nodes::BindParam.new '?'
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -271,26 +279,25 @@ module ActiveRecord
 
       protected
 
-        def log(sql, name = "SQL", binds = [])
-          @instrumenter.instrument(
-            "sql.active_record",
-            :sql           => sql,
-            :name          => name,
-            :connection_id => object_id,
-            :binds         => binds) { yield }
-        rescue Exception => e
-          message = "#{e.class.name}: #{e.message}: #{sql}"
-          @logger.debug message if @logger
-          exception = translate_exception(e, message)
-          exception.set_backtrace e.backtrace
-          raise exception
-        end
+      def log(sql, name = "SQL", binds = [])
+        @instrumenter.instrument(
+          "sql.active_record",
+          :sql           => sql,
+          :name          => name,
+          :connection_id => object_id,
+          :binds         => binds) { yield }
+      rescue Exception => e
+        message = "#{e.class.name}: #{e.message}: #{sql}"
+        @logger.error message if @logger
+        exception = translate_exception(e, message)
+        exception.set_backtrace e.backtrace
+        raise exception
+      end
 
-        def translate_exception(e, message)
-          # override in derived class
-          ActiveRecord::StatementInvalid.new(message)
-        end
-
+      def translate_exception(exception, message)
+        # override in derived class
+        ActiveRecord::StatementInvalid.new(message)
+      end
     end
   end
 end

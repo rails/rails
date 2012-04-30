@@ -37,7 +37,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
 
   # validates_confirmation_of: generate_message(attr_name, :confirmation, :message => custom_message)
   def test_generate_message_confirmation_with_default_message
-    assert_equal "doesn't match confirmation", @person.errors.generate_message(:title, :confirmation)
+    assert_equal "doesn't match Title", @person.errors.generate_message(:title, :confirmation)
   end
 
   def test_generate_message_confirmation_with_custom_message

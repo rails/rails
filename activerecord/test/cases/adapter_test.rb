@@ -17,6 +17,7 @@ module ActiveRecord
     def test_table_exists?
       assert @connection.table_exists?("accounts")
       assert !@connection.table_exists?("nonexistingtable")
+      assert !@connection.table_exists?(nil)
     end
 
     def test_indexes
@@ -68,16 +69,16 @@ module ActiveRecord
       def test_not_specifying_database_name_for_cross_database_selects
         begin
           assert_nothing_raised do
-            ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['arunit'].except(:database))
+            ActiveRecord::Model.establish_connection(ActiveRecord::Base.configurations['arunit'].except(:database))
 
             config = ARTest.connection_config
-            ActiveRecord::Base.connection.execute(
+            ActiveRecord::Model.connection.execute(
               "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
               "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
             )
           end
         ensure
-          ActiveRecord::Base.establish_connection 'arunit'
+          ActiveRecord::Model.establish_connection 'arunit'
         end
       end
     end

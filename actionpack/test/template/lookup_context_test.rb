@@ -1,20 +1,14 @@
 require "abstract_unit"
 require "abstract_controller/rendering"
 
-ActionView::LookupContext::DetailsKey.class_eval do
-  def self.details_keys
-    @details_keys
-  end
-end
-
 class LookupContextTest < ActiveSupport::TestCase
   def setup
     @lookup_context = ActionView::LookupContext.new(FIXTURE_LOAD_PATH, {})
+    ActionView::LookupContext::DetailsKey.clear
   end
 
   def teardown
     I18n.locale = :en
-    ActionView::LookupContext::DetailsKey.details_keys.clear
   end
 
   test "process view paths on initialization" do
@@ -84,9 +78,9 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "found templates respects given formats if one cannot be found from template or handler" do
-    ActionView::Template::Handlers::ERB.expects(:default_format).returns(nil)
+    ActionView::Template::Handlers::Builder.expects(:default_format).returns(nil)
     @lookup_context.formats = [:text]
-    template = @lookup_context.find("hello_world", %w(test))
+    template = @lookup_context.find("hello", %w(test))
     assert_equal [:text], template.formats
   end
 

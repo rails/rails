@@ -12,9 +12,8 @@ module ActionView
     alias :render_partial :render_template
     alias :render_collection :render_template
 
-    # TODO: Ideally, ActionView should have its own logger so it does not depend on AC.logger
     def logger
-      ActionController::Base.logger if defined?(ActionController::Base)
+      ActionView::Base.logger
     end
 
   protected

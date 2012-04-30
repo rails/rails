@@ -2,7 +2,7 @@ require 'isolation/abstract_unit'
 require 'rack/test'
 
 module ApplicationTests
-  class RoutingTest < Test::Unit::TestCase
+  class RoutingTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
@@ -53,7 +53,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          get ':controller(/:action)'
         end
       RUBY
 
@@ -94,7 +94,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          get ':controller(/:action)'
         end
       RUBY
 
@@ -126,8 +126,8 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match 'admin/foo', :to => 'admin/foo#index'
-          match 'foo', :to => 'foo#index'
+          get 'admin/foo', :to => 'admin/foo#index'
+          get 'foo', :to => 'foo#index'
         end
       RUBY
 
@@ -141,13 +141,13 @@ module ApplicationTests
     test "routes appending blocks" do
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller/:action'
+          get ':controller/:action'
         end
       RUBY
 
       add_to_config <<-R
         routes.append do
-          match '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
+          get '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
         end
       R
 
@@ -158,7 +158,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-R
         AppTemplate::Application.routes.draw do
-          match 'lol' => 'hello#index'
+          get 'lol' => 'hello#index'
         end
       R
 
@@ -166,7 +166,90 @@ module ApplicationTests
       assert_equal 'WIN', last_response.body
     end
 
+    test "routes drawing from config/routes" do
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          draw :external
+        end
+      RUBY
+
+      app_file 'config/routes/external.rb', <<-RUBY
+        get ':controller/:action'
+      RUBY
+
+      controller :success, <<-RUBY
+        class SuccessController < ActionController::Base
+          def index
+            render :text => "success!"
+          end
+        end
+      RUBY
+
+      app 'development'
+      get '/success/index'
+      assert_equal 'success!', last_response.body
+    end
+
     {"development" => "baz", "production" => "bar"}.each do |mode, expected|
+      test "reloads routes when external configuration is changed in #{mode}" do
+        controller :foo, <<-RUBY
+          class FooController < ApplicationController
+            def bar
+              render :text => "bar"
+            end
+
+            def baz
+              render :text => "baz"
+            end
+          end
+        RUBY
+
+        app_file 'config/routes.rb', <<-RUBY
+          AppTemplate::Application.routes.draw do
+            draw :external
+          end
+        RUBY
+
+        app_file 'config/routes/external.rb', <<-RUBY
+          get 'foo', :to => 'foo#bar'
+        RUBY
+
+        app(mode)
+
+        get '/foo'
+        assert_equal 'bar', last_response.body
+
+        app_file 'config/routes/external.rb', <<-RUBY
+          get 'foo', :to => 'foo#baz'
+        RUBY
+
+        sleep 0.1
+
+        get '/foo'
+        assert_equal expected, last_response.body
+
+        app_file 'config/routes.rb', <<-RUBY
+          AppTemplate::Application.routes.draw do
+            draw :external
+            draw :other_external
+          end
+        RUBY
+
+        app_file 'config/routes/other_external.rb', <<-RUBY
+          get 'win', :to => 'foo#baz'
+        RUBY
+
+        sleep 0.1
+
+        get '/win'
+
+        if mode == "development"
+          assert_equal expected, last_response.body
+        else
+          assert_equal 404, last_response.status
+        end
+      end
+
       test "reloads routes when configuration is changed in #{mode}" do
         controller :foo, <<-RUBY
           class FooController < ApplicationController
@@ -182,7 +265,7 @@ module ApplicationTests
 
         app_file 'config/routes.rb', <<-RUBY
           AppTemplate::Application.routes.draw do
-            match 'foo', :to => 'foo#bar'
+            get 'foo', :to => 'foo#bar'
           end
         RUBY
 
@@ -193,7 +276,7 @@ module ApplicationTests
 
         app_file 'config/routes.rb', <<-RUBY
           AppTemplate::Application.routes.draw do
-            match 'foo', :to => 'foo#baz'
+            get 'foo', :to => 'foo#baz'
           end
         RUBY
 
@@ -214,7 +297,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match 'foo', :to => ::InitializeRackApp
+          get 'foo', :to => ::InitializeRackApp
         end
       RUBY
 

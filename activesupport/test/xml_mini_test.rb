@@ -3,7 +3,7 @@ require 'active_support/xml_mini'
 require 'active_support/builder'
 
 module XmlMiniTest
-  class RenameKeyTest < Test::Unit::TestCase
+  class RenameKeyTest < ActiveSupport::TestCase
     def test_rename_key_dasherizes_by_default
       assert_equal "my-key", ActiveSupport::XmlMini.rename_key("my_key")
     end

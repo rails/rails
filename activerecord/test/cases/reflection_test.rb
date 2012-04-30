@@ -36,25 +36,25 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_read_attribute_names
     assert_equal(
-      %w( id title author_name author_email_address bonus_time written_on last_read content group approved replies_count parent_id parent_title type created_at updated_at ).sort,
+      %w( id title author_name author_email_address bonus_time written_on last_read content important group approved replies_count parent_id parent_title type created_at updated_at ).sort,
       @first.attribute_names.sort
     )
   end
 
   def test_columns
-    assert_equal 16, Topic.columns.length
+    assert_equal 17, Topic.columns.length
   end
 
   def test_columns_are_returned_in_the_order_they_were_declared
     column_names = Topic.columns.map { |column| column.name }
-    assert_equal %w(id title author_name author_email_address written_on bonus_time last_read content approved replies_count parent_id parent_title type group created_at updated_at), column_names
+    assert_equal %w(id title author_name author_email_address written_on bonus_time last_read content important approved replies_count parent_id parent_title type group created_at updated_at), column_names
   end
 
   def test_content_columns
     content_columns        = Topic.content_columns
     content_column_names   = content_columns.map {|column| column.name}
-    assert_equal 12, content_columns.length
-    assert_equal %w(title author_name author_email_address written_on bonus_time last_read content group approved parent_title created_at updated_at).sort, content_column_names.sort
+    assert_equal 13, content_columns.length
+    assert_equal %w(title author_name author_email_address written_on bonus_time last_read content important group approved parent_title created_at updated_at).sort, content_column_names.sort
   end
 
   def test_column_string_type_and_limit
@@ -63,7 +63,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_column_null_not_null
-    subscriber = Subscriber.find(:first)
+    subscriber = Subscriber.first
     assert subscriber.column_for_attribute("name").null
     assert !subscriber.column_for_attribute("nick").null
   end
@@ -189,8 +189,8 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflection_of_all_associations
     # FIXME these assertions bust a lot
-    assert_equal 37, Firm.reflect_on_all_associations.size
-    assert_equal 27, Firm.reflect_on_all_associations(:has_many).size
+    assert_equal 39, Firm.reflect_on_all_associations.size
+    assert_equal 29, Firm.reflect_on_all_associations(:has_many).size
     assert_equal 10, Firm.reflect_on_all_associations(:has_one).size
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
   end

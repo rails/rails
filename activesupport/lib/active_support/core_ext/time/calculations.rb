@@ -1,10 +1,17 @@
 require 'active_support/duration'
-require 'active_support/core_ext/time/zones'
 require 'active_support/core_ext/time/conversions'
 
 class Time
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  DAYS_INTO_WEEK = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6 }
+  DAYS_INTO_WEEK = {
+    :monday    => 0,
+    :tuesday   => 1,
+    :wednesday => 2,
+    :thursday  => 3,
+    :friday    => 4,
+    :saturday  => 5,
+    :sunday    => 6
+  }
 
   class << self
     # Overriding case equality method so that it returns true for ActiveSupport::TimeWithZone instances
@@ -15,8 +22,11 @@ class Time
     # Return the number of days in the given month.
     # If no year is specified, it will use the current year.
     def days_in_month(month, year = now.year)
-      return 29 if month == 2 && ::Date.gregorian_leap?(year)
-      COMMON_YEAR_DAYS_IN_MONTH[month]
+      if month == 2 && ::Date.gregorian_leap?(year)
+        29
+      else
+        COMMON_YEAR_DAYS_IN_MONTH[month]
+      end
     end
 
     # Returns a new Time if requested year can be accommodated by Ruby's Time class
@@ -24,8 +34,13 @@ class Time
     # otherwise returns a DateTime.
     def time_with_datetime_fallback(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0, usec=0)
       time = ::Time.send(utc_or_local, year, month, day, hour, min, sec, usec)
+
       # This check is needed because Time.utc(y) returns a time object in the 2000s for 0 <= y <= 138.
-      time.year == year ? time : ::DateTime.civil_from_format(utc_or_local, year, month, day, hour, min, sec)
+      if time.year == year
+        time
+      else
+        ::DateTime.civil_from_format(utc_or_local, year, month, day, hour, min, sec)
+      end
     rescue
       ::DateTime.civil_from_format(utc_or_local, year, month, day, hour, min, sec)
     end
@@ -67,18 +82,18 @@ class Time
   end
 
   # Returns a new Time where one or more of the elements have been changed according to the +options+ parameter. The time options
-  # (hour, minute, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and
+  # (hour, min, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and
   # minute is passed, then sec and usec is set to 0.
   def change(options)
     ::Time.send(
       utc? ? :utc_time : :local_time,
-      options[:year]  || year,
-      options[:month] || month,
-      options[:day]   || day,
-      options[:hour]  || hour,
-      options[:min]   || (options[:hour] ? 0 : min),
-      options[:sec]   || ((options[:hour] || options[:min]) ? 0 : sec),
-      options[:usec]  || ((options[:hour] || options[:min] || options[:sec]) ? 0 : usec)
+      options.fetch(:year, year),
+      options.fetch(:month, month),
+      options.fetch(:day, day),
+      options.fetch(:hour, hour),
+      options.fetch(:min, options[:hour] ? 0 : min),
+      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec),
+      options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
     )
   end
 
@@ -89,18 +104,26 @@ class Time
   def advance(options)
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
-      options[:days] = (options[:days] || 0) + 7 * partial_weeks
+      options[:days] = options.fetch(:days, 0) + 7 * partial_weeks
     end
 
     unless options[:days].nil?
       options[:days], partial_days = options[:days].divmod(1)
-      options[:hours] = (options[:hours] || 0) + 24 * partial_days
+      options[:hours] = options.fetch(:hours, 0) + 24 * partial_days
     end
 
     d = to_date.advance(options)
     time_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
-    seconds_to_advance = (options[:seconds] || 0) + (options[:minutes] || 0) * 60 + (options[:hours] || 0) * 3600
-    seconds_to_advance == 0 ? time_advanced_by_date : time_advanced_by_date.since(seconds_to_advance)
+    seconds_to_advance = \
+      options.fetch(:seconds, 0) +
+      options.fetch(:minutes, 0) * 60 +
+      options.fetch(:hours, 0) * 3600
+
+    if seconds_to_advance.zero?
+      time_advanced_by_date
+    else
+      time_advanced_by_date.since(seconds_to_advance)
+    end
   end
 
   # Returns a new Time representing the time a number of seconds ago, this is basically a wrapper around the Numeric extension
@@ -145,6 +168,7 @@ class Time
   def prev_year
     years_ago(1)
   end
+  alias_method :last_year, :prev_year
 
   # Short-hand for years_since(1)
   def next_year
@@ -155,6 +179,7 @@ class Time
   def prev_month
     months_ago(1)
   end
+  alias_method :last_month, :prev_month
 
   # Short-hand for months_since(1)
   def next_month
@@ -166,6 +191,7 @@ class Time
     start_day_number = DAYS_INTO_WEEK[start_day]
     current_day_number = wday != 0 ? wday - 1 : 6
     days_span = current_day_number - start_day_number
+
     days_span >= 0 ? days_span : 7 + days_span
   end
 
@@ -197,12 +223,19 @@ class Time
 
   # Returns a new Time representing the start of the given day in the previous week (default is :monday).
   def prev_week(day = :monday)
-    ago(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(:hour => 0)
+    ago(1.week).
+      beginning_of_week.
+      since(DAYS_INTO_WEEK[day].day).
+      change(:hour => 0)
   end
+  alias_method :last_week, :prev_week
 
   # Returns a new Time representing the start of the given day in next week (default is :monday).
   def next_week(day = :monday)
-    since(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(:hour => 0)
+    since(1.week).
+      beginning_of_week.
+      since(DAYS_INTO_WEEK[day].day).
+      change(:hour => 0)
   end
 
   # Returns a new Time representing the start of the day (0:00)
@@ -216,7 +249,12 @@ class Time
 
   # Returns a new Time representing the end of the day, 23:59:59.999999 (.999999999 in ruby1.9)
   def end_of_day
-    change(:hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
+    change(
+      :hour => 23,
+      :min => 59,
+      :sec => 59,
+      :usec => 999999.999
+    )
   end
 
   # Returns a new Time representing the start of the month (1st of the month, 0:00)
@@ -230,19 +268,27 @@ class Time
   def end_of_month
     #self - ((self.mday-1).days + self.seconds_since_midnight)
     last_day = ::Time.days_in_month(month, year)
-    change(:day => last_day, :hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
+    change(
+      :day  => last_day,
+      :hour => 23,
+      :min  => 59,
+      :sec  => 59,
+      :usec => 999999.999
+    )
   end
   alias :at_end_of_month :end_of_month
 
   # Returns  a new Time representing the start of the quarter (1st of january, april, july, october, 0:00)
   def beginning_of_quarter
-    beginning_of_month.change(:month => [10, 7, 4, 1].detect { |m| m <= month })
+    first_quarter_month = [10, 7, 4, 1].detect { |m| m <= month }
+    beginning_of_month.change(:month => first_quarter_month)
   end
   alias :at_beginning_of_quarter :beginning_of_quarter
 
   # Returns a new Time representing the end of the quarter (end of the last day of march, june, september, december)
   def end_of_quarter
-    beginning_of_month.change(:month => [3, 6, 9, 12].detect { |m| m >= month }).end_of_month
+    last_quarter_month = [3, 6, 9, 12].detect { |m| m >= month }
+    beginning_of_month.change(:month => last_quarter_month).end_of_month
   end
   alias :at_end_of_quarter :end_of_quarter
 
@@ -254,7 +300,14 @@ class Time
 
   # Returns a new Time representing the end of the year (end of the 31st of december)
   def end_of_year
-    change(:month => 12, :day => 31, :hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
+    change(
+      :month => 12,
+      :day   => 31,
+      :hour  => 23,
+      :min   => 59,
+      :sec   => 59,
+      :usec  => 999999.999
+    )
   end
   alias :at_end_of_year :end_of_year
 
@@ -273,9 +326,9 @@ class Time
     beginning_of_day..end_of_day
   end
 
-  # Returns a Range representing the whole week of the current time.
-  def all_week
-    beginning_of_week..end_of_week
+  # Returns a Range representing the whole week of the current time. Week starts on start_day (default is :monday, i.e. end of Sunday).
+  def all_week(start_day = :monday)
+    beginning_of_week(start_day)..end_of_week(start_day)
   end
 
   # Returns a Range representing the whole month of the current time.
@@ -327,7 +380,11 @@ class Time
   # can be chronologically compared with a Time
   def compare_with_coercion(other)
     # we're avoiding Time#to_datetime cause it's expensive
-    other.is_a?(Time) ? compare_without_coercion(other.to_time) : to_datetime <=> other
+    if other.is_a?(Time)
+      compare_without_coercion(other.to_time)
+    else
+      to_datetime <=> other
+    end
   end
   alias_method :compare_without_coercion, :<=>
   alias_method :<=>, :compare_with_coercion
@@ -341,4 +398,5 @@ class Time
   end
   alias_method :eql_without_coercion, :eql?
   alias_method :eql?, :eql_with_coercion
+
 end

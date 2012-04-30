@@ -30,7 +30,7 @@ module ActionDispatch
 
       def generate_sid
         sid = SecureRandom.hex(16)
-        sid.encode!('UTF-8') if sid.respond_to?(:encode!)
+        sid.encode!('UTF-8')
         sid
       end
 
@@ -75,8 +75,11 @@ module ActionDispatch
       include Compatibility
       include StaleSessionCheck
 
-      def destroy_session(env, sid, options)
-        raise '#destroy_session needs to be implemented.'
+      private
+
+      def set_cookie(env, session_id, cookie)
+        request = ActionDispatch::Request.new(env)
+        request.cookie_jar[key] = cookie
       end
     end
   end

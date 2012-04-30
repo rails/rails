@@ -1,8 +1,6 @@
 require 'mail'
 require 'action_mailer/collector'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/proc'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'action_mailer/log_subscriber'
@@ -16,15 +14,15 @@ module ActionMailer #:nodoc:
   #
   #   $ rails generate mailer Notifier
   #
-  # The generated model inherits from <tt>ActionMailer::Base</tt>. Emails are defined by creating methods
-  # within the model which are then used to set variables to be used in the mail template, to
-  # change options on the mail, or to add attachments.
+  # The generated model inherits from <tt>ActionMailer::Base</tt>. A mailer model defines methods
+  # used to generate an email message. In these methods, you can setup variables to be used in
+  # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
   #
   # Examples:
   #
   #   class Notifier < ActionMailer::Base
   #     default :from => 'no-reply@example.com',
-  #            :return_path => 'system@example.com'
+  #             :return_path => 'system@example.com'
   #
   #     def welcome(recipient)
   #       @account = recipient
@@ -122,8 +120,8 @@ module ActionMailer #:nodoc:
   #
   #   <%= users_url(:host => "example.com") %>
   #
-  # You should use the <tt>named_route_url</tt> style (which generates absolute URLs) and avoid using the 
-  # <tt>named_route_path</tt> style (which generates relative URLs), since clients reading the mail will 
+  # You should use the <tt>named_route_url</tt> style (which generates absolute URLs) and avoid using the
+  # <tt>named_route_path</tt> style (which generates relative URLs), since clients reading the mail will
   # have no concept of a current URL from which to determine a relative path.
   #
   # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
@@ -132,7 +130,7 @@ module ActionMailer #:nodoc:
   #   config.action_mailer.default_url_options = { :host => "example.com" }
   #
   # When you decide to set a default <tt>:host</tt> for your mailers, then you need to make sure to use the
-  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper 
+  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper
   # will generate relative URLs by default when a <tt>:host</tt> option isn't explicitly provided, passing
   # <tt>:only_path => false</tt> will ensure that absolute URLs are generated.
   #
@@ -149,8 +147,8 @@ module ActionMailer #:nodoc:
   #
   # = Multipart Emails
   #
-  # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use 
-  # multipart templates, where each template is named after the name of the action, followed by the content 
+  # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use
+  # multipart templates, where each template is named after the name of the action, followed by the content
   # type. Each such detected template will be added as a separate part to the message.
   #
   # For example, if the following templates exist:
@@ -269,6 +267,33 @@ module ActionMailer #:nodoc:
   # set something in the defaults using a proc, and then set the same thing inside of your
   # mailer method, it will get over written by the mailer method.
   #
+  # = Callbacks
+  #
+  # You can specify callbacks using before_filter and after_filter for configuring your messages.
+  # This may be useful, for example, when you want to add default inline attachments for all
+  # messages sent out by a certain mailer class:
+  #
+  #   class Notifier < ActionMailer::Base
+  #     before_filter :add_inline_attachment!
+  #
+  #     def welcome
+  #       mail
+  #     end
+  #
+  #     private
+  #
+  #       def add_inline_attachment!
+  #         attachments.inline["footer.jpg"] = File.read('/path/to/filename.jpg')
+  #       end
+  #   end
+  #
+  # Callbacks in ActionMailer are implemented using AbstractController::Callbacks, so you
+  # can define and configure callbacks in the same manner that you would use callbacks in
+  # classes that inherit from ActionController::Base.
+  #
+  # Note that unless you have a specific reason to do so, you should prefer using before_filter
+  # rather than after_filter in your ActionMailer classes so that headers are parsed properly.
+  #
   # = Configuration options
   #
   # These options are specified on the class level, like
@@ -332,8 +357,9 @@ module ActionMailer #:nodoc:
     include AbstractController::Helpers
     include AbstractController::Translation
     include AbstractController::AssetPaths
+    include AbstractController::Callbacks
 
-    self.protected_instance_variables = %w(@_action_has_layout)
+    self.protected_instance_variables = [:@_action_has_layout]
 
     helper  ActionMailer::MailHelper
 
@@ -410,7 +436,7 @@ module ActionMailer #:nodoc:
       # and passing a Mail::Message will do nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
-          self.set_payload_for_mail(payload, mail)
+          set_payload_for_mail(payload, mail)
           yield # Let Mail do the delivery actions
         end
       end
@@ -460,7 +486,7 @@ module ActionMailer #:nodoc:
       self.class.mailer_name
     end
 
-    # Allows you to pass random and unusual headers to the new +Mail::Message+ object
+    # Allows you to pass random and unusual headers to the new <tt>Mail::Message</tt> object
     # which will add them to itself.
     #
     #   headers['X-Special-Domain-Specific-Header'] = "SecretValue"
@@ -471,7 +497,7 @@ module ActionMailer #:nodoc:
     #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
     #           'In-Reply-To' => incoming.message_id
     #
-    # The resulting Mail::Message will have the following in it's header:
+    # The resulting Mail::Message will have the following in its header:
     #
     #   X-Special-Domain-Specific-Header: SecretValue
     def headers(args=nil)
@@ -603,9 +629,6 @@ module ActionMailer #:nodoc:
     #   end
     #
     def mail(headers={}, &block)
-      # Guard flag to prevent both the old and the new API from firing
-      # Should be removed when old API is removed
-      @mail_was_called = true
       m = @_message
 
       # At the beginning, do not consider class default for parts order neither content_type
@@ -613,8 +636,9 @@ module ActionMailer #:nodoc:
       parts_order  = headers[:parts_order]
 
       # Call all the procs (if any)
-      default_values = self.class.default.merge(self.class.default) do |k,v|
-        v.respond_to?(:call) ? v.bind(self).call : v
+      class_default = self.class.default
+      default_values = class_default.merge(class_default) do |k,v|
+        v.respond_to?(:to_proc) ? instance_eval(&v) : v
       end
 
       # Handle defaults
@@ -668,11 +692,11 @@ module ActionMailer #:nodoc:
       end
     end
 
-    # Translates the +subject+ using Rails I18n class under <tt>[:actionmailer, mailer_scope, action_name]</tt> scope.
+    # Translates the +subject+ using Rails I18n class under <tt>[mailer_scope, action_name]</tt> scope.
     # If it does not find a translation for the +subject+ under the specified scope it will default to a
     # humanized version of the <tt>action_name</tt>.
     def default_i18n_subject #:nodoc:
-      mailer_scope = self.class.mailer_name.gsub('/', '.')
+      mailer_scope = self.class.mailer_name.tr('/', '.')
       I18n.t(:subject, :scope => [mailer_scope, action_name], :default => action_name.humanize)
     end
 
@@ -707,8 +731,8 @@ module ActionMailer #:nodoc:
     end
 
     def each_template(paths, name, &block) #:nodoc:
-      templates = lookup_context.find_all(name, Array.wrap(paths))
-      templates.uniq_by { |t| t.formats }.each(&block)
+      templates = lookup_context.find_all(name, Array(paths))
+      templates.uniq { |t| t.formats }.each(&block)
     end
 
     def create_parts_from_responses(m, responses) #:nodoc:

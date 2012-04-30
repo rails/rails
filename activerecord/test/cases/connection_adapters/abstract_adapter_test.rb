@@ -35,7 +35,7 @@ module ActiveRecord
       end
 
       def test_close
-        pool = ConnectionPool.new(Base::ConnectionSpecification.new({}, nil))
+        pool = ConnectionPool.new(ConnectionSpecification.new({}, nil))
         pool.connections << adapter
         adapter.pool = pool
 

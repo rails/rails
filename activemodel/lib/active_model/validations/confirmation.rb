@@ -5,7 +5,8 @@ module ActiveModel
     class ConfirmationValidator < EachValidator
       def validate_each(record, attribute, value)
         if (confirmed = record.send("#{attribute}_confirmation")) && (value != confirmed)
-          record.errors.add(attribute, :confirmation, options)
+          human_attribute_name = record.class.human_attribute_name(attribute)
+          record.errors.add(:"#{attribute}_confirmation", :confirmation, options.merge(:attribute => human_attribute_name))
         end
       end
 
@@ -37,7 +38,7 @@ module ActiveModel
       # attribute.
       #
       # NOTE: This check is performed only if +password_confirmation+ is not
-      # +nil+, and by default only on save. To require confirmation, make sure
+      # +nil+. To require confirmation, make sure
       # to add a presence check for the confirmation attribute:
       #
       #   validates_presence_of :password_confirmation, :if => :password_changed?

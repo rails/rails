@@ -59,6 +59,12 @@ module RenderTemplate
     def with_error
       render :template => "test/with_error"
     end
+
+    private
+
+    def show_detailed_exceptions?
+      request.local?
+    end
   end
 
   class TestWithoutLayout < Rack::TestCase
@@ -158,7 +164,7 @@ module RenderTemplate
 
     test "rendering with implicit layout" do
       with_routing do |set|
-        set.draw { match ':controller', :action => :index }
+        set.draw { get ':controller', :action => :index }
 
         get "/render_template/with_layout"
 

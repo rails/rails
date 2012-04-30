@@ -39,15 +39,13 @@ class OutputBufferTest < ActionController::TestCase
     assert_equal ['foo', 'bar'], body_parts
   end
 
-  if '1.9'.respond_to?(:force_encoding)
-    test 'flushing preserves output buffer encoding' do
-      original_buffer = ' '.force_encoding(Encoding::EUC_JP)
-      @vc.output_buffer = original_buffer
-      @vc.flush_output_buffer
-      assert_equal ['foo', original_buffer], body_parts
-      assert_not_equal original_buffer, output_buffer
-      assert_equal Encoding::EUC_JP, output_buffer.encoding
-    end
+  test 'flushing preserves output buffer encoding' do
+    original_buffer = ' '.force_encoding(Encoding::EUC_JP)
+    @vc.output_buffer = original_buffer
+    @vc.flush_output_buffer
+    assert_equal ['foo', original_buffer], body_parts
+    assert_not_equal original_buffer, output_buffer
+    assert_equal Encoding::EUC_JP, output_buffer.encoding
   end
 
   protected

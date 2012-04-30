@@ -5,34 +5,24 @@ class ERB
   module Util
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
+    HTML_ESCAPE_ONCE_REGEXP = /[\"><]|&(?!([a-zA-Z]+|(#\d+));)/
+    JSON_ESCAPE_REGEXP = /[&"><]/
 
-    # Detect whether 1.9 can transcode with XML escaping.
-    if '"&gt;&lt;&amp;&quot;"' == ('><&"'.encode('utf-8', :xml => :attr) rescue false)
-      # A utility method for escaping HTML tag characters.
-      # This method is also aliased as <tt>h</tt>.
-      #
-      # In your ERB templates, use this method to escape any unsafe content. For example:
-      #   <%=h @person.name %>
-      #
-      # ==== Example:
-      #   puts html_escape("is a > 0 & a < 10?")
-      #   # => is a &gt; 0 &amp; a &lt; 10?
-      def html_escape(s)
-        s = s.to_s
-        if s.html_safe?
-          s
-        else
-          s.encode(s.encoding, :xml => :attr)[1...-1].html_safe
-        end
-      end
-    else
-      def html_escape(s) #:nodoc:
-        s = s.to_s
-        if s.html_safe?
-          s
-        else
-          s.gsub(/[&"><]/n) { |special| HTML_ESCAPE[special] }.html_safe
-        end
+    # A utility method for escaping HTML tag characters.
+    # This method is also aliased as <tt>h</tt>.
+    #
+    # In your ERB templates, use this method to escape any unsafe content. For example:
+    #   <%=h @person.name %>
+    #
+    # ==== Example:
+    #   puts html_escape('is a > 0 & a < 10?')
+    #   # => is a &gt; 0 &amp; a &lt; 10?
+    def html_escape(s)
+      s = s.to_s
+      if s.html_safe?
+        s
+      else
+        s.encode(s.encoding, :xml => :attr)[1...-1].html_safe
       end
     end
 
@@ -45,10 +35,25 @@ class ERB
     singleton_class.send(:remove_method, :html_escape)
     module_function :html_escape
 
+    # A utility method for escaping HTML without affecting existing escaped entities.
+    #
+    # ==== Examples
+    #   html_escape_once('1 < 2 &amp; 3')
+    #   # => "1 &lt; 2 &amp; 3"
+    #
+    #   html_escape_once('&lt;&lt; Accept & Checkout')
+    #   # => "&lt;&lt; Accept &amp; Checkout"
+    def html_escape_once(s)
+      result = s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP) { |special| HTML_ESCAPE[special] }
+      s.html_safe? ? result.html_safe : result
+    end
+
+    module_function :html_escape_once
+
     # A utility method for escaping HTML entities in JSON strings
     # using \uXXXX JavaScript escape sequences for string literals:
     #
-    #   json_escape("is a > 0 & a < 10?")
+    #   json_escape('is a > 0 & a < 10?')
     #   # => is a \u003E 0 \u0026 a \u003C 10?
     #
     # Note that after this operation is performed the output is not
@@ -63,7 +68,7 @@ class ERB
     #   <%=j @person.to_json %>
     #
     def json_escape(s)
-      result = s.to_s.gsub(/[&"><]/) { |special| JSON_ESCAPE[special] }
+      result = s.to_s.gsub(JSON_ESCAPE_REGEXP) { |special| JSON_ESCAPE[special] }
       s.html_safe? ? result.html_safe : result
     end
 
@@ -87,40 +92,55 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
-    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase", "prepend"].freeze
+    UNSAFE_STRING_METHODS = %w(
+      capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
+      slice squeeze strip sub succ swapcase tr tr_s upcase prepend
+    )
 
     alias_method :original_concat, :concat
     private :original_concat
 
     class SafeConcatError < StandardError
       def initialize
-        super "Could not concatenate to the buffer because it is not html safe."
+        super 'Could not concatenate to the buffer because it is not html safe.'
       end
     end
 
-    def[](*args)
-      new_safe_buffer = super
-      new_safe_buffer.instance_eval { @dirty = false }
-      new_safe_buffer
+    def [](*args)
+      if args.size < 2
+        super
+      else
+        if html_safe?
+          new_safe_buffer = super
+          new_safe_buffer.instance_eval { @html_safe = true }
+          new_safe_buffer
+        else
+          to_str[*args]
+        end
+      end
     end
 
     def safe_concat(value)
-      raise SafeConcatError if dirty?
+      raise SafeConcatError unless html_safe?
       original_concat(value)
     end
 
     def initialize(*)
-      @dirty = false
+      @html_safe = true
       super
     end
 
     def initialize_copy(other)
       super
-      @dirty = other.dirty?
+      @html_safe = other.html_safe?
+    end
+
+    def clone_empty
+      self[0, 0]
     end
 
     def concat(value)
-      if dirty? || value.html_safe?
+      if !html_safe? || value.html_safe?
         super(value)
       else
         super(ERB::Util.h(value))
@@ -133,7 +153,7 @@ module ActiveSupport #:nodoc:
     end
 
     def html_safe?
-      !dirty?
+      defined?(@html_safe) && @html_safe
     end
 
     def to_s
@@ -148,11 +168,6 @@ module ActiveSupport #:nodoc:
       coder.represent_scalar nil, to_str
     end
 
-    def to_yaml(*args)
-      return super() if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
-      to_str.to_yaml(*args)
-    end
-
     UNSAFE_STRING_METHODS.each do |unsafe_method|
       if 'String'.respond_to?(unsafe_method)
         class_eval <<-EOT, __FILE__, __LINE__ + 1
@@ -161,17 +176,11 @@ module ActiveSupport #:nodoc:
           end                                       # end
 
           def #{unsafe_method}!(*args)              # def capitalize!(*args)
-            @dirty = true                           #   @dirty = true
+            @html_safe = false                      #   @html_safe = false
             super                                   #   super
           end                                       # end
         EOT
       end
-    end
-
-    protected
-
-    def dirty?
-      @dirty
     end
   end
 end

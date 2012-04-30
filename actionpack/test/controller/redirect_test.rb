@@ -103,9 +103,15 @@ class RedirectController < ActionController::Base
     redirect_to proc { {:action => "hello_world"} }
   end
 
-  def rescue_errors(e) raise e end
+  def redirect_with_header_break
+    redirect_to "/lol\r\nwat"
+  end
 
-  def rescue_action(e) raise end
+  def redirect_with_null_bytes
+    redirect_to "\000/lol\r\nwat"
+  end
+
+  def rescue_errors(e) raise e end
 
   protected
     def dashbord_url(id, message)
@@ -120,6 +126,18 @@ class RedirectTest < ActionController::TestCase
     get :simple_redirect
     assert_response :redirect
     assert_equal "http://test.host/redirect/hello_world", redirect_to_url
+  end
+
+  def test_redirect_with_header_break
+    get :redirect_with_header_break
+    assert_response :redirect
+    assert_equal "http://test.host/lolwat", redirect_to_url
+  end
+
+  def test_redirect_with_null_bytes
+    get :redirect_with_null_bytes
+    assert_response :redirect
+    assert_equal "http://test.host/lolwat", redirect_to_url
   end
 
   def test_redirect_with_no_status
@@ -244,7 +262,7 @@ class RedirectTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :workshops
-        match ':controller/:action'
+        get ':controller/:action'
       end
 
       get :redirect_to_existing_record
@@ -278,7 +296,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_with_block_and_accepted_options
     with_routing do |set|
       set.draw do
-        match ':controller/:action'
+        get ':controller/:action'
       end
 
       get :redirect_to_with_block_and_options

@@ -7,6 +7,18 @@ module Rails
         @@options ||= {}
       end
 
+      # Add files that should be watched for change.
+      def watchable_files
+        @@watchable_files ||= []
+      end
+
+      # Add directories that should be watched for change.
+      # The key of the hashes should be directories and the values should
+      # be an array of extensions to match in each directory.
+      def watchable_dirs
+        @@watchable_dirs ||= {}
+      end
+
       # This allows you to modify the application's middlewares from Engines.
       #
       # All operations you run on the app_middleware will be replayed on the

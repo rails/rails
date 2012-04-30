@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'active_support/time'
 require 'active_support/json'
 
-class TimeWithZoneTest < Test::Unit::TestCase
+class TimeWithZoneTest < ActiveSupport::TestCase
 
   def setup
     @utc = Time.utc(2000, 1, 1, 0)
@@ -448,9 +448,8 @@ class TimeWithZoneTest < Test::Unit::TestCase
   end
 
   def test_ruby_19_weekday_name_query_methods
-    ruby_19_or_greater = RUBY_VERSION >= '1.9'
     %w(sunday? monday? tuesday? wednesday? thursday? friday? saturday?).each do |name|
-      assert_equal ruby_19_or_greater, @twz.respond_to?(name)
+      assert_respond_to @twz, name
     end
   end
 
@@ -737,7 +736,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     end
 end
 
-class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
+class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   def setup
     @t, @dt = Time.utc(2000), DateTime.civil(2000)
   end

@@ -17,7 +17,7 @@ module Ace
   end
 end
 
-class StringInflectionsTest < Test::Unit::TestCase
+class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
 
@@ -160,14 +160,6 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal 97, 'abc'.ord
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_getbyte
-      assert_equal 97, 'a'.getbyte(0)
-      assert_equal 99, 'abc'.getbyte(2)
-      assert_nil   'abc'.getbyte(3)
-    end
-  end
-
   def test_string_to_time
     assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
     assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:local)
@@ -287,21 +279,15 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => ' ')
   end
 
-  if RUBY_VERSION < '1.9.0'
-    def test_truncate_multibyte
-      with_kcode 'none' do
-        assert_equal "\354\225\210\353\205\225\355...", "\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224".truncate(10)
-      end
-      with_kcode 'u' do
-        assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...",
-          "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".truncate(10)
-      end
-    end
-  else
-    def test_truncate_multibyte
-      assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
-        "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8').truncate(10)
-    end
+  def test_truncate_with_omission_and_regexp_seperator
+    assert_equal "Hello[...]", "Hello Big World!".truncate(13, :omission => "[...]", :separator => /\s/)
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, :omission => "[...]", :separator => /\s/)
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => /\s/)
+  end
+
+  def test_truncate_multibyte
+    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
+      "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8').truncate(10)
   end
 
   def test_constantize
@@ -317,7 +303,7 @@ class StringInflectionsTest < Test::Unit::TestCase
   end
 end
 
-class StringBehaviourTest < Test::Unit::TestCase
+class StringBehaviourTest < ActiveSupport::TestCase
   def test_acts_like_string
     assert 'Bambi'.acts_like_string?
   end
@@ -338,22 +324,8 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
     assert !BYTE_STRING.is_utf8?
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_mb_chars_returns_self_when_kcode_not_set
-      with_kcode('none') do
-        assert_kind_of String, UNICODE_STRING.mb_chars
-      end
-    end
-
-    def test_mb_chars_returns_an_instance_of_the_chars_proxy_when_kcode_utf8
-      with_kcode('UTF8') do
-        assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
-      end
-    end
-  else
-    def test_mb_chars_returns_instance_of_proxy_class
-      assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
-    end
+  def test_mb_chars_returns_instance_of_proxy_class
+    assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
   end
 end
 
@@ -479,10 +451,8 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test 'knows whether it is encoding aware' do
-    if RUBY_VERSION >= "1.9"
+    assert_deprecated do
       assert 'ruby'.encoding_aware?
-    else
-      assert !'ruby'.encoding_aware?
     end
   end
 

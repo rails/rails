@@ -76,7 +76,15 @@ private
   end
 end
 
+class ModelWithoutAttributesMethod
+  include ActiveModel::AttributeMethods
+end
+
 class AttributeMethodsTest < ActiveModel::TestCase
+  test 'method missing works correctly even if attributes method is not defined' do
+    assert_raises(NoMethodError) { ModelWithoutAttributesMethod.new.foo }
+  end
+
   test 'unrelated classes should not share attribute method matchers' do
     assert_not_equal ModelWithAttributes.send(:attribute_method_matchers),
                      ModelWithAttributes2.send(:attribute_method_matchers)
@@ -133,37 +141,6 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.send(:'foo bar')
   end
 
-  test '#define_attr_method generates attribute method' do
-    assert_deprecated do
-      ModelWithAttributes.define_attr_method(:bar, 'bar')
-    end
-
-    assert_respond_to ModelWithAttributes, :bar
-
-    assert_deprecated do
-      assert_equal "original bar", ModelWithAttributes.original_bar
-    end
-
-    assert_equal "bar", ModelWithAttributes.bar
-    ActiveSupport::Deprecation.silence do
-      ModelWithAttributes.define_attr_method(:bar)
-    end
-    assert !ModelWithAttributes.bar
-  end
-
-  test '#define_attr_method generates attribute method with invalid identifier characters' do
-    ActiveSupport::Deprecation.silence do
-      ModelWithWeirdNamesAttributes.define_attr_method(:'c?d', 'c?d')
-    end
-
-    assert_respond_to ModelWithWeirdNamesAttributes, :'c?d'
-
-    ActiveSupport::Deprecation.silence do
-      assert_equal "original c?d", ModelWithWeirdNamesAttributes.send('original_c?d')
-    end
-    assert_equal "c?d", ModelWithWeirdNamesAttributes.send('c?d')
-  end
-
   test '#alias_attribute works with attributes with spaces in their names' do
     ModelWithAttributesWithSpaces.define_attribute_methods([:'foo bar'])
     ModelWithAttributesWithSpaces.alias_attribute(:'foo_bar', :'foo bar')
@@ -211,6 +188,12 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_raises(NoMethodError) { m.protected_method }
   end
 
+  class ClassWithProtected
+    protected
+    def protected_method
+    end
+  end
+
   test 'should not interfere with respond_to? if the attribute has a private/protected method' do
     m = ModelWithAttributes2.new
     m.attributes = { 'private_method' => '<3', 'protected_method' => 'O_o' }
@@ -218,9 +201,11 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert !m.respond_to?(:private_method)
     assert m.respond_to?(:private_method, true)
 
+    c = ClassWithProtected.new
+
     # This is messed up, but it's how Ruby works at the moment. Apparently it will be changed
     # in the future.
-    assert m.respond_to?(:protected_method)
+    assert_equal c.respond_to?(:protected_method), m.respond_to?(:protected_method)
     assert m.respond_to?(:protected_method, true)
   end
 

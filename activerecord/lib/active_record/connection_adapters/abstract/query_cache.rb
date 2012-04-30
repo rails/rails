@@ -57,7 +57,7 @@ module ActiveRecord
 
       def select_all(arel, name = nil, binds = [])
         if @query_cache_enabled
-          sql = to_sql(arel)
+          sql = to_sql(arel, binds)
           cache_sql(sql, binds) { super(sql, name, binds) }
         else
           super
@@ -65,18 +65,24 @@ module ActiveRecord
       end
 
       private
-        def cache_sql(sql, binds)
-          result =
-            if @query_cache[sql].key?(binds)
-              ActiveSupport::Notifications.instrument("sql.active_record",
-                :sql => sql, :name => "CACHE", :connection_id => object_id)
-              @query_cache[sql][binds]
-            else
-              @query_cache[sql][binds] = yield
-            end
+      def cache_sql(sql, binds)
+        result =
+          if @query_cache[sql].key?(binds)
+            ActiveSupport::Notifications.instrument("sql.active_record",
+              :sql => sql, :binds => binds, :name => "CACHE", :connection_id => object_id)
+            @query_cache[sql][binds]
+          else
+            @query_cache[sql][binds] = yield
+          end
 
+        # FIXME: we should guarantee that all cached items are Result
+        # objects.  Then we can avoid this conditional
+        if ActiveRecord::Result === result
+          result.dup
+        else
           result.collect { |row| row.dup }
         end
+      end
     end
   end
 end

@@ -17,7 +17,8 @@ module ActionDispatch
     include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
 
-    LOCALHOST   = [/^127\.0\.0\.\d{1,3}$/, "::1", /^0:0:0:0:0:0:0:1(%.*)?$/].freeze
+    LOCALHOST   = Regexp.union [/^127\.0\.0\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
+
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER REMOTE_ADDR
@@ -97,6 +98,12 @@ module ActionDispatch
       HTTP_METHOD_LOOKUP[request_method] == :post
     end
 
+    # Is this a PATCH request?
+    # Equivalent to <tt>request.request_method == :patch</tt>.
+    def patch?
+      HTTP_METHOD_LOOKUP[request_method] == :patch
+    end
+
     # Is this a PUT request?
     # Equivalent to <tt>request.request_method_symbol == :put</tt>.
     def put?
@@ -122,8 +129,16 @@ module ActionDispatch
       Http::Headers.new(@env)
     end
 
+    def original_fullpath
+      @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
+    end
+
     def fullpath
       @fullpath ||= super
+    end
+
+    def original_url
+      base_url + original_fullpath
     end
 
     def media_type
@@ -181,7 +196,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = @env['RAW_POST_DATA']
-        raw_post.force_encoding(Encoding::BINARY) if raw_post.respond_to?(:force_encoding)
+        raw_post.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         @env['rack.input']
@@ -236,7 +251,7 @@ module ActionDispatch
 
     # True if the request came from localhost, 127.0.0.1.
     def local?
-      LOCALHOST.any? { |local_ip| local_ip === remote_addr && local_ip === remote_ip }
+      LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
 
     private

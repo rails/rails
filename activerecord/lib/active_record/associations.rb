@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/blank'
@@ -1098,8 +1097,8 @@ module ActiveRecord
       #   alongside this object by calling their +destroy+ method. If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their +destroy+ method. If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
-      #   <tt>:restrict</tt> this object raises an <tt>ActiveRecord::DeleteRestrictionError</tt> exception and
-      #   cannot be deleted if it has any associated objects.
+      #   <tt>:restrict</tt> an error will be added to the object, preventing its deletion, if any associated 
+      #   objects are present.
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
@@ -1185,7 +1184,7 @@ module ActiveRecord
       #   has_many :subscribers, :through => :subscriptions, :source => :user
       #   has_many :subscribers, :class_name => "Person", :finder_sql => Proc.new {
       #       %Q{
-      #         SELECT DISTINCT people.*
+      #         SELECT DISTINCT *
       #         FROM people p, post_subscriptions ps
       #         WHERE ps.post_id = #{id} AND ps.person_id = p.id
       #         ORDER BY p.first_name
@@ -1252,8 +1251,8 @@ module ActiveRecord
       #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
       #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
       #   If set to <tt>:nullify</tt>, the associated object's foreign key is set to +NULL+.
-      #   Also, association is assigned. If set to <tt>:restrict</tt> this object raises an
-      #   <tt>ActiveRecord::DeleteRestrictionError</tt> exception and cannot be deleted if it has any associated object.
+      #   If set to <tt>:restrict</tt>, an error will be added to the object, preventing its deletion, if an
+      #   associated object is present.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association
@@ -1383,7 +1382,9 @@ module ActiveRecord
       #   and +decrement_counter+. The counter cache is incremented when an object of this
       #   class is created and decremented when it's destroyed. This requires that a column
       #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
-      #   is used on the associate class (such as a Post class). You can also specify a custom counter
+      #   is used on the associate class (such as a Post class) - that is the migration for 
+      #   <tt>#{table_name}_count</tt> is created on the associate class (such that Post.comments_count will
+      #   return the count cached, see note below). You can also specify a custom counter
       #   cache column by providing a column name instead of a +true+/+false+ value to this
       #   option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
       #   Note: Specifying a counter cache will add it to that model's list of readonly attributes
@@ -1513,8 +1514,8 @@ module ActiveRecord
       # * <tt>Developer#projects.size</tt>
       # * <tt>Developer#projects.find(id)</tt>
       # * <tt>Developer#projects.exists?(...)</tt>
-      # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("project_id" => id)</tt>)
-      # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("project_id" => id); c.save; c</tt>)
+      # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("developer_id" => id)</tt>)
+      # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("developer_id" => id); c.save; c</tt>)
       # The declaration may include an options hash to specialize the behavior of the association.
       #
       # === Options

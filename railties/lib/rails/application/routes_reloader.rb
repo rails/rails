@@ -1,19 +1,15 @@
+require "active_support/core_ext/module/delegation"
+
 module Rails
   class Application
     class RoutesReloader
-      attr_reader :route_sets
+      attr_reader :route_sets, :paths, :external_routes
+      delegate :execute_if_updated, :execute, :updated?, :to => :updater
 
-      def initialize(updater=ActiveSupport::FileUpdateChecker)
-        @updater    = updater.new([]) { reload! }
-        @route_sets = []
-      end
-
-      def paths
-        @updater.paths
-      end
-
-      def execute_if_updated
-        @updater.execute_if_updated
+      def initialize
+        @paths           = []
+        @route_sets      = []
+        @external_routes = []
       end
 
       def reload!
@@ -24,7 +20,19 @@ module Rails
         revert
       end
 
-    protected
+    private
+
+      def updater
+        @updater ||= begin
+          dirs = @external_routes.each_with_object({}) do |dir, hash|
+            hash[dir.to_s] = %w(rb)
+          end
+
+          updater = ActiveSupport::FileUpdateChecker.new(paths, dirs) { reload! }
+          updater.execute
+          updater
+        end
+      end
 
       def clear!
         route_sets.each do |routes|
@@ -39,7 +47,7 @@ module Rails
 
       def finalize!
         route_sets.each do |routes|
-          ActiveSupport.on_load(:action_controller) { routes.finalize! }
+          routes.finalize!
         end
       end
 

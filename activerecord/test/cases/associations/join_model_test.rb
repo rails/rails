@@ -46,12 +46,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert !authors(:mary).unique_categorized_posts.loaded?
     assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count }
     assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count(:title) }
-    assert_queries(1) { assert_equal 0, author.unique_categorized_posts.count(:title, :conditions => "title is NULL") }
+    assert_queries(1) { assert_equal 0, author.unique_categorized_posts.where(title: nil).count(:title) }
     assert !authors(:mary).unique_categorized_posts.loaded?
   end
 
   def test_has_many_uniq_through_find
-    assert_equal 1, authors(:mary).unique_categorized_posts.find(:all).size
+    assert_equal 1, authors(:mary).unique_categorized_posts.all.size
   end
 
   def test_has_many_uniq_through_dynamic_find
@@ -71,7 +71,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_has_many_going_through_join_model_with_find
-    assert_equal tags(:general), tag = posts(:welcome).tags.find(:first)
+    assert_equal tags(:general), tag = posts(:welcome).tags.first
     assert_no_queries do
       tag.tagging
     end
@@ -85,7 +85,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_has_many_going_through_join_model_with_include_on_source_reflection_with_find
-    assert_equal tags(:general), tag = posts(:welcome).funky_tags.find(:first)
+    assert_equal tags(:general), tag = posts(:welcome).funky_tags.first
     assert_no_queries do
       tag.tagging
     end
@@ -237,8 +237,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_has_many_through
-    posts              = Post.find(:all, :order => 'posts.id')
-    posts_with_authors = Post.find(:all, :include => :authors, :order => 'posts.id')
+    posts              = Post.scoped(:order => 'posts.id').all
+    posts_with_authors = Post.scoped(:includes => :authors, :order => 'posts.id').all
     assert_equal posts.length, posts_with_authors.length
     posts.length.times do |i|
       assert_equal posts[i].authors.length, assert_no_queries { posts_with_authors[i].authors.length }
@@ -246,7 +246,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_polymorphic_has_one
-    post    = Post.find_by_id(posts(:welcome).id, :include => :tagging)
+    post    = Post.includes(:tagging).find posts(:welcome).id
     tagging = taggings(:welcome_general)
     assert_no_queries do
       assert_equal tagging, post.tagging
@@ -254,7 +254,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_polymorphic_has_one_defined_in_abstract_parent
-    item    = Item.find_by_id(items(:dvd).id, :include => :tagging)
+    item    = Item.includes(:tagging).find items(:dvd).id
     tagging = taggings(:godfather)
     assert_no_queries do
       assert_equal tagging, item.tagging
@@ -262,8 +262,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_polymorphic_has_many_through
-    posts           = Post.find(:all, :order => 'posts.id')
-    posts_with_tags = Post.find(:all, :include => :tags, :order => 'posts.id')
+    posts           = Post.scoped(:order => 'posts.id').all
+    posts_with_tags = Post.scoped(:includes => :tags, :order => 'posts.id').all
     assert_equal posts.length, posts_with_tags.length
     posts.length.times do |i|
       assert_equal posts[i].tags.length, assert_no_queries { posts_with_tags[i].tags.length }
@@ -271,8 +271,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_polymorphic_has_many
-    posts               = Post.find(:all, :order => 'posts.id')
-    posts_with_taggings = Post.find(:all, :include => :taggings, :order => 'posts.id')
+    posts               = Post.scoped(:order => 'posts.id').all
+    posts_with_taggings = Post.scoped(:includes => :taggings, :order => 'posts.id').all
     assert_equal posts.length, posts_with_taggings.length
     posts.length.times do |i|
       assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }
@@ -280,20 +280,20 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_find_all
-    assert_equal [categories(:general)], authors(:david).categories.find(:all)
+    assert_equal [categories(:general)], authors(:david).categories.all
   end
 
   def test_has_many_find_first
-    assert_equal categories(:general), authors(:david).categories.find(:first)
+    assert_equal categories(:general), authors(:david).categories.first
   end
 
   def test_has_many_with_hash_conditions
-    assert_equal categories(:general), authors(:david).categories_like_general.find(:first)
+    assert_equal categories(:general), authors(:david).categories_like_general.first
   end
 
   def test_has_many_find_conditions
-    assert_equal categories(:general), authors(:david).categories.find(:first, :conditions => "categories.name = 'General'")
-    assert_nil authors(:david).categories.find(:first, :conditions => "categories.name = 'Technology'")
+    assert_equal categories(:general), authors(:david).categories.scoped(:where => "categories.name = 'General'").first
+    assert_nil authors(:david).categories.scoped(:where => "categories.name = 'Technology'").first
   end
 
   def test_has_many_class_methods_called_by_method_missing
@@ -327,14 +327,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal [authors(:david), authors(:bob)], posts(:thinking).authors_using_custom_pk.order('authors.id')
   end
 
-  def test_both_scoped_and_explicit_joins_should_be_respected
-    assert_nothing_raised do
-      Post.send(:with_scope, :find => {:joins => "left outer join comments on comments.id = posts.id"}) do
-        Post.find :all, :select => "comments.id, authors.id", :joins => "left outer join authors on authors.id = posts.author_id"
-      end
-    end
-  end
-
   def test_belongs_to_polymorphic_with_counter_cache
     assert_equal 1, posts(:welcome)[:taggings_count]
     tagging = posts(:welcome).taggings.create(:tag => tags(:general))
@@ -362,7 +354,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     end
 
     assert_raise ActiveRecord::EagerLoadPolymorphicError do
-      tags(:general).taggings.find(:all, :include => :taggable, :conditions => 'bogus_table.column = 1')
+      tags(:general).taggings.includes(:taggable).where('bogus_table.column = 1').references(:bogus_table).to_a
     end
   end
 
@@ -372,7 +364,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_eager_has_many_polymorphic_with_source_type
-    tag_with_include = Tag.find(tags(:general).id, :include => :tagged_posts)
+    tag_with_include = Tag.scoped(:includes => :tagged_posts).find(tags(:general).id)
     desired = posts(:welcome, :thinking)
     assert_no_queries do
       # added sort by ID as otherwise test using JRuby was failing as array elements were in different order
@@ -382,20 +374,20 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_find_all
-    assert_equal comments(:greetings), authors(:david).comments.find(:all, :order => 'comments.id').first
+    assert_equal comments(:greetings), authors(:david).comments.scoped(:order => 'comments.id').all.first
   end
 
   def test_has_many_through_has_many_find_all_with_custom_class
-    assert_equal comments(:greetings), authors(:david).funky_comments.find(:all, :order => 'comments.id').first
+    assert_equal comments(:greetings), authors(:david).funky_comments.scoped(:order => 'comments.id').all.first
   end
 
   def test_has_many_through_has_many_find_first
-    assert_equal comments(:greetings), authors(:david).comments.find(:first, :order => 'comments.id')
+    assert_equal comments(:greetings), authors(:david).comments.scoped(:order => 'comments.id').first
   end
 
   def test_has_many_through_has_many_find_conditions
-    options = { :conditions => "comments.#{QUOTED_TYPE}='SpecialComment'", :order => 'comments.id' }
-    assert_equal comments(:does_it_hurt), authors(:david).comments.find(:first, options)
+    options = { :where => "comments.#{QUOTED_TYPE}='SpecialComment'", :order => 'comments.id' }
+    assert_equal comments(:does_it_hurt), authors(:david).comments.scoped(options).first
   end
 
   def test_has_many_through_has_many_find_by_id
@@ -411,7 +403,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_has_many_through_polymorphic_has_many
-    author            = Author.find_by_id(authors(:david).id, :include => :taggings)
+    author            = Author.includes(:taggings).find authors(:david).id
     expected_taggings = taggings(:welcome_general, :thinking_general)
     assert_no_queries do
       assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
@@ -419,7 +411,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_many_through_has_many
-    author = Author.find :first, :conditions => ['name = ?', 'David'], :include => :comments, :order => 'comments.id'
+    author = Author.scoped(:where => ['name = ?', 'David'], :includes => :comments, :order => 'comments.id').first
     SpecialComment.new; VerySpecialComment.new
     assert_no_queries do
       assert_equal [1,2,3,5,6,7,8,9,10,12], author.comments.collect(&:id)
@@ -427,7 +419,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_many_through_has_many_with_conditions
-    post = Post.find(:first, :include => :invalid_tags)
+    post = Post.scoped(:includes => :invalid_tags).first
     assert_no_queries do
       post.invalid_tags
     end
@@ -435,8 +427,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_eager_belongs_to_and_has_one_not_singularized
     assert_nothing_raised do
-      Author.find(:first, :include => :author_address)
-      AuthorAddress.find(:first, :include => :author)
+      Author.scoped(:includes => :author_address).first
+      AuthorAddress.scoped(:includes => :author).first
     end
   end
 
@@ -452,7 +444,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_uses_conditions_specified_on_the_has_many_association
-    author = Author.find(:first)
+    author = Author.first
     assert_present author.comments
     assert_blank author.nonexistant_comments
   end
@@ -622,7 +614,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_polymorphic_has_many
     expected = taggings(:welcome_general)
-    p = Post.find(posts(:welcome).id, :include => :taggings)
+    p = Post.scoped(:includes => :taggings).find(posts(:welcome).id)
     assert_no_queries {assert p.taggings.include?(expected)}
     assert posts(:welcome).taggings.include?(taggings(:welcome_general))
   end
@@ -630,18 +622,18 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_polymorphic_has_one
     expected = posts(:welcome)
 
-    tagging  = Tagging.find(taggings(:welcome_general).id, :include => :taggable)
+    tagging  = Tagging.scoped(:includes => :taggable).find(taggings(:welcome_general).id)
     assert_no_queries { assert_equal expected, tagging.taggable}
   end
 
   def test_polymorphic_belongs_to
-    p = Post.find(posts(:welcome).id, :include => {:taggings => :taggable})
+    p = Post.scoped(:includes => {:taggings => :taggable}).find(posts(:welcome).id)
     assert_no_queries {assert_equal posts(:welcome), p.taggings.first.taggable}
   end
 
   def test_preload_polymorphic_has_many_through
-    posts           = Post.find(:all, :order => 'posts.id')
-    posts_with_tags = Post.find(:all, :include => :tags, :order => 'posts.id')
+    posts           = Post.scoped(:order => 'posts.id').all
+    posts_with_tags = Post.scoped(:includes => :tags, :order => 'posts.id').all
     assert_equal posts.length, posts_with_tags.length
     posts.length.times do |i|
       assert_equal posts[i].tags.length, assert_no_queries { posts_with_tags[i].tags.length }
@@ -649,7 +641,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_preload_polymorph_many_types
-    taggings = Tagging.find :all, :include => :taggable, :conditions => ['taggable_type != ?', 'FakeModel']
+    taggings = Tagging.scoped(:includes => :taggable, :where => ['taggable_type != ?', 'FakeModel']).all
     assert_no_queries do
       taggings.first.taggable.id
       taggings[1].taggable.id
@@ -662,13 +654,13 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_preload_nil_polymorphic_belongs_to
     assert_nothing_raised do
-      Tagging.find(:all, :include => :taggable, :conditions => ['taggable_type IS NULL'])
+      Tagging.scoped(:includes => :taggable, :where => ['taggable_type IS NULL']).all
     end
   end
 
   def test_preload_polymorphic_has_many
-    posts               = Post.find(:all, :order => 'posts.id')
-    posts_with_taggings = Post.find(:all, :include => :taggings, :order => 'posts.id')
+    posts               = Post.scoped(:order => 'posts.id').all
+    posts_with_taggings = Post.scoped(:includes => :taggings, :order => 'posts.id').all
     assert_equal posts.length, posts_with_taggings.length
     posts.length.times do |i|
       assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }
@@ -676,7 +668,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_shared_parent
-    comments = Comment.find(:all, :include => :post, :conditions => 'post_id = 1')
+    comments = Comment.scoped(:includes => :post, :where => 'post_id = 1').all
     assert_no_queries do
       assert_equal comments.first.post, comments[1].post
     end

@@ -29,7 +29,7 @@ class AssociationsTest < ActiveRecord::TestCase
     molecule.electrons.create(:name => 'electron_1')
     molecule.electrons.create(:name => 'electron_2')
 
-    liquids = Liquid.includes(:molecules => :electrons).where('molecules.id is not null')
+    liquids = Liquid.includes(:molecules => :electrons).references(:molecules).where('molecules.id is not null')
     assert_equal 1, liquids[0].molecules.length
   end
 
@@ -74,8 +74,8 @@ class AssociationsTest < ActiveRecord::TestCase
 
 
   def test_include_with_order_works
-    assert_nothing_raised {Account.find(:first, :order => 'id', :include => :firm)}
-    assert_nothing_raised {Account.find(:first, :order => :id, :include => :firm)}
+    assert_nothing_raised {Account.scoped(:order => 'id', :includes => :firm).first}
+    assert_nothing_raised {Account.scoped(:order => :id, :includes => :firm).first}
   end
 
   def test_bad_collection_keys
@@ -127,6 +127,11 @@ class AssociationsTest < ActiveRecord::TestCase
       assert_queries(0) { assert_not_nil firm.clients.each {} }
       assert_queries(1) { assert_not_nil firm.clients(true).each {} }
     end
+  end
+
+  def test_association_with_references
+    firm = companies(:first_firm)
+    assert_equal ['foo'], firm.association_with_references.scoped.references_values
   end
 
 end
@@ -208,6 +213,10 @@ class AssociationProxyTest < ActiveRecord::TestCase
   def test_proxy_association_accessor
     david = developers(:david)
     assert_equal david.association(:projects), david.projects.proxy_association
+  end
+
+  def test_scoped_allows_conditions
+    assert developers(:david).projects.scoped(where: 'foo').where_values.include?('foo')
   end
 end
 

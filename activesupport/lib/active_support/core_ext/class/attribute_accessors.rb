@@ -29,6 +29,7 @@ class Class
   def cattr_reader(*syms)
     options = syms.extract_options!
     syms.each do |sym|
+      raise NameError.new('invalid attribute name') unless sym =~ /^[_A-Za-z]\w*$/
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         unless defined? @@#{sym}
           @@#{sym} = nil
@@ -52,6 +53,7 @@ class Class
   def cattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
+      raise NameError.new('invalid attribute name') unless sym =~ /^[_A-Za-z]\w*$/
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         unless defined? @@#{sym}
           @@#{sym} = nil
@@ -69,7 +71,7 @@ class Class
           end
         EOS
       end
-      self.send("#{sym}=", yield) if block_given?
+      send("#{sym}=", yield) if block_given?
     end
   end
 

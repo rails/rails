@@ -11,7 +11,8 @@ class TranslationHelperTest < ActiveSupport::TestCase
       :translations => {
         :templates => {
           :found => { :foo => 'Foo' },
-          :array => { :foo => { :bar => 'Foo Bar' } }
+          :array => { :foo => { :bar => 'Foo Bar' } },
+          :default => { :foo => 'Foo' }
         },
         :foo => 'Foo',
         :hello => '<a>Hello World</a>',
@@ -71,6 +72,10 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal 'Foo Bar', @view.render(:file => 'translations/templates/array').strip
   end
 
+  def test_default_lookup_scoped_by_partial
+    assert_equal 'Foo', view.render(:file => 'translations/templates/default').strip
+  end
+
   def test_missing_translation_scoped_by_partial
     expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing.missing">Missing</span>'
     assert_equal expected, view.render(:file => 'translations/templates/missing').strip
@@ -101,5 +106,23 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translation_returning_an_array_ignores_html_suffix
     assert_equal ["foo", "bar"], translate(:'translations.array_html')
+  end
+
+  def test_translate_with_default_named_html
+    translation = translate(:'translations.missing', :default => :'translations.hello_html')
+    assert_equal '<a>Hello World</a>', translation
+    assert translation.html_safe?
+  end
+
+  def test_translate_with_two_defaults_named_html
+    translation = translate(:'translations.missing', :default => [:'translations.missing_html', :'translations.hello_html'])
+    assert_equal '<a>Hello World</a>', translation
+    assert translation.html_safe?
+  end
+
+  def test_translate_with_last_default_named_html
+    translation = translate(:'translations.missing', :default => [:'translations.missing', :'translations.hello_html'])
+    assert_equal '<a>Hello World</a>', translation
+    assert translation.html_safe?
   end
 end

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/file/path'
 require 'rack/chunked'
 
 module ActionController #:nodoc:
@@ -140,17 +139,17 @@ module ActionController #:nodoc:
   # session or flash after the template starts rendering will not propagate
   # to the client.
   #
-  # If you try to modify cookies, session or flash, an +ActionDispatch::ClosedError+
+  # If you try to modify cookies, session or flash, an <tt>ActionDispatch::ClosedError</tt>
   # will be raised, showing those objects are closed for modification.
   #
   # == Middlewares
   #
   # Middlewares that need to manipulate the body won't work with streaming.
   # You should disable those middlewares whenever streaming in development
-  # or production. For instance, +Rack::Bug+ won't work when streaming as it
+  # or production. For instance, <tt>Rack::Bug</tt> won't work when streaming as it
   # needs to inject contents in the HTML body.
   #
-  # Also +Rack::Cache+ won't work with streaming as it does not support
+  # Also <tt>Rack::Cache</tt> won't work with streaming as it does not support
   # streaming bodies yet. Whenever streaming Cache-Control is automatically
   # set to "no-cache".
   #
@@ -163,7 +162,7 @@ module ActionController #:nodoc:
   # Currently, when an exception happens in development or production, Rails
   # will automatically stream to the client:
   #
-  #   "><script type="text/javascript">window.location = "/500.html"</script></html>
+  #   "><script>window.location = "/500.html"</script></html>
   #
   # The first two characters (">) are required in case the exception happens
   # while rendering attributes for a given tag. You can check the real cause
@@ -195,7 +194,7 @@ module ActionController #:nodoc:
   # ==== Passenger
   #
   # To be described.
-  # 
+  #
   module Streaming
     extend ActiveSupport::Concern
 
@@ -217,7 +216,7 @@ module ActionController #:nodoc:
       end
     end
 
-    # Call render_to_body if we are streaming instead of usual +render+.
+    # Call render_body if we are streaming instead of usual +render+.
     def _render_template(options) #:nodoc:
       if options.delete(:stream)
         Rack::Chunked::Body.new view_renderer.render_body(view_context, options)

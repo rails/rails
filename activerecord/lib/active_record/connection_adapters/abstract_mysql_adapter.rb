@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'arel/visitors/bind_visitor'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -122,12 +123,21 @@ module ActiveRecord
         :boolean     => { :name => "tinyint", :limit => 1 }
       }
 
+      class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
+        include Arel::Visitors::BindVisitor
+      end
+
       # FIXME: Make the first parameter more similar for the two adapters
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
-        @visitor = Arel::Visitors::MySQL.new self
+
+        if config.fetch(:prepared_statements) { true }
+          @visitor = Arel::Visitors::MySQL.new self
+        else
+          @visitor = BindSubstitution.new self
+        end
       end
 
       def adapter_name #:nodoc:
@@ -152,7 +162,7 @@ module ActiveRecord
         true
       end
 
-      # Technically MySQL allows to create indexes with the sort order syntax 
+      # Technically MySQL allows to create indexes with the sort order syntax
       # but at the moment (5.5) it doesn't yet implement them
       def supports_index_sort_order?
         true
@@ -284,19 +294,10 @@ module ActiveRecord
 
       # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
       # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
-      # these, we must use a subquery. However, MySQL is too stupid to create a
-      # temporary table for this automatically, so we have to give it some prompting
-      # in the form of a subsubquery. Ugh!
+      # these, we must use a subquery.
       def join_to_update(update, select) #:nodoc:
         if select.limit || select.offset || select.orders.any?
-          subsubselect = select.clone
-          subsubselect.projections = [update.key]
-
-          subselect = Arel::SelectManager.new(select.engine)
-          subselect.project Arel.sql(update.key.name)
-          subselect.from subsubselect.as('__active_record_temp')
-
-          update.where update.key.in(subselect)
+          super
         else
           update.table select.source
           update.wheres = select.constraints
@@ -363,8 +364,10 @@ module ActiveRecord
         show_variable 'collation_database'
       end
 
-      def tables(name = nil, database = nil) #:nodoc:
-        sql = ["SHOW TABLES", database].compact.join(' IN ')
+      def tables(name = nil, database = nil, like = nil) #:nodoc:
+        sql = "SHOW TABLES "
+        sql << "IN #{quote_table_name(database)} " if database
+        sql << "LIKE #{quote(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
           result.collect { |field| field.first }
@@ -372,7 +375,8 @@ module ActiveRecord
       end
 
       def table_exists?(name)
-        return true if super
+        return false unless name
+        return true if tables(nil, nil, name).any?
 
         name          = name.to_s
         schema, table = name.split('.', 2)
@@ -382,7 +386,7 @@ module ActiveRecord
           schema = nil
         end
 
-        tables(nil, schema).include? table
+        tables(nil, schema, table).any?
       end
 
       # Returns an array of indexes for the given table.
@@ -406,7 +410,7 @@ module ActiveRecord
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name, name = nil)#:nodoc:
+      def columns(table_name)#:nodoc:
         sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
@@ -424,7 +428,7 @@ module ActiveRecord
           table, arguments = args.shift, args
           method = :"#{command}_sql"
 
-          if respond_to?(method)
+          if respond_to?(method, true)
             send(method, table, *arguments)
           else
             raise "Unknown method called : #{method}(#{arguments.inspect})"
@@ -471,15 +475,26 @@ module ActiveRecord
 
       # Maps logical Rails types to MySQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-        return super unless type.to_s == 'integer'
-
-        case limit
-        when 1; 'tinyint'
-        when 2; 'smallint'
-        when 3; 'mediumint'
-        when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
-        when 5..8; 'bigint'
-        else raise(ActiveRecordError, "No integer type has byte size #{limit}")
+        case type.to_s
+        when 'integer'
+          case limit
+          when 1; 'tinyint'
+          when 2; 'smallint'
+          when 3; 'mediumint'
+          when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
+          when 5..8; 'bigint'
+          else raise(ActiveRecordError, "No integer type has byte size #{limit}")
+          end
+        when 'text'
+          case limit
+          when 0..0xff;               'tinytext'
+          when nil, 0x100..0xffff;    'text'
+          when 0x10000..0xffffff;     'mediumtext'
+          when 0x1000000..0xffffffff; 'longtext'
+          else raise(ActiveRecordError, "No text type has character length #{limit}")
+          end
+        else
+          super
         end
       end
 
@@ -501,8 +516,8 @@ module ActiveRecord
       def pk_and_sequence_for(table)
         execute_and_free("SHOW CREATE TABLE #{quote_table_name(table)}", 'SCHEMA') do |result|
           create_table = each_hash(result).first[:"Create Table"]
-          if create_table.to_s =~ /PRIMARY KEY\s+\((.+)\)/
-            keys = $1.split(",").map { |key| key.gsub(/`/, "") }
+          if create_table.to_s =~ /PRIMARY KEY\s+(?:USING\s+\w+\s+)?\((.+)\)/
+            keys = $1.split(",").map { |key| key.delete('`"') }
             keys.length == 1 ? [keys.first, nil] : nil
           else
             nil
@@ -534,11 +549,22 @@ module ActiveRecord
 
       protected
 
+      # MySQL is too stupid to create a temporary table for use subquery, so we have
+      # to give it some prompting in the form of a subsubquery. Ugh!
+      def subquery_for(key, select)
+        subsubselect = select.clone
+        subsubselect.projections = [key]
+
+        subselect = Arel::SelectManager.new(select.engine)
+        subselect.project Arel.sql(key.name)
+        subselect.from subsubselect.as('__active_record_temp')
+      end
+
       def add_index_length(option_strings, column_names, options = {})
         if options.is_a?(Hash) && length = options[:length]
           case length
           when Hash
-            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name)}
+            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
           when Fixnum
             column_names.each {|name| option_strings[name] += "(#{length})"}
           end

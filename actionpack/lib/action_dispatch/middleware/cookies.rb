@@ -82,7 +82,7 @@ module ActionDispatch
     TOKEN_KEY   = "action_dispatch.secret_token".freeze
 
     # Raised when storing more than 4K of session data.
-    class CookieOverflow < StandardError; end
+    CookieOverflow = Class.new StandardError
 
     class CookieJar #:nodoc:
       include Enumerable
@@ -117,13 +117,8 @@ module ActionDispatch
         @delete_cookies = {}
         @host = host
         @secure = secure
-        @closed = false
         @cookies = {}
       end
-
-      attr_reader :closed
-      alias :closed? :closed
-      def close!; @closed = true end
 
       def each(&block)
         @cookies.each(&block)
@@ -158,14 +153,13 @@ module ActionDispatch
           end
         elsif options[:domain].is_a? Array
           # if host matches one of the supplied domains without a dot in front of it
-          options[:domain] = options[:domain].find {|domain| @host.include? domain[/^\.?(.*)$/, 1] }
+          options[:domain] = options[:domain].find {|domain| @host.include? domain.sub(/^\./, '') }
         end
       end
 
       # Sets the cookie named +name+. The second argument may be the very cookie
       # value, or a hash of options as documented above.
       def []=(key, options)
-        raise ClosedError, :cookies if closed?
         if options.is_a?(Hash)
           options.symbolize_keys!
           value = options[:value]
@@ -174,12 +168,14 @@ module ActionDispatch
           options = { :value => value }
         end
 
-        @cookies[key.to_s] = value
-
         handle_options(options)
 
-        @set_cookies[key.to_s] = options
-        @delete_cookies.delete(key.to_s)
+        if @cookies[key.to_s] != value or options[:expires]
+          @cookies[key.to_s] = value
+          @set_cookies[key.to_s] = options
+          @delete_cookies.delete(key.to_s)
+        end
+
         value
       end
 
@@ -187,13 +183,23 @@ module ActionDispatch
       # and setting its expiration date into the past. Like <tt>[]=</tt>, you can pass in
       # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
       def delete(key, options = {})
-        options.symbolize_keys!
+        return unless @cookies.has_key? key.to_s
 
+        options.symbolize_keys!
         handle_options(options)
 
         value = @cookies.delete(key.to_s)
         @delete_cookies[key.to_s] = options
         value
+      end
+
+      # Whether the given cookie is to be deleted by this CookieJar.
+      # Like <tt>[]=</tt>, you can pass in an options hash to test if a
+      # deletion applies to a specific <tt>:path</tt>, <tt>:domain</tt> etc.
+      def deleted?(key, options = {})
+        options.symbolize_keys!
+        handle_options(options)
+        @delete_cookies[key.to_s] == options
       end
 
       # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
@@ -259,7 +265,6 @@ module ActionDispatch
       end
 
       def []=(key, options)
-        raise ClosedError, :cookies if closed?
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
@@ -268,10 +273,6 @@ module ActionDispatch
 
         options[:expires] = 20.years.from_now
         @parent_jar[key] = options
-      end
-
-      def signed
-        @signed ||= SignedCookieJar.new(self, @secret)
       end
 
       def method_missing(method, *arguments, &block)
@@ -298,7 +299,6 @@ module ActionDispatch
       end
 
       def []=(key, options)
-        raise ClosedError, :cookies if closed?
         if options.is_a?(Hash)
           options.symbolize_keys!
           options[:value] = @verifier.generate(options[:value])
@@ -341,7 +341,6 @@ module ActionDispatch
     end
 
     def call(env)
-      cookie_jar = nil
       status, headers, body = @app.call(env)
 
       if cookie_jar = env['action_dispatch.cookies']
@@ -352,9 +351,6 @@ module ActionDispatch
       end
 
       [status, headers, body]
-    ensure
-      cookie_jar = ActionDispatch::Request.new(env).cookie_jar unless cookie_jar
-      cookie_jar.close!
     end
   end
 end

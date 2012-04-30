@@ -89,7 +89,7 @@ module AbstractController
   #   class TillController < BankController
   #     layout false
   #
-  # In these examples, we have three implicit lookup scenrios:
+  # In these examples, we have three implicit lookup scenarios:
   # * The BankController uses the "bank" layout.
   # * The ExchangeController uses the "exchange" layout.
   # * The CurrencyController inherits the layout from BankController.
@@ -120,6 +120,7 @@ module AbstractController
   #       def writers_and_readers
   #         logged_in? ? "writer_layout" : "reader_layout"
   #       end
+  #   end
   #
   # Now when a new request for the index action is processed, the layout will vary depending on whether the person accessing
   # is logged in or not.
@@ -127,7 +128,14 @@ module AbstractController
   # If you want to use an inline method, such as a proc, do something like this:
   #
   #   class WeblogController < ActionController::Base
-  #     layout proc{ |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
+  #     layout proc { |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
+  #   end
+  #
+  # If an argument isn't given to the proc, it's evaluated in the context of
+  # the current controller anyway.
+  #
+  #   class WeblogController < ActionController::Base
+  #     layout proc { logged_in? ? "writer_layout" : "reader_layout" }
   #   end
   #
   # Of course, the most common way of specifying a layout is still just as a plain template name:
@@ -136,8 +144,8 @@ module AbstractController
   #     layout "weblog_standard"
   #   end
   #
-  # If no directory is specified for the template name, the template will by default be looked for in <tt>app/views/layouts/</tt>.
-  # Otherwise, it will be looked up relative to the template root.
+  # The template will be looked always in <tt>app/views/layouts/</tt> folder. But you can point
+  # <tt>layouts</tt> folder direct also. <tt>layout "layouts/demo"</tt> is the same as <tt>layout "demo"</tt>.
   #
   # Setting the layout to nil forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
   # Setting it to nil is useful to re-enable template lookup overriding a previous configuration set in the parent:
@@ -195,8 +203,9 @@ module AbstractController
     include Rendering
 
     included do
-      class_attribute :_layout_conditions
-      remove_possible_method :_layout_conditions
+      class_attribute :_layout, :_layout_conditions,
+        :instance_reader => false, :instance_writer => false
+      self._layout = nil
       self._layout_conditions = {}
       _write_layout_method
     end
@@ -237,10 +246,10 @@ module AbstractController
       #
       # If the specified layout is a:
       # String:: the String is the template name
-      # Symbol:: call the method specified by the symbol, which will return
-      #   the template name
+      # Symbol:: call the method specified by the symbol, which will return the template name
       # false::  There is no layout
       # true::   raise an ArgumentError
+      # nil::    Force default layout behavior with inheritance
       #
       # ==== Parameters
       # * <tt>layout</tt> - The layout to use.
@@ -254,7 +263,7 @@ module AbstractController
         conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
         self._layout_conditions = conditions
 
-        @_layout = layout || false # Converts nil to false
+        self._layout = layout
         _write_layout_method
       end
 
@@ -279,54 +288,33 @@ module AbstractController
           <<-RUBY
             lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first || super
           RUBY
+        else
+          <<-RUBY
+            super
+          RUBY
         end
 
-        if defined?(@_layout)
-          layout_definition = case @_layout
-            when String
-              @_layout.inspect
-            when Symbol
-              <<-RUBY
-                #{@_layout}.tap do |layout|
-                  unless layout.is_a?(String) || !layout
-                    raise ArgumentError, "Your layout method :#{@_layout} returned \#{layout}. It " \
-                      "should have returned a String, false, or nil"
-                  end
+        layout_definition = case _layout
+          when String
+            _layout.inspect
+          when Symbol
+            <<-RUBY
+              #{_layout}.tap do |layout|
+                unless layout.is_a?(String) || !layout
+                  raise ArgumentError, "Your layout method :#{_layout} returned \#{layout}. It " \
+                    "should have returned a String, false, or nil"
                 end
-              RUBY
-            when Proc
-              define_method :_layout_from_proc, &@_layout
-              "_layout_from_proc(self)"
-            when false
-              nil
-            when true
-              raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
-            when nil
-              name_clause
-            end
-        else
-          # Add a deprecation if the parent layout was explicitly set and the child
-          # still does a dynamic lookup. In next Rails release, we should @_layout
-          # to be inheritable so we can skip the child lookup if the parent explicitly
-          # set the layout.
-          parent   = self.superclass.instance_variable_get(:@_layout)
-          @_layout = nil
-          inspect  = parent.is_a?(Proc) ? parent.inspect : parent
-
-          layout_definition = if parent.nil?
-              name_clause
-            elsif name
-              <<-RUBY
-                if template = lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first
-                  ActiveSupport::Deprecation.warn 'Layout found at "#{_implied_layout_name}" for #{name} but parent controller ' \
-                    'set layout to #{inspect.inspect}. Please explicitly set your layout to "#{_implied_layout_name}" ' \
-                    'or set it to nil to force a dynamic lookup.'
-                  template
-                else
-                  super
-                end
-              RUBY
-            end
+              end
+            RUBY
+          when Proc
+              define_method :_layout_from_proc, &_layout
+              _layout.arity == 0 ? "_layout_from_proc" : "_layout_from_proc(self)"
+          when false
+            nil
+          when true
+            raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
+          when nil
+            name_clause
         end
 
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -346,7 +334,7 @@ module AbstractController
       super
 
       if _include_layout?(options)
-        layout = options.key?(:layout) ? options.delete(:layout) : :default
+        layout = options.delete(:layout) { :default }
         options[:layout] = _layout_for_option(layout)
       end
     end
@@ -384,7 +372,7 @@ module AbstractController
       when false, nil then nil
       else
         raise ArgumentError,
-          "String, true, or false, expected for `layout'; you passed #{name.inspect}"
+          "String, Proc, :default, true, or false, expected for `layout'; you passed #{name.inspect}"
       end
     end
 

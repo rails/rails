@@ -59,8 +59,10 @@ module ActionView
         end
 
         def determine_default_helper_class(name)
-          mod = name.sub(/Test$/, '').safe_constantize
+          mod = name.sub(/Test$/, '').constantize
           mod.is_a?(Class) ? nil : mod
+        rescue NameError
+          nil
         end
 
         def helper_method(*methods)
@@ -183,32 +185,32 @@ module ActionView
 
       alias_method :_view, :view
 
-      INTERNAL_IVARS = %w{
-        @__name__
-        @__io__
-        @_assertion_wrapped
-        @_assertions
-        @_result
-        @_routes
-        @controller
-        @layouts
-        @locals
-        @method_name
-        @output_buffer
-        @partials
-        @passed
-        @rendered
-        @request
-        @routes
-        @templates
-        @options
-        @test_passed
-        @view
-        @view_context_class
-      }
+      INTERNAL_IVARS = [
+        :@__name__,
+        :@__io__,
+        :@_assertion_wrapped,
+        :@_assertions,
+        :@_result,
+        :@_routes,
+        :@controller,
+        :@layouts,
+        :@locals,
+        :@method_name,
+        :@output_buffer,
+        :@partials,
+        :@passed,
+        :@rendered,
+        :@request,
+        :@routes,
+        :@templates,
+        :@options,
+        :@test_passed,
+        :@view,
+        :@view_context_class
+      ]
 
       def _user_defined_ivars
-        instance_variables.map(&:to_s) - INTERNAL_IVARS
+        instance_variables - INTERNAL_IVARS
       end
 
       # Returns a Hash of instance variables and their values, as defined by
@@ -216,8 +218,8 @@ module ActionView
       # rendered. This is generally intended for internal use and extension
       # frameworks.
       def view_assigns
-        Hash[_user_defined_ivars.map do |var|
-          [var[1, var.length].to_sym, instance_variable_get(var)]
+        Hash[_user_defined_ivars.map do |ivar|
+          [ivar[1..-1].to_sym, instance_variable_get(ivar)]
         end]
       end
 
@@ -233,10 +235,8 @@ module ActionView
           super
         end
       end
-
     end
 
     include Behavior
-
   end
 end

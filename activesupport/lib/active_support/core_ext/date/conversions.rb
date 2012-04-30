@@ -5,12 +5,15 @@ require 'active_support/core_ext/module/remove_method'
 
 class Date
   DATE_FORMATS = {
-    :short        => "%e %b",
-    :long         => "%B %e, %Y",
-    :db           => "%Y-%m-%d",
-    :number       => "%Y%m%d",
-    :long_ordinal => lambda { |date| date.strftime("%B #{ActiveSupport::Inflector.ordinalize(date.day)}, %Y") }, # => "April 25th, 2007"
-    :rfc822       => "%e %b %Y"
+    :short        => '%e %b',
+    :long         => '%B %e, %Y',
+    :db           => '%Y-%m-%d',
+    :number       => '%Y%m%d',
+    :long_ordinal => lambda { |date|
+      day_format = ActiveSupport::Inflector.ordinalize(date.day)
+      date.strftime("%B #{day_format}, %Y") # => "April 25th, 2007"
+    },
+    :rfc822       => '%e %b %Y'
   }
 
   # Ruby 1.9 has Date#to_time which converts to localtime only.
@@ -40,7 +43,7 @@ class Date
   # or Proc instance that takes a date argument as the value.
   #
   #   # config/initializers/time_formats.rb
-  #   Date::DATE_FORMATS[:month_and_year] = "%B %Y"
+  #   Date::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Date::DATE_FORMATS[:short_ordinal] = lambda { |date| date.strftime("%B #{date.day.ordinalize}") }
   def to_formatted_s(format = :default)
     if formatter = DATE_FORMATS[format]
@@ -58,16 +61,10 @@ class Date
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
   def readable_inspect
-    strftime("%a, %d %b %Y")
+    strftime('%a, %d %b %Y')
   end
   alias_method :default_inspect, :inspect
   alias_method :inspect, :readable_inspect
-
-  # A method to keep Time, Date and DateTime instances interchangeable on conversions.
-  # In this case, it simply returns +self+.
-  def to_date
-    self
-  end if RUBY_VERSION < '1.9'
 
   # Converts a Date instance to a Time, where the time is set to the beginning of the day.
   # The timezone can be either :local or :utc (default :local).
@@ -82,23 +79,6 @@ class Date
   def to_time(form = :local)
     ::Time.send("#{form}_time", year, month, day)
   end
-
-  # Converts a Date instance to a DateTime, where the time is set to the beginning of the day
-  # and UTC offset is set to 0.
-  #
-  # ==== Examples
-  #   date = Date.new(2007, 11, 10)  # => Sat, 10 Nov 2007
-  #
-  #   date.to_datetime               # => Sat, 10 Nov 2007 00:00:00 0000
-  def to_datetime
-    ::DateTime.civil(year, month, day, 0, 0, 0, 0)
-  end if RUBY_VERSION < '1.9'
-
-  def iso8601
-    strftime('%F')
-  end if RUBY_VERSION < '1.9'
-
-  alias_method :rfc3339, :iso8601 if RUBY_VERSION < '1.9'
 
   def xmlschema
     to_time_in_current_zone.xmlschema

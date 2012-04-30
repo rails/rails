@@ -4,7 +4,7 @@ require 'active_support/inflector/transliterate'
 # String inflections define new methods on the String class to transform names for different purposes.
 # For instance, you can figure out the name of a table from the name of a class.
 #
-#   "ScaleScore".tableize # => "scale_scores"
+#   'ScaleScore'.tableize # => "scale_scores"
 #
 class String
   # Returns the plural form of the word in the string.
@@ -14,14 +14,14 @@ class String
   # For any other value of +count+ the plural will be returned.
   #
   # ==== Examples
-  #   "post".pluralize             # => "posts"
-  #   "octopus".pluralize          # => "octopi"
-  #   "sheep".pluralize            # => "sheep"
-  #   "words".pluralize            # => "words"
-  #   "the blue mailman".pluralize # => "the blue mailmen"
-  #   "CamelOctopus".pluralize     # => "CamelOctopi"
-  #   "apple".pluralize(1)         # => "apple"
-  #   "apple".pluralize(2)         # => "apples"
+  #   'post'.pluralize             # => "posts"
+  #   'octopus'.pluralize          # => "octopi"
+  #   'sheep'.pluralize            # => "sheep"
+  #   'words'.pluralize            # => "words"
+  #   'the blue mailman'.pluralize # => "the blue mailmen"
+  #   'CamelOctopus'.pluralize     # => "CamelOctopi"
+  #   'apple'.pluralize(1)         # => "apple"
+  #   'apple'.pluralize(2)         # => "apples"
   def pluralize(count = nil)
     if count == 1
       self
@@ -32,12 +32,12 @@ class String
 
   # The reverse of +pluralize+, returns the singular form of a word in a string.
   #
-  #   "posts".singularize            # => "post"
-  #   "octopi".singularize           # => "octopus"
-  #   "sheep".singularize            # => "sheep"
-  #   "word".singularize             # => "word"
-  #   "the blue mailmen".singularize # => "the blue mailman"
-  #   "CamelOctopi".singularize      # => "CamelOctopus"
+  #   'posts'.singularize            # => "post"
+  #   'octopi'.singularize           # => "octopus"
+  #   'sheep'.singularize            # => "sheep"
+  #   'word'.singularize             # => "word"
+  #   'the blue mailmen'.singularize # => "the blue mailman"
+  #   'CamelOctopi'.singularize      # => "CamelOctopus"
   def singularize
     ActiveSupport::Inflector.singularize(self)
   end
@@ -47,9 +47,9 @@ class String
   # or is not initialized.  See ActiveSupport::Inflector.constantize
   #
   # Examples
-  #   "Module".constantize  # => Module
-  #   "Class".constantize   # => Class
-  #   "blargle".constantize # => NameError: wrong constant name blargle
+  #   'Module'.constantize  # => Module
+  #   'Class'.constantize   # => Class
+  #   'blargle'.constantize # => NameError: wrong constant name blargle
   def constantize
     ActiveSupport::Inflector.constantize(self)
   end
@@ -59,9 +59,9 @@ class String
   # or is not initialized.  See ActiveSupport::Inflector.safe_constantize
   #
   # Examples
-  #   "Module".safe_constantize  # => Module
-  #   "Class".safe_constantize   # => Class
-  #   "blargle".safe_constantize # => nil
+  #   'Module'.safe_constantize  # => Module
+  #   'Class'.safe_constantize   # => Class
+  #   'blargle'.safe_constantize # => nil
   def safe_constantize
     ActiveSupport::Inflector.safe_constantize(self)
   end
@@ -71,14 +71,16 @@ class String
   #
   # +camelize+ will also convert '/' to '::' which is useful for converting paths to namespaces.
   #
-  #   "active_record".camelize                # => "ActiveRecord"
-  #   "active_record".camelize(:lower)        # => "activeRecord"
-  #   "active_record/errors".camelize         # => "ActiveRecord::Errors"
-  #   "active_record/errors".camelize(:lower) # => "activeRecord::Errors"
+  #   'active_record'.camelize                # => "ActiveRecord"
+  #   'active_record'.camelize(:lower)        # => "activeRecord"
+  #   'active_record/errors'.camelize         # => "ActiveRecord::Errors"
+  #   'active_record/errors'.camelize(:lower) # => "activeRecord::Errors"
   def camelize(first_letter = :upper)
     case first_letter
-      when :upper then ActiveSupport::Inflector.camelize(self, true)
-      when :lower then ActiveSupport::Inflector.camelize(self, false)
+    when :upper
+      ActiveSupport::Inflector.camelize(self, true)
+    when :lower
+      ActiveSupport::Inflector.camelize(self, false)
     end
   end
   alias_method :camelcase, :camelize
@@ -89,8 +91,8 @@ class String
   #
   # +titleize+ is also aliased as +titlecase+.
   #
-  #   "man from the boondocks".titleize # => "Man From The Boondocks"
-  #   "x-men: the last stand".titleize  # => "X Men: The Last Stand"
+  #   'man from the boondocks'.titleize # => "Man From The Boondocks"
+  #   'x-men: the last stand'.titleize  # => "X Men: The Last Stand"
   def titleize
     ActiveSupport::Inflector.titleize(self)
   end
@@ -100,23 +102,23 @@ class String
   #
   # +underscore+ will also change '::' to '/' to convert namespaces to paths.
   #
-  #   "ActiveRecord".underscore         # => "active_record"
-  #   "ActiveRecord::Errors".underscore # => active_record/errors
+  #   'ActiveModel'.underscore         # => "active_model"
+  #   'ActiveModel::Errors'.underscore # => "active_model/errors"
   def underscore
     ActiveSupport::Inflector.underscore(self)
   end
 
   # Replaces underscores with dashes in the string.
   #
-  #   "puni_puni" # => "puni-puni"
+  #   'puni_puni' # => "puni-puni"
   def dasherize
     ActiveSupport::Inflector.dasherize(self)
   end
 
   # Removes the module part from the constant expression in the string.
   #
-  #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize # => "Inflections"
-  #   "Inflections".demodulize                                       # => "Inflections"
+  #   'ActiveRecord::CoreExtensions::String::Inflections'.demodulize # => "Inflections"
+  #   'Inflections'.demodulize                                       # => "Inflections"
   #
   # See also +deconstantize+.
   def demodulize
@@ -125,11 +127,11 @@ class String
 
   # Removes the rightmost segment from the constant expression in the string.
   #
-  #   "Net::HTTP".deconstantize   # => "Net"
-  #   "::Net::HTTP".deconstantize # => "::Net"
-  #   "String".deconstantize      # => ""
-  #   "::String".deconstantize    # => ""
-  #   "".deconstantize            # => ""
+  #   'Net::HTTP'.deconstantize   # => "Net"
+  #   '::Net::HTTP'.deconstantize # => "::Net"
+  #   'String'.deconstantize      # => ""
+  #   '::String'.deconstantize    # => ""
+  #   ''.deconstantize            # => ""
   #
   # See also +demodulize+.
   def deconstantize
@@ -158,9 +160,9 @@ class String
   # Creates the name of a table like Rails does for models to table names. This method
   # uses the +pluralize+ method on the last word in the string.
   #
-  #   "RawScaledScorer".tableize # => "raw_scaled_scorers"
-  #   "egg_and_ham".tableize     # => "egg_and_hams"
-  #   "fancyCategory".tableize   # => "fancy_categories"
+  #   'RawScaledScorer'.tableize # => "raw_scaled_scorers"
+  #   'egg_and_ham'.tableize     # => "egg_and_hams"
+  #   'fancyCategory'.tableize   # => "fancy_categories"
   def tableize
     ActiveSupport::Inflector.tableize(self)
   end
@@ -169,12 +171,12 @@ class String
   # Note that this returns a string and not a class. (To convert to an actual class
   # follow +classify+ with +constantize+.)
   #
-  #   "egg_and_hams".classify # => "EggAndHam"
-  #   "posts".classify        # => "Post"
+  #   'egg_and_hams'.classify # => "EggAndHam"
+  #   'posts'.classify        # => "Post"
   #
   # Singular names are not handled correctly.
   #
-  #   "business".classify # => "Busines"
+  #   'business'.classify # => "Busines"
   def classify
     ActiveSupport::Inflector.classify(self)
   end
@@ -182,8 +184,8 @@ class String
   # Capitalizes the first word, turns underscores into spaces, and strips '_id'.
   # Like +titleize+, this is meant for creating pretty output.
   #
-  #   "employee_salary" # => "Employee salary"
-  #   "author_id"       # => "Author"
+  #   'employee_salary' # => "Employee salary"
+  #   'author_id'       # => "Author"
   def humanize
     ActiveSupport::Inflector.humanize(self)
   end
@@ -193,9 +195,9 @@ class String
   # the method should put '_' between the name and 'id'.
   #
   # Examples
-  #   "Message".foreign_key        # => "message_id"
-  #   "Message".foreign_key(false) # => "messageid"
-  #   "Admin::Post".foreign_key    # => "post_id"
+  #   'Message'.foreign_key        # => "message_id"
+  #   'Message'.foreign_key(false) # => "messageid"
+  #   'Admin::Post'.foreign_key    # => "post_id"
   def foreign_key(separate_class_name_and_id_with_underscore = true)
     ActiveSupport::Inflector.foreign_key(self, separate_class_name_and_id_with_underscore)
   end

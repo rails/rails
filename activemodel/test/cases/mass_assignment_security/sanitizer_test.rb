@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'logger'
+require 'active_support/logger'
 require 'active_support/core_ext/object/inclusion'
 
 class SanitizerTest < ActiveModel::TestCase
@@ -28,7 +28,7 @@ class SanitizerTest < ActiveModel::TestCase
   test "debug mass assignment removal with LoggerSanitizer" do
     original_attributes = { 'first_name' => 'allowed', 'admin' => 'denied' }
     log = StringIO.new
-    self.logger = Logger.new(log)
+    self.logger = ActiveSupport::Logger.new(log)
     @logger_sanitizer.sanitize(original_attributes, @authorizer)
     assert_match(/admin/, log.string, "Should log removed attributes: #{log.string}")
   end

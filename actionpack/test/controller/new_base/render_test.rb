@@ -57,7 +57,7 @@ module Render
     test "render with blank" do
       with_routing do |set|
         set.draw do
-          match ":controller", :action => 'index'
+          get ":controller", :action => 'index'
         end
 
         get "/render/blank_render"
@@ -70,7 +70,7 @@ module Render
     test "rendering more than once raises an exception" do
       with_routing do |set|
         set.draw do
-          match ":controller", :action => 'index'
+          get ":controller", :action => 'index'
         end
 
         assert_raises(AbstractController::DoubleRenderError) do

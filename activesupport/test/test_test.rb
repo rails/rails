@@ -61,24 +61,19 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
 
     def test_array_of_expressions_identify_failure
-      assert_difference ['@object.num', '1 + 1'] do
-        @object.increment
+      assert_raises(MiniTest::Assertion) do
+        assert_difference ['@object.num', '1 + 1'] do
+          @object.increment
+        end
       end
-      fail 'should not get to here'
-    rescue Exception => e
-      assert_match(/didn't change by/, e.message)
-      assert_match(/expected but was/, e.message)
     end
 
     def test_array_of_expressions_identify_failure_when_message_provided
-      assert_difference ['@object.num', '1 + 1'], 1, 'something went wrong' do
-        @object.increment
+      assert_raises(MiniTest::Assertion) do
+        assert_difference ['@object.num', '1 + 1'], 1, 'something went wrong' do
+          @object.increment
+        end
       end
-      fail 'should not get to here'
-    rescue Exception => e
-      assert_match(/something went wrong/, e.message)
-      assert_match(/didn't change by/, e.message)
-      assert_match(/expected but was/, e.message)
     end
   else
     def default_test; end

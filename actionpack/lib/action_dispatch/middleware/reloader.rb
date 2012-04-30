@@ -43,34 +43,47 @@ module ActionDispatch
 
     # Execute all prepare callbacks.
     def self.prepare!
-      new(nil).run_callbacks :prepare
+      new(nil).prepare!
     end
 
     # Execute all cleanup callbacks.
     def self.cleanup!
-      new(nil).run_callbacks :cleanup
+      new(nil).cleanup!
     end
 
-    def initialize(app)
+    def initialize(app, condition=nil)
       @app = app
-    end
-
-    module CleanupOnClose
-      def close
-        super if defined?(super)
-      ensure
-        ActionDispatch::Reloader.cleanup!
-      end
+      @condition = condition || lambda { true }
+      @validated = true
     end
 
     def call(env)
-      run_callbacks :prepare
+      @validated = @condition.call
+      prepare!
+
       response = @app.call(env)
-      response[2].extend(CleanupOnClose)
+      response[2] = ::Rack::BodyProxy.new(response[2]) { cleanup! }
+
       response
     rescue Exception
-      run_callbacks :cleanup
+      cleanup!
       raise
+    end
+
+    def prepare! #:nodoc:
+      run_callbacks :prepare if validated?
+    end
+
+    def cleanup! #:nodoc:
+      run_callbacks :cleanup if validated?
+    ensure
+      @validated = true
+    end
+
+    private
+
+    def validated? #:nodoc:
+      @validated
     end
   end
 end

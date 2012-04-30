@@ -2,7 +2,6 @@ module Rails
   class Application
     module Finisher
       include Initializable
-      $rails_rake_task = nil
 
       initializer :add_generator_templates do
         config.generators.templates.unshift(*paths["lib/templates"].existent)
@@ -23,7 +22,7 @@ module Rails
       initializer :add_builtin_route do |app|
         if Rails.env.development?
           app.routes.append do
-            match '/rails/info/properties' => "rails/info#properties"
+            get '/rails/info/properties' => "rails/info#properties"
           end
         end
       end
@@ -49,7 +48,7 @@ module Rails
       end
 
       initializer :eager_load! do
-        if config.cache_classes && !$rails_rake_task
+        if config.cache_classes && !(defined?($rails_rake_task) && $rails_rake_task)
           ActiveSupport.run_load_hooks(:before_eager_load, self)
           eager_load!
         end
@@ -61,23 +60,44 @@ module Rails
       end
 
       # Set app reload just after the finisher hook to ensure
-      # paths added in the hook are still loaded.
-      initializer :set_clear_dependencies_hook, :group => :all do |app|
-        ActionDispatch::Reloader.to_cleanup(&app.app_reloader_hook)
+      # routes added in the hook are still loaded.
+      initializer :set_routes_reloader_hook do
+        reloader = routes_reloader
+        reloader.execute_if_updated
+        self.reloaders << reloader
+        ActionDispatch::Reloader.to_prepare { reloader.execute_if_updated }
       end
 
       # Set app reload just after the finisher hook to ensure
-      # routes added in the hook are still loaded.
-      initializer :set_routes_reloader do |app|
-        reloader = app.routes_reloader_hook
-        reloader.call
-        ActionDispatch::Reloader.to_prepare(&reloader)
+      # paths added in the hook are still loaded.
+      initializer :set_clear_dependencies_hook, :group => :all do
+        callback = lambda do
+          ActiveSupport::DescendantsTracker.clear
+          ActiveSupport::Dependencies.clear
+        end
+
+        if config.reload_classes_only_on_change
+          reloader = config.file_watcher.new(*watchable_args, &callback)
+          self.reloaders << reloader
+          # We need to set a to_prepare callback regardless of the reloader result, i.e.
+          # models should be reloaded if any of the reloaders (i18n, routes) were updated.
+          ActionDispatch::Reloader.to_prepare(:prepend => true){ reloader.execute }
+        else
+          ActionDispatch::Reloader.to_cleanup(&callback)
+        end
       end
 
       # Disable dependency loading during request cycle
       initializer :disable_dependency_loading do
         if config.cache_classes && !config.dependency_loading
           ActiveSupport::Dependencies.unhook!
+        end
+      end
+
+      initializer :activate_queue_consumer do |app|
+        if config.queue == Rails::Queueing::Queue
+          consumer = Rails::Queueing::ThreadedConsumer.start(app.queue)
+          at_exit { consumer.shutdown }
         end
       end
     end

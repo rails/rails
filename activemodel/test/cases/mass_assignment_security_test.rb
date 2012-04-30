@@ -19,6 +19,13 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
     assert_equal expected, sanitized
   end
 
+  def test_attribute_protection_when_role_is_nil
+    user = User.new
+    expected = { "name" => "John Smith", "email" => "john@smith.com" }
+    sanitized = user.sanitize_for_mass_assignment(expected.merge("admin" => true), nil)
+    assert_equal expected, sanitized
+  end
+
   def test_only_moderator_role_attribute_accessible
     user = SpecialUser.new
     expected = { "name" => "John Smith", "email" => "john@smith.com" }

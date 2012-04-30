@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 
-class DateTimeExtCalculationsTest < Test::Unit::TestCase
+class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
     assert_equal "2005-02-21 14:30:00",               datetime.to_s(:db)
@@ -43,8 +43,8 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_civil_from_format
-    assert_equal DateTime.civil(2010, 5, 4, 0, 0, 0, DateTime.local_offset), DateTime.civil_from_format(:local, 2010, 5, 4)
-    assert_equal DateTime.civil(2010, 5, 4, 0, 0, 0, 0), DateTime.civil_from_format(:utc, 2010, 5, 4)
+    assert_equal Time.local(2010, 5, 4, 0, 0, 0), DateTime.civil_from_format(:local, 2010, 5, 4)
+    assert_equal Time.utc(2010, 5, 4, 0, 0, 0), DateTime.civil_from_format(:utc, 2010, 5, 4)
   end
 
   def test_seconds_since_midnight
@@ -159,6 +159,10 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).prev_year
   end
 
+  def test_last_year
+    assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).last_year
+  end
+
   def test_next_year
     assert_equal DateTime.civil(2006,6,5,10), DateTime.civil(2005,6,5,10,0,0).next_year
   end
@@ -232,6 +236,14 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2006,11,15), DateTime.civil(2006,11,23,0,0,0).prev_week(:wednesday)
   end
 
+  def test_last_week
+    assert_equal DateTime.civil(2005,2,21), DateTime.civil(2005,3,1,15,15,10).last_week
+    assert_equal DateTime.civil(2005,2,22), DateTime.civil(2005,3,1,15,15,10).last_week(:tuesday)
+    assert_equal DateTime.civil(2005,2,25), DateTime.civil(2005,3,1,15,15,10).last_week(:friday)
+    assert_equal DateTime.civil(2006,10,30), DateTime.civil(2006,11,6,0,0,0).last_week
+    assert_equal DateTime.civil(2006,11,15), DateTime.civil(2006,11,23,0,0,0).last_week(:wednesday)
+  end
+
   def test_next_week
     assert_equal DateTime.civil(2005,2,28), DateTime.civil(2005,2,22,15,15,10).next_week
     assert_equal DateTime.civil(2005,3,4), DateTime.civil(2005,2,22,15,15,10).next_week(:friday)
@@ -245,6 +257,10 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_prev_month_on_31st
     assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).prev_month
+  end
+
+  def test_last_month_on_31st
+    assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).last_month
   end
 
   def test_xmlschema
@@ -329,15 +345,6 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_acts_like_time
     assert DateTime.new.acts_like_time?
-  end
-
-  def test_local_offset
-    with_env_tz 'US/Eastern' do
-      assert_equal Rational(-5, 24), DateTime.local_offset
-    end
-    with_env_tz 'US/Central' do
-      assert_equal Rational(-6, 24), DateTime.local_offset
-    end
   end
 
   def test_utc?

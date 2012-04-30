@@ -1,38 +1,35 @@
 # -*- coding: utf-8 -*-
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/module/delegation'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Relation
   class Relation
     JoinOperation = Struct.new(:relation, :join_class, :on)
-    ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
-    MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order, :uniq]
 
-    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain
+    MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
+                            :order, :joins, :where, :having, :bind, :references,
+                            :extending]
 
-    # These are explicitly delegated to improve performance (avoids method_missing)
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
-             :connection, :column_hash, :auto_explain_threshold_in_seconds, :to => :klass
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
+                            :reverse_order, :uniq, :create_with]
+
+    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
+
+    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
-    attr_accessor :extensions, :default_scoped
+    attr_accessor :default_scoped
     alias :loaded? :loaded
     alias :default_scoped? :default_scoped
 
-    def initialize(klass, table)
-      @klass, @table = klass, table
-
+    def initialize(klass, table, values = {})
+      @klass             = klass
+      @table             = table
+      @values            = values
       @implicit_readonly = nil
       @loaded            = false
       @default_scoped    = false
-
-      SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
-      (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
-      @extensions = []
-      @create_with_value = {}
     end
 
     def insert(values)
@@ -83,6 +80,8 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
+      @values        = @values.dup
+      @values[:bind] = @values[:bind].dup if @values[:bind]
       reset
     end
 
@@ -138,13 +137,6 @@ module ActiveRecord
       first || new(attributes, options, &block)
     end
 
-    def respond_to?(method, include_private = false)
-      arel.respond_to?(method, include_private)     ||
-        Array.method_defined?(method)               ||
-        @klass.respond_to?(method, include_private) ||
-        super
-    end
-
     # Runs EXPLAIN on the query or queries triggered by this relation and
     # returns the result as a string. The string is formatted imitating the
     # ones printed by the database shell.
@@ -179,23 +171,17 @@ module ActiveRecord
       default_scoped = with_default_scope
 
       if default_scoped.equal?(self)
-        @records = if @readonly_value.nil? && !@klass.locking_enabled?
-          eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
-        else
-          IdentityMap.without do
-            eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
-          end
-        end
+        @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
 
-        preload = @preload_values
-        preload +=  @includes_values unless eager_loading?
+        preload = preload_values
+        preload +=  includes_values unless eager_loading?
         preload.each do |associations|
           ActiveRecord::Associations::Preloader.new(@records, associations).run
         end
 
         # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
         # are JOINS and no explicit SELECT.
-        readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
+        readonly = readonly_value.nil? ? @implicit_readonly : readonly_value
         @records.each { |record| record.readonly! } if readonly
       else
         @records = default_scoped.to_a
@@ -235,7 +221,7 @@ module ActiveRecord
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
       else
-        @limit_value ? to_a.many? : size > 1
+        limit_value ? to_a.many? : size > 1
       end
     end
 
@@ -250,7 +236,10 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      @klass.send(:with_scope, self, :overwrite) { yield }
+      previous, klass.current_scope = klass.current_scope, self
+      yield
+    ensure
+      klass.current_scope = previous
     end
 
     # Updates all records with details given if they match a set of conditions supplied, limits and order can
@@ -271,40 +260,26 @@ module ActiveRecord
     #   Customer.update_all :wants_email => true
     #
     #   # Update all books with 'Rails' in their title
-    #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
-    #
-    #   # Update all avatars migrated more than a week ago
-    #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
-    #
-    #   # Update all books that match conditions, but limit it to 5 ordered by date
-    #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
-    #
-    #   # Conditions from the current relation also works
     #   Book.where('title LIKE ?', '%Rails%').update_all(:author => 'David')
     #
-    #   # The same idea applies to limit and order
+    #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
-    def update_all(updates, conditions = nil, options = {})
-      IdentityMap.repository[symbolized_base_class].clear if IdentityMap.enabled?
-      if conditions || options.present?
-        where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
+    def update_all(updates)
+      stmt = Arel::UpdateManager.new(arel.engine)
+
+      stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
+      stmt.table(table)
+      stmt.key = table[primary_key]
+
+      if joins_values.any?
+        @klass.connection.join_to_update(stmt, arel)
       else
-        stmt = Arel::UpdateManager.new(arel.engine)
-
-        stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
-        stmt.table(table)
-        stmt.key = table[primary_key]
-
-        if joins_values.any?
-          @klass.connection.join_to_update(stmt, arel)
-        else
-          stmt.take(arel.limit)
-          stmt.order(*arel.orders)
-          stmt.wheres = arel.constraints
-        end
-
-        @klass.connection.update stmt, 'SQL', bind_values
+        stmt.take(arel.limit)
+        stmt.order(*arel.orders)
+        stmt.wheres = arel.constraints
       end
+
+      @klass.connection.update stmt, 'SQL', bind_values
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -368,7 +343,7 @@ module ActiveRecord
       end
     end
 
-    # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
+    # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
     # therefore all callbacks and filters are fired off before the object is deleted. This method is
     # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
     #
@@ -415,12 +390,19 @@ module ActiveRecord
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the +destroy_all+ method instead.
     def delete_all(conditions = nil)
-      IdentityMap.repository[symbolized_base_class] = {} if IdentityMap.enabled?
       if conditions
         where(conditions).delete_all
       else
-        statement = arel.compile_delete
-        affected = @klass.connection.delete(statement, 'SQL', bind_values)
+        stmt = Arel::DeleteManager.new(arel.engine)
+        stmt.from(table)
+
+        if joins_values.any?
+          @klass.connection.join_to_delete(stmt, arel, table[primary_key])
+        else
+          stmt.wheres = arel.constraints
+        end
+
+        affected = @klass.connection.delete(stmt, 'SQL', bind_values)
 
         reset
         affected
@@ -448,7 +430,6 @@ module ActiveRecord
     #   # Delete multiple rows
     #   Todo.delete([2,3,4])
     def delete(id_or_array)
-      IdentityMap.remove_by_id(self.symbolized_base_class, id_or_array) if IdentityMap.enabled?
       where(primary_key => id_or_array).delete_all
     end
 
@@ -466,7 +447,7 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= klass.connection.to_sql(arel)
+      @to_sql ||= klass.connection.to_sql(arel, bind_values.dup)
     end
 
     def where_values_hash
@@ -474,7 +455,12 @@ module ActiveRecord
         node.left.relation.name == table_name
       }
 
-      Hash[equalities.map { |where| [where.left.name, where.right] }]
+      binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
+
+      Hash[equalities.map { |where|
+        name = where.left.name
+        [name, binds.fetch(name.to_s) { where.right }]
+      }]
     end
 
     def scope_for_create
@@ -483,8 +469,8 @@ module ActiveRecord
 
     def eager_loading?
       @should_eager_load ||=
-        @eager_load_values.any? ||
-        @includes_values.any? && (joined_includes_values.any? || references_eager_loaded_tables?)
+        eager_load_values.any? ||
+        includes_values.any? && (joined_includes_values.any? || references_eager_loaded_tables?)
     end
 
     # Joins that are also marked for preloading. In which case we should just eager load them.
@@ -492,7 +478,7 @@ module ActiveRecord
     # represent the same association, but that aren't matched by this. Also, we could have
     # nested hashes which partially match, e.g. { :a => :b } & { :a => [:b, :c] }
     def joined_includes_values
-      @includes_values & @joins_values
+      includes_values & joins_values
     end
 
     def ==(other)
@@ -508,6 +494,10 @@ module ActiveRecord
       to_a.inspect
     end
 
+    def pretty_print(q)
+      q.pp(self.to_a)
+    end
+
     def with_default_scope #:nodoc:
       if default_scoped? && default_scope = klass.send(:build_default_scope)
         default_scope = default_scope.merge(self)
@@ -518,18 +508,12 @@ module ActiveRecord
       end
     end
 
-    protected
+    def blank?
+      to_a.blank?
+    end
 
-    def method_missing(method, *args, &block)
-      if Array.method_defined?(method)
-        to_a.send(method, *args, &block)
-      elsif @klass.respond_to?(method)
-        scoping { @klass.send(method, *args, &block) }
-      elsif arel.respond_to?(method)
-        arel.send(method, *args, &block)
-      else
-        super
-      end
+    def values
+      @values.dup
     end
 
     private
@@ -547,7 +531,30 @@ module ActiveRecord
 
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
-      (tables_in_string(to_sql.to_s + column_name.to_s) - joined_tables).any?
+      string_tables = tables_in_string(to_sql)
+
+      if (references_values - joined_tables).any?
+        true
+      elsif (string_tables - joined_tables).any?
+        ActiveSupport::Deprecation.warn(
+          "It looks like you are eager loading table(s) (one of: #{string_tables.join(', ')}) " \
+          "that are referenced in a string SQL snippet. For example: \n" \
+          "\n" \
+          "    Post.includes(:comments).where(\"comments.title = 'foo'\")\n" \
+          "\n" \
+          "Currently, Active Record recognises the table in the string, and knows to JOIN the " \
+          "comments table to the query, rather than loading comments in a separate query. " \
+          "However, doing this without writing a full-blown SQL parser is inherently flawed. " \
+          "Since we don't want to write an SQL parser, we are removing this functionality. " \
+          "From now on, you must explicitly tell Active Record when you are referencing a table " \
+          "from a string:\n" \
+          "\n" \
+          "    Post.includes(:comments).where(\"comments.title = 'foo'\").references(:comments)\n\n"
+        )
+        true
+      else
+        false
+      end
     end
 
     def tables_in_string(string)
