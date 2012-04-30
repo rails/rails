@@ -446,6 +446,19 @@ app/model/post.rb:
 
 NOTE. When using specific annotations and custom annotations, the annotation name (FIXME, BUG etc) is not displayed in the output lines.
 
+Be default, rake notes will look in the app, config, lib, script and test directories for notes. If you would like to search additional directories,
+simply provide the directories as a comma seperated list in an environment variable +SOURCE_ANNOTATION_DIRECTORIES+.
+
+<shell>
+$ export SOURCE_ANNOTATION_DIRECTORIES='rspec,vendor'
+$ rake notes
+(in /home/foobar/commandsapp)
+app/model/user.rb:
+  * [ 35] [FIXME] User should have a subscription at this point
+rspec/model/user_spec.rb:
+  * [122] [TODO] Verify the user that has a subscription works
+</shell>
+
 h4. +routes+
 
 +rake routes+ will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
