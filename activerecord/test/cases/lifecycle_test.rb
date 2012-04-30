@@ -137,7 +137,7 @@ class LifecycleTest < ActiveRecord::TestCase
   def test_auto_observer
     topic_observer = TopicaAuditor.instance
     assert_nil TopicaAuditor.observed_class
-    assert_equal [Topic], TopicaAuditor.instance.observed_classes.to_a
+    assert_equal [Topic], TopicaAuditor.observed_classes.to_a
 
     topic = Topic.find(1)
     assert_equal topic.title, topic_observer.topic.title
