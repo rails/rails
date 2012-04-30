@@ -1011,6 +1011,8 @@ module ActionView
 
         # Returns the separator for a given datetime component.
         def separator(type)
+          return "" if @options[:use_hidden]
+
           case type
             when :year, :month, :day
               @options[:"discard_#{type}"] ? "" : @options[:date_separator]

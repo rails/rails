@@ -987,6 +987,15 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { :date_separator => " / ", :discard_month => true, :discard_day => true, :start_year => 2003, :end_year => 2005, :prefix => "date[first]"})
   end
 
+  def test_select_date_with_hidden
+    expected =  %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003"/>\n)
+    expected << %(<input id="date_first_month" name="date[first][month]" type="hidden" value="8" />\n)
+    expected << %(<input id="date_first_day" name="date[first][day]" type="hidden" value="16" />\n)
+
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { :prefix => "date[first]", :use_hidden => true })
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { :date_separator => " / ", :prefix => "date[first]", :use_hidden => true })
+  end
+
   def test_select_datetime
     expected =  %(<select id="date_first_year" name="date[first][year]">\n)
     expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
@@ -1223,6 +1232,18 @@ class DateHelperTest < ActionView::TestCase
       :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year', :hour => 'Choose hour', :minute => 'Choose minute'})
   end
 
+  def test_select_datetime_with_hidden
+    expected =  %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003" />\n)
+    expected << %(<input id="date_first_month" name="date[first][month]" type="hidden" value="8" />\n)
+    expected << %(<input id="date_first_day" name="date[first][day]" type="hidden" value="16" />\n)
+    expected << %(<input id="date_first_hour" name="date[first][hour]" type="hidden" value="8" />\n)
+    expected << %(<input id="date_first_minute" name="date[first][minute]" type="hidden" value="4" />\n)
+
+    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), :prefix => "date[first]", :use_hidden => true)
+    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), :datetime_separator => "&mdash;", :date_separator => "/",
+      :time_separator => ":", :prefix => "date[first]", :use_hidden => true)
+  end
+
   def test_select_time
     expected = %(<input name="date[year]" id="date_year" value="2003" type="hidden" />\n)
     expected << %(<input name="date[month]" id="date_month" value="8" type="hidden" />\n)
@@ -1396,6 +1417,17 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :prompt => true, :include_seconds => true,
       :prompt => {:hour => 'Choose hour', :minute => 'Choose minute', :second => 'Choose seconds'})
+  end
+
+  def test_select_time_with_hidden
+    expected =  %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003" />\n)
+    expected << %(<input id="date_first_month" name="date[first][month]" type="hidden" value="8" />\n)
+    expected << %(<input id="date_first_day" name="date[first][day]" type="hidden" value="16" />\n)
+    expected << %(<input id="date_first_hour" name="date[first][hour]" type="hidden" value="8" />\n)
+    expected << %(<input id="date_first_minute" name="date[first][minute]" type="hidden" value="4" />\n)
+
+    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :prefix => "date[first]", :use_hidden => true)
+    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :time_separator => ":", :prefix => "date[first]", :use_hidden => true)
   end
 
   def test_date_select
