@@ -518,7 +518,7 @@ module ActiveRecord
 
     private
 
-    def references_eager_loaded_tables?
+    def references_eager_loaded_tables?(column_name = "")
       joined_tables = arel.join_sources.map do |join|
         if join.is_a?(Arel::Nodes::StringJoin)
           tables_in_string(join.left)

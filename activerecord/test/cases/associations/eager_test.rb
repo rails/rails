@@ -939,6 +939,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_eager_association_loading_for_sum
+    categories = Category.includes(:authors)
+    assert_equal 8, categories.sum("authors.id")
+  end
+
   def test_load_with_sti_sharing_association
     assert_queries(2) do #should not do 1 query per subclass
       Comment.includes(:post).all
