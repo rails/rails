@@ -45,7 +45,7 @@ class DefaultUrlOptionsController < ActionController::Base
     render :inline => "<%= #{params[:route]} %>"
   end
 
-  def default_url_options(options = nil)
+  def default_url_options
     { :host => 'www.override.com', :action => 'new', :locale => 'en' }
   end
 end
@@ -56,7 +56,7 @@ class UrlOptionsController < ActionController::Base
   end
 
   def url_options
-    super.merge(:host => 'www.override.com', :action => 'new', :locale => 'en')
+    super.merge(:host => 'www.override.com')
   end
 end
 
@@ -130,8 +130,6 @@ class PerformActionTest < ActionController::TestCase
     @request     = ActionController::TestRequest.new
     @response    = ActionController::TestResponse.new
     @request.host = "www.nextangle.com"
-
-    rescue_action_in_public!
   end
 
   def test_process_should_be_precise
@@ -155,13 +153,12 @@ class UrlOptionsTest < ActionController::TestCase
   def setup
     super
     @request.host = 'www.example.com'
-    rescue_action_in_public!
   end
 
   def test_url_for_query_params_included
     rs = ActionDispatch::Routing::RouteSet.new
     rs.draw do
-      match 'home' => 'pages#home'
+      get 'home' => 'pages#home'
     end
 
     options = {
@@ -177,25 +174,24 @@ class UrlOptionsTest < ActionController::TestCase
   def test_url_options_override
     with_routing do |set|
       set.draw do
-        match 'from_view', :to => 'url_options#from_view', :as => :from_view
-        match ':controller/:action'
+        get 'from_view', :to => 'url_options#from_view', :as => :from_view
+        get ':controller/:action'
       end
 
       get :from_view, :route => "from_view_url"
 
-      assert_equal 'http://www.override.com/from_view?locale=en', @response.body
-      assert_equal 'http://www.override.com/from_view?locale=en', @controller.send(:from_view_url)
-      assert_equal 'http://www.override.com/default_url_options/new?locale=en', @controller.url_for(:controller => 'default_url_options')
+      assert_equal 'http://www.override.com/from_view', @response.body
+      assert_equal 'http://www.override.com/from_view', @controller.send(:from_view_url)
+      assert_equal 'http://www.override.com/default_url_options/index', @controller.url_for(:controller => 'default_url_options')
     end
   end
 
   def test_url_helpers_does_not_become_actions
     with_routing do |set|
       set.draw do
-        match "account/overview"
+        get "account/overview"
       end
 
-      @controller.class.send(:include, set.url_helpers)
       assert !@controller.class.action_methods.include?("account_overview_path")
     end
   end
@@ -207,14 +203,13 @@ class DefaultUrlOptionsTest < ActionController::TestCase
   def setup
     super
     @request.host = 'www.example.com'
-    rescue_action_in_public!
   end
 
   def test_default_url_options_override
     with_routing do |set|
       set.draw do
-        match 'from_view', :to => 'default_url_options#from_view', :as => :from_view
-        match ':controller/:action'
+        get 'from_view', :to => 'default_url_options#from_view', :as => :from_view
+        get ':controller/:action'
       end
 
       get :from_view, :route => "from_view_url"
@@ -231,7 +226,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
         scope("/:locale") do
           resources :descriptions
         end
-        match ':controller/:action'
+        get ':controller/:action'
       end
 
       get :from_view, :route => "description_path(1)"
@@ -258,7 +253,6 @@ class EmptyUrlOptionsTest < ActionController::TestCase
   def setup
     super
     @request.host = 'www.example.com'
-    rescue_action_in_public!
   end
 
   def test_ensure_url_for_works_as_expected_when_called_with_no_options_if_default_url_options_is_not_set

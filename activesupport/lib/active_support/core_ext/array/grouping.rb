@@ -82,11 +82,9 @@ class Array
   #
   #   [1, 2, 3, 4, 5].split(3)                # => [[1, 2], [4, 5]]
   #   (1..10).to_a.split { |i| i % 3 == 0 }   # => [[1, 2], [4, 5], [7, 8], [10]]
-  def split(value = nil)
-    using_block = block_given?
-
+  def split(value = nil, &block)
     inject([[]]) do |results, element|
-      if (using_block && yield(element)) || (value == element)
+      if block && block.call(element) || value == element
         results << []
       else
         results.last << element

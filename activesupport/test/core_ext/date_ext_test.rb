@@ -175,6 +175,18 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(1582,10,4), Date.new(1583,10,14).prev_year
   end
 
+  def test_last_year
+    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).last_year
+  end
+
+  def test_last_year_in_leap_years
+    assert_equal Date.new(1999,2,28), Date.new(2000,2,29).last_year
+  end
+
+  def test_last_year_in_calendar_reform
+    assert_equal Date.new(1582,10,4), Date.new(1583,10,14).last_year
+  end
+
   def test_next_year
     assert_equal Date.new(2006,6,5), Date.new(2005,6,5).next_year
   end
@@ -245,6 +257,14 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2010,2,27), Date.new(2010,3,4).prev_week(:saturday)
   end
 
+  def test_last_week
+    assert_equal Date.new(2005,5,9), Date.new(2005,5,17).last_week
+    assert_equal Date.new(2006,12,25), Date.new(2007,1,7).last_week
+    assert_equal Date.new(2010,2,12), Date.new(2010,2,19).last_week(:friday)
+    assert_equal Date.new(2010,2,13), Date.new(2010,2,19).last_week(:saturday)
+    assert_equal Date.new(2010,2,27), Date.new(2010,3,4).last_week(:saturday)
+  end
+
   def test_next_week
     assert_equal Date.new(2005,2,28), Date.new(2005,2,22).next_week
     assert_equal Date.new(2005,3,4), Date.new(2005,2,22).next_week(:friday)
@@ -263,6 +283,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_prev_month_on_31st
     assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).prev_month
+  end
+
+  def test_last_month_on_31st
+    assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).last_month
   end
 
   def test_yesterday_constructor

@@ -283,7 +283,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/add_index/, up)
+        assert_match(/index: true/, up)
       end
     end
   end
@@ -293,7 +293,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/add_index/, up)
+        assert_match(/index: true/, up)
       end
     end
   end
@@ -303,7 +303,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/add_index/, up)
+        assert_no_match(/index: true/, up)
       end
     end
   end
@@ -313,8 +313,18 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/add_index/, up)
+        assert_no_match(/index: true/, up)
       end
     end
+  end
+
+  def test_attr_accessible_added_with_non_reference_attributes
+    run_generator
+    assert_file 'app/models/account.rb', /attr_accessible :age, :name/
+  end
+
+  def test_attr_accessible_added_with_comments_when_no_attributes_present
+    run_generator ["Account"]
+    assert_file 'app/models/account.rb', /# attr_accessible :title, :body/
   end
 end

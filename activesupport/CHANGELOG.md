@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Inflector no longer applies ice -> ouse to words like slice, police, ets *Wes Morgan*
+
+*    Add `ActiveSupport::Deprecations.behavior = :silence` to completely ignore Rails runtime deprecations *twinturbo*
+
+*    Make Module#delegate stop using `send` - can no longer delegate to private methods. *dasch*
+
 *    AS::Callbacks: deprecate `:rescuable` option. *Bogdan Gusiev*
 
 *    Adds Integer#ordinal to get the ordinal suffix string of an integer. *Tim Gildea*
@@ -25,6 +31,11 @@
      from Ruby stdlib.
 
 *    Unicode database updated to 6.1.0.
+
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
 
 
 ## Rails 3.2.1 (January 26, 2012) ##
@@ -111,7 +122,7 @@
     filehandle, or tune your filesystem.
 
 
-## Rails 3.1.4 (unreleased) ##
+## Rails 3.1.4 (March 1, 2012) ##
 
 *   No changes
 
@@ -183,7 +194,7 @@
 *   JSON decoding now uses the multi_json gem which also vendors a json engine called OkJson. The yaml backend has been removed in favor of OkJson as a default engine for 1.8.x, while the built in 1.9.x json implementation will be used by default. *Josh Kalderimis*
 
 
-## Rails 3.0.12 (unreleased) ##
+## Rails 3.0.12 (March 1, 2012) ##
 
 *   No changes.
 

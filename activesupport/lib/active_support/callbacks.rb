@@ -76,7 +76,8 @@ module ActiveSupport
     #
     def run_callbacks(kind, key = nil, &block)
       #TODO: deprecate key argument
-      self.class.__run_callbacks(kind, self, &block)
+      runner_name = self.class.__define_callbacks(kind, self)
+      send(runner_name, &block)
     end
 
     private
@@ -187,7 +188,7 @@ module ActiveSupport
       # Compile around filters with conditions into proxy methods
       # that contain the conditions.
       #
-      # For `around_save :filter_name, :if => :condition':
+      # For `set_callback :save, :around, :filter_name, :if => :condition':
       #
       # def _conditional_callback_save_17
       #   if condition
@@ -323,18 +324,17 @@ module ActiveSupport
         method << callbacks
 
         method << "halted ? false : (block_given? ? value : true)"
-        method.flatten.compact.join("\n")
+        method.join("\n")
       end
 
     end
 
     module ClassMethods
 
-      # This method runs callback chain for the given kind.
-      # If this called first time it creates a new callback method for the kind.
+      # This method defines callback chain method for the given kind
+      # if it was not yet defined.
       # This generated method plays caching role.
-      #
-      def __run_callbacks(kind, object, &blk) #:nodoc:
+      def __define_callbacks(kind, object) #:nodoc:
         name = __callback_runner_name(kind)
         unless object.respond_to?(name, true)
           str = object.send("_#{kind}_callbacks").compile
@@ -343,7 +343,7 @@ module ActiveSupport
             protected :#{name}
           RUBY_EVAL
         end
-        object.send(name, &blk)
+        name
       end
 
       def __reset_runner(symbol)

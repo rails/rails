@@ -229,7 +229,7 @@ module ActionController
       def decode_credentials(header)
         Hash[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
           key, value = pair.split('=', 2)
-          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')]
+          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').delete('\'')]
         end]
       end
 
@@ -263,7 +263,7 @@ module ActionController
       # The quality of the implementation depends on a good choice.
       # A nonce might, for example, be constructed as the base 64 encoding of
       #
-      # => time-stamp H(time-stamp ":" ETag ":" private-key)
+      #   time-stamp H(time-stamp ":" ETag ":" private-key)
       #
       # where time-stamp is a server-generated time or other non-repeating value,
       # ETag is the value of the HTTP ETag header associated with the requested entity,

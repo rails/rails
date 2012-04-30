@@ -3,6 +3,8 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionPoolTest < ActiveRecord::TestCase
+      attr_reader :pool
+
       def setup
         super
 
@@ -25,12 +27,97 @@ module ActiveRecord
         @pool.disconnect!
       end
 
+      def active_connections(pool)
+        pool.connections.find_all(&:in_use?)
+      end
+
+      def test_checkout_after_close
+        connection = pool.connection
+        assert connection.in_use?
+
+        connection.close
+        assert !connection.in_use?
+
+        assert pool.connection.in_use?
+      end
+
+      def test_released_connection_moves_between_threads
+        thread_conn = nil
+
+        Thread.new {
+          pool.with_connection do |conn|
+            thread_conn = conn
+          end
+        }.join
+
+        assert thread_conn
+
+        Thread.new {
+          pool.with_connection do |conn|
+            assert_equal thread_conn, conn
+          end
+        }.join
+      end
+
+      def test_with_connection
+        assert_equal 0, active_connections(pool).size
+
+        main_thread = pool.connection
+        assert_equal 1, active_connections(pool).size
+
+        Thread.new {
+          pool.with_connection do |conn|
+            assert conn
+            assert_equal 2, active_connections(pool).size
+          end
+          assert_equal 1, active_connections(pool).size
+        }.join
+
+        main_thread.close
+        assert_equal 0, active_connections(pool).size
+      end
+
+      def test_active_connection_in_use
+        assert !pool.active_connection?
+        main_thread = pool.connection
+
+        assert pool.active_connection?
+
+        main_thread.close
+
+        assert !pool.active_connection?
+      end
+
       def test_full_pool_exception
         assert_raises(PoolFullError) do
           (@pool.size + 1).times do
             @pool.checkout
           end
         end
+      end
+
+      def test_full_pool_blocks
+        cs = @pool.size.times.map { @pool.checkout }
+        t = Thread.new { @pool.checkout }
+
+        # make sure our thread is in the timeout section
+        Thread.pass until t.status == "sleep"
+
+        connection = cs.first
+        connection.close
+        assert_equal connection, t.join.value
+      end
+
+      def test_removing_releases_latch
+        cs = @pool.size.times.map { @pool.checkout }
+        t = Thread.new { @pool.checkout }
+
+        # make sure our thread is in the timeout section
+        Thread.pass until t.status == "sleep"
+
+        connection = cs.first
+        @pool.remove connection
+        assert_respond_to t.join.value, :execute
       end
 
       def test_reap_and_active

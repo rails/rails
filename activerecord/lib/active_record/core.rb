@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'active_support/core_ext/hash/indifferent_access'
 require 'thread'
 
 module ActiveRecord
@@ -130,18 +131,18 @@ module ActiveRecord
       end
 
       def arel_engine
-        @arel_engine ||= connection_handler.connection_pools[name] ? self : active_record_super.arel_engine
+        @arel_engine ||= connection_handler.retrieve_connection_pool(self) ? self : active_record_super.arel_engine
       end
 
       private
 
       def relation #:nodoc:
-        @relation ||= Relation.new(self, arel_table)
+        relation = Relation.new(self, arel_table)
 
         if finder_needs_type_condition?
-          @relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
+          relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
         else
-          @relation
+          relation
         end
       end
     end
@@ -176,7 +177,7 @@ module ActiveRecord
       assign_attributes(attributes, options) if attributes
 
       yield self if block_given?
-      run_callbacks :initialize
+      run_callbacks :initialize if _initialize_callbacks.any?
     end
 
     # Initialize an empty model object from +coder+. +coder+ must contain
@@ -192,7 +193,6 @@ module ActiveRecord
     def init_with(coder)
       @attributes = self.class.initialize_attributes(coder['attributes'])
       @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
-
 
       init_internals
 
@@ -327,6 +327,11 @@ module ActiveRecord
       "#<#{self.class} #{inspection}>"
     end
 
+    # Returns a hash of the given methods with their names as keys and returned values as values.
+    def slice(*methods)
+      Hash[methods.map { |method| [method, public_send(method)] }].with_indifferent_access
+    end
+
     private
 
     # Under Ruby 1.9, Array#flatten will call #to_ary (recursively) on each of the elements
@@ -346,7 +351,6 @@ module ActiveRecord
 
       @attributes[pk] = nil unless @attributes.key?(pk)
 
-      @relation               = nil
       @aggregation_cache      = {}
       @association_cache      = {}
       @attributes_cache       = {}

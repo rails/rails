@@ -201,6 +201,9 @@ module ActiveRecord #:nodoc:
   #   # Now 'Bob' exist and is an 'admin'
   #   User.find_or_create_by_name('Bob', :age => 40) { |u| u.admin = true }
   #
+  # Adding an exclamation point (!) on to the end of <tt>find_or_create_by_</tt> will
+  # raise an <tt>ActiveRecord::RecordInvalid</tt> error if the new record is invalid.
+  #
   # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without
   # saving it first. Protected attributes won't be set unless they are given in a block.
   #
@@ -302,7 +305,7 @@ module ActiveRecord #:nodoc:
   # * AssociationTypeMismatch - The object assigned to the association wasn't of the type
   #   specified in the association definition.
   # * SerializationTypeMismatch - The serialized object wasn't of the class specified as the second parameter.
-  # * ConnectionNotEstablished+ - No connection has been established. Use <tt>establish_connection</tt>
+  # * ConnectionNotEstablished - No connection has been established. Use <tt>establish_connection</tt>
   #   before querying.
   # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
   #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal

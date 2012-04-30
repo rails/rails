@@ -64,7 +64,7 @@ module Rails
     # executes `rake routes`.  People should not use this class.
     class RouteInspector # :nodoc:
       def initialize
-        @engines = ActiveSupport::OrderedHash.new
+        @engines = Hash.new
       end
 
       def format all_routes, filter = nil

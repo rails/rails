@@ -17,7 +17,7 @@ module Rails
           opts.on("-c", "--config=file", String,
                   "Use custom rackup configuration file") { |v| options[:config] = v }
           opts.on("-d", "--daemon", "Make server run as a Daemon.") { options[:daemonize] = true }
-          opts.on("-u", "--debugger", "Enable ruby-debugging for the server.") { options[:debugger] = true }
+          opts.on("-u", "--debugger", "Enable the debugger") { options[:debugger] = true }
           opts.on("-e", "--environment=name", String,
                   "Specifies the environment to run this server under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v }
@@ -31,6 +31,11 @@ module Rails
         end
 
         opt_parser.parse! args
+
+        # Handle's environment like RAILS_ENV=production passed in directly
+        if index = args.index {|arg| arg.include?("RAILS_ENV")}
+          options[:environment] ||= args.delete_at(index).split('=').last
+        end
 
         options[:server] = args.shift
         options
@@ -71,6 +76,8 @@ module Rails
         wrapped_app # touch the app so the logger is set up
 
         console = ActiveSupport::Logger.new($stdout)
+        console.formatter = Rails.logger.formatter
+
         Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
       end
 

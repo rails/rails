@@ -19,6 +19,12 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert !@user.valid?, 'user should be invalid'
   end
 
+  test "blank password doesn't override previous password" do
+    @user.password = 'test'
+    @user.password = ''
+    assert_equal @user.password, 'test'
+  end
+
   test "password must be present" do
     assert !@user.valid?
     assert_equal 1, @user.errors.size

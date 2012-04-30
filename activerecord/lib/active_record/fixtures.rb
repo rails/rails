@@ -4,16 +4,12 @@ require 'zlib'
 require 'active_support/dependencies'
 require 'active_support/core_ext/object/blank'
 require 'active_record/fixtures/file'
-
-if defined? ActiveRecord
-  class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
-  end
-else
-  class FixtureClassNotFound < StandardError #:nodoc:
-  end
-end
+require 'active_record/errors'
 
 module ActiveRecord
+  class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
+  end
+
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
   #
   # They are stored in YAML files, one file per model, which are placed in the directory
@@ -796,9 +792,7 @@ module ActiveRecord
                 @fixture_cache[fixture_name].delete(fixture) if force_reload
 
                 if @loaded_fixtures[fixture_name][fixture.to_s]
-                  ActiveRecord::IdentityMap.without do
-                    @fixture_cache[fixture_name][fixture] ||= @loaded_fixtures[fixture_name][fixture.to_s].find
-                  end
+                  @fixture_cache[fixture_name][fixture] ||= @loaded_fixtures[fixture_name][fixture.to_s].find
                 else
                   raise StandardError, "No entry named '#{fixture}' found for fixture collection '#{fixture_name}'"
                 end

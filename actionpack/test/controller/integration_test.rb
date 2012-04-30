@@ -466,7 +466,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
-          match ':action', :to => controller
+          match ':action', :to => controller, :via => [:get, :post]
           get 'get/:action', :to => controller
         end
 
@@ -530,10 +530,10 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    match '',    :to => 'application_integration_test/test#index', :as => :empty_string
+    get '',    :to => 'application_integration_test/test#index', :as => :empty_string
 
-    match 'foo', :to => 'application_integration_test/test#index', :as => :foo
-    match 'bar', :to => 'application_integration_test/test#index', :as => :bar
+    get 'foo', :to => 'application_integration_test/test#index', :as => :foo
+    get 'bar', :to => 'application_integration_test/test#index', :as => :bar
   end
 
   def app

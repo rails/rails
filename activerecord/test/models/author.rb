@@ -140,8 +140,8 @@ class Author < ActiveRecord::Base
   has_many :posts_with_default_include, :class_name => 'PostWithDefaultInclude'
   has_many :comments_on_posts_with_default_include, :through => :posts_with_default_include, :source => :comments
 
-  scope :relation_include_posts, includes(:posts)
-  scope :relation_include_tags, includes(:tags)
+  scope :relation_include_posts, -> { includes(:posts) }
+  scope :relation_include_tags,  -> { includes(:tags) }
 
   attr_accessor :post_log
   after_initialize :set_post_log

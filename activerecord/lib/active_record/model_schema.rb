@@ -114,11 +114,18 @@ module ActiveRecord
       # You can also just define your own <tt>self.table_name</tt> method; see
       # the documentation for ActiveRecord::Base#table_name.
       def table_name=(value)
-        @original_table_name = @table_name if defined?(@table_name)
-        @table_name          = value && value.to_s
-        @quoted_table_name   = nil
-        @arel_table          = nil
-        @relation            = Relation.new(self, arel_table)
+        value = value && value.to_s
+
+        if defined?(@table_name)
+          return if value == @table_name
+          reset_column_information if connected?
+        end
+
+        @table_name        = value
+        @quoted_table_name = nil
+        @arel_table        = nil
+        @sequence_name     = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
+        @relation          = Relation.new(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -152,8 +159,8 @@ module ActiveRecord
 
       # Sets the value of inheritance_column
       def inheritance_column=(value)
-        @original_inheritance_column = inheritance_column
-        @inheritance_column          = value.to_s
+        @inheritance_column = value.to_s
+        @explicit_inheritance_column = true
       end
 
       def sequence_name
@@ -165,7 +172,8 @@ module ActiveRecord
       end
 
       def reset_sequence_name #:nodoc:
-        self.sequence_name = connection.default_sequence_name(table_name, primary_key)
+        @explicit_sequence_name = false
+        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -183,8 +191,8 @@ module ActiveRecord
       #     self.sequence_name = "projectseq"   # default would have been "project_seq"
       #   end
       def sequence_name=(value)
-        @original_sequence_name = @sequence_name if defined?(@sequence_name)
         @sequence_name          = value.to_s
+        @explicit_sequence_name = true
       end
 
       # Indicates whether the table associated with this class exists
@@ -296,7 +304,7 @@ module ActiveRecord
         @column_types         = nil
         @content_columns      = nil
         @dynamic_methods_hash = nil
-        @inheritance_column   = nil
+        @inheritance_column   = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @relation             = nil
       end
 

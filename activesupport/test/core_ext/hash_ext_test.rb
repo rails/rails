@@ -388,6 +388,15 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, hash
   end
 
+  def test_constructor_on_indifferent_access
+    hash = HashWithIndifferentAccess[:foo, 1]
+    assert_equal 1, hash[:foo]
+    assert_equal 1, hash['foo']
+    hash[:foo] = 3
+    assert_equal 3, hash[:foo]
+    assert_equal 3, hash['foo']
+  end
+
   def test_reverse_merge
     defaults = { :a => "x", :b => "y", :c => 10 }.freeze
     options  = { :a => 1, :b => 2 }
@@ -486,6 +495,13 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 'bender', slice['login']
   end
 
+  def test_extract
+    original = {:a => 1, :b => 2, :c => 3, :d => 4}
+    expected = {:a => 1, :b => 2}
+
+    assert_equal expected, original.extract!(:a, :b)
+  end
+
   def test_except
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :a => 'x', :b => 'y' }
@@ -550,7 +566,7 @@ class HashExtToParamTests < ActiveSupport::TestCase
   end
 
   def test_to_param_orders_by_key_in_ascending_order
-    assert_equal 'a=2&b=1&c=0', ActiveSupport::OrderedHash[*%w(b 1 c 0 a 2)].to_param
+    assert_equal 'a=2&b=1&c=0', Hash[*%w(b 1 c 0 a 2)].to_param
   end
 end
 

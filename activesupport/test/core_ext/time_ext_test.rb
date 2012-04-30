@@ -198,6 +198,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).prev_year
   end
 
+  def test_last_year
+    assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).last_year
+  end
+
   def test_next_year
     assert_equal Time.local(2006,6,5,10), Time.local(2005,6,5,10,0,0).next_year
   end
@@ -505,6 +509,16 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal Time.local(2006,11,15), Time.local(2006,11,23,0,0,0).prev_week(:wednesday)
     end
   end
+  
+  def test_last_week
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.local(2005,2,21), Time.local(2005,3,1,15,15,10).last_week
+      assert_equal Time.local(2005,2,22), Time.local(2005,3,1,15,15,10).last_week(:tuesday)
+      assert_equal Time.local(2005,2,25), Time.local(2005,3,1,15,15,10).last_week(:friday)
+      assert_equal Time.local(2006,10,30), Time.local(2006,11,6,0,0,0).last_week
+      assert_equal Time.local(2006,11,15), Time.local(2006,11,23,0,0,0).last_week(:wednesday)
+    end
+  end
 
   def test_next_week
     with_env_tz 'US/Eastern' do
@@ -660,6 +674,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_prev_month_on_31st
     assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).prev_month
+  end
+
+  def test_last_month_on_31st
+    assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).last_month
   end
 
   def test_xmlschema_is_available

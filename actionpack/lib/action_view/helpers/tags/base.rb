@@ -5,8 +5,6 @@ module ActionView
         include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
         include FormOptionsHelper
 
-        DEFAULT_FIELD_OPTIONS = { "size" => 30 }
-
         attr_reader :object
 
         def initialize(object_name, method_name, template_object, options = {})
@@ -124,7 +122,8 @@ module ActionView
           html_options = html_options.stringify_keys
           add_default_name_and_id(html_options)
           select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
-          if html_options["multiple"]
+
+          if html_options["multiple"] && options.fetch(:include_hidden, true)
             tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select
           else
             select
@@ -133,12 +132,11 @@ module ActionView
 
         def add_options(option_tags, options, value = nil)
           if options[:include_blank]
-            include_blank = options[:include_blank] if options[:include_blank].kind_of?(String)
-            option_tags = content_tag(:option, include_blank, :value => '').safe_concat("\n").safe_concat(option_tags)
+            option_tags = content_tag('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
           end
           if value.blank? && options[:prompt]
             prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = content_tag(:option, prompt, :value => '').safe_concat("\n").safe_concat(option_tags)
+            option_tags = content_tag('option', prompt, :value => '') + "\n" + option_tags
           end
           option_tags
         end

@@ -1,12 +1,11 @@
 require 'active_support/core_ext/hash/keys'
 
-# This class has dubious semantics and we only have it so that
-# people can write <tt>params[:key]</tt> instead of <tt>params['key']</tt>
-# and they get the same value for both keys.
-
 module ActiveSupport
+  # This class has dubious semantics and we only have it so that
+  # people can write <tt>params[:key]</tt> instead of <tt>params['key']</tt>
+  # and they get the same value for both keys.
   class HashWithIndifferentAccess < Hash
-    
+
     # Always returns true, so that <tt>Array#extract_options!</tt> finds members of this class.
     def extractable_options?
       true
@@ -41,6 +40,10 @@ module ActiveSupport
       new(hash).tap do |new_hash|
         new_hash.default = hash.default
       end
+    end
+
+    def self.[](*args)
+      new.merge(Hash[*args])
     end
 
     alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)

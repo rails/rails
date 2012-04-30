@@ -58,41 +58,46 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get  "remove", :action => :destroy, :as => :remove
       end
 
-      match 'account/logout' => redirect("/logout"), :as => :logout_redirect
-      match 'account/login', :to => redirect("/login")
-      match 'secure', :to => redirect("/secure/login")
+      get 'account/logout' => redirect("/logout"), :as => :logout_redirect
+      get 'account/login', :to => redirect("/login")
+      get 'secure', :to => redirect("/secure/login")
 
-      match 'mobile', :to => redirect(:subdomain => 'mobile')
-      match 'super_new_documentation', :to => redirect(:host => 'super-docs.com')
+      get 'mobile', :to => redirect(:subdomain => 'mobile')
+      get 'documentation', :to => redirect(:domain => 'example-documentation.com', :path => '')
+      get 'new_documentation', :to => redirect(:path => '/documentation/new')
+      get 'super_new_documentation', :to => redirect(:host => 'super-docs.com')
 
-      match 'youtube_favorites/:youtube_id/:name', :to => redirect(YoutubeFavoritesRedirector)
+      get 'stores/:name',        :to => redirect(:subdomain => 'stores', :path => '/%{name}')
+      get 'stores/:name(*rest)', :to => redirect(:subdomain => 'stores', :path => '/%{name}%{rest}')
+
+      get 'youtube_favorites/:youtube_id/:name', :to => redirect(YoutubeFavoritesRedirector)
 
       constraints(lambda { |req| true }) do
-        match 'account/overview'
+        get 'account/overview'
       end
 
-      match '/account/nested/overview'
-      match 'sign_in' => "sessions#new"
+      get '/account/nested/overview'
+      get 'sign_in' => "sessions#new"
 
-      match 'account/modulo/:name', :to => redirect("/%{name}s")
-      match 'account/proc/:name', :to => redirect {|params, req| "/#{params[:name].pluralize}" }
-      match 'account/proc_req' => redirect {|params, req| "/#{req.method}" }
+      get 'account/modulo/:name', :to => redirect("/%{name}s")
+      get 'account/proc/:name', :to => redirect {|params, req| "/#{params[:name].pluralize}" }
+      get 'account/proc_req' => redirect {|params, req| "/#{req.method}" }
 
-      match 'account/google' => redirect('http://www.google.com/', :status => 302)
+      get 'account/google' => redirect('http://www.google.com/', :status => 302)
 
       match 'openid/login', :via => [:get, :post], :to => "openid#login"
 
       controller(:global) do
         get   'global/hide_notice'
-        match 'global/export',      :to => :export, :as => :export_request
-        match '/export/:id/:file',  :to => :export, :as => :export_download, :constraints => { :file => /.*/ }
-        match 'global/:action'
+        get 'global/export',      :to => :export, :as => :export_request
+        get '/export/:id/:file',  :to => :export, :as => :export_download, :constraints => { :file => /.*/ }
+        get 'global/:action'
       end
 
-      match "/local/:action", :controller => "local"
+      get "/local/:action", :controller => "local"
 
-      match "/projects/status(.:format)"
-      match "/404", :to => lambda { |env| [404, {"Content-Type" => "text/plain"}, ["NOT FOUND"]] }
+      get "/projects/status(.:format)"
+      get "/404", :to => lambda { |env| [404, {"Content-Type" => "text/plain"}, ["NOT FOUND"]] }
 
       constraints(:ip => /192\.168\.1\.\d\d\d/) do
         get 'admin' => "queenbee#index"
@@ -277,25 +282,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
+      get 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
-      match 'people/:id/update', :to => 'people#update', :as => :update_person
-      match '/projects/:project_id/people/:id/update', :to => 'people#update', :as => :update_project_person
+      get 'people/:id/update', :to => 'people#update', :as => :update_person
+      get '/projects/:project_id/people/:id/update', :to => 'people#update', :as => :update_project_person
 
       # misc
-      match 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
+      get 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
 
       # default params
-      match 'inline_pages/(:id)', :to => 'pages#show', :id => 'home'
-      match 'default_pages/(:id)', :to => 'pages#show', :defaults => { :id => 'home' }
+      get 'inline_pages/(:id)', :to => 'pages#show', :id => 'home'
+      get 'default_pages/(:id)', :to => 'pages#show', :defaults => { :id => 'home' }
       defaults :id => 'home' do
-        match 'scoped_pages/(:id)', :to => 'pages#show'
+        get 'scoped_pages/(:id)', :to => 'pages#show'
       end
 
       namespace :account do
-        match 'shorthand'
-        match 'description', :to => :description, :as => "description"
-        match ':action/callback', :action => /twitter|github/, :to => "callbacks", :as => :callback
+        get 'shorthand'
+        get 'description', :to => :description, :as => "description"
+        get ':action/callback', :action => /twitter|github/, :to => "callbacks", :as => :callback
         resource :subscription, :credit, :credit_card
 
         root :to => "account#index"
@@ -318,7 +323,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       controller :articles do
         scope '/articles', :as => 'article' do
           scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
-            match '/:id', :to => :with_id, :as => ""
+            get '/:id', :to => :with_id, :as => ""
           end
         end
       end
@@ -327,7 +332,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :rooms
       end
 
-      match '/info' => 'projects#info', :as => 'info'
+      get '/info' => 'projects#info', :as => 'info'
 
       namespace :admin do
         scope '(:locale)', :locale => /en|pl/ do
@@ -361,7 +366,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       scope :path => 'api' do
         resource :me
-        match '/' => 'mes#index'
+        get '/' => 'mes#index'
       end
 
       get "(/:username)/followers" => "followers#index"
@@ -374,7 +379,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      match "whatever/:controller(/:action(/:id))", :id => /\d+/
+      get "whatever/:controller(/:action(/:id))", :id => /\d+/
 
       resource :profile do
         get :settings
@@ -407,7 +412,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       namespace :private do
         root :to => redirect('/private/index')
-        match "index", :to => 'private#index'
+        get "index", :to => 'private#index'
       end
 
       scope :only => [:index, :show] do
@@ -475,6 +480,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get :preview, :on => :member
       end
 
+      resources :profiles, :param => :username do
+        get :details, :on => :member
+        resources :messages
+      end
+
       scope :as => "routes" do
         get "/c/:id", :as => :collision, :to => "collision#show"
         get "/collision", :to => "collision#show"
@@ -484,7 +494,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get "/forced_collision", :as => :forced_collision, :to => "forced_collision#show"
       end
 
-      match '/purchases/:token/:filename',
+      get '/purchases/:token/:filename',
         :to => 'purchases#fetch',
         :token => /[[:alnum:]]{10}/,
         :filename => /(.+)/,
@@ -495,18 +505,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       scope '/countries/:country', :constraints => lambda { |params, req| params[:country].in?(["all", "France"]) } do
-        match '/',       :to => 'countries#index'
-        match '/cities', :to => 'countries#cities'
+        get '/',       :to => 'countries#index'
+        get '/cities', :to => 'countries#cities'
       end
 
-      match '/countries/:country/(*other)', :to => redirect{ |params, req| params[:other] ? "/countries/all/#{params[:other]}" : '/countries/all' }
+      get '/countries/:country/(*other)', :to => redirect{ |params, req| params[:other] ? "/countries/all/#{params[:other]}" : '/countries/all' }
 
-      match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
+      get '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
 
       scope '/italians' do
-        match '/writers', :to => 'italians#writers', :constraints => ::TestRoutingMapper::IpRestrictor
-        match '/sculptors', :to => 'italians#sculptors'
-        match '/painters/:painter', :to => 'italians#painters', :constraints => {:painter => /michelangelo/}
+        get '/writers', :to => 'italians#writers', :constraints => ::TestRoutingMapper::IpRestrictor
+        get '/sculptors', :to => 'italians#sculptors'
+        get '/painters/:painter', :to => 'italians#painters', :constraints => {:painter => /michelangelo/}
       end
     end
   end
@@ -622,7 +632,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       self.class.stub_controllers do |routes|
         routes.draw do
           namespace :admin do
-            match '/:controller(/:action(/:id(.:format)))'
+            get '/:controller(/:action(/:id(.:format)))'
           end
         end
       end
@@ -688,9 +698,29 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     verify_redirect 'http://mobile.example.com/mobile'
   end
 
+  def test_redirect_hash_with_domain_and_path
+    get '/documentation'
+    verify_redirect 'http://www.example-documentation.com'
+  end
+
+  def test_redirect_hash_with_path
+    get '/new_documentation'
+    verify_redirect 'http://www.example.com/documentation/new'
+  end
+
   def test_redirect_hash_with_host
     get '/super_new_documentation?section=top'
     verify_redirect 'http://super-docs.com/super_new_documentation?section=top'
+  end
+
+  def test_redirect_hash_path_substitution
+    get '/stores/iernest'
+    verify_redirect 'http://stores.example.com/iernest'
+  end
+
+  def test_redirect_hash_path_substitution_with_catch_all
+    get '/stores/iernest/products'
+    verify_redirect 'http://stores.example.com/iernest/products'
   end
 
   def test_redirect_class
@@ -2183,6 +2213,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/posts/1/admin", post_admin_root_path(:post_id => '1')
   end
 
+  def test_custom_param
+    get '/profiles/bob'
+    assert_equal 'profiles#show', @response.body
+    assert_equal 'bob', @request.params[:username]
+
+    get '/profiles/bob/details'
+    assert_equal 'bob', @request.params[:username]
+
+    get '/profiles/bob/messages/34'
+    assert_equal 'bob', @request.params[:profile_username]
+    assert_equal '34', @request.params[:id]
+  end
+
 private
   def with_https
     old_https = https?
@@ -2213,12 +2256,12 @@ class TestAppendingRoutes < ActionDispatch::IntegrationTest
     s = self
     @app = ActionDispatch::Routing::RouteSet.new
     @app.append do
-      match '/hello'   => s.simple_app('fail')
-      match '/goodbye' => s.simple_app('goodbye')
+      get '/hello'   => s.simple_app('fail')
+      get '/goodbye' => s.simple_app('goodbye')
     end
 
     @app.draw do
-      match '/hello' => s.simple_app('hello')
+      get '/hello' => s.simple_app('hello')
     end
   end
 
@@ -2326,12 +2369,12 @@ end
 class TestUriPathEscaping < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      match '/:segment' => lambda { |env|
+      get '/:segment' => lambda { |env|
         path_params = env['action_dispatch.request.path_parameters']
         [200, { 'Content-Type' => 'text/plain' }, [path_params[:segment]]]
       }, :as => :segment
 
-      match '/*splat' => lambda { |env|
+      get '/*splat' => lambda { |env|
         path_params = env['action_dispatch.request.path_parameters']
         [200, { 'Content-Type' => 'text/plain' }, [path_params[:splat]]]
       }, :as => :splat
@@ -2363,7 +2406,7 @@ end
 class TestUnicodePaths < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      match "/#{Rack::Utils.escape("ほげ")}" => lambda { |env|
+      get "/#{Rack::Utils.escape("ほげ")}" => lambda { |env|
         [200, { 'Content-Type' => 'text/plain' }, []]
       }, :as => :unicode_path
     end
@@ -2393,10 +2436,10 @@ class TestMultipleNestedController < ActionDispatch::IntegrationTest
     app.draw do
       namespace :foo do
         namespace :bar do
-          match "baz" => "baz#index"
+          get "baz" => "baz#index"
         end
       end
-      match "pooh" => "pooh#index"
+      get "pooh" => "pooh#index"
     end
   end
 
@@ -2415,8 +2458,8 @@ class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
     app.draw do
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
 
-      match "/~user" => ok
-      match "/young-and-fine" => ok
+      get "/~user" => ok
+      get "/young-and-fine" => ok
     end
   end
 
@@ -2433,4 +2476,39 @@ class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
     assert_equal "200", @response.code
   end
 
+end
+
+class TestRedirectInterpolation < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      get "/foo/:id" => redirect("/foo/bar/%{id}")
+      get "/bar/:id" => redirect(:path => "/foo/bar/%{id}")
+      get "/foo/bar/:id" => ok
+    end
+  end
+
+  def app; Routes end
+
+  test "redirect escapes interpolated parameters with redirect proc" do
+    get "/foo/1%3E"
+    verify_redirect "http://www.example.com/foo/bar/1%3E"
+  end
+
+  test "redirect escapes interpolated parameters with option proc" do
+    get "/bar/1%3E"
+    verify_redirect "http://www.example.com/foo/bar/1%3E"
+  end
+
+private
+  def verify_redirect(url, status=301)
+    assert_equal status, @response.status
+    assert_equal url, @response.headers['Location']
+    assert_equal expected_redirect_body(url), @response.body
+  end
+
+  def expected_redirect_body(url)
+    %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
+  end
 end

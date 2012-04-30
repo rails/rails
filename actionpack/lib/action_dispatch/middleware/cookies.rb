@@ -82,7 +82,7 @@ module ActionDispatch
     TOKEN_KEY   = "action_dispatch.secret_token".freeze
 
     # Raised when storing more than 4K of session data.
-    class CookieOverflow < StandardError; end
+    CookieOverflow = Class.new StandardError
 
     class CookieJar #:nodoc:
       include Enumerable
@@ -117,7 +117,6 @@ module ActionDispatch
         @delete_cookies = {}
         @host = host
         @secure = secure
-        @closed = false
         @cookies = {}
       end
 
@@ -154,7 +153,7 @@ module ActionDispatch
           end
         elsif options[:domain].is_a? Array
           # if host matches one of the supplied domains without a dot in front of it
-          options[:domain] = options[:domain].find {|domain| @host.include? domain[/^\.?(.*)$/, 1] }
+          options[:domain] = options[:domain].find {|domain| @host.include? domain.sub(/^\./, '') }
         end
       end
 
@@ -169,12 +168,14 @@ module ActionDispatch
           options = { :value => value }
         end
 
-        @cookies[key.to_s] = value
-
         handle_options(options)
 
-        @set_cookies[key.to_s] = options
-        @delete_cookies.delete(key.to_s)
+        if @cookies[key.to_s] != value or options[:expires]
+          @cookies[key.to_s] = value
+          @set_cookies[key.to_s] = options
+          @delete_cookies.delete(key.to_s)
+        end
+
         value
       end
 
@@ -182,8 +183,9 @@ module ActionDispatch
       # and setting its expiration date into the past. Like <tt>[]=</tt>, you can pass in
       # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
       def delete(key, options = {})
-        options.symbolize_keys!
+        return unless @cookies.has_key? key.to_s
 
+        options.symbolize_keys!
         handle_options(options)
 
         value = @cookies.delete(key.to_s)
@@ -273,10 +275,6 @@ module ActionDispatch
         @parent_jar[key] = options
       end
 
-      def signed
-        @signed ||= SignedCookieJar.new(self, @secret)
-      end
-
       def method_missing(method, *arguments, &block)
         @parent_jar.send(method, *arguments, &block)
       end
@@ -343,7 +341,6 @@ module ActionDispatch
     end
 
     def call(env)
-      cookie_jar = nil
       status, headers, body = @app.call(env)
 
       if cookie_jar = env['action_dispatch.cookies']

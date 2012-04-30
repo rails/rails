@@ -6,8 +6,13 @@ module ActionView
       @view    = context
       @details = extract_details(options)
       template = determine_template(options)
-      @lookup_context.rendered_format ||= template.formats.first
-      @lookup_context.formats = template.formats
+      context  = @lookup_context
+
+      unless context.rendered_format
+        context.formats = template.formats unless template.formats.empty?
+        context.rendered_format = context.formats.first
+      end
+
       render_template(template, options[:layout], options[:locals])
     end
 

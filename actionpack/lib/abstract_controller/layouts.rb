@@ -89,7 +89,7 @@ module AbstractController
   #   class TillController < BankController
   #     layout false
   #
-  # In these examples, we have three implicit lookup scenrios:
+  # In these examples, we have three implicit lookup scenarios:
   # * The BankController uses the "bank" layout.
   # * The ExchangeController uses the "exchange" layout.
   # * The CurrencyController inherits the layout from BankController.
@@ -120,6 +120,7 @@ module AbstractController
   #       def writers_and_readers
   #         logged_in? ? "writer_layout" : "reader_layout"
   #       end
+  #   end
   #
   # Now when a new request for the index action is processed, the layout will vary depending on whether the person accessing
   # is logged in or not.
@@ -127,7 +128,14 @@ module AbstractController
   # If you want to use an inline method, such as a proc, do something like this:
   #
   #   class WeblogController < ActionController::Base
-  #     layout proc{ |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
+  #     layout proc { |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
+  #   end
+  #
+  # If an argument isn't given to the proc, it's evaluated in the context of
+  # the current controller anyway.
+  #
+  #   class WeblogController < ActionController::Base
+  #     layout proc { logged_in? ? "writer_layout" : "reader_layout" }
   #   end
   #
   # Of course, the most common way of specifying a layout is still just as a plain template name:
@@ -136,8 +144,8 @@ module AbstractController
   #     layout "weblog_standard"
   #   end
   #
-  # If no directory is specified for the template name, the template will by default be looked for in <tt>app/views/layouts/</tt>.
-  # Otherwise, it will be looked up relative to the template root.
+  # The template will be looked always in <tt>app/views/layouts/</tt> folder. But you can point
+  # <tt>layouts</tt> folder direct also. <tt>layout "layouts/demo"</tt> is the same as <tt>layout "demo"</tt>.
   #
   # Setting the layout to nil forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
   # Setting it to nil is useful to re-enable template lookup overriding a previous configuration set in the parent:
@@ -238,10 +246,10 @@ module AbstractController
       #
       # If the specified layout is a:
       # String:: the String is the template name
-      # Symbol:: call the method specified by the symbol, which will return
-      #   the template name
+      # Symbol:: call the method specified by the symbol, which will return the template name
       # false::  There is no layout
       # true::   raise an ArgumentError
+      # nil::    Force default layout behavior with inheritance
       #
       # ==== Parameters
       # * <tt>layout</tt> - The layout to use.
@@ -280,6 +288,10 @@ module AbstractController
           <<-RUBY
             lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first || super
           RUBY
+        else
+          <<-RUBY
+            super
+          RUBY
         end
 
         layout_definition = case _layout
@@ -295,12 +307,12 @@ module AbstractController
               end
             RUBY
           when Proc
-            define_method :_layout_from_proc, &_layout
-            "_layout_from_proc(self)"
+              define_method :_layout_from_proc, &_layout
+              _layout.arity == 0 ? "_layout_from_proc" : "_layout_from_proc(self)"
           when false
             nil
           when true
-            raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
+            raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
           when nil
             name_clause
         end
@@ -360,7 +372,7 @@ module AbstractController
       when false, nil then nil
       else
         raise ArgumentError,
-          "String, true, or false, expected for `layout'; you passed #{name.inspect}"
+          "String, Proc, :default, true, or false, expected for `layout'; you passed #{name.inspect}"
       end
     end
 

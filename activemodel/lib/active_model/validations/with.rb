@@ -126,12 +126,12 @@ module ActiveModel
     #   end
     #
     # Standard configuration options (:on, :if and :unless), which are
-    # available on the class version of validates_with, should instead be
-    # placed on the <tt>validates</tt> method as these are applied and tested
+    # available on the class version of +validates_with+, should instead be
+    # placed on the +validates+ method as these are applied and tested
     # in the callback
     #
     # If you pass any additional configuration options, they will be passed
-    # to the class and available as <tt>options</tt>, please refer to the
+    # to the class and available as +options+, please refer to the
     # class version of this method for more information
     #
     def validates_with(*args, &block)

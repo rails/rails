@@ -69,6 +69,10 @@ class CacheKeyTest < ActiveSupport::TestCase
   def test_expand_cache_key_of_true
     assert_equal 'true', ActiveSupport::Cache.expand_cache_key(true)
   end
+  
+  def test_expand_cache_key_of_array_like_object
+    assert_equal 'foo/bar/baz', ActiveSupport::Cache.expand_cache_key(%w{foo bar baz}.to_enum)
+  end
 end
 
 class CacheStoreSettingTest < ActiveSupport::TestCase
@@ -573,6 +577,16 @@ class FileStoreTest < ActiveSupport::TestCase
     FileUtils.touch(File.join(cache_dir, "foo"))
     key = @cache_with_pathname.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache_with_pathname.send(:file_path_key, key)
+  end
+
+  # Test that generated cache keys are short enough to have Tempfile stuff added to them and 
+  # remain valid
+  def test_filename_max_size
+    key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
+    path = @cache.send(:key_file_path, key)
+    Dir::Tmpname.create(path) do |tmpname, n, opts|
+      assert File.basename(tmpname+'.lock').length <= 255, "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
+    end
   end
 
   # Because file systems have a maximum filename size, filenames > max size should be split in to directories

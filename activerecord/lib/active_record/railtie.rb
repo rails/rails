@@ -53,11 +53,6 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
-    initializer "active_record.identity_map" do |app|
-      config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-        "ActiveRecord::IdentityMap::Middleware" if config.active_record.delete(:identity_map)
-    end
-
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
         if app.config.active_record.delete(:whitelist_attributes)
@@ -73,7 +68,9 @@ module ActiveRecord
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
       ActiveSupport.on_load(:active_record) do
-        self.configurations = app.config.database_configuration
+        unless ENV['DATABASE_URL']
+          self.configurations = app.config.database_configuration
+        end
         establish_connection
       end
     end
@@ -107,7 +104,7 @@ module ActiveRecord
       config.watchable_files.concat ["#{app.root}/db/schema.rb", "#{app.root}/db/structure.sql"]
     end
 
-    config.after_initialize do
+    config.after_initialize do |app|
       ActiveSupport.on_load(:active_record) do
         ActiveRecord::Base.instantiate_observers
 
@@ -115,6 +112,21 @@ module ActiveRecord
           ActiveRecord::Base.instantiate_observers
         end
       end
+
+      ActiveSupport.on_load(:active_record) do
+        if app.config.use_schema_cache_dump
+          filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
+          if File.file?(filename)
+            cache = Marshal.load File.binread filename
+            if cache.version == ActiveRecord::Migrator.current_version
+              ActiveRecord::Base.connection.schema_cache = cache
+            else
+              warn "schema_cache.dump is expired. Current version is #{ActiveRecord::Migrator.current_version}, but cache version is #{cache.version}."
+            end
+          end
+        end
+      end
+
     end
   end
 end

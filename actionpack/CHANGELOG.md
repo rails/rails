@@ -1,8 +1,48 @@
 ## Rails 4.0.0 (unreleased) ##
 
-* Forms of persisted records use always PATCH (via the `_method` hack). *fxn*
+*   Replace `include_seconds` boolean argument with `:include_seconds => true` option
+    in `distance_of_time_in_words` and `time_ago_in_words` signature. *Dmitriy Kiriyenko*
 
-* For resources, both PATCH and PUT are routed to the `update` action. *fxn*
+*   Remove `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
+
+*   Make current object and counter (when it applies) variables accessible when
+    rendering templates with :object / :collection. *Carlos Antonio da Silva*
+
+*   JSONP now uses mimetype application/javascript instead of application/json *omjokine*
+
+*   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*
+
+*   Session arguments passed to `process` calls in functional tests are now merged into
+    the existing session, whereas previously they would replace the existing session.
+    This change may break some existing tests if they are asserting the exact contents of
+    the session but should not break existing tests that only assert individual keys.
+
+    *Andrew White*
+
+*   Add `index` method to FormBuilder class. *Jorge Bejar*
+
+*   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
+
+*   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`
+    to `false`. This change breaks remote forms that need to work also without javascript,
+    so if you need such behavior, you can either set it to `true` or explicitly pass
+    `:authenticity_token => true` in form options
+
+*   Added ActionDispatch::SSL middleware that when included force all the requests to be under HTTPS protocol. *Rafael Mendonça França*
+
+*   Add `include_hidden` option to select tag. With `:include_hidden => false` select with `multiple` attribute doesn't generate hidden input with blank value. *Vasiliy Ermolovich*
+
+*   Removed default `size` option from the `text_field`, `search_field`, `telephone_field`, `url_field`, `email_field` helpers. *Philip Arndt*
+
+*   Removed default `cols` and `rows` options from the `text_area` helper. *Philip Arndt*
+
+*   Adds support for layouts when rendering a partial with a given collection. *serabe*
+
+*   Allows the route helper `root` to take a string argument. For example, `root 'pages#main'`. *bcardarella*
+
+*   Forms of persisted records use always PATCH (via the `_method` hack). *fxn*
+
+*   For resources, both PATCH and PUT are routed to the `update` action. *fxn*
 
 *   Don't ignore `force_ssl` in development. This is a change of behavior - use a `:if` condition to recreate the old behavior.
 
@@ -79,6 +119,9 @@
 *   check_box with `:form` html5 attribute will now replicate the `:form`
     attribute to the hidden field as well. *Carlos Antonio da Silva*
 
+*   Turn off verbose mode of rack-cache, we still have X-Rack-Cache to
+    check that info. Closes #5245. *Santiago Pastorino*
+
 *   `label` form helper accepts :for => nil to not generate the attribute. *Carlos Antonio da Silva*
 
 *   Add `:format` option to number_to_percentage *Rodrigo Flores*
@@ -107,11 +150,30 @@
 
 *   `favicon_link_tag` helper will now use the favicon in app/assets by default. *Lucas Caton*
 
-*    `ActionView::Helpers::TextHelper#highlight` now defaults to the
-     HTML5 `mark` element. *Brian Cardarella*
+*   `ActionView::Helpers::TextHelper#highlight` now defaults to the
+    HTML5 `mark` element. *Brian Cardarella*
 
 
-## Rails 3.2.2 (unreleased) ##
+## Rails 3.2.3 (March 30, 2012) ##
+
+*   Add `config.action_view.embed_authenticity_token_in_remote_forms` (defaults to true) which allows to set if authenticity token will be included by default in remote forms. If you change it to false, you can still force authenticity token by passing `:authenticity_token => true` in form options *Piotr Sarnacki*
+
+*   Do not include the authenticity token in forms where remote: true as ajax forms use the meta-tag value *DHH*
+
+*   Upgrade rack-cache to 1.2. *José Valim*
+
+*   ActionController::SessionManagement is removed. *Santiago Pastorino*
+
+*   Since the router holds references to many parts of the system like engines, controllers and the application itself, inspecting the route set can actually be really slow, therefore we default alias inspect to to_s. *José Valim*
+
+*   Add a new line after the textarea opening tag. Closes #393 *Rafael Mendonça França*
+
+*   Always pass a respond block from to responder. We should let the responder decide what to do with the given overridden response block, and not short circuit it. *Prem Sichanugrist*
+
+*   Fixes layout rendering regression from 3.2.2. *José Valim*
+
+
+## Rails 3.2.2 (March 1, 2012) ##
 
 *   Format lookup for partials is derived from the format in which the template is being rendered. Closes #5025 part 2 *Santiago Pastorino*
 
@@ -301,7 +363,8 @@
     returned by the class method attribute_names will be wrapped. This fixes
     the wrapping of nested attributes by adding them to attr_accessible.
 
-## Rails 3.1.4 (unreleased) ##
+
+## Rails 3.1.4 (March 1, 2012) ##
 
 *   Skip assets group in Gemfile and all assets configurations options
     when the application is generated with --skip-sprockets option.
@@ -317,6 +380,7 @@
 
 *   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
 
+
 ## Rails 3.1.3 (November 20, 2011) ##
 
 *   Downgrade sprockets to ~> 2.0.3. Using 2.1.0 caused regressions.
@@ -325,6 +389,7 @@
     pluralization.
 
     *Jon Leighton*
+
 
 ## Rails 3.1.2 (November 18, 2011) ##
 
@@ -366,6 +431,7 @@
     *Jon Leighton*
 
 *   Ensure users upgrading from 3.0.x to 3.1.x will properly upgrade their flash object in session (issues #3298 and #2509)
+
 
 ## Rails 3.1.1 (October 07, 2011) ##
 
@@ -603,7 +669,7 @@
 *   Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply to the browser only. *Yehuda Katz, Carl Lerche*
 
 
-## Rails 3.0.12 (unreleased) ##
+## Rails 3.0.12 (March 1, 2012) ##
 
 * Fix using `tranlate` helper with a html translation which uses the `:count` option for
   pluralization.

@@ -509,7 +509,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_select_under_fields_for_with_string_and_given_prompt
     @post = Post.new
-    options = "<option value=\"abe\">abe</option><option value=\"mus\">mus</option><option value=\"hest\">hest</option>"
+    options = "<option value=\"abe\">abe</option><option value=\"mus\">mus</option><option value=\"hest\">hest</option>".html_safe
 
     output_buffer = fields_for :post, @post do |f|
       concat f.select(:category, options, :prompt => 'The prompt')
@@ -525,6 +525,14 @@ class FormOptionsHelperTest < ActionView::TestCase
     output_buffer =  select(:post, :category, "", {}, :multiple => true)
     assert_dom_equal(
       "<input type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
+      output_buffer
+    )
+  end
+
+  def test_select_with_multiple_and_without_hidden_input
+    output_buffer =  select(:post, :category, "", {:include_hidden => false}, :multiple => true)
+    assert_dom_equal(
+      "<select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
     )
   end
@@ -662,6 +670,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       expected,
       select("album[]", "genre", %w[rap rock country], {}, { :index => nil })
+    )
+  end
+
+  def test_select_escapes_options
+    assert_dom_equal(
+      '<select id="post_title" name="post[title]">&lt;script&gt;alert(1)&lt;/script&gt;</select>',
+      select('post', 'title', '<script>alert(1)</script>')
     )
   end
 

@@ -16,7 +16,7 @@ module ActiveRecord
 
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
-        table_name[0...table_alias_length].gsub(/\./, '_')
+        table_name[0...table_alias_length].tr('.', '_')
       end
 
       # Checks to see if the table +table_name+ exists on the database.
@@ -171,10 +171,11 @@ module ActiveRecord
         create_sql << td.to_sql
         create_sql << ") #{options[:options]}"
         execute create_sql
+        td.indexes.each_pair { |c,o| add_index table_name, c, o }
       end
 
       # Creates a new join table with the name created using the lexical order of the first two
-      # arguments. These arguments can be be a String or a Symbol.
+      # arguments. These arguments can be a String or a Symbol.
       #
       #  # Creates a table called 'assemblies_parts' with no id.
       #  create_join_table(:assemblies, :parts)
@@ -375,7 +376,7 @@ module ActiveRecord
       # Note: SQLite doesn't support index length
       #
       # ====== Creating an index with a sort order (desc or asc, asc is the default)
-      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :part_id => :asc})
+      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :party_id => :asc})
       # generates
       #  CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
       #
@@ -539,8 +540,8 @@ module ActiveRecord
       # ===== Examples
       #  add_timestamps(:suppliers)
       def add_timestamps(table_name)
-        add_column table_name, :created_at, :datetime, :null => false
-        add_column table_name, :updated_at, :datetime, :null => false
+        add_column table_name, :created_at, :datetime
+        add_column table_name, :updated_at, :datetime
       end
 
       # Removes the timestamp columns (created_at and updated_at) from the table definition.

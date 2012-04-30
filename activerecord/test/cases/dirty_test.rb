@@ -288,7 +288,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     with_partial_updates Pirate, false do
       assert_queries(2) { 2.times { pirate.save! } }
-      Pirate.update_all({ :updated_on => old_updated_on }, :id => pirate.id)
+      Pirate.where(id: pirate.id).update_all(:updated_on => old_updated_on)
     end
 
     with_partial_updates Pirate, true do
@@ -306,7 +306,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     with_partial_updates Person, false do
       assert_queries(2) { 2.times { person.save! } }
-      Person.update_all({ :first_name => 'baz' }, :id => person.id)
+      Person.where(id: person.id).update_all(:first_name => 'baz')
     end
 
     with_partial_updates Person, true do

@@ -29,7 +29,7 @@ module ActionDispatch # :nodoc:
   #  class DemoControllerTest < ActionDispatch::IntegrationTest
   #    def test_print_root_path_to_console
   #      get('/')
-  #      puts @response.body
+  #      puts response.body
   #    end
   #  end
   class Response
@@ -51,12 +51,13 @@ module ActionDispatch # :nodoc:
     # If a character set has been defined for this response (see charset=) then
     # the character set information will also be included in the content type
     # information.
-    attr_accessor :charset, :content_type
+    attr_accessor :charset
+    attr_reader   :content_type
 
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
     LOCATION     = "Location".freeze
- 
+
     cattr_accessor(:default_charset) { "utf-8" }
 
     include Rack::Response::Helpers
@@ -81,6 +82,10 @@ module ActionDispatch # :nodoc:
 
     def status=(status)
       @status = Rack::Utils.status_code(status)
+    end
+
+    def content_type=(content_type)
+      @content_type = content_type.to_s
     end
 
     # The response code of the request

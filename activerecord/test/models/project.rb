@@ -32,7 +32,7 @@ class Project < ActiveRecord::Base
   def self.all_as_method
     all
   end
-  scope :all_as_scope, {}
+  scope :all_as_scope, -> { scoped }
 end
 
 class SpecialProject < Project

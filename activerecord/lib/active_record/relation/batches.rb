@@ -46,17 +46,12 @@ module ActiveRecord
     #     group.each { |person| person.party_all_night! }
     #   end
     def find_in_batches(options = {})
+      options.assert_valid_keys(:start, :batch_size)
+
       relation = self
 
       unless arel.orders.blank? && arel.taken.blank?
         ActiveRecord::Base.logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
-      end
-
-      if (finder_options = options.except(:start, :batch_size)).present?
-        raise "You can't specify an order, it's forced to be #{batch_order}" if options[:order].present?
-        raise "You can't specify a limit, it's forced to be the batch_size"  if options[:limit].present?
-
-        relation = apply_finder_options(finder_options)
       end
 
       start = options.delete(:start).to_i

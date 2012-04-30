@@ -85,7 +85,7 @@ en:
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/i18n',   :to => lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
+          get '/i18n',   :to => lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
         end
       RUBY
 
@@ -109,7 +109,7 @@ en:
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
+          get '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
         end
       RUBY
 

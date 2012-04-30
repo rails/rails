@@ -6,6 +6,9 @@ require 'bigdecimal/util'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
+    # Abstract representation of an index definition on a table. Instances of
+    # this type are typically created and returned by methods in database
+    # adapters. e.g. ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter#indexes
     class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where) #:nodoc:
     end
 
@@ -62,11 +65,12 @@ module ActiveRecord
     class TableDefinition
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
-      attr_accessor :columns
+      attr_accessor :columns, :indexes
 
       def initialize(base)
         @columns = []
         @columns_hash = {}
+        @indexes = {}
         @base = base
       end
 
@@ -209,19 +213,22 @@ module ActiveRecord
       #
       # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
       # column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt> is a hash of
-      # options, these will be used when creating the <tt>_type</tt> column. So what can be written like this:
+      # options, these will be used when creating the <tt>_type</tt> column. The <tt>:index</tt> option
+      # will also create an index, similar to calling <tt>add_index</tt>. So what can be written like this:
       #
       #   create_table :taggings do |t|
       #     t.integer :tag_id, :tagger_id, :taggable_id
       #     t.string  :tagger_type
       #     t.string  :taggable_type, :default => 'Photo'
       #   end
+      #   add_index :taggings, :tag_id, :name => 'index_taggings_on_tag_id'
+      #   add_index :taggings, [:tagger_id, :tagger_type]
       #
       # Can also be written as follows using references:
       #
       #   create_table :taggings do |t|
-      #     t.references :tag
-      #     t.references :tagger, :polymorphic => true
+      #     t.references :tag, :index => { :name => 'index_taggings_on_tag_id' }
+      #     t.references :tagger, :polymorphic => true, :index => true
       #     t.references :taggable, :polymorphic => { :default => 'Photo' }
       #   end
       def column(name, type, options = {})
@@ -252,6 +259,14 @@ module ActiveRecord
           end                                                         # end
         EOV
       end
+      
+      # Adds index options to the indexes hash, keyed by column name
+      # This is primarily used to track indexes that need to be created after the table
+      # === Examples
+      #   index(:account_id, :name => 'index_projects_on_account_id')
+      def index(column_name, options = {})
+        indexes[column_name] = options
+      end
 
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
       # <tt>:updated_at</tt> to the table.
@@ -264,9 +279,11 @@ module ActiveRecord
       def references(*args)
         options = args.extract_options!
         polymorphic = options.delete(:polymorphic)
+        index_options = options.delete(:index)
         args.each do |col|
           column("#{col}_id", :integer, options)
           column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) unless polymorphic.nil?
+          index(polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : nil) if index_options
         end
       end
       alias :belongs_to :references
@@ -432,9 +449,11 @@ module ActiveRecord
       def references(*args)
         options = args.extract_options!
         polymorphic = options.delete(:polymorphic)
+        index_options = options.delete(:index)
         args.each do |col|
           @base.add_column(@table_name, "#{col}_id", :integer, options)
           @base.add_column(@table_name, "#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) unless polymorphic.nil?
+          @base.add_index(@table_name, polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : nil) if index_options
         end
       end
       alias :belongs_to :references

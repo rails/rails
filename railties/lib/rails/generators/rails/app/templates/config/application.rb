@@ -7,8 +7,7 @@ require 'rails/all'
 <%= comment_if :skip_active_record %>require "active_record/railtie"
 require "action_controller/railtie"
 require "action_mailer/railtie"
-require "active_resource/railtie"
-<%= comment_if :skip_sprockets %>require "sprockets/railtie"
+<%= comment_if :skip_sprockets %>require "sprockets/rails/railtie"
 <%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
 <% end -%>
 
@@ -54,14 +53,14 @@ module <%= app_const_base %>
     # This will create an empty whitelist of attributes available for mass-assignment for all models
     # in your app. As such, your models will need to explicitly whitelist or blacklist accessible
     # parameters by using an attr_accessible or attr_protected declaration.
-    # config.active_record.whitelist_attributes = true
+    <%= comment_if :skip_active_record %>config.active_record.whitelist_attributes = true
 
     # Specifies wether or not has_many or has_one association option :dependent => :restrict raises
     # an exception. If set to true, then an ActiveRecord::DeleteRestrictionError exception would be
     # raised. If set to false, then an error will be added on the model instead.
     <%= comment_if :skip_active_record %>config.active_record.dependent_restrict_raises = false
-
 <% unless options.skip_sprockets? -%>
+
     # Enable the asset pipeline.
     config.assets.enabled = true
 

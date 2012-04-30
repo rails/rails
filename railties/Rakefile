@@ -44,18 +44,6 @@ task :update_readme do
   cp "./README.rdoc", readme
 end
 
-desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
-task :generate_guides do
-  ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this
-  ruby "guides/rails_guides.rb"
-end
-
-# Validate guides -------------------------------------------------------------------------
-desc 'Validate guides, use ONLY=foo to process just "foo.html"'
-task :validate_guides do
-  ruby "guides/w3c_validator.rb"
-end
-
 # Generate GEM ----------------------------------------------------------------------------
 
 spec = eval(File.read('railties.gemspec'))

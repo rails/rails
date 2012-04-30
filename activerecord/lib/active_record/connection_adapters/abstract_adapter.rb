@@ -57,7 +57,7 @@ module ActiveRecord
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :last_use, :in_use
+      attr_reader :schema_cache, :last_use, :in_use, :logger
       alias :in_use? :in_use
 
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
@@ -84,6 +84,11 @@ module ActiveRecord
             @last_use = Time.now
           end
         end
+      end
+
+      def schema_cache=(cache)
+        cache.connection = self
+        @schema_cache = cache
       end
 
       def expire
@@ -157,11 +162,6 @@ module ActiveRecord
       end
 
       # QUOTING ==================================================
-
-      # Override to return the quoted table name. Defaults to column quoting.
-      def quote_table_name(name)
-        quote_column_name(name)
-      end
 
       # Returns a bind substitution value given a +column+ and list of current
       # +binds+
@@ -279,26 +279,25 @@ module ActiveRecord
 
       protected
 
-        def log(sql, name = "SQL", binds = [])
-          @instrumenter.instrument(
-            "sql.active_record",
-            :sql           => sql,
-            :name          => name,
-            :connection_id => object_id,
-            :binds         => binds) { yield }
-        rescue Exception => e
-          message = "#{e.class.name}: #{e.message}: #{sql}"
-          @logger.debug message if @logger
-          exception = translate_exception(e, message)
-          exception.set_backtrace e.backtrace
-          raise exception
-        end
+      def log(sql, name = "SQL", binds = [])
+        @instrumenter.instrument(
+          "sql.active_record",
+          :sql           => sql,
+          :name          => name,
+          :connection_id => object_id,
+          :binds         => binds) { yield }
+      rescue Exception => e
+        message = "#{e.class.name}: #{e.message}: #{sql}"
+        @logger.error message if @logger
+        exception = translate_exception(e, message)
+        exception.set_backtrace e.backtrace
+        raise exception
+      end
 
-        def translate_exception(e, message)
-          # override in derived class
-          ActiveRecord::StatementInvalid.new(message)
-        end
-
+      def translate_exception(exception, message)
+        # override in derived class
+        ActiveRecord::StatementInvalid.new(message)
+      end
     end
   end
 end

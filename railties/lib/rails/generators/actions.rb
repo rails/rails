@@ -69,6 +69,7 @@ module Rails
       # ==== Example
       #
       #   add_source "http://gems.github.com/"
+      #
       def add_source(source, options={})
         log :source, source
 
@@ -81,6 +82,16 @@ module Rails
       #
       # If options :env is specified, the line is appended to the corresponding
       # file in config/environments.
+      #
+      # ==== Examples
+      #
+      #   environment do
+      #     "config.autoload_paths += %W(#{config.root}/extras)"
+      #   end
+      #
+      #   environment(nil, :env => "development") do
+      #     "config.active_record.observers = :cacher"
+      #   end
       #
       def environment(data=nil, options={}, &block)
         sentinel = /class [a-z_:]+ < Rails::Application/i
@@ -160,13 +171,13 @@ module Rails
       #     <<-TASK
       #       namespace :#{project} do
       #         task :bootstrap do
-      #           puts "i like boots!"
+      #           puts "I like boots!"
       #         end
       #       end
       #     TASK
       #   end
       #
-      #   rakefile("seed.rake", "puts 'im plantin ur seedz'")
+      #   rakefile('seed.rake', 'puts "Planting seeds"')
       #
       def rakefile(filename, data=nil, &block)
         log :rakefile, filename
@@ -239,7 +250,7 @@ module Rails
       #
       # === Example
       #
-      #   route "root :to => 'welcome'"
+      #   route "root :to => 'welcome#index'"
       #
       def route(routing_code)
         log :route, routing_code
@@ -265,7 +276,6 @@ module Rails
         # Define log for backwards compatibility. If just one argument is sent,
         # invoke say, otherwise invoke say_status. Differently from say and
         # similarly to say_status, this method respects the quiet? option given.
-        #
         def log(*args)
           if args.size == 1
             say args.first.to_s unless options.quiet?
@@ -276,7 +286,6 @@ module Rails
         end
 
         # Add an extension to the given name based on the platform.
-        #
         def extify(name)
           if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
             "#{name}.bat"

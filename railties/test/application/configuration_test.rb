@@ -41,6 +41,14 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
+    test "multiple queue construction is possible" do
+      require 'rails'
+      require "#{app_path}/config/environment"
+      mail_queue             = Rails.application.build_queue
+      image_processing_queue = Rails.application.build_queue
+      assert_not_equal mail_queue, image_processing_queue
+    end
+
     test "Rails.groups returns available groups" do
       require "rails"
 
@@ -275,19 +283,23 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
+      token = "cf50faa3fe97702ca1ae"
+      PostsController.any_instance.stubs(:form_authenticity_token).returns(token)
+      params = {:authenticity_token => token}
+
       get "/posts/1"
       assert_match /patch/, last_response.body
 
-      patch "/posts/1"
+      patch "/posts/1", params
       assert_match /update/, last_response.body
 
-      patch "/posts/1"
+      patch "/posts/1", params
       assert_equal 200, last_response.status
 
-      put "/posts/1"
+      put "/posts/1", params
       assert_match /update/, last_response.body
 
-      put "/posts/1"
+      put "/posts/1", params
       assert_equal 200, last_response.status
     end
 
@@ -525,6 +537,12 @@ module ApplicationTests
         def self.attribute_names
           %w(title)
         end
+      end
+      RUBY
+
+      app_file 'app/controllers/application_controller.rb', <<-RUBY
+      class ApplicationController < ActionController::Base
+        protect_from_forgery :with => :reset_session # as we are testing API here
       end
       RUBY
 

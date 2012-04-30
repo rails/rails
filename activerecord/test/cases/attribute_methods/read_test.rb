@@ -6,10 +6,6 @@ module ActiveRecord
   module AttributeMethods
     class ReadTest < ActiveRecord::TestCase
       class FakeColumn < Struct.new(:name)
-        def type_cast_code(var)
-          var
-        end
-
         def type; :integer; end
       end
 

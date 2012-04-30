@@ -43,12 +43,6 @@ module ActiveRecord
 
           if attr_name == primary_key && attr_name != 'id'
             generated_attribute_methods.send(:alias_method, :id, primary_key)
-            generated_external_attribute_methods.module_eval <<-CODE, __FILE__, __LINE__
-              def id(v, attributes, attributes_cache, attr_name)
-                attr_name = '#{primary_key}'
-                send(attr_name, attributes[attr_name], attributes, attributes_cache, attr_name)
-              end
-            CODE
           end
         end
 
@@ -111,9 +105,8 @@ module ActiveRecord
         #   end
         #   Project.primary_key # => "foo_id"
         def primary_key=(value)
-          @original_primary_key = @primary_key if defined?(@primary_key)
-          @primary_key          = value && value.to_s
-          @quoted_primary_key   = nil
+          @primary_key        = value && value.to_s
+          @quoted_primary_key = nil
         end
       end
     end

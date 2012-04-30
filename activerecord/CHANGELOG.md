@@ -1,5 +1,114 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added an :index option to automatically create indexes for references
+    and belongs_to statements in migrations.
+
+    The `references` and `belongs_to` methods now support an `index`
+    option that receives either a boolean value or an options hash
+    that is identical to options available to the add_index method:
+
+      create_table :messages do |t|
+        t.references :person, :index => true
+      end
+
+      Is the same as:
+
+      create_table :messages do |t|
+        t.references :person
+      end
+      add_index :messages, :person_id
+
+    Generators have also been updated to use the new syntax.
+
+    [Joshua Wood]
+
+*   Added bang methods for mutating `ActiveRecord::Relation` objects.
+    For example, while `foo.where(:bar)` will return a new object
+    leaving `foo` unchanged, `foo.where!(:bar)` will mutate the foo
+    object
+
+    *Jon Leighton*
+
+*   Added `#find_by` and `#find_by!` to mirror the functionality
+    provided by dynamic finders in a way that allows dynamic input more
+    easily:
+
+        Post.find_by name: 'Spartacus', rating: 4
+        Post.find_by "published_at < ?", 2.weeks.ago
+        Post.find_by! name: 'Spartacus'
+
+    *Jon Leighton*
+
+*   Added ActiveRecord::Base#slice to return a hash of the given methods with
+    their names as keys and returned values as values.
+
+    *Guillermo Iguaran*
+
+*   Deprecate eager-evaluated scopes.
+
+    Don't use this:
+
+        scope :red, where(color: 'red')
+        default_scope where(color: 'red')
+
+    Use this:
+
+        scope :red, -> { where(color: 'red') }
+        default_scope { where(color: 'red') }
+
+    The former has numerous issues. It is a common newbie gotcha to do
+    the following:
+
+        scope :recent, where(published_at: Time.now - 2.weeks)
+
+    Or a more subtle variant:
+
+        scope :recent, -> { where(published_at: Time.now - 2.weeks) }
+        scope :recent_red, recent.where(color: 'red')
+
+    Eager scopes are also very complex to implement within Active
+    Record, and there are still bugs. For example, the following does
+    not do what you expect:
+
+        scope :remove_conditions, except(:where)
+        where(...).remove_conditions # => still has conditions
+
+    *Jon Leighton*
+
+*   Remove IdentityMap
+
+    IdentityMap has never graduated to be an "enabled-by-default" feature, due
+    to some inconsistencies with associations, as described in this commit:
+
+       https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6
+
+    Hence the removal from the codebase, until such issues are fixed.
+
+    *Carlos Antonio da Silva*
+
+*   Added the schema cache dump feature.
+
+    `Schema cache dump` feature was implemetend. This feature can dump/load internal state of `SchemaCache` instance
+    because we want to boot rails more quickly when we have many models.
+
+    Usage notes:
+
+      1) execute rake task.
+      RAILS_ENV=production bundle exec rake db:schema:cache:dump
+      => generate db/schema_cache.dump
+
+      2) add config.use_schema_cache_dump = true in config/production.rb. BTW, true is default.
+
+      3) boot rails.
+      RAILS_ENV=production bundle exec rails server
+      => use db/schema_cache.dump
+
+      4) If you remove clear dumped cache, execute rake task.
+      RAILS_ENV=production bundle exec rake db:schema:cache:clear
+      => remove db/schema_cache.dump
+
+    *kennyj*
+
 *   Added support for partial indices to PostgreSQL adapter
 
     The `add_index` method now supports a `where` option that receives a
@@ -128,6 +237,28 @@
 *   PostgreSQL hstore records can be created.
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
+
+
+## Rails 3.2.3 (March 30, 2012) ##
+
+*   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
+
+*   Whitelist all attribute assignment by default. Change the default for newly generated applications to whitelist all attribute assignment.  Also update the generated model classes so users are reminded of the importance of attr_accessible. *NZKoz*
+
+*   Update ActiveRecord::AttributeMethods#attribute_present? to return false for empty strings. *Jacobkg*
+
+*   Fix associations when using per class databases. *larskanis*
+
+*   Revert setting NOT NULL constraints in add_timestamps *fxn*
+
+*   Fix mysql to use proper text types. Fixes #3931. *kennyj*
+
+*   Fix #5069 - Protect foreign key from mass assignment through association builder. *byroot*
+
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
 
 
 ## Rails 3.2.1 (January 26, 2012) ##
@@ -320,7 +451,8 @@
 
     *Aaron Christy*
 
- ## Rails 3.1.4 (unreleased) ##
+
+## Rails 3.1.4 (March 1, 2012) ##
 
  *   Fix a custom primary key regression *GH 3987*
 
@@ -347,6 +479,7 @@
 
      *Julius de Bruijn*
 
+
 ### Rails 3.1.3 (November 20, 2011) ##
 
 *   Perf fix: If we're deleting all records in an association, don't add a IN(..) clause
@@ -359,6 +492,7 @@
 *   Fix performance bug with mysql databases on a server with lots of other databses. *GH 3678*
 
     *Christos Zisopoulos and Kenny J*
+
 
 ### Rails 3.1.2 (November 18, 2011) ##
 
@@ -406,6 +540,7 @@
 *   MySQL: use the information_schema than the describe command when we look for a primary key. *GH #3440*
 
     *Kenny J*
+
 
 ## Rails 3.1.1 (October 7, 2011) ##
 
@@ -779,7 +914,7 @@
     *Aaron Patterson*
 
 
-## Rails 3.0.12 (unreleased) ##
+## Rails 3.0.12 (March 1, 2012) ##
 
 *   No changes.
 

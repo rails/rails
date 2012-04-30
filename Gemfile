@@ -8,7 +8,7 @@ else
   gem 'arel'
 end
 
-gem 'rack-test', :git => "https://github.com/brynary/rack-test.git"
+gem 'rack-test', :git => "git://github.com/brynary/rack-test.git"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
 
@@ -18,12 +18,18 @@ else
   gem 'journey', :git => "git://github.com/rails/journey"
 end
 
+if ENV['AR_DEPRECATED_FINDERS']
+  gem 'active_record_deprecated_finders', path: ENV['AR_DEPRECATED_FINDERS']
+else
+  gem 'active_record_deprecated_finders', git: 'git://github.com/rails/active_record_deprecated_finders'
+end
+
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', '>= 1.0.3', :require => false
 
 gem 'rake', '>= 0.8.7'
-gem 'mocha', '>= 0.9.8'
+gem 'mocha', '>= 0.11.2'
 
 group :doc do
   # The current sdoc cannot generate GitHub links due

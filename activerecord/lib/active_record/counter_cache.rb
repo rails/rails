@@ -69,9 +69,7 @@ module ActiveRecord
         "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
       end
 
-      IdentityMap.remove_by_id(symbolized_base_class, id) if IdentityMap.enabled?
-
-      update_all(updates.join(', '), primary_key => id )
+      where(primary_key => id).update_all updates.join(', ')
     end
 
     # Increment a number field by one, usually representing a count.

@@ -13,6 +13,13 @@ module ActiveSupport
 
       # Sets the behavior to the specified value. Can be a single value or an array.
       #
+      # Available behaviors: 
+      #
+      # [+:stderr+] Print deprecations to +$stderror+
+      # [+:log+] Send to +Rails.logger+
+      # [+:notify+] Instrument using +ActiveSupport::Notifications+
+      # [+:silence+] Do nothing
+      #
       # Examples
       #
       #   ActiveSupport::Deprecation.behavior = :stderr
@@ -41,8 +48,9 @@ module ActiveSupport
        },
        :notify => Proc.new { |message, callstack|
           ActiveSupport::Notifications.instrument("deprecation.rails",
-            :message => message, :callstack => callstack)
-       }
+          :message => message, :callstack => callstack)
+       },
+       :silence => Proc.new { |message, callstack| }
     }
   end
 end

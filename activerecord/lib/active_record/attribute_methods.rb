@@ -49,14 +49,6 @@ module ActiveRecord
         @attribute_methods_generated ||= false
       end
 
-      # We will define the methods as instance methods, but will call them as singleton
-      # methods. This allows us to use method_defined? to check if the method exists,
-      # which is fast and won't give any false positives from the ancestors (because
-      # there are no ancestors).
-      def generated_external_attribute_methods
-        @generated_external_attribute_methods ||= Module.new { extend self }
-      end
-
       def undefine_attribute_methods
         super if attribute_methods_generated?
         @attribute_methods_generated = false
@@ -189,7 +181,7 @@ module ActiveRecord
     # nil nor empty? (the latter only applies to objects that respond to empty?, most notably Strings).
     def attribute_present?(attribute)
       value = read_attribute(attribute)
-      !value.nil? || (value.respond_to?(:empty?) && !value.empty?)
+      !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
     end
 
     # Returns the column object for the named attribute.
@@ -214,37 +206,64 @@ module ActiveRecord
       value
     end
 
-    # Returns a copy of the attributes hash where all the values have been safely quoted for use in
-    # an Arel insert/update method.
-    def arel_attributes_values(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
-      attrs      = {}
-      klass      = self.class
-      arel_table = klass.arel_table
+    def arel_attributes_with_values_for_create(pk_attribute_allowed)
+      arel_attributes_with_values(attributes_for_create(pk_attribute_allowed))
+    end
 
-      attribute_names.each do |name|
-        if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
-
-          if include_readonly_attributes || !self.class.readonly_attributes.include?(name)
-
-            value = if klass.serialized_attributes.include?(name)
-                      @attributes[name].serialized_value
-                    else
-                      # FIXME: we need @attributes to be used consistently.
-                      # If the values stored in @attributes were already type
-                      # casted, this code could be simplified
-                      read_attribute(name)
-                    end
-
-            attrs[arel_table[name]] = value
-          end
-        end
-      end
-
-      attrs
+    def arel_attributes_with_values_for_update(attribute_names)
+      arel_attributes_with_values(attributes_for_update(attribute_names))
     end
 
     def attribute_method?(attr_name)
       defined?(@attributes) && @attributes.include?(attr_name)
+    end
+
+    private
+
+    # Returns a Hash of the Arel::Attributes and attribute values that have been
+    # type casted for use in an Arel insert/update method.
+    def arel_attributes_with_values(attribute_names)
+      attrs = {}
+      arel_table = self.class.arel_table
+
+      attribute_names.each do |name|
+        attrs[arel_table[name]] = typecasted_attribute_value(name)
+      end
+      attrs
+    end
+
+    # Filters the primary keys and readonly attributes from the attribute names.
+    def attributes_for_update(attribute_names)
+      attribute_names.select do |name|
+        column_for_attribute(name) && !pk_attribute?(name) && !readonly_attribute?(name)
+      end
+    end
+
+    # Filters out the primary keys, from the attribute names, when the primary
+    # key is to be generated (e.g. the id attribute has no value).
+    def attributes_for_create(pk_attribute_allowed)
+      @attributes.keys.select do |name|
+        column_for_attribute(name) && (pk_attribute_allowed || !pk_attribute?(name))
+      end
+    end
+
+    def readonly_attribute?(name)
+      self.class.readonly_attributes.include?(name)
+    end
+
+    def pk_attribute?(name)
+      column_for_attribute(name).primary
+    end
+
+    def typecasted_attribute_value(name)
+      if self.class.serialized_attributes.include?(name)
+        @attributes[name].serialized_value
+      else
+        # FIXME: we need @attributes to be used consistently.
+        # If the values stored in @attributes were already typecasted, this code
+        # could be simplified
+        read_attribute(name)
+      end
     end
   end
 end
