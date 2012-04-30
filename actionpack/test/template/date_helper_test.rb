@@ -21,20 +21,33 @@ class DateHelperTest < ActionView::TestCase
   def assert_distance_of_time_in_words(from, to=nil)
     to ||= from
 
-    # 0..1 with include_seconds
-    assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 0.seconds, true)
-    assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 4.seconds, true)
-    assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 5.seconds, true)
-    assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 9.seconds, true)
-    assert_equal "less than 20 seconds", distance_of_time_in_words(from, to + 10.seconds, true)
-    assert_equal "less than 20 seconds", distance_of_time_in_words(from, to + 19.seconds, true)
-    assert_equal "half a minute", distance_of_time_in_words(from, to + 20.seconds, true)
-    assert_equal "half a minute", distance_of_time_in_words(from, to + 39.seconds, true)
-    assert_equal "less than a minute", distance_of_time_in_words(from, to + 40.seconds, true)
-    assert_equal "less than a minute", distance_of_time_in_words(from, to + 59.seconds, true)
-    assert_equal "1 minute", distance_of_time_in_words(from, to + 60.seconds, true)
-    assert_equal "1 minute", distance_of_time_in_words(from, to + 89.seconds, true)
+    # 0..1 with :include_seconds => true
+    assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 0.seconds, :include_seconds => true)
+    assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 4.seconds, :include_seconds => true)
+    assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 5.seconds, :include_seconds => true)
+    assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 9.seconds, :include_seconds => true)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(from, to + 10.seconds, :include_seconds => true)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(from, to + 19.seconds, :include_seconds => true)
+    assert_equal "half a minute", distance_of_time_in_words(from, to + 20.seconds, :include_seconds => true)
+    assert_equal "half a minute", distance_of_time_in_words(from, to + 39.seconds, :include_seconds => true)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 40.seconds, :include_seconds => true)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 59.seconds, :include_seconds => true)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 60.seconds, :include_seconds => true)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 89.seconds, :include_seconds => true)
 
+    # 0..1 with :include_seconds => false
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 0.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 4.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 5.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 9.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 10.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 19.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 20.seconds, :include_seconds => false)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 39.seconds, :include_seconds => false)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 40.seconds, :include_seconds => false)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 59.seconds, :include_seconds => false)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 60.seconds, :include_seconds => false)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 89.seconds, :include_seconds => false)
     # First case 0..1
     assert_equal "less than a minute", distance_of_time_in_words(from, to + 0.seconds)
     assert_equal "less than a minute", distance_of_time_in_words(from, to + 29.seconds)
@@ -95,12 +108,18 @@ class DateHelperTest < ActionView::TestCase
 
     # test to < from
     assert_equal "about 4 hours", distance_of_time_in_words(from + 4.hours, to)
-    assert_equal "less than 20 seconds", distance_of_time_in_words(from + 19.seconds, to, true)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(from + 19.seconds, to, :include_seconds => true)
+    assert_equal "less than a minute", distance_of_time_in_words(from + 19.seconds, to, :include_seconds => false)
   end
 
   def test_distance_in_words
     from = Time.utc(2004, 6, 6, 21, 45, 0)
     assert_distance_of_time_in_words(from)
+  end
+
+  def test_time_ago_in_words_passes_include_seconds
+    assert_equal "less than 20 seconds", time_ago_in_words(15.seconds.ago, :include_seconds => true)
+    assert_equal "less than a minute", time_ago_in_words(15.seconds.ago, :include_seconds => false)
   end
 
   def test_distance_in_words_with_time_zones
@@ -148,10 +167,10 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "about 1 hour", distance_of_time_in_words(60.minutes)
 
     # include seconds
-    assert_equal "half a minute", distance_of_time_in_words(39.seconds, 0, true)
-    assert_equal "less than a minute", distance_of_time_in_words(40.seconds, 0, true)
-    assert_equal "less than a minute", distance_of_time_in_words(59.seconds, 0, true)
-    assert_equal "1 minute", distance_of_time_in_words(60.seconds, 0, true)
+    assert_equal "half a minute", distance_of_time_in_words(39.seconds, 0, :include_seconds => true)
+    assert_equal "less than a minute", distance_of_time_in_words(40.seconds, 0, :include_seconds => true)
+    assert_equal "less than a minute", distance_of_time_in_words(59.seconds, 0, :include_seconds => true)
+    assert_equal "1 minute", distance_of_time_in_words(60.seconds, 0, :include_seconds => true)
   end
 
   def test_time_ago_in_words
