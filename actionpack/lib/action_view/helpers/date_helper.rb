@@ -186,6 +186,8 @@ module ActionView
       #   for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt> and <tt>:second</tt>.
       #   Setting this option prepends a select option with a generic prompt  (Day, Month, Year, Hour, Minute, Seconds)
       #   or the given prompt string.
+      # * <tt>:css_by_type</tt>       - Set to true if you want assing different styles for 'select' tags. This option
+      #   automatically set classes 'year', 'month', 'day', 'hour', 'minute' and 'second' for your 'select' tags.
       #
       # If anything is passed in the +html_options+ hash it will be applied to every select tag in the set.
       #
@@ -936,6 +938,7 @@ module ActionView
             :name => input_name_from_type(type)
           }.merge(@html_options)
           select_options.merge!(:disabled => 'disabled') if @options[:disabled]
+          select_options.merge!(:class => type) if @options[:css_by_type]
 
           select_html = "\n"
           select_html << content_tag(:option, '', :value => '') + "\n" if @options[:include_blank]
