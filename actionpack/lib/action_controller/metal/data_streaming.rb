@@ -8,10 +8,8 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_OPTIONS = {
-      :type         => 'application/octet-stream'.freeze,
-      :disposition  => 'attachment'.freeze,
-    }.freeze
+    DEFAULT_SEND_FILE_TYPE        = 'application/octet-stream'.freeze #:nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = 'attachment'.freeze #:nodoc:
 
     protected
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
@@ -135,15 +133,8 @@ module ActionController #:nodoc:
       def send_file_headers!(options)
         type_provided = options.has_key?(:type)
 
-        options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
-        [:type, :disposition].each do |arg|
-          raise ArgumentError, ":#{arg} option required" if options[arg].nil?
-        end
-
-        disposition = options[:disposition]
-        disposition += %(; filename="#{options[:filename]}") if options[:filename]
-
-        content_type = options[:type]
+        content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
+        raise ArgumentError, ":type option required" if content_type.nil?
 
         if content_type.is_a?(Symbol)
           extension = Mime[content_type]
@@ -157,10 +148,13 @@ module ActionController #:nodoc:
           self.content_type = content_type
         end
 
-        headers.merge!(
-          'Content-Disposition'       => disposition,
-          'Content-Transfer-Encoding' => 'binary'
-        )
+        disposition = options.fetch(:disposition, DEFAULT_SEND_FILE_DISPOSITION)
+        unless disposition.nil?
+          disposition += %(; filename="#{options[:filename]}") if options[:filename]
+          headers['Content-Disposition'] = disposition
+        end
+
+        headers['Content-Transfer-Encoding'] = 'binary'
 
         response.sending_file = true
 

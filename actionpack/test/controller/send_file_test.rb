@@ -154,6 +154,17 @@ class SendFileTest < ActionController::TestCase
     end
   end
 
+  def test_send_file_with_default_content_disposition_header
+    process('data')
+    assert_equal 'attachment', @controller.headers['Content-Disposition']
+  end
+
+  def test_send_file_without_content_disposition_header
+    @controller.options = {:disposition => nil}
+    process('data')
+    assert_nil @controller.headers['Content-Disposition']
+  end
+
   %w(file data).each do |method|
     define_method "test_send_#{method}_status" do
       @controller.options = { :stream => false, :status => 500 }
