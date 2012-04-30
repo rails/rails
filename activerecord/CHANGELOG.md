@@ -4,7 +4,7 @@
     This could cause infinite recursion and potentially other problems.
     See GH #5667. *Jon Leighton*
 
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.3 (March 30, 2012) ##
 
 *   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
 
