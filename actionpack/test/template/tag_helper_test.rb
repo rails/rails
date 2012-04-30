@@ -91,6 +91,11 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
   end
 
+  def test_cdata_section_splitted
+    assert_equal "<![CDATA[hello]]]]><![CDATA[>world]]>", cdata_section("hello]]>world")
+    assert_equal "<![CDATA[hello]]]]><![CDATA[>world]]]]><![CDATA[>again]]>", cdata_section("hello]]>world]]>again")
+  end
+
   def test_escape_once
     assert_equal '1 &lt; 2 &amp; 3', escape_once('1 < 2 &amp; 3')
   end
