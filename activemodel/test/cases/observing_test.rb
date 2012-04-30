@@ -113,7 +113,7 @@ class ObserverTest < ActiveModel::TestCase
 
   test "tracks implicit observable models" do
     instance = FooObserver.new
-    assert_equal [Foo], old_instance.observed_classes
+    assert_equal [Foo], instance.observed_classes
   end
 
   test "tracks explicit observed model class" do
