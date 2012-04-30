@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Inflector no longer applies ice -> ouse to words like slice, police, ets *Wes Morgan*
+
 *    Add `ActiveSupport::Deprecations.behavior = :silence` to completely ignore *twinturbo*
 
 *    Make Module#delegate stop using `send` - can no longer delegate to private methods. *dasch*
