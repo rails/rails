@@ -95,13 +95,13 @@ end
 class ObserverTest < ActiveModel::TestCase
   def setup
     ObservedModel.observers = :foo_observer
-    FooObserver.instance_eval do
+    FooObserver.singleton_class.instance_eval do
       alias_method :original_observed_classes, :observed_classes
     end
   end
 
   def teardown
-    FooObserver.instance_eval do
+    FooObserver.singleton_class.instance_eval do
       undef_method :observed_classes
       alias_method :observed_classes, :original_observed_classes
     end
@@ -159,5 +159,16 @@ class ObserverTest < ActiveModel::TestCase
       yielded_value = val
     end
     assert_equal :in_around_save, yielded_value
+  end
+
+  test "observe redefines observed_classes class method" do
+    class BarObserver < ActiveModel::Observer
+      observe :foo
+    end
+
+    assert_equal [Foo], BarObserver.observed_classes
+
+    BarObserver.observe(ObservedModel)
+    assert_equal [ObservedModel], BarObserver.observed_classes
   end
 end
