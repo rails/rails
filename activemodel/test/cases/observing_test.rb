@@ -98,32 +98,25 @@ class ObserverTest < ActiveModel::TestCase
 
   test "tracks implicit observable models" do
     instance = FooObserver.new
-    assert  instance.send(:observed_classes).include?(Foo), "Foo not in #{instance.send(:observed_classes).inspect}"
-    assert !instance.send(:observed_classes).include?(ObservedModel), "ObservedModel in #{instance.send(:observed_classes).inspect}"
+    assert_equal [Foo], old_instance.observed_classes
   end
 
   test "tracks explicit observed model class" do
-    old_instance = FooObserver.new
-    assert !old_instance.send(:observed_classes).include?(ObservedModel), "ObservedModel in #{old_instance.send(:observed_classes).inspect}"
     FooObserver.observe ObservedModel
     instance = FooObserver.new
-    assert instance.send(:observed_classes).include?(ObservedModel), "ObservedModel not in #{instance.send(:observed_classes).inspect}"
+    assert_equal [ObservedModel], instance.observed_classes
   end
 
   test "tracks explicit observed model as string" do
-    old_instance = FooObserver.new
-    assert !old_instance.send(:observed_classes).include?(ObservedModel), "ObservedModel in #{old_instance.send(:observed_classes).inspect}"
     FooObserver.observe 'observed_model'
     instance = FooObserver.new
-    assert instance.send(:observed_classes).include?(ObservedModel), "ObservedModel not in #{instance.send(:observed_classes).inspect}"
+    assert_equal [ObservedModel], instance.observed_classes
   end
 
   test "tracks explicit observed model as symbol" do
-    old_instance = FooObserver.new
-    assert !old_instance.send(:observed_classes).include?(ObservedModel), "ObservedModel in #{old_instance.send(:observed_classes).inspect}"
     FooObserver.observe :observed_model
     instance = FooObserver.new
-    assert instance.send(:observed_classes).include?(ObservedModel), "ObservedModel not in #{instance.send(:observed_classes).inspect}"
+    assert_equal [ObservedModel], instance.observed_classes
   end
 
   test "calls existing observer event" do
