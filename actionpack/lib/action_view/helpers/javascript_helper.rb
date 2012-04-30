@@ -86,8 +86,8 @@ module ActionView
 
       # Returns a link whose +onclick+ handler triggers the passed JavaScript.
       #
-      # The helper receives a name, JavaScript code, and an optional hash of HTML options. The
-      # name is used as the link text and the JavaScript code goes into the +onclick+ attribute.
+      # The helper receives a name or block, JavaScript code, and an optional hash of HTML options. The
+      # name is used as the link text or you can pass a block, and the JavaScript code goes into the +onclick+ attribute.
       # If +html_options+ has an <tt>:onclick</tt>, that one is put before +function+. Once all
       # the JavaScript is set, the helper appends "; return false;".
       #
@@ -96,7 +96,24 @@ module ActionView
       #   link_to_function "Greeting", "alert('Hello world!')", :class => "nav_link"
       #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>
       #
-      def link_to_function(name, function, html_options={})
+      # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
+      #
+      #   <%= link_to_function "alert('Hello there!')", :class => "nav_link" do %>
+      #     Hello, <strong><%= @profile.name %></strong>
+      #   <% end %>
+      #   # => <a class="nav_link" href="#" onclick="alert('Hello there!'); return false;">
+      #          Hello, <strong>David</strong>
+      #        </a>
+      #
+      def link_to_function(*args, &block)
+        if block_given?
+          return link_to_function(capture(&block), *args)
+        end
+
+        name         = args.first
+        function     = args.second
+        html_options = args.third || {}
+
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function}; return false;"
         href = html_options[:href] || '#'
 
