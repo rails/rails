@@ -13,7 +13,6 @@ module ApplicationTests
       end
 
       test 'notes finds notes for certain file_types' do
-
         app_file "app/views/home/index.html.erb", "<% # TODO: note in erb %>"
         app_file "app/views/home/index.html.haml", "-# TODO: note in haml"
         app_file "app/views/home/index.html.slim", "/ TODO: note in slim"
@@ -52,8 +51,8 @@ module ApplicationTests
         end
 
       end
-      test 'notes finds notes in default directories' do
 
+      test 'notes finds notes in default directories' do
         app_file "app/controllers/some_controller.rb", "# TODO: note in app directory"
         app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
         app_file "lib/some_file.rb", "# TODO: note in lib directory"
