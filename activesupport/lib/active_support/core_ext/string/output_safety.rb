@@ -4,9 +4,7 @@ require 'active_support/core_ext/kernel/singleton_class'
 class ERB
   module Util
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
-    JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
     HTML_ESCAPE_ONCE_REGEXP = /[\"><]|&(?!([a-zA-Z]+|(#\d+));)/
-    JSON_ESCAPE_REGEXP = /[&"><]/
 
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
@@ -50,25 +48,25 @@ class ERB
 
     module_function :html_escape_once
 
-    # A utility method for escaping HTML entities in JSON strings
-    # using \uXXXX JavaScript escape sequences for string literals:
+    # A utility method for escaping JSON strings such that they
+    # cannot contain text that unintentionally closes a <script>
+    # element (a potential XSS vector).
     #
-    #   json_escape('is a > 0 & a < 10?')
-    #   # => is a \u003E 0 \u0026 a \u003C 10?
+    # This method is aliased as +j+, and available as a helper
+    # in Rails templates.
     #
-    # Note that after this operation is performed the output is not
-    # valid JSON. In particular double quotes are removed:
+    #   <script>
+    #     var data = <%=j @data.to_json.html_safe %>;
+    #   </script>
     #
-    #   json_escape('{"name":"john","created_at":"2010-04-28T01:39:31Z","id":1}')
-    #   # => {name:john,created_at:2010-04-28T01:39:31Z,id:1}
+    # If @data is +"</script>"+, the output is:
     #
-    # This method is also aliased as +j+, and available as a helper
-    # in Rails templates:
-    #
-    #   <%=j @person.to_json %>
+    #   <script>
+    #     var data = "<\/script>";
+    #   </script>
     #
     def json_escape(s)
-      result = s.to_s.gsub(JSON_ESCAPE_REGEXP) { |special| JSON_ESCAPE[special] }
+      result = s.to_s.gsub('/', '\/')
       s.html_safe? ? result.html_safe : result
     end
 

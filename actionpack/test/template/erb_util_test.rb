@@ -8,12 +8,10 @@ class ErbUtilTest < ActiveSupport::TestCase
     define_method "test_html_escape_#{expected.gsub(/\W/, '')}" do
       assert_equal expected, html_escape(given)
     end
+  end
 
-    unless given == '"'
-      define_method "test_json_escape_#{expected.gsub(/\W/, '')}" do
-        assert_equal ERB::Util::JSON_ESCAPE[given], json_escape(given)
-      end
-    end
+  def test_json_escape_escapes_slashes
+    assert_equal '<\/script>', json_escape('</script>')
   end
 
   def test_json_escape_returns_unsafe_strings_when_passed_unsafe_strings
