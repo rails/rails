@@ -21,7 +21,7 @@ class DateHelperTest < ActionView::TestCase
   def assert_distance_of_time_in_words(from, to=nil)
     to ||= from
 
-    # 0..1 with :include_seconds => true
+    # 0..1 minute with :include_seconds => true
     assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 0.seconds, :include_seconds => true)
     assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 4.seconds, :include_seconds => true)
     assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 5.seconds, :include_seconds => true)
@@ -35,7 +35,7 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "1 minute", distance_of_time_in_words(from, to + 60.seconds, :include_seconds => true)
     assert_equal "1 minute", distance_of_time_in_words(from, to + 89.seconds, :include_seconds => true)
 
-    # 0..1 with :include_seconds => false
+    # 0..1 minute with :include_seconds => false
     assert_equal "less than a minute", distance_of_time_in_words(from, to + 0.seconds, :include_seconds => false)
     assert_equal "less than a minute", distance_of_time_in_words(from, to + 4.seconds, :include_seconds => false)
     assert_equal "less than a minute", distance_of_time_in_words(from, to + 5.seconds, :include_seconds => false)
@@ -48,42 +48,53 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "1 minute", distance_of_time_in_words(from, to + 59.seconds, :include_seconds => false)
     assert_equal "1 minute", distance_of_time_in_words(from, to + 60.seconds, :include_seconds => false)
     assert_equal "1 minute", distance_of_time_in_words(from, to + 89.seconds, :include_seconds => false)
-    # First case 0..1
+
+    # Note that we are including a 30-second boundary around the interval we
+    # want to test. For instance, "1 minute" is actually 30s to 1m29s. The
+    # reason for doing this is simple -- in `distance_of_time_to_words`, when we
+    # take the distance between our two Time objects in seconds and convert it
+    # to minutes, we round the number. So 29s gets rounded down to 0m, 30s gets
+    # rounded up to 1m, and 1m29s gets rounded down to 1m. A similar thing
+    # happens with the other cases.
+
+    # First case 0..1 minute
     assert_equal "less than a minute", distance_of_time_in_words(from, to + 0.seconds)
     assert_equal "less than a minute", distance_of_time_in_words(from, to + 29.seconds)
     assert_equal "1 minute", distance_of_time_in_words(from, to + 30.seconds)
     assert_equal "1 minute", distance_of_time_in_words(from, to + 1.minutes + 29.seconds)
 
-    # 2..44
+    # 2 minutes up to 45 minutes
     assert_equal "2 minutes", distance_of_time_in_words(from, to + 1.minutes + 30.seconds)
     assert_equal "44 minutes", distance_of_time_in_words(from, to + 44.minutes + 29.seconds)
 
-    # 45..89
+    # 45 minutes up to 90 minutes
     assert_equal "about 1 hour", distance_of_time_in_words(from, to + 44.minutes + 30.seconds)
     assert_equal "about 1 hour", distance_of_time_in_words(from, to + 89.minutes + 29.seconds)
 
-    # 90..1439
+    # 90 minutes up to 24 hours
     assert_equal "about 2 hours", distance_of_time_in_words(from, to + 89.minutes + 30.seconds)
     assert_equal "about 24 hours", distance_of_time_in_words(from, to + 23.hours + 59.minutes + 29.seconds)
 
-    # 1440..2519
+    # 24 hours up to 42 hours
     assert_equal "1 day", distance_of_time_in_words(from, to + 23.hours + 59.minutes + 30.seconds)
     assert_equal "1 day", distance_of_time_in_words(from, to + 41.hours + 59.minutes + 29.seconds)
 
-    # 2520..43199
+    # 42 hours up to 30 days
     assert_equal "2 days", distance_of_time_in_words(from, to + 41.hours + 59.minutes + 30.seconds)
     assert_equal "3 days", distance_of_time_in_words(from, to + 2.days + 12.hours)
     assert_equal "30 days", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 29.seconds)
 
-    # 43200..86399
+    # 30 days up to 60 days
     assert_equal "about 1 month", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 30.seconds)
-    assert_equal "about 1 month", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 29.seconds)
+    assert_equal "about 1 month", distance_of_time_in_words(from, to + 44.days + 23.hours + 59.minutes + 29.seconds)
+    assert_equal "about 2 months", distance_of_time_in_words(from, to + 44.days + 23.hours + 59.minutes + 30.seconds)
+    assert_equal "about 2 months", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 29.seconds)
 
-    # 86400..525599
+    # 60 days up to 365 days
     assert_equal "2 months", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 30.seconds)
     assert_equal "12 months", distance_of_time_in_words(from, to + 1.years - 31.seconds)
 
-    # > 525599
+    # >= 365 days
     assert_equal "about 1 year",    distance_of_time_in_words(from, to + 1.years - 30.seconds)
     assert_equal "about 1 year",    distance_of_time_in_words(from, to + 1.years + 3.months - 1.day)
     assert_equal "over 1 year",     distance_of_time_in_words(from, to + 1.years + 6.months)
