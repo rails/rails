@@ -180,9 +180,17 @@ class BasicsTest < ActiveRecord::TestCase
     found = nil
     Topic.find_by_id(t.id) { |f| found = f }
     assert_equal t, found
+  end
 
+  def test_finder_block_nothing_found
     bad_id = Topic.maximum(:id) + 1
-    Topic.find_by_id(bad_id) { |f| raise }
+    assert_nil Topic.find_by_id(bad_id) { |f| raise }
+  end
+
+  def test_find_returns_block_value
+    t = Topic.first
+    x = Topic.find_by_id(t.id) { |f| "hi mom!" }
+    assert_equal "hi mom!", x
   end
 
   def test_preserving_date_objects
