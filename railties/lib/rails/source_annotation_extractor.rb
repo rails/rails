@@ -14,6 +14,9 @@
 # of the line (or closing ERB comment tag) is considered to be their text.
 class SourceAnnotationExtractor
   class Annotation < Struct.new(:line, :tag, :text)
+    def self.directories
+      @@directories ||= %w(app config lib script test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
+    end
 
     # Returns a representation of the annotation that looks like this:
     #
@@ -48,7 +51,7 @@ class SourceAnnotationExtractor
 
   # Returns a hash that maps filenames under +dirs+ (recursively) to arrays
   # with their annotations.
-  def find(dirs=%w(app config lib script test))
+  def find(dirs = Annotation.directories)
     dirs.inject({}) { |h, dir| h.update(find_in(dir)) }
   end
 
