@@ -86,7 +86,6 @@ module RailtiesTest
       add_to_config "ActiveRecord::Base.timestamped_migrations = false"
 
       boot_rails
-      railties = Rails.application.railties.all.map(&:railtie_name)
 
       Dir.chdir(app_path) do
         output = `bundle exec rake bukkits:install:migrations`
