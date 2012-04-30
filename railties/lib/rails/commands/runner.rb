@@ -9,7 +9,6 @@ if ARGV.first.nil?
 end
 
 ARGV.clone.options do |opts|
-  script_name = File.basename($0)
   opts.banner = "Usage: runner [options] ('Some.ruby(code)' or a filename)"
 
   opts.separator ""

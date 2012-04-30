@@ -405,7 +405,6 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute_with_one_updated
     t = Topic.first
-    title = t.title
     t.update_attribute(:title, 'super_title')
     assert_equal 'super_title', t.title
     assert !t.changed?, "topic should not have changed"

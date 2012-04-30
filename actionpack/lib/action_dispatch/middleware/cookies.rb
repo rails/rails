@@ -339,7 +339,6 @@ module ActionDispatch
     end
 
     def call(env)
-      cookie_jar = nil
       status, headers, body = @app.call(env)
 
       if cookie_jar = env['action_dispatch.cookies']

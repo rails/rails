@@ -481,7 +481,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_typecast_attribute_from_select_to_false
-    topic = Topic.create(:title => 'Budget')
+    Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
       topic = Topic.scoped(:select => "topics.*, 0 as is_test").first
@@ -492,7 +492,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_typecast_attribute_from_select_to_true
-    topic = Topic.create(:title => 'Budget')
+    Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
       topic = Topic.scoped(:select => "topics.*, 1 as is_test").first
