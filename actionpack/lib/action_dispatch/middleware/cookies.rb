@@ -182,8 +182,9 @@ module ActionDispatch
       # and setting its expiration date into the past. Like <tt>[]=</tt>, you can pass in
       # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
       def delete(key, options = {})
-        options.symbolize_keys!
+        return unless @cookies.has_key? key.to_s
 
+        options.symbolize_keys!
         handle_options(options)
 
         value = @cookies.delete(key.to_s)
