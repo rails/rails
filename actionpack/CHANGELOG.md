@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Replace `include_seconds` boolean argument with `:include_seconds => true` option
+    in `distance_of_time_in_words` and `time_ago_in_words` signature. *Dmitriy Kiriyenko*
+
 *   Remove `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
 
 *   Make current object and counter (when it applies) variables accessible when
