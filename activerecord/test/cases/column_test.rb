@@ -24,6 +24,30 @@ module ActiveRecord
         assert !column.type_cast('off')
         assert !column.type_cast('OFF')
       end
+
+      def test_type_cast_integer
+        column = Column.new("field", nil, "integer")
+        assert_equal 1, column.type_cast(1)
+        assert_equal 1, column.type_cast('1')
+        assert_equal 1, column.type_cast('1ignore')
+        assert_equal 0, column.type_cast('bad1')
+        assert_equal 0, column.type_cast('bad')
+        assert_equal 1, column.type_cast(1.7)
+        assert_nil column.type_cast(nil)
+      end
+
+      def test_type_cast_non_integer_to_integer
+        column = Column.new("field", nil, "integer")
+        assert_raises(NoMethodError) do
+          column.type_cast([])
+        end
+        assert_raises(NoMethodError) do
+          column.type_cast(true)
+        end
+        assert_raises(NoMethodError) do
+          column.type_cast(false)
+        end
+      end
     end
   end
 end
