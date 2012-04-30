@@ -574,8 +574,17 @@ module ActionDispatch
           raise_routing_error
         end
 
+        def descriptive_routing_error
+          error = "No route matches #{options.inspect}"
+          case options[:action]
+          when "show", "edit", "update", "destroy"
+            error << ", :id key is missing" if options.key?(:id).blank?
+          end
+          error
+        end
+
         def raise_routing_error
-          raise ActionController::RoutingError, "No route matches #{options.inspect} blah2"
+          raise ActionController::RoutingError, descriptive_routing_error
         end
 
         def different_controller?
