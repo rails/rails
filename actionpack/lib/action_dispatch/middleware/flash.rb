@@ -79,7 +79,6 @@ module ActionDispatch
 
       def initialize #:nodoc:
         @discard = Set.new
-        @closed  = false
         @flashes = {}
         @now     = nil
       end
