@@ -125,20 +125,13 @@ class BasicsTest < ActiveRecord::TestCase
 
   unless current_adapter?(:PostgreSQLAdapter,:OracleAdapter,:SQLServerAdapter)
     def test_limit_with_comma
-      assert_nothing_raised do
-        Topic.limit("1,2").all
-      end
+      assert Topic.limit("1,2").all
     end
   end
 
   def test_limit_without_comma
-    assert_nothing_raised do
-      assert_equal 1, Topic.limit("1").all.length
-    end
-
-    assert_nothing_raised do
-      assert_equal 1, Topic.limit(1).all.length
-    end
+    assert_equal 1, Topic.limit("1").all.length
+    assert_equal 1, Topic.limit(1).all.length
   end
 
   def test_invalid_limit
