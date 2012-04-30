@@ -217,6 +217,21 @@ class ModuleTest < ActiveSupport::TestCase
            "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
   end
 
+  def test_delegation_to_different_method_name
+    Project.send :delegate, {:supervisor => :name}, :to => :person
+    project = Project.new("Rails", Someone.new("Travis"))
+
+    assert_equal "Travis", project.supervisor
+  end
+
+  def test_delegation_for_multiple_different_method_names
+    Project.send :delegate, {:manager => :name, :office => :street}, :to => :person
+    project = Project.new("Rails", Someone.new("Travis", Somewhere.new("3 Abbey Road", "London")))
+
+    assert_equal "3 Abbey Road", project.office
+    assert_equal "Travis", project.manager
+  end
+
   def test_parent
     assert_equal Yz::Zy, Yz::Zy::Cd.parent
     assert_equal Yz, Yz::Zy.parent

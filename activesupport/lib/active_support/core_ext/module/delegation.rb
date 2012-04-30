@@ -1,8 +1,9 @@
 class Module
   # Provides a delegate class method to easily expose contained objects' public methods
-  # as your own. Pass one or more methods (specified as symbols or strings)
-  # and the name of the target object via the <tt>:to</tt> option (also a symbol
-  # or string). At least one method and the <tt>:to</tt> option are required.
+  # as your own. Pass one or more methods (specified as symbols or strings) or
+  # a hash with the keys being the new methods and the values being the
+  # original methods, and the name of the target object via the <tt>:to</tt> option
+  # (also a symbol or string). At least one method and the <tt>:to</tt> option are required.
   #
   # Delegation is particularly useful with Active Record associations:
   #
@@ -77,6 +78,14 @@ class Module
   #   invoice.customer_name    # => 'John Doe'
   #   invoice.customer_address # => 'Vimmersvej 13'
   #
+  # Delegates can also explicitly name methods via a hash.
+  #
+  #   Person = Struct.new(:name :street)
+  #
+  #   Project = Struct.new(:description, :person) do
+  #     delegate {:supervisor => :name, :address => :street}, :to => :person
+  #   end
+  #
   # If the delegate object is +nil+ an exception is raised, and that happens
   # no matter whether +nil+ responds to the delegated method. You can get a
   # +nil+ instead with the +:allow_nil+ option.
@@ -124,8 +133,16 @@ class Module
     file, line = caller.first.split(':', 2)
     line = line.to_i
 
+    if methods.size == 1 && methods[0].is_a?(Hash)
+      methods = methods[0]
+    end
+
     methods.each do |method|
-      method = method.to_s
+      if method.is_a?(Array)
+        method, original_method = method[0].to_s, method[1].to_s
+      else
+        original_method = method = method.to_s
+      end
 
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
@@ -135,16 +152,16 @@ class Module
         module_eval(<<-EOS, file, line - 2)
           def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
             if #{to} || #{to}.respond_to?(:#{method})         #   if client || client.respond_to?(:name)
-              #{to}.#{method}(#{definition})                  #     client.name(*args, &block)
+              #{to}.#{original_method}(#{definition})         #     client.name(*args, &block)
             end                                               #   end
           end                                                 # end
         EOS
       else
-        exception = %(raise "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
+        exception = %(raise "#{self}##{method_prefix}#{method} delegated to #{to}.#{original_method}, but #{to} is nil: \#{self.inspect}")
 
         module_eval(<<-EOS, file, line - 1)
           def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
-            #{to}.#{method}(#{definition})                    #   client.name(*args, &block)
+            #{to}.#{original_method}(#{definition})           #   client.name(*args, &block)
           rescue NoMethodError                                # rescue NoMethodError
             if #{to}.nil?                                     #   if client.nil?
               #{exception}                                    #     # add helpful message to the exception
