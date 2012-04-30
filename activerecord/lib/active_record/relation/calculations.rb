@@ -127,9 +127,9 @@ module ActiveRecord
 
       if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
         return construct_relation_for_association_calculations.pluck(column_name)
-      else
-        result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
       end
+
+      result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
 
       types  = result.column_types.merge klass.column_types
       column = types[key]
