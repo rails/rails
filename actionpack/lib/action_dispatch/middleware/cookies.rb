@@ -82,7 +82,7 @@ module ActionDispatch
     TOKEN_KEY   = "action_dispatch.secret_token".freeze
 
     # Raised when storing more than 4K of session data.
-    class CookieOverflow < StandardError; end
+    CookieOverflow = Class.new StandardError
 
     class CookieJar #:nodoc:
       include Enumerable
