@@ -394,11 +394,10 @@ This action is now displaying the parameters for the post that are coming in fro
 
 h4. Creating the Post model
 
-Rails uses models to manage database objects, so if you want to save
-data to the database you'll have to create a model. In our blog
-application you want to save posts, so you'll create a +Post+ model.
-
-You can create a model with the following command:
+Models in Rails use a singular name, and their corresponding database tables use
+a plural name. Rails provides a generator for creating models, which
+most Rails developers tend to use when creating new models.
+To create the new model, run this command in your terminal:
 
 <shell>
 $ rails generate model Post title:string text:text
@@ -1155,18 +1154,14 @@ of declaring routes manually. For more information about routing, see
 
 h3. Adding a Second Model
 
-Now that you've seen what a model built with scaffolding looks like, it's time to
-add a second model to the application. The second model will handle comments on
+It's time to add a second model to the application. The second model will handle comments on
 blog posts.
 
 h4. Generating a Model
 
-Models in Rails use a singular name, and their corresponding database tables use
-a plural name. For the model to hold comments, the convention is to use the name
-+Comment+. Even if you don't want to use the entire apparatus set up by
-scaffolding, most Rails developers still use generators to make things like
-models and controllers. To create the new model, run this command in your
-terminal:
+We're going to se the same generator that we used before when creating
+the +Post+ model. This time we'll create a +Comment+ model to hold
+reference of post comments. Run this command in your terminal:
 
 <shell>
 $ rails generate model Comment commenter:string body:text post:references
@@ -1254,7 +1249,6 @@ You'll need to edit the +post.rb+ file to add the other side of the association:
 
 <ruby>
 class Post < ActiveRecord::Base
-  validates :name,  :presence => true
   validates :title, :presence => true,
                     :length => { :minimum => 5 }
 
@@ -1273,9 +1267,7 @@ h4. Adding a Route for Comments
 
 As with the +welcome+ controller, we will need to add a route so that Rails knows
 where we would like to navigate to see +comments+. Open up the
-+config/routes.rb+ file again. Near the top, you will see the entry for +posts+
-that was added automatically by the scaffold generator: +resources
-:posts+. Edit it as follows:
++config/routes.rb+ file again, and edit it as follows:
 
 <ruby>
 resources :posts do
@@ -1293,7 +1285,7 @@ In":routing.html guide.
 h4. Generating a Controller
 
 With the model in hand, you can turn your attention to creating a matching
-controller. Again, there's a generator for this:
+controller. Again, we'll use the same generator we used before:
 
 <shell>
 $ rails generate controller Comments
@@ -1320,36 +1312,29 @@ So first, we'll wire up the Post show template
 (+/app/views/posts/show.html.erb+) to let us make a new comment:
 
 <erb>
-<p id="notice"><%= notice %></p>
-
 <p>
-  <b>Name:</b>
-  <%= @post.name %>
-</p>
-
-<p>
-  <b>Title:</b>
+  <strong>Title:</strong>
   <%= @post.title %>
 </p>
 
 <p>
-  <b>Content:</b>
-  <%= @post.content %>
+  <strong>Text:</strong>
+  <%= @post.texthttp://beginningruby.org/ %>
 </p>
 
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
-  <div class="field">
+  <p>
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>
-  </div>
-  <div class="field">
+  </p>
+  <p>
     <%= f.label :body %><br />
     <%= f.text_area :body %>
-  </div>
-  <div class="actions">
+  </p>
+  <p>
     <%= f.submit %>
-  </div>
+  </p>
 <% end %>
 
 <%= link_to 'Edit Post', edit_post_path(@post) %> |
