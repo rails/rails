@@ -3,7 +3,7 @@ source 'http://rubygems.org'
 gemspec
 
 gem "rake",  ">= 0.8.7"
-gem "mocha", ">= 0.9.8"
+gem "mocha", "0.10.5"
 
 group :doc do
   gem "rdoc",  "~> 3.4"
