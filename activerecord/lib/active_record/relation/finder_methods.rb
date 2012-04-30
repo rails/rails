@@ -217,7 +217,7 @@ module ActiveRecord
       if match.bang? && result.blank?
         raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
       else
-        yield(result) if block_given?
+        yield(result) if block_given? && result
         result
       end
     end
