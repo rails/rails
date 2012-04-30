@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix AR#create to return an unsaved record when AR::RecordInvalid is
+    raised. Fixes #3217.
+
+    *Dave Yeu*
+
 *   Fixed table name prefix that is generated in engines for namespaced models
     *Wojciech Wnętrzak*
 
