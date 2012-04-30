@@ -19,7 +19,7 @@ module ActionView
     #   of \date[month].
     module DateHelper
       # Reports the approximate distance in time between two Time, Date or DateTime objects or integers as seconds.
-      # Set <tt>include_seconds</tt> to true if you want more detailed approximations when distance < 1 min, 29 secs.
+      # Pass <tt>:include_seconds => true</tt> if you want more detailed approximations when distance < 1 min, 29 secs.
       # Distances are reported based on the following table:
       #
       #   0 <-> 29 secs                                                             # => less than a minute
@@ -36,7 +36,7 @@ module ActionView
       #   1 yr, 9 months <-> 2 yr minus 1 sec                                       # => almost 2 years
       #   2 yrs <-> max time or date                                                # => (same rules as 1 yr)
       #
-      # With <tt>include_seconds</tt> = true and the difference < 1 minute 29 seconds:
+      # With <tt>:include_seconds => true</tt> and the difference < 1 minute 29 seconds:
       #   0-4   secs      # => less than 5 seconds
       #   5-9   secs      # => less than 10 seconds
       #   10-19 secs      # => less than 20 seconds
@@ -46,28 +46,33 @@ module ActionView
       #
       # ==== Examples
       #   from_time = Time.now
-      #   distance_of_time_in_words(from_time, from_time + 50.minutes)        # => about 1 hour
-      #   distance_of_time_in_words(from_time, 50.minutes.from_now)           # => about 1 hour
-      #   distance_of_time_in_words(from_time, from_time + 15.seconds)        # => less than a minute
-      #   distance_of_time_in_words(from_time, from_time + 15.seconds, true)  # => less than 20 seconds
-      #   distance_of_time_in_words(from_time, 3.years.from_now)              # => about 3 years
-      #   distance_of_time_in_words(from_time, from_time + 60.hours)          # => 3 days
-      #   distance_of_time_in_words(from_time, from_time + 45.seconds, true)  # => less than a minute
-      #   distance_of_time_in_words(from_time, from_time - 45.seconds, true)  # => less than a minute
-      #   distance_of_time_in_words(from_time, 76.seconds.from_now)           # => 1 minute
-      #   distance_of_time_in_words(from_time, from_time + 1.year + 3.days)   # => about 1 year
-      #   distance_of_time_in_words(from_time, from_time + 3.years + 6.months) # => over 3 years
+      #   distance_of_time_in_words(from_time, from_time + 50.minutes)                                # => about 1 hour
+      #   distance_of_time_in_words(from_time, 50.minutes.from_now)                                   # => about 1 hour
+      #   distance_of_time_in_words(from_time, from_time + 15.seconds)                                # => less than a minute
+      #   distance_of_time_in_words(from_time, from_time + 15.seconds, :include_seconds => true)      # => less than 20 seconds
+      #   distance_of_time_in_words(from_time, 3.years.from_now)                                      # => about 3 years
+      #   distance_of_time_in_words(from_time, from_time + 60.hours)                                  # => 3 days
+      #   distance_of_time_in_words(from_time, from_time + 45.seconds, :include_seconds => true)      # => less than a minute
+      #   distance_of_time_in_words(from_time, from_time - 45.seconds, :include_seconds => true)      # => less than a minute
+      #   distance_of_time_in_words(from_time, 76.seconds.from_now)                                   # => 1 minute
+      #   distance_of_time_in_words(from_time, from_time + 1.year + 3.days)                           # => about 1 year
+      #   distance_of_time_in_words(from_time, from_time + 3.years + 6.months)                        # => over 3 years
       #   distance_of_time_in_words(from_time, from_time + 4.years + 9.days + 30.minutes + 5.seconds) # => about 4 years
       #
       #   to_time = Time.now + 6.years + 19.days
-      #   distance_of_time_in_words(from_time, to_time, true)     # => about 6 years
-      #   distance_of_time_in_words(to_time, from_time, true)     # => about 6 years
-      #   distance_of_time_in_words(Time.now, Time.now)           # => less than a minute
+      #   distance_of_time_in_words(from_time, to_time, :include_seconds => true)                     # => about 6 years
+      #   distance_of_time_in_words(to_time, from_time, :include_seconds => true)                     # => about 6 years
+      #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       #
-      #   distance_of_time_in_words(70)         # => 1 minute
-      #   distance_of_time_in_words(60*60)      # => about 1 hour
-      #
-      def distance_of_time_in_words(from_time, to_time = 0, include_seconds = false, options = {})
+      def distance_of_time_in_words(from_time, to_time = 0, include_seconds_or_options = {}, options = {})
+        unless include_seconds_or_options.is_a?(Hash)
+          ActiveSupport::Deprecation.warn "distance_of_time_in_words and time_ago_in_words now accept :include_seconds " +
+                                          "as a part of options hash, not a boolean argument", caller
+          options[:include_seconds] ||= !!include_seconds_or_options
+        else
+          options = include_seconds_or_options
+        end
+
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
         from_time, to_time = to_time, from_time if from_time > to_time
@@ -79,7 +84,7 @@ module ActionView
             when 0..1
               return distance_in_minutes == 0 ?
                      locale.t(:less_than_x_minutes, :count => 1) :
-                     locale.t(:x_minutes, :count => distance_in_minutes) unless include_seconds
+                     locale.t(:x_minutes, :count => distance_in_minutes) unless options[:include_seconds]
 
               case distance_in_seconds
                 when 0..4   then locale.t :less_than_x_seconds, :count => 5
@@ -130,15 +135,16 @@ module ActionView
       # Like <tt>distance_of_time_in_words</tt>, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
       #
       # ==== Examples
-      #   time_ago_in_words(3.minutes.from_now)       # => 3 minutes
-      #   time_ago_in_words(Time.now - 15.hours)      # => about 15 hours
-      #   time_ago_in_words(Time.now)                 # => less than a minute
+      #   time_ago_in_words(3.minutes.from_now)                 # => 3 minutes
+      #   time_ago_in_words(Time.now - 15.hours)                # => about 15 hours
+      #   time_ago_in_words(Time.now)                           # => less than a minute
+      #   time_ago_in_words(Time.now, :include_seconds => true) # => less than 5 seconds
       #
       #   from_time = Time.now - 3.days - 14.minutes - 25.seconds
       #   time_ago_in_words(from_time)      # => 3 days
       #
-      def time_ago_in_words(from_time, include_seconds = false)
-        distance_of_time_in_words(from_time, Time.now, include_seconds)
+      def time_ago_in_words(from_time, include_seconds_or_options = {})
+        distance_of_time_in_words(from_time, Time.now, include_seconds_or_options)
       end
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
