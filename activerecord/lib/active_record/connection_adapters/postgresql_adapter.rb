@@ -965,8 +965,9 @@ module ActiveRecord
           desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
           orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
           where = inddef.scan(/WHERE (.+)$/).flatten[0]
+          method = inddef.scan(/USING (.+?) /).flatten[0].to_sym
 
-          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where)
+          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, method)
         end.compact
       end
 
@@ -1195,6 +1196,15 @@ module ActiveRecord
       def rename_column(table_name, column_name, new_column_name)
         clear_cache!
         execute "ALTER TABLE #{quote_table_name(table_name)} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
+      end
+
+      def add_index(table_name, column_name, options = {}) #:nodoc:
+        if Hash === options && options[:method]
+          index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
+          execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} USING #{options[:method]} (#{index_columns})#{index_options}"
+        else
+          super
+        end
       end
 
       def remove_index!(table_name, index_name) #:nodoc:
