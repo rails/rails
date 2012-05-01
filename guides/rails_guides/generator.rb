@@ -117,12 +117,8 @@ module RailsGuides
     end
 
     def generate_mobi
-      require 'rails_guides/docrails_kindle'
-
-      opf = "#{output_dir}/rails_guides.opf"
-      out = "#{output_dir}/kindlegen.out"
-      DocrailsKindle.generate(output_dir, mobi)
-
+      require 'rails_guides/kindle'
+      Kindle.generate(output_dir, mobi)
     end
 
     def mobi
