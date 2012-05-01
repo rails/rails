@@ -138,23 +138,23 @@ module Rails
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'journey',   :git => 'https://github.com/rails/journey.git'
-            gem 'arel',      :git => 'https://github.com/rails/arel.git'
-            gem 'active_record_deprecated_finders', :git => 'git://github.com/rails/active_record_deprecated_finders.git'
+            gem 'journey',   :github => 'rails/journey'
+            gem 'arel',      :github => 'rails/arel'
+            gem 'active_record_deprecated_finders', :github => 'rails/active_record_deprecated_finders'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
-            gem 'rails',     :git => 'https://github.com/rails/rails.git'
-            gem 'journey',   :git => 'https://github.com/rails/journey.git'
-            gem 'arel',      :git => 'https://github.com/rails/arel.git'
-            gem 'active_record_deprecated_finders', :git => 'git://github.com/rails/active_record_deprecated_finders.git'
+            gem 'rails',     :github => 'rails/rails'
+            gem 'journey',   :github => 'rails/journey'
+            gem 'arel',      :github => 'rails/arel'
+            gem 'active_record_deprecated_finders', :github => 'rails/active_record_deprecated_finders'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
-            # gem 'rails', :git => 'https://github.com/rails/rails.git'
+            # gem 'rails', :github => 'rails/rails'
           GEMFILE
         end
       end
