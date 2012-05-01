@@ -1338,7 +1338,7 @@ So first, we'll wire up the Post show template
 <% end %>
 
 <%= link_to 'Edit Post', edit_post_path(@post) %> |
-<%= link_to 'Back to Posts', posts_path %> |
+<%= link_to 'Back to Posts', posts_path %>
 </erb>
 
 This adds a form on the +Post+ show page that creates a new comment by
