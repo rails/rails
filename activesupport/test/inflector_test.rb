@@ -180,6 +180,10 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_underscores_in_namespace_idempotent_when_underscored
+    assert_equal("v0__1__0/application", ActiveSupport::Inflector.underscore("v0__1__0/application"))
+  end
+
   def test_camelize_with_module
     CamelWithModuleToUnderscoreWithSlash.each do |camel, underscore|
       assert_equal(camel, ActiveSupport::Inflector.camelize(underscore))
