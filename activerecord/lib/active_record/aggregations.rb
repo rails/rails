@@ -101,8 +101,8 @@ module ActiveRecord
     # ActiveRecord::Base classes are entity objects.
     #
     # It's also important to treat the value objects as immutable. Don't allow the Money object to have
-    # its amount changed after creation. Create a new Money object with the new value instead. This
-    # is exemplified by the Money#exchange_to method that returns a new value object instead of changing
+    # its amount changed after creation. Create a new Money object with the new value instead. The
+    # Money#exchange_to method is an example of this. It returns a new value object instead of changing
     # its own values. Active Record won't persist value objects that have been changed through means
     # other than the writer method.
     #
@@ -119,7 +119,7 @@ module ActiveRecord
     # option, as arguments. If the value class doesn't support this convention then +composed_of+ allows
     # a custom constructor to be specified.
     #
-    # When a new value is assigned to the value object the default assumption is that the new value
+    # When a new value is assigned to the value object, the default assumption is that the new value
     # is an instance of the value class. Specifying a custom converter allows the new value to be automatically
     # converted to an instance of value class if necessary.
     #
