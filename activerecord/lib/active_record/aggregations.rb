@@ -86,6 +86,10 @@ module ActiveRecord
     #   customer.address_street = "Hyancintvej"
     #   customer.address_city   = "Copenhagen"
     #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
+    #   customer.address_street = "Vesterbrogade"
+    #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
+    #   customer.clear_aggregation_cache
+    #   customer.address        # => Address.new("Vesterbrogade", "Copenhagen")
     #   customer.address = Address.new("May Street", "Chicago")
     #   customer.address_street # => "May Street"
     #   customer.address_city   # => "Chicago"
