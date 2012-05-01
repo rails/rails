@@ -29,7 +29,7 @@ module ActiveModel
       end
 
       def logger?
-        @target.respond_to?(:logger) && @target.logger
+        @target.respond_to?(:logger) && logger
       end
 
       def process_removed_attributes(attrs)
