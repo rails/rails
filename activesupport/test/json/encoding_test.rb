@@ -30,6 +30,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
                    [ 0.0/0.0,   %(null) ],
                    [ 1.0/0.0,   %(null) ],
                    [ -1.0/0.0,  %(null) ],
+                   [ BigDecimal('0.0')/BigDecimal('0.0'),  %(null) ],
                    [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s}") ]]
 
   StringTests   = [[ 'this is the <string>',     %("this is the \\u003Cstring\\u003E")],

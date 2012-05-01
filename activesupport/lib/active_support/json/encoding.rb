@@ -183,6 +183,8 @@ class Numeric
 end
 
 class Float
+  # Encoding Infinity or NaN to JSON should return "null". The default returns
+  # "Infinity" or "NaN" what breaks parsing the JSON. E.g. JSON.parse('[NaN]').
   def as_json(options = nil) finite? ? self : NilClass::AS_JSON end #:nodoc:
 end
 
@@ -195,7 +197,7 @@ class BigDecimal
   # That's why a JSON string is returned. The JSON literal is not numeric, but if
   # the other end knows by contract that the data is supposed to be a BigDecimal,
   # it still has the chance to post-process the string and get the real value.
-  def as_json(options = nil) to_s end #:nodoc:
+  def as_json(options = nil) finite? ? to_s : NilClass::AS_JSON end #:nodoc:
 end
 
 class Regexp
