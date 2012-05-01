@@ -1,6 +1,6 @@
 module ActionDispatch
   class RemoteIp
-    class IpSpoofAttackError < StandardError ; end
+    IpSpoofAttackError = Class.new StandardError
 
     # IP addresses that are "trusted proxies" that can be stripped from
     # the comma-delimited list in the X-Forwarded-For header. See also:
