@@ -14,7 +14,7 @@ module ActionController #:nodoc:
     protected
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
       # via the Rack::Sendfile middleware. The header to use is set via
-      # config.action_dispatch.x_sendfile_header.
+      # +config.action_dispatch.x_sendfile_header+.
       # Your server can also configure this for you by setting the X-Sendfile-Type header.
       #
       # Be careful to sanitize the path parameter if it is coming from a web

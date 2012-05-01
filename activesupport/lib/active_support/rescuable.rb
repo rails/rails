@@ -48,6 +48,7 @@ module ActiveSupport
       #       end
       #   end
       #
+      # Exceptions raised inside exception handlers are not propagated up.
       def rescue_from(*klasses, &block)
         options = klasses.extract_options!
 

@@ -83,6 +83,7 @@ module ActiveModel
   # in-place attributes.
   #
   #   person.name_will_change!
+  #   person.name_change    # => ['Bill', 'Bill']
   #   person.name << 'y'
   #   person.name_change    # => ['Bill', 'Billy']
   module Dirty

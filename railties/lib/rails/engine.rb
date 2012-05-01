@@ -332,7 +332,7 @@ module Rails
   #
   # == Loading priority
   #
-  # In order to change engine's priority you can use config.railties_order in main application.
+  # In order to change engine's priority you can use +config.railties_order+ in main application.
   # It will affect the priority of loading views, helpers, assets and all the other files
   # related to engine or application.
   #

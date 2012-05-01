@@ -227,7 +227,7 @@ module ActionDispatch
       # cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
       # be raised.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's config.secret_token.
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_token+.
       #
       # Example:
       #
