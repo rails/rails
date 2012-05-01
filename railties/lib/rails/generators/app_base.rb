@@ -37,6 +37,9 @@ module Rails
         class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
                                           :desc => "Skip Active Record files"
 
+        class_option :skip_action_mailer, :type => :boolean, :aliases => "-M", :default => false,
+                                          :desc => "Skip Action Mailer files"
+
         class_option :skip_sprockets,     :type => :boolean, :aliases => "-S", :default => false,
                                           :desc => "Skip Sprockets files"
 
@@ -127,7 +130,7 @@ module Rails
       end
 
       def include_all_railties?
-        !options[:skip_active_record] && !options[:skip_test_unit] && !options[:skip_sprockets]
+        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test_unit, :skip_sprockets).none?
       end
 
       def comment_if(value)
@@ -150,11 +153,30 @@ module Rails
             gem 'active_record_deprecated_finders', :git => 'git://github.com/rails/active_record_deprecated_finders.git'
           GEMFILE
         else
+          railties_gemfile_entry
+        end
+      end
+
+      def railties_gemfile_entry
+        if include_all_railties?
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
             # gem 'rails', :git => 'https://github.com/rails/rails.git'
+
+            # Or pick the frameworks you want:
+            # gem 'railties', '#{Rails::VERSION::STRING}'
+            # gem 'activerecord', '#{Rails::VERSION::STRING}'
+            # gem 'actionmailer', '#{Rails::VERSION::STRING}'
+            # gem 'sprockets-rails', '~> 1.0'
+          GEMFILE
+        else
+          <<-GEMFILE.strip_heredoc
+            gem 'railties', '#{Rails::VERSION::STRING}'
+            #{comment_if :skip_active_record}gem 'activerecord', '#{Rails::VERSION::STRING}'
+            #{comment_if :skip_action_mailer}gem 'actionmailer', '#{Rails::VERSION::STRING}'
+            #{comment_if :skip_sprockets}gem 'sprockets-rails', '~> 1.0'
           GEMFILE
         end
       end

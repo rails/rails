@@ -208,10 +208,28 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_gemfile_without_skips
+    run_generator
+    assert_file "Gemfile" do |gemfile_content|
+      assert_match(/^gem ["']rails["']/, gemfile_content)
+      assert_match(/# gem ["']railties["']/, gemfile_content)
+      assert_match(/# gem ["']activerecord["']/, gemfile_content)
+      assert_match(/# gem ["']actionmailer["']/, gemfile_content)
+      assert_match(/# gem ["']sprockets-rails["'], '~> 1\.0'/, gemfile_content)
+    end
+  end
+
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
-    assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+    assert_file "Gemfile" do |gemfile_content|
+      assert_no_match(/gem ["']rails["']/, gemfile_content)
+      assert_match(/gem ["']railties["']/, gemfile_content)
+      assert_match(/# gem ["']activerecord["']/, gemfile_content)
+      assert_match(/gem ["']actionmailer["']/, gemfile_content)
+      assert_match(/gem ["']sprockets-rails["'], '~> 1\.0'/, gemfile_content)
+    end
+    assert_file "config/application.rb", /\s+require\s+["']rails\/all["']/
     assert_file "config/application.rb", /#\s+config\.active_record\.whitelist_attributes = true/
     assert_file "config/application.rb", /#\s+config\.active_record\.dependent_restrict_raises = false/
     assert_file "test/test_helper.rb" do |helper_content|
@@ -220,10 +238,38 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/performance/browsing_test.rb"
   end
 
+  def test_generator_if_skip_action_mailer_is_given
+    run_generator [destination_root, "--skip-action-mailer"]
+    assert_file "Gemfile" do |gemfile_content|
+      assert_no_match(/gem ["']rails["']/, gemfile_content)
+      assert_match(/gem ["']railties["']/, gemfile_content)
+      assert_match(/gem ["']activerecord["']/, gemfile_content)
+      assert_match(/# gem ["']actionmailer["']/, gemfile_content)
+      assert_match(/gem ["']sprockets-rails["'], '~> 1\.0'/, gemfile_content)
+    end
+    assert_file "config/application.rb", /\s+require\s+["']rails\/all["']/
+    assert_file "config/environments/development.rb" do |content|
+      assert_no_match(/config\.action_mailer\.raise_delivery_errors = false/, content)
+    end
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
+    end
+    assert_file "config/environments/test.rb" do |content|
+      assert_no_match(/config\.action_mailer\.delivery_method = :test/, content)
+    end
+  end
+
   def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
+    assert_file "Gemfile" do |gemfile_content|
+      assert_no_match(/gem ["']rails["']/, gemfile_content)
+      assert_match(/gem ["']activerecord["']/, gemfile_content)
+      assert_match(/gem ["']actionmailer["']/, gemfile_content)
+      assert_match(/gem ["']railties["']/, gemfile_content)
+      assert_match(/# gem ["']sprockets-rails["'], '~> 1\.0'/, gemfile_content)
+    end
     assert_file "config/application.rb" do |content|
-      assert_match(/#\s+require\s+["']sprockets\/rails\/railtie["']/, content)
+      assert_match(/\s+require\s+["']rails\/all["']/, content)
       assert_no_match(/config\.assets\.enabled = true/, content)
     end
     assert_file "Gemfile" do |content|
@@ -341,6 +387,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-test-unit", "--skip-active-record"]
     assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+  end
+
+  def test_no_action_mailer_or_test_unit_if_skips_given
+    run_generator [destination_root, "--skip-test-unit", "--skip-action-mailer"]
+    assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
+    assert_file "config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
+  end
+
+  def test_no_sprockets_or_test_unit_if_skips_given
+    run_generator [destination_root, "--skip-test-unit", "--skip-sprockets"]
+    assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
+    assert_file "config/application.rb", /#\s+require\s+["']sprockets\/rails\/railtie["']/
   end
 
   def test_new_hash_style

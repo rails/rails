@@ -32,7 +32,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
     content = capture(:stderr){ run_generator [File.join(destination_root, "things4.3")] }
     assert_equal "Invalid plugin name things4.3. Please give a name which use only alphabetic or numeric or \"_\" characters.\n", content
- 
+
     content = capture(:stderr){ run_generator [File.join(destination_root, "43things")] }
     assert_equal "Invalid plugin name 43things. Please give a name which does not start with numbers.\n", content
   end
@@ -92,6 +92,12 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy/config/database.yml"
     assert_no_match(/ActiveRecord/, File.read(File.join(destination_root, "test/test_helper.rb")))
   end
+
+  def test_action_mailer_is_removed_from_frameworks_if_skip_action_mailer_is_given
+    run_generator [destination_root, "--skip-action-mailer"]
+    assert_file "test/dummy/config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
+  end
+
 
   def test_ensure_that_database_option_is_passed_to_app_generator
     run_generator [destination_root, "--database", "postgresql"]
