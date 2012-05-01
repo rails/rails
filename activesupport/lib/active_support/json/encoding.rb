@@ -182,6 +182,10 @@ class Numeric
   def encode_json(encoder) to_s end #:nodoc:
 end
 
+class Float
+  def as_json(options = nil) finite? ? self : NilClass::AS_JSON end #:nodoc:
+end
+
 class BigDecimal
   # A BigDecimal would be naturally represented as a JSON number. Most libraries,
   # however, parse non-integer JSON numbers directly as floats. Clients using
