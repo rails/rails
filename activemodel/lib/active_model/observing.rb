@@ -110,25 +110,24 @@ module ActiveModel
         end
     end
 
-    private
-      # Fires notifications to model's observers
-      #
-      #   def save
-      #     notify_observers(:before_save)
-      #     ...
-      #     notify_observers(:after_save)
-      #   end
-      #
-      # Custom notifications can be sent in a similar fashion:
-      #
-      #   notify_observers(:custom_notification, :foo)
-      #
-      # This will call +custom_notification+, passing as arguments
-      # the current object and :foo.
-      #
-      def notify_observers(method, *extra_args)
-        self.class.notify_observers(method, self, *extra_args)
-      end
+    # Fires notifications to model's observers
+    #
+    #   def save
+    #     notify_observers(:before_save)
+    #     ...
+    #     notify_observers(:after_save)
+    #   end
+    #
+    # Custom notifications can be sent in a similar fashion:
+    #
+    #   notify_observers(:custom_notification, :foo)
+    #
+    # This will call +custom_notification+, passing as arguments
+    # the current object and :foo.
+    #
+    def notify_observers(method, *extra_args)
+      self.class.notify_observers(method, self, *extra_args)
+    end
   end
 
   # == Active Model Observers
