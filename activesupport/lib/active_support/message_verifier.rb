@@ -24,7 +24,7 @@ module ActiveSupport
   #
   #   @verifier.serializer = YAML
   class MessageVerifier
-    class InvalidSignature < StandardError; end
+    InvalidSignature = Class.new StandardError
 
     def initialize(secret, options = {})
       @secret = secret

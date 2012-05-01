@@ -1,9 +1,7 @@
 module ActionController
-  class ActionControllerError < StandardError #:nodoc:
-  end
+  ActionControllerError = Class.new StandardError
 
-  class RenderError < ActionControllerError #:nodoc:
-  end
+  RenderError = Class.new ActionControllerError
 
   class RoutingError < ActionControllerError #:nodoc:
     attr_reader :failures
@@ -19,14 +17,11 @@ module ActionController
     end
   end
 
-  class NotImplemented < MethodNotAllowed #:nodoc:
-  end
+  NotImplemented = Class.new MethodNotAllowed
 
-  class UnknownController < ActionControllerError #:nodoc:
-  end
+  UnknownController = Class.new ActionControllerError
 
-  class MissingFile < ActionControllerError #:nodoc:
-  end
+  MissingFile = Class.new ActionControllerError #:nodoc:
 
   class SessionOverflowError < ActionControllerError #:nodoc:
     DEFAULT_MESSAGE = 'Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data.'
@@ -36,6 +31,5 @@ module ActionController
     end
   end
 
-  class UnknownHttpMethod < ActionControllerError #:nodoc:
-  end
+  UnknownHttpMethod = Class.new ActionControllerError #:nodoc:
 end

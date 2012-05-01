@@ -30,7 +30,7 @@ module ActiveSupport
     end
 
     module Encoding #:nodoc:
-      class CircularReferenceError < StandardError; end
+      CircularReferenceError = Class.new StandardError
 
       class Encoder
         attr_reader :options
@@ -117,7 +117,9 @@ module ActiveSupport
         end
 
         def escape(string)
-          string = string.encode(::Encoding::UTF_8, :undef => :replace).force_encoding(::Encoding::BINARY)
+          string = string.
+            encode(::Encoding::UTF_8, :undef => :replace).
+            force_encoding(::Encoding::BINARY)
           json = string.
             gsub(escape_regex) { |s| ESCAPED_CHARS[s] }.
             gsub(/([\xC0-\xDF][\x80-\xBF]|
@@ -138,13 +140,7 @@ module ActiveSupport
 end
 
 class Object
-  def as_json(options = nil) #:nodoc:
-    if respond_to?(:to_hash)
-      to_hash
-    else
-      instance_values
-    end
-  end
+  def as_json(options = nil) respond_to?(:to_hash) ? to_hash : instance_values end #:nodoc:
 end
 
 class Struct #:nodoc:
@@ -215,7 +211,8 @@ end
 class Array
   def as_json(options = nil) #:nodoc:
     # use encoder as a proxy to call as_json on all elements, to protect from circular references
-    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
+    encoder = options && options[:encoder] ||
+      ActiveSupport::JSON::Encoding::Encoder.new(options)
     map { |v| encoder.as_json(v, options) }
   end
 
@@ -241,7 +238,8 @@ class Hash
     end
 
     # use encoder as a proxy to call as_json on all values in the subset, to protect from circular references
-    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
+    encoder = options && options[:encoder] ||
+      ActiveSupport::JSON::Encoding::Encoder.new(options)
     Hash[subset.map { |k, v| [k.to_s, encoder.as_json(v, options)] }]
   end
 
