@@ -1061,7 +1061,7 @@ module ActiveRecord #:nodoc:
             super unless all_attributes_exists?(attribute_names)
             if !arguments.first.is_a?(Hash) && arguments.size < attribute_names.size
               ActiveSupport::Deprecation.warn(<<-eowarn)
-Calling dynamic finder with less number of arguments than the number of attributes in method name is deprecated and will raise an ArguementError in the next version of Rails. Please passing `nil' to the argument you want it to be nil.
+Calling dynamic finder with less number of arguments than the number of attributes in the method name is deprecated and will raise an ArgumentError in the next version of Rails. Please pass `nil' explicitly to the arguments that are left out.
                 eowarn
             end
             if match.finder?
@@ -1077,8 +1077,8 @@ Calling dynamic finder with less number of arguments than the number of attribut
             if arguments.size < attribute_names.size
               ActiveSupport::Deprecation.warn(
                 "Calling dynamic scope with less number of arguments than the number of attributes in " \
-                "method name is deprecated and will raise an ArguementError in the next version of Rails. " \
-                "Please passing `nil' to the argument you want it to be nil."
+                "the method name is deprecated and will raise an ArgumentError in the next version of Rails. " \
+                "Please pass `nil' explicitly to the arguments that are left out."
               )
             end
             if match.scope?
