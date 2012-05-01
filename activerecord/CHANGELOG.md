@@ -580,19 +580,6 @@
     a URI that specifies the connection configuration.  For example:
         ActiveRecord::Base.establish_connection 'postgres://localhost/foo'
 
-*   Active Record's dynamic finder will now raise the error if you passing in less number of arguments than what you call in method signature.
-
-    So if you were doing this and expecting the second argument to be nil:
-
-        User.find_by_username_and_group("sikachu")
-
-    You'll now get `ArgumentError: wrong number of arguments (1 for 2).` You'll then have to do this:
-
-        User.find_by_username_and_group("sikachu", nil)
-
-    *Prem Sichanugrist*
-
-
 ## Rails 3.1.0 (August 30, 2011) ##
 
 *   Add a proxy_association method to association proxies, which can be called by association
