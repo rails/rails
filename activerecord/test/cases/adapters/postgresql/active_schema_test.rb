@@ -30,6 +30,17 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
     expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'")
 
+    %w(gin gist hash btree).each do |method|
+      expected = %(CREATE  INDEX "index_people_on_last_name" ON "people" USING #{method} ("last_name"))
+      assert_equal expected, add_index(:people, :last_name, :method => method)
+    end
+
+    expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" USING gist ("last_name"))
+    assert_equal expected, add_index(:people, :last_name, :unique => true, :method => :gist)
+
+    expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" USING gist ("last_name") WHERE state = 'active')
+    assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'", :method => :gist)
+
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:remove_method, :index_name_exists?)
   end
 
