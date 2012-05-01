@@ -688,6 +688,10 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
+  def test_delete_all_limit_error
+    assert_raises(ActiveRecord::ActiveRecordError) { Author.limit(10).delete_all }
+  end
+
   def test_select_argument_error
     assert_raises(ArgumentError) { Developer.select }
   end
