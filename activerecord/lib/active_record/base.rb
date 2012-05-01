@@ -314,7 +314,7 @@ module ActiveRecord #:nodoc:
   #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of
   #   AttributeAssignmentError
   #   objects that should be inspected to determine which attributes triggered the errors.
-  # * RecordInvalid - raised by save! and create! when the record is invalid
+  # * RecordInvalid - raised by save! and create! when the record is invalid.
   # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
   #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
   #   nothing was found, please check its documentation for further details.

@@ -204,7 +204,7 @@ module ActiveSupport
       @current_period = nil
     end
 
-    # Returns the offset of this time zone in seconds.
+    # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
       if @utc_offset
         @utc_offset
