@@ -110,7 +110,7 @@ module SharedGeneratorTests
   def test_edge_option
     generator([destination_root], :edge => true).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
-    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("https://github.com/rails/rails.git")}["']$}
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:github\s+=>\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
   def test_skip_gemfile
