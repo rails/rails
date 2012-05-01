@@ -144,7 +144,7 @@ module ActiveRecord
     # Examples:
     #
     #   Person.ids # SELECT people.id FROM people
-    #   Person.joins(:companies).ids # SELECT people.id FROM PEOPLE INNER JOIN companies ON companies.person_id = people.id
+    #   Person.joins(:companies).ids # SELECT people.id FROM people INNER JOIN companies ON companies.person_id = people.id
     def ids
       pluck primary_key
     end
