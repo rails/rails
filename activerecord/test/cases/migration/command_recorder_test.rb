@@ -73,6 +73,18 @@ module ActiveRecord
         assert_equal [:drop_table, [:people_reminders]], drop_table
       end
 
+      def test_invert_create_join_table
+        @recorder.record :create_join_table, [:musics, :artists]
+        drop_table = @recorder.inverse.first
+        assert_equal [:drop_table, [:artists_musics]], drop_table
+      end
+
+      def test_invert_create_join_table_with_table_name
+        @recorder.record :create_join_table, [:musics, :artists, {:table_name => :catalog}]
+        drop_table = @recorder.inverse.first
+        assert_equal [:drop_table, [:catalog]], drop_table
+      end
+
       def test_invert_rename_table
         @recorder.record :rename_table, [:old, :new]
         rename = @recorder.inverse.first

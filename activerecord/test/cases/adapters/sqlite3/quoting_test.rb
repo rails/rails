@@ -1,15 +1,24 @@
 require "cases/helper"
 require 'bigdecimal'
 require 'yaml'
+require 'securerandom'
 
 module ActiveRecord
   module ConnectionAdapters
-    class SQLiteAdapter
+    class SQLite3Adapter
       class QuotingTest < ActiveRecord::TestCase
         def setup
           @conn = Base.sqlite3_connection :database => ':memory:',
             :adapter => 'sqlite3',
             :timeout => 100
+        end
+
+        def test_type_cast_binary_encoding_without_logger
+          @conn.extend(Module.new { def logger; end })
+          column = Struct.new(:type, :name).new(:string, "foo")
+          binary = SecureRandom.hex
+          expected = binary.dup.encode!('utf-8')
+          assert_equal expected, @conn.type_cast(binary, column)
         end
 
         def test_type_cast_symbol
@@ -70,9 +79,9 @@ module ActiveRecord
           assert_equal bd.to_f, @conn.type_cast(bd, nil)
         end
 
-        def test_type_cast_unknown
+        def test_type_cast_unknown_should_raise_error
           obj = Class.new.new
-          assert_equal YAML.dump(obj), @conn.type_cast(obj, nil)
+          assert_raise(TypeError) { @conn.type_cast(obj, nil) }
         end
 
         def test_quoted_id

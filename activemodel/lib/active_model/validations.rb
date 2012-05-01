@@ -33,7 +33,7 @@ module ActiveModel
   #   person.first_name = 'zoolander'
   #   person.valid?                   # => false
   #   person.invalid?                 # => true
-  #   person.errors                   # => #<OrderedHash {:first_name=>["starts with z."]}>
+  #   person.errors                   # => #<Hash {:first_name=>["starts with z."]}>
   #
   # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+ method
   # to your instances initialized with a new <tt>ActiveModel::Errors</tt> object, so
@@ -65,7 +65,7 @@ module ActiveModel
       #
       #     attr_accessor :first_name, :last_name
       #
-      #     validates_each :first_name, :last_name do |record, attr, value|
+      #     validates_each :first_name, :last_name, :allow_blank => true do |record, attr, value|
       #       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
       #     end
       #   end
@@ -128,6 +128,19 @@ module ActiveModel
       #     end
       #   end
       #
+      # Options:
+      # * <tt>:on</tt> - Specifies the context where this validation is active
+      #   (e.g. <tt>:on => :create</tt> or <tt>:on => :custom_validation_context</tt>)
+      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
+      # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
+      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a true or false value.
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or
+      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
+      #   method, proc or string should return or evaluate to a true or false value.
       def validate(*args, &block)
         options = args.extract_options!
         if options.key?(:on)
@@ -145,7 +158,7 @@ module ActiveModel
         _validators.values.flatten.uniq
       end
 
-      # List all validators that being used to validate a specific attribute.
+      # List all validators that are being used to validate a specific attribute.
       def validators_on(*attributes)
         attributes.map do |attribute|
           _validators[attribute.to_sym]

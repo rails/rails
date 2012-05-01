@@ -16,7 +16,9 @@ module ActionView
         end
       end
 
-      module_eval "def content_tag(*) error_wrapping(super) end", __FILE__, __LINE__
+      def content_tag(*)
+        error_wrapping(super)
+      end
 
       def tag(type, options, *)
         tag_generate_errors?(options) ? error_wrapping(super) : super
@@ -37,7 +39,7 @@ module ActionView
       private
 
       def object_has_errors?
-        object.respond_to?(:errors) && object.errors.respond_to?(:full_messages) && error_message.any?
+        object.respond_to?(:errors) && object.errors.respond_to?(:[]) && error_message.present?
       end
 
       def tag_generate_errors?(options)

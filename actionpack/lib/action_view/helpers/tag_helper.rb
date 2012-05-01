@@ -14,8 +14,12 @@ module ActionView
       BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
                            autoplay controls loop selected hidden scoped async
                            defer reversed ismap seemless muted required
-                           autofocus novalidate formnovalidate open pubdate).to_set
+                           autofocus novalidate formnovalidate open pubdate itemscope).to_set
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
+
+      PRE_CONTENT_STRINGS = {
+        :textarea => "\n"
+      }
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
@@ -105,8 +109,12 @@ module ActionView
       #
       #   cdata_section(File.read("hello_world.txt"))
       #   # => <![CDATA[<hello from a text file]]>
+      #
+      #   cdata_section("hello]]>world")
+      #   # => <![CDATA[hello]]]]><![CDATA[>world]]>
       def cdata_section(content)
-        "<![CDATA[#{content}]]>".html_safe
+        splitted = content.gsub(']]>', ']]]]><![CDATA[>')
+        "<![CDATA[#{splitted}]]>".html_safe
       end
 
       # Returns an escaped version of +html+ without affecting existing escaped entities.
@@ -118,7 +126,7 @@ module ActionView
       #   escape_once("&lt;&lt; Accept & Checkout")
       #   # => "&lt;&lt; Accept &amp; Checkout"
       def escape_once(html)
-        html.to_s.gsub(/[\"><]|&(?!([a-zA-Z]+|(#\d+));)/) { |special| ERB::Util::HTML_ESCAPE[special] }
+        ERB::Util.html_escape_once(html)
       end
 
       private
@@ -126,7 +134,7 @@ module ActionView
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
           content     = ERB::Util.h(content) if escape
-          "<#{name}#{tag_options}>#{content}</#{name}>".html_safe
+          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name.to_sym]}#{content}</#{name}>".html_safe
         end
 
         def tag_options(options, escape = true)

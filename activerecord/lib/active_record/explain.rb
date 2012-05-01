@@ -19,6 +19,8 @@ module ActiveRecord
     # currently collected. A false value indicates collecting is turned
     # off. Otherwise it is an array of queries.
     def logging_query_plan # :nodoc:
+      return yield unless logger
+
       threshold = auto_explain_threshold_in_seconds
       current   = Thread.current
       if threshold && current[:available_queries_for_explain].nil?
@@ -68,7 +70,7 @@ module ActiveRecord
     # the threshold is set to 0.
     #
     # As the name of the method suggests this only applies to automatic
-    # EXPLAINs, manual calls to +ActiveRecord::Relation#explain+ run.
+    # EXPLAINs, manual calls to <tt>ActiveRecord::Relation#explain</tt> run.
     def silence_auto_explain
       current = Thread.current
       original, current[:available_queries_for_explain] = current[:available_queries_for_explain], false

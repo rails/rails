@@ -3,6 +3,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Named \Scopes
@@ -28,17 +29,16 @@ module ActiveRecord
         # You can define a \scope that applies to all finders using
         # ActiveRecord::Base.default_scope.
         def scoped(options = nil)
-          if options
-            scoped.apply_finder_options(options)
+          if current_scope
+            scope = current_scope.clone
           else
-            if current_scope
-              current_scope.clone
-            else
-              scope = relation.clone
-              scope.default_scoped = true
-              scope
-            end
+            scope = relation
+            scope.default_scoped = true
+            scope
           end
+
+          scope.merge!(options) if options
+          scope
         end
 
         ##
@@ -48,7 +48,7 @@ module ActiveRecord
           if current_scope
             current_scope.scope_for_create
           else
-            scope = relation.clone
+            scope = relation
             scope.default_scoped = true
             scope.scope_for_create
           end
@@ -171,29 +171,27 @@ module ActiveRecord
         #   Article.published.featured.latest_article
         #   Article.featured.titles
 
-        def scope(name, scope_options = {})
-          name = name.to_sym
-          valid_scope_name?(name)
-          extension = Module.new(&Proc.new) if block_given?
+        def scope(name, body, &block)
+          extension = Module.new(&block) if block
 
-          scope_proc = lambda do |*args|
-            options = scope_options.respond_to?(:call) ? unscoped { scope_options.call(*args) } : scope_options
-            options = scoped.apply_finder_options(options) if options.is_a?(Hash)
+          # Check body.is_a?(Relation) to prevent the relation actually being
+          # loaded by respond_to?
+          if body.is_a?(Relation) || !body.respond_to?(:call)
+            ActiveSupport::Deprecation.warn(
+              "Using #scope without passing a callable object is deprecated. For " \
+              "example `scope :red, where(color: 'red')` should be changed to " \
+              "`scope :red, -> { where(color: 'red') }`. There are numerous gotchas " \
+              "in the former usage and it makes the implementation more complicated " \
+              "and buggy. (If you prefer, you can just define a class method named " \
+              "`self.red`.)"
+            )
+          end
 
+          singleton_class.send(:define_method, name) do |*args|
+            options  = body.respond_to?(:call) ? unscoped { body.call(*args) } : body
             relation = scoped.merge(options)
 
             extension ? relation.extending(extension) : relation
-          end
-
-          singleton_class.send(:redefine_method, name, &scope_proc)
-        end
-
-      protected
-
-        def valid_scope_name?(name)
-          if respond_to?(name, true)
-            logger.warn "Creating scope :#{name}. " \
-                        "Overwriting existing method #{self.name}.#{name}."
           end
         end
       end

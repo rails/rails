@@ -30,9 +30,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t = Topic.new
     t.title = "hello there!"
     t.written_on = Time.now
+    t.author_name = ""
     assert t.attribute_present?("title")
     assert t.attribute_present?("written_on")
     assert !t.attribute_present?("content")
+    assert !t.attribute_present?("author_name")
+    
   end
 
   def test_attribute_present_with_booleans
@@ -119,6 +122,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal keyboard.key_number, keyboard.id
     assert keyboard.respond_to?('key_number')
     assert keyboard.respond_to?('id')
+  end
+
+  def test_id_before_type_cast_with_custom_primary_key
+    keyboard = Keyboard.create
+    keyboard.key_number = '10'
+    assert_equal '10', keyboard.id_before_type_cast
+    assert_equal nil, keyboard.read_attribute_before_type_cast('id')
+    assert_equal '10', keyboard.read_attribute_before_type_cast('key_number')
   end
 
   # Syck calls respond_to? before actually calling initialize
@@ -233,7 +244,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     # DB2 is not case-sensitive
     return true if current_adapter?(:DB2Adapter)
 
-    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.find(:first).attributes
+    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.first.attributes
   end
 
   def test_hashes_not_mangled
@@ -470,23 +481,23 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_typecast_attribute_from_select_to_false
-    topic = Topic.create(:title => 'Budget')
+    Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.find(:first, :select => "topics.*, 0 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 0 as is_test").first
     else
-      topic = Topic.find(:first, :select => "topics.*, 1=2 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 1=2 as is_test").first
     end
     assert !topic.is_test?
   end
 
   def test_typecast_attribute_from_select_to_true
-    topic = Topic.create(:title => 'Budget')
+    Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.find(:first, :select => "topics.*, 1 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 1 as is_test").first
     else
-      topic = Topic.find(:first, :select => "topics.*, 2=2 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 2=2 as is_test").first
     end
     assert topic.is_test?
   end
@@ -614,6 +625,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
         assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
       end
+    end
+  end
+
+  def test_time_zone_aware_attribute_saved
+    in_time_zone 1 do
+      record = @target.create(:written_on => '2012-02-20 10:00')
+
+      record.written_on = '2012-02-20 09:00'
+      record.save
+      assert_equal Time.zone.local(2012, 02, 20, 9), record.reload.written_on
     end
   end
 
@@ -772,11 +793,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   private
   def cached_columns
-    @cached_columns ||= time_related_columns_on_topic.map(&:name)
+    Topic.columns.find_all { |column|
+      !Topic.serialized_attributes.include? column.name
+    }.map(&:name)
   end
 
   def time_related_columns_on_topic
-    Topic.columns.select { |c| c.type.in?([:time, :date, :datetime, :timestamp]) }
+    Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
   end
 
   def in_time_zone(zone)

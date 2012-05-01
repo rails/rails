@@ -12,10 +12,16 @@ module ActionView
           error_wrapping(datetime_selector(@options, @html_options).send("select_#{select_type}").html_safe)
         end
 
+        class << self
+          def select_type
+            @select_type ||= self.name.split("::").last.sub("Select", "").downcase
+          end
+        end
+
         private
 
         def select_type
-          self.class.name.split("::").last.sub("Select", "").downcase
+          self.class.select_type
         end
 
         def datetime_selector(options, html_options)

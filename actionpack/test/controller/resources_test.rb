@@ -158,7 +158,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_collection_actions
-    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
+    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete, 'e' => :patch }
 
     with_routing do |set|
       set.draw do
@@ -167,6 +167,7 @@ class ResourcesTest < ActionController::TestCase
           put    :b, :on => :collection
           post   :c, :on => :collection
           delete :d, :on => :collection
+          patch  :e, :on => :collection
         end
       end
 
@@ -185,7 +186,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_collection_actions_and_name_prefix
-    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
+    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete, 'e' => :patch }
 
     with_routing do |set|
       set.draw do
@@ -195,6 +196,7 @@ class ResourcesTest < ActionController::TestCase
             put    :b, :on => :collection
             post   :c, :on => :collection
             delete :d, :on => :collection
+            patch  :e, :on => :collection
           end
         end
       end
@@ -241,7 +243,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_collection_action_and_name_prefix_and_formatted
-    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
+    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete, 'e' => :patch }
 
     with_routing do |set|
       set.draw do
@@ -251,6 +253,7 @@ class ResourcesTest < ActionController::TestCase
             put    :b, :on => :collection
             post   :c, :on => :collection
             delete :d, :on => :collection
+            patch  :e, :on => :collection
           end
         end
       end
@@ -270,7 +273,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_member_action
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_restful_routing :messages, :member => { :mark => method } do
         mark_options = {:action => 'mark', :id => '1'}
         mark_path    = "/messages/1/mark"
@@ -294,7 +297,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_member_when_override_paths_for_default_restful_actions_with
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_restful_routing :messages, :member => { :mark => method }, :path_names => {:new => 'nuevo'} do
         mark_options = {:action => 'mark', :id => '1', :controller => "messages"}
         mark_path    = "/messages/1/mark"
@@ -311,7 +314,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_two_member_actions_with_same_method
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
           resources :messages do
@@ -564,7 +567,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_singleton_resource_with_member_action
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
           resource :account do
@@ -586,7 +589,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_singleton_resource_with_two_member_actions_with_same_method
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
           resource :account do
@@ -651,11 +654,15 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_should_not_allow_delete_or_put_on_collection_path
+  def test_should_not_allow_delete_or_patch_or_put_on_collection_path
     controller_name = :messages
     with_restful_routing controller_name do
       options = { :controller => controller_name.to_s }
       collection_path = "/#{controller_name}"
+
+      assert_raise(ActionController::RoutingError) do
+        assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :patch)
+      end
 
       assert_raise(ActionController::RoutingError) do
         assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :put)
@@ -673,7 +680,7 @@ class ResourcesTest < ActionController::TestCase
         scope '/threads/:thread_id' do
           resources :messages, :as => 'thread_messages' do
             get :search, :on => :collection
-            match :preview, :on => :new
+            get :preview, :on => :new
           end
         end
       end
@@ -691,7 +698,7 @@ class ResourcesTest < ActionController::TestCase
         scope '/admin' do
           resource :account, :as => :admin_account do
             get :login, :on => :member
-            match :preview, :on => :new
+            get :preview, :on => :new
           end
         end
       end

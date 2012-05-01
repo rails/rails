@@ -223,7 +223,7 @@ module ActiveModel
           unless instance_method_already_implemented?(method_name)
             generate_method = "define_method_#{matcher.method_missing_target}"
 
-            if respond_to?(generate_method)
+            if respond_to?(generate_method, true)
               send(generate_method, attr_name)
             else
               define_optimized_call generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
@@ -325,14 +325,14 @@ module ActiveModel
             end
 
             @prefix, @suffix = options[:prefix] || '', options[:suffix] || ''
-            @regex = /^(#{Regexp.escape(@prefix)})(.+?)(#{Regexp.escape(@suffix)})$/
+            @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
           end
 
           def match(method_name)
             if @regex =~ method_name
-              AttributeMethodMatch.new(method_missing_target, $2, method_name)
+              AttributeMethodMatch.new(method_missing_target, $1, method_name)
             else
               nil
             end

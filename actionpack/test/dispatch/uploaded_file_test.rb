@@ -12,7 +12,7 @@ module ActionDispatch
       uf = Http::UploadedFile.new(:filename => 'foo', :tempfile => Object.new)
       assert_equal 'foo', uf.original_filename
     end
-    
+
     def test_filename_should_be_in_utf_8
       uf = Http::UploadedFile.new(:filename => 'foo', :tempfile => Object.new)
       assert_equal "UTF-8", uf.original_filename.encoding.to_s
@@ -63,6 +63,12 @@ module ActionDispatch
       assert_raises(NoMethodError) do
         uf.read
       end
+    end
+
+    def test_delegate_eof_to_tempfile
+      tf = Class.new { def eof?; true end; }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert uf.eof?
     end
 
     def test_respond_to?

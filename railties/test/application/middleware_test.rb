@@ -26,6 +26,7 @@ module ApplicationTests
       boot!
 
       assert_equal [
+        "Rack::Sendfile",
         "ActionDispatch::Static",
         "Rack::Lock",
         "ActiveSupport::Cache::Strategy::LocalCache",
@@ -36,7 +37,6 @@ module ApplicationTests
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
         "ActionDispatch::RemoteIp",
-        "Rack::Sendfile",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
@@ -66,13 +66,13 @@ module ApplicationTests
       assert_equal "Rack::Cache", middleware.first
     end
 
-    test "Rack::SSL is present when force_ssl is set" do
+    test "ActionDispatch::SSL is present when force_ssl is set" do
       add_to_config "config.force_ssl = true"
       boot!
-      assert middleware.include?("Rack::SSL")
+      assert middleware.include?("ActionDispatch::SSL")
     end
 
-    test "Rack::SSL is configured with options when given" do
+    test "ActionDispatch::SSL is configured with options when given" do
       add_to_config "config.force_ssl = true"
       add_to_config "config.ssl_options = { :host => 'example.com' }"
       boot!
@@ -85,7 +85,6 @@ module ApplicationTests
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
       assert !middleware.include?("ActiveRecord::QueryCache")
-      assert !middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "removes lock if allow concurrency is set" do
@@ -143,16 +142,17 @@ module ApplicationTests
       assert_equal "Rack::Runtime", middleware.fourth
     end
 
-    test "identity map is inserted" do
-      add_to_config "config.active_record.identity_map = true"
-      boot!
-      assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
-    end
-
     test "insert middleware before" do
       add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.first
+    end
+
+    test "can't change middleware after it's built" do
+      boot!
+      assert_raise RuntimeError do
+        app.config.middleware.use Rack::Config
+      end
     end
 
     # ConditionalGet + Etag
@@ -186,7 +186,6 @@ module ApplicationTests
       assert_equal etag, last_response.headers["Etag"]
 
       get "/?nothing=true"
-      puts last_response.body
       assert_equal 200, last_response.status
       assert_equal "", last_response.body
       assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]

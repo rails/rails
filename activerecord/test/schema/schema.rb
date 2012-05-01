@@ -37,7 +37,8 @@ ActiveRecord::Schema.define do
 
   create_table :admin_users, :force => true do |t|
     t.string :name
-    t.text :settings
+    t.text :settings, :null => true
+    t.text :preferences, :null => false, :default => ""
     t.references :account
   end
 
@@ -90,6 +91,7 @@ ActiveRecord::Schema.define do
 
   create_table :booleans, :force => true do |t|
     t.boolean :value
+    t.boolean :has_fun, :null => false, :default => false
   end
 
   create_table :bulbs, :force => true do |t|
@@ -174,6 +176,7 @@ ActiveRecord::Schema.define do
   end
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
+  add_index :companies, [:firm_id, :type], :name => "company_partial_index", :where => "rating > 10"
 
   create_table :computers, :force => true do |t|
     t.integer :developer, :null => false
@@ -436,6 +439,7 @@ ActiveRecord::Schema.define do
 
   create_table :parrots, :force => true do |t|
     t.column :name, :string
+    t.column :color, :string
     t.column :parrot_sti_class, :string
     t.column :killer_id, :integer
     t.column :created_at, :datetime
@@ -464,6 +468,11 @@ ActiveRecord::Schema.define do
     t.references :best_friend
     t.references :best_friend_of
     t.timestamps
+  end
+
+  create_table :peoples_treasures, :id => false, :force => true do |t|
+    t.column :rich_person_id, :integer
+    t.column :treasure_id, :integer
   end
 
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|
@@ -724,8 +733,6 @@ ActiveRecord::Schema.define do
   create_table :countries_treaties, :force => true, :id => false do |t|
     t.string :country_id, :null => false
     t.string :treaty_id, :null => false
-    t.datetime :created_at
-    t.datetime :updated_at
   end
 
   create_table :liquid, :force => true do |t|
@@ -759,5 +766,10 @@ ActiveRecord::Schema.define do
 end
 
 Course.connection.create_table :courses, :force => true do |t|
+  t.column :name, :string, :null => false
+  t.column :college_id, :integer
+end
+
+College.connection.create_table :colleges, :force => true do |t|
   t.column :name, :string, :null => false
 end

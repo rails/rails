@@ -20,7 +20,7 @@ end
 module URI
   class << self
     def parser
-      @parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
+      @parser ||= URI::Parser.new
     end
   end
 end

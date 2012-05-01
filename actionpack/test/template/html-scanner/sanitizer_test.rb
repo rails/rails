@@ -56,7 +56,6 @@ class SanitizerTest < ActionController::TestCase
     assert_sanitized "a b c<script language=\"Javascript\">blah blah blah</script>d e f", "a b cd e f"
   end
 
-  # TODO: Clean up
   def test_sanitize_js_handlers
     raw = %{onthis="do that" <a href="#" onclick="hello" name="foo" onbogus="remove me">hello</a>}
     assert_sanitized raw, %{onthis="do that" <a name="foo" href="#">hello</a>}
@@ -124,6 +123,24 @@ class SanitizerTest < ActionController::TestCase
     text = %(<blockquote foo="bar">Lorem ipsum</blockquote>)
     sanitizer = HTML::WhiteListSanitizer.new
     assert_equal(text, sanitizer.sanitize(text, :attributes => ['foo']))
+  end
+
+  def test_should_raise_argument_error_if_tags_is_not_enumerable
+    sanitizer = HTML::WhiteListSanitizer.new
+    e = assert_raise(ArgumentError) do
+      sanitizer.sanitize('', :tags => 'foo')
+    end
+
+    assert_equal "You should pass :tags as an Enumerable", e.message
+  end
+
+  def test_should_raise_argument_error_if_attributes_is_not_enumerable
+    sanitizer = HTML::WhiteListSanitizer.new
+    e = assert_raise(ArgumentError) do
+      sanitizer.sanitize('', :attributes => 'foo')
+    end
+
+    assert_equal "You should pass :attributes as an Enumerable", e.message
   end
 
   [%w(img src), %w(a href)].each do |(tag, attr)|
@@ -215,7 +232,6 @@ class SanitizerTest < ActionController::TestCase
     assert_sanitized img_hack, "<img>"
   end
 
-  # TODO: Clean up
   def test_should_sanitize_attributes
     assert_sanitized %(<SPAN title="'><script>alert()</script>">blah</SPAN>), %(<span title="'&gt;&lt;script&gt;alert()&lt;/script&gt;">blah</span>)
   end

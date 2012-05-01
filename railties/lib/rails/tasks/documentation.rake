@@ -1,14 +1,8 @@
-begin
-  require 'rdoc/task'
-rescue LoadError
-  require 'rdoc/rdoc'
-  require 'rake/rdoctask'
-  RDoc::Task = Rake::RDocTask
-end
+require 'rdoc/task'
 
 # Monkey-patch to remove redoc'ing and clobber descriptions to cut down on rake -T noise
 class RDocTaskWithoutDescriptions < RDoc::Task
-  include ::Rake::DSL
+  include ::Rake::DSL if defined?(::Rake::DSL)
 
   def define
     task rdoc_task_name
@@ -86,12 +80,6 @@ namespace :doc do
     gem_path('activerecord') do |activerecord|
       %w(README.rdoc CHANGELOG.md lib/active_record/**/*.rb).each do |file|
         rdoc.rdoc_files.include("#{activerecord}/#{file}")
-      end
-    end
-
-    gem_path('activeresource') do |activeresource|
-      %w(README.rdoc CHANGELOG.md lib/active_resource.rb lib/active_resource/*).each do |file|
-        rdoc.rdoc_files.include("#{activeresource}/#{file}")
       end
     end
 

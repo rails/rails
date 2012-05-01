@@ -66,8 +66,6 @@ module ActiveSupport
     #
     # Calls the before and around callbacks in the order they were set, yields
     # the block (if given one), and then runs the after callbacks in reverse order.
-    # Optionally accepts a key, which will be used to compile an optimized callback
-    # method for each key. See +ClassMethods.define_callbacks+ for more information.
     #
     # If the callback chain was halted, returns +false+. Otherwise returns the result
     # of the block, or +true+ if no block is given.
@@ -77,7 +75,9 @@ module ActiveSupport
     #   end
     #
     def run_callbacks(kind, key = nil, &block)
-      self.class.__run_callbacks(key, kind, self, &block)
+      #TODO: deprecate key argument
+      runner_name = self.class.__define_callbacks(kind, self)
+      send(runner_name, &block)
     end
 
     private
@@ -95,12 +95,18 @@ module ActiveSupport
 
       def initialize(chain, filter, kind, options, klass)
         @chain, @kind, @klass = chain, kind, klass
+        deprecate_per_key_option(options)
         normalize_options!(options)
 
         @raw_filter, @options = filter, options
         @filter               = _compile_filter(filter)
-        @compiled_options     = _compile_options(options)
-        @callback_id          = next_id
+        recompile_options!
+      end
+
+      def deprecate_per_key_option(options)
+        if options[:per_key]
+          raise NotImplementedError, ":per_key option is no longer supported. Use generic :if and :unless options instead."
+        end
       end
 
       def clone(chain, klass)
@@ -116,11 +122,6 @@ module ActiveSupport
       def normalize_options!(options)
         options[:if] = Array(options[:if])
         options[:unless] = Array(options[:unless])
-
-        options[:per_key] ||= {}
-
-        options[:if] += Array(options[:per_key][:if])
-        options[:unless] += Array(options[:per_key][:unless])
       end
 
       def name
@@ -136,21 +137,19 @@ module ActiveSupport
       end
 
       def _update_filter(filter_options, new_options)
-        filter_options[:if].push(new_options[:unless]) if new_options.key?(:unless)
-        filter_options[:unless].push(new_options[:if]) if new_options.key?(:if)
+        filter_options[:if].concat(Array(new_options[:unless])) if new_options.key?(:unless)
+        filter_options[:unless].concat(Array(new_options[:if])) if new_options.key?(:if)
       end
 
-      def recompile!(_options, _per_key)
+      def recompile!(_options)
+        deprecate_per_key_option(_options)
         _update_filter(self.options, _options)
-        _update_filter(self.options, _per_key)
 
-        @callback_id      = next_id
-        @filter           = _compile_filter(@raw_filter)
-        @compiled_options = _compile_options(@options)
+        recompile_options!
       end
 
       # Wraps code with filter
-      def apply(code, key=nil, object=nil)
+      def apply(code)
         case @kind
         when :before
           <<-RUBY_EVAL
@@ -169,7 +168,7 @@ module ActiveSupport
         when :after
           <<-RUBY_EVAL
           #{code}
-          if #{@compiled_options}
+          if #{!chain.config[:skip_after_callbacks_if_terminated] || "!halted"} && #{@compiled_options}
             #{@filter}
           end
           RUBY_EVAL
@@ -189,7 +188,7 @@ module ActiveSupport
       # Compile around filters with conditions into proxy methods
       # that contain the conditions.
       #
-      # For `around_save :filter_name, :if => :condition':
+      # For `set_callback :save, :around, :filter_name, :if => :condition':
       #
       # def _conditional_callback_save_17
       #   if condition
@@ -220,7 +219,7 @@ module ActiveSupport
       # Options support the same options as filters themselves (and support
       # symbols, string, procs, and objects), so compile a conditional
       # expression based on the options
-      def _compile_options(options)
+      def recompile_options!
         conditions = ["true"]
 
         unless options[:if].empty?
@@ -231,7 +230,7 @@ module ActiveSupport
           conditions << Array(_compile_filter(options[:unless])).map {|f| "!#{f}"}
         end
 
-        conditions.flatten.join(" && ")
+        @compiled_options = conditions.flatten.join(" && ")
       end
 
       # Filters support:
@@ -309,42 +308,22 @@ module ActiveSupport
         @name = name
         @config = {
           :terminator => "false",
-          :rescuable => false,
           :scope => [ :kind ]
         }.merge(config)
       end
 
-      def compile(key=nil, object=nil)
+      def compile
         method = []
         method << "value = nil"
         method << "halted = false"
 
-        callbacks = yielding
+        callbacks = "value = yield if block_given? && !halted"
         reverse_each do |callback|
-          callbacks = callback.apply(callbacks, key, object)
+          callbacks = callback.apply(callbacks)
         end
         method << callbacks
 
-        method << "raise rescued_error if rescued_error" if config[:rescuable]
         method << "halted ? false : (block_given? ? value : true)"
-        method.flatten.compact.join("\n")
-      end
-
-      # Returns part of method that evaluates the callback block
-      def yielding
-        method = []
-        if config[:rescuable]
-          method << "rescued_error = nil"
-          method << "begin"
-        end
-
-        method << "value = yield if block_given? && !halted"
-
-        if config[:rescuable]
-          method << "rescue Exception => e"
-          method << "rescued_error = e"
-          method << "end"
-        end
         method.join("\n")
       end
 
@@ -352,28 +331,27 @@ module ActiveSupport
 
     module ClassMethods
 
-      # This method calls the callback method for the given key.
-      # If this called first time it creates a new callback method for the key, 
-      # calculating which callbacks can be omitted because of per_key conditions.
-      #
-      def __run_callbacks(key, kind, object, &blk) #:nodoc:
-        name = __callback_runner_name(key, kind)
-        unless object.respond_to?(name)
-          str = send("_#{kind}_callbacks").compile(key, object)
+      # This method defines callback chain method for the given kind
+      # if it was not yet defined.
+      # This generated method plays caching role.
+      def __define_callbacks(kind, object) #:nodoc:
+        name = __callback_runner_name(kind)
+        unless object.respond_to?(name, true)
+          str = object.send("_#{kind}_callbacks").compile
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{name}() #{str} end
             protected :#{name}
           RUBY_EVAL
         end
-        object.send(name, &blk)
+        name
       end
 
       def __reset_runner(symbol)
-        name = __callback_runner_name(nil, symbol)
+        name = __callback_runner_name(symbol)
         undef_method(name) if method_defined?(name)
       end
 
-      def __callback_runner_name(key, kind)
+      def __callback_runner_name(kind)
         "_run__#{self.name.hash.abs}__#{kind}__callbacks"
       end
 
@@ -427,29 +405,6 @@ module ActiveSupport
       #   will be called only when it returns a false value.
       # * <tt>:prepend</tt> - If true, the callback will be prepended to the existing
       #   chain rather than appended.
-      # * <tt>:per_key</tt> - A hash with <tt>:if</tt> and <tt>:unless</tt> options;
-      #   see "Per-key conditions" below.
-      #
-      # ===== Per-key conditions
-      #
-      # When creating or skipping callbacks, you can specify conditions that
-      # are always the same for a given key. For instance, in Action Pack,
-      # we convert :only and :except conditions into per-key conditions.
-      #
-      #   before_filter :authenticate, :except => "index"
-      #
-      # becomes
-      #
-      #   set_callback :process_action, :before, :authenticate, :per_key => {:unless => proc {|c| c.action_name == "index"}}
-      #
-      # Per-key conditions are evaluated only once per use of a given key.
-      # In the case of the above example, you would do:
-      #
-      #   run_callbacks(:process_action, action_name) { ... dispatch stuff ... }
-      #
-      # In that case, each action_name would get its own compiled callback
-      # method that took into consideration the per_key conditions. This
-      # is a speed improvement for ActionPack.
       #
       def set_callback(name, *filter_list, &block)
         mapped = nil
@@ -484,7 +439,7 @@ module ActiveSupport
             if filter && options.any?
               new_filter = filter.clone(chain, self)
               chain.insert(chain.index(filter), new_filter)
-              new_filter.recompile!(options, options[:per_key] || {})
+              new_filter.recompile!(options)
             end
 
             chain.delete(filter)
@@ -528,10 +483,10 @@ module ActiveSupport
       #   other callbacks are not executed. Defaults to "false", meaning no value
       #   halts the chain.
       #
-      # * <tt>:rescuable</tt> - By default, after filters are not executed if
-      #   the given block or a before filter raises an error. By setting this option
-      #   to <tt>true</tt> exception raised by given block is stored and after
-      #   executing all the after callbacks the stored exception is raised.
+      # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after callbacks should be terminated
+      #   by the <tt>:terminator</tt> option. By default after callbacks executed no matter
+      #   if callback chain was terminated or not.
+      #   Option makes sence only when <tt>:terminator</tt> option is specified.
       #
       # * <tt>:scope</tt> - Indicates which methods should be executed when an object
       #   is used as a callback.

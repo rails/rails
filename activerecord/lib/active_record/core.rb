@@ -1,4 +1,6 @@
 require 'active_support/concern'
+require 'active_support/core_ext/hash/indifferent_access'
+require 'thread'
 
 module ActiveRecord
   module Core
@@ -44,10 +46,10 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling
-      # dates and times from the database. This is set to :local by default.
+      # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
+      # dates and times from the database. This is set to :utc by default.
       config_attribute :default_timezone, :global => true
-      self.default_timezone = :local
+      self.default_timezone = :utc
 
       ##
       # :singleton-method:
@@ -71,6 +73,16 @@ module ActiveRecord
       # The connection handler
       config_attribute :connection_handler
       self.connection_handler = ConnectionAdapters::ConnectionHandler.new
+
+      ##
+      # :singleton-method:
+      # Specifies wether or not has_many or has_one association option
+      # :dependent => :restrict raises an exception. If set to true, the
+      # ActiveRecord::DeleteRestrictionError exception will be raised
+      # along with a DEPRECATION WARNING. If set to false, an error would
+      # be added to the model instead.
+      config_attribute :dependent_restrict_raises, :global => true
+      self.dependent_restrict_raises = true
     end
 
     module ClassMethods
@@ -80,6 +92,8 @@ module ActiveRecord
       end
 
       def initialize_generated_modules
+        @attribute_methods_mutex = Mutex.new
+
         # force attribute methods to be higher in inheritance hierarchy than other generated methods
         generated_attribute_methods
         generated_feature_methods
@@ -117,18 +131,18 @@ module ActiveRecord
       end
 
       def arel_engine
-        @arel_engine ||= connection_handler.connection_pools[name] ? self : active_record_super.arel_engine
+        @arel_engine ||= connection_handler.retrieve_connection_pool(self) ? self : active_record_super.arel_engine
       end
 
       private
 
       def relation #:nodoc:
-        @relation ||= Relation.new(self, arel_table)
+        relation = Relation.new(self, arel_table)
 
         if finder_needs_type_condition?
-          @relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
+          relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
         else
-          @relation
+          relation
         end
       end
     end
@@ -152,16 +166,9 @@ module ActiveRecord
     #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
     def initialize(attributes = nil, options = {})
       @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
-      @association_cache = {}
-      @aggregation_cache = {}
-      @attributes_cache = {}
-      @new_record = true
-      @readonly = false
-      @destroyed = false
-      @marked_for_destruction = false
-      @previously_changed = {}
-      @changed_attributes = {}
-      @relation = nil
+      @columns_hash = self.class.column_types.dup
+
+      init_internals
 
       ensure_proper_type
 
@@ -170,7 +177,7 @@ module ActiveRecord
       assign_attributes(attributes, options) if attributes
 
       yield self if block_given?
-      run_callbacks :initialize
+      run_callbacks :initialize if _initialize_callbacks.any?
     end
 
     # Initialize an empty model object from +coder+. +coder+ must contain
@@ -185,13 +192,12 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes = self.class.initialize_attributes(coder['attributes'])
-      @relation = nil
+      @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
 
-      @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
-      @association_cache = {}
-      @aggregation_cache = {}
-      @readonly = @destroyed = @marked_for_destruction = false
+      init_internals
+
       @new_record = false
+
       run_callbacks :find
       run_callbacks :initialize
 
@@ -206,20 +212,24 @@ module ActiveRecord
     # The dup method does not preserve the timestamps (created|updated)_(at|on).
     def initialize_dup(other)
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
+      self.class.initialize_attributes(cloned_attributes)
+
       cloned_attributes.delete(self.class.primary_key)
 
       @attributes = cloned_attributes
+      @attributes[self.class.primary_key] = nil
 
       run_callbacks(:initialize) if _initialize_callbacks.any?
 
       @changed_attributes = {}
       self.class.column_defaults.each do |attr, orig_value|
-        @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
+        @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
       end
 
       @aggregation_cache = {}
       @association_cache = {}
-      @attributes_cache = {}
+      @attributes_cache  = {}
+
       @new_record  = true
 
       ensure_proper_type
@@ -238,7 +248,7 @@ module ActiveRecord
     #   end
     #   coder = {}
     #   Post.new.encode_with(coder)
-    #   coder # => { 'id' => nil, ... }
+    #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
       coder['attributes'] = attributes
     end
@@ -317,6 +327,11 @@ module ActiveRecord
       "#<#{self.class} #{inspection}>"
     end
 
+    # Returns a hash of the given methods with their names as keys and returned values as values.
+    def slice(*methods)
+      Hash[methods.map { |method| [method, public_send(method)] }].with_indifferent_access
+    end
+
     private
 
     # Under Ruby 1.9, Array#flatten will call #to_ary (recursively) on each of the elements
@@ -329,6 +344,22 @@ module ActiveRecord
     # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary/
     def to_ary # :nodoc:
       nil
+    end
+
+    def init_internals
+      pk = self.class.primary_key
+
+      @attributes[pk] = nil unless @attributes.key?(pk)
+
+      @aggregation_cache      = {}
+      @association_cache      = {}
+      @attributes_cache       = {}
+      @previously_changed     = {}
+      @changed_attributes     = {}
+      @readonly               = false
+      @destroyed              = false
+      @marked_for_destruction = false
+      @new_record             = true
     end
   end
 end

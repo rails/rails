@@ -1,9 +1,8 @@
 # encoding: utf-8
-require 'active_support/core_ext/string/encoding'
 
 class Object
   # An object is blank if it's false, empty, or a whitespace string.
-  # For example, "", "   ", +nil+, [], and {} are all blank.
+  # For example, '', '   ', +nil+, [], and {} are all blank.
   #
   # This simplifies:
   #
@@ -91,10 +90,10 @@ end
 class String
   # A string is blank if it's empty or contains whitespaces only:
   #
-  #   "".blank?                 # => true
-  #   "   ".blank?              # => true
-  #   "　".blank?               # => true
-  #   " something here ".blank? # => false
+  #   ''.blank?                 # => true
+  #   '   '.blank?              # => true
+  #   '　'.blank?               # => true
+  #   ' something here '.blank? # => false
   #
   def blank?
     self !~ /[^[:space:]]/

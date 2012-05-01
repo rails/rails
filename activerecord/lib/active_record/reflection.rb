@@ -23,11 +23,11 @@ module ActiveRecord
     module ClassMethods
       def create_reflection(macro, name, options, active_record)
         case macro
-          when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
-            klass = options[:through] ? ThroughReflection : AssociationReflection
-            reflection = klass.new(macro, name, options, active_record)
-          when :composed_of
-            reflection = AggregateReflection.new(macro, name, options, active_record)
+        when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
+          klass = options[:through] ? ThroughReflection : AssociationReflection
+          reflection = klass.new(macro, name, options, active_record)
+        when :composed_of
+          reflection = AggregateReflection.new(macro, name, options, active_record)
         end
 
         self.reflections = self.reflections.merge(name => reflection)
@@ -44,7 +44,8 @@ module ActiveRecord
       #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
       #
       def reflect_on_aggregation(aggregation)
-        reflections[aggregation].is_a?(AggregateReflection) ? reflections[aggregation] : nil
+        reflection = reflections[aggregation]
+        reflection if reflection.is_a?(AggregateReflection)
       end
 
       # Returns an array of AssociationReflection objects for all the
@@ -68,7 +69,8 @@ module ActiveRecord
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
       def reflect_on_association(association)
-        reflections[association].is_a?(AssociationReflection) ? reflections[association] : nil
+        reflection = reflections[association]
+        reflection if reflection.is_a?(AssociationReflection)
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
@@ -76,7 +78,6 @@ module ActiveRecord
         reflections.values.select { |reflection| reflection.options[:autosave] }
       end
     end
-
 
     # Abstract base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
@@ -229,8 +230,8 @@ module ActiveRecord
         end
       end
 
-      def columns(tbl_name, log_msg)
-        @columns ||= klass.connection.columns(tbl_name, log_msg)
+      def columns(tbl_name)
+        @columns ||= klass.connection.columns(tbl_name)
       end
 
       def reset_column_information
@@ -452,7 +453,6 @@ module ActiveRecord
           # Recursively fill out the rest of the array from the through reflection
           conditions += through_conditions
 
-          # And return
           conditions
         end
       end

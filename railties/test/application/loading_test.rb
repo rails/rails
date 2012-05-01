@@ -20,6 +20,7 @@ class LoadingTest < ActiveSupport::TestCase
     app_file "app/models/post.rb", <<-MODEL
       class Post < ActiveRecord::Base
         validates_acceptance_of :title, :accept => "omg"
+        attr_accessible :title
       end
     MODEL
 
@@ -76,8 +77,8 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file 'config/routes.rb', <<-RUBY
       AppTemplate::Application.routes.draw do
-        match '/load',   :to => lambda { |env| [200, {}, Post.all] }
-        match '/unload', :to => lambda { |env| [200, {}, []] }
+        get '/load',   :to => lambda { |env| [200, {}, Post.all] }
+        get '/unload', :to => lambda { |env| [200, {}, []] }
       end
     RUBY
 
@@ -94,7 +95,7 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal [ActiveRecord::SchemaMigration], ActiveRecord::Base.descendants
   end
 
-  test "initialize_cant_be_called_twice" do
+  test "initialize cant be called twice" do
     require "#{app_path}/config/environment"
     assert_raise(RuntimeError) { ::AppTemplate::Application.initialize! }
   end
@@ -106,7 +107,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file 'config/routes.rb', <<-RUBY
       AppTemplate::Application.routes.draw do
-        match '/c', :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
+        get '/c', :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
       end
     RUBY
 
@@ -145,7 +146,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file 'config/routes.rb', <<-RUBY
       AppTemplate::Application.routes.draw do
-        match '/c', :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
+        get '/c', :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
       end
     RUBY
 
@@ -181,7 +182,7 @@ class LoadingTest < ActiveSupport::TestCase
     app_file 'config/routes.rb', <<-RUBY
       $counter = 0
       AppTemplate::Application.routes.draw do
-        match '/c', :to => lambda { |env| User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+        get '/c', :to => lambda { |env| User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
       end
     RUBY
 
@@ -212,8 +213,8 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file 'config/routes.rb', <<-RUBY
       AppTemplate::Application.routes.draw do
-        match '/title', :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.title]] }
-        match '/body',  :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.body]] }
+        get '/title', :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.title]] }
+        get '/body',  :to => lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.body]] }
       end
     RUBY
 
@@ -253,6 +254,45 @@ class LoadingTest < ActiveSupport::TestCase
 
     get "/body"
     assert_equal "BODY", last_response.body
+  end
+
+  test "AC load hooks can be used with metal" do
+    app_file "app/controllers/omg_controller.rb", <<-RUBY
+      begin
+        class OmgController < ActionController::Metal
+          ActiveSupport.run_load_hooks(:action_controller, self)
+          def show
+            self.response_body = ["OK"]
+          end
+        end
+      rescue => e
+        puts "Error loading metal: \#{e.class} \#{e.message}"
+      end
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      AppTemplate::Application.routes.draw do
+        get "/:controller(/:action)"
+      end
+    RUBY
+
+    require "#{rails_root}/config/environment"
+
+    require 'rack/test'
+    extend Rack::Test::Methods
+
+    get '/omg/show'
+    assert_equal 'OK', last_response.body
+  end
+
+  def test_initialize_can_be_called_at_any_time
+    require "#{app_path}/config/application"
+
+    assert !Rails.initialized?
+    assert !AppTemplate::Application.initialized?
+    Rails.initialize!
+    assert Rails.initialized?
+    assert AppTemplate::Application.initialized?
   end
 
   protected

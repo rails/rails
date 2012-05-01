@@ -21,6 +21,7 @@ module ActiveRecord::Associations::Builder
                                  ":nullify or :restrict (#{options[:dependent].inspect})"
           end
 
+          dependent_restrict_deprecation_warning if options[:dependent] == :restrict
           send("define_#{options[:dependent]}_dependency_method")
           model.before_destroy dependency_method_name
         end
@@ -49,13 +50,6 @@ module ActiveRecord::Associations::Builder
         name = self.name
         mixin.redefine_method(dependency_method_name) do
           send(name).delete_all
-        end
-      end
-
-      def define_restrict_dependency_method
-        name = self.name
-        mixin.redefine_method(dependency_method_name) do
-          raise ActiveRecord::DeleteRestrictionError.new(name) unless send(name).empty?
         end
       end
 

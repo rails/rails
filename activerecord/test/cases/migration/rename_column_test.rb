@@ -18,7 +18,7 @@ module ActiveRecord
         rename_column "test_models", "girlfriend", "exgirlfriend"
 
         TestModel.reset_column_information
-        bob = TestModel.find(:first)
+        bob = TestModel.first
 
         assert_equal "bobette", bob.exgirlfriend
       end
@@ -33,7 +33,7 @@ module ActiveRecord
         rename_column :test_models, :first_name, :nick_name
         TestModel.reset_column_information
         assert TestModel.column_names.include?("nick_name")
-        assert_equal ['foo'], TestModel.find(:all).map(&:nick_name)
+        assert_equal ['foo'], TestModel.all.map(&:nick_name)
       end
 
       # FIXME: another integration test.  We should decouple this from the
@@ -46,7 +46,7 @@ module ActiveRecord
         rename_column "test_models", "first_name", "nick_name"
         TestModel.reset_column_information
         assert TestModel.column_names.include?("nick_name")
-        assert_equal ['foo'], TestModel.find(:all).map(&:nick_name)
+        assert_equal ['foo'], TestModel.all.map(&:nick_name)
       end
 
       def test_rename_column_preserves_default_value_not_null
@@ -130,25 +130,24 @@ module ActiveRecord
         add_column 'test_models', 'age', :integer
         add_column 'test_models', 'approved', :boolean, :default => true
 
-        label = "test_change_column Columns"
-        old_columns = connection.columns(TestModel.table_name, label)
+        old_columns = connection.columns(TestModel.table_name)
 
         assert old_columns.find { |c| c.name == 'age' && c.type == :integer }
 
         change_column "test_models", "age", :string
 
-        new_columns = connection.columns(TestModel.table_name, label)
+        new_columns = connection.columns(TestModel.table_name)
 
         refute new_columns.find { |c| c.name == 'age' and c.type == :integer }
         assert new_columns.find { |c| c.name == 'age' and c.type == :string }
 
-        old_columns = connection.columns(TestModel.table_name, label)
+        old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
           c.name == 'approved' && c.type == :boolean && c.default == true
         }
 
         change_column :test_models, :approved, :boolean, :default => false
-        new_columns = connection.columns(TestModel.table_name, label)
+        new_columns = connection.columns(TestModel.table_name)
 
         refute new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
         assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }

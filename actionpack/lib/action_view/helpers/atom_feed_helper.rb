@@ -176,6 +176,7 @@ module ActionView
         # * <tt>:updated</tt>: Time of update. Defaults to the updated_at attribute on the record if one such exists.
         # * <tt>:url</tt>: The URL for this entry. Defaults to the polymorphic_url for the record.
         # * <tt>:id</tt>: The ID for this entry. Defaults to "tag:#{@view.request.host},#{@feed_options[:schema_date]}:#{record.class}/#{record.id}"
+        # * <tt>:type</tt>: The TYPE for this entry. Defaults to "text/html".
         def entry(record, options = {})
           @xml.entry do
             @xml.id(options[:id] || "tag:#{@view.request.host},#{@feed_options[:schema_date]}:#{record.class}/#{record.id}")
@@ -188,7 +189,9 @@ module ActionView
               @xml.updated((options[:updated] || record.updated_at).xmlschema)
             end
 
-            @xml.link(:rel => 'alternate', :type => 'text/html', :href => options[:url] || @view.polymorphic_url(record))
+            type = options.fetch(:type, 'text/html')
+
+            @xml.link(:rel => 'alternate', :type => type, :href => options[:url] || @view.polymorphic_url(record))
 
             yield AtomBuilder.new(@xml)
           end

@@ -41,6 +41,14 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
+    test "multiple queue construction is possible" do
+      require 'rails'
+      require "#{app_path}/config/environment"
+      mail_queue             = Rails.application.build_queue
+      image_processing_queue = Rails.application.build_queue
+      assert_not_equal mail_queue, image_processing_queue
+    end
+
     test "Rails.groups returns available groups" do
       require "rails"
 
@@ -146,7 +154,7 @@ module ApplicationTests
     test "frameworks are not preloaded by default" do
       require "#{app_path}/config/environment"
 
-      assert ActionController.autoload?(:RecordIdentifier)
+      assert ActionController.autoload?(:Caching)
     end
 
     test "frameworks are preloaded with config.preload_frameworks is set" do
@@ -156,7 +164,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert !ActionController.autoload?(:RecordIdentifier)
+      assert !ActionController.autoload?(:Caching)
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
@@ -244,6 +252,55 @@ module ApplicationTests
 
       get "/"
       assert last_response.body =~ /csrf\-param/
+    end
+
+    test "default method for update can be changed" do
+      app_file 'app/models/post.rb', <<-RUBY
+      class Post
+        extend ActiveModel::Naming
+        def to_key; [1]; end
+        def persisted?; true; end
+      end
+      RUBY
+
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ApplicationController
+        def show
+          render :inline => "<%= begin; form_for(Post.new) {}; rescue => e; e.to_s; end %>"
+        end
+
+        def update
+          render :text => "update"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      token = "cf50faa3fe97702ca1ae"
+      PostsController.any_instance.stubs(:form_authenticity_token).returns(token)
+      params = {:authenticity_token => token}
+
+      get "/posts/1"
+      assert_match /patch/, last_response.body
+
+      patch "/posts/1", params
+      assert_match /update/, last_response.body
+
+      patch "/posts/1", params
+      assert_equal 200, last_response.status
+
+      put "/posts/1", params
+      assert_match /update/, last_response.body
+
+      put "/posts/1", params
+      assert_equal 200, last_response.status
     end
 
     test "request forgery token param can be changed" do
@@ -483,6 +540,12 @@ module ApplicationTests
       end
       RUBY
 
+      app_file 'app/controllers/application_controller.rb', <<-RUBY
+      class ApplicationController < ActionController::Base
+        protect_from_forgery :with => :reset_session # as we are testing API here
+      end
+      RUBY
+
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ApplicationController
         def create
@@ -533,6 +596,11 @@ module ApplicationTests
       assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
       assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
       assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
+    end
+
+    test "config.colorize_logging default is true" do
+      make_basic_app
+      assert app.config.colorize_logging
     end
   end
 end

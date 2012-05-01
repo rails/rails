@@ -28,7 +28,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '*path', :to => lambda { |env| [200, { "Content-Type" => "text/html" }, "Not an asset"] }
+          get '*path', :to => lambda { |env| [200, { "Content-Type" => "text/html" }, "Not an asset"] }
         end
       RUBY
 
@@ -64,7 +64,7 @@ module ApplicationTests
       files << Dir["#{app_path}/public/assets/foo/application.js"].first
       files.each do |file|
         assert_not_nil file, "Expected application.js asset to be generated, but none found"
-        assert_equal "alert()", File.read(file)
+        assert_equal "alert();", File.read(file)
       end
     end
 
@@ -204,7 +204,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          get '/posts', :to => "posts#index"
         end
       RUBY
 
@@ -230,7 +230,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          get '/posts', :to => "posts#index"
         end
       RUBY
 
@@ -334,7 +334,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/omg', :to => "omg#index"
+          get '/omg', :to => "omg#index"
         end
       RUBY
 
@@ -382,8 +382,8 @@ module ApplicationTests
 
       # the debug_assets params isn't used if compile is off
       get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body)
-      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application-([0-z]+)\.js"><\/script>/, last_response.body)
+      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
 
     test "assets aren't concatened when compile is true is on and debug_assets params is true" do
@@ -397,8 +397,8 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
-      assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
     end
 
     test "assets can access model information when precompiling" do
@@ -513,7 +513,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          get '/posts', :to => "posts#index"
         end
       RUBY
     end

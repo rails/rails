@@ -125,11 +125,11 @@ module ActiveSupport
     # have been loaded.
     setup_once do
       SharedTestRoutes.draw do
-        match ':controller(/:action)'
+        get ':controller(/:action)'
       end
 
       ActionDispatch::IntegrationTest.app.routes.draw do
-        match ':controller(/:action)'
+        get ':controller(/:action)'
       end
     end
   end
@@ -340,6 +340,21 @@ module ActionDispatch
     # Silence logger
     def stderr_logger
       nil
+    end
+  end
+end
+
+module ActionDispatch
+  module RoutingVerbs
+    def get(uri_or_host, path = nil, port = nil)
+      host = uri_or_host.host unless path
+      path ||= uri_or_host.path
+
+      params = {'PATH_INFO'      => path,
+                'REQUEST_METHOD' => 'GET',
+                'HTTP_HOST'      => host}
+
+      routes.call(params)[2].join
     end
   end
 end

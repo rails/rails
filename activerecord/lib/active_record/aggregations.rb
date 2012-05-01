@@ -46,7 +46,7 @@ module ActiveRecord
     #
     #    def <=>(other_money)
     #      if currency == other_money.currency
-    #        amount <=> amount
+    #        amount <=> other_money.amount
     #      else
     #        amount <=> other_money.exchange_to(currency).amount
     #      end

@@ -1,8 +1,10 @@
 class Person < ActiveRecord::Base
   has_many :readers
+  has_many :secure_readers
   has_one  :reader
 
   has_many :posts, :through => :readers
+  has_many :secure_posts, :through => :secure_readers
   has_many :posts_with_no_comments, :through => :readers, :source => :post, :include => :comments,
                                     :conditions => 'comments.id is null', :references => :comments
 
@@ -25,8 +27,8 @@ class Person < ActiveRecord::Base
   has_many :agents_posts,         :through => :agents,       :source => :posts
   has_many :agents_posts_authors, :through => :agents_posts, :source => :author
 
-  scope :males,   :conditions => { :gender => 'M' }
-  scope :females, :conditions => { :gender => 'F' }
+  scope :males,   -> { where(:gender => 'M') }
+  scope :females, -> { where(:gender => 'F') }
 end
 
 class PersonWithDependentDestroyJobs < ActiveRecord::Base
@@ -83,3 +85,9 @@ class TightPerson < ActiveRecord::Base
 end
 
 class TightDescendant < TightPerson; end
+
+class RichPerson < ActiveRecord::Base
+  self.table_name = 'people'
+  
+  has_and_belongs_to_many :treasures, :join_table => 'peoples_treasures'
+end

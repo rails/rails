@@ -4,19 +4,19 @@ require 'active_support/cache'
 
 class CacheKeyTest < ActiveSupport::TestCase
   def test_expand_cache_key
-    assert_equal 'Array/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true])
-    assert_equal 'name/Array/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true], :name)
+    assert_equal '1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true])
+    assert_equal 'name/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true], :name)
   end
 
   def test_expand_cache_key_with_rails_cache_id
     begin
       ENV['RAILS_CACHE_ID'] = 'c99'
       assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key(:foo)
-      assert_equal 'c99/Array/foo', ActiveSupport::Cache.expand_cache_key([:foo])
-      assert_equal 'c99/Array/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar])
+      assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key([:foo])
+      assert_equal 'c99/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar])
       assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key(:foo, :nm)
-      assert_equal 'nm/c99/Array/foo', ActiveSupport::Cache.expand_cache_key([:foo], :nm)
-      assert_equal 'nm/c99/Array/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar], :nm)
+      assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key([:foo], :nm)
+      assert_equal 'nm/c99/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar], :nm)
     ensure
       ENV['RAILS_CACHE_ID'] = nil
     end
@@ -55,7 +55,7 @@ class CacheKeyTest < ActiveSupport::TestCase
     def key.cache_key
       :foo_key
     end
-    assert_equal 'Array/foo_key', ActiveSupport::Cache.expand_cache_key([key])
+    assert_equal 'foo_key', ActiveSupport::Cache.expand_cache_key([key])
   end
 
   def test_expand_cache_key_of_nil
@@ -69,13 +69,9 @@ class CacheKeyTest < ActiveSupport::TestCase
   def test_expand_cache_key_of_true
     assert_equal 'true', ActiveSupport::Cache.expand_cache_key(true)
   end
-
-  def test_expand_cache_key_of_one_element_array_different_than_key_of_element
-    element = 'foo'
-    array = [element]
-    element_cache_key = ActiveSupport::Cache.expand_cache_key(element)
-    array_cache_key = ActiveSupport::Cache.expand_cache_key(array)
-    assert_not_equal element_cache_key, array_cache_key
+  
+  def test_expand_cache_key_of_array_like_object
+    assert_equal 'foo/bar/baz', ActiveSupport::Cache.expand_cache_key(%w{foo bar baz}.to_enum)
   end
 end
 
@@ -581,6 +577,16 @@ class FileStoreTest < ActiveSupport::TestCase
     FileUtils.touch(File.join(cache_dir, "foo"))
     key = @cache_with_pathname.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache_with_pathname.send(:file_path_key, key)
+  end
+
+  # Test that generated cache keys are short enough to have Tempfile stuff added to them and 
+  # remain valid
+  def test_filename_max_size
+    key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
+    path = @cache.send(:key_file_path, key)
+    Dir::Tmpname.create(path) do |tmpname, n, opts|
+      assert File.basename(tmpname+'.lock').length <= 255, "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
+    end
   end
 
   # Because file systems have a maximum filename size, filenames > max size should be split in to directories

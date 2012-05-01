@@ -96,7 +96,7 @@ module ActionView
       #   Please login!
       #
       #   <% content_for :script do %>
-      #     <script type="text/javascript">alert('You are not authorized to view this page!')</script>
+      #     <script>alert('You are not authorized to view this page!')</script>
       #   <% end %>
       #
       # Then, in another view, you could to do something like this:
@@ -215,7 +215,7 @@ module ActionView
       def flush_output_buffer #:nodoc:
         if output_buffer && !output_buffer.empty?
           response.body_parts << output_buffer
-          self.output_buffer = output_buffer[0,0]
+          self.output_buffer = output_buffer.respond_to?(:clone_empty) ? output_buffer.clone_empty : output_buffer[0, 0]
           nil
         end
       end

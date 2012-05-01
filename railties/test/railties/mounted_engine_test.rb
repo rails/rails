@@ -18,13 +18,13 @@ module ApplicationTests
         AppTemplate::Application.routes.draw do
           mount Weblog::Engine, :at => '/', :as => 'weblog'
           resources :posts
-          match "/engine_route" => "application_generating#engine_route"
-          match "/engine_route_in_view" => "application_generating#engine_route_in_view"
-          match "/weblog_engine_route" => "application_generating#weblog_engine_route"
-          match "/weblog_engine_route_in_view" => "application_generating#weblog_engine_route_in_view"
-          match "/url_for_engine_route" => "application_generating#url_for_engine_route"
-          match "/polymorphic_route" => "application_generating#polymorphic_route"
-          match "/application_polymorphic_path" => "application_generating#application_polymorphic_path"
+          get "/engine_route" => "application_generating#engine_route"
+          get "/engine_route_in_view" => "application_generating#engine_route_in_view"
+          get "/weblog_engine_route" => "application_generating#weblog_engine_route"
+          get "/weblog_engine_route_in_view" => "application_generating#weblog_engine_route_in_view"
+          get "/url_for_engine_route" => "application_generating#url_for_engine_route"
+          get "/polymorphic_route" => "application_generating#polymorphic_route"
+          get "/application_polymorphic_path" => "application_generating#application_polymorphic_path"
           scope "/:user", :user => "anonymous" do
             mount Blog::Engine => "/blog"
           end
@@ -42,7 +42,7 @@ module ApplicationTests
 
       @simple_plugin.write "config/routes.rb", <<-RUBY
         Weblog::Engine.routes.draw do
-          match '/weblog' => "weblogs#index", :as => 'weblogs'
+          get '/weblog' => "weblogs#index", :as => 'weblogs'
         end
       RUBY
 
@@ -86,9 +86,9 @@ module ApplicationTests
       @plugin.write "config/routes.rb", <<-RUBY
         Blog::Engine.routes.draw do
           resources :posts
-          match '/generate_application_route', :to => 'posts#generate_application_route'
-          match '/application_route_in_view', :to => 'posts#application_route_in_view'
-          match '/engine_polymorphic_path', :to => 'posts#engine_polymorphic_path'
+          get '/generate_application_route', :to => 'posts#generate_application_route'
+          get '/application_route_in_view', :to => 'posts#application_route_in_view'
+          get '/engine_polymorphic_path', :to => 'posts#engine_polymorphic_path'
         end
       RUBY
 

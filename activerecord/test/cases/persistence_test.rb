@@ -13,12 +13,14 @@ require 'models/warehouse_thing'
 require 'models/parrot'
 require 'models/minivan'
 require 'models/person'
+require 'models/pet'
+require 'models/toy'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
 class PersistencesTest < ActiveRecord::TestCase
 
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans, :pets, :toys
 
   # Oracle UPDATE does not support ORDER BY
   unless current_adapter?(:OracleAdapter)
@@ -53,7 +55,7 @@ class PersistencesTest < ActiveRecord::TestCase
       author = authors(:david)
       assert_nothing_raised do
         assert_equal 1, author.posts_sorted_by_id_limited.size
-        assert_equal 2, author.posts_sorted_by_id_limited.find(:all, :limit => 2).size
+        assert_equal 2, author.posts_sorted_by_id_limited.scoped(:limit => 2).all.size
         assert_equal 1, author.posts_sorted_by_id_limited.update_all([ "body = ?", "bulk update!" ])
         assert_equal "bulk update!", posts(:welcome).body
         assert_not_equal "bulk update!", posts(:thinking).body
@@ -76,10 +78,20 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal Topic.count, Topic.delete_all
   end
 
-  def test_update_by_condition
-    Topic.update_all "content = 'bulk updated!'", ["approved = ?", true]
-    assert_equal "Have a nice day", Topic.find(1).content
-    assert_equal "bulk updated!", Topic.find(2).content
+  def test_delete_all_with_joins_and_where_part_is_hash
+    where_args = {:toys => {:name => 'Bone'}}
+    count = Pet.joins(:toys).where(where_args).count
+
+    assert_equal count, 1
+    assert_equal count, Pet.joins(:toys).where(where_args).delete_all
+  end
+
+  def test_delete_all_with_joins_and_where_part_is_not_hash
+    where_args = ['toys.name = ?', 'Bone']
+    count = Pet.joins(:toys).where(where_args).count
+
+    assert_equal count, 1
+    assert_equal count, Pet.joins(:toys).where(where_args).delete_all
   end
 
   def test_increment_attribute
@@ -108,7 +120,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_destroy_all
     conditions = "author_name = 'Mary'"
-    topics_by_mary = Topic.all(:conditions => conditions, :order => 'id')
+    topics_by_mary = Topic.scoped(:where => conditions, :order => 'id').to_a
     assert ! topics_by_mary.empty?
 
     assert_difference('Topic.count', -topics_by_mary.size) do
@@ -119,7 +131,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_destroy_many
-    clients = Client.find([2, 3], :order => 'id')
+    clients = Client.scoped(:order => 'id').find([2, 3])
 
     assert_difference('Client.count', -2) do
       destroyed = Client.destroy([2, 3]).sort_by(&:id)
@@ -320,7 +332,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_non_standard_table_name
-    assert_equal 1, WarehouseThing.update_all(['value = ?', 0], ['id = ?', 1])
+    assert_equal 1, WarehouseThing.where(id: 1).update_all(['value = ?', 0])
     assert_equal 0, WarehouseThing.find(1).value
   end
 
@@ -393,7 +405,6 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute_with_one_updated
     t = Topic.first
-    title = t.title
     t.update_attribute(:title, 'super_title')
     assert_equal 'super_title', t.title
     assert !t.changed?, "topic should not have changed"

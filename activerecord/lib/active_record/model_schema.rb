@@ -114,11 +114,18 @@ module ActiveRecord
       # You can also just define your own <tt>self.table_name</tt> method; see
       # the documentation for ActiveRecord::Base#table_name.
       def table_name=(value)
-        @original_table_name = @table_name if defined?(@table_name)
-        @table_name          = value
-        @quoted_table_name   = nil
-        @arel_table          = nil
-        @relation            = Relation.new(self, arel_table)
+        value = value && value.to_s
+
+        if defined?(@table_name)
+          return if value == @table_name
+          reset_column_information if connected?
+        end
+
+        @table_name        = value
+        @quoted_table_name = nil
+        @arel_table        = nil
+        @sequence_name     = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
+        @relation          = Relation.new(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -152,8 +159,8 @@ module ActiveRecord
 
       # Sets the value of inheritance_column
       def inheritance_column=(value)
-        @original_inheritance_column = inheritance_column
-        @inheritance_column          = value.to_s
+        @inheritance_column = value.to_s
+        @explicit_inheritance_column = true
       end
 
       def sequence_name
@@ -165,7 +172,8 @@ module ActiveRecord
       end
 
       def reset_sequence_name #:nodoc:
-        self.sequence_name = connection.default_sequence_name(table_name, primary_key)
+        @explicit_sequence_name = false
+        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -183,8 +191,8 @@ module ActiveRecord
       #     self.sequence_name = "projectseq"   # default would have been "project_seq"
       #   end
       def sequence_name=(value)
-        @original_sequence_name = @sequence_name if defined?(@sequence_name)
         @sequence_name          = value.to_s
+        @explicit_sequence_name = true
       end
 
       # Indicates whether the table associated with this class exists
@@ -204,6 +212,26 @@ module ActiveRecord
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
         @columns_hash ||= Hash[columns.map { |c| [c.name, c] }]
+      end
+
+      def column_types # :nodoc:
+        @column_types ||= decorate_columns(columns_hash.dup)
+      end
+
+      def decorate_columns(columns_hash) # :nodoc:
+        return if columns_hash.empty?
+
+        serialized_attributes.keys.each do |key|
+          columns_hash[key] = AttributeMethods::Serialization::Type.new(columns_hash[key])
+        end
+
+        columns_hash.each do |name, col|
+          if create_time_zone_conversion_attribute?(name, col)
+            columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(col)
+          end
+        end
+
+        columns_hash
       end
 
       # Returns a hash where the keys are column names and the values are
@@ -268,9 +296,16 @@ module ActiveRecord
         undefine_attribute_methods
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
-        @column_names = @content_columns = @column_defaults = @columns = @columns_hash = nil
-        @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @relation = nil
+        @arel_engine          = nil
+        @column_defaults      = nil
+        @column_names         = nil
+        @columns              = nil
+        @columns_hash         = nil
+        @column_types         = nil
+        @content_columns      = nil
+        @dynamic_methods_hash = nil
+        @inheritance_column   = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
+        @relation             = nil
       end
 
       def clear_cache! # :nodoc:

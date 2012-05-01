@@ -93,8 +93,9 @@ module ActionDispatch
     end
 
     def swap(target, *args, &block)
-      insert_before(target, *args, &block)
-      delete(target)
+      index = assert_index(target, :before)
+      insert(index, *args, &block)
+      middlewares.delete_at(index + 1)
     end
 
     def delete(target)
@@ -109,7 +110,7 @@ module ActionDispatch
     def build(app = nil, &block)
       app ||= block
       raise "MiddlewareStack#build requires an app" unless app
-      middlewares.reverse.inject(app) { |a, e| e.build(a) }
+      middlewares.freeze.reverse.inject(app) { |a, e| e.build(a) }
     end
 
   protected

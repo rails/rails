@@ -3,7 +3,7 @@ require 'abstract_unit'
 module TestUrlGeneration
   class WithMountPoint < ActionDispatch::IntegrationTest
     Routes = ActionDispatch::Routing::RouteSet.new
-    Routes.draw { match "/foo", :to => "my_route_generating#index", :as => :foo }
+    Routes.draw { get "/foo", :to => "my_route_generating#index", :as => :foo }
 
     class ::MyRouteGeneratingController < ActionController::Base
       include Routes.url_helpers

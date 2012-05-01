@@ -63,7 +63,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_column_null_not_null
-    subscriber = Subscriber.find(:first)
+    subscriber = Subscriber.first
     assert subscriber.column_for_attribute("name").null
     assert !subscriber.column_for_attribute("nick").null
   end
@@ -189,8 +189,8 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflection_of_all_associations
     # FIXME these assertions bust a lot
-    assert_equal 38, Firm.reflect_on_all_associations.size
-    assert_equal 28, Firm.reflect_on_all_associations(:has_many).size
+    assert_equal 39, Firm.reflect_on_all_associations.size
+    assert_equal 29, Firm.reflect_on_all_associations(:has_many).size
     assert_equal 10, Firm.reflect_on_all_associations(:has_one).size
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
   end

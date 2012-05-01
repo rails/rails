@@ -13,7 +13,6 @@ module ActiveSupport
       included do
         superclass_delegating_accessor :profile_options
         self.profile_options = {}
-        include ForMiniTest
       end
 
       # each implementation should define metrics and freeze the defaults
@@ -36,40 +35,38 @@ module ActiveSupport
         "#{self.class.name}##{method_name}"
       end
 
-      module ForMiniTest
-        def run(runner)
-          @runner = runner
+      def run(runner)
+        @runner = runner
 
-          run_warmup
-          if full_profile_options && metrics = full_profile_options[:metrics]
-            metrics.each do |metric_name|
-              if klass = Metrics[metric_name.to_sym]
-                run_profile(klass.new)
-              end
+        run_warmup
+        if full_profile_options && metrics = full_profile_options[:metrics]
+          metrics.each do |metric_name|
+            if klass = Metrics[metric_name.to_sym]
+              run_profile(klass.new)
             end
           end
-
-          return
         end
 
-        def run_test(metric, mode)
-          result = '.'
+        return
+      end
+
+      def run_test(metric, mode)
+        result = '.'
+        begin
+          run_callbacks :setup
+          setup
+          metric.send(mode) { __send__ method_name }
+        rescue Exception => e
+          result = @runner.puke(self.class, method_name, e)
+        ensure
           begin
-            run_callbacks :setup
-            setup
-            metric.send(mode) { __send__ method_name }
+            teardown
+            run_callbacks :teardown, :enumerator => :reverse_each
           rescue Exception => e
             result = @runner.puke(self.class, method_name, e)
-          ensure
-            begin
-              teardown
-              run_callbacks :teardown, :enumerator => :reverse_each
-            rescue Exception => e
-              result = @runner.puke(self.class, method_name, e)
-            end
           end
-          result
         end
+        result
       end
 
       protected

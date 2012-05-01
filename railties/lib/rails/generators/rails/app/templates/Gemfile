@@ -2,8 +2,6 @@ source 'https://rubygems.org'
 
 <%= rails_gemfile_entry -%>
 
-gem 'rack', :git => 'https://github.com/rack/rack.git'
-
 <%= database_gemfile_entry -%>
 
 <%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
@@ -17,11 +15,11 @@ gem 'rack', :git => 'https://github.com/rack/rack.git'
 # To use Jbuilder templates for JSON
 # gem 'jbuilder'
 
-# Use unicorn as the web server
+# Use unicorn as the app server
 # gem 'unicorn'
 
 # Deploy with Capistrano
 # gem 'capistrano', :group => :development
 
 # To use debugger
-# <%= ruby_debugger_gemfile_entry %>
+# gem 'debugger'

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/hash/reverse_merge'
 require 'fileutils'
 require 'rails/engine'
 
@@ -70,6 +69,7 @@ module Rails
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders
+    attr_writer :queue
 
     delegate :default_url_options, :default_url_options=, :to => :routes
 
@@ -134,6 +134,10 @@ module Rails
       self
     end
 
+    def initialized?
+      @initialized
+    end
+
     # Load the application and its railties tasks and invoke the registered hooks.
     # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
     def load_tasks(app=self)
@@ -196,6 +200,14 @@ module Rails
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
+    def queue #:nodoc:
+      @queue ||= build_queue
+    end
+
+    def build_queue # :nodoc:
+      config.queue.new
+    end
+
     def to_app
       self
     end
@@ -225,8 +237,11 @@ module Rails
         end
 
         if config.force_ssl
-          require "rack/ssl"
-          middleware.use ::Rack::SSL, config.ssl_options
+          middleware.use ::ActionDispatch::SSL, config.ssl_options
+        end
+
+        if config.action_dispatch.x_sendfile_header.present?
+          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
         end
 
         if config.serve_static_assets
@@ -241,10 +256,6 @@ module Rails
         middleware.use ::ActionDispatch::ShowExceptions, config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
         middleware.use ::ActionDispatch::DebugExceptions
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
-
-        if config.action_dispatch.x_sendfile_header.present?
-          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
-        end
 
         unless config.cache_classes
           app = self
@@ -290,7 +301,15 @@ module Rails
     end
 
     def build_original_fullpath(env)
-      ["#{env["SCRIPT_NAME"]}#{env["PATH_INFO"]}", env["QUERY_STRING"]].reject(&:blank?).join("?")
+      path_info    = env["PATH_INFO"]
+      query_string = env["QUERY_STRING"]
+      script_name  = env["SCRIPT_NAME"]
+
+      if query_string.present?
+        "#{script_name}#{path_info}?#{query_string}"
+      else
+        "#{script_name}#{path_info}"
+      end
     end
   end
 end

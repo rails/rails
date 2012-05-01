@@ -51,5 +51,36 @@ module ActiveRecord::Associations::Builder
           association(name).writer(value)
         end
       end
+
+      def dependent_restrict_raises?
+        ActiveRecord::Base.dependent_restrict_raises == true
+      end
+
+      def dependent_restrict_deprecation_warning
+        if dependent_restrict_raises?
+          msg = "In the next release, `:dependent => :restrict` will not raise a `DeleteRestrictionError`. "\
+                "Instead, it will add an error on the model. To fix this warning, make sure your code " \
+                "isn't relying on a `DeleteRestrictionError` and then add " \
+                "`config.active_record.dependent_restrict_raises = false` to your application config."
+          ActiveSupport::Deprecation.warn msg
+        end
+      end
+
+      def define_restrict_dependency_method
+        name = self.name
+        mixin.redefine_method(dependency_method_name) do
+          # has_many or has_one associations
+          if send(name).respond_to?(:exists?) ? send(name).exists? : !send(name).nil?
+            if dependent_restrict_raises?
+              raise ActiveRecord::DeleteRestrictionError.new(name)
+            else
+              key  = association(name).reflection.macro == :has_one ? "one" : "many"
+              errors.add(:base, :"restrict_dependent_destroy.#{key}",
+                         :record => self.class.human_attribute_name(name).downcase)
+              return false
+            end
+          end
+        end
+      end
   end
 end

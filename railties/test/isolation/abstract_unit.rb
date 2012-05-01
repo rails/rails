@@ -8,7 +8,7 @@
 # Rails booted up.
 require 'fileutils'
 
-require 'rubygems'
+require 'bundler/setup'
 require 'minitest/autorun'
 require 'active_support/test_case'
 
@@ -18,7 +18,6 @@ RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
 # These files do not require any others and are needed
 # to run the tests
 require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/isolation"
-require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/declarative"
 require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/core_ext/kernel/reporting"
 
 module TestHelpers
@@ -112,11 +111,16 @@ module TestHelpers
       routes = File.read("#{app_path}/config/routes.rb")
       if routes =~ /(\n\s*end\s*)\Z/
         File.open("#{app_path}/config/routes.rb", 'w') do |f|
-          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)'\n" + $1
+          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)', :via => :all\n" + $1
         end
       end
 
-      add_to_config 'config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"; config.session_store :cookie_store, :key => "_myapp_session"; config.active_support.deprecation = :log'
+      add_to_config <<-RUBY
+        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        config.session_store :cookie_store, :key => "_myapp_session"
+        config.active_support.deprecation = :log
+        config.action_controller.allow_forgery_protection = false
+      RUBY
     end
 
     def teardown_app
@@ -138,7 +142,7 @@ module TestHelpers
       app.initialize!
 
       app.routes.draw do
-        match "/" => "omg#index"
+        get "/" => "omg#index"
       end
 
       require 'rack/test'
@@ -156,7 +160,7 @@ module TestHelpers
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          get ':controller(/:action)'
         end
       RUBY
     end
@@ -245,9 +249,11 @@ module TestHelpers
     def use_frameworks(arr)
       to_remove =  [:actionmailer,
                     :activemodel,
-                    :activerecord,
-                    :activeresource] - arr
-      remove_from_config "config.active_record.identity_map = true" if to_remove.include? :activerecord
+                    :activerecord] - arr
+      if to_remove.include? :activerecord
+        remove_from_config "config.active_record.whitelist_attributes = true"
+        remove_from_config "config.active_record.dependent_restrict_raises = false"
+      end
       $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
@@ -261,7 +267,6 @@ class ActiveSupport::TestCase
   include TestHelpers::Paths
   include TestHelpers::Rack
   include TestHelpers::Generation
-  extend  ActiveSupport::Testing::Declarative
 end
 
 # Create a scope and build a fixture rails app

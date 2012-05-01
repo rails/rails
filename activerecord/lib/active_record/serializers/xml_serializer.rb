@@ -162,8 +162,9 @@ module ActiveRecord #:nodoc:
     #
     #   class IHaveMyOwnXML < ActiveRecord::Base
     #     def to_xml(options = {})
+    #       require 'builder'
     #       options[:indent] ||= 2
-    #       xml = options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    #       xml = options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
     #       xml.instruct! unless options[:skip_instruct]
     #       xml.level_one do
     #         xml.tag!(:second_level, 'content')

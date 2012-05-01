@@ -2,7 +2,6 @@ module Rails
   class Application
     module Finisher
       include Initializable
-      $rails_rake_task = nil
 
       initializer :add_generator_templates do
         config.generators.templates.unshift(*paths["lib/templates"].existent)
@@ -23,7 +22,7 @@ module Rails
       initializer :add_builtin_route do |app|
         if Rails.env.development?
           app.routes.append do
-            match '/rails/info/properties' => "rails/info#properties"
+            get '/rails/info/properties' => "rails/info#properties"
           end
         end
       end
@@ -49,7 +48,7 @@ module Rails
       end
 
       initializer :eager_load! do
-        if config.cache_classes && !$rails_rake_task
+        if config.cache_classes && !(defined?($rails_rake_task) && $rails_rake_task)
           ActiveSupport.run_load_hooks(:before_eager_load, self)
           eager_load!
         end
@@ -92,6 +91,13 @@ module Rails
       initializer :disable_dependency_loading do
         if config.cache_classes && !config.dependency_loading
           ActiveSupport::Dependencies.unhook!
+        end
+      end
+
+      initializer :activate_queue_consumer do |app|
+        if config.queue == Rails::Queueing::Queue
+          consumer = Rails::Queueing::ThreadedConsumer.start(app.queue)
+          at_exit { consumer.shutdown }
         end
       end
     end

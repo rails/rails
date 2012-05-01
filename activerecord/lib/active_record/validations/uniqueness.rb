@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/prepend_and_append'
+
 module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator
@@ -33,8 +35,14 @@ module ActiveRecord
           relation = relation.and(table[scope_item].eq(scope_value))
         end
 
-        if finder_class.unscoped.where(relation).exists?
-          record.errors.add(attribute, :taken, options.except(:case_sensitive, :scope).merge(:value => value))
+        relation = finder_class.unscoped.where(relation)
+
+        if options[:conditions]
+          relation = relation.merge(options[:conditions])
+        end
+
+        if relation.exists?
+          record.errors.add(attribute, :taken, options.except(:case_sensitive, :scope, :conditions).merge(:value => value))
         end
       end
 
@@ -49,7 +57,7 @@ module ActiveRecord
         class_hierarchy = [record.class]
 
         while class_hierarchy.first != @klass
-          class_hierarchy.insert(0, class_hierarchy.first.superclass)
+          class_hierarchy.prepend(class_hierarchy.first.superclass)
         end
 
         class_hierarchy.detect { |klass| !klass.abstract_class? }
@@ -57,8 +65,7 @@ module ActiveRecord
 
       def build_relation(klass, table, attribute, value) #:nodoc:
         reflection = klass.reflect_on_association(attribute)
-        column = nil
-        if(reflection)
+        if reflection
           column = klass.columns_hash[reflection.foreign_key]
           attribute = reflection.foreign_key
           value = value.attributes[reflection.primary_key_column.name]
@@ -101,6 +108,14 @@ module ActiveRecord
       #     validates_uniqueness_of :teacher_id, :scope => [:semester_id, :class_id]
       #   end
       #
+      # It is also possible to limit the uniqueness constraint to a set of records matching certain conditions.
+      # In this example archived articles are not being taken into consideration when validating uniqueness
+      # of the title attribute:
+      #
+      #   class Article < ActiveRecord::Base
+      #     validates_uniqueness_of :title, :conditions => where('status != ?', 'archived')
+      #   end
+      #
       # When the record is created, a check is performed to make sure that no record exists in the database
       # with the given value for the specified attribute (that maps to a column). When the record is updated,
       # the same check is made but disregarding the record itself.
@@ -108,6 +123,8 @@ module ActiveRecord
       # Configuration options:
       # * <tt>:message</tt> - Specifies a custom error message (default is: "has already been taken").
       # * <tt>:scope</tt> - One or more columns by which to limit the scope of the uniqueness constraint.
+      # * <tt>:conditions</tt> - Specify the conditions to be included as a <tt>WHERE</tt> SQL fragment to limit
+      #   the uniqueness constraint lookup. (e.g. <tt>:conditions => where('status = ?', 'active')</tt>)
       # * <tt>:case_sensitive</tt> - Looks for an exact match. Ignored by non-text columns (+true+ by default).
       # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
       # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
@@ -179,7 +196,6 @@ module ActiveRecord
       # The following bundled adapters throw the ActiveRecord::RecordNotUnique exception:
       # * ActiveRecord::ConnectionAdapters::MysqlAdapter
       # * ActiveRecord::ConnectionAdapters::Mysql2Adapter
-      # * ActiveRecord::ConnectionAdapters::SQLiteAdapter
       # * ActiveRecord::ConnectionAdapters::SQLite3Adapter
       # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
       #

@@ -8,7 +8,8 @@ module ActiveModel
       # Provides an interface for any class to have <tt>before_validation</tt> and
       # <tt>after_validation</tt> callbacks.
       #
-      # First, extend ActiveModel::Callbacks from the class you are creating:
+      # First, include ActiveModel::Validations::Callbacks from the class you are
+      # creating:
       #
       #   class MyModel
       #     include ActiveModel::Validations::Callbacks
@@ -23,7 +24,7 @@ module ActiveModel
 
       included do
         include ActiveSupport::Callbacks
-        define_callbacks :validation, :terminator => "result == false", :scope => [:kind, :name]
+        define_callbacks :validation, :terminator => "result == false", :skip_after_callbacks_if_terminated => true, :scope => [:kind, :name]
       end
 
       module ClassMethods
@@ -40,7 +41,6 @@ module ActiveModel
           options = args.extract_options!
           options[:prepend] = true
           options[:if] = Array(options[:if])
-          options[:if] << "!halted"
           options[:if].unshift("self.validation_context == :#{options[:on]}") if options[:on]
           set_callback(:validation, :after, *(args << options), &block)
         end

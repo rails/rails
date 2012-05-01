@@ -63,6 +63,12 @@ class SessionTest < ActiveSupport::TestCase
     @session.post_via_redirect(path, args, headers)
   end
 
+  def test_patch_via_redirect
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    @session.expects(:request_via_redirect).with(:patch, path, args, headers)
+    @session.patch_via_redirect(path, args, headers)
+  end
+
   def test_put_via_redirect
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:put, path, args, headers)
@@ -87,6 +93,12 @@ class SessionTest < ActiveSupport::TestCase
     @session.post(path,params,headers)
   end
 
+  def test_patch
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    @session.expects(:process).with(:patch,path,params,headers)
+    @session.patch(path,params,headers)
+  end
+
   def test_put
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     @session.expects(:process).with(:put,path,params,headers)
@@ -103,6 +115,12 @@ class SessionTest < ActiveSupport::TestCase
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     @session.expects(:process).with(:head,path,params,headers)
     @session.head(path,params,headers)
+  end
+
+  def test_options
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    @session.expects(:process).with(:options,path,params,headers)
+    @session.options(path,params,headers)
   end
 
   def test_xml_http_request_get
@@ -123,6 +141,16 @@ class SessionTest < ActiveSupport::TestCase
     )
     @session.expects(:process).with(:post,path,params,headers_after_xhr)
     @session.xml_http_request(:post,path,params,headers)
+  end
+
+  def test_xml_http_request_patch
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    headers_after_xhr = headers.merge(
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
+    )
+    @session.expects(:process).with(:patch,path,params,headers_after_xhr)
+    @session.xml_http_request(:patch,path,params,headers)
   end
 
   def test_xml_http_request_put
@@ -153,6 +181,16 @@ class SessionTest < ActiveSupport::TestCase
     )
     @session.expects(:process).with(:head,path,params,headers_after_xhr)
     @session.xml_http_request(:head,path,params,headers)
+  end
+
+  def test_xml_http_request_options
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    headers_after_xhr = headers.merge(
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
+    )
+    @session.expects(:process).with(:options,path,params,headers_after_xhr)
+    @session.xml_http_request(:options,path,params,headers)
   end
 
   def test_xml_http_request_override_accept
@@ -212,7 +250,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
     @integration_session.stubs(:generic_url_rewriter)
     @integration_session.stubs(:process)
 
-    %w( get post head put delete ).each do |verb|
+    %w( get post head patch put delete options ).each do |verb|
       assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
     end
   end
@@ -428,7 +466,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
-          match ':action', :to => controller
+          match ':action', :to => controller, :via => [:get, :post]
           get 'get/:action', :to => controller
         end
 
@@ -492,10 +530,10 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    match '',    :to => 'application_integration_test/test#index', :as => :empty_string
+    get '',    :to => 'application_integration_test/test#index', :as => :empty_string
 
-    match 'foo', :to => 'application_integration_test/test#index', :as => :foo
-    match 'bar', :to => 'application_integration_test/test#index', :as => :bar
+    get 'foo', :to => 'application_integration_test/test#index', :as => :foo
+    get 'bar', :to => 'application_integration_test/test#index', :as => :bar
   end
 
   def app
@@ -533,5 +571,38 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     old_env = env.dup
     get '/foo', nil, env
     assert_equal old_env, env
+  end
+end
+
+class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
+  class TestController < ActionController::Base
+    def post
+      render :text => "Created", :status => 201
+    end
+  end
+
+  def self.call(env)
+    env["action_dispatch.parameter_filter"] = [:password]
+    routes.call(env)
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  routes.draw do
+    match '/post', :to => 'environment_filter_integration_test/test#post', :via => :post
+  end
+
+  def app
+    self.class
+  end
+
+  test "filters rack request form vars" do
+    post "/post", :username => 'cjolly', :password => 'secret'
+
+    assert_equal 'cjolly', request.filtered_parameters['username']
+    assert_equal '[FILTERED]', request.filtered_parameters['password']
+    assert_equal '[FILTERED]', request.filtered_env['rack.request.form_vars']
   end
 end

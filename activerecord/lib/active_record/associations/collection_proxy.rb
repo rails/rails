@@ -61,11 +61,15 @@ module ActiveRecord
         @association
       end
 
-      def scoped
+      def scoped(options = nil)
         association = @association
-        association.scoped.extending do
+        scope       = association.scoped
+
+        scope.extending! do
           define_method(:proxy_association) { association }
         end
+        scope.merge!(options) if options
+        scope
       end
 
       def respond_to?(name, include_private = false)
@@ -82,9 +86,8 @@ module ActiveRecord
             proxy_association.send :add_to_target, r
             yield(r) if block_given?
           end
-        end
 
-        if target.respond_to?(method) || (!proxy_association.klass.respond_to?(method) && Class.respond_to?(method))
+        elsif target.respond_to?(method) || (!proxy_association.klass.respond_to?(method) && Class.respond_to?(method))
           if load_target
             if target.respond_to?(method)
               target.send(method, *args, &block)
@@ -126,6 +129,19 @@ module ActiveRecord
       def reload
         proxy_association.reload
         self
+      end
+
+      # Define array public methods because we know it should be invoked over
+      # the target, so we can have a performance improvement using those methods
+      # in association collections
+      Array.public_instance_methods.each do |m|
+        unless method_defined?(m)
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def #{m}(*args, &block)
+              target.public_send(:#{m}, *args, &block) if load_target
+            end
+          RUBY
+        end
       end
     end
   end

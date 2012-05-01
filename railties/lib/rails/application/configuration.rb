@@ -1,4 +1,3 @@
-require 'active_support/core_ext/string/encoding'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/file_update_checker'
 require 'rails/engine/configuration'
@@ -6,13 +5,13 @@ require 'rails/engine/configuration'
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets,
-                    :cache_classes, :cache_store, :consider_all_requests_local,
+      attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets, :autoflush_log,
+                    :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :dependency_loading, :exceptions_app, :file_watcher, :filter_parameters,
-                    :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
+                    :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags, :preload_frameworks,
                     :railties_order, :relative_url_root, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
-                    :time_zone, :reload_classes_only_on_change
+                    :time_zone, :reload_classes_only_on_change, :use_schema_cache_dump, :queue
 
       attr_writer :log_level
       attr_reader :encoding
@@ -41,6 +40,10 @@ module Rails
         @reload_classes_only_on_change = true
         @file_watcher                  = ActiveSupport::FileUpdateChecker
         @exceptions_app                = nil
+        @autoflush_log                 = true
+        @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
+        @use_schema_cache_dump         = true
+        @queue                         = Rails::Queueing::Queue
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false
@@ -104,7 +107,7 @@ module Rails
       # YAML::load.
       def database_configuration
         require 'erb'
-        YAML::load(ERB.new(IO.read(paths["config/database"].first)).result)
+        YAML.load ERB.new(IO.read(paths["config/database"].first)).result
       end
 
       def log_level
@@ -112,11 +115,10 @@ module Rails
       end
 
       def colorize_logging
-        @colorize_logging
+        ActiveSupport::LogSubscriber.colorize_logging
       end
 
       def colorize_logging=(val)
-        @colorize_logging = val
         ActiveSupport::LogSubscriber.colorize_logging = val
         self.generators.colorize_logging = val
       end

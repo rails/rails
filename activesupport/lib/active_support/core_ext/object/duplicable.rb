@@ -104,3 +104,16 @@ class Module
     false
   end
 end
+
+require 'bigdecimal'
+class BigDecimal
+  begin
+    BigDecimal.new('4.56').dup
+
+    def duplicable?
+      true
+    end
+  rescue TypeError
+    # can't dup, so use superclass implementation
+  end
+end

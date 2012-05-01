@@ -14,6 +14,9 @@
 # of the line (or closing ERB comment tag) is considered to be their text.
 class SourceAnnotationExtractor
   class Annotation < Struct.new(:line, :tag, :text)
+    def self.directories
+      @@directories ||= %w(app config lib script test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
+    end
 
     # Returns a representation of the annotation that looks like this:
     #
@@ -22,7 +25,7 @@ class SourceAnnotationExtractor
     # If +options+ has a flag <tt>:tag</tt> the tag is shown as in the example above.
     # Otherwise the string contains just line and text.
     def to_s(options={})
-      s = "[#{line.to_s.rjust(options[:indent])}]"
+      s = "[#{line.to_s.rjust(options[:indent])}] "
       s << "[#{tag}] " if options[:tag]
       s << text
     end
@@ -30,8 +33,9 @@ class SourceAnnotationExtractor
 
   # Prints all annotations with tag +tag+ under the root directories +app+, +config+, +lib+,
   # +script+, and +test+ (recursively). Only filenames with extension 
-  # +.builder+, +.rb+, and +.erb+ are taken into account. The +options+
-  # hash is passed to each annotation's +to_s+.
+  # +.builder+, +.rb+, +.erb+, +.haml+, +.slim+, +.css+, +.scss+, +.js+, and
+  # +.coffee+ are taken into account. The +options+ hash is passed to each
+  # annotation's +to_s+.
   #
   # This class method is the single entry point for the rake tasks.
   def self.enumerate(tag, options={})
@@ -47,13 +51,14 @@ class SourceAnnotationExtractor
 
   # Returns a hash that maps filenames under +dirs+ (recursively) to arrays
   # with their annotations.
-  def find(dirs=%w(app config lib script test))
+  def find(dirs = Annotation.directories)
     dirs.inject({}) { |h, dir| h.update(find_in(dir)) }
   end
 
   # Returns a hash that maps filenames under +dir+ (recursively) to arrays
   # with their annotations. Only files with annotations are included, and only
-  # those with extension +.builder+, +.rb+, +.erb+, +.haml+ and +.slim+
+  # those with extension +.builder+, +.rb+, +.erb+, +.haml+, +.slim+, +.css+,
+  # +.scss+, +.js+, and +.coffee+
   # are taken into account.
   def find_in(dir)
     results = {}
@@ -63,8 +68,10 @@ class SourceAnnotationExtractor
 
       if File.directory?(item)
         results.update(find_in(item))
-      elsif item =~ /\.(builder|rb)$/
+      elsif item =~ /\.(builder|rb|coffee)$/
         results.update(extract_annotations_from(item, /#\s*(#{tag}):?\s*(.*)$/))
+      elsif item =~ /\.(css|scss|js)$/
+        results.update(extract_annotations_from(item, /\/\/\s*(#{tag}):?\s*(.*)$/))
       elsif item =~ /\.erb$/
         results.update(extract_annotations_from(item, /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/))
       elsif item =~ /\.haml$/

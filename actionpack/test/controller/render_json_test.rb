@@ -102,7 +102,7 @@ class RenderJsonTest < ActionController::TestCase
   def test_render_json_with_callback
     get :render_json_hello_world_with_callback
     assert_equal 'alert({"hello":"world"})', @response.body
-    assert_equal 'application/json', @response.content_type
+    assert_equal 'text/javascript', @response.content_type
   end
 
   def test_render_json_with_custom_content_type

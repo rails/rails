@@ -6,8 +6,6 @@ module ActionController #:nodoc:
   module MimeResponds
     extend ActiveSupport::Concern
 
-    include ActionController::ImplicitRender
-
     included do
       class_attribute :responder, :mimes_for_respond_to
       self.responder = ActionController::Responder
@@ -58,7 +56,7 @@ module ActionController #:nodoc:
       # Clear all mime types in <tt>respond_to</tt>.
       #
       def clear_respond_to
-        self.mimes_for_respond_to = ActiveSupport::OrderedHash.new.freeze
+        self.mimes_for_respond_to = Hash.new.freeze
       end
     end
 
@@ -76,7 +74,7 @@ module ActionController #:nodoc:
     #
     #     respond_to do |format|
     #       format.html
-    #       format.xml { render :xml => @people.to_xml }
+    #       format.xml { render :xml => @people }
     #     end
     #   end
     #
@@ -191,25 +189,112 @@ module ActionController #:nodoc:
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
-      if response = retrieve_response_from_mimes(mimes, &block)
-        response.call(nil)
+      if collector = retrieve_collector_from_mimes(mimes, &block)
+        response = collector.response
+        response ? response.call : render({})
       end
     end
 
-    # respond_with wraps a resource around a responder for default representation.
-    # First it invokes respond_to, if a response cannot be found (ie. no block
-    # for the request was given and template was not available), it instantiates
-    # an ActionController::Responder with the controller and resource.
+    # For a given controller action, respond_with generates an appropriate
+    # response based on the mime-type requested by the client.
     #
-    # ==== Example
+    # If the method is called with just a resource, as in this example -
     #
-    #   def index
-    #     @users = User.all
-    #     respond_with(@users)
+    #   class PeopleController < ApplicationController
+    #     respond_to :html, :xml, :json
+    #
+    #     def index
+    #       @people = Person.all
+    #       respond_with @people
+    #     end
     #   end
     #
-    # It also accepts a block to be given. It's used to overwrite a default
-    # response:
+    # then the mime-type of the response is typically selected based on the
+    # request's Accept header and the set of available formats declared
+    # by previous calls to the controller's class method +respond_to+. Alternatively
+    # the mime-type can be selected by explicitly setting <tt>request.format</tt> in
+    # the controller.
+    #
+    # If an acceptable format is not identified, the application returns a
+    # '406 - not acceptable' status. Otherwise, the default response is to render
+    # a template named after the current action and the selected format,
+    # e.g. <tt>index.html.erb</tt>. If no template is available, the behavior
+    # depends on the selected format:
+    #
+    # * for an html response - if the request method is +get+, an exception
+    #   is raised but for other requests such as +post+ the response
+    #   depends on whether the resource has any validation errors (i.e.
+    #   assuming that an attempt has been made to save the resource,
+    #   e.g. by a +create+ action) -
+    #   1. If there are no errors, i.e. the resource
+    #      was saved successfully, the response +redirect+'s to the resource
+    #      i.e. its +show+ action.
+    #   2. If there are validation errors, the response
+    #      renders a default action, which is <tt>:new</tt> for a
+    #      +post+ request or <tt>:edit</tt> for +put+.
+    #   Thus an example like this -
+    #
+    #     respond_to :html, :xml
+    #
+    #     def create
+    #       @user = User.new(params[:user])
+    #       flash[:notice] = 'User was successfully created.' if @user.save
+    #       respond_with(@user)
+    #     end
+    #
+    #   is equivalent, in the absence of <tt>create.html.erb</tt>, to -
+    #
+    #     def create
+    #       @user = User.new(params[:user])
+    #       respond_to do |format|
+    #         if @user.save
+    #           flash[:notice] = 'User was successfully created.'
+    #           format.html { redirect_to(@user) }
+    #           format.xml { render :xml => @user }
+    #         else
+    #           format.html { render :action => "new" }
+    #           format.xml { render :xml => @user }
+    #         end
+    #       end
+    #     end
+    #
+    # * for a javascript request - if the template isn't found, an exception is
+    #   raised.
+    # * for other requests - i.e. data formats such as xml, json, csv etc, if
+    #   the resource passed to +respond_with+ responds to <code>to_<format></code>,
+    #   the method attempts to render the resource in the requested format
+    #   directly, e.g. for an xml request, the response is equivalent to calling 
+    #   <code>render :xml => resource</code>.
+    #
+    # === Nested resources
+    #
+    # As outlined above, the +resources+ argument passed to +respond_with+
+    # can play two roles. It can be used to generate the redirect url
+    # for successful html requests (e.g. for +create+ actions when
+    # no template exists), while for formats other than html and javascript
+    # it is the object that gets rendered, by being converted directly to the
+    # required format (again assuming no template exists).
+    #
+    # For redirecting successful html requests, +respond_with+ also supports
+    # the use of nested resources, which are supplied in the same way as
+    # in <code>form_for</code> and <code>polymorphic_url</code>. For example -
+    #
+    #   def create
+    #     @project = Project.find(params[:project_id])
+    #     @task = @project.comments.build(params[:task])
+    #     flash[:notice] = 'Task was successfully created.' if @task.save
+    #     respond_with(@project, @task)
+    #   end
+    #
+    # This would cause +respond_with+ to redirect to <code>project_task_url</code>
+    # instead of <code>task_url</code>. For request formats other than html or
+    # javascript, if multiple resources are passed in this way, it is the last
+    # one specified that is rendered.
+    #
+    # === Customizing response behavior
+    #
+    # Like +respond_to+, +respond_with+ may also be called with a block that
+    # can be used to overwrite any of the default responses, e.g. -
     #
     #   def create
     #     @user = User.new(params[:user])
@@ -220,21 +305,32 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # All options given to respond_with are sent to the underlying responder,
-    # except for the option :responder itself. Since the responder interface
-    # is quite simple (it just needs to respond to call), you can even give
-    # a proc to it.
+    # The argument passed to the block is an ActionController::MimeResponds::Collector
+    # object which stores the responses for the formats defined within the
+    # block. Note that formats with responses defined explicitly in this way
+    # do not have to first be declared using the class method +respond_to+.
     #
-    # In order to use respond_with, first you need to declare the formats your
-    # controller responds to in the class level with a call to <tt>respond_to</tt>.
+    # Also, a hash passed to +respond_with+ immediately after the specified
+    # resource(s) is interpreted as a set of options relevant to all
+    # formats. Any option accepted by +render+ can be used, e.g.
+    #   respond_with @people, :status => 200
+    # However, note that these options are ignored after an unsuccessful attempt
+    # to save a resource, e.g. when automatically rendering <tt>:new</tt>
+    # after a post request.
+    #
+    # Two additional options are relevant specifically to +respond_with+ -
+    # 1. <tt>:location</tt> - overwrites the default redirect location used after
+    #    a successful html +post+ request.
+    # 2. <tt>:action</tt> - overwrites the default render action used after an
+    #    unsuccessful html +post+ request.
     #
     def respond_with(*resources, &block)
       raise "In order to use respond_with, first you need to declare the formats your " <<
             "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?
 
-      if response = retrieve_response_from_mimes(&block)
+      if collector = retrieve_collector_from_mimes(&block)
         options = resources.size == 1 ? {} : resources.extract_options!
-        options.merge!(:default_response => response)
+        options[:default_response] = collector.response
         (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
     end
@@ -260,30 +356,59 @@ module ActionController #:nodoc:
       end
     end
 
-    # Collects mimes and return the response for the negotiated format. Returns
-    # nil if :not_acceptable was sent to the client.
+    # Returns a Collector object containing the appropriate mime-type response
+    # for the current request, based on the available responses defined by a block.
+    # In typical usage this is the block passed to +respond_with+ or +respond_to+.
     #
-    def retrieve_response_from_mimes(mimes=nil, &block) #:nodoc:
+    # Sends :not_acceptable to the client and returns nil if no suitable format
+    # is available.
+    #
+    def retrieve_collector_from_mimes(mimes=nil, &block) #:nodoc:
       mimes ||= collect_mimes_from_class_level
-      collector = Collector.new(mimes) { |options| default_render(options || {}) }
+      collector = Collector.new(mimes)
       block.call(collector) if block_given?
+      format = collector.negotiate_format(request)
 
-      if format = request.negotiate_mime(collector.order)
+      if format
         self.content_type ||= format.to_s
-        lookup_context.freeze_formats([format.to_sym])
-        collector.response_for(format)
+        lookup_context.formats = [format.to_sym]
+        lookup_context.rendered_format = lookup_context.formats.first
+        collector
       else
         head :not_acceptable
         nil
       end
     end
 
-    class Collector #:nodoc:
+    # A container for responses available from the current controller for
+    # requests for different mime-types sent to a particular action.
+    #
+    # The public controller methods +respond_with+ and +respond_to+ may be called
+    # with a block that is used to define responses to different mime-types, e.g.
+    # for +respond_to+ :
+    #
+    #   respond_to do |format|
+    #     format.html
+    #     format.xml { render :xml => @people }
+    #   end
+    #
+    # In this usage, the argument passed to the block (+format+ above) is an
+    # instance of the ActionController::MimeResponds::Collector class. This
+    # object serves as a container in which available responses can be stored by
+    # calling any of the dynamically generated, mime-type-specific methods such
+    # as +html+, +xml+ etc on the Collector. Each response is represented by a
+    # corresponding block if present.
+    #
+    # A subsequent call to #negotiate_format(request) will enable the Collector
+    # to determine which specific mime-type it should respond with for the current
+    # request, with this response then being accessible by calling #response.
+    #
+    class Collector
       include AbstractController::Collector
-      attr_accessor :order
+      attr_accessor :order, :format
 
-      def initialize(mimes, &block)
-        @order, @responses, @default_response = [], {}, block
+      def initialize(mimes)
+        @order, @responses = [], {}
         mimes.each { |mime| send(mime) }
       end
 
@@ -302,8 +427,12 @@ module ActionController #:nodoc:
         @responses[mime_type] ||= block
       end
 
-      def response_for(mime)
-        @responses[mime] || @responses[Mime::ALL] || @default_response
+      def response
+        @responses[format] || @responses[Mime::ALL]
+      end
+
+      def negotiate_format(request)
+        @format = request.negotiate_mime(order)
       end
     end
   end

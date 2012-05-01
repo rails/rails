@@ -151,10 +151,10 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["name can not be blank", "name can not be nil"], person.errors.to_a
   end
 
-  test 'to_hash should return an ordered hash' do
+  test 'to_hash should return a hash' do
     person = Person.new
     person.errors.add(:name, "can not be blank")
-    assert_instance_of ActiveSupport::OrderedHash, person.errors.to_hash
+    assert_instance_of ::Hash, person.errors.to_hash
   end
 
   test 'full_messages should return an array of error messages, with the attribute name included' do
@@ -182,6 +182,16 @@ class ErrorsTest < ActiveModel::TestCase
     hash = person.errors.as_json
     assert_equal ["can not be blank", "can not be nil"], hash[:name]
     assert_equal ["is invalid"], hash[:email]
+  end
+
+  test 'should return a JSON hash representation of the errors with full messages' do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "can not be nil")
+    person.errors.add(:email, "is invalid")
+    hash = person.errors.as_json(:full_messages => true)
+    assert_equal ["name can not be blank", "name can not be nil"], hash[:name]
+    assert_equal ["email is invalid"], hash[:email]
   end
 
   test "generate_message should work without i18n_scope" do

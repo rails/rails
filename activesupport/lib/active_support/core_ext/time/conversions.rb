@@ -3,13 +3,19 @@ require 'active_support/values/time_zone'
 
 class Time
   DATE_FORMATS = {
-    :db           => "%Y-%m-%d %H:%M:%S",
-    :number       => "%Y%m%d%H%M%S",
-    :time         => "%H:%M",
-    :short        => "%d %b %H:%M",
-    :long         => "%B %d, %Y %H:%M",
-    :long_ordinal => lambda { |time| time.strftime("%B #{ActiveSupport::Inflector.ordinalize(time.day)}, %Y %H:%M") },
-    :rfc822       => lambda { |time| time.strftime("%a, %d %b %Y %H:%M:%S #{time.formatted_offset(false)}") }
+    :db           => '%Y-%m-%d %H:%M:%S',
+    :number       => '%Y%m%d%H%M%S',
+    :time         => '%H:%M',
+    :short        => '%d %b %H:%M',
+    :long         => '%B %d, %Y %H:%M',
+    :long_ordinal => lambda { |time|
+      day_format = ActiveSupport::Inflector.ordinalize(time.day)
+      time.strftime("%B #{day_format}, %Y %H:%M")
+    },
+    :rfc822       => lambda { |time|
+      offset_format = time.formatted_offset(false)
+      time.strftime("%a, %d %b %Y %H:%M:%S #{offset_format}")
+    }
   }
 
   # Converts to a formatted string. See DATE_FORMATS for builtin formats.
@@ -34,7 +40,7 @@ class Time
   # or Proc instance that takes a time argument as the value.
   #
   #   # config/initializers/time_formats.rb
-  #   Time::DATE_FORMATS[:month_and_year] = "%B %Y"
+  #   Time::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Time::DATE_FORMATS[:short_ordinal] = lambda { |time| time.strftime("%B #{time.day.ordinalize}") }
   def to_formatted_s(format = :default)
     if formatter = DATE_FORMATS[format]

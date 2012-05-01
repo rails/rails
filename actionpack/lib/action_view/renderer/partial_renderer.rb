@@ -32,7 +32,7 @@ module ActionView
   #
   #   <%= render :partial => "account", :object => @buyer %>
   #
-  # would provide the +@buyer+ object to the partial, available under the local variable +account+ and is
+  # would provide the <tt>@buyer</tt> object to the partial, available under the local variable +account+ and is
   # equivalent to:
   #
   #   <%= render :partial => "account", :locals => { :account => @buyer } %>
@@ -85,8 +85,7 @@ module ActionView
   # == Rendering objects that respond to `to_partial_path`
   #
   # Instead of explicitly naming the location of a partial, you can also let PartialRenderer do the work
-  # and pick the proper path by checking `to_proper_path` method. If the object passed to render is a collection,
-  # all objects must return the same path.
+  # and pick the proper path by checking `to_partial_path` method.
   #
   #  # @account.to_partial_path returns 'accounts/account', so it can be used to replace:
   #  # <%= render :partial => "accounts/account", :locals => { :account => @account} %>
@@ -159,6 +158,47 @@ module ActionView
   #     Name: <%= user.name %>
   #   </div>
   #
+  # If a collection is given, the layout will be rendered once for each item in
+  # the collection. Just think these two snippets have the same output:
+  #
+  #   <%# app/views/users/_user.html.erb %>
+  #   Name: <%= user.name %>
+  #
+  #   <%# app/views/users/index.html.erb %>
+  #   <%# This does not use layouts %>
+  #   <ul>
+  #     <% users.each do |user| -%>
+  #       <li>
+  #         <%= render :partial => "user", :locals => { :user => user } %>
+  #       </li>
+  #     <% end -%>
+  #   </ul>
+  #
+  #   <%# app/views/users/_li_layout.html.erb %>
+  #   <li>
+  #     <%= yield %>
+  #   </li>
+  #
+  #   <%# app/views/users/index.html.erb %>
+  #   <ul>
+  #     <%= render :partial => "user", :layout => "li_layout", :collection => users %>
+  #   </ul>
+  #
+  # Given two users whose names are Alice and Bob, these snippets return:
+  #
+  #   <ul>
+  #     <li>
+  #       Name: Alice
+  #     </li>
+  #     <li>
+  #       Name: Bob
+  #     </li>
+  #   </ul>
+  #
+  # The current object being rendered, as well as the object_counter, will be
+  # available as local variables inside the layout template under the same names
+  # as available in the partial.
+  #
   # You can also apply a layout to a block within any template:
   #
   #   <%# app/views/users/_chief.html.erb &>
@@ -209,17 +249,24 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer
-    PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
+    PREFIXED_PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
 
     def initialize(*)
       super
       @context_prefix = @lookup_context.prefixes.first
-      @partial_names = PARTIAL_NAMES[@context_prefix]
     end
 
     def render(context, options, block)
       setup(context, options, block)
       identifier = (@template = find_partial) ? @template.identifier : @path
+
+      @lookup_context.rendered_format ||= begin
+        if @template && @template.formats.present?
+          @template.formats.first
+        else
+          formats.first
+        end
+      end
 
       if @collection
         instrument(:collection, :identifier => identifier || "collection", :count => @collection.size) do
@@ -248,7 +295,7 @@ module ActionView
       object, as = @object, @variable
 
       if !block && (layout = @options[:layout])
-        layout = find_template(layout)
+        layout = find_template(layout, @locals.keys + [@variable])
       end
 
       object ||= locals[as]
@@ -334,12 +381,19 @@ module ActionView
       segments, locals, template = [], @locals, @template
       as, counter = @variable, @variable_counter
 
+      if layout = @options[:layout]
+        layout = find_template(layout, @locals.keys + [@variable, @variable_counter])
+      end
+
       locals[counter] = -1
 
       @collection.each do |object|
         locals[counter] += 1
         locals[as] = object
-        segments << template.render(@view, locals)
+
+        content = template.render(@view, locals)
+        content = layout.render(@view, locals) { content } if layout
+        segments << content
       end
 
       segments
@@ -371,7 +425,15 @@ module ActionView
         raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.")
       end
 
-      @partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
+      if @view.prefix_partial_path_with_controller_namespace
+        prefixed_partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
+      else
+        path
+      end
+    end
+
+    def prefixed_partial_names
+      @prefixed_partial_names ||= PREFIXED_PARTIAL_NAMES[@context_prefix]
     end
 
     def merge_prefix_into_object_path(prefix, object_path)
@@ -392,7 +454,7 @@ module ActionView
     end
 
     def retrieve_variable(path)
-      variable = @options[:as].try(:to_sym) || path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
+      variable = @options.fetch(:as) { path[%r'_?(\w+)(\.\w+)*$', 1] }.try(:to_sym)
       variable_counter = :"#{variable}_counter" if @collection
       [variable, variable_counter]
     end

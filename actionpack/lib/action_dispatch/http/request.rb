@@ -17,7 +17,8 @@ module ActionDispatch
     include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
 
-    LOCALHOST   = [/^127\.0\.0\.\d{1,3}$/, "::1", /^0:0:0:0:0:0:0:1(%.*)?$/].freeze
+    LOCALHOST   = Regexp.union [/^127\.0\.0\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
+
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER REMOTE_ADDR
@@ -95,6 +96,12 @@ module ActionDispatch
     # Equivalent to <tt>request.request_method_symbol == :post</tt>.
     def post?
       HTTP_METHOD_LOOKUP[request_method] == :post
+    end
+
+    # Is this a PATCH request?
+    # Equivalent to <tt>request.request_method == :patch</tt>.
+    def patch?
+      HTTP_METHOD_LOOKUP[request_method] == :patch
     end
 
     # Is this a PUT request?
@@ -244,7 +251,7 @@ module ActionDispatch
 
     # True if the request came from localhost, 127.0.0.1.
     def local?
-      LOCALHOST.any? { |local_ip| local_ip === remote_addr && local_ip === remote_ip }
+      LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
 
     private

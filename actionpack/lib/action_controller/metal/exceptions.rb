@@ -14,8 +14,6 @@ module ActionController
   end
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
-    attr_reader :allowed_methods
-
     def initialize(*allowed_methods)
       super("Only #{allowed_methods.to_sentence(:locale => :en)} requests are allowed.")
     end
@@ -28,9 +26,6 @@ module ActionController
   end
 
   class MissingFile < ActionControllerError #:nodoc:
-  end
-
-  class RenderError < ActionControllerError #:nodoc:
   end
 
   class SessionOverflowError < ActionControllerError #:nodoc:

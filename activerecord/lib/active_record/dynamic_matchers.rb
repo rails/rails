@@ -1,13 +1,10 @@
 module ActiveRecord
   module DynamicMatchers
     def respond_to?(method_id, include_private = false)
-      if match = DynamicFinderMatch.match(method_id)
-        return true if all_attributes_exists?(match.attribute_names)
-      elsif match = DynamicScopeMatch.match(method_id)
-        return true if all_attributes_exists?(match.attribute_names)
-      end
+      match       = find_dynamic_match(method_id)
+      valid_match = match && all_attributes_exists?(match.attribute_names)
 
-      super
+      valid_match || super
     end
 
     private
@@ -22,22 +19,18 @@ module ActiveRecord
     # Each dynamic finder using <tt>scoped_by_*</tt> is also defined in the class after it
     # is first invoked, so that future attempts to use it do not run through method_missing.
     def method_missing(method_id, *arguments, &block)
-      if match = (DynamicFinderMatch.match(method_id) || DynamicScopeMatch.match(method_id))
+      if match = find_dynamic_match(method_id)
         attribute_names = match.attribute_names
         super unless all_attributes_exists?(attribute_names)
-        if arguments.size < attribute_names.size
+
+        unless match.valid_arguments?(arguments)
           method_trace = "#{__FILE__}:#{__LINE__}:in `#{method_id}'"
           backtrace = [method_trace] + caller
           raise ArgumentError, "wrong number of arguments (#{arguments.size} for #{attribute_names.size})", backtrace
         end
+
         if match.respond_to?(:scope?) && match.scope?
-          self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
-            def self.#{method_id}(*args)                                    # def self.scoped_by_user_name_and_password(*args)
-              attributes = Hash[[:#{attribute_names.join(',:')}].zip(args)] #   attributes = Hash[[:user_name, :password].zip(args)]
-                                                                            #
-              scoped(:conditions => attributes)                             #   scoped(:conditions => attributes)
-            end                                                             # end
-          METHOD
+          define_scope_method(method_id, attribute_names)
           send(method_id, *arguments)
         elsif match.finder?
           options = arguments.extract_options!
@@ -51,17 +44,30 @@ module ActiveRecord
       end
     end
 
+    def define_scope_method(method_id, attribute_names) #:nodoc
+      self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
+        def self.#{method_id}(*args)                                    # def self.scoped_by_user_name_and_password(*args)
+          conditions = Hash[[:#{attribute_names.join(',:')}].zip(args)] #   conditions = Hash[[:user_name, :password].zip(args)]
+          where(conditions)                                             #   where(conditions)
+        end                                                             # end
+      METHOD
+    end
+
+    def find_dynamic_match(method_id) #:nodoc:
+      DynamicFinderMatch.match(method_id) || DynamicScopeMatch.match(method_id)
+    end
+
     # Similar in purpose to +expand_hash_conditions_for_aggregates+.
     def expand_attribute_names_for_aggregates(attribute_names)
-      attribute_names.map { |attribute_name|
-        unless (aggregation = reflect_on_aggregation(attribute_name.to_sym)).nil?
+      attribute_names.map do |attribute_name|
+        if aggregation = reflect_on_aggregation(attribute_name.to_sym)
           aggregate_mapping(aggregation).map do |field_attr, _|
             field_attr.to_sym
           end
         else
           attribute_name.to_sym
         end
-      }.flatten
+      end.flatten
     end
 
     def all_attributes_exists?(attribute_names)
@@ -73,7 +79,5 @@ module ActiveRecord
       mapping = reflection.options[:mapping] || [reflection.name, reflection.name]
       mapping.first.is_a?(Array) ? mapping : [mapping]
     end
-
-
   end
 end

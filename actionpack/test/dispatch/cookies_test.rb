@@ -38,6 +38,8 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    alias delete_cookie logout
+
     def delete_cookie_with_path
       cookies.delete("user_name", :path => '/beaten')
       head :ok
@@ -179,6 +181,18 @@ class CookiesTest < ActionController::TestCase
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
+  def test_setting_the_same_value_to_cookie
+    request.cookies[:user_name] = 'david'
+    get :authenticate
+    assert response.cookies.empty?
+  end
+
+  def test_setting_the_same_value_to_permanent_cookie
+    request.cookies[:user_name] = 'Jamie'
+    get :set_permanent_cookie
+    assert response.cookies, 'user_name' => 'Jamie'
+  end
+
   def test_setting_with_escapable_characters
     get :set_with_with_escapable_characters
     assert_cookie_header "that+%26+guy=foo+%26+bar+%3D%3E+baz; path=/"
@@ -235,14 +249,35 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_expiring_cookie
+    request.cookies[:user_name] = 'Joe'
     get :logout
     assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
     assert_equal({"user_name" => nil}, @response.cookies)
   end
 
   def test_delete_cookie_with_path
+    request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_path
     assert_cookie_header "user_name=; path=/beaten; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+  end
+
+  def test_delete_unexisting_cookie
+    request.cookies.clear
+    get :delete_cookie
+    assert @response.cookies.empty?
+  end
+
+  def test_deleted_cookie_predicate
+    cookies[:user_name] = 'Joe'
+    cookies.delete("user_name")
+    assert cookies.deleted?("user_name")
+    assert_equal false, cookies.deleted?("another")
+  end
+
+  def test_deleted_cookie_predicate_with_mismatching_options
+    cookies[:user_name] = 'Joe'
+    cookies.delete("user_name", :path => "/path")
+    assert_equal false, cookies.deleted?("user_name", :path => "/different")
   end
 
   def test_cookies_persist_throughout_request
@@ -273,6 +308,7 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_delete_and_set_cookie
+    request.cookies[:user_name] = 'Joe'
     get :delete_and_set_cookie
     assert_cookie_header "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT"
     assert_equal({"user_name" => "david"}, @response.cookies)
@@ -376,6 +412,7 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_deleting_cookie_with_all_domain_option
+    request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domain
     assert_response :success
     assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
@@ -402,6 +439,7 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_deleting_cookie_with_all_domain_option_and_tld_length
+    request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domain_and_tld
     assert_response :success
     assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
@@ -430,6 +468,7 @@ class CookiesTest < ActionController::TestCase
 
   def test_deletings_cookie_with_several_preset_domains_using_one_of_these_domains
     @request.host = "example2.com"
+    request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domains
     assert_response :success
     assert_cookie_header "user_name=; domain=example2.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
@@ -437,19 +476,19 @@ class CookiesTest < ActionController::TestCase
 
   def test_deletings_cookie_with_several_preset_domains_using_other_domain
     @request.host = "other-domain.com"
+    request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domains
     assert_response :success
     assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
   end
 
-
   def test_cookies_hash_is_indifferent_access
-      get :symbol_key
-      assert_equal "david", cookies[:user_name]
-      assert_equal "david", cookies['user_name']
-      get :string_key
-      assert_equal "dhh", cookies[:user_name]
-      assert_equal "dhh", cookies['user_name']
+    get :symbol_key
+    assert_equal "david", cookies[:user_name]
+    assert_equal "david", cookies['user_name']
+    get :string_key
+    assert_equal "dhh", cookies[:user_name]
+    assert_equal "dhh", cookies['user_name']
   end
 
 

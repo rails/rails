@@ -1,4 +1,25 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 4.0.0 (unreleased) ##
+
+*   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute` *Brian Cardarella*
+
+*   Added ActiveModel::Model, a mixin to make Ruby objects work with AP out of box *Guillermo Iguaran*
+
+*   `AM::Errors#to_json`: support `:full_messages` parameter *Bogdan Gusiev*
+
+*   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
+
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.0 (January 20, 2012) ##
 
 *   Deprecated `define_attr_method` in `ActiveModel::AttributeMethods`, because this only existed to
     support methods like `set_table_name` in Active Record, which are themselves being deprecated.
@@ -12,6 +33,27 @@
 *   Deprecate "Model.model_name.partial_path" in favor of "model.to_partial_path" *Grant Hutchins, Peter Jaros*
 
 *   Provide mass_assignment_sanitizer as an easy API to replace the sanitizer behavior. Also support both :logger (default) and :strict sanitizer behavior *Bogdan Gusiev*
+
+
+## Rails 3.1.3 (November 20, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.2 (November 18, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.1 (October 7, 2011) ##
+
+*   Remove hard dependency on bcrypt-ruby to avoid make ActiveModel dependent on a binary library.
+    You must add the gem explicitly to your Gemfile if you want use ActiveModel::SecurePassword:
+
+    gem 'bcrypt-ruby', '~> 3.0.0'
+
+    See GH #2687. *Guillermo Iguaran*
+
 
 ## Rails 3.1.0 (August 30, 2011) ##
 
@@ -36,12 +78,37 @@
 *   Add support for selectively enabling/disabling observers *Myron Marston*
 
 
+## Rails 3.0.12 (March 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   No changes.
+
+
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   No changes.
 
 
-*   Rails 3.0.6 (April 5, 2011)
+##   Rails 3.0.6 (April 5, 2011) ##
 
 *   Fix when database column name has some symbolic characters (e.g. Oracle CASE# VARCHAR2(20)) #5818 #6850 *Robert Pankowecki, Santiago Pastorino*
 

@@ -15,7 +15,6 @@ module ApplicationTests
           app.config.session_store nil
         end
       RUBY
-      use_frameworks [:action_controller, :action_view, :action_mailer, :active_record]
       require "#{app_path}/config/environment"
       @paths = Rails.application.config.paths
     end
@@ -51,6 +50,8 @@ module ApplicationTests
       assert_path @paths["config/locales"],      "config/locales/en.yml"
       assert_path @paths["config/environment"],  "config/environment.rb"
       assert_path @paths["config/environments"], "config/environments/development.rb"
+      assert_path @paths["config/routes.rb"],    "config/routes.rb"
+      assert_path @paths["config/routes"],       "config/routes"
 
       assert_equal root("app", "controllers"), @paths["app/controllers"].expanded.first
     end

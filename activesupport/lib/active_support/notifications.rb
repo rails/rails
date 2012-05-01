@@ -1,7 +1,10 @@
+require 'active_support/notifications/instrumenter'
+require 'active_support/notifications/fanout'
+
 module ActiveSupport
   # = Notifications
   #
-  # +ActiveSupport::Notifications+ provides an instrumentation API for Ruby.
+  # <tt>ActiveSupport::Notifications</tt> provides an instrumentation API for Ruby.
   #
   # == Instrumenters
   #
@@ -41,18 +44,45 @@ module ActiveSupport
   #   event.duration  # => 10 (in milliseconds)
   #   event.payload   # => { :extra => :information }
   #
-  # The block in the +subscribe+ call gets the name of the event, start
+  # The block in the <tt>subscribe</tt> call gets the name of the event, start
   # timestamp, end timestamp, a string with a unique identifier for that event
   # (something like "535801666f04d0298cd6"), and a hash with the payload, in
   # that order.
   #
   # If an exception happens during that particular instrumentation the payload will
-  # have a key +:exception+ with an array of two elements as value: a string with
+  # have a key <tt>:exception</tt> with an array of two elements as value: a string with
   # the name of the exception class, and the exception message.
   #
-  # As the previous example depicts, the class +ActiveSupport::Notifications::Event+
+  # As the previous example depicts, the class <tt>ActiveSupport::Notifications::Event</tt>
   # is able to take the arguments as they come and provide an object-oriented
   # interface to that data.
+  #
+  # It is also possible to pass an object as the second parameter passed to the
+  # <tt>subscribe</tt> method instead of a block:
+  #
+  #   module ActionController
+  #     class PageRequest
+  #       def call(name, started, finished, unique_id, payload)
+  #         Rails.logger.debug ["notification:", name, started, finished, unique_id, payload].join(" ")
+  #       end
+  #     end
+  #   end
+  #
+  #   ActiveSupport::Notifications.subscribe('process_action.action_controller', ActionController::PageRequest.new)
+  #
+  # resulting in the following output within the logs including a hash with the payload:
+  #
+  #   notification: process_action.action_controller 2012-04-13 01:08:35 +0300 2012-04-13 01:08:35 +0300 af358ed7fab884532ec7 {
+  #      :controller=>"Devise::SessionsController",
+  #      :action=>"new",
+  #      :params=>{"action"=>"new", "controller"=>"devise/sessions"},
+  #      :format=>:html,
+  #      :method=>"GET",
+  #      :path=>"/login/sign_in",
+  #      :status=>200,
+  #      :view_runtime=>279.3080806732178,
+  #      :db_runtime=>40.053
+  #    }
   #
   # You can also subscribe to all events whose name matches a certain regexp:
   #
@@ -60,7 +90,7 @@ module ActiveSupport
   #     ...
   #   end
   #
-  # and even pass no argument to +subscribe+, in which case you are subscribing
+  # and even pass no argument to <tt>subscribe</tt>, in which case you are subscribing
   # to all events.
   #
   # == Temporary Subscriptions
@@ -105,10 +135,6 @@ module ActiveSupport
   # to log subscribers in a thread. You can use any queue implementation you want.
   #
   module Notifications
-    autoload :Instrumenter, 'active_support/notifications/instrumenter'
-    autoload :Event, 'active_support/notifications/instrumenter'
-    autoload :Fanout, 'active_support/notifications/fanout'
-
     @instrumenters = Hash.new { |h,k| h[k] = notifier.listening?(k) }
 
     class << self

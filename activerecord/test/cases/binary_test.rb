@@ -8,7 +8,7 @@ unless current_adapter?(:SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
   require 'models/binary'
 
   class BinaryTest < ActiveRecord::TestCase
-    FIXTURES = %w(flowers.jpg example.log)
+    FIXTURES = %w(flowers.jpg example.log test.txt)
 
     def test_mixed_encoding
       str = "\x80"

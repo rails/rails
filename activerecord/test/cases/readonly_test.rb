@@ -27,7 +27,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
 
   def test_find_with_readonly_option
-    Developer.find(:all).each { |d| assert !d.readonly? }
+    Developer.all.each { |d| assert !d.readonly? }
     Developer.readonly(false).each { |d| assert !d.readonly? }
     Developer.readonly(true).each { |d| assert d.readonly? }
     Developer.readonly.each { |d| assert d.readonly? }
@@ -48,7 +48,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
     post = Post.find(1)
     assert !post.comments.empty?
     assert !post.comments.any?(&:readonly?)
-    assert !post.comments.find(:all).any?(&:readonly?)
+    assert !post.comments.all.any?(&:readonly?)
     assert post.comments.readonly(true).all?(&:readonly?)
   end
 
@@ -70,13 +70,13 @@ class ReadOnlyTest < ActiveRecord::TestCase
   end
 
   def test_readonly_scoping
-    Post.send(:with_scope, :find => { :conditions => '1=1' }) do
+    Post.where('1=1').scoped do
       assert !Post.find(1).readonly?
       assert Post.readonly(true).find(1).readonly?
       assert !Post.readonly(false).find(1).readonly?
     end
 
-    Post.send(:with_scope, :find => { :joins => '   ' }) do
+    Post.joins('   ').scoped do
       assert !Post.find(1).readonly?
       assert Post.readonly.find(1).readonly?
       assert !Post.readonly(false).find(1).readonly?
@@ -85,14 +85,14 @@ class ReadOnlyTest < ActiveRecord::TestCase
     # Oracle barfs on this because the join includes unqualified and
     # conflicting column names
     unless current_adapter?(:OracleAdapter)
-      Post.send(:with_scope, :find => { :joins => ', developers' }) do
+      Post.joins(', developers').scoped do
         assert Post.find(1).readonly?
         assert Post.readonly.find(1).readonly?
         assert !Post.readonly(false).find(1).readonly?
       end
     end
 
-    Post.send(:with_scope, :find => { :readonly => true }) do
+    Post.readonly(true).scoped do
       assert Post.find(1).readonly?
       assert Post.readonly.find(1).readonly?
       assert !Post.readonly(false).find(1).readonly?
