@@ -138,7 +138,14 @@ class ObserverTest < ActiveModel::TestCase
     foo = Foo.new
     FooObserver.instance.stub = stub
     FooObserver.instance.stub.expects(:event_with).with(foo)
-    Foo.send(:notify_observers, :on_spec, foo)
+    Foo.notify_observers(:on_spec, foo)
+  end
+
+  test "calls existing observer event from the instance" do
+    foo = Foo.new
+    FooObserver.instance.stub = stub
+    FooObserver.instance.stub.expects(:event_with).with(foo)
+    foo.notify_observers(:on_spec)
   end
 
   test "passes extra arguments" do
@@ -150,7 +157,7 @@ class ObserverTest < ActiveModel::TestCase
 
   test "skips nonexistent observer event" do
     foo = Foo.new
-    Foo.send(:notify_observers, :whatever, foo)
+    Foo.notify_observers(:whatever, foo)
   end
 
   test "update passes a block on to the observer" do
