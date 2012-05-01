@@ -873,6 +873,12 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_raise(ArgumentError) { Person.connection.remove_column("funny") }
     end
 
+    def test_remove_column_with_array_as_an_argument_is_deprecated
+      assert_deprecated /Passing array to remove_columns is deprecated/ do
+        Person.connection.remove_column("people", ["last_name", "description"])
+      end
+    end
+
     def test_change_type_of_not_null_column
       assert_nothing_raised do
         Topic.connection.change_column "topics", "written_on", :datetime, :null => false

@@ -407,6 +407,13 @@ module ActiveRecord
 
       def remove_column(table_name, *column_names) #:nodoc:
         raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.empty?
+
+        if column_names.first.kind_of?(Enumerable)
+          message = 'Passing array to remove_columns is deprecated, please use ' +
+                    'multiple arguments, like: `remove_columns(:posts, :foo, :bar)`'
+          ActiveSupport::Deprecation.warn message, caller
+        end
+
         column_names.flatten.each do |column_name|
           alter_table(table_name) do |definition|
             definition.columns.delete(definition[column_name])
