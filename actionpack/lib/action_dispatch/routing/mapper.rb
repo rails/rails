@@ -34,6 +34,8 @@ module ActionDispatch
           }
 
           return true
+        ensure
+          req.reset_parameters
         end
 
         def call(env)
