@@ -63,9 +63,7 @@ module ActiveRecord
       def expand_attribute_names_for_aggregates
         attribute_names.map do |attribute_name|
           if aggregation = model.reflect_on_aggregation(attribute_name.to_sym)
-            model.send(:aggregate_mapping, aggregation).map do |field_attr, _|
-              field_attr.to_sym
-            end
+            aggregation.mapping.map { |m| m.first.to_sym }
           else
             attribute_name.to_sym
           end
@@ -239,11 +237,6 @@ module ActiveRecord
       def instantiator
         "create!"
       end
-    end
-
-    def aggregate_mapping(reflection)
-      mapping = reflection.options[:mapping] || [reflection.name, reflection.name]
-      mapping.first.is_a?(Array) ? mapping : [mapping]
     end
   end
 end
