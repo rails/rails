@@ -78,16 +78,16 @@ If we want to display the properties of all the books in our view, we can do so 
   <tr>
     <td><%= book.title %></td>
     <td><%= book.content %></td>
-    <td><%= link_to 'Show', book %></td>
-    <td><%= link_to 'Edit', edit_book_path(book) %></td>
-    <td><%= link_to 'Remove', book, :confirm => 'Are you sure?', :method => :delete %></td>
+    <td><%= link_to "Show", book %></td>
+    <td><%= link_to "Edit", edit_book_path(book) %></td>
+    <td><%= link_to "Remove", book, :confirm => "Are you sure?", :method => :delete %></td>
   </tr>
 <% end %>
 </table>
 
 <br />
 
-<%= link_to 'New book', new_book_path %>
+<%= link_to "New book", new_book_path %>
 </ruby>
 
 NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. Beginning with Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), and +.builder+ for Builder (XML generator).
@@ -177,13 +177,13 @@ h5. Rendering an Action's Template from Another Controller
 What if you want to render a template from an entirely different controller from the one that contains the action code? You can also do that with +render+, which accepts the full path (relative to +app/views+) of the template to render. For example, if you're running code in an +AdminProductsController+ that lives in +app/controllers/admin+, you can render the results of an action to a template in +app/views/products+ this way:
 
 <ruby>
-render 'products/show'
+render "products/show"
 </ruby>
 
 Rails knows that this view belongs to a different controller because of the embedded slash character in the string. If you want to be explicit, you can use the +:template+ option (which was required on Rails 2.2 and earlier):
 
 <ruby>
-render :template => 'products/show'
+render :template => "products/show"
 </ruby>
 
 h5. Rendering an Arbitrary File
@@ -216,18 +216,18 @@ In fact, in the BooksController class, inside of the update action where we want
 <ruby>
 render :edit
 render :action => :edit
-render 'edit'
-render 'edit.html.erb'
-render :action => 'edit'
-render :action => 'edit.html.erb'
-render 'books/edit'
-render 'books/edit.html.erb'
-render :template => 'books/edit'
-render :template => 'books/edit.html.erb'
-render '/path/to/rails/app/views/books/edit'
-render '/path/to/rails/app/views/books/edit.html.erb'
-render :file => '/path/to/rails/app/views/books/edit'
-render :file => '/path/to/rails/app/views/books/edit.html.erb'
+render "edit"
+render "edit.html.erb"
+render :action => "edit"
+render :action => "edit.html.erb"
+render "books/edit"
+render "books/edit.html.erb"
+render :template => "books/edit"
+render :template => "books/edit.html.erb"
+render "/path/to/rails/app/views/books/edit"
+render "/path/to/rails/app/views/books/edit.html.erb"
+render :file => "/path/to/rails/app/views/books/edit"
+render :file => "/path/to/rails/app/views/books/edit.html.erb"
 </ruby>
 
 Which one you use is really a matter of style and convention, but the rule of thumb is to use the simplest one that makes sense for the code you are writing.
@@ -306,7 +306,7 @@ h6. The +:content_type+ Option
 By default, Rails will serve the results of a rendering operation with the MIME content-type of +text/html+ (or +application/json+ if you use the +:json+ option, or +application/xml+ for the +:xml+ option.). There are times when you might like to change this, and you can do so by setting the +:content_type+ option:
 
 <ruby>
-render :file => filename, :content_type => 'application/rss'
+render :file => filename, :content_type => "application/rss"
 </ruby>
 
 h6. The +:layout+ Option
@@ -316,7 +316,7 @@ With most of the options to +render+, the rendered content is displayed as part 
 You can use the +:layout+ option to tell Rails to use a specific file as the layout for the current action:
 
 <ruby>
-render :layout => 'special_layout'
+render :layout => "special_layout"
 </ruby>
 
 You can also tell Rails to render with no layout at all:
@@ -378,7 +378,7 @@ You can use a symbol to defer the choice of layout until a request is processed:
 
 <ruby>
 class ProductsController < ApplicationController
-  layout :products_layout
+  layout "products_layout"
 
   def show
     @product = Product.find(params[:id])
@@ -398,7 +398,7 @@ You can even use an inline method, such as a Proc, to determine the layout. For 
 
 <ruby>
 class ProductsController < ApplicationController
-  layout Proc.new { |controller| controller.request.xhr? ? 'popup' : 'application' }
+  layout Proc.new { |controller| controller.request.xhr? ? "popup" : "application" }
 end
 </ruby>
 
@@ -445,7 +445,7 @@ end
 
 <ruby>
 class OldPostsController < SpecialPostsController
-  layout nil
+  layout false
 
   def show
     @post = Post.find(params[:id])
@@ -583,7 +583,7 @@ def show
   @book = Book.find_by_id(params[:id])
   if @book.nil?
     @books = Book.all
-    render "index", :alert => 'Your book was not found!'
+    render "index", :alert => "Your book was not found!"
   end
 end
 </ruby>
@@ -770,7 +770,7 @@ By default, the combined file will be delivered as +javascripts/all.js+. You can
 
 <erb>
 <%= javascript_include_tag "main", "columns",
-  :cache => 'cache/main/display' %>
+  :cache => "cache/main/display" %>
 </erb>
 
 You can even use dynamic paths such as +cache/#{current_site}/main/display+.
@@ -833,7 +833,7 @@ By default, the combined file will be delivered as +stylesheets/all.css+. You ca
 
 <erb>
 <%= stylesheet_link_tag "main", "columns",
-  :cache => 'cache/main/display' %>
+  :cache => "cache/main/display" %>
 </erb>
 
 You can even use dynamic paths such as +cache/#{current_site}/main/display+.
@@ -884,7 +884,7 @@ In addition to the above special tags, you can supply a final hash of standard H
 <erb>
 <%= image_tag "home.gif", :alt => "Go Home",
                           :id => "HomeImage",
-                          :class => 'nav_bar' %>
+                          :class => "nav_bar" %>
 </erb>
 
 h5. Linking to Videos with the +video_tag+
@@ -905,7 +905,7 @@ Like an +image_tag+ you can supply a path, either absolute, or relative to the +
 
 The video tag also supports all of the +&lt;video&gt;+ HTML options through the HTML options hash, including:
 
-* +:poster => 'image_name.png'+, provides an image to put in place of the video before it starts playing.
+* +:poster => "image_name.png"+, provides an image to put in place of the video before it starts playing.
 * +:autoplay => true+, starts playing the video on page load.
 * +:loop => true+, loops the video once it gets to the end.
 * +:controls => true+, provides browser supplied controls for the user to interact with the video.
@@ -1159,7 +1159,7 @@ In the event that the collection is empty, +render+ will return nil, so it shoul
 
 <erb>
 <h1>Products</h1>
-<%= render(@products) || 'There are no products available.' %>
+<%= render(@products) || "There are no products available." %>
 </erb>
 
 h5. Local Variables
@@ -1175,7 +1175,7 @@ With this change, you can access an instance of the +@products+ collection as th
 You can also pass in arbitrary local variables to any partial you are rendering with the +:locals => {}+ option:
 
 <erb>
-<%= render :partial => 'products', :collection => @products,
+<%= render :partial => "products", :collection => @products,
            :as => :item, :locals => {:title => "Products Page"} %>
 </erb>
 
@@ -1214,8 +1214,8 @@ Suppose you have the following +ApplicationController+ layout:
 <erb>
 <html>
 <head>
-  <title><%= @page_title or 'Page Title' %></title>
-  <%= stylesheet_link_tag 'layout' %>
+  <title><%= @page_title or "Page Title" %></title>
+  <%= stylesheet_link_tag "layout" %>
   <style><%= yield :stylesheets %></style>
 </head>
 <body>
@@ -1239,7 +1239,7 @@ On pages generated by +NewsController+, you want to hide the top menu and add a 
   <div id="right_menu">Right menu items here</div>
   <%= content_for?(:news_content) ? yield(:news_content) : yield %>
 <% end %>
-<%= render :template => 'layouts/application' %>
+<%= render :template => "layouts/application" %>
 </erb>
 
 That's it. The News views will use the new layout, hiding the top menu and adding a new right menu inside the "content" div.
