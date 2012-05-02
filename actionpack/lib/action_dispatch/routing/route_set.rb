@@ -184,27 +184,18 @@ module ActionDispatch
           def define_url_helper(route, name, options)
             selector = url_helper_name(name, options[:only_path])
 
-            if optimize_helper?(route)
-              @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-                remove_possible_method :#{selector}
-                def #{selector}(*args)
-                  if args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
-                    options = #{options.inspect}.merge!(url_options)
-                    options[:path] = "#{optimized_helper(route)}"
-                    ActionDispatch::Http::URL.url_for(options)
-                  else
-                    url_for(handle_positional_args(args, #{options.inspect}, #{route.segment_keys.inspect}))
-                  end
-                end
-              END_EVAL
-            else
-              @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-                remove_possible_method :#{selector}
-                def #{selector}(*args)
+            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_possible_method :#{selector}
+              def #{selector}(*args)
+                if #{optimize_helper?(route)} && args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
+                  options = #{options.inspect}.merge!(url_options)
+                  options[:path] = "#{optimized_helper(route)}"
+                  ActionDispatch::Http::URL.url_for(options)
+                else
                   url_for(handle_positional_args(args, #{options.inspect}, #{route.segment_keys.inspect}))
                 end
-              END_EVAL
-            end
+              end
+            END_EVAL
 
             helpers << selector
           end
