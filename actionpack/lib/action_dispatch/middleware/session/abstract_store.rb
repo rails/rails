@@ -93,7 +93,7 @@ module ActionDispatch
 
   class Request
     # SessionHash is responsible to lazily load the session from store.
-    class Session < Hash
+    class Session # :nodoc:
       ENV_SESSION_KEY         = Rack::Session::Abstract::ENV_SESSION_KEY # :nodoc:
       ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY # :nodoc:
 
@@ -119,66 +119,64 @@ module ActionDispatch
         def values_at(*args); @delegate.values_at(*args); end
       end
 
+      def initialize(by, env)
+        @by       = by
+        @env      = env
+        @delegate = {}
+        @loaded   = false
+      end
+
       def destroy
         clear
-        options = @env[Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY] if @env
+        options = @env[ENV_SESSION_OPTIONS_KEY] if @env
         options ||= {}
         @by.send(:destroy_session, @env, options[:id], options) if @by
         options[:id] = nil
         @loaded = false
       end
 
-      def initialize(by, env)
-        super()
-        @by = by
-        @env = env
-        @loaded = false
-      end
-
       def [](key)
         load_for_read!
-        super(key.to_s)
+        @delegate[key.to_s]
       end
 
       def has_key?(key)
         load_for_read!
-        super(key.to_s)
+        @delegate.key?(key.to_s)
       end
       alias :key? :has_key?
       alias :include? :has_key?
 
       def []=(key, value)
         load_for_write!
-        super(key.to_s, value)
+        @delegate[key.to_s] = value
       end
 
       def clear
         load_for_write!
-        super
+        @delegate.clear
       end
 
       def to_hash
         load_for_read!
-        h = {}.replace(self)
-        h.delete_if { |k,v| v.nil? }
-        h
+        @delegate.dup.delete_if { |_,v| v.nil? }
       end
 
       def update(hash)
         load_for_write!
-        super(stringify_keys(hash))
+        @delegate.update stringify_keys(hash)
       end
 
       def delete(key)
         load_for_write!
-        super(key.to_s)
+        @delegate.delete key.to_s
       end
 
       def inspect
         if loaded?
           super
         else
-          "#<#{self.class}:0x#{self.object_id.to_s(16)} not yet loaded>"
+          "#<#{self.class}:0x#{(object_id << 1).to_s(16)} not yet loaded>"
         end
       end
 
@@ -193,7 +191,7 @@ module ActionDispatch
 
       def empty?
         load_for_read!
-        super
+        @delegate.empty?
       end
 
       private
@@ -209,7 +207,7 @@ module ActionDispatch
       def load!
         id, session = @by.send(:load_session, @env)
         @env[ENV_SESSION_OPTIONS_KEY][:id] = id
-        replace(stringify_keys(session))
+        @delegate.replace(stringify_keys(session))
         @loaded = true
       end
 
