@@ -96,7 +96,7 @@ module ActiveRecord
       # behavior in versions 0.13.1 and earlier) you can add the following line
       # to your application.rb file:
       #
-      #   ActiveRecord::ConnectionAdapters::Mysql[2]Adapter.emulate_booleans = false
+      #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans
       self.emulate_booleans = true
 

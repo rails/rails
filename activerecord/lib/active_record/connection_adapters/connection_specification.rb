@@ -64,6 +64,7 @@ module ActiveRecord
           config = URI.parse url
           adapter = config.scheme
           adapter = "postgresql" if adapter == "postgres"
+          adapter = "mysql2" if adapter == "mysql"
           spec = { :adapter  => adapter,
                    :username => config.user,
                    :password => config.password,

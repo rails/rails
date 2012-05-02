@@ -201,7 +201,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r(:primary_key => "movieid"), match[1], "non-standard primary key not preserved"
   end
 
-  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter)
     def test_schema_dump_should_not_add_default_value_for_mysql_text_field
       output = standard_dump
       assert_match %r{t.text\s+"body",\s+:null => false$}, output

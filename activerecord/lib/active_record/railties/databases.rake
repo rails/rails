@@ -20,7 +20,7 @@ db_namespace = namespace :db do
         # Skip entries that don't have a database key, such as the first entry here:
         #
         #  defaults: &defaults
-        #    adapter: mysql
+        #    adapter: mysql2
         #    username: root
         #    password:
         #    host: localhost

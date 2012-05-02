@@ -76,7 +76,7 @@ module ActiveRecord
 
       def xml(*args)
         raise NotImplementedError unless %w{
-          sqlite mysql mysql2
+          sqlite mysql2
         }.include? @base.adapter_name.downcase
 
         options = args.extract_options!
@@ -259,7 +259,7 @@ module ActiveRecord
           end                                                         # end
         EOV
       end
-      
+
       # Adds index options to the indexes hash, keyed by column name
       # This is primarily used to track indexes that need to be created after the table
       # === Examples
