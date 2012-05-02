@@ -86,6 +86,7 @@ The following methods skip validations, and will save the object to the database
 * +update_all+
 * +update_attribute+
 * +update_column+
+* +update_columns+
 * +update_counters+
 
 Note that +save+ also has the ability to skip validations if passed +:validate => false+ as argument. This technique should be used with caution.
@@ -1082,6 +1083,7 @@ Just as with validations, it is also possible to skip callbacks. These methods s
 * +toggle+
 * +touch+
 * +update_column+
+* +update_columns+
 * +update_all+
 * +update_counters+
 

@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added an update_columns method. This new method updates the given attributes on an object,
+    without calling save, hence skipping validations and callbacks.
+    Example:
+
+        User.first.update_columns({:name => "sebastian", :age => 25})         # => true
+
+    *Sebastian Martinez*
+
 *   Added an :index option to automatically create indexes for references
     and belongs_to statements in migrations.
 

@@ -515,6 +515,63 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal 'super_title', t.title
   end
 
+  def test_update_columns
+    topic = Topic.find(1)
+    topic.update_columns({ "approved" => true, :title => "Sebastian Topic" })
+    assert topic.approved?
+    assert_equal "Sebastian Topic", topic.title
+    topic.reload
+    assert topic.approved?
+    assert_equal "Sebastian Topic", topic.title
+  end
+
+  def test_update_columns_should_raise_exception_if_new_record
+    topic = Topic.new
+    assert_raises(ActiveRecord::ActiveRecordError) { topic.update_columns({ :approved => false }) }
+  end
+
+  def test_update_columns_should_not_leave_the_object_dirty
+    topic = Topic.find(1)
+    topic.update_attributes({ "content" => "Have a nice day", :author_name => "Jose" })
+
+    topic.reload
+    topic.update_columns({ :content => "You too", "author_name" => "Sebastian" })
+    assert_equal [], topic.changed
+
+    topic.reload
+    topic.update_columns({ :content => "Have a nice day", :author_name => "Jose" })
+    assert_equal [], topic.changed
+  end
+
+  def test_update_columns_with_one_readonly_attribute
+    minivan = Minivan.find('m1')
+    prev_color = minivan.color
+    prev_name = minivan.name
+    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_columns({ :name => "My old minivan", :color => 'black' }) }
+    assert_equal prev_color, minivan.color
+    assert_equal prev_name, minivan.name
+
+    minivan.reload
+    assert_equal prev_color, minivan.color
+    assert_equal prev_name, minivan.name
+  end
+
+  def test_update_columns_should_not_modify_updated_at
+    developer = Developer.find(1)
+    prev_month = Time.now.prev_month
+
+    developer.update_column(:updated_at, prev_month)
+    assert_equal prev_month, developer.updated_at
+
+    developer.update_columns({ :salary, 80000 })
+    assert_equal prev_month, developer.updated_at
+    assert_equal 80000, developer.salary
+
+    developer.reload
+    assert_equal prev_month.to_i, developer.updated_at.to_i
+    assert_equal 80000, developer.salary
+  end
+
   def test_update_attributes
     topic = Topic.find(1)
     assert !topic.approved?
