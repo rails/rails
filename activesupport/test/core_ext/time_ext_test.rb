@@ -587,15 +587,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal ::Date::ITALY, Time.utc(2005, 2, 21, 17, 44, 30).to_datetime.start # use Ruby's default start value
   end
 
-  if RUBY_VERSION < '1.9'
-    def test_to_time
-      time = Time.local(2005, 2, 21, 17, 44, 30)
-      assert time.equal?(time.to_time)
-    end
-  else
-    def test_to_time
-      assert_equal Time.local(2005, 2, 21, 17, 44, 30), Time.local(2005, 2, 21, 17, 44, 30).to_time
-    end
+  def test_to_time
+    assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_time, Time.local(2005, 2, 21, 17, 44, 30)
   end
 
   # NOTE: this test seems to fail (changeset 1958) only on certain platforms,
