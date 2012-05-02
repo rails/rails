@@ -2512,3 +2512,22 @@ private
     %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
   end
 end
+
+class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      get "/:foo" => ok, :constraints => lambda { |r| r.params[:foo] == 'foo' }
+      get "/:bar" => ok
+    end
+  end
+
+  def app; Routes end
+
+  test "parameters are reset between constraint checks" do
+    get "/bar"
+    assert_equal nil, @request.params[:foo]
+    assert_equal "bar", @request.params[:bar]
+  end
+end
