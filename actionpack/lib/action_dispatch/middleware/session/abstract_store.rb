@@ -124,6 +124,7 @@ module ActionDispatch
         @env      = env
         @delegate = {}
         @loaded   = false
+        @exists   = nil # we haven't checked yet
       end
 
       def destroy
@@ -181,7 +182,7 @@ module ActionDispatch
       end
 
       def exists?
-        return @exists if instance_variable_defined?(:@exists)
+        return @exists unless @exists.nil?
         @exists = @by.send(:session_exists?, @env)
       end
 
@@ -205,18 +206,16 @@ module ActionDispatch
       end
 
       def load!
-        id, session = @by.send(:load_session, @env)
+        id, session = @by.load_session @env
         @env[ENV_SESSION_OPTIONS_KEY][:id] = id
         @delegate.replace(stringify_keys(session))
         @loaded = true
       end
 
       def stringify_keys(other)
-        hash = {}
-        other.each do |key, value|
+        other.each_with_object({}) { |(key, value), hash|
           hash[key.to_s] = value
-        end
-        hash
+        }
       end
     end
   end
