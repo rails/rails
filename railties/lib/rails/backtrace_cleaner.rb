@@ -17,8 +17,6 @@ module Rails
 
     private
       def add_gem_filters
-        return unless defined?(Gem)
-
         gems_paths = (Gem.path | [Gem.default_dir]).map { |p| Regexp.escape(p) }
         return if gems_paths.empty?
 
