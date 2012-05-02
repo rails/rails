@@ -1,4 +1,3 @@
-#!/usr/bin/env rake
 begin
   require 'bundler/setup'
 rescue LoadError
