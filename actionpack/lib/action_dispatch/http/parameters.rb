@@ -35,6 +35,10 @@ module ActionDispatch
         @env["action_dispatch.request.path_parameters"] ||= {}
       end
 
+      def reset_parameters #:nodoc:
+        @env.delete("action_dispatch.request.parameters")
+      end
+
     private
 
       # TODO: Validate that the characters are UTF-8. If they aren't,
