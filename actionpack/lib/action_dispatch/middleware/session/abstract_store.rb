@@ -112,23 +112,18 @@ module ActionDispatch
         end
 
         def [](key)
-          load_session_id! if key == :id && session_id_not_loaded?
-          @delegate[key]
+          if key == :id
+            @delegate.fetch(key) {
+              @delegate[:id] = @by.send(:extract_session_id, @env)
+            }
+          else
+            @delegate[key]
+          end
         end
 
         def []=(k,v);        @delegate[k] = v; end
         def to_hash;         @delegate.dup; end
         def values_at(*args) @delegate.values_at(*args); end
-
-        private
-        def session_id_not_loaded?
-          !(@session_id_loaded || @delegate.key?(:id))
-        end
-
-        def load_session_id!
-          @delegate[:id] = @by.send(:extract_session_id, @env)
-          @session_id_loaded = true
-        end
       end
     end
   end
