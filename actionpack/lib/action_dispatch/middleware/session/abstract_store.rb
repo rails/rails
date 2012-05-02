@@ -120,9 +120,9 @@ module ActionDispatch
           end
         end
 
-        def []=(k,v);        @delegate[k] = v; end
-        def to_hash;         @delegate.dup; end
-        def values_at(*args) @delegate.values_at(*args); end
+        def []=(k,v);         @delegate[k] = v; end
+        def to_hash;          @delegate.dup; end
+        def values_at(*args); @delegate.values_at(*args); end
       end
     end
   end
