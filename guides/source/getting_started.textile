@@ -1540,12 +1540,12 @@ So first, let's add the delete link in the
 
 <erb>
 <p>
-  <b>Commenter:</b>
+  <strong>Commenter:</strong>
   <%= comment.commenter %>
 </p>
 
 <p>
-  <b>Comment:</b>
+  <strong>Comment:</strong>
   <%= comment.body %>
 </p>
 
@@ -1594,7 +1594,6 @@ model, +app/models/post.rb+, as follows:
 
 <ruby>
 class Post < ActiveRecord::Base
-  validates :name,  :presence => true
   validates :title, :presence => true,
                     :length => { :minimum => 5 }
   has_many :comments, :dependent => :destroy
@@ -1623,11 +1622,8 @@ class PostsController < ApplicationController
 
   http_basic_authenticate_with :name => "dhh", :password => "secret", :except => [:index, :show]
 
-  # GET /posts
-  # GET /posts.json
   def index
     @posts = Post.all
-    respond_to do |format|
 # snipped for brevity
 </ruby>
 
@@ -1648,214 +1644,6 @@ Now if you try to create a new post, you will be greeted with a basic HTTP
 Authentication challenge
 
 !images/challenge.png(Basic HTTP Authentication Challenge)!
-
-h3. Building a Multi-Model Form
-
-Another feature of your average blog is the ability to tag posts. To implement
-this feature your application needs to interact with more than one model on a
-single form. Rails offers support for nested forms.
-
-To demonstrate this, we will add support for giving each post multiple tags,
-right in the form where you create the post. First, create a new model to hold
-the tags:
-
-<shell>
-$ rails generate model Tag name:string post:references
-</shell>
-
-Again, run the migration to create the database table:
-
-<shell>
-$ rake db:migrate
-</shell>
-
-Next, edit the +post.rb+ file to create the other side of the association, and
-to tell Rails (via the +accepts_nested_attributes_for+ macro) that you intend to
-edit tags via posts:
-
-<ruby>
-class Post < ActiveRecord::Base
-  validates :name,  :presence => true
-  validates :title, :presence => true,
-                    :length => { :minimum => 5 }
-
-  has_many :comments, :dependent => :destroy
-  has_many :tags
-  attr_protected :tags
-
-  accepts_nested_attributes_for :tags, :allow_destroy => :true,
-    :reject_if => proc { |attrs| attrs.all? { |k, v| v.blank? } }
-end
-</ruby>
-
-The +:allow_destroy+ option tells Rails to enable destroying tags through the
-nested attributes (you'll handle that by displaying a "remove" checkbox on the
-view that you'll build shortly). The +:reject_if+ option prevents saving new
-tags that do not have any attributes filled in.
-
-We will modify +views/posts/_form.html.erb+ to render a partial to make a tag:
-
-<erb>
-<% @post.tags.build %>
-<%= form_for(@post) do |post_form| %>
-  <% if @post.errors.any? %>
-  <div id="errorExplanation">
-    <h2><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h2>
-    <ul>
-    <% @post.errors.full_messages.each do |msg| %>
-      <li><%= msg %></li>
-    <% end %>
-    </ul>
-  </div>
-  <% end %>
-
-  <div class="field">
-    <%= post_form.label :name %><br />
-    <%= post_form.text_field :name %>
-  </div>
-  <div class="field">
-    <%= post_form.label :title %><br />
-    <%= post_form.text_field :title %>
-  </div>
-  <div class="field">
-    <%= post_form.label :content %><br />
-    <%= post_form.text_area :content %>
-  </div>
-  <h2>Tags</h2>
-  <%= render :partial => 'tags/form',
-             :locals => {:form => post_form} %>
-  <div class="actions">
-    <%= post_form.submit %>
-  </div>
-<% end %>
-</erb>
-
-Note that we have changed the +f+ in +form_for(@post) do |f|+ to +post_form+ to
-make it easier to understand what is going on.
-
-This example shows another option of the render helper, being able to pass in
-local variables, in this case, we want the local variable +form+ in the partial
-to refer to the +post_form+ object.
-
-We also add a <tt>@post.tags.build</tt> at the top of this form. This is to make
-sure there is a new tag ready to have its name filled in by the user. If you do
-not build the new tag, then the form will not appear as there is no new Tag
-object ready to create.
-
-Now create the folder <tt>app/views/tags</tt> and make a file in there called
-<tt>_form.html.erb</tt> which contains the form for the tag:
-
-<erb>
-<%= form.fields_for :tags do |tag_form| %>
-  <div class="field">
-    <%= tag_form.label :name, 'Tag:' %>
-    <%= tag_form.text_field :name %>
-  </div>
-  <% unless tag_form.object.nil? || tag_form.object.new_record? %>
-    <div class="field">
-      <%= tag_form.label :_destroy, 'Remove:' %>
-      <%= tag_form.check_box :_destroy %>
-    </div>
-  <% end %>
-<% end %>
-</erb>
-
-Finally, we will edit the <tt>app/views/posts/show.html.erb</tt> template to
-show our tags.
-
-<erb>
-<p id="notice"><%= notice %></p>
-
-<p>
-  <b>Name:</b>
-  <%= @post.name %>
-</p>
-
-<p>
-  <b>Title:</b>
-  <%= @post.title %>
-</p>
-
-<p>
-  <b>Content:</b>
-  <%= @post.content %>
-</p>
-
-<p>
-  <b>Tags:</b>
-  <%= @post.tags.map { |t| t.name }.join(", ") %>
-</p>
-
-<h2>Comments</h2>
-<%= render @post.comments %>
-
-<h2>Add a comment:</h2>
-<%= render "comments/form" %>
-
-
-<%= link_to 'Edit Post', edit_post_path(@post) %> |
-<%= link_to 'Back to Posts', posts_path %> |
-</erb>
-
-With these changes in place, you'll find that you can edit a post and its tags
-directly on the same view.
-
-However, that method call <tt>@post.tags.map { |t| t.name }.join(", ")</tt> is
-awkward, we could handle this by making a helper method.
-
-h3. View Helpers
-
-View Helpers live in <tt>app/helpers</tt> and provide small snippets of reusable
-code for views. In our case, we want a method that strings a bunch of objects
-together using their name attribute and joining them with a comma. As this is
-for the Post show template, we put it in the PostsHelper.
-
-Open up <tt>app/helpers/posts_helper.rb</tt> and add the following:
-
-<erb>
-module PostsHelper
-  def join_tags(post)
-    post.tags.map { |t| t.name }.join(", ")
-  end
-end
-</erb>
-
-Now you can edit the view in <tt>app/views/posts/show.html.erb</tt> to look like
-this:
-
-<erb>
-<p id="notice"><%= notice %></p>
-
-<p>
-  <b>Name:</b>
-  <%= @post.name %>
-</p>
-
-<p>
-  <b>Title:</b>
-  <%= @post.title %>
-</p>
-
-<p>
-  <b>Content:</b>
-  <%= @post.content %>
-</p>
-
-<p>
-  <b>Tags:</b>
-  <%= join_tags(@post) %>
-</p>
-
-<h2>Comments</h2>
-<%= render @post.comments %>
-
-<h2>Add a comment:</h2>
-<%= render "comments/form" %>
-
-
-<%= link_to 'Edit Post', edit_post_path(@post) %> |
-<%= link_to 'Back to Posts', posts_path %> |
-</erb>
 
 h3. What's Next?
 
