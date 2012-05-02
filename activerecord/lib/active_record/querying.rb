@@ -3,7 +3,7 @@ require 'active_support/deprecation'
 
 module ActiveRecord
   module Querying
-    delegate :find, :first, :first!, :last, :last!, :all, :exists?, :any?, :many?, :to => :scoped
+    delegate :find, :first, :first!, :last, :last!, :all, :exists?, :all_exist?, :any?, :many?, :to => :scoped
     delegate :first_or_create, :first_or_create!, :first_or_initialize, :to => :scoped
     delegate :find_by, :find_by!, :to => :scoped
     delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, :to => :scoped

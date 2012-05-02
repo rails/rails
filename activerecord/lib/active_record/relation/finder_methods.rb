@@ -155,6 +155,27 @@ module ActiveRecord
       connection.select_value(relation, "#{name} Exists", relation.bind_values)
     end
 
+    # Returns true if all ids or objects passed in exist in the table.
+    #
+    # ==== Examples
+    #  Person.all_exist?(1, 2)
+    #  Person.all_exist?([1, 2])
+    #
+    #  This can be particularly useful when checking two associations against
+    #  each other, such as:
+    #
+    #  company.clients.active.all_exist?(invoice.clients)
+    def all_exist?(*objects_or_ids)
+      objects_or_ids = objects_or_ids.flatten
+      return true if objects_or_ids.empty?
+
+      join_dependency = construct_join_dependency_for_association_find
+      relation = construct_relation_for_association_find(join_dependency)
+      relation = relation.except(:select, :order).select("1")
+
+      relation.where(:id => objects_or_ids).count == objects_or_ids.uniq.size
+    end
+
     protected
 
     def find_with_associations

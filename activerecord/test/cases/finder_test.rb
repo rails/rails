@@ -87,6 +87,30 @@ class FinderTest < ActiveRecord::TestCase
     Developer.exists?
   end
 
+  def test_all_exists_returns_true_with_empty_array
+    assert Developer.all_exist?
+  end
+
+  def test_all_exists_returns_true_only_if_all_records_exist
+    assert Developer.all_exist?(1)
+    assert Developer.all_exist?(1, 3)
+    assert !Developer.all_exist?(1, 1000000)
+    assert !Developer.all_exist?(1000000)
+  end
+
+  def test_all_exists_returns_true_only_if_all_records_exist_in_array
+    assert Developer.all_exist?([1])
+    assert Developer.all_exist?([1, 3])
+    assert !Developer.all_exist?([1, 1000000])
+    assert !Developer.all_exist?([1000000])
+  end
+
+  def test_all_exists_works_against_associations
+    assert companies(:first_firm).accounts.all_exist?(accounts(:signals37))
+    assert !companies(:first_firm).accounts.all_exist?(accounts(:signals37), accounts(:unknown))
+    assert !companies(:first_firm).accounts.all_exist?(accounts(:unknown))
+  end
+
   def test_find_by_array_of_one_id
     assert_kind_of(Array, Topic.find([ 1 ]))
     assert_equal(1, Topic.find([ 1 ]).length)
