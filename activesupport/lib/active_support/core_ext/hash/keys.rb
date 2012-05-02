@@ -58,7 +58,8 @@ class Hash
   #   {:age => 28 }.assert_required_keys(:name) # => raises ArgumentError
   #   {'name' => 'Phil'}.assert_required_keys(:name) # => raises ArgumentError
   def assert_required_keys(*required_keys)
-    keys_not_passed = [required_keys].flatten - keys
+    required_keys.flatten!
+    keys_not_passed = required_keys - keys
     raise(ArgumentError, "The following keys are required but were not set: #{keys_not_passed.map(&:inspect).join(", ")}") unless keys_not_passed.empty?
   end
 end

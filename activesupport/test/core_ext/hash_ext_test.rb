@@ -340,6 +340,7 @@ class HashExtTest < Test::Unit::TestCase
     assert_nothing_raised do
       { :name => "Phil", :age => 28 }.assert_required_keys(:name, :age)
       { :name => nil, :age => 28 }.assert_required_keys(:name, :age) # does not care about value, just that key exists
+      { :name => "Phil", :age => 28 }.assert_required_keys(:name) # giving more than the required keys
     end
 
     assert_raise(ArgumentError) do
