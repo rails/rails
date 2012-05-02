@@ -1367,59 +1367,52 @@ template. This is where we want the comment to show, so let's add that to the
 +app/views/posts/show.html.erb+.
 
 <erb>
-<p id="notice"><%= notice %></p>
-
 <p>
-  <b>Name:</b>
-  <%= @post.name %>
-</p>
-
-<p>
-  <b>Title:</b>
+  <strong>Title:</strong>
   <%= @post.title %>
 </p>
 
 <p>
-  <b>Content:</b>
-  <%= @post.content %>
+  <strong>Text:</strong>
+  <%= @post.texthttp://beginningruby.org/ %>
 </p>
 
 <h2>Comments</h2>
 <% @post.comments.each do |comment| %>
   <p>
-    <b>Commenter:</b>
+    <strong>Commenter:</strong>
     <%= comment.commenter %>
   </p>
 
   <p>
-    <b>Comment:</b>
+    <strong>Comment:</strong>
     <%= comment.body %>
   </p>
 <% end %>
 
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
-  <div class="field">
+  <p>
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>
-  </div>
-  <div class="field">
+  </p>
+  <p>
     <%= f.label :body %><br />
     <%= f.text_area :body %>
-  </div>
-  <div class="actions">
+  </p>
+  <p>
     <%= f.submit %>
-  </div>
+  </p>
 <% end %>
 
-<br />
-
 <%= link_to 'Edit Post', edit_post_path(@post) %> |
-<%= link_to 'Back to Posts', posts_path %> |
+<%= link_to 'Back to Posts', posts_path %>
 </erb>
 
 Now you can add posts and comments to your blog and have them show up in the
 right places.
+
+!images/getting_started/post_with_comments.png(Post with Comments)!
 
 h3. Refactoring
 
