@@ -79,7 +79,7 @@ module ActiveRecord
       end
 
       def method_missing(method, *args, &block)
-        match = DynamicMatchers::Method.match(method)
+        match = DynamicMatchers::Method.match(self, method)
         if match && match.is_a?(DynamicMatchers::Instantiator)
           scoped.send(method, *args) do |r|
             proxy_association.send :set_owner_attributes, r

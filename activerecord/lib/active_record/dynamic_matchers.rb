@@ -1,10 +1,8 @@
 module ActiveRecord
   module DynamicMatchers
     def respond_to?(name, include_private = false)
-      match       = Method.match(name)
-      valid_match = match && all_attributes_exists?(match.attribute_names)
-
-      valid_match || super
+      match = Method.match(self, name)
+      match && match.valid? || super
     end
 
     private
@@ -19,11 +17,10 @@ module ActiveRecord
     # Each dynamic finder using <tt>scoped_by_*</tt> is also defined in the class after it
     # is first invoked, so that future attempts to use it do not run through method_missing.
     def method_missing(name, *arguments, &block)
-      if match = Method.match(name)
-        attribute_names = match.attribute_names
-        super unless all_attributes_exists?(attribute_names)
+      match = Method.match(self, name)
 
-        match.define(self)
+      if match && match.valid?
+        match.define
         send(name, *arguments, &block)
       else
         super
@@ -31,9 +28,9 @@ module ActiveRecord
     end
 
     class Method
-      def self.match(name)
+      def self.match(model, name)
         klass = klasses.find { |k| name =~ k.pattern }
-        klass.new(name) if klass
+        klass.new(model, name) if klass
       end
 
       def self.klasses
@@ -55,15 +52,32 @@ module ActiveRecord
         ''
       end
 
-      attr_reader :name, :attribute_names
+      attr_reader :model, :name, :attribute_names
 
-      def initialize(name)
+      def initialize(model, name)
+        @model           = model
         @name            = name.to_s
         @attribute_names = @name.match(self.class.pattern)[1].split('_and_')
       end
 
-      def define(klass)
-        klass.class_eval <<-CODE, __FILE__, __LINE__ + 1
+      def expand_attribute_names_for_aggregates
+        attribute_names.map do |attribute_name|
+          if aggregation = model.reflect_on_aggregation(attribute_name.to_sym)
+            model.send(:aggregate_mapping, aggregation).map do |field_attr, _|
+              field_attr.to_sym
+            end
+          else
+            attribute_name.to_sym
+          end
+        end.flatten
+      end
+
+      def valid?
+        (expand_attribute_names_for_aggregates - model.column_methods_hash.keys).empty?
+      end
+
+      def define
+        model.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def self.#{name}(#{signature})
             #{body}
           end
@@ -225,24 +239,6 @@ module ActiveRecord
       def instantiator
         "create!"
       end
-    end
-
-    # Similar in purpose to +expand_hash_conditions_for_aggregates+.
-    def expand_attribute_names_for_aggregates(attribute_names)
-      attribute_names.map do |attribute_name|
-        if aggregation = reflect_on_aggregation(attribute_name.to_sym)
-          aggregate_mapping(aggregation).map do |field_attr, _|
-            field_attr.to_sym
-          end
-        else
-          attribute_name.to_sym
-        end
-      end.flatten
-    end
-
-    def all_attributes_exists?(attribute_names)
-      (expand_attribute_names_for_aggregates(attribute_names) -
-       column_methods_hash.keys).empty?
     end
 
     def aggregate_mapping(reflection)
