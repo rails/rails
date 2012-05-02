@@ -63,15 +63,15 @@ module ActiveRecord
       def expand_attribute_names_for_aggregates
         attribute_names.map do |attribute_name|
           if aggregation = model.reflect_on_aggregation(attribute_name.to_sym)
-            aggregation.mapping.map { |m| m.first.to_sym }
+            aggregation.mapping.map(&:first)
           else
-            attribute_name.to_sym
+            attribute_name
           end
         end.flatten
       end
 
       def valid?
-        (expand_attribute_names_for_aggregates - model.column_methods_hash.keys).empty?
+        (expand_attribute_names_for_aggregates - model.column_names).empty?
       end
 
       def define
