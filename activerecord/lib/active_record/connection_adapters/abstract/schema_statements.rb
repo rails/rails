@@ -618,8 +618,6 @@ module ActiveRecord
         end
 
         def columns_for_remove(table_name, *column_names)
-          column_names = column_names.flatten
-
           raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.blank?
           column_names.map {|column_name| quote_column_name(column_name) }
         end
