@@ -105,10 +105,9 @@ module ActionDispatch
     class Session
       class Options #:nodoc:
         def initialize(by, env, default_options)
-          @by                = by
-          @env               = env
-          @session_id_loaded = false
-          @delegate          = default_options
+          @by       = by
+          @env      = env
+          @delegate = default_options
         end
 
         def [](key)
