@@ -60,18 +60,8 @@ module ActiveRecord
         @attribute_names = @name.match(self.class.pattern)[1].split('_and_')
       end
 
-      def expand_attribute_names_for_aggregates
-        attribute_names.map do |attribute_name|
-          if aggregation = model.reflect_on_aggregation(attribute_name.to_sym)
-            aggregation.mapping.map(&:first)
-          else
-            attribute_name
-          end
-        end.flatten
-      end
-
       def valid?
-        (expand_attribute_names_for_aggregates - model.column_names).empty?
+        attribute_names.all? { |name| model.columns_hash[name] || model.reflect_on_aggregation(name.to_sym) }
       end
 
       def define
