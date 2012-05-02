@@ -163,6 +163,11 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_where_not
+    assert_equal [authors(:david)], Author.where_not(organization_id: nil).all
+    assert_equal [authors(:bob)], Author.where_not(name: ["David", "Mary"]).all
+  end
+
   def test_model_class_responds_to_first_bang
     assert Topic.first!
     Topic.delete_all

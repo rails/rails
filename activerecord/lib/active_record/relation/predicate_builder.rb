@@ -1,6 +1,6 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
-    def self.build_from_hash(engine, attributes, default_table)
+    def self.build_from_hash(engine, attributes, default_table, operator = nil)
       attributes.map do |column, value|
         table = default_table
 
@@ -8,14 +8,18 @@ module ActiveRecord
           table = Arel::Table.new(column, engine)
           build_from_hash(engine, value, table)
         else
-          column = column.to_s
+          if operator
+            build(table[column.to_sym], value, operator)
+          else
+            column = column.to_s
 
-          if column.include?('.')
-            table_name, column = column.split('.', 2)
-            table = Arel::Table.new(table_name, engine)
+            if column.include?('.')
+              table_name, column = column.split('.', 2)
+              table = Arel::Table.new(table_name, engine)
+            end
+
+            build(table[column.to_sym], value)
           end
-
-          build(table[column.to_sym], value)
         end
       end.flatten
     end
@@ -32,11 +36,15 @@ module ActiveRecord
     end
 
     private
-      def self.build(attribute, value)
+      def self.build(attribute, value, operator = nil)
+        in_pred, eq_pred = :in, :eq
+        if operator == :not
+          in_pred, eq_pred = :not_in, :not_eq
+        end
         case value
         when ActiveRecord::Relation
           value = value.select(value.klass.arel_table[value.klass.primary_key]) if value.select_values.empty?
-          attribute.in(value.arel.ast)
+          attribute.send(in_pred,value.arel.ast)
         when Array, ActiveRecord::Associations::CollectionProxy
           values = value.to_a.map {|x| x.is_a?(ActiveRecord::Model) ? x.id : x}
           ranges, values = values.partition {|v| v.is_a?(Range)}
@@ -46,28 +54,28 @@ module ActiveRecord
 
             case values.length
             when 0
-              attribute.eq(nil)
+              attribute.send(eq_pred,nil)
             when 1
-              attribute.eq(values.first).or(attribute.eq(nil))
+              attribute.send(eq_pred,values.first).or(attribute.send(eq_pred,nil))
             else
-              attribute.in(values).or(attribute.eq(nil))
+              attribute.send(in_pred,values).or(attribute.send(eq_pred,nil))
             end
           else
-            attribute.in(values)
+            attribute.send(in_pred,values)
           end
 
-          array_predicates = ranges.map { |range| attribute.in(range) }
+          array_predicates = ranges.map { |range| attribute.send(in_pred,range) }
           array_predicates << values_predicate
           array_predicates.inject { |composite, predicate| composite.or(predicate) }
         when Range
-          attribute.in(value)
+          attribute.send(in_pred,value)
         when ActiveRecord::Model
-          attribute.eq(value.id)
+          attribute.send(eq_pred,value.id)
         when Class
           # FIXME: I think we need to deprecate this behavior
-          attribute.eq(value.name)
+          attribute.send(eq_pred,value.name)
         else
-          attribute.eq(value)
+          attribute.send(eq_pred,value)
         end
       end
   end
