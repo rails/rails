@@ -236,10 +236,12 @@ class ActionCachingTestController < CachingController
   caches_action :with_layout
   caches_action :with_format_and_http_param, :cache_path => Proc.new { |c| { :key => 'value' } }
   caches_action :layout_false, :layout => false
+  caches_action :layout_false_without_layout, :layout => false
   caches_action :record_not_found, :four_oh_four, :simple_runtime_error
   caches_action :streaming
 
-  layout 'talk_from_action'
+  layout false, :only => :layout_false_without_layout
+  layout 'talk_from_action'  
 
   def index
     @cache_this = MockTime.now.to_f.to_s
@@ -259,6 +261,11 @@ class ActionCachingTestController < CachingController
     @cache_this = MockTime.now.to_f.to_s
     @title = nil
     render :text => @cache_this, :layout => true
+  end
+  
+  def layout_false_without_layout
+    @cache_this = MockTime.now.to_f.to_s
+    render :text => @cache_this
   end
 
   def with_format_and_http_param
@@ -405,6 +412,20 @@ class ActionCacheTest < ActionController::TestCase
     assert_not_equal cached_time, @response.body
 
     body = body_to_string(read_fragment('hostname.com/action_caching_test/layout_false'))
+    assert_equal cached_time, body
+  end
+  
+  def test_action_cache_without_layout_and_layout_cache_false
+    get :layout_false_without_layout
+    assert_response :success
+    cached_time = content_to_cache
+    assert fragment_exist?('hostname.com/action_caching_test/layout_false_without_layout')
+    reset!
+
+    get :layout_false_without_layout
+    assert_response :success
+
+    body = body_to_string(read_fragment('hostname.com/action_caching_test/layout_false_without_layout'))
     assert_equal cached_time, body
   end
 
