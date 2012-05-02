@@ -99,12 +99,12 @@ module ActionDispatch
           @module  = Module.new do
             protected
 
-            def handle_positional_args(args, options, route)
+            def handle_positional_args(args, options, segment_keys)
               inner_options = args.extract_options!
               result = options.dup
 
               if args.any?
-                keys = route.segment_keys
+                keys = segment_keys
                 if args.size < keys.size - 1 # take format into account
                   keys -= self.url_options.keys if self.respond_to?(:url_options)
                   keys -= options.keys
@@ -161,32 +161,11 @@ module ActionDispatch
             end
           end
 
-          def hash_access_name(name, only_path)
-            if only_path
-              :"hash_for_#{name}_path"
-            else
-              :"hash_for_#{name}_url"
-            end
-          end
-
           def define_named_route_methods(name, route)
             [true, false].each do |only_path|
               hash = route.defaults.merge(:use_route => name, :only_path => only_path)
-              define_hash_access route, name, hash
               define_url_helper route, name, hash
             end
-          end
-
-          def define_hash_access(route, name, options)
-            selector = hash_access_name(name, options[:only_path])
-
-            @module.module_eval do
-              redefine_method(selector) do |*args|
-                self.handle_positional_args(args, options, route)
-              end
-              protected selector
-            end
-            helpers << selector
           end
 
           # Create a url helper allowing ordered parameters to be associated
@@ -204,7 +183,6 @@ module ActionDispatch
           #
           def define_url_helper(route, name, options)
             selector = url_helper_name(name, options[:only_path])
-            hash_access_method = hash_access_name(name, options[:only_path])
 
             if optimize_helper?(route)
               @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
@@ -215,7 +193,7 @@ module ActionDispatch
                     options[:path] = "#{optimized_helper(route)}"
                     ActionDispatch::Http::URL.url_for(options)
                   else
-                    url_for(#{hash_access_method}(*args))
+                    url_for(handle_positional_args(args, #{options.inspect}, #{route.segment_keys.inspect}))
                   end
                 end
               END_EVAL
@@ -223,7 +201,7 @@ module ActionDispatch
               @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
                 remove_possible_method :#{selector}
                 def #{selector}(*args)
-                  url_for(#{hash_access_method}(*args))
+                  url_for(handle_positional_args(args, #{options.inspect}, #{route.segment_keys.inspect}))
                 end
               END_EVAL
             end
