@@ -89,7 +89,7 @@ To install Rails, use the +gem install+ command provided by RubyGems:
 
 TIP. A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use "Rails
-Installer":http://railsinstaller.org, while Mac Os X users can use
+Installer":http://railsinstaller.org, while Mac OS X users can use
 "Rails One Click":http://railsoneclick.com.
 
 To verify that you have everything installed correctly, you should be able to run the following:
