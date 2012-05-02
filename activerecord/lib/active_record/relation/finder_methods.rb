@@ -243,47 +243,6 @@ module ActiveRecord
       ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
     end
 
-    def find_by_attributes(match, attributes, *args)
-      conditions = Hash[attributes.map {|a| [a, args[attributes.index(a)]]}]
-      result = where(conditions).send(match.finder)
-
-      if match.bang? && result.blank?
-        raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
-      else
-        if block_given? && result
-          yield(result)
-        else
-          result
-        end
-      end
-    end
-
-    def find_or_instantiator_by_attributes(match, attributes, *args)
-      options = args.size > 1 && args.last(2).all?{ |a| a.is_a?(Hash) } ? args.extract_options! : {}
-      protected_attributes_for_create, unprotected_attributes_for_create = {}, {}
-      args.each_with_index do |arg, i|
-        if arg.is_a?(Hash)
-          protected_attributes_for_create = args[i].with_indifferent_access
-        else
-          unprotected_attributes_for_create[attributes[i]] = args[i]
-        end
-      end
-
-      conditions = (protected_attributes_for_create.merge(unprotected_attributes_for_create)).slice(*attributes).symbolize_keys
-
-      record = where(conditions).first
-
-      unless record
-        record = @klass.new(protected_attributes_for_create, options) do |r|
-          r.assign_attributes(unprotected_attributes_for_create, :without_protection => true)
-        end
-        yield(record) if block_given?
-        record.send(match.save_method) if match.save_record?
-      end
-
-      record
-    end
-
     def find_with_ids(*ids)
       return to_a.find { |*block_args| yield(*block_args) } if block_given?
 

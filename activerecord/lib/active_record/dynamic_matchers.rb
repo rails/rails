@@ -1,7 +1,7 @@
 module ActiveRecord
   module DynamicMatchers
-    def respond_to?(method_id, include_private = false)
-      match       = find_dynamic_match(method_id)
+    def respond_to?(name, include_private = false)
+      match       = Method.match(name)
       valid_match = match && all_attributes_exists?(match.attribute_names)
 
       valid_match || super
@@ -18,43 +18,213 @@ module ActiveRecord
     #
     # Each dynamic finder using <tt>scoped_by_*</tt> is also defined in the class after it
     # is first invoked, so that future attempts to use it do not run through method_missing.
-    def method_missing(method_id, *arguments, &block)
-      if match = find_dynamic_match(method_id)
+    def method_missing(name, *arguments, &block)
+      if match = Method.match(name)
         attribute_names = match.attribute_names
         super unless all_attributes_exists?(attribute_names)
 
-        unless match.valid_arguments?(arguments)
-          method_trace = "#{__FILE__}:#{__LINE__}:in `#{method_id}'"
-          backtrace = [method_trace] + caller
-          raise ArgumentError, "wrong number of arguments (#{arguments.size} for #{attribute_names.size})", backtrace
-        end
-
-        if match.respond_to?(:scope?) && match.scope?
-          define_scope_method(method_id, attribute_names)
-          send(method_id, *arguments)
-        elsif match.finder?
-          options = arguments.extract_options!
-          relation = options.any? ? scoped(options) : scoped
-          relation.send :find_by_attributes, match, attribute_names, *arguments, &block
-        elsif match.instantiator?
-          scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
-        end
+        match.define(self)
+        send(name, *arguments, &block)
       else
         super
       end
     end
 
-    def define_scope_method(method_id, attribute_names) #:nodoc
-      self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def self.#{method_id}(*args)                                    # def self.scoped_by_user_name_and_password(*args)
-          conditions = Hash[[:#{attribute_names.join(',:')}].zip(args)] #   conditions = Hash[[:user_name, :password].zip(args)]
-          where(conditions)                                             #   where(conditions)
-        end                                                             # end
-      METHOD
+    class Method
+      def self.match(name)
+        klass = klasses.find { |k| name =~ k.pattern }
+        klass.new(name) if klass
+      end
+
+      def self.klasses
+        [
+          FindBy, FindAllBy, FindLastBy, FindByBang, ScopedBy,
+          FindOrInitializeBy, FindOrCreateBy, FindOrCreateByBang
+        ]
+      end
+
+      def self.pattern
+        /^#{prefix}_([_a-zA-Z]\w*)#{suffix}$/
+      end
+
+      def self.prefix
+        raise NotImplementedError
+      end
+
+      def self.suffix
+        ''
+      end
+
+      attr_reader :name, :attribute_names
+
+      def initialize(name)
+        @name            = name.to_s
+        @attribute_names = @name.match(self.class.pattern)[1].split('_and_')
+      end
+
+      def define(klass)
+        klass.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          def self.#{name}(#{signature})
+            #{body}
+          end
+        CODE
+      end
+
+      def body
+        raise NotImplementedError
+      end
     end
 
-    def find_dynamic_match(method_id) #:nodoc:
-      DynamicFinderMatch.match(method_id) || DynamicScopeMatch.match(method_id)
+    class Finder < Method
+      def body
+        <<-CODE
+          result = #{result}
+          result && block_given? ? yield(result) : result
+        CODE
+      end
+
+      def result
+        "scoped.apply_finder_options(options).#{finder}(#{attributes_hash})"
+      end
+
+      def signature
+        attribute_names.join(', ') + ", options = {}"
+      end
+
+      def attributes_hash
+        "{" + attribute_names.map { |name| ":#{name} => #{name}" }.join(',') + "}"
+      end
+
+      def finder
+        raise NotImplementedError
+      end
+    end
+
+    class FindBy < Finder
+      def self.prefix
+        "find_by"
+      end
+
+      def finder
+        "find_by"
+      end
+    end
+
+    class FindByBang < Finder
+      def self.prefix
+        "find_by"
+      end
+
+      def self.suffix
+        "!"
+      end
+
+      def finder
+        "find_by!"
+      end
+    end
+
+    class FindAllBy < Finder
+      def self.prefix
+        "find_all_by"
+      end
+
+      def finder
+        "where"
+      end
+
+      def result
+        "#{super}.to_a"
+      end
+    end
+
+    class FindLastBy < Finder
+      def self.prefix
+        "find_last_by"
+      end
+
+      def finder
+        "where"
+      end
+
+      def result
+        "#{super}.last"
+      end
+    end
+
+    class ScopedBy < Finder
+      def self.prefix
+        "scoped_by"
+      end
+
+      def body
+        "where(#{attributes_hash})"
+      end
+    end
+
+    class Instantiator < Method
+      # This is nasty, but it doesn't matter because it will be deprecated.
+      def self.dispatch(klass, attribute_names, instantiator, args, block)
+        if args.length == 1 && args.first.is_a?(Hash)
+          attributes = args.first.stringify_keys
+          conditions = attributes.slice(*attribute_names)
+          rest       = [attributes.except(*attribute_names)]
+        else
+          raise ArgumentError, "too few arguments" unless args.length >= attribute_names.length
+
+          conditions = Hash[attribute_names.map.with_index { |n, i| [n, args[i]] }]
+          rest       = args.drop(attribute_names.length)
+        end
+
+        klass.where(conditions).first ||
+          klass.create_with(conditions).send(instantiator, *rest, &block)
+      end
+
+      def signature
+        "*args, &block"
+      end
+
+      def body
+        "#{self.class}.dispatch(self, #{attribute_names.inspect}, #{instantiator.inspect}, args, block)"
+      end
+
+      def instantiator
+        raise NotImplementedError
+      end
+    end
+
+    class FindOrInitializeBy < Instantiator
+      def self.prefix
+        "find_or_initialize_by"
+      end
+
+      def instantiator
+        "new"
+      end
+    end
+
+    class FindOrCreateBy < Instantiator
+      def self.prefix
+        "find_or_create_by"
+      end
+
+      def instantiator
+        "create"
+      end
+    end
+
+    class FindOrCreateByBang < Instantiator
+      def self.prefix
+        "find_or_create_by"
+      end
+
+      def self.suffix
+        "!"
+      end
+
+      def instantiator
+        "create!"
+      end
     end
 
     # Similar in purpose to +expand_hash_conditions_for_aggregates+.
