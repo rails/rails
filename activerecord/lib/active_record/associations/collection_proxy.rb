@@ -81,7 +81,7 @@ module ActiveRecord
       def method_missing(method, *args, &block)
         match = DynamicFinderMatch.match(method)
         if match && match.instantiator?
-          send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |r|
+          scoped.send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |r|
             proxy_association.send :set_owner_attributes, r
             proxy_association.send :add_to_target, r
             yield(r) if block_given?
@@ -101,7 +101,7 @@ module ActiveRecord
           end
 
         else
-          scoped.readonly(nil).send(method, *args, &block)
+          scoped.readonly(nil).public_send(method, *args, &block)
         end
       end
 
