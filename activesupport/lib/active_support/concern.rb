@@ -97,19 +97,19 @@ module ActiveSupport
   #
   module Concern
     def self.extended(base)
-      base.instance_variable_set("@_dependencies", [])
+      base.instance_variable_set(:@_dependencies, [])
     end
 
     def append_features(base)
-      if base.instance_variable_defined?("@_dependencies")
-        base.instance_variable_get("@_dependencies") << self
+      if base.instance_variable_defined?(:@_dependencies)
+        base.instance_variable_get(:@_dependencies) << self
         return false
       else
         return false if base < self
         @_dependencies.each { |dep| base.send(:include, dep) }
         super
-        base.extend const_get("ClassMethods") if const_defined?("ClassMethods")
-        base.class_eval(&@_included_block) if instance_variable_defined?("@_included_block")
+        base.extend self::ClassMethods if defined? self::ClassMethods
+        base.class_eval(&@_included_block) if defined? @_included_block
       end
     end
 
