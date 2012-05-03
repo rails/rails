@@ -66,7 +66,7 @@ module Rails
       end
     end
 
-    attr_accessor :assets, :sandbox
+    attr_accessor :assets, :sandbox, :queue_consumer
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders
     attr_writer :queue
