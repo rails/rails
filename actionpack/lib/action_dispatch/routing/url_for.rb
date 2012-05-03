@@ -68,7 +68,7 @@ module ActionDispatch
     # This generates, among other things, the method <tt>users_path</tt>. By default,
     # this method is accessible from your controllers, views and mailers. If you need
     # to access this auto-generated method from other places (such as a model), then
-    # you can do that by including ActionController::UrlFor in your class:
+    # you can do that by including Rails.application.routes.url_helpers in your class:
     #
     #   class User < ActiveRecord::Base
     #     include Rails.application.routes.url_helpers
