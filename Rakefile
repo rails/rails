@@ -1,5 +1,3 @@
-#!/usr/bin/env rake
-
 require 'rdoc/task'
 require 'sdoc'
 require 'net/http'

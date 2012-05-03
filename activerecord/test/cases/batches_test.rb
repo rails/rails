@@ -27,27 +27,15 @@ class EachTest < ActiveRecord::TestCase
 
   def test_each_should_raise_if_select_is_set_without_id
     assert_raise(RuntimeError) do
-      Post.find_each(:select => :title, :batch_size => 1) { |post| post }
+      Post.select(:title).find_each(:batch_size => 1) { |post| post }
     end
   end
 
   def test_each_should_execute_if_id_is_in_select
     assert_queries(6) do
-      Post.find_each(:select => "id, title, type", :batch_size => 2) do |post|
+      Post.select("id, title, type").find_each(:batch_size => 2) do |post|
         assert_kind_of Post, post
       end
-    end
-  end
-
-  def test_each_should_raise_if_the_order_is_set
-    assert_raise(RuntimeError) do
-      Post.find_each(:order => "title") { |post| post }
-    end
-  end
-
-  def test_each_should_raise_if_the_limit_is_set
-    assert_raise(RuntimeError) do
-      Post.find_each(:limit => 1) { |post| post }
     end
   end
 

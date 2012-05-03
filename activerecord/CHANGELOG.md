@@ -1,5 +1,40 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added default order to `first` to assure consistent results among
+    diferent database engines. Introduced `take` as a replacement to
+    the old behavior of `first`.
+
+    *Marcelo Silveira*
+
+*   Added an :index option to automatically create indexes for references
+    and belongs_to statements in migrations.
+
+    The `references` and `belongs_to` methods now support an `index`
+    option that receives either a boolean value or an options hash
+    that is identical to options available to the add_index method:
+
+      create_table :messages do |t|
+        t.references :person, :index => true
+      end
+
+      Is the same as:
+
+      create_table :messages do |t|
+        t.references :person
+      end
+      add_index :messages, :person_id
+
+    Generators have also been updated to use the new syntax.
+
+    [Joshua Wood]
+
+*   Added bang methods for mutating `ActiveRecord::Relation` objects.
+    For example, while `foo.where(:bar)` will return a new object
+    leaving `foo` unchanged, `foo.where!(:bar)` will mutate the foo
+    object
+
+    *Jon Leighton*
+
 *   Added `#find_by` and `#find_by!` to mirror the functionality
     provided by dynamic finders in a way that allows dynamic input more
     easily:
@@ -210,7 +245,7 @@
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
 
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.3 (March 30, 2012) ##
 
 *   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
 
@@ -550,19 +585,6 @@
 *   ActiveRecord::Base.establish_connection now takes a string that contains
     a URI that specifies the connection configuration.  For example:
         ActiveRecord::Base.establish_connection 'postgres://localhost/foo'
-
-*   Active Record's dynamic finder will now raise the error if you passing in less number of arguments than what you call in method signature.
-
-    So if you were doing this and expecting the second argument to be nil:
-
-        User.find_by_username_and_group("sikachu")
-
-    You'll now get `ArgumentError: wrong number of arguments (1 for 2).` You'll then have to do this:
-
-        User.find_by_username_and_group("sikachu", nil)
-
-    *Prem Sichanugrist*
-
 
 ## Rails 3.1.0 (August 30, 2011) ##
 

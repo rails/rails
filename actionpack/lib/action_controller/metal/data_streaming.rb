@@ -8,15 +8,13 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_OPTIONS = {
-      :type         => 'application/octet-stream'.freeze,
-      :disposition  => 'attachment'.freeze,
-    }.freeze
+    DEFAULT_SEND_FILE_TYPE        = 'application/octet-stream'.freeze #:nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = 'attachment'.freeze #:nodoc:
 
     protected
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
       # via the Rack::Sendfile middleware. The header to use is set via
-      # config.action_dispatch.x_sendfile_header.
+      # +config.action_dispatch.x_sendfile_header+.
       # Your server can also configure this for you by setting the X-Sendfile-Type header.
       #
       # Be careful to sanitize the path parameter if it is coming from a web
@@ -74,7 +72,27 @@ module ActionController #:nodoc:
 
         self.status = options[:status] || 200
         self.content_type = options[:content_type] if options.key?(:content_type)
-        self.response_body = File.open(path, "rb")
+        self.response_body = FileBody.new(path)
+      end
+
+      # Avoid having to pass an open file handle as the response body.
+      # Rack::Sendfile will usually intercepts the response and just uses
+      # the path directly, so no reason to open the file.
+      class FileBody #:nodoc:
+        attr_reader :to_path
+
+        def initialize(path)
+          @to_path = path
+        end
+
+        # Stream the file's contents if Rack::Sendfile isn't present.
+        def each
+          File.open(to_path, 'rb') do |file|
+            while chunk = file.read(16384)
+              yield chunk
+            end
+          end
+        end
       end
 
       # Sends the given binary data to the browser. This method is similar to
@@ -107,7 +125,7 @@ module ActionController #:nodoc:
       #
       # See +send_file+ for more information on HTTP Content-* headers and caching.
       def send_data(data, options = {}) #:doc:
-        send_file_headers! options.dup
+        send_file_headers! options
         render options.slice(:status, :content_type).merge(:text => data)
       end
 
@@ -115,15 +133,8 @@ module ActionController #:nodoc:
       def send_file_headers!(options)
         type_provided = options.has_key?(:type)
 
-        options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
-        [:type, :disposition].each do |arg|
-          raise ArgumentError, ":#{arg} option required" if options[arg].nil?
-        end
-
-        disposition = options[:disposition]
-        disposition += %(; filename="#{options[:filename]}") if options[:filename]
-
-        content_type = options[:type]
+        content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
+        raise ArgumentError, ":type option required" if content_type.nil?
 
         if content_type.is_a?(Symbol)
           extension = Mime[content_type]
@@ -132,15 +143,18 @@ module ActionController #:nodoc:
         else
           if !type_provided && options[:filename]
             # If type wasn't provided, try guessing from file extension.
-            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.tr('.','')) || content_type
+            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete('.')) || content_type
           end
           self.content_type = content_type
         end
 
-        headers.merge!(
-          'Content-Disposition'       => disposition,
-          'Content-Transfer-Encoding' => 'binary'
-        )
+        disposition = options.fetch(:disposition, DEFAULT_SEND_FILE_DISPOSITION)
+        unless disposition.nil?
+          disposition += %(; filename="#{options[:filename]}") if options[:filename]
+          headers['Content-Disposition'] = disposition
+        end
+
+        headers['Content-Transfer-Encoding'] = 'binary'
 
         response.sending_file = true
 

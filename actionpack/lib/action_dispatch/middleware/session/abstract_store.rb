@@ -7,6 +7,15 @@ require 'active_support/core_ext/object/blank'
 module ActionDispatch
   module Session
     class SessionRestoreError < StandardError #:nodoc:
+      attr_reader :original_exception
+
+      def initialize(const_error)
+        @original_exception = const_error
+
+        super("Session contains objects whose class definition isn't available.\n" +
+          "Remember to require the classes for all objects kept in the session.\n" +
+          "(Original exception: #{const_error.message} [#{const_error.class}])\n")
+      end
     end
 
     module DestroyableSession
@@ -58,11 +67,8 @@ module ActionDispatch
           begin
             # Note that the regexp does not allow $1 to end with a ':'
             $1.constantize
-          rescue LoadError, NameError => const_error
-            raise ActionDispatch::Session::SessionRestoreError,
-              "Session contains objects whose class definition isn't available.\n" +
-              "Remember to require the classes for all objects kept in the session.\n" +
-              "(Original exception: #{const_error.message} [#{const_error.class}])\n"
+          rescue LoadError, NameError => e
+            raise ActionDispatch::Session::SessionRestoreError, e, e.backtrace
           end
           retry
         else
@@ -74,6 +80,13 @@ module ActionDispatch
     class AbstractStore < Rack::Session::Abstract::ID
       include Compatibility
       include StaleSessionCheck
+
+      private
+
+      def set_cookie(env, session_id, cookie)
+        request = ActionDispatch::Request.new(env)
+        request.cookie_jar[key] = cookie
+      end
     end
   end
 end

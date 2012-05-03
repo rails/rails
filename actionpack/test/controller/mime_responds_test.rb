@@ -1118,7 +1118,7 @@ class RespondWithControllerTest < ActionController::TestCase
           resources :quiz_stores do
             resources :customers
           end
-          match ":controller/:action"
+          get ":controller/:action"
         end
         yield
       end

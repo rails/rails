@@ -1,5 +1,28 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add backtrace to development routing error page. *Richard Schneeman*
+
+*   Replace `include_seconds` boolean argument with `:include_seconds => true` option
+    in `distance_of_time_in_words` and `time_ago_in_words` signature. *Dmitriy Kiriyenko*
+
+*   Remove `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
+
+*   Make current object and counter (when it applies) variables accessible when
+    rendering templates with :object / :collection. *Carlos Antonio da Silva*
+
+*   JSONP now uses mimetype application/javascript instead of application/json *omjokine*
+
+*   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*
+
+*   Session arguments passed to `process` calls in functional tests are now merged into
+    the existing session, whereas previously they would replace the existing session.
+    This change may break some existing tests if they are asserting the exact contents of
+    the session but should not break existing tests that only assert individual keys.
+
+    *Andrew White*
+
+*   Add `index` method to FormBuilder class. *Jorge Bejar*
+
 *   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
 
 *   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`
@@ -133,7 +156,7 @@
     HTML5 `mark` element. *Brian Cardarella*
 
 
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.3 (March 30, 2012) ##
 
 *   Add `config.action_view.embed_authenticity_token_in_remote_forms` (defaults to true) which allows to set if authenticity token will be included by default in remote forms. If you change it to false, you can still force authenticity token by passing `:authenticity_token => true` in form options *Piotr Sarnacki*
 

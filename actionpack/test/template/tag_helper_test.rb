@@ -30,8 +30,8 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_converts_boolean_option
-    assert_equal '<p disabled="disabled" multiple="multiple" readonly="readonly" />',
-      tag("p", :disabled => true, :multiple => true, :readonly => true)
+    assert_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" />',
+      tag("p", :disabled => true, :itemscope => true, :multiple => true, :readonly => true)
   end
 
   def test_content_tag
@@ -89,6 +89,11 @@ class TagHelperTest < ActionView::TestCase
 
   def test_cdata_section
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
+  end
+
+  def test_cdata_section_splitted
+    assert_equal "<![CDATA[hello]]]]><![CDATA[>world]]>", cdata_section("hello]]>world")
+    assert_equal "<![CDATA[hello]]]]><![CDATA[>world]]]]><![CDATA[>again]]>", cdata_section("hello]]>world]]>again")
   end
 
   def test_escape_once

@@ -27,13 +27,13 @@ module ActionController
         path = payload[:virtual_path]
         next unless path
         partial = path =~ /^.*\/_[^\/]*$/
+
         if partial
           @partials[path] += 1
           @partials[path.split("/").last] += 1
-          @templates[path] += 1
-        else
-          @templates[path] += 1
         end
+
+        @templates[path] += 1
       end
     end
 
@@ -140,9 +140,6 @@ module ActionController
 
     class Result < ::Array #:nodoc:
       def to_s() join '/' end
-      def self.new_escaped(strings)
-        new strings.collect {|str| uri_parser.unescape str}
-      end
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
@@ -150,17 +147,23 @@ module ActionController
       extra_keys = routes.extra_keys(parameters)
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
-        if value.is_a? Fixnum
-          value = value.to_s
-        elsif value.is_a? Array
-          value = Result.new(value.map { |v| v.is_a?(String) ? v.dup : v })
-        elsif value.is_a? String
+        if value.is_a?(Array) && (value.frozen? || value.any?(&:frozen?))
+          value = value.map{ |v| v.duplicable? ? v.dup : v }
+        elsif value.is_a?(Hash) && (value.frozen? || value.any?{ |k,v| v.frozen? })
+          value = Hash[value.map{ |k,v| [k, v.duplicable? ? v.dup : v] }]
+        elsif value.frozen? && value.duplicable?
           value = value.dup
         end
 
         if extra_keys.include?(key.to_sym)
           non_path_parameters[key] = value
         else
+          if value.is_a?(Array)
+            value = Result.new(value.map(&:to_param))
+          else
+            value = value.to_param
+          end
+
           path_parameters[key.to_s] = value
         end
       end
@@ -456,7 +459,7 @@ module ActionController
 
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
-        parameters = paramify_values(parameters)
+        parameters = paramify_values(parameters) if html_format?(parameters)
 
         @request.recycle!
         @response.recycle!
@@ -469,14 +472,13 @@ module ActionController
 
         parameters ||= {}
         controller_class_name = @controller.class.anonymous? ?
-          "anonymous_controller" :
+          "anonymous" :
           @controller.class.name.underscore.sub(/_controller$/, '')
 
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
-        @request.session = ActionController::TestSession.new(session) if session
+        @request.session.update(session) if session
         @request.session["flash"] = @request.flash.update(flash || {})
-        @request.session["flash"].sweep
 
         @controller.request = @request
         build_request_uri(action, parameters)
@@ -548,6 +550,12 @@ module ActionController
           @request.env["PATH_INFO"] = url
           @request.env["QUERY_STRING"] = query_string || ""
         end
+      end
+
+      def html_format?(parameters)
+        return true unless parameters.is_a?(Hash)
+        format = Mime[parameters[:format]]
+        format.nil? || format.html?
       end
     end
 

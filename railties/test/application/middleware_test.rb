@@ -148,6 +148,13 @@ module ApplicationTests
       assert_equal "Rack::Config", middleware.first
     end
 
+    test "can't change middleware after it's built" do
+      boot!
+      assert_raise RuntimeError do
+        app.config.middleware.use Rack::Config
+      end
+    end
+
     # ConditionalGet + Etag
     test "conditional get + etag middlewares handle http caching based on body" do
       make_basic_app

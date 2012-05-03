@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    Inflector no longer applies ice -> ouse to words like slice, police, ets *Wes Morgan*
+
+*    Add `ActiveSupport::Deprecations.behavior = :silence` to completely ignore Rails runtime deprecations *twinturbo*
+
+*    Make Module#delegate stop using `send` - can no longer delegate to private methods. *dasch*
+
 *    AS::Callbacks: deprecate `:rescuable` option. *Bogdan Gusiev*
 
 *    Adds Integer#ordinal to get the ordinal suffix string of an integer. *Tim Gildea*
@@ -25,6 +31,9 @@
      from Ruby stdlib.
 
 *    Unicode database updated to 6.1.0.
+
+*    Adds `encode_big_decimal_as_string` option to force JSON serialization of BigDecimals as numeric instead
+     of wrapping them in strings for safety.
 
 
 ## Rails 3.2.2 (March 1, 2012) ##

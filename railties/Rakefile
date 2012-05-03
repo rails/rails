@@ -1,4 +1,3 @@
-#!/usr/bin/env rake
 require 'rake/testtask'
 require 'rubygems/package_task'
 
@@ -59,13 +58,4 @@ task :release => :package do
   require 'rake/gemcutter'
   Rake::Gemcutter::Tasks.new(spec).define
   Rake::Task['gem:push'].invoke
-end
-
-desc "Publish the guides"
-task :pguides => :generate_guides do
-  require 'rake/contrib/sshpublisher'
-  mkdir_p 'pkg'
-  `tar -czf pkg/guides.gz guides/output`
-  Rake::SshFilePublisher.new("web.rubyonrails.org", "/u/sites/guides.rubyonrails.org/public", "pkg", "guides.gz").upload
-  `ssh web.rubyonrails.org 'cd /u/sites/guides.rubyonrails.org/public/ && tar -xvzf guides.gz && mv guides/output/* . && rm -rf guides*'`
 end

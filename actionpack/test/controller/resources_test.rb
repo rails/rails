@@ -680,7 +680,7 @@ class ResourcesTest < ActionController::TestCase
         scope '/threads/:thread_id' do
           resources :messages, :as => 'thread_messages' do
             get :search, :on => :collection
-            match :preview, :on => :new
+            get :preview, :on => :new
           end
         end
       end
@@ -698,7 +698,7 @@ class ResourcesTest < ActionController::TestCase
         scope '/admin' do
           resource :account, :as => :admin_account do
             get :login, :on => :member
-            match :preview, :on => :new
+            get :preview, :on => :new
           end
         end
       end

@@ -4,7 +4,7 @@ class String
   # Wraps the current string in the <tt>ActiveSupport::StringInquirer</tt> class,
   # which gives you a prettier way to test for equality. Example:
   #
-  #   env = "production".inquiry
+  #   env = 'production'.inquiry
   #   env.production?  # => true
   #   env.development? # => false
   def inquiry

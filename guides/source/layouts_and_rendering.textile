@@ -686,7 +686,7 @@ You can specify a full path relative to the document root, or a URL, if you pref
 Rails will then output a +script+ tag such as this:
 
 <html>
-<script src='/assets/main.js' type="text/javascript"></script>
+<script src='/assets/main.js'></script>
 </html>
 
 The request to this asset is then served by the Sprockets gem.
@@ -718,8 +718,8 @@ If the application does not use the asset pipeline, the +:defaults+ option loads
 Outputting +script+ tags such as this:
 
 <html>
-<script src="/javascripts/jquery.js" type="text/javascript"></script>
-<script src="/javascripts/jquery_ujs.js" type="text/javascript"></script>
+<script src="/javascripts/jquery.js"></script>
+<script src="/javascripts/jquery_ujs.js"></script>
 </html>
 
 These two files for jQuery, +jquery.js+ and +jquery_ujs.js+ must be placed inside +public/javascripts+ if the application doesn't use the asset pipeline. These files can be downloaded from the "jquery-rails repository on GitHub":https://github.com/indirect/jquery-rails/tree/master/vendor/assets/javascripts
@@ -805,7 +805,7 @@ To include +http://example.com/main.css+:
 <%= stylesheet_link_tag "http://example.com/main.css" %>
 </erb>
 
-By default, the +stylesheet_link_tag+ creates links with +media="screen" rel="stylesheet" type="text/css"+. You can override any of these defaults by specifying an appropriate option (+:media+, +:rel+, or +:type+):
+By default, the +stylesheet_link_tag+ creates links with +media="screen" rel="stylesheet"+. You can override any of these defaults by specifying an appropriate option (+:media+, +:rel+):
 
 <erb>
 <%= stylesheet_link_tag "main_print", :media => "print" %>
@@ -1193,6 +1193,16 @@ h5. Spacer Templates
 
 Rails will render the +_product_ruler+ partial (with no data passed in to it) between each pair of +_product+ partials.
 
+h5. Partial Layouts
+
+When rendering collections it is also possible to use the +:layout+ option:
+
+<erb>
+<%= render :partial => "product", :collection => @products, :layout => "special_layout" %>
+</erb>
+
+The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they do within the partial.
+
 h4. Using Nested Layouts
 
 You may find that your application requires a layout that differs slightly from your regular application layout to support one particular controller. Rather than repeating the main layout and editing it, you can accomplish this by using nested layouts (sometimes called sub-templates). Here's an example:
@@ -1206,7 +1216,7 @@ Suppose you have the following +ApplicationController+ layout:
 <head>
   <title><%= @page_title or 'Page Title' %></title>
   <%= stylesheet_link_tag 'layout' %>
-  <style type="text/css"><%= yield :stylesheets %></style>
+  <style><%= yield :stylesheets %></style>
 </head>
 <body>
   <div id="top_menu">Top menu items here</div>

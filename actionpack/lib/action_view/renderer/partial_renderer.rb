@@ -158,8 +158,8 @@ module ActionView
   #     Name: <%= user.name %>
   #   </div>
   #
-  # If a collection is given, the layout will be rendered once for each item in the collection. Just think
-  # these two snippets have the same output:
+  # If a collection is given, the layout will be rendered once for each item in
+  # the collection. Just think these two snippets have the same output:
   #
   #   <%# app/views/users/_user.html.erb %>
   #   Name: <%= user.name %>
@@ -184,7 +184,7 @@ module ActionView
   #     <%= render :partial => "user", :layout => "li_layout", :collection => users %>
   #   </ul>
   #
-  #   Given two users whose names are Alice and Bob, these snippets return:
+  # Given two users whose names are Alice and Bob, these snippets return:
   #
   #   <ul>
   #     <li>
@@ -194,6 +194,10 @@ module ActionView
   #       Name: Bob
   #     </li>
   #   </ul>
+  #
+  # The current object being rendered, as well as the object_counter, will be
+  # available as local variables inside the layout template under the same names
+  # as available in the partial.
   #
   # You can also apply a layout to a block within any template:
   #
@@ -282,14 +286,7 @@ module ActionView
         spacer = find_template(@options[:spacer_template]).render(@view, @locals)
       end
 
-      if layout = @options[:layout]
-        layout = find_template(layout)
-      end
-
       result = @template ? collection_with_template : collection_without_template
-      
-      result.map!{|content| layout.render(@view, @locals) { content } } if layout
-      
       result.join(spacer).html_safe
     end
 
@@ -298,7 +295,7 @@ module ActionView
       object, as = @object, @variable
 
       if !block && (layout = @options[:layout])
-        layout = find_template(layout)
+        layout = find_template(layout, @locals.keys + [@variable])
       end
 
       object ||= locals[as]
@@ -384,17 +381,23 @@ module ActionView
       segments, locals, template = [], @locals, @template
       as, counter = @variable, @variable_counter
 
+      if layout = @options[:layout]
+        layout = find_template(layout, @locals.keys + [@variable, @variable_counter])
+      end
+
       locals[counter] = -1
 
       @collection.each do |object|
         locals[counter] += 1
         locals[as] = object
-        segments << template.render(@view, locals)
+
+        content = template.render(@view, locals)
+        content = layout.render(@view, locals) { content } if layout
+        segments << content
       end
-      
+
       segments
     end
-    
 
     def collection_without_template
       segments, locals, collection_data = [], @locals, @collection_data
@@ -451,7 +454,7 @@ module ActionView
     end
 
     def retrieve_variable(path)
-      variable = @options[:as].try(:to_sym) || path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
+      variable = @options.fetch(:as) { path[%r'_?(\w+)(\.\w+)*$', 1] }.try(:to_sym)
       variable_counter = :"#{variable}_counter" if @collection
       [variable, variable_counter]
     end

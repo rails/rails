@@ -362,7 +362,7 @@ h4. Configuring Action View
 Proc.new { |html_tag, instance| %Q(<div class="field_with_errors">#{html_tag}</div>).html_safe }
 </ruby>
 
-* +config.action_view.default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.
+* +config.action_view.default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+. If you want your form builder class to be loaded after initialization (so it's reloaded on each request in development), you can pass it as a +String+
 
 * +config.action_view.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action View. Set to +nil+ to disable logging.
 
@@ -523,6 +523,14 @@ development:
   pool: 5
   username: blog
   password:
+</yaml>
+
+Prepared Statements can be disabled thus:
+
+<yaml>
+production:
+  adapter: postgresql
+  prepared_statements: false
 </yaml>
 
 h5. Configuring an SQLite3 Database for JRuby Platform

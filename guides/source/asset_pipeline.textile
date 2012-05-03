@@ -328,9 +328,9 @@ This manifest +app/assets/javascripts/application.js+:
 would generate this HTML:
 
 <html>
-<script src="/assets/core.js?body=1" type="text/javascript"></script>
-<script src="/assets/projects.js?body=1" type="text/javascript"></script>
-<script src="/assets/tickets.js?body=1" type="text/javascript"></script>
+<script src="/assets/core.js?body=1"></script>
+<script src="/assets/projects.js?body=1"></script>
+<script src="/assets/tickets.js?body=1"></script>
 </html>
 
 The +body+ param is required by Sprockets.
@@ -346,7 +346,7 @@ config.assets.debug = false
 When debug mode is off, Sprockets concatenates and runs the necessary preprocessors on all files. With debug mode turned off the manifest above would generate instead:
 
 <html>
-<script src="/assets/application.js" type="text/javascript"></script>
+<script src="/assets/application.js"></script>
 </html>
 
 Assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-revalidate+ Cache-Control HTTP header to reduce request overhead on subsequent requests -- on these the browser gets a 304 (Not Modified) response.
@@ -380,8 +380,8 @@ For example this:
 generates something like this:
 
 <html>
-<script src="/assets/application-908e25f4bf641868d8683022a5b62f54.js" type="text/javascript"></script>
-<link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" media="screen" rel="stylesheet" type="text/css" />
+<script src="/assets/application-908e25f4bf641868d8683022a5b62f54.js"></script>
+<link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" media="screen" rel="stylesheet" />
 </html>
 
 The fingerprinting behavior is controlled by the setting of +config.assets.digest+ setting in Rails (which defaults to +true+ for production and +false+ for everything else).
@@ -409,9 +409,9 @@ cannot see application objects or methods. *Heroku requires this to be false.*
 WARNING: If you set +config.assets.initialize_on_precompile+ to false, be sure to
 test +rake assets:precompile+ locally before deploying. It may expose bugs where
 your assets reference application objects or methods, since those are still
-in scope in development mode regardless of the value of this flag. Changing this flag also effects
+in scope in development mode regardless of the value of this flag. Changing this flag also affects
 engines. Engines can define assets for precompilation as well. Since the complete environment is not loaded,
-engines (or other gems) will not be loaded which can cause missing assets.
+engines (or other gems) will not be loaded, which can cause missing assets.
 
 Capistrano (v2.8.0 and above) includes a recipe to handle this in deployment. Add the following line to +Capfile+:
 

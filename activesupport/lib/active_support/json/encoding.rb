@@ -17,6 +17,7 @@ module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
+      :encode_big_decimal_as_string, :encode_big_decimal_as_string=,
       :to => :'ActiveSupport::JSON::Encoding'
   end
 
@@ -104,6 +105,9 @@ module ActiveSupport
         # If true, use ISO 8601 format for dates and times. Otherwise, fall back to the Active Support legacy format.
         attr_accessor :use_standard_json_time_format
 
+        # If false, serializes BigDecimal objects as numeric instead of wrapping them in a string
+        attr_accessor :encode_big_decimal_as_string
+
         attr_accessor :escape_regex
         attr_reader :escape_html_entities_in_json
 
@@ -133,6 +137,7 @@ module ActiveSupport
 
       self.use_standard_json_time_format = true
       self.escape_html_entities_in_json  = false
+      self.encode_big_decimal_as_string  = true
     end
   end
 end
@@ -182,6 +187,12 @@ class Numeric
   def encode_json(encoder) to_s end #:nodoc:
 end
 
+class Float
+  # Encoding Infinity or NaN to JSON should return "null". The default returns
+  # "Infinity" or "NaN" what breaks parsing the JSON. E.g. JSON.parse('[NaN]').
+  def as_json(options = nil) finite? ? self : NilClass::AS_JSON end #:nodoc:
+end
+
 class BigDecimal
   # A BigDecimal would be naturally represented as a JSON number. Most libraries,
   # however, parse non-integer JSON numbers directly as floats. Clients using
@@ -191,7 +202,15 @@ class BigDecimal
   # That's why a JSON string is returned. The JSON literal is not numeric, but if
   # the other end knows by contract that the data is supposed to be a BigDecimal,
   # it still has the chance to post-process the string and get the real value.
-  def as_json(options = nil) to_s end #:nodoc:
+  #
+  # Use ActiveSupport.use_standard_json_big_decimal_format = true to override this behaviour
+  def as_json(options = nil) #:nodoc:
+    if finite?
+      ActiveSupport.encode_big_decimal_as_string ? to_s : self
+    else
+      NilClass::AS_JSON
+    end
+  end
 end
 
 class Regexp

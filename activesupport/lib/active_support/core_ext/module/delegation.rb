@@ -1,5 +1,5 @@
 class Module
-  # Provides a delegate class method to easily expose contained objects' methods
+  # Provides a delegate class method to easily expose contained objects' public methods
   # as your own. Pass one or more methods (specified as symbols or strings)
   # and the name of the target object via the <tt>:to</tt> option (also a symbol
   # or string). At least one method and the <tt>:to</tt> option are required.
@@ -8,11 +8,11 @@ class Module
   #
   #   class Greeter < ActiveRecord::Base
   #     def hello
-  #       "hello"
+  #       'hello'
   #     end
   #
   #     def goodbye
-  #       "goodbye"
+  #       'goodbye'
   #     end
   #   end
   #
@@ -62,7 +62,7 @@ class Module
   #     delegate :name, :address, :to => :client, :prefix => true
   #   end
   #
-  #   john_doe = Person.new("John Doe", "Vimmersvej 13")
+  #   john_doe = Person.new('John Doe', 'Vimmersvej 13')
   #   invoice = Invoice.new(john_doe)
   #   invoice.client_name    # => "John Doe"
   #   invoice.client_address # => "Vimmersvej 13"
@@ -74,8 +74,8 @@ class Module
   #   end
   #
   #   invoice = Invoice.new(john_doe)
-  #   invoice.customer_name    # => "John Doe"
-  #   invoice.customer_address # => "Vimmersvej 13"
+  #   invoice.customer_name    # => 'John Doe'
+  #   invoice.customer_address # => 'Vimmersvej 13'
   #
   # If the delegate object is +nil+ an exception is raised, and that happens
   # no matter whether +nil+ responds to the delegated method. You can get a
@@ -104,17 +104,17 @@ class Module
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
-      raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, :to => :greeter)."
+      raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, :to => :greeter).'
     end
 
     to = to.to_s
     prefix, allow_nil = options.values_at(:prefix, :allow_nil)
 
     if prefix == true && to =~ /^[^a-z_]/
-      raise ArgumentError, "Can only automatically set the delegation prefix when delegating to a method."
+      raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
     end
 
-    method_prefix =
+    method_prefix = \
       if prefix
         "#{prefix == true ? to : prefix}_"
       else
@@ -124,23 +124,27 @@ class Module
     file, line = caller.first.split(':', 2)
     line = line.to_i
 
-    if allow_nil
-      methods.each do |method|
+    methods.each do |method|
+      method = method.to_s
+
+      # Attribute writer methods only accept one argument. Makes sure []=
+      # methods still accept two arguments.
+      definition = (method =~ /[^\]]=$/) ? 'arg' : '*args, &block'
+
+      if allow_nil
         module_eval(<<-EOS, file, line - 2)
-          def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
+          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
             if #{to} || #{to}.respond_to?(:#{method})         #   if client || client.respond_to?(:name)
-              #{to}.__send__(:#{method}, *args, &block)       #     client.__send__(:name, *args, &block)
+              #{to}.#{method}(#{definition})                  #     client.name(*args, &block)
             end                                               #   end
           end                                                 # end
         EOS
-      end
-    else
-      methods.each do |method|
+      else
         exception = %(raise "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
         module_eval(<<-EOS, file, line - 1)
-          def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
-            #{to}.__send__(:#{method}, *args, &block)         #   client.__send__(:name, *args, &block)
+          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
+            #{to}.#{method}(#{definition})                    #   client.name(*args, &block)
           rescue NoMethodError                                # rescue NoMethodError
             if #{to}.nil?                                     #   if client.nil?
               #{exception}                                    #     # add helpful message to the exception

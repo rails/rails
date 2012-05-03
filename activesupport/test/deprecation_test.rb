@@ -93,6 +93,26 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match(/foo=nil/, @b)
   end
 
+  def test_default_stderr_behavior
+    ActiveSupport::Deprecation.behavior = :stderr
+    behavior = ActiveSupport::Deprecation.behavior.first
+
+    content = capture(:stderr) {
+      assert_nil behavior.call('Some error!', ['call stack!'])
+    }
+    assert_match(/Some error!/, content)
+    assert_match(/call stack!/, content)
+  end
+
+  def test_default_silence_behavior
+    ActiveSupport::Deprecation.behavior = :silence
+    behavior = ActiveSupport::Deprecation.behavior.first
+
+    assert_blank capture(:stderr) {
+      assert_nil behavior.call('Some error!', ['call stack!'])
+    }
+  end
+
   def test_deprecated_instance_variable_proxy
     assert_not_deprecated { @dtc.request.size }
 

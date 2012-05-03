@@ -45,6 +45,23 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
+    FEEDS["entry_type_options"] = <<-EOT
+        atom_feed(:schema_date => '2008') do |feed|
+          feed.title("My great blog!")
+          feed.updated((@scrolls.first.created_at))
+
+          @scrolls.each do |scroll|
+            feed.entry(scroll, :type => 'text/xml') do |entry|
+              entry.title(scroll.title)
+              entry.content(scroll.body, :type => 'html')
+
+              entry.author do |author|
+                author.name("DHH")
+              end
+            end
+          end
+        end
+    EOT
     FEEDS["xml_block"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
@@ -303,6 +320,20 @@ class AtomFeedTest < ActionController::TestCase
       assert_match %r{xmlns="http://www.w3.org/1999/xhtml"}, @response.body
       assert_select "summary div p", :text => "Something Boring"
       assert_select "summary div p", :text => "after 2"
+    end
+  end
+
+  def test_feed_entry_type_option_default_to_text_html
+    with_restful_routing(:scrolls) do
+      get :index, :id => 'defaults'
+      assert_select "entry link[rel=alternate][type=text/html]"
+    end
+  end
+
+  def test_feed_entry_type_option_specified
+    with_restful_routing(:scrolls) do
+      get :index, :id => 'entry_type_options'
+      assert_select "entry link[rel=alternate][type=text/xml]"
     end
   end
 

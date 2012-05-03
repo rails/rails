@@ -33,4 +33,7 @@
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
+
+  # Use the testing queue
+  config.queue = Rails::Queueing::TestQueue
 end

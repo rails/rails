@@ -125,20 +125,13 @@ class BasicsTest < ActiveRecord::TestCase
 
   unless current_adapter?(:PostgreSQLAdapter,:OracleAdapter,:SQLServerAdapter)
     def test_limit_with_comma
-      assert_nothing_raised do
-        Topic.limit("1,2").all
-      end
+      assert Topic.limit("1,2").all
     end
   end
 
   def test_limit_without_comma
-    assert_nothing_raised do
-      assert_equal 1, Topic.limit("1").all.length
-    end
-
-    assert_nothing_raised do
-      assert_equal 1, Topic.limit(1).all.length
-    end
+    assert_equal 1, Topic.limit("1").all.length
+    assert_equal 1, Topic.limit(1).all.length
   end
 
   def test_invalid_limit
@@ -175,6 +168,24 @@ class BasicsTest < ActiveRecord::TestCase
     assert Topic.table_exists?
   end
 
+  def test_finder_block
+    t = Topic.first
+    found = nil
+    Topic.find_by_id(t.id) { |f| found = f }
+    assert_equal t, found
+  end
+
+  def test_finder_block_nothing_found
+    bad_id = Topic.maximum(:id) + 1
+    assert_nil Topic.find_by_id(bad_id) { |f| raise }
+  end
+
+  def test_find_returns_block_value
+    t = Topic.first
+    x = Topic.find_by_id(t.id) { |f| "hi mom!" }
+    assert_equal "hi mom!", x
+  end
+
   def test_preserving_date_objects
     if current_adapter?(:SybaseAdapter)
       # Sybase ctlib does not (yet?) support the date type; use datetime instead.
@@ -192,7 +203,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_previously_changed
-    topic = Topic.find :first
+    topic = Topic.first
     topic.title = '<3<3<3'
     assert_equal({}, topic.previous_changes)
 
@@ -202,7 +213,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_previously_changed_dup
-    topic = Topic.find :first
+    topic = Topic.first
     topic.title = '<3<3<3'
     topic.save!
 
@@ -228,7 +239,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLiteAdapter)
+    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -350,13 +361,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_load
-    topics = Topic.find(:all, :order => 'id')
+    topics = Topic.scoped(:order => 'id').all
     assert_equal(4, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
 
   def test_load_with_condition
-    topics = Topic.find(:all, :conditions => "author_name = 'Mary'")
+    topics = Topic.scoped(:where => "author_name = 'Mary'").all
 
     assert_equal(1, topics.size)
     assert_equal(topics(:second).title, topics.first.title)
@@ -478,7 +489,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     def test_update_all_with_order_and_limit
-      assert_equal 1, Topic.update_all("content = 'bulk updated!'", nil, :limit => 1, :order => 'id DESC')
+      assert_equal 1, Topic.limit(1).order('id DESC').update_all(:content => 'bulk updated!')
     end
   end
 
@@ -1264,10 +1275,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_quoting_arrays
-    replies = Reply.find(:all, :conditions => [ "id IN (?)", topics(:first).replies.collect(&:id) ])
+    replies = Reply.scoped(:where => [ "id IN (?)", topics(:first).replies.collect(&:id) ]).all
     assert_equal topics(:first).replies.size, replies.size
 
-    replies = Reply.find(:all, :conditions => [ "id IN (?)", [] ])
+    replies = Reply.scoped(:where => [ "id IN (?)", [] ]).all
     assert_equal 0, replies.size
   end
 
@@ -1503,7 +1514,11 @@ class BasicsTest < ActiveRecord::TestCase
     after_seq     = Joke.sequence_name
 
     assert_not_equal before_columns, after_columns
-    assert_not_equal before_seq, after_seq unless before_seq.blank? && after_seq.blank?
+    unless before_seq.nil? && after_seq.nil?
+      assert_not_equal before_seq, after_seq
+      assert_equal "cold_jokes_id_seq", before_seq
+      assert_equal "funny_jokes_id_seq", after_seq
+    end
   end
 
   def test_dont_clear_sequence_name_when_setting_explicitly
@@ -1514,7 +1529,7 @@ class BasicsTest < ActiveRecord::TestCase
     Joke.table_name    = "funny_jokes"
     after_seq          = Joke.sequence_name
 
-    assert_equal before_seq, after_seq unless before_seq.blank? && after_seq.blank?
+    assert_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
   end
 
   def test_dont_clear_inheritnce_column_when_setting_explicitly
@@ -1564,22 +1579,19 @@ class BasicsTest < ActiveRecord::TestCase
   def test_count_with_join
     res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
 
-    res2 = Post.count(:conditions => "posts.#{QUOTED_TYPE} = 'Post'", :joins => "LEFT JOIN comments ON posts.id=comments.post_id")
+    res2 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
     assert_equal res, res2
 
     res3 = nil
     assert_nothing_raised do
-      res3 = Post.count(:conditions => "posts.#{QUOTED_TYPE} = 'Post'",
-                        :joins => "LEFT JOIN comments ON posts.id=comments.post_id")
+      res3 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
     end
     assert_equal res, res3
 
     res4 = Post.count_by_sql "SELECT COUNT(p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res5 = nil
     assert_nothing_raised do
-      res5 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id",
-                        :joins => "p, comments co",
-                        :select => "p.id")
+      res5 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count
     end
 
     assert_equal res4, res5
@@ -1587,145 +1599,64 @@ class BasicsTest < ActiveRecord::TestCase
     res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res7 = nil
     assert_nothing_raised do
-      res7 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id",
-                        :joins => "p, comments co",
-                        :select => "p.id",
-                        :distinct => true)
+      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count(distinct: true)
     end
     assert_equal res6, res7
   end
 
-  def test_scoped_find_conditions
-    scoped_developers = Developer.send(:with_scope, :find => { :conditions => 'salary > 90000' }) do
-      Developer.find(:all, :conditions => 'id < 5')
-    end
-    assert !scoped_developers.include?(developers(:david)) # David's salary is less than 90,000
-    assert_equal 3, scoped_developers.size
-  end
-
   def test_no_limit_offset
     assert_nothing_raised do
-      Developer.find(:all, :offset => 2)
+      Developer.scoped(:offset => 2).all
     end
-  end
-
-  def test_scoped_find_limit_offset
-    scoped_developers = Developer.send(:with_scope, :find => { :limit => 3, :offset => 2 }) do
-      Developer.find(:all, :order => 'id')
-    end
-    assert !scoped_developers.include?(developers(:david))
-    assert !scoped_developers.include?(developers(:jamis))
-    assert_equal 3, scoped_developers.size
-
-    # Test without scoped find conditions to ensure we get the whole thing
-    developers = Developer.find(:all, :order => 'id')
-    assert_equal Developer.count, developers.size
-  end
-
-  def test_scoped_find_order
-    # Test order in scope
-    scoped_developers = Developer.send(:with_scope, :find => { :limit => 1, :order => 'salary DESC' }) do
-      Developer.find(:all)
-    end
-    assert_equal 'Jamis', scoped_developers.first.name
-    assert scoped_developers.include?(developers(:jamis))
-    # Test scope without order and order in find
-    scoped_developers = Developer.send(:with_scope, :find => { :limit => 1 }) do
-      Developer.find(:all, :order => 'salary DESC')
-    end
-    # Test scope order + find order, order has priority
-    scoped_developers = Developer.send(:with_scope, :find => { :limit => 3, :order => 'id DESC' }) do
-      Developer.find(:all, :order => 'salary ASC')
-    end
-    assert scoped_developers.include?(developers(:poor_jamis))
-    assert ! scoped_developers.include?(developers(:david))
-    assert ! scoped_developers.include?(developers(:jamis))
-    assert_equal 3, scoped_developers.size
-
-    # Test without scoped find conditions to ensure we get the right thing
-    assert ! scoped_developers.include?(Developer.find(1))
-    assert scoped_developers.include?(Developer.find(11))
-  end
-
-  def test_scoped_find_limit_offset_including_has_many_association
-    topics = Topic.send(:with_scope, :find => {:limit => 1, :offset => 1, :include => :replies}) do
-      Topic.find(:all, :order => "topics.id")
-    end
-    assert_equal 1, topics.size
-    assert_equal 2, topics.first.id
-  end
-
-  def test_scoped_find_order_including_has_many_association
-    developers = Developer.send(:with_scope, :find => { :order => 'developers.salary DESC', :include => :projects }) do
-      Developer.find(:all)
-    end
-    assert developers.size >= 2
-    (1...developers.size).each do |i|
-      assert developers[i-1].salary >= developers[i].salary
-    end
-  end
-
-  def test_scoped_find_with_group_and_having
-    developers = Developer.send(:with_scope, :find => { :group => 'developers.salary', :having => "SUM(salary) > 10000", :select => "SUM(salary) as salary" }) do
-      Developer.find(:all)
-    end
-    assert_equal 3, developers.size
   end
 
   def test_find_last
-    last  = Developer.find :last
-    assert_equal last, Developer.find(:first, :order => 'id desc')
+    last  = Developer.last
+    assert_equal last, Developer.scoped(:order => 'id desc').first
   end
 
   def test_last
-    assert_equal Developer.find(:first, :order => 'id desc'), Developer.last
+    assert_equal Developer.scoped(:order => 'id desc').first, Developer.last
   end
 
   def test_all
     developers = Developer.all
     assert_kind_of Array, developers
-    assert_equal Developer.find(:all), developers
+    assert_equal Developer.all, developers
   end
 
   def test_all_with_conditions
-    assert_equal Developer.find(:all, :order => 'id desc'), Developer.order('id desc').all
+    assert_equal Developer.scoped(:order => 'id desc').all, Developer.order('id desc').all
   end
 
   def test_find_ordered_last
-    last  = Developer.find :last, :order => 'developers.salary ASC'
-    assert_equal last, Developer.find(:all, :order => 'developers.salary ASC').last
+    last  = Developer.scoped(:order => 'developers.salary ASC').last
+    assert_equal last, Developer.scoped(:order => 'developers.salary ASC').all.last
   end
 
   def test_find_reverse_ordered_last
-    last  = Developer.find :last, :order => 'developers.salary DESC'
-    assert_equal last, Developer.find(:all, :order => 'developers.salary DESC').last
+    last  = Developer.scoped(:order => 'developers.salary DESC').last
+    assert_equal last, Developer.scoped(:order => 'developers.salary DESC').all.last
   end
 
   def test_find_multiple_ordered_last
-    last  = Developer.find :last, :order => 'developers.name, developers.salary DESC'
-    assert_equal last, Developer.find(:all, :order => 'developers.name, developers.salary DESC').last
+    last  = Developer.scoped(:order => 'developers.name, developers.salary DESC').last
+    assert_equal last, Developer.scoped(:order => 'developers.name, developers.salary DESC').all.last
   end
 
   def test_find_keeps_multiple_order_values
-    combined = Developer.find(:all, :order => 'developers.name, developers.salary')
-    assert_equal combined, Developer.find(:all, :order => ['developers.name', 'developers.salary'])
+    combined = Developer.scoped(:order => 'developers.name, developers.salary').all
+    assert_equal combined, Developer.scoped(:order => ['developers.name', 'developers.salary']).all
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.find(:all, :group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at')
-    assert_equal combined, Developer.find(:all, :group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at'])
+    combined = Developer.scoped(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at').all
+    assert_equal combined, Developer.scoped(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at']).all
   end
 
   def test_find_symbol_ordered_last
-    last  = Developer.find :last, :order => :salary
-    assert_equal last, Developer.find(:all, :order => :salary).last
-  end
-
-  def test_find_scoped_ordered_last
-    last_developer = Developer.send(:with_scope, :find => { :order => 'developers.salary ASC' }) do
-      Developer.find(:last)
-    end
-    assert_equal last_developer, Developer.find(:all, :order => 'developers.salary ASC').last
+    last  = Developer.scoped(:order => :salary).last
+    assert_equal last, Developer.scoped(:order => :salary).all.last
   end
 
   def test_abstract_class
@@ -1800,7 +1731,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_to_param_should_return_string
-    assert_kind_of String, Client.find(:first).to_param
+    assert_kind_of String, Client.first.to_param
   end
 
   def test_inspect_class
@@ -1819,8 +1750,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_inspect_limited_select_instance
-    assert_equal %(#<Topic id: 1>), Topic.find(:first, :select => 'id', :conditions => 'id = 1').inspect
-    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.find(:first, :select => 'id, title', :conditions => 'id = 1').inspect
+    assert_equal %(#<Topic id: 1>), Topic.scoped(:select => 'id', :where => 'id = 1').first.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.scoped(:select => 'id, title', :where => 'id = 1').first.inspect
   end
 
   def test_inspect_class_without_table
@@ -2082,5 +2013,10 @@ class BasicsTest < ActiveRecord::TestCase
 
       assert_equal record, klass.public_send(meth, :foo, :bar)
     end
+  end
+
+  test "scoped can take a values hash" do
+    klass = Class.new(ActiveRecord::Base)
+    assert_equal ['foo'], klass.scoped(select: 'foo').select_values
   end
 end

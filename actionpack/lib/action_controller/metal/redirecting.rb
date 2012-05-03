@@ -45,6 +45,16 @@ module ActionController
     # integer, or a symbol representing the downcased, underscored and symbolized description.
     # Note that the status code must be a 3xx HTTP code, or redirection will not occur.
     #
+    # If you are using XHR requests other than GET or POST and redirecting after the
+    # request then some browsers will follow the redirect using the original request
+    # method. This may lead to undesirable behavior such as a double DELETE. To work
+    # around this  you can return a <tt>303 See Other</tt> status code which will be
+    # followed using a GET request.
+    #
+    # Examples:
+    #   redirect_to posts_url, :status => :see_other
+    #   redirect_to :action => 'index', :status => 303
+    #
     # It is also possible to assign a flash message as part of the redirection. There are two special accessors for the commonly used flash names
     # +alert+ and +notice+ as well as a general purpose +flash+ bucket.
     #
@@ -93,7 +103,7 @@ module ActionController
           _compute_redirect_to_location options.call
         else
           url_for(options)
-        end.gsub(/[\0\r\n]/, '')
+        end.delete("\0\r\n")
       end
   end
 end

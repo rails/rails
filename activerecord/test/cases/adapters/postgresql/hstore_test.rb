@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "cases/helper"
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
@@ -88,7 +90,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
   def test_rewrite
     @connection.execute "insert into hstores (tags) VALUES ('1=>2')"
-    x = Hstore.find :first
+    x = Hstore.first
     x.tags = { '"a\'' => 'b' }
     assert x.save!
   end
@@ -96,13 +98,13 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
   def test_select
     @connection.execute "insert into hstores (tags) VALUES ('1=>2')"
-    x = Hstore.find :first
+    x = Hstore.first
     assert_equal({'1' => '2'}, x.tags)
   end
 
   def test_select_multikey
     @connection.execute "insert into hstores (tags) VALUES ('1=>2,2=>3')"
-    x = Hstore.find :first
+    x = Hstore.first
     assert_equal({'1' => '2', '2' => '3'}, x.tags)
   end
 
@@ -134,13 +136,19 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert_cycle('a=>b' => 'bar', '1"foo' => '2')
   end
 
+  def test_quoting_special_characters
+    assert_cycle('ca' => 'cà', 'ac' => 'àc')
+  end
+
   private
   def assert_cycle hash
+    # test creation
     x = Hstore.create!(:tags => hash)
     x.reload
     assert_equal(hash, x.tags)
 
-    # make sure updates work
+    # test updating
+    x = Hstore.create!(:tags => {})
     x.tags = hash
     x.save!
     x.reload

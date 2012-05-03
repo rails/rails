@@ -4,8 +4,6 @@ module ActionDispatch
   module Assertions
     # A small suite of assertions that test responses from \Rails applications.
     module ResponseAssertions
-      extend ActiveSupport::Concern
-
       # Asserts that the response is one of the following types:
       #
       # * <tt>:success</tt>   - Status code was in the 200-299 range
@@ -83,7 +81,7 @@ module ActionDispatch
             refer
           else
             @controller.url_for(fragment)
-          end.gsub(/[\0\r\n]/, '')
+          end.delete("\0\r\n")
         end
     end
   end

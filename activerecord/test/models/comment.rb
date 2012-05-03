@@ -9,6 +9,8 @@ class Comment < ActiveRecord::Base
   belongs_to :post, :counter_cache => true
   has_many :ratings
 
+  belongs_to :first_post, :foreign_key => :post_id
+
   has_many :children, :class_name => 'Comment', :foreign_key => :parent_id
   belongs_to :parent, :class_name => 'Comment', :counter_cache => :children_count
 
@@ -17,7 +19,7 @@ class Comment < ActiveRecord::Base
   end
 
   def self.search_by_type(q)
-    self.find(:all, :conditions => ["#{QUOTED_TYPE} = ?", q])
+    self.scoped(:where => ["#{QUOTED_TYPE} = ?", q]).all
   end
 
   def self.all_as_method

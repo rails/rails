@@ -356,20 +356,6 @@ Client.where("created_at >= :start_date AND created_at <= :end_date",
 
 This makes for clearer readability if you have a large number of variable conditions.
 
-h5(#array-range_conditions). Range Conditions
-
-If you're looking for a range inside of a table (for example, users created in a certain timeframe) you can use the conditions option coupled with the +IN+ SQL statement for this. If you had two dates coming in from a controller you could do something like this to look for a range:
-
-<ruby>
-Client.where(:created_at => (params[:start_date].to_date)..(params[:end_date].to_date))
-</ruby>
-
-This query will generate something similar to the following SQL:
-
-<sql>
-  SELECT "clients".* FROM "clients" WHERE ("clients"."created_at" BETWEEN '2010-09-29' AND '2010-11-30')
-</sql>
-
 h4. Hash Conditions
 
 Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
@@ -388,9 +374,9 @@ The field name can also be a string:
 Client.where('locked' => true)
 </ruby>
 
-h5(#hash-range_conditions). Range Conditions
+NOTE: The values cannot be symbols. For example, you cannot do +Client.where(:status => :active)+.
 
-The good thing about this is that we can pass in a range for our fields without it generating a large query as shown in the preamble of this section.
+h5(#hash-range_conditions). Range Conditions
 
 <ruby>
 Client.where(:created_at => (Time.now.midnight - 1.day)..Time.now.midnight)
@@ -539,7 +525,9 @@ And this will give you a single +Order+ object for each date where there are ord
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at)
+SELECT date(created_at) as ordered_date, sum(price) as total_price 
+FROM orders 
+GROUP BY date(created_at)
 </sql>
 
 h3. Having
@@ -555,7 +543,10 @@ Order.select("date(created_at) as ordered_date, sum(price) as total_price").grou
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at) HAVING sum(price) > 100
+SELECT date(created_at) as ordered_date, sum(price) as total_price 
+FROM orders 
+GROUP BY date(created_at) 
+HAVING sum(price) > 100
 </sql>
 
 This will return single order objects for each day, but only those that are ordered more than $100 in a day.
@@ -695,7 +686,7 @@ Optimistic locking allows multiple users to access the same record for edits, an
 
 <strong>Optimistic locking column</strong>
 
-In order to use optimistic locking, the table needs to have a column called +lock_version+. Each time the record is updated, Active Record increments the +lock_version+ column. If an update request is made with a lower value in the +lock_version+ field than is currently in the +lock_version+ column in the database, the update request will fail with an +ActiveRecord::StaleObjectError+. Example:
+In order to use optimistic locking, the table needs to have a column called +lock_version+ of type integer. Each time the record is updated, Active Record increments the +lock_version+ column. If an update request is made with a lower value in the +lock_version+ field than is currently in the +lock_version+ column in the database, the update request will fail with an +ActiveRecord::StaleObjectError+. Example:
 
 <ruby>
 c1 = Client.find(1)
@@ -829,7 +820,7 @@ SELECT categories.* FROM categories
   INNER JOIN posts ON posts.category_id = categories.id
 </sql>
 
-Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use Category.joins(:post).select("distinct(categories.id)").
+Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use Category.joins(:posts).select("distinct(categories.id)").
 
 h5. Joining Multiple Associations
 
@@ -919,7 +910,7 @@ This code looks fine at the first sight. But the problem lies within the total n
 
 Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the +includes+ method of the +Model.find+ call. With +includes+, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
 
-Revisiting the above case, we could rewrite +Client.all+ to use eager load addresses:
+Revisiting the above case, we could rewrite +Client.limit(10)+ to use eager load addresses:
 
 <ruby>
 clients = Client.includes(:address).limit(10)
@@ -1004,7 +995,7 @@ Scopes are also chainable within scopes:
 <ruby>
 class Post < ActiveRecord::Base
   scope :published,               -> { where(:published => true) }
-  scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
+  scope :published_and_commented, -> { published.where("comments_count > 0") }
 end
 </ruby>
 

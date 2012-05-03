@@ -74,11 +74,11 @@ module ActionView
           number.slice!(0, 1) if number.start_with?(delimiter) && !delimiter.blank?
         end
 
-        str = []
+        str = ''
         str << "+#{country_code}#{delimiter}" unless country_code.blank?
         str << number
         str << " x #{extension}" unless extension.blank?
-        ERB::Util.html_escape(str.join)
+        ERB::Util.html_escape(str)
       end
 
       # Formats a +number+ into a currency string (e.g., $13.65). You can customize the format
@@ -137,12 +137,12 @@ module ActionView
 
         begin
           value = number_with_precision(number, options.merge(:raise => true))
-          format.gsub(/%n/, value).gsub(/%u/, unit).html_safe
+          format.gsub('%n', value).gsub('%u', unit).html_safe
         rescue InvalidNumberError => e
           if options[:raise]
             raise
           else
-            formatted_number = format.gsub(/%n/, e.number).gsub(/%u/, unit)
+            formatted_number = format.gsub('%n', e.number).gsub('%u', unit)
             e.number.to_s.html_safe? ? formatted_number.html_safe : formatted_number
           end
         end
@@ -233,7 +233,7 @@ module ActionView
 
         parts = number.to_s.to_str.split('.')
         parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
-        parts.join(options[:separator]).html_safe
+        safe_join(parts, options[:separator])
       end
 
       # Formats a +number+ with the specified level of <tt>:precision</tt> (e.g., 112.32 has a precision
@@ -392,10 +392,10 @@ module ActionView
       #   * *integers*: <tt>:unit</tt>, <tt>:ten</tt>, <tt>:hundred</tt>, <tt>:thousand</tt>,  <tt>:million</tt>,  <tt>:billion</tt>, <tt>:trillion</tt>, <tt>:quadrillion</tt>
       #   * *fractionals*: <tt>:deci</tt>, <tt>:centi</tt>, <tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>, <tt>:pico</tt>, <tt>:femto</tt>
       # * <tt>:format</tt> - Sets the format of the output string (defaults to "%n %u"). The field types are:
-      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
-      #
       #     %u  The quantifier (ex.: 'thousand')
       #     %n  The number
+      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when the argument is invalid.
+      #
       #
       # ==== Examples
       #  number_to_human(123)                                          # => "123"

@@ -3,7 +3,7 @@ require 'active_support/deprecation'
 
 module ActiveRecord
   module Querying
-    delegate :find, :first, :first!, :last, :last!, :all, :exists?, :any?, :many?, :to => :scoped
+    delegate :find, :take, :take!, :first, :first!, :last, :last!, :all, :exists?, :any?, :many?, :to => :scoped
     delegate :first_or_create, :first_or_create!, :first_or_initialize, :to => :scoped
     delegate :find_by, :find_by!, :to => :scoped
     delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, :to => :scoped
@@ -11,7 +11,7 @@ module ActiveRecord
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
              :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
              :having, :create_with, :uniq, :references, :none, :to => :scoped
-    delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :to => :scoped
+    delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :ids, :to => :scoped
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array with columns requested encapsulated as attributes of the model you call

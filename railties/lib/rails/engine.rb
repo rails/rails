@@ -148,7 +148,7 @@ module Rails
   #
   #   # ENGINE/config/routes.rb
   #   MyEngine::Engine.routes.draw do
-  #     match "/" => "posts#index"
+  #     get "/" => "posts#index"
   #   end
   #
   # == Mount priority
@@ -158,7 +158,7 @@ module Rails
   #
   #   MyRailsApp::Application.routes.draw do
   #     mount MyEngine::Engine => "/blog"
-  #     match "/blog/omg" => "main#omg"
+  #     get "/blog/omg" => "main#omg"
   #   end
   #
   # +MyEngine+ is mounted at <tt>/blog</tt>, and <tt>/blog/omg</tt> points to application's
@@ -167,7 +167,7 @@ module Rails
   # It's much better to swap that:
   #
   #   MyRailsApp::Application.routes.draw do
-  #     match "/blog/omg" => "main#omg"
+  #     get "/blog/omg" => "main#omg"
   #     mount MyEngine::Engine => "/blog"
   #   end
   #
@@ -256,7 +256,7 @@ module Rails
   #   # config/routes.rb
   #   MyApplication::Application.routes.draw do
   #     mount MyEngine::Engine => "/my_engine", :as => "my_engine"
-  #     match "/foo" => "foo#index"
+  #     get "/foo" => "foo#index"
   #   end
   #
   # Now, you can use the <tt>my_engine</tt> helper inside your application:
@@ -332,7 +332,7 @@ module Rails
   #
   # == Loading priority
   #
-  # In order to change engine's priority you can use config.railties_order in main application.
+  # In order to change engine's priority you can use +config.railties_order+ in main application.
   # It will affect the priority of loading views, helpers, assets and all the other files
   # related to engine or application.
   #
@@ -486,7 +486,10 @@ module Rails
     end
 
     def routes
-      @routes ||= ActionDispatch::Routing::RouteSet.new
+      @routes ||= ActionDispatch::Routing::RouteSet.new.tap do |routes|
+        routes.draw_paths.concat paths["config/routes"].paths
+      end
+
       @routes.append(&Proc.new) if block_given?
       @routes
     end
@@ -516,7 +519,7 @@ module Rails
     #
     # Blog::Engine.load_seed
     def load_seed
-      seed_file = paths["db/seeds"].existent.first
+      seed_file = paths["db/seeds.rb"].existent.first
       load(seed_file) if seed_file
     end
 
@@ -544,11 +547,13 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      paths = self.paths["config/routes"].existent
+      paths = self.paths["config/routes.rb"].existent
+      external_paths = self.paths["config/routes"].paths
 
       if routes? || paths.any?
         app.routes_reloader.paths.unshift(*paths)
         app.routes_reloader.route_sets << routes
+        app.routes_reloader.external_routes.unshift(*external_paths)
       end
     end
 
@@ -616,7 +621,7 @@ module Rails
     end
 
     def routes?
-      defined?(@routes)
+      defined?(@routes) && @routes
     end
 
     def has_migrations?

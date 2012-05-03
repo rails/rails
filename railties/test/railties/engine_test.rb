@@ -86,7 +86,6 @@ module RailtiesTest
       add_to_config "ActiveRecord::Base.timestamped_migrations = false"
 
       boot_rails
-      railties = Rails.application.railties.all.map(&:railtie_name)
 
       Dir.chdir(app_path) do
         output = `bundle exec rake bukkits:install:migrations`
@@ -218,7 +217,7 @@ module RailtiesTest
         end
 
         Rails.application.routes.draw do
-          match "/sprokkit", :to => Sprokkit
+          get "/sprokkit", :to => Sprokkit
         end
       RUBY
 
@@ -241,7 +240,7 @@ module RailtiesTest
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match 'foo', :to => 'foo#index'
+          get 'foo', :to => 'foo#index'
         end
       RUBY
 
@@ -255,8 +254,8 @@ module RailtiesTest
 
       @plugin.write "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          match 'foo', :to => 'bar#index'
-          match 'bar', :to => 'bar#index'
+          get 'foo', :to => 'bar#index'
+          get 'bar', :to => 'bar#index'
         end
       RUBY
 
@@ -336,7 +335,7 @@ YAML
         Rails.application.routes.draw do
           namespace :admin do
             namespace :foo do
-              match "bar", :to => "bar#index"
+              get "bar", :to => "bar#index"
             end
           end
         end
@@ -491,7 +490,7 @@ YAML
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          match "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, ['foo']] }
+          get "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, ['foo']] }
         end
       RUBY
 
@@ -570,18 +569,18 @@ YAML
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match "/bar" => "bar#index", :as => "bar"
+          get "/bar" => "bar#index", :as => "bar"
           mount Bukkits::Engine => "/bukkits", :as => "bukkits"
         end
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          match "/foo" => "foo#index", :as => "foo"
-          match "/foo/show" => "foo#show"
-          match "/from_app" => "foo#from_app"
-          match "/routes_helpers_in_view" => "foo#routes_helpers_in_view"
-          match "/polymorphic_path_without_namespace" => "foo#polymorphic_path_without_namespace"
+          get "/foo" => "foo#index", :as => "foo"
+          get "/foo/show" => "foo#show"
+          get "/from_app" => "foo#from_app"
+          get "/routes_helpers_in_view" => "foo#routes_helpers_in_view"
+          get "/polymorphic_path_without_namespace" => "foo#polymorphic_path_without_namespace"
           resources :posts
         end
       RUBY
@@ -738,7 +737,7 @@ YAML
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Awesome::Engine.routes.draw do
-          match "/foo" => "foo#index"
+          get "/foo" => "foo#index"
         end
       RUBY
 
@@ -1008,8 +1007,8 @@ YAML
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          match "/foo" => "main#foo"
-          match "/bar" => "main#bar"
+          get "/foo" => "main#foo"
+          get "/bar" => "main#bar"
         end
       RUBY
 
@@ -1080,7 +1079,7 @@ YAML
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          match "/foo" => "main#foo"
+          get "/foo" => "main#foo"
         end
       RUBY
 

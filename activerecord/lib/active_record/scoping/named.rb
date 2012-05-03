@@ -29,17 +29,16 @@ module ActiveRecord
         # You can define a \scope that applies to all finders using
         # ActiveRecord::Base.default_scope.
         def scoped(options = nil)
-          if options
-            scoped.apply_finder_options(options)
+          if current_scope
+            scope = current_scope.clone
           else
-            if current_scope
-              current_scope.clone
-            else
-              scope = relation.clone
-              scope.default_scoped = true
-              scope
-            end
+            scope = relation
+            scope.default_scoped = true
+            scope
           end
+
+          scope.merge!(options) if options
+          scope
         end
 
         ##
@@ -49,7 +48,7 @@ module ActiveRecord
           if current_scope
             current_scope.scope_for_create
           else
-            scope = relation.clone
+            scope = relation
             scope.default_scoped = true
             scope.scope_for_create
           end
@@ -172,7 +171,7 @@ module ActiveRecord
         #   Article.published.featured.latest_article
         #   Article.featured.titles
 
-        def scope(name, body = {}, &block)
+        def scope(name, body, &block)
           extension = Module.new(&block) if block
 
           # Check body.is_a?(Relation) to prevent the relation actually being
@@ -189,9 +188,7 @@ module ActiveRecord
           end
 
           singleton_class.send(:define_method, name) do |*args|
-            options = body.respond_to?(:call) ? unscoped { body.call(*args) } : body
-            options = scoped.apply_finder_options(options) if options.is_a?(Hash)
-
+            options  = body.respond_to?(:call) ? unscoped { body.call(*args) } : body
             relation = scoped.merge(options)
 
             extension ? relation.extending(extension) : relation

@@ -14,7 +14,7 @@ module ActionView
       BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
                            autoplay controls loop selected hidden scoped async
                            defer reversed ismap seemless muted required
-                           autofocus novalidate formnovalidate open pubdate).to_set
+                           autofocus novalidate formnovalidate open pubdate itemscope).to_set
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
 
       PRE_CONTENT_STRINGS = {
@@ -109,8 +109,12 @@ module ActionView
       #
       #   cdata_section(File.read("hello_world.txt"))
       #   # => <![CDATA[<hello from a text file]]>
+      #
+      #   cdata_section("hello]]>world")
+      #   # => <![CDATA[hello]]]]><![CDATA[>world]]>
       def cdata_section(content)
-        "<![CDATA[#{content}]]>".html_safe
+        splitted = content.gsub(']]>', ']]]]><![CDATA[>')
+        "<![CDATA[#{splitted}]]>".html_safe
       end
 
       # Returns an escaped version of +html+ without affecting existing escaped entities.

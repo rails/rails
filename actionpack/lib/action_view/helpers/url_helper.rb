@@ -481,7 +481,7 @@ module ActionView
       #   # => <a href="mailto:me@domain.com">me@domain.com</a>
       #
       #   mail_to "me@domain.com", "My email", :encode => "javascript"
-      #   # => <script type="text/javascript">eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
+      #   # => <script>eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
       #
       #   mail_to "me@domain.com", "My email", :encode => "hex"
       #   # => <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
@@ -515,7 +515,7 @@ module ActionView
           "document.write('#{html}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
-          "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
+          "<script>eval(decodeURIComponent('#{string}'))</script>".html_safe
         when "hex"
           email_address_encoded = email_address_obfuscated.unpack('C*').map {|c|
             sprintf("&#%d;", c)

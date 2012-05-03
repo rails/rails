@@ -10,6 +10,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/deprecation'
+require 'active_support/core_ext/string/inflections'
 
 module ActionView
   # = Action View Form Helpers
@@ -184,7 +185,7 @@ module ActionView
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
-      #     Admin?    : <%= check_box_tag "person[admin]", @person.company.admin? %>
+      #     Admin?    : <%= check_box_tag "person[admin]", "1", @person.company.admin? %>
       #     <%= f.submit %>
       #   <% end %>
       #
@@ -673,6 +674,19 @@ module ActionView
       #     <% end %>
       #     ...
       #   <% end %>
+      #
+      # When a collection is used you might want to know the index of each
+      # object into the array. For this purpose, the <tt>index</tt> method
+      # is available in the FormBuilder object.
+      #
+      #   <%= form_for @person do |person_form| %>
+      #     ...
+      #     <%= person_form.fields_for :projects do |project_fields| %>
+      #       Project #<%= project_fields.index %>
+      #       ...
+      #     <% end %>
+      #     ...
+      #   <% end %>
       def fields_for(record_name, record_object = nil, options = {}, &block)
         builder = instantiate_builder(record_name, record_object, options)
         output = capture(builder, &block)
@@ -889,7 +903,7 @@ module ActionView
       #   # Let's say that @post.validated? is 1:
       #   check_box("post", "validated")
       #   # => <input name="post[validated]" type="hidden" value="0" />
-      #   #    <input type="checkbox" id="post_validated" name="post[validated]" value="1" />
+      #   #    <input checked="checked" type="checkbox" id="post_validated" name="post[validated]" value="1" />
       #
       #   # Let's say that @puppy.gooddog is "no":
       #   check_box("puppy", "gooddog", {}, "yes", "no")
@@ -1026,8 +1040,13 @@ module ActionView
             object_name = ActiveModel::Naming.param_key(object)
           end
 
-          builder = options[:builder] || ActionView::Base.default_form_builder
+          builder = options[:builder] || default_form_builder
           builder.new(object_name, object, self, options)
+        end
+
+        def default_form_builder
+          builder = ActionView::Base.default_form_builder
+          builder.respond_to?(:constantize) ? builder.constantize : builder
         end
     end
 
@@ -1038,7 +1057,7 @@ module ActionView
 
       attr_accessor :object_name, :object, :options
 
-      attr_reader :multipart, :parent_builder
+      attr_reader :multipart, :parent_builder, :index
       alias :multipart? :multipart
 
       def multipart=(multipart)
@@ -1076,6 +1095,7 @@ module ActionView
           end
         end
         @multipart = nil
+        @index = options[:index] || options[:child_index]
       end
 
       (field_helpers - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field]).each do |selector|
@@ -1107,12 +1127,14 @@ module ActionView
         end
 
         index = if options.has_key?(:index)
-          "[#{options[:index]}]"
+          options[:index]
         elsif defined?(@auto_index)
           self.object_name = @object_name.to_s.sub(/\[\]$/,"")
-          "[#{@auto_index}]"
+          @auto_index
         end
-        record_name = "#{object_name}#{index}[#{record_name}]"
+
+        record_name = index ? "#{object_name}[#{index}][#{record_name}]" : "#{object_name}[#{record_name}]"
+        fields_options[:child_index] = index
 
         @template.fields_for(record_name, record_object, fields_options, &block)
       end
@@ -1250,7 +1272,8 @@ module ActionView
             explicit_child_index = options[:child_index]
             output = ActiveSupport::SafeBuffer.new
             association.each do |child|
-              output << fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, options, block)
+              options[:child_index] = nested_child_index(name) unless explicit_child_index
+              output << fields_for_nested_model("#{name}[#{options[:child_index]}]", child, options, block)
             end
             output
           elsif association

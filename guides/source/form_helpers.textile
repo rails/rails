@@ -89,7 +89,7 @@ form_tag(:controller => "people", :action => "search", :method => "get", :class 
 # => '<form accept-charset="UTF-8" action="/people/search?method=get&class=nifty_form" method="post">'
 </ruby>
 
-Here, +method+ and +class+ are appended to the query string of the generated URL because you even though you mean to write two hashes, you really only specified one. So you need to tell Ruby which is which by delimiting the first hash (or both) with curly brackets. This will generate the HTML you expect:
+Here, +method+ and +class+ are appended to the query string of the generated URL because even though you mean to write two hashes, you really only specified one. So you need to tell Ruby which is which by delimiting the first hash (or both) with curly brackets. This will generate the HTML you expect:
 
 <ruby>
 form_tag({:controller => "people", :action => "search"}, :method => "get", :class => "nifty_form")

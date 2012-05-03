@@ -16,7 +16,7 @@ module ActiveRecord
 
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
-        table_name[0...table_alias_length].gsub(/\./, '_')
+        table_name[0...table_alias_length].tr('.', '_')
       end
 
       # Checks to see if the table +table_name+ exists on the database.
@@ -171,6 +171,7 @@ module ActiveRecord
         create_sql << td.to_sql
         create_sql << ") #{options[:options]}"
         execute create_sql
+        td.indexes.each_pair { |c,o| add_index table_name, c, o }
       end
 
       # Creates a new join table with the name created using the lexical order of the first two
@@ -375,7 +376,7 @@ module ActiveRecord
       # Note: SQLite doesn't support index length
       #
       # ====== Creating an index with a sort order (desc or asc, asc is the default)
-      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :part_id => :asc})
+      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :party_id => :asc})
       # generates
       #  CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
       #
@@ -617,8 +618,6 @@ module ActiveRecord
         end
 
         def columns_for_remove(table_name, *column_names)
-          column_names = column_names.flatten
-
           raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.blank?
           column_names.map {|column_name| quote_column_name(column_name) }
         end

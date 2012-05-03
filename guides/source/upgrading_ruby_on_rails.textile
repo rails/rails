@@ -38,6 +38,10 @@ h4(#identity_map4_0). IdentityMap
 
 Rails 4.0 has removed <tt>IdentityMap</tt> from <tt>ActiveRecord</tt>, due to "some inconsistencies with associations":https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. If you have manually enabled it in your application, you will have to remove the following config that has no effect anymore: <tt>config.active_record.identity_map</tt>.
 
+h4(#active_model4_0). ActiveModel
+
+Rails 4.0 has changed how errors attach with the ConfirmationValidator. Now when confirmation validations fail the error will be attached to <tt>:#{attribute}_confirmation</tt> instead of <tt>attribute</tt>.
+
 h3. Upgrading from Rails 3.1 to Rails 3.2
 
 If your application is currently on any version of Rails older than 3.1.x, you should upgrade to Rails 3.1 before attempting an update to Rails 3.2.

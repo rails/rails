@@ -172,8 +172,8 @@ module ActiveRecord
       end
 
       def reset_sequence_name #:nodoc:
-        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
         @explicit_sequence_name = false
+        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
       end
 
       # Sets the name of the sequence to use when generating ids to the given

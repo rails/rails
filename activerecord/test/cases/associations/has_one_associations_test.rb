@@ -25,13 +25,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { assert_nil firm.account }
     assert_queries(0) { assert_nil firm.account }
 
-    firms = Firm.find(:all, :include => :account)
+    firms = Firm.scoped(:includes => :account).all
     assert_queries(0) { firms.each(&:account) }
   end
 
   def test_with_select
     assert_equal Firm.find(1).account_with_select.attributes.size, 2
-    assert_equal Firm.find(1, :include => :account_with_select).account_with_select.attributes.size, 2
+    assert_equal Firm.scoped(:includes => :account_with_select).find(1).account_with_select.attributes.size, 2
   end
 
   def test_finding_using_primary_key
@@ -294,13 +294,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_dependence_with_missing_association_and_nullify
     Account.destroy_all
-    firm = DependentFirm.find(:first)
+    firm = DependentFirm.first
     assert_nil firm.account
     firm.destroy
   end
 
   def test_finding_with_interpolated_condition
-    firm = Firm.find(:first)
+    firm = Firm.first
     superior = firm.clients.create(:name => 'SuperiorCo')
     superior.rating = 10
     superior.save
@@ -346,14 +346,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Firm.find(@firm.id).save!
-      Firm.find(@firm.id, :include => :account).save!
+      Firm.scoped(:includes => :account).find(@firm.id).save!
     end
 
     @firm.account.destroy
 
     assert_nothing_raised do
       Firm.find(@firm.id).save!
-      Firm.find(@firm.id, :include => :account).save!
+      Firm.scoped(:includes => :account).find(@firm.id).save!
     end
   end
 
