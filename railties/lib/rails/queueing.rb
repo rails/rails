@@ -53,7 +53,7 @@ module Rails
             begin
               job.run
             rescue Exception => e
-              Rails.logger.error "Job Error: #{e.message}\n#{e.backtrace.join("\n")}"
+              handle_exception e
             end
           end
         end
@@ -63,6 +63,10 @@ module Rails
       def shutdown
         @queue.push nil
         @thread.join
+      end
+
+      def handle_exception(e)
+        Rails.logger.error "Job Error: #{e.message}\n#{e.backtrace.join("\n")}"
       end
     end
   end
