@@ -202,7 +202,7 @@ module ActionDispatch
 
           # Clause check about when we need to generate an optimized helper.
           def optimize_helper?(route) #:nodoc:
-            route.ast.grep(Journey::Nodes::Star).empty? && route.requirements.except(:controller, :action).empty?
+            route.requirements.except(:controller, :action).empty?
           end
 
           # Generates the interpolation to be used in the optimized helper.
@@ -214,7 +214,10 @@ module ActionDispatch
             end
 
             route.required_parts.each_with_index do |part, i|
-              string_route.gsub!(part.inspect, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
+              # Replace each route parameter
+              # e.g. :id for regular parameter or *path for globbing
+              # with ruby string interpolation code
+              string_route.gsub!(/(\*|:)#{part}/, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
             end
 
             string_route
