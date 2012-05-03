@@ -60,6 +60,28 @@ module ActiveRecord
       where(*args).first!
     end
 
+    # Gives a record (or N records if a parameter is supplied) without any implied
+    # order. The order will depend on the database implementation.
+    # If an order is supplied it will be respected.
+    #
+    # Examples:
+    #
+    #   Person.take # returns an object fetched by SELECT * FROM people
+    #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
+    #   Person.where(["name LIKE '%?'", name]).take
+    def take(limit = nil)
+      limit ? limit(limit).to_a : find_take
+    end
+
+    # Same as +take+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # is found. Note that <tt>take!</tt> accepts no arguments.
+    def take!
+      take or raise RecordNotFound
+    end
+
+    # Find the first record (or first N records if a parameter is supplied).
+    # If no order is defined it will order by primary key.
+    #
     # Examples:
     #
     #   Person.first # returns the first object fetched by SELECT * FROM people
@@ -67,7 +89,15 @@ module ActiveRecord
     #   Person.where(["user_name = :u", { :u => user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
     def first(limit = nil)
-      limit ? limit(limit).to_a : find_first
+      if limit
+        if order_values.empty? && primary_key
+          order(arel_table[primary_key].asc).limit(limit).to_a
+        else
+          limit(limit).to_a
+        end
+      else
+        find_first
+      end
     end
 
     # Same as +first+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -76,6 +106,9 @@ module ActiveRecord
       first or raise RecordNotFound
     end
 
+    # Find the last record (or last N records if a parameter is supplied).
+    # If no order is defined it will order by primary key.
+    #
     # Examples:
     #
     #   Person.last # returns the last object fetched by SELECT * FROM people
@@ -83,8 +116,8 @@ module ActiveRecord
     #   Person.order("created_on DESC").offset(5).last
     def last(limit = nil)
       if limit
-        if order_values.empty?
-          order("#{primary_key} DESC").limit(limit).reverse
+        if order_values.empty? && primary_key
+          order(arel_table[primary_key].desc).limit(limit).reverse
         else
           to_a.last(limit)
         end
@@ -315,11 +348,24 @@ module ActiveRecord
       end
     end
 
+    def find_take
+      if loaded?
+        @records.take(1).first
+      else
+        @take ||= limit(1).to_a.first
+      end
+    end
+
     def find_first
       if loaded?
         @records.first
       else
-        @first ||= limit(1).to_a[0]
+        @first ||=
+          if order_values.empty? && primary_key
+            order(arel_table[primary_key].asc).limit(1).to_a.first
+          else
+            limit(1).to_a.first
+          end
       end
     end
 
@@ -331,7 +377,7 @@ module ActiveRecord
           if offset_value || limit_value
             to_a.last
           else
-            reverse_order.limit(1).to_a[0]
+            reverse_order.limit(1).to_a.first
           end
       end
     end

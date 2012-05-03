@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added default order to `first` to assure consistent results among
+    diferent database engines. Introduced `take` as a replacement to
+    the old behavior of `first`.
+
+    *Marcelo Silveira*
+
 *   Added an :index option to automatically create indexes for references
     and belongs_to statements in migrations.
 
