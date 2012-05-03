@@ -134,11 +134,14 @@ module ActionDispatch
         @exists   = nil # we haven't checked yet
       end
 
+      def options
+        @env[ENV_SESSION_OPTIONS_KEY]
+      end
+
       def destroy
         clear
-        options = @env[ENV_SESSION_OPTIONS_KEY] if @env
-        options ||= {}
-        @by.send(:destroy_session, @env, options[:id], options) if @by
+        options = self.options || {}
+        @by.send(:destroy_session, @env, options[:id], options)
         options[:id] = nil
         @loaded = false
       end
@@ -219,7 +222,7 @@ module ActionDispatch
 
       def load!
         id, session = @by.load_session @env
-        @env[ENV_SESSION_OPTIONS_KEY][:id] = id
+        options[:id] = id
         @delegate.replace(stringify_keys(session))
         @loaded = true
       end
