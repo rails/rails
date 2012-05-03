@@ -378,6 +378,14 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 0, dup[:a][44]
   end
 
+  def test_deep_map!
+    hash = { :a => { :b => 1, :c => "c" }, :a2 => 3 }
+    hash.deep_map! { |k,v| v * 3 }
+    assert_equal 3, hash[:a][:b]
+    assert_equal 'ccc', hash[:a][:c]
+    assert_equal 9, hash[:a2]
+  end
+
   def test_store_on_indifferent_access
     hash = HashWithIndifferentAccess.new
     hash.store(:test1, 1)
