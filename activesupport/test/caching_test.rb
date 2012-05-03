@@ -568,6 +568,13 @@ class FileStoreTest < ActiveSupport::TestCase
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
 
+  def test_clear
+    filepath = File.join(cache_dir, ".gitkeep")
+    FileUtils.touch(filepath)
+    @cache.clear
+    assert File.exist?(filepath)
+  end
+
   def test_key_transformation
     key = @cache.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
