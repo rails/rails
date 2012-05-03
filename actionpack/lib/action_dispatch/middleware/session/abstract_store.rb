@@ -68,16 +68,10 @@ module ActionDispatch
       include Compatibility
       include StaleSessionCheck
 
-      ENV_SESSION_KEY         = Rack::Session::Abstract::ENV_SESSION_KEY # :nodoc:
-      ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY # :nodoc:
-
       private
 
       def prepare_session(env)
-        session_was                  = env[ENV_SESSION_KEY]
-        env[ENV_SESSION_KEY]         = Request::Session.new(self, env)
-        env[ENV_SESSION_OPTIONS_KEY] = Request::Session::Options.new(self, env, @default_options)
-        env[ENV_SESSION_KEY].merge! session_was if session_was
+        Request::Session.create(self, env, @default_options)
       end
 
       def loaded_session?(session)
@@ -96,6 +90,19 @@ module ActionDispatch
     class Session # :nodoc:
       ENV_SESSION_KEY         = Rack::Session::Abstract::ENV_SESSION_KEY # :nodoc:
       ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY # :nodoc:
+
+      def self.create(store, env, default_options)
+        session_was                  = env[ENV_SESSION_KEY]
+        session                      = Request::Session.new(store, env)
+        env[ENV_SESSION_KEY]         = session
+        env[ENV_SESSION_OPTIONS_KEY] = Request::Session::Options.new(store, env, default_options)
+        env[ENV_SESSION_KEY].merge! session_was if session_was
+        session
+      end
+
+      def self.find(env)
+        env[ENV_SESSION_KEY]
+      end
 
       class Options #:nodoc:
         def initialize(by, env, default_options)
@@ -193,6 +200,11 @@ module ActionDispatch
       def empty?
         load_for_read!
         @delegate.empty?
+      end
+
+      def merge!(other)
+        load_for_write!
+        @delegate.merge!(other)
       end
 
       private
