@@ -218,7 +218,7 @@ module ActionDispatch
     def call(env)
       @app.call(env)
     ensure
-      session    = env['rack.session'] || {}
+      session    = Request::Session.find(env) || {}
       flash_hash = env[KEY]
 
       if flash_hash
