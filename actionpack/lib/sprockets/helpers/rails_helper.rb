@@ -31,7 +31,7 @@ module Sprockets
           else
             super(source.to_s, { :src => path_to_asset(source, :ext => 'js', :body => body, :digest => digest) }.merge!(options))
           end
-        end.join("\n").html_safe
+        end.uniq.join("\n").html_safe
       end
 
       def stylesheet_link_tag(*sources)
@@ -48,7 +48,7 @@ module Sprockets
           else
             super(source.to_s, { :href => path_to_asset(source, :ext => 'css', :body => body, :protocol => :request, :digest => digest) }.merge!(options))
           end
-        end.join("\n").html_safe
+        end.uniq.join("\n").html_safe
       end
 
       def asset_path(source, options = {})
