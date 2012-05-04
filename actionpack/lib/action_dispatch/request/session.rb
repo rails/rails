@@ -37,7 +37,7 @@ module ActionDispatch
         def initialize(by, env, default_options)
           @by       = by
           @env      = env
-          @delegate = default_options
+          @delegate = default_options.dup
         end
 
         def [](key)
