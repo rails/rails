@@ -248,14 +248,6 @@ They can also be removed from the stack completely:
 config.middleware.delete ActionDispatch::BestStandardsSupport
 </ruby>
 
-In addition to these methods to handle the stack, if your application is going to be used as an API endpoint only, the middleware stack can be configured like this:
-
-<ruby>
-config.middleware.http_only!
-</ruby>
-
-By doing this, Rails will create a smaller middleware stack, by not adding some middlewares that are usually useful for browser access only, such as Cookies, Session and Flash, BestStandardsSupport, and MethodOverride. You can always add any of them later manually if you want. Refer to the "API App docs":api_app.html for more info on how to setup your application for API only apps.
-
 h4. Configuring i18n
 
 * +config.i18n.default_locale+ sets the default locale of an application used for i18n. Defaults to +:en+.
