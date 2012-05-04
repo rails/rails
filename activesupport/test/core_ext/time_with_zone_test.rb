@@ -520,8 +520,8 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def end_of_hour
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 1, 0, 30))
-    assert_equal "Fri, 31 Dec 1999 19:30:00 EST -05:00", @twz.inspect
-    assert_equal "Fri, 31 Dec 1999 19:59:59 EST -05:00", @twz.end_of_hour.inspect
+    assert_equal "Fri, 31 Dec 1999 19:30:00 EST -05:00", twz.inspect
+    assert_equal "Fri, 31 Dec 1999 19:59:59 EST -05:00", twz.end_of_hour.inspect
   end
 
   def test_since
