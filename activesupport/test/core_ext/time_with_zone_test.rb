@@ -191,7 +191,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     end
   end
 
-  def future_with_time_current_as_time_with_zone
+  def test_future_with_time_current_as_time_with_zone
     twz = ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45) )
     Time.stubs(:current).returns(twz)
     assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,44)).future?
@@ -482,32 +482,32 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "Fri, 31 Dec 1999 19:00:30 EST -05:00", @twz.advance(:seconds => 30).inspect
   end
 
-  def beginning_of_year
+  def test_beginning_of_year
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Fri, 01 Jan 1999 00:00:00 EST -05:00", @twz.beginning_of_year.inspect
   end
 
-  def end_of_year
+  def test_end_of_year
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Fri, 31 Dec 1999 23:59:59 EST -05:00", @twz.end_of_year.inspect
   end
 
-  def beginning_of_month
+  def test_beginning_of_month
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
-    assert_equal "Fri, 01 Dec 1999 00:00:00 EST -05:00", @twz.beginning_of_month.inspect
+    assert_equal "Wed, 01 Dec 1999 00:00:00 EST -05:00", @twz.beginning_of_month.inspect
   end
 
-  def end_of_month
+  def test_end_of_month
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Fri, 31 Dec 1999 23:59:59 EST -05:00", @twz.end_of_month.inspect
   end
 
-  def beginning_of_day
+  def test_beginning_of_day
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Fri, 31 Dec 1999 00:00:00 EST -05:00", @twz.beginning_of_day.inspect
   end
 
-  def end_of_day
+  def test_end_of_day
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Fri, 31 Dec 1999 23:59:59 EST -05:00", @twz.end_of_day.inspect
   end
