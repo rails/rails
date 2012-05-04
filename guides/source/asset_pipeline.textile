@@ -204,6 +204,8 @@ Images can also be organized into subdirectories if required, and they can be ac
 <%= image_tag "icons/rails.png" %>
 </erb>
 
+WARNING: If you're precompiling your assets (see "In Production":#in-production below), linking to an asset that does not exist will raise an exception in the calling page. This includes linking to a blank string. As such, be careful using <tt>image_tag</tt> and the other helpers with user-supplied data.
+
 h5. CSS and ERB
 
 The asset pipeline automatically evaluates ERB. This means that if you add an +erb+ extension to a CSS asset (for example, +application.css.erb+), then helpers like +asset_path+ are available in your CSS rules:

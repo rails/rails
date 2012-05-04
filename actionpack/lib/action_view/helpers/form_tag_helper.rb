@@ -45,7 +45,7 @@ module ActionView
       #   # => <form action="/posts" method="post">
       #
       #   form_tag('/posts/1', :method => :put)
-      #   # => <form action="/posts/1" method="put">
+      #   # => <form action="/posts/1" method="post"> ... <input name="_method" type="hidden" value="put" /> ...
       #
       #   form_tag('/upload', :multipart => true)
       #   # => <form action="/upload" method="post" enctype="multipart/form-data">

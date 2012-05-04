@@ -45,7 +45,7 @@ module ActionView
       #       if logged_in
       #         concat "Logged in!"
       #       else
-      #         concat link_to('login', :action => login)
+      #         concat link_to('login', :action => :login)
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
