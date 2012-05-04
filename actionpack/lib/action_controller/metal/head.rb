@@ -28,10 +28,11 @@ module ActionController
       self.status = status
       self.location = url_for(location) if location
 
-      if include_content_type?(self.status)
+      if include_content_headers?(self.status)
         self.content_type = Mime[formats.first] if formats
       else
         headers.delete('Content-Type')
+        headers.delete('Content-Length')
       end
 
       self.response_body = " "
@@ -39,7 +40,7 @@ module ActionController
 
     private
     # :nodoc:
-    def include_content_type?(status)
+    def include_content_headers?(status)
       case status
       when 100..199
         false
