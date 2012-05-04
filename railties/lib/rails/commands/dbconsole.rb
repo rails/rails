@@ -96,7 +96,7 @@ module Rails
 
         args << "-#{options['mode']}" if options['mode']
         args << "-header" if options['header']
-        args << config['database']
+        args << File.expand_path(config['database'], Rails.root)
 
         find_cmd_and_exec('sqlite3', *args)
 
