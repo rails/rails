@@ -63,6 +63,9 @@ module ActionView
       alias :t :translate
 
       # Delegates to <tt>I18n.localize</tt> with no additional functionality.
+      #
+      # See http://rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize 
+      # for more information.
       def localize(*args)
         I18n.localize(*args)
       end
