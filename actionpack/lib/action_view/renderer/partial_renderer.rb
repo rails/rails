@@ -343,8 +343,8 @@ module ActionView
 
       if String === partial && @variable.to_s !~ /^[a-z_][a-zA-Z_0-9]*$/
         raise ArgumentError.new("The partial name (#{partial}) is not a valid Ruby identifier; " +
-                                "make sure your partial name starts with a letter or underscore, " +
-                                "and is followed by any combinations of letters, numbers, or underscores.")
+                                "make sure your partial name starts with a lowercase letter or underscore, " +
+                                "and is followed by any combination of letters, numbers and underscores.")
       end
 
       self
