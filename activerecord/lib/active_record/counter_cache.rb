@@ -3,7 +3,6 @@ module ActiveRecord
   module CounterCache
     extend ActiveSupport::Concern
 
-<<<<<<< HEAD
     module ClassMethods
       # Resets one or more counter caches to their correct value using an SQL
       # count query. This is useful when adding new counter caches, or if the
