@@ -608,7 +608,12 @@ module Rails
           desc "Copy migrations from #{railtie_name} to application"
           task :migrations do
             ENV["FROM"] = railtie_name
-            Rake::Task["railties:install:migrations"].invoke
+            if Rake::Task.task_defined?("railties:install:migrations")
+              Rake::Task["railties:install:migrations"].invoke
+            else
+              Rake::Task["app:railties:install:migrations"].invoke
+            end
+
           end
         end
       end
