@@ -93,6 +93,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_beginning_of_hour
+    assert_equal Time.local(2005,2,4,19,0,0), Time.local(2005,2,4,19,30,10).beginning_of_hour
+  end
+
   def test_beginning_of_month
     assert_equal Time.local(2005,2,1,0,0,0), Time.local(2005,2,22,10,10,10).beginning_of_month
   end
@@ -125,6 +129,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,8,31,0,0,0).end_of_week #friday
     assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,9,01,0,0,0).end_of_week #saturday
     assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,9,02,0,0,0).end_of_week #sunday
+  end
+
+  def test_end_of_hour
+    assert_equal Time.local(2005,2,4,19,59,59,999999.999), Time.local(2005,2,4,19,30,10).end_of_hour
   end
 
   def test_end_of_month
