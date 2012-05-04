@@ -315,7 +315,7 @@ module ActionView
       #   # => "<form method="post" action="/images/delete/1" class="button_to">
       #   #      <div>
       #   #        <input type="hidden" name="_method" value="delete" />
-      #   #        <input data-confirm='Are you sure?' value="Delete" type="submit" />
+      #   #        <input data-confirm='Are you sure?' value="Delete Image" type="submit" />
       #   #        <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #      </div>
       #   #    </form>"
