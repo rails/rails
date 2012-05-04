@@ -535,7 +535,8 @@ module ActionDispatch
         private
           def map_method(method, args, &block)
             options = args.extract_options!
-            options[:via] = method
+            options[:via]    = method
+            options[:path] ||= args.first if args.first.is_a?(String)
             match(*args, options, &block)
             self
           end
@@ -1509,7 +1510,7 @@ module ActionDispatch
             prefix = shallow_scoping? ?
               "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
 
-            path = if canonical_action?(action, path.blank?)
+            if canonical_action?(action, path.blank?)
               prefix.to_s
             else
               "#{prefix}/#{action_path(action, path)}"

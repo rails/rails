@@ -171,6 +171,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
             post :preview, :on => :collection
           end
         end
+
+        post 'new', :action => 'new', :on => :collection, :as => :new
       end
 
       resources :replies do
@@ -874,6 +876,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/projects/1/edit'
     assert_equal 'project#edit', @response.body
     assert_equal '/projects/1/edit', edit_project_path(:id => '1')
+  end
+
+  def test_projects_with_post_action_and_new_path_on_collection
+    post '/projects/new'
+    assert_equal "project#new", @response.body
+    assert_equal "/projects/new", new_projects_path
   end
 
   def test_projects_involvements
@@ -2450,7 +2458,6 @@ class TestMultipleNestedController < ActionDispatch::IntegrationTest
     get "/foo/bar/baz"
     assert_equal "/pooh", @response.body
   end
-
 end
 
 class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
