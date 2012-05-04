@@ -303,7 +303,10 @@ module ActionView
       #
       #   <%= button_to "Create", :action => "create", :remote => true, :form => { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
-      #   #      <div><input value="Create" type="submit" /></div>
+      #   #      <div>
+      #   #        <input value="Create" type="submit" />
+      #   #        <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      </div>
       #   #    </form>"
       #
       #
@@ -313,6 +316,7 @@ module ActionView
       #   #      <div>
       #   #        <input type="hidden" name="_method" value="delete" />
       #   #        <input data-confirm='Are you sure?' value="Delete" type="submit" />
+      #   #        <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #      </div>
       #   #    </form>"
       #
@@ -323,6 +327,7 @@ module ActionView
       #   #       <div>
       #   #         <input name='_method' value='delete' type='hidden' />
       #   #         <input value='Destroy' type='submit' disable_with='loading...' data-confirm='Are you sure?' />
+      #   #         <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #       </div>
       #   #     </form>"
       #   #
