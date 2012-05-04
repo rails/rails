@@ -15,6 +15,8 @@ class File
   def self.atomic_write(file_name, temp_dir = Dir.tmpdir)
     require 'tempfile' unless defined?(Tempfile)
     require 'fileutils' unless defined?(FileUtils)
+    
+    GC.disable
 
     temp_file = Tempfile.new(basename(file_name), temp_dir)
     temp_file.binmode
@@ -40,6 +42,8 @@ class File
 
     # Overwrite original file with temp file
     FileUtils.mv(temp_file.path, file_name)
+    
+    GC.enable
 
     # Set correct permissions on new file
     chown(old_stat.uid, old_stat.gid, file_name)
