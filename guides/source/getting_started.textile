@@ -404,7 +404,10 @@ $ rails generate model Post title:string text:text
 
 With that command we told Rails that we want a +Post+ model, which in
 turn should have a title attribute of type string, and a text attribute
-of type text. Rails in turn responded by creating a bunch of files. For
+of type text. Those attributes are automatically added to the +posts+
+table in the database and mapped to the +Post+ model.
+
+Rails in turn responded by creating a bunch of files. For
 now, we're only interested in +app/models/post.rb+ and
 +db/migrate/20120419084633_create_posts.rb+. The latter is responsible
 for creating the database structure, which is what we'll look at next.
