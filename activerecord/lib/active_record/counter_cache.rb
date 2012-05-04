@@ -72,6 +72,8 @@ module ActiveRecord
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
         end
 
+        IdentityMap.remove_by_id(symbolized_base_class, id) if IdentityMap.enabled?
+
         where(primary_key => id).update_all updates.join(', ')
       end
 

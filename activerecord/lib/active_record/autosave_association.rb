@@ -323,6 +323,7 @@ module ActiveRecord
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
           records_to_destroy = []
+          begin
           records.each do |record|
             next if record.destroyed?
 
@@ -345,6 +346,11 @@ module ActiveRecord
 
           records_to_destroy.each do |record|
             association.destroy(record)
+          end
+
+          rescue
+            records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
+            raise
           end
         end
 

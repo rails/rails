@@ -114,7 +114,10 @@ module ActiveRecord
     # callbacks, Observer methods, or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
-      self.class.delete(id) if persisted?
+      if persisted?
+        self.class.delete(id)
+        IdentityMap.remove(self) if IdentityMap.enabled?
+      end
       @destroyed = true
       freeze
     end
@@ -129,7 +132,12 @@ module ActiveRecord
     def destroy
       raise ReadOnlyRecord if readonly?
       destroy_associations
-      destroy_row if persisted?
+
+      if persisted?
+        IdentityMap.remove(self) if IdentityMap.enabled?
+        destroy_row
+      end
+
       @destroyed = true
       freeze
     end
@@ -287,15 +295,17 @@ module ActiveRecord
       clear_aggregation_cache
       clear_association_cache
 
-      fresh_object =
-        if options && options[:lock]
-          self.class.unscoped { self.class.lock.find(id) }
-        else
-          self.class.unscoped { self.class.find(id) }
-        end
+      IdentityMap.without do
+        fresh_object =
+          if options && options[:lock]
+            self.class.unscoped { self.class.lock.find(id) }
+          else
+            self.class.unscoped { self.class.find(id) }
+          end
 
-      @attributes.update(fresh_object.instance_variable_get('@attributes'))
-      @columns_hash = fresh_object.instance_variable_get('@columns_hash')
+        @attributes.update(fresh_object.instance_variable_get('@attributes'))
+        @columns_hash = fresh_object.instance_variable_get('@columns_hash')
+      end
 
       @attributes_cache = {}
       self
@@ -386,8 +396,10 @@ module ActiveRecord
       attributes_values = arel_attributes_with_values_for_create(!id.nil?)
 
       new_id = self.class.unscoped.insert attributes_values
+
       self.id ||= new_id if self.class.primary_key
 
+      IdentityMap.add(self) if IdentityMap.enabled?
       @new_record = false
       id
     end
