@@ -257,7 +257,9 @@ However, it's important to note that query caches are created at the start of an
 
 h3. Cache Stores
 
-Rails provides different stores for the cached data created by action and fragment caches. Page caches are always stored on disk.
+Rails provides different stores for the cached data created by <b>action</b> and <b>fragment</b> caches.
+
+TIP: Page caches are always stored on disk.
 
 h4. Configuration
 
@@ -267,7 +269,7 @@ You can set up your application's default cache store by calling +config.cache_s
 config.cache_store = :memory_store
 </ruby>
 
-Alternatively, you can call +ActionController::Base.cache_store+ outside of a configuration block.
+NOTE: Alternatively, you can call +ActionController::Base.cache_store+ outside of a configuration block.
 
 You can access the cache by calling +Rails.cache+.
 
@@ -294,7 +296,7 @@ h4. ActiveSupport::Cache::MemoryStore
 This cache store keeps entries in memory in the same Ruby process. The cache store has a bounded size specified by the +:size+ options to the initializer (default is 32Mb). When the cache exceeds the allotted size, a cleanup will occur and the least recently used entries will be removed.
 
 <ruby>
-ActionController::Base.cache_store = :memory_store, :size => 64.megabytes
+config.cache_store = :memory_store, :size => 64.megabytes
 </ruby>
 
 If you're running multiple Ruby on Rails server processes (which is the case if you're using mongrel_cluster or Phusion Passenger), then your Rails server process instances won't be able to share cache data with each other. This cache store is not appropriate for large application deployments, but can work well for small, low traffic sites with only a couple of server processes or for development and test environments.
@@ -306,7 +308,7 @@ h4. ActiveSupport::Cache::FileStore
 This cache store uses the file system to store entries. The path to the directory where the store files will be stored must be specified when initializing the cache.
 
 <ruby>
-ActionController::Base.cache_store = :file_store, "/path/to/cache/directory"
+config.cache_store = :file_store, "/path/to/cache/directory"
 </ruby>
 
 With this cache store, multiple server processes on the same host can share a cache. Servers processes running on different hosts could share a cache by using a shared file system, but that set up would not be ideal and is not recommended. The cache store is appropriate for low to medium traffic sites that are served off one or two hosts.
@@ -322,7 +324,7 @@ When initializing the cache, you need to specify the addresses for all memcached
 The +write+ and +fetch+ methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify +:raw+ to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operation like +increment+ and +decrement+ only on raw values. You can also specify +:unless_exist+ if you don't want memcached to overwrite an existing entry.
 
 <ruby>
-ActionController::Base.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
+config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
 </ruby>
 
 h4. ActiveSupport::Cache::EhcacheStore
@@ -330,7 +332,7 @@ h4. ActiveSupport::Cache::EhcacheStore
 If you are using JRuby you can use Terracotta's Ehcache as the cache store for your application. Ehcache is an open source Java cache that also offers an enterprise version with increased scalability, management, and commercial support. You must first install the jruby-ehcache-rails3 gem (version 1.1.0 or later) to use this cache store.
 
 <ruby>
-ActionController::Base.cache_store = :ehcache_store
+config.cache_store = :ehcache_store
 </ruby>
 
 When initializing the cache, you may use the +:ehcache_config+ option to specify the Ehcache config file to use (where the default is "ehcache.xml" in your Rails config directory), and the :cache_name option to provide a custom name for your cache (the default is rails_cache).
@@ -359,7 +361,7 @@ h4. ActiveSupport::Cache::NullStore
 This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with +Rails.cache+, but caching may interfere with being able to see the results of code changes. With this cache store, all +fetch+ and +read+ operations will result in a miss.
 
 <ruby>
-ActionController::Base.cache_store = :null
+config.cache_store = :null_store
 </ruby>
 
 h4. Custom Cache Stores
@@ -369,7 +371,7 @@ You can create your own custom cache store by simply extending +ActiveSupport::C
 To use a custom cache store, simple set the cache store to a new instance of the class.
 
 <ruby>
-ActionController::Base.cache_store = MyCacheStore.new
+config.cache_store = MyCacheStore.new
 </ruby>
 
 h4. Cache Keys
