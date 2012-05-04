@@ -42,7 +42,7 @@ module Rails
       include_password = false
       options = {}
       OptionParser.new do |opt|
-        opt.banner = "Usage: dbconsole [environment] [options]"
+        opt.banner = "Usage: rails dbconsole [environment] [options]"
         opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
           include_password = true
         end
@@ -54,6 +54,11 @@ module Rails
 
         opt.on("--header") do |h|
           options['header'] = h
+        end
+
+        opt.on("-h", "--help", "Show this help message.") do
+          puts opt
+          exit
         end
 
         opt.parse!(arguments)

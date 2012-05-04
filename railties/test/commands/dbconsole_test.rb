@@ -132,6 +132,24 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_match /Unknown command-line client for db/, output
   end
 
+  def test_print_help_short
+    stdout = capture(:stdout) do
+      start({}, ['-h'])
+    end
+    assert aborted
+    assert_equal '', output
+    assert_match /Usage:.*dbconsole/, stdout
+  end
+
+  def test_print_help_long
+    stdout = capture(:stdout) do
+      start({}, ['--help'])
+    end
+    assert aborted
+    assert_equal '', output
+    assert_match /Usage:.*dbconsole/, stdout
+  end
+
   private
   attr_reader :aborted, :output
 
