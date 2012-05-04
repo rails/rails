@@ -114,6 +114,15 @@ module ApplicationTests
       assert !File.exists?("#{app_path}/public/assets/something.else.css")
     end
 
+    test "precompile something.js for directory containing index file" do
+      add_to_config "config.assets.precompile = [ 'something.js' ]"
+      app_file "app/assets/javascripts/something/index.js.erb", "alert();"
+
+      precompile!
+
+      assert File.exists?("#{app_path}/public/assets/something.js")
+    end
+
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
       add_to_config "config.assets.digest = true"
       add_to_config "config.action_controller.perform_caching = false"
