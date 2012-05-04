@@ -511,8 +511,13 @@ module ActiveRecord
           else super
           end
         when Float
-          return super unless value.infinite? && column.type == :datetime
-          "'#{value.to_s.downcase}'"
+          if value.infinite? && column.type == :datetime
+            "'#{value.to_s.downcase}'"
+          elsif value.infinite? || value.nan?
+            "'#{value.to_s}'"
+          else
+            super
+          end
         when Numeric
           return super unless column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.
