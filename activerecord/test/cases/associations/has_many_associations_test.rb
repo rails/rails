@@ -1703,4 +1703,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.dependent_restrict_raises = option_before
   end
+
+  def test_collection_association_with_private_kernel_method
+    firm = companies(:first_firm)
+    assert_equal [accounts(:signals37)], firm.accounts.open
+  end
 end

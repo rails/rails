@@ -58,7 +58,7 @@ module ActiveRecord
         expanded_attrs = {}
         attrs.each do |attr, value|
           if aggregation = reflect_on_aggregation(attr.to_sym)
-            mapping = aggregate_mapping(aggregation)
+            mapping = aggregation.mapping
             mapping.each do |field_attr, aggregate_attr|
               if mapping.size == 1 && !value.respond_to?(aggregate_attr)
                 expanded_attrs[field_attr] = value

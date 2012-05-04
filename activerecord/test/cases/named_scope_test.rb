@@ -442,13 +442,12 @@ end
 
 class DynamicScopeMatchTest < ActiveRecord::TestCase
   def test_scoped_by_no_match
-    assert_nil ActiveRecord::DynamicScopeMatch.match("not_scoped_at_all")
+    assert_nil ActiveRecord::DynamicMatchers::Method.match(nil, "not_scoped_at_all")
   end
 
   def test_scoped_by
-    match = ActiveRecord::DynamicScopeMatch.match("scoped_by_age_and_sex_and_location")
+    match = ActiveRecord::DynamicMatchers::Method.match(nil, "scoped_by_age_and_sex_and_location")
     assert_not_nil match
-    assert match.scope?
     assert_equal %w(age sex location), match.attribute_names
   end
 end

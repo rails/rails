@@ -78,4 +78,23 @@ class TestThreadConsumer < ActiveSupport::TestCase
     assert_equal 1, logger.logged(:error).size
     assert_match(/Job Error: RuntimeError: Error!/, logger.logged(:error).last)
   end
+
+  test "test overriding exception handling" do
+    @consumer.shutdown
+    @consumer = Class.new(Rails::Queueing::ThreadedConsumer) do
+      attr_reader :last_error
+      def handle_exception(e)
+        @last_error = e.message
+      end
+    end.start(@queue)
+
+    job = Job.new(1) do
+      raise "RuntimeError: Error!"
+    end
+
+    @queue.push job
+    sleep 0.1
+
+    assert_equal "RuntimeError: Error!", @consumer.last_error
+  end
 end

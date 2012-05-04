@@ -63,7 +63,7 @@ module ApplicationTests
     test "in test mode, the queue can be observed" do
       app("test")
 
-      job = Class.new(Struct.new(:id)) do
+      job = Struct.new(:id) do
         def run
         end
       end
@@ -79,7 +79,7 @@ module ApplicationTests
       assert_equal jobs, Rails.queue.jobs
     end
 
-    test "a custom queue implementation can be provided" do
+    def setup_custom_queue
       add_to_env_config "production", <<-RUBY
         require "my_queue"
         config.queue = MyQueue
@@ -94,10 +94,14 @@ module ApplicationTests
       RUBY
 
       app("production")
+    end
+
+    test "a custom queue implementation can be provided" do
+      setup_custom_queue
 
       assert_kind_of MyQueue, Rails.queue
 
-      job = Class.new(Struct.new(:id, :ran)) do
+      job = Struct.new(:id, :ran) do
         def run
           self.ran = true
         end
@@ -107,6 +111,35 @@ module ApplicationTests
       Rails.queue.push job1
 
       assert_equal true, job1.ran
+    end
+
+    test "a custom consumer implementation can be provided" do
+      add_to_env_config "production", <<-RUBY
+        require "my_queue_consumer"
+        config.queue_consumer = MyQueueConsumer
+      RUBY
+
+      app_file "lib/my_queue_consumer.rb", <<-RUBY
+        class MyQueueConsumer < Rails::Queueing::ThreadedConsumer
+          attr_reader :started
+
+          def start
+            @started = true
+            self
+          end
+        end
+      RUBY
+
+      app("production")
+
+      assert_kind_of MyQueueConsumer, Rails.application.queue_consumer
+      assert Rails.application.queue_consumer.started
+    end
+
+    test "default consumer is not used with custom queue implementation" do
+      setup_custom_queue
+
+      assert_nil Rails.application.queue_consumer
     end
   end
 end

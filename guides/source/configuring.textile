@@ -70,11 +70,22 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.action_view.cache_template_loading+ controls whether or not templates should be reloaded on each request. Defaults to whatever is set for +config.cache_classes+.
 
-* +config.cache_store+ configures which cache store to use for Rails caching. Options include one of the symbols +:memory_store+, +:file_store+, +:mem_cache_store+, or an object that implements the cache API. Defaults to +:file_store+ if the directory +tmp/cache+ exists, and to +:memory_store+ otherwise.
+* +config.cache_store+ configures which cache store to use for Rails caching. Options include one of the symbols +:memory_store+, +:file_store+, +:mem_cache_store+, +:null_store+, or an object that implements the cache API. Defaults to +:file_store+ if the directory +tmp/cache+ exists, and to +:memory_store+ otherwise.
 
 * +config.colorize_logging+ specifies whether or not to use ANSI color codes when logging information. Defaults to true.
 
 * +config.consider_all_requests_local+ is a flag. If true then any error will cause detailed debugging information to be dumped in the HTTP response, and the +Rails::Info+ controller will show the application runtime context in +/rails/info/properties+. True by default in development and test environments, and false in production mode. For finer-grained control, set this to false and implement +local_request?+ in controllers to specify which requests should provide debugging information on errors.
+
+* +config.console+ allows you to set class that will be used as console you run +rails console+. It's best to run it in +console+ block:
+
+<ruby>
+console do
+  # this block is called only when running console,
+  # so we can safely require pry here
+  require "pry"
+  config.console = Pry
+end
+</ruby>
 
 * +config.dependency_loading+ is a flag that allows you to disable constant autoloading setting it to false. It only has effect if +config.cache_classes+ is true, which it is by default in production mode. This flag is set to false by +config.threadsafe!+.
 
@@ -100,6 +111,10 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.preload_frameworks+ enables or disables preloading all frameworks at startup. Enabled by +config.threadsafe!+. Defaults to +nil+, so is disabled.
 
+* +config.queue+ configures a different queue implementation for the application. Defaults to +Rails::Queueing::Queue+. Note that, if the default queue is changed, the default +queue_consumer+ is not going to be initialized, it is up to the new queue implementation to handle starting and shutting down its own consumer(s).
+
+* +config.queue_consumer+ configures a different consumer implementation for the default queue. Defaults to +Rails::Queueing::ThreadedConsumer+.
+
 * +config.reload_classes_only_on_change+ enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to true. If +config.cache_classes+ is true, this option is ignored.
 
 * +config.secret_token+ used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get +config.secret_token+ initialized to a random key in +config/initializers/secret_token.rb+.
@@ -121,17 +136,6 @@ WARNING: Threadsafe operation is incompatible with the normal workings of develo
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
 * +config.whiny_nils+ enables or disables warnings when a certain set of methods are invoked on +nil+ and it does not respond to them. Defaults to true in development and test environments.
-
-* +config.console+ allows you to set class that will be used as console you run +rails console+. It's best to run it in +console+ block:
-
-<ruby>
-console do
-  # this block is called only when running console,
-  # so we can safely require pry here
-  require "pry"
-  config.console = Pry
-end
-</ruby>
 
 h4. Configuring Assets
 
@@ -247,14 +251,6 @@ They can also be removed from the stack completely:
 <ruby>
 config.middleware.delete ActionDispatch::BestStandardsSupport
 </ruby>
-
-In addition to these methods to handle the stack, if your application is going to be used as an API endpoint only, the middleware stack can be configured like this:
-
-<ruby>
-config.middleware.http_only!
-</ruby>
-
-By doing this, Rails will create a smaller middleware stack, by not adding some middlewares that are usually useful for browser access only, such as Cookies, Session and Flash, BestStandardsSupport, and MethodOverride. You can always add any of them later manually if you want. Refer to the "API App docs":api_app.html for more info on how to setup your application for API only apps.
 
 h4. Configuring i18n
 

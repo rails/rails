@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allows `assert_redirected_to` to match against a regular expression. *Andy Lindeman*
+
+*   Add backtrace to development routing error page. *Richard Schneeman*
+
 *   Replace `include_seconds` boolean argument with `:include_seconds => true` option
     in `distance_of_time_in_words` and `time_ago_in_words` signature. *Dmitriy Kiriyenko*
 

@@ -60,6 +60,28 @@ module ActiveRecord
       where(*args).first!
     end
 
+    # Gives a record (or N records if a parameter is supplied) without any implied
+    # order. The order will depend on the database implementation.
+    # If an order is supplied it will be respected.
+    #
+    # Examples:
+    #
+    #   Person.take # returns an object fetched by SELECT * FROM people
+    #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
+    #   Person.where(["name LIKE '%?'", name]).take
+    def take(limit = nil)
+      limit ? limit(limit).to_a : find_take
+    end
+
+    # Same as +take+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # is found. Note that <tt>take!</tt> accepts no arguments.
+    def take!
+      take or raise RecordNotFound
+    end
+
+    # Find the first record (or first N records if a parameter is supplied).
+    # If no order is defined it will order by primary key.
+    #
     # Examples:
     #
     #   Person.first # returns the first object fetched by SELECT * FROM people
@@ -67,7 +89,15 @@ module ActiveRecord
     #   Person.where(["user_name = :u", { :u => user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
     def first(limit = nil)
-      limit ? limit(limit).to_a : find_first
+      if limit
+        if order_values.empty? && primary_key
+          order(arel_table[primary_key].asc).limit(limit).to_a
+        else
+          limit(limit).to_a
+        end
+      else
+        find_first
+      end
     end
 
     # Same as +first+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -76,6 +106,9 @@ module ActiveRecord
       first or raise RecordNotFound
     end
 
+    # Find the last record (or last N records if a parameter is supplied).
+    # If no order is defined it will order by primary key.
+    #
     # Examples:
     #
     #   Person.last # returns the last object fetched by SELECT * FROM people
@@ -83,8 +116,8 @@ module ActiveRecord
     #   Person.order("created_on DESC").offset(5).last
     def last(limit = nil)
       if limit
-        if order_values.empty?
-          order("#{primary_key} DESC").limit(limit).reverse
+        if order_values.empty? && primary_key
+          order(arel_table[primary_key].desc).limit(limit).reverse
         else
           to_a.last(limit)
         end
@@ -210,47 +243,6 @@ module ActiveRecord
       ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
     end
 
-    def find_by_attributes(match, attributes, *args)
-      conditions = Hash[attributes.map {|a| [a, args[attributes.index(a)]]}]
-      result = where(conditions).send(match.finder)
-
-      if match.bang? && result.blank?
-        raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
-      else
-        if block_given? && result
-          yield(result)
-        else
-          result
-        end
-      end
-    end
-
-    def find_or_instantiator_by_attributes(match, attributes, *args)
-      options = args.size > 1 && args.last(2).all?{ |a| a.is_a?(Hash) } ? args.extract_options! : {}
-      protected_attributes_for_create, unprotected_attributes_for_create = {}, {}
-      args.each_with_index do |arg, i|
-        if arg.is_a?(Hash)
-          protected_attributes_for_create = args[i].with_indifferent_access
-        else
-          unprotected_attributes_for_create[attributes[i]] = args[i]
-        end
-      end
-
-      conditions = (protected_attributes_for_create.merge(unprotected_attributes_for_create)).slice(*attributes).symbolize_keys
-
-      record = where(conditions).first
-
-      unless record
-        record = @klass.new(protected_attributes_for_create, options) do |r|
-          r.assign_attributes(unprotected_attributes_for_create, :without_protection => true)
-        end
-        yield(record) if block_given?
-        record.send(match.save_method) if match.save_record?
-      end
-
-      record
-    end
-
     def find_with_ids(*ids)
       return to_a.find { |*block_args| yield(*block_args) } if block_given?
 
@@ -315,11 +307,24 @@ module ActiveRecord
       end
     end
 
+    def find_take
+      if loaded?
+        @records.take(1).first
+      else
+        @take ||= limit(1).to_a.first
+      end
+    end
+
     def find_first
       if loaded?
         @records.first
       else
-        @first ||= limit(1).to_a[0]
+        @first ||=
+          if order_values.empty? && primary_key
+            order(arel_table[primary_key].asc).limit(1).to_a.first
+          else
+            limit(1).to_a.first
+          end
       end
     end
 
@@ -331,7 +336,7 @@ module ActiveRecord
           if offset_value || limit_value
             to_a.last
           else
-            reverse_order.limit(1).to_a[0]
+            reverse_order.limit(1).to_a.first
           end
       end
     end
