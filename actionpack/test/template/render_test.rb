@@ -153,15 +153,15 @@ module RenderTestCases
   def test_render_partial_with_invalid_name
     e = assert_raises(ArgumentError) { @view.render(:partial => "test/200") }
     assert_equal "The partial name (test/200) is not a valid Ruby identifier; " +
-      "make sure your partial name starts with a letter or underscore, " +
-      "and is followed by any combinations of letters, numbers, or underscores.", e.message
+      "make sure your partial name starts with a lowercase letter or underscore, " +
+      "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_missing_filename
     e = assert_raises(ArgumentError) { @view.render(:partial => "test/") }
     assert_equal "The partial name (test/) is not a valid Ruby identifier; " +
-      "make sure your partial name starts with a letter or underscore, " +
-      "and is followed by any combinations of letters, numbers, or underscores.", e.message
+      "make sure your partial name starts with a lowercase letter or underscore, " +
+      "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_incompatible_object
