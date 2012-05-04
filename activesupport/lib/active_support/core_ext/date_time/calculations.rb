@@ -81,6 +81,17 @@ class DateTime
     change(:hour => 23, :min => 59, :sec => 59)
   end
 
+  # Returns a new DateTime representing the start of the hour (hh:00:00)
+  def beginning_of_hour
+    change(:min => 0)
+  end
+  alias :at_beginning_of_hour :beginning_of_hour
+
+  # Returns a new DateTime representing the end of the hour (hh:59:59)
+  def end_of_hour
+    change(:min => 59, :sec => 59)
+  end
+
   # 1.9.3 defines + and - on DateTime, < 1.9.3 do not.
   if DateTime.public_instance_methods(false).include?(:+)
     def plus_with_duration(other) #:nodoc:
