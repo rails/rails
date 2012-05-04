@@ -43,16 +43,9 @@ module ActionDispatch
     class CookieStore < Rack::Session::Cookie
       include Compatibility
       include StaleSessionCheck
+      include SessionObject
 
       private
-
-      def prepare_session(env)
-        Request::Session.create(self, env, @default_options)
-      end
-
-      def loaded_session?(session)
-        !session.is_a?(Request::Session) || session.loaded?
-      end
 
       def unpacked_cookie_data(env)
         env["action_dispatch.request.unsigned_session_cookie"] ||= begin

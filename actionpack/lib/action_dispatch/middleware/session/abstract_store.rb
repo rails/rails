@@ -65,12 +65,7 @@ module ActionDispatch
       end
     end
 
-    class AbstractStore < Rack::Session::Abstract::ID
-      include Compatibility
-      include StaleSessionCheck
-
-      private
-
+    module SessionObject # :nodoc:
       def prepare_session(env)
         Request::Session.create(self, env, @default_options)
       end
@@ -78,6 +73,14 @@ module ActionDispatch
       def loaded_session?(session)
         !session.is_a?(Request::Session) || session.loaded?
       end
+    end
+
+    class AbstractStore < Rack::Session::Abstract::ID
+      include Compatibility
+      include StaleSessionCheck
+      include SessionObject
+
+      private
 
       def set_cookie(env, session_id, cookie)
         request = ActionDispatch::Request.new(env)
