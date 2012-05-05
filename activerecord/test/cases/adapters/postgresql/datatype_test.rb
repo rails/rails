@@ -86,9 +86,9 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_data_type_of_network_address_types
-    assert_equal :string, @first_network_address.column_for_attribute(:cidr_address).type
-    assert_equal :string, @first_network_address.column_for_attribute(:inet_address).type
-    assert_equal :string, @first_network_address.column_for_attribute(:mac_address).type
+    assert_equal :cidr, @first_network_address.column_for_attribute(:cidr_address).type
+    assert_equal :inet, @first_network_address.column_for_attribute(:inet_address).type
+    assert_equal :macaddr, @first_network_address.column_for_attribute(:mac_address).type
   end
 
   def test_data_type_of_bit_string_types

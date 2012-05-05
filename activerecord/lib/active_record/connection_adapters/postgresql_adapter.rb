@@ -197,6 +197,13 @@ module ActiveRecord
           :decimal
         when 'hstore'
           :hstore
+        # Network address types
+        when 'inet'
+          :inet
+        when 'cidr'
+          :cidr
+        when 'macaddr'
+          :macaddr
         # Character types
         when /^(?:character varying|bpchar)(?:\(\d+\))?$/
           :string
@@ -210,9 +217,6 @@ module ActiveRecord
           :string
         # Geometric types
         when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
-          :string
-        # Network address types
-        when /^(?:cidr|inet|macaddr)$/
           :string
         # Bit strings
         when /^bit(?: varying)?(?:\(\d+\))?$/
@@ -282,6 +286,18 @@ module ActiveRecord
         def hstore(name, options = {})
           column(name, 'hstore', options)
         end
+
+        def inet(name, options = {})
+          column(name, 'inet', options)
+        end
+
+        def cidr(name, options = {})
+          column(name, 'cidr', options)
+        end
+
+        def macaddr(name, options = {})
+          column(name, 'macaddr', options)
+        end
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -301,7 +317,10 @@ module ActiveRecord
         :boolean     => { :name => "boolean" },
         :xml         => { :name => "xml" },
         :tsvector    => { :name => "tsvector" },
-        :hstore      => { :name => "hstore" }
+        :hstore      => { :name => "hstore" },
+        :inet        => { :name => "inet" },
+        :cidr        => { :name => "cidr" },
+        :macaddr     => { :name => "macaddr" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
