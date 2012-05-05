@@ -203,7 +203,19 @@ module ActiveSupport
       names.shift if names.empty? || names.first.empty?
 
       names.inject(Object) do |constant, name|
-        constant.const_get(name, false)
+        candidate = constant.const_get(name)
+        if constant.const_defined?(name, false) || !Object.const_defined?(name)
+          candidate
+        else
+          # Go down the ancestors to check it it's owned
+          # directly before we reach Object or the end of ancestors.
+          constant.ancestors.each do |ancestor|
+            break if ancestor == Object
+            return candidate if ancestor.const_defined?(name, false)
+          end
+          # owner is in Object, so raise
+          constant.const_get(name, false)
+        end
       end
     end
 
