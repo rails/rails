@@ -53,6 +53,7 @@ module ActiveRecord
     # * <tt>:database</tt> - The name of the database. No default, must be provided.
     # * <tt>:encoding</tt> - (Optional) Sets the client encoding by executing "SET NAMES <encoding>" after connection.
     # * <tt>:reconnect</tt> - Defaults to false (See MySQL documentation: http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html).
+    # * <tt>:strict</tt> - Defaults to true. Enable STRICT_ALL_TABLES. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.5/en/server-sql-mode.html)
     # * <tt>:sslca</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslkey</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslcert</tt> - Necessary to use MySQL with an SSL connection.
@@ -407,8 +408,10 @@ module ActiveRecord
 
         # Make MySQL reject illegal values rather than truncating or
         # blanking them. See
-        # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables
-        execute("SET SQL_MODE='STRICT_ALL_TABLES'", :skip_logging)
+        # http://dev.mysql.com/doc/refman/5.5/en/server-sql-mode.html#sqlmode_strict_all_tables
+        if @config.fetch(:strict, true)
+          execute("SET SQL_MODE='STRICT_ALL_TABLES'", :skip_logging)
+        end
       end
 
       def select(sql, name = nil, binds = [])

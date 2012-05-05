@@ -256,8 +256,10 @@ module ActiveRecord
 
         # Make MySQL reject illegal values rather than truncating or
         # blanking them. See
-        # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables
-        variable_assignments << "SQL_MODE='STRICT_ALL_TABLES'"
+        # http://dev.mysql.com/doc/refman/5.5/en/server-sql-mode.html#sqlmode_strict_all_tables
+        if @config.fetch(:strict, true)
+          variable_assignments << "SQL_MODE='STRICT_ALL_TABLES'"
+        end
 
         encoding = @config[:encoding]
 
