@@ -12,6 +12,16 @@ module Ace
   end
 end
 
+class Object
+  module AddtlGlobalConstants
+    class Case
+      class Dice
+      end
+    end
+  end
+  include AddtlGlobalConstants
+end
+
 module ConstantizeTestCases
   def run_constantize_tests_on
     assert_nothing_raised { assert_equal Ace::Base::Case, yield("Ace::Base::Case") }
@@ -19,8 +29,12 @@ module ConstantizeTestCases
     assert_nothing_raised { assert_equal Ace::Base::Case::Dice, yield("Ace::Base::Case::Dice") }
     assert_nothing_raised { assert_equal Ace::Base::Fase::Dice, yield("Ace::Base::Fase::Dice") }
     assert_nothing_raised { assert_equal Ace::Gas::Case, yield("Ace::Gas::Case") }
+    assert_nothing_raised { assert_equal Case::Dice, yield("Case::Dice") }
+    assert_nothing_raised { assert_equal Case::Dice, yield("Object::Case::Dice") }
     assert_nothing_raised { assert_equal ConstantizeTestCases, yield("ConstantizeTestCases") }
     assert_nothing_raised { assert_equal ConstantizeTestCases, yield("::ConstantizeTestCases") }
+    assert_nothing_raised { assert_equal Object, yield("") }
+    assert_nothing_raised { assert_equal Object, yield("::") }
     assert_raise(NameError) { yield("UnknownClass") }
     assert_raise(NameError) { yield("UnknownClass::Ace") }
     assert_raise(NameError) { yield("UnknownClass::Ace::Base") }
@@ -38,8 +52,12 @@ module ConstantizeTestCases
     assert_nothing_raised { assert_equal Ace::Base::Case::Dice, yield("Ace::Base::Case::Dice") }
     assert_nothing_raised { assert_equal Ace::Base::Fase::Dice, yield("Ace::Base::Fase::Dice") }
     assert_nothing_raised { assert_equal Ace::Gas::Case, yield("Ace::Gas::Case") }
+    assert_nothing_raised { assert_equal Case::Dice, yield("Case::Dice") }
+    assert_nothing_raised { assert_equal Case::Dice, yield("Object::Case::Dice") }
     assert_nothing_raised { assert_equal ConstantizeTestCases, yield("ConstantizeTestCases") }
     assert_nothing_raised { assert_equal ConstantizeTestCases, yield("::ConstantizeTestCases") }
+    assert_nothing_raised { assert_equal Object, yield("") }
+    assert_nothing_raised { assert_equal Object, yield("::") }
     assert_nothing_raised { assert_equal nil, yield("UnknownClass") }
     assert_nothing_raised { assert_equal nil, yield("UnknownClass::Ace") }
     assert_nothing_raised { assert_equal nil, yield("UnknownClass::Ace::Base") }
