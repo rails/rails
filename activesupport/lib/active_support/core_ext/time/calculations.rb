@@ -218,6 +218,21 @@ class Time
     change(:hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
   end
 
+  # Returns a new Time representing the start of the hour (x:00)
+  def beginning_of_hour
+    change(:min => 0)
+  end
+  alias :at_beginning_of_hour :beginning_of_hour
+
+  # Returns a new Time representing the end of the hour, x:59:59.999999 (.999999999 in ruby1.9)
+  def end_of_hour
+    change(
+      :min => 59,
+      :sec => 59,
+      :usec => 999999.999
+    )
+  end
+
   # Returns a new Time representing the start of the month (1st of the month, 0:00)
   def beginning_of_month
     #self - ((self.mday-1).days + self.seconds_since_midnight)
