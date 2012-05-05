@@ -24,24 +24,52 @@ module ActiveRecord
   #   class SuperUser < User
   #     store_accessor :settings, :privileges, :servants
   #   end
+  #
+  # To prevent method name conflicts, you can pass in a <tt>prefix</tt> option containing
+  # either custom text or true to simply use the database column as the prefix.
+  #
+  #   class User < ActiveRecord::Base
+  #     store :settings, accessors: [ :color ], prefix: true
+  #     store :preferences, accessors: [ :color ], prefix: 'config'
+  #
+  #     store_accessor :settings, :homepage, prefix: true
+  #     store_accessor :preferences, :homepage, prefix: 'config'
+  #   end
+  #
+  #   u = User.new(settings_color: 'black',
+  #                settings_homepage: '37signals.com',
+  #                config_color: 'blue',
+  #                config_homepage: 'example.com')
+  #
   module Store
     extend ActiveSupport::Concern
 
     module ClassMethods
       def store(store_attribute, options = {})
         serialize store_attribute, Hash
-        store_accessor(store_attribute, options[:accessors]) if options.has_key? :accessors
+        store_accessor(store_attribute, options[:accessors], prefix: options[:prefix]) if options.has_key? :accessors
       end
 
-      def store_accessor(store_attribute, *keys)
-        keys.flatten.each do |key|
-          define_method("#{key}=") do |value|
+      def store_accessor(store_attribute, *args)
+        options = args.extract_options!
+
+        args.flatten.each do |key|
+          method_name = \
+            if options[:prefix]
+              options[:prefix].is_a?(TrueClass) ? "#{store_attribute}_#{key}" : "#{options[:prefix]}_#{key}"
+            else
+              key
+            end
+
+          method_name = key unless method_name
+
+          define_method("#{method_name}=") do |value|
             send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
             send(store_attribute)[key] = value
             send("#{store_attribute}_will_change!")
           end
 
-          define_method(key) do
+          define_method(method_name) do
             send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
             send(store_attribute)[key]
           end
