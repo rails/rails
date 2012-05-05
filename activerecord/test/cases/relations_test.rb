@@ -6,7 +6,6 @@ require 'models/topic'
 require 'models/comment'
 require 'models/author'
 require 'models/comment'
-require 'models/rating'
 require 'models/entrant'
 require 'models/developer'
 require 'models/reply'
@@ -20,7 +19,7 @@ require 'models/minivan'
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
-    :ratings, :tags, :taggings, :cars, :minivans
+    :tags, :taggings, :cars, :minivans
 
   def test_do_not_double_quote_string_id
     van = Minivan.last
@@ -730,12 +729,6 @@ class RelationTest < ActiveRecord::TestCase
   def test_relation_merging_with_joins
     comments = Comment.joins(:post).where(:body => 'Thank you for the welcome').merge(Post.where(:body => 'Such a lovely day'))
     assert_equal 1, comments.count
-  end
-
-  def test_relation_merging_with_merged_joins
-    special_comments_with_ratings = SpecialComment.joins(:ratings)
-    posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
-    assert_equal 1, authors(:david).posts.merge(posts_with_special_comments_with_ratings).to_a.length
   end
 
   def test_count
