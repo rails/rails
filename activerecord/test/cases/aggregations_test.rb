@@ -119,6 +119,11 @@ class AggregationsTest < ActiveRecord::TestCase
     assert_equal 'Barnoit GUMBLEAU', customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname
   end
+
+  def test_cache_aggregation_part_on_write
+    customers(:david).address = Address.new("Different Street", customers(:david).address_city, customers(:david).address_country)
+    assert_not_nil customers(:david).instance_variable_get(:@aggregation_cache)['address']
+  end
 end
 
 class OverridingAggregationsTest < ActiveRecord::TestCase
