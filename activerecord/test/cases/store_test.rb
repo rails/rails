@@ -20,24 +20,24 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal '37signals.com', @john.homepage
   end
 
-  test "custom namespacing" do
+  test "custom namespacing via prefix option" do
     @john.book_title = 'Picture of Dorian Gray'
     @john.save
 
     @john.reload
     assert_equal 'Picture of Dorian Gray', @john.book_title
-    assert_equal 'Picture of Dorian Gray', @john.novel[:title]
-    assert_equal nil, @john.novel[:book_title]
+    assert_equal 'Picture of Dorian Gray', @john.novels[:title]
+    assert_equal nil, @john.novels[:book_title]
   end
 
-  test "namespace 'true' uses serialized database column as namespace" do
-    @john.magazine_cover = 'awesome'
+  test "prefix 'true' uses serialized database column as namespace" do
+    @john.magazines_cover = 'Cat Fancy'
     @john.save
 
     @john.reload
-    assert_equal 'awesome', @john.magazine_cover
-    assert_equal 'awesome', @john.magazine[:cover]
-    assert_equal nil, @john.magazine[:magazine_cover]
+    assert_equal 'Cat Fancy', @john.magazines_cover
+    assert_equal 'Cat Fancy', @john.magazines[:cover]
+    assert_equal nil, @john.magazines[:magazine_cover]
   end
 
   test "accessing attributes not exposed by accessors" do

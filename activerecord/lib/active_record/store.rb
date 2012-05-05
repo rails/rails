@@ -25,15 +25,15 @@ module ActiveRecord
   #     store_accessor :settings, :privileges, :servants
   #   end
   #
-  # To prevent method name conflicts, you can pass in a <tt>namespace</tt> option containing
-  # either custom text or true to simply use the database column as the namespace.
+  # To prevent method name conflicts, you can pass in a <tt>prefix</tt> option containing
+  # either custom text or true to simply use the database column as the prefix.
   #
   #   class User < ActiveRecord::Base
-  #     store :settings, accessors: [ :color ], namespace: true
-  #     store :preferences, accessors: [ :color ], namespace: 'config'
+  #     store :settings, accessors: [ :color ], prefix: true
+  #     store :preferences, accessors: [ :color ], prefix: 'config'
   #
-  #     store_accessor :settings, :homepage, namespace: true
-  #     store_accessor :preferences, :homepage, namespace: 'config'
+  #     store_accessor :settings, :homepage, prefix: true
+  #     store_accessor :preferences, :homepage, prefix: 'config'
   #   end
   #
   #   u = User.new(settings_color: 'black',
@@ -47,7 +47,7 @@ module ActiveRecord
     module ClassMethods
       def store(store_attribute, options = {})
         serialize store_attribute, Hash
-        store_accessor(store_attribute, options[:accessors], :namespace => options[:namespace]) if options.has_key? :accessors
+        store_accessor(store_attribute, options[:accessors], prefix: options[:prefix]) if options.has_key? :accessors
       end
 
       def store_accessor(store_attribute, *args)
@@ -55,8 +55,8 @@ module ActiveRecord
 
         args.flatten.each do |key|
           method_name = \
-            if options[:namespace]
-              options[:namespace].is_a?(TrueClass) ? "#{store_attribute}_#{key}" : "#{options[:namespace]}_#{key}"
+            if options[:prefix]
+              options[:prefix].is_a?(TrueClass) ? "#{store_attribute}_#{key}" : "#{options[:prefix]}_#{key}"
             else
               key
             end

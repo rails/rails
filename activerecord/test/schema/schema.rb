@@ -39,8 +39,8 @@ ActiveRecord::Schema.define do
     t.string :name
     t.text :settings, :null => true
     t.text :preferences, :null => false, :default => ""
-    t.text :novel, :null => false, :default => ""
-    t.text :magazine, :null => false, :default => ""
+    t.text :novels
+    t.text :magazines
     t.references :account
   end
 
