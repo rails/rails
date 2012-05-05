@@ -51,13 +51,13 @@ module ActiveRecord
     #   Post.find_by "published_at < ?", 2.weeks.ago
     #
     def find_by(*args)
-      where(*args).first
+      where(*args).take
     end
 
     # Like <tt>find_by</tt>, except that if no record is found, raises
     # an <tt>ActiveRecord::RecordNotFound</tt> error.
     def find_by!(*args)
-      where(*args).first!
+      where(*args).take!
     end
 
     # Gives a record (or N records if a parameter is supplied) without any implied
@@ -269,7 +269,7 @@ module ActiveRecord
       substitute = connection.substitute_at(column, bind_values.length)
       relation = where(table[primary_key].eq(substitute))
       relation.bind_values += [[column, id]]
-      record = relation.first
+      record = relation.take
 
       unless record
         conditions = arel.where_sql
@@ -309,7 +309,7 @@ module ActiveRecord
 
     def find_take
       if loaded?
-        @records.take(1).first
+        @records.first
       else
         @take ||= limit(1).to_a.first
       end
