@@ -101,7 +101,7 @@ SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
 
 h5. +take+
 
-<tt>Model.take</tt> retrieves a record without any implicit ordering. The retrieved record may vary depending on the database engine. For example:
+<tt>Model.take</tt> retrieves a record without any implicit ordering. For example:
 
 <ruby>
 client = Client.take
@@ -114,11 +114,13 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 1
 </sql>
 
-<tt>Model.take</tt> returns +nil+ if no record is found. No exception will be raised.
+<tt>Model.take</tt> returns +nil+ if no record is found and no exception will be raised.
+
+TIP: The retrieved record may vary depending on the database engine.
 
 h5. +first+
 
-<tt>Model.first</tt> finds the first record. If no order is chained it will order by primary key. For example:
+<tt>Model.first</tt> finds the first record ordered by the primary key. For example:
 
 <ruby>
 client = Client.first
@@ -131,11 +133,11 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
 </sql>
 
-<tt>Model.first</tt> returns +nil+ if no matching record is found. No exception will be raised.
+<tt>Model.first</tt> returns +nil+ if no matching record is found and no exception will be raised.
 
 h5. +last+
 
-<tt>Model.last</tt> finds the last record. If no order is chained it will order by primary key. For example:
+<tt>Model.last</tt> finds the last record ordered by the primary key. For example:
 
 <ruby>
 client = Client.last
@@ -148,7 +150,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 </sql>
 
-<tt>Model.last</tt> returns +nil+ if no matching record is found. No exception will be raised.
+<tt>Model.last</tt> returns +nil+ if no matching record is found and no exception will be raised.
 
 h5. +find_by+
 
@@ -183,11 +185,11 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 1
 </sql>
 
-<tt>Model.take!</tt> raises +RecordNotFound+ if no matching record is found.
+<tt>Model.take!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
 h5(#first_1). +first!+
 
-<tt>Model.first!</tt> finds the first record. If no order is chained it will order by primary key. For example:
+<tt>Model.first!</tt> finds the first record ordered by the primary key. For example:
 
 <ruby>
 client = Client.first!
@@ -200,11 +202,11 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
 </sql>
 
-<tt>Model.first!</tt> raises +RecordNotFound+ if no matching record is found.
+<tt>Model.first!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
 h5(#last_1). +last!+
 
-<tt>Model.last!</tt> finds the last record. If no order is chained it will order by primary key. For example:
+<tt>Model.last!</tt> finds the last record ordered by the primary key. For example:
 
 <ruby>
 client = Client.last!
@@ -217,18 +219,18 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 </sql>
 
-<tt>Model.last!</tt> raises +RecordNotFound+ if no matching record is found.
+<tt>Model.last!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
 h5(#find_by_1). +find_by!+
 
-<tt>Model.find_by!</tt> finds the first record matching some conditions. It raises +RecordNotFound+ if no matching record is found. For example:
+<tt>Model.find_by!</tt> finds the first record matching some conditions. It raises +ActiveRecord::RecordNotFound+ if no matching record is found. For example:
 
 <ruby>
 Client.find_by! first_name: 'Lifo'
 # => #<Client id: 1, first_name: "Lifo">
 
 Client.find_by! first_name: 'Jon'
-# => RecordNotFound
+# => ActiveRecord::RecordNotFound
 </ruby>
 
 It is equivalent to writing:
