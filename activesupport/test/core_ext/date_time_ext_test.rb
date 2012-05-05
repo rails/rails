@@ -91,6 +91,14 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2005,2,4,23,59,59), DateTime.civil(2005,2,4,10,10,10).end_of_day
   end
 
+  def test_beginning_of_hour
+    assert_equal DateTime.civil(2005,2,4,19,0,0), DateTime.civil(2005,2,4,19,30,10).beginning_of_hour
+  end
+
+  def test_end_of_hour
+    assert_equal DateTime.civil(2005,2,4,19,59,59), DateTime.civil(2005,2,4,19,30,10).end_of_hour
+  end
+
   def test_beginning_of_month
     assert_equal DateTime.civil(2005,2,1,0,0,0), DateTime.civil(2005,2,22,10,10,10).beginning_of_month
   end
