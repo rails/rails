@@ -214,7 +214,7 @@ module ActiveSupport
 
       names.inject(Object) do |constant, name|
         candidate = constant.const_get(name)
-        if constant.const_defined?(name, false) || !Object.const_defined?(name)
+        if constant.const_defined?(name, false) || constant == Object || !Object.const_defined?(name)
           candidate
         else
           # Go down the ancestors to check it it's owned
