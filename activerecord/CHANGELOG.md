@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by
+    default to avoid silent data loss. This can be disabled by specifying
+    `strict: false` in your `database.yml`.
+
+    *Michael Pearson*
+
 *   Added default order to `first` to assure consistent results among
     diferent database engines. Introduced `take` as a replacement to
     the old behavior of `first`.
