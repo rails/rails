@@ -196,12 +196,11 @@ a, a:link, a:visited {
 	width: 27em;
 	display: block;
 	background: #980905;
+	border-radius: 1em;
 	-webkit-border-radius: 1em;
 	-moz-border-radius: 1em;
-	border-radius: 1em;
 	-webkit-box-shadow: 0.25em 0.25em 1em rgba(0,0,0,0.25);
 	-moz-box-shadow: rgba(0,0,0,0.25) 0.25em 0.25em 1em;
-	box-shadow: 0.25em 0.25em 1em rgba(0,0,0,0.25);
 	color: #f1938c;
 	padding: 1.5em 2em;
 	position: absolute;
@@ -448,8 +447,8 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
 
 #edge-badge {
   position: fixed;
-  right: 0;
-  top: 0;
+  right: 0px;
+  top: 0px;
   z-index: 100;
   border: none;
 }
