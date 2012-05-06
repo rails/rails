@@ -32,7 +32,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def test_to_datetime
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0)
 
-    assert datetime.equal?(datetime.to_datetime)
+    assert datetime.to_datetime, datetime
   end
 
   def test_to_time
