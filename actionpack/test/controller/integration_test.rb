@@ -405,6 +405,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_request_with_bad_format
+    with_test_route_set do
+      xhr :get, '/get.php'
+      assert_equal 406, status
+      assert_response 406
+      assert_response :not_acceptable
+    end
+  end
+
   def test_get_with_query_string
     with_test_route_set do
       get '/get_with_params?foo=bar'
