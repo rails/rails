@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'active_support/inflector/inflections'
 
 module ActiveSupport
@@ -75,7 +77,7 @@ module ActiveSupport
     #   "SSLError".underscore.camelize # => "SslError"
     def underscore(camel_cased_word)
       word = camel_cased_word.to_s.dup
-      word.gsub!(/::/, '/')
+      word.gsub!('::', '/')
       word.gsub!(/(?:([A-Za-z\d])|^)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1}#{$1 && '_'}#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
       word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
@@ -92,9 +94,9 @@ module ActiveSupport
     #   "author_id"       # => "Author"
     def humanize(lower_case_and_underscored_word)
       result = lower_case_and_underscored_word.to_s.dup
-      inflections.humans.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+      inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
       result.gsub!(/_id$/, "")
-      result.gsub!(/_/, ' ')
+      result.tr!('_', ' ')
       result.gsub(/([a-z\d]*)/i) { |match|
         "#{inflections.acronyms[match] || match.downcase}"
       }.gsub(/^\w/) { $&.upcase }
@@ -104,7 +106,7 @@ module ActiveSupport
     # a nicer looking title. +titleize+ is meant for creating pretty output. It is not
     # used in the Rails internals.
     #
-    # +titleize+ is also aliased as as +titlecase+.
+    # +titleize+ is also aliased as +titlecase+.
     #
     # Examples:
     #   "man from the boondocks".titleize   # => "Man From The Boondocks"
@@ -112,7 +114,7 @@ module ActiveSupport
     #   "TheManWithoutAPast".titleize       # => "The Man Without A Past"
     #   "raiders_of_the_lost_ark".titleize  # => "Raiders Of The Lost Ark"
     def titleize(word)
-      humanize(underscore(word)).gsub(/\b('?[a-z])/) { $1.capitalize }
+      humanize(underscore(word)).gsub(/\b(?<!['’`])[a-z]/) { $&.capitalize }
     end
 
     # Create the name of a table like Rails does for models to table names. This method
@@ -144,9 +146,9 @@ module ActiveSupport
     # Replaces underscores with dashes in the string.
     #
     # Example:
-    #   "puni_puni" # => "puni-puni"
+    #   "puni_puni".dasherize # => "puni-puni"
     def dasherize(underscored_word)
-      underscored_word.gsub(/_/, '-')
+      underscored_word.tr('_', '-')
     end
 
     # Removes the module part from the expression in the string:
@@ -210,11 +212,9 @@ module ActiveSupport
       names = camel_cased_word.split('::')
       names.shift if names.empty? || names.first.empty?
 
-      constant = Object
-      names.each do |name|
-        constant = constant.const_get(name, false)
+      names.inject(Object) do |constant, name|
+        constant.const_get(name, false)
       end
-      constant
     end
 
     # Tries to find a constant with the name specified in the argument string:
@@ -250,6 +250,29 @@ module ActiveSupport
       end
     end
 
+    # Returns the suffix that should be added to a number to denote the position
+    # in an ordered sequence such as 1st, 2nd, 3rd, 4th.
+    #
+    # Examples:
+    #   ordinal(1)     # => "st"
+    #   ordinal(2)     # => "nd"
+    #   ordinal(1002)  # => "nd"
+    #   ordinal(1003)  # => "rd"
+    #   ordinal(-11)   # => "th"
+    #   ordinal(-1021) # => "st"
+    def ordinal(number)
+      if (11..13).include?(number.to_i.abs % 100)
+        "th"
+      else
+        case number.to_i.abs % 10
+          when 1; "st"
+          when 2; "nd"
+          when 3; "rd"
+          else    "th"
+        end
+      end
+    end
+
     # Turns a number into an ordinal string used to denote the position in an
     # ordered sequence such as 1st, 2nd, 3rd, 4th.
     #
@@ -261,16 +284,7 @@ module ActiveSupport
     #   ordinalize(-11)   # => "-11th"
     #   ordinalize(-1021) # => "-1021st"
     def ordinalize(number)
-      if (11..13).include?(number.to_i.abs % 100)
-        "#{number}th"
-      else
-        case number.to_i.abs % 10
-          when 1; "#{number}st"
-          when 2; "#{number}nd"
-          when 3; "#{number}rd"
-          else    "#{number}th"
-        end
-      end
+      "#{number}#{ordinal(number)}"
     end
 
     private
@@ -294,10 +308,10 @@ module ActiveSupport
     def apply_inflections(word, rules)
       result = word.to_s.dup
 
-      if word.empty? || inflections.uncountables.any? { |inflection| result =~ /\b#{inflection}\Z/i }
+      if word.empty? || inflections.uncountables.include?(result.downcase[/\b\w+\Z/])
         result
       else
-        rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+        rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
         result
       end
     end

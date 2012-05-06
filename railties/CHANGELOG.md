@@ -1,8 +1,45 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `config.queue_consumer` to allow the default consumer to be configurable. *Carlos Antonio da Silva*
+
+*   Add Rails.queue as an interface with a default implementation that consumes jobs in a separate thread. *Yehuda Katz*
+
+*   Remove Rack::SSL in favour of ActionDispatch::SSL. *Rafael Mendonça França*
+
+*   Remove Active Resource from Rails framework. *Prem Sichangrist*
+
+*   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. *Piotr Sarnacki*
+
+    Example:
+
+        # it can be added to config/application.rb
+        console do
+          # this block is called only when running console,
+          # so we can safely require pry here
+          require "pry"
+          config.console = Pry
+        end
+
+*   Add convenience `hide!` method to Rails generators to hide current generator
+    namespace from showing when running `rails generate`. *Carlos Antonio da Silva*
+
 *   Scaffold now uses `content_tag_for` in index.html.erb *José Valim*
 
 *   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
+
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   Documentation fixes.
+
+*   Migration generation understands decimal{1.2} and decimal{1-2}, in
+    addition to decimal{1,2}. *José Valim*
+
 
 ## Rails 3.2.0 (January 20, 2012) ##
 
@@ -45,6 +82,22 @@
 *   Remove old plugin generator (`rails generate plugin`) in favor of `rails plugin new` command *Guillermo Iguaran*
 
 *   Remove old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API *Guillermo Iguaran*
+
+
+## Rails 3.1.4 (March 1, 2012) ##
+
+*   Setting config.force_ssl also marks the session cookie as secure.
+
+    *José Valim*
+
+*   Add therubyrhino to Gemfile in new applications when running under JRuby.
+
+    *Guillermo Iguaran*
+
+
+## Rails 3.1.3 (November 20, 2011) ##
+
+*   New apps should be generated with a sass-rails dependency of 3.1.5, not 3.1.5.rc.2
 
 
 ## Rails 3.1.2 (November 18, 2011) ##
@@ -163,12 +216,37 @@
 *   Include all helpers from plugins and shared engines in application *Piotr Sarnacki*
 
 
+## Rails 3.0.12 (March 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   Updated Prototype UJS to lastest version fixing multiples errors in IE [Guillermo Iguaran]
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   Fix Rake 0.9.0 support.
+
+
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   No changes.
 
 
-*   Rails 3.0.6 (April 5, 2011)
+##   Rails 3.0.6 (April 5, 2011) ##
 
 *   No changes.
 

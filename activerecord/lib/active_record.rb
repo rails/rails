@@ -25,6 +25,7 @@ require 'active_support'
 require 'active_support/i18n'
 require 'active_model'
 require 'arel'
+require 'active_record_deprecated_finders'
 
 require 'active_record/version'
 
@@ -62,10 +63,7 @@ module ActiveRecord
     autoload :CounterCache
     autoload :ConnectionHandling
     autoload :DynamicMatchers
-    autoload :DynamicFinderMatch
-    autoload :DynamicScopeMatch
     autoload :Explain
-    autoload :IdentityMap
     autoload :Inheritance
     autoload :Integration
     autoload :Migration

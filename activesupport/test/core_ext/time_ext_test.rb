@@ -93,6 +93,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_beginning_of_hour
+    assert_equal Time.local(2005,2,4,19,0,0), Time.local(2005,2,4,19,30,10).beginning_of_hour
+  end
+
   def test_beginning_of_month
     assert_equal Time.local(2005,2,1,0,0,0), Time.local(2005,2,22,10,10,10).beginning_of_month
   end
@@ -125,6 +129,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,8,31,0,0,0).end_of_week #friday
     assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,9,01,0,0,0).end_of_week #saturday
     assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,9,02,0,0,0).end_of_week #sunday
+  end
+
+  def test_end_of_hour
+    assert_equal Time.local(2005,2,4,19,59,59,999999.999), Time.local(2005,2,4,19,30,10).end_of_hour
   end
 
   def test_end_of_month
@@ -196,6 +204,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_prev_year
     assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).prev_year
+  end
+
+  def test_last_year
+    assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).last_year
   end
 
   def test_next_year
@@ -505,6 +517,16 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal Time.local(2006,11,15), Time.local(2006,11,23,0,0,0).prev_week(:wednesday)
     end
   end
+  
+  def test_last_week
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.local(2005,2,21), Time.local(2005,3,1,15,15,10).last_week
+      assert_equal Time.local(2005,2,22), Time.local(2005,3,1,15,15,10).last_week(:tuesday)
+      assert_equal Time.local(2005,2,25), Time.local(2005,3,1,15,15,10).last_week(:friday)
+      assert_equal Time.local(2006,10,30), Time.local(2006,11,6,0,0,0).last_week
+      assert_equal Time.local(2006,11,15), Time.local(2006,11,23,0,0,0).last_week(:wednesday)
+    end
+  end
 
   def test_next_week
     with_env_tz 'US/Eastern' do
@@ -662,6 +684,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).prev_month
   end
 
+  def test_last_month_on_31st
+    assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).last_month
+  end
+
   def test_xmlschema_is_available
     assert_nothing_raised { Time.now.xmlschema }
   end
@@ -807,6 +833,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_all_week
     assert_equal Time.local(2011,6,6,0,0,0)..Time.local(2011,6,12,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_week
+    assert_equal Time.local(2011,6,5,0,0,0)..Time.local(2011,6,11,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_week(:sunday)
   end
 
   def test_all_month

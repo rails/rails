@@ -43,6 +43,7 @@ module ActionDispatch
     class CookieStore < Rack::Session::Cookie
       include Compatibility
       include StaleSessionCheck
+      include SessionObject
 
       private
 
@@ -59,7 +60,8 @@ module ActionDispatch
       end
 
       def set_session(env, sid, session_data, options)
-        session_data.merge("session_id" => sid)
+        session_data["session_id"] = sid
+        session_data
       end
 
       def set_cookie(env, session_id, cookie)

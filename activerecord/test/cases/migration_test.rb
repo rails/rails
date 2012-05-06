@@ -36,7 +36,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.initialize_schema_migrations_table
     ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::Migrator.schema_migrations_table_name}"
 
-    %w(things awesome_things prefix_things_suffix prefix_awesome_things_suffix).each do |table|
+    %w(things awesome_things prefix_things_suffix p_awesome_things_s ).each do |table|
       Thing.connection.drop_table(table) rescue nil
     end
     Thing.reset_column_information
@@ -109,7 +109,7 @@ class MigrationTest < ActiveRecord::TestCase
       :value_of_e => BigDecimal("2.7182818284590452353602875")
     )
 
-    b = BigNumber.find(:first)
+    b = BigNumber.first
     assert_not_nil b
 
     assert_not_nil b.bank_balance
@@ -153,7 +153,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     GiveMeBigNumbers.down
-    assert_raise(ActiveRecord::StatementInvalid) { BigNumber.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { BigNumber.first }
   end
 
   def test_filtering_migrations
@@ -165,13 +165,13 @@ class MigrationTest < ActiveRecord::TestCase
 
     Person.reset_column_information
     assert Person.column_methods_hash.include?(:last_name)
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", &name_filter)
 
     Person.reset_column_information
     assert !Person.column_methods_hash.include?(:last_name)
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   end
 
   class MockMigration < ActiveRecord::Migration
@@ -278,19 +278,19 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_rename_table_with_prefix_and_suffix
     assert !Thing.table_exists?
-    ActiveRecord::Base.table_name_prefix = 'prefix_'
-    ActiveRecord::Base.table_name_suffix = '_suffix'
+    ActiveRecord::Base.table_name_prefix = 'p_'
+    ActiveRecord::Base.table_name_suffix = '_s'
     Thing.reset_table_name
     Thing.reset_sequence_name
     WeNeedThings.up
 
     assert Thing.create("content" => "hello world")
-    assert_equal "hello world", Thing.find(:first).content
+    assert_equal "hello world", Thing.first.content
 
     RenameThings.up
-    Thing.table_name = "prefix_awesome_things_suffix"
+    Thing.table_name = "p_awesome_things_s"
 
-    assert_equal "hello world", Thing.find(:first).content
+    assert_equal "hello world", Thing.first.content
   ensure
     ActiveRecord::Base.table_name_prefix = ''
     ActiveRecord::Base.table_name_suffix = ''
@@ -306,10 +306,10 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.reset_sequence_name
     WeNeedReminders.up
     assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
+    assert_equal "hello world", Reminder.first.content
 
     WeNeedReminders.down
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   ensure
     ActiveRecord::Base.table_name_prefix = ''
     ActiveRecord::Base.table_name_suffix = ''
@@ -404,6 +404,7 @@ end
 class ChangeTableMigrationsTest < ActiveRecord::TestCase
   def setup
     @connection = Person.connection
+    @connection.stubs(:add_index)
     @connection.create_table :delete_me, :force => true do |t|
     end
   end
@@ -587,14 +588,14 @@ class ChangeTableMigrationsTest < ActiveRecord::TestCase
 
   def test_remove_drops_single_column
     with_change_table do |t|
-      @connection.expects(:remove_column).with(:delete_me, [:bar])
+      @connection.expects(:remove_column).with(:delete_me, :bar)
       t.remove :bar
     end
   end
 
   def test_remove_drops_multiple_columns
     with_change_table do |t|
-      @connection.expects(:remove_column).with(:delete_me, [:bar, :baz])
+      @connection.expects(:remove_column).with(:delete_me, :bar, :baz)
       t.remove :bar, :baz
     end
   end
@@ -800,7 +801,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    sources = ActiveSupport::OrderedHash.new
+    sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy"
     sources[:omg] = MIGRATIONS_ROOT + "/to_copy2"
     ActiveRecord::Migration.copy(@migrations_path, sources)
@@ -841,7 +842,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    sources = ActiveSupport::OrderedHash.new
+    sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
     sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_timestamps2"
 
@@ -882,8 +883,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   def test_skipping_migrations
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
-
-    sources = ActiveSupport::OrderedHash.new
+    
+    sources = {} 
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
     sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_name_collision"
 
@@ -902,7 +903,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    sources = ActiveSupport::OrderedHash.new
+    sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
 
     skipped = []

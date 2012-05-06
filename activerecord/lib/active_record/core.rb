@@ -1,4 +1,6 @@
 require 'active_support/concern'
+require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/object/deep_dup'
 require 'thread'
 
 module ActiveRecord
@@ -130,18 +132,18 @@ module ActiveRecord
       end
 
       def arel_engine
-        @arel_engine ||= connection_handler.connection_pools[name] ? self : active_record_super.arel_engine
+        @arel_engine ||= connection_handler.retrieve_connection_pool(self) ? self : active_record_super.arel_engine
       end
 
       private
 
       def relation #:nodoc:
-        @relation ||= Relation.new(self, arel_table)
+        relation = Relation.new(self, arel_table)
 
         if finder_needs_type_condition?
-          @relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
+          relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
         else
-          @relation
+          relation
         end
       end
     end
@@ -164,7 +166,8 @@ module ActiveRecord
     #   # Instantiates a single new object bypassing mass-assignment security
     #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
     def initialize(attributes = nil, options = {})
-      @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
+      @attributes = self.class.initialize_attributes(self.class.column_defaults.deep_dup)
+      @columns_hash = self.class.column_types.dup
 
       init_internals
 
@@ -175,7 +178,7 @@ module ActiveRecord
       assign_attributes(attributes, options) if attributes
 
       yield self if block_given?
-      run_callbacks :initialize
+      run_callbacks :initialize if _initialize_callbacks.any?
     end
 
     # Initialize an empty model object from +coder+. +coder+ must contain
@@ -190,6 +193,7 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes = self.class.initialize_attributes(coder['attributes'])
+      @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
 
       init_internals
 
@@ -209,6 +213,8 @@ module ActiveRecord
     # The dup method does not preserve the timestamps (created|updated)_(at|on).
     def initialize_dup(other)
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
+      self.class.initialize_attributes(cloned_attributes)
+
       cloned_attributes.delete(self.class.primary_key)
 
       @attributes = cloned_attributes
@@ -218,7 +224,7 @@ module ActiveRecord
 
       @changed_attributes = {}
       self.class.column_defaults.each do |attr, orig_value|
-        @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
+        @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
       end
 
       @aggregation_cache = {}
@@ -243,7 +249,7 @@ module ActiveRecord
     #   end
     #   coder = {}
     #   Post.new.encode_with(coder)
-    #   coder # => { 'id' => nil, ... }
+    #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
       coder['attributes'] = attributes
     end
@@ -322,6 +328,11 @@ module ActiveRecord
       "#<#{self.class} #{inspection}>"
     end
 
+    # Returns a hash of the given methods with their names as keys and returned values as values.
+    def slice(*methods)
+      Hash[methods.map { |method| [method, public_send(method)] }].with_indifferent_access
+    end
+
     private
 
     # Under Ruby 1.9, Array#flatten will call #to_ary (recursively) on each of the elements
@@ -341,7 +352,6 @@ module ActiveRecord
 
       @attributes[pk] = nil unless @attributes.key?(pk)
 
-      @relation               = nil
       @aggregation_cache      = {}
       @association_cache      = {}
       @attributes_cache       = {}

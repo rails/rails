@@ -46,7 +46,7 @@ module ActiveRecord
     #
     #    def <=>(other_money)
     #      if currency == other_money.currency
-    #        amount <=> amount
+    #        amount <=> other_money.amount
     #      else
     #        amount <=> other_money.exchange_to(currency).amount
     #      end
@@ -86,6 +86,12 @@ module ActiveRecord
     #   customer.address_street = "Hyancintvej"
     #   customer.address_city   = "Copenhagen"
     #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
+    #
+    #   customer.address_street = "Vesterbrogade"
+    #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
+    #   customer.clear_aggregation_cache
+    #   customer.address        # => Address.new("Vesterbrogade", "Copenhagen")
+    #
     #   customer.address = Address.new("May Street", "Chicago")
     #   customer.address_street # => "May Street"
     #   customer.address_city   # => "Chicago"
@@ -101,8 +107,8 @@ module ActiveRecord
     # ActiveRecord::Base classes are entity objects.
     #
     # It's also important to treat the value objects as immutable. Don't allow the Money object to have
-    # its amount changed after creation. Create a new Money object with the new value instead. This
-    # is exemplified by the Money#exchange_to method that returns a new value object instead of changing
+    # its amount changed after creation. Create a new Money object with the new value instead. The
+    # Money#exchange_to method is an example of this. It returns a new value object instead of changing
     # its own values. Active Record won't persist value objects that have been changed through means
     # other than the writer method.
     #
@@ -119,7 +125,7 @@ module ActiveRecord
     # option, as arguments. If the value class doesn't support this convention then +composed_of+ allows
     # a custom constructor to be specified.
     #
-    # When a new value is assigned to the value object the default assumption is that the new value
+    # When a new value is assigned to the value object, the default assumption is that the new value
     # is an instance of the value class. Specifying a custom converter allows the new value to be automatically
     # converted to an instance of value class if necessary.
     #

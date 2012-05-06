@@ -274,6 +274,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   def decode_credentials(header)
-    ActionController::HttpAuthentication::Digest.decode_credentials(@response.headers['WWW-Authenticate'])
+    ActionController::HttpAuthentication::Digest.decode_credentials(header)
   end
 end

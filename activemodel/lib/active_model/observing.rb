@@ -4,6 +4,8 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/enumerable'
+require 'active_support/deprecation'
+require 'active_support/core_ext/object/try'
 require 'active_support/descendants_tracker'
 
 module ActiveModel
@@ -69,27 +71,34 @@ module ActiveModel
       end
 
       # Notify list of observers of a change.
-      def notify_observers(*arg)
-        observer_instances.each { |observer| observer.update(*arg) }
+      def notify_observers(*args)
+        observer_instances.each { |observer| observer.update(*args) }
       end
 
       # Total number of observers.
-      def count_observers
+      def observers_count
         observer_instances.size
+      end
+
+      def count_observers
+        msg = "count_observers is deprecated in favor of observers_count"
+        ActiveSupport::Deprecation.warn(msg)
+        observers_count
       end
 
       protected
         def instantiate_observer(observer) #:nodoc:
           # string/symbol
           if observer.respond_to?(:to_sym)
-            observer.to_s.camelize.constantize.instance
-          elsif observer.respond_to?(:instance)
+            observer = observer.to_s.camelize.constantize
+          end
+          if observer.respond_to?(:instance)
             observer.instance
           else
             raise ArgumentError,
-              "#{observer} must be a lowercase, underscored class name (or an " +
-              "instance of the class itself) responding to the instance " +
-              "method. Example: Person.observers = :big_brother # calls " +
+              "#{observer} must be a lowercase, underscored class name (or " +
+              "the class itself) responding to the method :instance. " +
+              "Example: Person.observers = :big_brother # calls " +
               "BigBrother.instance"
           end
         end
@@ -101,17 +110,24 @@ module ActiveModel
         end
     end
 
-    private
-      # Fires notifications to model's observers
-      #
-      # def save
-      #   notify_observers(:before_save)
-      #   ...
-      #   notify_observers(:after_save)
-      # end
-      def notify_observers(method)
-        self.class.notify_observers(method, self)
-      end
+    # Fires notifications to model's observers
+    #
+    #   def save
+    #     notify_observers(:before_save)
+    #     ...
+    #     notify_observers(:after_save)
+    #   end
+    #
+    # Custom notifications can be sent in a similar fashion:
+    #
+    #   notify_observers(:custom_notification, :foo)
+    #
+    # This will call +custom_notification+, passing as arguments
+    # the current object and :foo.
+    #
+    def notify_observers(method, *extra_args)
+      self.class.notify_observers(method, self, *extra_args)
+    end
   end
 
   # == Active Model Observers
@@ -186,7 +202,7 @@ module ActiveModel
       def observe(*models)
         models.flatten!
         models.collect! { |model| model.respond_to?(:to_sym) ? model.to_s.camelize.constantize : model }
-        redefine_method(:observed_classes) { models }
+        singleton_class.redefine_method(:observed_classes) { models }
       end
 
       # Returns an array of Classes to observe.
@@ -205,15 +221,12 @@ module ActiveModel
       # The class observed by default is inferred from the observer's class name:
       #   assert_equal Person, PersonObserver.observed_class
       def observed_class
-        if observed_class_name = name[/(.*)Observer/, 1]
-          observed_class_name.constantize
-        else
-          nil
-        end
+        name[/(.*)Observer/, 1].try :constantize
       end
     end
 
     # Start observing the declared classes and their subclasses.
+    # Called automatically by the instance method.
     def initialize
       observed_classes.each { |klass| add_observer!(klass) }
     end
@@ -224,10 +237,10 @@ module ActiveModel
 
     # Send observed_method(object) if the method exists and
     # the observer is enabled for the given object's class.
-    def update(observed_method, object, &block) #:nodoc:
+    def update(observed_method, object, *extra_args, &block) #:nodoc:
       return unless respond_to?(observed_method)
       return if disabled_for?(object)
-      send(observed_method, object, &block)
+      send(observed_method, object, *extra_args, &block)
     end
 
     # Special method sent by the observed class when it is inherited.
@@ -242,6 +255,7 @@ module ActiveModel
         klass.add_observer(self)
       end
 
+      # Returns true if notifications are disabled for this object.
       def disabled_for?(object)
         klass = object.class
         return false unless klass.respond_to?(:observers)

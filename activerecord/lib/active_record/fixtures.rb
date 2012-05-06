@@ -3,18 +3,13 @@ require 'yaml'
 require 'zlib'
 require 'active_support/dependencies'
 require 'active_support/core_ext/object/blank'
-require 'active_support/ordered_hash'
 require 'active_record/fixtures/file'
-
-if defined? ActiveRecord
-  class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
-  end
-else
-  class FixtureClassNotFound < StandardError #:nodoc:
-  end
-end
+require 'active_record/errors'
 
 module ActiveRecord
+  class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
+  end
+
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
   #
   # They are stored in YAML files, one file per model, which are placed in the directory
@@ -508,7 +503,7 @@ module ActiveRecord
       @name         = fixture_name
       @class_name   = class_name
 
-      @fixtures     = ActiveSupport::OrderedHash.new
+      @fixtures     = {}
 
       # Should be an AR::Base type class
       if class_name.is_a?(Class)
@@ -797,9 +792,7 @@ module ActiveRecord
                 @fixture_cache[fixture_name].delete(fixture) if force_reload
 
                 if @loaded_fixtures[fixture_name][fixture.to_s]
-                  ActiveRecord::IdentityMap.without do
-                    @fixture_cache[fixture_name][fixture] ||= @loaded_fixtures[fixture_name][fixture.to_s].find
-                  end
+                  @fixture_cache[fixture_name][fixture] ||= @loaded_fixtures[fixture_name][fixture.to_s].find
                 else
                   raise StandardError, "No entry named '#{fixture}' found for fixture collection '#{fixture_name}'"
                 end
@@ -830,7 +823,7 @@ module ActiveRecord
     end
 
     def setup_fixtures
-      return unless !ActiveRecord::Base.configurations.blank?
+      return if ActiveRecord::Base.configurations.blank?
 
       if pre_loaded_fixtures && !use_transactional_fixtures
         raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures'

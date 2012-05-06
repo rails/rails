@@ -12,14 +12,14 @@ module ActionView
     # elements. All of the select-type methods share a number of common options that are as follows:
     #
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
-    # would give birthday[month] instead of date[month] if passed to the <tt>select_month</tt> method.
+    # would give \birthday[month] instead of \date[month] if passed to the <tt>select_month</tt> method.
     # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true,
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
-    #   of "date[month]".
+    #   of \date[month].
     module DateHelper
       # Reports the approximate distance in time between two Time, Date or DateTime objects or integers as seconds.
-      # Set <tt>include_seconds</tt> to true if you want more detailed approximations when distance < 1 min, 29 secs.
+      # Pass <tt>:include_seconds => true</tt> if you want more detailed approximations when distance < 1 min, 29 secs.
       # Distances are reported based on the following table:
       #
       #   0 <-> 29 secs                                                             # => less than a minute
@@ -29,14 +29,15 @@ module ActionView
       #   89 mins, 30 secs <-> 23 hrs, 59 mins, 29 secs                             # => about [2..24] hours
       #   23 hrs, 59 mins, 30 secs <-> 41 hrs, 59 mins, 29 secs                     # => 1 day
       #   41 hrs, 59 mins, 30 secs  <-> 29 days, 23 hrs, 59 mins, 29 secs           # => [2..29] days
-      #   29 days, 23 hrs, 59 mins, 30 secs <-> 59 days, 23 hrs, 59 mins, 29 secs   # => about 1 month
+      #   29 days, 23 hrs, 59 mins, 30 secs <-> 44 days, 23 hrs, 59 mins, 29 secs   # => about 1 month
+      #   44 days, 23 hrs, 59 mins, 30 secs <-> 59 days, 23 hrs, 59 mins, 29 secs   # => about 2 months
       #   59 days, 23 hrs, 59 mins, 30 secs <-> 1 yr minus 1 sec                    # => [2..12] months
       #   1 yr <-> 1 yr, 3 months                                                   # => about 1 year
       #   1 yr, 3 months <-> 1 yr, 9 months                                         # => over 1 year
       #   1 yr, 9 months <-> 2 yr minus 1 sec                                       # => almost 2 years
       #   2 yrs <-> max time or date                                                # => (same rules as 1 yr)
       #
-      # With <tt>include_seconds</tt> = true and the difference < 1 minute 29 seconds:
+      # With <tt>:include_seconds => true</tt> and the difference < 1 minute 29 seconds:
       #   0-4   secs      # => less than 5 seconds
       #   5-9   secs      # => less than 10 seconds
       #   10-19 secs      # => less than 20 seconds
@@ -46,36 +47,45 @@ module ActionView
       #
       # ==== Examples
       #   from_time = Time.now
-      #   distance_of_time_in_words(from_time, from_time + 50.minutes)        # => about 1 hour
-      #   distance_of_time_in_words(from_time, 50.minutes.from_now)           # => about 1 hour
-      #   distance_of_time_in_words(from_time, from_time + 15.seconds)        # => less than a minute
-      #   distance_of_time_in_words(from_time, from_time + 15.seconds, true)  # => less than 20 seconds
-      #   distance_of_time_in_words(from_time, 3.years.from_now)              # => about 3 years
-      #   distance_of_time_in_words(from_time, from_time + 60.hours)          # => 3 days
-      #   distance_of_time_in_words(from_time, from_time + 45.seconds, true)  # => less than a minute
-      #   distance_of_time_in_words(from_time, from_time - 45.seconds, true)  # => less than a minute
-      #   distance_of_time_in_words(from_time, 76.seconds.from_now)           # => 1 minute
-      #   distance_of_time_in_words(from_time, from_time + 1.year + 3.days)   # => about 1 year
-      #   distance_of_time_in_words(from_time, from_time + 3.years + 6.months) # => over 3 years
+      #   distance_of_time_in_words(from_time, from_time + 50.minutes)                                # => about 1 hour
+      #   distance_of_time_in_words(from_time, 50.minutes.from_now)                                   # => about 1 hour
+      #   distance_of_time_in_words(from_time, from_time + 15.seconds)                                # => less than a minute
+      #   distance_of_time_in_words(from_time, from_time + 15.seconds, :include_seconds => true)      # => less than 20 seconds
+      #   distance_of_time_in_words(from_time, 3.years.from_now)                                      # => about 3 years
+      #   distance_of_time_in_words(from_time, from_time + 60.hours)                                  # => 3 days
+      #   distance_of_time_in_words(from_time, from_time + 45.seconds, :include_seconds => true)      # => less than a minute
+      #   distance_of_time_in_words(from_time, from_time - 45.seconds, :include_seconds => true)      # => less than a minute
+      #   distance_of_time_in_words(from_time, 76.seconds.from_now)                                   # => 1 minute
+      #   distance_of_time_in_words(from_time, from_time + 1.year + 3.days)                           # => about 1 year
+      #   distance_of_time_in_words(from_time, from_time + 3.years + 6.months)                        # => over 3 years
       #   distance_of_time_in_words(from_time, from_time + 4.years + 9.days + 30.minutes + 5.seconds) # => about 4 years
       #
       #   to_time = Time.now + 6.years + 19.days
-      #   distance_of_time_in_words(from_time, to_time, true)     # => about 6 years
-      #   distance_of_time_in_words(to_time, from_time, true)     # => about 6 years
-      #   distance_of_time_in_words(Time.now, Time.now)           # => less than a minute
+      #   distance_of_time_in_words(from_time, to_time, :include_seconds => true)                     # => about 6 years
+      #   distance_of_time_in_words(to_time, from_time, :include_seconds => true)                     # => about 6 years
+      #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       #
-      def distance_of_time_in_words(from_time, to_time = 0, include_seconds = false, options = {})
+      def distance_of_time_in_words(from_time, to_time = 0, include_seconds_or_options = {}, options = {})
+        unless include_seconds_or_options.is_a?(Hash)
+          ActiveSupport::Deprecation.warn "distance_of_time_in_words and time_ago_in_words now accept :include_seconds " +
+                                          "as a part of options hash, not a boolean argument", caller
+          options[:include_seconds] ||= !!include_seconds_or_options
+        else
+          options = include_seconds_or_options
+        end
+
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
-        distance_in_minutes = (((to_time - from_time).abs)/60).round
-        distance_in_seconds = ((to_time - from_time).abs).round
+        from_time, to_time = to_time, from_time if from_time > to_time
+        distance_in_minutes = ((to_time - from_time)/60.0).round
+        distance_in_seconds = (to_time - from_time).round
 
         I18n.with_options :locale => options[:locale], :scope => :'datetime.distance_in_words' do |locale|
           case distance_in_minutes
             when 0..1
               return distance_in_minutes == 0 ?
                      locale.t(:less_than_x_minutes, :count => 1) :
-                     locale.t(:x_minutes, :count => distance_in_minutes) unless include_seconds
+                     locale.t(:x_minutes, :count => distance_in_minutes) unless options[:include_seconds]
 
               case distance_in_seconds
                 when 0..4   then locale.t :less_than_x_seconds, :count => 5
@@ -86,26 +96,35 @@ module ActionView
                 else             locale.t :x_minutes,           :count => 1
               end
 
-            when 2..44           then locale.t :x_minutes,      :count => distance_in_minutes
-            when 45..89          then locale.t :about_x_hours,  :count => 1
-            when 90..1439        then locale.t :about_x_hours,  :count => (distance_in_minutes.to_f / 60.0).round
-            when 1440..2519      then locale.t :x_days,         :count => 1
-            when 2520..43199     then locale.t :x_days,         :count => (distance_in_minutes.to_f / 1440.0).round
-            when 43200..86399    then locale.t :about_x_months, :count => 1
-            when 86400..525599   then locale.t :x_months,       :count => (distance_in_minutes.to_f / 43200.0).round
+            when 2...45           then locale.t :x_minutes,      :count => distance_in_minutes
+            when 45...90          then locale.t :about_x_hours,  :count => 1
+            # 90 mins up to 24 hours
+            when 90...1440        then locale.t :about_x_hours,  :count => (distance_in_minutes.to_f / 60.0).round
+            # 24 hours up to 42 hours
+            when 1440...2520      then locale.t :x_days,         :count => 1
+            # 42 hours up to 30 days
+            when 2520...43200     then locale.t :x_days,         :count => (distance_in_minutes.to_f / 1440.0).round
+            # 30 days up to 60 days
+            when 43200...86400    then locale.t :about_x_months, :count => (distance_in_minutes.to_f / 43200.0).round
+            # 60 days up to 365 days
+            when 86400...525600   then locale.t :x_months,       :count => (distance_in_minutes.to_f / 43200.0).round
             else
-              fyear = from_time.year
-              fyear += 1 if from_time.month >= 3
-              tyear = to_time.year
-              tyear -= 1 if to_time.month < 3
-              leap_years = (fyear > tyear) ? 0 : (fyear..tyear).count{|x| Date.leap?(x)}
-              minute_offset_for_leap_year = leap_years * 1440
-              # Discount the leap year days when calculating year distance.
-              # e.g. if there are 20 leap year days between 2 dates having the same day
-              # and month then the based on 365 days calculation
-              # the distance in years will come out to over 80 years when in written
-              # english it would read better as about 80 years.
-              minutes_with_offset         = distance_in_minutes - minute_offset_for_leap_year
+              if from_time.acts_like?(:time) && to_time.acts_like?(:time)
+                fyear = from_time.year
+                fyear += 1 if from_time.month >= 3
+                tyear = to_time.year
+                tyear -= 1 if to_time.month < 3
+                leap_years = (fyear > tyear) ? 0 : (fyear..tyear).count{|x| Date.leap?(x)}
+                minute_offset_for_leap_year = leap_years * 1440
+                # Discount the leap year days when calculating year distance.
+                # e.g. if there are 20 leap year days between 2 dates having the same day
+                # and month then the based on 365 days calculation
+                # the distance in years will come out to over 80 years when in written
+                # english it would read better as about 80 years.
+                minutes_with_offset = distance_in_minutes - minute_offset_for_leap_year
+              else
+                minutes_with_offset = distance_in_minutes
+              end
               remainder                   = (minutes_with_offset % 525600)
               distance_in_years           = (minutes_with_offset / 525600)
               if remainder < 131400
@@ -122,15 +141,16 @@ module ActionView
       # Like <tt>distance_of_time_in_words</tt>, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
       #
       # ==== Examples
-      #   time_ago_in_words(3.minutes.from_now)       # => 3 minutes
-      #   time_ago_in_words(Time.now - 15.hours)      # => about 15 hours
-      #   time_ago_in_words(Time.now)                 # => less than a minute
+      #   time_ago_in_words(3.minutes.from_now)                 # => 3 minutes
+      #   time_ago_in_words(Time.now - 15.hours)                # => about 15 hours
+      #   time_ago_in_words(Time.now)                           # => less than a minute
+      #   time_ago_in_words(Time.now, :include_seconds => true) # => less than 5 seconds
       #
       #   from_time = Time.now - 3.days - 14.minutes - 25.seconds
       #   time_ago_in_words(from_time)      # => 3 days
       #
-      def time_ago_in_words(from_time, include_seconds = false)
-        distance_of_time_in_words(from_time, Time.now, include_seconds)
+      def time_ago_in_words(from_time, include_seconds_or_options = {})
+        distance_of_time_in_words(from_time, Time.now, include_seconds_or_options)
       end
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
@@ -625,13 +645,18 @@ module ActionView
       #   time_tag Date.today, :pubdate => true  # =>
       #     <time datetime="2010-11-04" pubdate="pubdate">November 04, 2010</time>
       #
-      def time_tag(date_or_time, *args)
+      #   <%= time_tag Time.now do %>
+      #     <span>Right now</span>
+      #   <% end %>
+      #   # => <time datetime="2010-11-04T17:55:45+01:00"><span>Right now</span></time>
+      #
+      def time_tag(date_or_time, *args, &block)
         options  = args.extract_options!
         format   = options.delete(:format) || :long
         content  = args.first || I18n.l(date_or_time, :format => format)
         datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.rfc3339
 
-        content_tag(:time, content, options.reverse_merge(:datetime => datetime))
+        content_tag(:time, content, options.reverse_merge(:datetime => datetime), &block)
       end
     end
 
@@ -669,11 +694,7 @@ module ActionView
         @options[:discard_minute] ||= true if @options[:discard_hour]
         @options[:discard_second] ||= true unless @options[:include_seconds] && !@options[:discard_minute]
 
-        # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are
-        # valid (otherwise it could be 31 and February wouldn't be a valid date)
-        if @datetime && @options[:discard_day] && !@options[:discard_month]
-          @datetime = @datetime.change(:day => 1)
-        end
+        set_day_if_discarded
 
         if @options[:tag] && @options[:ignore_date]
           select_time
@@ -696,11 +717,7 @@ module ActionView
         @options[:discard_month]  ||= true unless order.include?(:month)
         @options[:discard_day]    ||= true if @options[:discard_month] || !order.include?(:day)
 
-        # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are
-        # valid (otherwise it could be 31 and February wouldn't be a valid date)
-        if @datetime && @options[:discard_day] && !@options[:discard_month]
-          @datetime = @datetime.change(:day => 1)
-        end
+        set_day_if_discarded
 
         [:day, :month, :year].each { |o| order.unshift(o) unless order.include?(o) }
 
@@ -798,7 +815,15 @@ module ActionView
       private
         %w( sec min hour day month year ).each do |method|
           define_method(method) do
-            @datetime.kind_of?(Fixnum) ? @datetime : @datetime.send(method) if @datetime
+            @datetime.kind_of?(Numeric) ? @datetime : @datetime.send(method) if @datetime
+          end
+        end
+
+        # If the day is hidden, the day should be set to the 1st so all month and year choices are
+        # valid. Otherwise, February 31st or February 29th, 2011 can be selected, which are invalid.
+        def set_day_if_discarded
+          if @datetime && @options[:discard_day]
+            @datetime = @datetime.change(:day => 1)
           end
         end
 
@@ -972,7 +997,10 @@ module ActionView
         # Returns the id attribute for the input tag.
         #  => "post_written_on_1i"
         def input_id_from_type(type)
-          input_name_from_type(type).gsub(/([\[\(])|(\]\[)/, '_').gsub(/[\]\)]/, '')
+          id = input_name_from_type(type).gsub(/([\[\(])|(\]\[)/, '_').gsub(/[\]\)]/, '')
+          id = @options[:namespace] + '_' + id if @options[:namespace]
+
+          id
         end
 
         # Given an ordering of datetime components, create the selection HTML
@@ -989,6 +1017,8 @@ module ActionView
 
         # Returns the separator for a given datetime component.
         def separator(type)
+          return "" if @options[:use_hidden]
+
           case type
             when :year, :month, :day
               @options[:"discard_#{type}"] ? "" : @options[:date_separator]

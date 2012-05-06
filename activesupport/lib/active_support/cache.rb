@@ -91,6 +91,7 @@ module ActiveSupport
         case
         when key.respond_to?(:cache_key) then key.cache_key
         when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
+        when key.respond_to?(:to_a)      then retrieve_cache_key(key.to_a)
         else                                  key.to_param
         end.to_s
       end
@@ -279,7 +280,7 @@ module ActiveSupport
             end
           end
           if entry && entry.expired?
-            race_ttl = options[:race_condition_ttl].to_f
+            race_ttl = options[:race_condition_ttl].to_i
             if race_ttl and Time.now.to_f - entry.expires_at <= race_ttl
               entry.expires_at = Time.now + race_ttl
               write_entry(key, entry, :expires_in => race_ttl * 2)
@@ -382,11 +383,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:exist?, name) do |payload|
           entry = read_entry(namespaced_key(name, options), options)
-          if entry && !entry.expired?
-            true
-          else
-            false
-          end
+          entry && !entry.expired?
         end
       end
 

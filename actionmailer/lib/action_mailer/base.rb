@@ -14,15 +14,15 @@ module ActionMailer #:nodoc:
   #
   #   $ rails generate mailer Notifier
   #
-  # The generated model inherits from <tt>ActionMailer::Base</tt>. Emails are defined by creating methods
-  # within the model which are then used to set variables to be used in the mail template, to
-  # change options on the mail, or to add attachments.
+  # The generated model inherits from <tt>ActionMailer::Base</tt>. A mailer model defines methods
+  # used to generate an email message. In these methods, you can setup variables to be used in
+  # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
   #
   # Examples:
   #
   #   class Notifier < ActionMailer::Base
   #     default :from => 'no-reply@example.com',
-  #            :return_path => 'system@example.com'
+  #             :return_path => 'system@example.com'
   #
   #     def welcome(recipient)
   #       @account = recipient
@@ -267,6 +267,33 @@ module ActionMailer #:nodoc:
   # set something in the defaults using a proc, and then set the same thing inside of your
   # mailer method, it will get over written by the mailer method.
   #
+  # = Callbacks
+  #
+  # You can specify callbacks using before_filter and after_filter for configuring your messages.
+  # This may be useful, for example, when you want to add default inline attachments for all
+  # messages sent out by a certain mailer class:
+  #
+  #   class Notifier < ActionMailer::Base
+  #     before_filter :add_inline_attachment!
+  #
+  #     def welcome
+  #       mail
+  #     end
+  #
+  #     private
+  #
+  #       def add_inline_attachment!
+  #         attachments.inline["footer.jpg"] = File.read('/path/to/filename.jpg')
+  #       end
+  #   end
+  #
+  # Callbacks in ActionMailer are implemented using AbstractController::Callbacks, so you
+  # can define and configure callbacks in the same manner that you would use callbacks in
+  # classes that inherit from ActionController::Base.
+  #
+  # Note that unless you have a specific reason to do so, you should prefer using before_filter
+  # rather than after_filter in your ActionMailer classes so that headers are parsed properly.
+  #
   # = Configuration options
   #
   # These options are specified on the class level, like
@@ -330,6 +357,7 @@ module ActionMailer #:nodoc:
     include AbstractController::Helpers
     include AbstractController::Translation
     include AbstractController::AssetPaths
+    include AbstractController::Callbacks
 
     self.protected_instance_variables = [:@_action_has_layout]
 
@@ -458,7 +486,7 @@ module ActionMailer #:nodoc:
       self.class.mailer_name
     end
 
-    # Allows you to pass random and unusual headers to the new +Mail::Message+ object
+    # Allows you to pass random and unusual headers to the new <tt>Mail::Message</tt> object
     # which will add them to itself.
     #
     #   headers['X-Special-Domain-Specific-Header'] = "SecretValue"
@@ -469,7 +497,7 @@ module ActionMailer #:nodoc:
     #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
     #           'In-Reply-To' => incoming.message_id
     #
-    # The resulting Mail::Message will have the following in it's header:
+    # The resulting Mail::Message will have the following in its header:
     #
     #   X-Special-Domain-Specific-Header: SecretValue
     def headers(args=nil)
@@ -668,7 +696,7 @@ module ActionMailer #:nodoc:
     # If it does not find a translation for the +subject+ under the specified scope it will default to a
     # humanized version of the <tt>action_name</tt>.
     def default_i18n_subject #:nodoc:
-      mailer_scope = self.class.mailer_name.gsub('/', '.')
+      mailer_scope = self.class.mailer_name.tr('/', '.')
       I18n.t(:subject, :scope => [mailer_scope, action_name], :default => action_name.humanize)
     end
 

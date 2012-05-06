@@ -162,6 +162,9 @@ db_namespace = namespace :db do
     else
       raise "unknown schema format #{ActiveRecord::Base.schema_format}"
     end
+    # Allow this task to be called as many times as required. An example is the
+    # migrate:redo task, which calls other two internally that depend on this one.
+    db_namespace['_dump'].reenable
   end
 
   namespace :migrate do
@@ -204,11 +207,12 @@ db_namespace = namespace :db do
         next  # means "return" for rake task
       end
       db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
+      db_list.map! { |version| "%.3d" % version }
       file_list = []
       ActiveRecord::Migrator.migrations_paths.each do |path|
         Dir.foreach(path) do |file|
-          # only files matching "20091231235959_some_name.rb" pattern
-          if match_data = /^(\d{14})_(.+)\.rb$/.match(file)
+          # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
+          if match_data = /^(\d{3,})_(.+)\.rb$/.match(file)
             status = db_list.delete(match_data[1]) ? 'up' : 'down'
             file_list << [status, match_data[1], match_data[2].humanize]
           end
@@ -368,6 +372,25 @@ db_namespace = namespace :db do
     task :load_if_ruby => 'db:create' do
       db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
+
+    namespace :cache do
+      desc 'Create a db/schema_cache.dump file.'
+      task :dump => :environment do
+        con = ActiveRecord::Base.connection
+        filename = File.join(Rails.application.config.paths["db"].first, "schema_cache.dump")
+
+        con.schema_cache.clear!
+        con.tables.each { |table| con.schema_cache.add(table) }
+        open(filename, 'wb') { |f| f.write(Marshal.dump(con.schema_cache)) }
+      end
+
+      desc 'Clear a db/schema_cache.dump file.'
+      task :clear => :environment do
+        filename = File.join(Rails.application.config.paths["db"].first, "schema_cache.dump")
+        FileUtils.rm(filename) if File.exists?(filename)
+      end
+    end
+
   end
 
   namespace :structure do
@@ -403,6 +426,7 @@ db_namespace = namespace :db do
       if ActiveRecord::Base.connection.supports_migrations?
         File.open(filename, "a") { |f| f << ActiveRecord::Base.connection.dump_schema_information }
       end
+      db_namespace['structure:dump'].reenable
     end
 
     # desc "Recreate the databases from the structure.sql file"
@@ -420,7 +444,7 @@ db_namespace = namespace :db do
         end
       when /postgresql/
         set_psql_env(abcs[env])
-        `psql -f "#{filename}" #{abcs[env]['database']} #{abcs[env]['template']}`
+        `psql -f "#{filename}" #{abcs[env]['database']}`
       when /sqlite/
         dbfile = abcs[env]['database']
         `sqlite3 #{dbfile} < "#{filename}"`
@@ -454,7 +478,7 @@ db_namespace = namespace :db do
           db_namespace["test:load_schema"].invoke
         when :sql
           db_namespace["test:load_structure"].invoke
-        end
+      end
     end
 
     # desc "Recreate the test database from an existent structure.sql file"
@@ -542,7 +566,7 @@ namespace :railties do
     # desc "Copies missing migrations from Railties (e.g. engines). You can specify Railties to use with FROM=railtie1,railtie2"
     task :migrations => :'db:load_config' do
       to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map {|n| n.strip }
-      railties = ActiveSupport::OrderedHash.new
+      railties = {}
       Rails.application.railties.all do |railtie|
         next unless to_load == :all || to_load.include?(railtie.railtie_name)
 
@@ -612,7 +636,7 @@ def firebird_db_string(config)
 end
 
 def set_psql_env(config)
-  ENV['PGHOST']     = config['host']          if config['host'] 
+  ENV['PGHOST']     = config['host']          if config['host']
   ENV['PGPORT']     = config['port'].to_s     if config['port']
   ENV['PGPASSWORD'] = config['password'].to_s if config['password']
   ENV['PGUSER']     = config['username'].to_s if config['username']

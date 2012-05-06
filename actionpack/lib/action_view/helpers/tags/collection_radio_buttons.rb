@@ -14,8 +14,8 @@ module ActionView
         end
 
         def render
-          render_collection do |value, text, default_html_options|
-            builder = instantiate_builder(RadioButtonBuilder, value, text, default_html_options)
+          render_collection do |item, value, text, default_html_options|
+            builder = instantiate_builder(RadioButtonBuilder, item, value, text, default_html_options)
 
             if block_given?
               yield builder

@@ -3,13 +3,11 @@
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/hash/reverse_merge'
-require 'active_support/ordered_hash'
 
 module ActiveModel
   # == Active Model Errors
   #
-  # Provides a modified +OrderedHash+ that you can include in your object
+  # Provides a modified +Hash+ that you can include in your object
   # for handling error messages and interacting with Action Pack helpers.
   #
   # A minimal implementation could be:
@@ -75,7 +73,7 @@ module ActiveModel
     #   end
     def initialize(base)
       @base     = base
-      @messages = ActiveSupport::OrderedHash.new
+      @messages = {}
     end
 
     def initialize_dup(other)
@@ -131,12 +129,12 @@ module ActiveModel
     # has more than one error message, yields once for each error message.
     #
     #   p.errors.add(:name, "can't be blank")
-    #   p.errors.each do |attribute, errors_array|
+    #   p.errors.each do |attribute, error|
     #     # Will yield :name and "can't be blank"
     #   end
     #
     #   p.errors.add(:name, "must be specified")
-    #   p.errors.each do |attribute, errors_array|
+    #   p.errors.each do |attribute, error|
     #     # Will yield :name and "can't be blank"
     #     # then yield :name and "must be specified"
     #   end
@@ -203,16 +201,27 @@ module ActiveModel
     #   #    <error>name must be specified</error>
     #   #  </errors>
     def to_xml(options={})
-      to_a.to_xml options.reverse_merge(:root => "errors", :skip_types => true)
+      to_a.to_xml({ :root => "errors", :skip_types => true }.merge!(options))
     end
 
-    # Returns an ActiveSupport::OrderedHash that can be used as the JSON representation for this object.
+    # Returns an Hash that can be used as the JSON representation for this object.
+    # Options:
+    # * <tt>:full_messages</tt> - determines if json object should contain
+    #   full messages or not. Default: <tt>false</tt>.
     def as_json(options=nil)
-      to_hash
+      to_hash(options && options[:full_messages])
     end
 
-    def to_hash
-      messages.dup
+    def to_hash(full_messages = false)
+      if full_messages
+        messages = {}
+        self.messages.each do |attribute, array|
+          messages[attribute] = array.map { |message| full_message(attribute, message) }
+        end
+        messages
+      else
+        self.messages.dup
+      end
     end
 
     # Adds +message+ to the error messages on +attribute+. More than one error can be added to the same
@@ -276,7 +285,7 @@ module ActiveModel
     #     "Name is invalid"
     def full_message(attribute, message)
       return message if attribute == :base
-      attr_name = attribute.to_s.gsub('.', '_').humanize
+      attr_name = attribute.to_s.tr('.', '_').humanize
       attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
       I18n.t(:"errors.format", {
         :default   => "%{attribute} %{message}",
@@ -337,7 +346,7 @@ module ActiveModel
         :model => @base.class.model_name.human,
         :attribute => @base.class.human_attribute_name(attribute),
         :value => value
-      }.merge(options)
+      }.merge!(options)
 
       I18n.translate(key, options)
     end
@@ -346,9 +355,10 @@ module ActiveModel
     def normalize_message(attribute, message, options)
       message ||= :invalid
 
-      if message.is_a?(Symbol)
+      case message
+      when Symbol
         generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
-      elsif message.is_a?(Proc)
+      when Proc
         message.call
       else
         message

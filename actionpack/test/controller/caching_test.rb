@@ -102,8 +102,8 @@ class PageCachingTest < ActionController::TestCase
   def test_page_caching_resources_saves_to_correct_path_with_extension_even_if_default_route
     with_routing do |set|
       set.draw do
-        match 'posts.:format', :to => 'posts#index', :as => :formatted_posts
-        match '/', :to => 'posts#index', :as => :main
+        get 'posts.:format', :to => 'posts#index', :as => :formatted_posts
+        get '/', :to => 'posts#index', :as => :main
       end
       @params[:format] = 'rss'
       assert_equal '/posts.rss', @routes.url_for(@params)
@@ -180,7 +180,7 @@ class PageCachingTest < ActionController::TestCase
   end
 
   [:ok, :no_content, :found, :not_found].each do |status|
-    [:get, :post, :put, :delete].each do |method|
+    [:get, :post, :patch, :put, :delete].each do |method|
       unless method == :get && status == :ok
         define_method "test_shouldnt_cache_#{method}_with_#{status}_status" do
           send(method, status)
@@ -236,7 +236,9 @@ class ActionCachingTestController < CachingController
   caches_action :with_layout
   caches_action :with_format_and_http_param, :cache_path => Proc.new { |c| { :key => 'value' } }
   caches_action :layout_false, :layout => false
+  caches_action :with_layout_proc_param, :layout => Proc.new { |c| c.params[:layout] }
   caches_action :record_not_found, :four_oh_four, :simple_runtime_error
+  caches_action :streaming
 
   layout 'talk_from_action'
 
@@ -281,6 +283,7 @@ class ActionCachingTestController < CachingController
   alias_method :edit, :index
   alias_method :destroy, :index
   alias_method :layout_false, :with_layout
+  alias_method :with_layout_proc_param, :with_layout
 
   def expire
     expire_action :controller => 'action_caching_test', :action => 'index'
@@ -295,6 +298,10 @@ class ActionCachingTestController < CachingController
   def expire_with_url_string
     expire_action url_for(:controller => 'action_caching_test', :action => 'index')
     render :nothing => true
+  end
+
+  def streaming
+    render :text => "streaming", :stream => true
   end
 end
 
@@ -398,9 +405,38 @@ class ActionCacheTest < ActionController::TestCase
     get :layout_false
     assert_response :success
     assert_not_equal cached_time, @response.body
-
     body = body_to_string(read_fragment('hostname.com/action_caching_test/layout_false'))
     assert_equal cached_time, body
+  end
+
+  def test_action_cache_with_layout_and_layout_cache_false_via_proc
+    get :with_layout_proc_param, :layout => false
+    assert_response :success
+    cached_time = content_to_cache
+    assert_not_equal cached_time, @response.body
+    assert fragment_exist?('hostname.com/action_caching_test/with_layout_proc_param')
+    reset!
+
+    get :with_layout_proc_param, :layout => false
+    assert_response :success
+    assert_not_equal cached_time, @response.body
+    body = body_to_string(read_fragment('hostname.com/action_caching_test/with_layout_proc_param'))
+    assert_equal cached_time, body
+  end
+
+  def test_action_cache_with_layout_and_layout_cache_true_via_proc
+    get :with_layout_proc_param, :layout => true
+    assert_response :success
+    cached_time = content_to_cache
+    assert_not_equal cached_time, @response.body
+    assert fragment_exist?('hostname.com/action_caching_test/with_layout_proc_param')
+    reset!
+
+    get :with_layout_proc_param, :layout => true
+    assert_response :success
+    assert_not_equal cached_time, @response.body
+    body = body_to_string(read_fragment('hostname.com/action_caching_test/with_layout_proc_param'))
+    assert_equal @response.body, body
   end
 
   def test_action_cache_conditional_options
@@ -555,7 +591,7 @@ class ActionCacheTest < ActionController::TestCase
   def test_xml_version_of_resource_is_treated_as_different_cache
     with_routing do |set|
       set.draw do
-        match ':controller(/:action(.:format))'
+        get ':controller(/:action(.:format))'
       end
 
       get :index, :format => 'xml'
@@ -645,6 +681,13 @@ class ActionCacheTest < ActionController::TestCase
     assert_response 500
     get :simple_runtime_error
     assert_response 500
+  end
+
+  def test_action_caching_plus_streaming
+    get :streaming
+    assert_response :success
+    assert_match(/streaming/, @response.body)
+    assert fragment_exist?('hostname.com/action_caching_test/streaming')
   end
 
   private

@@ -74,8 +74,8 @@ class AssociationsTest < ActiveRecord::TestCase
 
 
   def test_include_with_order_works
-    assert_nothing_raised {Account.find(:first, :order => 'id', :include => :firm)}
-    assert_nothing_raised {Account.find(:first, :order => :id, :include => :firm)}
+    assert_nothing_raised {Account.scoped(:order => 'id', :includes => :firm).first}
+    assert_nothing_raised {Account.scoped(:order => :id, :includes => :firm).first}
   end
 
   def test_bad_collection_keys
@@ -213,6 +213,10 @@ class AssociationProxyTest < ActiveRecord::TestCase
   def test_proxy_association_accessor
     david = developers(:david)
     assert_equal david.association(:projects), david.projects.proxy_association
+  end
+
+  def test_scoped_allows_conditions
+    assert developers(:david).projects.scoped(where: 'foo').where_values.include?('foo')
   end
 end
 

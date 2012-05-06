@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'set'
 
 module AbstractController
   module Testing
@@ -28,7 +29,7 @@ module AbstractController
     # Test Render mixin
     # ====
     class RenderingController < AbstractController::Base
-      include ::AbstractController::Rendering
+      include AbstractController::Rendering
 
       def _prefixes
         []
@@ -152,7 +153,7 @@ module AbstractController
     # ====
     # self._layout is used when defined
     class WithLayouts < PrefixedViews
-      include Layouts
+      include AbstractController::Layouts
 
       private
       def self.layout(formats)
@@ -254,7 +255,7 @@ module AbstractController
     class TestActionMethodsReloading < ActiveSupport::TestCase
 
       test "action_methods should be reloaded after defining a new method" do
-        assert_equal ["index"], Me6.action_methods
+        assert_equal Set.new(["index"]), Me6.action_methods
       end
     end
 

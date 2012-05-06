@@ -40,7 +40,7 @@ module ActiveRecord
       def header(stream)
         define_params = @version ? ":version => #{@version}" : ""
 
-        if stream.respond_to?(:external_encoding)
+        if stream.respond_to?(:external_encoding) && stream.external_encoding
           stream.puts "# encoding: #{stream.external_encoding.name}"
         end
 
@@ -55,7 +55,7 @@ module ActiveRecord
 # from scratch. The latter is a flawed and unsustainable approach (the more migrations
 # you'll amass, the slower it'll run and the greater likelihood for issues).
 #
-# It's strongly recommended to check this file into your version control system.
+# It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema.define(#{define_params}) do
 
@@ -196,6 +196,8 @@ HEADER
 
             index_orders = (index.orders || {})
             statement_parts << (':order => ' + index.orders.inspect) unless index_orders.empty?
+
+            statement_parts << (':where => ' + index.where.inspect) if index.where
 
             '  ' + statement_parts.join(', ')
           end

@@ -510,6 +510,13 @@ class FilterTest < ActionController::TestCase
     end
   end
 
+  def test_sweeper_should_not_ignore_no_method_error
+    sweeper = ActionController::Caching::Sweeper.send(:new)
+    assert_raise NoMethodError do
+      sweeper.send_not_defined
+    end
+  end
+
   def test_sweeper_should_not_block_rendering
     response = test_process(SweeperTestController)
     assert_equal 'hello world', response.body
@@ -937,9 +944,7 @@ class ControllerWithAllTypesOfFilters < PostsController
 end
 
 class ControllerWithTwoLessFilters < ControllerWithAllTypesOfFilters
-  $vbf = true
   skip_filter :around_again
-  $vbf = false
   skip_filter :after
 end
 

@@ -288,7 +288,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     with_partial_updates Pirate, false do
       assert_queries(2) { 2.times { pirate.save! } }
-      Pirate.update_all({ :updated_on => old_updated_on }, :id => pirate.id)
+      Pirate.where(id: pirate.id).update_all(:updated_on => old_updated_on)
     end
 
     with_partial_updates Pirate, true do
@@ -306,7 +306,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     with_partial_updates Person, false do
       assert_queries(2) { 2.times { person.save! } }
-      Person.update_all({ :first_name => 'baz' }, :id => person.id)
+      Person.where(id: person.id).update_all(:first_name => 'baz')
     end
 
     with_partial_updates Person, true do
@@ -495,6 +495,20 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_nil pirate.previous_changes['updated_on'][1]
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
+  end
+
+  if ActiveRecord::Base.connection.supports_migrations?
+    class Testings < ActiveRecord::Base; end
+    def test_field_named_field
+      ActiveRecord::Base.connection.create_table :testings do |t|
+        t.string :field
+      end
+      assert_nothing_raised do
+        Testings.new.attributes
+      end
+    ensure
+      ActiveRecord::Base.connection.drop_table :testings rescue nil
+    end
   end
 
   private

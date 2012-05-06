@@ -96,7 +96,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_cache_clear_after_close
     mw = ActiveRecord::QueryCache.new lambda { |env|
-      Post.find(:first)
+      Post.first
       [200, {}, nil]
     }
     body = mw.call({}).last
@@ -107,7 +107,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_find_queries
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) { Task.find(1); Task.find(1) }
+    assert_queries(2) { Task.find(1); Task.find(1) }
   end
 
   def test_find_queries_with_cache
@@ -233,8 +233,8 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   def test_cache_is_expired_by_habtm_update
     ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
     ActiveRecord::Base.cache do
-      c = Category.find(:first)
-      p = Post.find(:first)
+      c = Category.first
+      p = Post.first
       p.categories << c
     end
   end

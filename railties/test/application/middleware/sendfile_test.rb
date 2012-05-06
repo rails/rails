@@ -57,5 +57,18 @@ module ApplicationTests
       get "/"
       assert_equal File.expand_path(__FILE__), last_response.headers["X-Lighttpd-Send-File"]
     end
+
+    test "files handled by ActionDispatch::Static are handled by Rack::Sendfile" do
+      make_basic_app do |app|
+        app.config.action_dispatch.x_sendfile_header = 'X-Sendfile'
+        app.config.serve_static_assets = true
+        app.paths["public"] = File.join(rails_root, "public")
+      end
+
+      app_file "public/foo.txt", "foo"
+
+      get "/foo.txt", "HTTP_X_SENDFILE_TYPE" => "X-Sendfile"
+      assert_equal File.join(rails_root, "public/foo.txt"), last_response.headers["X-Sendfile"]
+    end
   end
 end

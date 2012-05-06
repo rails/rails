@@ -1,4 +1,3 @@
-#!/usr/bin/env rake
 require 'rake/testtask'
 require 'rake/packagetask'
 require 'rubygems/package_task'
@@ -19,6 +18,7 @@ Rake::TestTask.new(:test_action_pack) do |t|
   t.test_files = Dir.glob('test/{abstract,controller,dispatch,template,assertions}/**/*_test.rb').sort
 
   t.warning = true
+  t.verbose = true
 end
 
 namespace :test do

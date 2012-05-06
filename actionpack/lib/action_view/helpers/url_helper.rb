@@ -23,19 +23,24 @@ module ActionView
       include ActionDispatch::Routing::UrlFor
       include TagHelper
 
-      def _routes_context
-        controller
-      end
+      # We need to override url_optoins, _routes_context
+      # and optimize_routes_generation? to consider the controller.
 
-      # Need to map default url options to controller one.
-      # def default_url_options(*args) #:nodoc:
-      #   controller.send(:default_url_options, *args)
-      # end
-      #
-      def url_options
+      def url_options #:nodoc:
         return super unless controller.respond_to?(:url_options)
         controller.url_options
       end
+
+      def _routes_context #:nodoc:
+        controller
+      end
+      protected :_routes_context
+
+      def optimize_routes_generation? #:nodoc:
+        controller.respond_to?(:optimize_routes_generation?) ?
+          controller.optimize_routes_generation? : super
+      end
+      protected :optimize_routes_generation?
 
       # Returns the URL for the set of +options+ provided. This takes the
       # same options as +url_for+ in Action Controller (see the
@@ -55,7 +60,7 @@ module ActionView
       #
       # ==== Relying on named routes
       #
-      # Passing a record (like an Active Record or Active Resource) instead of a Hash as the options parameter will
+      # Passing a record (like an Active Record) instead of a Hash as the options parameter will
       # trigger the named route for that record. The lookup will happen on the name of the class. So passing a
       # Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
       # +admin_workshop_path+ you'll have to call that explicitly (it's impossible for +url_for+ to guess that route).
@@ -146,12 +151,12 @@ module ActionView
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
       #   in dangerous actions like deleting a record (which search bots can follow
-      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt> and <tt>:put</tt>.
+      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>.
       #   Note that if the user has JavaScript disabled, the request will fall back
       #   to using GET. If <tt>:href => '#'</tt> is used and the user has JavaScript
       #   disabled clicking the link will have no effect. If you are relying on the
       #   POST behavior, you should check for it in your controller's action by using
-      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt> or <tt>put?</tt>.
+      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>:patch</tt>, or <tt>put?</tt>.
       # * <tt>:remote => true</tt> - This will allow the unobtrusive JavaScript
       #   driver to make an Ajax request to the URL in question instead of following
       #   the link. The drivers each provide mechanisms for listening for the
@@ -272,7 +277,7 @@ module ActionView
       #
       # There are a few special +html_options+:
       # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
-      #   <tt>:delete</tt> and <tt>:put</tt>. By default it will be <tt>:post</tt>.
+      #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
       # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
       #   prompt with the question specified. If the user accepts, the link is
@@ -298,7 +303,10 @@ module ActionView
       #
       #   <%= button_to "Create", :action => "create", :remote => true, :form => { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
-      #   #      <div><input value="Create" type="submit" /></div>
+      #   #      <div>
+      #   #        <input value="Create" type="submit" />
+      #   #        <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      </div>
       #   #    </form>"
       #
       #
@@ -307,7 +315,8 @@ module ActionView
       #   # => "<form method="post" action="/images/delete/1" class="button_to">
       #   #      <div>
       #   #        <input type="hidden" name="_method" value="delete" />
-      #   #        <input data-confirm='Are you sure?' value="Delete" type="submit" />
+      #   #        <input data-confirm='Are you sure?' value="Delete Image" type="submit" />
+      #   #        <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #      </div>
       #   #    </form>"
       #
@@ -318,6 +327,7 @@ module ActionView
       #   #       <div>
       #   #         <input name='_method' value='delete' type='hidden' />
       #   #         <input value='Destroy' type='submit' disable_with='loading...' data-confirm='Are you sure?' />
+      #   #         <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #       </div>
       #   #     </form>"
       #   #
@@ -329,7 +339,7 @@ module ActionView
         remote = html_options.delete('remote')
 
         method     = html_options.delete('method').to_s
-        method_tag = %w{put delete}.include?(method) ? method_tag(method) : ""
+        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ''.html_safe
 
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
@@ -342,7 +352,8 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
         html_options.merge!("type" => "submit", "value" => name || url)
 
-        "#{tag(:form, form_options, true)}<div>#{method_tag}#{tag("input", html_options)}#{request_token_tag}</div></form>".html_safe
+        inner_tags = method_tag.safe_concat tag('input', html_options).safe_concat request_token_tag
+        content_tag('form', content_tag('div', inner_tags), form_options)
       end
 
 
@@ -475,7 +486,7 @@ module ActionView
       #   # => <a href="mailto:me@domain.com">me@domain.com</a>
       #
       #   mail_to "me@domain.com", "My email", :encode => "javascript"
-      #   # => <script type="text/javascript">eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
+      #   # => <script>eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
       #
       #   mail_to "me@domain.com", "My email", :encode => "hex"
       #   # => <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
@@ -509,7 +520,7 @@ module ActionView
           "document.write('#{html}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
-          "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
+          "<script>eval(decodeURIComponent('#{string}'))</script>".html_safe
         when "hex"
           email_address_encoded = email_address_obfuscated.unpack('C*').map {|c|
             sprintf("&#%d;", c)

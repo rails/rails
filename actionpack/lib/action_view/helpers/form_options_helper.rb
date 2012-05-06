@@ -153,6 +153,8 @@ module ActionView
       # form, and parameters extraction gets the last occurrence of any repeated
       # key in the query string, that works for ordinary forms.
       #
+      # In case if you don't want the helper to generate this hidden field you can specify <tt>:include_blank => false</tt> option.
+      #
       def select(object, method, choices, options = {}, html_options = {})
         Tags::Select.new(object, method, self, choices, options, html_options).render
       end
@@ -286,38 +288,55 @@ module ActionView
       #
       # Examples (call, result):
       #   options_for_select([["Dollar", "$"], ["Kroner", "DKK"]])
-      #     <option value="$">Dollar</option>\n<option value="DKK">Kroner</option>
+      #   # <option value="$">Dollar</option>
+      #   # <option value="DKK">Kroner</option>
       #
       #   options_for_select([ "VISA", "MasterCard" ], "MasterCard")
-      #     <option>VISA</option>\n<option selected="selected">MasterCard</option>
+      #   # <option>VISA</option>
+      #   # <option selected="selected">MasterCard</option>
       #
       #   options_for_select({ "Basic" => "$20", "Plus" => "$40" }, "$40")
-      #     <option value="$20">Basic</option>\n<option value="$40" selected="selected">Plus</option>
+      #   # <option value="$20">Basic</option>
+      #   # <option value="$40" selected="selected">Plus</option>
       #
       #   options_for_select([ "VISA", "MasterCard", "Discover" ], ["VISA", "Discover"])
-      #     <option selected="selected">VISA</option>\n<option>MasterCard</option>\n<option selected="selected">Discover</option>
+      #   # <option selected="selected">VISA</option>
+      #   # <option>MasterCard</option>
+      #   # <option selected="selected">Discover</option>
       #
       # You can optionally provide html attributes as the last element of the array.
       #
       # Examples:
       #   options_for_select([ "Denmark", ["USA", {:class => 'bold'}], "Sweden" ], ["USA", "Sweden"])
-      #     <option value="Denmark">Denmark</option>\n<option value="USA" class="bold" selected="selected">USA</option>\n<option value="Sweden" selected="selected">Sweden</option>
+      #   # <option value="Denmark">Denmark</option>
+      #   # <option value="USA" class="bold" selected="selected">USA</option>
+      #   # <option value="Sweden" selected="selected">Sweden</option>
       #
       #   options_for_select([["Dollar", "$", {:class => "bold"}], ["Kroner", "DKK", {:onclick => "alert('HI');"}]])
-      #     <option value="$" class="bold">Dollar</option>\n<option value="DKK" onclick="alert('HI');">Kroner</option>
+      #   # <option value="$" class="bold">Dollar</option>
+      #   # <option value="DKK" onclick="alert('HI');">Kroner</option>
       #
       # If you wish to specify disabled option tags, set +selected+ to be a hash, with <tt>:disabled</tt> being either a value
       # or array of values to be disabled. In this case, you can use <tt>:selected</tt> to specify selected option tags.
       #
       # Examples:
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :disabled => "Super Platinum")
-      #     <option value="Free">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # <option value="Free">Free</option>
+      #   # <option value="Basic">Basic</option>
+      #   # <option value="Advanced">Advanced</option>
+      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :disabled => ["Advanced", "Super Platinum"])
-      #     <option value="Free">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced" disabled="disabled">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # <option value="Free">Free</option>
+      #   # <option value="Basic">Basic</option>
+      #   # <option value="Advanced" disabled="disabled">Advanced</option>
+      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :selected => "Free", :disabled => "Super Platinum")
-      #     <option value="Free" selected="selected">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # <option value="Free" selected="selected">Free</option>
+      #   # <option value="Basic">Basic</option>
+      #   # <option value="Advanced">Advanced</option>
+      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_for_select(container, selected = nil)
@@ -330,9 +349,12 @@ module ActionView
         container.map do |element|
           html_attributes = option_html_attributes(element)
           text, value = option_text_and_value(element).map { |item| item.to_s }
-          selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
-          disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
-          %(<option value="#{ERB::Util.html_escape(value)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{ERB::Util.html_escape(text)}</option>)
+
+          html_attributes[:selected] = 'selected' if option_value_selected?(value, selected)
+          html_attributes[:disabled] = 'disabled' if disabled && option_value_selected?(value, disabled)
+          html_attributes[:value] = value
+
+          content_tag(:option, text, html_attributes)
         end.join("\n").html_safe
       end
 
@@ -472,16 +494,16 @@ module ActionView
       # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
       # wrap the output in an appropriate <tt><select></tt> tag.
       def grouped_options_for_select(grouped_options, selected_key = nil, prompt = nil)
-        body = ''
-        body << content_tag(:option, prompt, { :value => "" }, true) if prompt
+        body = "".html_safe
+        body.safe_concat content_tag(:option, prompt, :value => "") if prompt
 
         grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
 
-        grouped_options.each do |group|
-          body << content_tag(:optgroup, options_for_select(group[1], selected_key), :label => group[0])
+        grouped_options.each do |label, container|
+          body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), :label => label)
         end
 
-        body.html_safe
+        body
       end
 
       # Returns a string of option tags for pretty much any time zone in the
@@ -503,23 +525,24 @@ module ActionView
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
       def time_zone_options_for_select(selected = nil, priority_zones = nil, model = ::ActiveSupport::TimeZone)
-        zone_options = ""
+        zone_options = "".html_safe
 
         zones = model.all
         convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones
           if priority_zones.is_a?(Regexp)
-            priority_zones = model.all.find_all {|z| z =~ priority_zones}
+            priority_zones = zones.select { |z| z =~ priority_zones }
           end
-          zone_options += options_for_select(convert_zones[priority_zones], selected)
-          zone_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
 
-          zones = zones.reject { |z| priority_zones.include?( z ) }
+          zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
+          zone_options.safe_concat content_tag(:option, '-------------', :value => '', :disabled => 'disabled')
+          zone_options.safe_concat "\n"
+
+          zones.reject! { |z| priority_zones.include?(z) }
         end
 
-        zone_options += options_for_select(convert_zones[zones], selected)
-        zone_options.html_safe
+        zone_options.safe_concat options_for_select(convert_zones[zones], selected)
       end
 
       # Returns radio button tags for the collection of existing return values
@@ -574,9 +597,9 @@ module ActionView
       #     b.label(:class => "radio_button") { b.radio_button(:class => "radio_button") }
       #   end
       #
-      # There are also two special methods available: <tt>text</tt> and
-      # <tt>value</tt>, which are the current text and value methods for the
-      # item being rendered, respectively. You can use them like this:
+      # There are also three special methods available: <tt>object</tt>, <tt>text</tt> and
+      # <tt>value</tt>, which are the current item being rendered, its text and value methods,
+      # respectively. You can use them like this:
       #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
       #      b.label(:"data-value" => b.value) { b.radio_button + b.text }
       #   end
@@ -637,9 +660,9 @@ module ActionView
       #     b.label(:class => "check_box") { b.check_box(:class => "check_box") }
       #   end
       #
-      # There are also two special methods available: <tt>text</tt> and
-      # <tt>value</tt>, which are the current text and value methods for the
-      # item being rendered, respectively. You can use them like this:
+      # There are also three special methods available: <tt>object</tt>, <tt>text</tt> and
+      # <tt>value</tt>, which are the current item being rendered, its text and value methods,
+      # respectively. You can use them like this:
       #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
       #      b.label(:"data-value" => b.value) { b.check_box + b.text }
       #   end
@@ -649,20 +672,15 @@ module ActionView
 
       private
         def option_html_attributes(element)
-          return "" unless Array === element
+          return {} unless Array === element
 
-          element.select { |e| Hash === e }.reduce({}, :merge).map do |k, v|
-            " #{k}=\"#{ERB::Util.html_escape(v.to_s)}\""
-          end.join
+          Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, ERB::Util.html_escape(v.to_s)] }]
         end
 
         def option_text_and_value(option)
           # Options are [text, value] pairs or strings used for both.
-          case
-          when Array === option
-            option = option.reject { |e| Hash === e }
-            [option.first, option.last]
-          when !option.is_a?(String) && option.respond_to?(:first) && option.respond_to?(:last)
+          if !option.is_a?(String) && option.respond_to?(:first) && option.respond_to?(:last)
+            option = option.reject { |e| Hash === e } if Array === option
             [option.first, option.last]
           else
             [option, option]
@@ -670,11 +688,7 @@ module ActionView
         end
 
         def option_value_selected?(value, selected)
-          if selected.respond_to?(:include?) && !selected.is_a?(String)
-            selected.include? value
-          else
-            value == selected
-          end
+          Array(selected).include? value
         end
 
         def extract_selected_and_disabled(selected)

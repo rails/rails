@@ -71,4 +71,16 @@ class RangeTest < ActiveSupport::TestCase
     range = (1..3)
     assert range.method(:include?) != range.method(:cover?)
   end
+
+  def test_overlaps_on_time
+    time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
+    time_range_2 = Time.utc(2005, 12, 10, 17, 00)..Time.utc(2005, 12, 10, 18, 00)
+    assert time_range_1.overlaps?(time_range_2)
+  end
+
+  def test_no_overlaps_on_time
+    time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
+    time_range_2 = Time.utc(2005, 12, 10, 17, 31)..Time.utc(2005, 12, 10, 18, 00)
+    assert !time_range_1.overlaps?(time_range_2)
+  end
 end

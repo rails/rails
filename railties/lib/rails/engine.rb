@@ -148,7 +148,7 @@ module Rails
   #
   #   # ENGINE/config/routes.rb
   #   MyEngine::Engine.routes.draw do
-  #     match "/" => "posts#index"
+  #     get "/" => "posts#index"
   #   end
   #
   # == Mount priority
@@ -158,7 +158,7 @@ module Rails
   #
   #   MyRailsApp::Application.routes.draw do
   #     mount MyEngine::Engine => "/blog"
-  #     match "/blog/omg" => "main#omg"
+  #     get "/blog/omg" => "main#omg"
   #   end
   #
   # +MyEngine+ is mounted at <tt>/blog</tt>, and <tt>/blog/omg</tt> points to application's
@@ -167,7 +167,7 @@ module Rails
   # It's much better to swap that:
   #
   #   MyRailsApp::Application.routes.draw do
-  #     match "/blog/omg" => "main#omg"
+  #     get "/blog/omg" => "main#omg"
   #     mount MyEngine::Engine => "/blog"
   #   end
   #
@@ -245,7 +245,7 @@ module Rails
   #
   # Additionally, an isolated engine will set its name according to namespace, so
   # MyEngine::Engine.engine_name will be "my_engine". It will also set MyEngine.table_name_prefix
-  # to "my_engine_", changing the MyEngine::Article model to use the my_engine_article table.
+  # to "my_engine_", changing the MyEngine::Article model to use the my_engine_articles table.
   #
   # == Using Engine's routes outside Engine
   #
@@ -256,7 +256,7 @@ module Rails
   #   # config/routes.rb
   #   MyApplication::Application.routes.draw do
   #     mount MyEngine::Engine => "/my_engine", :as => "my_engine"
-  #     match "/foo" => "foo#index"
+  #     get "/foo" => "foo#index"
   #   end
   #
   # Now, you can use the <tt>my_engine</tt> helper inside your application:
@@ -300,7 +300,7 @@ module Rails
   #     helper MyEngine::SharedEngineHelper
   #   end
   #
-  # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
+  # If you want to include all of the engine's helpers, you can use #helper method on an engine's
   # instance:
   #
   #   class ApplicationController < ActionController::Base
@@ -326,13 +326,13 @@ module Rails
   # migration in the application and rerun copying migrations.
   #
   # If your engine has migrations, you may also want to prepare data for the database in
-  # the <tt>seeds.rb</tt> file. You can load that data using the <tt>load_seed</tt> method, e.g.
+  # the <tt>db/seeds.rb</tt> file. You can load that data using the <tt>load_seed</tt> method, e.g.
   #
   #   MyEngine::Engine.load_seed
   #
   # == Loading priority
   #
-  # In order to change engine's priority you can use config.railties_order in main application.
+  # In order to change engine's priority you can use +config.railties_order+ in main application.
   # It will affect the priority of loading views, helpers, assets and all the other files
   # related to engine or application.
   #
@@ -486,7 +486,10 @@ module Rails
     end
 
     def routes
-      @routes ||= ActionDispatch::Routing::RouteSet.new
+      @routes ||= ActionDispatch::Routing::RouteSet.new.tap do |routes|
+        routes.draw_paths.concat paths["config/routes"].paths
+      end
+
       @routes.append(&Proc.new) if block_given?
       @routes
     end
@@ -516,7 +519,7 @@ module Rails
     #
     # Blog::Engine.load_seed
     def load_seed
-      seed_file = paths["db/seeds"].existent.first
+      seed_file = paths["db/seeds.rb"].existent.first
       load(seed_file) if seed_file
     end
 
@@ -544,11 +547,13 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      paths = self.paths["config/routes"].existent
+      paths = self.paths["config/routes.rb"].existent
+      external_paths = self.paths["config/routes"].paths
 
       if routes? || paths.any?
         app.routes_reloader.paths.unshift(*paths)
         app.routes_reloader.route_sets << routes
+        app.routes_reloader.external_routes.unshift(*external_paths)
       end
     end
 
@@ -561,7 +566,7 @@ module Rails
     initializer :add_view_paths do
       views = paths["app/views"].existent
       unless views.empty?
-        ActiveSupport.on_load(:action_controller){ prepend_view_path(views) }
+        ActiveSupport.on_load(:action_controller){ prepend_view_path(views) if respond_to?(:prepend_view_path) }
         ActiveSupport.on_load(:action_mailer){ prepend_view_path(views) }
       end
     end
@@ -603,7 +608,12 @@ module Rails
           desc "Copy migrations from #{railtie_name} to application"
           task :migrations do
             ENV["FROM"] = railtie_name
-            Rake::Task["railties:install:migrations"].invoke
+            if Rake::Task.task_defined?("railties:install:migrations")
+              Rake::Task["railties:install:migrations"].invoke
+            else
+              Rake::Task["app:railties:install:migrations"].invoke
+            end
+
           end
         end
       end
@@ -616,7 +626,7 @@ module Rails
     end
 
     def routes?
-      defined?(@routes)
+      defined?(@routes) && @routes
     end
 
     def has_migrations?

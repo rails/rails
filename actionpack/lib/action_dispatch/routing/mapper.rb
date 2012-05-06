@@ -1,8 +1,8 @@
 require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/object/inclusion'
+require 'active_support/core_ext/enumerable'
 require 'active_support/inflector'
-require 'active_support/deprecation'
 require 'action_dispatch/routing/redirection'
 
 module ActionDispatch
@@ -35,6 +35,8 @@ module ActionDispatch
           }
 
           return true
+        ensure
+          req.reset_parameters
         end
 
         def call(env)
@@ -59,6 +61,16 @@ module ActionDispatch
           @options = (@scope[:options] || {}).merge(options)
           @path = normalize_path(path)
           normalize_options!
+
+          via_all = @options.delete(:via) if @options[:via] == :all
+
+          if !via_all && request_method_condition.empty?
+            msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
+                  "If you want to expose your action to GET, use `get` in the router:\n\n" \
+                  "  Instead of: match \"controller#action\"\n" \
+                  "  Do: get \"controller#action\""
+            raise msg
+          end
         end
 
         def to_route
@@ -245,7 +257,7 @@ module ActionDispatch
       end
 
       def self.normalize_name(name)
-        normalize_path(name)[1..-1].gsub("/", "_")
+        normalize_path(name)[1..-1].tr("/", "_")
       end
 
       module Base
@@ -255,11 +267,16 @@ module ActionDispatch
         #
         # For options, see +match+, as +root+ uses it internally.
         #
+        # You can also pass a string which will expand
+        #
+        #   root 'pages#main'
+        #
         # You should put the root route at the top of <tt>config/routes.rb</tt>,
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
-          match '/', { :as => :root }.merge(options)
+          options = { :to => options } if options.is_a?(String)
+          match '/', { :as => :root, :via => :get }.merge(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
@@ -329,7 +346,7 @@ module ActionDispatch
         #   +call+ or a string representing a controller's action.
         #
         #      match 'path', :to => 'controller#action'
-        #      match 'path', :to => lambda { [200, {}, "Success!"] }
+        #      match 'path', :to => lambda { |env| [200, {}, "Success!"] }
         #      match 'path', :to => RackApp
         #
         # [:on]
@@ -412,7 +429,7 @@ module ActionDispatch
 
           options[:as] ||= app_name(app)
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false))
+          match(path, options.merge(:to => app, :anchor => false, :format => false, :via => :all))
 
           define_generate_prefix(app, options[:as])
           self
@@ -437,7 +454,7 @@ module ActionDispatch
               app.railtie_name
             else
               class_name = app.class.is_a?(Class) ? app.name : app.class.name
-              ActiveSupport::Inflector.underscore(class_name).gsub("/", "_")
+              ActiveSupport::Inflector.underscore(class_name).tr("/", "_")
             end
           end
 
@@ -447,7 +464,11 @@ module ActionDispatch
             _route = @set.named_routes.routes[name.to_sym]
             _routes = @set
             app.routes.define_mounted_helper(name)
-            app.routes.class_eval do
+            app.routes.singleton_class.class_eval do
+              define_method :mounted? do
+                true
+              end
+
               define_method :_generate_prefix do |options|
                 prefix_options = options.slice(*_route.segment_keys)
                 # we must actually delete prefix segment keys to avoid passing them to next url_for
@@ -466,7 +487,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # get 'bacon', :to => 'food#bacon'
+        #   get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
           map_method(:get, args, &block)
         end
@@ -476,9 +497,19 @@ module ActionDispatch
         #
         # Example:
         #
-        # post 'bacon', :to => 'food#bacon'
+        #   post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
           map_method(:post, args, &block)
+        end
+
+        # Define a route that only recognizes HTTP PATCH.
+        # For supported arguments, see <tt>Base#match</tt>.
+        #
+        # Example:
+        #
+        #   patch 'bacon', :to => 'food#bacon'
+        def patch(*args, &block)
+          map_method(:patch, args, &block)
         end
 
         # Define a route that only recognizes HTTP PUT.
@@ -486,7 +517,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # put 'bacon', :to => 'food#bacon'
+        #   put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
           map_method(:put, args, &block)
         end
@@ -496,25 +527,16 @@ module ActionDispatch
         #
         # Example:
         #
-        # delete 'broccoli', :to => 'food#broccoli'
+        #   delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, args, &block)
         end
 
         private
           def map_method(method, args, &block)
-            if args.length > 2
-              ActiveSupport::Deprecation.warn <<-eowarn
-The method signature of #{method}() is changing to:
-
-    #{method}(path, options = {}, &block)
-
-Calling with multiple paths is deprecated.
-              eowarn
-            end
-
             options = args.extract_options!
-            options[:via] = method
+            options[:via]    = method
+            options[:path] ||= args.first if args.first.is_a?(String)
             match(*args, options, &block)
             self
           end
@@ -533,13 +555,13 @@ Calling with multiple paths is deprecated.
       # This will create a number of routes for each of the posts and comments
       # controller. For <tt>Admin::PostsController</tt>, Rails will create:
       #
-      #   GET	    /admin/posts
-      #   GET	    /admin/posts/new
-      #   POST	  /admin/posts
-      #   GET	    /admin/posts/1
-      #   GET	    /admin/posts/1/edit
-      #   PUT	    /admin/posts/1
-      #   DELETE  /admin/posts/1
+      #   GET       /admin/posts
+      #   GET       /admin/posts/new
+      #   POST      /admin/posts
+      #   GET       /admin/posts/1
+      #   GET       /admin/posts/1/edit
+      #   PATCH/PUT /admin/posts/1
+      #   DELETE    /admin/posts/1
       #
       # If you want to route /posts (without the prefix /admin) to
       # <tt>Admin::PostsController</tt>, you could use
@@ -567,13 +589,13 @@ Calling with multiple paths is deprecated.
       # not use scope. In the last case, the following paths map to
       # +PostsController+:
       #
-      #   GET	    /admin/posts
-      #   GET	    /admin/posts/new
-      #   POST	  /admin/posts
-      #   GET	    /admin/posts/1
-      #   GET	    /admin/posts/1/edit
-      #   PUT	    /admin/posts/1
-      #   DELETE  /admin/posts/1
+      #   GET       /admin/posts
+      #   GET       /admin/posts/new
+      #   POST      /admin/posts
+      #   GET       /admin/posts/1
+      #   GET       /admin/posts/1/edit
+      #   PATCH/PUT /admin/posts/1
+      #   DELETE    /admin/posts/1
       module Scoping
         # Scopes a set of routes to the given default options.
         #
@@ -662,13 +684,13 @@ Calling with multiple paths is deprecated.
         #
         # This generates the following routes:
         #
-        #       admin_posts GET    /admin/posts(.:format)          admin/posts#index
-        #       admin_posts POST   /admin/posts(.:format)          admin/posts#create
-        #    new_admin_post GET    /admin/posts/new(.:format)      admin/posts#new
-        #   edit_admin_post GET    /admin/posts/:id/edit(.:format) admin/posts#edit
-        #        admin_post GET    /admin/posts/:id(.:format)      admin/posts#show
-        #        admin_post PUT    /admin/posts/:id(.:format)      admin/posts#update
-        #        admin_post DELETE /admin/posts/:id(.:format)      admin/posts#destroy
+        #       admin_posts GET       /admin/posts(.:format)          admin/posts#index
+        #       admin_posts POST      /admin/posts(.:format)          admin/posts#create
+        #    new_admin_post GET       /admin/posts/new(.:format)      admin/posts#new
+        #   edit_admin_post GET       /admin/posts/:id/edit(.:format) admin/posts#edit
+        #        admin_post GET       /admin/posts/:id(.:format)      admin/posts#show
+        #        admin_post PATCH/PUT /admin/posts/:id(.:format)      admin/posts#update
+        #        admin_post DELETE    /admin/posts/:id(.:format)      admin/posts#destroy
         #
         # === Options
         #
@@ -872,17 +894,18 @@ Calling with multiple paths is deprecated.
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
-          attr_reader :controller, :path, :options
+          attr_reader :controller, :path, :options, :param
 
           def initialize(entities, options = {})
             @name       = entities.to_s
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
             @as         = options[:as]
+            @param      = options[:param] || :id
             @options    = options
           end
 
@@ -927,7 +950,7 @@ Calling with multiple paths is deprecated.
           alias :collection_scope :path
 
           def member_scope
-            "#{path}/:id"
+            "#{path}/:#{param}"
           end
 
           def new_scope(new_path)
@@ -935,7 +958,7 @@ Calling with multiple paths is deprecated.
           end
 
           def nested_scope
-            "#{path}/:#{singular}_id"
+            "#{path}/:#{singular}_#{param}"
           end
 
         end
@@ -983,12 +1006,12 @@ Calling with multiple paths is deprecated.
         # the +GeoCoders+ controller (note that the controller is named after
         # the plural):
         #
-        #   GET     /geocoder/new
-        #   POST    /geocoder
-        #   GET     /geocoder
-        #   GET     /geocoder/edit
-        #   PUT     /geocoder
-        #   DELETE  /geocoder
+        #   GET       /geocoder/new
+        #   POST      /geocoder
+        #   GET       /geocoder
+        #   GET       /geocoder/edit
+        #   PATCH/PUT /geocoder
+        #   DELETE    /geocoder
         #
         # === Options
         # Takes same options as +resources+.
@@ -1011,9 +1034,12 @@ Calling with multiple paths is deprecated.
             end if parent_resource.actions.include?(:new)
 
             member do
-              get    :edit if parent_resource.actions.include?(:edit)
-              get    :show if parent_resource.actions.include?(:show)
-              put    :update if parent_resource.actions.include?(:update)
+              get :edit if parent_resource.actions.include?(:edit)
+              get :show if parent_resource.actions.include?(:show)
+              if parent_resource.actions.include?(:update)
+                patch :update
+                put   :update
+              end
               delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end
@@ -1031,13 +1057,13 @@ Calling with multiple paths is deprecated.
         # creates seven different routes in your application, all mapping to
         # the +Photos+ controller:
         #
-        #   GET     /photos
-        #   GET     /photos/new
-        #   POST    /photos
-        #   GET     /photos/:id
-        #   GET     /photos/:id/edit
-        #   PUT     /photos/:id
-        #   DELETE  /photos/:id
+        #   GET       /photos
+        #   GET       /photos/new
+        #   POST      /photos
+        #   GET       /photos/:id
+        #   GET       /photos/:id/edit
+        #   PATCH/PUT /photos/:id
+        #   DELETE    /photos/:id
         #
         # Resources can also be nested infinitely by using this block syntax:
         #
@@ -1047,13 +1073,13 @@ Calling with multiple paths is deprecated.
         #
         # This generates the following comments routes:
         #
-        #   GET     /photos/:photo_id/comments
-        #   GET     /photos/:photo_id/comments/new
-        #   POST    /photos/:photo_id/comments
-        #   GET     /photos/:photo_id/comments/:id
-        #   GET     /photos/:photo_id/comments/:id/edit
-        #   PUT     /photos/:photo_id/comments/:id
-        #   DELETE  /photos/:photo_id/comments/:id
+        #   GET       /photos/:photo_id/comments
+        #   GET       /photos/:photo_id/comments/new
+        #   POST      /photos/:photo_id/comments
+        #   GET       /photos/:photo_id/comments/:id
+        #   GET       /photos/:photo_id/comments/:id/edit
+        #   PATCH/PUT /photos/:photo_id/comments/:id
+        #   DELETE    /photos/:photo_id/comments/:id
         #
         # === Options
         # Takes same options as <tt>Base#match</tt> as well as:
@@ -1115,13 +1141,32 @@ Calling with multiple paths is deprecated.
         #
         #   The +comments+ resource here will have the following routes generated for it:
         #
-        #     post_comments    GET    /posts/:post_id/comments(.:format)
-        #     post_comments    POST   /posts/:post_id/comments(.:format)
-        #     new_post_comment GET    /posts/:post_id/comments/new(.:format)
-        #     edit_comment     GET    /sekret/comments/:id/edit(.:format)
-        #     comment          GET    /sekret/comments/:id(.:format)
-        #     comment          PUT    /sekret/comments/:id(.:format)
-        #     comment          DELETE /sekret/comments/:id(.:format)
+        #     post_comments    GET       /posts/:post_id/comments(.:format)
+        #     post_comments    POST      /posts/:post_id/comments(.:format)
+        #     new_post_comment GET       /posts/:post_id/comments/new(.:format)
+        #     edit_comment     GET       /sekret/comments/:id/edit(.:format)
+        #     comment          GET       /sekret/comments/:id(.:format)
+        #     comment          PATCH/PUT /sekret/comments/:id(.:format)
+        #     comment          DELETE    /sekret/comments/:id(.:format)
+        #
+        # [:shallow_prefix]
+        #   Prefixes nested shallow route names with specified prefix.
+        #
+        #     scope :shallow_prefix => "sekret" do
+        #       resources :posts do
+        #         resources :comments, :shallow => true
+        #       end
+        #     end
+        #
+        #   The +comments+ resource here will have the following routes generated for it:
+        #
+        #     post_comments           GET       /posts/:post_id/comments(.:format)
+        #     post_comments           POST      /posts/:post_id/comments(.:format)
+        #     new_post_comment        GET       /posts/:post_id/comments/new(.:format)
+        #     edit_sekret_comment     GET       /comments/:id/edit(.:format)
+        #     sekret_comment          GET       /comments/:id(.:format)
+        #     sekret_comment          PATCH/PUT /comments/:id(.:format)
+        #     sekret_comment          DELETE    /comments/:id(.:format)
         #
         # === Examples
         #
@@ -1150,9 +1195,12 @@ Calling with multiple paths is deprecated.
             end if parent_resource.actions.include?(:new)
 
             member do
-              get    :edit if parent_resource.actions.include?(:edit)
-              get    :show if parent_resource.actions.include?(:show)
-              put    :update if parent_resource.actions.include?(:update)
+              get :edit if parent_resource.actions.include?(:edit)
+              get :show if parent_resource.actions.include?(:show)
+              if parent_resource.actions.include?(:update)
+                patch :update
+                put   :update
+              end
               delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end
@@ -1260,6 +1308,24 @@ Calling with multiple paths is deprecated.
           parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
+        def draw(name)
+          path = @draw_paths.find do |_path|
+            _path.join("#{name}.rb").file?
+          end
+
+          unless path
+            msg  = "Your router tried to #draw the external file #{name}.rb,\n" \
+                   "but the file was not found in:\n\n"
+            msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
+            raise msg
+          end
+
+          instance_eval(path.join("#{name}.rb").read)
+        end
+
+        # match 'path' => 'controller#action'
+        # match 'path', to: 'controller#action'
+        # match 'path', 'otherpath', on: :member, via: :get
         def match(path, *rest)
           if rest.empty? && Hash === path
             options  = path
@@ -1444,7 +1510,7 @@ Calling with multiple paths is deprecated.
             prefix = shallow_scoping? ?
               "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
 
-            path = if canonical_action?(action, path.blank?)
+            if canonical_action?(action, path.blank?)
               prefix.to_s
             else
               "#{prefix}/#{action_path(action, path)}"
@@ -1506,6 +1572,7 @@ Calling with multiple paths is deprecated.
 
       def initialize(set) #:nodoc:
         @set = set
+        @draw_paths = set.draw_paths
         @scope = { :path_names => @set.resources_path_names }
       end
 

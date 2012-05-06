@@ -201,6 +201,9 @@ module ActiveRecord #:nodoc:
   #   # Now 'Bob' exist and is an 'admin'
   #   User.find_or_create_by_name('Bob', :age => 40) { |u| u.admin = true }
   #
+  # Adding an exclamation point (!) on to the end of <tt>find_or_create_by_</tt> will
+  # raise an <tt>ActiveRecord::RecordInvalid</tt> error if the new record is invalid.
+  #
   # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without
   # saving it first. Protected attributes won't be set unless they are given in a block.
   #
@@ -301,21 +304,22 @@ module ActiveRecord #:nodoc:
   #   (or a bad spelling of an existing one).
   # * AssociationTypeMismatch - The object assigned to the association wasn't of the type
   #   specified in the association definition.
-  # * SerializationTypeMismatch - The serialized object wasn't of the class specified as the second parameter.
-  # * ConnectionNotEstablished+ - No connection has been established. Use <tt>establish_connection</tt>
-  #   before querying.
-  # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
-  #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
-  #   nothing was found, please check its documentation for further details.
-  # * StatementInvalid - The database server rejected the SQL statement. The precise error is added in the message.
-  # * MultiparameterAssignmentErrors - Collection of errors that occurred during a mass assignment using the
-  #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of
-  #   AttributeAssignmentError
-  #   objects that should be inspected to determine which attributes triggered the errors.
   # * AttributeAssignmentError - An error occurred while doing a mass assignment through the
   #   <tt>attributes=</tt> method.
   #   You can inspect the +attribute+ property of the exception object to determine which attribute
   #   triggered the error.
+  # * ConnectionNotEstablished - No connection has been established. Use <tt>establish_connection</tt>
+  #   before querying.
+  # * MultiparameterAssignmentErrors - Collection of errors that occurred during a mass assignment using the
+  #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of
+  #   AttributeAssignmentError
+  #   objects that should be inspected to determine which attributes triggered the errors.
+  # * RecordInvalid - raised by save! and create! when the record is invalid.
+  # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
+  #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
+  #   nothing was found, please check its documentation for further details.
+  # * SerializationTypeMismatch - The serialized object wasn't of the class specified as the second parameter.
+  # * StatementInvalid - The database server rejected the SQL statement. The precise error is added in the message.
   #
   # *Note*: The attributes listed are class-level attributes (accessible from both the class and instance level).
   # So it's possible to assign a logger to the class through <tt>Base.logger=</tt> which will then be used by all

@@ -1,5 +1,3 @@
-require 'active_support/ordered_hash'
-
 # Usually key value pairs are handled something like this:
 #
 #   h = {}
@@ -17,7 +15,7 @@ require 'active_support/ordered_hash'
 #   h.girl # => 'Mary'
 #
 module ActiveSupport #:nodoc:
-  class OrderedOptions < OrderedHash
+  class OrderedOptions < Hash
     alias_method :_get, :[] # preserve the original #[] method
     protected :_get # make it protected
 
@@ -38,7 +36,7 @@ module ActiveSupport #:nodoc:
       end
     end
 
-    def respond_to?(name)
+    def respond_to_missing?(name, include_private)
       true
     end
   end

@@ -16,7 +16,7 @@ module ActiveRecord
 
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
-        table_name[0...table_alias_length].gsub(/\./, '_')
+        table_name[0...table_alias_length].tr('.', '_')
       end
 
       # Checks to see if the table +table_name+ exists on the database.
@@ -163,7 +163,7 @@ module ActiveRecord
         yield td if block_given?
 
         if options[:force] && table_exists?(table_name)
-          drop_table(table_name)
+          drop_table(table_name, options)
         end
 
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
@@ -171,10 +171,11 @@ module ActiveRecord
         create_sql << td.to_sql
         create_sql << ") #{options[:options]}"
         execute create_sql
+        td.indexes.each_pair { |c,o| add_index table_name, c, o }
       end
 
       # Creates a new join table with the name created using the lexical order of the first two
-      # arguments. These arguments can be be a String or a Symbol.
+      # arguments. These arguments can be a String or a Symbol.
       #
       #  # Creates a table called 'assemblies_parts' with no id.
       #  create_join_table(:assemblies, :parts)
@@ -294,7 +295,7 @@ module ActiveRecord
       end
 
       # Drops a table from the database.
-      def drop_table(table_name)
+      def drop_table(table_name, options = {})
         execute "DROP TABLE #{quote_table_name(table_name)}"
       end
 
@@ -375,15 +376,22 @@ module ActiveRecord
       # Note: SQLite doesn't support index length
       #
       # ====== Creating an index with a sort order (desc or asc, asc is the default)
-      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :part_id => :asc})
+      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :party_id => :asc})
       # generates
       #  CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
       #
       # Note: mysql doesn't yet support index order (it accepts the syntax but ignores it)
       #
+      # ====== Creating a partial index
+      #  add_index(:accounts, [:branch_id, :party_id], :unique => true, :where => "active")
+      # generates
+      #  CREATE UNIQUE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id) WHERE active
+      #
+      # Note: only supported by PostgreSQL
+      #
       def add_index(table_name, column_name, options = {})
-        index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
-        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})"
+        index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
+        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
       end
 
       # Remove the given index from the table.
@@ -532,8 +540,8 @@ module ActiveRecord
       # ===== Examples
       #  add_timestamps(:suppliers)
       def add_timestamps(table_name)
-        add_column table_name, :created_at, :datetime, :null => false
-        add_column table_name, :updated_at, :datetime, :null => false
+        add_column table_name, :created_at, :datetime
+        add_column table_name, :updated_at, :datetime
       end
 
       # Removes the timestamp columns (created_at and updated_at) from the table definition.
@@ -581,6 +589,9 @@ module ActiveRecord
           if Hash === options # legacy support, since this param was a string
             index_type = options[:unique] ? "UNIQUE" : ""
             index_name = options[:name].to_s if options.key?(:name)
+            if supports_partial_index?
+              index_options = options[:where] ? " WHERE #{options[:where]}" : ""
+            end
           else
             index_type = options
           end
@@ -593,7 +604,7 @@ module ActiveRecord
           end
           index_columns = quoted_columns_for_index(column_names, options).join(", ")
 
-          [index_name, index_type, index_columns]
+          [index_name, index_type, index_columns, index_options]
         end
 
         def index_name_for_remove(table_name, options = {})
@@ -607,8 +618,6 @@ module ActiveRecord
         end
 
         def columns_for_remove(table_name, *column_names)
-          column_names = column_names.flatten
-
           raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.blank?
           column_names.map {|column_name| quote_column_name(column_name) }
         end

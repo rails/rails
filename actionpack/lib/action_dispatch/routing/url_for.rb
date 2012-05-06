@@ -68,7 +68,7 @@ module ActionDispatch
     # This generates, among other things, the method <tt>users_path</tt>. By default,
     # this method is accessible from your controllers, views and mailers. If you need
     # to access this auto-generated method from other places (such as a model), then
-    # you can do that by including ActionController::UrlFor in your class:
+    # you can do that by including Rails.application.routes.url_helpers in your class:
     #
     #   class User < ActiveRecord::Base
     #     include Rails.application.routes.url_helpers
@@ -102,6 +102,9 @@ module ActionDispatch
         super
       end
 
+      # Hook overriden in controller to add request information
+      # with `default_url_options`. Application logic should not
+      # go into url_options.
       def url_options
         default_url_options
       end
@@ -141,16 +144,23 @@ module ActionDispatch
       #    # => 'http://somehost.org/tasks/testing?number=33'
       def url_for(options = nil)
         case options
+        when nil
+          _routes.url_for(url_options.symbolize_keys)
+        when Hash
+          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
         when String
           options
-        when nil, Hash
-          _routes.url_for((options || {}).symbolize_keys.reverse_merge!(url_options))
         else
           polymorphic_url(options)
         end
       end
 
       protected
+
+      def optimize_routes_generation?
+        return @_optimized_routes if defined?(@_optimized_routes)
+        @_optimized_routes = _routes.optimize_routes_generation? && default_url_options.empty?
+      end
 
       def _with_routes(routes)
         old_routes, @_routes = @_routes, routes

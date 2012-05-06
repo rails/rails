@@ -20,7 +20,7 @@ module ActiveRecord
       end
 
       def test_schema
-        assert @omgpost.find(:first)
+        assert @omgpost.first
       end
 
       def test_primary_key

@@ -1,6 +1,5 @@
 require 'zlib'
 require 'stringio'
-require 'active_support/core_ext/string/encoding'
 
 module ActiveSupport
   # A convenient wrapper for the zlib standard library that allows compression/decompression of strings with gzip.
