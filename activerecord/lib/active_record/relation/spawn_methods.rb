@@ -7,7 +7,7 @@ module ActiveRecord
   module SpawnMethods
     
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an <tt>ActiveRecord::Relation</tt>.
-    # Returns an array representing the union of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
+    # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
     #
     # ==== Examples
     #
@@ -16,7 +16,7 @@ module ActiveRecord
     #
     #   recent_posts = Post.order('created_at DESC').first(5)
     #   Post.where(:published => true).merge(recent_posts)
-    #   # Returns the union of all published posts with the 5 most recently created posts.
+    #   # Returns the intersection of all published posts with the 5 most recently created posts.
     #   # (This is just an example. You'd probably want to do this with a single query!)
     #
     def merge(other)
