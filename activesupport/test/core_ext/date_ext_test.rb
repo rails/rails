@@ -350,14 +350,14 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_day
-    assert_equal Time.local(2005,2,21,23,59,59,999999.999), Date.new(2005,2,21).end_of_day
+    assert_equal Time.local(2005,2,21,23,59,59,Rational(999999999, 1000)), Date.new(2005,2,21).end_of_day
   end
 
   def test_end_of_day_when_zone_is_set
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'UTC' do
       with_tz_default zone do
-        assert_equal zone.local(2005,2,21,23,59,59,999999.999), Date.new(2005,2,21).end_of_day
+        assert_equal zone.local(2005,2,21,23,59,59,Rational(999999999, 1000)), Date.new(2005,2,21).end_of_day
         assert_equal zone, Date.new(2005,2,21).end_of_day.time_zone
       end
     end

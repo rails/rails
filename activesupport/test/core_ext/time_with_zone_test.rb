@@ -80,6 +80,16 @@ class TimeWithZoneTest < Test::Unit::TestCase
     ActiveSupport.use_standard_json_time_format = old
   end
 
+  if RUBY_VERSION >= '1.9'
+    def test_nsec
+      local     = Time.local(2011,6,7,23,59,59,Rational(999999999, 1000))
+      with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], local)
+
+      assert_equal local.nsec, with_zone.nsec
+      assert_equal with_zone.nsec, 999999999
+    end
+  end
+
   def test_strftime
     assert_equal '1999-12-31 19:00:00 EST -0500', @twz.strftime('%Y-%m-%d %H:%M:%S %Z %z')
   end
