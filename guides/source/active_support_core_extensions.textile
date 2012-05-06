@@ -156,35 +156,44 @@ NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
 h4. +deep_dup+
 
-When data is very big and have many layers we need some recursive method to duplicate it right. For example, if we want to duplicate Array with some string inside and then work with this string as with part of duplicated object.
+The +deep_dup+ method returns deep copy of given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have array with a string, for example, it will look like this:
 
 <ruby>
-array = ['string']
-dup = array.dup
-dup[0] << '?'
-array.object_id == dup.object_id   # => false
-array[0] == dup[0]                 # => true
+array     = ['string']
+duplicate = array.dup
+
+duplicate.push 'another-string'
+
+array     #=> ['string']
+duplicate #=> ['string', 'another-string']
+
+duplicate.first.gsub!('string', 'foo')
+
+array     #=> ['foo']
+duplicate #=> ['foo', 'another-string']
 </ruby>
 
-Active Support provides +deep_dup+ to dup all objects recursively inside deep dupilicated Array or Hash:
+As you can see, after duplicating +Array+ instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since +dup+ does not make deep copy, the string inside array is still the same object.
 
-If object can be duplicable - then it is just an alias for dup.
+If you need a deep copy of an object, you should use +deep_dup+ in such situation:
 
 <ruby>
-string = 'abc'
-dup = string.deep_dup
-string.object_id == dup.object_id   # => false
+array     = ['string']
+duplicate = array.dup
+
+duplicate.first.gsub!('string', 'foo')
+
+array     #=> ['string']
+duplicate #=> ['foo']
 </ruby>
 
-If not - this method will return original object.
+If object is not duplicable +deep_dup+ will just return this object:
 
 <ruby>
 number = 1
 dup = number.deep_dup
 number.object_id == dup.object_id   # => true
 </ruby>
-
-WARNING. The same as in +duplicable?+ because +deep_dup+ uses that method.
 
 NOTE: Defined in +active_support/core_ext/object/deep_dup.rb+.
 
