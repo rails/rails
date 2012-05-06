@@ -319,8 +319,7 @@ module ActiveSupport
 
     # Send the missing method to +time+ instance, and wrap result in a new TimeWithZone with the existing +time_zone+.
     def method_missing(sym, *args, &block)
-      result = time.__send__(sym, *args, &block)
-      result.acts_like?(:time) ? self.class.new(nil, time_zone, result) : result
+      wrap_with_time_zone time.__send__(sym, *args, &block)
     end
 
     private
@@ -343,6 +342,16 @@ module ActiveSupport
 
       def duration_of_variable_length?(obj)
         ActiveSupport::Duration === obj && obj.parts.any? {|p| p[0].in?([:years, :months, :days]) }
+      end
+
+      def wrap_with_time_zone(time)
+        if time.acts_like?(:time)
+          self.class.new(nil, time_zone, time)
+        elsif time.is_a?(Range)
+          wrap_with_time_zone(time.begin)..wrap_with_time_zone(time.end)
+        else
+          time
+        end
       end
   end
 end

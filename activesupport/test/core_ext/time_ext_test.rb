@@ -517,7 +517,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal Time.local(2006,11,15), Time.local(2006,11,23,0,0,0).prev_week(:wednesday)
     end
   end
-  
+
   def test_last_week
     with_env_tz 'US/Eastern' do
       assert_equal Time.local(2005,2,21), Time.local(2005,3,1,15,15,10).last_week
@@ -829,6 +829,14 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_all_day
     assert_equal Time.local(2011,6,7,0,0,0)..Time.local(2011,6,7,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_day
+  end
+
+  def test_all_day_with_timezone
+    beginning_of_day = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], Time.local(2011,6,7,0,0,0))
+    end_of_day = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], Time.local(2011,6,7,23,59,59,999999.999))
+
+    assert_equal beginning_of_day.inspect, ActiveSupport::TimeWithZone.new(Time.local(2011,6,7,10,10,10), ActiveSupport::TimeZone["Hawaii"]).all_day.begin.inspect
+    assert_equal end_of_day.inspect, ActiveSupport::TimeWithZone.new(Time.local(2011,6,7,10,10,10), ActiveSupport::TimeZone["Hawaii"]).all_day.end.inspect
   end
 
   def test_all_week
