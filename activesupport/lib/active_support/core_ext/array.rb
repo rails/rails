@@ -1,7 +1,6 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/array/access'
 require 'active_support/core_ext/array/uniq_by'
-require 'active_support/core_ext/array/deep_dup'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/array/grouping'

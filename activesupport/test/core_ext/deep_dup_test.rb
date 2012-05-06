@@ -1,6 +1,5 @@
+require 'abstract_unit'
 require 'active_support/core_ext/object'
-require 'active_support/core_ext/array'
-require 'active_support/core_ext/hash'
 
 class DeepDupTest < ActiveSupport::TestCase
 
