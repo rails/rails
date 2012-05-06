@@ -1,6 +1,6 @@
 require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/object/deep_dup'
 require 'thread'
 
 module ActiveRecord
@@ -166,9 +166,7 @@ module ActiveRecord
     #   # Instantiates a single new object bypassing mass-assignment security
     #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
     def initialize(attributes = nil, options = {})
-      # TODO: use deep_dup after fixing it to also dup values
-      defaults = Hash[self.class.column_defaults.map { |k, v| [k, v.duplicable? ? v.dup : v] }]
-      @attributes = self.class.initialize_attributes(defaults)
+      @attributes = self.class.initialize_attributes(self.class.column_defaults.deep_dup)
       @columns_hash = self.class.column_types.dup
 
       init_internals
