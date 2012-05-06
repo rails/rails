@@ -188,7 +188,8 @@ module ActionDispatch
               remove_possible_method :#{selector}
               def #{selector}(*args)
                 if #{optimize_helper?(route)} && args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
-                  options = #{options.inspect}.merge!(url_options)
+                  options = #{options.inspect}
+                  options.merge!(url_options) if respond_to?(:url_options)
                   options[:path] = "#{optimized_helper(route)}"
                   ActionDispatch::Http::URL.url_for(options)
                 else
