@@ -5,15 +5,37 @@ require 'rbconfig'
 
 module Rails
   class DBConsole
-    attr_reader :arguments
+    attr_reader :arguments, :config
 
-    def self.start(app)
-      new(app).start
+    def self.start
+      new(config).start
     end
 
-    def initialize(app, arguments = ARGV)
-      @app = app
-      @arguments = arguments
+    def self.config
+      config = begin
+        YAML.load(ERB.new(IO.read("config/database.yml")).result)
+      rescue SyntaxError, StandardError
+        require APP_PATH
+        Rails.application.config.database_configuration
+      end
+
+      unless config[env]
+        abort "No database is configured for the environment '#{env}'"
+      end
+
+      config[env]
+    end
+
+    def self.env
+      if Rails.respond_to?(:env)
+        Rails.env
+      else
+        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+      end
+    end
+
+    def initialize(config, arguments = ARGV)
+      @config, @arguments = config, arguments
     end
 
     def start
@@ -36,10 +58,6 @@ module Rails
 
         opt.parse!(arguments)
         abort opt.to_s unless (0..1).include?(arguments.size)
-      end
-
-      unless config = @app.config.database_configuration[Rails.env]
-        abort "No database is configured for the environment '#{Rails.env}'"
       end
 
 
