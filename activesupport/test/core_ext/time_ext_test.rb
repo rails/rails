@@ -588,7 +588,13 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_time
-    assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_time, Time.local(2005, 2, 21, 17, 44, 30)
+    with_env_tz 'US/Eastern' do
+      # Ruby 1.9 Time#to_time returns getlocal, which deviates from the original
+      # AS implementation returning self. The core Time class method is unchanged.
+      time = Time.utc(2005, 2, 21, 17, 44, 30)
+      # Compare as strings with values and zone
+      assert_equal time.to_time.to_s(:rfc822), time.getlocal.to_s(:rfc822)
+    end
   end
 
   # NOTE: this test seems to fail (changeset 1958) only on certain platforms,
