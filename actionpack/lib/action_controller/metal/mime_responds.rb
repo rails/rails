@@ -375,7 +375,7 @@ module ActionController #:nodoc:
         lookup_context.rendered_format = lookup_context.formats.first
         collector
       else
-        raise ActionController::UnknownFormat.new
+        raise ActionController::UnknownFormat
       end
     end
 
