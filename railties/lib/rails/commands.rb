@@ -57,8 +57,7 @@ when 'server'
 
 when 'dbconsole'
   require 'rails/commands/dbconsole'
-  require APP_PATH
-  Rails::DBConsole.start(Rails.application)
+  Rails::DBConsole.start
 
 when 'application', 'runner'
   require "rails/commands/#{command}"
