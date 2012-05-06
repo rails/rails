@@ -52,7 +52,7 @@ module ActiveRecord
     #   Person.where(:category => "Developer").fetch
     #
     # Example:
-    #   scope = Person.where(:cateogry => "Developer")
+    #   scope = Person.where(:category => "Developer")
     #   scope.exists? #=> false
     #   dev   = Person.where(:category => "Developer").fetch #=> #<Person id: nil, category: "Developer">
     #   dev.save
