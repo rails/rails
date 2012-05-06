@@ -26,10 +26,9 @@ module ActionDispatch
   #   # Sets a cookie that expires in 1 hour.
   #   cookies[:login] = { :value => "XJ-122", :expires => 1.hour.from_now }
   #
-  #   # Sets a signed cookie, which prevents a user from tampering with its value.
+  #   # Sets a signed cookie, which prevents users from tampering with its value.
   #   # The cookie is signed by your app's <tt>config.secret_token</tt> value.
-  #   # Rails generates this value by default when you create a new Rails app.
-  #   # Signed cookies must read with the signed method <tt>cookies.signed[:key]</tt>
+  #   # It can be read using the signed method <tt>cookies.signed[:key]</tt>
   #   cookies.signed[:user_id] = current_user.id
   #
   #   # Sets a "permanent" cookie (which expires in 20 years from now).
