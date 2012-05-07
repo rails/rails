@@ -14,30 +14,33 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert aborted
     assert_match /No database is configured for the environment '\w+'/, output
 
-    app_config(development: "with_init")
+    app_config(test: "with_init")
     assert_equal Rails::DBConsole.config, "with_init"
 
-    app_db_file("development:\n  without_init")
+    app_db_file("test:\n  without_init")
     assert_equal Rails::DBConsole.config, "without_init"
 
-    app_db_file("development:\n  <%= Rails.something_app_specific %>")
+    app_db_file("test:\n  <%= Rails.something_app_specific %>")
     assert_equal Rails::DBConsole.config, "with_init"
 
-    app_db_file("development:\n\ninvalid")
+    app_db_file("test:\n\ninvalid")
     assert_equal Rails::DBConsole.config, "with_init"
   end
 
   def test_env
-    assert_equal Rails::DBConsole.env, "development"
+    assert_equal Rails::DBConsole.env, "test"
 
     Rails.stubs(:respond_to?).with(:env).returns(false)
-    assert_equal Rails::DBConsole.env, "development"
+    assert_equal Rails::DBConsole.env, "test"
 
+    ENV['RAILS_ENV'] = nil
     ENV['RACK_ENV'] = "rack_env"
     assert_equal Rails::DBConsole.env, "rack_env"
 
     ENV['RAILS_ENV'] = "rails_env"
     assert_equal Rails::DBConsole.env, "rails_env"
+  ensure
+    ENV['RAILS_ENV'] = "test"
   end
 
   def test_mysql
@@ -138,7 +141,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def capture_abort
     @aborted = false
-    @output = capture(:stderr) do 
+    @output = capture(:stderr) do
       begin
         yield
       rescue SystemExit
