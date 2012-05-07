@@ -3084,8 +3084,6 @@ date.end_of_hour # => Mon Jun 07 19:59:59 +0200 2010
 
 INFO: +beginning_of_hour+ and +end_of_hour+ are implemented for +Time+ and +DateTime+ but *not* +Date+ as it does not make sense to request the beginning or end of an hour on a +Date+ instance.
 
-NOTE: All the following methods are defined in +active_support/core_ext/date/calculations.rb+.
-
 h6. +ago+, +since+
 
 The method +ago+ receives a number of seconds as argument and returns a timestamp those many seconds ago from midnight:
