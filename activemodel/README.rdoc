@@ -75,7 +75,7 @@ behavior out of the box:
 
 * Tracking value changes
 
-  The +ActiveModel::Dirty+ module allows for tracking attribute changes:
+  The <tt>ActiveModel::Dirty</tt> module allows for tracking attribute changes:
 
     person = Person.new
     person.name # => nil
@@ -131,7 +131,7 @@ behavior out of the box:
 
 * Observer support
 
-  +ActiveModel::Observers+ allows your object to implement the Observer
+  <tt>ActiveModel::Observers</tt> allows your object to implement the Observer
   pattern in a Rails App and take advantage of all the standard observer
   functions.
 
@@ -149,7 +149,7 @@ behavior out of the box:
 
 * Making objects serializable
 
-  +ActiveModel::Serialization+ provides a standard interface for your object
+  <tt>ActiveModel::Serialization</tt> provides a standard interface for your object
   to provide +to_json+ or +to_xml+ serialization.
 
     s = SerialPerson.new
