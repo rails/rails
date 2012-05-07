@@ -3052,14 +3052,14 @@ The method +beginning_of_day+ returns a timestamp at the beginning of the day (0
 
 <ruby>
 date = Date.new(2010, 6, 7)
-date.beginning_of_day # => Sun Jun 07 00:00:00 +0200 2010
+date.beginning_of_day # => Mon Jun 07 00:00:00 +0200 2010
 </ruby>
 
 The method +end_of_day+ returns a timestamp at the end of the day (23:59:59):
 
 <ruby>
 date = Date.new(2010, 6, 7)
-date.end_of_day # => Sun Jun 06 23:59:59 +0200 2010
+date.end_of_day # => Mon Jun 07 23:59:59 +0200 2010
 </ruby>
 
 +beginning_of_day+ is aliased to +at_beginning_of_day+, +midnight+, +at_midnight+.
