@@ -58,6 +58,42 @@ class Class
     end
   end
 
+  # Defines a class attribute if it's not defined and creates a writer method to allow
+  # assignment to the attribute.
+  #
+  #   class Person
+  #     cattr_writer :hair_colors
+  #   end
+  #
+  #   Person.hair_colors = [:brown, :black]
+  #   Person.class_variable_get("@@hair_colors") # => [:brown, :black]
+  #   Person.new.hair_colors = [:blonde, :red]
+  #   Person.class_variable_get("@@hair_colors") # => [:blonde, :red]
+  #
+  # The attribute name must be any word character starting with a letter or underscore
+  # and without spaces.
+  #
+  #   class Person
+  #     cattr_writer :"1_Badname "
+  #   end
+  #   # => NameError: invalid attribute name
+  #
+  # If you want to opt out the instance writer method, pass <tt>instance_writer: false</tt>
+  # or <tt>instance_accessor: false</tt>.
+  #
+  #   class Person
+  #     cattr_writer :hair_colors, instance_writer: false
+  #   end
+  #
+  #   Person.new.hair_colors = [:blonde, :red] # => NoMethodError
+  #
+  # Also, you can pass a block to set up the variable with a default value.
+  #
+  #   class Person
+  #     cattr_writer(:hair_colors) {[:brown, :black, :blonde, :red]}
+  #   end
+  #
+  #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
   def cattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
@@ -103,20 +139,20 @@ class Class
   #   Male.hair_colors << :blue
   #   Person.hair_colors # => [:brown, :black, :blonde, :red, :blue]
   #
-  # To opt out of the instance writer method, pass <tt>:instance_writer => false</tt>.
-  # To opt out of the instance reader method, pass <tt>:instance_reader => false</tt>.
+  # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
+  # To opt out of the instance reader method, pass <tt>instance_reader: false</tt>.
   #
   #   class Person
-  #     cattr_accessor :hair_colors, :instance_writer => false, :instance_reader => false
+  #     cattr_accessor :hair_colors, instance_writer: false, instance_reader: false
   #   end
   #
   #   Person.new.hair_colors = [:brown]  # => NoMethodError
   #   Person.new.hair_colors             # => NoMethodError
   #
-  # Or pass <tt>:instance_accessor => false</tt>, to opt out both instance methods.
+  # Or pass <tt>instance_accessor: false</tt>, to opt out both instance methods.
   #
   #   class Person
-  #     cattr_accessor :hair_colors, :instance_accessor => false
+  #     cattr_accessor :hair_colors, instance_accessor: false
   #   end
   #
   #   Person.new.hair_colors = [:brown]  # => NoMethodError
