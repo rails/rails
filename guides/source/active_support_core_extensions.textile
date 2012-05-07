@@ -164,11 +164,13 @@ duplicate = array.dup
 
 duplicate.push 'another-string'
 
+# object was duplicated, element added only to duplicate
 array     #=> ['string']
 duplicate #=> ['string', 'another-string']
 
 duplicate.first.gsub!('string', 'foo')
 
+# first element was not duplicated, it will be changed for both arrays
 array     #=> ['foo']
 duplicate #=> ['foo', 'another-string']
 </ruby>
@@ -179,7 +181,7 @@ If you need a deep copy of an object, you should use +deep_dup+ in such situatio
 
 <ruby>
 array     = ['string']
-duplicate = array.dup
+duplicate = array.deep_dup
 
 duplicate.first.gsub!('string', 'foo')
 
