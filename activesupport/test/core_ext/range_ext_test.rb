@@ -41,6 +41,18 @@ class RangeTest < ActiveSupport::TestCase
     assert((1..10).include?(1...10))
   end
 
+  def test_should_compare_identical_inclusive
+    assert((1..10) === (1..10))
+  end
+
+  def test_should_compare_identical_exclusive
+    assert((1...10) === (1...10))
+  end
+
+  def test_should_compare_other_with_exlusive_end
+    assert((1..10) === (1...10))
+  end
+
   def test_exclusive_end_should_not_include_identical_with_inclusive_end
     assert !(1...10).include?(1..10)
   end
