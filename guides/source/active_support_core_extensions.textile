@@ -184,7 +184,7 @@ You can evaluate code in the context of any object's singleton class using +clas
 <ruby>
 class Proc
   def bind(object)
-    block, time = self, Time.now
+    block, time = self, Time.current
     object.class_eval do
       method_name = "__bind_#{time.to_i}_#{time.usec}"
       define_method(method_name, &block)
@@ -1780,13 +1780,13 @@ These methods use Time#advance for precise date calculations when using from_now
 as well as adding or subtracting their results from a Time object. For example:
 
 <ruby>
-# equivalent to Time.now.advance(:months => 1)
+# equivalent to Time.current.advance(:months => 1)
 1.month.from_now
 
-# equivalent to Time.now.advance(:years => 2)
+# equivalent to Time.current.advance(:years => 2)
 2.years.from_now
 
-# equivalent to Time.now.advance(:months => 4, :years => 5)
+# equivalent to Time.current.advance(:months => 4, :years => 5)
 (4.months + 5.years).from_now
 </ruby>
 
