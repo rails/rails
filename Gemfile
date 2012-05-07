@@ -50,7 +50,7 @@ instance_eval File.read local_gemfile if File.exists? local_gemfile
 
 platforms :mri do
   group :test do
-    gem 'ruby-prof'
+    gem 'ruby-prof', '0.10.8'
   end
 end
 
