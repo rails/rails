@@ -7,21 +7,21 @@ require 'active_support/core_ext/array/extract_options'
 # also change the value for parent class. Similarly if parent class changes the value
 # then that would change the value of subclasses too.
 #
-#  class Person
-#    cattr_accessor :hair_colors
-#  end
+#   class Person
+#     cattr_accessor :hair_colors
+#   end
 #
-#  Person.hair_colors = [:brown, :black, :blonde, :red]
-#  Person.hair_colors     # => [:brown, :black, :blonde, :red]
-#  Person.new.hair_colors # => [:brown, :black, :blonde, :red]
+#   Person.hair_colors = [:brown, :black, :blonde, :red]
+#   Person.hair_colors     # => [:brown, :black, :blonde, :red]
+#   Person.new.hair_colors # => [:brown, :black, :blonde, :red]
 #
-#  class Female < Person
-#  end
+#   class Female < Person
+#   end
 #
-#  Female.hair_colors << :pink
-#  Female.hair_colors     # => [:brown, :black, :blonde, :red, :pink]
-#  Female.new.hair_colors # => [:brown, :black, :blonde, :red, :pink]
-#  Person.hair_colors     # => [:brown, :black, :blonde, :red, :pink]
+#   Female.hair_colors << :pink
+#   Female.hair_colors     # => [:brown, :black, :blonde, :red, :pink]
+#   Female.new.hair_colors # => [:brown, :black, :blonde, :red, :pink]
+#   Person.hair_colors     # => [:brown, :black, :blonde, :red, :pink]
 #
 # To opt out of the instance writer method, pass :instance_writer => false.
 # To opt out of the instance reader method, pass :instance_reader => false.
@@ -83,6 +83,44 @@ class Class
     end
   end
 
+  # Defines class and instance accessors for class attributes.
+  #
+  #   class Person
+  #     cattr_accessor :hair_colors
+  #   end
+  #
+  #   Person.hair_colors = [:brown, :black, :blonde, :red]
+  #   Person.hair_colors     # => [:brown, :black, :blonde, :red]
+  #   Person.new.hair_colors # => [:brown, :black, :blonde, :red]
+  #
+  # If a subclass changes the value then that would also change the value for
+  # parent class. Similarly if parent class changes the value then that would
+  # change the value of subclasses too.
+  #
+  #   class Male < Person
+  #   end
+  #
+  #   Male.hair_colors << :blue
+  #   Person.hair_colors # => [:brown, :black, :blonde, :red, :blue]
+  #
+  # To opt out of the instance writer method, pass <tt>:instance_writer => false</tt>.
+  # To opt out of the instance reader method, pass <tt>:instance_reader => false</tt>.
+  #
+  #   class Person
+  #     cattr_accessor :hair_colors, :instance_writer => false, :instance_reader => false
+  #   end
+  #
+  #   Person.new.hair_colors = [:brown]  # => NoMethodError
+  #   Person.new.hair_colors             # => NoMethodError
+  #
+  # Or pass <tt>:instance_accessor => false</tt>, to opt out both instance methods.
+  #
+  #   class Person
+  #     cattr_accessor :hair_colors, :instance_accessor => false
+  #   end
+  #
+  #   Person.new.hair_colors = [:brown]  # => NoMethodError
+  #   Person.new.hair_colors             # => NoMethodError
   def cattr_accessor(*syms, &blk)
     cattr_reader(*syms)
     cattr_writer(*syms, &blk)
