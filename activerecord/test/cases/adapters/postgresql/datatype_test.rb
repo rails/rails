@@ -135,8 +135,10 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_network_address_values
-    assert_equal '192.168.0.0/24', @first_network_address.cidr_address
-    assert_equal '172.16.1.254', @first_network_address.inet_address
+    cidr_address = NetAddr::CIDR.create '192.168.0.0/24'
+    inet_address = NetAddr::CIDR.create '172.16.1.254'
+    assert_equal cidr_address, @first_network_address.cidr_address
+    assert_equal inet_address, @first_network_address.inet_address
     assert_equal '01:23:45:67:89:0a', @first_network_address.mac_address
   end
 
@@ -200,8 +202,8 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_update_network_address
-    new_cidr_address = '10.1.2.3/32'
-    new_inet_address = '10.0.0.0/8'
+    new_inet_address = '10.1.2.3/32'
+    new_cidr_address = '10.0.0.0/8'
     new_mac_address = 'bc:de:f0:12:34:56'
     assert @first_network_address.cidr_address = new_cidr_address
     assert @first_network_address.inet_address = new_inet_address

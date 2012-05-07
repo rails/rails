@@ -3,6 +3,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/postgresql/oid'
 require 'arel/visitors/bind_visitor'
+require 'netaddr'
 
 # Make sure we're using pg high enough for PGResult#values
 gem 'pg', '~> 0.11'
@@ -76,6 +77,25 @@ module ActiveRecord
             }]
           else
             string
+          end
+        end
+
+        def string_to_cidr(string)
+          if string.nil?
+            nil
+          elsif String === string
+            NetAddr::CIDR.create(string)
+          else
+            string
+          end
+
+        end
+
+        def cidr_to_string(object)
+          if NetAddr::CIDR === object
+            object.to_s
+          else
+            object
           end
         end
 
@@ -529,6 +549,11 @@ module ActiveRecord
           when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
           else super
           end
+        when NetAddr::CIDR, NetAddr::CIDRv4, NetAddr::CIDRv6
+          case column.sql_type
+          when 'inet', 'cidr' then super(PostgreSQLColumn.cidr_to_string(value), column)
+          else super
+          end
         when Float
           if value.infinite? && column.type == :datetime
             "'#{value.to_s.downcase}'"
@@ -568,6 +593,9 @@ module ActiveRecord
         when Hash
           return super unless 'hstore' == column.sql_type
           PostgreSQLColumn.hstore_to_string(value)
+        when NetAddr::CIDR, NetAddr::CIDRv4, NetAddr::CIDRv6
+          return super unless ['inet','cidr'].includes? column.sql_type
+          PostgreSQLColumn.cidr_to_string(value)
         else
           super
         end

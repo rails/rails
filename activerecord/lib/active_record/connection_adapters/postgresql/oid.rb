@@ -137,6 +137,14 @@ module ActiveRecord
           end
         end
 
+        class Cidr < Type
+          def type_cast(value)
+            return if value.nil?
+
+            ConnectionAdapters::PostgreSQLColumn.string_to_cidr value
+          end
+        end
+
         class TypeMap
           def initialize
             @mapping = {}
@@ -212,11 +220,9 @@ module ActiveRecord
         # FIXME: why are we keeping these types as strings?
         alias_type 'tsvector', 'text'
         alias_type 'interval', 'text'
-        alias_type 'cidr',     'text'
-        alias_type 'inet',     'text'
-        alias_type 'macaddr',  'text'
         alias_type 'bit',      'text'
         alias_type 'varbit',   'text'
+        alias_type 'macaddr',  'text'
 
         # FIXME: I don't think this is correct. We should probably be returning a parsed date,
         # but the tests pass with a string returned.
@@ -237,6 +243,9 @@ module ActiveRecord
         register_type 'polygon', OID::Identity.new
         register_type 'circle', OID::Identity.new
         register_type 'hstore', OID::Hstore.new
+
+        register_type 'cidr', OID::Cidr.new
+        alias_type 'inet', 'cidr'
       end
     end
   end
