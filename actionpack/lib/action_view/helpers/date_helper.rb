@@ -66,12 +66,12 @@ module ActionView
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       #
       def distance_of_time_in_words(from_time, to_time = 0, include_seconds_or_options = {}, options = {})
-        unless include_seconds_or_options.is_a?(Hash)
+        if include_seconds_or_options.is_a?(Hash)
+          options = include_seconds_or_options
+        else
           ActiveSupport::Deprecation.warn "distance_of_time_in_words and time_ago_in_words now accept :include_seconds " +
                                           "as a part of options hash, not a boolean argument", caller
           options[:include_seconds] ||= !!include_seconds_or_options
-        else
-          options = include_seconds_or_options
         end
 
         from_time = from_time.to_time if from_time.respond_to?(:to_time)

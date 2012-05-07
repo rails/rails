@@ -311,10 +311,10 @@ module ActiveSupport
     end
 
     # Ensure proxy class responds to all methods that underlying time instance responds to.
-    def respond_to?(sym, include_priv = false)
+    def respond_to_missing?(sym, include_priv)
       # consistently respond false to acts_like?(:date), regardless of whether #time is a Time or DateTime
-      return false if sym.to_s == 'acts_like_date?'
-      super || time.respond_to?(sym, include_priv)
+      return false if sym.to_sym == :acts_like_date?
+      time.respond_to?(sym, include_priv)
     end
 
     # Send the missing method to +time+ instance, and wrap result in a new TimeWithZone with the existing +time_zone+.

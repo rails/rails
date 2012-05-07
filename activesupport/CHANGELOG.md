@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    `deep_dup` works more expectedly now and duplicates also values in +Hash+ instances and elements in +Array+ instances. *Alexey Gaziev*
+
 *    Inflector no longer applies ice -> ouse to words like slice, police, ets *Wes Morgan*
 
 *    Add `ActiveSupport::Deprecations.behavior = :silence` to completely ignore Rails runtime deprecations *twinturbo*

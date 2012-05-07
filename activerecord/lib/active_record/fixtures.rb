@@ -823,7 +823,7 @@ module ActiveRecord
     end
 
     def setup_fixtures
-      return unless !ActiveRecord::Base.configurations.blank?
+      return if ActiveRecord::Base.configurations.blank?
 
       if pre_loaded_fixtures && !use_transactional_fixtures
         raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures'

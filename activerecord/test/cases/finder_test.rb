@@ -113,6 +113,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [], Topic.find([])
   end
 
+  def test_find_doesnt_have_implicit_ordering
+    assert_sql(/^((?!ORDER).)*$/) { Topic.find(1) }
+  end
+
   def test_find_by_ids_missing_one
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1, 2, 45) }
   end

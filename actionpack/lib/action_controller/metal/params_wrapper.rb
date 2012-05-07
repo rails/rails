@@ -166,8 +166,9 @@ module ActionController
 
         unless options[:include] || options[:exclude]
           model ||= _default_wrap_model
-          if model.respond_to?(:accessible_attributes) && model.accessible_attributes.present?
-            options[:include] = model.accessible_attributes.to_a
+          role = options.fetch(:as, :default)
+          if model.respond_to?(:accessible_attributes) && model.accessible_attributes(role).present?
+            options[:include] = model.accessible_attributes(role).to_a
           elsif model.respond_to?(:attribute_names) && model.attribute_names.present?
             options[:include] = model.attribute_names
           end

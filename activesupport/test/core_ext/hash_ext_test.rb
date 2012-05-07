@@ -363,21 +363,6 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, hash_1
   end
 
-  def test_deep_dup
-    hash = { :a => { :b => 'b' } }
-    dup = hash.deep_dup
-    dup[:a][:c] = 'c'
-    assert_equal nil, hash[:a][:c]
-    assert_equal 'c', dup[:a][:c]
-  end
-
-  def test_deep_dup_initialize
-    zero_hash = Hash.new 0
-    hash = { :a => zero_hash }
-    dup = hash.deep_dup
-    assert_equal 0, dup[:a][44]
-  end
-
   def test_store_on_indifferent_access
     hash = HashWithIndifferentAccess.new
     hash.store(:test1, 1)

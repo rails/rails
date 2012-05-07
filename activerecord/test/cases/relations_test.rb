@@ -255,7 +255,7 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal nil,   Developer.none.calculate(:average, 'salary')
     end
   end
-  
+
   def test_null_relation_metadata_methods
     assert_equal "", Developer.none.to_sql
     assert_equal({}, Developer.none.where_values_hash)
@@ -1294,6 +1294,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal nil, Post.scoped.find_by("1 = 0")
   end
 
+  test "find_by doesn't have implicit ordering" do
+    assert_sql(/^((?!ORDER).)*$/) { Post.find_by(author_id: 2) }
+  end
+
   test "find_by! with hash conditions returns the first matching record" do
     assert_equal posts(:eager_other), Post.order(:id).find_by!(author_id: 2)
   end
@@ -1304,6 +1308,10 @@ class RelationTest < ActiveRecord::TestCase
 
   test "find_by! with multi-arg conditions returns the first matching record" do
     assert_equal posts(:eager_other), Post.order(:id).find_by!('author_id = ?', 2)
+  end
+
+  test "find_by! doesn't have implicit ordering" do
+    assert_sql(/^((?!ORDER).)*$/) { Post.find_by!(author_id: 2) }
   end
 
   test "find_by! raises RecordNotFound if the record is missing" do

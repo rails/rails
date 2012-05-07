@@ -154,6 +154,51 @@ WARNING. Any class can disallow duplication removing +dup+ and +clone+ or raisin
 
 NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
+h4. +deep_dup+
+
+The +deep_dup+ method returns deep copy of given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have array with a string, for example, it will look like this:
+
+<ruby>
+array     = ['string']
+duplicate = array.dup
+
+duplicate.push 'another-string'
+
+# object was duplicated, element added only to duplicate
+array     #=> ['string']
+duplicate #=> ['string', 'another-string']
+
+duplicate.first.gsub!('string', 'foo')
+
+# first element was not duplicated, it will be changed for both arrays
+array     #=> ['foo']
+duplicate #=> ['foo', 'another-string']
+</ruby>
+
+As you can see, after duplicating +Array+ instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since +dup+ does not make deep copy, the string inside array is still the same object.
+
+If you need a deep copy of an object, you should use +deep_dup+ in such situation:
+
+<ruby>
+array     = ['string']
+duplicate = array.deep_dup
+
+duplicate.first.gsub!('string', 'foo')
+
+array     #=> ['string']
+duplicate #=> ['foo']
+</ruby>
+
+If object is not duplicable +deep_dup+ will just return this object:
+
+<ruby>
+number = 1
+dup = number.deep_dup
+number.object_id == dup.object_id   # => true
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/object/deep_dup.rb+.
+
 h4. +try+
 
 Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
@@ -2217,6 +2262,19 @@ Thus, in this case the behavior is different for +nil+, and the differences with
 
 NOTE: Defined in +active_support/core_ext/array/wrap.rb+.
 
+h4. Duplicating
+
+The method +Array.deep_dup+ duplicates itself and all objects inside recursively with ActiveSupport method +Object#deep_dup+. It works like +Array#map+ with sending +deep_dup+ method to each object inside.
+
+<ruby>
+array = [1, [2, 3]]
+dup = array.deep_dup
+dup[1][2] = 4
+array[1][2] == nil   # => true
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/array/deep_dup.rb+.
+
 h4. Grouping
 
 h5. +in_groups_of(number, fill_with = nil)+
@@ -2422,6 +2480,23 @@ Active Support defines +Hash#deep_merge+. In a deep merge, if a key is found in 
 The method +deep_merge!+ performs a deep merge in place.
 
 NOTE: Defined in +active_support/core_ext/hash/deep_merge.rb+.
+
+h4. Deep duplicating
+
+The method +Hash.deep_dup+ duplicates itself and all keys and values inside recursively with ActiveSupport method +Object#deep_dup+. It works like +Enumerator#each_with_object+ with sending +deep_dup+ method to each pair inside.
+
+<ruby>
+hash = { :a => 1, :b => { :c => 2, :d => [3, 4] } }
+
+dup = hash.deep_dup
+dup[:b][:e] = 5
+dup[:b][:d] << 5
+
+hash[:b][:e] == nil      # => true
+hash[:b][:d] == [3, 4]   # => true
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/hash/deep_dup.rb+.
 
 h4. Diffing
 

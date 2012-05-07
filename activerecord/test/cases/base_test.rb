@@ -1909,7 +1909,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attribute_names
-    assert_equal ["id", "type", "ruby_type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id"],
+    assert_equal ["id", "type", "ruby_type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description"],
                  Company.attribute_names
   end
 
@@ -1999,6 +1999,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal hash[:arbitrary_method], company.arbitrary_method
     assert_nil hash[:firm_name]
     assert_nil hash['firm_name']
+  end
+
+  def test_default_values_are_deeply_dupped
+    company = Company.new
+    company.description << "foo"
+    assert_equal "", Company.new.description
   end
 
   ["find_by", "find_by!"].each do |meth|
