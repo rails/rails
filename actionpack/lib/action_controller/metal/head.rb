@@ -20,6 +20,7 @@ module ActionController
       options, status = status, nil if status.is_a?(Hash)
       status ||= options.delete(:status) || :ok
       location = options.delete(:location)
+      content_type = options.delete(:content_type)
 
       options.each do |key, value|
         headers[key.to_s.dasherize.split('-').each { |v| v[0] = v[0].chr.upcase }.join('-')] = value.to_s
@@ -27,7 +28,7 @@ module ActionController
 
       self.status = status
       self.location = url_for(location) if location
-      self.content_type = Mime[formats.first] if formats
+      self.content_type = content_type || (Mime[formats.first] if formats)
       self.response_body = " "
     end
   end
