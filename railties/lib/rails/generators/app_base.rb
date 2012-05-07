@@ -126,6 +126,17 @@ module Rails
         options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
       end
 
+      def gitingore_sqlite3
+        if options[:database] == 'sqlite3' || options[:database] == 'jdbcsqlite3'
+          <<-GITIGNORE.strip_heredoc
+            # Ignore the default SQLite database.
+            /db/*.sqlite3
+            /db/*.sqlite3-journal
+
+          GITIGNORE
+        end
+      end
+
       def include_all_railties?
         !options[:skip_active_record] && !options[:skip_test_unit] && !options[:skip_sprockets]
       end

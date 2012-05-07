@@ -383,6 +383,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_match(/run  bundle install/, output)
   end
 
+  def test_sqlite3_database_ignores_sqlite3_files
+    run_generator
+    assert_file ".gitignore", /db.*sqlite3.*db.*sqlite3-journal/m
+  end
+
+  def test_postgresql_database_doesnt_ignore_sqlite3_files
+    run_generator [destination_root, '-d', 'postgresql']
+    assert_file ".gitignore" do |content|
+      assert_no_match /db.*sqlite3.*db.*sqlite3-journal/m, content
+    end
+  end
+
 protected
 
   def action(*args, &block)
