@@ -53,7 +53,7 @@ behavior out of the box:
     person.clear_name
     person.clear_age
 
-  {Learn more}[link:classes/ActiveModel/AttributeMethods.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/AttributeMethods.html]
 
 * Callbacks for certain operations
 
@@ -71,7 +71,7 @@ behavior out of the box:
   This generates +before_create+, +around_create+ and +after_create+
   class methods that wrap your create method.
 
-  {Learn more}[link:classes/ActiveModel/Callbacks.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Callbacks.html]
 
 * Tracking value changes
 
@@ -88,7 +88,7 @@ behavior out of the box:
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
 
-  {Learn more}[link:classes/ActiveModel/Dirty.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Dirty.html]
 
 * Adding +errors+ interface to objects
 
@@ -116,7 +116,7 @@ behavior out of the box:
     person.errors.full_messages
     # => ["Name can not be nil"]
 
-  {Learn more}[link:classes/ActiveModel/Errors.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Errors.html]
 
 * Model name introspection
 
@@ -127,7 +127,7 @@ behavior out of the box:
     NamedPerson.model_name        # => "NamedPerson"
     NamedPerson.model_name.human  # => "Named person"
 
-  {Learn more}[link:classes/ActiveModel/Naming.html]
+  {Learn more}[http://api.rubyonrails.org/ActiveModel/Naming.html]
 
 * Observer support
 
@@ -145,7 +145,7 @@ behavior out of the box:
       end
     end
 
-  {Learn more}[link:classes/ActiveModel/Observer.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Observer.html]
 
 * Making objects serializable
 
@@ -157,7 +157,7 @@ behavior out of the box:
     s.to_json             # => "{\"name\":null}"
     s.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
 
-  {Learn more}[link:classes/ActiveModel/Serialization.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Serialization.html]
 
 * Internationalization (i18n) support
 
@@ -168,7 +168,7 @@ behavior out of the box:
     Person.human_attribute_name('my_attribute')
     # => "My attribute"
 
-  {Learn more}[link:classes/ActiveModel/Translation.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Translation.html]
 
 * Validation support
 
@@ -186,7 +186,7 @@ behavior out of the box:
    person.first_name = 'zoolander'
    person.valid?  # => false
 
-  {Learn more}[link:classes/ActiveModel/Validations.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Validations.html]
 
 * Custom validators
 
@@ -208,7 +208,7 @@ behavior out of the box:
    p.name = "Bob"
    p.valid?                  # =>  true
 
-  {Learn more}[link:classes/ActiveModel/Validator.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveModel/Validator.html]
 
 
 == Download and installation
