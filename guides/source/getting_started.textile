@@ -334,7 +334,10 @@ When you call +form_for+, you pass it an identifying object for this form. In th
 
 There's one problem with this form though. If you inspect the HTML that is generated, by viewing the source of the page, you will see that the +action+ attribute for the form is pointing at +/posts/new+. This is a problem because this route goes to the very page that you're on right at the moment, and that route should only be used to display the form for a new post.
 
-So the form needs to use a different URL in order to go somewhere else. This can be done quite simply with the +:url+ option of +form_for+. Typically in Rails, the action that is used for new form submissions like this is called "create", and so the form should be pointed to this action.
+The form needs to use a different URL in order to go somewhere else.
+This can be done quite simply with the +:url+ option of +form_for+.
+Typically in Rails, the action that is used for new form submissions
+like this is called "create", and so the form should be pointed to that action.
 
 Edit the +form_for+ line inside +app/views/posts/new.html.erb+ to look like this:
 
@@ -350,11 +353,11 @@ post "posts/create"
 
 By using the +post+ method rather than the +get+ method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
 
-With the form and the route for it defined now, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
+With the form and its associated route defined, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
 
 !images/getting_started/unknown_action_create_for_posts.png(Unknown action create for PostsController)!
 
-You will now need to create the +create+ action within the +PostsController+ for this to work.
+You now need to create the +create+ action within the +PostsController+ for this to work.
 
 h4. Creating posts
 
@@ -381,7 +384,7 @@ def create
 end
 </ruby>
 
-The +render+ method here is taking a very simple hash with the key of +text+ and the value of +params[:post].inspect+. The +params+ method here is the object which represents the parameters (or fields) coming in from the form. The +params+ method returns a +HashWithIndifferentAccess+ object, which allows you to access the keys of the hash using either strings or symbols. In this situation, the only parameters that matter are the ones from the form.
+The +render+ method here is taking a very simple hash with a key of +text+ and value of +params[:post].inspect+. The +params+ method is the object which represents the parameters (or fields) coming in from the form. The +params+ method returns a +HashWithIndifferentAccess+ object, which allows you to access the keys of the hash using either strings or symbols. In this situation, the only parameters that matter are the ones from the form.
 
 If you re-submit the form one more time you'll now no longer get the missing template error. Instead, you'll see something that looks like the following:
 
@@ -402,14 +405,15 @@ To create the new model, run this command in your terminal:
 $ rails generate model Post title:string text:text
 </shell>
 
-With that command we told Rails that we want a +Post+ model, which in
-turn should have a title attribute of type string, and a text attribute
+With that command we told Rails that we want a +Post+ model, which
+should have a _title_ attribute of type string, and a _text_ attribute
 of type text. Those attributes are automatically added to the +posts+
 table in the database and mapped to the +Post+ model.
 
-Rails in turn responded by creating a bunch of files. For
+Rails responded by creating a bunch of files. For
 now, we're only interested in +app/models/post.rb+ and
-+db/migrate/20120419084633_create_posts.rb+. The latter is responsible
++db/migrate/20120419084633_create_posts.rb+ (your name could be a bit
+different). The latter is responsible
 for creating the database structure, which is what we'll look at next.
 
 h4. Running a Migration
@@ -472,8 +476,8 @@ invoking the command: +rake db:migrate RAILS_ENV=production+.
 h4. Saving data in the controller
 
 Back in +posts_controller+, we need to change the +create+ action
-to use the new +Post+ model to save data in the database. Open that file
-and change the +create+ action to look like the following:
+to use the new +Post+ model to save the data in the database. Open that file
+and change the +create+ action to look like this:
 
 <ruby>
 def create
@@ -485,22 +489,21 @@ end
 </ruby>
 
 Here's what's going on: every Rails model can be initialized with its
-respective attributes, which are automatically mapped to its
+respective attributes, which are automatically mapped to the respective
 database columns. In the first line we do just that (remember that
 +params[:post]+ contains the attributes we're interested in). Then,
 +@post.save+ is responsible for saving the model in the database.
-Finally, on the last line we redirect the user to the +show+ action,
-wich we have not defined yet.
+Finally, we redirect the user to the +show+ action,
+wich we'll define later.
 
 TIP: As we'll see later, +@post.save+ returns a boolean indicating
-wherever the model was saved or not, and you can (and usually do) take
-different actions depending on the result of calling +@post.save+.
+wherever the model was saved or not.
 
-h4. Showing posts
+h4. Showing Posts
 
-Before trying to create a new post, let's add the +show+ action, which
-will be responsible for showing our posts. Open +config/routes.rb+
-and add the following route:
+If you submit the form again now, Rails will complain about not finding
+the +show+ action. That's not very useful though, so let's aff the
++show+ action before proceeding. Open +config/routes.rb+ and add the following route:
 
 <ruby>
 get "posts/:id" => "posts#show"
