@@ -15,6 +15,14 @@ require 'active_support/core_ext/array/extract_options'
 #  Person.hair_colors     # => [:brown, :black, :blonde, :red]
 #  Person.new.hair_colors # => [:brown, :black, :blonde, :red]
 #
+#  class Female < Person
+#  end
+#
+#  Female.hair_colors << :pink
+#  Female.hair_colors     # => [:brown, :black, :blonde, :red, :pink]
+#  Female.new.hair_colors # => [:brown, :black, :blonde, :red, :pink]
+#  Person.hair_colors     # => [:brown, :black, :blonde, :red, :pink]
+#
 # To opt out of the instance writer method, pass :instance_writer => false.
 # To opt out of the instance reader method, pass :instance_reader => false.
 # To opt out of both instance methods, pass :instance_accessor => false.
