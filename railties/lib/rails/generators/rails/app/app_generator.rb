@@ -50,7 +50,7 @@ module Rails
     end
 
     def gitignore
-      copy_file "gitignore", ".gitignore"
+      template "gitignore", ".gitignore"
     end
 
     def app
