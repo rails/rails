@@ -764,6 +764,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_multiparameter_attributes_on_time_will_ignore_hour_if_missing
+    original_timezone = Topic.default_timezone
+    Topic.default_timezone = :local
     attributes = {
       "written_on(1i)" => "2004", "written_on(2i)" => "12", "written_on(3i)" => "12",
       "written_on(5i)" => "12", "written_on(6i)" => "02"
@@ -771,6 +773,8 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_equal Time.local(2004, 12, 12, 0, 12, 2), topic.written_on
+  ensure
+    Topic.default_timezone = original_timezone
   end
 
   def test_multiparameter_attributes_on_time_will_ignore_hour_if_blank
@@ -891,6 +895,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_multiparameter_attributes_on_time_with_empty_seconds
+    original_timezone = Topic.default_timezone
+    Topic.default_timezone = :local
     attributes = {
       "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
       "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => ""
@@ -898,6 +904,8 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
+  ensure
+    Topic.default_timezone = original_timezone
   end
 
   def test_multiparameter_assignment_of_aggregation
