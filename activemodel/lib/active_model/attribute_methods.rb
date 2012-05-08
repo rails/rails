@@ -183,34 +183,15 @@ module ActiveModel
 
       # Allows you to make aliases for attributes.
       #
-      # For example:
-      #
       #   class Person
-      #
-      #     include ActiveModel::AttributeMethods
       #     attr_accessor :name
-      #     attribute_method_prefix 'clear_'
-      #
-      #     define_attribute_methods [:name]
-      #
-      #     private
-      #
-      #     def clear_attribute(attr)
-      #       send("#{attr}=", nil)
-      #     end
-      #   end
-      #
-      #   class Person
-      #     attr_accessor :nickname
-      #
       #     alias_attribute :nickname, :name
       #   end
       #
       #   person = Person.new
       #   person.nickname = "Bob"
       #   person.nickname # => "Bob"
-      #   person.clear_nickname
-      #   person.nickname # => nil
+      #   person.name     # => "Bob"
       def alias_attribute(new_name, old_name)
         attribute_method_matchers.each do |matcher|
           matcher_new = matcher.method_name(new_name).to_s
