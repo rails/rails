@@ -29,17 +29,20 @@ module ActionView
         end
       end
 
-      # Formats a +number+ into a US phone number (e.g., (555) 123-9876). You can customize the format
-      # in the +options+ hash.
+      # Formats a +number+ into a US phone number (e.g., (555)
+      # 123-9876). You can customize the format in the +options+ hash.
       #
       # ==== Options
       #
-      # * <tt>:area_code</tt>     - Adds parentheses around the area code.
-      # * <tt>:delimiter</tt>     - Specifies the delimiter to use (defaults to "-").
-      # * <tt>:extension</tt>     - Specifies an extension to add to the end of the
-      #                             generated number.
-      # * <tt>:country_code</tt>  - Sets the country code for the phone number.
-      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
+      # * <tt>:area_code</tt> - Adds parentheses around the area code.
+      # * <tt>:delimiter</tt> - Specifies the delimiter to use
+      #   (defaults to "-").
+      # * <tt>:extension</tt> - Specifies an extension to add to the
+      #   end of the generated number.
+      # * <tt>:country_code</tt> - Sets the country code for the phone
+      #   number.
+      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      #   the argument is invalid.
       #
       # ==== Examples
       #
@@ -86,24 +89,31 @@ module ActionView
         ERB::Util.html_escape(str.join)
       end
 
-      # Formats a +number+ into a currency string (e.g., $13.65). You can customize the format
-      # in the +options+ hash.
+      # Formats a +number+ into a currency string (e.g., $13.65). You
+      # can customize the format in the +options+ hash.
       #
       # ==== Options
       #
-      # * <tt>:locale</tt>           - Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:precision</tt>        - Sets the level of precision (defaults to 2).
-      # * <tt>:unit</tt>             - Sets the denomination of the currency (defaults to "$").
-      # * <tt>:separator</tt>        - Sets the separator between the units (defaults to ".").
-      # * <tt>:delimiter</tt>        - Sets the thousands delimiter (defaults to ",").
-      # * <tt>:format</tt>           - Sets the format for non-negative numbers (defaults to "%u%n").
-      #                                Fields are <tt>%u</tt> for the currency, and <tt>%n</tt>
-      #                                for the number.
-      # * <tt>:negative_format</tt>  - Sets the format for negative numbers (defaults to prepending
-      #                                an hyphen to the formatted number given by <tt>:format</tt>).
-      #                                Accepts the same fields than <tt>:format</tt>, except
-      #                                <tt>%n</tt> is here the absolute value of the number.
-      # * <tt>:raise</tt>            - If true, raises +InvalidNumberError+ when the argument is invalid.
+      # * <tt>:locale</tt> - Sets the locale to be used for formatting
+      #   (defaults to current locale).
+      # * <tt>:precision</tt> - Sets the level of precision (defaults
+      #   to 2).
+      # * <tt>:unit</tt> - Sets the denomination of the currency
+      #   (defaults to "$").
+      # * <tt>:separator</tt> - Sets the separator between the units
+      #   (defaults to ".").
+      # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
+      #   to ",").
+      # * <tt>:format</tt> - Sets the format for non-negative numbers
+      #   (defaults to "%u%n").  Fields are <tt>%u</tt> for the
+      #   currency, and <tt>%n</tt> for the number.
+      # * <tt>:negative_format</tt> - Sets the format for negative
+      #   numbers (defaults to prepending an hyphen to the formatted
+      #   number given by <tt>:format</tt>).  Accepts the same fields
+      #   than <tt>:format</tt>, except <tt>%n</tt> is here the
+      #   absolute value of the number.
+      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      #   the argument is invalid.
       #
       # ==== Examples
       #
@@ -156,21 +166,27 @@ module ActionView
 
       end
 
-      # Formats a +number+ as a percentage string (e.g., 65%). You can customize the format in the +options+ hash.
+      # Formats a +number+ as a percentage string (e.g., 65%). You can
+      # customize the format in the +options+ hash.
       #
       # ==== Options
       #
-      # * <tt>:locale</tt>                      - Sets the locale to be used for formatting (defaults to current
-      #                                           locale).
-      # * <tt>:precision</tt>                   - Sets the precision of the number (defaults to 3).
-      # * <tt>:significant</tt>                 - If +true+, precision will be the # of significant_digits. If +false+,
-      #                                           the # of fractional digits (defaults to +false+).
-      # * <tt>:separator</tt>                   - Sets the separator between the fractional and integer digits (defaults
-      #                                           to ".").
-      # * <tt>:delimiter</tt>                   - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_insignificant_zeros</tt>   - If +true+ removes insignificant zeros after the decimal separator
-      #                                           (defaults to +false+).
-      # * <tt>:raise</tt>                       - If true, raises +InvalidNumberError+ when the argument is invalid.
+      # * <tt>:locale</tt> - Sets the locale to be used for formatting
+      #   (defaults to current locale).
+      # * <tt>:precision</tt> - Sets the precision of the number
+      #   (defaults to 3).
+      # * <tt>:significant</tt> - If +true+, precision will be the #
+      #   of significant_digits. If +false+, the # of fractional
+      #   digits (defaults to +false+).
+      # * <tt>:separator</tt> - Sets the separator between the
+      #   fractional and integer digits (defaults to ".").
+      # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
+      #   to "").
+      # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
+      #   insignificant zeros after the decimal separator (defaults to
+      #   +false+).
+      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      #   the argument is invalid.
       #
       # ==== Examples
       #
@@ -205,15 +221,20 @@ module ActionView
         end
       end
 
-      # Formats a +number+ with grouped thousands using +delimiter+ (e.g., 12,324). You can
-      # customize the format in the +options+ hash.
+      # Formats a +number+ with grouped thousands using +delimiter+
+      # (e.g., 12,324). You can customize the format in the +options+
+      # hash.
       #
       # ==== Options
       #
-      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to ",").
-      # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
-      # * <tt>:raise</tt>      - If true, raises +InvalidNumberError+ when the argument is invalid.
+      # * <tt>:locale</tt> - Sets the locale to be used for formatting
+      #   (defaults to current locale).
+      # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
+      #   to ",").
+      # * <tt>:separator</tt> - Sets the separator between the
+      #   fractional and integer digits (defaults to ".").
+      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      #   the argument is invalid.
       #
       # ==== Examples
       #
@@ -251,23 +272,32 @@ module ActionView
 
       end
 
-      # Formats a +number+ with the specified level of <tt>:precision</tt> (e.g., 112.32 has a precision
-      # of 2 if +:significant+ is +false+, and 5 if +:significant+ is +true+).
+      # Formats a +number+ with the specified level of
+      # <tt>:precision</tt> (e.g., 112.32 has a precision of 2 if
+      # +:significant+ is +false+, and 5 if +:significant+ is +true+).
       # You can customize the format in the +options+ hash.
       #
       # ==== Options
-      # * <tt>:locale</tt>                     - Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:precision</tt>                  - Sets the precision of the number (defaults to 3).
-      # * <tt>:significant</tt>                - If +true+, precision will be the # of significant_digits. If +false+,
-      #                                          the # of fractional digits (defaults to +false+).
-      # * <tt>:separator</tt>                  - Sets the separator between the fractional and integer digits (defaults
-      #                                          to ".").
-      # * <tt>:delimiter</tt>                  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator
-      #                                          (defaults to +false+).
-      # * <tt>:raise</tt>                      - If true, raises +InvalidNumberError+ when the argument is invalid.
+      #
+      # * <tt>:locale</tt> - Sets the locale to be used for formatting
+      #   (defaults to current locale).
+      # * <tt>:precision</tt> - Sets the precision of the number
+      #   (defaults to 3).
+      # * <tt>:significant</tt> - If +true+, precision will be the #
+      #   of significant_digits. If +false+, the # of fractional
+      #   digits (defaults to +false+).
+      # * <tt>:separator</tt> - Sets the separator between the
+      #   fractional and integer digits (defaults to ".").
+      # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
+      #   to "").
+      # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
+      #   insignificant zeros after the decimal separator (defaults to
+      #   +false+).
+      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      #   the argument is invalid.
       #
       # ==== Examples
+      #
       #  number_with_precision(111.2345)                                            # => 111.235
       #  number_with_precision(111.2345, :precision => 2)                           # => 111.23
       #  number_with_precision(13, :precision => 5)                                 # => 13.00000
@@ -330,23 +360,37 @@ module ActionView
 
       STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb].freeze
 
-      # Formats the bytes in +number+ into a more understandable representation
-      # (e.g., giving it 1500 yields 1.5 KB). This method is useful for
-      # reporting file sizes to users. You can customize the
-      # format in the +options+ hash.
+      # Formats the bytes in +number+ into a more understandable
+      # representation (e.g., giving it 1500 yields 1.5 KB). This
+      # method is useful for reporting file sizes to users. You can
+      # customize the format in the +options+ hash.
       #
-      # See <tt>number_to_human</tt> if you want to pretty-print a generic number.
+      # See <tt>number_to_human</tt> if you want to pretty-print a
+      # generic number.
       #
       # ==== Options
-      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:precision</tt>  - Sets the precision of the number (defaults to 3).
-      # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +true+)
-      # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
-      # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +true+)
-      # * <tt>:prefix</tt>  - If +:si+ formats the number using the SI prefix (defaults to :binary)
-      # * <tt>:raise</tt>         - If true, raises +InvalidNumberError+ when the argument is invalid.
+      #
+      # * <tt>:locale</tt> - Sets the locale to be used for formatting
+      #   (defaults to current locale).
+      # * <tt>:precision</tt> - Sets the precision of the number
+      #   (defaults to 3).
+      # * <tt>:significant</tt> - If +true+, precision will be the #
+      #   of significant_digits. If +false+, the # of fractional
+      #   digits (defaults to +true+)
+      # * <tt>:separator</tt> - Sets the separator between the
+      #   fractional and integer digits (defaults to ".").
+      # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
+      #   to "").
+      # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
+      #   insignificant zeros after the decimal separator (defaults to
+      #   +true+)
+      # * <tt>:prefix</tt> - If +:si+ formats the number using the SI
+      #   prefix (defaults to :binary)
+      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      #   the argument is invalid.
+      #
       # ==== Examples
+      #
       #  number_to_human_size(123)                                          # => 123 Bytes
       #  number_to_human_size(1234)                                         # => 1.21 KB
       #  number_to_human_size(12345)                                        # => 12.1 KB
@@ -357,8 +401,10 @@ module ActionView
       #  number_to_human_size(483989, :precision => 2)                      # => 470 KB
       #  number_to_human_size(1234567, :precision => 2, :separator => ',')  # => 1,2 MB
       #
-      # Non-significant zeros after the fractional separator are stripped out by default (set
-      # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
+      # Non-significant zeros after the fractional separator are
+      # stripped out by default (set
+      # <tt>:strip_insignificant_zeros</tt> to +false+ to change
+      # that):
       #  number_to_human_size(1234567890123, :precision => 5)        # => "1.1229 TB"
       #  number_to_human_size(524288000, :precision => 5)            # => "500 MB"
       def number_to_human_size(number, options = {})
@@ -406,33 +452,55 @@ module ActionView
       DECIMAL_UNITS = {0 => :unit, 1 => :ten, 2 => :hundred, 3 => :thousand, 6 => :million, 9 => :billion, 12 => :trillion, 15 => :quadrillion,
         -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto}.freeze
 
-      # Pretty prints (formats and approximates) a number in a way it is more readable by humans
-      # (eg.: 1200000000 becomes "1.2 Billion"). This is useful for numbers that
-      # can get very large (and too hard to read).
+      # Pretty prints (formats and approximates) a number in a way it
+      # is more readable by humans (eg.: 1200000000 becomes "1.2
+      # Billion"). This is useful for numbers that can get very large
+      # (and too hard to read).
       #
-      # See <tt>number_to_human_size</tt> if you want to print a file size.
+      # See <tt>number_to_human_size</tt> if you want to print a file
+      # size.
       #
-      # You can also define you own unit-quantifier names if you want to use other decimal units
-      # (eg.: 1500 becomes "1.5 kilometers", 0.150 becomes "150 milliliters", etc). You may define
-      # a wide range of unit quantifiers, even fractional ones (centi, deci, mili, etc).
+      # You can also define you own unit-quantifier names if you want
+      # to use other decimal units (eg.: 1500 becomes "1.5
+      # kilometers", 0.150 becomes "150 milliliters", etc). You may
+      # define a wide range of unit quantifiers, even fractional ones
+      # (centi, deci, mili, etc).
       #
       # ==== Options
-      # * <tt>:locale</tt>     - Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:precision</tt>  - Sets the precision of the number (defaults to 3).
-      # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +true+)
-      # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
-      # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +true+)
-      # * <tt>:units</tt> - A Hash of unit quantifier names. Or a string containing an i18n scope where to find this hash. It might have the following keys:
-      #   * *integers*: <tt>:unit</tt>, <tt>:ten</tt>, <tt>:hundred</tt>, <tt>:thousand</tt>,  <tt>:million</tt>,  <tt>:billion</tt>, <tt>:trillion</tt>, <tt>:quadrillion</tt>
-      #   * *fractionals*: <tt>:deci</tt>, <tt>:centi</tt>, <tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>, <tt>:pico</tt>, <tt>:femto</tt>
-      # * <tt>:format</tt> - Sets the format of the output string (defaults to "%n %u"). The field types are:
-      #     %u  The quantifier (ex.: 'thousand')
-      #     %n  The number
-      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when the argument is invalid.
       #
+      # * <tt>:locale</tt> - Sets the locale to be used for formatting
+      #   (defaults to current locale).
+      # * <tt>:precision</tt> - Sets the precision of the number
+      #   (defaults to 3).
+      # * <tt>:significant</tt> - If +true+, precision will be the #
+      #   of significant_digits. If +false+, the # of fractional
+      #   digits (defaults to +true+)
+      # * <tt>:separator</tt> - Sets the separator between the
+      #   fractional and integer digits (defaults to ".").
+      # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
+      #   to "").
+      # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
+      #   insignificant zeros after the decimal separator (defaults to
+      #   +true+)
+      # * <tt>:units</tt> - A Hash of unit quantifier names. Or a
+      #   string containing an i18n scope where to find this hash. It
+      #   might have the following keys:
+      #   * *integers*: <tt>:unit</tt>, <tt>:ten</tt>,
+      #     *<tt>:hundred</tt>, <tt>:thousand</tt>, <tt>:million</tt>,
+      #     *<tt>:billion</tt>, <tt>:trillion</tt>,
+      #     *<tt>:quadrillion</tt>
+      #   * *fractionals*: <tt>:deci</tt>, <tt>:centi</tt>,
+      #     *<tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>,
+      #     *<tt>:pico</tt>, <tt>:femto</tt>
+      # * <tt>:format</tt> - Sets the format of the output string
+      #   (defaults to "%n %u"). The field types are:
+      #   * %u - The quantifier (ex.: 'thousand')
+      #   * %n - The number
+      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      #   the argument is invalid.
       #
       # ==== Examples
+      #
       #  number_to_human(123)                                          # => "123"
       #  number_to_human(1234)                                         # => "1.23 Thousand"
       #  number_to_human(12345)                                        # => "12.3 Thousand"
@@ -449,8 +517,9 @@ module ActionView
       #                           :separator => ',',
       #                           :significant => false)               # => "1,2 Million"
       #
-      # Unsignificant zeros after the decimal separator are stripped out by default (set
-      # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
+      # Non-significant zeros after the decimal separator are stripped
+      # out by default (set <tt>:strip_insignificant_zeros</tt> to
+      # +false+ to change that):
       #  number_to_human(12345012345, :significant_digits => 6)       # => "12.345 Billion"
       #  number_to_human(500000000, :precision => 5)                  # => "500 Million"
       #
