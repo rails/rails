@@ -91,7 +91,7 @@ class AggregationsTest < ActiveRecord::TestCase
   end
 
   def test_nil_raises_error_when_allow_nil_is_false
-    assert_raise(NoMethodError) { customers(:david).balance = nil }
+    assert_raise(ActiveRecord::AggregationNilNotPermittedError) { customers(:david).balance = nil }
   end
 
   def test_allow_nil_address_loaded_when_only_some_attributes_are_nil
@@ -114,10 +114,16 @@ class AggregationsTest < ActiveRecord::TestCase
     assert_kind_of Fullname, customers(:barney).fullname
   end
 
-  def test_custom_converter
+  def test_custom_converter_using_symbol
     customers(:barney).fullname = 'Barnoit Gumbleau'
     assert_equal 'Barnoit GUMBLEAU', customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname
+  end
+  
+  def test_custom_converter_using_proc
+    customers(:barney).balance = 1
+    assert_kind_of Money, customers(:barney).balance
+    assert_equal 1, customers(:barney).balance.amount
   end
 end
 

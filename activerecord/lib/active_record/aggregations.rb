@@ -1,4 +1,11 @@
 module ActiveRecord
+  
+  class AggregationNilNotPermittedError < ActiveRecordError # :nodoc:
+    def initialize(name)
+      super("Nil is not permitted for aggregation #{name.inspect}")
+    end
+  end
+  
   # = Active Record Aggregations
   module Aggregations # :nodoc:
     extend ActiveSupport::Concern
@@ -241,9 +248,13 @@ module ActiveRecord
 
         def writer_method(name, class_name, mapping, allow_nil, converter)
           define_method("#{name}=") do |part|
-            if part.nil? && allow_nil
-              mapping.each { |pair| self[pair.first] = nil }
-              @aggregation_cache[name] = nil
+            if part.nil?
+              if allow_nil
+                mapping.each { |pair| self[pair.first] = nil }
+                @aggregation_cache[name] = nil
+              else
+                raise AggregationNilNotPermittedError.new(name)
+              end
             else
               unless part.is_a?(class_name.constantize) || converter.nil?
                 part = converter.respond_to?(:call) ?
