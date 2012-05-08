@@ -220,6 +220,17 @@ module ActiveModel
         undefine_attribute_methods
       end
 
+      # Allows you to make aliases for attributes.
+      #
+      #   class Person
+      #     attr_accessor :name
+      #     alias_attribute :nickname, :name
+      #   end
+      #
+      #   person = Person.new
+      #   person.nickname = "Bob"
+      #   person.nickname # => "Bob"
+      #   person.name     # => "Bob"
       def alias_attribute(new_name, old_name)
         attribute_method_matchers.each do |matcher|
           matcher_new = matcher.method_name(new_name).to_s
