@@ -34,6 +34,33 @@ require 'active_support/core_ext/array/extract_options'
 #   Person.new.hair_colors = [:brown]  # => NoMethodError
 #   Person.new.hair_colors             # => NoMethodError
 class Class
+  # Defines a class attribute if it's not defined and creates a reader method that
+  # returns the attribute value.
+  #
+  #   class Person
+  #     cattr_reader :hair_colors
+  #   end
+  #
+  #   Person.class_variable_set("@@hair_colors", [:brown, :black])
+  #   Person.hair_colors     # => [:brown, :black]
+  #   Person.new.hair_colors # => [:brown, :black]
+  #
+  # The attribute name must be any word character starting with a letter or underscore
+  # and without spaces.
+  #
+  #   class Person
+  #     cattr_reader :"1_Badname "
+  #   end
+  #   # => NameError: invalid attribute name
+  #
+  # If you want to opt out the instance writer method, pass <tt>instance_reader: false</tt>
+  # or <tt>instance_accessor: false</tt>.
+  #
+  #   class Person
+  #     cattr_reader :hair_colors, instance_reader: false
+  #   end
+  #
+  #   Person.new.hair_colors # => NoMethodError
   def cattr_reader(*syms)
     options = syms.extract_options!
     syms.each do |sym|
