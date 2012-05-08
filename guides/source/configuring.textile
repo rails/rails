@@ -186,13 +186,13 @@ The full set of methods that can be used in this block are as follows:
 * +force_plural+ allows pluralized model names. Defaults to +false+.
 * +helper+ defines whether or not to generate helpers. Defaults to +true+.
 * +integration_tool+ defines which integration tool to use. Defaults to +nil+.
-* +javascripts+ turns on the hook for javascripts in generators. Used in Rails for when the +scaffold+ generator is ran. Defaults to +true+.
+* +javascripts+ turns on the hook for javascripts in generators. Used in Rails for when the +scaffold+ generator is run. Defaults to +true+.
 * +javascript_engine+ configures the engine to be used (for eg. coffee) when generating assets. Defaults to +nil+.
 * +orm+ defines which orm to use. Defaults to +false+ and will use Active Record by default.
 * +performance_tool+ defines which performance tool to use. Defaults to +nil+.
 * +resource_controller+ defines which generator to use for generating a controller when using +rails generate resource+. Defaults to +:controller+.
 * +scaffold_controller+ different from +resource_controller+, defines which generator to use for generating a _scaffolded_ controller when using +rails generate scaffold+. Defaults to +:scaffold_controller+.
-* +stylesheets+ turns on the hook for stylesheets in generators. Used in Rails for when the +scaffold+ generator is ran, but this hook can be used in other generates as well. Defaults to +true+.
+* +stylesheets+ turns on the hook for stylesheets in generators. Used in Rails for when the +scaffold+ generator is run, but this hook can be used in other generates as well. Defaults to +true+.
 * +stylesheet_engine+ configures the stylesheet engine (for eg. sass) to be used when generating assets. Defaults to +:css+.
 * +test_framework+ defines which test framework to use. Defaults to +false+ and will use Test::Unit by default.
 * +template_engine+ defines which template engine to use, such as ERB or Haml. Defaults to +:erb+.
@@ -589,13 +589,13 @@ TIP: If you have any ordering dependency in your initializers, you can control t
 
 h3. Initialization events
 
-Rails has 5 initialization events which can be hooked into (listed in the order that they are ran):
+Rails has 5 initialization events which can be hooked into (listed in the order that they are run):
 
 * +before_configuration+: This is run as soon as the application constant inherits from +Rails::Application+. The +config+ calls are evaluated before this happens.
 
 * +before_initialize+: This is run directly before the initialization process of the application occurs with the +:bootstrap_hook+ initializer near the beginning of the Rails initialization process.
 
-* +to_prepare+: Run after the initializers are ran for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every request in +development+, but only once (during boot-up) in +production+ and +test+.
+* +to_prepare+: Run after the initializers are run for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every request in +development+, but only once (during boot-up) in +production+ and +test+.
 
 * +before_eager_load+: This is run directly before eager loading occurs, which is the default behaviour for the _production_ environment and not for the +development+ environment.
 
@@ -736,7 +736,7 @@ The error occurred while evaluating nil.each
 
 *+load_config_initializers+* Loads all Ruby files from +config/initializers+ in the application, railties and engines. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks are loaded.
 
-*+engines_blank_point+* Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are ran.
+*+engines_blank_point+* Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are run.
 
 *+add_generator_templates+* Finds templates for generators at +lib/templates+ for the application, railities and engines and adds these to the +config.generators.templates+ setting, which will make the templates available for all generators to reference.
 

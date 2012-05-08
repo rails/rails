@@ -3129,17 +3129,37 @@ The method +beginning_of_day+ returns a timestamp at the beginning of the day (0
 
 <ruby>
 date = Date.new(2010, 6, 7)
-date.beginning_of_day # => Sun Jun 07 00:00:00 +0200 2010
+date.beginning_of_day # => Mon Jun 07 00:00:00 +0200 2010
 </ruby>
 
 The method +end_of_day+ returns a timestamp at the end of the day (23:59:59):
 
 <ruby>
 date = Date.new(2010, 6, 7)
-date.end_of_day # => Sun Jun 06 23:59:59 +0200 2010
+date.end_of_day # => Mon Jun 07 23:59:59 +0200 2010
 </ruby>
 
 +beginning_of_day+ is aliased to +at_beginning_of_day+, +midnight+, +at_midnight+.
+
+h6. +beginning_of_hour+, +end_of_hour+
+
+The method +beginning_of_hour+ returns a timestamp at the beginning of the hour (hh:00:00):
+
+<ruby>
+date = DateTime.new(2010, 6, 7, 19, 55, 25)
+date.beginning_of_hour # => Mon Jun 07 19:00:00 +0200 2010
+</ruby>
+
+The method +end_of_hour+ returns a timestamp at the end of the hour (hh:59:59):
+
+<ruby>
+date = DateTime.new(2010, 6, 7, 19, 55, 25)
+date.end_of_hour # => Mon Jun 07 19:59:59 +0200 2010
+</ruby>
+
++beginning_of_hour+ is aliased to +at_beginning_of_hour+.
+
+INFO: +beginning_of_hour+ and +end_of_hour+ are implemented for +Time+ and +DateTime+ but *not* +Date+ as it does not make sense to request the beginning or end of an hour on a +Date+ instance.
 
 h6. +ago+, +since+
 
@@ -3207,6 +3227,13 @@ since (in)
 </ruby>
 
 On the other hand, +advance+ and +change+ are also defined and support more options, they are documented below.
+
+The following methods are only implemented in +active_support/core_ext/date_time/calculations.rb+ as they only make sense when used with a +DateTime+ instance:
+
+<ruby>
+beginning_of_hour (at_beginning_of_hour)
+end_of_hour
+</ruby>
 
 h5. Named Datetimes
 
@@ -3350,6 +3377,8 @@ ago
 since (in)
 beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
+beginning_of_hour (at_beginning_of_hour)
+end_of_hour
 beginning_of_week (at_beginning_of_week)
 end_of_week (at_end_of_week)
 monday

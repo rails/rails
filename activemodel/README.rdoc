@@ -135,6 +135,16 @@ behavior out of the box:
   pattern in a Rails App and take advantage of all the standard observer
   functions.
 
+    class PersonObserver < ActiveModel::Observer
+      def after_create(person)
+        person.logger.info("New person added!")
+      end
+
+      def after_destroy(person)
+        person.logger.warn("Person with an id of #{person.id} was destroyed!")
+      end
+    end
+
   {Learn more}[link:classes/ActiveModel/Observer.html]
 
 * Making objects serializable
