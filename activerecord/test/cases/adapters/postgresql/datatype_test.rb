@@ -134,9 +134,10 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal '-1 years -2 days', @first_time.time_interval
   end
 
-  def test_network_address_values
-    cidr_address = NetAddr::CIDR.create '192.168.0.0/24'
-    inet_address = NetAddr::CIDR.create '172.16.1.254'
+  def test_network_address_values_ipaddr
+    cidr_address = IPAddr.new '192.168.0.0/24'
+    inet_address = IPAddr.new '172.16.1.254'
+
     assert_equal cidr_address, @first_network_address.cidr_address
     assert_equal inet_address, @first_network_address.inet_address
     assert_equal '01:23:45:67:89:0a', @first_network_address.mac_address
