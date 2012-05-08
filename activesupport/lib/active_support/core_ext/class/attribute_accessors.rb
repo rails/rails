@@ -87,10 +87,12 @@ class Class
   #
   #   Person.new.hair_colors = [:blonde, :red] # => NoMethodError
   #
-  # Also, you can pass a block to set up the variable with a default value.
+  # Also, you can pass a block to set up the attribute with a default value.
   #
   #   class Person
-  #     cattr_writer(:hair_colors) {[:brown, :black, :blonde, :red]}
+  #     cattr_writer :hair_colors do
+  #       [:brown, :black, :blonde, :red]
+  #     end
   #   end
   #
   #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
@@ -157,6 +159,16 @@ class Class
   #
   #   Person.new.hair_colors = [:brown]  # => NoMethodError
   #   Person.new.hair_colors             # => NoMethodError
+  #
+  # Also you can pass a block to set up the attribute with a default value.
+  #
+  #   class Person
+  #     cattr_accessor :hair_colors do
+  #       [:brown, :black, :blonde, :red]
+  #     end
+  #   end
+  #
+  #   Person.class_variable_get("@@hair_colors") #=> [:brown, :black, :blonde, :red]
   def cattr_accessor(*syms, &blk)
     cattr_reader(*syms)
     cattr_writer(*syms, &blk)
