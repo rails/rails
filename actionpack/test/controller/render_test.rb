@@ -505,6 +505,14 @@ class TestController < ActionController::Base
     render :text => "hello world!"
   end
 
+  def head_created
+    head :created
+  end
+
+  def head_created_with_application_json_content_type
+    head :created, :content_type => "application/json"
+  end
+
   def head_with_location_header
     head :location => "/foo"
   end
@@ -1175,6 +1183,19 @@ class RenderTest < ActionController::TestCase
 
     get :hello_world_from_rxml_using_action
     assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
+  end
+
+  def test_head_created
+    post :head_created
+    assert_blank @response.body
+    assert_response :created
+  end
+
+  def test_head_created_with_application_json_content_type
+    post :head_created_with_application_json_content_type
+    assert_blank @response.body
+    assert_equal "application/json", @response.content_type
+    assert_response :created
   end
 
   def test_head_with_location_header
