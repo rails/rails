@@ -162,7 +162,7 @@ class FinderTest < ActiveRecord::TestCase
   end
   
   def test_find_first_not_nil
-    first = Topic.find(:first, :conditions => {:title => :not_nil})
+    first = Topic.where(:title => :not_nil).first
     assert_equal(topics(:first).title, first.title)
   end
 
