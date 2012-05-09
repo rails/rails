@@ -1,4 +1,5 @@
 .bundle/
+Gemfile.lock
 log/*.log
 pkg/
 <%= dummy_path %>/db/*.sqlite3
