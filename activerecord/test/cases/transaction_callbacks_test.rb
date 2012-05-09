@@ -290,3 +290,28 @@ class TransactionObserverCallbacksTest < ActiveRecord::TestCase
     assert_equal %w{ after_rollback }, topic.history
   end
 end
+
+class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  class TopicWithSaveInCallback < ActiveRecord::Base
+    self.table_name = :topics
+    after_commit :cache_topic, :on => :create
+    attr_accessor :cached
+
+    def cache_topic
+      unless cached
+        self.cached = true
+        self.save
+      else
+        self.cached = false
+      end
+    end
+  end
+
+  def test_after_commit_in_save
+    topic = TopicWithSaveInCallback.new()
+    topic.save
+    assert_equal true, topic.cached
+  end
+end
