@@ -254,6 +254,9 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{<script src="/assets/jquery.plugin.js" type="text/javascript"></script>},
       javascript_include_tag('jquery.plugin', :digest => false)
 
+    assert_match %r{\A<script src="/assets/xmlhr-[0-9a-f]+.js" type="text/javascript"></script>\Z},
+      javascript_include_tag("xmlhr", "xmlhr")
+
     @config.assets.compile = true
     @config.assets.debug = true
     assert_match %r{<script src="/javascripts/application.js" type="text/javascript"></script>},
@@ -300,6 +303,9 @@ class SprocketsHelperTest < ActionView::TestCase
 
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag(:application, :debug => true)
+
+    assert_match %r{\A<link href="/assets/style-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />\Z},
+      stylesheet_link_tag("style", "style")
 
     @config.assets.compile = true
     @config.assets.debug = true
