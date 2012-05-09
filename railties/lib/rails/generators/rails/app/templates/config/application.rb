@@ -4,11 +4,11 @@ require File.expand_path('../boot', __FILE__)
 require 'rails/all'
 <% else -%>
 # Pick the frameworks you want:
-<%= comment_if :skip_active_record %>require "active_record/railtie"
-require "action_controller/railtie"
-require "action_mailer/railtie"
-<%= comment_if :skip_sprockets %>require "sprockets/rails/railtie"
-<%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
+<%= comment_if :skip_active_record %>require 'active_record/railtie'
+require 'action_controller/railtie'
+require 'action_mailer/railtie'
+<%= comment_if :skip_sprockets %>require 'sprockets/rails/railtie'
+<%= comment_if :skip_test_unit %>require 'rails/test_unit/railtie'
 <% end -%>
 
 if defined?(Bundler)
@@ -39,7 +39,7 @@ module <%= app_const_base %>
     # config.i18n.default_locale = :de
 
     # Configure the default encoding used in templates for Ruby 1.9.
-    config.encoding = "utf-8"
+    config.encoding = 'utf-8'
 
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
