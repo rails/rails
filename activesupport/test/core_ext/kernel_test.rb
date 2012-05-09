@@ -108,3 +108,9 @@ class KernelDebuggerTest < ActiveSupport::TestCase
     Object.send(:remove_const, "Rails")
   end
 end
+
+class KernelIsAnTest < ActiveSupport::TestCase
+  def test_is_an
+    assert [1, 2].is_an? Array
+  end
+end
