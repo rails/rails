@@ -419,11 +419,15 @@ module ActiveRecord
       cache_for_connection(connection).update(fixtures_map)
     end
 
-    def self.instantiate_fixtures(object, fixture_name, fixtures, load_instances = true)
+    #--
+    # TODO:NOTE: in the next version, the __with_new_arity suffix and
+    #   the method with the old arity will be removed.
+    #++
+    def self.instantiate_fixtures__with_new_arity(object, fixture_set, load_instances = true) # :nodoc:
       if load_instances
-        fixtures.each do |name, fixture|
+        fixture_set.each do |fixture_name, fixture|
           begin
-            object.instance_variable_set "@#{name}", fixture.find
+            object.instance_variable_set "@#{fixture_name}", fixture.find
           rescue FixtureClassNotFound
             nil
           end
@@ -431,9 +435,24 @@ module ActiveRecord
       end
     end
 
+    # The use with parameters  <tt>(object, fixture_set_name, fixture_set, load_instances = true)</tt>  is deprecated,  +fixture_set_name+  parameter is not used.
+    # Use as:
+    #
+    #   instantiate_fixtures(object, fixture_set, load_instances = true)
+    def self.instantiate_fixtures(object, fixture_set, load_instances = true, rails_3_2_compatibility_argument = true)
+      unless load_instances == true || load_instances == false
+        ActiveSupport::Deprecation.warn(
+          "ActiveRecord::Fixtures.instantiate_fixtures with parameters (object, fixture_set_name, fixture_set, load_instances = true) is deprecated and shall be removed from future releases.  Use it with parameters (object, fixture_set, load_instances = true) instead (skip fixture_set_name).",
+          caller)
+        fixture_set = load_instances
+        load_instances = rails_3_2_compatibility_argument
+      end
+      instantiate_fixtures__with_new_arity(object, fixture_set, load_instances)
+    end
+
     def self.instantiate_all_loaded_fixtures(object, load_instances = true)
-      all_loaded_fixtures.each do |table_name, fixtures|
-        ActiveRecord::Fixtures.instantiate_fixtures(object, table_name, fixtures, load_instances)
+      all_loaded_fixtures.each_value do |fixture_set|
+        ActiveRecord::Fixtures.instantiate_fixtures(object, fixture_set, load_instances)
       end
     end
 
@@ -893,8 +912,8 @@ module ActiveRecord
           ActiveRecord::Fixtures.instantiate_all_loaded_fixtures(self, load_instances?)
         else
           raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
-          @loaded_fixtures.each do |fixture_name, fixtures|
-            ActiveRecord::Fixtures.instantiate_fixtures(self, fixture_name, fixtures, load_instances?)
+          @loaded_fixtures.each_value do |fixture_set|
+            ActiveRecord::Fixtures.instantiate_fixtures(self, fixture_set, load_instances?)
           end
         end
       end
