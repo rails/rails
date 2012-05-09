@@ -5,5 +5,5 @@
 
 /* APP */
   Name: <%= app_const_base %>
-  Date Created: <%= Date.today.strftime("%B %d, %Y") %>
+  Date Created: <%= Date.today.strftime('%B %d, %Y') %>
   Software: Ruby on Rails
