@@ -1,10 +1,18 @@
+## Rails 3.2.4 (unreleased) ##
+
+*   Added #beginning_of_hour and #end_of_hour to Time and DateTime core
+    extensions. *Mark J. Titorenko*
+
+
 ## Rails 3.2.3 (March 30, 2012) ##
 
 *   No changes.
 
+
 ## Rails 3.2.2 (March 1, 2012) ##
 
 *   No changes.
+
 
 ## Rails 3.2.1 (January 26, 2012) ##
 
@@ -90,6 +98,36 @@
     filehandle, or tune your filesystem.
 
 
+## Rails 3.1.4 (March 1, 2012) ##
+
+*   No changes
+
+
+## Rails 3.1.3 (November 20, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.2 (November 18, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.1 (October 7, 2011) ##
+
+*   ruby193: String#prepend is also unsafe *Akira Matsuda*
+
+*   Fix obviously breakage of Time.=== for Time subclasses *jeremyevans*
+
+*   Added fix so that file store does not raise an exception when cache dir does
+    not exist yet. This can happen if a delete_matched is called before anything
+    is saved in the cache. *Philippe Huibonhoa*
+
+*   Fixed performance issue where TimeZone lookups would require tzinfo each time *Tim Lucas*
+
+*   ActiveSupport::OrderedHash is now marked as extractable when using Array#extract_options! *Prem Sichanugrist*
+
+
 ## Rails 3.1.0 (August 30, 2011) ##
 
 *   ActiveSupport::Dependencies#load and ActiveSupport::Dependencies#require now
@@ -132,12 +170,38 @@
 *   JSON decoding now uses the multi_json gem which also vendors a json engine called OkJson. The yaml backend has been removed in favor of OkJson as a default engine for 1.8.x, while the built in 1.9.x json implementation will be used by default. *Josh Kalderimis*
 
 
+## Rails 3.0.12 (March 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*  Delayed backtrace scrubbing in `load_missing_constant` until we actually
+   raise the exception
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   No changes.
+
+
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   Hash.from_xml no longer loses attributes on tags containing only whitespace *André Arko*
 
 
-*   Rails 3.0.6 (April 5, 2011)
+## Rails 3.0.6 (April 5, 2011)
 
 *   No changes.
 
