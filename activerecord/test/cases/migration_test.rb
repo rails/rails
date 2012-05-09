@@ -874,9 +874,17 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_remove_column_with_array_as_an_argument_is_deprecated
-      assert_deprecated /Passing array to remove_columns is deprecated/ do
-        Person.connection.remove_column("people", ["last_name", "description"])
+      ActiveRecord::Base.connection.create_table(:hats) do |table|
+        table.column :hat_name, :string, :limit => 100
+        table.column :hat_size, :integer
+        table.column :hat_style, :string, :limit => 100
       end
+
+      assert_deprecated /Passing array to remove_columns is deprecated/ do
+        Person.connection.remove_column("hats", ["hat_name", "hat_size"])
+      end
+    ensure
+      ActiveRecord::Base.connection.drop_table(:hats)
     end
 
     def test_change_type_of_not_null_column
