@@ -887,7 +887,7 @@ module ActionView
           select_options.merge!(:disabled => 'disabled') if @options[:disabled]
 
           select_html = "\n"
-          select_html << content_tag(:option, '', :value => '') + "\n" if @options[:include_blank]
+          select_html << content_tag(:option, '') + "\n" if @options[:include_blank]
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html
 
@@ -896,7 +896,7 @@ module ActionView
 
         # Builds a prompt option tag with supplied options or from default options.
         #  prompt_option_tag(:month, :prompt => 'Select month')
-        #  => "<option value="">Select month</option>"
+        #  => "<option>Select month</option>"
         def prompt_option_tag(type, options)
           prompt = case options
             when Hash
@@ -908,7 +908,7 @@ module ActionView
               I18n.translate(:"datetime.prompts.#{type}", :locale => @options[:locale])
           end
 
-          prompt ? content_tag(:option, prompt, :value => '') : ''
+          prompt ? content_tag(:option, prompt) : ''
         end
 
         # Builds hidden input tag for date part and value.
