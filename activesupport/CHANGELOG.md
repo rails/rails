@@ -38,6 +38,17 @@
      of wrapping them in strings for safety.
 
 
+## Rails 3.2.4 (unreleased) ##
+
+*   Added #beginning_of_hour and #end_of_hour to Time and DateTime core
+    extensions. *Mark J. Titorenko*
+
+
+## Rails 3.2.3 (March 30, 2012) ##
+
+*   No changes.
+
+
 ## Rails 3.2.2 (March 1, 2012) ##
 
 *   No changes.
