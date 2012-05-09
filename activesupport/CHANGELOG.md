@@ -1,41 +1,41 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*    `deep_dup` works more expectedly now and duplicates also values in +Hash+ instances and elements in +Array+ instances. *Alexey Gaziev*
+*   `deep_dup` works more expectedly now and duplicates also values in +Hash+ instances and elements in +Array+ instances. *Alexey Gaziev*
 
-*    Inflector no longer applies ice -> ouse to words like slice, police, ets *Wes Morgan*
+*   Inflector no longer applies ice -> ouse to words like slice, police, ets *Wes Morgan*
 
-*    Add `ActiveSupport::Deprecations.behavior = :silence` to completely ignore Rails runtime deprecations *twinturbo*
+*   Add `ActiveSupport::Deprecations.behavior = :silence` to completely ignore Rails runtime deprecations *twinturbo*
 
-*    Make Module#delegate stop using `send` - can no longer delegate to private methods. *dasch*
+*   Make Module#delegate stop using `send` - can no longer delegate to private methods. *dasch*
 
-*    AS::Callbacks: deprecate `:rescuable` option. *Bogdan Gusiev*
+*   AS::Callbacks: deprecate `:rescuable` option. *Bogdan Gusiev*
 
-*    Adds Integer#ordinal to get the ordinal suffix string of an integer. *Tim Gildea*
+*   Adds Integer#ordinal to get the ordinal suffix string of an integer. *Tim Gildea*
 
-*    AS::Callbacks: `:per_key` option is no longer supported
+*   AS::Callbacks: `:per_key` option is no longer supported
 
-*    `AS::Callbacks#define_callbacks`: add `:skip_after_callbacks_if_terminated` option.
+*   `AS::Callbacks#define_callbacks`: add `:skip_after_callbacks_if_terminated` option.
 
-*    Add html_escape_once to ERB::Util, and delegate escape_once tag helper to it. *Carlos Antonio da Silva*
+*   Add html_escape_once to ERB::Util, and delegate escape_once tag helper to it. *Carlos Antonio da Silva*
 
-*    Remove ActiveSupport::TestCase#pending method, use `skip` instead. *Carlos Antonio da Silva*
+*   Remove ActiveSupport::TestCase#pending method, use `skip` instead. *Carlos Antonio da Silva*
 
-*    Deprecates the compatibility method Module#local_constant_names,
-     use Module#local_constants instead (which returns symbols). *fxn*
+*   Deprecates the compatibility method Module#local_constant_names,
+    use Module#local_constants instead (which returns symbols). *fxn*
 
-*    Deletes the compatibility method Module#method_names,
-     use Module#methods from now on (which returns symbols). *fxn*
+*   Deletes the compatibility method Module#method_names,
+    use Module#methods from now on (which returns symbols). *fxn*
 
-*    Deletes the compatibility method Module#instance_method_names,
-     use Module#instance_methods from now on (which returns symbols). *fxn*
+*   Deletes the compatibility method Module#instance_method_names,
+    use Module#instance_methods from now on (which returns symbols). *fxn*
 
-*    BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger
-     from Ruby stdlib.
+*   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger
+    from Ruby stdlib.
 
-*    Unicode database updated to 6.1.0.
+*   Unicode database updated to 6.1.0.
 
-*    Adds `encode_big_decimal_as_string` option to force JSON serialization of BigDecimals as numeric instead
-     of wrapping them in strings for safety.
+*   Adds `encode_big_decimal_as_string` option to force JSON serialization of BigDecimals as numeric instead
+    of wrapping them in strings for safety.
 
 
 ## Rails 3.2.4 (unreleased) ##
@@ -241,7 +241,7 @@
 *   Hash.from_xml no longer loses attributes on tags containing only whitespace *André Arko*
 
 
-##   Rails 3.0.6 (April 5, 2011) ##
+## Rails 3.0.6 (April 5, 2011) ##
 
 *   No changes.
 
