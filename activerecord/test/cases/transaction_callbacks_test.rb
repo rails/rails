@@ -298,8 +298,7 @@ class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
     self.table_name = :topics
     after_commit :cache_topic, :on => :create
     after_commit :call_update, :on => :update
-    attr_accessor :cached
-    attr_accessor :record_updated
+    attr_accessor :cached, :record_updated
 
     def call_update
       self.record_updated = true
