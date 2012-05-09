@@ -34,7 +34,7 @@ module ActionView
     # could become:
     #
     #   <select name="post[person_id]">
-    #     <option value="">None</option>
+    #     <option>None</option>
     #     <option value="1">David</option>
     #     <option value="2" selected="selected">Sam</option>
     #     <option value="3">Tobias</option>
@@ -49,7 +49,7 @@ module ActionView
     # could become:
     #
     #   <select name="post[person_id]">
-    #     <option value="">Select Person</option>
+    #     <option>Select Person</option>
     #     <option value="1">David</option>
     #     <option value="2">Sam</option>
     #     <option value="3">Tobias</option>
@@ -116,7 +116,7 @@ module ActionView
       # could become:
       #
       #   <select name="post[person_id]">
-      #     <option value=""></option>
+      #     <option></option>
       #     <option value="1" selected="selected">David</option>
       #     <option value="2">Sam</option>
       #     <option value="3">Tobias</option>
@@ -134,7 +134,7 @@ module ActionView
       #
       # ==== Gotcha
       #
-      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected 
+      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
       # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
       # if an +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
       # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
@@ -182,7 +182,7 @@ module ActionView
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
       #   <select name="post[author_id]">
-      #     <option value="">Please select</option>
+      #     <option>Please select</option>
       #     <option value="1" selected="selected">D. Heinemeier Hansson</option>
       #     <option value="2">D. Thomas</option>
       #     <option value="3">M. Clark</option>
@@ -331,12 +331,16 @@ module ActionView
           text, value = option_text_and_value(element).map { |item| item.to_s }
           selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
           disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
-          %(<option value="#{ERB::Util.html_escape(value)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{ERB::Util.html_escape(text)}</option>)
+          unless value.blank?
+            %(<option value="#{ERB::Util.html_escape(value)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{ERB::Util.html_escape(text)}</option>)
+          else
+            %(<option #{selected_attribute}#{disabled_attribute}#{html_attributes}>#{ERB::Util.html_escape(text)}</option>)
+          end
         end.join("\n").html_safe
 
       end
 
-      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning 
+      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
       # Example:
       #   options_from_collection_for_select(@people, 'id', 'name')
@@ -472,7 +476,7 @@ module ActionView
       # wrap the output in an appropriate <tt><select></tt> tag.
       def grouped_options_for_select(grouped_options, selected_key = nil, prompt = nil)
         body = ''
-        body << content_tag(:option, prompt, { :value => "" }, true) if prompt
+        body << content_tag(:option, prompt, {}, true) if prompt
 
         grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
 
@@ -508,11 +512,11 @@ module ActionView
         convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones
-	        if priority_zones.is_a?(Regexp)
+          if priority_zones.is_a?(Regexp)
             priority_zones = model.all.find_all {|z| z =~ priority_zones}
-	        end
+          end
           zone_options += options_for_select(convert_zones[priority_zones], selected)
-          zone_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
+          zone_options += "<option disabled=\"disabled\">-------------</option>\n"
 
           zones = zones.reject { |z| priority_zones.include?( z ) }
         end
@@ -616,11 +620,11 @@ module ActionView
       private
         def add_options(option_tags, options, value = nil)
           if options[:include_blank]
-            option_tags = content_tag('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
+            option_tags = content_tag('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil) + "\n" + option_tags
           end
           if value.blank? && options[:prompt]
             prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = content_tag('option', prompt, :value => '') + "\n" + option_tags
+            option_tags = content_tag('option', prompt) + "\n" + option_tags
           end
           option_tags
         end
@@ -630,7 +634,7 @@ module ActionView
           add_default_name_and_id(html_options)
           select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
           if html_options["multiple"]
-            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select 
+            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden") + select
           else
             select
           end

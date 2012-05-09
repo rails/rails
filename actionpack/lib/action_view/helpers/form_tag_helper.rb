@@ -110,10 +110,10 @@ module ActionView
       #   #    <option>Write</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), :include_blank => true
-      #   # => <select id="people" name="people"><option value=""></option><option value="1">David</option></select>
+      #   # => <select id="people" name="people"><option></option><option value="1">David</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), :prompt => "Select something"
-      #   # => <select id="people" name="people"><option value="">Select something</option><option value="1">David</option></select>
+      #   # => <select id="people" name="people"><option>Select something</option><option value="1">David</option></select>
       #
       #   select_tag "destination", "<option>NYC</option><option>Paris</option><option>Rome</option>".html_safe, :disabled => true
       #   # => <select disabled="disabled" id="destination" name="destination"><option>NYC</option>
@@ -122,11 +122,11 @@ module ActionView
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
 
         if options.delete(:include_blank)
-          option_tags = "<option value=\"\"></option>".html_safe + option_tags
+          option_tags = "<option></option>".html_safe + option_tags
         end
 
         if prompt = options.delete(:prompt)
-          option_tags = "<option value=\"\">#{prompt}</option>".html_safe + option_tags
+          option_tags = "<option>#{prompt}</option>".html_safe + option_tags
         end
 
         content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)

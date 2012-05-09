@@ -20,7 +20,7 @@ class FormOptionsHelperI18nTests < ActionView::TestCase
 
   def test_select_with_translated_prompt
     assert_dom_equal(
-      %Q(<select id="post_category" name="post[category]"><option value="">#{@prompt_message}</option>\n</select>),
+      %Q(<select id="post_category" name="post[category]"><option>#{@prompt_message}</option>\n</select>),
       select('post', 'category', [], :prompt => true)
     )
   end
