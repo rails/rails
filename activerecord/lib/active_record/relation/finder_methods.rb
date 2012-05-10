@@ -170,9 +170,8 @@ module ActiveRecord
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
     #   Person.exists?
     def exists?(id = false)
-      return false if id.nil?
-
       id = id.id if ActiveRecord::Model === id
+      return false if id.nil?
 
       join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
