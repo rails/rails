@@ -74,8 +74,7 @@ module ActiveSupport
     #     save
     #   end
     #
-    def run_callbacks(kind, key = nil, &block)
-      #TODO: deprecate key argument
+    def run_callbacks(kind, &block)
       runner_name = self.class.__define_callbacks(kind, self)
       send(runner_name, &block)
     end
