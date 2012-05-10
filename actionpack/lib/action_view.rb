@@ -76,7 +76,8 @@ module ActionView
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
 end
 
-require 'active_support/i18n'
 require 'active_support/core_ext/string/output_safety'
 
-I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+end
