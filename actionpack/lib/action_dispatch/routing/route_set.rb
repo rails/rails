@@ -178,7 +178,7 @@ module ActionDispatch
                 options = args.extract_options!
                 result = #{options.inspect}
 
-                if args.any?
+                if args.size > 0
                   result[:_positional_args] = args
                   result[:_positional_keys] = #{route.segment_keys.inspect}
                 end
