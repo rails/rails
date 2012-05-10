@@ -123,6 +123,7 @@ module ActiveRecord
     # Deletes the record in the database and freezes this instance to reflect
     # that no changes should be made (since they can't be persisted).
     def destroy
+      raise ReadOnlyRecord if readonly?
       destroy_associations
       destroy_row if persisted?
       @destroyed = true
