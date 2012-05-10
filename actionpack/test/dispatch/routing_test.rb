@@ -2571,3 +2571,38 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
     assert_equal '/foo', foo_path
   end
 end
+
+class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
+  class CategoriesController < ActionController::Base
+    def show
+      render :text => "categories#show"
+    end
+  end
+
+  class ProductsController < ActionController::Base
+    def show
+      render :text => "products#show"
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      scope :module => "test_named_route_url_helpers" do
+        get "/categories/:id" => 'categories#show', :as => :category
+        get "/products/:id" => 'products#show', :as => :product
+      end
+    end
+  end
+
+  def app; Routes end
+
+  include Routes.url_helpers
+
+  test "url helpers do not ignore nil parameters when using non-optimized routes" do
+    Routes.stubs(:optimize_routes_generation?).returns(false)
+
+    get "/categories/1"
+    assert_response :success
+    assert_raises(ActionController::RoutingError) { product_path(nil) }
+  end
+end

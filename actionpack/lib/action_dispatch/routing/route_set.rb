@@ -103,7 +103,7 @@ module ActionDispatch
               inner_options = args.extract_options!
               result = options.dup
 
-              if args.any?
+              if args.size > 0
                 keys = segment_keys
                 if args.size < keys.size - 1 # take format into account
                   keys -= self.url_options.keys if self.respond_to?(:url_options)
