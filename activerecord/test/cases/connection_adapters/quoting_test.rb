@@ -1,3 +1,5 @@
+require "cases/helper"
+
 module ActiveRecord
   module ConnectionAdapters
     module Quoting
