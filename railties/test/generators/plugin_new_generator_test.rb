@@ -236,6 +236,13 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy"
   end
 
+  def test_creating_dummy_application_with_different_name
+    run_generator [destination_root, "--dummy_path", "spec/fake"]
+    assert_file "spec/fake"
+    assert_file "spec/fake/config/application.rb"
+    assert_no_file "test/dummy"
+  end
+
   def test_creating_dummy_without_tests_but_with_dummy_path
     run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"]
     assert_file "spec/dummy"
