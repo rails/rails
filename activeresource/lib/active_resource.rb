@@ -29,6 +29,7 @@ $:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include
 
 require 'active_support'
 require 'active_model'
+require 'active_resource/exceptions'
 require 'active_resource/version'
 
 module ActiveResource
