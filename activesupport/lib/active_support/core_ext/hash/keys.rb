@@ -1,23 +1,37 @@
 class Hash
+  # Return a new hash with all keys converted using the block operation.
+  #
+  #  { :name => 'Rob', :years => '28' }.transform_keys{ |key| key.to_s.upcase }
+  #  # => { "NAME" => "Rob", "YEARS" => "28" }
+  def transform_keys
+    result = {}
+    keys.each do |key|
+      result[yield(key)] = self[key]
+    end
+    result
+  end
+
+  # Destructively convert all keys using the block operations.
+  # Same as transform_keys but modifies +self+
+  def transform_keys!
+    keys.each do |key|
+      self[yield(key)] = delete(key)
+    end
+    self
+  end
+
   # Return a new hash with all keys converted to strings.
   #
   #   { :name => 'Rob', :years => '28' }.stringify_keys
   #   #=> { "name" => "Rob", "years" => "28" }
   def stringify_keys
-    result = {}
-    keys.each do |key|
-      result[key.to_s] = self[key]
-    end
-    result
+    transform_keys{ |key| key.to_s }
   end
 
   # Destructively convert all keys to strings. Same as
   # +stringify_keys+, but modifies +self+.
   def stringify_keys!
-    keys.each do |key|
-      self[key.to_s] = delete(key)
-    end
-    self
+    transform_keys!{ |key| key.to_s }
   end
 
   # Return a new hash with all keys converted to symbols, as long as
@@ -26,21 +40,14 @@ class Hash
   #   { 'name' => 'Rob', 'years' => '28' }.symbolize_keys
   #   #=> { :name => "Rob", :years => "28" }
   def symbolize_keys
-    result = {}
-    keys.each do |key|
-      result[(key.to_sym rescue key)] = self[key]
-    end
-    result
+    transform_keys{ |key| key.to_sym rescue key }
   end
   alias_method :to_options,  :symbolize_keys
 
   # Destructively convert all keys to symbols, as long as they respond
   # to +to_sym+. Same as +symbolize_keys+, but modifies +self+.
   def symbolize_keys!
-    keys.each do |key|
-      self[(key.to_sym rescue key)] = delete(key)
-    end
-    self
+    transform_keys!{ |key| key.to_sym rescue key }
   end
   alias_method :to_options!, :symbolize_keys!
 
