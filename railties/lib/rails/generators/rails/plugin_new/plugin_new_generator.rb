@@ -282,7 +282,7 @@ task :default => :test
           dummy_application_path = File.expand_path("#{dummy_path}/config/application.rb", destination_root)
           unless options[:pretend] || !File.exists?(dummy_application_path)
             contents = File.read(dummy_application_path)
-            contents[(contents.index("module Dummy"))..-1]
+            contents[(contents.index(/module ([\w]+)\n(.*)class Application/m))..-1]
           end
         end
       end
