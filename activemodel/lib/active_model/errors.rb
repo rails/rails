@@ -286,12 +286,55 @@ module ActiveModel
     def full_message(attribute, message)
       return message if attribute == :base
       attr_name = attribute.to_s.tr('.', '_').humanize
-      attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
-      I18n.t(:"errors.format", {
-        :default   => "%{attribute} %{message}",
+      attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)      
+      I18n.t(nil, {
+        :default   => error_formats(attribute),
         :attribute => attr_name,
         :message   => message
       })
+    end
+
+    # Returns an array of potential error formats for a provided attribute
+    #
+    # Generates the following array:
+    # * <tt>errors.models.MODEL.attributes.ATTRIBUTE.format</tt>
+    # * <tt>errors.models.SUPERCLASS.attributes.ATTRIBUTE.format</tt> when using inheritance
+    # * <tt>errors.attributes.ATTRIBUTE.format</tt>
+    # * <tt>errors.format</tt>
+    # * <tt>'%{attribute} %{message}'</tt>
+    #
+    # Given a class Child that extends Person and and attribute called name,
+    # it will look for formats given the following keys:
+    #
+    # * <tt>errors.models.child.attributes.name.format</tt>
+    # * <tt>errors.models.person.attributes.name.format</tt> when using inheritance
+    # * <tt>errors.attributes.name.format</tt>
+    # * <tt>errors.format</tt>
+    # * <tt>'%{attribute} %{message}'</tt>
+    #
+    def error_formats(attribute)
+      defaults = []
+      if @base.class.respond_to?(:i18n_scope)
+        defaults << :"#{@base.class.i18n_scope}.errors.models.#{@base.class.model_name.i18n_key}.attributes.#{attribute}.format"
+        defaults << :"errors.models.#{@base.class.model_name.i18n_key}.attributes.#{attribute}.format"
+
+        @base.class.lookup_ancestors.map do |klass|
+          defaults << :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.format"
+          defaults << :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.format"
+          defaults << :"errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.format"
+          defaults << :"errors.models.#{klass.model_name.i18n_key}.format"
+        end
+        
+      end
+
+      defaults << :"errors.attributes.#{attribute}.format"
+      defaults << :"errors.format"
+      defaults << '%{attribute} %{message}'
+
+      defaults.compact!
+      defaults.flatten!
+
+      defaults
     end
 
     # Translates an error message in its default scope
