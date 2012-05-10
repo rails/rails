@@ -717,7 +717,7 @@ If you reload
 try to save a post without a title, Rails will send you back to the
 form, but that's not very useful. You need to tell the user that
 something went wrong. To do that, you'll modify
-+app/views/posts/index.html.erb+ to check for error messages:
++app/views/posts/new.html.erb+ to check for error messages:
 
 <erb>
 <%= form_for :post, :url => { :action => :create } do |f| %>
