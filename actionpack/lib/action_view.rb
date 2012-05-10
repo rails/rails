@@ -21,8 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'active_support/core_ext/class/attribute_accessors'
-
 require 'active_support'
 require 'action_pack'
 
