@@ -3,6 +3,12 @@ before_install:
   - gem install bundler
 rvm:
   - 1.9.3
+  - jruby-19mode
+  - rbx-19mode
+matrix:
+  allow_failures:
+    - rvm: jruby-19mode
+    - rvm: rbx-19mode
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,as"
