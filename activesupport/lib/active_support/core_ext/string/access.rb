@@ -90,7 +90,7 @@ class String
   #
   #   str = "hello"
   #   str.last    #=> "o"
-  #   str.last(1) #=> "h"
+  #   str.last(1) #=> "o"
   #   str.last(2) #=> "lo"
   #   str.last(0) #=> ""
   #   str.last(6) #=> "hello"
