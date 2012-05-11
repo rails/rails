@@ -67,7 +67,7 @@ class String
   # Returns the first character of the string. If a limit is supplied,
   # returns a substring from the beginning of the string to the given
   # limit. If the given limit is greater than or equal to the string
-  # length, returns it self.
+  # length, returns self.
   #
   #   str = "hello"
   #   str.first    #=> "h"
