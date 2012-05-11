@@ -89,7 +89,7 @@ class String
   # the given limit is greater than or equal to the string length, returns self.
   #
   #   str = "hello"
-  #   str.last    #=> "h"
+  #   str.last    #=> "o"
   #   str.last(1) #=> "h"
   #   str.last(2) #=> "lo"
   #   str.last(0) #=> ""
