@@ -123,11 +123,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert active_record.developers.include?(david)
   end
 
-  def test_triple_equality
-    assert !(Array === Developer.find(1).projects)
-    assert Developer.find(1).projects === Array
-  end
-
   def test_adding_single
     jamis = Developer.find(2)
     jamis.projects.reload # causing the collection to load

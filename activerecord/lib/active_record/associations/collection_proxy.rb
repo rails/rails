@@ -79,12 +79,6 @@ module ActiveRecord
         load_target == other
       end
 
-      # Forwards <tt>===</tt> explicitly to the \target because the instance method
-      # removal above doesn't catch it. Loads the \target if needed.
-      def ===(other)
-        other === load_target
-      end
-
       def to_ary
         load_target.dup
       end

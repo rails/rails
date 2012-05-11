@@ -326,12 +326,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     authors(:david).readonly_comments.each { |c| assert c.readonly? }
   end
 
-  def test_triple_equality
-    # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    assert !(Array === Firm.scoped(:order => "id").first.clients)
-    assert Firm.scoped(:order => "id").first.clients === Array
-  end
-
   def test_finding_default_orders
     assert_equal "Summit", Firm.scoped(:order => "id").first.clients.first.name
   end
