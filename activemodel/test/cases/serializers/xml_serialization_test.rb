@@ -188,6 +188,23 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{<friend type="Contact">}, xml
   end
 
+  class FriendList
+    def initialize(friends)
+      @friends = friends
+    end
+
+    def to_ary
+      @friends
+    end
+  end
+
+  test "include option with ary" do
+    @contact.friends = FriendList.new(@contact.friends)
+    xml = @contact.to_xml :include => :friends, :indent => 0
+    assert_match %r{<friends type="array">}, xml
+    assert_match %r{<friend type="Contact">}, xml
+  end
+
   test "multiple includes" do
     xml = @contact.to_xml :indent => 0, :skip_instruct => true, :include => [ :address, :friends ]
     assert xml.include?(@contact.address.to_xml(:indent => 0, :skip_instruct => true))
