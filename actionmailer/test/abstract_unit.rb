@@ -8,9 +8,6 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
-lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
-$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
-
 require 'minitest/autorun'
 require 'action_mailer'
 require 'action_mailer/test_case'

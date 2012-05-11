@@ -1,6 +1,3 @@
-$:.unshift(File.dirname(__FILE__))
-$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
-
 require 'minitest/autorun'
 require 'rbconfig'
 require 'abstract_unit'

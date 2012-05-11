@@ -21,8 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 require 'active_support'
 require 'active_model/version'
 

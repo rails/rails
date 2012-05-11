@@ -21,12 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
-
-activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
-$:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include?(activemodel_path)
-
 require 'active_support'
 require 'active_support/dependencies/autoload'
 require 'active_support/core_ext/module/attribute_accessors'
