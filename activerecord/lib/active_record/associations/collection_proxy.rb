@@ -33,14 +33,7 @@ module ActiveRecord
     #
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
-    class CollectionProxy # :nodoc:
-      alias :proxy_extend :extend
-
-      instance_methods.each { |m| undef_method m unless m.to_s =~ /^(?:nil\?|send|object_id|to_a)$|^__|^respond_to|proxy_/ }
-
-      delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from,
-               :lock, :readonly, :having, :pluck, :to => :scoped
-
+    class CollectionProxy < Relation # :nodoc:
       delegate :target, :load_target, :loaded?, :to => :@association
 
       delegate :select, :find, :first, :last,
@@ -52,7 +45,8 @@ module ActiveRecord
 
       def initialize(association)
         @association = association
-        Array(association.options[:extend]).each { |ext| proxy_extend(ext) }
+        super association.klass, association.klass.arel_table
+        merge! association.scoped
       end
 
       alias_method :new, :build
@@ -61,15 +55,24 @@ module ActiveRecord
         @association
       end
 
+      # We don't want this object to be put on the scoping stack, because
+      # that could create an infinite loop where we call an @association
+      # method, which gets the current scope, which is this object, which
+      # delegates to @association, and so on.
+      def scoping
+        @association.scoped.scoping { yield }
+      end
+
+      def spawn
+        scoped
+      end
+
       def scoped(options = nil)
         association = @association
-        scope       = association.scoped
 
-        scope.extending! do
+        super.extending! do
           define_method(:proxy_association) { association }
         end
-        scope.merge!(options) if options
-        scope
       end
 
       def respond_to?(name, include_private = false)
@@ -81,7 +84,7 @@ module ActiveRecord
       def method_missing(method, *args, &block)
         match = DynamicMatchers::Method.match(self, method)
         if match && match.is_a?(DynamicMatchers::Instantiator)
-          scoped.send(method, *args) do |r|
+          super do |r|
             proxy_association.send :set_owner_attributes, r
             proxy_association.send :add_to_target, r
             yield(r) if block_given?
@@ -101,8 +104,12 @@ module ActiveRecord
           end
 
         else
-          scoped.readonly(nil).public_send(method, *args, &block)
+          super
         end
+      end
+
+      def ==(other)
+        load_target == other
       end
 
       # Forwards <tt>===</tt> explicitly to the \target because the instance method

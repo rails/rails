@@ -497,7 +497,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_include_uses_array_include_after_loaded
     project = projects(:active_record)
-    project.developers.class # force load target
+    project.developers.load_target
 
     developer = project.developers.first
 

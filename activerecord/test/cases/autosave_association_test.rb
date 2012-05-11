@@ -872,7 +872,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
     before = @pirate.parrots.map { |c| c.mark_for_destruction ; c }
 
-    class << @pirate.parrots
+    class << @pirate.association(:parrots)
       def destroy(*args)
         super
         raise 'Oh noes!'
@@ -1277,7 +1277,7 @@ module AutosaveAssociationOnACollectionAssociationTests
   def test_should_not_load_the_associated_models_if_they_were_not_loaded_yet
     assert_queries(1) { @pirate.catchphrase = 'Arr'; @pirate.save! }
 
-    @pirate.send(@association_name).class # hack to load the target
+    @pirate.send(@association_name).load_target
 
     assert_queries(3) do
       @pirate.catchphrase = 'Yarr'
