@@ -84,10 +84,9 @@ module ActiveRecord
       def method_missing(method, *args, &block)
         match = DynamicMatchers::Method.match(self, method)
         if match && match.is_a?(DynamicMatchers::Instantiator)
-          super do |r|
-            proxy_association.send :set_owner_attributes, r
-            proxy_association.send :add_to_target, r
-            yield(r) if block_given?
+          super do |record|
+            proxy_association.add_to_target(record)
+            yield record if block_given?
           end
 
         elsif target.respond_to?(method) || (!proxy_association.klass.respond_to?(method) && Class.respond_to?(method))
