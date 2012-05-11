@@ -29,6 +29,12 @@ class String
     end
   end
 
+  # Converts a string to a DateTime value.
+  #
+  #   "1-1-2012".to_datetime            #=> Sun, 01 Jan 2012 00:00:00 +0000
+  #   "01/01/2012 23:59:59".to_datetime #=> Sun, 01 Jan 2012 23:59:59 +0000
+  #   "2012-12-13 12:50".to_datetime    #=> Thu, 13 Dec 2012 12:50:00 +0000
+  #   "12/13/2012".to_datetime          #=> ArgumentError: invalid date
   def to_datetime
     unless blank?
       date_values = ::Date._parse(self, false).
