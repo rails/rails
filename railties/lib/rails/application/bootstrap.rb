@@ -10,7 +10,17 @@ module Rails
       initializer :load_environment_hook, :group => :all do end
 
       initializer :load_active_support, :group => :all do
-        require "active_support/all" unless config.active_support.bare
+        unless config.active_support.bare
+          require "active_support/all" 
+          
+          # Assign config options of JSON encoding
+          [:escape_html_entities_in_json, :use_standard_json_time_format, :encode_big_decimal_as_string].each do |option|
+            value = config.active_support.send(option)
+            if !value.nil?
+              ActiveSupport::JSON::Encoding.send("#{option}=", value)
+            end
+          end
+        end
       end
 
       # Preload all frameworks specified by the Configuration#frameworks.
