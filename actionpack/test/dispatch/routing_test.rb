@@ -2606,3 +2606,45 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
     assert_raises(ActionController::RoutingError) { product_path(nil) }
   end
 end
+
+class TestUrlConstraints < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      constraints :subdomain => 'admin' do
+        get '/' => ok, :as => :admin_root
+      end
+
+      scope :constraints => { :protocol => 'https://' } do
+        get '/' => ok, :as => :secure_root
+      end
+
+      get '/' => ok, :as => :alternate_root, :constraints => { :port => 8080 }
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  test "constraints are copied to defaults when using constraints method" do
+    assert_equal 'http://admin.example.com/', admin_root_url
+
+    get 'http://admin.example.com/'
+    assert_response :success
+  end
+
+  test "constraints are copied to defaults when using scope constraints hash" do
+    assert_equal 'https://www.example.com/', secure_root_url
+
+    get 'https://www.example.com/'
+    assert_response :success
+  end
+
+  test "constraints are copied to defaults when using route constraints hash" do
+    assert_equal 'http://www.example.com:8080/', alternate_root_url
+
+    get 'http://www.example.com:8080/'
+    assert_response :success
+  end
+end

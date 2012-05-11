@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/enumerable'
 require 'active_support/inflector'
@@ -99,6 +100,10 @@ module ActionDispatch
               if requirement.multiline?
                 raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
               end
+            end
+
+            if @options[:constraints].is_a?(Hash)
+              (@options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(@options[:constraints]))
             end
           end
 
@@ -244,6 +249,11 @@ module ActionDispatch
 
           def default_action
             @options[:action] || @scope[:action]
+          end
+
+          def defaults_from_constraints(constraints)
+            url_keys = [:protocol, :subdomain, :domain, :host, :port]
+            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
           end
       end
 
@@ -641,6 +651,10 @@ module ActionDispatch
             block, options[:constraints] = options[:constraints], {}
           end
 
+          if options[:constraints].is_a?(Hash)
+            (options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(options[:constraints]))
+          end
+
           scope_options.each do |option|
             if value = options.delete(option)
               recover[option] = @scope[option]
@@ -848,6 +862,11 @@ module ActionDispatch
 
           def override_keys(child) #:nodoc:
             child.key?(:only) || child.key?(:except) ? [:only, :except] : []
+          end
+
+          def defaults_from_constraints(constraints)
+            url_keys = [:protocol, :subdomain, :domain, :host, :port]
+            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
           end
       end
 

@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Copy literal route constraints to defaults so that url generation know about them.
+    The copied constraints are `:protocol`, `:subdomain`, `:domain`, `:host` and `:port`.
+
+    *Andrew White*
+
 *   `respond_to` and `respond_with` now raise ActionController::UnknownFormat instead
     of directly returning head 406. The exception is rescued and converted to 406
     in the exception handling middleware. *Steven Soroka*
