@@ -19,10 +19,10 @@ module ActiveRecord
     # = Active Record Nested Attributes
     #
     # Nested attributes allow you to save attributes on associated records
-    # through the parent. By default nested attribute updating is turned off,
-    # you can enable it using the accepts_nested_attributes_for class method.
-    # When you enable nested attributes an attribute writer is defined on
-    # the model.
+    # through the parent. By default nested attribute updating is turned off
+    # and you can enable it using the accepts_nested_attributes_for class
+    # method. When you enable nested attributes an attribute writer is
+    # defined on the model.
     #
     # The attribute writer is named after the association, which means that
     # in the following example, two new methods are added to your model:
