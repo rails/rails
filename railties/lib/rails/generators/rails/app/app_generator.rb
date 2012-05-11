@@ -75,6 +75,7 @@ module Rails
 
     def database_yml
       template "config/databases/#{options[:database]}.yml", "config/database.yml"
+      template "config/databases/#{options[:database]}.yml", "config/database.yml.example"
     end
 
     def db
