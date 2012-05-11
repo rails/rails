@@ -30,6 +30,19 @@ class String
     self[position]
   end
 
+  # Returns a substring from the given position to the end of the string.
+  # If the position is negative, it is counted from the end of the string.
+  #
+  #   str = "hello"
+  #   str.from(0)  #=> "hello"
+  #   str.from(3)  #=> "lo"
+  #   str.from(-2) #=> "lo"
+  #
+  # You can mix it with +to+ method and do fun things like:
+  #
+  #   str = "hello"
+  #   str.from(0).to(-1) #=> "hello"
+  #   str.from(1).to(-2) #=> "ell"
   def from(position)
     self[position..-1]
   end
