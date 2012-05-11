@@ -84,6 +84,16 @@ class String
     end
   end
 
+  # Returns the last character of the string. If a limit is supplied, returns a substring
+  # from the end of the string until it reaches the limit value (counting backwards). If
+  # the given limit is greater than or equal to the string length, returns self.
+  #
+  #   str = "hello"
+  #   str.last    #=> "h"
+  #   str.last(1) #=> "h"
+  #   str.last(2) #=> "lo"
+  #   str.last(0) #=> ""
+  #   str.last(6) #=> "hello"
   def last(limit = 1)
     if limit == 0
       ''
