@@ -64,6 +64,17 @@ class String
     self[0..position]
   end
 
+  # Returns the first character of the string. If a limit is supplied,
+  # returns a substring from the beginning of the string to the given
+  # limit. If the given limit is greater than or equal to the string
+  # length, returns it self.
+  #
+  #   str = "hello"
+  #   str.first    #=> "h"
+  #   str.first(1) #=> "h"
+  #   str.first(2) #=> "he"
+  #   str.first(0) #=> ""
+  #   str.first(6) #=> "hello"
   def first(limit = 1)
     if limit == 0
       ''
