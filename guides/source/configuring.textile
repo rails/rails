@@ -450,7 +450,7 @@ There are a few configuration options available in Active Support:
 
 * +config.active_support.escape_html_entities_in_json+ enables or disables the escaping of HTML entities in JSON serialization. Defaults to +false+.
 
-* +config.active_support.use_standard_json_time_format+ enables or disables serializing dates to ISO 8601 format. Defaults to +false+.
+* +config.active_support.use_standard_json_time_format+ enables or disables serializing dates to ISO 8601 format. Defaults to +true+.
 
 * +ActiveSupport::BufferedLogger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
 
