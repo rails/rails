@@ -500,6 +500,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, original
   end
 
+  def test_except_with_more_than_one_argument
+    original = { :a => 'x', :b => 'y', :c => 10 }
+    expected = { :a => 'x' }
+    assert_equal expected, original.except(:b, :c)
+  end
+
   def test_except_with_original_frozen
     original = { :a => 'x', :b => 'y' }
     original.freeze
