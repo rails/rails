@@ -34,6 +34,19 @@ class String
     self[position..-1]
   end
 
+  # Returns the beginning of the string up to position. If the position is
+  # negative, it is counted from the end of the string.
+  #
+  #   str = "hello"
+  #   str.to(0)  #=> "h"
+  #   str.to(3)  #=> "hell"
+  #   str.to(-2) #=> "hell"
+  #
+  # You can mix it with +from+ method and do fun things like:
+  #
+  #   str = "hello"
+  #   str.from(0).to(-1) #=> "hello"
+  #   str.from(1).to(-2) #=> "ell"
   def to(position)
     self[0..position]
   end
