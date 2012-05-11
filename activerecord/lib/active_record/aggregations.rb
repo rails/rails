@@ -71,7 +71,7 @@ module ActiveRecord
     # Now it's possible to access attributes from the database through the value objects instead. If
     # you choose to name the composition the same as the attribute's name, it will be the only way to
     # access that attribute. That's the case with our +balance+ attribute. You interact with the value
-    # objects just like you would any other attribute, though:
+    # objects just like you would with any other attribute:
     #
     #   customer.balance = Money.new(20)     # sets the Money value object and the attribute
     #   customer.balance                     # => Money value object
