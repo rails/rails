@@ -157,7 +157,7 @@ and you can expire it using the +expire_fragment+ method, like so:
 expire_fragment(:controller => 'products', :action => 'recent', :action_suffix => 'all_products')
 </ruby>
 
-If you don't want the cache block to bind to the action that called it, You can also use globally keyed fragments by calling the +cache+ method with a key, like so:
+If you don't want the cache block to bind to the action that called it, you can also use globally keyed fragments by calling the +cache+ method with a key:
 
 <ruby>
 <% cache('all_available_products') do %>

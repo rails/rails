@@ -323,7 +323,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
 
     def counter_test(model, expected_count)
       add_counter_column_to(model)
-      object = model.find(:first)
+      object = model.first
       assert_equal 0, object.test_count
       assert_equal 0, object.send(model.locking_column)
       yield object.id
@@ -358,18 +358,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
     def test_sane_find_with_lock
       assert_nothing_raised do
         Person.transaction do
-          Person.find 1, :lock => true
-        end
-      end
-    end
-
-    # Test scoped lock.
-    def test_sane_find_with_scoped_lock
-      assert_nothing_raised do
-        Person.transaction do
-          Person.send(:with_scope, :find => { :lock => true }) do
-            Person.find 1
-          end
+          Person.lock.find(1)
         end
       end
     end
@@ -380,7 +369,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
       def test_eager_find_with_lock
         assert_nothing_raised do
           Person.transaction do
-            Person.find 1, :include => :readers, :lock => true
+            Person.includes(:readers).lock.find(1)
           end
         end
       end

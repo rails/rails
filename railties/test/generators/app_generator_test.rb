@@ -246,8 +246,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_file "Gemfile", /gem\s+["']therubyrhino["']$/
     else
-      assert_file "Gemfile", /# gem\s+["']therubyracer["']+, :platform => :ruby$/
+      assert_file "Gemfile", /# gem\s+["']therubyracer["']+, platform: :ruby$/
     end
+  end
+
+  def test_generator_if_skip_index_html_is_given
+    run_generator [destination_root, "--skip-index-html"]
+    assert_no_file "public/index.html"
+    assert_no_file "app/assets/images/rails.png"
+    assert_file "app/assets/images/.gitkeep"
   end
 
   def test_creation_of_a_test_directory
@@ -374,6 +381,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_pretend_option
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)
+  end
+
+  def test_humans_txt_file
+    date = Date.today.strftime("%B %d, %Y")
+    run_generator [File.join(destination_root, 'things-43')]
+    assert_file "things-43/public/humans.txt", /Name: Things43/, /Software: Ruby on Rails/, /Date Created: #{date}/
   end
 
 protected

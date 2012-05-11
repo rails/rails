@@ -1,10 +1,10 @@
 module ActionDispatch
-  class Request
+  class Request < Rack::Request
     # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.
     def flash
-      @env[Flash::KEY] ||= (session["flash"] || Flash::FlashHash.new)
+      @env[Flash::KEY] ||= (session["flash"] || Flash::FlashHash.new).tap(&:sweep)
     end
   end
 
@@ -79,7 +79,6 @@ module ActionDispatch
 
       def initialize #:nodoc:
         @discard = Set.new
-        @closed  = false
         @flashes = {}
         @now     = nil
       end
@@ -217,13 +216,9 @@ module ActionDispatch
     end
 
     def call(env)
-      if (session = env['rack.session']) && (flash = session['flash'])
-        flash.sweep
-      end
-
       @app.call(env)
     ensure
-      session    = env['rack.session'] || {}
+      session    = Request::Session.find(env) || {}
       flash_hash = env[KEY]
 
       if flash_hash
@@ -237,7 +232,8 @@ module ActionDispatch
         env[KEY] = new_hash
       end
 
-      if session.key?('flash') && session['flash'].empty?
+      if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
+         session.key?('flash') && session['flash'].empty?
         session.delete('flash')
       end
     end

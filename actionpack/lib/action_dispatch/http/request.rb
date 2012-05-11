@@ -6,6 +6,7 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
 require 'active_support/inflector'
 require 'action_dispatch/http/headers'
+require 'action_dispatch/request/session'
 require 'action_controller/metal/exceptions'
 
 module ActionDispatch
@@ -220,11 +221,11 @@ module ActionDispatch
     end
 
     def session=(session) #:nodoc:
-      @env['rack.session'] = session
+      Session.set @env, session
     end
 
     def session_options=(options)
-      @env['rack.session.options'] = options
+      Session::Options.set @env, options
     end
 
     # Override Rack's GET method to support indifferent access

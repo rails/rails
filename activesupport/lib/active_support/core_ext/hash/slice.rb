@@ -18,7 +18,7 @@ class Hash
   end
 
   # Replaces the hash with only the given keys.
-  # Returns a hash contained the removed key/value pairs
+  # Returns a hash containing the removed key/value pairs.
   #   {:a => 1, :b => 2, :c => 3, :d => 4}.slice!(:a, :b) # => {:c => 3, :d => 4}
   def slice!(*keys)
     keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
@@ -31,6 +31,6 @@ class Hash
   # Removes and returns the key/value pairs matching the given keys.
   #   {:a => 1, :b => 2, :c => 3, :d => 4}.extract!(:a, :b) # => {:a => 1, :b => 2}
   def extract!(*keys)
-    keys.each_with_object({}) {|key, result| result[key] = delete(key) }
+    keys.each_with_object({}) { |key, result| result[key] = delete(key) }
   end
 end

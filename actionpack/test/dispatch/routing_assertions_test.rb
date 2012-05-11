@@ -47,7 +47,7 @@ class RoutingAssertionsTest < ActionController::TestCase
   def test_assert_recognizes_with_extras
     assert_recognizes({ :controller => 'articles', :action => 'index', :page => '1' }, '/articles', { :page => '1' })
   end
- 
+
   def test_assert_recognizes_with_method
     assert_recognizes({ :controller => 'articles', :action => 'create' }, { :path => '/articles', :method => :post })
     assert_recognizes({ :controller => 'articles', :action => 'update', :id => '1' }, { :path => '/articles/1', :method => :put })
@@ -57,7 +57,7 @@ class RoutingAssertionsTest < ActionController::TestCase
     assert_raise(ActionController::RoutingError) do
       assert_recognizes({ :controller => 'secure_articles', :action => 'index' }, 'http://test.host/secure/articles')
     end
-    assert_recognizes({ :controller => 'secure_articles', :action => 'index' }, 'https://test.host/secure/articles')
+    assert_recognizes({ :controller => 'secure_articles', :action => 'index', :protocol => 'https://' }, 'https://test.host/secure/articles')
   end
 
   def test_assert_recognizes_with_block_constraint
@@ -90,7 +90,7 @@ class RoutingAssertionsTest < ActionController::TestCase
     assert_raise(ActionController::RoutingError) do
       assert_routing('http://test.host/secure/articles', { :controller => 'secure_articles', :action => 'index' })
     end
-    assert_routing('https://test.host/secure/articles', { :controller => 'secure_articles', :action => 'index' })
+    assert_routing('https://test.host/secure/articles', { :controller => 'secure_articles', :action => 'index', :protocol => 'https://' })
   end
 
   def test_assert_routing_with_block_constraint

@@ -45,7 +45,7 @@ module ActionView
       #       if logged_in
       #         concat "Logged in!"
       #       else
-      #         concat link_to('login', :action => login)
+      #         concat link_to('login', :action => :login)
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
@@ -90,7 +90,7 @@ module ActionView
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
-      # as a single-quoted string with \1 where the phrase is to be inserted (defaults to
+      # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
       # '<mark>\1</mark>')
       #
       # ==== Examples
@@ -108,7 +108,9 @@ module ActionView
       #
       # You can still use <tt>highlight</tt> with the old API that accepts the
       # +highlighter+ as its optional third parameter:
-      #   highlight('You searched for: rails', 'rails', '<a href="search?q=\1">\1</a>')     # => You searched for: <a href="search?q=rails">rails</a>
+      #
+      #   highlight('You searched for: rails', 'rails', '<a href="search?q=\1">\1</a>')
+      #   # => You searched for: <a href="search?q=rails">rails</a>
       def highlight(text, phrases, *args)
         options = args.extract_options!
         unless args.empty?

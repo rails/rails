@@ -244,7 +244,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     # DB2 is not case-sensitive
     return true if current_adapter?(:DB2Adapter)
 
-    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.find(:first).attributes
+    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.first.attributes
   end
 
   def test_hashes_not_mangled
@@ -481,23 +481,23 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_typecast_attribute_from_select_to_false
-    topic = Topic.create(:title => 'Budget')
+    Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.find(:first, :select => "topics.*, 0 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 0 as is_test").first
     else
-      topic = Topic.find(:first, :select => "topics.*, 1=2 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 1=2 as is_test").first
     end
     assert !topic.is_test?
   end
 
   def test_typecast_attribute_from_select_to_true
-    topic = Topic.create(:title => 'Budget')
+    Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.find(:first, :select => "topics.*, 1 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 1 as is_test").first
     else
-      topic = Topic.find(:first, :select => "topics.*, 2=2 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 2=2 as is_test").first
     end
     assert topic.is_test?
   end

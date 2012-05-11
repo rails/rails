@@ -1,4 +1,7 @@
 require 'action_dispatch/http/request'
+require 'active_support/core_ext/uri'
+require 'active_support/core_ext/array/extract_options'
+require 'rack/utils'
 
 module ActionDispatch
   module Routing
@@ -46,8 +49,17 @@ module ActionDispatch
           :params   => request.query_parameters
         }.merge options
 
+        if !params.empty? && url_options[:path].match(/%\{\w*\}/)
+          url_options[:path] = (url_options[:path] % escape_path(params))
+        end
+
         ActionDispatch::Http::URL.url_for url_options
       end
+
+      private
+        def escape_path(params)
+          Hash[params.map{ |k,v| [k, URI.parser.escape(v)] }]
+        end
     end
 
     module Redirection
@@ -88,7 +100,7 @@ module ActionDispatch
       #   match 'accounts/:name' => redirect(SubdomainRedirector.new('api'))
       #
       def redirect(*args, &block)
-        options = args.last.is_a?(Hash) ? args.pop : {}
+        options = args.extract_options!
         status  = options.delete(:status) || 301
 
         return OptionRedirect.new(status, options) if options.any?
@@ -96,13 +108,18 @@ module ActionDispatch
         path = args.shift
 
         block = lambda { |params, request|
-          (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params)
+          (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % escape(params))
         } if String === path
 
         block = path if path.respond_to? :call
         raise ArgumentError, "redirection argument not supported" unless block
         Redirect.new status, block
       end
+
+      private
+        def escape(params)
+          Hash[params.map{ |k,v| [k, Rack::Utils.escape(v)] }]
+        end
     end
   end
 end

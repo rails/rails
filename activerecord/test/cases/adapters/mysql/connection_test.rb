@@ -120,6 +120,19 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_mysql_default_in_strict_mode
+    result = @connection.exec_query "SELECT @@SESSION.sql_mode"
+    assert_equal [["STRICT_ALL_TABLES"]], result.rows
+  end
+
+  def test_mysql_strict_mode_disabled
+    run_without_connection do |orig_connection|
+      ActiveRecord::Model.establish_connection(orig_connection.merge({:strict => false}))
+      result = ActiveRecord::Model.connection.exec_query "SELECT @@SESSION.sql_mode"
+      assert_equal [['']], result.rows
+    end
+  end
+
   private
 
   def run_without_connection

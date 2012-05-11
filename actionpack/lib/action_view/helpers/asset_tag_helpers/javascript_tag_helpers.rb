@@ -136,8 +136,6 @@ module ActionView
         #   #    <script src="/javascripts/rails.js?1284139606"></script>
         #   #    <script src="/javascripts/application.js?1284139606"></script>
         #
-        # * = The application.js file is only referenced if it exists
-        #
         # You can also include all JavaScripts in the +javascripts+ directory using <tt>:all</tt> as the source:
         #
         #   javascript_include_tag :all

@@ -77,4 +77,12 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert copy.kind_of?(original.class)
     assert_not_equal copy.object_id, original.object_id
   end
+
+  def test_introspection
+    a = ActiveSupport::OrderedOptions.new
+    assert a.respond_to?(:blah)
+    assert a.respond_to?(:blah=)
+    assert_equal 42, a.method(:blah=).call(42)
+    assert_equal 42, a.method(:blah).call
+  end
 end

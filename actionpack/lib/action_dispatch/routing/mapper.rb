@@ -1,4 +1,6 @@
 require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/enumerable'
 require 'active_support/inflector'
@@ -34,6 +36,8 @@ module ActionDispatch
           }
 
           return true
+        ensure
+          req.reset_parameters
         end
 
         def call(env)
@@ -58,6 +62,16 @@ module ActionDispatch
           @options = (@scope[:options] || {}).merge(options)
           @path = normalize_path(path)
           normalize_options!
+
+          via_all = @options.delete(:via) if @options[:via] == :all
+
+          if !via_all && request_method_condition.empty?
+            msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
+                  "If you want to expose your action to GET, use `get` in the router:\n\n" \
+                  "  Instead of: match \"controller#action\"\n" \
+                  "  Do: get \"controller#action\""
+            raise msg
+          end
         end
 
         def to_route
@@ -86,6 +100,10 @@ module ActionDispatch
               if requirement.multiline?
                 raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
               end
+            end
+
+            if @options[:constraints].is_a?(Hash)
+              (@options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(@options[:constraints]))
             end
           end
 
@@ -232,6 +250,11 @@ module ActionDispatch
           def default_action
             @options[:action] || @scope[:action]
           end
+
+          def defaults_from_constraints(constraints)
+            url_keys = [:protocol, :subdomain, :domain, :host, :port]
+            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
+          end
       end
 
       # Invokes Rack::Mount::Utils.normalize path and ensure that
@@ -263,7 +286,7 @@ module ActionDispatch
         # of most Rails applications, this is beneficial.
         def root(options = {})
           options = { :to => options } if options.is_a?(String)
-          match '/', { :as => :root }.merge(options)
+          match '/', { :as => :root, :via => :get }.merge(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
@@ -416,7 +439,7 @@ module ActionDispatch
 
           options[:as] ||= app_name(app)
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false))
+          match(path, options.merge(:to => app, :anchor => false, :format => false, :via => :all))
 
           define_generate_prefix(app, options[:as])
           self
@@ -522,7 +545,8 @@ module ActionDispatch
         private
           def map_method(method, args, &block)
             options = args.extract_options!
-            options[:via] = method
+            options[:via]    = method
+            options[:path] ||= args.first if args.first.is_a?(String)
             match(*args, options, &block)
             self
           end
@@ -625,6 +649,10 @@ module ActionDispatch
           options[:constraints] ||= {}
           unless options[:constraints].is_a?(Hash)
             block, options[:constraints] = options[:constraints], {}
+          end
+
+          if options[:constraints].is_a?(Hash)
+            (options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(options[:constraints]))
           end
 
           scope_options.each do |option|
@@ -834,6 +862,11 @@ module ActionDispatch
 
           def override_keys(child) #:nodoc:
             child.key?(:only) || child.key?(:except) ? [:only, :except] : []
+          end
+
+          def defaults_from_constraints(constraints)
+            url_keys = [:protocol, :subdomain, :domain, :host, :port]
+            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
           end
       end
 
@@ -1294,6 +1327,21 @@ module ActionDispatch
           parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
+        def draw(name)
+          path = @draw_paths.find do |_path|
+            _path.join("#{name}.rb").file?
+          end
+
+          unless path
+            msg  = "Your router tried to #draw the external file #{name}.rb,\n" \
+                   "but the file was not found in:\n\n"
+            msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
+            raise msg
+          end
+
+          instance_eval(path.join("#{name}.rb").read)
+        end
+
         # match 'path' => 'controller#action'
         # match 'path', to: 'controller#action'
         # match 'path', 'otherpath', on: :member, via: :get
@@ -1481,7 +1529,7 @@ module ActionDispatch
             prefix = shallow_scoping? ?
               "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
 
-            path = if canonical_action?(action, path.blank?)
+            if canonical_action?(action, path.blank?)
               prefix.to_s
             else
               "#{prefix}/#{action_path(action, path)}"
@@ -1543,6 +1591,7 @@ module ActionDispatch
 
       def initialize(set) #:nodoc:
         @set = set
+        @draw_paths = set.draw_paths
         @scope = { :path_names => @set.resources_path_names }
       end
 

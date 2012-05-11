@@ -207,8 +207,9 @@ class RespondToControllerTest < ActionController::TestCase
     get :html_or_xml
     assert_equal 'HTML', @response.body
 
-    get :just_xml
-    assert_response 406
+    assert_raises(ActionController::UnknownFormat) do
+      get :just_xml
+    end
   end
 
   def test_all
@@ -239,8 +240,10 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal 'HTML', @response.body
 
     @request.accept = "text/javascript, text/html"
-    xhr :get, :just_xml
-    assert_response 406
+    
+    assert_raises(ActionController::UnknownFormat) do
+      xhr :get, :just_xml
+    end
   end
 
   def test_json_or_yaml_with_leading_star_star
@@ -495,9 +498,9 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_invalid_format
-    get :using_defaults, :format => "invalidformat"
-    assert_equal " ", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_raises(ActionController::UnknownFormat) do
+      get :using_defaults, :format => "invalidformat"
+    end
   end
 end
 
@@ -701,12 +704,14 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def test_not_acceptable
     @request.accept = "application/xml"
-    get :using_resource_with_block
-    assert_equal 406, @response.status
+    assert_raises(ActionController::UnknownFormat) do
+      get :using_resource_with_block
+    end
 
     @request.accept = "text/javascript"
-    get :using_resource_with_overwrite_block
-    assert_equal 406, @response.status
+    assert_raises(ActionController::UnknownFormat) do
+      get :using_resource_with_overwrite_block
+    end
   end
 
   def test_using_resource_for_post_with_html_redirects_on_success
@@ -984,8 +989,9 @@ class RespondWithControllerTest < ActionController::TestCase
   def test_clear_respond_to
     @controller = InheritedRespondWithController.new
     @request.accept = "text/html"
-    get :index
-    assert_equal 406, @response.status
+    assert_raises(ActionController::UnknownFormat) do
+      get :index
+    end
   end
 
   def test_first_in_respond_to_has_higher_priority
@@ -1118,7 +1124,7 @@ class RespondWithControllerTest < ActionController::TestCase
           resources :quiz_stores do
             resources :customers
           end
-          match ":controller/:action"
+          get ":controller/:action"
         end
         yield
       end

@@ -154,6 +154,51 @@ WARNING. Any class can disallow duplication removing +dup+ and +clone+ or raisin
 
 NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
+h4. +deep_dup+
+
+The +deep_dup+ method returns deep copy of given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have array with a string, for example, it will look like this:
+
+<ruby>
+array     = ['string']
+duplicate = array.dup
+
+duplicate.push 'another-string'
+
+# object was duplicated, element added only to duplicate
+array     #=> ['string']
+duplicate #=> ['string', 'another-string']
+
+duplicate.first.gsub!('string', 'foo')
+
+# first element was not duplicated, it will be changed for both arrays
+array     #=> ['foo']
+duplicate #=> ['foo', 'another-string']
+</ruby>
+
+As you can see, after duplicating +Array+ instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since +dup+ does not make deep copy, the string inside array is still the same object.
+
+If you need a deep copy of an object, you should use +deep_dup+ in such situation:
+
+<ruby>
+array     = ['string']
+duplicate = array.deep_dup
+
+duplicate.first.gsub!('string', 'foo')
+
+array     #=> ['string']
+duplicate #=> ['foo']
+</ruby>
+
+If object is not duplicable +deep_dup+ will just return this object:
+
+<ruby>
+number = 1
+dup = number.deep_dup
+number.object_id == dup.object_id   # => true
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/object/deep_dup.rb+.
+
 h4. +try+
 
 Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
@@ -184,7 +229,7 @@ You can evaluate code in the context of any object's singleton class using +clas
 <ruby>
 class Proc
   def bind(object)
-    block, time = self, Time.now
+    block, time = self, Time.current
     object.class_eval do
       method_name = "__bind_#{time.to_i}_#{time.usec}"
       define_method(method_name, &block)
@@ -1034,49 +1079,6 @@ A model may find it useful to set +:instance_accessor+ to +false+ as a way to pr
 
 NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
-h4. Class Inheritable Attributes
-
-WARNING: Class Inheritable Attributes are deprecated. It's recommended that you use +Class#class_attribute+ instead.
-
-Class variables are shared down the inheritance tree. Class instance variables are not shared, but they are not inherited either. The macros +class_inheritable_reader+, +class_inheritable_writer+, and +class_inheritable_accessor+ provide accessors for class-level data which is inherited but not shared with children:
-
-<ruby>
-module ActionController
-  class Base
-    # FIXME: REVISE/SIMPLIFY THIS COMMENT.
-    # The value of allow_forgery_protection is inherited,
-    # but its value in a particular class does not affect
-    # the value in the rest of the controllers hierarchy.
-    class_inheritable_accessor :allow_forgery_protection
-  end
-end
-</ruby>
-
-They accomplish this with class instance variables and cloning on subclassing, there are no class variables involved. Cloning is performed with +dup+ as long as the value is duplicable.
-
-There are some variants specialised in arrays and hashes:
-
-<ruby>
-class_inheritable_array
-class_inheritable_hash
-</ruby>
-
-Those writers take any inherited array or hash into account and extend them rather than overwrite them.
-
-As with vanilla class attribute accessors these macros create convenience instance methods for reading and writing. The generation of the writer instance method can be prevented setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
-
-<ruby>
-module ActiveRecord
-  class Base
-    class_inheritable_accessor :default_scoping, :instance_writer => false
-  end
-end
-</ruby>
-
-Since values are copied when a subclass is defined, if the base class changes the attribute after that, the subclass does not see the new value. That's the point.
-
-NOTE: Defined in +active_support/core_ext/class/inheritable_attributes.rb+.
-
 h4. Subclasses & Descendants
 
 h5. +subclasses+
@@ -1131,7 +1133,7 @@ h4. Output Safety
 
 h5. Motivation
 
-Inserting data into HTML templates needs extra care. For example you can't just interpolate +@review.title+ verbatim into an HTML page. On one hand if the review title is "Flanagan & Matz rules!" the output won't be well-formed because an ampersand has to be escaped as "&amp;amp;". On the other hand, depending on the application that may be a big security hole because users can inject malicious HTML setting a hand-crafted review title. Check out the "section about cross-site scripting in the Security guide":security.html#cross-site-scripting-xss for further information about the risks.
+Inserting data into HTML templates needs extra care. For example, you can't just interpolate +@review.title+ verbatim into an HTML page. For one thing, if the review title is "Flanagan & Matz rules!" the output won't be well-formed because an ampersand has to be escaped as "&amp;amp;". What's more, depending on the application, that may be a big security hole because users can inject malicious HTML setting a hand-crafted review title. Check out the "section about cross-site scripting in the Security guide":security.html#cross-site-scripting-xss for further information about the risks.
 
 h5. Safe Strings
 
@@ -1255,9 +1257,14 @@ Pass a +:separator+ to truncate the string at a natural break:
 # => "Oh dear! Oh..."
 </ruby>
 
-In the above example "dear" gets cut first, but then +:separator+ prevents it.
+The option +:separator+ can be a regexp:
 
-WARNING: The option +:separator+ can't be a regexp.
+<ruby>
+"Oh dear! Oh dear! I shall be late!".truncate(18, :separator => /\s/)
+# => "Oh dear! Oh..."
+</ruby>
+
+In above examples "dear" gets cut first, but then +:separator+ prevents it.
 
 NOTE: Defined in +active_support/core_ext/string/filters.rb+.
 
@@ -1810,6 +1817,43 @@ Singular forms are aliased so you are able to say:
 
 NOTE: Defined in +active_support/core_ext/numeric/bytes.rb+.
 
+h4. Time
+
+Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.years.
+
+These methods use Time#advance for precise date calculations when using from_now, ago, etc.
+as well as adding or subtracting their results from a Time object. For example:
+
+<ruby>
+# equivalent to Time.current.advance(:months => 1)
+1.month.from_now
+
+# equivalent to Time.current.advance(:years => 2)
+2.years.from_now
+
+# equivalent to Time.current.advance(:months => 4, :years => 5)
+(4.months + 5.years).from_now
+</ruby>
+
+While these methods provide precise calculation when used as in the examples above, care
+should be taken to note that this is not true if the result of `months', `years', etc is
+converted before use:
+
+<ruby>
+# equivalent to 30.days.to_i.from_now
+1.month.to_i.from_now
+
+# equivalent to 365.25.days.to_f.from_now
+1.year.to_f.from_now
+</ruby>
+
+In such cases, Ruby's core
+Date[http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
+Time[http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
+date and time arithmetic.
+
+NOTE: Defined in +active_support/core_ext/numeric/time.rb+.
+
 h3. Extensions to +Integer+
 
 h4. +multiple_of?+
@@ -2103,20 +2147,20 @@ To do so it sends +to_xml+ to every item in turn, and collects the results under
 
 By default, the name of the root element is the underscorized and dasherized plural of the name of the class of the first item, provided the rest of elements belong to that type (checked with <tt>is_a?</tt>) and they are not hashes. In the example above that's "contributors".
 
-If there's any element that does not belong to the type of the first one the root node becomes "records":
+If there's any element that does not belong to the type of the first one the root node becomes "objects":
 
 <ruby>
 [Contributor.first, Commit.first].to_xml
 # =>
 # <?xml version="1.0" encoding="UTF-8"?>
-# <records type="array">
-#   <record>
+# <objects type="array">
+#   <object>
 #     <id type="integer">4583</id>
 #     <name>Aaron Batalion</name>
 #     <rank type="integer">53</rank>
 #     <url-id>aaron-batalion</url-id>
-#   </record>
-#   <record>
+#   </object>
+#   <object>
 #     <author>Joshua Peek</author>
 #     <authored-timestamp type="datetime">2009-09-02T16:44:36Z</authored-timestamp>
 #     <branch>origin/master</branch>
@@ -2127,30 +2171,30 @@ If there's any element that does not belong to the type of the first one the roo
 #     <imported-from-svn type="boolean">false</imported-from-svn>
 #     <message>Kill AMo observing wrap_with_notifications since ARes was only using it</message>
 #     <sha1>723a47bfb3708f968821bc969a9a3fc873a3ed58</sha1>
-#   </record>
-# </records>
+#   </object>
+# </objects>
 </ruby>
 
-If the receiver is an array of hashes the root element is by default also "records":
+If the receiver is an array of hashes the root element is by default also "objects":
 
 <ruby>
 [{:a => 1, :b => 2}, {:c => 3}].to_xml
 # =>
 # <?xml version="1.0" encoding="UTF-8"?>
-# <records type="array">
-#   <record>
+# <objects type="array">
+#   <object>
 #     <b type="integer">2</b>
 #     <a type="integer">1</a>
-#   </record>
-#   <record>
+#   </object>
+#   <object>
 #     <c type="integer">3</c>
-#   </record>
-# </records>
+#   </object>
+# </objects>
 </ruby>
 
 WARNING. If the collection is empty the root element is by default "nil-classes". That's a gotcha, for example the root element of the list of contributors above would not be "contributors" if the collection was empty, but "nil-classes". You may use the <tt>:root</tt> option to ensure a consistent root element.
 
-The name of children nodes is by default the name of the root node singularized. In the examples above we've seen "contributor" and "record". The option <tt>:children</tt> allows you to set these node names.
+The name of children nodes is by default the name of the root node singularized. In the examples above we've seen "contributor" and "object". The option <tt>:children</tt> allows you to set these node names.
 
 The default XML builder is a fresh instance of <tt>Builder::XmlMarkup</tt>. You can configure your own builder via the <tt>:builder</tt> option. The method also accepts options like <tt>:dasherize</tt> and friends, they are forwarded to the builder:
 
@@ -2216,6 +2260,19 @@ which in Ruby 1.8 returns +[nil]+ for +nil+, and calls to <tt>Array(object)</tt>
 Thus, in this case the behavior is different for +nil+, and the differences with <tt>Kernel#Array</tt> explained above apply to the rest of +object+s.
 
 NOTE: Defined in +active_support/core_ext/array/wrap.rb+.
+
+h4. Duplicating
+
+The method +Array.deep_dup+ duplicates itself and all objects inside recursively with ActiveSupport method +Object#deep_dup+. It works like +Array#map+ with sending +deep_dup+ method to each object inside.
+
+<ruby>
+array = [1, [2, 3]]
+dup = array.deep_dup
+dup[1][2] = 4
+array[1][2] == nil   # => true
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/array/deep_dup.rb+.
 
 h4. Grouping
 
@@ -2422,6 +2479,23 @@ Active Support defines +Hash#deep_merge+. In a deep merge, if a key is found in 
 The method +deep_merge!+ performs a deep merge in place.
 
 NOTE: Defined in +active_support/core_ext/hash/deep_merge.rb+.
+
+h4. Deep duplicating
+
+The method +Hash.deep_dup+ duplicates itself and all keys and values inside recursively with ActiveSupport method +Object#deep_dup+. It works like +Enumerator#each_with_object+ with sending +deep_dup+ method to each pair inside.
+
+<ruby>
+hash = { :a => 1, :b => { :c => 2, :d => [3, 4] } }
+
+dup = hash.deep_dup
+dup[:b][:e] = 5
+dup[:b][:d] << 5
+
+hash[:b][:e] == nil      # => true
+hash[:b][:d] == [3, 4]   # => true
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/hash/deep_dup.rb+.
 
 h4. Diffing
 
@@ -2707,22 +2781,25 @@ NOTE: Defined in +active_support/core_ext/range/blockless_step.rb+.
 
 h4. +include?+
 
-The method +Range#include?+ says whether some value falls between the ends of a given instance:
+The methods +Range#include?+ and +Range#===+ say whether some value falls between the ends of a given instance:
 
 <ruby>
 (2..3).include?(Math::E) # => true
 </ruby>
 
-Active Support extends this method so that the argument may be another range in turn. In that case we test whether the ends of the argument range belong to the receiver themselves:
+Active Support extends these methods so that the argument may be another range in turn. In that case we test whether the ends of the argument range belong to the receiver themselves:
 
 <ruby>
 (1..10).include?(3..7)  # => true
 (1..10).include?(0..7)  # => false
 (1..10).include?(3..11) # => false
 (1...9).include?(3..9)  # => false
-</ruby>
 
-WARNING: The original +Range#include?+ is still the one aliased to +Range#===+.
+(1..10) === (3..7)  # => true
+(1..10) === (0..7)  # => false
+(1..10) === (3..11) # => false
+(1...9) === (3..9)  # => false
+</ruby>
 
 NOTE: Defined in +active_support/core_ext/range/include_range.rb+.
 
@@ -3052,17 +3129,37 @@ The method +beginning_of_day+ returns a timestamp at the beginning of the day (0
 
 <ruby>
 date = Date.new(2010, 6, 7)
-date.beginning_of_day # => Sun Jun 07 00:00:00 +0200 2010
+date.beginning_of_day # => Mon Jun 07 00:00:00 +0200 2010
 </ruby>
 
 The method +end_of_day+ returns a timestamp at the end of the day (23:59:59):
 
 <ruby>
 date = Date.new(2010, 6, 7)
-date.end_of_day # => Sun Jun 06 23:59:59 +0200 2010
+date.end_of_day # => Mon Jun 07 23:59:59 +0200 2010
 </ruby>
 
 +beginning_of_day+ is aliased to +at_beginning_of_day+, +midnight+, +at_midnight+.
+
+h6. +beginning_of_hour+, +end_of_hour+
+
+The method +beginning_of_hour+ returns a timestamp at the beginning of the hour (hh:00:00):
+
+<ruby>
+date = DateTime.new(2010, 6, 7, 19, 55, 25)
+date.beginning_of_hour # => Mon Jun 07 19:00:00 +0200 2010
+</ruby>
+
+The method +end_of_hour+ returns a timestamp at the end of the hour (hh:59:59):
+
+<ruby>
+date = DateTime.new(2010, 6, 7, 19, 55, 25)
+date.end_of_hour # => Mon Jun 07 19:59:59 +0200 2010
+</ruby>
+
++beginning_of_hour+ is aliased to +at_beginning_of_hour+.
+
+INFO: +beginning_of_hour+ and +end_of_hour+ are implemented for +Time+ and +DateTime+ but *not* +Date+ as it does not make sense to request the beginning or end of an hour on a +Date+ instance.
 
 h6. +ago+, +since+
 
@@ -3130,6 +3227,13 @@ since (in)
 </ruby>
 
 On the other hand, +advance+ and +change+ are also defined and support more options, they are documented below.
+
+The following methods are only implemented in +active_support/core_ext/date_time/calculations.rb+ as they only make sense when used with a +DateTime+ instance:
+
+<ruby>
+beginning_of_hour (at_beginning_of_hour)
+end_of_hour
+</ruby>
 
 h5. Named Datetimes
 
@@ -3273,6 +3377,8 @@ ago
 since (in)
 beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
+beginning_of_hour (at_beginning_of_hour)
+end_of_hour
 beginning_of_week (at_beginning_of_week)
 end_of_week (at_end_of_week)
 monday

@@ -226,7 +226,7 @@ module ActiveRecord
       end
       alias :create :insert_sql
 
-      def exec_insert(sql, name, binds)
+      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
         execute to_sql(sql, binds), name
       end
 
@@ -253,6 +253,14 @@ module ActiveRecord
         # By default, MySQL 'where id is null' selects the last inserted id.
         # Turn this off. http://dev.rubyonrails.org/ticket/6778
         variable_assignments = ['SQL_AUTO_IS_NULL=0']
+
+        # Make MySQL reject illegal values rather than truncating or
+        # blanking them. See
+        # http://dev.mysql.com/doc/refman/5.5/en/server-sql-mode.html#sqlmode_strict_all_tables
+        if @config.fetch(:strict, true)
+          variable_assignments << "SQL_MODE='STRICT_ALL_TABLES'"
+        end
+
         encoding = @config[:encoding]
 
         # make sure we set the encoding

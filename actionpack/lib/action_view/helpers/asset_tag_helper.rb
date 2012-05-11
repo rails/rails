@@ -13,15 +13,16 @@ module ActionView
     # the assets exist before linking to them:
     #
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="/images/rails.png?1230601161" />
+    #   # => <img alt="Rails" src="/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
+    #   # => <link href="/assets/application.css?body=1" media="screen" rel="stylesheet" />
+    #
     #
     # === Using asset hosts
     #
     # By default, Rails links to these assets on the current host in the public
     # folder, but you can direct Rails to link to assets from a dedicated asset
-    # server by setting ActionController::Base.asset_host in the application
+    # server by setting <tt>ActionController::Base.asset_host</tt> in the application
     # configuration, typically in <tt>config/environments/production.rb</tt>.
     # For example, you'd define <tt>assets.example.com</tt> to be your asset
     # host this way, inside the <tt>configure</tt> block of your environment-specific
@@ -32,9 +33,9 @@ module ActionView
     # Helpers take that into account:
     #
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="http://assets.example.com/images/rails.png?1230601161" />
+    #   # => <img alt="Rails" src="http://assets.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
+    #   # => <link href="http://assets.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
     # Browsers typically open at most two simultaneous connections to a single
     # host, which means your assets often have to wait for other assets to finish
@@ -45,9 +46,9 @@ module ActionView
     # will open eight simultaneous connections rather than two.
     #
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="http://assets0.example.com/images/rails.png?1230601161" />
+    #   # => <img alt="Rails" src="http://assets0.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets2.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
+    #   # => <link href="http://assets2.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
     # To do this, you can either setup four actual hosts, or you can use wildcard
     # DNS to CNAME the wildcard to a single asset host. You can read more about
@@ -64,29 +65,28 @@ module ActionView
     #     "http://assets#{Digest::MD5.hexdigest(source).to_i(16) % 2 + 1}.example.com"
     #   }
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="http://assets1.example.com/images/rails.png?1230601161" />
+    #   # => <img alt="Rails" src="http://assets1.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets2.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
+    #   # => <link href="http://assets2.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
     # The example above generates "http://assets1.example.com" and
     # "http://assets2.example.com". This option is useful for example if
     # you need fewer/more than four hosts, custom host names, etc.
     #
     # As you see the proc takes a +source+ parameter. That's a string with the
-    # absolute path of the asset with any extensions and timestamps in place,
-    # for example "/images/rails.png?1230601161".
+    # absolute path of the asset, for example "/assets/rails.png".
     #
     #    ActionController::Base.asset_host = Proc.new { |source|
-    #      if source.starts_with?('/images')
-    #        "http://images.example.com"
+    #      if source.ends_with?('.css')
+    #        "http://stylesheets.example.com"
     #      else
     #        "http://assets.example.com"
     #      end
     #    }
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="http://images.example.com/images/rails.png?1230601161" />
+    #   # => <img alt="Rails" src="http://assets.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" />
+    #   # => <link href="http://stylesheets.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
     # Alternatively you may ask for a second parameter +request+. That one is
     # particularly useful for serving assets from an SSL-protected page. The

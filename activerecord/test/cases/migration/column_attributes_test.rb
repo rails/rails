@@ -64,7 +64,7 @@ module ActiveRecord
         end
 
         # SELECT
-        row = TestModel.find(:first)
+        row = TestModel.first
         assert_kind_of BigDecimal, row.wealth
 
         # If this assert fails, that means the SELECT is broken!
@@ -79,7 +79,7 @@ module ActiveRecord
         TestModel.create :wealth => BigDecimal.new("12345678901234567890.0123456789")
 
         # SELECT
-        row = TestModel.find(:first)
+        row = TestModel.first
         assert_kind_of BigDecimal, row.wealth
 
         # If these asserts fail, that means the INSERT (create function, or cast to SQL) is broken!
@@ -132,7 +132,7 @@ module ActiveRecord
           :birthday => 18.years.ago, :favorite_day => 10.days.ago,
           :moment_of_truth => "1782-10-10 21:40:18", :male => true
 
-        bob = TestModel.find(:first)
+        bob = TestModel.first
         assert_equal 'bob', bob.first_name
         assert_equal 'bobsen', bob.last_name
         assert_equal "I was born ....", bob.bio

@@ -130,9 +130,9 @@ module ActiveRecord
 
     test 'merging a hash into a relation' do
       relation = Relation.new :a, :b
-      relation = relation.merge where: ['lol'], readonly: true
+      relation = relation.merge where: :lol, readonly: true
 
-      assert_equal ['lol'], relation.where_values
+      assert_equal [:lol], relation.where_values
       assert_equal true, relation.readonly_value
     end
 
@@ -155,6 +155,21 @@ module ActiveRecord
     test 'relations can be created with a values hash' do
       relation = Relation.new(:a, :b, where: [:foo])
       assert_equal [:foo], relation.where_values
+    end
+
+    test 'merging a single where value' do
+      relation = Relation.new(:a, :b)
+      relation.merge!(where: :foo)
+      assert_equal [:foo], relation.where_values
+    end
+
+    test 'merging a hash interpolates conditions' do
+      klass = stub
+      klass.stubs(:sanitize_sql).with(['foo = ?', 'bar']).returns('foo = bar')
+
+      relation = Relation.new(klass, :b)
+      relation.merge!(where: ['foo = ?', 'bar'])
+      assert_equal ['foo = bar'], relation.where_values
     end
   end
 
@@ -221,8 +236,8 @@ module ActiveRecord
     end
 
     test 'merge!' do
-      assert relation.merge!(where: ['foo']).equal?(relation)
-      assert_equal ['foo'], relation.where_values
+      assert relation.merge!(where: :foo).equal?(relation)
+      assert_equal [:foo], relation.where_values
     end
   end
 end

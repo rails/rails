@@ -1,5 +1,37 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Copy literal route constraints to defaults so that url generation know about them.
+    The copied constraints are `:protocol`, `:subdomain`, `:domain`, `:host` and `:port`.
+
+    *Andrew White*
+
+*   `respond_to` and `respond_with` now raise ActionController::UnknownFormat instead
+    of directly returning head 406. The exception is rescued and converted to 406
+    in the exception handling middleware. *Steven Soroka*
+
+*   Allows `assert_redirected_to` to match against a regular expression. *Andy Lindeman*
+
+*   Add backtrace to development routing error page. *Richard Schneeman*
+
+*   Replace `include_seconds` boolean argument with `:include_seconds => true` option
+    in `distance_of_time_in_words` and `time_ago_in_words` signature. *Dmitriy Kiriyenko*
+
+*   Remove `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
+
+*   Make current object and counter (when it applies) variables accessible when
+    rendering templates with :object / :collection. *Carlos Antonio da Silva*
+
+*   JSONP now uses mimetype application/javascript instead of application/json. *omjokine*
+
+*   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*
+
+*   Session arguments passed to `process` calls in functional tests are now merged into
+    the existing session, whereas previously they would replace the existing session.
+    This change may break some existing tests if they are asserting the exact contents of
+    the session but should not break existing tests that only assert individual keys.
+
+    *Andrew White*
+
 *   Add `index` method to FormBuilder class. *Jorge Bejar*
 
 *   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*

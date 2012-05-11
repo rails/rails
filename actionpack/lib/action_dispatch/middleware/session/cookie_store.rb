@@ -43,6 +43,7 @@ module ActionDispatch
     class CookieStore < Rack::Session::Cookie
       include Compatibility
       include StaleSessionCheck
+      include SessionObject
 
       private
 

@@ -7,6 +7,8 @@
     <th>Title</th>
     <th>Text</th>
     <th></th>
+    <th></th>
+    <th></th>
   </tr>
 
 <% @posts.each do |post| %>
@@ -14,6 +16,8 @@
     <td><%= post.title %></td>
     <td><%= post.text %></td>
     <td><%= link_to 'Show', :action => :show, :id => post.id %>
+    <td><%= link_to 'Edit', :action => :edit, :id => post.id %>
+    <td><%= link_to 'Destroy', { :action => :destroy, :id => post.id }, :method => :delete, :confirm => 'Are you sure?' %>
   </tr>
 <% end %>
 </table>

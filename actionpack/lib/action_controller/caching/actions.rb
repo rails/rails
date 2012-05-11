@@ -133,6 +133,8 @@ module ActionController #:nodoc:
         end
 
         def filter(controller)
+          cache_layout = @cache_layout.respond_to?(:call) ? @cache_layout.call(controller) : @cache_layout
+
           path_options = if @cache_path.respond_to?(:call)
             controller.instance_exec(controller, &@cache_path)
           else
@@ -144,13 +146,13 @@ module ActionController #:nodoc:
           body = controller.read_fragment(cache_path.path, @store_options)
 
           unless body
-            controller.action_has_layout = false unless @cache_layout
+            controller.action_has_layout = false unless cache_layout
             yield
             controller.action_has_layout = true
             body = controller._save_fragment(cache_path.path, @store_options)
           end
 
-          body = controller.render_to_string(:text => body, :layout => true) unless @cache_layout
+          body = controller.render_to_string(:text => body, :layout => true) unless cache_layout
 
           controller.response_body = body
           controller.content_type = Mime[cache_path.extension || :html]

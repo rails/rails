@@ -73,14 +73,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_eager_loading_with_primary_key
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.find(:first, :conditions => {:name => "Citibank"}, :include => :firm_with_primary_key)
+    citibank_result = Client.scoped(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key).first
     assert citibank_result.association_cache.key?(:firm_with_primary_key)
   end
 
   def test_eager_loading_with_primary_key_as_symbol
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.find(:first, :conditions => {:name => "Citibank"}, :include => :firm_with_primary_key_symbols)
+    citibank_result = Client.scoped(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key_symbols).first
     assert citibank_result.association_cache.key?(:firm_with_primary_key_symbols)
   end
 
@@ -182,7 +182,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_with_select
     assert_equal Company.find(2).firm_with_select.attributes.size, 1
-    assert_equal Company.find(2, :include => :firm_with_select ).firm_with_select.attributes.size, 1
+    assert_equal Company.scoped(:includes => :firm_with_select ).find(2).firm_with_select.attributes.size, 1
   end
 
   def test_belongs_to_counter
@@ -334,7 +334,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_new_record_with_foreign_key_but_no_object
     c = Client.new("firm_id" => 1)
     # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    assert_equal Firm.find(:first, :order => "id"), c.firm_with_basic_id
+    assert_equal Firm.scoped(:order => "id").first, c.firm_with_basic_id
   end
 
   def test_setting_foreign_key_after_nil_target_loaded
@@ -394,9 +394,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_assignment_sticks
-    post = Post.find(:first)
+    post = Post.first
 
-    author1, author2 = Author.find(:all, :limit => 2)
+    author1, author2 = Author.scoped(:limit => 2).all
     assert_not_nil author1
     assert_not_nil author2
 
@@ -498,14 +498,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Account.find(@account.id).save!
-      Account.find(@account.id, :include => :firm).save!
+      Account.scoped(:includes => :firm).find(@account.id).save!
     end
 
     @account.firm.delete
 
     assert_nothing_raised do
       Account.find(@account.id).save!
-      Account.find(@account.id, :include => :firm).save!
+      Account.scoped(:includes => :firm).find(@account.id).save!
     end
   end
 
@@ -704,5 +704,28 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor = Sponsor.create!(:sponsorable => toy)
 
     assert_equal toy, sponsor.reload.sponsorable
+  end
+
+  test "stale tracking doesn't care about the type" do
+    apple = Firm.create("name" => "Apple")
+    citibank = Account.create("credit_limit" => 10)
+
+    citibank.firm_id = apple.id
+    citibank.firm # load it
+
+    citibank.firm_id = apple.id.to_s
+
+    assert !citibank.association(:firm).stale_target?
+  end
+
+  def test_reflect_the_most_recent_change
+    author1, author2 = Author.limit(2)
+    post = Post.new(:title => "foo", :body=> "bar")
+
+    post.author    = author1
+    post.author_id = author2.id
+
+    assert post.save
+    assert_equal post.author_id, author2.id
   end
 end

@@ -45,7 +45,7 @@ module ActionView
       #   # => <form action="/posts" method="post">
       #
       #   form_tag('/posts/1', :method => :put)
-      #   # => <form action="/posts/1" method="put">
+      #   # => <form action="/posts/1" method="post"> ... <input name="_method" type="hidden" value="put" /> ...
       #
       #   form_tag('/upload', :multipart => true)
       #   # => <form action="/upload" method="post" enctype="multipart/form-data">
@@ -408,7 +408,7 @@ module ActionView
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
       #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit_button"
-      #   # => <input class="edit_button" data-disable_with="Editing..." name="commit" type="submit" value="Edit" />
+      #   # => <input class="edit_button" data-disable-with="Editing..." name="commit" type="submit" value="Edit" />
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
       #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
@@ -502,6 +502,9 @@ module ActionView
       #
       #   image_submit_tag("agree.png", :disabled => true, :class => "agree_disagree_button")
       #   # => <input class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
+      #
+      #   image_submit_tag("save.png", :confirm => "Are you sure?")
+      #   # => <input src="/images/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
 

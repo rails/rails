@@ -288,38 +288,55 @@ module ActionView
       #
       # Examples (call, result):
       #   options_for_select([["Dollar", "$"], ["Kroner", "DKK"]])
-      #     <option value="$">Dollar</option>\n<option value="DKK">Kroner</option>
+      #   # <option value="$">Dollar</option>
+      #   # <option value="DKK">Kroner</option>
       #
       #   options_for_select([ "VISA", "MasterCard" ], "MasterCard")
-      #     <option>VISA</option>\n<option selected="selected">MasterCard</option>
+      #   # <option>VISA</option>
+      #   # <option selected="selected">MasterCard</option>
       #
       #   options_for_select({ "Basic" => "$20", "Plus" => "$40" }, "$40")
-      #     <option value="$20">Basic</option>\n<option value="$40" selected="selected">Plus</option>
+      #   # <option value="$20">Basic</option>
+      #   # <option value="$40" selected="selected">Plus</option>
       #
       #   options_for_select([ "VISA", "MasterCard", "Discover" ], ["VISA", "Discover"])
-      #     <option selected="selected">VISA</option>\n<option>MasterCard</option>\n<option selected="selected">Discover</option>
+      #   # <option selected="selected">VISA</option>
+      #   # <option>MasterCard</option>
+      #   # <option selected="selected">Discover</option>
       #
       # You can optionally provide html attributes as the last element of the array.
       #
       # Examples:
       #   options_for_select([ "Denmark", ["USA", {:class => 'bold'}], "Sweden" ], ["USA", "Sweden"])
-      #     <option value="Denmark">Denmark</option>\n<option value="USA" class="bold" selected="selected">USA</option>\n<option value="Sweden" selected="selected">Sweden</option>
+      #   # <option value="Denmark">Denmark</option>
+      #   # <option value="USA" class="bold" selected="selected">USA</option>
+      #   # <option value="Sweden" selected="selected">Sweden</option>
       #
       #   options_for_select([["Dollar", "$", {:class => "bold"}], ["Kroner", "DKK", {:onclick => "alert('HI');"}]])
-      #     <option value="$" class="bold">Dollar</option>\n<option value="DKK" onclick="alert('HI');">Kroner</option>
+      #   # <option value="$" class="bold">Dollar</option>
+      #   # <option value="DKK" onclick="alert('HI');">Kroner</option>
       #
       # If you wish to specify disabled option tags, set +selected+ to be a hash, with <tt>:disabled</tt> being either a value
       # or array of values to be disabled. In this case, you can use <tt>:selected</tt> to specify selected option tags.
       #
       # Examples:
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :disabled => "Super Platinum")
-      #     <option value="Free">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # <option value="Free">Free</option>
+      #   # <option value="Basic">Basic</option>
+      #   # <option value="Advanced">Advanced</option>
+      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :disabled => ["Advanced", "Super Platinum"])
-      #     <option value="Free">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced" disabled="disabled">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # <option value="Free">Free</option>
+      #   # <option value="Basic">Basic</option>
+      #   # <option value="Advanced" disabled="disabled">Advanced</option>
+      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :selected => "Free", :disabled => "Super Platinum")
-      #     <option value="Free" selected="selected">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # <option value="Free" selected="selected">Free</option>
+      #   # <option value="Basic">Basic</option>
+      #   # <option value="Advanced">Advanced</option>
+      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_for_select(container, selected = nil)

@@ -3,7 +3,6 @@
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/hash/reverse_merge'
 
 module ActiveModel
   # == Active Model Errors
@@ -202,12 +201,12 @@ module ActiveModel
     #   #    <error>name must be specified</error>
     #   #  </errors>
     def to_xml(options={})
-      to_a.to_xml options.reverse_merge(:root => "errors", :skip_types => true)
+      to_a.to_xml({ :root => "errors", :skip_types => true }.merge!(options))
     end
 
     # Returns an Hash that can be used as the JSON representation for this object.
     # Options:
-    # * <tt>:full_messages</tt> - determines if json object should contain 
+    # * <tt>:full_messages</tt> - determines if json object should contain
     #   full messages or not. Default: <tt>false</tt>.
     def as_json(options=nil)
       to_hash(options && options[:full_messages])
@@ -217,7 +216,7 @@ module ActiveModel
       if full_messages
         messages = {}
         self.messages.each do |attribute, array|
-          messages[attribute] = array.map{|message| full_message(attribute, message) }
+          messages[attribute] = array.map { |message| full_message(attribute, message) }
         end
         messages
       else
@@ -347,7 +346,7 @@ module ActiveModel
         :model => @base.class.model_name.human,
         :attribute => @base.class.human_attribute_name(attribute),
         :value => value
-      }.merge(options)
+      }.merge!(options)
 
       I18n.translate(key, options)
     end
@@ -356,9 +355,10 @@ module ActiveModel
     def normalize_message(attribute, message, options)
       message ||= :invalid
 
-      if message.is_a?(Symbol)
+      case message
+      when Symbol
         generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
-      elsif message.is_a?(Proc)
+      when Proc
         message.call
       else
         message

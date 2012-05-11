@@ -1,12 +1,8 @@
 Blog::Application.routes.draw do
-  # resources :posts do
-  #   resources :comments
-  # end
 
-  get "posts" => "posts#index"
-  get "posts/new"
-  post "posts/create"
-  get "posts/:id" => "posts#show"
+  resources :posts do
+    resources :comments
+  end
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

@@ -833,7 +833,7 @@ Reports the approximate distance in time between two Time or Date objects or int
 
 <ruby>
 distance_of_time_in_words(Time.now, Time.now + 15.seconds)        # => less than a minute
-distance_of_time_in_words(Time.now, Time.now + 15.seconds, true)  # => less than 20 seconds
+distance_of_time_in_words(Time.now, Time.now + 15.seconds, :include_seconds => true)  # => less than 20 seconds
 </ruby>
 
 h5. select_date

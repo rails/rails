@@ -5,6 +5,20 @@ require 'active_record/relation/merger'
 
 module ActiveRecord
   module SpawnMethods
+    
+    # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an <tt>ActiveRecord::Relation</tt>.
+    # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
+    #
+    # ==== Examples
+    #
+    #   Post.where(:published => true).joins(:comments).merge( Comment.where(:spam => false) )
+    #   # Performs a single join query with both where conditions.
+    #
+    #   recent_posts = Post.order('created_at DESC').first(5)
+    #   Post.where(:published => true).merge(recent_posts)
+    #   # Returns the intersection of all published posts with the 5 most recently created posts.
+    #   # (This is just an example. You'd probably want to do this with a single query!)
+    #
     def merge(other)
       if other.is_a?(Array)
         to_a & other
@@ -16,11 +30,8 @@ module ActiveRecord
     end
 
     def merge!(other)
-      if other.is_a?(Hash)
-        Relation::HashMerger.new(self, other).merge
-      else
-        Relation::Merger.new(self, other).merge
-      end
+      klass = other.is_a?(Hash) ? Relation::HashMerger : Relation::Merger
+      klass.new(self, other).merge
     end
 
     # Removes from the query the condition(s) specified in +skips+.

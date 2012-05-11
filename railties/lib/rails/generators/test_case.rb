@@ -79,8 +79,8 @@ module Rails
       #
       # Finally, when a block is given, it yields the file content:
       #
-      #   assert_file "app/controller/products_controller.rb" do |controller|
-      #     assert_instance_method :index, content do |index|
+      #   assert_file "app/controllers/products_controller.rb" do |controller|
+      #     assert_instance_method :index, controller do |index|
       #       assert_match(/Product\.all/, index)
       #     end
       #   end
@@ -159,8 +159,8 @@ module Rails
       # Asserts the given method exists in the given content. When a block is given,
       # it yields the content of the method.
       #
-      #   assert_file "app/controller/products_controller.rb" do |controller|
-      #     assert_instance_method :index, content do |index|
+      #   assert_file "app/controllers/products_controller.rb" do |controller|
+      #     assert_instance_method :index, controller do |index|
       #       assert_match(/Product\.all/, index)
       #     end
       #   end

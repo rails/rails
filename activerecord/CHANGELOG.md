@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by
+    default to avoid silent data loss. This can be disabled by specifying
+    `strict: false` in your `database.yml`.
+
+    *Michael Pearson*
+
+*   Added default order to `first` to assure consistent results among
+    diferent database engines. Introduced `take` as a replacement to
+    the old behavior of `first`.
+
+    *Marcelo Silveira*
+
 *   Added an :index option to automatically create indexes for references
     and belongs_to statements in migrations.
 
@@ -579,19 +591,6 @@
 *   ActiveRecord::Base.establish_connection now takes a string that contains
     a URI that specifies the connection configuration.  For example:
         ActiveRecord::Base.establish_connection 'postgres://localhost/foo'
-
-*   Active Record's dynamic finder will now raise the error if you passing in less number of arguments than what you call in method signature.
-
-    So if you were doing this and expecting the second argument to be nil:
-
-        User.find_by_username_and_group("sikachu")
-
-    You'll now get `ArgumentError: wrong number of arguments (1 for 2).` You'll then have to do this:
-
-        User.find_by_username_and_group("sikachu", nil)
-
-    *Prem Sichanugrist*
-
 
 ## Rails 3.1.0 (August 30, 2011) ##
 

@@ -236,7 +236,10 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      @klass.with_scope(self, :overwrite) { yield }
+      previous, klass.current_scope = klass.current_scope, self
+      yield
+    ensure
+      klass.current_scope = previous
     end
 
     # Updates all records with details given if they match a set of conditions supplied, limits and order can
@@ -387,6 +390,8 @@ module ActiveRecord
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the +destroy_all+ method instead.
     def delete_all(conditions = nil)
+      raise ActiveRecordError.new("delete_all doesn't support limit scope") if self.limit_value
+
       if conditions
         where(conditions).delete_all
       else

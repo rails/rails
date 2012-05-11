@@ -198,6 +198,11 @@ class Account < ActiveRecord::Base
     @destroyed_account_ids ||= Hash.new { |h,k| h[k] = [] }
   end
 
+  # Test private kernel method through collection proxy using has_many.
+  def self.open
+    where('firm_name = ?', '37signals')
+  end
+
   before_destroy do |account|
     if account.firm
       Account.destroyed_account_ids[account.firm.id] << account.id

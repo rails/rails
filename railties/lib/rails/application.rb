@@ -66,9 +66,10 @@ module Rails
       end
     end
 
-    attr_accessor :assets, :sandbox
+    attr_accessor :assets, :sandbox, :queue_consumer
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders
+    attr_writer :queue
 
     delegate :default_url_options, :default_url_options=, :to => :routes
 
@@ -197,6 +198,14 @@ module Rails
 
     def config #:nodoc:
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
+    end
+
+    def queue #:nodoc:
+      @queue ||= build_queue
+    end
+
+    def build_queue # :nodoc:
+      config.queue.new
     end
 
     def to_app

@@ -10,6 +10,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/deprecation'
+require 'active_support/core_ext/string/inflections'
 
 module ActionView
   # = Action View Form Helpers
@@ -902,7 +903,7 @@ module ActionView
       #   # Let's say that @post.validated? is 1:
       #   check_box("post", "validated")
       #   # => <input name="post[validated]" type="hidden" value="0" />
-      #   #    <input type="checkbox" id="post_validated" name="post[validated]" value="1" />
+      #   #    <input checked="checked" type="checkbox" id="post_validated" name="post[validated]" value="1" />
       #
       #   # Let's say that @puppy.gooddog is "no":
       #   check_box("puppy", "gooddog", {}, "yes", "no")
@@ -1039,8 +1040,13 @@ module ActionView
             object_name = ActiveModel::Naming.param_key(object)
           end
 
-          builder = options[:builder] || ActionView::Base.default_form_builder
+          builder = options[:builder] || default_form_builder
           builder.new(object_name, object, self, options)
+        end
+
+        def default_form_builder
+          builder = ActionView::Base.default_form_builder
+          builder.respond_to?(:constantize) ? builder.constantize : builder
         end
     end
 

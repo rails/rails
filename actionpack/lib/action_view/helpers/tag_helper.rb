@@ -109,8 +109,12 @@ module ActionView
       #
       #   cdata_section(File.read("hello_world.txt"))
       #   # => <![CDATA[<hello from a text file]]>
+      #
+      #   cdata_section("hello]]>world")
+      #   # => <![CDATA[hello]]]]><![CDATA[>world]]>
       def cdata_section(content)
-        "<![CDATA[#{content}]]>".html_safe
+        splitted = content.gsub(']]>', ']]]]><![CDATA[>')
+        "<![CDATA[#{splitted}]]>".html_safe
       end
 
       # Returns an escaped version of +html+ without affecting existing escaped entities.

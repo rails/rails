@@ -61,11 +61,15 @@ module ActiveRecord
         @association
       end
 
-      def scoped
+      def scoped(options = nil)
         association = @association
-        association.scoped.extending do
+        scope       = association.scoped
+
+        scope.extending! do
           define_method(:proxy_association) { association }
         end
+        scope.merge!(options) if options
+        scope
       end
 
       def respond_to?(name, include_private = false)
@@ -75,9 +79,9 @@ module ActiveRecord
       end
 
       def method_missing(method, *args, &block)
-        match = DynamicFinderMatch.match(method)
-        if match && match.instantiator?
-          send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |r|
+        match = DynamicMatchers::Method.match(self, method)
+        if match && match.is_a?(DynamicMatchers::Instantiator)
+          scoped.send(method, *args) do |r|
             proxy_association.send :set_owner_attributes, r
             proxy_association.send :add_to_target, r
             yield(r) if block_given?
@@ -97,7 +101,7 @@ module ActiveRecord
           end
 
         else
-          scoped.readonly(nil).send(method, *args, &block)
+          scoped.readonly(nil).public_send(method, *args, &block)
         end
       end
 
@@ -125,6 +129,19 @@ module ActiveRecord
       def reload
         proxy_association.reload
         self
+      end
+
+      # Define array public methods because we know it should be invoked over
+      # the target, so we can have a performance improvement using those methods
+      # in association collections
+      Array.public_instance_methods.each do |m|
+        unless method_defined?(m)
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def #{m}(*args, &block)
+              target.public_send(:#{m}, *args, &block) if load_target
+            end
+          RUBY
+        end
       end
     end
   end

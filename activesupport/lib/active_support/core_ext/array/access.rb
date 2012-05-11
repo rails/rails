@@ -16,7 +16,7 @@ class Array
   #   %w( a b c d ).to(10) # => %w( a b c d )
   #   %w().to(0)           # => %w()
   def to(position)
-    self.first position + 1
+    first position + 1
   end
 
   # Equal to <tt>self[1]</tt>.

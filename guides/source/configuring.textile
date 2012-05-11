@@ -70,11 +70,22 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.action_view.cache_template_loading+ controls whether or not templates should be reloaded on each request. Defaults to whatever is set for +config.cache_classes+.
 
-* +config.cache_store+ configures which cache store to use for Rails caching. Options include one of the symbols +:memory_store+, +:file_store+, +:mem_cache_store+, or an object that implements the cache API. Defaults to +:file_store+ if the directory +tmp/cache+ exists, and to +:memory_store+ otherwise.
+* +config.cache_store+ configures which cache store to use for Rails caching. Options include one of the symbols +:memory_store+, +:file_store+, +:mem_cache_store+, +:null_store+, or an object that implements the cache API. Defaults to +:file_store+ if the directory +tmp/cache+ exists, and to +:memory_store+ otherwise.
 
 * +config.colorize_logging+ specifies whether or not to use ANSI color codes when logging information. Defaults to true.
 
 * +config.consider_all_requests_local+ is a flag. If true then any error will cause detailed debugging information to be dumped in the HTTP response, and the +Rails::Info+ controller will show the application runtime context in +/rails/info/properties+. True by default in development and test environments, and false in production mode. For finer-grained control, set this to false and implement +local_request?+ in controllers to specify which requests should provide debugging information on errors.
+
+* +config.console+ allows you to set class that will be used as console you run +rails console+. It's best to run it in +console+ block:
+
+<ruby>
+console do
+  # this block is called only when running console,
+  # so we can safely require pry here
+  require "pry"
+  config.console = Pry
+end
+</ruby>
 
 * +config.dependency_loading+ is a flag that allows you to disable constant autoloading setting it to false. It only has effect if +config.cache_classes+ is true, which it is by default in production mode. This flag is set to false by +config.threadsafe!+.
 
@@ -100,6 +111,10 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.preload_frameworks+ enables or disables preloading all frameworks at startup. Enabled by +config.threadsafe!+. Defaults to +nil+, so is disabled.
 
+* +config.queue+ configures a different queue implementation for the application. Defaults to +Rails::Queueing::Queue+. Note that, if the default queue is changed, the default +queue_consumer+ is not going to be initialized, it is up to the new queue implementation to handle starting and shutting down its own consumer(s).
+
+* +config.queue_consumer+ configures a different consumer implementation for the default queue. Defaults to +Rails::Queueing::ThreadedConsumer+.
+
 * +config.reload_classes_only_on_change+ enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to true. If +config.cache_classes+ is true, this option is ignored.
 
 * +config.secret_token+ used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get +config.secret_token+ initialized to a random key in +config/initializers/secret_token.rb+.
@@ -121,17 +136,6 @@ WARNING: Threadsafe operation is incompatible with the normal workings of develo
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
 * +config.whiny_nils+ enables or disables warnings when a certain set of methods are invoked on +nil+ and it does not respond to them. Defaults to true in development and test environments.
-
-* +config.console+ allows you to set class that will be used as console you run +rails console+. It's best to run it in +console+ block:
-
-<ruby>
-console do
-  # this block is called only when running console,
-  # so we can safely require pry here
-  require "pry"
-  config.console = Pry
-end
-</ruby>
 
 h4. Configuring Assets
 
@@ -182,13 +186,13 @@ The full set of methods that can be used in this block are as follows:
 * +force_plural+ allows pluralized model names. Defaults to +false+.
 * +helper+ defines whether or not to generate helpers. Defaults to +true+.
 * +integration_tool+ defines which integration tool to use. Defaults to +nil+.
-* +javascripts+ turns on the hook for javascripts in generators. Used in Rails for when the +scaffold+ generator is ran. Defaults to +true+.
+* +javascripts+ turns on the hook for javascripts in generators. Used in Rails for when the +scaffold+ generator is run. Defaults to +true+.
 * +javascript_engine+ configures the engine to be used (for eg. coffee) when generating assets. Defaults to +nil+.
 * +orm+ defines which orm to use. Defaults to +false+ and will use Active Record by default.
 * +performance_tool+ defines which performance tool to use. Defaults to +nil+.
 * +resource_controller+ defines which generator to use for generating a controller when using +rails generate resource+. Defaults to +:controller+.
 * +scaffold_controller+ different from +resource_controller+, defines which generator to use for generating a _scaffolded_ controller when using +rails generate scaffold+. Defaults to +:scaffold_controller+.
-* +stylesheets+ turns on the hook for stylesheets in generators. Used in Rails for when the +scaffold+ generator is ran, but this hook can be used in other generates as well. Defaults to +true+.
+* +stylesheets+ turns on the hook for stylesheets in generators. Used in Rails for when the +scaffold+ generator is run, but this hook can be used in other generates as well. Defaults to +true+.
 * +stylesheet_engine+ configures the stylesheet engine (for eg. sass) to be used when generating assets. Defaults to +:css+.
 * +test_framework+ defines which test framework to use. Defaults to +false+ and will use Test::Unit by default.
 * +template_engine+ defines which template engine to use, such as ERB or Haml. Defaults to +:erb+.
@@ -247,14 +251,6 @@ They can also be removed from the stack completely:
 <ruby>
 config.middleware.delete ActionDispatch::BestStandardsSupport
 </ruby>
-
-In addition to these methods to handle the stack, if your application is going to be used as an API endpoint only, the middleware stack can be configured like this:
-
-<ruby>
-config.middleware.http_only!
-</ruby>
-
-By doing this, Rails will create a smaller middleware stack, by not adding some middlewares that are usually useful for browser access only, such as Cookies, Session and Flash, BestStandardsSupport, and MethodOverride. You can always add any of them later manually if you want. Refer to the "API App docs":api_app.html for more info on how to setup your application for API only apps.
 
 h4. Configuring i18n
 
@@ -362,7 +358,7 @@ h4. Configuring Action View
 Proc.new { |html_tag, instance| %Q(<div class="field_with_errors">#{html_tag}</div>).html_safe }
 </ruby>
 
-* +config.action_view.default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.
+* +config.action_view.default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+. If you want your form builder class to be loaded after initialization (so it's reloaded on each request in development), you can pass it as a +String+
 
 * +config.action_view.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action View. Set to +nil+ to disable logging.
 
@@ -525,7 +521,8 @@ development:
   password:
 </yaml>
 
-If you use external connection pool manager, you can disable prepared statements in rails:
+Prepared Statements can be disabled thus:
+
 <yaml>
 production:
   adapter: postgresql
@@ -592,13 +589,13 @@ TIP: If you have any ordering dependency in your initializers, you can control t
 
 h3. Initialization events
 
-Rails has 5 initialization events which can be hooked into (listed in the order that they are ran):
+Rails has 5 initialization events which can be hooked into (listed in the order that they are run):
 
 * +before_configuration+: This is run as soon as the application constant inherits from +Rails::Application+. The +config+ calls are evaluated before this happens.
 
 * +before_initialize+: This is run directly before the initialization process of the application occurs with the +:bootstrap_hook+ initializer near the beginning of the Rails initialization process.
 
-* +to_prepare+: Run after the initializers are ran for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every request in +development+, but only once (during boot-up) in +production+ and +test+.
+* +to_prepare+: Run after the initializers are run for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every request in +development+, but only once (during boot-up) in +production+ and +test+.
 
 * +before_eager_load+: This is run directly before eager loading occurs, which is the default behaviour for the _production_ environment and not for the +development+ environment.
 
@@ -739,7 +736,7 @@ The error occurred while evaluating nil.each
 
 *+load_config_initializers+* Loads all Ruby files from +config/initializers+ in the application, railties and engines. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks are loaded.
 
-*+engines_blank_point+* Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are ran.
+*+engines_blank_point+* Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are run.
 
 *+add_generator_templates+* Finds templates for generators at +lib/templates+ for the application, railities and engines and adds these to the +config.generators.templates+ setting, which will make the templates available for all generators to reference.
 

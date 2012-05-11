@@ -112,7 +112,7 @@ module CallbacksTest
     end
 
     def dispatch
-      run_callbacks :dispatch, action_name do
+      run_callbacks :dispatch do
         @logger << "Done"
       end
       self
@@ -153,7 +153,7 @@ module CallbacksTest
     end
 
     def save
-      run_callbacks :save, :action
+      run_callbacks :save
     end
   end
 
@@ -338,7 +338,7 @@ module CallbacksTest
     end
 
     def save
-      run_callbacks :save, "hyphen-ated" do
+      run_callbacks :save do
         @stuff
       end
     end
