@@ -64,10 +64,9 @@ class String
     self[0..position]
   end
 
-  # Returns the first character of the string. If a limit is supplied,
-  # returns a substring from the beginning of the string to the given
-  # limit. If the given limit is greater than or equal to the string
-  # length, returns self.
+  # Returns the first character. If a limit is supplied, returns a substring
+  # from the beginning of the string until it reaches the limit value. If the
+  # given limit is greater than or equal to the string length, returns self.
   #
   #   str = "hello"
   #   str.first    #=> "h"
