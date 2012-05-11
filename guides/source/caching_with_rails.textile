@@ -229,6 +229,42 @@ class ProductsController < ActionController
 end
 </ruby>
 
+Sometimes it is necessary to disambiguate the controller when you call +expire_action+, such as when there are two identically named controllers in separate namespaces:
+
+<ruby>
+class ProductsController < ActionController
+  caches_action :index
+
+  def index
+    @products = Product.all
+  end
+end
+
+module Admin
+  class ProductsController < ActionController
+    cache_sweeper :product_sweeper
+
+    def new
+      @product = Product.new
+    end
+
+    def create
+      @product = Product.create(params[:product])
+    end
+  end
+end
+
+class ProductSweeper < ActionController::Caching::Sweeper
+  observe Product
+
+  def after_create(product)
+    expire_action(:controller => '/products', :action => 'index')
+  end
+end
+</ruby>
+
+Note the use of '/products' here rather than 'products'. If you wanted to expire an action cache for the +Admin::ProductsController+, you would use 'admin/products' instead.
+
 h4. SQL Caching
 
 Query caching is a Rails feature that caches the result set returned by each query so that if Rails encounters the same query again for that request, it will use the cached result set as opposed to running the query against the database again.
