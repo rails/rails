@@ -36,7 +36,7 @@ module ActiveSupport
           RubyProf.pause
           full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
           @data = RubyProf.stop
-          @total = @data.threads.values.sum(0) { |method_infos| method_infos.max.total_time }
+          @total = @data.threads.sum(0) { |thread| thread.methods.max.total_time }
         end
 
         def record
