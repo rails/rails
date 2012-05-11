@@ -34,8 +34,8 @@ class String
     self[position..-1]
   end
 
-  # Returns the beginning of the string up to position. If the position is
-  # negative, it is counted from the end of the string.
+  # Returns a substring from the beginning of the string to the given position.
+  # If the position is negative, it is counted from the end of the string.
   #
   #   str = "hello"
   #   str.to(0)  #=> "h"
