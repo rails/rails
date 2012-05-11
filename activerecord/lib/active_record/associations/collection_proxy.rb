@@ -75,31 +75,6 @@ module ActiveRecord
         end
       end
 
-      def respond_to?(name, include_private = false)
-        super ||
-        (load_target && target.respond_to?(name, include_private)) ||
-        proxy_association.klass.respond_to?(name, include_private)
-      end
-
-      def method_missing(method, *args, &block)
-        if target.respond_to?(method) || (!proxy_association.klass.respond_to?(method) && Class.respond_to?(method))
-          if load_target
-            if target.respond_to?(method)
-              target.send(method, *args, &block)
-            else
-              begin
-                super
-              rescue NoMethodError => e
-                raise e, e.message.sub(/ for #<.*$/, " via proxy for #{target}")
-              end
-            end
-          end
-
-        else
-          super
-        end
-      end
-
       def ==(other)
         load_target == other
       end
@@ -128,19 +103,6 @@ module ActiveRecord
       def reload
         proxy_association.reload
         self
-      end
-
-      # Define array public methods because we know it should be invoked over
-      # the target, so we can have a performance improvement using those methods
-      # in association collections
-      Array.public_instance_methods.each do |m|
-        unless method_defined?(m)
-          class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{m}(*args, &block)
-              target.public_send(:#{m}, *args, &block) if load_target
-            end
-          RUBY
-        end
       end
     end
   end
