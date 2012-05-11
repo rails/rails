@@ -448,6 +448,8 @@ rake db:migrate SCOPE=blorgh VERSION=0
 
 h4. Using a class provided by the application
 
+h5. Using a model provided by the application
+
 When an engine is created, it may want to use specific classes from an application to provide links between the pieces of the engine and the pieces of the application. In the case of the +blorgh+ engine, making posts and comments have authors would make a lot of sense.
 
 Usually, an application would have a +User+ class that would provide the objects that would represent the posts' and comments' authors, but there could be a case where the application calls this class something different, such as +Person+. It's because of this reason that the engine should not hardcode the associations to be exactly for a +User+ class, but should allow for some flexibility around what the class is called.
@@ -543,6 +545,19 @@ end
 </ruby>
 
 Now instead of the ugly Ruby object output the author's name will be displayed.
+
+h5. Using a controller provided by the application
+
+Because Rails controllers generally share code for for things like authentication and accessing session variables, by default they inherit from ApplicationController.  Rails engines, however are scoped to run independently from the main application, so each engine gets a scoped ApplicationController.  This namespace prevents code collisions, but often engine controllers should access methods in the main application's ApplicationController.  An easy way to provide this acess is to change the engine's scoped ApplicationController to inherit from the main application's ApplicationController. For our Blorgh engine this would be done by changing +app/controllers/blorgh/application_controller.rb+ to look like:
+
+<ruby>
+	class Blorgh::ApplicationController < ApplicationController
+	end
+</ruby>
+
+By default, the engine's controllers inherit from Blorgh::ApplicationController.  So, after making this change they will have access to the main applications ApplicationController as though they were part of the main application.
+
+This change does require that the engine is run from a Rails application that has an ApplicationController. 
 
 h4. Configuring an engine
 
