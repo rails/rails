@@ -678,9 +678,6 @@ module ActiveRecord
         "#{@fixture_path}.yml"
       end
 
-      def yaml_fixtures_key(path)
-        ::File.basename(@fixture_path).split(".").first
-      end
   end
 
   class Fixture #:nodoc:
