@@ -23,6 +23,7 @@ end
 
 namespace :test do
   Rake::TestTask.new(:isolated) do |t|
+    t.libs << 'test'
     t.pattern = 'test/ts_isolated.rb'
   end
 
