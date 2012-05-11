@@ -4,21 +4,12 @@ require 'irb/completion'
 
 module Rails
   class Console
-    attr_reader :options, :app, :console, :arguments
+    class << self
+      def start(*args)
+        new(*args).start
+      end
 
-    def self.start(*args)
-      new(*args).start
-    end
-
-    def initialize(app, arguments = ARGV)
-      @app       = app
-      @arguments = arguments
-      app.load_console
-      @console   = app.config.console || IRB
-    end
-
-    def options
-      @options ||= begin
+      def parse_arguments(arguments)
         options = {}
 
         OptionParser.new do |opt|
@@ -31,20 +22,38 @@ module Rails
           opt.parse!(arguments)
         end
 
+        if arguments.first && arguments.first[0] != '-'
+          env = arguments.first
+          options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+        end
+
         options
       end
+    end
+
+    attr_reader :options, :app, :console
+
+    def initialize(app, options={})
+      @app     = app
+      @options = options
+      app.load_console
+      @console = app.config.console || IRB
     end
 
     def sandbox?
       options[:sandbox]
     end
 
+    def environment
+      options[:environment] ||= ENV['RAILS_ENV'] || 'development'
+    end
+
     def environment?
-      options[:environment]
+      environment
     end
 
     def set_environment!
-      Rails.env = options[:environment]
+      Rails.env = environment
     end
 
     def debugger?
@@ -53,9 +62,7 @@ module Rails
 
     def start
       app.sandbox = sandbox?
-
       require_debugger if debugger?
-
       set_environment! if environment?
 
       if sandbox?
@@ -81,9 +88,4 @@ module Rails
       end
     end
   end
-end
-
-# Has to set the RAILS_ENV before config/application is required
-if ARGV.first && !ARGV.first.index("-") && env = ARGV.shift # has to shift the env ARGV so IRB doesn't freak
-  ENV['RAILS_ENV'] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
 end

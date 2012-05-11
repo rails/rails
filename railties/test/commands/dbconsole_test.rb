@@ -10,35 +10,36 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     Rails::DBConsole.const_set(:APP_PATH, "erb")
 
     app_config({})
-    capture_abort { Rails::DBConsole.config }
+    capture_abort { Rails::DBConsole.new.config }
     assert aborted
     assert_match(/No database is configured for the environment '\w+'/, output)
 
     app_config(test: "with_init")
-    assert_equal Rails::DBConsole.config, "with_init"
+    assert_equal Rails::DBConsole.new.config, "with_init"
 
     app_db_file("test:\n  without_init")
-    assert_equal Rails::DBConsole.config, "without_init"
+    assert_equal Rails::DBConsole.new.config, "without_init"
 
     app_db_file("test:\n  <%= Rails.something_app_specific %>")
-    assert_equal Rails::DBConsole.config, "with_init"
+    assert_equal Rails::DBConsole.new.config, "with_init"
 
     app_db_file("test:\n\ninvalid")
-    assert_equal Rails::DBConsole.config, "with_init"
+    assert_equal Rails::DBConsole.new.config, "with_init"
   end
 
   def test_env
-    assert_equal Rails::DBConsole.env, "test"
-
-    Rails.stubs(:respond_to?).with(:env).returns(false)
-    assert_equal Rails::DBConsole.env, "test"
+    assert_equal Rails::DBConsole.new.environment, "test"
 
     ENV['RAILS_ENV'] = nil
+
+    Rails.stubs(:respond_to?).with(:env).returns(false)
+    assert_equal Rails::DBConsole.new.environment, "development"
+
     ENV['RACK_ENV'] = "rack_env"
-    assert_equal Rails::DBConsole.env, "rack_env"
+    assert_equal Rails::DBConsole.new.environment, "rack_env"
 
     ENV['RAILS_ENV'] = "rails_env"
-    assert_equal Rails::DBConsole.env, "rails_env"
+    assert_equal Rails::DBConsole.new.environment, "rails_env"
   ensure
     ENV['RAILS_ENV'] = "test"
   end
