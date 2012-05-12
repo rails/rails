@@ -393,7 +393,9 @@ module ActionView
           options[:alt] = options.fetch(:alt){ image_alt(src) }
         end
 
-        extract_size!(options, :width, :height)
+        if size = options.delete(:size)
+          options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
+        end
 
         if mouseover = options.delete(:mouseover)
           options[:onmouseover] = "this.src='#{path_to_image(mouseover)}'"
@@ -446,7 +448,9 @@ module ActionView
         multiple_sources_tag('video', sources) do |options|
           options[:poster] = path_to_image(options[:poster]) if options[:poster]
 
-          extract_size!(options, :width, :height)
+          if size = options.delete(:size)
+            options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
+          end
         end
       end
 

@@ -137,12 +137,6 @@ module ActionView
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name.to_sym]}#{content}</#{name}>".html_safe
         end
 
-        def extract_size!(options, x_attribute, y_attribute)
-          if size = options.delete(:size)
-            options[x_attribute], options[y_attribute] = size.split("x") if size =~ %r{^\d+x\d+$}
-          end
-        end
-
         def tag_options(options, escape = true)
           return if options.blank?
           attrs = []
