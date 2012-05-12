@@ -209,9 +209,7 @@ module ActiveRecord
     # :method: clone
     # Identical to Ruby's clone method.  This is a "shallow" copy.  Be warned that your attributes are not copied.
     # That means that modifying attributes of the clone will modify the original, since they will both point to the
-    # same attributes hash.  If you need a copy of your attributes hash, please use the #dup method.
-    #
-    # Example: 
+    # same attributes hash. If you need a copy of your attributes hash, please use the #dup method.
     #
     #   user = User.first
     #   new_user = user.clone
@@ -222,7 +220,6 @@ module ActiveRecord
     #   user.object_id == new_user.object_id            # => false
     #   user.name.object_id == new_user.name.object_id  # => true
     # 
-    # Use #dup instead, for a copy of the attributes hash.
     #   user.name.object_id == user.dup.name.object_id  # => false
     
     ##
