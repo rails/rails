@@ -84,7 +84,7 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scope_select_concatenates
     Developer.select("id, name").scoping do
-      developer = Developer.select('id, salary').where("name = 'David'").first
+      developer = Developer.select('salary').where("name = 'David'").first
       assert_equal 80000, developer.salary
       assert developer.has_attribute?(:id)
       assert developer.has_attribute?(:name)
