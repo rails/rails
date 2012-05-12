@@ -14,7 +14,6 @@ class ERB
     # In your ERB templates, use this method to escape any unsafe content. For example:
     #   <%=h @person.name %>
     #
-    # ==== Example:
     #   puts html_escape('is a > 0 & a < 10?')
     #   # => is a &gt; 0 &amp; a &lt; 10?
     def html_escape(s)
@@ -37,7 +36,6 @@ class ERB
 
     # A utility method for escaping HTML without affecting existing escaped entities.
     #
-    # ==== Examples
     #   html_escape_once('1 < 2 &amp; 3')
     #   # => "1 &lt; 2 &amp; 3"
     #

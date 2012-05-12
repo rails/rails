@@ -13,7 +13,6 @@ class String
   # the singular form will be returned if <tt>count == 1</tt>.
   # For any other value of +count+ the plural will be returned.
   #
-  # ==== Examples
   #   'post'.pluralize             # => "posts"
   #   'octopus'.pluralize          # => "octopi"
   #   'sheep'.pluralize            # => "sheep"
@@ -46,7 +45,6 @@ class String
   # in the string. It raises a NameError when the name is not in CamelCase
   # or is not initialized.  See ActiveSupport::Inflector.constantize
   #
-  # Examples
   #   'Module'.constantize  # => Module
   #   'Class'.constantize   # => Class
   #   'blargle'.constantize # => NameError: wrong constant name blargle
@@ -58,7 +56,6 @@ class String
   # in the string. It returns nil when the name is not in CamelCase
   # or is not initialized.  See ActiveSupport::Inflector.safe_constantize
   #
-  # Examples
   #   'Module'.safe_constantize  # => Module
   #   'Class'.safe_constantize   # => Class
   #   'blargle'.safe_constantize # => nil
@@ -140,8 +137,6 @@ class String
 
   # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.
   #
-  # ==== Examples
-  #
   #   class Person
   #     def to_param
   #       "#{id}-#{name.parameterize}"
@@ -194,7 +189,6 @@ class String
   # +separate_class_name_and_id_with_underscore+ sets whether
   # the method should put '_' between the name and 'id'.
   #
-  # Examples
   #   'Message'.foreign_key        # => "message_id"
   #   'Message'.foreign_key(false) # => "messageid"
   #   'Admin::Post'.foreign_key    # => "post_id"

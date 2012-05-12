@@ -491,11 +491,11 @@ class HashExtTest < ActiveSupport::TestCase
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :a => 'x', :b => 'y' }
 
-    # Should return a new hash with only the given keys.
+    # Should return a new hash without the given keys.
     assert_equal expected, original.except(:c)
     assert_not_equal expected, original
 
-    # Should replace the hash with only the given keys.
+    # Should replace the hash without the given keys.
     assert_equal expected, original.except!(:c)
     assert_equal expected, original
   end
