@@ -77,7 +77,7 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Specifies wether or not has_many or has_one association option
+      # Specifies whether or not has_many or has_one association option
       # :dependent => :restrict raises an exception. If set to true, the
       # ActiveRecord::DeleteRestrictionError exception will be raised
       # along with a DEPRECATION WARNING. If set to false, an error would
