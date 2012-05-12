@@ -261,13 +261,13 @@ module ActionView
         }.merge(options.symbolize_keys))
       end
 
-      # Computes the path to an image asset in the public images directory.
+      # Computes the path to an image asset.
       # Full paths from the document root will be passed through.
       # Used internally by +image_tag+ to build the image path:
       #
-      #   image_path("edit")                                         # => "/images/edit"
-      #   image_path("edit.png")                                     # => "/images/edit.png"
-      #   image_path("icons/edit.png")                               # => "/images/icons/edit.png"
+      #   image_path("edit")                                         # => "/assets/edit"
+      #   image_path("edit.png")                                     # => "/assets/edit.png"
+      #   image_path("icons/edit.png")                               # => "/assets/icons/edit.png"
       #   image_path("/icons/edit.png")                              # => "/icons/edit.png"
       #   image_path("http://www.example.com/img/edit.png")          # => "http://www.example.com/img/edit.png"
       #
@@ -279,7 +279,7 @@ module ActionView
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
-      # Computes the full URL to an image asset in the public images directory.
+      # Computes the full URL to an image asset.
       # This will use +image_path+ internally, so most of their behaviors will be the same.
       def image_url(source)
         URI.join(current_host, path_to_image(source)).to_s
@@ -330,13 +330,13 @@ module ActionView
       end
       alias_method :url_to_audio, :audio_url # aliased to avoid conflicts with an audio_url named route
 
-      # Computes the path to a font asset in the public fonts directory.
+      # Computes the path to a font asset.
       # Full paths from the document root will be passed through.
       #
       # ==== Examples
-      #   font_path("font")                                           # => /fonts/font
-      #   font_path("font.ttf")                                       # => /fonts/font.ttf
-      #   font_path("dir/font.ttf")                                   # => /fonts/dir/font.ttf
+      #   font_path("font")                                           # => /assets/font
+      #   font_path("font.ttf")                                       # => /assets/font.ttf
+      #   font_path("dir/font.ttf")                                   # => /assets/dir/font.ttf
       #   font_path("/dir/font.ttf")                                  # => /dir/font.ttf
       #   font_path("http://www.example.com/dir/font.ttf")            # => http://www.example.com/dir/font.ttf
       def font_path(source)
@@ -344,7 +344,7 @@ module ActionView
       end
       alias_method :path_to_font, :font_path # aliased to avoid conflicts with an font_path named route
 
-      # Computes the full URL to a font asset in the public fonts directory.
+      # Computes the full URL to a font asset.
       # This will use +font_path+ internally, so most of their behaviors will be the same.
       def font_url(source)
         URI.join(current_host, path_to_font(source)).to_s
@@ -352,7 +352,7 @@ module ActionView
       alias_method :url_to_font, :font_url # aliased to avoid conflicts with an font_url named route
 
       # Returns an html image tag for the +source+. The +source+ can be a full
-      # path or a file that exists in your public images directory.
+      # path or a file.
       #
       # ==== Options
       # You can add HTML attributes using the +options+. The +options+ supports
@@ -369,21 +369,21 @@ module ActionView
       #
       # ==== Examples
       #  image_tag("icon")  # =>
-      #    <img src="/images/icon" alt="Icon" />
+      #    <img src="/assets/icon" alt="Icon" />
       #  image_tag("icon.png")  # =>
-      #    <img src="/images/icon.png" alt="Icon" />
+      #    <img src="/assets/icon.png" alt="Icon" />
       #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")  # =>
-      #    <img src="/images/icon.png" width="16" height="10" alt="Edit Entry" />
+      #    <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
       #  image_tag("/icons/icon.gif", :size => "16x16")  # =>
       #    <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
       #  image_tag("/icons/icon.gif", :height => '32', :width => '32') # =>
       #    <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
       #  image_tag("/icons/icon.gif", :class => "menu_icon") # =>
       #    <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
-      #  image_tag("mouse.png", :mouseover => "/images/mouse_over.png") # =>
-      #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
+      #  image_tag("mouse.png", :mouseover => "/assets/mouse_over.png") # =>
+      #    <img src="/assets/mouse.png" onmouseover="this.src='/assets/mouse_over.png'" onmouseout="this.src='/assets/mouse.png'" alt="Mouse" />
       #  image_tag("mouse.png", :mouseover => image_path("mouse_over.png")) # =>
-      #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
+      #    <img src="/assets/mouse.png" onmouseover="this.src='/assets/mouse_over.png'" onmouseout="this.src='/assets/mouse.png'" alt="Mouse" />
       def image_tag(source, options={})
         options = options.symbolize_keys
 
@@ -433,7 +433,7 @@ module ActionView
       #  video_tag("trailer.ogg", :controls => true, :autobuffer => true)  # =>
       #    <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" />
       #  video_tag("trailer.m4v", :size => "16x10", :poster => "screenshot.png")  # =>
-      #    <video src="/videos/trailer.m4v" width="16" height="10" poster="/images/screenshot.png" />
+      #    <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png" />
       #  video_tag("/trailers/hd.avi", :size => "16x16")  # =>
       #    <video src="/trailers/hd.avi" width="16" height="16" />
       #  video_tag("/trailers/hd.avi", :height => '32', :width => '32') # =>
