@@ -251,7 +251,7 @@ module ActiveRecord
       end
 
       # MysqlAdapter has to free a result after using it, so we use this method to write
-      # stuff in a abstract way without concerning ourselves about whether it needs to be
+      # stuff in an abstract way without concerning ourselves about whether it needs to be
       # explicitly freed or not.
       def execute_and_free(sql, name = nil) #:nodoc:
         yield execute(sql, name)
