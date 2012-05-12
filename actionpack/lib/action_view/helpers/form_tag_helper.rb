@@ -317,9 +317,7 @@ module ActionView
       def text_area_tag(name, content = nil, options = {})
         options = options.stringify_keys
 
-        if size = options.delete("size")
-          options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
-        end
+        extract_size!(options, 'cols', 'rows')
 
         escape = options.delete("escape") { true }
         content = ERB::Util.html_escape(content) if escape
