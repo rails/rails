@@ -53,7 +53,15 @@ class ErrorsTest < ActiveModel::TestCase
     errors_dup[:bar] = 'omg'
     assert_not_same errors_dup.messages, errors.messages
   end
-
+  
+  def test_has_base?
+    person = Person.new
+    errors = ActiveModel::Errors.new(person)
+    duped = person.dup
+    assert errors.has_base?(person)
+    assert !errors.has_base?(duped)
+  end
+  
   test "should return true if no errors" do
     person = Person.new
     person.errors[:foo]
