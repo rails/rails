@@ -685,6 +685,7 @@ The model file, +app/models/post.rb+ is about as simple as it can get:
 
 <ruby>
 class Post < ActiveRecord::Base
+  attr_accessible :content, :name, :title
 end
 </ruby>
 
@@ -692,7 +693,9 @@ There isn't much to this file - but note that the +Post+ class inherits from
 +ActiveRecord::Base+. Active Record supplies a great deal of functionality to
 your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
-and the ability to relate multiple models to one another.
+and the ability to relate multiple models to one another. Another important part
+of this file is +attr_accessible+. It specifies a whitelist of attributes that are
+allowed to be updated in bulk (via +update_attributes+ for instance).
 
 h4. Adding Some Validation
 
@@ -701,6 +704,8 @@ Open the +app/models/post.rb+ file and edit it:
 
 <ruby>
 class Post < ActiveRecord::Base
+  attr_accessible :content, :name, :title
+
   validates :name,  :presence => true
   validates :title, :presence => true,
                     :length => { :minimum => 5 }
@@ -1218,6 +1223,8 @@ You'll need to edit the +post.rb+ file to add the other side of the association:
 
 <ruby>
 class Post < ActiveRecord::Base
+  attr_accessible :content, :name, :title
+
   validates :name,  :presence => true
   validates :title, :presence => true,
                     :length => { :minimum => 5 }
@@ -1605,6 +1612,8 @@ model, +app/models/post.rb+, as follows:
 
 <ruby>
 class Post < ActiveRecord::Base
+  attr_accessible :content, :name, :title
+
   validates :name,  :presence => true
   validates :title, :presence => true,
                     :length => { :minimum => 5 }
@@ -1686,6 +1695,8 @@ edit tags via posts:
 
 <ruby>
 class Post < ActiveRecord::Base
+  attr_accessible :content, :name, :title, :tags_attributes
+
   validates :name,  :presence => true
   validates :title, :presence => true,
                     :length => { :minimum => 5 }
@@ -1702,6 +1713,10 @@ The +:allow_destroy+ option tells Rails to enable destroying tags through the
 nested attributes (you'll handle that by displaying a "remove" checkbox on the
 view that you'll build shortly). The +:reject_if+ option prevents saving new
 tags that do not have any attributes filled in.
+
+Also note we had to add +:tags_attributes+ to the +attr_accessible+ list. If
+we didn't do this there would be a +MassAssignmentSecurity+ exception when we try to
+update tags through our posts model.
 
 We will modify +views/posts/_form.html.erb+ to render a partial to make a tag:
 
