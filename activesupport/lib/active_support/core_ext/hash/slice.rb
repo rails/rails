@@ -16,6 +16,7 @@ class Hash
     keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
     keys.each_with_object(self.class.new) { |k, hash| hash[k] = self[k] if has_key?(k) }
   end
+  alias only slice
 
   # Replaces the hash with only the given keys.
   # Returns a hash containing the removed key/value pairs.
@@ -27,6 +28,7 @@ class Hash
     replace(hash)
     omit
   end
+  alias only! slice!
 
   # Removes and returns the key/value pairs matching the given keys.
   #   {:a => 1, :b => 2, :c => 3, :d => 4}.extract!(:a, :b) # => {:a => 1, :b => 2}

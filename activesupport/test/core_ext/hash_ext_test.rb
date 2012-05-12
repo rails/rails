@@ -415,6 +415,18 @@ class HashExtTest < ActiveSupport::TestCase
     assert_not_equal expected, original
   end
 
+  def test_slice_alias_only
+    original = { :a => 'x', :b => 'y', :c => 10 }
+    expected = { :a => 'x', :b => 'y' }
+    assert_equal expected, original.only(:a, :b)
+  end
+
+  def test_slice_inplace_alias_only
+    original = { :a => 'x', :b => 'y', :c => 10 }
+    expected = { :c => 10 }
+    assert_equal expected, original.only!(:a, :b)
+  end
+
   def test_slice_inplace
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :c => 10 }
