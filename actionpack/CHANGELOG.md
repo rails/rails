@@ -5780,7 +5780,7 @@
         == Rendering a collection of partials
 
         The example of partial use describes a familar pattern where a template needs
-        to iterate over a array and render a sub template for each of the elements.
+        to iterate over an array and render a sub template for each of the elements.
         This pattern has been implemented as a single method that accepts an array and
         renders a partial by the same name of as the elements contained within. So the
         three-lined example in "Using partials" can be rewritten with a single line:
