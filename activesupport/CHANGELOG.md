@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `Object#try` can't call private methods . *Vasiliy Ermolovich*
+*   `Object#try` can't call private methods. *Vasiliy Ermolovich*
 
 *   `AS::Callbacks#run_callbacks` remove `key` argument. *Francesco Rodriguez*
 
