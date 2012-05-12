@@ -232,8 +232,7 @@ module ActiveRecord
     # The dup method does not preserve the timestamps (created|updated)_(at|on).
     
     ##
-    # :nodoc:
-    def initialize_dup(other)
+    def initialize_dup(other) # :nodoc:
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
       self.class.initialize_attributes(cloned_attributes)
 
