@@ -1,5 +1,5 @@
 class Object
-  # Invokes the method identified by the symbol +method+, passing it any arguments
+  # Invokes the public method identified by the symbol +method+, passing it any arguments
   # and/or the block specified, just like the regular Ruby <tt>Object#send</tt> does.
   #
   # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised
@@ -29,7 +29,7 @@ class Object
     if a.empty? && block_given?
       yield self
     else
-      __send__(*a, &b)
+      public_send(*a, &b)
     end
   end
 end
