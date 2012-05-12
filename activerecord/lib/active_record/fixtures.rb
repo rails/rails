@@ -5,6 +5,8 @@ require 'active_support/dependencies'
 require 'active_record/fixtures/file'
 require 'active_record/errors'
 
+require 'active_support/deprecation' # temporary
+
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
   end
@@ -374,6 +376,7 @@ module ActiveRecord
     #--
     # An instance of FixtureSet is normally stored in a single YAML file and possibly in a folder with the same name.
     #++
+
     MAX_ID = 2 ** 30 - 1
 
     @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
@@ -650,6 +653,11 @@ module ActiveRecord
       end
 
   end
+
+  #--
+  # Deprecate 'Fixtures' in favor of 'FixtureSet'.
+  #++
+  Fixtures = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('ActiveRecord::Fixtures', '::ActiveRecord::FixtureSet')
 
   class Fixture #:nodoc:
     include Enumerable
