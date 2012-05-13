@@ -1,4 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
+
 *   Added custom coders support for ActiveRecord::Store. Now you can set
     your custom coder like this:
 

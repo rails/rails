@@ -13,6 +13,9 @@ module ActiveRecord
   # You can set custom coder to encode/decode your serialized attributes to/from different formats.
   # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
   #
+  # String keys should be used for direct access to virtual attributes because of most of the coders do not
+  # distinguish symbols and strings as keys.
+  #
   # Examples:
   #
   #   class User < ActiveRecord::Base
@@ -20,10 +23,8 @@ module ActiveRecord
   #   end
   #
   #   u = User.new(color: 'black', homepage: '37signals.com')
-  #   u.color                          # Accessor stored attribute
+  #   u.color                           # Accessor stored attribute
   #   u.settings['country'] = 'Denmark' # Any attribute, even if not specified with an accessor
-  #   String keys should be used for direct access to virtual attributes because of most of the coders do not
-  #   distinguish symbols and strings as keys.
   #
   #   # Add additional accessors to an existing store through store_accessor
   #   class SuperUser < User
