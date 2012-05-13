@@ -648,6 +648,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_required_select_with_prompt
+    assert_dom_equal(
+      %(<select id="post_category" name="post[category]" required="required"><option value="">Select one</option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", %w(abe mus hest), { prompt: "Select one" }, required: true)
+    )
+  end
+
   def test_required_select_display_size_equals_to_one
     assert_dom_equal(
       %(<select id="post_category" name="post[category]" required="required" size="1"><option value=""></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
