@@ -15,7 +15,6 @@ module ActiveSupport
   module Cache
     autoload :FileStore, 'active_support/cache/file_store'
     autoload :MemoryStore, 'active_support/cache/memory_store'
-    autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
     autoload :NullStore, 'active_support/cache/null_store'
 
     # These options mean something to all cache implementations. Individual cache
@@ -39,8 +38,8 @@ module ActiveSupport
       #   ActiveSupport::Cache.lookup_store(:memory_store)
       #   # => returns a new ActiveSupport::Cache::MemoryStore object
       #
-      #   ActiveSupport::Cache.lookup_store(:mem_cache_store)
-      #   # => returns a new ActiveSupport::Cache::MemCacheStore object
+      #   ActiveSupport::Cache.lookup_store(:dalli_store)
+      #   # => returns a new ActiveSupport::Cache::DalliStore object
       #
       # Any additional arguments will be passed to the corresponding cache store
       # class's constructor:
@@ -100,7 +99,7 @@ module ActiveSupport
     # An abstract cache store class. There are multiple cache store
     # implementations, each having its own additional features. See the classes
     # under the ActiveSupport::Cache module, e.g.
-    # ActiveSupport::Cache::MemCacheStore. MemCacheStore is currently the most
+    # ActiveSupport::Cache::DalliStore. DalliStore is currently the most
     # popular cache store for large production websites.
     #
     # Some implementations may not support all methods beyond the basic cache
@@ -260,11 +259,11 @@ module ActiveSupport
       # Internally, #fetch calls #read_entry, and calls #write_entry on a cache miss.
       # +options+ will be passed to the #read and #write calls.
       #
-      # For example, MemCacheStore's #write method supports the +:raw+
+      # For example, DalliStore's #write method supports the +:raw+
       # option, which tells the memcached server to store all values as strings.
       # We can use this option with #fetch too:
       #
-      #   cache = ActiveSupport::Cache::MemCacheStore.new
+      #   cache = ActiveSupport::Cache::DalliStore.new
       #   cache.fetch("foo", :force => true, :raw => true) do
       #     :bar
       #   end
