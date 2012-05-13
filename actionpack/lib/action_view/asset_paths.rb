@@ -4,7 +4,7 @@ require 'action_controller/metal/exceptions'
 
 module ActionView
   class AssetPaths #:nodoc:
-    URI_REGEXP = %r{^[-a-z]+://|^cid:|^//}
+    URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}
 
     attr_reader :config, :controller
 
