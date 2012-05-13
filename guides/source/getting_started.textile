@@ -282,9 +282,9 @@ You're getting this error now because Rails expects plain actions like this one 
 
 In the above image, the bottom line has been truncated. Let's see what the full thing looks like:
 
-<text>
+<blockquote>
 Missing template posts/new, application/new with {:locale=>[:en], :formats=>[:html], :handlers=>[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
-</text>
+</blockquote>
 
 That's quite a lot of text! Let's quickly go through and understand what each part of it does.
 
