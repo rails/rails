@@ -97,9 +97,9 @@ module ActiveSupport
         "\t"   =>  '\t',
         '"'    =>  '\"',
         '\\'   =>  '\\\\',
-        '>'    =>  '\u003E',
-        '<'    =>  '\u003C',
-        '&'    =>  '\u0026' }
+        '>'    =>  '&gt;',
+        '<'    =>  '&lt;',
+        '&'    =>  '&amp;' }
 
       class << self
         # If true, use ISO 8601 format for dates and times. Otherwise, fall back to the Active Support legacy format.
