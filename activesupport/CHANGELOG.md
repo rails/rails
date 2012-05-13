@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `Object#send_if_responds_to` to send a message to an object but
+    only if it respond_to that message. *Oscar Del Ben*
+
 *   `Object#try` can't call private methods. *Vasiliy Ermolovich*
 
 *   `AS::Callbacks#run_callbacks` remove `key` argument. *Francesco Rodriguez*
