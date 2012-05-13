@@ -84,6 +84,10 @@ module ActiveSupport
       to_i
     end
 
+    # Delegate all of Object's methods that aren't either:
+    #   * defined in BasicObject
+    #   * defined already here in Duration
+    #   * would break basic expectations about objects (e.g. send, try)
     PROXIED_OBJECT_METHODS = (Object.public_instance_methods | [:duplicable?]) -
                                BasicObject.public_instance_methods -
                                public_instance_methods(false) -
