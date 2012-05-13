@@ -37,7 +37,7 @@ module ActionView
     end
 
     def is_uri?(path)
-      path =~ %r{^[-a-z]+://|^cid:|^//}
+      path =~ %r{^[-a-z]+://|^(?:cid|data):|^//}
     end
 
   private
