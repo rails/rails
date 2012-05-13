@@ -196,6 +196,7 @@ module ActiveSupport
 
         class Base
           include ActionView::Helpers::NumberHelper
+          include ActionView::Helpers::OutputSafetyHelper
 
           attr_reader :total
 
