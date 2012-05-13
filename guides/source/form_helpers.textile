@@ -405,6 +405,8 @@ Whenever Rails sees that the internal value of an option being generated matches
 
 TIP: The second argument to +options_for_select+ must be exactly equal to the desired internal value. In particular if the value is the integer 2 you cannot pass "2" to +options_for_select+ -- you must pass 2. Be aware of values extracted from the +params+ hash as they are all strings.
 
+WARNING: +:include_blank+ is forced true if the attributes +required+ is true, display +size+ is one and +multiple+ is not true.
+
 h4. Select Boxes for Dealing with Models
 
 In most cases form controls will be tied to a specific database model and as you might expect Rails provides helpers tailored for that purpose. Consistent with other form helpers, when dealing with models you drop the +_tag+ suffix from +select_tag+:

@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    The `select` method (select tag) forces :include_blank  if `required` is true and 
+    `display size` is one and `multiple` is not true. *Angelo Capilleri*
+
 *   `respond_to` and `respond_with` now raise ActionController::UnknownFormat instead
     of directly returning head 406. The exception is rescued and converted to 406
     in the exception handling middleware. *Steven Soroka*
