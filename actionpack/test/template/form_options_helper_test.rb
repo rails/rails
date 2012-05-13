@@ -633,28 +633,36 @@ class FormOptionsHelperTest < ActionView::TestCase
       select("post", "category", [nil, "othervalue"])
     )
   end
-  
-  def test_select_with_included_and_display_size_equals_to_one
+
+  def test_required_select
     assert_dom_equal(
-    "<select id=\"post_category\" name=\"post[category]\" required=\"required\" size=\"1\"><option value=\"\"></option>\n<option value=\"abe\">abe</option>\n<option value=\"mus\">mus</option>\n<option value=\"hest\">hest</option></select>",
-    select("post", "category", %w( abe mus hest),{}, :required => true, :size => 1)
+      %(<select id="post_category" name="post[category]" required="required"><option value=""></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", %w(abe mus hest), {}, required: true)
     )
   end
-  
-  def test_select_with_included_and_display_size_no_equals_to_one
-       assert_dom_equal(
-       "<select id=\"post_category\" name=\"post[category]\" required=\"required\" size=\"2\"><option value=\"abe\">abe</option>\n<option value=\"mus\">mus</option>\n<option value=\"hest\">hest</option></select>",
-       select("post", "category", %w( abe mus hest),{}, :required => true, :size => 2)
-       )
   end
 
-  def test_select_with_included_and_multiple
+  def test_required_select_display_size_equals_to_one
     assert_dom_equal(
-    "<input name=\"post[category][]\" type=\"hidden\" value=\"\"/><select id=\"post_category\" multiple=\"multiple\" name=\"post[category][]\" required=\"required\" size=\"1\"><option value=\"abe\">abe</option>\n<option value=\"mus\">mus</option>\n<option value=\"hest\">hest</option></select>",
-    select("post", "category", %w( abe mus hest), {}, :required => true, :size => 1, :multiple => true)
+      %(<select id="post_category" name="post[category]" required="required" size="1"><option value=""></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", %w(abe mus hest), {}, required: true, size: 1)
     )
   end
- 
+
+  def test_required_select_with_display_size_bigger_than_one
+    assert_dom_equal(
+      %(<select id="post_category" name="post[category]" required="required" size="2"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", %w(abe mus hest), {}, required: true, size: 2)
+    )
+  end
+
+  def test_required_select_with_multiple_option
+    assert_dom_equal(
+      %(<input name="post[category][]" type="hidden" value=""/><select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", %w(abe mus hest), {}, required: true, multiple: true)
+    )
+  end
+
   def test_select_with_fixnum
     @post = Post.new
     @post.category = ""

@@ -130,9 +130,9 @@ module ActionView
             select
           end
         end
-        
+
         def option_required?(html_options)
-          html_options["required"] && html_options["size"].to_i == 1 && !html_options["multiple"]
+          html_options["required"] && !html_options["multiple"] && !(html_options["size"].to_i > 1)
         end
 
         def add_options(option_tags, options, value = nil)
