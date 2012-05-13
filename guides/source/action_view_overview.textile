@@ -59,7 +59,6 @@ Now we'll create a simple "Hello World" application that uses the +titleize+ met
 *hello_world.rb:*
 
 <ruby>
-require 'rubygems'
 require 'active_support/core_ext/string/inflections'
 require 'rack'
 
@@ -94,7 +93,6 @@ Now we'll create the same "Hello World" application in Sinatra.
 *hello_world.rb:*
 
 <ruby>
-require 'rubygems'
 require 'action_view'
 require 'sinatra'
 

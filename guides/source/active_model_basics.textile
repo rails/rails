@@ -95,7 +95,6 @@ h4. Dirty
 An object becomes dirty when an object is gone through one or more changes to its attributes and not yet saved. This gives the ability to check whether an object has been changed or not. It also has attribute based accessor methods. Lets consider a Person class with attributes first_name and last_name
 
 <ruby>
-require 'rubygems'
 require 'active_model'
 
 class Person
