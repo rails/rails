@@ -323,7 +323,7 @@ module ActionView
       end
       alias_method :path_to_audio, :audio_path # aliased to avoid conflicts with an audio_path named route
 
-      # Computes the full URL to a audio asset in the public audios directory.
+      # Computes the full URL to an audio asset in the public audios directory.
       # This will use +audio_path+ internally, so most of their behaviors will be the same.
       def audio_url(source)
         URI.join(current_host, path_to_audio(source)).to_s
