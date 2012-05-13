@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deletes ActiveSupport::Cache::MemCacheStore in favour of
+    ActiveSupport::Cache::DalliStore shipped with dalli gem *Guillermo Iguaran*
+
 *   `Object#try` can't call private methods. *Vasiliy Ermolovich*
 
 *   `AS::Callbacks#run_callbacks` remove `key` argument. *Francesco Rodriguez*
