@@ -1,7 +1,7 @@
 class Hash
   # Return a new hash with all keys converted to strings.
   #
-  #   { :name => 'Rob', :years => '28' }.stringify_keys
+  #   { name: 'Rob', years: '28' }.stringify_keys
   #   #=> { "name" => "Rob", "years" => "28" }
   def stringify_keys
     result = {}
@@ -22,6 +22,9 @@ class Hash
 
   # Return a new hash with all keys converted to symbols, as long as
   # they respond to +to_sym+.
+  #
+  #   { 'name' => 'Rob', 'years' => '28' }.symbolize_keys
+  #   #=> { :name => "Rob", :years => "28" }
   def symbolize_keys
     result = {}
     keys.each do |key|
@@ -32,7 +35,7 @@ class Hash
   alias_method :to_options,  :symbolize_keys
 
   # Destructively convert all keys to symbols, as long as they respond
-  # to +to_sym+.
+  # to +to_sym+. Same as +symbolize_keys+, but modifies self.
   def symbolize_keys!
     keys.each do |key|
       self[(key.to_sym rescue key)] = delete(key)
