@@ -40,11 +40,23 @@ class String
     ::Time.send("#{form}_time", *d[0..6]) - d[7]
   end
 
+  # Converts a string to a Date value.
+  #
+  #   "1-1-2012".to_date   #=> Sun, 01 Jan 2012
+  #   "01/01/2012".to_date #=> Sun, 01 Jan 2012
+  #   "2012-12-13".to_date #=> Thu, 13 Dec 2012
+  #   "12/13/2012".to_date #=> ArgumentError: invalid date
   def to_date
     return nil if self.blank?
     ::Date.new(*::Date._parse(self, false).values_at(:year, :mon, :mday))
   end
 
+  # Converts a string to a DateTime value.
+  #
+  #   "1-1-2012".to_datetime            #=> Sun, 01 Jan 2012 00:00:00 +0000
+  #   "01/01/2012 23:59:59".to_datetime #=> Sun, 01 Jan 2012 23:59:59 +0000
+  #   "2012-12-13 12:50".to_datetime    #=> Thu, 13 Dec 2012 12:50:00 +0000
+  #   "12/13/2012".to_datetime          #=> ArgumentError: invalid date
   def to_datetime
     return nil if self.blank?
     d = ::Date._parse(self, false).values_at(:year, :mon, :mday, :hour, :min, :sec, :zone, :sec_fraction).map { |arg| arg || 0 }
