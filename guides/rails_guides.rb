@@ -8,9 +8,6 @@ def bundler?
   File.exists?('Gemfile')
 end
 
-# Loading Action Pack requires rack and erubis.
-require 'rubygems'
-
 begin
   # Guides generation in the Rails repo.
   as_lib = File.join(pwd, "../activesupport/lib")
