@@ -220,7 +220,7 @@ Now that you've seen how to create a controller, an action and a view, let's cre
 
 In the Blog application, you will now create a new _resource_. A resource is the term used for a collection of similar objects, such as posts, people or animals. You can create, read, update and destroy items for a resource and these operations are referred to as _CRUD_ operations.
 
-In the next section, you will add the ability to create new posts in your application and be able to view them. This is the "CR" from CRUD. The form for doing this will look like this:
+In the next section, you will add the ability to create new posts in your application and be able to view them. This is the "C" and the "R" from CRUD: creation and reading. The form for doing this will look like this:
 
 !images/getting_started/new_post.png(The new post form)!
 
