@@ -69,16 +69,6 @@ class RangeTest < ActiveSupport::TestCase
     assert((1.0...10.0).include?(1.0...10.0))
   end
 
-  def test_blockless_step
-    assert_equal [1,3,5,7,9], (1..10).step(2).to_a
-  end
-
-  def test_original_step
-    array = []
-    (1..10).step(2) {|i| array << i }
-    assert_equal [1,3,5,7,9], array
-  end
-
   def test_cover_is_not_override
     range = (1..3)
     assert range.method(:include?) != range.method(:cover?)
