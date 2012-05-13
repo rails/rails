@@ -45,7 +45,6 @@ class Hash
   # Note that keys are NOT treated indifferently, meaning if you use strings for keys but assert symbols
   # as keys, this will fail.
   #
-  # ==== Examples
   #   { :name => 'Rob', :years => '28' }.assert_valid_keys(:name, :age) # => raises "ArgumentError: Unknown key: years"
   #   { :name => 'Rob', :age => '28' }.assert_valid_keys('name', 'age') # => raises "ArgumentError: Unknown key: name"
   #   { :name => 'Rob', :age => '28' }.assert_valid_keys(:name, :age) # => passes, raises nothing
