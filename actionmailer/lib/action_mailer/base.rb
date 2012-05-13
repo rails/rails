@@ -3,6 +3,7 @@ require 'action_mailer/collector'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/module/anonymous'
 require 'action_mailer/log_subscriber'
 
 module ActionMailer #:nodoc:
@@ -401,7 +402,7 @@ module ActionMailer #:nodoc:
       end
 
       def mailer_name
-        @mailer_name ||= name.underscore
+        @mailer_name ||= anonymous? ? "anonymous" : name.underscore
       end
       attr_writer :mailer_name
       alias :controller_path :mailer_name
