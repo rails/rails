@@ -363,9 +363,6 @@ module ActionView
       # * <tt>:size</tt> - Supplied as "{Width}x{Height}", so "30x45" becomes
       #   width="30" and height="45". <tt>:size</tt> will be ignored if the
       #   value is not in the correct format.
-      # * <tt>:mouseover</tt> - Set an alternate image to be used when the onmouseover
-      #   event is fired, and sets the original image to be replaced onmouseout.
-      #   This can be used to implement an easy image toggle that fires on onmouseover.
       #
       # ==== Examples
       #  image_tag("icon")  # =>
@@ -380,10 +377,6 @@ module ActionView
       #    <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
       #  image_tag("/icons/icon.gif", :class => "menu_icon") # =>
       #    <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
-      #  image_tag("mouse.png", :mouseover => "/assets/mouse_over.png") # =>
-      #    <img src="/assets/mouse.png" onmouseover="this.src='/assets/mouse_over.png'" onmouseout="this.src='/assets/mouse.png'" alt="Mouse" />
-      #  image_tag("mouse.png", :mouseover => image_path("mouse_over.png")) # =>
-      #    <img src="/assets/mouse.png" onmouseover="this.src='/assets/mouse_over.png'" onmouseout="this.src='/assets/mouse.png'" alt="Mouse" />
       def image_tag(source, options={})
         options = options.symbolize_keys
 
@@ -395,11 +388,6 @@ module ActionView
 
         if size = options.delete(:size)
           options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
-        end
-
-        if mouseover = options.delete(:mouseover)
-          options[:onmouseover] = "this.src='#{path_to_image(mouseover)}'"
-          options[:onmouseout]  = "this.src='#{src}'"
         end
 
         tag("img", options)
