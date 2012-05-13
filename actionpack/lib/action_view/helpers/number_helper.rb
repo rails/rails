@@ -254,7 +254,7 @@ module ActionView
 
         parts = number.to_s.to_str.split('.')
         parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
-        safe_join(parts, options[:separator])
+        parts.join(options[:separator]).html_safe
       end
 
       # Formats a +number+ with the specified level of

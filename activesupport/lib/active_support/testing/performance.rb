@@ -126,7 +126,7 @@ module ActiveSupport
         def record; end
       end
 
-      class Benchmarker < Performer     
+      class Benchmarker < Performer
         def initialize(*args)
           super
           @supported = @metric.respond_to?('measure')
@@ -196,7 +196,6 @@ module ActiveSupport
 
         class Base
           include ActionView::Helpers::NumberHelper
-          include ActionView::Helpers::OutputSafetyHelper
 
           attr_reader :total
 
@@ -208,7 +207,7 @@ module ActiveSupport
             @name ||= self.class.name.demodulize.underscore
           end
 
-          def benchmark            
+          def benchmark
             with_gc_stats do
               before = measure
               yield
