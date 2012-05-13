@@ -24,7 +24,7 @@ class Object
   # Without a method argument try will yield to the block unless the receiver is nil.
   #   @person.try { |p| "#{p.first_name} #{p.last_name}" }
   #--
-  # +try+ behaves like +Object#send+, unless called on +NilClass+.
+  # +try+ behaves like +Object#public_send+, unless called on +NilClass+.
   def try(*a, &b)
     if a.empty? && block_given?
       yield self
