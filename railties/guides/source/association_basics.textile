@@ -342,9 +342,9 @@ In designing a data model, you will sometimes find a model that should have a re
 
 <ruby>
 class Employee < ActiveRecord::Base
-  has_many :subordinates, :class_name => "Employee"
-  belongs_to :manager, :class_name => "Employee",
+  has_many :subordinates, :class_name => "Employee",
     :foreign_key => "manager_id"
+  belongs_to :manager, :class_name => "Employee"
 end
 </ruby>
 
