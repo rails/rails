@@ -9,6 +9,9 @@ source 'https://rubygems.org'
 <%= assets_gemfile_entry %>
 <%= javascript_gemfile_entry %>
 
+# To whitelist permissible parameters in controllers
+gem 'strong_parameters'
+
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 

@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add strong_parameters to default Gemfile, new generated controllers
+    will use it by default. *Guillermo Iguaran*
+
 *   The application generator generates `public/humans.txt` with some basic data. *Paul Campbell*
 
 *   Add `config.queue_consumer` to allow the default consumer to be configurable. *Carlos Antonio da Silva*
