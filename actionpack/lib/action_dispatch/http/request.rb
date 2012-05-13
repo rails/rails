@@ -6,7 +6,6 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
 require 'active_support/inflector'
 require 'action_dispatch/http/headers'
-require 'action_dispatch/request/session'
 require 'action_controller/metal/exceptions'
 
 module ActionDispatch
@@ -17,6 +16,8 @@ module ActionDispatch
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
+
+    autoload :Session, 'action_dispatch/request/session'
 
     LOCALHOST   = Regexp.union [/^127\.0\.0\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
