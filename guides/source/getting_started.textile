@@ -183,9 +183,9 @@ Rails will create several files for you. Most important of these are of course t
 
 Open the +app/views/welcome/index.html.erb+ file in your text editor and edit it to contain a single line of code:
 
-<code class="html">
+<html>
 <h1>Hello, Rails!</h1>
-</code>
+</html>
 
 h4. Setting the Application Home Page
 
