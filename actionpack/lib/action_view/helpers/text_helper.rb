@@ -241,6 +241,7 @@ module ActionView
       #
       # ==== Options
       # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
+      # * <tt>:wrapper_tag</tt> - String representing the tag wrapper, defaults to <tt>"p"</tt>
       #
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
@@ -260,13 +261,14 @@ module ActionView
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options={}, options={})
         text = sanitize(text) unless options[:sanitize] == false
+        wrapper_tag = options.fetch(:wrapper_tag, :p)
         paragraphs = split_paragraphs(text)
 
         if paragraphs.empty?
-          content_tag('p', nil, html_options)
+          content_tag(wrapper_tag, nil, html_options)
         else
           paragraphs.map { |paragraph|
-            content_tag('p', paragraph, html_options, options[:sanitize])
+            content_tag(wrapper_tag, paragraph, html_options, options[:sanitize])
           }.join("\n\n").html_safe
         end
       end
