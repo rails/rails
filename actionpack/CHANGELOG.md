@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*    The `select` method (select tag) forces :include_blank  if `required` is true and 
+    `display size` is one and `multiple` is not true. *Angelo Capilleri*
+
 *   Copy literal route constraints to defaults so that url generation know about them.
     The copied constraints are `:protocol`, `:subdomain`, `:domain`, `:host` and `:port`.
 
