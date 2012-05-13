@@ -70,7 +70,7 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_blockless_step
-    assert_equal [1,3,5,7,9], (1..10).step(2)
+    assert_equal [1,3,5,7,9], (1..10).step(2).to_a
   end
 
   def test_original_step
