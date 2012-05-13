@@ -1,5 +1,7 @@
 ## Rails 3.2.4 (unreleased) ##
 
+*   Deprecate `:mouseover` options for `image_tag` helper. *Rafael Mendonça França*
+
 *   Deprecate `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
 
 
