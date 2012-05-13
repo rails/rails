@@ -232,7 +232,7 @@ The first thing that you are going to need to create a new post within the appli
 
 !images/getting_started/routing_error_no_route_matches.png(A routing error, no route matches /posts/new)!
 
-This is because there is nowhere inside the routes for the application -- defined inside +config/routes.rb+ -- that defines this route. By default, Rails has no routes configured at all, and so you must define your routes as you need them.
+This is because there is nowhere inside the routes for the application -- defined inside +config/routes.rb+ -- that defines this route. By default, Rails has no routes configured at all, besides the root route you defined earlier, and so you must define your routes as you need them.
 
  To do this, you're going to need to create a route inside +config/routes.rb+ file, on a new line between the +do+ and the +end+ for the +draw+ method:
 
