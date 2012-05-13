@@ -1,6 +1,6 @@
 class Object
   # Invokes the public method identified by the symbol +method+, passing it any arguments
-  # and/or the block specified, just like the regular Ruby <tt>Object#send</tt> does.
+  # and/or the block specified, just like the regular Ruby <tt>Object#public_send</tt> does.
   #
   # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised
   # and +nil+ will be returned instead, if the receiving object is a +nil+ object or NilClass.
