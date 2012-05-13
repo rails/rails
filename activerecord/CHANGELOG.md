@@ -1,4 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Added custom coders support for ActiveRecord::Store. Now you can set
+    your custom coder like this:
+
+        store :settings, accessors: [ :color, :homepage ], coder: JSON
+
+    *Andrey Voronkov*
 
 *   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by
     default to avoid silent data loss. This can be disabled by specifying
