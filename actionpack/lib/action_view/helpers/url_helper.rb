@@ -108,7 +108,7 @@ module ActionView
           options
         when nil, Hash
           options ||= {}
-          options = options.symbolize_keys.reverse_merge!(:only_path => options[:host].nil?)
+          options = { :only_path => options[:host].nil? }.merge!(options.symbolize_keys)
           super
         when :back
           controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
