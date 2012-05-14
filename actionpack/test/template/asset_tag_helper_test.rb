@@ -441,14 +441,14 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_image_tag_with_mouseover
-    assert_deprecated ":mouseover options is deprecated and will be removed from Rails 4.0" do
+    assert_deprecated ":mouseover option is deprecated and will be removed from Rails 4.0" do
       assert_dom_equal(
         %(<img alt="Mouse" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" src="/images/mouse.png" />),
         image_tag("mouse.png", :mouseover => "/images/mouse_over.png")
       )
     end
 
-    assert_deprecated ":mouseover options is deprecated and will be removed from Rails 4.0" do
+    assert_deprecated ":mouseover option is deprecated and will be removed from Rails 4.0" do
       assert_dom_equal(
         %(<img alt="Mouse" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" src="/images/mouse.png" />),
         image_tag("mouse.png", :mouseover => image_path("mouse_over.png"))
@@ -1111,11 +1111,11 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_dom_equal(%(/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
     assert_dom_equal(%(/collaboration/hieraki/images/xml.png), image_path("xml.png"))
 
-    assert_deprecated ":mouseover options is deprecated and will be removed from Rails 4.0" do
+    assert_deprecated ":mouseover option is deprecated and will be removed from Rails 4.0" do
       assert_dom_equal(%(<img alt="Mouse" onmouseover="this.src='/collaboration/hieraki/images/mouse_over.png'" onmouseout="this.src='/collaboration/hieraki/images/mouse.png'" src="/collaboration/hieraki/images/mouse.png" />), image_tag("mouse.png", :mouseover => "/images/mouse_over.png"))
     end
 
-    assert_deprecated ":mouseover options is deprecated and will be removed from Rails 4.0" do
+    assert_deprecated ":mouseover option is deprecated and will be removed from Rails 4.0" do
       assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src='/collaboration/hieraki/images/mouse_over2.png'" onmouseout="this.src='/collaboration/hieraki/images/mouse2.png'" src="/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
     end
   end
@@ -1131,11 +1131,11 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
     assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
 
-    assert_deprecated ":mouseover options is deprecated and will be removed from Rails 4.0" do
+    assert_deprecated ":mouseover option is deprecated and will be removed from Rails 4.0" do
       assert_dom_equal(%(<img alt="Mouse" onmouseover="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse_over.png'" onmouseout="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse.png'" src="gopher://assets.example.com/collaboration/hieraki/images/mouse.png" />), image_tag("mouse.png", :mouseover => "/images/mouse_over.png"))
     end
 
-    assert_deprecated ":mouseover options is deprecated and will be removed from Rails 4.0" do
+    assert_deprecated ":mouseover option is deprecated and will be removed from Rails 4.0" do
       assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse_over2.png'" onmouseout="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse2.png'" src="gopher://assets.example.com/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
     end
   end
@@ -1147,11 +1147,11 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
     assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
 
-    assert_deprecated ":mouseover options is deprecated and will be removed from Rails 4.0" do
+    assert_deprecated ":mouseover option is deprecated and will be removed from Rails 4.0" do
       assert_dom_equal(%(<img alt="Mouse" onmouseover="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse_over.png'" onmouseout="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse.png'" src="gopher://assets.example.com/collaboration/hieraki/images/mouse.png" />), image_tag("mouse.png", :mouseover => "/images/mouse_over.png"))
     end
 
-    assert_deprecated ":mouseover options is deprecated and will be removed from Rails 4.0" do
+    assert_deprecated ":mouseover option is deprecated and will be removed from Rails 4.0" do
       assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse_over2.png'" onmouseout="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse2.png'" src="gopher://assets.example.com/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
     end
   end

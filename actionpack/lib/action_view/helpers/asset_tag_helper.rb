@@ -367,7 +367,7 @@ module ActionView
         end
 
         if mouseover = options.delete(:mouseover)
-          ActiveSupport::Deprecation.warn ":mouseover options is deprecated and will be removed from Rails 4.0"
+          ActiveSupport::Deprecation.warn ":mouseover option is deprecated and will be removed from Rails 4.0"
 
           options[:onmouseover] = "this.src='#{path_to_image(mouseover)}'"
           options[:onmouseout]  = "this.src='#{src}'"
