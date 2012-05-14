@@ -386,9 +386,6 @@ module ActionView
       #   drivers will provide a prompt with the question specified. If the user accepts,
       #   the form is processed normally, otherwise no action is taken.
       # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
-      #   disabled version of the submit button when the form is submitted. This feature is
-      #   provided by the unobtrusive JavaScript driver.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -401,24 +398,20 @@ module ActionView
       #   submit_tag "Save edits", :disabled => true
       #   # => <input disabled="disabled" name="commit" type="submit" value="Save edits" />
       #
-      #   submit_tag "Complete sale", :disable_with => "Please wait..."
+      #   submit_tag "Complete sale", 'data-disable-with' => "Please wait..."
       #   # => <input name="commit" data-disable-with="Please wait..." type="submit" value="Complete sale" />
       #
       #   submit_tag nil, :class => "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
-      #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit_button"
-      #   # => <input class="edit_button" data-disable-with="Editing..." name="commit" type="submit" value="Edit" />
+      #   submit_tag "Edit", :class => "edit_button"
+      #   # => <input class="edit_button" name="commit" type="submit" value="Edit" />
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
       #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
-
-        if disable_with = options.delete("disable_with")
-          options["data-disable-with"] = disable_with
-        end
 
         if confirm = options.delete("confirm")
           options["data-confirm"] = confirm
@@ -441,10 +434,6 @@ module ActionView
       #   processed normally, otherwise no action is taken.
       # * <tt>:disabled</tt> - If true, the user will not be able to
       #   use this input.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
-      #   used as the value for a disabled version of the submit
-      #   button when the form is submitted. This feature is provided
-      #   by the unobtrusive JavaScript driver.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -458,17 +447,10 @@ module ActionView
       #   #     <strong>Ask me!</strong>
       #   #    </button>
       #
-      #   button_tag "Checkout", :disable_with => "Please wait..."
-      #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
-      #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
         options ||= {}
         options = options.stringify_keys
-
-        if disable_with = options.delete("disable_with")
-          options["data-disable-with"] = disable_with
-        end
 
         if confirm = options.delete("confirm")
           options["data-confirm"] = confirm
