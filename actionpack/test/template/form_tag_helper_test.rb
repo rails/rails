@@ -367,17 +367,21 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag
-    assert_dom_equal(
-      %(<input name='commit' data-disable-with="Saving..." onclick="alert('hello!')" type="submit" value="Save" />),
-      submit_tag("Save", :disable_with => "Saving...", :onclick => "alert('hello!')")
-    )
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead" do
+      assert_dom_equal(
+        %(<input name='commit' data-disable-with="Saving..." onclick="alert('hello!')" type="submit" value="Save" />),
+        submit_tag("Save", :disable_with => "Saving...", :onclick => "alert('hello!')")
+      )
+    end
   end
 
   def test_submit_tag_with_no_onclick_options
-    assert_dom_equal(
-      %(<input name='commit' data-disable-with="Saving..." type="submit" value="Save" />),
-      submit_tag("Save", :disable_with => "Saving...")
-    )
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead" do
+      assert_dom_equal(
+        %(<input name='commit' data-disable-with="Saving..." type="submit" value="Save" />),
+        submit_tag("Save", :disable_with => "Saving...")
+      )
+    end
   end
 
   def test_submit_tag_with_confirmation
@@ -388,10 +392,12 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag_with_confirmation_and_with_disable_with
-    assert_dom_equal(
-      %(<input name="commit" data-disable-with="Saving..." data-confirm="Are you sure?" type="submit" value="Save" />),
-      submit_tag("Save", :disable_with => "Saving...", :confirm => "Are you sure?")
-    )
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead" do
+      assert_dom_equal(
+        %(<input name="commit" data-disable-with="Saving..." data-confirm="Are you sure?" type="submit" value="Save" />),
+        submit_tag("Save", :disable_with => "Saving...", :confirm => "Are you sure?")
+      )
+    end
   end
 
   def test_button_tag

@@ -301,7 +301,7 @@ module ActionView
       #   #      <div><input value="Create" type="submit" /></div>
       #   #    </form>"
       #
-      #      
+      #
       #   <%= button_to "Delete Image", { :action => "delete", :id => @image.id },
       #             :confirm => "Are you sure?", :method => :delete %>
       #   # => "<form method="post" action="/images/delete/1" class="button_to">
@@ -317,7 +317,7 @@ module ActionView
       #   # => "<form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
       #   #       <div>
       #   #         <input name='_method' value='delete' type='hidden' />
-      #   #         <input value='Destroy' type='submit' disable_with='loading...' data-confirm='Are you sure?' />
+      #   #         <input value='Destroy' type='submit' data-disable-with='loading...' data-confirm='Are you sure?' />
       #   #       </div>
       #   #     </form>"
       #   #
@@ -333,9 +333,9 @@ module ActionView
         form_method = method.to_s == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
         form_options[:class] ||= html_options.delete('form_class') || 'button_to'
-        
+
         remote = html_options.delete('remote')
-        
+
         request_token_tag = ''
         if form_method == 'post' && protect_against_forgery?
           request_token_tag = tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
@@ -350,7 +350,7 @@ module ActionView
 
         form_options.merge!(:method => form_method, :action => url)
         form_options.merge!("data-remote" => "true") if remote
-        
+
         "#{tag(:form, form_options, true)}<div>#{method_tag}#{tag("input", html_options)}#{request_token_tag}</div></form>".html_safe
       end
 
@@ -622,7 +622,12 @@ module ActionView
             confirm = html_options.delete('confirm')
             method  = html_options.delete('method')
 
-            html_options["data-disable-with"] = disable_with if disable_with
+            if disable_with
+              ActiveSupport::Deprecation.warn ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead"
+
+              html_options["data-disable-with"] = disable_with
+            end
+
             html_options["data-confirm"] = confirm if confirm
             add_method_to_attributes!(html_options, method)   if method
 

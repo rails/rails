@@ -417,6 +417,8 @@ module ActionView
         options = options.stringify_keys
 
         if disable_with = options.delete("disable_with")
+          ActiveSupport::Deprecation.warn ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead"
+
           options["data-disable-with"] = disable_with
         end
 

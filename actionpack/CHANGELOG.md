@@ -1,5 +1,9 @@
 ## Rails 3.2.4 (unreleased) ##
 
+*   Deprecate `:disable_with` in favor of `'data-disable-with'` option for `button_to` and `submit_tag` helpers.
+
+    *Carlos Galdino + Rafael Mendonça França*
+
 *   Deprecate `:mouseover` options for `image_tag` helper. *Rafael Mendonça França*
 
 *   Deprecate `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
