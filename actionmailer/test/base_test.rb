@@ -610,6 +610,19 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal Set.new(["notify"]), FooMailer.action_methods
   end
 
+  test "mailer can be anonymous" do
+    mailer = Class.new(ActionMailer::Base) do
+      def welcome
+        mail
+      end
+    end
+
+    assert_equal "anonymous", mailer.mailer_name
+
+    assert_equal "Welcome", mailer.welcome.subject
+    assert_equal "Anonymous mailer body", mailer.welcome.body.encoded.strip
+  end
+
   protected
 
     # Execute the block setting the given values and restoring old values after
