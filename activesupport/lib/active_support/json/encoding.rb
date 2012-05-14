@@ -136,7 +136,7 @@ module ActiveSupport
       end
 
       self.use_standard_json_time_format = true
-      self.escape_html_entities_in_json  = false
+      self.escape_html_entities_in_json  = true
       self.encode_big_decimal_as_string  = true
     end
   end
