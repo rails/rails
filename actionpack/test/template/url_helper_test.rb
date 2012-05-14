@@ -82,7 +82,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_javascript_disable_with
-    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead" do
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use 'data-disable-with' instead" do
       assert_dom_equal(
         "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\"><div><input data-disable-with=\"Greeting...\" type=\"submit\" value=\"Hello\" /></div></form>",
         button_to("Hello", "http://www.example.com", :disable_with => "Greeting...")
@@ -102,7 +102,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_remote_and_javascript_disable_with
-    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead" do
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use 'data-disable-with' instead" do
       assert_dom_equal(
         "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-disable-with=\"Greeting...\" type=\"submit\" value=\"Hello\" /></div></form>",
         button_to("Hello", "http://www.example.com", :remote => true, :disable_with => "Greeting...")
@@ -111,7 +111,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_remote_and_javascript_confirm_and_javascript_disable_with
-    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead" do
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use 'data-disable-with' instead" do
       assert_dom_equal(
         "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-disable-with=\"Greeting...\" data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
         button_to("Hello", "http://www.example.com", :remote => true, :confirm => "Are you sure?", :disable_with => "Greeting...")

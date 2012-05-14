@@ -367,7 +367,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag
-    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead" do
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use 'data-disable-with' instead" do
       assert_dom_equal(
         %(<input name='commit' data-disable-with="Saving..." onclick="alert('hello!')" type="submit" value="Save" />),
         submit_tag("Save", :disable_with => "Saving...", :onclick => "alert('hello!')")
@@ -376,7 +376,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag_with_no_onclick_options
-    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead" do
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use 'data-disable-with' instead" do
       assert_dom_equal(
         %(<input name='commit' data-disable-with="Saving..." type="submit" value="Save" />),
         submit_tag("Save", :disable_with => "Saving...")
@@ -392,7 +392,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag_with_confirmation_and_with_disable_with
-    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead" do
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use 'data-disable-with' instead" do
       assert_dom_equal(
         %(<input name="commit" data-disable-with="Saving..." data-confirm="Are you sure?" type="submit" value="Save" />),
         submit_tag("Save", :disable_with => "Saving...", :confirm => "Are you sure?")
@@ -419,6 +419,15 @@ class FormTagHelperTest < ActionView::TestCase
       %(<button name="button" type="button">Button</button>),
       button_tag("Button", :type => "button")
     )
+  end
+
+  def test_button_tag_with_disable_with
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use 'data-disable-with' instead" do
+      assert_dom_equal(
+        %(<button name="button" data-disable-with="Saving..." type="submit">Save</button>),
+        button_tag("Save", :type => "submit", :disable_with => "Saving...")
+      )
+    end
   end
 
   def test_button_tag_with_reset_type

@@ -623,7 +623,7 @@ module ActionView
             method  = html_options.delete('method')
 
             if disable_with
-              ActiveSupport::Deprecation.warn ":disable_with option is deprecated and will be removed from Rails 4.0. Use :data-disable-with instead"
+              ActiveSupport::Deprecation.warn ":disable_with option is deprecated and will be removed from Rails 4.0. Use 'data-disable-with' instead"
 
               html_options["data-disable-with"] = disable_with
             end

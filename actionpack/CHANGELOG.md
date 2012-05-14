@@ -1,6 +1,6 @@
 ## Rails 3.2.4 (unreleased) ##
 
-*   Deprecate `:disable_with` in favor of `'data-disable-with'` option for `button_to` and `submit_tag` helpers.
+*   Deprecate `:disable_with` in favor of `'data-disable-with'` option for `button_to`, `button_tag` and `submit_tag` helpers.
 
     *Carlos Galdino + Rafael Mendonça França*
 
