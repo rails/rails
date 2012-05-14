@@ -1,9 +1,7 @@
 # See more about this file at: http://humanstxt.org/
 # For format suggestions, see: http://humanstxt.org/Standard.html
 /* TEAM */
-  <%= ENV['USER'].titlecase %>
 
 /* APP */
   Name: <%= app_const_base %>
-  Date Created: <%= Date.today.strftime("%B %d, %Y") %>
   Software: Ruby on Rails
