@@ -89,7 +89,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     output = Dir.chdir(app_root) do
       `rails new --help`
     end
-    assert_match /rails new APP_PATH \[options\]/, output
+    assert_match(/rails new APP_PATH \[options\]/, output)
     assert_equal true, $?.success?
   end
 
@@ -378,7 +378,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_humans_txt_file
-    date = Date.today.strftime("%B %d, %Y")
     run_generator [File.join(destination_root, 'things-43')]
     assert_file "things-43/public/humans.txt", /Name: Things43/, /Software: Ruby on Rails/
   end
