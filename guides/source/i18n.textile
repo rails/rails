@@ -220,7 +220,7 @@ Every helper method dependent on +url_for+ (e.g. helpers for named routes like +
 
 You may be satisfied with this. It does impact the readability of URLs, though, when the locale "hangs" at the end of every URL in your application. Moreover, from the architectural standpoint, locale is usually hierarchically above the other parts of the application domain: and URLs should reflect this.
 
-You probably want URLs to look like this: +www.example.com/en/books+ (which loads the English locale) and +www.example.com/nl/books+ (which loads the Netherlands locale). This is achievable with the "over-riding +default_url_options+" strategy from above: you just have to set up your routes with "+path_prefix+":http://api.rubyonrails.org/classes/ActionController/Resources.html#M000354 option in this way:
+You probably want URLs to look like this: +www.example.com/en/books+ (which loads the English locale) and +www.example.com/nl/books+ (which loads the Dutch locale). This is achievable with the "over-riding +default_url_options+" strategy from above: you just have to set up your routes with "+path_prefix+":http://api.rubyonrails.org/classes/ActionController/Resources.html#M000354 option in this way:
 
 <ruby>
 # config/routes.rb
@@ -229,7 +229,7 @@ scope "/:locale" do
 end
 </ruby>
 
-Now, when you call the +books_path+ method you should get +"/en/books"+ (for the default locale). An URL like +http://localhost:3001/nl/books+ should load the Netherlands locale, then, and following calls to +books_path+ should return +"/nl/books"+ (because the locale changed).
+Now, when you call the +books_path+ method you should get +"/en/books"+ (for the default locale). An URL like +http://localhost:3001/nl/books+ should load the Dutch locale, then, and following calls to +books_path+ should return +"/nl/books"+ (because the locale changed).
 
 If you don't want to force the use of a locale in your routes you can use an optional path scope (denoted by the parentheses) like so:
 
