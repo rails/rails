@@ -1,7 +1,7 @@
 class Hash
   # Return a new hash with all keys converted to strings.
   #
-  #   { name: 'Rob', years: '28' }.stringify_keys
+  #   { :name => 'Rob', :years => '28' }.stringify_keys
   #   #=> { "name" => "Rob", "years" => "28" }
   def stringify_keys
     result = {}
