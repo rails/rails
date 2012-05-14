@@ -48,7 +48,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def new_template(body = "<%= hello %>", details = {})
-    ActionView::Template.new(body, "hello template", ERBHandler, {:virtual_path => "hello"}.merge!(details))
+    ActionView::Template.new(body, "hello template", details.fetch(:handler) { ERBHandler }, {:virtual_path => "hello"}.merge!(details))
   end
 
   def render(locals = {})
@@ -62,6 +62,11 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_basic_template
     @template = new_template
     assert_equal "Hello", render
+  end
+
+  def test_raw_template
+    @template = new_template("<%= hello %>", :handler => ActionView::Template::Handlers::Raw.new)
+    assert_equal "<%= hello %>", render
   end
 
   def test_template_loses_its_source_after_rendering

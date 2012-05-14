@@ -79,6 +79,14 @@ module RenderTestCases
     assert_equal "<h1>No Comment</h1>\n", @view.render(:template => "comments/empty", :handlers => [:builder])
   end
 
+  def test_render_raw_template_with_handlers
+    assert_equal "<%= hello_world %>\n", @view.render(:template => "plain_text")
+  end
+
+  def test_render_raw_template_with_quotes
+    assert_equal %q;Here are some characters: !@#$%^&*()-="'}{`; + "\n", @view.render(:template => "plain_text_with_characters")
+  end
+
   def test_render_file_with_localization_on_context_level
     old_locale, @view.locale = @view.locale, :da
     assert_equal "Hey verden", @view.render(:file => "test/hello_world")

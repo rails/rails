@@ -171,7 +171,9 @@ module ActionView
     def extract_handler_and_format(path, default_formats)
       pieces = File.basename(path).split(".")
       pieces.shift
-      handler = Template.handler_for_extension(pieces.pop)
+      extension = pieces.pop
+      ActiveSupport::Deprecation.warn "The file #{path} did not specify a template handler. The default is currently ERB, but will change to RAW in the future." unless extension
+      handler = Template.handler_for_extension(extension)
       format  = pieces.last && Mime[pieces.last]
       [handler, format]
     end
