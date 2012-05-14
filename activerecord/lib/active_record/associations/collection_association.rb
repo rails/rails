@@ -16,12 +16,6 @@ module ActiveRecord
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association #:nodoc:
-      attr_reader :proxy
-
-      def initialize(owner, reflection)
-        super
-        @proxy = CollectionProxy.new(self)
-      end
 
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader(force_reload = false)
@@ -31,7 +25,7 @@ module ActiveRecord
           reload
         end
 
-        proxy
+        CollectionProxy.new(self)
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items

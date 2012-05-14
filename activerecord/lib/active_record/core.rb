@@ -1,5 +1,6 @@
 require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/object/deep_dup'
 require 'thread'
 
 module ActiveRecord
@@ -76,7 +77,7 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Specifies wether or not has_many or has_one association option
+      # Specifies whether or not has_many or has_one association option
       # :dependent => :restrict raises an exception. If set to true, the
       # ActiveRecord::DeleteRestrictionError exception will be raised
       # along with a DEPRECATION WARNING. If set to false, an error would
@@ -165,7 +166,7 @@ module ActiveRecord
     #   # Instantiates a single new object bypassing mass-assignment security
     #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
     def initialize(attributes = nil, options = {})
-      @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
+      @attributes = self.class.initialize_attributes(self.class.column_defaults.deep_dup)
       @columns_hash = self.class.column_types.dup
 
       init_internals
@@ -203,13 +204,35 @@ module ActiveRecord
 
       self
     end
-
+    
+    ##
+    # :method: clone
+    # Identical to Ruby's clone method.  This is a "shallow" copy.  Be warned that your attributes are not copied.
+    # That means that modifying attributes of the clone will modify the original, since they will both point to the
+    # same attributes hash. If you need a copy of your attributes hash, please use the #dup method.
+    #
+    #   user = User.first
+    #   new_user = user.clone
+    #   user.name               # => "Bob"
+    #   new_user.name = "Joe"
+    #   user.name               # => "Joe"
+    #
+    #   user.object_id == new_user.object_id            # => false
+    #   user.name.object_id == new_user.name.object_id  # => true
+    # 
+    #   user.name.object_id == user.dup.name.object_id  # => false
+    
+    ##
+    # :method: dup
     # Duped objects have no id assigned and are treated as new records. Note
     # that this is a "shallow" copy as it copies the object's attributes
     # only, not its associations. The extent of a "deep" copy is application
     # specific and is therefore left to the application to implement according
     # to its need.
     # The dup method does not preserve the timestamps (created|updated)_(at|on).
+    
+    ##
+    # :nodoc:
     def initialize_dup(other)
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
       self.class.initialize_attributes(cloned_attributes)

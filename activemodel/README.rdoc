@@ -25,7 +25,7 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
 
     person = Person.new(:name => 'bob', :age => '18')
     person.name # => 'bob'
-    person.age # => 18
+    person.age # => '18'
     person.valid? # => true
 
 It includes model name introspections, conversions, translations and
@@ -134,6 +134,16 @@ behavior out of the box:
   ActiveModel::Observers allows your object to implement the Observer
   pattern in a Rails App and take advantage of all the standard observer
   functions.
+
+    class PersonObserver < ActiveModel::Observer
+      def after_create(person)
+        person.logger.info("New person added!")
+      end
+
+      def after_destroy(person)
+        person.logger.warn("Person with an id of #{person.id} was destroyed!")
+      end
+    end
 
   {Learn more}[link:classes/ActiveModel/Observer.html]
 

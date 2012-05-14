@@ -30,6 +30,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
                    [ 0.0/0.0,   %(null) ],
                    [ 1.0/0.0,   %(null) ],
                    [ -1.0/0.0,  %(null) ],
+                   [ BigDecimal('0.0')/BigDecimal('0.0'),  %(null) ],
                    [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s}") ]]
 
   StringTests   = [[ 'this is the <string>',     %("this is the \\u003Cstring\\u003E")],
@@ -271,6 +272,17 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
     assert_equal({"name" => "David", "date" => "2010/01/01"},
                  JSON.parse(json_string_and_date))
+  end
+
+  def test_opt_out_big_decimal_string_serialization
+    big_decimal = BigDecimal('2.5')
+
+    begin
+      ActiveSupport.encode_big_decimal_as_string = false
+      assert_equal big_decimal.to_s, big_decimal.to_json
+    ensure
+      ActiveSupport.encode_big_decimal_as_string = true
+    end
   end
 
   protected

@@ -99,12 +99,12 @@ module ActionDispatch
           @module  = Module.new do
             protected
 
-            def handle_positional_args(args, options, route)
+            def handle_positional_args(args, options, segment_keys)
               inner_options = args.extract_options!
               result = options.dup
 
-              if args.any?
-                keys = route.segment_keys
+              if args.size > 0
+                keys = segment_keys
                 if args.size < keys.size - 1 # take format into account
                   keys -= self.url_options.keys if self.respond_to?(:url_options)
                   keys -= options.keys
@@ -161,32 +161,11 @@ module ActionDispatch
             end
           end
 
-          def hash_access_name(name, only_path)
-            if only_path
-              :"hash_for_#{name}_path"
-            else
-              :"hash_for_#{name}_url"
-            end
-          end
-
           def define_named_route_methods(name, route)
             [true, false].each do |only_path|
               hash = route.defaults.merge(:use_route => name, :only_path => only_path)
-              define_hash_access route, name, hash
               define_url_helper route, name, hash
             end
-          end
-
-          def define_hash_access(route, name, options)
-            selector = hash_access_name(name, options[:only_path])
-
-            @module.module_eval do
-              redefine_method(selector) do |*args|
-                self.handle_positional_args(args, options, route)
-              end
-              protected selector
-            end
-            helpers << selector
           end
 
           # Create a url helper allowing ordered parameters to be associated
@@ -204,36 +183,27 @@ module ActionDispatch
           #
           def define_url_helper(route, name, options)
             selector = url_helper_name(name, options[:only_path])
-            hash_access_method = hash_access_name(name, options[:only_path])
 
-            if optimize_helper?(route)
-              @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-                remove_possible_method :#{selector}
-                def #{selector}(*args)
-                  if args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
-                    options = #{options.inspect}.merge!(url_options)
-                    options[:path] = "#{optimized_helper(route)}"
-                    ActionDispatch::Http::URL.url_for(options)
-                  else
-                    url_for(#{hash_access_method}(*args))
-                  end
+            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_possible_method :#{selector}
+              def #{selector}(*args)
+                if #{optimize_helper?(route)} && args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
+                  options = #{options.inspect}
+                  options.merge!(url_options) if respond_to?(:url_options)
+                  options[:path] = "#{optimized_helper(route)}"
+                  ActionDispatch::Http::URL.url_for(options)
+                else
+                  url_for(handle_positional_args(args, #{options.inspect}, #{route.segment_keys.inspect}))
                 end
-              END_EVAL
-            else
-              @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-                remove_possible_method :#{selector}
-                def #{selector}(*args)
-                  url_for(#{hash_access_method}(*args))
-                end
-              END_EVAL
-            end
+              end
+            END_EVAL
 
             helpers << selector
           end
 
           # Clause check about when we need to generate an optimized helper.
           def optimize_helper?(route) #:nodoc:
-            route.ast.grep(Journey::Nodes::Star).empty? && route.requirements.except(:controller, :action).empty?
+            route.requirements.except(:controller, :action).empty?
           end
 
           # Generates the interpolation to be used in the optimized helper.
@@ -245,7 +215,10 @@ module ActionDispatch
             end
 
             route.required_parts.each_with_index do |part, i|
-              string_route.gsub!(part.inspect, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
+              # Replace each route parameter
+              # e.g. :id for regular parameter or *path for globbing
+              # with ruby string interpolation code
+              string_route.gsub!(/(\*|:)#{part}/, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
             end
 
             string_route
@@ -487,12 +460,12 @@ module ActionDispatch
           normalize_options!
           normalize_controller_action_id!
           use_relative_controller!
-          controller.sub!(%r{^/}, '') if controller
+          normalize_controller!
           handle_nil_action!
         end
 
         def controller
-          @controller ||= @options[:controller]
+          @options[:controller]
         end
 
         def current_controller
@@ -549,8 +522,13 @@ module ActionDispatch
             old_parts = current_controller.split('/')
             size = controller.count("/") + 1
             parts = old_parts[0...-size] << controller
-            @controller = @options[:controller] = parts.join("/")
+            @options[:controller] = parts.join("/")
           end
+        end
+
+        # Remove leading slashes from controllers
+        def normalize_controller!
+          @options[:controller] = controller.sub(%r{^/}, '') if controller
         end
 
         # This handles the case of :action => nil being explicitly passed.

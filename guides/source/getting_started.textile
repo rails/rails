@@ -183,9 +183,9 @@ Rails will create several files for you. Most important of these are of course t
 
 Open the +app/views/welcome/index.html.erb+ file in your text editor and edit it to contain a single line of code:
 
-<code class="html">
+<html>
 <h1>Hello, Rails!</h1>
-</code>
+</html>
 
 h4. Setting the Application Home Page
 
@@ -193,7 +193,7 @@ Now that we have made the controller and view, we need to tell Rails when we wan
 
 To fix this, delete the +index.html+ file located inside the +public+ directory of the application.
 
-You need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content you generate from the controllers.
+You need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content you generate from the controllers. The +index.html+ file is special: it will be served if a request comes in at the root route, e.g. http://localhost:3000. If another request such as http://localhost:3000/welcome happened, a static file at <tt>public/welcome.html</tt> would be served first, but only if it existed.
 
 Next, you have to tell Rails where your actual home page is located.
 
@@ -210,7 +210,7 @@ Blog::Application.routes.draw do
 
 The +root :to => "welcome#index"+ tells Rails to map requests to the root of the application to the welcome controller's index action. This was created earlier when you ran the controller generator (+rails generate controller welcome index+).
 
-If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see +Hello, Rails!+.
+If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see the +Hello, Rails!+ message you put into +app/views/welcome/index.html.erb+, indicating that this new route is indeed going to +WelcomeController+'s +index+ action and is rendering the view correctly.
 
 NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing.html.
 
@@ -220,7 +220,7 @@ Now that you've seen how to create a controller, an action and a view, let's cre
 
 In the Blog application, you will now create a new _resource_. A resource is the term used for a collection of similar objects, such as posts, people or animals. You can create, read, update and destroy items for a resource and these operations are referred to as _CRUD_ operations.
 
-In the next section, you will add the ability to create new posts in your application and be able to view them. This is the "CR" from CRUD. The form for doing this will look like this:
+In the next section, you will add the ability to create new posts in your application and be able to view them. This is the "C" and the "R" from CRUD: creation and reading. The form for doing this will look like this:
 
 !images/getting_started/new_post.png(The new post form)!
 
@@ -232,7 +232,7 @@ The first thing that you are going to need to create a new post within the appli
 
 !images/getting_started/routing_error_no_route_matches.png(A routing error, no route matches /posts/new)!
 
-This is because there is nowhere inside the routes for the application -- defined inside +config/routes.rb+ -- that defines this route. By default, Rails has no routes configured at all, and so you must define your routes as you need them.
+This is because there is nowhere inside the routes for the application -- defined inside +config/routes.rb+ -- that defines this route. By default, Rails has no routes configured at all, besides the root route you defined earlier, and so you must define your routes as you need them.
 
  To do this, you're going to need to create a route inside +config/routes.rb+ file, on a new line between the +do+ and the +end+ for the +draw+ method:
 
@@ -282,9 +282,9 @@ You're getting this error now because Rails expects plain actions like this one 
 
 In the above image, the bottom line has been truncated. Let's see what the full thing looks like:
 
-<text>
+<blockquote>
 Missing template posts/new, application/new with {:locale=>[:en], :formats=>[:html], :handlers=>[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
-</text>
+</blockquote>
 
 That's quite a lot of text! Let's quickly go through and understand what each part of it does.
 
@@ -720,7 +720,7 @@ If you reload
 try to save a post without a title, Rails will send you back to the
 form, but that's not very useful. You need to tell the user that
 something went wrong. To do that, you'll modify
-+app/views/posts/index.html.erb+ to check for error messages:
++app/views/posts/new.html.erb+ to check for error messages:
 
 <erb>
 <%= form_for :post, :url => { :action => :create } do |f| %>

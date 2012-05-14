@@ -40,7 +40,7 @@ module ActiveRecord
     alias extensions extending_values
 
     def includes(*args)
-      args.empty? ? self : clone.includes!(*args)
+      args.empty? ? self : spawn.includes!(*args)
     end
 
     def includes!(*args)
@@ -51,7 +51,7 @@ module ActiveRecord
     end
 
     def eager_load(*args)
-      args.blank? ? self : clone.eager_load!(*args)
+      args.blank? ? self : spawn.eager_load!(*args)
     end
 
     def eager_load!(*args)
@@ -60,7 +60,7 @@ module ActiveRecord
     end
 
     def preload(*args)
-      args.blank? ? self : clone.preload!(*args)
+      args.blank? ? self : spawn.preload!(*args)
     end
 
     def preload!(*args)
@@ -79,7 +79,7 @@ module ActiveRecord
     #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
     #   # => Query now knows the string references posts, so adds a JOIN
     def references(*args)
-      args.blank? ? self : clone.references!(*args)
+      args.blank? ? self : spawn.references!(*args)
     end
 
     def references!(*args)
@@ -120,7 +120,7 @@ module ActiveRecord
       if block_given?
         to_a.select { |*block_args| value.call(*block_args) }
       else
-        clone.select!(value)
+        spawn.select!(value)
       end
     end
 
@@ -130,7 +130,7 @@ module ActiveRecord
     end
 
     def group(*args)
-      args.blank? ? self : clone.group!(*args)
+      args.blank? ? self : spawn.group!(*args)
     end
 
     def group!(*args)
@@ -139,7 +139,7 @@ module ActiveRecord
     end
 
     def order(*args)
-      args.blank? ? self : clone.order!(*args)
+      args.blank? ? self : spawn.order!(*args)
     end
 
     def order!(*args)
@@ -165,7 +165,7 @@ module ActiveRecord
     # generates a query with 'ORDER BY id ASC, name ASC'.
     #
     def reorder(*args)
-      args.blank? ? self : clone.reorder!(*args)
+      args.blank? ? self : spawn.reorder!(*args)
     end
 
     def reorder!(*args)
@@ -175,7 +175,7 @@ module ActiveRecord
     end
 
     def joins(*args)
-      args.compact.blank? ? self : clone.joins!(*args)
+      args.compact.blank? ? self : spawn.joins!(*args)
     end
 
     def joins!(*args)
@@ -186,7 +186,7 @@ module ActiveRecord
     end
 
     def bind(value)
-      clone.bind!(value)
+      spawn.bind!(value)
     end
 
     def bind!(value)
@@ -195,7 +195,7 @@ module ActiveRecord
     end
 
     def where(opts, *rest)
-      opts.blank? ? self : clone.where!(opts, *rest)
+      opts.blank? ? self : spawn.where!(opts, *rest)
     end
 
     def where!(opts, *rest)
@@ -206,7 +206,7 @@ module ActiveRecord
     end
 
     def having(opts, *rest)
-      opts.blank? ? self : clone.having!(opts, *rest)
+      opts.blank? ? self : spawn.having!(opts, *rest)
     end
 
     def having!(opts, *rest)
@@ -217,7 +217,7 @@ module ActiveRecord
     end
 
     def limit(value)
-      clone.limit!(value)
+      spawn.limit!(value)
     end
 
     def limit!(value)
@@ -226,7 +226,7 @@ module ActiveRecord
     end
 
     def offset(value)
-      clone.offset!(value)
+      spawn.offset!(value)
     end
 
     def offset!(value)
@@ -235,7 +235,7 @@ module ActiveRecord
     end
 
     def lock(locks = true)
-      clone.lock!(locks)
+      spawn.lock!(locks)
     end
 
     def lock!(locks = true)
@@ -283,7 +283,7 @@ module ActiveRecord
     end
 
     def readonly(value = true)
-      clone.readonly!(value)
+      spawn.readonly!(value)
     end
 
     def readonly!(value = true)
@@ -292,7 +292,7 @@ module ActiveRecord
     end
 
     def create_with(value)
-      clone.create_with!(value)
+      spawn.create_with!(value)
     end
 
     def create_with!(value)
@@ -301,7 +301,7 @@ module ActiveRecord
     end
 
     def from(value)
-      clone.from!(value)
+      spawn.from!(value)
     end
 
     def from!(value)
@@ -320,7 +320,7 @@ module ActiveRecord
     #   User.select(:name).uniq.uniq(false)
     #   # => You can also remove the uniqueness
     def uniq(value = true)
-      clone.uniq!(value)
+      spawn.uniq!(value)
     end
 
     def uniq!(value = true)
@@ -366,7 +366,7 @@ module ActiveRecord
     #   end
     def extending(*modules, &block)
       if modules.any? || block
-        clone.extending!(*modules, &block)
+        spawn.extending!(*modules, &block)
       else
         self
       end
@@ -382,7 +382,7 @@ module ActiveRecord
     end
 
     def reverse_order
-      clone.reverse_order!
+      spawn.reverse_order!
     end
 
     def reverse_order!

@@ -891,23 +891,6 @@ class RouteSetTest < ActiveSupport::TestCase
     MockController.build(set.url_helpers).new
   end
 
-  def test_named_route_hash_access_method
-    controller = setup_named_route_test
-
-    assert_equal(
-      { :controller => 'people', :action => 'show', :id => 5, :use_route => "show", :only_path => false },
-      controller.send(:hash_for_show_url, :id => 5))
-
-    assert_equal(
-      { :controller => 'people', :action => 'index', :use_route => "index", :only_path => false },
-      controller.send(:hash_for_index_url))
-
-    assert_equal(
-      { :controller => 'people', :action => 'show', :id => 5, :use_route => "show", :only_path => true },
-      controller.send(:hash_for_show_path, :id => 5)
-    )
-  end
-
   def test_named_route_url_method
     controller = setup_named_route_test
 
@@ -919,7 +902,6 @@ class RouteSetTest < ActiveSupport::TestCase
 
     assert_equal "http://test.host/admin/users", controller.send(:users_url)
     assert_equal '/admin/users', controller.send(:users_path)
-    assert_equal '/admin/users', url_for(set, controller.send(:hash_for_users_url), { :controller => 'users', :action => 'index' })
   end
 
   def test_named_route_url_method_with_anchor
@@ -1423,7 +1405,7 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
   end
-  
+
   def test_route_with_subdomain_and_constraints_must_receive_params
     name_param = nil
     set.draw do
@@ -1436,7 +1418,7 @@ class RouteSetTest < ActiveSupport::TestCase
       set.recognize_path('http://subdomain.example.org/page/mypage'))
     assert_equal(name_param, 'mypage')
   end
-  
+
   def test_route_requirement_recognize_with_ignore_case
     set.draw do
       get 'page/:name' => 'pages#show',

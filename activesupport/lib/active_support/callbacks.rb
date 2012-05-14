@@ -23,8 +23,6 @@ module ActiveSupport
   # methods, procs or lambdas, or callback objects that respond to certain predetermined
   # methods. See +ClassMethods.set_callback+ for details.
   #
-  # ==== Example
-  #
   #   class Record
   #     include ActiveSupport::Callbacks
   #     define_callbacks :save
@@ -54,7 +52,6 @@ module ActiveSupport
   #   saving...
   #   - save
   #   saved
-  #
   module Callbacks
     extend Concern
 
@@ -73,9 +70,7 @@ module ActiveSupport
     #   run_callbacks :save do
     #     save
     #   end
-    #
-    def run_callbacks(kind, key = nil, &block)
-      #TODO: deprecate key argument
+    def run_callbacks(kind, &block)
       runner_name = self.class.__define_callbacks(kind, self)
       send(runner_name, &block)
     end
@@ -199,7 +194,6 @@ module ActiveSupport
       #     yield self
       #   end
       # end
-      #
       def define_conditional_callback
         name = "_conditional_callback_#{@kind}_#{next_id}"
         @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
@@ -253,7 +247,6 @@ module ActiveSupport
       #   Objects::
       #     a method is created that calls the before_foo method
       #     on the object.
-      #
       def _compile_filter(filter)
         method_name = "_callback_#{@kind}_#{next_id}"
         case filter
@@ -405,7 +398,6 @@ module ActiveSupport
       #   will be called only when it returns a false value.
       # * <tt>:prepend</tt> - If true, the callback will be prepended to the existing
       #   chain rather than appended.
-      #
       def set_callback(name, *filter_list, &block)
         mapped = nil
 
@@ -430,7 +422,6 @@ module ActiveSupport
       #   class Writer < Person
       #      skip_callback :validate, :before, :check_membership, :if => lambda { self.age > 18 }
       #   end
-      #
       def skip_callback(name, *filter_list, &block)
         __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           filters.each do |filter|
@@ -449,7 +440,6 @@ module ActiveSupport
       end
 
       # Remove all set callbacks for the given event.
-      #
       def reset_callbacks(symbol)
         callbacks = send("_#{symbol}_callbacks")
 
@@ -530,7 +520,6 @@ module ActiveSupport
       #     define_callbacks :save, :scope => [:name]
       #
       #   would call <tt>Audit#save</tt>.
-      #
       def define_callbacks(*callbacks)
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
         callbacks.each do |callback|

@@ -137,24 +137,24 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           <<-GEMFILE.strip_heredoc
-            gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'journey',   :git => 'https://github.com/rails/journey.git'
-            gem 'arel',      :git => 'https://github.com/rails/arel.git'
-            gem 'active_record_deprecated_finders', :git => 'git://github.com/rails/active_record_deprecated_finders.git'
+            gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
+            gem 'journey',   github: 'rails/journey'
+            gem 'arel',      github: 'rails/arel'
+            gem 'active_record_deprecated_finders', github: 'rails/active_record_deprecated_finders'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
-            gem 'rails',     :git => 'https://github.com/rails/rails.git'
-            gem 'journey',   :git => 'https://github.com/rails/journey.git'
-            gem 'arel',      :git => 'https://github.com/rails/arel.git'
-            gem 'active_record_deprecated_finders', :git => 'git://github.com/rails/active_record_deprecated_finders.git'
+            gem 'rails',     github: 'rails/rails'
+            gem 'journey',   github: 'rails/journey'
+            gem 'arel',      github: 'rails/arel'
+            gem 'active_record_deprecated_finders', github: 'rails/active_record_deprecated_finders'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
-            # gem 'rails', :git => 'https://github.com/rails/rails.git'
+            # gem 'rails', github: 'rails/rails'
           GEMFILE
         end
       end
@@ -194,9 +194,9 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sprockets-rails', :git => 'https://github.com/rails/sprockets-rails.git'
-              gem 'sass-rails',   :git => 'https://github.com/rails/sass-rails.git'
-              gem 'coffee-rails', :git => 'https://github.com/rails/coffee-rails.git'
+              gem 'sprockets-rails', github: 'rails/sprockets-rails'
+              gem 'sass-rails',   github: 'rails/sass-rails'
+              gem 'coffee-rails', github: 'rails/coffee-rails'
 
               # See https://github.com/sstephenson/execjs#readme for more supported runtimes
               #{javascript_runtime_gemfile_entry}
@@ -208,7 +208,7 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sprockets-rails', :git => 'https://github.com/rails/sprockets-rails.git'
+              gem 'sprockets-rails', github: 'rails/sprockets-rails'
               gem 'sass-rails',   '~> 4.0.0.beta'
               gem 'coffee-rails', '~> 4.0.0.beta'
 
@@ -230,7 +230,7 @@ module Rails
         if defined?(JRUBY_VERSION)
           "gem 'therubyrhino'\n"
         else
-          "# gem 'therubyracer', :platform => :ruby\n"
+          "# gem 'therubyracer', platform: :ruby\n"
         end
       end
 

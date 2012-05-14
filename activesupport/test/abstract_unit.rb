@@ -7,9 +7,6 @@ ensure
   $VERBOSE = old
 end
 
-lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
-$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
-
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/string/encoding'
 

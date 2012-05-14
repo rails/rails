@@ -246,7 +246,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_file "Gemfile", /gem\s+["']therubyrhino["']$/
     else
-      assert_file "Gemfile", /# gem\s+["']therubyracer["']+, :platform => :ruby$/
+      assert_file "Gemfile", /# gem\s+["']therubyracer["']+, platform: :ruby$/
     end
   end
 
@@ -381,6 +381,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_pretend_option
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)
+  end
+
+  def test_humans_txt_file
+    date = Date.today.strftime("%B %d, %Y")
+    run_generator [File.join(destination_root, 'things-43')]
+    assert_file "things-43/public/humans.txt", /Name: Things43/, /Software: Ruby on Rails/, /Date Created: #{date}/
   end
 
 protected

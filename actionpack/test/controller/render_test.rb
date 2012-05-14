@@ -102,12 +102,12 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello_with_expires_in_with_public_with_more_keys
-    expires_in 1.minute, :public => true, 'max-stale' => 5.hours
+    expires_in 1.minute, :public => true, 's-maxage' => 5.hours
     render :action => 'hello_world'
   end
 
   def conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax
-    expires_in 1.minute, :public => true, :private => nil, 'max-stale' => 5.hours
+    expires_in 1.minute, :public => true, :private => nil, 's-maxage' => 5.hours
     render :action => 'hello_world'
   end
 
@@ -503,6 +503,14 @@ class TestController < ActionController::Base
   def render_content_type_from_body
     response.content_type = Mime::RSS
     render :text => "hello world!"
+  end
+
+  def head_created
+    head :created
+  end
+
+  def head_created_with_application_json_content_type
+    head :created, :content_type => "application/json"
   end
 
   def head_with_location_header
@@ -1177,6 +1185,19 @@ class RenderTest < ActionController::TestCase
     assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
   end
 
+  def test_head_created
+    post :head_created
+    assert_blank @response.body
+    assert_response :created
+  end
+
+  def test_head_created_with_application_json_content_type
+    post :head_created_with_application_json_content_type
+    assert_blank @response.body
+    assert_equal "application/json", @response.content_type
+    assert_response :created
+  end
+
   def test_head_with_location_header
     get :head_with_location_header
     assert_blank @response.body
@@ -1478,12 +1499,12 @@ class ExpiresInRenderTest < ActionController::TestCase
 
   def test_expires_in_header_with_additional_headers
     get :conditional_hello_with_expires_in_with_public_with_more_keys
-    assert_equal "max-age=60, public, max-stale=18000", @response.headers["Cache-Control"]
+    assert_equal "max-age=60, public, s-maxage=18000", @response.headers["Cache-Control"]
   end
 
   def test_expires_in_old_syntax
     get :conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax
-    assert_equal "max-age=60, public, max-stale=18000", @response.headers["Cache-Control"]
+    assert_equal "max-age=60, public, s-maxage=18000", @response.headers["Cache-Control"]
   end
 
   def test_expires_now

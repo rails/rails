@@ -76,6 +76,11 @@ class ActionPackAssertionsController < ActionController::Base
     render "test/hello_world", :layout => "layouts/standard"
   end
 
+  def render_with_layout_and_partial
+    @variable_for_layout = nil
+    render "test/hello_world_with_partial", :layout => "layouts/standard"
+  end
+
   def session_stuffing
     session['xmas'] = 'turkey'
     render :text => "ho ho ho"
@@ -179,6 +184,9 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
         assert_redirected_to 'http://test.host/route_two'
       end
       assert_raise(ActiveSupport::TestCase::Assertion) do
+        assert_redirected_to %r(^http://test.host/route_two)
+      end
+      assert_raise(ActiveSupport::TestCase::Assertion) do
         assert_redirected_to :controller => 'action_pack_assertions', :action => 'nothing', :id => 'two'
       end
       assert_raise(ActiveSupport::TestCase::Assertion) do
@@ -212,6 +220,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       process :redirect_to_top_level_named_route
       # assert_redirected_to "http://test.host/action_pack_assertions/foo" would pass because of exact match early return
       assert_redirected_to "/action_pack_assertions/foo"
+      assert_redirected_to %r(/action_pack_assertions/foo)
     end
   end
 
@@ -469,9 +478,41 @@ class AssertTemplateTest < ActionController::TestCase
     end
   end
 
+  def test_fails_expecting_no_layout
+    get :render_with_layout
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :layout => nil
+    end
+  end
+
   def test_passes_with_correct_layout
     get :render_with_layout
     assert_template :layout => "layouts/standard"
+  end
+
+  def test_passes_with_layout_and_partial
+    get :render_with_layout_and_partial
+    assert_template :layout => "layouts/standard"
+  end
+
+  def test_passed_with_no_layout
+    get :hello_world
+    assert_template :layout => nil
+  end
+
+  def test_passed_with_no_layout_false
+    get :hello_world
+    assert_template :layout => false
+  end
+
+  def test_passes_with_correct_layout_without_layouts_prefix
+    get :render_with_layout
+    assert_template :layout => "standard"
+  end
+
+  def test_passes_with_correct_layout_symbol
+    get :render_with_layout
+    assert_template :layout => :standard
   end
 
   def test_assert_template_reset_between_requests

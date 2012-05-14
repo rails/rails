@@ -444,8 +444,7 @@ app/model/post.rb:
 
 NOTE. When using specific annotations and custom annotations, the annotation name (FIXME, BUG etc) is not displayed in the output lines.
 
-Be default, rake notes will look in the app, config, lib, script and test directories for notes. If you would like to search additional directories,
-simply provide the directories as a comma seperated list in an environment variable +SOURCE_ANNOTATION_DIRECTORIES+.
+By default, +rake notes+ will look in the +app+, +config+, +lib+, +script+ and +test+ directories. If you would like to search other directories, you can provide them as a comma separated list in an environment variable +SOURCE_ANNOTATION_DIRECTORIES+.
 
 <shell>
 $ export SOURCE_ANNOTATION_DIRECTORIES='rspec,vendor'

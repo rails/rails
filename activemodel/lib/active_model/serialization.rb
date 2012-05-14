@@ -64,7 +64,7 @@ module ActiveModel
   #   person.to_json             # => "{\"name\":\"Bob\"}"
   #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   #
-  # Valid options are <tt>:only</tt>, <tt>:except</tt>, <tt>:methods</tt> and <tt>include</tt>.
+  # Valid options are <tt>:only</tt>, <tt>:except</tt>, <tt>:methods</tt> and <tt>:include</tt>.
   # The following are all valid examples:
   #
   #   person.serializable_hash(:only => 'name')
@@ -87,8 +87,8 @@ module ActiveModel
       Array(options[:methods]).each { |m| hash[m.to_s] = send(m) if respond_to?(m) }
 
       serializable_add_includes(options) do |association, records, opts|
-        hash[association.to_s] = if records.is_a?(Enumerable)
-          records.map { |a| a.serializable_hash(opts) }
+        hash[association.to_s] = if records.respond_to?(:to_ary)
+          records.to_ary.map { |a| a.serializable_hash(opts) }
         else
           records.serializable_hash(opts)
         end

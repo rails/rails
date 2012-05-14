@@ -33,14 +33,7 @@ module ActiveRecord
     #
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
-    class CollectionProxy # :nodoc:
-      alias :proxy_extend :extend
-
-      instance_methods.each { |m| undef_method m unless m.to_s =~ /^(?:nil\?|send|object_id|to_a)$|^__|^respond_to|proxy_/ }
-
-      delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from,
-               :lock, :readonly, :having, :pluck, :to => :scoped
-
+    class CollectionProxy < Relation # :nodoc:
       delegate :target, :load_target, :loaded?, :to => :@association
 
       delegate :select, :find, :first, :last,
@@ -52,7 +45,8 @@ module ActiveRecord
 
       def initialize(association)
         @association = association
-        Array(association.options[:extend]).each { |ext| proxy_extend(ext) }
+        super association.klass, association.klass.arel_table
+        merge! association.scoped
       end
 
       alias_method :new, :build
@@ -61,54 +55,28 @@ module ActiveRecord
         @association
       end
 
+      # We don't want this object to be put on the scoping stack, because
+      # that could create an infinite loop where we call an @association
+      # method, which gets the current scope, which is this object, which
+      # delegates to @association, and so on.
+      def scoping
+        @association.scoped.scoping { yield }
+      end
+
+      def spawn
+        scoped
+      end
+
       def scoped(options = nil)
         association = @association
-        scope       = association.scoped
 
-        scope.extending! do
+        super.extending! do
           define_method(:proxy_association) { association }
         end
-        scope.merge!(options) if options
-        scope
       end
 
-      def respond_to?(name, include_private = false)
-        super ||
-        (load_target && target.respond_to?(name, include_private)) ||
-        proxy_association.klass.respond_to?(name, include_private)
-      end
-
-      def method_missing(method, *args, &block)
-        match = DynamicFinderMatch.match(method)
-        if match && match.instantiator?
-          send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |r|
-            proxy_association.send :set_owner_attributes, r
-            proxy_association.send :add_to_target, r
-            yield(r) if block_given?
-          end
-
-        elsif target.respond_to?(method) || (!proxy_association.klass.respond_to?(method) && Class.respond_to?(method))
-          if load_target
-            if target.respond_to?(method)
-              target.send(method, *args, &block)
-            else
-              begin
-                super
-              rescue NoMethodError => e
-                raise e, e.message.sub(/ for #<.*$/, " via proxy for #{target}")
-              end
-            end
-          end
-
-        else
-          scoped.readonly(nil).send(method, *args, &block)
-        end
-      end
-
-      # Forwards <tt>===</tt> explicitly to the \target because the instance method
-      # removal above doesn't catch it. Loads the \target if needed.
-      def ===(other)
-        other === load_target
+      def ==(other)
+        load_target == other
       end
 
       def to_ary
@@ -129,19 +97,6 @@ module ActiveRecord
       def reload
         proxy_association.reload
         self
-      end
-
-      # Define array public methods because we know it should be invoked over
-      # the target, so we can have a performance improvement using those methods
-      # in association collections
-      Array.public_instance_methods.each do |m|
-        unless method_defined?(m)
-          class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{m}(*args, &block)
-              target.public_send(:#{m}, *args, &block) if load_target
-            end
-          RUBY
-        end
       end
     end
   end

@@ -326,12 +326,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     authors(:david).readonly_comments.each { |c| assert c.readonly? }
   end
 
-  def test_triple_equality
-    # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    assert !(Array === Firm.scoped(:order => "id").first.clients)
-    assert Firm.scoped(:order => "id").first.clients === Array
-  end
-
   def test_finding_default_orders
     assert_equal "Summit", Firm.scoped(:order => "id").first.clients.first.name
   end
@@ -892,12 +886,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client_id = firm.clients_of_firm.first.id
     assert_equal 1, firm.clients_of_firm.size
 
-    cleared = firm.clients_of_firm.clear
+    firm.clients_of_firm.clear
 
     assert_equal 0, firm.clients_of_firm.size
     assert_equal 0, firm.clients_of_firm(true).size
     assert_equal [], Client.destroyed_client_ids[firm.id]
-    assert_equal firm.clients_of_firm.object_id, cleared.object_id
 
     # Should not be destroyed since the association is not dependent.
     assert_nothing_raised do
@@ -1359,7 +1352,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_include_uses_array_include_after_loaded
     firm = companies(:first_firm)
-    firm.clients.class # force load target
+    firm.clients.load_target
 
     client = firm.clients.first
 
@@ -1409,7 +1402,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_first_or_last_on_loaded_association_should_not_fetch_with_query
     firm = companies(:first_firm)
-    firm.clients.class # force load target
+    firm.clients.load_target
     assert firm.clients.loaded?
 
     assert_no_queries do
@@ -1702,5 +1695,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_deprecated { klass.has_many :companies }
   ensure
     ActiveRecord::Base.dependent_restrict_raises = option_before
+  end
+
+  def test_collection_association_with_private_kernel_method
+    firm = companies(:first_firm)
+    assert_equal [accounts(:signals37)], firm.accounts.open
+  end
+
+  test "first_or_initialize adds the record to the association" do
+    firm = Firm.create! name: 'omg'
+    client = firm.clients_of_firm.first_or_initialize
+    assert_equal [client], firm.clients_of_firm
+  end
+
+  test "first_or_create adds the record to the association" do
+    firm = Firm.create! name: 'omg'
+    firm.clients_of_firm.load_target
+    client = firm.clients_of_firm.first_or_create name: 'lol'
+    assert_equal [client], firm.clients_of_firm
+    assert_equal [client], firm.reload.clients_of_firm
   end
 end

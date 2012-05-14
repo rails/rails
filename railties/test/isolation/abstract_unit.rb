@@ -17,8 +17,8 @@ RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
 
 # These files do not require any others and are needed
 # to run the tests
-require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/isolation"
-require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/core_ext/kernel/reporting"
+require "active_support/testing/isolation"
+require "active_support/core_ext/kernel/reporting"
 
 module TestHelpers
   module Paths
@@ -248,7 +248,6 @@ module TestHelpers
 
     def use_frameworks(arr)
       to_remove =  [:actionmailer,
-                    :activemodel,
                     :activerecord] - arr
       if to_remove.include? :activerecord
         remove_from_config "config.active_record.whitelist_attributes = true"

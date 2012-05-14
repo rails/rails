@@ -511,8 +511,13 @@ module ActiveRecord
           else super
           end
         when Float
-          return super unless value.infinite? && column.type == :datetime
-          "'#{value.to_s.downcase}'"
+          if value.infinite? && column.type == :datetime
+            "'#{value.to_s.downcase}'"
+          elsif value.infinite? || value.nan?
+            "'#{value.to_s}'"
+          else
+            super
+          end
         when Numeric
           return super unless column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.
@@ -1233,7 +1238,10 @@ module ActiveRecord
 
         # Construct a clean list of column names from the ORDER BY clause, removing
         # any ASC/DESC modifiers
-        order_columns = orders.collect { |s| s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '') }
+        order_columns = orders.collect do |s|
+          s = s.to_sql unless s.is_a?(String)
+          s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
+        end
         order_columns.delete_if { |c| c.blank? }
         order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
 

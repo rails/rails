@@ -1,7 +1,7 @@
 require 'active_support/core_ext/file/atomic'
 require 'active_support/core_ext/string/conversions'
 require 'active_support/core_ext/object/inclusion'
-require 'rack/utils'
+require 'uri/common'
 
 module ActiveSupport
   module Cache
@@ -23,7 +23,7 @@ module ActiveSupport
       end
 
       def clear(options = nil)
-        root_dirs = Dir.entries(cache_path).reject{|f| f.in?(EXCLUDED_DIRS)}
+        root_dirs = Dir.entries(cache_path).reject{|f| f.in?(EXCLUDED_DIRS + [".gitkeep"])}
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       end
 
@@ -126,7 +126,7 @@ module ActiveSupport
 
         # Translate a key into a file path.
         def key_file_path(key)
-          fname = Rack::Utils.escape(key)
+          fname = URI.encode_www_form_component(key)
           hash = Zlib.adler32(fname)
           hash, dir_1 = hash.divmod(0x1000)
           dir_2 = hash.modulo(0x1000)
@@ -144,7 +144,7 @@ module ActiveSupport
         # Translate a file path into a key.
         def file_path_key(path)
           fname = path[cache_path.to_s.size..-1].split(File::SEPARATOR, 4).last
-          Rack::Utils.unescape(fname)
+          URI.decode_www_form_component(fname, Encoding::UTF_8)
         end
 
         # Delete empty directories in the cache.

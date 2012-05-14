@@ -21,8 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 require 'active_support'
 require 'active_model/version'
 
@@ -59,5 +57,6 @@ module ActiveModel
   end
 end
 
-require 'active_support/i18n'
-I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'
+end

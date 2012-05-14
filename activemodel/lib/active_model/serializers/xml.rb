@@ -115,7 +115,9 @@ module ActiveModel
           merged_options = opts.merge(options.slice(:builder, :indent))
           merged_options[:skip_instruct] = true
 
-          if records.is_a?(Enumerable)
+          if records.respond_to?(:to_ary)
+            records = records.to_ary
+
             tag  = ActiveSupport::XmlMini.rename_key(association.to_s, options)
             type = options[:skip_types] ? { } : {:type => "array"}
             association_name = association.to_s.singularize

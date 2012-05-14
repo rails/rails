@@ -5,9 +5,14 @@ require 'active_record/relation/merger'
 
 module ActiveRecord
   module SpawnMethods
-    
+
+    # This is overridden by Associations::CollectionProxy
+    def spawn #:nodoc:
+      clone
+    end
+
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an <tt>ActiveRecord::Relation</tt>.
-    # Returns an array representing the union of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
+    # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
     #
     # ==== Examples
     #
@@ -16,14 +21,14 @@ module ActiveRecord
     #
     #   recent_posts = Post.order('created_at DESC').first(5)
     #   Post.where(:published => true).merge(recent_posts)
-    #   # Returns the union of all published posts with the 5 most recently created posts.
+    #   # Returns the intersection of all published posts with the 5 most recently created posts.
     #   # (This is just an example. You'd probably want to do this with a single query!)
     #
     def merge(other)
       if other.is_a?(Array)
         to_a & other
       elsif other
-        clone.merge!(other)
+        spawn.merge!(other)
       else
         self
       end
@@ -42,7 +47,7 @@ module ActiveRecord
     #   Post.where('id > 10').order('id asc').except(:where) # discards the where condition but keeps the order
     #
     def except(*skips)
-      result = self.class.new(@klass, table, values.except(*skips))
+      result = Relation.new(klass, table, values.except(*skips))
       result.default_scoped = default_scoped
       result.extend(*extending_values) if extending_values.any?
       result
@@ -56,7 +61,7 @@ module ActiveRecord
     #   Post.order('id asc').only(:where, :order) # uses the specified order
     #
     def only(*onlies)
-      result = self.class.new(@klass, table, values.slice(*onlies))
+      result = Relation.new(klass, table, values.slice(*onlies))
       result.default_scoped = default_scoped
       result.extend(*extending_values) if extending_values.any?
       result

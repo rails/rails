@@ -16,13 +16,13 @@ module Rails
     # Jobs are run in a separate thread to catch mistakes where code
     # assumes that the job is run in the same thread.
     class TestQueue < ::Queue
-      # Get a list of the jobs off this queue.  This method may not be
+      # Get a list of the jobs off this queue. This method may not be
       # available on production queues.
       def jobs
         @que.dup
       end
 
-      # Drain the queue, running all jobs in a different thread.  This method
+      # Drain the queue, running all jobs in a different thread. This method
       # may not be available on production queues.
       def drain
         # run the jobs in a separate thread so assumptions of synchronous
@@ -53,7 +53,7 @@ module Rails
             begin
               job.run
             rescue Exception => e
-              Rails.logger.error "Job Error: #{e.message}\n#{e.backtrace.join("\n")}"
+              handle_exception e
             end
           end
         end
@@ -63,6 +63,10 @@ module Rails
       def shutdown
         @queue.push nil
         @thread.join
+      end
+
+      def handle_exception(e)
+        Rails.logger.error "Job Error: #{e.message}\n#{e.backtrace.join("\n")}"
       end
     end
   end

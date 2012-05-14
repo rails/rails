@@ -1,5 +1,5 @@
 module ActionDispatch
-  class Request
+  class Request < Rack::Request
     # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.
@@ -218,7 +218,7 @@ module ActionDispatch
     def call(env)
       @app.call(env)
     ensure
-      session    = env['rack.session'] || {}
+      session    = Request::Session.find(env) || {}
       flash_hash = env[KEY]
 
       if flash_hash

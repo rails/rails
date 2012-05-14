@@ -171,6 +171,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
             post :preview, :on => :collection
           end
         end
+
+        post 'new', :action => 'new', :on => :collection, :as => :new
       end
 
       resources :replies do
@@ -827,6 +829,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal original_options, options
   end
 
+  def test_url_for_does_not_modify_controller
+    controller = '/projects'
+    options = {:controller => controller, :action => 'status', :only_path => true}
+    url = url_for(options)
+
+    assert_equal '/projects/status', url
+    assert_equal '/projects', controller
+  end
+
   # tests the arguments modification free version of define_hash_access
   def test_named_route_with_no_side_effects
     original_options = { :host => 'test.host' }
@@ -874,6 +885,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/projects/1/edit'
     assert_equal 'project#edit', @response.body
     assert_equal '/projects/1/edit', edit_project_path(:id => '1')
+  end
+
+  def test_projects_with_post_action_and_new_path_on_collection
+    post '/projects/new'
+    assert_equal "project#new", @response.body
+    assert_equal "/projects/new", new_projects_path
   end
 
   def test_projects_involvements
@@ -2450,7 +2467,6 @@ class TestMultipleNestedController < ActionDispatch::IntegrationTest
     get "/foo/bar/baz"
     assert_equal "/pooh", @response.body
   end
-
 end
 
 class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
@@ -2510,5 +2526,125 @@ private
 
   def expected_redirect_body(url)
     %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
+  end
+end
+
+class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      get "/:foo" => ok, :constraints => lambda { |r| r.params[:foo] == 'foo' }
+      get "/:bar" => ok
+    end
+  end
+
+  def app; Routes end
+
+  test "parameters are reset between constraint checks" do
+    get "/bar"
+    assert_equal nil, @request.params[:foo]
+    assert_equal "bar", @request.params[:bar]
+  end
+end
+
+class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      get '/foo' => ok, as: :foo
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  test 'enabled when not mounted and default_url_options is empty' do
+    assert Routes.url_helpers.optimize_routes_generation?
+  end
+
+  test 'named route called as singleton method' do
+    assert_equal '/foo', Routes.url_helpers.foo_path
+  end
+
+  test 'named route called on included module' do
+    assert_equal '/foo', foo_path
+  end
+end
+
+class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
+  class CategoriesController < ActionController::Base
+    def show
+      render :text => "categories#show"
+    end
+  end
+
+  class ProductsController < ActionController::Base
+    def show
+      render :text => "products#show"
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      scope :module => "test_named_route_url_helpers" do
+        get "/categories/:id" => 'categories#show', :as => :category
+        get "/products/:id" => 'products#show', :as => :product
+      end
+    end
+  end
+
+  def app; Routes end
+
+  include Routes.url_helpers
+
+  test "url helpers do not ignore nil parameters when using non-optimized routes" do
+    Routes.stubs(:optimize_routes_generation?).returns(false)
+
+    get "/categories/1"
+    assert_response :success
+    assert_raises(ActionController::RoutingError) { product_path(nil) }
+  end
+end
+
+class TestUrlConstraints < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      constraints :subdomain => 'admin' do
+        get '/' => ok, :as => :admin_root
+      end
+
+      scope :constraints => { :protocol => 'https://' } do
+        get '/' => ok, :as => :secure_root
+      end
+
+      get '/' => ok, :as => :alternate_root, :constraints => { :port => 8080 }
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  test "constraints are copied to defaults when using constraints method" do
+    assert_equal 'http://admin.example.com/', admin_root_url
+
+    get 'http://admin.example.com/'
+    assert_response :success
+  end
+
+  test "constraints are copied to defaults when using scope constraints hash" do
+    assert_equal 'https://www.example.com/', secure_root_url
+
+    get 'https://www.example.com/'
+    assert_response :success
+  end
+
+  test "constraints are copied to defaults when using route constraints hash" do
+    assert_equal 'http://www.example.com:8080/', alternate_root_url
+
+    get 'http://www.example.com:8080/'
+    assert_response :success
   end
 end

@@ -2,25 +2,22 @@ require 'rack/utils'
 require 'rack/request'
 require 'rack/session/abstract/id'
 require 'action_dispatch/middleware/cookies'
+require 'action_dispatch/request/session'
 require 'active_support/core_ext/object/blank'
 
 module ActionDispatch
   module Session
     class SessionRestoreError < StandardError #:nodoc:
-    end
+      attr_reader :original_exception
 
-    module DestroyableSession
-      def destroy
-        clear
-        options = @env[Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY] if @env
-        options ||= {}
-        @by.send(:destroy_session, @env, options[:id], options) if @by
-        options[:id] = nil
-        @loaded = false
+      def initialize(const_error)
+        @original_exception = const_error
+
+        super("Session contains objects whose class definition isn't available.\n" +
+          "Remember to require the classes for all objects kept in the session.\n" +
+          "(Original exception: #{const_error.message} [#{const_error.class}])\n")
       end
     end
-
-    ::Rack::Session::Abstract::SessionHash.send :include, DestroyableSession
 
     module Compatibility
       def initialize(app, options = {})
@@ -58,11 +55,8 @@ module ActionDispatch
           begin
             # Note that the regexp does not allow $1 to end with a ':'
             $1.constantize
-          rescue LoadError, NameError => const_error
-            raise ActionDispatch::Session::SessionRestoreError,
-              "Session contains objects whose class definition isn't available.\n" +
-              "Remember to require the classes for all objects kept in the session.\n" +
-              "(Original exception: #{const_error.message} [#{const_error.class}])\n"
+          rescue LoadError, NameError => e
+            raise ActionDispatch::Session::SessionRestoreError, e, e.backtrace
           end
           retry
         else
@@ -71,9 +65,20 @@ module ActionDispatch
       end
     end
 
+    module SessionObject # :nodoc:
+      def prepare_session(env)
+        Request::Session.create(self, env, @default_options)
+      end
+
+      def loaded_session?(session)
+        !session.is_a?(Request::Session) || session.loaded?
+      end
+    end
+
     class AbstractStore < Rack::Session::Abstract::ID
       include Compatibility
       include StaleSessionCheck
+      include SessionObject
 
       private
 

@@ -350,7 +350,7 @@ module ActiveRecord
           end
 
           records_to_destroy.each do |record|
-            association.proxy.destroy(record)
+            association.destroy(record)
           end
         end
 

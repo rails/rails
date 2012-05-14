@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Copy literal route constraints to defaults so that url generation know about them.
+    The copied constraints are `:protocol`, `:subdomain`, `:domain`, `:host` and `:port`.
+
+    *Andrew White*
+
+*   `respond_to` and `respond_with` now raise ActionController::UnknownFormat instead
+    of directly returning head 406. The exception is rescued and converted to 406
+    in the exception handling middleware. *Steven Soroka*
+
+*   Allows `assert_redirected_to` to match against a regular expression. *Andy Lindeman*
+
+*   Add backtrace to development routing error page. *Richard Schneeman*
+
 *   Replace `include_seconds` boolean argument with `:include_seconds => true` option
     in `distance_of_time_in_words` and `time_ago_in_words` signature. *Dmitriy Kiriyenko*
 
@@ -8,7 +21,7 @@
 *   Make current object and counter (when it applies) variables accessible when
     rendering templates with :object / :collection. *Carlos Antonio da Silva*
 
-*   JSONP now uses mimetype application/javascript instead of application/json *omjokine*
+*   JSONP now uses mimetype application/javascript instead of application/json. *omjokine*
 
 *   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*
 
@@ -5767,7 +5780,7 @@
         == Rendering a collection of partials
 
         The example of partial use describes a familar pattern where a template needs
-        to iterate over a array and render a sub template for each of the elements.
+        to iterate over an array and render a sub template for each of the elements.
         This pattern has been implemented as a single method that accepts an array and
         renders a partial by the same name of as the elements contained within. So the
         three-lined example in "Using partials" can be rewritten with a single line:
