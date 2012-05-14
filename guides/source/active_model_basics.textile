@@ -20,7 +20,7 @@ class Person
 
   attribute_method_prefix 'reset_'
   attribute_method_suffix '_highest?'
-  define_attribute_methods ['age']
+  define_attribute_methods 'age'
 
   attr_accessor :age
 
@@ -99,7 +99,7 @@ require 'active_model'
 
 class Person
   include ActiveModel::Dirty
-  define_attribute_methods [:first_name, :last_name]
+  define_attribute_methods :first_name, :last_name
 
   def first_name
     @first_name
