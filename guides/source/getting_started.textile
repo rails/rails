@@ -330,7 +330,10 @@ method called +form_for+. To use this method, add this code into +app/views/post
 
 If you refresh the page now, you'll see the exact same form as in the example. Building forms in Rails is really just that easy!
 
-When you call +form_for+, you pass it an identifying object for this form. In this case, it's the symbol +:post+. This tells the +form_for+ helper what this form is for. Inside the block for this method, the FormBuilder object -- represented by +f+ -- is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to +submit+ on the +f+ object will create a submit button for the form.
+When you call +form_for+, you pass it an identifying object for this
+form. In this case, it's the symbol +:post+. This tells the +form_for+
+helper what this form is for. Inside the block for this method, the
++FormBuilder+ object -- represented by +f+ -- is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to +submit+ on the +f+ object will create a submit button for the form.
 
 There's one problem with this form though. If you inspect the HTML that is generated, by viewing the source of the page, you will see that the +action+ attribute for the form is pointing at +/posts/new+. This is a problem because this route goes to the very page that you're on right at the moment, and that route should only be used to display the form for a new post.
 
@@ -405,8 +408,8 @@ To create the new model, run this command in your terminal:
 $ rails generate model Post title:string text:text
 </shell>
 
-With that command we told Rails that we want a +Post+ model, which
-should have a _title_ attribute of type string, and a _text_ attribute
+With that command we told Rails that we want a +Post+ model, together
+with a _title_ attribute of type string, and a _text_ attribute
 of type text. Those attributes are automatically added to the +posts+
 table in the database and mapped to the +Post+ model.
 
@@ -415,6 +418,11 @@ now, we're only interested in +app/models/post.rb+ and
 +db/migrate/20120419084633_create_posts.rb+ (your name could be a bit
 different). The latter is responsible
 for creating the database structure, which is what we'll look at next.
+
+TIP: Active Record is smart enough to automatically map column names to
+model attributes, which means you don't have to declare attributes
+inside Rails models, as that will be done automatically by Active
+Record.
 
 h4. Running a Migration
 
