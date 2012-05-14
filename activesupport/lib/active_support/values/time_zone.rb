@@ -176,7 +176,7 @@ module ActiveSupport
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
 
     # Assumes self represents an offset from UTC in seconds (as returned from Time#utc_offset)
-    # and turns this into an +HH:MM formatted string. Example:
+    # and turns this into an +HH:MM formatted string.
     #
     #   TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
     def self.seconds_to_utc_offset(seconds, colon = true)
@@ -239,7 +239,7 @@ module ActiveSupport
       "(GMT#{formatted_offset}) #{name}"
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from given values. Example:
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from given values.
     #
     #   Time.zone = "Hawaii"                      # => "Hawaii"
     #   Time.zone.local(2007, 2, 1, 15, 30, 45)   # => Thu, 01 Feb 2007 15:30:45 HST -10:00
@@ -248,7 +248,7 @@ module ActiveSupport
       ActiveSupport::TimeWithZone.new(nil, self, time)
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from number of seconds since the Unix epoch. Example:
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from number of seconds since the Unix epoch.
     #
     #   Time.zone = "Hawaii"        # => "Hawaii"
     #   Time.utc(2000).to_f         # => 946684800.0
@@ -258,7 +258,7 @@ module ActiveSupport
       utc.in_time_zone(self)
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from parsed string. Example:
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from parsed string.
     #
     #   Time.zone = "Hawaii"                      # => "Hawaii"
     #   Time.zone.parse('1999-12-31 14:00:00')    # => Fri, 31 Dec 1999 14:00:00 HST -10:00
@@ -279,7 +279,7 @@ module ActiveSupport
     end
 
     # Returns an ActiveSupport::TimeWithZone instance representing the current time
-    # in the time zone represented by +self+. Example:
+    # in the time zone represented by +self+.
     #
     #   Time.zone = 'Hawaii'  # => "Hawaii"
     #   Time.zone.now         # => Wed, 23 Jan 2008 20:24:27 HST -10:00

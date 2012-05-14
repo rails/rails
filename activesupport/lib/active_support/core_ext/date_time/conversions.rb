@@ -42,7 +42,6 @@ class DateTime
   alias_method :to_default_s, :to_s unless (instance_methods(false) & [:to_s, 'to_s']).empty?
   alias_method :to_s, :to_formatted_s
 
-  # Returns the +utc_offset+ as an +HH:MM formatted string. Examples:
   #
   #   datetime = DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-6, 24))
   #   datetime.formatted_offset         # => "-06:00"

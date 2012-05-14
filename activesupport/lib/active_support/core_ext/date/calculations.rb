@@ -107,8 +107,6 @@ class Date
 
   # Returns a new Date where one or more of the elements have been changed according to the +options+ parameter.
   #
-  # Examples:
-  #
   #   Date.new(2007, 5, 12).change(:day => 1)                  # => Date.new(2007, 5, 1)
   #   Date.new(2007, 5, 12).change(:year => 2005, :month => 1) # => Date.new(2005, 1, 12)
   def change(options)

@@ -74,7 +74,6 @@ module ActiveSupport #:nodoc:
       # Works just like <tt>String#split</tt>, with the exception that the items in the resulting list are Chars
       # instances instead of String. This makes chaining methods easier.
       #
-      # Example:
       #   'Café périferôl'.mb_chars.split(/é/).map { |part| part.upcase.to_s } # => ["CAF", " P", "RIFERÔL"]
       def split(*args)
         @wrapped_string.split(*args).map { |i| i.mb_chars }
@@ -88,7 +87,6 @@ module ActiveSupport #:nodoc:
 
       # Reverses all characters in the string.
       #
-      # Example:
       #   'Café'.mb_chars.reverse.to_s # => 'éfaC'
       def reverse
         chars(Unicode.unpack_graphemes(@wrapped_string).reverse.flatten.pack('U*'))
@@ -97,7 +95,6 @@ module ActiveSupport #:nodoc:
       # Limits the byte size of the string to a number of bytes without breaking characters. Usable
       # when the storage for a string is limited for some reason.
       #
-      # Example:
       #   'こんにちは'.mb_chars.limit(7).to_s # => "こん"
       def limit(limit)
         slice(0...translate_offset(limit))
@@ -105,7 +102,6 @@ module ActiveSupport #:nodoc:
 
       # Converts characters in the string to uppercase.
       #
-      # Example:
       #   'Laurent, où sont les tests ?'.mb_chars.upcase.to_s # => "LAURENT, OÙ SONT LES TESTS ?"
       def upcase
         chars Unicode.upcase(@wrapped_string)
@@ -113,7 +109,6 @@ module ActiveSupport #:nodoc:
 
       # Converts characters in the string to lowercase.
       #
-      # Example:
       #   'VĚDA A VÝZKUM'.mb_chars.downcase.to_s # => "věda a výzkum"
       def downcase
         chars Unicode.downcase(@wrapped_string)
@@ -121,7 +116,6 @@ module ActiveSupport #:nodoc:
 
       # Converts characters in the string to the opposite case.
       #
-      # Example:
       #    'El Cañón".mb_chars.swapcase.to_s # => "eL cAÑÓN"
       def swapcase
         chars Unicode.swapcase(@wrapped_string)
@@ -129,7 +123,6 @@ module ActiveSupport #:nodoc:
 
       # Converts the first character to uppercase and the remainder to lowercase.
       #
-      # Example:
       #  'über'.mb_chars.capitalize.to_s # => "Über"
       def capitalize
         (slice(0) || chars('')).upcase + (slice(1..-1) || chars('')).downcase
@@ -137,7 +130,6 @@ module ActiveSupport #:nodoc:
 
       # Capitalizes the first letter of every word, when possible.
       #
-      # Example:
       #   "ÉL QUE SE ENTERÓ".mb_chars.titleize    # => "Él Que Se Enteró"
       #   "日本語".mb_chars.titleize                 # => "日本語"
       def titleize
@@ -157,7 +149,6 @@ module ActiveSupport #:nodoc:
 
       # Performs canonical decomposition on all the characters.
       #
-      # Example:
       #   'é'.length                         # => 2
       #   'é'.mb_chars.decompose.to_s.length # => 3
       def decompose
@@ -166,7 +157,6 @@ module ActiveSupport #:nodoc:
 
       # Performs composition on all the characters.
       #
-      # Example:
       #   'é'.length                       # => 3
       #   'é'.mb_chars.compose.to_s.length # => 2
       def compose
@@ -175,7 +165,6 @@ module ActiveSupport #:nodoc:
 
       # Returns the number of grapheme clusters in the string.
       #
-      # Example:
       #   'क्षि'.mb_chars.length   # => 4
       #   'क्षि'.mb_chars.grapheme_length # => 3
       def grapheme_length

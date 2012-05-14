@@ -8,8 +8,6 @@ module ActiveSupport
   # instead of the file system root.  The typical silencer use case is to exclude the output of a noisy library from the
   # backtrace, so that you can focus on the rest.
   #
-  # ==== Example:
-  #
   #   bc = BacktraceCleaner.new
   #   bc.add_filter   { |line| line.gsub(Rails.root, '') }
   #   bc.add_silencer { |line| line =~ /mongrel|rubygems/ }
@@ -42,8 +40,6 @@ module ActiveSupport
 
     # Adds a filter from the block provided. Each line in the backtrace will be mapped against this filter.
     #
-    # Example:
-    #
     #   # Will turn "/my/rails/root/app/models/person.rb" into "/app/models/person.rb"
     #   backtrace_cleaner.add_filter { |line| line.gsub(Rails.root, '') }
     def add_filter(&block)
@@ -52,8 +48,6 @@ module ActiveSupport
 
     # Adds a silencer from the block provided. If the silencer returns true for a given line, it will be excluded from
     # the clean backtrace.
-    #
-    # Example:
     #
     #   # Will reject all lines that include the word "mongrel", like "/gems/mongrel/server.rb" or "/app/my_mongrel_server/rb"
     #   backtrace_cleaner.add_silencer { |line| line =~ /mongrel/ }

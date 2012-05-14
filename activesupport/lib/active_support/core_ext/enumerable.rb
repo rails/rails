@@ -1,5 +1,5 @@
 module Enumerable
-  # Calculates a sum from the elements. Examples:
+  # Calculates a sum from the elements.
   #
   #  payments.sum { |p| p.price * p.tax_rate }
   #  payments.sum(&:price)
@@ -26,7 +26,7 @@ module Enumerable
     end
   end
 
-  # Convert an enumerable to a hash. Examples:
+  # Convert an enumerable to a hash.
   #
   #   people.index_by(&:login)
   #     => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}

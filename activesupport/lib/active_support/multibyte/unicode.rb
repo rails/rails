@@ -15,7 +15,6 @@ module ActiveSupport
       # The default normalization used for operations that require normalization. It can be set to any of the
       # normalizations in NORMALIZATION_FORMS.
       #
-      # Example:
       #   ActiveSupport::Multibyte::Unicode.default_normalization_form = :c
       attr_accessor :default_normalization_form
       @default_normalization_form = :kc
@@ -72,7 +71,6 @@ module ActiveSupport
 
       # Unpack the string at grapheme boundaries. Returns a list of character lists.
       #
-      # Example:
       #   Unicode.unpack_graphemes('क्षि') # => [[2325, 2381], [2359], [2367]]
       #   Unicode.unpack_graphemes('Café') # => [[67], [97], [102], [233]]
       def unpack_graphemes(string)
@@ -107,7 +105,6 @@ module ActiveSupport
 
       # Reverse operation of unpack_graphemes.
       #
-      # Example:
       #   Unicode.pack_graphemes(Unicode.unpack_graphemes('क्षि')) # => 'क्षि'
       def pack_graphemes(unpacked)
         unpacked.flatten.pack('U*')

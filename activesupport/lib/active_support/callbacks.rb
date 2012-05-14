@@ -23,8 +23,6 @@ module ActiveSupport
   # methods, procs or lambdas, or callback objects that respond to certain predetermined
   # methods. See +ClassMethods.set_callback+ for details.
   #
-  # ==== Example
-  #
   #   class Record
   #     include ActiveSupport::Callbacks
   #     define_callbacks :save
