@@ -41,7 +41,7 @@ behavior out of the box:
       include ActiveModel::AttributeMethods
 
       attribute_method_prefix 'clear_'
-      define_attribute_methods [:name, :age]
+      define_attribute_methods :name, :age
 
       attr_accessor :name, :age
 
