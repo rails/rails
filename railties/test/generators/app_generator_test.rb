@@ -380,7 +380,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_humans_txt_file
     date = Date.today.strftime("%B %d, %Y")
     run_generator [File.join(destination_root, 'things-43')]
-    assert_file "things-43/public/humans.txt", /Name: Things43/, /Software: Ruby on Rails/, /Date Created: #{date}/
+    assert_file "things-43/public/humans.txt", /Name: Things43/, /Software: Ruby on Rails/
   end
 
 protected
