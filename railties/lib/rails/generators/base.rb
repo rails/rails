@@ -187,10 +187,7 @@ module Rails
 
       # Remove a previously added hook.
       #
-      # ==== Examples
-      #
       #   remove_hook_for :orm
-      #
       def self.remove_hook_for(*names)
         remove_invocation(*names)
 
