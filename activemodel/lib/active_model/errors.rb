@@ -324,7 +324,6 @@ module ActiveModel
           defaults << :"errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.format"
           defaults << :"errors.models.#{klass.model_name.i18n_key}.format"
         end
-        
       end
 
       defaults << :"errors.attributes.#{attribute}.format"
