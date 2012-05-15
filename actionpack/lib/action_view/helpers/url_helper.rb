@@ -322,11 +322,11 @@ module ActionView
       #
       #
       #   <%= button_to('Destroy', 'http://www.example.com', :confirm => 'Are you sure?',
-      #             :method => "delete", :remote => true, :disable_with => 'loading...') %>
+      #             :method => "delete", :remote => true) %>
       #   # => "<form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
       #   #       <div>
       #   #         <input name='_method' value='delete' type='hidden' />
-      #   #         <input value='Destroy' type='submit' disable_with='loading...' data-confirm='Are you sure?' />
+      #   #         <input value='Destroy' type='submit' data-confirm='Are you sure?' />
       #   #         <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #       </div>
       #   #     </form>"
@@ -616,11 +616,9 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            disable_with = html_options.delete("disable_with")
             confirm = html_options.delete('confirm')
             method  = html_options.delete('method')
 
-            html_options["data-disable-with"] = disable_with if disable_with
             html_options["data-confirm"] = confirm if confirm
             add_method_to_attributes!(html_options, method) if method
 
