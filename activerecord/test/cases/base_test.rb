@@ -1514,11 +1514,7 @@ class BasicsTest < ActiveRecord::TestCase
     after_seq     = Joke.sequence_name
 
     assert_not_equal before_columns, after_columns
-    unless before_seq.nil? && after_seq.nil?
-      assert_not_equal before_seq, after_seq
-      assert_equal "cold_jokes_id_seq", before_seq
-      assert_equal "funny_jokes_id_seq", after_seq
-    end
+    assert_not_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
   end
 
   def test_dont_clear_sequence_name_when_setting_explicitly
