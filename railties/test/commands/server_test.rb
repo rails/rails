@@ -4,14 +4,14 @@ require 'rails/commands/server'
 class Rails::ServerTest < ActiveSupport::TestCase
 
   def test_environment_with_server_option
-    args    = ["thin", "RAILS_ENV=production"]
+    args    = ["thin", "-e", "production"]
     options = Rails::Server::Options.new.parse!(args)
     assert_equal 'production', options[:environment]
     assert_equal 'thin', options[:server]
   end
 
   def test_environment_without_server_option
-    args    = ["RAILS_ENV=production"]
+    args    = ["-e", "production"]
     options = Rails::Server::Options.new.parse!(args)
     assert_equal 'production', options[:environment]
     assert_nil options[:server]
