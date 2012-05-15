@@ -10,7 +10,7 @@ class Hash
     dup.deep_merge!(other_hash)
   end
 
-  # Same as +deep_merge+, but modifies +self+
+  # Same as +deep_merge+, but modifies +self+.
   def deep_merge!(other_hash)
     other_hash.each_pair do |k,v|
       tv = self[k]
