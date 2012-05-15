@@ -97,7 +97,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_button_to_with_javascript_disable_with
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\"><div><input data-disable-with=\"Greeting...\" type=\"submit\" value=\"Hello\" /></div></form>",
-      button_to("Hello", "http://www.example.com", 'data-disable-with' => "Greeting...")
+      button_to("Hello", "http://www.example.com", :disable_with => "Greeting...")
     )
   end
 
@@ -109,6 +109,20 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
       button_to("Hello", "http://www.example.com", :remote => true, :confirm => "Are you sure?")
+    )
+  end
+
+  def test_button_to_with_remote_and_javascript_disable_with
+    assert_dom_equal(
+      "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-disable-with=\"Greeting...\" type=\"submit\" value=\"Hello\" /></div></form>",
+      button_to("Hello", "http://www.example.com", :remote => true, :disable_with => "Greeting...")
+    )
+  end
+
+  def test_button_to_with_remote_and_javascript_confirm_and_javascript_disable_with
+    assert_dom_equal(
+      "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-disable-with=\"Greeting...\" data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
+      button_to("Hello", "http://www.example.com", :remote => true, :confirm => "Are you sure?", :disable_with => "Greeting...")
     )
   end
 

@@ -78,7 +78,7 @@ will produce
 
 <ruby>
 button_to('Destroy', 'http://www.example.com', :confirm => 'Are you sure?',
-          :method => "delete", :remote => true, 'data-disable-with' => 'loading...')
+          :method => "delete", :remote => true, :disable_with => 'loading...')
 </ruby>
 
 will produce
@@ -87,7 +87,7 @@ will produce
 <form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
   <div>
     <input name='_method' value='delete' type='hidden' />
-    <input value='Destroy' type='submit' data-disable-with='loading...' data-confirm='Are you sure?' />
+    <input value='Destroy' type='submit' disable_with='loading...' data-confirm='Are you sure?' />
   </div>
 </form>
 </html>

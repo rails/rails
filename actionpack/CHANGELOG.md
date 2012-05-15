@@ -1,9 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Remove `:disable_with` in favor of `'data-disable-with'` option from `submit_tag`, `button_tag` and `button_to` helpers.
-
-    *Carlos Galdino + Rafael Mendonça França*
-
 *   Remove `:mouseover` option from `image_tag` helper. *Rafael Mendonça França*
 
 *   The `select` method (select tag) forces :include_blank  if `required` is true and
