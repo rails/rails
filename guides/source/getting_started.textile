@@ -510,7 +510,7 @@ wherever the model was saved or not.
 h4. Showing Posts
 
 If you submit the form again now, Rails will complain about not finding
-the +show+ action. That's not very useful though, so let's aff the
+the +show+ action. That's not very useful though, so let's add the
 +show+ action before proceeding. Open +config/routes.rb+ and add the following route:
 
 <ruby>
