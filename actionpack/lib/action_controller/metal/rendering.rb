@@ -11,8 +11,8 @@ module ActionController
     end
 
     # Check for double render errors and set the content_type after rendering.
-    def render(*args) #:nodoc:
-      raise ::AbstractController::DoubleRenderError if response_body
+    def render(*) #:nodoc:
+      raise AbstractController::DoubleRenderError if response_body
       super
       self.content_type ||= Mime[lookup_context.rendered_format].to_s
       response_body
@@ -37,7 +37,7 @@ module ActionController
 
     # Normalize arguments by catching blocks and setting them on :update.
     def _normalize_args(action=nil, options={}, &blk) #:nodoc:
-      options = super
+      options = super(action, options)
       options[:update] = blk if block_given?
       options
     end
