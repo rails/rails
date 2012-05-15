@@ -1336,10 +1336,11 @@ module ActionDispatch
             msg  = "Your router tried to #draw the external file #{name}.rb,\n" \
                    "but the file was not found in:\n\n"
             msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
-            raise msg
+            raise ArgumentError, msg
           end
-
-          instance_eval(path.join("#{name}.rb").read)
+          
+          route_path = path.join("#{name}.rb")
+          instance_eval(route_path.read, route_path.to_s)
         end
 
         # match 'path' => 'controller#action'
