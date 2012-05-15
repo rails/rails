@@ -1,3 +1,5 @@
+require 'active_support/concern'
+
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
   # It's like a simple key/value store backed into your record when you don't care about being able to
@@ -30,8 +32,17 @@ module ActiveRecord
   #   class SuperUser < User
   #     store_accessor :settings, :privileges, :servants
   #   end
+  #
+  # The stored attribute names can be retrieved using +stored_attributes+.
+  #
+  #   User.stored_attributes[:settings] # [:color, :homepage]
   module Store
     extend ActiveSupport::Concern
+
+    included do
+      config_attribute :stored_attributes
+      self.stored_attributes = {}
+    end
 
     module ClassMethods
       def store(store_attribute, options = {})
@@ -52,6 +63,8 @@ module ActiveRecord
             send(store_attribute)[key.to_s]
           end
         end
+
+        self.stored_attributes[store_attribute] = keys.flatten
       end
     end
   end
