@@ -344,7 +344,7 @@ class ValidationsTest < ActiveModel::TestCase
     Topic.validates :title, options
     assert_equal({ :presence => true }, options)
   end
-  
+
   def test_dup_validity_is_independent
     Topic.validates_presence_of :title
     topic = Topic.new("title" => "Litterature")
