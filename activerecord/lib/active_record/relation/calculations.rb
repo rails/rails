@@ -108,15 +108,36 @@ module ActiveRecord
       0
     end
 
-    # This method is designed to perform select by a single column as direct SQL query
-    # Returns <tt>Array</tt> with values of the specified column name
-    # The values has same data type as column.
+    # Use <tt>pluck</tt> as a shortcut to select a single attribute without
+    # loading a bunch of records just to grab one attribute you want.
+    #
+    #   Person.pluck(:name)
+    #
+    # instead of
+    #
+    #   Person.all.map(&:name)
+    #
+    # Pluck returns an <tt>Array</tt> of attribute values type-casted to match
+    # the plucked column name, if it can be deduced. Plucking a SQL fragment
+    # returns String values by default.
     #
     # Examples:
     #
-    #   Person.pluck(:id) # SELECT people.id FROM people
-    #   Person.uniq.pluck(:role) # SELECT DISTINCT role FROM people
-    #   Person.where(:age => 21).limit(5).pluck(:id) # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
+    #   Person.pluck(:id)
+    #   # SELECT people.id FROM people
+    #   # => [1, 2, 3]
+    #
+    #   Person.uniq.pluck(:role)
+    #   # SELECT DISTINCT role FROM people
+    #   # => ['admin', 'member', 'guest']
+    #
+    #   Person.where(:age => 21).limit(5).pluck(:id)
+    #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
+    #   # => [2, 3]
+    #
+    #   Person.pluck('DATEDIFF(updated_at, created_at)')
+    #   # SELECT DATEDIFF(updated_at, created_at) FROM people
+    #   # => ['0', '27761', '173']
     #
     def pluck(column_name)
       key = column_name.to_s.split('.', 2).last
