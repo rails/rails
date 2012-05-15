@@ -127,7 +127,7 @@ module ActiveRecord
         object.is_a?(self)
       end
 
-      # Returns an instance of +Arel::Table+ loaded with the curent
+      # Returns an instance of +Arel::Table+ loaded with the current
       # table name
       #
       #   class Post < ActiveRecord::Base
