@@ -1516,8 +1516,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal before_columns, after_columns
     unless before_seq.nil? && after_seq.nil?
       assert_not_equal before_seq, after_seq
-      assert_equal "cold_jokes_id_seq", before_seq
-      assert_equal "funny_jokes_id_seq", after_seq
+      if current_adapter?(:OracleAdapter)
+        assert_equal "cold_jokes_seq", before_seq
+        assert_equal "funny_jokes_seq", after_seq
+      else
+        assert_equal "cold_jokes_id_seq", before_seq
+        assert_equal "funny_jokes_id_seq", after_seq
+      end
     end
   end
 
