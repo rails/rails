@@ -737,9 +737,7 @@ column.
 class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
-    Product.all.each do |product|
-      product.update_attributes!(:flag => false)
-    end
+    Product.update_all :flag => false
   end
 end
 </ruby>
@@ -762,9 +760,7 @@ column.
 class AddFuzzToProduct < ActiveRecord::Migration
   def change
     add_column :products, :fuzz, :string
-    Product.all.each do |product|
-      product.update_attributes! :fuzz => 'fuzzy'
-    end
+    Product.update_all :fuzz => 'fuzzy'
   end
 end
 </ruby>
@@ -816,9 +812,7 @@ class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
     Product.reset_column_information
-    Product.all.each do |product|
-      product.update_attributes!(:flag => false)
-    end
+    Product.update_all :flag => false
   end
 end
 </ruby>
@@ -833,9 +827,7 @@ class AddFuzzToProduct < ActiveRecord::Migration
   def change
     add_column :products, :fuzz, :string
     Product.reset_column_information
-    Product.all.each do |product|
-      product.update_attributes!(:fuzz => 'fuzzy')
-    end
+    Product.update_all :fuzz => 'fuzzy'
   end
 end
 </ruby>
