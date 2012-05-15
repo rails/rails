@@ -1,6 +1,3 @@
-require 'active_support/concern'
-require 'active_support/core_ext/class/attribute'
-
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
   # It's like a simple key/value store backed into your record when you don't care about being able to
@@ -41,7 +38,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :stored_attributes
+      config_attribute :stored_attributes
       self.stored_attributes = {}
     end
 
