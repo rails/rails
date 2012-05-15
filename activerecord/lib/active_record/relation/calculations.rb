@@ -178,7 +178,7 @@ module ActiveRecord
     #
     def pluck(column_name)
       column_name = column_name.to_s
-      klass.connection.select_all(select(column_name).arel).map! do |attributes|
+      connection.select_all(select(column_name).arel).map! do |attributes|
         klass.type_cast_attribute(attributes.keys.first, klass.initialize_attributes(attributes))
       end
     end
@@ -240,7 +240,7 @@ module ActiveRecord
         query_builder = relation.arel
       end
 
-      type_cast_calculated_value(@klass.connection.select_value(query_builder), column_for(column_name), operation)
+      type_cast_calculated_value(connection.select_value(query_builder), column_for(column_name), operation)
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -253,7 +253,7 @@ module ActiveRecord
         [aliaz, column_for(field)]
       }
 
-      group = @klass.connection.adapter_name == 'FrontBase' ? group_aliases : group_fields
+      group = connection.adapter_name == 'FrontBase' ? group_aliases : group_fields
 
       if operation == 'count' && column_name == :all
         aggregate_alias = 'count_all'
@@ -276,7 +276,7 @@ module ActiveRecord
       relation = except(:group).group(group.join(','))
       relation.select_values = select_values
 
-      calculated_data = @klass.connection.select_all(relation)
+      calculated_data = connection.select_all(relation)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
@@ -310,7 +310,7 @@ module ActiveRecord
       table_name.strip!
       table_name.gsub!(/ +/, '_')
 
-      @klass.connection.table_alias_for(table_name)
+      connection.table_alias_for(table_name)
     end
 
     def column_for(field)

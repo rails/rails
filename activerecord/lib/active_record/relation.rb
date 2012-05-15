@@ -46,7 +46,7 @@ module ActiveRecord
       im = arel.create_insert
       im.into @table
 
-      conn = @klass.connection
+      conn = connection
 
       substitutes = values.sort_by { |arel_attr,_| arel_attr.name }
       binds       = substitutes.map do |arel_attr, value|
@@ -284,14 +284,14 @@ module ActiveRecord
         stmt.key = table[primary_key]
 
         if joins_values.any?
-          @klass.connection.join_to_update(stmt, arel)
+          connection.join_to_update(stmt, arel)
         else
           stmt.take(arel.limit)
           stmt.order(*arel.orders)
           stmt.wheres = arel.constraints
         end
 
-        @klass.connection.update stmt, 'SQL', bind_values
+        connection.update stmt, 'SQL', bind_values
       end
     end
 
@@ -408,7 +408,7 @@ module ActiveRecord
         where(conditions).delete_all
       else
         statement = arel.compile_delete
-        affected = @klass.connection.delete(statement, 'SQL', bind_values)
+        affected = connection.delete(statement, 'SQL', bind_values)
 
         reset
         affected
@@ -454,7 +454,7 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= klass.connection.to_sql(arel, @bind_values.dup)
+      @to_sql ||= connection.to_sql(arel, @bind_values.dup)
     end
 
     def where_values_hash
