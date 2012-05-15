@@ -165,6 +165,12 @@ module ActiveModel
       end
     end
 
+    # Clean the +Errors+ object if instance is duped
+    def initialize_dup(other) # :nodoc:
+       @errors = nil
+       super
+    end
+
     # Returns the +Errors+ object that holds all information about attribute error messages.
     def errors
       @errors ||= Errors.new(self)
