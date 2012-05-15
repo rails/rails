@@ -130,7 +130,8 @@ module ActiveRecord
       column = types[key]
 
       result.map do |attributes|
-        value = klass.initialize_attributes(attributes)[key]
+        raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
+        value = klass.initialize_attributes(attributes).first[1]
         if column
           column.type_cast value
         else

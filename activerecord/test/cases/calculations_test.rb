@@ -466,6 +466,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
   end
 
+  def test_pluck_with_selection_clause
+    assert_equal [50, 53, 55, 60], Account.pluck('DISTINCT credit_limit').sort
+  end
+
+  def test_pluck_expects_a_single_selection
+    assert_raise(ArgumentError) { Account.pluck 'id, credit_limit' }
+  end
+
   def test_plucks_with_ids
     assert_equal Company.all.map(&:id).sort, Company.ids.sort
   end
