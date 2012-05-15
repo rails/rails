@@ -4,7 +4,6 @@ require 'active_support/i18n'
 
 module ActiveSupport
   module Inflector
-
     # Replaces non-ASCII characters with an ASCII approximation, or if none
     # exists, a replacement character which defaults to "?".
     #
@@ -91,6 +90,5 @@ module ActiveSupport
       end
       parameterized_string.downcase
     end
-
   end
 end
