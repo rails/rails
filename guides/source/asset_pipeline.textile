@@ -518,7 +518,7 @@ A robust configuration for Apache is possible but tricky; please Google around. 
 
 h4. Local Precompilation
 
-There are several reasons why you might precompile your assets locally. Among them are:
+There are several reasons why you might want to precompile your assets locally. Among them are:
 
 * You may not have write access to your production file system.
 * You may be deploying to more than one server, and want to avoid the duplication of work.
@@ -528,10 +528,10 @@ Local compilation allows you to commit the compiled files into source control, a
 
 There are two caveats:
 
-* You must not run the Capistrano deployment task.
+* You must not run the Capistrano deployment task that precompiles assets.
 * You must change the following two application configuration settings.
 
-In development.rb place the following line:
+In <tt>config/environments/development.rb</tt>, place the following line:
 
 <erb>
 config.assets.prefix = "/dev-assets"
@@ -543,11 +543,9 @@ You will also need this in application.rb:
 config.assets.initialize_on_precompile = false
 </erb>
 
-The +prefix+ change makes rails use a different URL for serving assets in development mode, and so pass all requests to Sprockets. Production is still set to +/assets+. Without this changes the application would serve the precompiled assets in development, and you would not see any local changes until you next compiled assets.
+The +prefix+ change makes Rails use a different URL for serving assets in development mode, and pass all requests to Sprockets. The prefix is still set to +/assets+ in the production environment. Without this change, the application would serve the precompiled assets from +public/assets+ in development, and you would not see any local changes until you compile assets again.
 
-The +initialize_on_precompile+ change tell the precompile task to run without invoking Rails.
-
-You will also need to ensure that any compressors or minifers are available on you development system.
+The +initialize_on_precompile+ change tell the precompile task to run without invoking Rails. You will also need to ensure that any compressors or minifiers are available on your development system.
 
 In practice, this will allow you to precompile locally, have those files in your working tree, and commit those files to source control when needed. Development mode will work as expected.
 
