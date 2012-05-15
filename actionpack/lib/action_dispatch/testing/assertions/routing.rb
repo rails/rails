@@ -26,7 +26,6 @@ module ActionDispatch
       #
       # The +message+ parameter allows you to pass in an error message that is displayed upon failure.
       #
-      # ==== Examples
       #   # Check the default route (i.e., the index action)
       #   assert_recognizes({:controller => 'items', :action => 'index'}, 'items')
       #
@@ -57,7 +56,6 @@ module ActionDispatch
       #
       # The +defaults+ parameter is unused.
       #
-      # ==== Examples
       #   # Asserts that the default action is generated for a route with no action
       #   assert_generates "/items", :controller => "items", :action => "index"
       #
@@ -100,7 +98,6 @@ module ActionDispatch
       # The +extras+ hash allows you to specify options that would normally be provided as a query string to the action. The
       # +message+ parameter allows you to specify a custom error message to display upon failure.
       #
-      # ==== Examples
       #  # Assert a basic route: a controller with the default action (index)
       #  assert_routing '/home', :controller => 'home', :action => 'index'
       #

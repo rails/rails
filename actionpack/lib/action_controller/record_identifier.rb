@@ -3,7 +3,7 @@ require 'active_support/core_ext/module'
 module ActionController
   # The record identifier encapsulates a number of naming conventions for dealing with records, like Active Records or
   # pretty much any other model type that has an id. These patterns are then used to try elevate the view actions to
-  # a higher logical level. Example:
+  # a higher logical level.
   #
   #   # routes
   #   resources :posts
@@ -30,7 +30,7 @@ module ActionController
     JOIN = '_'.freeze
     NEW = 'new'.freeze
 
-    # The DOM class convention is to use the singular form of an object or class. Examples:
+    # The DOM class convention is to use the singular form of an object or class.
     #
     #   dom_class(post)   # => "post"
     #   dom_class(Person) # => "person"
@@ -45,7 +45,7 @@ module ActionController
     end
 
     # The DOM id convention is to use the singular form of an object or class with the id following an underscore.
-    # If no id is found, prefix with "new_" instead. Examples:
+    # If no id is found, prefix with "new_" instead.
     #
     #   dom_id(Post.find(45))       # => "post_45"
     #   dom_id(Post.new)            # => "new_post"

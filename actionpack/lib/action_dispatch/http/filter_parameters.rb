@@ -10,8 +10,6 @@ module ActionDispatch
     # value of the params hash and all subhashes is passed to it, the value
     # or key can be replaced using String#replace or similar method.
     #
-    # Examples:
-    #
     #   env["action_dispatch.parameter_filter"] = [:password]
     #   => replaces the value to all keys matching /password/i with "[FILTERED]"
     #
@@ -22,7 +20,6 @@ module ActionDispatch
     #     v.reverse! if k =~ /secret/i
     #   end
     #   => reverses the value to all keys matching /secret/i
-    #
     module FilterParameters
       extend ActiveSupport::Concern
 

@@ -54,7 +54,6 @@ module ActionView
         # Full paths from the document root will be passed through.
         # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
         # 
-        # ==== Examples
         #   stylesheet_path "style"                                  # => /stylesheets/style.css
         #   stylesheet_path "dir/style.css"                          # => /stylesheets/dir/style.css
         #   stylesheet_path "/dir/style.css"                         # => /dir/style.css
@@ -79,7 +78,6 @@ module ActionView
         # to "screen", so you must explicitely set it to "all" for the stylesheet(s) to
         # apply to all media types.
         #
-        # ==== Examples
         #   stylesheet_link_tag "style" # =>
         #     <link href="/stylesheets/style.css" media="screen" rel="stylesheet" />
         #
@@ -117,7 +115,6 @@ module ActionView
         # is set to true (which is the case by default for the Rails production environment, but not for the development
         # environment). Examples:
         #
-        # ==== Examples
         #   stylesheet_link_tag :all, :cache => true # when config.perform_caching is false =>
         #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" />
         #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" />

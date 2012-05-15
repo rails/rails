@@ -132,8 +132,6 @@ module ActionDispatch
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
       # +url_for+ is forwarded to the Routes module.
       #
-      # Examples:
-      #
       #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :port => '8080'
       #    # => 'http://somehost.org:8080/tasks/testing'
       #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :anchor => 'ok', :only_path => true

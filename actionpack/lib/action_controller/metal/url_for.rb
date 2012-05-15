@@ -6,8 +6,6 @@ module ActionController
   # url options like the +host+. In order to do so, this module requires the host class
   # to implement +env+ and +request+, which need to be a Rack-compatible.
   #
-  # Example:
-  #
   #   class RootUrl
   #     include ActionController::UrlFor
   #     include Rails.application.routes.url_helpers
@@ -19,7 +17,6 @@ module ActionController
   #       @url        = root_path # named route from the application.
   #     end
   #   end
-  #
   module UrlFor
     extend ActiveSupport::Concern
 

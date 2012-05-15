@@ -15,14 +15,11 @@ module ActionDispatch
       # or its symbolic equivalent <tt>assert_response(:not_implemented)</tt>.
       # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list.
       #
-      # ==== Examples
-      #
       #   # assert that the response was a redirection
       #   assert_response :redirect
       #
       #   # assert that the response code was status code 401 (unauthorized)
       #   assert_response 401
-      #
       def assert_response(type, message = nil)
         message ||= "Expected response to be a <#{type}>, but was <#{@response.response_code}>"
 
@@ -42,8 +39,6 @@ module ActionDispatch
       # This match can be partial, such that <tt>assert_redirected_to(:controller => "weblog")</tt> will also
       # match the redirection of <tt>redirect_to(:controller => "weblog", :action => "show")</tt> and so on.
       #
-      # ==== Examples
-      #
       #   # assert that the redirection was to the "index" action on the WeblogController
       #   assert_redirected_to :controller => "weblog", :action => "index"
       #
@@ -55,7 +50,6 @@ module ActionDispatch
       #
       #   # asserts that the redirection matches the regular expression
       #   assert_redirected_to %r(\Ahttp://example.org)
-      #
       def assert_redirected_to(options = {}, message=nil)
         assert_response(:redirect, message)
         return true if options === @response.location

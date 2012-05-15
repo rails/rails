@@ -252,7 +252,6 @@ module ActionView
       # The following call would generate such a tag:
       #
       #   <%= favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png' %>
-      #
       def favicon_link_tag(source='favicon.ico', options={})
         tag('link', {
           :rel  => 'shortcut icon',
@@ -290,7 +289,6 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +video_tag+ to build the video path.
       #
-      # ==== Examples
       #   video_path("hd")                                            # => /videos/hd
       #   video_path("hd.avi")                                        # => /videos/hd.avi
       #   video_path("trailers/hd.avi")                               # => /videos/trailers/hd.avi
@@ -312,7 +310,6 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +audio_tag+ to build the audio path.
       #
-      # ==== Examples
       #   audio_path("horse")                                            # => /audios/horse
       #   audio_path("horse.wav")                                        # => /audios/horse.wav
       #   audio_path("sounds/horse.wav")                                 # => /audios/sounds/horse.wav
@@ -333,7 +330,6 @@ module ActionView
       # Computes the path to a font asset in the public fonts directory.
       # Full paths from the document root will be passed through.
       #
-      # ==== Examples
       #   font_path("font")                                           # => /fonts/font
       #   font_path("font.ttf")                                       # => /fonts/font.ttf
       #   font_path("dir/font.ttf")                                   # => /fonts/dir/font.ttf
@@ -368,22 +364,22 @@ module ActionView
       #   This can be used to implement an easy image toggle that fires on onmouseover.
       #
       # ==== Examples
-      #  image_tag("icon")  # =>
-      #    <img src="/images/icon" alt="Icon" />
-      #  image_tag("icon.png")  # =>
-      #    <img src="/images/icon.png" alt="Icon" />
-      #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")  # =>
-      #    <img src="/images/icon.png" width="16" height="10" alt="Edit Entry" />
-      #  image_tag("/icons/icon.gif", :size => "16x16")  # =>
-      #    <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
-      #  image_tag("/icons/icon.gif", :height => '32', :width => '32') # =>
-      #    <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
-      #  image_tag("/icons/icon.gif", :class => "menu_icon") # =>
-      #    <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
-      #  image_tag("mouse.png", :mouseover => "/images/mouse_over.png") # =>
-      #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
-      #  image_tag("mouse.png", :mouseover => image_path("mouse_over.png")) # =>
-      #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
+      #   image_tag("icon")  # =>
+      #     <img src="/images/icon" alt="Icon" />
+      #   image_tag("icon.png")  # =>
+      #     <img src="/images/icon.png" alt="Icon" />
+      #   image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")  # =>
+      #     <img src="/images/icon.png" width="16" height="10" alt="Edit Entry" />
+      #   image_tag("/icons/icon.gif", :size => "16x16")  # =>
+      #     <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
+      #   image_tag("/icons/icon.gif", :height => '32', :width => '32') # =>
+      #     <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
+      #   image_tag("/icons/icon.gif", :class => "menu_icon") # =>
+      #     <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
+      #   image_tag("mouse.png", :mouseover => "/images/mouse_over.png") # =>
+      #     <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
+      #   image_tag("mouse.png", :mouseover => image_path("mouse_over.png")) # =>
+      #     <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
       def image_tag(source, options={})
         options = options.symbolize_keys
 
@@ -426,24 +422,24 @@ module ActionView
       #   value is not in the correct format.
       #
       # ==== Examples
-      #  video_tag("trailer")  # =>
-      #    <video src="/videos/trailer" />
-      #  video_tag("trailer.ogg")  # =>
-      #    <video src="/videos/trailer.ogg" />
-      #  video_tag("trailer.ogg", :controls => true, :autobuffer => true)  # =>
-      #    <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" />
-      #  video_tag("trailer.m4v", :size => "16x10", :poster => "screenshot.png")  # =>
-      #    <video src="/videos/trailer.m4v" width="16" height="10" poster="/images/screenshot.png" />
-      #  video_tag("/trailers/hd.avi", :size => "16x16")  # =>
-      #    <video src="/trailers/hd.avi" width="16" height="16" />
-      #  video_tag("/trailers/hd.avi", :height => '32', :width => '32') # =>
-      #    <video height="32" src="/trailers/hd.avi" width="32" />
-      #  video_tag("trailer.ogg", "trailer.flv") # =>
-      #    <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
-      #  video_tag(["trailer.ogg", "trailer.flv"]) # =>
-      #    <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
-      #  video_tag(["trailer.ogg", "trailer.flv"], :size => "160x120") # =>
-      #    <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   video_tag("trailer")  # =>
+      #     <video src="/videos/trailer" />
+      #   video_tag("trailer.ogg")  # =>
+      #     <video src="/videos/trailer.ogg" />
+      #   video_tag("trailer.ogg", :controls => true, :autobuffer => true)  # =>
+      #     <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" />
+      #   video_tag("trailer.m4v", :size => "16x10", :poster => "screenshot.png")  # =>
+      #     <video src="/videos/trailer.m4v" width="16" height="10" poster="/images/screenshot.png" />
+      #   video_tag("/trailers/hd.avi", :size => "16x16")  # =>
+      #     <video src="/trailers/hd.avi" width="16" height="16" />
+      #   video_tag("/trailers/hd.avi", :height => '32', :width => '32') # =>
+      #     <video height="32" src="/trailers/hd.avi" width="32" />
+      #   video_tag("trailer.ogg", "trailer.flv") # =>
+      #     <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   video_tag(["trailer.ogg", "trailer.flv"]) # =>
+      #     <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   video_tag(["trailer.ogg", "trailer.flv"], :size => "160x120") # =>
+      #     <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       def video_tag(*sources)
         multiple_sources_tag('video', sources) do |options|
           options[:poster] = path_to_image(options[:poster]) if options[:poster]
@@ -458,15 +454,14 @@ module ActionView
       # The +source+ can be full path or file that exists in
       # your public audios directory.
       #
-      # ==== Examples
-      #  audio_tag("sound")  # =>
-      #    <audio src="/audios/sound" />
-      #  audio_tag("sound.wav")  # =>
-      #    <audio src="/audios/sound.wav" />
-      #  audio_tag("sound.wav", :autoplay => true, :controls => true)  # =>
-      #    <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
-      #  audio_tag("sound.wav", "sound.mid")  # =>
-      #    <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
+      #   audio_tag("sound")  # =>
+      #     <audio src="/audios/sound" />
+      #   audio_tag("sound.wav")  # =>
+      #     <audio src="/audios/sound.wav" />
+      #   audio_tag("sound.wav", :autoplay => true, :controls => true)  # =>
+      #     <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
+      #   audio_tag("sound.wav", "sound.mid")  # =>
+      #     <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
       def audio_tag(*sources)
         multiple_sources_tag('audio', sources)
       end

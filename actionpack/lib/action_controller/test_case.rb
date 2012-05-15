@@ -56,8 +56,6 @@ module ActionController
 
     # Asserts that the request was rendered with the appropriate template file or partials.
     #
-    # ==== Examples
-    #
     #   # assert that the "new" view template was rendered
     #   assert_template "new"
     #
@@ -84,7 +82,6 @@ module ActionController
     #
     #   # assert that the "_customer" partial was rendered with a specific object
     #   assert_template :partial => '_customer', :locals => { :customer => @customer }
-    #
     def assert_template(options = {}, message = nil)
       # Force body to be read in case the
       # template is being streamed
@@ -350,7 +347,6 @@ module ActionController
   # == \Testing named routes
   #
   # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
-  # Example:
   #
   #  assert_redirected_to page_url(:title => 'foo')
   class TestCase < ActiveSupport::TestCase
@@ -369,12 +365,11 @@ module ActionController
       module ClassMethods
 
         # Sets the controller class name. Useful if the name can't be inferred from test class.
-        # Normalizes +controller_class+ before using. Examples:
+        # Normalizes +controller_class+ before using.
         #
         #   tests WidgetController
         #   tests :widget
         #   tests 'widget'
-        #
         def tests(controller_class)
           case controller_class
           when String, Symbol
