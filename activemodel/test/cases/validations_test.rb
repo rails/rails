@@ -339,4 +339,19 @@ class ValidationsTest < ActiveModel::TestCase
     end
     assert_equal "Title can't be blank", exception.message
   end
+
+  def test_dup_validity_is_independent
+    Topic.validates_presence_of :title
+    topic = Topic.new("title" => "Litterature")
+    topic.valid?
+
+    duped = topic.dup
+    duped.title = nil
+    assert duped.invalid?
+
+    topic.title = nil
+    duped.title = 'Mathematics'
+    assert topic.invalid?
+    assert duped.valid?
+  end
 end
