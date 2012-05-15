@@ -540,7 +540,7 @@ module ActiveRecord
                 :precision => column.precision, :scale => column.scale,
                 :null => column.null)
             end
-            @definition.primary_key(primary_key(from)) if primary_key(from)
+            @definition.primary_key(from_primary_key) if from_primary_key
             yield @definition if block_given?
           end
 
