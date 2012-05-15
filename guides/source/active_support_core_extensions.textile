@@ -1277,20 +1277,6 @@ The <tt>inquiry</tt> method converts a string into a +StringInquirer+ object mak
 "active".inquiry.inactive?       # => false
 </ruby>
 
-h4. Key-based Interpolation
-
-In Ruby 1.9 the <tt>%</tt> string operator supports key-based interpolation, both formatted and unformatted:
-
-<ruby>
-"Total is %<total>.02f" % {:total => 43.1}  # => Total is 43.10
-"I say %{foo}" % {:foo => "wadus"}          # => "I say wadus"
-"I say %{woo}" % {:foo => "wadus"}          # => KeyError
-</ruby>
-
-Active Support adds that functionality to <tt>%</tt> in previous versions of Ruby.
-
-NOTE: Defined in +active_support/core_ext/string/interpolation.rb+.
-
 h4. +starts_with?+ and +ends_with?+
 
 Active Support defines 3rd person aliases of +String#start_with?+ and +String#end_with?+:
