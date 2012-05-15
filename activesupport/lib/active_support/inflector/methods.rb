@@ -16,7 +16,6 @@ module ActiveSupport
 
     # Returns the plural form of the word in the string.
     #
-    # Examples:
     #   "post".pluralize             # => "posts"
     #   "octopus".pluralize          # => "octopi"
     #   "sheep".pluralize            # => "sheep"
@@ -28,7 +27,6 @@ module ActiveSupport
 
     # The reverse of +pluralize+, returns the singular form of a word in a string.
     #
-    # Examples:
     #   "posts".singularize            # => "post"
     #   "octopi".singularize           # => "octopus"
     #   "sheep".singularize            # => "sheep"
@@ -43,7 +41,6 @@ module ActiveSupport
     #
     # +camelize+ will also convert '/' to '::' which is useful for converting paths to namespaces.
     #
-    # Examples:
     #   "active_model".camelize                # => "ActiveModel"
     #   "active_model".camelize(:lower)        # => "activeModel"
     #   "active_model/errors".camelize         # => "ActiveModel::Errors"
@@ -67,7 +64,6 @@ module ActiveSupport
     #
     # Changes '::' to '/' to convert namespaces to paths.
     #
-    # Examples:
     #   "ActiveModel".underscore         # => "active_model"
     #   "ActiveModel::Errors".underscore # => "active_model/errors"
     #
@@ -89,7 +85,6 @@ module ActiveSupport
     # Capitalizes the first word and turns underscores into spaces and strips a
     # trailing "_id", if any. Like +titleize+, this is meant for creating pretty output.
     #
-    # Examples:
     #   "employee_salary" # => "Employee salary"
     #   "author_id"       # => "Author"
     def humanize(lower_case_and_underscored_word)
@@ -108,7 +103,6 @@ module ActiveSupport
     #
     # +titleize+ is also aliased as +titlecase+.
     #
-    # Examples:
     #   "man from the boondocks".titleize   # => "Man From The Boondocks"
     #   "x-men: the last stand".titleize    # => "X Men: The Last Stand"
     #   "TheManWithoutAPast".titleize       # => "The Man Without A Past"
@@ -120,7 +114,6 @@ module ActiveSupport
     # Create the name of a table like Rails does for models to table names. This method
     # uses the +pluralize+ method on the last word in the string.
     #
-    # Examples
     #   "RawScaledScorer".tableize # => "raw_scaled_scorers"
     #   "egg_and_ham".tableize     # => "egg_and_hams"
     #   "fancyCategory".tableize   # => "fancy_categories"
@@ -132,7 +125,6 @@ module ActiveSupport
     # Note that this returns a string and not a Class. (To convert to an actual class
     # follow +classify+ with +constantize+.)
     #
-    # Examples:
     #   "egg_and_hams".classify # => "EggAndHam"
     #   "posts".classify        # => "Post"
     #
@@ -145,7 +137,6 @@ module ActiveSupport
 
     # Replaces underscores with dashes in the string.
     #
-    # Example:
     #   "puni_puni".dasherize # => "puni-puni"
     def dasherize(underscored_word)
       underscored_word.tr('_', '-')
@@ -183,7 +174,6 @@ module ActiveSupport
     # +separate_class_name_and_id_with_underscore+ sets whether
     # the method should put '_' between the name and 'id'.
     #
-    # Examples:
     #   "Message".foreign_key        # => "message_id"
     #   "Message".foreign_key(false) # => "messageid"
     #   "Admin::Post".foreign_key    # => "post_id"
@@ -253,7 +243,6 @@ module ActiveSupport
     # Returns the suffix that should be added to a number to denote the position
     # in an ordered sequence such as 1st, 2nd, 3rd, 4th.
     #
-    # Examples:
     #   ordinal(1)     # => "st"
     #   ordinal(2)     # => "nd"
     #   ordinal(1002)  # => "nd"
@@ -276,7 +265,6 @@ module ActiveSupport
     # Turns a number into an ordinal string used to denote the position in an
     # ordered sequence such as 1st, 2nd, 3rd, 4th.
     #
-    # Examples:
     #   ordinalize(1)     # => "1st"
     #   ordinalize(2)     # => "2nd"
     #   ordinalize(1002)  # => "1002nd"
@@ -302,7 +290,6 @@ module ActiveSupport
 
     # Applies inflection rules for +singularize+ and +pluralize+.
     #
-    # Examples:
     #  apply_inflections("post", inflections.plurals) # => "posts"
     #  apply_inflections("posts", inflections.singulars) # => "post"
     def apply_inflections(word, rules)

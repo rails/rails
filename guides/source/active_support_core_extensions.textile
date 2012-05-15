@@ -2767,18 +2767,6 @@ As the example depicts, the +:db+ format generates a +BETWEEN+ SQL clause. That 
 
 NOTE: Defined in +active_support/core_ext/range/conversions.rb+.
 
-h4. +step+
-
-Active Support extends the method +Range#step+ so that it can be invoked without a block:
-
-<ruby>
-(1..10).step(2) # => [1, 3, 5, 7, 9]
-</ruby>
-
-As the example shows, in that case the method returns an array with the corresponding elements.
-
-NOTE: Defined in +active_support/core_ext/range/blockless_step.rb+.
-
 h4. +include?+
 
 The methods +Range#include?+ and +Range#===+ say whether some value falls between the ends of a given instance:

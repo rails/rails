@@ -103,7 +103,6 @@ module ActionView
       # otherwise be recognized as markup. CDATA sections begin with the string
       # <tt><![CDATA[</tt> and end with (and may not contain) the string <tt>]]></tt>.
       #
-      # ==== Examples
       #   cdata_section("<hello world>")
       #   # => <![CDATA[<hello world>]]>
       #
@@ -119,7 +118,6 @@ module ActionView
 
       # Returns an escaped version of +html+ without affecting existing escaped entities.
       #
-      # ==== Examples
       #   escape_once("1 < 2 &amp; 3")
       #   # => "1 &lt; 2 &amp; 3"
       #

@@ -252,7 +252,6 @@ module ActionView
       # The following call would generate such a tag:
       #
       #   <%= favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png' %>
-      #
       def favicon_link_tag(source='favicon.ico', options={})
         tag('link', {
           :rel  => 'shortcut icon',
@@ -290,7 +289,6 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +video_tag+ to build the video path.
       #
-      # ==== Examples
       #   video_path("hd")                                            # => /videos/hd
       #   video_path("hd.avi")                                        # => /videos/hd.avi
       #   video_path("trailers/hd.avi")                               # => /videos/trailers/hd.avi
@@ -312,7 +310,6 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +audio_tag+ to build the audio path.
       #
-      # ==== Examples
       #   audio_path("horse")                                            # => /audios/horse
       #   audio_path("horse.wav")                                        # => /audios/horse.wav
       #   audio_path("sounds/horse.wav")                                 # => /audios/sounds/horse.wav
@@ -323,7 +320,7 @@ module ActionView
       end
       alias_method :path_to_audio, :audio_path # aliased to avoid conflicts with an audio_path named route
 
-      # Computes the full URL to a audio asset in the public audios directory.
+      # Computes the full URL to an audio asset in the public audios directory.
       # This will use +audio_path+ internally, so most of their behaviors will be the same.
       def audio_url(source)
         URI.join(current_host, path_to_audio(source)).to_s
@@ -333,7 +330,6 @@ module ActionView
       # Computes the path to a font asset.
       # Full paths from the document root will be passed through.
       #
-      # ==== Examples
       #   font_path("font")                                           # => /assets/font
       #   font_path("font.ttf")                                       # => /assets/font.ttf
       #   font_path("dir/font.ttf")                                   # => /assets/dir/font.ttf
@@ -364,7 +360,6 @@ module ActionView
       #   width="30" and height="45". <tt>:size</tt> will be ignored if the
       #   value is not in the correct format.
       #
-      # ==== Examples
       #  image_tag("icon")  # =>
       #    <img src="/assets/icon" alt="Icon" />
       #  image_tag("icon.png")  # =>
@@ -413,7 +408,6 @@ module ActionView
       #   width="30" and height="45". <tt>:size</tt> will be ignored if the
       #   value is not in the correct format.
       #
-      # ==== Examples
       #  video_tag("trailer")  # =>
       #    <video src="/videos/trailer" />
       #  video_tag("trailer.ogg")  # =>
@@ -446,15 +440,14 @@ module ActionView
       # The +source+ can be full path or file that exists in
       # your public audios directory.
       #
-      # ==== Examples
-      #  audio_tag("sound")  # =>
-      #    <audio src="/audios/sound" />
-      #  audio_tag("sound.wav")  # =>
-      #    <audio src="/audios/sound.wav" />
-      #  audio_tag("sound.wav", :autoplay => true, :controls => true)  # =>
-      #    <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
-      #  audio_tag("sound.wav", "sound.mid")  # =>
-      #    <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
+      #   audio_tag("sound")  # =>
+      #     <audio src="/audios/sound" />
+      #   audio_tag("sound.wav")  # =>
+      #     <audio src="/audios/sound.wav" />
+      #   audio_tag("sound.wav", :autoplay => true, :controls => true)  # =>
+      #     <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
+      #   audio_tag("sound.wav", "sound.mid")  # =>
+      #     <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
       def audio_tag(*sources)
         multiple_sources_tag('audio', sources)
       end

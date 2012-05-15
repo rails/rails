@@ -183,9 +183,9 @@ Rails will create several files for you. Most important of these are of course t
 
 Open the +app/views/welcome/index.html.erb+ file in your text editor and edit it to contain a single line of code:
 
-<code class="html">
+<html>
 <h1>Hello, Rails!</h1>
-</code>
+</html>
 
 h4. Setting the Application Home Page
 
@@ -193,7 +193,7 @@ Now that we have made the controller and view, we need to tell Rails when we wan
 
 To fix this, delete the +index.html+ file located inside the +public+ directory of the application.
 
-You need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content you generate from the controllers.
+You need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content you generate from the controllers. The +index.html+ file is special: it will be served if a request comes in at the root route, e.g. http://localhost:3000. If another request such as http://localhost:3000/welcome happened, a static file at <tt>public/welcome.html</tt> would be served first, but only if it existed.
 
 Next, you have to tell Rails where your actual home page is located.
 
@@ -210,7 +210,7 @@ Blog::Application.routes.draw do
 
 The +root :to => "welcome#index"+ tells Rails to map requests to the root of the application to the welcome controller's index action. This was created earlier when you ran the controller generator (+rails generate controller welcome index+).
 
-If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see +Hello, Rails!+.
+If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see the +Hello, Rails!+ message you put into +app/views/welcome/index.html.erb+, indicating that this new route is indeed going to +WelcomeController+'s +index+ action and is rendering the view correctly.
 
 NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing.html.
 
@@ -220,7 +220,7 @@ Now that you've seen how to create a controller, an action and a view, let's cre
 
 In the Blog application, you will now create a new _resource_. A resource is the term used for a collection of similar objects, such as posts, people or animals. You can create, read, update and destroy items for a resource and these operations are referred to as _CRUD_ operations.
 
-In the next section, you will add the ability to create new posts in your application and be able to view them. This is the "CR" from CRUD. The form for doing this will look like this:
+In the next section, you will add the ability to create new posts in your application and be able to view them. This is the "C" and the "R" from CRUD: creation and reading. The form for doing this will look like this:
 
 !images/getting_started/new_post.png(The new post form)!
 
@@ -232,7 +232,7 @@ The first thing that you are going to need to create a new post within the appli
 
 !images/getting_started/routing_error_no_route_matches.png(A routing error, no route matches /posts/new)!
 
-This is because there is nowhere inside the routes for the application -- defined inside +config/routes.rb+ -- that defines this route. By default, Rails has no routes configured at all, and so you must define your routes as you need them.
+This is because there is nowhere inside the routes for the application -- defined inside +config/routes.rb+ -- that defines this route. By default, Rails has no routes configured at all, besides the root route you defined earlier, and so you must define your routes as you need them.
 
  To do this, you're going to need to create a route inside +config/routes.rb+ file, on a new line between the +do+ and the +end+ for the +draw+ method:
 
@@ -282,9 +282,9 @@ You're getting this error now because Rails expects plain actions like this one 
 
 In the above image, the bottom line has been truncated. Let's see what the full thing looks like:
 
-<text>
+<blockquote>
 Missing template posts/new, application/new with {:locale=>[:en], :formats=>[:html], :handlers=>[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
-</text>
+</blockquote>
 
 That's quite a lot of text! Let's quickly go through and understand what each part of it does.
 
@@ -330,11 +330,17 @@ method called +form_for+. To use this method, add this code into +app/views/post
 
 If you refresh the page now, you'll see the exact same form as in the example. Building forms in Rails is really just that easy!
 
-When you call +form_for+, you pass it an identifying object for this form. In this case, it's the symbol +:post+. This tells the +form_for+ helper what this form is for. Inside the block for this method, the FormBuilder object -- represented by +f+ -- is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to +submit+ on the +f+ object will create a submit button for the form.
+When you call +form_for+, you pass it an identifying object for this
+form. In this case, it's the symbol +:post+. This tells the +form_for+
+helper what this form is for. Inside the block for this method, the
++FormBuilder+ object -- represented by +f+ -- is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to +submit+ on the +f+ object will create a submit button for the form.
 
 There's one problem with this form though. If you inspect the HTML that is generated, by viewing the source of the page, you will see that the +action+ attribute for the form is pointing at +/posts/new+. This is a problem because this route goes to the very page that you're on right at the moment, and that route should only be used to display the form for a new post.
 
-So the form needs to use a different URL in order to go somewhere else. This can be done quite simply with the +:url+ option of +form_for+. Typically in Rails, the action that is used for new form submissions like this is called "create", and so the form should be pointed to this action.
+The form needs to use a different URL in order to go somewhere else.
+This can be done quite simply with the +:url+ option of +form_for+.
+Typically in Rails, the action that is used for new form submissions
+like this is called "create", and so the form should be pointed to that action.
 
 Edit the +form_for+ line inside +app/views/posts/new.html.erb+ to look like this:
 
@@ -350,11 +356,11 @@ post "posts/create"
 
 By using the +post+ method rather than the +get+ method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
 
-With the form and the route for it defined now, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
+With the form and its associated route defined, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
 
 !images/getting_started/unknown_action_create_for_posts.png(Unknown action create for PostsController)!
 
-You will now need to create the +create+ action within the +PostsController+ for this to work.
+You now need to create the +create+ action within the +PostsController+ for this to work.
 
 h4. Creating posts
 
@@ -381,7 +387,7 @@ def create
 end
 </ruby>
 
-The +render+ method here is taking a very simple hash with the key of +text+ and the value of +params[:post].inspect+. The +params+ method here is the object which represents the parameters (or fields) coming in from the form. The +params+ method returns a +HashWithIndifferentAccess+ object, which allows you to access the keys of the hash using either strings or symbols. In this situation, the only parameters that matter are the ones from the form.
+The +render+ method here is taking a very simple hash with a key of +text+ and value of +params[:post].inspect+. The +params+ method is the object which represents the parameters (or fields) coming in from the form. The +params+ method returns a +HashWithIndifferentAccess+ object, which allows you to access the keys of the hash using either strings or symbols. In this situation, the only parameters that matter are the ones from the form.
 
 If you re-submit the form one more time you'll now no longer get the missing template error. Instead, you'll see something that looks like the following:
 
@@ -402,15 +408,21 @@ To create the new model, run this command in your terminal:
 $ rails generate model Post title:string text:text
 </shell>
 
-With that command we told Rails that we want a +Post+ model, which in
-turn should have a title attribute of type string, and a text attribute
+With that command we told Rails that we want a +Post+ model, together
+with a _title_ attribute of type string, and a _text_ attribute
 of type text. Those attributes are automatically added to the +posts+
 table in the database and mapped to the +Post+ model.
 
-Rails in turn responded by creating a bunch of files. For
+Rails responded by creating a bunch of files. For
 now, we're only interested in +app/models/post.rb+ and
-+db/migrate/20120419084633_create_posts.rb+. The latter is responsible
++db/migrate/20120419084633_create_posts.rb+ (your name could be a bit
+different). The latter is responsible
 for creating the database structure, which is what we'll look at next.
+
+TIP: Active Record is smart enough to automatically map column names to
+model attributes, which means you don't have to declare attributes
+inside Rails models, as that will be done automatically by Active
+Record.
 
 h4. Running a Migration
 
@@ -472,8 +484,8 @@ invoking the command: +rake db:migrate RAILS_ENV=production+.
 h4. Saving data in the controller
 
 Back in +posts_controller+, we need to change the +create+ action
-to use the new +Post+ model to save data in the database. Open that file
-and change the +create+ action to look like the following:
+to use the new +Post+ model to save the data in the database. Open that file
+and change the +create+ action to look like this:
 
 <ruby>
 def create
@@ -485,22 +497,21 @@ end
 </ruby>
 
 Here's what's going on: every Rails model can be initialized with its
-respective attributes, which are automatically mapped to its
+respective attributes, which are automatically mapped to the respective
 database columns. In the first line we do just that (remember that
 +params[:post]+ contains the attributes we're interested in). Then,
 +@post.save+ is responsible for saving the model in the database.
-Finally, on the last line we redirect the user to the +show+ action,
-wich we have not defined yet.
+Finally, we redirect the user to the +show+ action,
+wich we'll define later.
 
 TIP: As we'll see later, +@post.save+ returns a boolean indicating
-wherever the model was saved or not, and you can (and usually do) take
-different actions depending on the result of calling +@post.save+.
+wherever the model was saved or not.
 
-h4. Showing posts
+h4. Showing Posts
 
-Before trying to create a new post, let's add the +show+ action, which
-will be responsible for showing our posts. Open +config/routes.rb+
-and add the following route:
+If you submit the form again now, Rails will complain about not finding
+the +show+ action. That's not very useful though, so let's add the
++show+ action before proceeding. Open +config/routes.rb+ and add the following route:
 
 <ruby>
 get "posts/:id" => "posts#show"

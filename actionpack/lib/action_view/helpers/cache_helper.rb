@@ -10,7 +10,6 @@ module ActionView
       #
       # See ActionController::Caching::Fragments for usage instructions.
       #
-      # ==== Examples
       # If you want to cache a navigation menu, you can do following:
       #
       #   <% cache do %>

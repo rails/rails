@@ -51,8 +51,6 @@ module ActionController #:nodoc:
     module ClassMethods
       # Turn on request forgery protection. Bear in mind that only non-GET, HTML/JavaScript requests are checked.
       #
-      # Example:
-      #
       #   class FooController < ApplicationController
       #     protect_from_forgery :except => :index
       #

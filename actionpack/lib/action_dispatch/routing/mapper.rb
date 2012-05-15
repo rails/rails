@@ -495,8 +495,6 @@ module ActionDispatch
         # Define a route that only recognizes HTTP GET.
         # For supported arguments, see <tt>Base#match</tt>.
         #
-        # Example:
-        #
         #   get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
           map_method(:get, args, &block)
@@ -504,8 +502,6 @@ module ActionDispatch
 
         # Define a route that only recognizes HTTP POST.
         # For supported arguments, see <tt>Base#match</tt>.
-        #
-        # Example:
         #
         #   post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
@@ -515,8 +511,6 @@ module ActionDispatch
         # Define a route that only recognizes HTTP PATCH.
         # For supported arguments, see <tt>Base#match</tt>.
         #
-        # Example:
-        #
         #   patch 'bacon', :to => 'food#bacon'
         def patch(*args, &block)
           map_method(:patch, args, &block)
@@ -525,8 +519,6 @@ module ActionDispatch
         # Define a route that only recognizes HTTP PUT.
         # For supported arguments, see <tt>Base#match</tt>.
         #
-        # Example:
-        #
         #   put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
           map_method(:put, args, &block)
@@ -534,8 +526,6 @@ module ActionDispatch
 
         # Define a route that only recognizes HTTP DELETE.
         # For supported arguments, see <tt>Base#match</tt>.
-        #
-        # Example:
         #
         #   delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
@@ -681,7 +671,6 @@ module ActionDispatch
 
         # Scopes routes to a specific controller
         #
-        # Example:
         #   controller "food" do
         #     match "bacon", :action => "bacon"
         #   end

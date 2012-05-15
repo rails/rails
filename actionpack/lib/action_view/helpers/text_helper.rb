@@ -37,7 +37,6 @@ module ActionView
       # do not operate as expected in an eRuby code block. If you absolutely must
       # output text within a non-output code block (i.e., <% %>), you can use the concat method.
       #
-      # ==== Examples
       #   <%
       #       concat "hello"
       #       # is the equivalent of <%= "hello" %>
@@ -67,8 +66,6 @@ module ActionView
       # used in views, unless wrapped by <tt>raw()</tt>. Care should be taken if +text+ contains HTML tags
       # or entities, because truncation may produce invalid HTML (such as unbalanced or incomplete tags).
       #
-      # ==== Examples
-      #
       #   truncate("Once upon a time in a world far far away")
       #   # => "Once upon a time in a world..."
       #
@@ -93,7 +90,6 @@ module ActionView
       # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
       # '<mark>\1</mark>')
       #
-      # ==== Examples
       #   highlight('You searched for: rails', 'rails')
       #   # => You searched for: <mark>rails</mark>
       #
@@ -133,7 +129,6 @@ module ActionView
       # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The resulting string
       # will be stripped in any case. If the +phrase+ isn't found, nil is returned.
       #
-      # ==== Examples
       #   excerpt('This is an example', 'an', :radius => 5)
       #   # => ...s is an exam...
       #
@@ -181,7 +176,6 @@ module ActionView
       # +plural+ is supplied, it will use that when count is > 1, otherwise
       # it will use the Inflector to determine the plural form
       #
-      # ==== Examples
       #   pluralize(1, 'person')
       #   # => 1 person
       #
@@ -200,8 +194,6 @@ module ActionView
       # Wraps the +text+ into lines no longer than +line_width+ width. This method
       # breaks on the first whitespace character that does not exceed +line_width+
       # (which is 80 by default).
-      #
-      # ==== Examples
       #
       #   word_wrap('Once upon a time')
       #   # => Once upon a time
@@ -280,7 +272,6 @@ module ActionView
       # and passing the name of the cycle. The current cycle string can be obtained
       # anytime using the current_cycle method.
       #
-      # ==== Examples
       #   # Alternate CSS classes for even and odd numbers...
       #   @items = [1,2,3,4]
       #   <table>
@@ -326,7 +317,6 @@ module ActionView
       # for complex table highlighting or any other design need which requires
       # the current cycle string in more than one place.
       #
-      # ==== Example
       #   # Alternate background colors
       #   @items = [1,2,3,4]
       #   <% @items.each do |item| %>
@@ -342,7 +332,6 @@ module ActionView
       # Resets a cycle so that it starts from the first element the next time
       # it is called. Pass in +name+ to reset a named cycle.
       #
-      # ==== Example
       #   # Alternate CSS classes for even and odd numbers...
       #   @items = [[1,2,3,4], [5,6,3], [3,4,5,6,7,4]]
       #   <table>

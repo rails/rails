@@ -900,7 +900,6 @@ module ActionView
       # In that case it is preferable to either use +check_box_tag+ or to use
       # hashes instead of arrays.
       #
-      # ==== Examples
       #   # Let's say that @post.validated? is 1:
       #   check_box("post", "validated")
       #   # => <input name="post[validated]" type="hidden" value="0" />
@@ -926,7 +925,6 @@ module ActionView
       # To force the radio button to be checked pass <tt>:checked => true</tt> in the
       # +options+ hash. You may pass HTML options there as well.
       #
-      # ==== Examples
       #   # Let's say that @post.category returns "rails":
       #   radio_button("post", "category", "rails")
       #   radio_button("post", "category", "java")
@@ -945,8 +943,6 @@ module ActionView
       # assigned to the template (identified by +object_name+). Inputs of type "search" may be styled differently by
       # some browsers.
       #
-      # ==== Examples
-      #
       #   search_field(:user, :name)
       #   # => <input id="user_name" name="user[name]" type="search" />
       #   search_field(:user, :name, :autosave => false)
@@ -962,7 +958,6 @@ module ActionView
       #   # => <input autosave="false" id="user_name" incremental="true" name="user[name]" onsearch="true" type="search" />
       #   search_field(:user, :name, :autosave => true, :onsearch => true)
       #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" type="search" />
-      #
       def search_field(object_name, method, options = {})
         Tags::SearchField.new(object_name, method, self, options).render
       end

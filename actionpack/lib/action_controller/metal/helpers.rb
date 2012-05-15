@@ -16,7 +16,6 @@ module ActionController
   # Additional helpers can be specified using the +helper+ class method in ActionController::Base or any
   # controller which inherits from it.
   #
-  # ==== Examples
   # The +to_s+ method from the \Time class can be wrapped in a helper method to display a custom message if
   # a \Time object is blank:
   #

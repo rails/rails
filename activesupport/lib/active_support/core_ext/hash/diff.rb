@@ -1,8 +1,6 @@
 class Hash
   # Returns a hash that represents the difference between two hashes.
   #
-  # Examples:
-  #
   #   {1 => 2}.diff(1 => 2)         # => {}
   #   {1 => 2}.diff(1 => 3)         # => {1 => 2}
   #   {}.diff(1 => 2)               # => {1 => 2}

@@ -39,8 +39,6 @@ module Rails
   # and <tt>autoload_once_paths</tt>, which, differently from a <tt>Railtie</tt>, are scoped to
   # the current engine.
   #
-  # Example:
-  #
   #   class MyEngine < Rails::Engine
   #     # Add a load path for this specific Engine
   #     config.autoload_paths << File.expand_path("../lib/some/path", __FILE__)
@@ -336,11 +334,8 @@ module Rails
   # It will affect the priority of loading views, helpers, assets and all the other files
   # related to engine or application.
   #
-  # Example:
-  #
   #   # load Blog::Engine with highest priority, followed by application and other railties
   #   config.railties_order = [Blog::Engine, :main_app, :all]
-  #
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
     autoload :Railties,      "rails/engine/railties"

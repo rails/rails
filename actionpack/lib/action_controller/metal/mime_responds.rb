@@ -16,8 +16,6 @@ module ActionController #:nodoc:
       # Defines mime types that are rendered by default when invoking
       # <tt>respond_with</tt>.
       #
-      # Examples:
-      #
       #   respond_to :html, :xml, :json
       #
       # Specifies that all actions in the controller respond to requests
@@ -185,7 +183,6 @@ module ActionController #:nodoc:
     #   end
     #
     # Be sure to check respond_with and respond_to documentation for more examples.
-    #
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
@@ -323,7 +320,6 @@ module ActionController #:nodoc:
     #    a successful html +post+ request.
     # 2. <tt>:action</tt> - overwrites the default render action used after an
     #    unsuccessful html +post+ request.
-    #
     def respond_with(*resources, &block)
       raise "In order to use respond_with, first you need to declare the formats your " <<
             "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?
@@ -339,7 +335,6 @@ module ActionController #:nodoc:
 
     # Collect mimes declared in the class method respond_to valid for the
     # current action.
-    #
     def collect_mimes_from_class_level #:nodoc:
       action = action_name.to_s
 
@@ -362,7 +357,6 @@ module ActionController #:nodoc:
     #
     # Sends :not_acceptable to the client and returns nil if no suitable format
     # is available.
-    #
     def retrieve_collector_from_mimes(mimes=nil, &block) #:nodoc:
       mimes ||= collect_mimes_from_class_level
       collector = Collector.new(mimes)
@@ -401,7 +395,6 @@ module ActionController #:nodoc:
     # A subsequent call to #negotiate_format(request) will enable the Collector
     # to determine which specific mime-type it should respond with for the current
     # request, with this response then being accessible by calling #response.
-    #
     class Collector
       include AbstractController::Collector
       attr_accessor :order, :format
