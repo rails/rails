@@ -127,18 +127,16 @@ module ActiveRecord
         object.is_a?(self)
       end
 
-      # Returns an instance of +Arel::Table+ loaded with the curent
-      # table name
+      # Returns an instance of +Arel::Table+ loaded with the curent table name.
       #
       #   class Post < ActiveRecord::Base
       #     scope :published_and_commented, published.and(self.arel_table[:comments_count].gt(0))
-      #     end
       #   end
       def arel_table
         @arel_table ||= Arel::Table.new(table_name, arel_engine)
       end
 
-      # Returns the Arel engine
+      # Returns the Arel engine.
       def arel_engine
         @arel_engine ||= connection_handler.retrieve_connection_pool(self) ? self : active_record_super.arel_engine
       end
@@ -212,7 +210,7 @@ module ActiveRecord
 
       self
     end
-    
+
     ##
     # :method: clone
     # Identical to Ruby's clone method.  This is a "shallow" copy.  Be warned that your attributes are not copied.
@@ -227,9 +225,9 @@ module ActiveRecord
     #
     #   user.object_id == new_user.object_id            # => false
     #   user.name.object_id == new_user.name.object_id  # => true
-    # 
+    #
     #   user.name.object_id == user.dup.name.object_id  # => false
-    
+
     ##
     # :method: dup
     # Duped objects have no id assigned and are treated as new records. Note
@@ -238,7 +236,7 @@ module ActiveRecord
     # specific and is therefore left to the application to implement according
     # to its need.
     # The dup method does not preserve the timestamps (created|updated)_(at|on).
-    
+
     ##
     def initialize_dup(other) # :nodoc:
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
