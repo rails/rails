@@ -1337,7 +1337,7 @@ Returns the character of the string at position +position+:
 "hello".at(0)  # => "h"
 "hello".at(4)  # => "o"
 "hello".at(-1) # => "o"
-"hello".at(10) # => ERROR if < 1.9, nil in 1.9
+"hello".at(10) # => nil
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/string/access.rb+.
