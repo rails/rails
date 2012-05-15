@@ -127,10 +127,18 @@ module ActiveRecord
         object.is_a?(self)
       end
 
+      # Returns an instance of +Arel::Table+ loaded with the curent
+      # table name
+      #
+      #   class Post < ActiveRecord::Base
+      #     scope :published_and_commented, published.and(self.arel_table[:comments_count].gt(0))
+      #     end
+      #   end
       def arel_table
         @arel_table ||= Arel::Table.new(table_name, arel_engine)
       end
 
+      # Returns the Arel engine
       def arel_engine
         @arel_engine ||= connection_handler.retrieve_connection_pool(self) ? self : active_record_super.arel_engine
       end
