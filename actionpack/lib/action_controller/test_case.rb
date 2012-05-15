@@ -91,16 +91,24 @@ module ActionController
       response.body
 
       case options
-      when NilClass, String, Symbol, Regexp
+      when NilClass, Regexp, String, Symbol
         options = options.to_s if Symbol === options
         rendered = @templates
         msg = message || sprintf("expecting <%s> but rendering with <%s>",
                 options.inspect, rendered.keys)
+
         assert_block(msg) do
-          if options
+          case options
+          when String
+            rendered.any? do |t, num|
+              options_splited = options.split(File::SEPARATOR)
+              t_splited = t.split(File::SEPARATOR)
+              t_splited.last(options_splited.size) == options_splited
+            end
+          when Regexp
             rendered.any? { |t,num| t.match(options) }
-          else
-            @templates.blank?
+          when NilClass
+            rendered.blank?
           end
         end
       when Hash
