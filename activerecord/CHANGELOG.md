@@ -4006,7 +4006,7 @@
 
 *   Fixed that adding a record to a has_and_belongs_to collection would always save it -- now it only saves if its a new record #1203 *Alisdair McDiarmid*
 
-*   Fixed saving of in-memory association structures to happen as a after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
+*   Fixed saving of in-memory association structures to happen as an after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
 
 *   Allow any Enumerable, not just Array, to work as bind variables #1344 *Jeremy Kemper*
 
@@ -5519,7 +5519,7 @@
 
 *   Fixed that adding a record to a has_and_belongs_to collection would always save it -- now it only saves if its a new record #1203 *Alisdair McDiarmid*
 
-*   Fixed saving of in-memory association structures to happen as a after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
+*   Fixed saving of in-memory association structures to happen as an after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
 
 *   Allow any Enumerable, not just Array, to work as bind variables #1344 *Jeremy Kemper*
 
@@ -6441,7 +6441,7 @@
         post.categories.push_with_attributes(category, :added_on => Date.today)
         post.categories.first.added_on # => Date.today
 
-    NOTE: The categories table doesn't have a added_on column, it's the categories_post join table that does!
+    NOTE: The categories table doesn't have an added_on column, it's the categories_post join table that does!
 
 *   Fixed that :exclusively_dependent and :dependent can't be activated at the same time on has_many associations *Jeremy Kemper*
 
