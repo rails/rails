@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added a `stored_attributes` hash which contains the attributes stored
+    using ActiveRecord::Store. This allows you to retrieve the list of
+    attributes you've defined.
+
 *   Added custom coders support for ActiveRecord::Store. Now you can set
     your custom coder like this:
 
