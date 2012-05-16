@@ -63,18 +63,6 @@ module ActiveRecord
         end
       end
 
-      def test_connection_no_adapter
-        assert_raises(ArgumentError) do
-          Base.sqlite3_connection :database => ':memory:'
-        end
-      end
-
-      def test_connection_wrong_adapter
-        assert_raises(ArgumentError) do
-          Base.sqlite3_connection :database => ':memory:',:adapter => 'vuvuzela'
-        end
-      end
-
       def test_bad_timeout
         assert_raises(TypeError) do
           Base.sqlite3_connection :database => ':memory:',
