@@ -251,12 +251,9 @@ module Rails
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path('bundler', 'bundle')
 
-        bundle_bin_path, bundle_gemfile, rubyopt = ENV['BUNDLE_BIN_PATH'], ENV['BUNDLE_GEMFILE'], ENV['RUBYOPT']
-        ENV['BUNDLE_BIN_PATH'], ENV['BUNDLE_GEMFILE'], ENV['RUBYOPT'] = "", "", ""
-
-        print `"#{Gem.ruby}" "#{_bundle_command}" #{command}`
-
-        ENV['BUNDLE_BIN_PATH'], ENV['BUNDLE_GEMFILE'], ENV['RUBYOPT'] = bundle_bin_path, bundle_gemfile, rubyopt
+        Bundler.with_clean_env do
+          print `"#{Gem.ruby}" "#{_bundle_command}" #{command}`
+        end
       end
 
       def run_bundle
