@@ -756,9 +756,8 @@ A few things are going on. We check if there are any errors with
 +@post.errors.any?+, and in that case we show a list of all
 errors with +@post.errors.full_messages+.
 
-+pluralize+ is a rails helper
-that takes a number and a string as its arguments. If the number is
-greater than one, the string will be automatically pluralized.
++pluralize+ is a rails helper that takes a number and a string as its
+arguments. If the number is greater than one, the string will be automatically pluralized.
 
 The reason why we added +@post = Post.new+ in +posts_controller+ is that
 otherwise +@post+ would be +nil+ in our view, and calling
