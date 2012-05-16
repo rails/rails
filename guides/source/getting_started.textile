@@ -1001,8 +1001,7 @@ Then do the same for the +app/views/posts/edit.html.erb+ view:
 <%= link_to 'Back', :action => :index %>
 </erb>
 
-Point your browser to
-"http://localhost:3000/posts/new":http://localhost:3000/posts/new and
+Point your browser to "http://localhost:3000/posts/new":http://localhost:3000/posts/new and
 try creating a new post. Everything still works. Now try editing the
 post and you'll receive the following error:
 
@@ -1020,7 +1019,8 @@ knows that it should create new objects via POST and update them via
 PUT.
 
 If you run +rake routes+ from the console you'll see that we already
-have a +posts_path+ route, which was created automatically by Rails.
+have a +posts_path+ route, which was created automatically by Rails when we
+defined the route for the index action.
 However, we don't have a +post_path+ yet, which is the reason why we
 received an error before.
 
