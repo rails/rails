@@ -560,19 +560,21 @@ be able to create a post. Try it!
 h4. Listing all posts
 
 We still need a way to list all our posts, so let's do that. As usual,
-we'll need a route, a controller action, and a view:
+we'll need a route placed into +config/routes.rb+:
 
 <ruby>
-# Add to config/routes.rb
 get "posts" => "posts#index"
+</ruby>
 
-# Add to app/controllers/posts_controller.rb
+And an action for that route inside the +PostsController+ in the +app/controllers/posts_controller.rb+ file:
+
+<ruby>
 def index
   @posts = Post.all
 end
 </ruby>
 
-+app/view/posts/index.html.erb+:
+And then finally a view for this action, located at +app/views/posts/index.html.erb+:
 
 <erb>
 <h1>Listing posts</h1>
