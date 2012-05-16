@@ -685,15 +685,9 @@ format, and the existence of associated objects. Validations are covered in deta
 in "Active Record Validations and
 Callbacks":active_record_validations_callbacks.html#validations-overview
 
-If you open +posts_controller+ again, you'll notice that we don't check
-the result of calling +@post.save+. We need to change its behavior to
-show the form back to the user if any error occur:
+With the validation now in place, when you call +@post.save+ on an invalid post, it will return +false+. If you open +app/controllers/posts_controller.rb+ again, you'll notice that we don't check the result of calling +@post.save+ inside the +create+ action. If +@post.save+ fails in this situation, we need to show the form back to the user. To do this, change the +create+ action inside +app/controllers/posts_controller.rb+ to this:
 
 <ruby>
-def new
-  @post = Post.new
-end
-
 def create
   @post = Post.new(params[:post])
 
@@ -705,13 +699,8 @@ def create
 end
 </ruby>
 
-Notice that I've also added +@post = Post.new+ to the +new+ action. I'll
-explain why I did that in the next section, for now add that to your
-controller as well.
-
-Also notice that we use +render+ instead of +redirect_to+ when +save+
-returns false. We can use +render+ so that the +@post+ object is passed
-back to the view.
+Notice that we use +render+ instead of +redirect_to+ when +save+
+returns +false+. The +render+ method is used so that the +@post+ object is passed back to the +new+ template when it is rendered. This rendering is done within the same request as the form submission, whereas the +redirect_to+ will tell the browser to issue another request.
 
 If you reload
 "http://localhost:3000/posts/new":http://localhost:3000/posts/new and
