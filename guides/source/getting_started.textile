@@ -933,8 +933,8 @@ simple example:
 <%= @user.about_me %>
 </erb>
 
-The +show+ view will automatically include the content of the
-+_user_details+ view. Note that partials are prefixed by an underscore,
+The +users/show+ template will automatically include the content of the
++users/_user_details+ template. Note that partials are prefixed by an underscore,
 as to not be confused with regular views. However, you don't include the
 underscore when including them with the +helper+ method.
 
