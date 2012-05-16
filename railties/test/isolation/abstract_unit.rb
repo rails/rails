@@ -8,7 +8,7 @@
 # Rails booted up.
 require 'fileutils'
 
-require 'bundler/setup'
+require 'bundler/setup' unless defined?(Bundler)
 require 'minitest/autorun'
 require 'active_support/test_case'
 
@@ -105,8 +105,9 @@ module TestHelpers
         end
       end
 
-      unless options[:gemfile]
-        File.delete"#{app_path}/Gemfile"
+      gemfile_path = "#{app_path}/Gemfile"
+      if options[:gemfile].blank? && File.exist?(gemfile_path)
+        File.delete gemfile_path
       end
 
       routes = File.read("#{app_path}/config/routes.rb")
@@ -281,8 +282,7 @@ Module.new do
   environment = File.expand_path('../../../../load_paths', __FILE__)
   require_environment = "-r #{environment}"
 
-  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails new #{app_template_path}`
-
+  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails new #{app_template_path} --skip-gemfile`
   File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
     f.puts "require '#{environment}'"
     f.puts "require 'rails/all'"
