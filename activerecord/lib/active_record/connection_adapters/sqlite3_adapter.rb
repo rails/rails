@@ -21,10 +21,6 @@ module ActiveRecord
         config[:database] = File.expand_path(config[:database], Rails.root)
       end
 
-      unless 'sqlite3' == config[:adapter]
-        raise ArgumentError, 'adapter name should be "sqlite3"'
-      end
-
       db = SQLite3::Database.new(
         config[:database],
         :results_as_hash => true
