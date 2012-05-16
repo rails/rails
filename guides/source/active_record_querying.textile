@@ -1260,6 +1260,24 @@ with
 Client.pluck(:id)
 </ruby>
 
+h3. +ids+
+
++ids+ can be used to pluck all the IDs for the relation using the table's primary key.
+
+<ruby>
+Person.ids
+# SELECT id FROM people
+</ruby>
+
+<ruby>
+class Person < ActiveRecord::Base
+  self.primary_key = "person_id"
+end
+
+Person.ids
+# SELECT person_id FROM people
+</ruby>
+
 h3. Existence of Objects
 
 If you simply want to check for the existence of the object there's a method called +exists?+. This method will query the database using the same query as +find+, but instead of returning an object or collection of objects it will return either +true+ or +false+.
