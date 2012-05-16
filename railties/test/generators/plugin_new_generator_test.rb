@@ -99,7 +99,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install_with_full_and_mountable
-    result = run_generator [destination_root, "--mountable", "--full"]
+    result = run_generator [destination_root, "--mountable", "--full", "--dev"]
     assert_file "#{destination_root}/Gemfile.lock" do |contents|
       assert_match(/bukkits/, contents)
     end
