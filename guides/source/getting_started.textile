@@ -1332,7 +1332,7 @@ So first, we'll wire up the Post show template
 
 <p>
   <strong>Text:</strong>
-  <%= @post.texthttp://beginningruby.org/ %>
+  <%= @post.text %>
 </p>
 
 <h2>Add a comment:</h2>
@@ -1391,7 +1391,7 @@ template. This is where we want the comment to show, so let's add that to the
 
 <p>
   <strong>Text:</strong>
-  <%= @post.texthttp://beginningruby.org/ %>
+  <%= @post.text %>
 </p>
 
 <h2>Comments</h2>
@@ -1466,7 +1466,7 @@ following:
 
 <p>
   <strong>Text:</strong>
-  <%= @post.texthttp://beginningruby.org/ %>
+  <%= @post.text %>
 </p>
 
 <h2>Comments</h2>
@@ -1528,7 +1528,7 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 
 <p>
   <strong>Text:</strong>
-  <%= @post.texthttp://beginningruby.org/ %>
+  <%= @post.text %>
 </p>
 
 <h2>Add a comment:</h2>
