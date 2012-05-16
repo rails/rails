@@ -23,7 +23,7 @@ module ActiveRecord
       end
 
       def sql_type
-        base.type_to_sql(type.to_sym, limit, precision, scale) rescue type
+        base.type_to_sql(type.to_sym, limit, precision, scale)
       end
 
       def to_sql
