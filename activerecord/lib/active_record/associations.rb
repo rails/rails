@@ -543,7 +543,7 @@ module ActiveRecord
     #   end
     #
     #   @group = Group.first
-    #   @group.users.collect { |u| u.avatar }.flatten # select all avatars for all users in the group
+    #   @group.users.collect { |u| u.avatar }.compact # select all avatars for all users in the group
     #   @group.avatars                                # selects all avatars by going through the User join model.
     #
     # An important caveat with going through +has_one+ or +has_many+ associations on the
