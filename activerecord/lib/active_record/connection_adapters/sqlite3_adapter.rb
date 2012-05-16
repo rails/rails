@@ -191,7 +191,7 @@ module ActiveRecord
           :decimal     => { :name => "decimal" },
           :datetime    => { :name => "datetime" },
           :timestamp   => { :name => "datetime" },
-          :time        => { :name => "time" },
+          :time        => { :name => "datetime" },
           :date        => { :name => "date" },
           :binary      => { :name => "blob" },
           :boolean     => { :name => "boolean" }
