@@ -872,11 +872,11 @@ example, if you'd call +@post.update_attributes(:title => 'A new title')+
 Rails would only update the +title+ attribute, leaving all other
 attributes untouched.
 
-Finally, we want to show a link to the +edit+ action in the +index+ and
-+show+ views:
+Finally, we want to show a link to the +edit+ action in the list of all the
+posts, so let's add that now to +app/views/posts/index.html.erb+ to make it
+appear next to the "Show" link:
 
 <erb>
-# app/view/posts/index.html.erb
 
 <table>
   <tr>
@@ -895,10 +895,15 @@ Finally, we want to show a link to the +edit+ action in the +index+ and
   </tr>
 <% end %>
 </table>
+</erb>
 
-# app/view/posts/show.html.erb
+And we'll also add one to the +app/views/posts/show.html.erb+ template as well,
+so that there's also an "Edit" link on a post's page. Add this at the bottom of
+the template:
 
+<erb>
 ...
+
 
 <%= link_to 'Back', :action => :index %>
 | <%= link_to 'Edit', :action => :edit, :id => @post.id %>
