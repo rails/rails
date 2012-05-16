@@ -296,10 +296,27 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_grouped_options_for_select_with_optional_divider
+    assert_dom_equal(
+      "<optgroup label=\"----------\"><option value=\"US\">US</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"----------\"><option value=\"GB\">GB</option>\n<option value=\"Germany\">Germany</option></optgroup>",
+
+      grouped_options_for_select([['US',"Canada"] , ["GB", "Germany"]], divider:"----------")
+    )
+  end
+
+  def test_grouped_options_for_select_with_selected_and_prompt_deprecated
+    ActiveSupport::Deprecation.silence do
+      assert_dom_equal(
+        "<option value=\"\">Choose a product...</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
+        grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], "Cowboy Hat", "Choose a product...")
+      )
+    end
+  end
+
   def test_grouped_options_for_select_with_selected_and_prompt
     assert_dom_equal(
         "<option value=\"\">Choose a product...</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
-        grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], "Cowboy Hat", "Choose a product...")
+        grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], "Cowboy Hat", prompt: "Choose a product...")
     )
   end
 
@@ -307,10 +324,18 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]]).html_safe?
   end
 
+  def test_grouped_options_for_select_with_prompt_returns_html_escaped_string_deprecated
+    ActiveSupport::Deprecation.silence do
+      assert_dom_equal(
+        "<option value=\"\">&lt;Choose One&gt;</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
+        grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], nil, '<Choose One>'))
+    end
+  end
+
   def test_grouped_options_for_select_with_prompt_returns_html_escaped_string
     assert_dom_equal(
       "<option value=\"\">&lt;Choose One&gt;</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
-      grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], nil, '<Choose One>'))
+      grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], nil, prompt: '<Choose One>'))
   end
 
   def test_optgroups_with_with_options_with_hash
