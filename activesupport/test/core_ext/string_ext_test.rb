@@ -439,6 +439,30 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert @other_string.html_safe?
   end
 
+  test "Concatting safe onto unsafe with % yields unsafe" do
+    @other_string = "other%s"
+    string = @string.html_safe
+
+    @other_string = @other_string % string
+    assert !@other_string.html_safe?
+  end
+
+  test "Concatting unsafe onto safe with % yields escaped safe" do
+    @other_string = "other%s".html_safe
+    string = @other_string % "<foo>"
+
+    assert_equal "other&lt;foo&gt;", string
+    assert string.html_safe?
+  end
+
+  test "Concatting safe onto safe with % yields safe" do
+    @other_string = "other%s".html_safe
+    string = @string.html_safe
+
+    @other_string = @other_string % string
+    assert @other_string.html_safe?
+  end
+
   test "Concatting a fixnum to safe always yields safe" do
     string = @string.html_safe
     string = string.concat(13)
