@@ -16,9 +16,9 @@ module ActiveSupport
       #
       # Available behaviors:
       #
-      # [+stderr+]  Log all deprecation warnings to +$stderr+.
+      # [+stderr+]  Log all deprecation warnings to <tt>$stderr</tt>.
       # [+log+]     Log all deprecation warnings to +Rails.logger+.
-      # [+notify]   Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
+      # [+notify+]  Use <tt>ActiveSupport::Notifications</tt> to notify +deprecation.rails+.
       # [+silence+] Do nothing.
       #
       # Setting behaviors only affects deprecations that happen after boot time.
