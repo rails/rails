@@ -633,7 +633,7 @@
           has_one :account
         end
 
-        user.build_account{ |a| a.credit_limit => 100.0 }
+        user.build_account{ |a| a.credit_limit = 100.0 }
 
     The block is called after the instance has been initialized. *Andrew White*
 
