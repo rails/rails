@@ -140,8 +140,7 @@ module ActionView
             option_tags = content_tag('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
           end
           if value.blank? && options[:prompt]
-            prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = content_tag('option', prompt, :value => '') + "\n" + option_tags
+            option_tags = content_tag('option', prompt_text(options[:prompt]), :value => '') + "\n" + option_tags
           end
           option_tags
         end

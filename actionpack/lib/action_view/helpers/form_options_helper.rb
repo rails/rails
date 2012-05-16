@@ -507,7 +507,10 @@ module ActionView
         end
 
         body = "".html_safe
-        body.safe_concat content_tag(:option, prompt, :value => "") if prompt
+
+        if prompt
+          body.safe_concat content_tag(:option, prompt_text(prompt), :value => "")
+        end
 
         grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
 
@@ -731,6 +734,10 @@ module ActionView
 
         def value_for_collection(item, value)
           value.respond_to?(:call) ? value.call(item) : item.send(value)
+        end
+
+        def prompt_text(prompt)
+          prompt = prompt.kind_of?(String) ? prompt : I18n.translate('helpers.select.prompt', :default => 'Please select')
         end
     end
 

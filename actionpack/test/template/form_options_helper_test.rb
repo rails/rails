@@ -320,6 +320,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_grouped_options_for_select_with_selected_and_prompt_true
+    assert_dom_equal(
+        "<option value=\"\">Please select</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
+        grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], "Cowboy Hat", prompt: true)
+    )
+  end
+
   def test_grouped_options_for_select_returns_html_safe_string
     assert grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]]).html_safe?
   end
