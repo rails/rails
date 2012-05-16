@@ -468,6 +468,9 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_with_selection_clause
     assert_equal [50, 53, 55, 60], Account.pluck('DISTINCT credit_limit').sort
+    assert_equal [50, 53, 55, 60], Account.pluck('DISTINCT accounts.credit_limit').sort
+    assert_equal [50, 53, 55, 60], Account.pluck('DISTINCT(credit_limit)').sort
+    assert_equal [50 + 53 + 55 + 60], Account.pluck('SUM(DISTINCT(credit_limit))')
   end
 
   def test_pluck_expects_a_single_selection
