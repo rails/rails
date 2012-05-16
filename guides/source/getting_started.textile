@@ -767,7 +767,8 @@ TIP: Rails automatically wraps fields that contain an error with a div
 with class +field_with_errors+. You can define a css rule to make them
 standout.
 
-Now you'll get a nice error message when saving a post without title:
+Now you'll get a nice error message when saving a post without title when you
+attempt to do just that on the "new post form(http://localhost:3000/posts/new)":http://localhost:3000/posts/new.
 
 !images/getting_started/form_with_errors.png(Form With Errors)!
 
