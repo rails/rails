@@ -8,6 +8,8 @@ require 'arel/visitors/bind_visitor'
 gem 'pg', '~> 0.11'
 require 'pg'
 
+require 'ipaddr'
+
 module ActiveRecord
   module ConnectionHandling
     # Establishes a connection to the database that's used by all Active Record objects
@@ -76,6 +78,25 @@ module ActiveRecord
             }]
           else
             string
+          end
+        end
+
+        def string_to_cidr(string)
+          if string.nil?
+            nil
+          elsif String === string
+            IPAddr.new(string)
+          else
+            string
+          end
+
+        end
+
+        def cidr_to_string(object)
+          if IPAddr === object
+            "#{object.to_s}/#{object.instance_variable_get(:@mask_addr).to_s(2).count('1')}"
+          else
+            object
           end
         end
 
@@ -197,6 +218,13 @@ module ActiveRecord
           :decimal
         when 'hstore'
           :hstore
+        # Network address types
+        when 'inet'
+          :inet
+        when 'cidr'
+          :cidr
+        when 'macaddr'
+          :macaddr
         # Character types
         when /^(?:character varying|bpchar)(?:\(\d+\))?$/
           :string
@@ -210,9 +238,6 @@ module ActiveRecord
           :string
         # Geometric types
         when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
-          :string
-        # Network address types
-        when /^(?:cidr|inet|macaddr)$/
           :string
         # Bit strings
         when /^bit(?: varying)?(?:\(\d+\))?$/
@@ -282,6 +307,18 @@ module ActiveRecord
         def hstore(name, options = {})
           column(name, 'hstore', options)
         end
+
+        def inet(name, options = {})
+          column(name, 'inet', options)
+        end
+
+        def cidr(name, options = {})
+          column(name, 'cidr', options)
+        end
+
+        def macaddr(name, options = {})
+          column(name, 'macaddr', options)
+        end
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -301,7 +338,10 @@ module ActiveRecord
         :boolean     => { :name => "boolean" },
         :xml         => { :name => "xml" },
         :tsvector    => { :name => "tsvector" },
-        :hstore      => { :name => "hstore" }
+        :hstore      => { :name => "hstore" },
+        :inet        => { :name => "inet" },
+        :cidr        => { :name => "cidr" },
+        :macaddr     => { :name => "macaddr" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -510,6 +550,11 @@ module ActiveRecord
           when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
           else super
           end
+        when IPAddr
+          case column.sql_type
+          when 'inet', 'cidr' then super(PostgreSQLColumn.cidr_to_string(value), column)
+          else super
+          end
         when Float
           if value.infinite? && column.type == :datetime
             "'#{value.to_s.downcase}'"
@@ -549,6 +594,9 @@ module ActiveRecord
         when Hash
           return super unless 'hstore' == column.sql_type
           PostgreSQLColumn.hstore_to_string(value)
+        when IPAddr
+          return super unless ['inet','cidr'].includes? column.sql_type
+          PostgreSQLColumn.cidr_to_string(value)
         else
           super
         end
