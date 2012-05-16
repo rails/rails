@@ -261,7 +261,7 @@ module ActionView
       identifier = (@template = find_partial) ? @template.identifier : @path
 
       @lookup_context.rendered_format ||= begin
-        if @template && @template.formats.present?
+        if @template.try(:formats).present?
           @template.formats.first
         else
           formats.first
