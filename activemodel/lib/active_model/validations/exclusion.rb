@@ -1,7 +1,6 @@
 require "active_model/validations/clusivity"
 
 module ActiveModel
-
   # == Active Model Exclusion Validator
   module Validations
     class ExclusionValidator < EachValidator
@@ -21,7 +20,8 @@ module ActiveModel
       #     validates_exclusion_of :username, :in => %w( admin superuser ), :message => "You don't belong here"
       #     validates_exclusion_of :age, :in => 30..60, :message => "This site is only for under 30 and over 60"
       #     validates_exclusion_of :format, :in => %w( mov avi ), :message => "extension %{value} is not allowed"
-      #     validates_exclusion_of :password, :in => lambda { |p| [p.username, p.first_name] }, :message => "should not be the same as your username or first name"
+      #     validates_exclusion_of :password, :in => lambda { |p| [p.username, p.first_name] },
+      #                            :message => "should not be the same as your username or first name"
       #   end
       #
       # Configuration options:
