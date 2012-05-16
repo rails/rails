@@ -1,4 +1,5 @@
 module ActiveModel
+
   # == Active Model Acceptance Validator
   module Validations
     class AcceptanceValidator < EachValidator

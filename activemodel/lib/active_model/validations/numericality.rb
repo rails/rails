@@ -1,4 +1,5 @@
 module ActiveModel
+
   # == Active Model Numericality Validator
   module Validations
     class NumericalityValidator < EachValidator

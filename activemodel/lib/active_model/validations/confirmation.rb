@@ -1,4 +1,5 @@
 module ActiveModel
+
   # == Active Model Confirmation Validator
   module Validations
     class ConfirmationValidator < EachValidator

@@ -1,4 +1,5 @@
 module ActiveModel
+
   # == Active Model Length Validator
   module Validations
     class LengthValidator < EachValidator
