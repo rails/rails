@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `color_field` and `color_field_tag` helpers. *Carlos Galdino*
+
 *   `assert_generates`, `assert_recognizes`, and `assert_routing` all raise
     `Assertion` instead of `RoutingError` *David Chelimsky*
 

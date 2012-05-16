@@ -83,6 +83,8 @@ class FormHelperTest < ActionView::TestCase
     @post.tags << Tag.new
 
     @blog_post = Blog::Post.new("And his name will be forty and four.", 44)
+
+    @car = Car.new("#000FFF")
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -608,6 +610,17 @@ class FormHelperTest < ActionView::TestCase
       %{<textarea cols="183" id="post_body" name="post[body]" rows="820">\nBack to the hill and over it again!</textarea>},
       text_area("post", "body", :size => "183x820")
     )
+  end
+
+  def test_color_field_with_valid_hex_color_string
+    expected = %{<input id="car_color" name="car[color]" type="color" value="#000fff" />}
+    assert_dom_equal(expected, color_field("car", "color"))
+  end
+
+  def test_color_field_with_invalid_hex_color_string
+    expected = %{<input id="car_color" name="car[color]" type="color" value="#000000" />}
+    @car.color = "#1234TR"
+    assert_dom_equal(expected, color_field("car", "color"))
   end
 
   def test_search_field

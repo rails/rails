@@ -444,6 +444,11 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_color_field_tag
+    expected = %{<input id="car" name="car" type="color" />}
+    assert_dom_equal(expected, color_field_tag("car"))
+  end
+
   def test_search_field_tag
     expected = %{<input id="query" name="query" type="search" />}
     assert_dom_equal(expected, search_field_tag("query"))

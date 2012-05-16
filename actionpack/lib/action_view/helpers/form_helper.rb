@@ -939,6 +939,15 @@ module ActionView
         Tags::RadioButton.new(object_name, method, self, tag_value, options).render
       end
 
+      # Returns a text_field of type "color".
+      #
+      #   color_field("car", "color")
+      #   # => <input id="car_color" name="car[color]" type="color" value="#000000" />
+      #
+      def color_field(object_name, method, options = {})
+        Tags::ColorField.new(object_name, method, self, options).render
+      end
+
       # Returns an input of type "search" for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object_name+). Inputs of type "search" may be styled differently by
       # some browsers.

@@ -524,6 +524,14 @@ module ActionView
         output.safe_concat("</fieldset>")
       end
 
+      # Creates a text field of type "color".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def color_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "color"))
+      end
+
       # Creates a text field of type "search".
       #
       # ==== Options
