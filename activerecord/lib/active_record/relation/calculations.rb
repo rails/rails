@@ -140,19 +140,26 @@ module ActiveRecord
     #   # => ['0', '27761', '173']
     #
     def pluck(column_name)
-      key = column_name.to_s.split('.', 2).last
-
       if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
         column_name = "#{table_name}.#{column_name}"
       end
 
       result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
-      column = klass.column_types[key] || result.column_types.values.first
+
+      key = column = nil
+      nullcast = Class.new { def type_cast(v); v; end }.new
 
       result.map do |attributes|
         raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
+
         value = klass.initialize_attributes(attributes).values.first
-        column ? column.type_cast(value) : value
+
+        key    ||= attributes.keys.first
+        column ||= klass.column_types.fetch(key) {
+          result.column_types.fetch(key, nullcast)
+        }
+
+        column.type_cast(value)
       end
     end
 
