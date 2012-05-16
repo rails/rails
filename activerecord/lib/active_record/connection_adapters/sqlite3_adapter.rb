@@ -38,7 +38,7 @@ module ActiveRecord
 
   module ConnectionAdapters #:nodoc:
     class SQLite3Column < Column #:nodoc:
-      class <<  self
+      class << self
         def binary_to_string(value)
           if value.encoding != Encoding::ASCII_8BIT
             value = value.force_encoding(Encoding::ASCII_8BIT)
