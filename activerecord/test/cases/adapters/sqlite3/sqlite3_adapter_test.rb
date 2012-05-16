@@ -35,6 +35,11 @@ module ActiveRecord
         assert(!result.rows.first.include?("blob"), "should not store blobs")
       end
 
+      def test_time_column
+        owner = Owner.create!(:eats_at => Time.utc(1995,1,1,6,0))
+        assert_match /1995-01-01/, owner.reload.eats_at.to_s
+      end
+
       def test_exec_insert
         column = @conn.columns('items').find { |col| col.name == 'number' }
         vals   = [[column, 10]]
