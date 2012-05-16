@@ -146,18 +146,17 @@ module ActiveRecord
 
       result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
 
-      key = column = nil
-      nullcast = Class.new { def type_cast(v); v; end }.new
+      key    = result.columns.first
+      column = klass.column_types.fetch(key) {
+        result.column_types.fetch(key) {
+          Class.new { def type_cast(v); v; end }.new
+        }
+      }
 
       result.map do |attributes|
         raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
 
         value = klass.initialize_attributes(attributes).values.first
-
-        key    ||= attributes.keys.first
-        column ||= klass.column_types.fetch(key) {
-          result.column_types.fetch(key, nullcast)
-        }
 
         column.type_cast(value)
       end
