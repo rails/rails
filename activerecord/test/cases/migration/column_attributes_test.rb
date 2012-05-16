@@ -183,6 +183,16 @@ module ActiveRecord
         assert_instance_of TrueClass, bob.male?
         assert_kind_of BigDecimal, bob.wealth
       end
+
+      def test_out_of_range_limit_should_raise
+        skip("MySQL and PostgreSQL only") unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+
+        assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, :limit => 10 }
+
+        unless current_adapter?(:PostgreSQLAdapter)
+          assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :integer, :limit => 0xfffffffff }
+        end
+      end
     end
   end
 end

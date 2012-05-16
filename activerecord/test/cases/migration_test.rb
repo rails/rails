@@ -375,6 +375,27 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_out_of_range_limit_should_raise
+    skip("MySQL and PostgreSQL only") unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+
+    Person.connection.drop_table :test_limits rescue nil
+    assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
+      Person.connection.create_table :test_integer_limits, :force => true do |t|
+        t.column :bigone, :integer, :limit => 10
+      end
+    end
+
+    unless current_adapter?(:PostgreSQLAdapter)
+      assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
+        Person.connection.create_table :test_text_limits, :force => true do |t|
+          t.column :bigtext, :text, :limit => 0xfffffffff
+        end
+      end
+    end
+
+    Person.connection.drop_table :test_limits rescue nil
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
@@ -883,8 +904,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   def test_skipping_migrations
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
-    
-    sources = {} 
+
+    sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
     sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_name_collision"
 
