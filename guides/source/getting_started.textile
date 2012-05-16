@@ -594,6 +594,8 @@ And then finally a view for this action, located at +app/views/posts/index.html.
 </table>
 </erb>
 
+Now if you go to +http://localhost:3000/posts+ you will see a list of all the posts that you have created.
+
 h4. Adding links
 
 You can now create, show, and list posts. Now let's add some links to
