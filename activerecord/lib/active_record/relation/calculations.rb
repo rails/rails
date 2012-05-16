@@ -147,17 +147,12 @@ module ActiveRecord
       end
 
       result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
-      types  = result.column_types.merge klass.column_types
-      column = types[key]
+      column = klass.column_types[key] || result.column_types.values.first
 
       result.map do |attributes|
         raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
-        value = klass.initialize_attributes(attributes).first[1]
-        if column
-          column.type_cast value
-        else
-          value
-        end
+        value = klass.initialize_attributes(attributes).values.first
+        column ? column.type_cast(value) : value
       end
     end
 
