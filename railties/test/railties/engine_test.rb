@@ -537,10 +537,11 @@ YAML
       assert_equal "foo", last_response.body
     end
 
-    test "it loads its environment file" do
+    test "it loads its environments file" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
+            config.paths["config/environments"].push "config/environments/additional.rb"
           end
         end
       RUBY
@@ -551,9 +552,16 @@ YAML
         end
       RUBY
 
+      @plugin.write "config/environments/additional.rb", <<-RUBY
+        Bukkits::Engine.configure do
+          config.additional_environment_loaded = true
+        end
+      RUBY
+
       boot_rails
 
       assert Bukkits::Engine.config.environment_loaded
+      assert Bukkits::Engine.config.additional_environment_loaded
     end
 
     test "it passes router in env" do

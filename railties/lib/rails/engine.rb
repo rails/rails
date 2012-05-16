@@ -567,8 +567,9 @@ module Rails
     end
 
     initializer :load_environment_config, :before => :load_environment_hook, :group => :all do
-      environment = paths["config/environments"].existent.first
-      require environment if environment
+      paths["config/environments"].existent.each do |environment|
+        require environment
+      end
     end
 
     initializer :append_assets_path, :group => :all do |app|
