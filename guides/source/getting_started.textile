@@ -832,21 +832,23 @@ it look as follows:
 <%= link_to 'Back', :action => :index %>
 </erb>
 
-This time we point the form to the +update+ action (not defined yet).
+This time we point the form to the +update+ action, which is not defined yet
+but will be very soon.
+
 The +:method => :put+ option tells Rails that we want this form to be
-submitted via +put+, which is the http method you're expected to use to
+submitted via the +PUT+, HTTP method which is the HTTP method you're expected to use to
 *update* resources according to the REST protocol.
 
 TIP: By default forms built with the +form_for_ helper are sent via +POST+.
 
-Moving on, we need to add the +update+ action. The file
+Next, we need to add the +update+ action. The file
 +config/routes.rb+ will need just one more line:
 
 <ruby>
 put "posts/:id" => "posts#update"
 </ruby>
 
-And the +update+ action in +posts_controller+ itself should not look too complicated by now:
+And then create the +update+ action in +app/controllers/posts_controller.rb+:
 
 <ruby>
 def update
@@ -860,7 +862,7 @@ def update
 end
 </ruby>
 
-The new method +update_attributes+ is used when you want to update a record
+The new method, +update_attributes+, is used when you want to update a record
 that already exists, and it accepts an hash containing the attributes
 that you want to update. As before, if there was an error updating the
 post we want to show the form back to the user.
