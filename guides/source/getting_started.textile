@@ -612,41 +612,25 @@ The +link_to+ method is one of Rails' built-in view helpers. It creates a
 hyperlink based on text to display and where to go - in this case, to the path
 for posts.
 
-Let's add links to the other views as well.
+Let's add links to the other views as well, starting with adding this "New Post" link to +app/views/posts/index.html.erb+, placing it above the +<table>+ tag:
 
 <erb>
-# app/views/posts/index.html.erb
-
-<h1>Listing posts</h1>
-
 <%= link_to 'New post', :action => :new %>
+</erb>
 
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th></th>
-  </tr>
+This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template -- +app/views/posts/new.html.erb+ -- to go back to the +index+ action. Do this by adding this underneath the form in this template:
 
-<% @posts.each do |post| %>
-  <tr>
-    <td><%= post.title %></td>
-    <td><%= post.text %></td>
-    <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
-  </tr>
-<% end %>
-</table>
-
-# app/views/posts/new.html.erb
-
+<erb>
 <%= form_for :post do |f| %>
   ...
 <% end %>
 
 <%= link_to 'Back', :action => :index %>
+</erb>
 
-# app/views/posts/show.html.erb
+Finally, add another link to the +app/views/posts/show.html.erb+ template to go back to the +index+ action as well, so that people who are viewing a single post can go back and view the whole list again:
 
+<erb>
 <p>
   <strong>Title:</strong>
   <%= @post.title %>
