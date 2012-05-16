@@ -943,7 +943,7 @@ Rails":layouts_and_rendering.html guide.
 
 Our +edit+ action looks very similar to the +new+ action, in fact they
 both share the same code for displaying the form. Lets clean them up by
-using a +_form+ partial.
+using a partial.
 
 Create a new file +app/views/posts/_form.html.erb+ with the following
 content:
