@@ -150,6 +150,20 @@ module ActiveSupport #:nodoc:
       dup.concat(other)
     end
 
+    def %(args)
+      args = Array(args)
+
+      args.map! do |arg|
+        if !html_safe? || arg.html_safe?
+          arg
+        else
+          ERB::Util.h(arg)
+        end
+      end
+
+      self.class.new(super(args))
+    end
+
     def html_safe?
       defined?(@html_safe) && @html_safe
     end
