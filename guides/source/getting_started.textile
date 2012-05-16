@@ -977,23 +977,23 @@ content:
 <% end %>
 </erb>
 
-Everything except for the +form_for+ declaration remained the same. I'll
-explain later how +form_for+ can figure out the right +action+ and
-+method+ attributes when building the form, for now let's update the
-+new+ and +edit+ views:
+Everything except for the +form_for+ declaration remained the same.
+How +form_for+ can figure out the right +action+ and +method+ attributes
+when building the form will be explained in just a moment. For now, let's update the
++app/views/posts/new.html.erb+ view to use this new partial, rewriting it
+completely:
 
 <erb>
-# app/views/posts/new.html.erb
-
 <h1>New post</h1>
 
 <%= render 'form' %>
 
 <%= link_to 'Back', :action => :index %>
+</erb>
 
+Then do the same for the +app/views/posts/edit.html.erb+ view:
 
-# app/views/posts/edit.html.erb
-
+<erb>
 <h1>Edit post</h1>
 
 <%= render 'form' %>
