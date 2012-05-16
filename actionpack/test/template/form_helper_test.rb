@@ -685,6 +685,146 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, time_field("post", "written_on"))
   end
 
+  def test_datetime_field
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T00:00:00.000+0000" />}
+    assert_dom_equal(expected, datetime_field("post", "written_on"))
+  end
+
+  def test_datetime_field_with_datetime_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    assert_dom_equal(expected, datetime_field("post", "written_on"))
+  end
+
+  def test_datetime_field_with_extra_attrs
+    expected = %{<input id="post_written_on" step="60" max="2010-08-15T10:25:00.000+0000" min="2000-06-15T20:45:30.000+0000" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
+    max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
+    step = 60
+    assert_dom_equal(expected, datetime_field("post", "written_on", :min => min_value, :max => max_value, :step => step))
+  end
+
+  def test_datetime_field_with_timewithzone_value
+    previous_time_zone, Time.zone = Time.zone, 'UTC'
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T15:30:45.000+0000" />}
+    @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
+    assert_dom_equal(expected, datetime_field("post", "written_on"))
+  ensure
+    Time.zone = previous_time_zone
+  end
+
+  def test_datetime_field_with_nil_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" />}
+    @post.written_on = nil
+    assert_dom_equal(expected, datetime_field("post", "written_on"))
+  end
+
+  def test_datetime_local_field
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
+    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
+  end
+
+  def test_datetime_local_field_with_datetime_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
+  end
+
+  def test_datetime_local_field_with_extra_attrs
+    expected = %{<input id="post_written_on" step="60" max="2010-08-15T10:25:00" min="2000-06-15T20:45:30" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
+    max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
+    step = 60
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", :min => min_value, :max => max_value, :step => step))
+  end
+
+  def test_datetime_local_field_with_timewithzone_value
+    previous_time_zone, Time.zone = Time.zone, 'UTC'
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T15:30:45" />}
+    @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
+    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
+  ensure
+    Time.zone = previous_time_zone
+  end
+
+  def test_datetime_local_field_with_nil_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" />}
+    @post.written_on = nil
+    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
+  end
+
+  def test_month_field
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
+    assert_dom_equal(expected, month_field("post", "written_on"))
+  end
+
+  def test_month_field_with_nil_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" />}
+    @post.written_on = nil
+    assert_dom_equal(expected, month_field("post", "written_on"))
+  end
+
+  def test_month_field_with_datetime_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    assert_dom_equal(expected, month_field("post", "written_on"))
+  end
+
+  def test_month_field_with_extra_attrs
+    expected = %{<input id="post_written_on" step="2" max="2010-12" min="2000-02" name="post[written_on]" type="month" value="2004-06" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = DateTime.new(2000, 2, 13)
+    max_value = DateTime.new(2010, 12, 23)
+    step = 2
+    assert_dom_equal(expected, month_field("post", "written_on", :min => min_value, :max => max_value, :step => step))
+  end
+
+  def test_month_field_with_timewithzone_value
+    previous_time_zone, Time.zone = Time.zone, 'UTC'
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
+    @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
+    assert_dom_equal(expected, month_field("post", "written_on"))
+  ensure
+    Time.zone = previous_time_zone
+  end
+
+  def test_week_field
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W24" />}
+    assert_dom_equal(expected, week_field("post", "written_on"))
+  end
+
+  def test_week_field_with_nil_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" />}
+    @post.written_on = nil
+    assert_dom_equal(expected, week_field("post", "written_on"))
+  end
+
+  def test_week_field_with_datetime_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W24" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    assert_dom_equal(expected, week_field("post", "written_on"))
+  end
+
+  def test_week_field_with_extra_attrs
+    expected = %{<input id="post_written_on" step="2" max="2010-W51" min="2000-W06" name="post[written_on]" type="week" value="2004-W24" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = DateTime.new(2000, 2, 13)
+    max_value = DateTime.new(2010, 12, 23)
+    step = 2
+    assert_dom_equal(expected, week_field("post", "written_on", :min => min_value, :max => max_value, :step => step))
+  end
+
+  def test_week_field_with_timewithzone_value
+    previous_time_zone, Time.zone = Time.zone, 'UTC'
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W24" />}
+    @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
+    assert_dom_equal(expected, week_field("post", "written_on"))
+  ensure
+    Time.zone = previous_time_zone
+  end
+
   def test_url_field
     expected = %{<input id="user_homepage" name="user[homepage]" type="url" />}
     assert_dom_equal(expected, url_field("user", "homepage"))

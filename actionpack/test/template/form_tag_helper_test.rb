@@ -469,6 +469,26 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, time_field_tag("cell"))
   end
 
+  def test_datetime_field_tag
+    expected = %{<input id="appointment" name="appointment" type="datetime" />}
+    assert_dom_equal(expected, datetime_field_tag("appointment"))
+  end
+
+  def test_datetime_local_field_tag
+    expected = %{<input id="appointment" name="appointment" type="datetime-local" />}
+    assert_dom_equal(expected, datetime_local_field_tag("appointment"))
+  end
+
+  def test_month_field_tag
+    expected = %{<input id="birthday" name="birthday" type="month" />}
+    assert_dom_equal(expected, month_field_tag("birthday"))
+  end
+
+  def test_week_field_tag
+    expected = %{<input id="birthday" name="birthday" type="week" />}
+    assert_dom_equal(expected, week_field_tag("birthday"))
+  end
+
   def test_url_field_tag
     expected = %{<input id="homepage" name="homepage" type="url" />}
     assert_dom_equal(expected, url_field_tag("homepage"))
