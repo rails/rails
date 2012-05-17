@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Removed old text_helper apis for highlight, excerpt and word_wrap *Jeremy Walker*
+
 *   Templates without a handler extension now raises a deprecation warning but still
     defaults to ERb. In future releases, it will simply return the template contents. *Steve Klabnik*
 
