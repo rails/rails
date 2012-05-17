@@ -40,16 +40,6 @@ module ActiveRecord
       def join(table, constraint)
         table.create_join(table, table.create_on(constraint), join_type)
       end
-
-      def sanitize(conditions, table)
-        conditions = conditions.map do |condition|
-          condition = active_record.send(:sanitize_sql, interpolate(condition), table.table_alias || table.name)
-          condition = Arel.sql(condition) unless condition.is_a?(Arel::Node)
-          condition
-        end
-
-        conditions.length == 1 ? conditions.first : Arel::Nodes::And.new(conditions)
-      end
     end
   end
 end

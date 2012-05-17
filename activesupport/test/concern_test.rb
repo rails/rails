@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/concern'
 
-class ConcernTest < Test::Unit::TestCase
+class ConcernTest < ActiveSupport::TestCase
   module Baz
     extend ActiveSupport::Concern
 
@@ -17,9 +17,6 @@ class ConcernTest < Test::Unit::TestCase
       def included_ran
         @@included_ran
       end
-    end
-
-    module InstanceMethods
     end
 
     included do
@@ -74,7 +71,7 @@ class ConcernTest < Test::Unit::TestCase
   def test_instance_methods_are_included
     @klass.send(:include, Baz)
     assert_equal "baz", @klass.new.baz
-    assert @klass.included_modules.include?(ConcernTest::Baz::InstanceMethods)
+    assert @klass.included_modules.include?(ConcernTest::Baz)
   end
 
   def test_included_block_is_ran
@@ -92,6 +89,6 @@ class ConcernTest < Test::Unit::TestCase
 
   def test_dependencies_with_multiple_modules
     @klass.send(:include, Foo)
-    assert_equal [ConcernTest::Foo, ConcernTest::Bar, ConcernTest::Baz::InstanceMethods, ConcernTest::Baz], @klass.included_modules[0..3]
+    assert_equal [ConcernTest::Foo, ConcernTest::Bar, ConcernTest::Baz], @klass.included_modules[0..2]
   end
 end

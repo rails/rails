@@ -1,10 +1,9 @@
-$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
-
-require 'test/unit'
+require 'minitest/autorun'
+require 'active_support/test_case'
 require 'rbconfig'
 require 'active_support/core_ext/kernel/reporting'
 
-class TestIsolated < Test::Unit::TestCase
+class TestIsolated < ActiveSupport::TestCase
   ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
 
   Dir["#{File.dirname(__FILE__)}/**/*_test.rb"].each do |file|

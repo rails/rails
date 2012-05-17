@@ -1,61 +1,103 @@
 require 'abstract_unit'
-require 'controller/fake_models'
 
-class Post
+class RecordTagPost
   extend ActiveModel::Naming
   include ActiveModel::Conversion
-  def id
-     45
-  end
-  def body
-    super || "What a wonderful world!"
+  attr_accessor :id, :body
+
+  def initialize
+    @id   = 45
+    @body = "What a wonderful world!"
+
+    yield self if block_given?
   end
 end
 
 class RecordTagHelperTest < ActionView::TestCase
+  include RenderERBUtils
+
   tests ActionView::Helpers::RecordTagHelper
 
   def setup
     super
-    @post = Post.new
-    @post.persisted = true
+    @post = RecordTagPost.new
   end
 
   def test_content_tag_for
-    expected = %(<li class="post bar" id="post_45"></li>)
-    actual = content_tag_for(:li, @post, :class => 'bar') { }
+    expected = %(<li class="record_tag_post" id="record_tag_post_45"></li>)
+    actual = content_tag_for(:li, @post) { }
     assert_dom_equal expected, actual
   end
 
   def test_content_tag_for_prefix
-    expected = %(<ul class="archived_post" id="archived_post_45"></ul>)
+    expected = %(<ul class="archived_record_tag_post" id="archived_record_tag_post_45"></ul>)
     actual = content_tag_for(:ul, @post, :archived) { }
     assert_dom_equal expected, actual
   end
 
-  def test_content_tag_for_with_extra_html_tags
-    expected = %(<tr class="post bar" id="post_45" style='background-color: #f0f0f0'></tr>)
-    actual = content_tag_for(:tr, @post, {:class => "bar", :style => "background-color: #f0f0f0"}) { }
+  def test_content_tag_for_with_extra_html_options
+    expected = %(<tr class="record_tag_post special" id="record_tag_post_45" style='background-color: #f0f0f0'></tr>)
+    actual = content_tag_for(:tr, @post, :class => "special", :style => "background-color: #f0f0f0") { }
+    assert_dom_equal expected, actual
+  end
+
+  def test_content_tag_for_with_prefix_and_extra_html_options
+    expected = %(<tr class="archived_record_tag_post special" id="archived_record_tag_post_45" style='background-color: #f0f0f0'></tr>)
+    actual = content_tag_for(:tr, @post, :archived, :class => "special", :style => "background-color: #f0f0f0") { }
     assert_dom_equal expected, actual
   end
 
   def test_block_not_in_erb_multiple_calls
-    expected = %(<div class="post bar" id="post_45">#{@post.body}</div>)
-    actual = div_for(@post, :class => "bar") { @post.body }
+    expected = %(<div class="record_tag_post special" id="record_tag_post_45">What a wonderful world!</div>)
+    actual = div_for(@post, :class => "special") { @post.body }
     assert_dom_equal expected, actual
-    actual = div_for(@post, :class => "bar") { @post.body }
+    actual = div_for(@post, :class => "special") { @post.body }
     assert_dom_equal expected, actual
   end
 
   def test_block_works_with_content_tag_for_in_erb
-    expected = %(<tr class="post" id="post_45">#{@post.body}</tr>)
-    actual = content_tag_for(:tr, @post) { concat @post.body }
+    expected = %(<tr class="record_tag_post" id="record_tag_post_45">What a wonderful world!</tr>)
+    actual = render_erb("<%= content_tag_for(:tr, @post) do %><%= @post.body %><% end %>")
     assert_dom_equal expected, actual
   end
 
   def test_div_for_in_erb
-    expected = %(<div class="post bar" id="post_45">#{@post.body}</div>)
-    actual = div_for(@post, :class => "bar") { concat @post.body }
+    expected = %(<div class="record_tag_post special" id="record_tag_post_45">What a wonderful world!</div>)
+    actual = render_erb("<%= div_for(@post, :class => 'special') do %><%= @post.body %><% end %>")
     assert_dom_equal expected, actual
+  end
+
+  def test_content_tag_for_collection
+    post_1 = RecordTagPost.new { |post| post.id = 101; post.body = "Hello!" }
+    post_2 = RecordTagPost.new { |post| post.id = 102; post.body = "World!" }
+    expected = %(<li class="record_tag_post" id="record_tag_post_101">Hello!</li>\n<li class="record_tag_post" id="record_tag_post_102">World!</li>)
+    actual = content_tag_for(:li, [post_1, post_2]) { |post| post.body }
+    assert_dom_equal expected, actual
+  end
+
+  def test_div_for_collection
+    post_1 = RecordTagPost.new { |post| post.id = 101; post.body = "Hello!" }
+    post_2 = RecordTagPost.new { |post| post.id = 102; post.body = "World!" }
+    expected = %(<div class="record_tag_post" id="record_tag_post_101">Hello!</div>\n<div class="record_tag_post" id="record_tag_post_102">World!</div>)
+    actual = div_for([post_1, post_2]) { |post| post.body }
+    assert_dom_equal expected, actual
+  end
+
+  def test_content_tag_for_single_record_is_html_safe
+    result = div_for(@post, :class => "special") { @post.body }
+    assert result.html_safe?
+  end
+
+  def test_content_tag_for_collection_is_html_safe
+    post_1 = RecordTagPost.new { |post| post.id = 101; post.body = "Hello!" }
+    post_2 = RecordTagPost.new { |post| post.id = 102; post.body = "World!" }
+    result = content_tag_for(:li, [post_1, post_2]) { |post| post.body }
+    assert result.html_safe?
+  end
+
+  def test_content_tag_for_does_not_change_options_hash
+    options = { :class => "important" }
+    content_tag_for(:li, @post, options) { }
+    assert_equal({ :class => "important" }, options)
   end
 end

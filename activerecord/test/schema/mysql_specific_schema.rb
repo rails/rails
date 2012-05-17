@@ -1,5 +1,5 @@
 ActiveRecord::Schema.define do
-  create_table :binary_fields, :force => true, :options => 'CHARACTER SET latin1' do |t|
+  create_table :binary_fields, :force => true do |t|
     t.binary :tiny_blob,   :limit => 255
     t.binary :normal_blob, :limit => 65535
     t.binary :medium_blob, :limit => 16777215
@@ -30,6 +30,17 @@ CREATE PROCEDURE topics() SQL SECURITY INVOKER
 BEGIN
 	select * from topics limit 1;
 END
+SQL
+
+  ActiveRecord::Base.connection.execute <<-SQL
+DROP TABLE IF EXISTS collation_tests;
+SQL
+
+  ActiveRecord::Base.connection.execute <<-SQL
+CREATE TABLE collation_tests (
+  string_cs_column VARCHAR(1) COLLATE utf8_bin,
+  string_ci_column VARCHAR(1) COLLATE utf8_general_ci
+) CHARACTER SET utf8 COLLATE utf8_general_ci
 SQL
 
 end

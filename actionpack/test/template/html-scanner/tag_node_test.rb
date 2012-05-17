@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class TagNodeTest < Test::Unit::TestCase
+class TagNodeTest < ActiveSupport::TestCase
   def test_open_without_attributes
     node = tag("<tag>")
     assert_equal "tag", node.name
@@ -55,7 +55,12 @@ class TagNodeTest < Test::Unit::TestCase
 
   def test_to_s
     node = tag("<a b=c d='f' g=\"h 'i'\" />")
-    assert_equal %(<a b="c" d="f" g="h 'i'" />), node.to_s
+    node = node.to_s
+    assert node.include?('a')
+    assert node.include?('b="c"')
+    assert node.include?('d="f"')
+    assert node.include?('g="h')
+    assert node.include?('i')
   end
 
   def test_tag

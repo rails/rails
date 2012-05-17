@@ -26,7 +26,6 @@ module ActionDispatch
       #
       # The +message+ parameter allows you to pass in an error message that is displayed upon failure.
       #
-      # ==== Examples
       #   # Check the default route (i.e., the index action)
       #   assert_recognizes({:controller => 'items', :action => 'index'}, 'items')
       #
@@ -39,15 +38,16 @@ module ActionDispatch
       #   # Test a custom route
       #   assert_recognizes({:controller => 'items', :action => 'show', :id => '1'}, 'view/item1')
       def assert_recognizes(expected_options, path, extras={}, message=nil)
-        request = recognized_request_for(path)
+        request = recognized_request_for(path, extras)
 
         expected_options = expected_options.clone
-        extras.each_key { |key| expected_options.delete key } unless extras.nil?
 
         expected_options.stringify_keys!
-        msg = build_message(message, "The recognized options <?> did not match <?>, difference: <?>",
+
+        # FIXME: minitest does object diffs, do we need to have our own?
+        message ||= sprintf("The recognized options <%s> did not match <%s>, difference: <%s>",
             request.path_parameters, expected_options, expected_options.diff(request.path_parameters))
-        assert_equal(expected_options, request.path_parameters, msg)
+        assert_equal(expected_options, request.path_parameters, message)
       end
 
       # Asserts that the provided options can be used to generate the provided path. This is the inverse of +assert_recognizes+.
@@ -56,7 +56,6 @@ module ActionDispatch
       #
       # The +defaults+ parameter is unused.
       #
-      # ==== Examples
       #   # Asserts that the default action is generated for a route with no action
       #   assert_generates "/items", :controller => "items", :action => "index"
       #
@@ -84,10 +83,10 @@ module ActionDispatch
         generated_path, extra_keys = @routes.generate_extras(options, defaults)
         found_extras = options.reject {|k, v| ! extra_keys.include? k}
 
-        msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
+        msg = message || sprintf("found extras <%s>, not <%s>", found_extras, extras)
         assert_equal(extras, found_extras, msg)
 
-        msg = build_message(message, "The generated path <?> did not match <?>", generated_path,
+        msg = message || sprintf("The generated path <%s> did not match <%s>", generated_path,
             expected_path)
         assert_equal(expected_path, generated_path, msg)
       end
@@ -99,7 +98,6 @@ module ActionDispatch
       # The +extras+ hash allows you to specify options that would normally be provided as a query string to the action. The
       # +message+ parameter allows you to specify a custom error message to display upon failure.
       #
-      # ==== Examples
       #  # Assert a basic route: a controller with the default action (index)
       #  assert_routing '/home', :controller => 'home', :action => 'index'
       #
@@ -179,7 +177,7 @@ module ActionDispatch
 
       private
         # Recognizes the route for a given path.
-        def recognized_request_for(path)
+        def recognized_request_for(path, extras = {})
           if path.is_a?(Hash)
             method = path[:method]
             path   = path[:path]
@@ -207,7 +205,7 @@ module ActionDispatch
 
           request.request_method = method if method
 
-          params = @routes.recognize_path(path, { :method => method })
+          params = @routes.recognize_path(path, { :method => method, :extras => extras })
           request.path_parameters = params.with_indifferent_access
 
           request

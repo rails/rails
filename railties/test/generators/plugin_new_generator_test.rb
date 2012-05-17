@@ -1,4 +1,3 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/plugin_new/plugin_new_generator'
 require 'generators/shared_generator_tests.rb'
@@ -28,13 +27,20 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   include SharedGeneratorTests
 
   def test_invalid_plugin_name_raises_an_error
-    content = capture(:stderr){ run_generator [File.join(destination_root, "43-things")] }
-    assert_equal "Invalid plugin name 43-things. Please give a name which does not start with numbers.\n", content
+    content = capture(:stderr){ run_generator [File.join(destination_root, "things-43")] }
+    assert_equal "Invalid plugin name things-43. Please give a name which use only alphabetic or numeric or \"_\" characters.\n", content
+
+    content = capture(:stderr){ run_generator [File.join(destination_root, "things4.3")] }
+    assert_equal "Invalid plugin name things4.3. Please give a name which use only alphabetic or numeric or \"_\" characters.\n", content
+
+    content = capture(:stderr){ run_generator [File.join(destination_root, "43things")] }
+    assert_equal "Invalid plugin name 43things. Please give a name which does not start with numbers.\n", content
   end
 
-  def test_invalid_plugin_name_is_fixed
-    run_generator [File.join(destination_root, "things-43")]
-    assert_file "things-43/lib/things-43.rb", /module Things43/
+  def test_camelcase_plugin_name_underscores_filenames
+    run_generator [File.join(destination_root, "CamelCasedName")]
+    assert_no_file "CamelCasedName/lib/CamelCasedName.rb"
+    assert_file "CamelCasedName/lib/camel_cased_name.rb", /module CamelCasedName/
   end
 
   def test_generating_without_options
@@ -93,7 +99,13 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install_with_full_and_mountable
-    result = run_generator [destination_root, "--mountable", "--full"]
+    result = run_generator [destination_root, "--mountable", "--full", "--dev"]
+    assert_file "#{destination_root}/Gemfile.lock" do |contents|
+      assert_match(/bukkits/, contents)
+    end
+    assert_match(/run  bundle install/, result)
+    assert_match(/Using bukkits \(0\.0\.1\)/, result)
+    assert_match(/Your bundle is complete/, result)
     assert_equal 1, result.scan("Your bundle is complete").size
   end
 
@@ -197,15 +209,15 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
     assert_file "app/views/layouts/bukkits/application.html.erb" do |contents|
       assert_match "<title>Bukkits</title>", contents
-      assert_match /stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents
-      assert_match /javascript_include_tag\s+['"]bukkits\/application['"]/, contents
+      assert_match(/stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents)
+      assert_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
     end
   end
 
   def test_creating_gemspec
     run_generator
     assert_file "bukkits.gemspec", /s.name\s+= "bukkits"/
-    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*", "MIT-LICENSE", "Rakefile", "README\.rdoc"\]/
     assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
     assert_file "bukkits.gemspec", /s.version\s+ = Bukkits::VERSION/
   end
@@ -230,6 +242,13 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy"
   end
 
+  def test_creating_dummy_application_with_different_name
+    run_generator [destination_root, "--dummy_path", "spec/fake"]
+    assert_file "spec/fake"
+    assert_file "spec/fake/config/application.rb"
+    assert_no_file "test/dummy"
+  end
+
   def test_creating_dummy_without_tests_but_with_dummy_path
     run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"]
     assert_file "spec/dummy"
@@ -237,11 +256,19 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test"
   end
 
+  def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
+    FileUtils.cd(Rails.root)
+    run_generator([destination_root, "--dummy_path", "spec/dummy" "--skip-test-unit"])
+    assert_file ".gitignore" do |contents|
+      assert_match(/spec\/dummy/, contents)
+    end
+  end
+
   def test_skipping_test_unit
     run_generator [destination_root, "--skip-test-unit"]
     assert_no_file "test"
     assert_file "bukkits.gemspec" do |contents|
-      assert_no_match /s.test_files = Dir\["test\/\*\*\/\*"\]/, contents
+      assert_no_match(/s.test_files = Dir\["test\/\*\*\/\*"\]/, contents)
     end
   end
 
@@ -249,6 +276,37 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-gemspec"]
     assert_no_file "bukkits.gemspec"
   end
+
+  def test_creating_plugin_in_app_directory_adds_gemfile_entry
+    # simulate application existance
+    gemfile_path = "#{Rails.root}/Gemfile"
+    Object.const_set('APP_PATH', Rails.root)
+    FileUtils.touch gemfile_path
+
+    run_generator [destination_root]
+
+    assert_file gemfile_path, /gem 'bukkits', :path => 'tmp\/bukkits'/
+  ensure
+    Object.send(:remove_const, 'APP_PATH')
+    FileUtils.rm gemfile_path
+  end
+
+  def test_skipping_gemfile_entry
+    # simulate application existance
+    gemfile_path = "#{Rails.root}/Gemfile"
+    Object.const_set('APP_PATH', Rails.root)
+    FileUtils.touch gemfile_path
+
+    run_generator [destination_root, "--skip-gemfile-entry"]
+
+    assert_file gemfile_path do |contents|
+      assert_no_match(/gem 'bukkits', :path => 'tmp\/bukkits'/, contents)
+    end
+  ensure
+    Object.send(:remove_const, 'APP_PATH')
+    FileUtils.rm gemfile_path
+  end
+
 
 protected
 
@@ -296,4 +354,3 @@ protected
     silence(:stdout){ generator.send(*args, &block) }
   end
 end
-

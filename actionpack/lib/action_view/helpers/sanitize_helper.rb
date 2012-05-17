@@ -1,6 +1,5 @@
 require 'active_support/core_ext/object/try'
 require 'action_controller/vendor/html-scanner'
-require 'action_view/helpers/tag_helper'
 
 module ActionView
   # = Action View Sanitize Helpers
@@ -70,8 +69,6 @@ module ActionView
       # html-scanner tokenizer and so its HTML parsing ability is limited by
       # that of html-scanner.
       #
-      # ==== Examples
-      #
       #   strip_tags("Strip <i>these</i> tags!")
       #   # => Strip these tags!
       #
@@ -86,7 +83,6 @@ module ActionView
 
       # Strips all link tags from +text+ leaving just the link text.
       #
-      # ==== Examples
       #   strip_links('<a href="http://www.rubyonrails.org">Ruby on Rails</a>')
       #   # => Ruby on Rails
       #

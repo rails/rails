@@ -14,7 +14,7 @@ module ModuleWithConstant
   InheritedConstant = "Hello"
 end
 
-class DependenciesTest < Test::Unit::TestCase
+class DependenciesTest < ActiveSupport::TestCase
   def teardown
     ActiveSupport::Dependencies.clear
   end
@@ -258,6 +258,85 @@ class DependenciesTest < Test::Unit::TestCase
     $:.replace(original_path)
   end
 
+  def test_require_returns_true_when_file_not_yet_required
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading do
+      assert_equal true, require('loaded_constant')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_require_returns_true_when_file_not_yet_required_even_when_no_new_constants_added
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading do
+      Object.module_eval "module LoadedConstant; end"
+      assert_equal true, require('loaded_constant')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_require_returns_false_when_file_already_required
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading do
+      require 'loaded_constant'
+      assert_equal false, require('loaded_constant')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_require_raises_load_error_when_file_not_found
+    with_loading do
+      assert_raise(LoadError) { require 'this_file_dont_exist_dude' }
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+  end
+
+  def test_load_returns_true_when_file_found
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading do
+      assert_equal true, load('loaded_constant.rb')
+      assert_equal true, load('loaded_constant.rb')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_load_raises_load_error_when_file_not_found
+    with_loading do
+      assert_raise(LoadError) { load 'this_file_dont_exist_dude.rb' }
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+  end
+
   def failing_test_access_thru_and_upwards_fails
     with_autoloading_fixtures do
       assert ! defined?(ModuleFolder)
@@ -334,7 +413,7 @@ class DependenciesTest < Test::Unit::TestCase
     assert ActiveSupport::Dependencies.qualified_const_defined?("Object")
     assert ActiveSupport::Dependencies.qualified_const_defined?("::Object")
     assert ActiveSupport::Dependencies.qualified_const_defined?("::Object::Kernel")
-    assert ActiveSupport::Dependencies.qualified_const_defined?("::Test::Unit::TestCase")
+    assert ActiveSupport::Dependencies.qualified_const_defined?("::ActiveSupport::TestCase")
   end
 
   def test_qualified_const_defined_should_not_call_const_missing
@@ -507,6 +586,24 @@ class DependenciesTest < Test::Unit::TestCase
   def test_autoload_once_paths_do_not_add_to_autoloaded_constants
     with_autoloading_fixtures do
       ActiveSupport::Dependencies.autoload_once_paths = ActiveSupport::Dependencies.autoload_paths.dup
+
+      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
+      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      assert ! ActiveSupport::Dependencies.autoloaded?(ModuleFolder)
+
+      1 if ModuleFolder::NestedClass # 1 if to avoid warning
+      assert ! ActiveSupport::Dependencies.autoloaded?(ModuleFolder::NestedClass)
+    end
+  ensure
+    Object.class_eval { remove_const :ModuleFolder }
+    ActiveSupport::Dependencies.autoload_once_paths = []
+  end
+
+  def test_autoload_once_pathnames_do_not_add_to_autoloaded_constants
+    with_autoloading_fixtures do
+      pathnames = ActiveSupport::Dependencies.autoload_paths.collect{|p| Pathname.new(p)}
+      ActiveSupport::Dependencies.autoload_paths = pathnames
+      ActiveSupport::Dependencies.autoload_once_paths = pathnames
 
       assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
       assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")

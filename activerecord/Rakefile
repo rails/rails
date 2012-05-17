@@ -1,4 +1,3 @@
-#!/usr/bin/env rake
 require 'rake/testtask'
 require 'rake/packagetask'
 require 'rubygems/package_task'
@@ -48,8 +47,8 @@ end
       |x| x =~ /\/adapters\//
     } + Dir.glob("test/cases/adapters/#{adapter_short}/**/*_test.rb")).sort
 
-    t.verbose = true
     t.warning = true
+    t.verbose = true
   }
 
   task "isolated_test_#{adapter}" do
@@ -187,15 +186,15 @@ end
 task :lines do
   lines, codelines, total_lines, total_codelines = 0, 0, 0, 0
 
-  for file_name in FileList["lib/active_record/**/*.rb"]
+  FileList["lib/active_record/**/*.rb"].each do |file_name|
     next if file_name =~ /vendor/
-    f = File.open(file_name)
-
-    while line = f.gets
-      lines += 1
-      next if line =~ /^\s*$/
-      next if line =~ /^\s*#/
-      codelines += 1
+    File.open(file_name, 'r') do |f|
+      while line = f.gets
+        lines += 1
+        next if line =~ /^\s*$/
+        next if line =~ /^\s*#/
+        codelines += 1
+      end
     end
     puts "L: #{sprintf("%4d", lines)}, LOC #{sprintf("%4d", codelines)} | #{file_name}"
 

@@ -13,14 +13,18 @@ module ActiveRecord
         table       = Post.table_name
         @db_name    = db
 
-        @omgpost = Class.new(Post) do
-          set_table_name "#{db}.#{table}"
+        @omgpost = Class.new(ActiveRecord::Base) do
+          self.table_name = "#{db}.#{table}"
           def self.name; 'Post'; end
         end
       end
 
       def test_schema
-        assert @omgpost.find(:first)
+        assert @omgpost.first
+      end
+
+      def test_primary_key
+        assert_equal 'id', @omgpost.primary_key
       end
 
       def test_table_exists?

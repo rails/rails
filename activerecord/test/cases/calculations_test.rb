@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/company'
+require "models/contract"
 require 'models/topic'
 require 'models/edge'
 require 'models/club'
@@ -48,13 +49,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_get_maximum_of_field_with_include
-    assert_equal 55, Account.maximum(:credit_limit, :include => :firm, :conditions => "companies.name != 'Summit'")
-  end
-
-  def test_should_get_maximum_of_field_with_scoped_include
-    Account.send :with_scope, :find => { :include => :firm, :conditions => "companies.name != 'Summit'" } do
-      assert_equal 55, Account.maximum(:credit_limit)
-    end
+    assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(:credit_limit)
   end
 
   def test_should_get_minimum_of_field
@@ -62,12 +57,12 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_field
-    c = Account.sum(:credit_limit, :group => :firm_id)
+    c = Account.group(:firm_id).sum(:credit_limit)
     [1,6,2].each { |firm_id| assert c.keys.include?(firm_id) }
   end
 
   def test_should_group_by_multiple_fields
-    c = Account.count(:all, :group => ['firm_id', :credit_limit])
+    c = Account.group('firm_id', :credit_limit).count(:all)
     [ [nil, 50], [1, 50], [6, 50], [6, 55], [9, 53], [2, 60] ].each { |firm_and_limit| assert c.keys.include?(firm_and_limit) }
   end
 
@@ -80,32 +75,32 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field
-    c = Account.sum(:credit_limit, :group => :firm_id)
+    c = Account.group(:firm_id).sum(:credit_limit)
     assert_equal 50,   c[1]
     assert_equal 105,  c[6]
     assert_equal 60,   c[2]
   end
 
   def test_should_order_by_grouped_field
-    c = Account.sum(:credit_limit, :group => :firm_id, :order => "firm_id")
+    c = Account.scoped(:group => :firm_id, :order => "firm_id").sum(:credit_limit)
     assert_equal [1, 2, 6, 9], c.keys.compact
   end
 
   def test_should_order_by_calculation
-    c = Account.sum(:credit_limit, :group => :firm_id, :order => "sum_credit_limit desc, firm_id")
+    c = Account.scoped(:group => :firm_id, :order => "sum_credit_limit desc, firm_id").sum(:credit_limit)
     assert_equal [105, 60, 53, 50, 50], c.keys.collect { |k| c[k] }
     assert_equal [6, 2, 9, 1], c.keys.compact
   end
 
   def test_should_limit_calculation
-    c = Account.sum(:credit_limit, :conditions => "firm_id IS NOT NULL",
-                    :group => :firm_id, :order => "firm_id", :limit => 2)
+    c = Account.scoped(:where => "firm_id IS NOT NULL",
+                       :group => :firm_id, :order => "firm_id", :limit => 2).sum(:credit_limit)
     assert_equal [1, 2], c.keys.compact
   end
 
   def test_should_limit_calculation_with_offset
-    c = Account.sum(:credit_limit, :conditions => "firm_id IS NOT NULL",
-                    :group => :firm_id, :order => "firm_id", :limit => 2, :offset => 1)
+    c = Account.scoped(:where => "firm_id IS NOT NULL", :group => :firm_id,
+                       :order => "firm_id", :limit => 2, :offset => 1).sum(:credit_limit)
     assert_equal [2, 6], c.keys.compact
   end
 
@@ -155,16 +150,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field_having_condition
-    c = Account.sum(:credit_limit, :group => :firm_id,
-                                   :having => 'sum(credit_limit) > 50')
-    assert_nil        c[1]
-    assert_equal 105, c[6]
-    assert_equal 60,  c[2]
-  end
-
-  def test_should_group_by_summed_field_having_sanitized_condition
-    c = Account.sum(:credit_limit, :group => :firm_id,
-                                   :having => ['sum(credit_limit) > ?', 50])
+    c = Account.scoped(:group => :firm_id,
+                       :having => 'sum(credit_limit) > 50').sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_equal 60,  c[2]
@@ -178,19 +165,19 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_association
-    c = Account.sum(:credit_limit, :group => :firm)
+    c = Account.group(:firm).sum(:credit_limit)
     assert_equal 50,   c[companies(:first_firm)]
     assert_equal 105,  c[companies(:rails_core)]
     assert_equal 60,   c[companies(:first_client)]
   end
 
   def test_should_sum_field_with_conditions
-    assert_equal 105, Account.sum(:credit_limit, :conditions => 'firm_id = 6')
+    assert_equal 105, Account.where('firm_id = 6').sum(:credit_limit)
   end
 
   def test_should_return_zero_if_sum_conditions_return_nothing
-    assert_equal 0, Account.sum(:credit_limit, :conditions => '1 = 2')
-    assert_equal 0, companies(:rails_core).companies.sum(:id, :conditions => '1 = 2')
+    assert_equal 0, Account.where('1 = 2').sum(:credit_limit)
+    assert_equal 0, companies(:rails_core).companies.where('1 = 2').sum(:id)
   end
 
   def test_sum_should_return_valid_values_for_decimals
@@ -199,24 +186,24 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field_with_conditions
-    c = Account.sum(:credit_limit, :conditions => 'firm_id > 1',
-                                   :group => :firm_id)
+    c = Account.scoped(:where => 'firm_id > 1',
+                       :group => :firm_id).sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_equal 60,  c[2]
   end
 
   def test_should_group_by_summed_field_with_conditions_and_having
-    c = Account.sum(:credit_limit, :conditions => 'firm_id > 1',
-                                   :group => :firm_id,
-                                   :having => 'sum(credit_limit) > 60')
+    c = Account.scoped(:where => 'firm_id > 1',
+                       :group => :firm_id,
+                       :having => 'sum(credit_limit) > 60').sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_nil        c[2]
   end
 
   def test_should_group_by_fields_with_table_alias
-    c = Account.sum(:credit_limit, :group => 'accounts.firm_id')
+    c = Account.group('accounts.firm_id').sum(:credit_limit)
     assert_equal 50,  c[1]
     assert_equal 105, c[6]
     assert_equal 60,  c[2]
@@ -228,14 +215,14 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_calculate_grouped_with_invalid_field
-    c = Account.count(:all, :group => 'accounts.firm_id')
+    c = Account.group('accounts.firm_id').count(:all)
     assert_equal 1, c[1]
     assert_equal 2, c[6]
     assert_equal 1, c[2]
   end
 
   def test_should_calculate_grouped_association_with_invalid_field
-    c = Account.count(:all, :group => :firm)
+    c = Account.group(:firm).count(:all)
     assert_equal 1, c[companies(:first_firm)]
     assert_equal 2, c[companies(:rails_core)]
     assert_equal 1, c[companies(:first_client)]
@@ -254,7 +241,7 @@ class CalculationsTest < ActiveRecord::TestCase
     column.expects(:type_cast).with("ABC").returns("ABC")
     Account.expects(:columns).at_least_once.returns([column])
 
-    c = Account.count(:all, :group => :firm)
+    c = Account.group(:firm).count(:all)
     first_key = c.keys.first
     assert_equal Firm, first_key.class
     assert_equal 1, c[first_key]
@@ -262,22 +249,14 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_calculate_grouped_association_with_foreign_key_option
     Account.belongs_to :another_firm, :class_name => 'Firm', :foreign_key => 'firm_id'
-    c = Account.count(:all, :group => :another_firm)
+    c = Account.group(:another_firm).count(:all)
     assert_equal 1, c[companies(:first_firm)]
     assert_equal 2, c[companies(:rails_core)]
     assert_equal 1, c[companies(:first_client)]
   end
 
-  def test_should_not_modify_options_when_using_includes
-    options = {:conditions => 'companies.id > 1', :include => :firm}
-    options_copy = options.dup
-
-    Account.count(:all, options)
-    assert_equal options_copy, options
-  end
-
   def test_should_calculate_grouped_by_function
-    c = Company.count(:all, :group => "UPPER(#{QUOTED_TYPE})")
+    c = Company.group("UPPER(#{QUOTED_TYPE})").count(:all)
     assert_equal 2, c[nil]
     assert_equal 1, c['DEPENDENTFIRM']
     assert_equal 4, c['CLIENT']
@@ -285,7 +264,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_calculate_grouped_by_function_with_table_alias
-    c = Company.count(:all, :group => "UPPER(companies.#{QUOTED_TYPE})")
+    c = Company.group("UPPER(companies.#{QUOTED_TYPE})").count(:all)
     assert_equal 2, c[nil]
     assert_equal 1, c['DEPENDENTFIRM']
     assert_equal 4, c['CLIENT']
@@ -305,25 +284,24 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_sum_scoped_field_with_conditions
-    assert_equal 8,  companies(:rails_core).companies.sum(:id, :conditions => 'id > 7')
+    assert_equal 8,  companies(:rails_core).companies.where('id > 7').sum(:id)
   end
 
   def test_should_group_by_scoped_field
-    c = companies(:rails_core).companies.sum(:id, :group => :name)
+    c = companies(:rails_core).companies.group(:name).sum(:id)
     assert_equal 7, c['Leetsoft']
     assert_equal 8, c['Jadedpixel']
   end
 
   def test_should_group_by_summed_field_through_association_and_having
-    c = companies(:rails_core).companies.sum(:id, :group => :name,
-                                                  :having => 'sum(id) > 7')
+    c = companies(:rails_core).companies.group(:name).having('sum(id) > 7').sum(:id)
     assert_nil      c['Leetsoft']
     assert_equal 8, c['Jadedpixel']
   end
 
   def test_should_count_selected_field_with_include
-    assert_equal 6, Account.count(:distinct => true, :include => :firm)
-    assert_equal 4, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)
+    assert_equal 6, Account.includes(:firm).count(:distinct => true)
+    assert_equal 4, Account.includes(:firm).select(:credit_limit).count(:distinct => true)
   end
 
   def test_should_not_perform_joined_include_by_default
@@ -347,11 +325,11 @@ class CalculationsTest < ActiveRecord::TestCase
     Account.last.update_column('credit_limit', 49)
     Account.first.update_column('credit_limit', 51)
 
-    assert_equal 1, Account.scoped(:select => "credit_limit").count(:conditions => ['credit_limit >= 50'])
+    assert_equal 1, Account.scoped(:select => "credit_limit").where('credit_limit >= 50').count
   end
 
   def test_should_count_manual_select_with_include
-    assert_equal 6, Account.count(:select => "DISTINCT accounts.id", :include => :firm)
+    assert_equal 6, Account.scoped(:select => "DISTINCT accounts.id", :includes => :firm).count
   end
 
   def test_count_with_column_parameter
@@ -359,16 +337,16 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_column_and_options_parameter
-    assert_equal 2, Account.count(:firm_id, :conditions => "credit_limit = 50 AND firm_id IS NOT NULL")
+    assert_equal 2, Account.where("credit_limit = 50 AND firm_id IS NOT NULL").count(:firm_id)
   end
 
   def test_should_count_field_in_joined_table
-    assert_equal 5, Account.count('companies.id', :joins => :firm)
-    assert_equal 4, Account.count('companies.id', :joins => :firm, :distinct => true)
+    assert_equal 5, Account.joins(:firm).count('companies.id')
+    assert_equal 4, Account.joins(:firm).count('companies.id', :distinct => true)
   end
 
   def test_should_count_field_in_joined_table_with_group_by
-    c = Account.count('companies.id', :group => 'accounts.firm_id', :joins => :firm)
+    c = Account.scoped(:group => 'accounts.firm_id', :joins => :firm).count('companies.id')
 
     [1,6,2,9].each { |firm_id| assert c.keys.include?(firm_id) }
   end
@@ -391,17 +369,17 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_from_option
-    assert_equal Company.count(:all), Company.count(:all, :from => 'companies')
-    assert_equal Account.count(:all, :conditions => "credit_limit = 50"),
-        Account.count(:all, :from => 'accounts', :conditions => "credit_limit = 50")
-    assert_equal Company.count(:type, :conditions => {:type => "Firm"}),
-        Company.count(:type, :conditions => {:type => "Firm"}, :from => 'companies')
+    assert_equal Company.count(:all), Company.from('companies').count(:all)
+    assert_equal Account.where("credit_limit = 50").count(:all),
+        Account.from('accounts').where("credit_limit = 50").count(:all)
+    assert_equal Company.where(:type => "Firm").count(:type),
+        Company.where(:type => "Firm").from('companies').count(:type)
   end
 
   def test_sum_with_from_option
-    assert_equal Account.sum(:credit_limit), Account.sum(:credit_limit, :from => 'accounts')
-    assert_equal Account.sum(:credit_limit, :conditions => "credit_limit > 50"),
-        Account.sum(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
+    assert_equal Account.sum(:credit_limit), Account.from('accounts').sum(:credit_limit)
+    assert_equal Account.where("credit_limit > 50").sum(:credit_limit),
+        Account.where("credit_limit > 50").from('accounts').sum(:credit_limit)
   end
 
   def test_sum_array_compatibility
@@ -409,33 +387,33 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_average_with_from_option
-    assert_equal Account.average(:credit_limit), Account.average(:credit_limit, :from => 'accounts')
-    assert_equal Account.average(:credit_limit, :conditions => "credit_limit > 50"),
-        Account.average(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
+    assert_equal Account.average(:credit_limit), Account.from('accounts').average(:credit_limit)
+    assert_equal Account.where("credit_limit > 50").average(:credit_limit),
+        Account.where("credit_limit > 50").from('accounts').average(:credit_limit)
   end
 
   def test_minimum_with_from_option
-    assert_equal Account.minimum(:credit_limit), Account.minimum(:credit_limit, :from => 'accounts')
-    assert_equal Account.minimum(:credit_limit, :conditions => "credit_limit > 50"),
-        Account.minimum(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
+    assert_equal Account.minimum(:credit_limit), Account.from('accounts').minimum(:credit_limit)
+    assert_equal Account.where("credit_limit > 50").minimum(:credit_limit),
+        Account.where("credit_limit > 50").from('accounts').minimum(:credit_limit)
   end
 
   def test_maximum_with_from_option
-    assert_equal Account.maximum(:credit_limit), Account.maximum(:credit_limit, :from => 'accounts')
-    assert_equal Account.maximum(:credit_limit, :conditions => "credit_limit > 50"),
-        Account.maximum(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
+    assert_equal Account.maximum(:credit_limit), Account.from('accounts').maximum(:credit_limit)
+    assert_equal Account.where("credit_limit > 50").maximum(:credit_limit),
+        Account.where("credit_limit > 50").from('accounts').maximum(:credit_limit)
   end
 
   def test_from_option_with_specified_index
     if Edge.connection.adapter_name == 'MySQL' or Edge.connection.adapter_name == 'Mysql2'
-      assert_equal Edge.count(:all), Edge.count(:all, :from => 'edges USE INDEX(unique_edge_index)')
-      assert_equal Edge.count(:all, :conditions => 'sink_id < 5'),
-          Edge.count(:all, :from => 'edges USE INDEX(unique_edge_index)', :conditions => 'sink_id < 5')
+      assert_equal Edge.count(:all), Edge.from('edges USE INDEX(unique_edge_index)').count(:all)
+      assert_equal Edge.where('sink_id < 5').count(:all),
+          Edge.from('edges USE INDEX(unique_edge_index)').where('sink_id < 5').count(:all)
     end
   end
 
   def test_from_option_with_table_different_than_class
-    assert_equal Account.count(:all), Company.count(:all, :from => 'accounts')
+    assert_equal Account.count(:all), Company.from('accounts').count(:all)
   end
 
   def test_distinct_is_honored_when_used_with_count_operation_after_group
@@ -445,5 +423,65 @@ class CalculationsTest < ActiveRecord::TestCase
     # Count the number of distinct authors for approved Topics
     distinct_authors_for_approved_count = Topic.group(:approved).count(:author_name, :distinct => true)[true]
     assert_equal distinct_authors_for_approved_count, 2
+  end
+
+  def test_pluck
+    assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
+  end
+
+  def test_pluck_type_cast
+    topic = topics(:first)
+    relation = Topic.where(:id => topic.id)
+    assert_equal [ topic.approved ], relation.pluck(:approved)
+    assert_equal [ topic.last_read ], relation.pluck(:last_read)
+    assert_equal [ topic.written_on ], relation.pluck(:written_on)
+  end
+
+  def test_pluck_and_uniq
+    assert_equal [50, 53, 55, 60], Account.order(:credit_limit).uniq.pluck(:credit_limit)
+  end
+
+  def test_pluck_in_relation
+    company = Company.first
+    contract = company.contracts.create!
+    assert_equal [contract.id], company.contracts.pluck(:id)
+  end
+
+  def test_pluck_with_serialization
+    t = Topic.create!(:content => { :foo => :bar })
+    assert_equal [{:foo => :bar}], Topic.where(:id => t.id).pluck(:content)
+  end
+
+  def test_pluck_with_qualified_column_name
+    assert_equal [1,2,3,4], Topic.order(:id).pluck("topics.id")
+  end
+
+  def test_pluck_auto_table_name_prefix
+    c = Company.create!(:name => "test", :contracts => [Contract.new])
+    assert_equal [c.id], Company.joins(:contracts).pluck(:id)
+  end
+
+  def test_pluck_not_auto_table_name_prefix_if_column_joined
+    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
+  end
+
+  def test_pluck_with_selection_clause
+    assert_equal [50, 53, 55, 60], Account.pluck('DISTINCT credit_limit').sort
+    assert_equal [50, 53, 55, 60], Account.pluck('DISTINCT accounts.credit_limit').sort
+    assert_equal [50, 53, 55, 60], Account.pluck('DISTINCT(credit_limit)').sort
+
+    # MySQL returns "SUM(DISTINCT(credit_limit))" as the column name unless
+    # an alias is provided.  Without the alias, the column cannot be found
+    # and properly typecast.
+    assert_equal [50 + 53 + 55 + 60], Account.pluck('SUM(DISTINCT(credit_limit)) as credit_limit')
+  end
+
+  def test_pluck_expects_a_single_selection
+    assert_raise(ArgumentError) { Account.pluck 'id, credit_limit' }
+  end
+
+  def test_plucks_with_ids
+    assert_equal Company.all.map(&:id).sort, Company.ids.sort
   end
 end

@@ -53,8 +53,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_last_preserves_scope
-    lowest_salary  = Developer.first :order => "salary ASC"
-    highest_salary = Developer.first :order => "salary DESC"
+    lowest_salary  = Developer.order("salary ASC").first
+    highest_salary = Developer.order("salary DESC").first
 
     Developer.order("salary").scoping do
       assert_equal highest_salary, Developer.last
@@ -84,7 +84,7 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scope_select_concatenates
     Developer.select("id, name").scoping do
-      developer = Developer.select('id, salary').where("name = 'David'").first
+      developer = Developer.select('salary').where("name = 'David'").first
       assert_equal 80000, developer.salary
       assert developer.has_attribute?(:id)
       assert developer.has_attribute?(:name)
@@ -106,7 +106,7 @@ class RelationScopingTest < ActiveRecord::TestCase
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
     scoped_developers = Developer.includes(:projects).scoping do
-      Developer.where('projects.id = 2').all
+      Developer.where('projects.id' => 2).all
     end
     assert scoped_developers.include?(developers(:david))
     assert !scoped_developers.include?(developers(:jamis))
@@ -323,8 +323,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts
 
   def test_default_scope
-    expected = Developer.find(:all, :order => 'salary DESC').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
+    expected = Developer.scoped(:order => 'salary DESC').all.collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.all.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
@@ -362,12 +362,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_with_conditions_string
-    assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeveloperCalledDavid.find(:all).map(&:id).sort
+    assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
     assert_equal nil, DeveloperCalledDavid.create!.name
   end
 
   def test_default_scope_with_conditions_hash
-    assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeveloperCalledJamis.find(:all).map(&:id).sort
+    assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeveloperCalledJamis.all.map(&:id).sort
     assert_equal 'Jamis', DeveloperCalledJamis.create!.name
   end
 
@@ -395,23 +395,9 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 50000,   wheres[:salary]
   end
 
-  def test_method_scope
-    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }
-    assert_equal expected, received
-  end
-
-  def test_nested_scope
-    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.send(:with_scope, :find => { :order => 'name DESC'}) do
-      DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
-    end
-    assert_equal expected, received
-  end
-
   def test_scope_overwrites_default
-    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.by_name.find(:all).collect { |dev| dev.name }
+    expected = Developer.scoped(:order => 'salary DESC, name DESC').all.collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.by_name.all.collect { |dev| dev.name }
     assert_equal expected, received
   end
 
@@ -421,17 +407,15 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
-  def test_nested_exclusive_scope
-    expected = Developer.find(:all, :limit => 100).collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.send(:with_exclusive_scope, :find => { :limit => 100 }) do
-      DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
-    end
+  def test_order_after_reorder_combines_orders
+    expected = Developer.order('name DESC, id DESC').collect { |dev| [dev.name, dev.id] }
+    received = Developer.order('name ASC').reorder('name DESC').order('id DESC').collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
 
   def test_order_in_default_scope_should_prevail
-    expected = Developer.find(:all, :order => 'salary desc').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
+    expected = Developer.scoped(:order => 'salary desc').all.collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.scoped(:order => 'salary').all.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 

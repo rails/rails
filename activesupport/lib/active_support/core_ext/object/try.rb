@@ -1,6 +1,6 @@
 class Object
-  # Invokes the method identified by the symbol +method+, passing it any arguments
-  # and/or the block specified, just like the regular Ruby <tt>Object#send</tt> does.
+  # Invokes the public method identified by the symbol +method+, passing it any arguments
+  # and/or the block specified, just like the regular Ruby <tt>Object#public_send</tt> does.
   #
   # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised
   # and +nil+ will be returned instead, if the receiving object is a +nil+ object or NilClass.
@@ -24,14 +24,12 @@ class Object
   # Without a method argument try will yield to the block unless the receiver is nil.
   #   @person.try { |p| "#{p.first_name} #{p.last_name}" }
   #--
-  # +try+ behaves like +Object#send+, unless called on +NilClass+.
+  # +try+ behaves like +Object#public_send+, unless called on +NilClass+.
   def try(*a, &b)
     if a.empty? && block_given?
       yield self
-    elsif !a.empty? && !respond_to?(a.first)
-      nil
     else
-      __send__(*a, &b)
+      public_send(*a, &b)
     end
   end
 end

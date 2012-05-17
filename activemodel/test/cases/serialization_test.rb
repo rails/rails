@@ -43,79 +43,126 @@ class SerializationTest < ActiveModel::TestCase
   end
 
   def test_method_serializable_hash_should_work
-    expected =  {"name"=>"David", "gender"=>"male", "email"=>"david@example.com"}
-    assert_equal expected , @user.serializable_hash
+    expected = {"name"=>"David", "gender"=>"male", "email"=>"david@example.com"}
+    assert_equal expected, @user.serializable_hash
   end
 
   def test_method_serializable_hash_should_work_with_only_option
-    expected =  {"name"=>"David"}
-    assert_equal expected , @user.serializable_hash(:only => [:name])
+    expected = {"name"=>"David"}
+    assert_equal expected, @user.serializable_hash(:only => [:name])
   end
 
   def test_method_serializable_hash_should_work_with_except_option
-    expected =  {"gender"=>"male", "email"=>"david@example.com"}
-    assert_equal expected , @user.serializable_hash(:except => [:name])
+    expected = {"gender"=>"male", "email"=>"david@example.com"}
+    assert_equal expected, @user.serializable_hash(:except => [:name])
   end
 
   def test_method_serializable_hash_should_work_with_methods_option
-    expected =  {"name"=>"David", "gender"=>"male", :foo=>"i_am_foo", "email"=>"david@example.com"}
-    assert_equal expected , @user.serializable_hash(:methods => [:foo])
+    expected = {"name"=>"David", "gender"=>"male", "foo"=>"i_am_foo", "email"=>"david@example.com"}
+    assert_equal expected, @user.serializable_hash(:methods => [:foo])
   end
 
   def test_method_serializable_hash_should_work_with_only_and_methods
-    expected =  {:foo=>"i_am_foo"}
-    assert_equal expected , @user.serializable_hash(:only => [], :methods => [:foo])
+    expected = {"foo"=>"i_am_foo"}
+    assert_equal expected, @user.serializable_hash(:only => [], :methods => [:foo])
   end
 
   def test_method_serializable_hash_should_work_with_except_and_methods
-    expected =  {"gender"=>"male", :foo=>"i_am_foo"}
-    assert_equal expected , @user.serializable_hash(:except => [:name, :email], :methods => [:foo])
+    expected = {"gender"=>"male", "foo"=>"i_am_foo"}
+    assert_equal expected, @user.serializable_hash(:except => [:name, :email], :methods => [:foo])
   end
 
   def test_should_not_call_methods_that_dont_respond
-    expected =  {"name"=>"David", "gender"=>"male", "email"=>"david@example.com"}
-    assert_equal expected , @user.serializable_hash(:methods => [:bar])
+    expected = {"name"=>"David", "gender"=>"male", "email"=>"david@example.com"}
+    assert_equal expected, @user.serializable_hash(:methods => [:bar])
+  end
+
+  def test_should_use_read_attribute_for_serialization
+    def @user.read_attribute_for_serialization(n)
+      "Jon"
+    end
+
+    expected = { "name" => "Jon" }
+    assert_equal expected, @user.serializable_hash(:only => :name)
   end
 
   def test_include_option_with_singular_association
-    expected =  {"name"=>"David", "gender"=>"male", "email"=>"david@example.com",
-                 :address=>{"street"=>"123 Lane", "city"=>"Springfield", "state"=>"CA", "zip"=>11111}}
-    assert_equal expected , @user.serializable_hash(:include => :address)
+    expected = {"name"=>"David", "gender"=>"male", "email"=>"david@example.com",
+                "address"=>{"street"=>"123 Lane", "city"=>"Springfield", "state"=>"CA", "zip"=>11111}}
+    assert_equal expected, @user.serializable_hash(:include => :address)
   end
 
   def test_include_option_with_plural_association
-    expected =  {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
-                 :friends=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
-                            {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
-    assert_equal expected , @user.serializable_hash(:include => :friends)
+    expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
+                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
+                           {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
+    assert_equal expected, @user.serializable_hash(:include => :friends)
   end
 
   def test_include_option_with_empty_association
     @user.friends = []
-    expected =  {"email"=>"david@example.com", "gender"=>"male", "name"=>"David", :friends=>[]}
-    assert_equal expected , @user.serializable_hash(:include => :friends)
+    expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David", "friends"=>[]}
+    assert_equal expected, @user.serializable_hash(:include => :friends)
+  end
+
+  class FriendList
+    def initialize(friends)
+      @friends = friends
+    end
+
+    def to_ary
+      @friends
+    end
+  end
+
+  def test_include_option_with_ary
+    @user.friends = FriendList.new(@user.friends)
+    expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
+                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
+                           {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
+    assert_equal expected, @user.serializable_hash(:include => :friends)
   end
 
   def test_multiple_includes
-    expected =  {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
-                 :address=>{"street"=>"123 Lane", "city"=>"Springfield", "state"=>"CA", "zip"=>11111},
-                 :friends=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
-                            {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
-    assert_equal expected , @user.serializable_hash(:include => [:address, :friends])
+    expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
+                "address"=>{"street"=>"123 Lane", "city"=>"Springfield", "state"=>"CA", "zip"=>11111},
+                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
+                           {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
+    assert_equal expected, @user.serializable_hash(:include => [:address, :friends])
   end
 
   def test_include_with_options
-    expected =  {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
-                 :address=>{"street"=>"123 Lane"}}
-    assert_equal expected , @user.serializable_hash(:include => {:address => {:only => "street"}})
+    expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
+                "address"=>{"street"=>"123 Lane"}}
+    assert_equal expected, @user.serializable_hash(:include => {:address => {:only => "street"}})
   end
 
   def test_nested_include
     @user.friends.first.friends = [@user]
-    expected =  {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
-                 :friends=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male',
-                             :friends => ["email"=>"david@example.com", "gender"=>"male", "name"=>"David"]},
-                            {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female', :friends => []}]}
-    assert_equal expected , @user.serializable_hash(:include => {:friends => {:include => :friends}})
+    expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
+                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male',
+                            "friends"=> [{"email"=>"david@example.com", "gender"=>"male", "name"=>"David"}]},
+                            {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female', "friends"=> []}]}
+    assert_equal expected, @user.serializable_hash(:include => {:friends => {:include => :friends}})
+  end
+
+  def test_only_include
+    expected = {"name"=>"David", "friends" => [{"name" => "Joe"}, {"name" => "Sue"}]}
+    assert_equal expected, @user.serializable_hash(:only => :name, :include => {:friends => {:only => :name}})
+  end
+
+  def test_except_include
+    expected = {"name"=>"David", "email"=>"david@example.com",
+                "friends"=> [{"name" => 'Joe', "email" => 'joe@example.com'},
+                             {"name" => "Sue", "email" => 'sue@example.com'}]}
+    assert_equal expected, @user.serializable_hash(:except => :gender, :include => {:friends => {:except => :gender}})
+  end
+
+  def test_multiple_includes_with_options
+    expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
+                "address"=>{"street"=>"123 Lane"},
+                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
+                           {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
+    assert_equal expected, @user.serializable_hash(:include => [{:address => {:only => "street"}}, :friends])
   end
 end

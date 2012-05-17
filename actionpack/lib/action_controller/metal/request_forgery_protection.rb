@@ -17,7 +17,6 @@ module ActionController #:nodoc:
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
   # which checks the token and resets the session if it doesn't match what was expected.
   # A call to this method is generated for new \Rails applications by default.
-  # You can customize the error message by editing public/422.html.
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
@@ -37,6 +36,10 @@ module ActionController #:nodoc:
       config_accessor :request_forgery_protection_token
       self.request_forgery_protection_token ||= :authenticity_token
 
+      # Controls how unverified request will be handled
+      config_accessor :request_forgery_protection_method
+      self.request_forgery_protection_method ||= :reset_session
+
       # Controls whether request forgery protection is turned on or not. Turned off by default only in test mode.
       config_accessor :allow_forgery_protection
       self.allow_forgery_protection = true if allow_forgery_protection.nil?
@@ -47,8 +50,6 @@ module ActionController #:nodoc:
 
     module ClassMethods
       # Turn on request forgery protection. Bear in mind that only non-GET, HTML/JavaScript requests are checked.
-      #
-      # Example:
       #
       #   class FooController < ApplicationController
       #     protect_from_forgery :except => :index
@@ -64,8 +65,10 @@ module ActionController #:nodoc:
       # Valid Options:
       #
       # * <tt>:only/:except</tt> - Passed to the <tt>before_filter</tt> call. Set which actions are verified.
+      # * <tt>:with</tt> - Set the method to handle unverified request. Valid values: <tt>:exception</tt> and <tt>:reset_session</tt> (default).
       def protect_from_forgery(options = {})
         self.request_forgery_protection_token ||= :authenticity_token
+        self.request_forgery_protection_method = options.delete(:with) if options.key?(:with)
         prepend_before_filter :verify_authenticity_token, options
       end
     end
@@ -74,15 +77,25 @@ module ActionController #:nodoc:
       # The actual before_filter that is used. Modify this to change how you handle unverified requests.
       def verify_authenticity_token
         unless verified_request?
-          logger.debug "WARNING: Can't verify CSRF token authenticity" if logger
+          logger.warn "Can't verify CSRF token authenticity" if logger
           handle_unverified_request
         end
       end
 
       # This is the method that defines the application behavior when a request is found to be unverified.
-      # By default, \Rails resets the session when it finds an unverified request.
+      # By default, \Rails uses <tt>request_forgery_protection_method</tt> when it finds an unverified request:
+      #
+      # * <tt>:reset_session</tt> - Resets the session.
+      # * <tt>:exception</tt>: - Raises ActionController::InvalidAuthenticityToken exception.
       def handle_unverified_request
-        reset_session
+        case request_forgery_protection_method
+        when :exception
+          raise ActionController::InvalidAuthenticityToken
+        when :reset_session
+          reset_session
+        else
+          raise ArgumentError, 'Invalid request forgery protection method, use :exception or :reset_session'
+        end
       end
 
       # Returns true or false if a request is verified. Checks:

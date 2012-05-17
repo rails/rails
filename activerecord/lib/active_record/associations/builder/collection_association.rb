@@ -32,7 +32,7 @@ module ActiveRecord::Associations::Builder
     private
 
       def wrap_block_extension
-        options[:extend] = Array.wrap(options[:extend])
+        options[:extend] = Array(options[:extend])
 
         if block_extension
           silence_warnings do
@@ -51,14 +51,14 @@ module ActiveRecord::Associations::Builder
 
         # TODO : why do i need method_defined? I think its because of the inheritance chain
         model.class_attribute full_callback_name.to_sym unless model.method_defined?(full_callback_name)
-        model.send("#{full_callback_name}=", Array.wrap(options[callback_name.to_sym]))
+        model.send("#{full_callback_name}=", Array(options[callback_name.to_sym]))
       end
 
       def define_readers
         super
 
         name = self.name
-        model.redefine_method("#{name.to_s.singularize}_ids") do
+        mixin.redefine_method("#{name.to_s.singularize}_ids") do
           association(name).ids_reader
         end
       end
@@ -67,7 +67,7 @@ module ActiveRecord::Associations::Builder
         super
 
         name = self.name
-        model.redefine_method("#{name.to_s.singularize}_ids=") do |ids|
+        mixin.redefine_method("#{name.to_s.singularize}_ids=") do |ids|
           association(name).ids_writer(ids)
         end
       end

@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2011 David Heinemeier Hansson
+# Copyright (c) 2004-2012 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,9 +21,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'active_support/ruby/shim'
-require 'active_support/core_ext/class/attribute_accessors'
-
+require 'active_support'
 require 'action_pack'
 
 module ActionView
@@ -33,6 +31,7 @@ module ActionView
     autoload :AssetPaths
     autoload :Base
     autoload :Context
+    autoload :CompiledTemplates, "action_view/context"
     autoload :Helpers
     autoload :LookupContext
     autoload :PathSet
@@ -77,7 +76,8 @@ module ActionView
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
 end
 
-require 'active_support/i18n'
 require 'active_support/core_ext/string/output_safety'
 
-I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+end

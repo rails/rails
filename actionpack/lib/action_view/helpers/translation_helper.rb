@@ -45,16 +45,27 @@ module ActionView
       # you know what kind of output to expect when you call translate in a template.
       def translate(key, options = {})
         options.merge!(:rescue_format => :html) unless options.key?(:rescue_format)
-        translation = I18n.translate(scope_key_by_partial(key), options)
-        if html_safe_translation_key?(key) && translation.respond_to?(:html_safe)
-          translation.html_safe
+        options[:default] = wrap_translate_defaults(options[:default]) if options[:default]
+        if html_safe_translation_key?(key)
+          html_safe_options = options.dup
+          options.except(*I18n::RESERVED_KEYS).each do |name, value|
+            unless name == :count && value.is_a?(Numeric)
+              html_safe_options[name] = ERB::Util.html_escape(value.to_s)
+            end
+          end
+          translation = I18n.translate(scope_key_by_partial(key), html_safe_options)
+
+          translation.respond_to?(:html_safe) ? translation.html_safe : translation
         else
-          translation
+          I18n.translate(scope_key_by_partial(key), options)
         end
       end
       alias :t :translate
 
       # Delegates to <tt>I18n.localize</tt> with no additional functionality.
+      #
+      # See http://rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize 
+      # for more information.
       def localize(*args)
         I18n.localize(*args)
       end
@@ -75,6 +86,21 @@ module ActionView
 
         def html_safe_translation_key?(key)
           key.to_s =~ /(\b|_|\.)html$/
+        end
+
+        def wrap_translate_defaults(defaults)
+          new_defaults = []
+          defaults     = Array(defaults)
+          while key = defaults.shift
+            if key.is_a?(Symbol)
+              new_defaults << lambda { |_, options| translate key, options.merge(:default => defaults) }
+              break
+            else
+              new_defautls << key
+            end
+          end
+
+          new_defaults
         end
     end
   end

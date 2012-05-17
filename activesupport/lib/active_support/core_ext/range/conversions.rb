@@ -5,9 +5,7 @@ class Range
 
   # Gives a human readable format of the range.
   #
-  # ==== Example
-  #
-  #   [1..100].to_formatted_s # => "1..100"
+  #   (1..100).to_formatted_s # => "1..100"
   def to_formatted_s(format = :default)
     if formatter = RANGE_FORMATS[format]
       formatter.call(first, last)

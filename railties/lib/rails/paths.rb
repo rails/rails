@@ -1,4 +1,4 @@
-require 'set'
+require "pathname"
 
 module Rails
   module Paths
@@ -10,19 +10,19 @@ module Rails
     #   root.add "app/controllers", :eager_load => true
     #
     # The command above creates a new root object and add "app/controllers" as a path.
-    # This means we can get a +Rails::Paths::Path+ object back like below:
+    # This means we can get a <tt>Rails::Paths::Path</tt> object back like below:
     #
     #   path = root["app/controllers"]
     #   path.eager_load?               # => true
     #   path.is_a?(Rails::Paths::Path) # => true
     #
-    # The +Path+ object is simply an array and allows you to easily add extra paths:
+    # The +Path+ object is simply an enumerable and allows you to easily add extra paths:
     #
-    #   path.is_a?(Array) # => true
-    #   path.inspect      # => ["app/controllers"]
+    #   path.is_a?(Enumerable) # => true
+    #   path.to_ary.inspect    # => ["app/controllers"]
     #
     #   path << "lib/controllers"
-    #   path.inspect      # => ["app/controllers", "lib/controllers"]
+    #   path.to_ary.inspect    # => ["app/controllers", "lib/controllers"]
     #
     # Notice that when you add a path using +add+, the path object created already
     # contains the path with the same path value given to +add+. In some situations,
@@ -43,25 +43,38 @@ module Rails
     #   root["app/controllers"].existent # => ["/rails/app/controllers"]
     #
     # Check the <tt>Rails::Paths::Path</tt> documentation for more information.
-    class Root < ::Hash
+    class Root
       attr_accessor :path
 
       def initialize(path)
-        raise "Argument should be a String of the physical root path" if path.is_a?(Array)
         @current = nil
         @path = path
-        @root = self
-        super()
+        @root = {}
       end
 
       def []=(path, value)
-        value = Path.new(self, path, value) unless value.is_a?(Path)
-        super(path, value)
+        add(path, :with => value)
       end
 
       def add(path, options={})
         with = options[:with] || path
-        self[path] = Path.new(self, path, with, options)
+        @root[path] = Path.new(self, path, [with].flatten, options)
+      end
+
+      def [](path)
+        @root[path]
+      end
+
+      def values
+        @root.values
+      end
+
+      def keys
+        @root.keys
+      end
+
+      def values_at(*list)
+        @root.values_at(*list)
       end
 
       def all_paths
@@ -100,14 +113,14 @@ module Rails
       end
     end
 
-    class Path < Array
-      attr_reader :path
+    class Path
+      include Enumerable
+
+      attr_reader :path, :root
       attr_accessor :glob
 
-      def initialize(root, current, *paths)
-        options = paths.last.is_a?(::Hash) ? paths.pop : {}
-        super(paths.flatten)
-
+      def initialize(root, current, paths, options = {})
+        @paths    = paths
         @current  = current
         @root     = root
         @glob     = options[:glob]
@@ -148,6 +161,35 @@ module Rails
         RUBY
       end
 
+      def each(&block)
+        @paths.each(&block)
+      end
+
+      def <<(path)
+        @paths << path
+      end
+      alias :push :<<
+
+      def concat(paths)
+        @paths.concat paths
+      end
+
+      def unshift(path)
+        @paths.unshift path
+      end
+
+      def to_ary
+        @paths
+      end
+
+      def paths
+        raise "You need to set a path root" unless @root.path
+
+        map do |p|
+          Pathname.new(@root.path).join(p)
+        end
+      end
+
       # Expands all paths against the root and return all unique values.
       def expanded
         raise "You need to set a path root" unless @root.path
@@ -156,8 +198,10 @@ module Rails
         each do |p|
           path = File.expand_path(p, @root.path)
 
-          if @glob
-            result.concat Dir[File.join(path, @glob)].sort
+          if @glob && File.directory?(path)
+            result.concat Dir.chdir(path) {
+              Dir.glob(@glob).map { |file| File.join path, file }.sort
+            }
           else
             result << path
           end

@@ -11,9 +11,9 @@ module ActiveSupport
   #
   class StringInquirer < String
     def method_missing(method_name, *arguments)
-      if method_name.to_s[-1,1] == "?"
-        is_eql_to_self = (self == method_name.to_s[0..-2])
-        self.class.send(:define_method, method_name) { is_eql_to_self }
+      if method_name[-1, 1] == "?"
+        is_eql_to_self = (self == method_name[0..-2])
+        define_singleton_method(method_name) { is_eql_to_self }
         is_eql_to_self
       else
         super

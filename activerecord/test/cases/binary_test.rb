@@ -8,11 +8,11 @@ unless current_adapter?(:SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
   require 'models/binary'
 
   class BinaryTest < ActiveRecord::TestCase
-    FIXTURES = %w(flowers.jpg example.log)
+    FIXTURES = %w(flowers.jpg example.log test.txt)
 
     def test_mixed_encoding
       str = "\x80"
-      str.force_encoding('ASCII-8BIT') if str.respond_to?(:force_encoding)
+      str.force_encoding('ASCII-8BIT')
 
       binary = Binary.new :name => 'いただきます！', :data => str
       binary.save!
@@ -23,7 +23,7 @@ unless current_adapter?(:SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
 
       # Mysql adapter doesn't properly encode things, so we have to do it
       if current_adapter?(:MysqlAdapter)
-        name.force_encoding('UTF-8') if name.respond_to?(:force_encoding)
+        name.force_encoding('UTF-8')
       end
       assert_equal 'いただきます！', name
     end
@@ -33,7 +33,7 @@ unless current_adapter?(:SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
 
       FIXTURES.each do |filename|
         data = File.read(ASSETS_ROOT + "/#{filename}")
-        data.force_encoding('ASCII-8BIT') if data.respond_to?(:force_encoding)
+        data.force_encoding('ASCII-8BIT')
         data.freeze
 
         bin = Binary.new(:data => data)

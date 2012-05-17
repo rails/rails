@@ -14,8 +14,6 @@ module ActionController
   end
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
-    attr_reader :allowed_methods
-
     def initialize(*allowed_methods)
       super("Only #{allowed_methods.to_sentence(:locale => :en)} requests are allowed.")
     end
@@ -30,9 +28,6 @@ module ActionController
   class MissingFile < ActionControllerError #:nodoc:
   end
 
-  class RenderError < ActionControllerError #:nodoc:
-  end
-
   class SessionOverflowError < ActionControllerError #:nodoc:
     DEFAULT_MESSAGE = 'Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data.'
 
@@ -42,5 +37,8 @@ module ActionController
   end
 
   class UnknownHttpMethod < ActionControllerError #:nodoc:
+  end
+  
+  class UnknownFormat < ActionControllerError #:nodoc:
   end
 end

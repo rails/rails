@@ -1,8 +1,3 @@
-begin
-  require 'psych'
-rescue LoadError
-end
-
 require 'erb'
 require 'yaml'
 
@@ -29,11 +24,21 @@ module ActiveRecord
         rows.each(&block)
       end
 
+      RESCUE_ERRORS = [ ArgumentError ] # :nodoc:
+
       private
+      if defined?(Psych) && defined?(Psych::SyntaxError)
+        RESCUE_ERRORS << Psych::SyntaxError
+      end
+
       def rows
         return @rows if @rows
 
-        data = YAML.load(render(IO.read(@file)))
+        begin
+          data = YAML.load(render(IO.read(@file)))
+        rescue *RESCUE_ERRORS => error
+          raise Fixture::FormatError, "a YAML error occurred parsing #{@file}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}", error.backtrace
+        end
         @rows = data ? validate(data).to_a : []
       end
 

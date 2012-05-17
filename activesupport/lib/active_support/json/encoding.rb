@@ -1,11 +1,9 @@
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/json/variable'
-require 'active_support/ordered_hash'
 
 require 'bigdecimal'
 require 'active_support/core_ext/big_decimal/conversions' # for #to_s
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/instance_variables'
@@ -19,6 +17,7 @@ module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
+      :encode_big_decimal_as_string, :encode_big_decimal_as_string=,
       :to => :'ActiveSupport::JSON::Encoding'
   end
 
@@ -38,7 +37,7 @@ module ActiveSupport
         attr_reader :options
 
         def initialize(options = nil)
-          @options = options
+          @options = options || {}
           @seen = Set.new
         end
 
@@ -50,16 +49,16 @@ module ActiveSupport
         end
 
         # like encode, but only calls as_json, without encoding to string
-        def as_json(value)
+        def as_json(value, use_options = true)
           check_for_circular_references(value) do
-            value.as_json(options_for(value))
+            use_options ? value.as_json(options_for(value)) : value.as_json
           end
         end
 
         def options_for(value)
           if value.is_a?(Array) || value.is_a?(Hash)
             # hashes and arrays need to get encoder in the options, so that they can detect circular references
-            (options || {}).merge(:encoder => self)
+            options.merge(:encoder => self)
           else
             options
           end
@@ -106,6 +105,9 @@ module ActiveSupport
         # If true, use ISO 8601 format for dates and times. Otherwise, fall back to the Active Support legacy format.
         attr_accessor :use_standard_json_time_format
 
+        # If false, serializes BigDecimal objects as numeric instead of wrapping them in a string
+        attr_accessor :encode_big_decimal_as_string
+
         attr_accessor :escape_regex
         attr_reader :escape_html_entities_in_json
 
@@ -119,9 +121,7 @@ module ActiveSupport
         end
 
         def escape(string)
-          if string.respond_to?(:force_encoding)
-            string = string.encode(::Encoding::UTF_8, :undef => :replace).force_encoding(::Encoding::BINARY)
-          end
+          string = string.encode(::Encoding::UTF_8, :undef => :replace).force_encoding(::Encoding::BINARY)
           json = string.
             gsub(escape_regex) { |s| ESCAPED_CHARS[s] }.
             gsub(/([\xC0-\xDF][\x80-\xBF]|
@@ -130,13 +130,14 @@ module ActiveSupport
             s.unpack("U*").pack("n*").unpack("H*")[0].gsub(/.{4}/n, '\\\\u\&')
           }
           json = %("#{json}")
-          json.force_encoding(::Encoding::UTF_8) if json.respond_to?(:force_encoding)
+          json.force_encoding(::Encoding::UTF_8)
           json
         end
       end
 
       self.use_standard_json_time_format = true
-      self.escape_html_entities_in_json  = false
+      self.escape_html_entities_in_json  = true
+      self.encode_big_decimal_as_string  = true
     end
   end
 end
@@ -151,8 +152,8 @@ class Object
   end
 end
 
-class Struct
-  def as_json(options = nil) #:nodoc:
+class Struct #:nodoc:
+  def as_json(options = nil)
     Hash[members.zip(values)]
   end
 end
@@ -186,6 +187,12 @@ class Numeric
   def encode_json(encoder) to_s end #:nodoc:
 end
 
+class Float
+  # Encoding Infinity or NaN to JSON should return "null". The default returns
+  # "Infinity" or "NaN" what breaks parsing the JSON. E.g. JSON.parse('[NaN]').
+  def as_json(options = nil) finite? ? self : NilClass::AS_JSON end #:nodoc:
+end
+
 class BigDecimal
   # A BigDecimal would be naturally represented as a JSON number. Most libraries,
   # however, parse non-integer JSON numbers directly as floats. Clients using
@@ -195,7 +202,15 @@ class BigDecimal
   # That's why a JSON string is returned. The JSON literal is not numeric, but if
   # the other end knows by contract that the data is supposed to be a BigDecimal,
   # it still has the chance to post-process the string and get the real value.
-  def as_json(options = nil) to_s end #:nodoc:
+  #
+  # Use ActiveSupport.use_standard_json_big_decimal_format = true to override this behaviour
+  def as_json(options = nil) #:nodoc:
+    if finite?
+      ActiveSupport.encode_big_decimal_as_string ? to_s : self
+    else
+      NilClass::AS_JSON
+    end
+  end
 end
 
 class Regexp
@@ -208,11 +223,15 @@ module Enumerable
   end
 end
 
+class Range
+  def as_json(options = nil) to_s end #:nodoc:
+end
+
 class Array
   def as_json(options = nil) #:nodoc:
     # use encoder as a proxy to call as_json on all elements, to protect from circular references
     encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    map { |v| encoder.as_json(v) }
+    map { |v| encoder.as_json(v, options) }
   end
 
   def encode_json(encoder) #:nodoc:
@@ -226,9 +245,9 @@ class Hash
     # create a subset of the hash by applying :only or :except
     subset = if options
       if attrs = options[:only]
-        slice(*Array.wrap(attrs))
+        slice(*Array(attrs))
       elsif attrs = options[:except]
-        except(*Array.wrap(attrs))
+        except(*Array(attrs))
       else
         self
       end
@@ -238,8 +257,7 @@ class Hash
 
     # use encoder as a proxy to call as_json on all values in the subset, to protect from circular references
     encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    result = self.is_a?(ActiveSupport::OrderedHash) ? ActiveSupport::OrderedHash : Hash
-    result[subset.map { |k, v| [k.to_s, encoder.as_json(v)] }]
+    Hash[subset.map { |k, v| [k.to_s, encoder.as_json(v, options)] }]
   end
 
   def encode_json(encoder)

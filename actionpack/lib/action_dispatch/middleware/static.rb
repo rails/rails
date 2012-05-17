@@ -1,4 +1,5 @@
 require 'rack/utils'
+require 'active_support/core_ext/uri'
 
 module ActionDispatch
   class FileHandler
@@ -11,14 +12,14 @@ module ActionDispatch
     def match?(path)
       path = path.dup
 
-      full_path = path.empty? ? @root : File.join(@root, ::Rack::Utils.unescape(path))
+      full_path = path.empty? ? @root : File.join(@root, escape_glob_chars(unescape_path(path)))
       paths = "#{full_path}#{ext}"
 
       matches = Dir[paths]
       match = matches.detect { |m| File.file?(m) }
       if match
         match.sub!(@compiled_root, '')
-        match
+        ::Rack::Utils.escape(match)
       end
     end
 
@@ -31,6 +32,15 @@ module ActionDispatch
         ext = ::ActionController::Base.page_cache_extension
         "{,#{ext},/index#{ext}}"
       end
+    end
+
+    def unescape_path(path)
+      URI.parser.unescape(path)
+    end
+
+    def escape_glob_chars(path)
+      path.force_encoding('binary') if path.respond_to? :force_encoding
+      path.gsub(/[*?{}\[\]]/, "\\\\\\&")
     end
   end
 

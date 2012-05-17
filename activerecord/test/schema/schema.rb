@@ -37,6 +37,12 @@ ActiveRecord::Schema.define do
 
   create_table :admin_users, :force => true do |t|
     t.string :name
+    t.text :settings, :null => true
+    # MySQL does not allow default values for blobs. Fake it out with a
+    # big varchar below.
+    t.string :preferences, :null => false, :default => '', :limit => 1024
+    t.string :json_data, :null => true, :limit => 1024
+    t.string :json_data_empty, :null => false, :default => "", :limit => 1024
     t.references :account
   end
 
@@ -47,6 +53,7 @@ ActiveRecord::Schema.define do
   create_table :audit_logs, :force => true do |t|
     t.column :message, :string, :null=>false
     t.column :developer_id, :integer, :null=>false
+    t.integer :unvalidated_developer_id
   end
 
   create_table :authors, :force => true do |t|
@@ -88,6 +95,7 @@ ActiveRecord::Schema.define do
 
   create_table :booleans, :force => true do |t|
     t.boolean :value
+    t.boolean :has_fun, :null => false, :default => false
   end
 
   create_table :bulbs, :force => true do |t|
@@ -105,6 +113,7 @@ ActiveRecord::Schema.define do
     t.string  :name
     t.integer :engines_count
     t.integer :wheels_count
+    t.column :lock_version, :integer, :null => false, :default => 0
   end
 
   create_table :categories, :force => true do |t|
@@ -156,6 +165,7 @@ ActiveRecord::Schema.define do
     t.string  :type
     t.integer :taggings_count, :default => 0
     t.integer :children_count, :default => 0
+    t.integer :parent_id
   end
 
   create_table :companies, :force => true do |t|
@@ -167,9 +177,11 @@ ActiveRecord::Schema.define do
     t.integer :client_of
     t.integer :rating, :default => 1
     t.integer :account_id
+    t.string :description, :null => false, :default => ""
   end
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
+  add_index :companies, [:firm_id, :type], :name => "company_partial_index", :where => "rating > 10"
 
   create_table :computers, :force => true do |t|
     t.integer :developer, :null => false
@@ -207,6 +219,16 @@ ActiveRecord::Schema.define do
     t.integer :project_id, :null => false
     t.date    :joined_on
     t.integer :access_level, :default => 1
+  end
+
+  create_table :dog_lovers, :force => true do |t|
+    t.integer :trained_dogs_count, :default => 0
+    t.integer :bred_dogs_count, :default => 0
+  end
+
+  create_table :dogs, :force => true do |t|
+    t.integer :trainer_id
+    t.integer :breeder_id
   end
 
   create_table :edges, :force => true, :id => false do |t|
@@ -409,6 +431,7 @@ ActiveRecord::Schema.define do
     t.string :name
     t.column :updated_at, :datetime
     t.column :happy_at,   :datetime
+    t.column :eats_at,    :time
     t.string :essay_id
   end
 
@@ -422,6 +445,7 @@ ActiveRecord::Schema.define do
 
   create_table :parrots, :force => true do |t|
     t.column :name, :string
+    t.column :color, :string
     t.column :parrot_sti_class, :string
     t.column :killer_id, :integer
     t.column :created_at, :datetime
@@ -452,6 +476,11 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
+  create_table :peoples_treasures, :id => false, :force => true do |t|
+    t.column :rich_person_id, :integer
+    t.column :treasure_id, :integer
+  end
+
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|
     t.string :name
     t.integer :owner_id, :integer
@@ -461,6 +490,7 @@ ActiveRecord::Schema.define do
   create_table :pirates, :force => true do |t|
     t.column :catchphrase, :string
     t.column :parrot_id, :integer
+    t.integer :non_validated_parrot_id
     t.column :created_on, :datetime
     t.column :updated_on, :datetime
   end
@@ -501,6 +531,11 @@ ActiveRecord::Schema.define do
     t.string :type
   end
 
+  create_table :randomly_named_table, :force => true do |t|
+    t.string  :some_attribute
+    t.integer :another_attribute
+  end
+
   create_table :ratings, :force => true do |t|
     t.integer :comment_id
     t.integer :value
@@ -529,6 +564,7 @@ ActiveRecord::Schema.define do
   create_table :ships, :force => true do |t|
     t.string :name
     t.integer :pirate_id
+    t.integer :update_only_pirate_id
     t.datetime :created_at
     t.datetime :created_on
     t.datetime :updated_at
@@ -591,6 +627,12 @@ ActiveRecord::Schema.define do
     t.datetime :ending
   end
 
+  create_table :teapots, :force => true do |t|
+    t.string :name
+    t.string :type
+    t.timestamps
+  end
+
   create_table :topics, :force => true do |t|
     t.string   :title
     t.string   :author_name
@@ -602,8 +644,10 @@ ActiveRecord::Schema.define do
     # Oracle SELECT WHERE clause which causes many unit test failures
     if current_adapter?(:OracleAdapter)
       t.string   :content, :limit => 4000
+      t.string   :important, :limit => 4000
     else
       t.text     :content
+      t.text     :important
     end
     t.boolean  :approved, :default => true
     t.integer  :replies_count, :default => 0
@@ -663,7 +707,9 @@ ActiveRecord::Schema.define do
     t.string  :description
     t.integer :man_id
     t.integer :polymorphic_man_id
-    t.string :polymorphic_man_type
+    t.string  :polymorphic_man_type
+    t.integer :horrible_polymorphic_man_id
+    t.string  :horrible_polymorphic_man_type
   end
 
   create_table :interests, :force => true do |t|
@@ -693,8 +739,6 @@ ActiveRecord::Schema.define do
   create_table :countries_treaties, :force => true, :id => false do |t|
     t.string :country_id, :null => false
     t.string :treaty_id, :null => false
-    t.datetime :created_at
-    t.datetime :updated_at
   end
 
   create_table :liquid, :force => true do |t|
@@ -728,5 +772,10 @@ ActiveRecord::Schema.define do
 end
 
 Course.connection.create_table :courses, :force => true do |t|
+  t.column :name, :string, :null => false
+  t.column :college_id, :integer
+end
+
+College.connection.create_table :colleges, :force => true do |t|
   t.column :name, :string, :null => false
 end

@@ -6,7 +6,15 @@ module ActiveRecord
       def setup
         @handler = ConnectionHandler.new
         @handler.establish_connection 'america', Base.connection_pool.spec
-        @klass = Struct.new(:name).new('america')
+        @klass = Class.new do
+          def self.name; 'america'; end
+          class << self
+            alias active_record_super superclass
+          end
+        end
+        @subklass = Class.new(@klass) do
+          def self.name; 'north america'; end
+        end
       end
 
       def test_retrieve_connection
@@ -27,6 +35,18 @@ module ActiveRecord
 
       def test_retrieve_connection_pool
         assert_not_nil @handler.retrieve_connection_pool(@klass)
+      end
+
+      def test_retrieve_connection_pool_uses_superclass_when_no_subclass_connection
+        assert_not_nil @handler.retrieve_connection_pool(@subklass)
+      end
+
+      def test_retrieve_connection_pool_uses_superclass_pool_after_subclass_establish_and_remove
+        @handler.establish_connection 'north america', Base.connection_pool.spec
+
+        @handler.remove_connection @subklass
+        assert_same @handler.retrieve_connection_pool(@klass),
+          @handler.retrieve_connection_pool(@subklass)
       end
     end
   end

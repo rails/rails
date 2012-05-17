@@ -2,7 +2,7 @@ require 'active_support/hash_with_indifferent_access'
 
 class Hash
 
-  # Returns an +ActiveSupport::HashWithIndifferentAccess+ out of its receiver:
+  # Returns an <tt>ActiveSupport::HashWithIndifferentAccess</tt> out of its receiver:
   #
   #   {:a => 1}.with_indifferent_access["a"] # => 1
   #
@@ -14,7 +14,7 @@ class Hash
   # #with_indifferent_access. This method will be called on the current object
   # by the enclosing object and is aliased to #with_indifferent_access by
   # default. Subclasses of Hash may overwrite this method to return +self+ if
-  # converting to an +ActiveSupport::HashWithIndifferentAccess+ would not be
+  # converting to an <tt>ActiveSupport::HashWithIndifferentAccess</tt> would not be
   # desirable.
   #
   #   b = {:b => 1}

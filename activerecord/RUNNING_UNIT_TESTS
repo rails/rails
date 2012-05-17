@@ -3,7 +3,7 @@
 Copy test/config.example.yml to test/config.yml and edit as needed. Or just run the tests for
 the first time, which will do the copy automatically and use the default (sqlite3).
 
-You can build postgres and mysql databases using the build_postgresql and build_mysql rake tasks.
+You can build postgres and mysql databases using the postgresql:build_databases and mysql:build_databases rake tasks.
 
 == Running the tests
 
@@ -25,13 +25,6 @@ You can run all the tests for a given database via rake:
   $ rake test_mysql
 
 The 'rake test' task will run all the tests for mysql, mysql2, sqlite3 and postgresql.
-
-== Identity Map
-
-By default the tests run with the Identity Map turned off. But all tests should pass whether or
-not the identity map is on or off. You can turn it on using the IM env variable:
-
-  $ IM=true ruby -Itest test/case/base_test.rb
 
 == Config file
 

@@ -6,6 +6,7 @@ module ActionDispatch
     class MemCacheStore < Rack::Session::Memcache
       include Compatibility
       include StaleSessionCheck
+      include SessionObject
 
       def initialize(app, options = {})
         require 'memcache'

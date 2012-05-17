@@ -23,6 +23,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal keyboard.to_key, [keyboard.id]
   end
 
+  def test_read_attribute_with_custom_primary_key
+    keyboard = Keyboard.create!
+    assert_equal keyboard.key_number, keyboard.read_attribute(:id)
+  end
+
   def test_to_key_with_primary_key_after_destroy
     topic = Topic.find(1)
     topic.destroy
@@ -142,7 +147,72 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.connection.quote_column_name("id"), k.quoted_primary_key
     k.primary_key = "foo"
     assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
-    k.set_primary_key "bar"
-    assert_equal k.connection.quote_column_name("bar"), k.quoted_primary_key
+  end
+
+  def test_two_models_with_same_table_but_different_primary_key
+    k1 = Class.new(ActiveRecord::Base)
+    k1.table_name = 'posts'
+    k1.primary_key = 'id'
+
+    k2 = Class.new(ActiveRecord::Base)
+    k2.table_name = 'posts'
+    k2.primary_key = 'title'
+
+    assert k1.columns.find { |c| c.name == 'id' }.primary
+    assert !k1.columns.find { |c| c.name == 'title' }.primary
+    assert k1.columns_hash['id'].primary
+    assert !k1.columns_hash['title'].primary
+
+    assert !k2.columns.find { |c| c.name == 'id' }.primary
+    assert k2.columns.find { |c| c.name == 'title' }.primary
+    assert !k2.columns_hash['id'].primary
+    assert k2.columns_hash['title'].primary
+  end
+
+  def test_models_with_same_table_have_different_columns
+    k1 = Class.new(ActiveRecord::Base)
+    k1.table_name = 'posts'
+
+    k2 = Class.new(ActiveRecord::Base)
+    k2.table_name = 'posts'
+
+    k1.columns.zip(k2.columns).each do |col1, col2|
+      assert !col1.equal?(col2)
+    end
   end
 end
+
+class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def test_set_primary_key_with_no_connection
+    return skip("disconnect wipes in-memory db") if in_memory_db?
+
+    connection = ActiveRecord::Model.remove_connection
+
+    model = Class.new(ActiveRecord::Base)
+    model.primary_key = 'foo'
+
+    assert_equal 'foo', model.primary_key
+
+    ActiveRecord::Model.establish_connection(connection)
+
+    assert_equal 'foo', model.primary_key
+  end
+end
+
+if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+  class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+  
+    def test_primaery_key_method_with_ansi_quotes
+      con = ActiveRecord::Base.connection
+      con.execute("SET SESSION sql_mode='ANSI_QUOTES'")
+      assert_equal "id", con.primary_key("topics")
+    ensure
+      con.reconnect!
+    end
+  
+  end
+end
+

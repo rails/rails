@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/blank'
@@ -70,7 +69,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc
+  class HasManyThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc:
     def initialize(owner, reflection)
       super("Cannot modify association '#{owner.class.name}##{reflection.name}' because it goes through more than one other association.")
     end
@@ -195,6 +194,26 @@ module ActiveRecord
     #   <tt>Project#milestones.build, Project#milestones.create</tt>
     # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
     #   <tt>Project#categories.delete(category1)</tt>
+    #
+    # === Overriding generated methods
+    #
+    # Association methods are generated in a module that is included into the model class,
+    # which allows you to easily override with your own methods and call the original
+    # generated method with +super+. For example:
+    #
+    #   class Car < ActiveRecord::Base
+    #     belongs_to :owner
+    #     belongs_to :old_owner
+    #     def owner=(new_owner)
+    #       self.old_owner = self.owner
+    #       super
+    #     end
+    #   end
+    #
+    # If your model class is <tt>Project</tt>, the module is
+    # named <tt>Project::GeneratedFeatureMethods</tt>. The GeneratedFeatureMethods module is
+    # included in the model class immediately after the (anonymous) generated attributes methods
+    # module, meaning an association will override the methods for an attribute with the same name.
     #
     # === A word of warning
     #
@@ -1078,8 +1097,8 @@ module ActiveRecord
       #   alongside this object by calling their +destroy+ method. If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their +destroy+ method. If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
-      #   <tt>:restrict</tt> this object raises an <tt>ActiveRecord::DeleteRestrictionError</tt> exception and
-      #   cannot be deleted if it has any associated objects.
+      #   <tt>:restrict</tt> an error will be added to the object, preventing its deletion, if any associated 
+      #   objects are present.
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
@@ -1087,7 +1106,8 @@ module ActiveRecord
       #
       # [:finder_sql]
       #   Specify a complete SQL statement to fetch the association. This is a good way to go for complex
-      #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+
+      #   associations that depend on multiple tables. May be supplied as a string or a proc where interpolation is
+      #   required. Note: When this option is used, +find_in_collection+
       #   is _not_ added.
       # [:counter_sql]
       #   Specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
@@ -1109,7 +1129,7 @@ module ActiveRecord
       #   it would skip the first 4 rows.
       # [:select]
       #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if
-      #   you, for example, want to do a join but not include the joined columns. Do not forget
+      #   you want to do a join but not include the joined columns, for example. Do not forget
       #   to include the primary and foreign keys, otherwise it will raise an error.
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
@@ -1162,11 +1182,14 @@ module ActiveRecord
       #   has_many :tags, :as => :taggable
       #   has_many :reports, :readonly => true
       #   has_many :subscribers, :through => :subscriptions, :source => :user
-      #   has_many :subscribers, :class_name => "Person", :finder_sql =>
-      #       'SELECT DISTINCT people.* ' +
-      #       'FROM people p, post_subscriptions ps ' +
-      #       'WHERE ps.post_id = #{id} AND ps.person_id = p.id ' +
-      #       'ORDER BY p.first_name'
+      #   has_many :subscribers, :class_name => "Person", :finder_sql => Proc.new {
+      #       %Q{
+      #         SELECT DISTINCT *
+      #         FROM people p, post_subscriptions ps
+      #         WHERE ps.post_id = #{id} AND ps.person_id = p.id
+      #         ORDER BY p.first_name
+      #       }
+      #   }
       def has_many(name, options = {}, &extension)
         Builder::HasMany.build(self, name, options, &extension)
       end
@@ -1228,8 +1251,8 @@ module ActiveRecord
       #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
       #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
       #   If set to <tt>:nullify</tt>, the associated object's foreign key is set to +NULL+.
-      #   Also, association is assigned. If set to <tt>:restrict</tt> this object raises an
-      #   <tt>ActiveRecord::DeleteRestrictionError</tt> exception and cannot be deleted if it has any associated object.
+      #   If set to <tt>:restrict</tt>, an error will be added to the object, preventing its deletion, if an
+      #   associated object is present.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association
@@ -1241,8 +1264,8 @@ module ActiveRecord
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example,
-      #   you want to do a join but not include the joined columns. Do not forget to include the
+      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if
+      #   you want to do a join but not include the joined columns, for example. Do not forget to include the
       #   primary and foreign keys, otherwise it will raise an error.
       # [:through]
       #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
@@ -1325,14 +1348,14 @@ module ActiveRecord
       #
       # [:class_name]
       #   Specify the class name of the association. Use it only if that name can't be inferred
-      #   from the association name. So <tt>has_one :author</tt> will by default be linked to the Author class, but
+      #   from the association name. So <tt>belongs_to :author</tt> will by default be linked to the Author class, but
       #   if the real class name is Person, you'll have to specify it with this option.
       # [:conditions]
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
       #   SQL fragment, such as <tt>authorized = 1</tt>.
       # [:select]
       #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed
-      #   if, for example, you want to do a join but not include the joined columns. Do not
+      #   if you want to do a join but not include the joined columns, for example. Do not
       #   forget to include the primary and foreign keys, otherwise it will raise an error.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
@@ -1359,7 +1382,9 @@ module ActiveRecord
       #   and +decrement_counter+. The counter cache is incremented when an object of this
       #   class is created and decremented when it's destroyed. This requires that a column
       #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
-      #   is used on the associate class (such as a Post class). You can also specify a custom counter
+      #   is used on the associate class (such as a Post class) - that is the migration for
+      #   <tt>#{table_name}_count</tt> is created on the associate class (such that Post.comments_count will
+      #   return the count cached, see note below). You can also specify a custom counter
       #   cache column by providing a column name instead of a +true+/+false+ value to this
       #   option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
       #   Note: Specifying a counter cache will add it to that model's list of readonly attributes
@@ -1407,7 +1432,7 @@ module ActiveRecord
       # Specifies a many-to-many relationship with another class. This associates two classes via an
       # intermediate join table. Unless the join table is explicitly specified as an option, it is
       # guessed using the lexical order of the class names. So a join between Developer and Project
-      # will give the default join table name of "developers_projects" because "D" outranks "P".
+      # will give the default join table name of "developers_projects" because "D" precedes "P" alphabetically.
       # Note that this precedence is calculated using the <tt><</tt> operator for String. This
       # means that if the strings are of different lengths, and the strings are equal when compared
       # up to the shortest length, then the longer string is considered of higher
@@ -1420,17 +1445,17 @@ module ActiveRecord
       # join table with a migration such as this:
       #
       #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration
-      #     def self.up
+      #     def change
       #       create_table :developers_projects, :id => false do |t|
       #         t.integer :developer_id
       #         t.integer :project_id
       #       end
       #     end
-      #
-      #     def self.down
-      #       drop_table :developers_projects
-      #     end
       #   end
+      #
+      # It's also a good idea to add indexes to each of those columns to speed up the joins process.
+      # However, in MySQL it is advised to add a compound index for both of the columns as MySQL only
+      # uses one index per table during the lookup.
       #
       # Adds the following methods for retrieval and query:
       #
@@ -1489,8 +1514,8 @@ module ActiveRecord
       # * <tt>Developer#projects.size</tt>
       # * <tt>Developer#projects.find(id)</tt>
       # * <tt>Developer#projects.exists?(...)</tt>
-      # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("project_id" => id)</tt>)
-      # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("project_id" => id); c.save; c</tt>)
+      # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("developer_id" => id)</tt>)
+      # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("developer_id" => id); c.save; c</tt>)
       # The declaration may include an options hash to specialize the behavior of the association.
       #
       # === Options
@@ -1551,8 +1576,8 @@ module ActiveRecord
       #   An integer determining the offset from where the rows should be fetched. So at 5,
       #   it would skip the first 4 rows.
       # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example,
-      #   you want to do a join but not include the joined columns. Do not forget to include the primary
+      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if
+      #   you want to do a join but exclude the joined columns, for example. Do not forget to include the primary
       #   and foreign keys, otherwise it will raise an error.
       # [:readonly]
       #   If true, all the associated objects are readonly through the association.
@@ -1571,7 +1596,7 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
       #   has_and_belongs_to_many :categories, :readonly => true
       #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql =>
-      #   'DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}'
+      #   proc { |record| "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}" }
       def has_and_belongs_to_many(name, options = {}, &extension)
         Builder::HasAndBelongsToMany.build(self, name, options, &extension)
       end

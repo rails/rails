@@ -1,9 +1,10 @@
-require 'active_support/base64'
+require 'base64'
 require 'active_support/core_ext/object/blank'
 
 module ActionController
+  # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
   module HttpAuthentication
-    # Makes it dead easy to do HTTP \Basic and \Digest authentication.
+    # Makes it dead easy to do HTTP \Basic authentication.
     #
     # === Simple \Basic example
     #
@@ -60,47 +61,6 @@ module ActionController
     #
     #     assert_equal 200, status
     #   end
-    #
-    # === Simple \Digest example
-    #
-    #   require 'digest/md5'
-    #   class PostsController < ApplicationController
-    #     REALM = "SuperSecret"
-    #     USERS = {"dhh" => "secret", #plain text password
-    #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))  #ha1 digest password
-    #
-    #     before_filter :authenticate, :except => [:index]
-    #
-    #     def index
-    #       render :text => "Everyone can see me!"
-    #     end
-    #
-    #     def edit
-    #       render :text => "I'm only accessible if you know the password"
-    #     end
-    #
-    #     private
-    #       def authenticate
-    #         authenticate_or_request_with_http_digest(REALM) do |username|
-    #           USERS[username]
-    #         end
-    #       end
-    #   end
-    #
-    # === Notes
-    #
-    # The +authenticate_or_request_with_http_digest+ block must return the user's password
-    # or the ha1 digest hash so the framework can appropriately hash to check the user's
-    # credentials. Returning +nil+ will cause authentication to fail.
-    #
-    # Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
-    # the password file or database is compromised, the attacker would be able to use the ha1 hash to
-    # authenticate as the user at this +realm+, but would not have the user's password to try using at
-    # other sites.
-    #
-    # In rare instances, web servers or front proxies strip authorization headers before
-    # they reach your application. You can debug this situation by logging all environment
-    # variables, and check for HTTP_AUTHORIZATION, amongst others.
     module Basic
       extend self
 
@@ -141,11 +101,11 @@ module ActionController
       end
 
       def decode_credentials(request)
-        ActiveSupport::Base64.decode64(request.authorization.split(' ', 2).last || '')
+        ::Base64.decode64(request.authorization.split(' ', 2).last || '')
       end
 
       def encode_credentials(user_name, password)
-        "Basic #{ActiveSupport::Base64.encode64("#{user_name}:#{password}")}"
+        "Basic #{::Base64.strict_encode64("#{user_name}:#{password}")}"
       end
 
       def authentication_request(controller, realm)
@@ -155,6 +115,48 @@ module ActionController
       end
     end
 
+    # Makes it dead easy to do HTTP \Digest authentication.
+    #
+    # === Simple \Digest example
+    #
+    #   require 'digest/md5'
+    #   class PostsController < ApplicationController
+    #     REALM = "SuperSecret"
+    #     USERS = {"dhh" => "secret", #plain text password
+    #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
+    #
+    #     before_filter :authenticate, :except => [:index]
+    #
+    #     def index
+    #       render :text => "Everyone can see me!"
+    #     end
+    #
+    #     def edit
+    #       render :text => "I'm only accessible if you know the password"
+    #     end
+    #
+    #     private
+    #       def authenticate
+    #         authenticate_or_request_with_http_digest(REALM) do |username|
+    #           USERS[username]
+    #         end
+    #       end
+    #   end
+    #
+    # === Notes
+    #
+    # The +authenticate_or_request_with_http_digest+ block must return the user's password
+    # or the ha1 digest hash so the framework can appropriately hash to check the user's
+    # credentials. Returning +nil+ will cause authentication to fail.
+    #
+    # Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
+    # the password file or database is compromised, the attacker would be able to use the ha1 hash to
+    # authenticate as the user at this +realm+, but would not have the user's password to try using at
+    # other sites.
+    #
+    # In rare instances, web servers or front proxies strip authorization headers before
+    # they reach your application. You can debug this situation by logging all environment
+    # variables, and check for HTTP_AUTHORIZATION, amongst others.
     module Digest
       extend self
 
@@ -192,12 +194,15 @@ module ActionController
           return false unless password
 
           method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
-          uri    = credentials[:uri][0,1] == '/' ? request.fullpath : request.url
+          uri    = credentials[:uri][0,1] == '/' ? request.original_fullpath : request.original_url
 
-         [true, false].any? do |password_is_ha1|
-           expected = expected_response(method, uri, credentials, password, password_is_ha1)
-           expected == credentials[:response]
-         end
+          [true, false].any? do |trailing_question_mark|
+            [true, false].any? do |password_is_ha1|
+              _uri = trailing_question_mark ? uri + "?" : uri
+              expected = expected_response(method, _uri, credentials, password, password_is_ha1)
+              expected == credentials[:response]
+            end
+          end
         end
       end
 
@@ -226,7 +231,7 @@ module ActionController
       def decode_credentials(header)
         Hash[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
           key, value = pair.split('=', 2)
-          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')]
+          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').delete('\'')]
         end]
       end
 
@@ -260,7 +265,7 @@ module ActionController
       # The quality of the implementation depends on a good choice.
       # A nonce might, for example, be constructed as the base 64 encoding of
       #
-      # => time-stamp H(time-stamp ":" ETag ":" private-key)
+      #   time-stamp H(time-stamp ":" ETag ":" private-key)
       #
       # where time-stamp is a server-generated time or other non-repeating value,
       # ETag is the value of the HTTP ETag header associated with the requested entity,
@@ -276,7 +281,7 @@ module ActionController
       #
       # An implementation might choose not to accept a previously used nonce or a previously used digest, in order to
       # protect against a replay attack. Or, an implementation might choose to use one-time nonces or digests for
-      # POST or PUT requests and a time-stamp for GET requests. For more details on the issues involved see Section 4
+      # POST, PUT, or PATCH requests and a time-stamp for GET requests. For more details on the issues involved see Section 4
       # of this document.
       #
       # The nonce is opaque to the client. Composed of Time, and hash of Time with secret
@@ -286,16 +291,16 @@ module ActionController
         t = time.to_i
         hashed = [t, secret_key]
         digest = ::Digest::MD5.hexdigest(hashed.join(":"))
-        ActiveSupport::Base64.encode64("#{t}:#{digest}").gsub("\n", '')
+        ::Base64.strict_encode64("#{t}:#{digest}")
       end
 
       # Might want a shorter timeout depending on whether the request
-      # is a PUT or POST, and if client is browser or web service.
+      # is a PATCH, PUT, or POST, and if client is browser or web service.
       # Can be much shorter if the Stale directive is implemented. This would
       # allow a user to use new nonce without prompting user again for their
       # username and password.
       def validate_nonce(secret_key, request, value, seconds_to_timeout=5*60)
-        t = ActiveSupport::Base64.decode64(value).split(":").first.to_i
+        t = ::Base64.decode64(value).split(":").first.to_i
         nonce(secret_key, t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
 

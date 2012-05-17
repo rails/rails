@@ -1,7 +1,9 @@
+require 'active_support/core_ext/array/prepend_and_append'
+
 module ActiveSupport
   module Inflector
     # A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
-    # inflection rules. Examples:
+    # inflection rules.
     #
     #   ActiveSupport::Inflector.inflections do |inflect|
     #     inflect.plural /^(ox)$/i, '\1\2en'
@@ -26,12 +28,18 @@ module ActiveSupport
         @plurals, @singulars, @uncountables, @humans, @acronyms, @acronym_regex = [], [], [], [], {}, /(?=a)b/
       end
 
+      # Private, for the test suite.
+      def initialize_dup(orig)
+        %w(plurals singulars uncountables humans acronyms acronym_regex).each do |scope|
+          instance_variable_set("@#{scope}", orig.send(scope).dup)
+        end
+      end
+
       # Specifies a new acronym. An acronym must be specified as it will appear in a camelized string.  An underscore
       # string that contains the acronym will retain the acronym when passed to `camelize`, `humanize`, or `titleize`.
       # A camelized string that contains the acronym will maintain the acronym when titleized or humanized, and will
       # convert the acronym into a non-delimited single lowercase word when passed to +underscore+.
       #
-      # Examples:
       #   acronym 'HTML'
       #   titleize 'html' #=> 'HTML'
       #   camelize 'html' #=> 'HTML'
@@ -61,7 +69,6 @@ module ActiveSupport
       # `acronym` may be used to specify any word that contains an acronym or otherwise needs to maintain a non-standard
       # capitalization. The only restriction is that the word must begin with a capital letter.
       #
-      # Examples:
       #   acronym 'RESTful'
       #   underscore 'RESTful' #=> 'restful'
       #   underscore 'RESTfulController' #=> 'restful_controller'
@@ -82,7 +89,7 @@ module ActiveSupport
       def plural(rule, replacement)
         @uncountables.delete(rule) if rule.is_a?(String)
         @uncountables.delete(replacement)
-        @plurals.insert(0, [rule, replacement])
+        @plurals.prepend([rule, replacement])
       end
 
       # Specifies a new singularization rule and its replacement. The rule can either be a string or a regular expression.
@@ -90,13 +97,12 @@ module ActiveSupport
       def singular(rule, replacement)
         @uncountables.delete(rule) if rule.is_a?(String)
         @uncountables.delete(replacement)
-        @singulars.insert(0, [rule, replacement])
+        @singulars.prepend([rule, replacement])
       end
 
       # Specifies a new irregular that applies to both pluralization and singularization at the same time. This can only be used
       # for strings, not regular expressions. You simply pass the irregular in singular and plural form.
       #
-      # Examples:
       #   irregular 'octopus', 'octopi'
       #   irregular 'person', 'people'
       def irregular(singular, plural)
@@ -118,7 +124,6 @@ module ActiveSupport
 
       # Add uncountable words that shouldn't be attempted inflected.
       #
-      # Examples:
       #   uncountable "money"
       #   uncountable "money", "information"
       #   uncountable %w( money information rice )
@@ -130,18 +135,16 @@ module ActiveSupport
       # When using a regular expression based replacement, the normal humanize formatting is called after the replacement.
       # When a string is used, the human form should be specified as desired (example: 'The name', not 'the_name')
       #
-      # Examples:
       #   human /_cnt$/i, '\1_count'
       #   human "legacy_col_person_name", "Name"
       def human(rule, replacement)
-        @humans.insert(0, [rule, replacement])
+        @humans.prepend([rule, replacement])
       end
 
       # Clears the loaded inflections within a given scope (default is <tt>:all</tt>).
       # Give the scope as a symbol of the inflection type, the options are: <tt>:plurals</tt>,
       # <tt>:singulars</tt>, <tt>:uncountables</tt>, <tt>:humans</tt>.
       #
-      # Examples:
       #   clear :all
       #   clear :plurals
       def clear(scope = :all)
@@ -157,7 +160,6 @@ module ActiveSupport
     # Yields a singleton instance of Inflector::Inflections so you can specify additional
     # inflector rules.
     #
-    # Example:
     #   ActiveSupport::Inflector.inflections do |inflect|
     #     inflect.uncountable "rails"
     #   end

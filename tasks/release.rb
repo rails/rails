@@ -1,4 +1,4 @@
-FRAMEWORKS = %w( activesupport activemodel activerecord activeresource actionpack actionmailer railties )
+FRAMEWORKS = %w( activesupport activemodel activerecord actionpack actionmailer railties )
 
 root    = File.expand_path('../../', __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
@@ -26,16 +26,16 @@ directory "pkg"
       major, minor, tiny, pre = version.split('.')
       pre = pre ? pre.inspect : "nil"
 
-      ruby.gsub! /^(\s*)MAJOR = .*?$/, "\\1MAJOR = #{major}"
+      ruby.gsub!(/^(\s*)MAJOR = .*?$/, "\\1MAJOR = #{major}")
       raise "Could not insert MAJOR in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)MINOR = .*?$/, "\\1MINOR = #{minor}"
+      ruby.gsub!(/^(\s*)MINOR = .*?$/, "\\1MINOR = #{minor}")
       raise "Could not insert MINOR in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)TINY  = .*?$/, "\\1TINY  = #{tiny}"
+      ruby.gsub!(/^(\s*)TINY  = .*?$/, "\\1TINY  = #{tiny}")
       raise "Could not insert TINY in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)PRE   = .*?$/, "\\1PRE   = #{pre}"
+      ruby.gsub!(/^(\s*)PRE   = .*?$/, "\\1PRE   = #{pre}")
       raise "Could not insert PRE in #{file}" unless $1
 
       File.open(file, 'w') { |f| f.write ruby }
@@ -66,7 +66,7 @@ namespace :changelog do
     FRAMEWORKS.each do |fw|
       require 'date'
       replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
-      fname = File.join fw, 'CHANGELOG'
+      fname = File.join fw, 'CHANGELOG.md'
 
       contents = File.read(fname).sub(/^([^(]*)\(unreleased\)/, replace)
       File.open(fname, 'wb') { |f| f.write contents }
@@ -76,7 +76,7 @@ namespace :changelog do
   task :release_summary do
     FRAMEWORKS.each do |fw|
       puts "## #{fw}"
-      fname    = File.join fw, 'CHANGELOG'
+      fname    = File.join fw, 'CHANGELOG.md'
       contents = File.readlines fname
       contents.shift
       changes = []
@@ -116,6 +116,7 @@ namespace :all do
 
   task :tag do
     sh "git tag #{tag}"
+    sh "git push --tags"
   end
 
   task :release => %w(ensure_clean_state build commit tag push)

@@ -1,4 +1,4 @@
-require 'active_support/base64'
+require 'base64'
 require 'active_support/core_ext/object/blank'
 
 module ActiveSupport
@@ -18,12 +18,18 @@ module ActiveSupport
   #     self.current_user = User.find(id)
   #   end
   #
+  # By default it uses Marshal to serialize the message. If you want to use another
+  # serialization method, you can set the serializer attribute to something that responds
+  # to dump and load, e.g.:
+  #
+  #   @verifier.serializer = YAML
   class MessageVerifier
     class InvalidSignature < StandardError; end
 
-    def initialize(secret, digest = 'SHA1')
+    def initialize(secret, options = {})
       @secret = secret
-      @digest = digest
+      @digest = options[:digest] || 'SHA1'
+      @serializer = options[:serializer] || Marshal
     end
 
     def verify(signed_message)
@@ -31,14 +37,14 @@ module ActiveSupport
 
       data, digest = signed_message.split("--")
       if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
-        Marshal.load(ActiveSupport::Base64.decode64(data))
+        @serializer.load(::Base64.decode64(data))
       else
         raise InvalidSignature
       end
     end
 
     def generate(value)
-      data = ActiveSupport::Base64.encode64s(Marshal.dump(value))
+      data = ::Base64.strict_encode64(@serializer.dump(value))
       "#{data}--#{generate_digest(data)}"
     end
 

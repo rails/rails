@@ -16,7 +16,7 @@ module ActiveRecord
           chain[1..-1].each do |reflection|
             scope = scope.merge(
               reflection.klass.scoped.with_default_scope.
-                except(:select, :create_with, :includes)
+                except(:select, :create_with, :includes, :preload, :joins, :eager_load)
             )
           end
           scope
@@ -37,14 +37,12 @@ module ActiveRecord
         # situation it is more natural for the user to just create or modify their join records
         # directly as required.
         def construct_join_attributes(*records)
-          if source_reflection.macro != :belongs_to
-            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
-          end
+          ensure_mutable
 
           join_attributes = {
             source_reflection.foreign_key =>
               records.map { |record|
-                record.send(source_reflection.association_primary_key)
+                record.send(source_reflection.association_primary_key(reflection.klass))
               }
           }
 
@@ -64,13 +62,19 @@ module ActiveRecord
         # properly support stale-checking for nested associations.
         def stale_state
           if through_reflection.macro == :belongs_to
-            owner[through_reflection.foreign_key].to_s
+            owner[through_reflection.foreign_key] && owner[through_reflection.foreign_key].to_s
           end
         end
 
         def foreign_key_present?
           through_reflection.macro == :belongs_to &&
           !owner[through_reflection.foreign_key].nil?
+        end
+
+        def ensure_mutable
+          if source_reflection.macro != :belongs_to
+            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+          end
         end
 
         def ensure_not_nested

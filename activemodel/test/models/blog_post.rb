@@ -1,10 +1,6 @@
 module Blog
-  def self._railtie
-    Object.new
-  end
-
-  def self.table_name_prefix
-    "blog_"
+  def self.use_relative_model_naming?
+    true
   end
 
   class Post

@@ -48,8 +48,6 @@ module ActionDispatch
       # * if the condition is +true+, the value must not be +nil+.
       # * if the condition is +false+ or +nil+, the value must be +nil+.
       #
-      # === Examples
-      #
       #   # Assert that there is a "span" tag
       #   assert_tag :tag => "span"
       #
@@ -104,7 +102,6 @@ module ActionDispatch
       # Identical to +assert_tag+, but asserts that a matching tag does _not_
       # exist. (See +assert_tag+ for a full discussion of the syntax.)
       #
-      # === Examples
       #   # Assert that there is not a "div" containing a "p"
       #   assert_no_tag :tag => "div", :descendant => { :tag => "p" }
       #

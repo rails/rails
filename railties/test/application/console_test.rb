@@ -1,6 +1,6 @@
 require 'isolation/abstract_unit'
 
-class ConsoleTest < Test::Unit::TestCase
+class ConsoleTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
 
   def setup
@@ -18,16 +18,20 @@ class ConsoleTest < Test::Unit::TestCase
     Rails.application.load_console
   end
 
+  def irb_context
+    Object.new.extend(Rails::ConsoleMethods)
+  end
+
   def test_app_method_should_return_integration_session
     TestHelpers::Rack.send :remove_method, :app
     load_environment
-    console_session = app
+    console_session = irb_context.app
     assert_instance_of ActionDispatch::Integration::Session, console_session
   end
 
   def test_new_session_should_return_integration_session
     load_environment
-    session = new_session
+    session = irb_context.new_session
     assert_instance_of ActionDispatch::Integration::Session, session
   end
 
@@ -41,7 +45,7 @@ class ConsoleTest < Test::Unit::TestCase
     ActionDispatch::Reloader.to_prepare { c = 3 }
 
     # Hide Reloading... output
-    silence_stream(STDOUT) { reload! }
+    silence_stream(STDOUT) { irb_context.reload! }
 
     assert_equal 1, a
     assert_equal 2, b
@@ -57,7 +61,6 @@ class ConsoleTest < Test::Unit::TestCase
 
     load_environment
     assert User.new.respond_to?(:name)
-    assert !User.new.respond_to?(:age)
 
     app_file "app/models/user.rb", <<-MODEL
       class User
@@ -66,12 +69,13 @@ class ConsoleTest < Test::Unit::TestCase
     MODEL
 
     assert !User.new.respond_to?(:age)
-    silence_stream(STDOUT) { reload! }
+    silence_stream(STDOUT) { irb_context.reload! }
     assert User.new.respond_to?(:age)
   end
 
   def test_access_to_helpers
     load_environment
+    helper = irb_context.helper
     assert_not_nil helper
     assert_instance_of ActionView::Base, helper
     assert_equal 'Once upon a time in a world...',

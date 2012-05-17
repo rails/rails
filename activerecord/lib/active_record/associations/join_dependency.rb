@@ -13,7 +13,7 @@ module ActiveRecord
         @join_parts    = [JoinBase.new(base)]
         @associations  = {}
         @reflections   = []
-        @alias_tracker = AliasTracker.new(joins)
+        @alias_tracker = AliasTracker.new(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
         build(associations)
       end
@@ -184,7 +184,7 @@ module ActiveRecord
 
         macro = join_part.reflection.macro
         if macro == :has_one
-          return if record.association_cache.key?(join_part.reflection.name)
+          return record.association(join_part.reflection.name).target if record.association_cache.key?(join_part.reflection.name)
           association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
           set_target_and_inverse(join_part, association, record)
         else

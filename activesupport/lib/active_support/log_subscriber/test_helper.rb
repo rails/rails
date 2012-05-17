@@ -18,8 +18,8 @@ module ActiveSupport
     #       Developer.all
     #       wait
     #       assert_equal 1, @logger.logged(:debug).size
-    #       assert_match /Developer Load/, @logger.logged(:debug).last
-    #       assert_match /SELECT \* FROM "developers"/, @logger.logged(:debug).last
+    #       assert_match(/Developer Load/, @logger.logged(:debug).last)
+    #       assert_match(/SELECT \* FROM "developers"/, @logger.logged(:debug).last)
     #     end
     #   end
     #
@@ -50,7 +50,7 @@ module ActiveSupport
       end
 
       class MockLogger
-        include ActiveSupport::BufferedLogger::Severity
+        include ActiveSupport::Logger::Severity
 
         attr_reader :flush_count
         attr_accessor :level
@@ -62,7 +62,11 @@ module ActiveSupport
         end
 
         def method_missing(level, message)
-          @logged[level] << message
+           if block_given?
+             @logged[level] << yield
+           else
+             @logged[level] << message
+           end
         end
 
         def logged(level)
@@ -73,7 +77,7 @@ module ActiveSupport
           @flush_count += 1
         end
 
-        ActiveSupport::BufferedLogger::Severity.constants.each do |severity|
+        ActiveSupport::Logger::Severity.constants.each do |severity|
           class_eval <<-EOT, __FILE__, __LINE__ + 1
             def #{severity.downcase}?
               #{severity} >= @level

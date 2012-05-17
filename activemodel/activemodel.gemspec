@@ -5,19 +5,17 @@ Gem::Specification.new do |s|
   s.name        = 'activemodel'
   s.version     = version
   s.summary     = 'A toolkit for building modeling frameworks (part of Rails).'
-  s.description = 'A toolkit for building modeling frameworks like Active Record and Active Resource. Rich support for attributes, callbacks, validations, observers, serialization, internationalization, and testing.'
+  s.description = 'A toolkit for building modeling frameworks like Active Record. Rich support for attributes, callbacks, validations, observers, serialization, internationalization, and testing.'
 
-  s.required_ruby_version = '>= 1.8.7'
+  s.required_ruby_version = '>= 1.9.3'
 
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
 
-  s.files        = Dir['CHANGELOG', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*']
+  s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*']
   s.require_path = 'lib'
 
   s.add_dependency('activesupport', version)
   s.add_dependency('builder',       '~> 3.0.0')
-  s.add_dependency('i18n',          '~> 0.6')
-  s.add_dependency('bcrypt-ruby',   '~> 2.1.4')
 end

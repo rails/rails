@@ -1,5 +1,7 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'set'
+
 require 'active_support/time'
 
 require 'mailers/base_mailer'
@@ -107,7 +109,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
     expected = "\312\213\254\232)b"
-    expected.force_encoding(Encoding::BINARY) if '1.9'.respond_to?(:force_encoding)
+    expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments['invoice.jpg'].decoded
   end
 
@@ -116,7 +118,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
     expected = "\312\213\254\232)b"
-    expected.force_encoding(Encoding::BINARY) if '1.9'.respond_to?(:force_encoding)
+    expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments['invoice.jpg'].decoded
   end
 
@@ -550,6 +552,52 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Thanks for signing up this afternoon", mail.subject)
   end
 
+  test "modifying the mail message with a before_filter" do
+    class BeforeFilterMailer < ActionMailer::Base
+      before_filter :add_special_header!
+
+      def welcome ; mail ; end
+
+      private
+      def add_special_header!
+        headers('X-Special-Header' => 'Wow, so special')
+      end
+    end
+
+    assert_equal('Wow, so special', BeforeFilterMailer.welcome['X-Special-Header'].to_s)
+  end
+
+  test "modifying the mail message with an after_filter" do
+    class AfterFilterMailer < ActionMailer::Base
+      after_filter :add_special_header!
+
+      def welcome ; mail ; end
+
+      private
+      def add_special_header!
+        headers('X-Special-Header' => 'Testing')
+      end
+    end
+
+    assert_equal('Testing', AfterFilterMailer.welcome['X-Special-Header'].to_s)
+  end
+
+  test "adding an inline attachment using a before_filter" do
+    class DefaultInlineAttachmentMailer < ActionMailer::Base
+      before_filter :add_inline_attachment!
+
+      def welcome ; mail ; end
+
+      private
+      def add_inline_attachment!
+        attachments.inline["footer.jpg"] = 'hey there'
+      end
+    end
+
+    mail = DefaultInlineAttachmentMailer.welcome
+    assert_equal('image/jpeg; filename=footer.jpg', mail.attachments.inline.first['Content-Type'].to_s)
+  end
+
   test "action methods should be refreshed after defining new method" do
     class FooMailer < ActionMailer::Base
       # this triggers action_methods
@@ -559,7 +607,20 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal ["notify"], FooMailer.action_methods
+    assert_equal Set.new(["notify"]), FooMailer.action_methods
+  end
+
+  test "mailer can be anonymous" do
+    mailer = Class.new(ActionMailer::Base) do
+      def welcome
+        mail
+      end
+    end
+
+    assert_equal "anonymous", mailer.mailer_name
+
+    assert_equal "Welcome", mailer.welcome.subject
+    assert_equal "Anonymous mailer body", mailer.welcome.body.encoded.strip
   end
 
   protected

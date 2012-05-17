@@ -9,7 +9,7 @@ require 'uri'
 module Rails
   module Generators
     class AppBase < Base
-      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
 
@@ -49,6 +49,9 @@ module Rails
         class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
                                           :desc => "Skip JavaScript files"
 
+        class_option :skip_index_html,    :type => :boolean, :aliases => "-I", :default => false,
+                                          :desc => "Skip public/index.html and app/assets/images/rails.png files"
+
         class_option :dev,                :type => :boolean, :default => false,
                                           :desc => "Setup the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -60,9 +63,6 @@ module Rails
 
         class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
                                           :desc => "Show this help message and quit"
-
-        class_option :old_style_hash,     :type => :boolean, :default => false,
-                                          :desc => "Force using old style hash (:foo => 'bar') on Ruby >= 1.9"
       end
 
       def initialize(*args)
@@ -123,7 +123,7 @@ module Rails
       end
 
       def database_gemfile_entry
-        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'\n"
+        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
       end
 
       def include_all_railties?
@@ -137,29 +137,36 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           <<-GEMFILE.strip_heredoc
-            gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
+            gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
+            gem 'journey',   github: 'rails/journey'
+            gem 'arel',      github: 'rails/arel'
+            gem 'active_record_deprecated_finders', github: 'rails/active_record_deprecated_finders'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
-            gem 'rails',     :git => 'git://github.com/rails/rails.git'
+            gem 'rails',     github: 'rails/rails'
+            gem 'journey',   github: 'rails/journey'
+            gem 'arel',      github: 'rails/arel'
+            gem 'active_record_deprecated_finders', github: 'rails/active_record_deprecated_finders'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
-            # gem 'rails',     :git => 'git://github.com/rails/rails.git'
+            # gem 'rails', github: 'rails/rails'
           GEMFILE
         end
       end
 
       def gem_for_database
-        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db jdbcmysql jdbcsqlite3 jdbcpostgresql )
+        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
-        when "oracle"     then "ruby-oci8"
-        when "postgresql" then "pg"
-        when "frontbase"  then "ruby-frontbase"
-        when "mysql"      then "mysql2"
+        when "oracle"         then "ruby-oci8"
+        when "postgresql"     then "pg"
+        when "frontbase"      then "ruby-frontbase"
+        when "mysql"          then "mysql2"
+        when "sqlserver"      then "activerecord-sqlserver-adapter"
         when "jdbcmysql"      then "activerecord-jdbcmysql-adapter"
         when "jdbcsqlite3"    then "activerecord-jdbcsqlite3-adapter"
         when "jdbcpostgresql" then "activerecord-jdbcpostgresql-adapter"
@@ -179,39 +186,52 @@ module Rails
         end
       end
 
-      def ruby_debugger_gemfile_entry
-        if RUBY_VERSION < "1.9"
-          "gem 'ruby-debug'"
-        else
-          "gem 'ruby-debug19', :require => 'ruby-debug'"
-        end
-      end
+      def assets_gemfile_entry
+        return if options[:skip_sprockets]
 
-      def turn_gemfile_entry
-        unless RUBY_VERSION < "1.9.2" || options[:skip_test_unit]
-          <<-GEMFILE.strip_heredoc
-            group :test do
-              # Pretty printed test output
-              gem 'turn', :require => false
+        gemfile = if options.dev? || options.edge?
+          <<-GEMFILE
+            # Gems used only for assets and not required
+            # in production environments by default.
+            group :assets do
+              gem 'sprockets-rails', github: 'rails/sprockets-rails'
+              gem 'sass-rails',   github: 'rails/sass-rails'
+              gem 'coffee-rails', github: 'rails/coffee-rails'
+
+              # See https://github.com/sstephenson/execjs#readme for more supported runtimes
+              #{javascript_runtime_gemfile_entry}
+              gem 'uglifier', '>= 1.0.3'
+            end
+          GEMFILE
+        else
+          <<-GEMFILE
+            # Gems used only for assets and not required
+            # in production environments by default.
+            group :assets do
+              gem 'sprockets-rails', github: 'rails/sprockets-rails'
+              gem 'sass-rails',   '~> 4.0.0.beta'
+              gem 'coffee-rails', '~> 4.0.0.beta'
+
+              # See https://github.com/sstephenson/execjs#readme for more supported runtimes
+              #{javascript_runtime_gemfile_entry}
+              gem 'uglifier', '>= 1.0.3'
             end
           GEMFILE
         end
-      end
 
-      def assets_gemfile_entry
-        <<-GEMFILE.strip_heredoc
-          # Gems used only for assets and not required
-          # in production environments by default.
-          group :assets do
-            gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
-            gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
-            gem 'uglifier'
-          end
-        GEMFILE
+        gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
       end
 
       def javascript_gemfile_entry
         "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
+      end
+
+      def javascript_runtime_gemfile_entry
+        if defined?(JRUBY_VERSION)
+          "gem 'therubyrhino'\n"
+        else
+          "# gem 'therubyracer', platform: :ruby\n"
+        end
       end
 
       def bundle_command(command)
@@ -226,12 +246,21 @@ module Rails
         # is easier to silence stdout in the existing test suite this way. The
         # end-user gets the bundler commands called anyway, so no big deal.
         #
+        # We unset temporary bundler variables to load proper bundler and Gemfile.
+        #
         # Thanks to James Tucker for the Gem tricks involved in this call.
-        print `"#{Gem.ruby}" -rubygems "#{Gem.bin_path('bundler', 'bundle')}" #{command}`
+        _bundle_command = Gem.bin_path('bundler', 'bundle')
+
+        bundle_bin_path, bundle_gemfile, rubyopt = ENV['BUNDLE_BIN_PATH'], ENV['BUNDLE_GEMFILE'], ENV['RUBYOPT']
+        ENV['BUNDLE_BIN_PATH'], ENV['BUNDLE_GEMFILE'], ENV['RUBYOPT'] = "", "", ""
+
+        print `"#{Gem.ruby}" "#{_bundle_command}" #{command}`
+
+        ENV['BUNDLE_BIN_PATH'], ENV['BUNDLE_GEMFILE'], ENV['RUBYOPT'] = bundle_bin_path, bundle_gemfile, rubyopt
       end
 
       def run_bundle
-        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle]
+        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle] || options[:pretend]
       end
 
       def empty_directory_with_gitkeep(destination, config = {})
@@ -241,16 +270,6 @@ module Rails
 
       def git_keep(destination)
         create_file("#{destination}/.gitkeep") unless options[:skip_git]
-      end
-
-      # Returns Ruby 1.9 style key-value pair if current code is running on
-      # Ruby 1.9.x. Returns the old-style (with hash rocket) otherwise.
-      def key_value(key, value)
-        if options[:old_style_hash] || RUBY_VERSION < '1.9'
-          ":#{key} => #{value}"
-        else
-          "#{key}: #{value}"
-        end
       end
     end
   end

@@ -5,162 +5,389 @@ module ActiveRecord
   module QueryMethods
     extend ActiveSupport::Concern
 
-    attr_accessor :includes_values, :eager_load_values, :preload_values,
-                  :select_values, :group_values, :order_values, :joins_values,
-                  :where_values, :having_values, :bind_values,
-                  :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value,
-                  :from_value, :reorder_value, :reverse_order_value
+    Relation::MULTI_VALUE_METHODS.each do |name|
+      class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}_values            # def select_values
+          @values[:#{name}] || []     #   @values[:select] || []
+        end                           # end
+                                      #
+        def #{name}_values=(values)   # def select_values=(values)
+          @values[:#{name}] = values  #   @values[:select] = values
+        end                           # end
+      CODE
+    end
+
+    (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |name|
+      class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}_value             # def readonly_value
+          @values[:#{name}]           #   @values[:readonly]
+        end                           # end
+                                      #
+        def #{name}_value=(value)     # def readonly_value=(value)
+          @values[:#{name}] = value   #   @values[:readonly] = value
+        end                           # end
+      CODE
+    end
+
+    def create_with_value
+      @values[:create_with] || {}
+    end
+
+    def create_with_value=(value)
+      @values[:create_with] = value
+    end
+
+    alias extensions extending_values
 
     def includes(*args)
+      args.empty? ? self : spawn.includes!(*args)
+    end
+
+    def includes!(*args)
       args.reject! {|a| a.blank? }
 
-      return self if args.empty?
-
-      relation = clone
-      relation.includes_values = (relation.includes_values + args).flatten.uniq
-      relation
+      self.includes_values = (includes_values + args).flatten.uniq
+      self
     end
 
     def eager_load(*args)
-      return self if args.blank?
+      args.blank? ? self : spawn.eager_load!(*args)
+    end
 
-      relation = clone
-      relation.eager_load_values += args
-      relation
+    def eager_load!(*args)
+      self.eager_load_values += args
+      self
     end
 
     def preload(*args)
-      return self if args.blank?
-
-      relation = clone
-      relation.preload_values += args
-      relation
+      args.blank? ? self : spawn.preload!(*args)
     end
 
+    def preload!(*args)
+      self.preload_values += args
+      self
+    end
+
+    # Used to indicate that an association is referenced by an SQL string, and should
+    # therefore be JOINed in any query rather than loaded separately.
+    #
+    # For example:
+    #
+    #   User.includes(:posts).where("posts.name = 'foo'")
+    #   # => Doesn't JOIN the posts table, resulting in an error.
+    #
+    #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
+    #   # => Query now knows the string references posts, so adds a JOIN
+    def references(*args)
+      args.blank? ? self : spawn.references!(*args)
+    end
+
+    def references!(*args)
+      self.references_values = (references_values + args.flatten.map(&:to_s)).uniq
+      self
+    end
+
+    # Works in two unique ways.
+    #
+    # First: takes a block so it can be used just like Array#select.
+    #
+    #   Model.scoped.select { |m| m.field == value }
+    #
+    # This will build an array of objects from the database for the scope,
+    # converting them into an array and iterating through them using Array#select.
+    #
+    # Second: Modifies the SELECT statement for the query so that only certain
+    # fields are retrieved:
+    #
+    #   >> Model.select(:field)
+    #   => [#<Model field:value>]
+    #
+    # Although in the above example it looks as though this method returns an
+    # array, it actually returns a relation object and can have other query
+    # methods appended to it, such as the other methods in ActiveRecord::QueryMethods.
+    #
+    # The argument to the method can also be an array of fields.
+    #
+    #   >> Model.select([:field, :other_field, :and_one_more])
+    #   => [#<Model field: "value", other_field: "value", and_one_more: "value">]
+    #
+    # Accessing attributes of an object that do not have fields retrieved by a select
+    # will throw <tt>ActiveModel::MissingAttributeError</tt>:
+    #
+    #   >> Model.select(:field).first.other_field
+    #   => ActiveModel::MissingAttributeError: missing attribute: other_field
     def select(value = Proc.new)
       if block_given?
-        to_a.select {|*block_args| value.call(*block_args) }
+        to_a.select { |*block_args| value.call(*block_args) }
       else
-        relation = clone
-        relation.select_values += Array.wrap(value)
-        relation
+        spawn.select!(value)
       end
+    end
+
+    def select!(value)
+      self.select_values += Array.wrap(value)
+      self
     end
 
     def group(*args)
-      return self if args.blank?
+      args.blank? ? self : spawn.group!(*args)
+    end
 
-      relation = clone
-      relation.group_values += args.flatten
-      relation
+    def group!(*args)
+      self.group_values += args.flatten
+      self
     end
 
     def order(*args)
-      return self if args.blank?
-
-      relation = clone
-      relation.order_values += args.flatten
-      relation
+      args.blank? ? self : spawn.order!(*args)
     end
 
-    def reorder(*args)
-      return self if args.blank?
+    def order!(*args)
+      args       = args.flatten
 
-      relation = clone
-      relation.reorder_value = args.flatten
-      relation
+      references = args.reject { |arg| Arel::Node === arg }
+                       .map { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }
+                       .compact
+      references!(references) if references.any?
+
+      self.order_values += args
+      self
+    end
+
+    # Replaces any existing order defined on the relation with the specified order.
+    #
+    #   User.order('email DESC').reorder('id ASC') # generated SQL has 'ORDER BY id ASC'
+    #
+    # Subsequent calls to order on the same relation will be appended. For example:
+    #
+    #   User.order('email DESC').reorder('id ASC').order('name ASC')
+    #
+    # generates a query with 'ORDER BY id ASC, name ASC'.
+    #
+    def reorder(*args)
+      args.blank? ? self : spawn.reorder!(*args)
+    end
+
+    def reorder!(*args)
+      self.reordering_value = true
+      self.order_values = args.flatten
+      self
     end
 
     def joins(*args)
-      return self if args.compact.blank?
+      args.compact.blank? ? self : spawn.joins!(*args)
+    end
 
-      relation = clone
-
+    def joins!(*args)
       args.flatten!
-      relation.joins_values += args
 
-      relation
+      self.joins_values += args
+      self
     end
 
     def bind(value)
-      relation = clone
-      relation.bind_values += [value]
-      relation
+      spawn.bind!(value)
+    end
+
+    def bind!(value)
+      self.bind_values += [value]
+      self
     end
 
     def where(opts, *rest)
-      return self if opts.blank?
+      opts.blank? ? self : spawn.where!(opts, *rest)
+    end
 
-      relation = clone
-      relation.where_values += build_where(opts, rest)
-      relation
+    def where!(opts, *rest)
+      references!(PredicateBuilder.references(opts)) if Hash === opts
+
+      self.where_values += build_where(opts, rest)
+      self
     end
 
     def having(opts, *rest)
-      return self if opts.blank?
+      opts.blank? ? self : spawn.having!(opts, *rest)
+    end
 
-      relation = clone
-      relation.having_values += build_where(opts, rest)
-      relation
+    def having!(opts, *rest)
+      references!(PredicateBuilder.references(opts)) if Hash === opts
+
+      self.having_values += build_where(opts, rest)
+      self
     end
 
     def limit(value)
-      relation = clone
-      relation.limit_value = value
-      relation
+      spawn.limit!(value)
+    end
+
+    def limit!(value)
+      self.limit_value = value
+      self
     end
 
     def offset(value)
-      relation = clone
-      relation.offset_value = value
-      relation
+      spawn.offset!(value)
+    end
+
+    def offset!(value)
+      self.offset_value = value
+      self
     end
 
     def lock(locks = true)
-      relation = clone
+      spawn.lock!(locks)
+    end
 
+    def lock!(locks = true)
       case locks
       when String, TrueClass, NilClass
-        relation.lock_value = locks || true
+        self.lock_value = locks || true
       else
-        relation.lock_value = false
+        self.lock_value = false
       end
 
-      relation
+      self
+    end
+
+    # Returns a chainable relation with zero records, specifically an
+    # instance of the NullRelation class.
+    #
+    # The returned NullRelation inherits from Relation and implements the
+    # Null Object pattern so it is an object with defined null behavior:
+    # it always returns an empty array of records and does not query the database.
+    #
+    # Any subsequent condition chained to the returned relation will continue
+    # generating an empty relation and will not fire any query to the database.
+    #
+    # Used in cases where a method or scope could return zero records but the
+    # result needs to be chainable.
+    #
+    # For example:
+    #
+    #   @posts = current_user.visible_posts.where(:name => params[:name])
+    #   # => the visible_posts method is expected to return a chainable Relation
+    #
+    #   def visible_posts
+    #     case role
+    #     when 'Country Manager'
+    #       Post.where(:country => country)
+    #     when 'Reviewer'
+    #       Post.published
+    #     when 'Bad User'
+    #       Post.none # => returning [] instead breaks the previous code
+    #     end
+    #   end
+    #
+    def none
+      NullRelation.new(@klass, @table)
     end
 
     def readonly(value = true)
-      relation = clone
-      relation.readonly_value = value
-      relation
+      spawn.readonly!(value)
+    end
+
+    def readonly!(value = true)
+      self.readonly_value = value
+      self
     end
 
     def create_with(value)
-      relation = clone
-      relation.create_with_value = value ? create_with_value.merge(value) : {}
-      relation
+      spawn.create_with!(value)
+    end
+
+    def create_with!(value)
+      self.create_with_value = value ? create_with_value.merge(value) : {}
+      self
     end
 
     def from(value)
-      relation = clone
-      relation.from_value = value
-      relation
+      spawn.from!(value)
     end
 
-    def extending(*modules)
-      modules << Module.new(&Proc.new) if block_given?
+    def from!(value)
+      self.from_value = value
+      self
+    end
 
-      return self if modules.empty?
+    # Specifies whether the records should be unique or not. For example:
+    #
+    #   User.select(:name)
+    #   # => Might return two records with the same name
+    #
+    #   User.select(:name).uniq
+    #   # => Returns 1 record per unique name
+    #
+    #   User.select(:name).uniq.uniq(false)
+    #   # => You can also remove the uniqueness
+    def uniq(value = true)
+      spawn.uniq!(value)
+    end
 
-      relation = clone
-      relation.send(:apply_modules, modules.flatten)
-      relation
+    def uniq!(value = true)
+      self.uniq_value = value
+      self
+    end
+
+    # Used to extend a scope with additional methods, either through
+    # a module or through a block provided.
+    #
+    # The object returned is a relation, which can be further extended.
+    #
+    # === Using a module
+    #
+    #   module Pagination
+    #     def page(number)
+    #       # pagination code goes here
+    #     end
+    #   end
+    #
+    #   scope = Model.scoped.extending(Pagination)
+    #   scope.page(params[:page])
+    #
+    # You can also pass a list of modules:
+    #
+    #   scope = Model.scoped.extending(Pagination, SomethingElse)
+    #
+    # === Using a block
+    #
+    #   scope = Model.scoped.extending do
+    #     def page(number)
+    #       # pagination code goes here
+    #     end
+    #   end
+    #   scope.page(params[:page])
+    #
+    # You can also use a block and a module list:
+    #
+    #   scope = Model.scoped.extending(Pagination) do
+    #     def per_page(number)
+    #       # pagination code goes here
+    #     end
+    #   end
+    def extending(*modules, &block)
+      if modules.any? || block
+        spawn.extending!(*modules, &block)
+      else
+        self
+      end
+    end
+
+    def extending!(*modules, &block)
+      modules << Module.new(&block) if block_given?
+
+      self.extending_values = modules.flatten
+      extend(*extending_values) if extending_values.any?
+
+      self
     end
 
     def reverse_order
-      relation = clone
-      relation.reverse_order_value = !relation.reverse_order_value
-      relation
+      spawn.reverse_order!
+    end
+
+    def reverse_order!
+      self.reverse_order_value = !reverse_order_value
+      self
     end
 
     def arel
@@ -170,25 +397,26 @@ module ActiveRecord
     def build_arel
       arel = table.from table
 
-      build_joins(arel, @joins_values) unless @joins_values.empty?
+      build_joins(arel, joins_values) unless joins_values.empty?
 
-      collapse_wheres(arel, (@where_values - ['']).uniq)
+      collapse_wheres(arel, (where_values - ['']).uniq)
 
-      arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
+      arel.having(*having_values.uniq.reject{|h| h.blank?}) unless having_values.empty?
 
-      arel.take(connection.sanitize_limit(@limit_value)) if @limit_value
-      arel.skip(@offset_value) if @offset_value
+      arel.take(connection.sanitize_limit(limit_value)) if limit_value
+      arel.skip(offset_value.to_i) if offset_value
 
-      arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
+      arel.group(*group_values.uniq.reject{|g| g.blank?}) unless group_values.empty?
 
-      order = @reorder_value ? @reorder_value : @order_values
-      order = reverse_sql_order(order) if @reverse_order_value
+      order = order_values
+      order = reverse_sql_order(order) if reverse_order_value
       arel.order(*order.uniq.reject{|o| o.blank?}) unless order.empty?
 
-      build_select(arel, @select_values.uniq)
+      build_select(arel, select_values.uniq)
 
-      arel.from(@from_value) if @from_value
-      arel.lock(@lock_value) if @lock_value
+      arel.distinct(uniq_value)
+      arel.from(from_value) if from_value
+      arel.lock(lock_value) if lock_value
 
       arel
     end
@@ -254,22 +482,18 @@ module ActiveRecord
 
       association_joins         = buckets['association_join'] || []
       stashed_association_joins = buckets['stashed_join'] || []
-      join_nodes                = buckets['join_node'] || []
+      join_nodes                = (buckets['join_node'] || []).uniq
       string_joins              = (buckets['string_join'] || []).map { |x|
         x.strip
       }.uniq
 
-      join_list = custom_join_ast(manager, string_joins)
+      join_list = join_nodes + custom_join_ast(manager, string_joins)
 
       join_dependency = ActiveRecord::Associations::JoinDependency.new(
         @klass,
         association_joins,
         join_list
       )
-
-      join_nodes.each do |join|
-        join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase)
-      end
 
       join_dependency.graft(*stashed_association_joins)
 
@@ -280,7 +504,6 @@ module ActiveRecord
         association.join_to(manager)
       end
 
-      manager.join_sources.concat join_nodes.uniq
       manager.join_sources.concat join_list
 
       manager
@@ -292,13 +515,6 @@ module ActiveRecord
         arel.project(*selects)
       else
         arel.project(@klass.arel_table[Arel.star])
-      end
-    end
-
-    def apply_modules(modules)
-      unless modules.empty?
-        @extensions += modules
-        modules.each {|extension| extend(extension) }
       end
     end
 

@@ -77,7 +77,7 @@ module ActiveRecord
             # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
             # Make several smaller queries if necessary or make one query if the adapter supports it
             sliced  = owner_keys.each_slice(model.connection.in_clause_length || owner_keys.size)
-            records = sliced.map { |slice| records_for(slice) }.flatten
+            records = sliced.map { |slice| records_for(slice).to_a }.flatten
           end
 
           # Each record may have multiple owners, and vice-versa
@@ -93,10 +93,11 @@ module ActiveRecord
         end
 
         def build_scope
-          scope = klass.scoped
+          scope = klass.unscoped
+          scope.default_scoped = true
 
-          scope = scope.where(process_conditions(options[:conditions]))
-          scope = scope.where(process_conditions(preload_options[:conditions]))
+          scope = scope.where(interpolate(options[:conditions]))
+          scope = scope.where(interpolate(preload_options[:conditions]))
 
           scope = scope.select(preload_options[:select] || options[:select] || table[Arel.star])
           scope = scope.includes(preload_options[:include] || options[:include])
@@ -112,13 +113,11 @@ module ActiveRecord
           scope
         end
 
-        def process_conditions(conditions)
+        def interpolate(conditions)
           if conditions.respond_to?(:to_proc)
-            conditions = klass.send(:instance_eval, &conditions)
-          end
-
-          if conditions
-            klass.send(:sanitize_sql, conditions)
+            klass.send(:instance_eval, &conditions)
+          else
+            conditions
           end
         end
       end

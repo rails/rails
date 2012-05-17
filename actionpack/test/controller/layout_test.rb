@@ -78,8 +78,15 @@ end
 class DefaultLayoutController < LayoutTest
 end
 
+class StreamingLayoutController < LayoutTest
+  def render(*args)
+    options = args.extract_options! || {}
+    super(*args, options.merge(:stream => true))
+  end
+end
+
 class AbsolutePathLayoutController < LayoutTest
-  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test.erb')
+  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test')
 end
 
 class HasOwnLayoutController < LayoutTest
@@ -120,6 +127,12 @@ class LayoutSetInResponseTest < ActionController::TestCase
     @controller = DefaultLayoutController.new
     get :hello
     assert_template :layout => "layouts/layout_test"
+  end
+
+  def test_layout_set_when_using_streaming_layout
+    @controller = StreamingLayoutController.new
+    get :hello
+    assert_template :hello
   end
 
   def test_layout_set_when_set_in_controller
@@ -167,7 +180,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_is_picked_from_the_controller_instances_view_path
     @controller = PrependsViewPathController.new
     get :hello
-    assert_template :layout => /layouts\/alt\.\w+/
+    assert_template :layout => /layouts\/alt/
   end
 
   def test_absolute_pathed_layout
@@ -184,7 +197,7 @@ class RenderWithTemplateOptionController < LayoutTest
 end
 
 class SetsNonExistentLayoutFile < LayoutTest
-  layout "nofile.erb"
+  layout "nofile"
 end
 
 class LayoutExceptionRaised < ActionController::TestCase

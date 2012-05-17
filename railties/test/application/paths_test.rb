@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class PathsTest < Test::Unit::TestCase
+  class PathsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -15,7 +15,6 @@ module ApplicationTests
           app.config.session_store nil
         end
       RUBY
-      use_frameworks [:action_controller, :action_view, :action_mailer, :active_record]
       require "#{app_path}/config/environment"
       @paths = Rails.application.config.paths
     end
@@ -46,12 +45,13 @@ module ApplicationTests
       assert_path @paths["app/views"],           "app/views"
       assert_path @paths["lib"],                 "lib"
       assert_path @paths["vendor"],              "vendor"
-      assert_path @paths["vendor/plugins"],      "vendor/plugins"
       assert_path @paths["tmp"],                 "tmp"
       assert_path @paths["config"],              "config"
       assert_path @paths["config/locales"],      "config/locales/en.yml"
       assert_path @paths["config/environment"],  "config/environment.rb"
       assert_path @paths["config/environments"], "config/environments/development.rb"
+      assert_path @paths["config/routes.rb"],    "config/routes.rb"
+      assert_path @paths["config/routes"],       "config/routes"
 
       assert_equal root("app", "controllers"), @paths["app/controllers"].expanded.first
     end

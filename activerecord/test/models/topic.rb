@@ -1,19 +1,20 @@
 class Topic < ActiveRecord::Base
-  scope :base
+  scope :base, -> { scoped }
   scope :written_before, lambda { |time|
     if time
-      { :conditions => ['written_on < ?', time] }
+      where 'written_on < ?', time
     end
   }
-  scope :approved, :conditions => {:approved => true}
-  scope :rejected, :conditions => {:approved => false}
+  scope :approved, -> { where(:approved => true) }
+  scope :rejected, -> { where(:approved => false) }
 
-  scope :by_lifo, :conditions => {:author_name => 'lifo'}
+  scope :scope_with_lambda, lambda { scoped }
 
-  scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
-  scope 'approved_as_string', :conditions => {:approved => true}
-  scope :replied, :conditions => ['replies_count > 0']
-  scope :anonymous_extension do
+  scope :by_lifo, -> { where(:author_name => 'lifo') }
+  scope :replied, -> { where 'replies_count > 0' }
+
+  scope 'approved_as_string', -> { where(:approved => true) }
+  scope :anonymous_extension, -> { scoped } do
     def one
       1
     end
@@ -30,18 +31,6 @@ class Topic < ActiveRecord::Base
       2
     end
   end
-  module MultipleExtensionOne
-    def extension_one
-      1
-    end
-  end
-  module MultipleExtensionTwo
-    def extension_two
-      2
-    end
-  end
-  scope :named_extension, :extend => NamedExtension
-  scope :multiple_extensions, :extend => [MultipleExtensionTwo, MultipleExtensionOne]
 
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   has_many :replies_with_primary_key, :class_name => "Reply", :dependent => :destroy, :primary_key => "title", :foreign_key => "parent_title"
@@ -78,11 +67,17 @@ class Topic < ActiveRecord::Base
 
   after_initialize :set_email_address
 
+  class_attribute :after_initialize_called
+  after_initialize do
+    self.class.after_initialize_called = true
+  end
+
+  def approved=(val)
+    @custom_approved = val
+    write_attribute(:approved, val)
+  end
+
   protected
-    def approved=(val)
-      @custom_approved = val
-      write_attribute(:approved, val)
-    end
 
     def default_written_on
       self.written_on = Time.now unless attribute_present?("written_on")
@@ -103,6 +98,10 @@ class Topic < ActiveRecord::Base
     def before_destroy_for_transaction; end
     def after_save_for_transaction; end
     def after_create_for_transaction; end
+end
+
+class ImportantTopic < Topic
+  serialize :important, Hash
 end
 
 module Web

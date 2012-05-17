@@ -155,7 +155,7 @@ module ActionView
     test "view_assigns excludes internal ivars" do
       INTERNAL_IVARS.each do |ivar|
         assert defined?(ivar), "expected #{ivar} to be defined"
-        assert !view_assigns.keys.include?(ivar.sub('@','').to_sym), "expected #{ivar} to be excluded from view_assigns"
+        assert !view_assigns.keys.include?(ivar.to_s.sub('@', '').to_sym), "expected #{ivar} to be excluded from view_assigns"
       end
     end
   end
@@ -277,6 +277,12 @@ module ActionView
   end
 
   class RenderTemplateTest < ActionView::TestCase
+    test "supports specifying templates with a Regexp" do
+      controller.controller_path = "fun"
+      render(:template => "fun/games/hello_world")
+      assert_template %r{\Afun/games/hello_world\Z}
+    end
+
     test "supports specifying partials" do
       controller.controller_path = "test"
       render(:template => "test/calling_partial_with_layout")

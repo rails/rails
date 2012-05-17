@@ -43,7 +43,7 @@ class InfoTest < ActiveSupport::TestCase
 
   def test_frameworks_exist
     Rails::Info.frameworks.each do |framework|
-      dir = File.dirname(__FILE__) + "/../../" + framework.gsub('_', '')
+      dir = File.dirname(__FILE__) + "/../../" + framework.delete('_')
       assert File.directory?(dir), "#{framework.classify} does not exist"
     end
   end

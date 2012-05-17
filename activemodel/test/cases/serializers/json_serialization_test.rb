@@ -14,9 +14,11 @@ class Contact
     end
   end
 
+  remove_method :attributes if method_defined?(:attributes)
+
   def attributes
     instance_values
-  end unless method_defined?(:attributes)
+  end
 end
 
 class JsonSerializationTest < ActiveModel::TestCase
@@ -51,6 +53,16 @@ class JsonSerializationTest < ActiveModel::TestCase
       assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
       assert_match %r{"awesome":true}, json
       assert_match %r{"preferences":\{"shows":"anime"\}}, json
+    ensure
+      Contact.include_root_in_json = true
+    end
+  end
+
+  test "should include root in json (option) even if the default is set to false" do
+    begin
+      Contact.include_root_in_json = false
+      json = @contact.to_json(:root => true)
+      assert_match %r{^\{"contact":\{}, json
     ensure
       Contact.include_root_in_json = true
     end
@@ -118,13 +130,13 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
 
-  test "should return OrderedHash for errors" do
+  test "should return Hash for errors" do
     contact = Contact.new
     contact.errors.add :name, "can't be blank"
     contact.errors.add :name, "is too short (minimum is 2 characters)"
     contact.errors.add :age, "must be 16 or over"
 
-    hash = ActiveSupport::OrderedHash.new
+    hash = {}
     hash[:name] = ["can't be blank", "is too short (minimum is 2 characters)"]
     hash[:age]  = ["must be 16 or over"]
     assert_equal hash.to_json, contact.errors.to_json
@@ -192,6 +204,16 @@ class JsonSerializationTest < ActiveModel::TestCase
 
     assert_match %r{"name":"Konata Izumi"}, json
     assert_match %r{"created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}}, json
+    assert_no_match %r{"awesome":}, json
+    assert_no_match %r{"preferences":}, json
+  end
+
+  test "custom as_json options should be extendible" do
+    def @contact.as_json(options = {}); super(options.merge(:only => [:name])); end
+    json = @contact.to_json
+
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_no_match %r{"created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}}, json
     assert_no_match %r{"awesome":}, json
     assert_no_match %r{"preferences":}, json
   end

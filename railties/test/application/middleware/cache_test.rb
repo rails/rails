@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class RoutingTest < Test::Unit::TestCase
+  class RoutingTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -31,6 +31,10 @@ module ApplicationTests
             $last_modified ||= Time.now.utc
             render_conditionally(:last_modified => $last_modified)
           end
+
+          def keeps_if_modified_since
+            render :text => request.headers['If-Modified-Since']
+          end
         private
           def render_conditionally(headers)
             if stale?(headers.merge(:public => !params[:private]))
@@ -42,9 +46,19 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          get ':controller(/:action)'
         end
       RUBY
+    end
+
+    def test_cache_keeps_if_modified_since
+      simple_controller
+      expected = "Wed, 30 May 1984 19:43:31 GMT"
+
+      get "/expires/keeps_if_modified_since", {}, "HTTP_IF_MODIFIED_SINCE" => expected
+
+      assert_equal 200, last_response.status
+      assert_equal expected, last_response.body, "cache should have kept If-Modified-Since"
     end
 
     def test_cache_is_disabled_in_dev_mode

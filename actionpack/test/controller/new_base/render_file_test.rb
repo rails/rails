@@ -10,7 +10,7 @@ module RenderFile
 
     def with_instance_variables
       @secret = 'in the sauce'
-      render :file => File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar.erb')
+      render :file => File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar')
     end
 
     def without_file_key
@@ -19,7 +19,7 @@ module RenderFile
 
     def without_file_key_with_instance_variable
       @secret = 'in the sauce'
-      render File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar.erb')
+      render File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar')
     end
 
     def relative_path
@@ -34,16 +34,16 @@ module RenderFile
 
     def pathname
       @secret = 'in the sauce'
-      render :file => Pathname.new(File.dirname(__FILE__)).join(*%w[.. .. fixtures test dot.directory render_file_with_ivar.erb])
+      render :file => Pathname.new(File.dirname(__FILE__)).join(*%w[.. .. fixtures test dot.directory render_file_with_ivar])
     end
 
     def with_locals
-      path = File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_locals.erb')
+      path = File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_locals')
       render :file => path, :locals => {:secret => 'in the sauce'}
     end
 
     def without_file_key_with_locals
-      path = FIXTURES.join('test/render_file_with_locals.erb').to_s
+      path = FIXTURES.join('test/render_file_with_locals').to_s
       render path, :locals => {:secret => 'in the sauce'}
     end
   end

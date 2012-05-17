@@ -1,22 +1,25 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 
 <%= rails_gemfile_entry -%>
 
 <%= database_gemfile_entry -%>
 
 <%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
-<%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
 
 <%= assets_gemfile_entry %>
 <%= javascript_gemfile_entry %>
 
-# Use unicorn as the web server
+# To use ActiveModel has_secure_password
+# gem 'bcrypt-ruby', '~> 3.0.0'
+
+# To use Jbuilder templates for JSON
+# gem 'jbuilder'
+
+# Use unicorn as the app server
 # gem 'unicorn'
 
 # Deploy with Capistrano
-# gem 'capistrano'
+# gem 'capistrano', :group => :development
 
 # To use debugger
-# <%= ruby_debugger_gemfile_entry %>
-
-<%= turn_gemfile_entry -%>
+# gem 'debugger'

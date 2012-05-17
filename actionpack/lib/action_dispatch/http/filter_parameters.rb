@@ -10,8 +10,6 @@ module ActionDispatch
     # value of the params hash and all subhashes is passed to it, the value
     # or key can be replaced using String#replace or similar method.
     #
-    # Examples:
-    #
     #   env["action_dispatch.parameter_filter"] = [:password]
     #   => replaces the value to all keys matching /password/i with "[FILTERED]"
     #
@@ -22,7 +20,6 @@ module ActionDispatch
     #     v.reverse! if k =~ /secret/i
     #   end
     #   => reverses the value to all keys matching /secret/i
-    #
     module FilterParameters
       extend ActiveSupport::Concern
 
@@ -50,7 +47,7 @@ module ActionDispatch
       end
 
       def env_filter
-        parameter_filter_for(Array.wrap(@env["action_dispatch.parameter_filter"]) << /RAW_POST_DATA/)
+        parameter_filter_for(Array(@env["action_dispatch.parameter_filter"]) + [/RAW_POST_DATA/, "rack.request.form_vars"])
       end
 
       def parameter_filter_for(filters)

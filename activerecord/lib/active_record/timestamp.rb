@@ -33,8 +33,12 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :record_timestamps, :instance_writer => false
+      config_attribute :record_timestamps, :instance_writer => true
       self.record_timestamps = true
+    end
+
+    def initialize_dup(other)
+      clear_timestamp_attributes
     end
 
   private
@@ -44,7 +48,9 @@ module ActiveRecord
         current_time = current_time_from_proper_timezone
 
         all_timestamp_attributes.each do |column|
-          write_attribute(column.to_s, current_time) if respond_to?(column) && self.send(column).nil?
+          if respond_to?(column) && respond_to?("#{column}=") && self.send(column).nil?
+            write_attribute(column.to_s, current_time)
+          end
         end
       end
 
@@ -95,6 +101,13 @@ module ActiveRecord
     def current_time_from_proper_timezone #:nodoc:
       self.class.default_timezone == :utc ? Time.now.utc : Time.now
     end
+
+    # Clear attributes and changed_attributes
+    def clear_timestamp_attributes
+      all_timestamp_attributes_in_model.each do |attribute_name|
+        self[attribute_name] = nil
+        changed_attributes.delete(attribute_name)
+      end
+    end
   end
 end
-

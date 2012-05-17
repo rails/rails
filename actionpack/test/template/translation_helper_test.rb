@@ -11,14 +11,20 @@ class TranslationHelperTest < ActiveSupport::TestCase
       :translations => {
         :templates => {
           :found => { :foo => 'Foo' },
-          :array => { :foo => { :bar => 'Foo Bar' } }
+          :array => { :foo => { :bar => 'Foo Bar' } },
+          :default => { :foo => 'Foo' }
         },
         :foo => 'Foo',
         :hello => '<a>Hello World</a>',
         :html => '<a>Hello World</a>',
         :hello_html => '<a>Hello World</a>',
+        :interpolated_html => '<a>Hello %{word}</a>',
         :array_html => %w(foo bar),
-        :array => %w(foo bar)
+        :array => %w(foo bar),
+        :count_html => {
+          :one   => '<a>One %{count}</a>',
+          :other => '<a>Other %{count}</a>'
+        }
       }
     )
     @view = ::ActionView::Base.new(ActionController::Base.view_paths, {})
@@ -66,6 +72,10 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal 'Foo Bar', @view.render(:file => 'translations/templates/array').strip
   end
 
+  def test_default_lookup_scoped_by_partial
+    assert_equal 'Foo', view.render(:file => 'translations/templates/default').strip
+  end
+
   def test_missing_translation_scoped_by_partial
     expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing.missing">Missing</span>'
     assert_equal expected, view.render(:file => 'translations/templates/missing').strip
@@ -83,7 +93,36 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert translate(:'translations.hello_html').html_safe?
   end
 
+  def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
+    assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => '<World>')
+    assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => stub(:to_s => "<World>"))
+  end
+
+  def test_translate_with_html_count
+    assert_equal '<a>One 1</a>', translate(:'translations.count_html', :count => 1)
+    assert_equal '<a>Other 2</a>', translate(:'translations.count_html', :count => 2)
+    assert_equal '<a>Other &lt;One&gt;</a>', translate(:'translations.count_html', :count => '<One>')
+  end
+
   def test_translation_returning_an_array_ignores_html_suffix
     assert_equal ["foo", "bar"], translate(:'translations.array_html')
+  end
+
+  def test_translate_with_default_named_html
+    translation = translate(:'translations.missing', :default => :'translations.hello_html')
+    assert_equal '<a>Hello World</a>', translation
+    assert translation.html_safe?
+  end
+
+  def test_translate_with_two_defaults_named_html
+    translation = translate(:'translations.missing', :default => [:'translations.missing_html', :'translations.hello_html'])
+    assert_equal '<a>Hello World</a>', translation
+    assert translation.html_safe?
+  end
+
+  def test_translate_with_last_default_named_html
+    translation = translate(:'translations.missing', :default => [:'translations.missing', :'translations.hello_html'])
+    assert_equal '<a>Hello World</a>', translation
+    assert translation.html_safe?
   end
 end

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/hash/conversions'
@@ -15,10 +14,10 @@ module ActiveModel
         class Attribute #:nodoc:
           attr_reader :name, :value, :type
 
-          def initialize(name, serializable, raw_value=nil)
+          def initialize(name, serializable, value)
             @name, @serializable = name, serializable
-            raw_value = raw_value.in_time_zone if raw_value.respond_to?(:in_time_zone)
-            @value = raw_value || @serializable.send(name)
+            value  = value.in_time_zone if value.respond_to?(:in_time_zone)
+            @value = value
             @type  = compute_type
           end
 
@@ -49,38 +48,22 @@ module ActiveModel
         def initialize(serializable, options = nil)
           @serializable = serializable
           @options = options ? options.dup : {}
-
-          @options[:only] = Array.wrap(@options[:only]).map { |n| n.to_s }
-          @options[:except] = Array.wrap(@options[:except]).map { |n| n.to_s }
         end
 
-        # To replicate the behavior in ActiveRecord#attributes, <tt>:except</tt>
-        # takes precedence over <tt>:only</tt>. If <tt>:only</tt> is not set
-        # for a N level model but is set for the N+1 level models,
-        # then because <tt>:except</tt> is set to a default value, the second
-        # level model can have both <tt>:except</tt> and <tt>:only</tt> set. So if
-        # <tt>:only</tt> is set, always delete <tt>:except</tt>.
-        def attributes_hash
-          attributes = @serializable.attributes
-          if options[:only].any?
-            attributes.slice(*options[:only])
-          elsif options[:except].any?
-            attributes.except(*options[:except])
-          else
-            attributes
+        def serializable_hash
+          @serializable.serializable_hash(@options.except(:include))
+        end
+
+        def serializable_collection
+          methods = Array(options[:methods]).map(&:to_s)
+          serializable_hash.map do |name, value|
+            name = name.to_s
+            if methods.include?(name)
+              self.class::MethodAttribute.new(name, @serializable, value)
+            else
+              self.class::Attribute.new(name, @serializable, value)
+            end
           end
-        end
-
-        def serializable_attributes
-          attributes_hash.map do |name, value|
-            self.class::Attribute.new(name, @serializable, value)
-          end
-        end
-
-        def serializable_methods
-          Array.wrap(options[:methods]).map do |name|
-            self.class::MethodAttribute.new(name.to_s, @serializable) if @serializable.respond_to?(name.to_s)
-          end.compact
         end
 
         def serialize
@@ -114,7 +97,7 @@ module ActiveModel
         end
 
         def add_attributes_and_methods
-          (serializable_attributes + serializable_methods).each do |attribute|
+          serializable_collection.each do |attribute|
             key = ActiveSupport::XmlMini.rename_key(attribute.name, options)
             ActiveSupport::XmlMini.to_tag(key, attribute.value,
               options.merge(attribute.decorations))
@@ -132,7 +115,9 @@ module ActiveModel
           merged_options = opts.merge(options.slice(:builder, :indent))
           merged_options[:skip_instruct] = true
 
-          if records.is_a?(Enumerable)
+          if records.respond_to?(:to_ary)
+            records = records.to_ary
+
             tag  = ActiveSupport::XmlMini.rename_key(association.to_s, options)
             type = options[:skip_types] ? { } : {:type => "array"}
             association_name = association.to_s.singularize
@@ -162,7 +147,7 @@ module ActiveModel
 
         def add_procs
           if procs = options.delete(:procs)
-            Array.wrap(procs).each do |proc|
+            Array(procs).each do |proc|
               if proc.arity == 1
                 proc.call(options)
               else

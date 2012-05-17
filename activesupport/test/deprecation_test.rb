@@ -93,6 +93,26 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match(/foo=nil/, @b)
   end
 
+  def test_default_stderr_behavior
+    ActiveSupport::Deprecation.behavior = :stderr
+    behavior = ActiveSupport::Deprecation.behavior.first
+
+    content = capture(:stderr) {
+      assert_nil behavior.call('Some error!', ['call stack!'])
+    }
+    assert_match(/Some error!/, content)
+    assert_match(/call stack!/, content)
+  end
+
+  def test_default_silence_behavior
+    ActiveSupport::Deprecation.behavior = :silence
+    behavior = ActiveSupport::Deprecation.behavior.first
+
+    assert_blank capture(:stderr) {
+      assert_nil behavior.call('Some error!', ['call stack!'])
+    }
+  end
+
   def test_deprecated_instance_variable_proxy
     assert_not_deprecated { @dtc.request.size }
 
@@ -120,7 +140,7 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.warn 'abc'
       ActiveSupport::Deprecation.warn 'def'
     end
-  rescue Test::Unit::AssertionFailedError
+  rescue MiniTest::Assertion
     flunk 'assert_deprecated should match any warning in block, not just the last one'
   end
 
@@ -165,23 +185,5 @@ class DeprecationTest < ActiveSupport::TestCase
 
   def test_deprecation_with_explicit_message
     assert_deprecated(/you now need to do something extra for this one/) { @dtc.d }
-  end
-
-  unless defined?(::MiniTest)
-    def test_assertion_failed_error_doesnt_spout_deprecation_warnings
-      error_class = Class.new(StandardError) do
-        def message
-          ActiveSupport::Deprecation.warn 'warning in error message'
-          super
-        end
-      end
-
-      raise error_class.new('hmm')
-
-    rescue => e
-      error = Test::Unit::Error.new('testing ur doodz', e)
-      assert_not_deprecated { error.message }
-      assert_nil @last_message
-    end
   end
 end

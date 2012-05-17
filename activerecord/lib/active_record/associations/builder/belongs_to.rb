@@ -25,16 +25,18 @@ module ActiveRecord::Associations::Builder
         name         = self.name
 
         method_name = "belongs_to_counter_cache_after_create_for_#{name}"
-        model.redefine_method(method_name) do
+        mixin.redefine_method(method_name) do
           record = send(name)
           record.class.increment_counter(cache_column, record.id) unless record.nil?
         end
         model.after_create(method_name)
 
         method_name = "belongs_to_counter_cache_before_destroy_for_#{name}"
-        model.redefine_method(method_name) do
-          record = send(name)
-          record.class.decrement_counter(cache_column, record.id) unless record.nil?
+        mixin.redefine_method(method_name) do
+          unless marked_for_destruction?
+            record = send(name)
+            record.class.decrement_counter(cache_column, record.id) unless record.nil?
+          end
         end
         model.before_destroy(method_name)
 
@@ -48,7 +50,7 @@ module ActiveRecord::Associations::Builder
         method_name = "belongs_to_touch_after_save_or_destroy_for_#{name}"
         touch       = options[:touch]
 
-        model.redefine_method(method_name) do
+        mixin.redefine_method(method_name) do
           record = send(name)
 
           unless record.nil?

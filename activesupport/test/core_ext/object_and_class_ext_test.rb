@@ -59,7 +59,7 @@ class ObjectTests < ActiveSupport::TestCase
   end
 end
 
-class ObjectInstanceVariableTest < Test::Unit::TestCase
+class ObjectInstanceVariableTest < ActiveSupport::TestCase
   def setup
     @source, @dest = Object.new, Object.new
     @source.instance_variable_set(:@bar, 'bar')
@@ -91,7 +91,7 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
   end
 end
 
-class ObjectTryTest < Test::Unit::TestCase
+class ObjectTryTest < ActiveSupport::TestCase
   def setup
     @string = "Hello"
   end
@@ -99,13 +99,13 @@ class ObjectTryTest < Test::Unit::TestCase
   def test_nonexisting_method
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_nil @string.try(method)
+    assert_raise(NoMethodError) { @string.try(method) }
   end
-  
+
   def test_nonexisting_method_with_arguments
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_nil @string.try(method, 'llo', 'y')
+    assert_raise(NoMethodError) { @string.try(method, 'llo', 'y') }
   end
 
   def test_valid_method
@@ -137,5 +137,17 @@ class ObjectTryTest < Test::Unit::TestCase
     ran = false
     nil.try { ran = true }
     assert_equal false, ran
+  end
+
+  def test_try_with_private_method
+    klass = Class.new do
+      private
+
+      def private_method
+        'private method'
+      end
+    end
+
+    assert_raise(NoMethodError) { klass.new.try(:private_method) }
   end
 end

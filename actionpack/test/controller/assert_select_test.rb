@@ -20,6 +20,15 @@ class AssertSelectTest < ActionController::TestCase
     end
   end
 
+  class AssertMultipartSelectMailer < ActionMailer::Base
+    def test(options)
+      mail :subject => "Test e-mail", :from => "test@test.host", :to => "test <test@test.host>" do |format|
+        format.text { render :text => options[:text] }
+        format.html { render :text => options[:html] }
+      end
+    end
+  end
+
   class AssertSelectController < ActionController::Base
     def response_with=(content)
       @content = content
@@ -37,10 +46,6 @@ class AssertSelectTest < ActionController::TestCase
     def xml()
       render :text=>@content, :layout=>false, :content_type=>Mime::XML
       @content = nil
-    end
-
-    def rescue_action(e)
-      raise e
     end
   end
 
@@ -124,6 +129,13 @@ class AssertSelectTest < ActionController::TestCase
     assert_raise(Assertion) { assert_select "pre", html }
     assert_nothing_raised    { assert_select "pre", :html=>html }
     assert_raise(Assertion) { assert_select "pre", :html=>text }
+  end
+
+  def test_strip_textarea
+    render_html %Q{<textarea>\n\nfoo\n</textarea>}
+    assert_select "textarea", "\nfoo\n"
+    render_html %Q{<textarea>\nfoo</textarea>}
+    assert_select "textarea", "foo"
   end
 
   def test_counts
@@ -305,6 +317,16 @@ EOF
   def test_assert_select_email
     assert_raise(Assertion) { assert_select_email {} }
     AssertSelectMailer.test("<div><p>foo</p><p>bar</p></div>").deliver
+    assert_select_email do
+      assert_select "div:root" do
+        assert_select "p:first-child", "foo"
+        assert_select "p:last-child", "bar"
+      end
+    end
+  end
+
+  def test_assert_select_email_multipart
+    AssertMultipartSelectMailer.test(:html => "<div><p>foo</p><p>bar</p></div>", :text => 'foo bar').deliver
     assert_select_email do
       assert_select "div:root" do
         assert_select "p:first-child", "foo"

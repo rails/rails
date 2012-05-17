@@ -6,6 +6,13 @@ module ActiveRecord
     class HasManyThroughAssociation < HasManyAssociation #:nodoc:
       include ThroughAssociation
 
+      def initialize(owner, reflection)
+        super
+
+        @through_records     = {}
+        @through_association = nil
+      end
+
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been
       # loaded and calling collection.size if it has. If it's more likely than not that the collection does
       # have a size larger than zero, and you need to fetch that collection afterwards, it'll take one fewer
@@ -42,27 +49,42 @@ module ActiveRecord
           end
         end
 
-        through_record(record).save!
+        save_through_record(record)
         update_counter(1)
         record
       end
 
+      # ActiveRecord::Relation#delete_all needs to support joins before we can use a
+      # SQL-only implementation.
+      alias delete_all_on_destroy delete_all
+
       private
 
-        def through_record(record)
-          through_association = owner.association(through_reflection.name)
-          attributes = construct_join_attributes(record)
+        def through_association
+          @through_association ||= owner.association(through_reflection.name)
+        end
 
-          through_record = Array.wrap(through_association.target).find { |candidate|
-            candidate.attributes.slice(*attributes.keys) == attributes
-          }
+        # We temporarily cache through record that has been build, because if we build a
+        # through record in build_record and then subsequently call insert_record, then we
+        # want to use the exact same object.
+        #
+        # However, after insert_record has been called, we clear the cache entry because
+        # we want it to be possible to have multiple instances of the same record in an
+        # association
+        def build_through_record(record)
+          @through_records[record.object_id] ||= begin
+            ensure_mutable
 
-          unless through_record
-            through_record = through_association.build(attributes)
+            through_record = through_association.build
             through_record.send("#{source_reflection.name}=", record)
+            through_record
           end
+        end
 
-          through_record
+        def save_through_record(record)
+          build_through_record(record).save!
+        ensure
+          @through_records.delete(record.object_id)
         end
 
         def build_record(attributes, options = {})
@@ -73,9 +95,9 @@ module ActiveRecord
           inverse = source_reflection.inverse_of
           if inverse
             if inverse.macro == :has_many
-              record.send(inverse.name) << through_record(record)
+              record.send(inverse.name) << build_through_record(record)
             elsif inverse.macro == :has_one
-              record.send("#{inverse.name}=", through_record(record))
+              record.send("#{inverse.name}=", build_through_record(record))
             end
           end
 
@@ -104,8 +126,7 @@ module ActiveRecord
         def delete_records(records, method)
           ensure_not_nested
 
-          through = owner.association(through_reflection.name)
-          scope   = through.scoped.where(construct_join_attributes(*records))
+          scope = through_association.scoped.where(construct_join_attributes(*records))
 
           case method
           when :destroy
@@ -116,7 +137,7 @@ module ActiveRecord
             count = scope.delete_all
           end
 
-          delete_through_records(through, records)
+          delete_through_records(records)
 
           if through_reflection.macro == :has_many && update_through_counter?(method)
             update_counter(-count, through_reflection)
@@ -125,15 +146,25 @@ module ActiveRecord
           update_counter(-count)
         end
 
-        def delete_through_records(through, records)
-          if through_reflection.macro == :has_many
-            records.each do |record|
-              through.target.delete(through_record(record))
+        def through_records_for(record)
+          attributes = construct_join_attributes(record)
+          candidates = Array.wrap(through_association.target)
+          candidates.find_all { |c| c.attributes.slice(*attributes.keys) == attributes }
+        end
+
+        def delete_through_records(records)
+          records.each do |record|
+            through_records = through_records_for(record)
+
+            if through_reflection.macro == :has_many
+              through_records.each { |r| through_association.target.delete(r) }
+            else
+              if through_records.include?(through_association.target)
+                through_association.target = nil
+              end
             end
-          else
-            records.each do |record|
-              through.target = nil if through.target == through_record(record)
-            end
+
+            @through_records.delete(record.object_id)
           end
         end
 

@@ -8,7 +8,7 @@ rescue LoadError
   # Skip nokogiri tests
 else
 
-class NokogiriEngineTest < Test::Unit::TestCase
+class NokogiriEngineTest < ActiveSupport::TestCase
   include ActiveSupport
 
   def setup

@@ -1,7 +1,8 @@
+# coding:utf-8
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class RakeTest < Test::Unit::TestCase
+  class RakeTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -62,129 +63,33 @@ module ApplicationTests
     def test_rake_test_error_output
       Dir.chdir(app_path){ `rake db:migrate` }
 
-      app_file "config/database.yml", <<-RUBY
-        development:
-      RUBY
-
       app_file "test/unit/one_unit_test.rb", <<-RUBY
+        raise 'unit'
       RUBY
 
       app_file "test/functional/one_functional_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'functional'
       RUBY
 
       app_file "test/integration/one_integration_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'integration'
       RUBY
 
       silence_stderr do
-        output = Dir.chdir(app_path){ `rake test` }
-        assert_match /Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output
-        assert_match /Errors running test:functionals! #<RuntimeError/, output
-        assert_match /Errors running test:integration! #<RuntimeError/, output
+        output = Dir.chdir(app_path) { `rake test 2>&1` }
+        assert_match 'unit', output
+        assert_match 'functional', output
+        assert_match 'integration', output
       end
     end
 
-    def test_rake_routes_output_strips_anchors_from_http_verbs
+    def test_rake_routes_calls_the_route_inspector
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
           get '/cart', :to => 'cart#show'
         end
       RUBY
       assert_equal "cart GET /cart(.:format) cart#show\n", Dir.chdir(app_path){ `rake routes` }
-    end
-
-    def test_rake_routes_shows_custom_assets
-      app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
-          get '/custom/assets', :to => 'custom_assets#show'
-        end
-      RUBY
-      assert_equal "custom_assets GET /custom/assets(.:format) custom_assets#show\n",
-        Dir.chdir(app_path){ `rake routes` }
-    end
-
-    def test_rake_routes_shows_resources_route
-      app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
-          resources :articles
-        end
-      RUBY
-      expected =
-        "    articles GET    /articles(.:format)          articles#index\n" <<
-        "             POST   /articles(.:format)          articles#create\n" <<
-        " new_article GET    /articles/new(.:format)      articles#new\n" <<
-        "edit_article GET    /articles/:id/edit(.:format) articles#edit\n" <<
-        "     article GET    /articles/:id(.:format)      articles#show\n" <<
-        "             PUT    /articles/:id(.:format)      articles#update\n" <<
-        "             DELETE /articles/:id(.:format)      articles#destroy\n"
-      assert_equal expected, Dir.chdir(app_path){ `rake routes` }
-    end
-
-    def test_rake_routes_shows_root_route
-      app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
-          root :to => 'pages#main'
-        end
-      RUBY
-      assert_equal "root  / pages#main\n", Dir.chdir(app_path){ `rake routes` }
-    end
-
-    def test_rake_routes_shows_controller_and_action_only_route
-      app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
-          match ':controller/:action'
-        end
-      RUBY
-      assert_equal "  /:controller/:action(.:format) \n", Dir.chdir(app_path){ `rake routes` }
-    end
-
-    def test_rake_routes_shows_controller_and_action_route_with_constraints
-      app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
-          match ':controller(/:action(/:id))', :id => /\\d+/
-        end
-      RUBY
-      assert_equal "  /:controller(/:action(/:id))(.:format) {:id=>/\\d+/}\n", Dir.chdir(app_path){ `rake routes` }
-    end
-
-    def test_rake_routes_shows_route_with_defaults
-      app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
-          match 'photos/:id' => 'photos#show', :defaults => {:format => 'jpg'}
-        end
-      RUBY
-      assert_equal %Q[  /photos/:id(.:format) photos#show {:format=>"jpg"}\n], Dir.chdir(app_path){ `rake routes` }
-    end
-
-    def test_rake_routes_shows_route_with_constraints
-      app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
-          match 'photos/:id' => 'photos#show', :id => /[A-Z]\\d{5}/
-        end
-      RUBY
-      assert_equal "  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}\n", Dir.chdir(app_path){ `rake routes` }
-    end
-
-    def test_rake_routes_shows_route_with_rack_app
-      app_file "lib/rack_app.rb", <<-RUBY
-        class RackApp
-          class << self
-            def call(env)
-            end
-          end
-        end
-      RUBY
-
-      app_file "config/routes.rb", <<-RUBY
-        require 'rack_app'
-
-        AppTemplate::Application.routes.draw do
-          match 'foo/:id' => RackApp, :id => /[A-Z]\\d{5}/
-        end
-      RUBY
-
-      assert_equal "  /foo/:id(.:format) RackApp {:id=>/[A-Z]\\d{5}/}\n", Dir.chdir(app_path){ `rake routes` }
     end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks
@@ -200,30 +105,11 @@ module ApplicationTests
       assert_match "Sample log message", output
     end
 
-    def test_model_and_migration_generator_with_change_syntax
-      Dir.chdir(app_path) do
-        `rails generate model user username:string password:string`
-        `rails generate migration add_email_to_users email:string`
-      end
-
-      output = Dir.chdir(app_path){ `rake db:migrate` }
-      assert_match(/create_table\(:users\)/, output)
-      assert_match(/CreateUsers: migrated/, output)
-      assert_match(/add_column\(:users, :email, :string\)/, output)
-      assert_match(/AddEmailToUsers: migrated/, output)
-
-      output = Dir.chdir(app_path){ `rake db:rollback STEP=2` }
-      assert_match(/drop_table\("users"\)/, output)
-      assert_match(/CreateUsers: reverted/, output)
-      assert_match(/remove_column\("users", :email\)/, output)
-      assert_match(/AddEmailToUsers: reverted/, output)
-    end
-
     def test_loading_specific_fixtures
       Dir.chdir(app_path) do
-        `rails generate model user username:string password:string`
-        `rails generate model product name:string`
-        `rake db:migrate`
+        `rails generate model user username:string password:string;
+         rails generate model product name:string;
+         rake db:migrate`
       end
 
       require "#{rails_root}/config/environment"
@@ -237,12 +123,49 @@ module ApplicationTests
     end
 
     def test_scaffold_tests_pass_by_default
-      content = Dir.chdir(app_path) do
-        `rails generate scaffold user username:string password:string`
-        `bundle exec rake db:migrate db:test:clone test`
+      output = Dir.chdir(app_path) do
+        `rails generate scaffold user username:string password:string;
+         bundle exec rake db:migrate db:test:clone test`
       end
 
-      assert_match(/7 tests, 10 assertions, 0 failures, 0 errors/, content)
+      assert_match(/7 tests, 13 assertions, 0 failures, 0 errors/, output)
+      assert_no_match(/Errors running/, output)
+    end
+
+    def test_rake_dump_structure_should_respect_db_structure_env_variable
+      Dir.chdir(app_path) do
+        # ensure we have a schema_migrations table to dump
+        `bundle exec rake db:migrate db:structure:dump DB_STRUCTURE=db/my_structure.sql`
+      end
+      assert File.exists?(File.join(app_path, 'db', 'my_structure.sql'))
+    end
+
+    def test_rake_dump_structure_should_be_called_twice_when_migrate_redo
+      add_to_config "config.active_record.schema_format = :sql"
+
+      output = Dir.chdir(app_path) do
+        `rails g model post title:string;
+         bundle exec rake db:migrate:redo 2>&1 --trace;`
+      end
+
+      # expect only Invoke db:structure:dump (first_time)
+      assert_no_match(/^\*\* Invoke db:structure:dump\s+$/, output)
+    end
+
+    def test_rake_dump_schema_cache
+      Dir.chdir(app_path) do
+        `rails generate model post title:string;
+         rails generate model product name:string;
+         bundle exec rake db:migrate db:schema:cache:dump`
+      end
+      assert File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
+    end
+
+    def test_rake_clear_schema_cache
+      Dir.chdir(app_path) do
+        `bundle exec rake db:schema:cache:dump db:schema:cache:clear`
+      end
+      assert !File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
     end
   end
 end

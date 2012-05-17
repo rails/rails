@@ -10,45 +10,58 @@ module ActiveSupport
 
       def test_empty?
         assert @cache.empty?
-        @cache[ClassCacheTest] = ClassCacheTest
+        @cache.store(ClassCacheTest)
         assert !@cache.empty?
       end
 
       def test_clear!
         assert @cache.empty?
-        @cache[ClassCacheTest] = ClassCacheTest
+        @cache.store(ClassCacheTest)
         assert !@cache.empty?
         @cache.clear!
         assert @cache.empty?
       end
 
       def test_set_key
-        @cache[ClassCacheTest] = ClassCacheTest
+        @cache.store(ClassCacheTest)
         assert @cache.key?(ClassCacheTest.name)
       end
 
-      def test_set_rejects_strings
-        @cache[ClassCacheTest.name] = ClassCacheTest
-        assert @cache.empty?
-      end
-
       def test_get_with_class
-        @cache[ClassCacheTest] = ClassCacheTest
-        assert_equal ClassCacheTest, @cache[ClassCacheTest]
+        @cache.store(ClassCacheTest)
+        assert_equal ClassCacheTest, @cache.get(ClassCacheTest)
       end
 
       def test_get_with_name
-        @cache[ClassCacheTest] = ClassCacheTest
-        assert_equal ClassCacheTest, @cache[ClassCacheTest.name]
+        @cache.store(ClassCacheTest)
+        assert_equal ClassCacheTest, @cache.get(ClassCacheTest.name)
       end
 
       def test_get_constantizes
         assert @cache.empty?
-        assert_equal ClassCacheTest, @cache[ClassCacheTest.name]
+        assert_equal ClassCacheTest, @cache.get(ClassCacheTest.name)
       end
 
-      def test_get_is_an_alias
-        assert_equal @cache[ClassCacheTest], @cache.get(ClassCacheTest.name)
+      def test_get_constantizes_fails_on_invalid_names
+        assert @cache.empty?
+        assert_raise NameError do
+          @cache.get("OmgTotallyInvalidConstantName")
+        end
+      end
+
+      def test_get_alias
+        assert @cache.empty?
+        assert_equal @cache[ClassCacheTest.name], @cache.get(ClassCacheTest.name)
+      end
+
+      def test_safe_get_constantizes
+        assert @cache.empty?
+        assert_equal ClassCacheTest, @cache.safe_get(ClassCacheTest.name)
+      end
+
+      def test_safe_get_constantizes_doesnt_fail_on_invalid_names
+        assert @cache.empty?
+        assert_equal nil, @cache.safe_get("OmgTotallyInvalidConstantName")
       end
 
       def test_new_rejects_strings

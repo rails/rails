@@ -51,10 +51,6 @@ class FlashTest < ActionController::TestCase
       render :inline => "hello"
     end
 
-    def rescue_action(e)
-      raise unless ActionView::MissingTemplate === e
-    end
-
     # methods for test_sweep_after_halted_filter_chain
     before_filter :halt_and_redir, :only => "filter_halting_action"
 
@@ -254,16 +250,6 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_setting_flash_raises_after_stream_back_to_client
-    with_test_route_set do
-      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/set_flash', nil, env
-      assert_raise(ActionDispatch::ClosedError) {
-        @request.flash['alert'] = 'alert'
-      }
-    end
-  end
-
   def test_setting_flash_does_not_raise_in_following_requests
     with_test_route_set do
       env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
@@ -280,36 +266,6 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_setting_flash_raises_after_stream_back_to_client_even_with_an_empty_flash
-    with_test_route_set do
-      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/dont_set_flash', nil, env
-      assert_raise(ActionDispatch::ClosedError) {
-        @request.flash['alert'] = 'alert'
-      }
-    end
-  end
-
-  def test_setting_flash_now_raises_after_stream_back_to_client
-    with_test_route_set do
-      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/set_flash_now', nil, env
-      assert_raise(ActionDispatch::ClosedError) {
-        @request.flash.now['alert'] = 'alert'
-      }
-    end
-  end
-
-  def test_setting_flash_now_raises_after_stream_back_to_client_even_with_an_empty_flash
-    with_test_route_set do
-      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/dont_set_flash', nil, env
-      assert_raise(ActionDispatch::ClosedError) {
-        @request.flash.now['alert'] = 'alert'
-      }
-    end
-  end
-
   private
 
     # Overwrite get to send SessionSecret in env hash
@@ -321,7 +277,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          match ':action', :to => FlashIntegrationTest::TestController
+          get ':action', :to => FlashIntegrationTest::TestController
         end
 
         @app = self.class.build_app(set) do |middleware|

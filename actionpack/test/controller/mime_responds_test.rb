@@ -132,7 +132,6 @@ class RespondToController < ActionController::Base
     end
   end
 
-
   def iphone_with_html_response_type
     request.format = :iphone if request.env["HTTP_ACCEPT"] == "text/iphone"
 
@@ -149,10 +148,6 @@ class RespondToController < ActionController::Base
       type.html   { @type = "Firefox"; render :action => "iphone_with_html_response_type" }
       type.iphone { @type = "iPhone" ; render :action => "iphone_with_html_response_type" }
     end
-  end
-
-  def rescue_action(e)
-    raise
   end
 
   protected
@@ -212,8 +207,9 @@ class RespondToControllerTest < ActionController::TestCase
     get :html_or_xml
     assert_equal 'HTML', @response.body
 
-    get :just_xml
-    assert_response 406
+    assert_raises(ActionController::UnknownFormat) do
+      get :just_xml
+    end
   end
 
   def test_all
@@ -244,8 +240,10 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal 'HTML', @response.body
 
     @request.accept = "text/javascript, text/html"
-    xhr :get, :just_xml
-    assert_response 406
+    
+    assert_raises(ActionController::UnknownFormat) do
+      xhr :get, :just_xml
+    end
   end
 
   def test_json_or_yaml_with_leading_star_star
@@ -498,18 +496,18 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
     assert_equal "text/html", @response.content_type
   end
-  
+
   def test_invalid_format
-    get :using_defaults, :format => "invalidformat"
-    assert_equal " ", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_raises(ActionController::UnknownFormat) do
+      get :using_defaults, :format => "invalidformat"
+    end
   end
 end
 
 class RespondWithController < ActionController::Base
   respond_to :html, :json
   respond_to :xml, :except => :using_resource_with_block
-  respond_to :js,  :only => [ :using_resource_with_block, :using_resource, :using_hash_resource ]
+  respond_to :js,  :only => [ :using_resource_with_block, :using_resource, 'using_hash_resource' ]
 
   def using_resource
     respond_with(resource)
@@ -597,6 +595,19 @@ class RenderJsonRespondWithController < RespondWithController
       format.json { render :json => RenderJsonTestException.new('boom') }
     end
   end
+
+  def create
+    resource = ValidatedCustomer.new(params[:name], 1)
+    respond_with(resource) do |format|
+      format.json do
+        if resource.errors.empty?
+          render :json => { :valid => true }
+        else
+          render :json => { :valid => false }
+        end
+      end
+    end
+  end
 end
 
 class EmptyRespondWithController < ActionController::Base
@@ -656,7 +667,9 @@ class RespondWithControllerTest < ActionController::TestCase
     @request.accept = "application/json"
     get :using_hash_resource
     assert_equal "application/json", @response.content_type
-    assert_equal %Q[{"result":{"name":"david","id":13}}], @response.body
+    assert @response.body.include?("result")
+    assert @response.body.include?('"name":"david"')
+    assert @response.body.include?('"id":13')
   end
 
   def test_using_hash_resource_with_post
@@ -691,12 +704,14 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def test_not_acceptable
     @request.accept = "application/xml"
-    get :using_resource_with_block
-    assert_equal 406, @response.status
+    assert_raises(ActionController::UnknownFormat) do
+      get :using_resource_with_block
+    end
 
     @request.accept = "text/javascript"
-    get :using_resource_with_overwrite_block
-    assert_equal 406, @response.status
+    assert_raises(ActionController::UnknownFormat) do
+      get :using_resource_with_overwrite_block
+    end
   end
 
   def test_using_resource_for_post_with_html_redirects_on_success
@@ -745,6 +760,55 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
+  def test_using_resource_for_post_with_json_yields_unprocessable_entity_on_failure
+    with_test_route_set do
+      @request.accept = "application/json"
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      post :using_resource
+      assert_equal "application/json", @response.content_type
+      assert_equal 422, @response.status
+      errors = {:errors => errors}
+      assert_equal errors.to_json, @response.body
+      assert_nil @response.location
+    end
+  end
+
+  def test_using_resource_for_patch_with_html_redirects_on_success
+    with_test_route_set do
+      patch :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 302, @response.status
+      assert_equal "http://www.example.com/customers/13", @response.location
+      assert @response.redirect?
+    end
+  end
+
+  def test_using_resource_for_patch_with_html_rerender_on_failure
+    with_test_route_set do
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      patch :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 200, @response.status
+      assert_equal "Edit world!\n", @response.body
+      assert_nil @response.location
+    end
+  end
+
+  def test_using_resource_for_patch_with_html_rerender_on_failure_even_on_method_override
+    with_test_route_set do
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      @request.env["rack.methodoverride.original_method"] = "POST"
+      patch :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 200, @response.status
+      assert_equal "Edit world!\n", @response.body
+      assert_nil @response.location
+    end
+  end
+
   def test_using_resource_for_put_with_html_redirects_on_success
     with_test_route_set do
       put :using_resource
@@ -780,21 +844,21 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
-  def test_using_resource_for_put_with_xml_yields_ok_on_success
+  def test_using_resource_for_put_with_xml_yields_no_content_on_success
     @request.accept = "application/xml"
     put :using_resource
     assert_equal "application/xml", @response.content_type
-    assert_equal 200, @response.status
+    assert_equal 204, @response.status
     assert_equal " ", @response.body
   end
 
-  def test_using_resource_for_put_with_json_yields_ok_on_success
+  def test_using_resource_for_put_with_json_yields_no_content_on_success
     Customer.any_instance.stubs(:to_json).returns('{"name": "David"}')
     @request.accept = "application/json"
     put :using_resource
     assert_equal "application/json", @response.content_type
-    assert_equal 200, @response.status
-    assert_equal "{}", @response.body
+    assert_equal 204, @response.status
+    assert_equal " ", @response.body
   end
 
   def test_using_resource_for_put_with_xml_yields_unprocessable_entity_on_failure
@@ -808,6 +872,18 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_nil @response.location
   end
 
+  def test_using_resource_for_put_with_json_yields_unprocessable_entity_on_failure
+    @request.accept = "application/json"
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+    put :using_resource
+    assert_equal "application/json", @response.content_type
+    assert_equal 422, @response.status
+    errors = {:errors => errors}
+    assert_equal errors.to_json, @response.body
+    assert_nil @response.location
+  end
+
   def test_using_resource_for_delete_with_html_redirects_on_success
     with_test_route_set do
       Customer.any_instance.stubs(:destroyed?).returns(true)
@@ -818,23 +894,23 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
-  def test_using_resource_for_delete_with_xml_yields_ok_on_success
+  def test_using_resource_for_delete_with_xml_yields_no_content_on_success
     Customer.any_instance.stubs(:destroyed?).returns(true)
     @request.accept = "application/xml"
     delete :using_resource
     assert_equal "application/xml", @response.content_type
-    assert_equal 200, @response.status
+    assert_equal 204, @response.status
     assert_equal " ", @response.body
   end
 
-  def test_using_resource_for_delete_with_json_yields_ok_on_success
+  def test_using_resource_for_delete_with_json_yields_no_content_on_success
     Customer.any_instance.stubs(:to_json).returns('{"name": "David"}')
     Customer.any_instance.stubs(:destroyed?).returns(true)
     @request.accept = "application/json"
     delete :using_resource
     assert_equal "application/json", @response.content_type
-    assert_equal 200, @response.status
-    assert_equal "{}", @response.body
+    assert_equal 204, @response.status
+    assert_equal " ", @response.body
   end
 
   def test_using_resource_for_delete_with_html_redirects_on_failure
@@ -913,8 +989,9 @@ class RespondWithControllerTest < ActionController::TestCase
   def test_clear_respond_to
     @controller = InheritedRespondWithController.new
     @request.accept = "text/html"
-    get :index
-    assert_equal 406, @response.status
+    assert_raises(ActionController::UnknownFormat) do
+      get :index
+    end
   end
 
   def test_first_in_respond_to_has_higher_priority
@@ -938,6 +1015,18 @@ class RespondWithControllerTest < ActionController::TestCase
     get :index, :format => :json
     assert_match(/"message":"boom"/, @response.body)
     assert_match(/"error":"RenderJsonTestException"/, @response.body)
+  end
+
+  def test_api_response_with_valid_resource_respect_override_block
+    @controller = RenderJsonRespondWithController.new
+    post :create, :name => "sikachu", :format => :json
+    assert_equal '{"valid":true}', @response.body
+  end
+
+  def test_api_response_with_invalid_resource_respect_override_block
+    @controller = RenderJsonRespondWithController.new
+    post :create, :name => "david", :format => :json
+    assert_equal '{"valid":false}', @response.body
   end
 
   def test_no_double_render_is_raised
@@ -1035,7 +1124,7 @@ class RespondWithControllerTest < ActionController::TestCase
           resources :quiz_stores do
             resources :customers
           end
-          match ":controller/:action"
+          get ":controller/:action"
         end
         yield
       end
@@ -1051,7 +1140,7 @@ class PostController < AbstractPostController
   around_filter :with_iphone
 
   def index
-    respond_to(:html, :iphone)
+    respond_to(:html, :iphone, :js)
   end
 
 protected
@@ -1097,5 +1186,46 @@ class MimeControllerLayoutsTest < ActionController::TestCase
     @request.accept = "text/iphone"
     get :index
     assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
+  end
+
+  def test_non_navigational_format_with_no_template_fallbacks_to_html_template_with_no_layout
+    get :index, :format => :js
+    assert_equal "Hello Firefox", @response.body
+  end
+end
+
+class FlashResponder < ActionController::Responder
+  def initialize(controller, resources, options={})
+    super
+  end
+
+  def to_html
+    controller.flash[:notice] = 'Success'
+    super
+  end
+end
+
+class FlashResponderController < ActionController::Base
+  self.responder = FlashResponder
+  respond_to :html
+
+  def index
+    respond_with Object.new do |format|
+      format.html { render :text => 'HTML' }
+    end
+  end
+end
+
+class FlashResponderControllerTest < ActionController::TestCase
+  tests FlashResponderController
+
+  def test_respond_with_block_executed
+    get :index
+    assert_equal 'HTML', @response.body
+  end
+
+  def test_flash_responder_executed
+    get :index
+    assert_equal 'Success', flash[:notice]
   end
 end

@@ -14,7 +14,10 @@ module AbstractControllerTests
         "layouts/overwrite.erb"         => "Overwrite <%= yield %>",
         "layouts/with_false_layout.erb" => "False Layout <%= yield %>",
         "abstract_controller_tests/layouts/with_string_implied_child.erb" =>
-                                           "With Implied <%= yield %>"
+                                           "With Implied <%= yield %>",
+        "abstract_controller_tests/layouts/with_grand_child_of_implied.erb" =>
+                                           "With Grand Child <%= yield %>"
+
       )]
     end
 
@@ -57,14 +60,15 @@ module AbstractControllerTests
       layout "hello_override"
     end
 
-    class WithNilChild < WithString
+    class WithStringImpliedChild < WithString
       layout nil
     end
 
-    class WithStringImpliedChild < WithString
+    class WithChildOfImplied < WithStringImpliedChild
     end
 
-    class WithChildOfImplied < WithStringImpliedChild
+    class WithGrandChildOfImplied < WithStringImpliedChild
+      layout nil
     end
 
     class WithProc < Base
@@ -72,6 +76,27 @@ module AbstractControllerTests
 
       def index
         render :template => ActionView::Template::Text.new("Hello proc!")
+      end
+    end
+
+    class WithZeroArityProc < Base
+      layout proc { "overwrite" }
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello zero arity proc!")
+      end
+    end
+
+    class WithProcInContextOfInstance < Base
+      def an_instance_method; end
+
+      layout proc {
+        break unless respond_to? :an_instance_method
+        "overwrite"
+      }
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello again zero arity proc!")
       end
     end
 
@@ -141,6 +166,30 @@ module AbstractControllerTests
       end
     end
 
+    class WithOnlyConditional < WithStringImpliedChild
+      layout "overwrite", :only => :show
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello index!")
+      end
+
+      def show
+        render :template => ActionView::Template::Text.new("Hello show!")
+      end
+    end
+
+    class WithExceptConditional < WithStringImpliedChild
+      layout "overwrite", :except => :show
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello index!")
+      end
+
+      def show
+        render :template => ActionView::Template::Text.new("Hello show!")
+      end
+    end
+
     class TestBase < ActiveSupport::TestCase
       test "when no layout is specified, and no default is available, render without a layout" do
         controller = Blank.new
@@ -200,6 +249,18 @@ module AbstractControllerTests
         assert_equal "Overwrite Hello proc!", controller.response_body
       end
 
+      test "when layout is specified as a proc without parameters it works just the same" do
+        controller = WithZeroArityProc.new
+        controller.process(:index)
+        assert_equal "Overwrite Hello zero arity proc!", controller.response_body
+      end
+
+      test "when layout is specified as a proc without parameters the block is evaluated in the context of an instance" do
+        controller = WithProcInContextOfInstance.new
+        controller.process(:index)
+        assert_equal "Overwrite Hello again zero arity proc!", controller.response_body
+      end
+
       test "when layout is specified as a symbol, call the requested method and use the layout returned" do
         controller = WithSymbol.new
         controller.process(:index)
@@ -238,17 +299,18 @@ module AbstractControllerTests
         assert_equal "With Implied Hello string!", controller.response_body
       end
 
-      test "when a child controller specifies layout nil, do not use the parent layout" do
-        controller = WithNilChild.new
-        controller.process(:index)
-        assert_equal "Hello string!", controller.response_body
-      end
-
       test "when a grandchild has no layout specified, the child has an implied layout, and the " \
         "parent has specified a layout, use the child controller layout" do
           controller = WithChildOfImplied.new
           controller.process(:index)
           assert_equal "With Implied Hello string!", controller.response_body
+      end
+
+      test "when a grandchild has nil layout specified, the child has an implied layout, and the " \
+        "parent has specified a layout, use the child controller layout" do
+          controller = WithGrandChildOfImplied.new
+          controller.process(:index)
+          assert_equal "With Grand Child Hello string!", controller.response_body
       end
 
       test "raises an exception when specifying layout true" do
@@ -259,6 +321,42 @@ module AbstractControllerTests
             end
           end
         end
+      end
+
+      test "when specify an :only option which match current action name" do
+        controller = WithOnlyConditional.new
+        controller.process(:show)
+        assert_equal "Overwrite Hello show!", controller.response_body
+      end
+
+      test "when specify an :only option which does not match current action name" do
+        controller = WithOnlyConditional.new
+        controller.process(:index)
+        assert_equal "With Implied Hello index!", controller.response_body
+      end
+
+      test "when specify an :except option which match current action name" do
+        controller = WithExceptConditional.new
+        controller.process(:show)
+        assert_equal "With Implied Hello show!", controller.response_body
+      end
+
+      test "when specify an :except option which does not match current action name" do
+        controller = WithExceptConditional.new
+        controller.process(:index)
+        assert_equal "Overwrite Hello index!", controller.response_body
+      end
+
+      test "layout for anonymous controller" do
+        klass = Class.new(WithString) do
+          def index
+            render :text => 'index', :layout => true
+          end
+        end
+
+        controller = klass.new
+        controller.process(:index)
+        assert_equal "With String index", controller.response_body
       end
     end
   end

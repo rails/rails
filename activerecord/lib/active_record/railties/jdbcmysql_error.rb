@@ -1,6 +1,6 @@
 #FIXME Remove if ArJdbcMysql will give.
-module ArJdbcMySQL
-  class Error < StandardError
+module ArJdbcMySQL #:nodoc:
+  class Error < StandardError #:nodoc:
     attr_accessor :error_number, :sql_state
 
     def initialize msg

@@ -34,6 +34,7 @@ module ActiveRecord
         when Numeric    then value.to_s
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
+        when Class      then "'#{value.to_s}'"
         else
           "'#{quote_string(YAML.dump(value))}'"
         end
@@ -71,7 +72,8 @@ module ActiveRecord
         when Date, Time then quoted_date(value)
         when Symbol     then value.to_s
         else
-          YAML.dump(value)
+          to_type = column ? " to #{column.type}" : ""
+          raise TypeError, "can't cast #{value.class}#{to_type}"
         end
       end
 
@@ -102,10 +104,13 @@ module ActiveRecord
       def quoted_date(value)
         if value.acts_like?(:time)
           zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
-          value.respond_to?(zone_conversion_method) ? value.send(zone_conversion_method) : value
-        else
-          value
-        end.to_s(:db)
+
+          if value.respond_to?(zone_conversion_method)
+            value = value.send(zone_conversion_method)
+          end
+        end
+
+        value.to_s(:db)
       end
     end
   end

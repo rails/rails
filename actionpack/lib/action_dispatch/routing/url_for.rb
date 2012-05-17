@@ -8,7 +8,8 @@ module ActionDispatch
     #
     # <b>Tip:</b> If you need to generate URLs from your models or some other place,
     # then ActionController::UrlFor is what you're looking for. Read on for
-    # an introduction.
+    # an introduction. In general, this module should not be included on its own,
+    # as it is usually included by url_helpers (as in Rails.application.routes.url_helpers).
     #
     # == URL generation from parameters
     #
@@ -42,7 +43,7 @@ module ActionDispatch
     #   url_for(:controller => 'users',
     #           :action => 'new',
     #           :message => 'Welcome!',
-    #           :host => 'www.example.com')        # Changed this.
+    #           :host => 'www.example.com')
     #   # => "http://www.example.com/users/new?message=Welcome%21"
     #
     # By default, all controllers and views have access to a special version of url_for,
@@ -52,7 +53,7 @@ module ActionDispatch
     #
     # For convenience reasons, mailers provide a shortcut for ActionController::UrlFor#url_for.
     # So within mailers, you only have to type 'url_for' instead of 'ActionController::UrlFor#url_for'
-    # in full. However, mailers don't have hostname information, and what's why you'll still
+    # in full. However, mailers don't have hostname information, and that's why you'll still
     # have to specify the <tt>:host</tt> argument when generating URLs in mailers.
     #
     #
@@ -67,7 +68,7 @@ module ActionDispatch
     # This generates, among other things, the method <tt>users_path</tt>. By default,
     # this method is accessible from your controllers, views and mailers. If you need
     # to access this auto-generated method from other places (such as a model), then
-    # you can do that by including ActionController::UrlFor in your class:
+    # you can do that by including Rails.application.routes.url_helpers in your class:
     #
     #   class User < ActiveRecord::Base
     #     include Rails.application.routes.url_helpers
@@ -84,14 +85,12 @@ module ActionDispatch
       include PolymorphicRoutes
 
       included do
-        # TODO: with_routing extends @controller with url_helpers, trickling down to including this module which overrides its default_url_options
         unless method_defined?(:default_url_options)
           # Including in a class uses an inheritable hash. Modules get a plain hash.
           if respond_to?(:class_attribute)
             class_attribute :default_url_options
           else
-            mattr_accessor :default_url_options
-            remove_method :default_url_options
+            mattr_writer :default_url_options
           end
 
           self.default_url_options = {}
@@ -103,6 +102,9 @@ module ActionDispatch
         super
       end
 
+      # Hook overriden in controller to add request information
+      # with `default_url_options`. Application logic should not
+      # go into url_options.
       def url_options
         default_url_options
       end
@@ -116,9 +118,10 @@ module ActionDispatch
       #   If <tt>:only_path</tt> is false, this option must be
       #   provided either explicitly, or via +default_url_options+.
       # * <tt>:subdomain</tt> - Specifies the subdomain of the link, using the +tld_length+
-      #   to split the domain from the host.
-      # * <tt>:domain</tt> - Specifies the domain of the link, using the +tld_length+
       #   to split the subdomain from the host.
+      #   If false, removes all subdomains from the host part of the link.
+      # * <tt>:domain</tt> - Specifies the domain of the link, using the +tld_length+
+      #   to split the domain from the host.
       # * <tt>:tld_length</tt> - Number of labels the TLD id composed of, only used if
       #   <tt>:subdomain</tt> or <tt>:domain</tt> are supplied. Defaults to
       #   <tt>ActionDispatch::Http::URL.tld_length</tt>, which in turn defaults to 1.
@@ -129,34 +132,44 @@ module ActionDispatch
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
       # +url_for+ is forwarded to the Routes module.
       #
-      # Examples:
-      #
-      #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :port => '8080'    # => 'http://somehost.org:8080/tasks/testing'
-      #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :anchor => 'ok', :only_path => true    # => '/tasks/testing#ok'
-      #    url_for :controller => 'tasks', :action => 'testing', :trailing_slash => true  # => 'http://somehost.org/tasks/testing/'
-      #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :number => '33'  # => 'http://somehost.org/tasks/testing?number=33'
+      #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :port => '8080'
+      #    # => 'http://somehost.org:8080/tasks/testing'
+      #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :anchor => 'ok', :only_path => true
+      #    # => '/tasks/testing#ok'
+      #    url_for :controller => 'tasks', :action => 'testing', :trailing_slash => true
+      #    # => 'http://somehost.org/tasks/testing/'
+      #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :number => '33'
+      #    # => 'http://somehost.org/tasks/testing?number=33'
       def url_for(options = nil)
         case options
+        when nil
+          _routes.url_for(url_options.symbolize_keys)
+        when Hash
+          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
         when String
           options
-        when nil, Hash
-          _routes.url_for((options || {}).reverse_merge(url_options).symbolize_keys)
         else
           polymorphic_url(options)
         end
       end
 
       protected
-        def _with_routes(routes)
-          old_routes, @_routes = @_routes, routes
-          yield
-        ensure
-          @_routes = old_routes
-        end
 
-        def _routes_context
-          self
-        end
+      def optimize_routes_generation?
+        return @_optimized_routes if defined?(@_optimized_routes)
+        @_optimized_routes = _routes.optimize_routes_generation? && default_url_options.empty?
+      end
+
+      def _with_routes(routes)
+        old_routes, @_routes = @_routes, routes
+        yield
+      ensure
+        @_routes = old_routes
+      end
+
+      def _routes_context
+        self
+      end
     end
   end
 end

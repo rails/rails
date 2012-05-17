@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/computer'
 require 'models/developer'
 require 'models/project'
 require 'models/company'
@@ -28,7 +29,7 @@ class AssociationsTest < ActiveRecord::TestCase
     molecule.electrons.create(:name => 'electron_1')
     molecule.electrons.create(:name => 'electron_2')
 
-    liquids = Liquid.includes(:molecules => :electrons).where('molecules.id is not null')
+    liquids = Liquid.includes(:molecules => :electrons).references(:molecules).where('molecules.id is not null')
     assert_equal 1, liquids[0].molecules.length
   end
 
@@ -73,8 +74,8 @@ class AssociationsTest < ActiveRecord::TestCase
 
 
   def test_include_with_order_works
-    assert_nothing_raised {Account.find(:first, :order => 'id', :include => :firm)}
-    assert_nothing_raised {Account.find(:first, :order => :id, :include => :firm)}
+    assert_nothing_raised {Account.scoped(:order => 'id', :includes => :firm).first}
+    assert_nothing_raised {Account.scoped(:order => :id, :includes => :firm).first}
   end
 
   def test_bad_collection_keys
@@ -126,6 +127,11 @@ class AssociationsTest < ActiveRecord::TestCase
       assert_queries(0) { assert_not_nil firm.clients.each {} }
       assert_queries(1) { assert_not_nil firm.clients(true).each {} }
     end
+  end
+
+  def test_association_with_references
+    firm = companies(:first_firm)
+    assert_equal ['foo'], firm.association_with_references.scoped.references_values
   end
 
 end
@@ -208,6 +214,10 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = developers(:david)
     assert_equal david.association(:projects), david.projects.proxy_association
   end
+
+  def test_scoped_allows_conditions
+    assert developers(:david).projects.scoped(where: 'foo').where_values.include?('foo')
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
@@ -271,5 +281,20 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
       PeopleList.reflect_on_association(:has_one),
       DifferentPeopleList.reflect_on_association(:has_one)
     )
+  end
+end
+
+class GeneratedMethodsTest < ActiveRecord::TestCase
+  fixtures :developers, :computers, :posts, :comments
+  def test_association_methods_override_attribute_methods_of_same_name
+    assert_equal(developers(:david), computers(:workstation).developer)
+    # this next line will fail if the attribute methods module is generated lazily
+    # after the association methods module is generated
+    assert_equal(developers(:david), computers(:workstation).developer)
+    assert_equal(developers(:david).id, computers(:workstation)[:developer])
+  end
+
+  def test_model_method_overrides_association_method
+    assert_equal(comments(:greetings).body, posts(:welcome).first_comment)
   end
 end

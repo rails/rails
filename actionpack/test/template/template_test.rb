@@ -8,6 +8,11 @@ class TestERBTemplate < ActiveSupport::TestCase
     def disable_cache
       yield
     end
+
+    def find_template(*args)
+    end
+
+    attr_accessor :formats
   end
 
   class Context
@@ -34,7 +39,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
 
     def logger
-      Logger.new(STDERR)
+      ActiveSupport::Logger.new(STDERR)
     end
 
     def my_buffer
@@ -111,66 +116,65 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
-  if "ruby".encoding_aware?
-    def test_resulting_string_is_utf8
-      @template = new_template
-      assert_equal Encoding::UTF_8, render.encoding
-    end
+  def test_resulting_string_is_utf8
+    @template = new_template
+    assert_equal Encoding::UTF_8, render.encoding
+  end
 
-    def test_no_magic_comment_word_with_utf_8
-      @template = new_template("hello \u{fc}mlat")
+  def test_no_magic_comment_word_with_utf_8
+    @template = new_template("hello \u{fc}mlat")
+    assert_equal Encoding::UTF_8, render.encoding
+    assert_equal "hello \u{fc}mlat", render
+  end
+
+  # This test ensures that if the default_external
+  # is set to something other than UTF-8, we don't
+  # get any errors and get back a UTF-8 String.
+  def test_default_external_works
+    with_external_encoding "ISO-8859-1" do
+      @template = new_template("hello \xFCmlat")
       assert_equal Encoding::UTF_8, render.encoding
       assert_equal "hello \u{fc}mlat", render
     end
+  end
 
-    # This test ensures that if the default_external
-    # is set to something other than UTF-8, we don't
-    # get any errors and get back a UTF-8 String.
-    def test_default_external_works
-      with_external_encoding "ISO-8859-1" do
-        @template = new_template("hello \xFCmlat")
-        assert_equal Encoding::UTF_8, render.encoding
-        assert_equal "hello \u{fc}mlat", render
-      end
+  def test_encoding_can_be_specified_with_magic_comment
+    @template = new_template("# encoding: ISO-8859-1\nhello \xFCmlat")
+    assert_equal Encoding::UTF_8, render.encoding
+    assert_equal "\nhello \u{fc}mlat", render
+  end
+
+  # TODO: This is currently handled inside ERB. The case of explicitly
+  # lying about encodings via the normal Rails API should be handled
+  # inside Rails.
+  def test_lying_with_magic_comment
+    assert_raises(ActionView::Template::Error) do
+      @template = new_template("# encoding: UTF-8\nhello \xFCmlat", :virtual_path => nil)
+      render
     end
+  end
 
-    def test_encoding_can_be_specified_with_magic_comment
-      @template = new_template("# encoding: ISO-8859-1\nhello \xFCmlat")
+  def test_encoding_can_be_specified_with_magic_comment_in_erb
+    with_external_encoding Encoding::UTF_8 do
+      @template = new_template("<%# encoding: ISO-8859-1 %>hello \xFCmlat", :virtual_path => nil)
       assert_equal Encoding::UTF_8, render.encoding
-      assert_equal "\nhello \u{fc}mlat", render
+      assert_equal "hello \u{fc}mlat", render
     end
+  end
 
-    # TODO: This is currently handled inside ERB. The case of explicitly
-    # lying about encodings via the normal Rails API should be handled
-    # inside Rails.
-    def test_lying_with_magic_comment
-      assert_raises(ActionView::Template::Error) do
-        @template = new_template("# encoding: UTF-8\nhello \xFCmlat", :virtual_path => nil)
-        render
-      end
+  def test_error_when_template_isnt_valid_utf8
+    assert_raises(ActionView::Template::Error, /\xFC/) do
+      @template = new_template("hello \xFCmlat", :virtual_path => nil)
+      render
     end
+  end
 
-    def test_encoding_can_be_specified_with_magic_comment_in_erb
-      with_external_encoding Encoding::UTF_8 do
-        @template = new_template("<%# encoding: ISO-8859-1 %>hello \xFCmlat", :virtual_path => nil)
-        assert_equal Encoding::UTF_8, render.encoding
-        assert_equal "hello \u{fc}mlat", render
-      end
-    end
-
-    def test_error_when_template_isnt_valid_utf8
-      assert_raises(ActionView::Template::Error, /\xFC/) do
-        @template = new_template("hello \xFCmlat", :virtual_path => nil)
-        render
-      end
-    end
-
-    def with_external_encoding(encoding)
-      old = Encoding.default_external
-      silence_warnings { Encoding.default_external = encoding }
-      yield
-    ensure
-      silence_warnings { Encoding.default_external = old }
-    end
+  def with_external_encoding(encoding)
+    old = Encoding.default_external
+    Encoding::Converter.new old, encoding if old != encoding
+    silence_warnings { Encoding.default_external = encoding }
+    yield
+  ensure
+    silence_warnings { Encoding.default_external = old }
   end
 end

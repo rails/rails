@@ -2,6 +2,8 @@ require 'abstract_unit'
 require 'active_support/core_ext/object/inclusion'
 
 class FormTagHelperTest < ActionView::TestCase
+  include RenderERBUtils
+
   tests ActionView::Helpers::FormTagHelper
 
   def setup
@@ -76,6 +78,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_tag_with_method_patch
+    actual = form_tag({}, { :method => :patch })
+    expected = whole_form("http://www.example.com", :method => :patch)
+    assert_dom_equal expected, actual
+  end
+
   def test_form_tag_with_method_put
     actual = form_tag({}, { :method => :put })
     expected = whole_form("http://www.example.com", :method => :put)
@@ -104,14 +112,14 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_with_block_in_erb
-    output_buffer = form_tag("http://www.example.com") { concat "Hello world!" }
+    output_buffer = render_erb("<%= form_tag('http://www.example.com') do %>Hello world!<% end %>")
 
     expected = whole_form { "Hello world!" }
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_tag_with_block_and_method_in_erb
-    output_buffer = form_tag("http://www.example.com", :method => :put) { concat "Hello world!" }
+    output_buffer = render_erb("<%= form_tag('http://www.example.com', :method => :put) do %>Hello world!<% end %>")
 
     expected = whole_form("http://www.example.com", :method => "put") do
       "Hello world!"
@@ -214,19 +222,19 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_area_tag_size_string
     actual = text_area_tag "body", "hello world", "size" => "20x40"
-    expected = %(<textarea cols="20" id="body" name="body" rows="40">hello world</textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_size_symbol
     actual = text_area_tag "body", "hello world", :size => "20x40"
-    expected = %(<textarea cols="20" id="body" name="body" rows="40">hello world</textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_should_disregard_size_if_its_given_as_an_integer
     actual = text_area_tag "body", "hello world", :size => 20
-    expected = %(<textarea id="body" name="body">hello world</textarea>)
+    expected = %(<textarea id="body" name="body">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
@@ -237,19 +245,19 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_area_tag_escape_content
     actual = text_area_tag "body", "<b>hello world</b>", :size => "20x40"
-    expected = %(<textarea cols="20" id="body" name="body" rows="40">&lt;b&gt;hello world&lt;/b&gt;</textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\n&lt;b&gt;hello world&lt;/b&gt;</textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_unescaped_content
     actual = text_area_tag "body", "<b>hello world</b>", :size => "20x40", :escape => false
-    expected = %(<textarea cols="20" id="body" name="body" rows="40"><b>hello world</b></textarea>)
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">\n<b>hello world</b></textarea>)
     assert_dom_equal expected, actual
   end
 
   def test_text_area_tag_unescaped_nil_content
     actual = text_area_tag "body", nil, :escape => false
-    expected = %(<textarea id="body" name="body"></textarea>)
+    expected = %(<textarea id="body" name="body">\n</textarea>)
     assert_dom_equal expected, actual
   end
 
@@ -367,14 +375,7 @@ class FormTagHelperTest < ActionView::TestCase
   def test_submit_tag
     assert_dom_equal(
       %(<input name='commit' data-disable-with="Saving..." onclick="alert('hello!')" type="submit" value="Save" />),
-      submit_tag("Save", :disable_with => "Saving...", :onclick => "alert('hello!')")
-    )
-  end
-
-  def test_submit_tag_with_no_onclick_options
-    assert_dom_equal(
-      %(<input name='commit' data-disable-with="Saving..." type="submit" value="Save" />),
-      submit_tag("Save", :disable_with => "Saving...")
+      submit_tag("Save", 'data-disable-with' => "Saving...", :onclick => "alert('hello!')")
     )
   end
 
@@ -382,13 +383,6 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(
       %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />),
       submit_tag("Save", :confirm => "Are you sure?")
-    )
-  end
-
-  def test_submit_tag_with_confirmation_and_with_disable_with
-    assert_dom_equal(
-      %(<input name="commit" data-disable-with="Saving..." data-confirm="Are you sure?" type="submit" value="Save" />),
-      submit_tag("Save", :disable_with => "Saving...", :confirm => "Are you sure?")
     )
   end
 
@@ -455,9 +449,14 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, search_field_tag("query"))
   end
 
-  def telephone_field_tag
+  def test_telephone_field_tag
     expected = %{<input id="cell" name="cell" type="tel" />}
     assert_dom_equal(expected, telephone_field_tag("cell"))
+  end
+
+  def test_date_field_tag
+    expected = %{<input id="cell" name="cell" type="date" />}
+    assert_dom_equal(expected, date_field_tag("cell"))
   end
 
   def test_url_field_tag
@@ -480,32 +479,38 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, range_field_tag("volume", nil, :in => 0..11, :step => 0.1))
   end
 
-  def test_pass
-    assert_equal 1, 1
-  end
-
   def test_field_set_tag_in_erb
-    output_buffer = field_set_tag("Your details") { concat "Hello world!" }
+    output_buffer = render_erb("<%= field_set_tag('Your details') do %>Hello world!<% end %>")
 
     expected = %(<fieldset><legend>Your details</legend>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    output_buffer = field_set_tag { concat "Hello world!" }
+    output_buffer = render_erb("<%= field_set_tag do %>Hello world!<% end %>")
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    output_buffer = field_set_tag('') { concat "Hello world!" }
+    output_buffer = render_erb("<%= field_set_tag('') do %>Hello world!<% end %>")
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    output_buffer = field_set_tag('', :class => 'format') { concat "Hello world!" }
+    output_buffer = render_erb("<%= field_set_tag('', :class => 'format') do %>Hello world!<% end %>")
 
     expected = %(<fieldset class="format">Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
+
+    output_buffer = render_erb("<%= field_set_tag %>")
+
+    expected = %(<fieldset></fieldset>)
+    assert_dom_equal expected, output_buffer
+
+    output_buffer = render_erb("<%= field_set_tag('You legend!') %>")
+
+    expected = %(<fieldset><legend>You legend!</legend></fieldset>)
+    assert_dom_equal expected, output_buffer
   end
-  
+
   def test_text_area_tag_options_symbolize_keys_side_effects
     options = { :option => "random_option" }
     text_area_tag "body", "hello world", options
@@ -527,6 +532,12 @@ class FormTagHelperTest < ActionView::TestCase
   def test_image_submit_tag_options_symbolize_keys_side_effects
     options = { :option => "random_option" }
     image_submit_tag "submit source", options
+    assert_equal options, { :option => "random_option" }
+  end
+
+  def test_image_label_tag_options_symbolize_keys_side_effects
+    options = { :option => "random_option" }
+    label_tag "submit source", "title", options
     assert_equal options, { :option => "random_option" }
   end
 

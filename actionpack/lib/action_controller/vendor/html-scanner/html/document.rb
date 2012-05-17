@@ -4,7 +4,7 @@ require 'html/selector'
 require 'html/sanitizer'
 
 module HTML #:nodoc:
-  # A top-level HTMl document. You give it a body of text, and it will parse that
+  # A top-level HTML document. You give it a body of text, and it will parse that
   # text into a tree of nodes.
   class Document #:nodoc:
 

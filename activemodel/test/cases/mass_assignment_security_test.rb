@@ -4,7 +4,7 @@ require 'models/mass_assignment_specific'
 
 class CustomSanitizer < ActiveModel::MassAssignmentSecurity::Sanitizer
 
-  def process_removed_attributes(attrs)
+  def process_removed_attributes(klass, attrs)
     raise StandardError
   end
 
@@ -16,6 +16,13 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
     user = User.new
     expected = { "name" => "John Smith", "email" => "john@smith.com" }
     sanitized = user.sanitize_for_mass_assignment(expected.merge("admin" => true))
+    assert_equal expected, sanitized
+  end
+
+  def test_attribute_protection_when_role_is_nil
+    user = User.new
+    expected = { "name" => "John Smith", "email" => "john@smith.com" }
+    sanitized = user.sanitize_for_mass_assignment(expected.merge("admin" => true), nil)
     assert_equal expected, sanitized
   end
 

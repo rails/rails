@@ -2,12 +2,14 @@ require File.expand_path('../../../../load_paths', __FILE__)
 
 require 'config'
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'stringio'
 require 'mocha'
 
+require 'cases/test_case'
 require 'active_record'
 require 'active_support/dependencies'
+require 'active_support/logger'
 
 require 'support/config'
 require 'support/connection'
@@ -17,8 +19,8 @@ require 'support/connection'
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
-# Enable Identity Map only when ENV['IM'] is set to "true"
-ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "true")
+# Avoid deprecation warning setting dependent_restrict_raises to false. The default is true
+ActiveRecord::Base.dependent_restrict_raises = false
 
 # Connect to the database
 ARTest.connect
@@ -34,7 +36,7 @@ def current_adapter?(*types)
 end
 
 def in_memory_db?
-  current_adapter?(:SQLiteAdapter) &&
+  current_adapter?(:SQLite3Adapter) &&
   ActiveRecord::Base.connection_pool.spec.config[:database] == ":memory:"
 end
 
@@ -56,36 +58,13 @@ ensure
   ActiveRecord::Base.default_timezone = old_zone
 end
 
-module ActiveRecord
-  class SQLCounter
-    cattr_accessor :ignored_sql
-    self.ignored_sql = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/]
-
-    # FIXME: this needs to be refactored so specific database can add their own
-    # ignored SQL.  This ignored SQL is for Oracle.
-    ignored_sql.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
-
-    cattr_accessor :log
-    self.log = []
-
-    def call(name, start, finish, message_id, values)
-      sql = values[:sql]
-
-      # FIXME: this seems bad. we should probably have a better way to indicate
-      # the query was cached
-      unless 'CACHE' == values[:name]
-        self.class.log << sql unless self.class.ignored_sql.any? { |r| sql =~ r }
-      end
-    end
-  end
-
-  ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
-end
-
 unless ENV['FIXTURE_DEBUG']
   module ActiveRecord::TestFixtures::ClassMethods
     def try_to_load_dependency_with_silence(*args)
-      ActiveRecord::Base.logger.silence { try_to_load_dependency_without_silence(*args)}
+      old = ActiveRecord::Base.logger.level
+      ActiveRecord::Base.logger.level = ActiveSupport::Logger::ERROR
+      try_to_load_dependency_without_silence(*args)
+      ActiveRecord::Base.logger.level = old
     end
 
     alias_method_chain :try_to_load_dependency, :silence
@@ -101,8 +80,8 @@ class ActiveSupport::TestCase
   self.use_instantiated_fixtures  = false
   self.use_transactional_fixtures = true
 
-  def create_fixtures(*table_names, &block)
-    ActiveRecord::Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, fixture_class_names, &block)
+  def create_fixtures(*fixture_set_names, &block)
+    ActiveRecord::Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
   end
 end
 

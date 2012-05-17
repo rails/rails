@@ -1,36 +1,34 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/module/anonymous'
 require 'action_dispatch/http/mime_types'
 
 module ActionController
-  # Wraps parameters hash into nested hash. This will allow client to submit
-  # POST request without having to specify a root element in it.
+  # Wraps the parameters hash into a nested hash. This will allow clients to submit
+  # POST requests without having to specify any root elements.
   #
-  # By default this functionality won't be enabled. You can enable
-  # it globally by setting +ActionController::Base.wrap_parameters+:
-  #
-  #     ActionController::Base.wrap_parameters = [:json]
+  # This functionality is enabled in +config/initializers/wrap_parameters.rb+
+  # and can be customized. If you are upgrading to \Rails 3.1, this file will
+  # need to be created for the functionality to be enabled.
   #
   # You could also turn it on per controller by setting the format array to
-  # non-empty array:
+  # a non-empty array:
   #
   #     class UsersController < ApplicationController
   #       wrap_parameters :format => [:json, :xml]
   #     end
   #
-  # If you enable +ParamsWrapper+ for +:json+ format. Instead of having to
+  # If you enable +ParamsWrapper+ for +:json+ format, instead of having to
   # send JSON parameters like this:
   #
   #     {"user": {"name": "Konata"}}
   #
-  # You can now just send a parameters like this:
+  # You can send parameters like this:
   #
   #     {"name": "Konata"}
   #
-  # And it will be wrapped into a nested hash with the key name matching
+  # And it will be wrapped into a nested hash with the key name matching the
   # controller's name. For example, if you're posting to +UsersController+,
   # your new +params+ hash will look like this:
   #
@@ -44,8 +42,13 @@ module ActionController
   #       wrap_parameters :person, :include => [:username, :password]
   #     end
   #
+  # On ActiveRecord models with no +:include+ or +:exclude+ option set,
+  # if attr_accessible is set on that model, it will only wrap the accessible
+  # parameters, else it will only wrap the parameters returned by the class
+  # method attribute_names.
+  #
   # If you're going to pass the parameters to an +ActiveModel+ object (such as
-  # +User.new(params[:user])+), you might consider passing the model class to
+  # <tt>User.new(params[:user])</tt>), you might consider passing the model class to
   # the method instead. The +ParamsWrapper+ will actually try to determine the
   # list of attribute names from the model and only wrap those attributes:
   #
@@ -63,7 +66,7 @@ module ActionController
   #     class Admin::UsersController < ApplicationController
   #     end
   #
-  # will try to check if +Admin::User+ or +User+ model exists, and use it to
+  # will try to check if <tt>Admin::User</tt> or +User+ model exists, and use it to
   # determine the wrapper key respectively. If both models don't exist,
   # it will then fallback to use +user+ as the key.
   module ParamsWrapper
@@ -82,7 +85,7 @@ module ActionController
       #
       # ==== Examples
       #   wrap_parameters :format => :xml
-      #     # enables the parmeter wrapper for XML format
+      #     # enables the parameter wrapper for XML format
       #
       #   wrap_parameters :person
       #     # wraps parameters into +params[:person]+ hash
@@ -142,19 +145,16 @@ module ActionController
       # try to find Foo::Bar::User, Foo::User and finally User.
       def _default_wrap_model #:nodoc:
         return nil if self.anonymous?
-
-        model_name = self.name.sub(/Controller$/, '').singularize
+        model_name = self.name.sub(/Controller$/, '').classify
 
         begin
-          model_klass = model_name.constantize
-        rescue NameError, ArgumentError => e
-          if e.message =~ /is not missing constant|uninitialized constant #{model_name}/
+          if model_klass = model_name.safe_constantize
+            model_klass
+          else
             namespaces = model_name.split("::")
             namespaces.delete_at(-2)
             break if namespaces.last == model_name
             model_name = namespaces.join("::")
-          else
-            raise
           end
         end until model_klass
 
@@ -166,7 +166,10 @@ module ActionController
 
         unless options[:include] || options[:exclude]
           model ||= _default_wrap_model
-          if model.respond_to?(:attribute_names) && model.attribute_names.present?
+          role = options.fetch(:as, :default)
+          if model.respond_to?(:accessible_attributes) && model.accessible_attributes(role).present?
+            options[:include] = model.accessible_attributes(role).to_a
+          elsif model.respond_to?(:attribute_names) && model.attribute_names.present?
             options[:include] = model.attribute_names
           end
         end
@@ -177,9 +180,9 @@ module ActionController
             controller_name.singularize
         end
 
-        options[:include] = Array.wrap(options[:include]).collect(&:to_s) if options[:include]
-        options[:exclude] = Array.wrap(options[:exclude]).collect(&:to_s) if options[:exclude]
-        options[:format]  = Array.wrap(options[:format])
+        options[:include] = Array(options[:include]).collect(&:to_s) if options[:include]
+        options[:exclude] = Array(options[:exclude]).collect(&:to_s) if options[:exclude]
+        options[:format]  = Array(options[:format])
 
         self._wrapper_options = options
       end

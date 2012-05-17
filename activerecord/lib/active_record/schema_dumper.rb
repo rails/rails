@@ -40,7 +40,7 @@ module ActiveRecord
       def header(stream)
         define_params = @version ? ":version => #{@version}" : ""
 
-        if stream.respond_to?(:external_encoding)
+        if stream.respond_to?(:external_encoding) && stream.external_encoding
           stream.puts "# encoding: #{stream.external_encoding.name}"
         end
 
@@ -55,7 +55,7 @@ module ActiveRecord
 # from scratch. The latter is a flawed and unsustainable approach (the more migrations
 # you'll amass, the slower it'll run and the greater likelihood for issues).
 #
-# It's strongly recommended to check this file into your version control system.
+# It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema.define(#{define_params}) do
 
@@ -112,7 +112,7 @@ HEADER
 
             # AR has an optimization which handles zero-scale decimals as integers. This
             # code ensures that the dumper still dumps the column as a decimal.
-            spec[:type]      = if column.type == :integer && [/^numeric/, /^decimal/].any? { |e| e.match(column.sql_type) }
+            spec[:type]      = if column.type == :integer && /^(numeric|decimal)/ =~ column.sql_type
                                  'decimal'
                                else
                                  column.type.to_s
@@ -127,10 +127,14 @@ HEADER
           end.compact
 
           # find all migration keys used in this table
-          keys = [:name, :limit, :precision, :scale, :default, :null] & column_specs.map{ |k| k.keys }.flatten
+          keys = [:name, :limit, :precision, :scale, :default, :null]
 
           # figure out the lengths for each column based on above keys
-          lengths = keys.map{ |key| column_specs.map{ |spec| spec[key] ? spec[key].length + 2 : 0 }.max }
+          lengths = keys.map { |key|
+            column_specs.map { |spec|
+              spec[key] ? spec[key].length + 2 : 0
+            }.max
+          }
 
           # the string we're going to sprintf our values against, with standardized column widths
           format_string = lengths.map{ |len| "%-#{len}s" }
@@ -189,6 +193,11 @@ HEADER
 
             index_lengths = (index.lengths || []).compact
             statement_parts << (':length => ' + Hash[index.columns.zip(index.lengths)].inspect) unless index_lengths.empty?
+
+            index_orders = (index.orders || {})
+            statement_parts << (':order => ' + index.orders.inspect) unless index_orders.empty?
+
+            statement_parts << (':where => ' + index.where.inspect) if index.where
 
             '  ' + statement_parts.join(', ')
           end

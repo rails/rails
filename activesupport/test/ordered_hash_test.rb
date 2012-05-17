@@ -3,7 +3,7 @@ require 'active_support/json'
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/hash/indifferent_access'
 
-class OrderedHashTest < Test::Unit::TestCase
+class OrderedHashTest < ActiveSupport::TestCase
   def setup
     @keys =   %w( blue   green  red    pink   orange )
     @values = %w( 000099 009900 aa0000 cc0066 cc6633 )
@@ -81,24 +81,21 @@ class OrderedHashTest < Test::Unit::TestCase
     keys = []
     assert_equal @ordered_hash, @ordered_hash.each_key { |k| keys << k }
     assert_equal @keys, keys
-    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
-    assert_kind_of expected_class, @ordered_hash.each_key
+    assert_kind_of Enumerator, @ordered_hash.each_key
   end
 
   def test_each_value
     values = []
     assert_equal @ordered_hash, @ordered_hash.each_value { |v| values << v }
     assert_equal @values, values
-    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
-    assert_kind_of expected_class, @ordered_hash.each_value
+    assert_kind_of Enumerator, @ordered_hash.each_value
   end
 
   def test_each
     values = []
     assert_equal @ordered_hash, @ordered_hash.each {|key, value| values << value}
     assert_equal @values, values
-    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
-    assert_kind_of expected_class, @ordered_hash.each
+    assert_kind_of Enumerator, @ordered_hash.each
   end
 
   def test_each_with_index
@@ -114,9 +111,7 @@ class OrderedHashTest < Test::Unit::TestCase
     end
     assert_equal @values, values
     assert_equal @keys, keys
-
-    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
-    assert_kind_of expected_class, @ordered_hash.each_pair
+    assert_kind_of Enumerator, @ordered_hash.each_pair
   end
 
   def test_find_all
@@ -296,21 +291,16 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_equal @ordered_hash.values, @deserialized_ordered_hash.values
   end
 
-  begin
-    require 'psych'
+  def test_psych_serialize
+    @deserialized_ordered_hash = Psych.load(Psych.dump(@ordered_hash))
 
-    def test_psych_serialize
-      @deserialized_ordered_hash = Psych.load(Psych.dump(@ordered_hash))
+    values = @deserialized_ordered_hash.map { |_, value| value }
+    assert_equal @values, values
+  end
 
-      values = @deserialized_ordered_hash.map { |_, value| value }
-      assert_equal @values, values
-    end
-
-    def test_psych_serialize_tag
-      yaml = Psych.dump(@ordered_hash)
-      assert_match '!omap', yaml
-    end
-  rescue LoadError
+  def test_psych_serialize_tag
+    yaml = Psych.dump(@ordered_hash)
+    assert_match '!omap', yaml
   end
 
   def test_has_yaml_tag
@@ -328,5 +318,10 @@ class OrderedHashTest < Test::Unit::TestCase
     expected = ActiveSupport::OrderedHash[@values.zip(@keys)]
     assert_equal expected, @ordered_hash.invert
     assert_equal @values.zip(@keys), @ordered_hash.invert.to_a
+  end
+
+  def test_extractable
+    @ordered_hash[:rails] = "snowman"
+    assert_equal @ordered_hash, [1, 2, @ordered_hash].extract_options!
   end
 end

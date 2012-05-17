@@ -50,7 +50,7 @@ module Rails
         end
 
         def controller_i18n_scope
-          @controller_i18n_scope ||= controller_file_path.gsub('/', '.')
+          @controller_i18n_scope ||= controller_file_path.tr('/', '.')
         end
 
         # Loads the ORM::Generators::ActiveModel class. This class is responsible
@@ -64,8 +64,8 @@ module Rails
             end
 
             begin
-              "#{options[:orm].to_s.classify}::Generators::ActiveModel".constantize
-            rescue NameError => e
+              "#{options[:orm].to_s.camelize}::Generators::ActiveModel".constantize
+            rescue NameError
               Rails::Generators::ActiveModel
             end
           end
@@ -73,7 +73,7 @@ module Rails
 
         # Initialize ORM::Generators::ActiveModel to access instance methods.
         def orm_instance(name=singular_table_name)
-          @orm_instance ||= @orm_class.new(name)
+          @orm_instance ||= orm_class.new(name)
         end
     end
   end

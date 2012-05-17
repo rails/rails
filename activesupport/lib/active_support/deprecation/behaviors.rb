@@ -1,5 +1,4 @@
 require "active_support/notifications"
-require "active_support/core_ext/array/wrap"
 
 module ActiveSupport
   module Deprecation
@@ -7,19 +6,33 @@ module ActiveSupport
       # Whether to print a backtrace along with the warning.
       attr_accessor :debug
 
-      # Returns the set behavior or if one isn't set, defaults to +:stderr+
+      # Returns the current behavior or if one isn't set, defaults to +:stderr+
       def behavior
         @behavior ||= [DEFAULT_BEHAVIORS[:stderr]]
       end
 
-      # Sets the behavior to the specified value. Can be a single value or an array.
+      # Sets the behavior to the specified value. Can be a single value, array, or
+      # an object that responds to +call+.
       #
-      # Examples
+      # Available behaviors:
+      #
+      # [+stderr+]  Log all deprecation warnings to <tt>$stderr</tt>.
+      # [+log+]     Log all deprecation warnings to +Rails.logger+.
+      # [+notify+]  Use <tt>ActiveSupport::Notifications</tt> to notify +deprecation.rails+.
+      # [+silence+] Do nothing.
+      #
+      # Setting behaviors only affects deprecations that happen after boot time.
+      # Deprecation warnings raised by gems are not affected by this setting because
+      # they happen before Rails boots up.
       #
       #   ActiveSupport::Deprecation.behavior = :stderr
       #   ActiveSupport::Deprecation.behavior = [:stderr, :log]
+      #   ActiveSupport::Deprecation.behavior = MyCustomHandler
+      #   ActiveSupport::Deprecation.behavior = proc { |message, callstack| 
+      #     # custom stuff
+      #   }
       def behavior=(behavior)
-        @behavior = Array.wrap(behavior).map { |b| DEFAULT_BEHAVIORS[b] || b }
+        @behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || b }
       end
     end
 
@@ -34,16 +47,17 @@ module ActiveSupport
            if defined?(Rails) && Rails.logger
              Rails.logger
            else
-             require 'logger'
-             Logger.new($stderr)
+             require 'active_support/logger'
+             ActiveSupport::Logger.new($stderr)
            end
          logger.warn message
          logger.debug callstack.join("\n  ") if debug
        },
        :notify => Proc.new { |message, callstack|
           ActiveSupport::Notifications.instrument("deprecation.rails",
-            :message => message, :callstack => callstack)
-       }
+          :message => message, :callstack => callstack)
+       },
+       :silence => Proc.new { |message, callstack| }
     }
   end
 end

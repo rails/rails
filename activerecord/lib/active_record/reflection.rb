@@ -7,7 +7,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :reflections
+      extend ActiveModel::Configuration
+      config_attribute :reflections
       self.reflections = {}
     end
 
@@ -22,11 +23,11 @@ module ActiveRecord
     module ClassMethods
       def create_reflection(macro, name, options, active_record)
         case macro
-          when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
-            klass = options[:through] ? ThroughReflection : AssociationReflection
-            reflection = klass.new(macro, name, options, active_record)
-          when :composed_of
-            reflection = AggregateReflection.new(macro, name, options, active_record)
+        when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
+          klass = options[:through] ? ThroughReflection : AssociationReflection
+          reflection = klass.new(macro, name, options, active_record)
+        when :composed_of
+          reflection = AggregateReflection.new(macro, name, options, active_record)
         end
 
         self.reflections = self.reflections.merge(name => reflection)
@@ -43,7 +44,8 @@ module ActiveRecord
       #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
       #
       def reflect_on_aggregation(aggregation)
-        reflections[aggregation].is_a?(AggregateReflection) ? reflections[aggregation] : nil
+        reflection = reflections[aggregation]
+        reflection if reflection.is_a?(AggregateReflection)
       end
 
       # Returns an array of AssociationReflection objects for all the
@@ -67,7 +69,8 @@ module ActiveRecord
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
       def reflect_on_association(association)
-        reflections[association].is_a?(AssociationReflection) ? reflections[association] : nil
+        reflection = reflections[association]
+        reflection if reflection.is_a?(AssociationReflection)
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
@@ -75,7 +78,6 @@ module ActiveRecord
         reflections.values.select { |reflection| reflection.options[:autosave] }
       end
     end
-
 
     # Abstract base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
@@ -124,7 +126,7 @@ module ActiveRecord
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>'Money'</tt>
       # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
       def class_name
-        @class_name ||= options[:class_name] || derive_class_name
+        @class_name ||= (options[:class_name] || derive_class_name).to_s
       end
 
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
@@ -151,6 +153,10 @@ module ActiveRecord
     # Holds all the meta-data about an aggregation as it was specified in the
     # Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:
+      def mapping
+        mapping = options[:mapping] || [name, name]
+        mapping.first.is_a?(Array) ? mapping : [mapping]
+      end
     end
 
     # Holds all the meta-data about an association as it was specified in the
@@ -174,7 +180,7 @@ module ActiveRecord
 
       def initialize(macro, name, options, active_record)
         super
-        @collection = macro.in?([:has_many, :has_and_belongs_to_many])
+        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
       end
 
       # Returns a new, unsaved instance of the associated class. +options+ will
@@ -211,27 +217,25 @@ module ActiveRecord
         @association_foreign_key ||= options[:association_foreign_key] || class_name.foreign_key
       end
 
-      def association_primary_key
-        @association_primary_key ||=
-          options[:primary_key] ||
-          !options[:polymorphic] && klass.primary_key ||
-          'id'
+      # klass option is necessary to support loading polymorphic associations
+      def association_primary_key(klass = nil)
+        options[:primary_key] || primary_key(klass || self.klass)
       end
 
       def active_record_primary_key
-        @active_record_primary_key ||= options[:primary_key] || active_record.primary_key
+        @active_record_primary_key ||= options[:primary_key] || primary_key(active_record)
       end
 
       def counter_cache_column
         if options[:counter_cache] == true
           "#{active_record.name.demodulize.underscore.pluralize}_count"
         elsif options[:counter_cache]
-          options[:counter_cache]
+          options[:counter_cache].to_s
         end
       end
 
-      def columns(tbl_name, log_msg)
-        @columns ||= klass.connection.columns(tbl_name, log_msg)
+      def columns(tbl_name)
+        @columns ||= klass.connection.columns(tbl_name)
       end
 
       def reset_column_information
@@ -262,6 +266,10 @@ module ActiveRecord
       # ThroughReflection.
       def chain
         [self]
+      end
+
+      def nested?
+        false
       end
 
       # An array of arrays of conditions. Each item in the outside array corresponds to a reflection
@@ -359,6 +367,10 @@ module ActiveRecord
             active_record.name.foreign_key
           end
         end
+
+        def primary_key(klass)
+          klass.primary_key || raise(UnknownPrimaryKey.new(klass))
+        end
     end
 
     # Holds all the meta-data about a :through association as it was specified
@@ -431,7 +443,7 @@ module ActiveRecord
       # of relevant reflections, plus any :source_type or polymorphic :as constraints.
       def conditions
         @conditions ||= begin
-          conditions = source_reflection.conditions
+          conditions = source_reflection.conditions.map { |c| c.dup }
 
           # Add to it the conditions from this reflection if necessary.
           conditions.first << options[:conditions] if options[:conditions]
@@ -445,7 +457,6 @@ module ActiveRecord
           # Recursively fill out the rest of the array from the through reflection
           conditions += through_conditions
 
-          # And return
           conditions
         end
       end
@@ -455,7 +466,7 @@ module ActiveRecord
         source_reflection.source_macro
       end
 
-      # A through association is nested iff there would be more than one join table
+      # A through association is nested if there would be more than one join table
       def nested?
         chain.length > 2 || through_reflection.macro == :has_and_belongs_to_many
       end
@@ -463,17 +474,15 @@ module ActiveRecord
       # We want to use the klass from this reflection, rather than just delegate straight to
       # the source_reflection, because the source_reflection may be polymorphic. We still
       # need to respect the source_reflection's :primary_key option, though.
-      def association_primary_key
-        @association_primary_key ||= begin
-          # Get the "actual" source reflection if the immediate source reflection has a
-          # source reflection itself
-          source_reflection = self.source_reflection
-          while source_reflection.source_reflection
-            source_reflection = source_reflection.source_reflection
-          end
-
-          source_reflection.options[:primary_key] || klass.primary_key
+      def association_primary_key(klass = nil)
+        # Get the "actual" source reflection if the immediate source reflection has a
+        # source reflection itself
+        source_reflection = self.source_reflection
+        while source_reflection.source_reflection
+          source_reflection = source_reflection.source_reflection
         end
+
+        source_reflection.options[:primary_key] || primary_key(klass || self.klass)
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names:

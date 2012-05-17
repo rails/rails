@@ -38,7 +38,7 @@ module Mime
   #       respond_to do |format|
   #         format.html
   #         format.ics { render :text => post.to_ics, :mime_type => Mime::Type["text/calendar"]  }
-  #         format.xml { render :xml => @people.to_xml }
+  #         format.xml { render :xml => @people }
   #       end
   #     end
   #   end
@@ -82,6 +82,7 @@ module Mime
     class << self
 
       TRAILING_STAR_REGEXP = /(text|application)\/\*/
+      PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
 
       def lookup(string)
         LOOKUP[string]
@@ -103,11 +104,12 @@ module Mime
         SET << Mime.const_get(symbol.to_s.upcase)
 
         ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
-        ([symbol.to_s] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext] = SET.last }
+        ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = SET.last }
       end
 
       def parse(accept_header)
         if accept_header !~ /,/
+          accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
           if accept_header =~ TRAILING_STAR_REGEXP
             parse_data_with_trailing_star($1)
           else
@@ -117,7 +119,7 @@ module Mime
           # keep track of creation order to keep the subsequent sort stable
           list, index = [], 0
           accept_header.split(/,/).each do |header|
-            params, q = header.split(/;\s*q=/)
+            params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
             if params.present?
               params.strip!
 
@@ -177,11 +179,11 @@ module Mime
         end
       end
 
-      # input: 'text'
-      # returned value:  [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
+      # For an input of <tt>'text'</tt>, returns <tt>[Mime::JSON, Mime::XML, Mime::ICS,
+      # Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]</tt>.
       #
-      # input: 'application'
-      # returned value: [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM]
+      # For an input of <tt>'application'</tt>, returns <tt>[Mime::HTML, Mime::JS,
+      # Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM]</tt>.
       def parse_data_with_trailing_star(input)
         Mime::SET.select { |m| m =~ input }
       end
@@ -190,7 +192,7 @@ module Mime
       #
       # Usage:
       #
-      # Mime::Type.unregister(:mobile)
+      #   Mime::Type.unregister(:mobile)
       def unregister(symbol)
         symbol = symbol.to_s.upcase
         mime = Mime.const_get(symbol)
@@ -254,6 +256,10 @@ module Mime
 
     def html?
       @@html_types.include?(to_sym) || @string =~ /html/
+    end
+
+    def respond_to?(method, include_private = false) #:nodoc:
+      super || method.to_s =~ /(\w+)\?$/
     end
 
     private

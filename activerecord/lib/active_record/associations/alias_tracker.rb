@@ -5,12 +5,13 @@ module ActiveRecord
     # Keeps track of table aliases for ActiveRecord::Associations::ClassMethods::JoinDependency and
     # ActiveRecord::Associations::ThroughAssociationScope
     class AliasTracker # :nodoc:
-      attr_reader :aliases, :table_joins
+      attr_reader :aliases, :table_joins, :connection
 
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
-      def initialize(table_joins = [])
+      def initialize(connection = ActiveRecord::Model.connection, table_joins = [])
         @aliases     = Hash.new { |h,k| h[k] = initial_count_for(k) }
         @table_joins = table_joins
+        @connection  = connection
       end
 
       def aliased_table_for(table_name, aliased_name = nil)
@@ -53,20 +54,22 @@ module ActiveRecord
           # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
           quoted_name = connection.quote_table_name(name).downcase
 
-          table_joins.map { |join|
-            # Table names + table aliases
-            join.left.downcase.scan(
-              /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
-            ).size
-          }.sum
+          counts = table_joins.map do |join|
+            if join.is_a?(Arel::Nodes::StringJoin)
+              # Table names + table aliases
+              join.left.downcase.scan(
+                /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
+              ).size
+            else
+              join.left.table_name == name ? 1 : 0
+            end
+          end
+
+          counts.sum
         end
 
         def truncate(name)
           name.slice(0, connection.table_alias_length - 2)
-        end
-
-        def connection
-          ActiveRecord::Base.connection
         end
     end
   end

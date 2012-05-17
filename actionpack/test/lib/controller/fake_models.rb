@@ -34,6 +34,16 @@ end
 class GoodCustomer < Customer
 end
 
+class ValidatedCustomer < Customer
+  def errors
+    if name =~ /Sikachu/i
+      []
+    else
+      [{:name => "is invalid"}]
+    end
+  end
+end
+
 module Quiz
   class Question < Struct.new(:name, :id)
     extend ActiveModel::Naming
@@ -48,24 +58,17 @@ module Quiz
   end
 end
 
-class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost)
+class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost)
   extend ActiveModel::Naming
   include ActiveModel::Conversion
   extend ActiveModel::Translation
 
   alias_method :secret?, :secret
+  alias_method :persisted?, :persisted
 
   def initialize(*args)
     super
     @persisted = false
-  end
-
-  def persisted=(boolean)
-    @persisted = boolean
-  end
-
-  def persisted?
-    @persisted
   end
 
   attr_accessor :author
@@ -182,8 +185,8 @@ class HashBackedAuthor < Hash
 end
 
 module Blog
-  def self._railtie
-    self
+  def self.use_relative_model_naming?
+    true
   end
 
   class Post < Struct.new(:title, :id)

@@ -6,12 +6,16 @@ require 'models/reader'
 require 'models/legacy_thing'
 require 'models/reference'
 require 'models/string_key_object'
+require 'models/car'
+require 'models/engine'
+require 'models/wheel'
+require 'models/treasure'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
 class LockWithCustomColumnWithoutDefault < ActiveRecord::Base
-  set_table_name :lock_without_defaults_cust
-  set_locking_column :custom_lock_version
+  self.table_name = :lock_without_defaults_cust
+  self.locking_column = :custom_lock_version
 end
 
 class ReadonlyFirstNamePerson < Person
@@ -19,7 +23,7 @@ class ReadonlyFirstNamePerson < Person
 end
 
 class OptimisticLockingTest < ActiveRecord::TestCase
-  fixtures :people, :legacy_things, :references, :string_key_objects
+  fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
 
   def test_non_integer_lock_existing
     s1 = StringKeyObject.find("record1")
@@ -125,6 +129,24 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
+  def test_lock_exception_record
+    p1 = Person.new(:first_name => 'mira')
+    assert_equal 0, p1.lock_version
+
+    p1.first_name = 'mira2'
+    p1.save!
+    p2 = Person.find(p1.id)
+    assert_equal 0, p1.lock_version
+    assert_equal 0, p2.lock_version
+
+    p1.first_name = 'mira3'
+    p1.save!
+
+    p2.first_name = 'sue'
+    error = assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
+    assert_equal(error.record.object_id, p2.object_id)
+  end
+
   def test_lock_new_with_nil
     p1 = Person.new(:first_name => 'anika')
     p1.save!
@@ -140,7 +162,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1.touch
     assert_equal 1, p1.lock_version
   end
-
 
   def test_lock_column_name_existing
     t1 = LegacyThing.find(1)
@@ -207,6 +228,27 @@ class OptimisticLockingTest < ActiveRecord::TestCase
       assert_equal lock_version, p1.lock_version
     end
   end
+
+  def test_polymorphic_destroy_with_dependencies_and_lock_version
+    car = Car.create!
+
+    assert_difference 'car.wheels.count'  do
+    	car.wheels << Wheel.create!
+    end
+    assert_difference 'car.wheels.count', -1  do
+      car.destroy
+    end
+    assert car.destroyed?
+  end
+
+  def test_removing_has_and_belongs_to_many_associations_upon_destroy
+    p = RichPerson.create! first_name: 'Jon'
+    p.treasures.create!
+    assert !p.treasures.empty?
+    p.destroy
+    assert p.treasures.empty?
+    assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
+  end
 end
 
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
@@ -261,6 +303,8 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     assert_equal true, p1.frozen?
     assert_raises(ActiveRecord::RecordNotFound) { Person.find(p1.id) }
     assert_raises(ActiveRecord::RecordNotFound) { LegacyThing.find(t.id) }
+  ensure
+    remove_counter_column_from(Person, 'legacy_things_count')
   end
 
   private
@@ -272,14 +316,14 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
       model.update_all(col => 0) if current_adapter?(:OpenBaseAdapter)
     end
 
-    def remove_counter_column_from(model)
-      model.connection.remove_column model.table_name, :test_count
+    def remove_counter_column_from(model, col = :test_count)
+      model.connection.remove_column model.table_name, col
       model.reset_column_information
     end
 
     def counter_test(model, expected_count)
       add_counter_column_to(model)
-      object = model.find(:first)
+      object = model.first
       assert_equal 0, object.test_count
       assert_equal 0, object.send(model.locking_column)
       yield object.id
@@ -314,18 +358,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
     def test_sane_find_with_lock
       assert_nothing_raised do
         Person.transaction do
-          Person.find 1, :lock => true
-        end
-      end
-    end
-
-    # Test scoped lock.
-    def test_sane_find_with_scoped_lock
-      assert_nothing_raised do
-        Person.transaction do
-          Person.send(:with_scope, :find => { :lock => true }) do
-            Person.find 1
-          end
+          Person.lock.find(1)
         end
       end
     end
@@ -336,7 +369,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
       def test_eager_find_with_lock
         assert_nothing_raised do
           Person.transaction do
-            Person.find 1, :include => :readers, :lock => true
+            Person.includes(:readers).lock.find(1)
           end
         end
       end
@@ -354,20 +387,30 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
       end
     end
 
+    def test_with_lock_commits_transaction
+      person = Person.find 1
+      person.with_lock do
+        person.first_name = 'fooman'
+        person.save!
+      end
+      assert_equal 'fooman', person.reload.first_name
+    end
+
+    def test_with_lock_rolls_back_transaction
+      person = Person.find 1
+      old = person.first_name
+      person.with_lock do
+        person.first_name = 'fooman'
+        person.save!
+        raise 'oops'
+      end rescue nil
+      assert_equal old, person.reload.first_name
+    end
+
     if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
       def test_no_locks_no_wait
         first, second = duel { Person.find 1 }
         assert first.end > second.end
-      end
-
-      # Hit by ruby deadlock detection since connection checkout is mutexed.
-      if RUBY_VERSION < '1.9.0'
-        def test_second_lock_waits
-          assert [0.2, 1, 5].any? { |zzz|
-            first, second = duel(zzz) { Person.find 1, :lock => true }
-            second.end > first.end
-          }
-        end
       end
 
       protected

@@ -143,14 +143,14 @@ A short rundown of some of the major features:
 
 * Logging support for Log4r[http://log4r.sourceforge.net] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc].
 
-    ActiveRecord::Base.logger = Logger.new(STDOUT)
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)
     ActiveRecord::Base.logger = Log4r::Logger.new("Application Log")
 
 
 * Database agnostic schema management with Migrations.
 
     class AddSystemSettings < ActiveRecord::Migration
-      def self.up
+      def up
         create_table :system_settings do |t|
           t.string  :name
           t.string  :label
@@ -162,7 +162,7 @@ A short rundown of some of the major features:
         SystemSetting.create :name => "notice", :label => "Use notice?", :value => 1
       end
 
-      def self.down
+      def down
         drop_table :system_settings
       end
     end
@@ -208,7 +208,9 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 == License
 
-Active Record is released under the MIT license.
+Active Record is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
 
 
 == Support

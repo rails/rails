@@ -1,5 +1,6 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/object/blank'
+require 'set'
 
 module ActionController
   # See <tt>Renderers.add</tt>
@@ -12,16 +13,13 @@ module ActionController
 
     included do
       class_attribute :_renderers
-      self._renderers = {}.freeze
+      self._renderers = Set.new.freeze
     end
 
     module ClassMethods
       def use_renderers(*args)
-        new = _renderers.dup
-        args.each do |key|
-          new[key] = RENDERERS[key]
-        end
-        self._renderers = new.freeze
+        renderers = _renderers + args
+        self._renderers = renderers.freeze
       end
       alias use_renderer use_renderers
     end
@@ -31,10 +29,10 @@ module ActionController
     end
 
     def _handle_render_options(options)
-      _renderers.each do |name, value|
-        if options.key?(name.to_sym)
+      _renderers.each do |name|
+        if options.key?(name)
           _process_options(options)
-          return send("_render_option_#{name}", options.delete(name.to_sym), options)
+          return send("_render_option_#{name}", options.delete(name), options)
         end
       end
       nil
@@ -42,7 +40,7 @@ module ActionController
 
     # Hash of available renderers, mapping a renderer name to its proc.
     # Default keys are :json, :js, :xml.
-    RENDERERS = {}
+    RENDERERS = Set.new
 
     # Adds a new renderer to call within controller actions.
     # A renderer is invoked by passing its name as an option to
@@ -51,7 +49,6 @@ module ActionController
     # is the value paired with its key and the second is the remaining
     # hash of options passed to +render+.
     #
-    # === Example
     # Create a csv renderer:
     #
     #   ActionController::Renderers.add :csv do |obj, options|
@@ -79,7 +76,7 @@ module ActionController
     # <tt>ActionController::MimeResponds#respond_with</tt>
     def self.add(key, &block)
       define_method("_render_option_#{key}", &block)
-      RENDERERS[key] = block
+      RENDERERS << key.to_sym
     end
 
     module All
@@ -93,9 +90,14 @@ module ActionController
 
     add :json do |json, options|
       json = json.to_json(options) unless json.kind_of?(String)
-      json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
-      self.content_type ||= Mime::JSON
-      json
+
+      if options[:callback].present?
+        self.content_type ||= Mime::JS
+        "#{options[:callback]}(#{json})"
+      else
+        self.content_type ||= Mime::JSON
+        json
+      end
     end
 
     add :js do |js, options|

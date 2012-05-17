@@ -18,6 +18,5 @@ class Hash
     # right wins if there is no left
     merge!( other_hash ){|key,left,right| left }
   end
-
   alias_method :reverse_update, :reverse_merge!
 end

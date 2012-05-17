@@ -6,10 +6,10 @@ require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/conversions'
 require 'active_support/inflections'
 
-class HashExtTest < Test::Unit::TestCase
+class HashExtTest < ActiveSupport::TestCase
   class IndifferentHash < HashWithIndifferentAccess
   end
-  
+
   class SubclassingArray < Array
   end
 
@@ -27,11 +27,7 @@ class HashExtTest < Test::Unit::TestCase
     @symbols = { :a  => 1, :b  => 2 }
     @mixed   = { :a  => 1, 'b' => 2 }
     @fixnums = {  0  => 1,  1  => 2 }
-    if RUBY_VERSION < '1.9.0'
-      @illegal_symbols = { "\0" => 1, "" => 2, [] => 3 }
-    else
-      @illegal_symbols = { [] => 3 }
-    end
+    @illegal_symbols = { [] => 3 }
   end
 
   def test_methods
@@ -121,6 +117,9 @@ class HashExtTest < Test::Unit::TestCase
 
     foo = { "foo" => NonIndifferentHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
     assert_kind_of NonIndifferentHash, foo["foo"]
+
+    foo = { "foo" => IndifferentHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
+    assert_kind_of IndifferentHash, foo["foo"]
   end
 
   def test_indifferent_assorted
@@ -272,14 +271,14 @@ class HashExtTest < Test::Unit::TestCase
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
   end
-  
+
   def test_should_preserve_array_subclass_when_value_is_array
     array = SubclassingArray.new
     array << { "address" => "1" }
     hash = { "urls" => { "url" => array }}.with_indifferent_access
     assert_equal SubclassingArray, hash[:urls][:url].class
   end
-  
+
   def test_should_preserve_array_class_when_hash_value_is_frozen_array
     array = SubclassingArray.new
     array << { "address" => "1" }
@@ -364,21 +363,6 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal expected, hash_1
   end
 
-  def test_deep_dup
-    hash = { :a => { :b => 'b' } }
-    dup = hash.deep_dup
-    dup[:a][:c] = 'c'
-    assert_equal nil, hash[:a][:c]
-    assert_equal 'c', dup[:a][:c]
-  end
-
-  def test_deep_dup_initialize
-    zero_hash = Hash.new 0
-    hash = { :a => zero_hash }
-    dup = hash.deep_dup
-    assert_equal 0, dup[:a][44]
-  end
-
   def test_store_on_indifferent_access
     hash = HashWithIndifferentAccess.new
     hash.store(:test1, 1)
@@ -387,6 +371,15 @@ class HashExtTest < Test::Unit::TestCase
     hash['test2'] = 22
     expected = { "test1" => 11, "test2" => 22 }
     assert_equal expected, hash
+  end
+
+  def test_constructor_on_indifferent_access
+    hash = HashWithIndifferentAccess[:foo, 1]
+    assert_equal 1, hash[:foo]
+    assert_equal 1, hash['foo']
+    hash[:foo] = 3
+    assert_equal 3, hash[:foo]
+    assert_equal 3, hash['foo']
   end
 
   def test_reverse_merge
@@ -487,17 +480,30 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal 'bender', slice['login']
   end
 
+  def test_extract
+    original = {:a => 1, :b => 2, :c => 3, :d => 4}
+    expected = {:a => 1, :b => 2}
+
+    assert_equal expected, original.extract!(:a, :b)
+  end
+
   def test_except
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :a => 'x', :b => 'y' }
 
-    # Should return a new hash with only the given keys.
+    # Should return a new hash without the given keys.
     assert_equal expected, original.except(:c)
     assert_not_equal expected, original
 
-    # Should replace the hash with only the given keys.
+    # Should replace the hash without the given keys.
     assert_equal expected, original.except!(:c)
     assert_equal expected, original
+  end
+
+  def test_except_with_more_than_one_argument
+    original = { :a => 'x', :b => 'y', :c => 10 }
+    expected = { :a => 'x' }
+    assert_equal expected, original.except(:b, :c)
   end
 
   def test_except_with_original_frozen
@@ -524,7 +530,7 @@ class IWriteMyOwnXML
   end
 end
 
-class HashExtToParamTests < Test::Unit::TestCase
+class HashExtToParamTests < ActiveSupport::TestCase
   class ToParam < String
     def to_param
       "#{self}-1"
@@ -543,7 +549,7 @@ class HashExtToParamTests < Test::Unit::TestCase
   end
 
   def test_to_param_hash
-    assert_equal 'custom2=param2-1&custom=param-1', {ToParam.new('custom') => ToParam.new('param'), ToParam.new('custom2') => ToParam.new('param2')}.to_param
+    assert_equal 'custom-1=param-1&custom2-1=param2-1', {ToParam.new('custom') => ToParam.new('param'), ToParam.new('custom2') => ToParam.new('param2')}.to_param
   end
 
   def test_to_param_hash_escapes_its_keys_and_values
@@ -551,11 +557,11 @@ class HashExtToParamTests < Test::Unit::TestCase
   end
 
   def test_to_param_orders_by_key_in_ascending_order
-    assert_equal 'a=2&b=1&c=0', ActiveSupport::OrderedHash[*%w(b 1 c 0 a 2)].to_param
+    assert_equal 'a=2&b=1&c=0', Hash[*%w(b 1 c 0 a 2)].to_param
   end
 end
 
-class HashToXmlTest < Test::Unit::TestCase
+class HashToXmlTest < ActiveSupport::TestCase
   def setup
     @xml_options = { :root => :person, :skip_instruct => true, :indent => 0 }
   end
@@ -955,13 +961,13 @@ class HashToXmlTest < Test::Unit::TestCase
     hash = Hash.from_xml(xml)
     assert_equal "bacon is the best", hash['blog']['name']
   end
-  
+
   def test_empty_cdata_from_xml
     xml = "<data><![CDATA[]]></data>"
-    
+
     assert_equal "", Hash.from_xml(xml)["data"]
   end
-  
+
   def test_xsd_like_types_from_xml
     bacon_xml = <<-EOT
     <bacon>
@@ -1004,7 +1010,7 @@ class HashToXmlTest < Test::Unit::TestCase
 
     assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]
   end
-  
+
   def test_should_use_default_value_for_unknown_key
     hash_wia = HashWithIndifferentAccess.new(3)
     assert_equal 3, hash_wia[:new_key]

@@ -1,5 +1,3 @@
-require 'active_support/core_ext/array/wrap'
-
 module ActiveRecord
   # = Active Record Autosave Association
   #
@@ -20,6 +18,21 @@ module ActiveRecord
   #
   # Note that <tt>:autosave => false</tt> is not same as not declaring <tt>:autosave</tt>.
   # When the <tt>:autosave</tt> option is not present new associations are saved.
+  #
+  # == Validation
+  #
+  # Children records are validated unless <tt>:validate</tt> is +false+.
+  #
+  # == Callbacks
+  #
+  # Association with autosave option defines several callbacks on your
+  # model (before_save, after_create, after_update). Please note that
+  # callbacks are executed in the order they were defined in
+  # model. You should avoid modifying the association content, before
+  # autosave callbacks are executed. Placing your callbacks after
+  # associations is usually a good practice.
+  #
+  # == Examples
   #
   # === One-to-one Example
   #
@@ -65,7 +78,7 @@ module ActiveRecord
   # When <tt>:autosave</tt> is not declared new children are saved when their parent is saved:
   #
   #   class Post
-  #     has_many :comments # :autosave option is no declared
+  #     has_many :comments # :autosave option is not declared
   #   end
   #
   #   post = Post.new(:title => 'ruby rocks')
@@ -80,7 +93,8 @@ module ActiveRecord
   #   post.comments.create(:body => 'hello world')
   #   post.save # => saves both post and comment
   #
-  # When <tt>:autosave</tt> is true all children is saved, no matter whether they are new records:
+  # When <tt>:autosave</tt> is true all children are saved, no matter whether they
+  # are new records or not:
   #
   #   class Post
   #     has_many :comments, :autosave => true
@@ -109,10 +123,7 @@ module ActiveRecord
   # Now it _is_ removed from the database:
   #
   #   Comment.find_by_id(id).nil? # => true
-  #
-  # === Validation
-  #
-  # Children records are validated unless <tt>:validate</tt> is +false+.
+
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
@@ -180,23 +191,21 @@ module ActiveRecord
             # Doesn't use after_save as that would save associations added in after_create/after_update twice
             after_create save_method
             after_update save_method
+          elsif reflection.macro == :has_one
+            define_method(save_method) { save_has_one_association(reflection) }
+            # Configures two callbacks instead of a single after_save so that
+            # the model may rely on their execution order relative to its
+            # own callbacks.
+            #
+            # For example, given that after_creates run before after_saves, if
+            # we configured instead an after_save there would be no way to fire
+            # a custom after_create callback after the child association gets
+            # created.
+            after_create save_method
+            after_update save_method
           else
-            if reflection.macro == :has_one
-              define_method(save_method) { save_has_one_association(reflection) }
-              # Configures two callbacks instead of a single after_save so that
-              # the model may rely on their execution order relative to its
-              # own callbacks.
-              #
-              # For example, given that after_creates run before after_saves, if
-              # we configured instead an after_save there would be no way to fire
-              # a custom after_create callback after the child association gets
-              # created.
-              after_create save_method
-              after_update save_method
-            else
-              define_non_cyclic_method(save_method, reflection) { save_belongs_to_association(reflection) }
-              before_save save_method
-            end
+            define_non_cyclic_method(save_method, reflection) { save_belongs_to_association(reflection) }
+            before_save save_method
           end
         end
 
@@ -264,7 +273,7 @@ module ActiveRecord
     # turned on for the association.
     def validate_single_association(reflection)
       association = association_instance_get(reflection.name)
-      record      = association && association.target
+      record      = association && association.reader
       association_valid?(reflection, record) if record
     end
 
@@ -285,7 +294,7 @@ module ActiveRecord
     def association_valid?(reflection, record)
       return true if record.destroyed? || record.marked_for_destruction?
 
-      unless valid = record.valid?
+      unless valid = record.valid?(validation_context)
         if reflection.options[:autosave]
           record.errors.each do |attribute, message|
             attribute = "#{reflection.name}.#{attribute}"
@@ -319,19 +328,19 @@ module ActiveRecord
         autosave = reflection.options[:autosave]
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
-          begin
+          records_to_destroy = []
           records.each do |record|
             next if record.destroyed?
 
             saved = true
 
             if autosave && record.marked_for_destruction?
-              association.proxy.destroy(record)
+              records_to_destroy << record
             elsif autosave != false && (@new_record_before_save || record.new_record?)
               if autosave
                 saved = association.insert_record(record, false)
               else
-                association.insert_record(record)
+                association.insert_record(record) unless reflection.nested?
               end
             elsif autosave
               saved = record.save(:validate => false)
@@ -339,11 +348,10 @@ module ActiveRecord
 
             raise ActiveRecord::Rollback unless saved
           end
-          rescue
-            records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
-            raise
-          end
 
+          records_to_destroy.each do |record|
+            association.destroy(record)
+          end
         end
 
         # reconstruct the scope now that we know the owner's id
@@ -370,7 +378,10 @@ module ActiveRecord
         else
           key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
           if autosave != false && (new_record? || record.new_record? || record[reflection.foreign_key] != key || autosave)
-            record[reflection.foreign_key] = key
+            unless reflection.through_reflection
+              record[reflection.foreign_key] = key
+            end
+
             saved = record.save(:validate => !autosave)
             raise ActiveRecord::Rollback if !saved && autosave
             saved

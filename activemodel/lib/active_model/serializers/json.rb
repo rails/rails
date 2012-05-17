@@ -10,12 +10,13 @@ module ActiveModel
 
       included do
         extend ActiveModel::Naming
+        extend ActiveModel::Configuration
 
-        class_attribute :include_root_in_json
+        config_attribute :include_root_in_json
         self.include_root_in_json = true
       end
 
-      # Returns a JSON string representing the model. Some configuration can be
+      # Returns a hash representing the model. Some configuration can be
       # passed through +options+.
       #
       # The option <tt>include_root_in_json</tt> controls the top-level behavior
@@ -42,7 +43,7 @@ module ActiveModel
       # The remainder of the examples in this section assume include_root_in_json is set to
       # <tt>false</tt>.
       #
-      # Without any +options+, the returned JSON string will include all the model's
+      # Without any +options+, the returned Hash will include all the model's
       # attributes. For example:
       #
       #   user = User.find(1)
@@ -86,21 +87,15 @@ module ActiveModel
       #                    "title": "Welcome to the weblog"},
       #                   {"comments": [{"body": "Don't think too hard"}],
       #                    "title": "So I was thinking"}]}
-
       def as_json(options = nil)
-        hash = serializable_hash(options)
-
-        include_root = include_root_in_json
-        if options.try(:key?, :root)
-          include_root = options[:root]
+        root = include_root_in_json
+        root = options[:root] if options.try(:key?, :root)
+        if root
+          root = self.class.model_name.element if root == true
+          { root => serializable_hash(options) }
+        else
+          serializable_hash(options)
         end
-
-        if include_root
-          custom_root = options && options[:root]
-          hash = { custom_root || self.class.model_name.element => hash }
-        end
-
-        hash
       end
 
       def from_json(json, include_root=include_root_in_json)

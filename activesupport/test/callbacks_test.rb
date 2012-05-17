@@ -1,10 +1,9 @@
 require 'abstract_unit'
-require 'test/unit'
 
 module CallbacksTest
   class Phone
     include ActiveSupport::Callbacks
-    define_callbacks :save, :rescuable => true
+    define_callbacks :save
 
     set_callback :save, :before, :before_save1
     set_callback :save, :after, :after_save1
@@ -96,7 +95,7 @@ module CallbacksTest
 
     define_callbacks :dispatch
 
-    set_callback :dispatch, :before, :log, :per_key => {:unless => proc {|c| c.action_name == :index || c.action_name == :show }}
+    set_callback :dispatch, :before, :log, :unless => proc {|c| c.action_name == :index || c.action_name == :show }
     set_callback :dispatch, :after, :log2
 
     attr_reader :action_name, :logger
@@ -113,7 +112,7 @@ module CallbacksTest
     end
 
     def dispatch
-      run_callbacks :dispatch, action_name do
+      run_callbacks :dispatch do
         @logger << "Done"
       end
       self
@@ -121,7 +120,7 @@ module CallbacksTest
   end
 
   class Child < ParentController
-    skip_callback :dispatch, :before, :log, :per_key => {:if => proc {|c| c.action_name == :update} }
+    skip_callback :dispatch, :before, :log, :if => proc {|c| c.action_name == :update} 
     skip_callback :dispatch, :after, :log2
   end
 
@@ -132,10 +131,10 @@ module CallbacksTest
       super
     end
 
-    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :if] }, :per_key => {:if => :starts_true}
-    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :if] }, :per_key => {:if => :starts_false}
-    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :unless] }, :per_key => {:unless => :starts_true}
-    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :unless] }, :per_key => {:unless => :starts_false}
+    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :if] }, :if => :starts_true
+    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :if] }, :if => :starts_false
+    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :unless] }, :unless => :starts_true
+    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :unless] }, :unless => :starts_false
 
     def starts_true
       if @@starts_true
@@ -154,11 +153,11 @@ module CallbacksTest
     end
 
     def save
-      run_callbacks :save, :action
+      run_callbacks :save
     end
   end
 
-  class OneTimeCompileTest < Test::Unit::TestCase
+  class OneTimeCompileTest < ActiveSupport::TestCase
     def test_optimized_first_compile
       around = OneTimeCompile.new
       around.save
@@ -177,7 +176,7 @@ module CallbacksTest
     end
   end
 
-  class AfterSaveConditionalPersonCallbackTest < Test::Unit::TestCase
+  class AfterSaveConditionalPersonCallbackTest < ActiveSupport::TestCase
     def test_after_save_runs_in_the_reverse_order
       person = AfterSaveConditionalPerson.new
       person.save
@@ -330,7 +329,7 @@ module CallbacksTest
     define_callbacks :save
     attr_reader :stuff
 
-    set_callback :save, :before, :action, :per_key => {:if => :yes}
+    set_callback :save, :before, :action, :if => :yes
 
     def yes() true end
 
@@ -339,13 +338,61 @@ module CallbacksTest
     end
 
     def save
-      run_callbacks :save, "hyphen-ated" do
+      run_callbacks :save do
         @stuff
       end
     end
   end
 
-  class AroundCallbacksTest < Test::Unit::TestCase
+  module ExtendModule
+    def self.extended(base)
+      base.class_eval do
+        set_callback :save, :before, :record3
+      end
+    end
+    def record3
+      @recorder << 3
+    end
+  end
+
+  module IncludeModule
+    def self.included(base)
+      base.class_eval do
+        set_callback :save, :before, :record2
+      end
+    end
+    def record2
+      @recorder << 2
+    end
+  end
+
+  class ExtendCallbacks
+
+    include ActiveSupport::Callbacks
+
+    define_callbacks :save
+    set_callback :save, :before, :record1
+
+    include IncludeModule
+
+    def save
+      run_callbacks :save
+    end
+
+    attr_reader :recorder
+
+    def initialize
+      @recorder = []
+    end
+
+    private
+
+      def record1
+        @recorder << 1
+      end
+  end
+
+  class AroundCallbacksTest < ActiveSupport::TestCase
     def test_save_around
       around = AroundPerson.new
       around.save
@@ -364,7 +411,7 @@ module CallbacksTest
     end
   end
   
-  class AroundCallbackResultTest < Test::Unit::TestCase
+  class AroundCallbackResultTest < ActiveSupport::TestCase
     def test_save_around
       around = AroundPersonResult.new
       around.save
@@ -372,7 +419,7 @@ module CallbacksTest
     end
   end
 
-  class SkipCallbacksTest < Test::Unit::TestCase
+  class SkipCallbacksTest < ActiveSupport::TestCase
     def test_skip_person
       person = PersonSkipper.new
       assert_equal [], person.history
@@ -391,14 +438,7 @@ module CallbacksTest
     end
   end
 
-  class CallbacksTest < Test::Unit::TestCase
-    def test_save_phone
-      phone = Phone.new
-      assert_raise RuntimeError do
-        phone.save
-      end
-      assert_equal [:before, :after], phone.history
-    end
+  class CallbacksTest < ActiveSupport::TestCase
 
     def test_save_person
       person = Person.new
@@ -419,7 +459,7 @@ module CallbacksTest
     end
   end
 
-  class ConditionalCallbackTest < Test::Unit::TestCase
+  class ConditionalCallbackTest < ActiveSupport::TestCase
     def test_save_conditional_person
       person = ConditionalPerson.new
       person.save
@@ -437,7 +477,7 @@ module CallbacksTest
 
 
 
-  class ResetCallbackTest < Test::Unit::TestCase
+  class ResetCallbackTest < ActiveSupport::TestCase
     def test_save_conditional_person
       person = CleanPerson.new
       person.save
@@ -461,7 +501,7 @@ module CallbacksTest
     set_callback :save, :after, :third
 
 
-    attr_reader :history, :saved
+    attr_reader :history, :saved, :halted
     def initialize
       @history = []
     end
@@ -489,6 +529,10 @@ module CallbacksTest
       run_callbacks :save do
         @saved = true
       end
+    end
+
+    def halted_callback_hook(filter)
+      @halted = filter
     end
   end
 
@@ -563,7 +607,7 @@ module CallbacksTest
     end
   end
 
-  class UsingObjectTest < Test::Unit::TestCase
+  class UsingObjectTest < ActiveSupport::TestCase
     def test_before_object
       u = UsingObjectBefore.new
       u.save
@@ -588,11 +632,17 @@ module CallbacksTest
     end
   end
 
-  class CallbackTerminatorTest < Test::Unit::TestCase
+  class CallbackTerminatorTest < ActiveSupport::TestCase
     def test_termination
       terminator = CallbackTerminator.new
       terminator.save
       assert_equal ["first", "second", "third", "second", "first"], terminator.history
+    end
+
+    def test_termination_invokes_hook
+      terminator = CallbackTerminator.new
+      terminator.save
+      assert_equal ":second", terminator.halted
     end
 
     def test_block_never_called_if_terminated
@@ -602,7 +652,7 @@ module CallbacksTest
     end
   end
 
-  class HyphenatedKeyTest < Test::Unit::TestCase
+  class HyphenatedKeyTest < ActiveSupport::TestCase
     def test_save
       obj = HyphenatedCallbacks.new
       obj.save
@@ -615,7 +665,7 @@ module CallbacksTest
     skip_callback :save, :before, :before_save_method, :if => lambda {self.age > 21}
   end
 
-  class WriterCallbacksTest < Test::Unit::TestCase
+  class WriterCallbacksTest < ActiveSupport::TestCase
     def test_skip_writer
       writer = WriterSkipper.new
       writer.age = 18
@@ -636,4 +686,28 @@ module CallbacksTest
     end
   end
 
+  class ExtendCallbacksTest < ActiveSupport::TestCase
+    def test_save
+      model = ExtendCallbacks.new.extend ExtendModule
+      model.save
+      assert_equal [1, 2, 3], model.recorder
+    end
+  end
+
+  class PerKeyOptionDeprecationTest < ActiveSupport::TestCase
+
+    def test_per_key_option_deprecaton
+      assert_raise NotImplementedError do
+        Phone.class_eval do
+          set_callback :save, :before, :before_save1, :per_key => {:if => "true"}
+        end
+      end
+      assert_raise NotImplementedError do
+        Phone.class_eval do
+          skip_callback :save, :before, :before_save1, :per_key => {:if => "true"}
+        end
+      end
+    end
+  end
+ 
 end

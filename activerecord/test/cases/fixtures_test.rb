@@ -1,30 +1,34 @@
-require "cases/helper"
-require 'models/post'
-require 'models/binary'
-require 'models/topic'
-require 'models/computer'
-require 'models/developer'
-require 'models/company'
-require 'models/task'
-require 'models/reply'
-require 'models/joke'
-require 'models/course'
-require 'models/category'
-require 'models/parrot'
-require 'models/pirate'
-require 'models/treasure'
-require 'models/traffic_light'
-require 'models/matey'
-require 'models/ship'
-require 'models/book'
+require 'cases/helper'
 require 'models/admin'
 require 'models/admin/account'
+require 'models/admin/randomly_named_c1'
 require 'models/admin/user'
+require 'models/binary'
+require 'models/book'
+require 'models/category'
+require 'models/company'
+require 'models/computer'
+require 'models/course'
+require 'models/developer'
+require 'models/joke'
+require 'models/matey'
+require 'models/parrot'
+require 'models/pirate'
+require 'models/post'
+require 'models/randomly_named_c1'
+require 'models/reply'
+require 'models/ship'
+require 'models/task'
+require 'models/topic'
+require 'models/traffic_light'
+require 'models/treasure'
+require 'tempfile'
 
 class FixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = false
 
+  # other_topics fixture should not be included here
   fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes, :binaries, :traffic_lights
 
   FIXTURES = %w( accounts binaries companies customers
@@ -45,9 +49,25 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
+  def test_broken_yaml_exception
+    badyaml = Tempfile.new ['foo', '.yml']
+    badyaml.write 'a: : '
+    badyaml.flush
+
+    dir  = File.dirname badyaml.path
+    name = File.basename badyaml.path, '.yml'
+    assert_raises(ActiveRecord::Fixture::FormatError) do
+      ActiveRecord::Fixtures.create_fixtures(dir, name)
+    end
+  ensure
+    badyaml.close
+    badyaml.unlink
+  end
+
   def test_create_fixtures
-    ActiveRecord::Fixtures.create_fixtures(FIXTURES_ROOT, "parrots")
-    assert Parrot.find_by_name('Curious George'), 'George is in the database'
+    fixtures = ActiveRecord::Fixtures.create_fixtures(FIXTURES_ROOT, "parrots")
+    assert Parrot.find_by_name('Curious George'), 'George is not in the database'
+    assert fixtures.detect { |f| f.name == 'parrots' }, "no fixtures named 'parrots' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_multiple_clean_fixtures
@@ -55,6 +75,13 @@ class FixturesTest < ActiveRecord::TestCase
     assert_nothing_raised { fixtures_array = create_fixtures(*FIXTURES) }
     assert_kind_of(Array, fixtures_array)
     fixtures_array.each { |fixtures| assert_kind_of(ActiveRecord::Fixtures, fixtures) }
+  end
+
+  def test_create_symbol_fixtures
+    fixtures = ActiveRecord::Fixtures.create_fixtures(FIXTURES_ROOT, :collections, :collections => Course) { Course.connection }
+
+    assert Course.find_by_name('Collection'), 'course is not in the database'
+    assert fixtures.detect { |f| f.name == 'collections' }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_attributes
@@ -77,7 +104,7 @@ class FixturesTest < ActiveRecord::TestCase
       # Reset cache to make finds on the new table work
       ActiveRecord::Fixtures.reset_cache
 
-      ActiveRecord::Base.connection.create_table :prefix_topics_suffix do |t|
+      ActiveRecord::Base.connection.create_table :prefix_other_topics_suffix do |t|
         t.column :title, :string
         t.column :author_name, :string
         t.column :author_email_address, :string
@@ -99,23 +126,36 @@ class FixturesTest < ActiveRecord::TestCase
       ActiveRecord::Base.table_name_prefix = 'prefix_'
       ActiveRecord::Base.table_name_suffix = '_suffix'
 
-      topics = create_fixtures("topics")
+      other_topic_klass = Class.new(ActiveRecord::Base) do
+        def self.name
+          "OtherTopic"
+        end
+      end
 
-      first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'David'")
-      assert_equal("The First Topic", first_row["title"])
-
-      second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'Mary'")
-      assert_nil(second_row["author_email_address"])
+      topics = [create_fixtures("other_topics")].flatten.first
 
       # This checks for a caching problem which causes a bug in the fixtures
       # class-level configuration helper.
       assert_not_nil topics, "Fixture data inserted, but fixture objects not returned from create"
+
+      first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'David'")
+      assert_not_nil first_row, "The prefix_other_topics_suffix table appears to be empty despite create_fixtures: the row with author_name = 'David' was not found"
+      assert_equal("The First Topic", first_row["title"])
+
+      second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'Mary'")
+      assert_nil(second_row["author_email_address"])
+
+      assert_equal :prefix_other_topics_suffix, topics.table_name.to_sym
+      # This assertion should preferably be the last in the list, because calling
+      # other_topic_klass.table_name sets a class-level instance variable
+      assert_equal :prefix_other_topics_suffix, other_topic_klass.table_name.to_sym
+
     ensure
       # Restore prefix/suffix to its previous values
       ActiveRecord::Base.table_name_prefix = old_prefix
       ActiveRecord::Base.table_name_suffix = old_suffix
 
-      ActiveRecord::Base.connection.drop_table :prefix_topics_suffix rescue nil
+      ActiveRecord::Base.connection.drop_table :prefix_other_topics_suffix rescue nil
     end
   end
 
@@ -163,7 +203,7 @@ class FixturesTest < ActiveRecord::TestCase
     #sanity check to make sure that this file never exists
     assert Dir[nonexistent_fixture_path+"*"].empty?
 
-    assert_raise(FixturesFileNotFound) do
+    assert_raise(Errno::ENOENT) do
       ActiveRecord::Fixtures.new( Account.connection, "companies", 'Company', nonexistent_fixture_path)
     end
   end
@@ -197,7 +237,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_binary_in_fixtures
     data = File.open(ASSETS_ROOT + "/flowers.jpg", 'rb') { |f| f.read }
-    data.force_encoding('ASCII-8BIT') if data.respond_to?(:force_encoding)
+    data.force_encoding('ASCII-8BIT')
     data.freeze
     assert_equal data, @flowers.data
   end
@@ -435,13 +475,35 @@ end
 class CustomConnectionFixturesTest < ActiveRecord::TestCase
   set_fixture_class :courses => Course
   fixtures :courses
-  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
   self.use_transactional_fixtures = false
 
   def test_connection
     assert_kind_of Course, courses(:ruby)
     assert_equal Course.connection, courses(:ruby).connection
+  end
+
+  def test_leaky_destroy
+    assert_nothing_raised { courses(:ruby) }
+    courses(:ruby).destroy
+  end
+
+  def test_it_twice_in_whatever_order_to_check_for_fixture_leakage
+    test_leaky_destroy
+  end
+end
+
+class TransactionalFixturesOnCustomConnectionTest < ActiveRecord::TestCase
+  set_fixture_class :courses => Course
+  fixtures :courses
+  self.use_transactional_fixtures = true
+
+  def test_leaky_destroy
+    assert_nothing_raised { courses(:ruby) }
+    courses(:ruby).destroy
+  end
+
+  def test_it_twice_in_whatever_order_to_check_for_fixture_leakage
+    test_leaky_destroy
   end
 end
 
@@ -452,7 +514,7 @@ class InvalidTableNameFixturesTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def test_raises_error
-    assert_raise FixtureClassNotFound do
+    assert_raise ActiveRecord::FixtureClassNotFound do
       funny_jokes(:a_joke)
     end
   end
@@ -480,7 +542,9 @@ class ManyToManyFixturesWithClassDefined < ActiveRecord::TestCase
 end
 
 class FixturesBrokenRollbackTest < ActiveRecord::TestCase
-  def blank_setup; end
+  def blank_setup
+    @fixture_connections = [ActiveRecord::Base.connection]
+  end
   alias_method :ar_setup_fixtures, :setup_fixtures
   alias_method :setup_fixtures, :blank_setup
   alias_method :setup, :blank_setup
@@ -533,7 +597,7 @@ class FasterFixturesTest < ActiveRecord::TestCase
 
     load_extra_fixture('posts')
     assert ActiveRecord::Fixtures.fixture_is_cached?(ActiveRecord::Base.connection, 'posts')
-    self.class.setup_fixture_accessors('posts')
+    self.class.setup_fixture_accessors :posts
     assert_equal 'Welcome to the weblog', posts(:welcome).title
   end
 end
@@ -652,7 +716,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_only_generates_a_pk_if_necessary
-    m = Matey.find(:first)
+    m = Matey.first
     m.pirate = pirates(:blackbeard)
     m.target = pirates(:redbeard)
   end
@@ -689,5 +753,36 @@ class FixtureLoadingTest < ActiveRecord::TestCase
     ActiveRecord::TestCase.expects(:require_dependency).with(:works_out_fine)
     ActiveRecord::Base.logger.expects(:warn).never
     ActiveRecord::TestCase.try_to_load_dependency(:works_out_fine)
+  end
+end
+
+class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
+  ActiveRecord::Fixtures.reset_cache
+
+  set_fixture_class :randomly_named_a9         =>
+                        ClassNameThatDoesNotFollowCONVENTIONS,
+                    :'admin/randomly_named_a9' =>
+                        Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                    'admin/randomly_named_b0'  =>
+                        Admin::ClassNameThatDoesNotFollowCONVENTIONS
+
+  fixtures :randomly_named_a9, 'admin/randomly_named_a9',
+           :'admin/randomly_named_b0'
+
+  def test_named_accessor_for_randomly_named_fixture_and_class
+    assert_kind_of ClassNameThatDoesNotFollowCONVENTIONS,
+                   randomly_named_a9(:first_instance)
+  end
+
+  def test_named_accessor_for_randomly_named_namespaced_fixture_and_class
+    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                   admin_randomly_named_a9(:first_instance)
+    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                   admin_randomly_named_b0(:second_instance)
+  end
+
+  def test_table_name_is_defined_in_the_model
+    assert_equal 'randomly_named_table', ActiveRecord::Fixtures::all_loaded_fixtures["admin/randomly_named_a9"].table_name
+    assert_equal 'randomly_named_table', Admin::ClassNameThatDoesNotFollowCONVENTIONS.table_name
   end
 end

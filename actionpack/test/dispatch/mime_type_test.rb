@@ -69,6 +69,18 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, Mime::Type.parse(accept)
   end
 
+  test "parse single media range with q" do
+    accept = "text/html;q=0.9"
+    expect = [Mime::HTML]
+    assert_equal expect, Mime::Type.parse(accept)
+  end
+
+  test "parse arbitarry media type parameters" do
+    accept = 'multipart/form-data; boundary="simple boundary"'
+    expect = [Mime::MULTIPART_FORM]
+    assert_equal expect, Mime::Type.parse(accept)
+  end
+
   # Accept header send with user HTTP_USER_AGENT: Sunrise/0.42j (Windows XP)
   test "parse broken acceptlines" do
     accept = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/*,,*/*;q=0.5"
@@ -95,6 +107,37 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
+  test "custom type with type aliases" do
+    begin
+      Mime::Type.register "text/foobar", :foobar, ["text/foo", "text/bar"]
+      %w[text/foobar text/foo text/bar].each do |type|
+        assert_equal Mime::FOOBAR, type
+      end
+    ensure
+      Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
+  test "custom type with extension aliases" do
+    begin
+      Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
+      %w[foobar foo bar].each do |extension|
+        assert_equal Mime::FOOBAR, Mime::EXTENSION_LOOKUP[extension]
+      end
+    ensure
+      Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
+  test "register alias" do
+    begin
+      Mime::Type.register_alias "application/xhtml+xml", :foobar
+      assert_equal Mime::HTML, Mime::EXTENSION_LOOKUP['foobar']
+    ensure
+      Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
   test "type should be equal to symbol" do
     assert_equal Mime::HTML, 'application/xhtml+xml'
     assert_equal Mime::HTML, :html
@@ -107,8 +150,10 @@ class MimeTypeTest < ActiveSupport::TestCase
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
     types.delete_if { |type| !Mime.const_defined?(type.to_s.upcase) }
 
+
     types.each do |type|
       mime = Mime.const_get(type.to_s.upcase)
+      assert mime.respond_to?("#{type}?"), "#{mime.inspect} does not respond to #{type}?"
       assert mime.send("#{type}?"), "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
       invalid_types.delete(:html) if Mime::Type.html_types.include?(type)

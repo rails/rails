@@ -5,7 +5,7 @@ module ActiveModel
     class NumericalityValidator < EachValidator
       CHECKS = { :greater_than => :>, :greater_than_or_equal_to => :>=,
                  :equal_to => :==, :less_than => :<, :less_than_or_equal_to => :<=,
-                 :odd => :odd?, :even => :even? }.freeze
+                 :odd => :odd?, :even => :even?, :other_than => :!= }.freeze
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
@@ -99,6 +99,7 @@ module ActiveModel
       # * <tt>:equal_to</tt> - Specifies the value must be equal to the supplied value.
       # * <tt>:less_than</tt> - Specifies the value must be less than the supplied value.
       # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less than or equal the supplied value.
+      # * <tt>:other_than</tt> - Specifies the value must be other than the supplied value.
       # * <tt>:odd</tt> - Specifies the value must be an odd number.
       # * <tt>:even</tt> - Specifies the value must be an even number.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
@@ -107,6 +108,8 @@ module ActiveModel
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
+      # * <tt>:strict</tt> - Specifies whether validation should be strict.
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
       #
       # The following checks can also be supplied with a proc or a symbol which corresponds to a method:
       # * <tt>:greater_than</tt>

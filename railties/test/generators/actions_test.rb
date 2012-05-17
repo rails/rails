@@ -9,8 +9,6 @@ class ActionsTest < Rails::Generators::TestCase
   def setup
     Rails.application = TestApp::Application
     super
-    @git_plugin_uri = 'git://github.com/technoweenie/restful-authentication.git'
-    @svn_plugin_uri = 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
   end
 
   def teardown
@@ -37,41 +35,6 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'lib/test_file.rb', 'heres block data'
   end
 
-  def test_plugin_with_git_option_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/rails plugin install #{@git_plugin_uri}", :verbose => false)
-    action :plugin, 'restful-authentication', :git => @git_plugin_uri
-  end
-
-  def test_plugin_with_svn_option_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/rails plugin install #{@svn_plugin_uri}", :verbose => false)
-    action :plugin, 'restful-authentication', :svn => @svn_plugin_uri
-  end
-
-  def test_plugin_with_git_option_and_branch_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/rails plugin install -b stable #{@git_plugin_uri}", :verbose => false)
-    action :plugin, 'restful-authentication', :git => @git_plugin_uri, :branch => 'stable'
-  end
-
-  def test_plugin_with_svn_option_and_revision_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/rails plugin install -r 1234 #{@svn_plugin_uri}", :verbose => false)
-    action :plugin, 'restful-authentication', :svn => @svn_plugin_uri, :revision => 1234
-  end
-
-  def test_plugin_with_git_option_and_submodule_should_use_git_scm
-    generator.expects(:run).with("git submodule add #{@git_plugin_uri} vendor/plugins/rest_auth", :verbose => false)
-    action :plugin, 'rest_auth', :git => @git_plugin_uri, :submodule => true
-  end
-
-  def test_plugin_with_git_option_and_submodule_should_use_git_scm
-    generator.expects(:run).with("git submodule add -b stable #{@git_plugin_uri} vendor/plugins/rest_auth", :verbose => false)
-    action :plugin, 'rest_auth', :git => @git_plugin_uri, :submodule => true, :branch => 'stable'
-  end
-
-  def test_plugin_with_no_options_should_skip_method
-    generator.expects(:run).never
-    action :plugin, 'rest_auth', {}
-  end
-
   def test_add_source_adds_source_to_gemfile
     run_generator
     action :add_source, 'http://gems.github.com'
@@ -95,18 +58,34 @@ class ActionsTest < Rails::Generators::TestCase
   def test_gem_should_insert_on_separate_lines
     run_generator
 
+    File.open('Gemfile', 'a') {|f| f.write('# Some content...') }
+
     action :gem, 'rspec'
     action :gem, 'rspec-rails'
 
-    assert_file 'Gemfile', /gem "rspec"$/
-    assert_file 'Gemfile', /gem "rspec-rails"$/
+    assert_file 'Gemfile', /^gem "rspec"$/
+    assert_file 'Gemfile', /^gem "rspec-rails"$/
+  end
+
+  def test_gem_group_should_wrap_gems_in_a_group
+    run_generator
+
+    action :gem_group, :development, :test do
+      gem 'rspec-rails'
+    end
+
+    action :gem_group, :test do
+      gem 'fakeweb'
+    end
+
+    assert_file 'Gemfile', /\ngroup :development, :test do\n  gem "rspec-rails"\nend\n\ngroup :test do\n  gem "fakeweb"\nend/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
     run_generator
     autoload_paths = 'config.autoload_paths += %w["#{Rails.root}/app/extras"]'
     action :environment, autoload_paths
-    assert_file 'config/application.rb', /#{Regexp.escape(autoload_paths)}/
+    assert_file 'config/application.rb', /  class Application < Rails::Application\n    #{Regexp.escape(autoload_paths)}/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block_with_env_option
@@ -165,9 +144,12 @@ class ActionsTest < Rails::Generators::TestCase
     action :generate, 'model', 'MyModel'
   end
 
-  def test_rake_should_run_rake_command_with_development_env
-    generator.expects(:run).once.with('rake log:clear RAILS_ENV=development', :verbose => false)
+  def test_rake_should_run_rake_command_with_default_env
+    generator.expects(:run).once.with("rake log:clear RAILS_ENV=development", :verbose => false)
+    old_env, ENV['RAILS_ENV'] = ENV["RAILS_ENV"], nil
     action :rake, 'log:clear'
+  ensure
+    ENV["RAILS_ENV"] = old_env
   end
 
   def test_rake_with_env_option_should_run_rake_command_in_env
@@ -175,9 +157,28 @@ class ActionsTest < Rails::Generators::TestCase
     action :rake, 'log:clear', :env => 'production'
   end
 
+  def test_rake_with_rails_env_variable_should_run_rake_command_in_env
+    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', :verbose => false)
+    old_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "production"
+    action :rake, 'log:clear'
+  ensure
+    ENV["RAILS_ENV"] = old_env
+  end
+
+  def test_env_option_should_win_over_rails_env_variable_when_running_rake
+    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', :verbose => false)
+    old_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "staging"
+    action :rake, 'log:clear', :env => 'production'
+  ensure
+    ENV["RAILS_ENV"] = old_env
+  end
+
   def test_rake_with_sudo_option_should_run_rake_command_with_sudo
-    generator.expects(:run).once.with('sudo rake log:clear RAILS_ENV=development', :verbose => false)
+    generator.expects(:run).once.with("sudo rake log:clear RAILS_ENV=development", :verbose => false)
+    old_env, ENV['RAILS_ENV'] = ENV["RAILS_ENV"], nil
     action :rake, 'log:clear', :sudo => true
+  ensure
+    ENV["RAILS_ENV"] = old_env
   end
 
   def test_capify_should_run_the_capify_command
@@ -195,14 +196,14 @@ class ActionsTest < Rails::Generators::TestCase
   def test_readme
     run_generator
     Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
-    assert_match(/Welcome to Rails/, action(:readme, "README"))
+    assert_match(/Welcome to Rails/, action(:readme, "README.rdoc"))
   end
 
   def test_readme_with_quiet
     generator(default_arguments, :quiet => true)
     run_generator
     Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
-    assert_no_match(/Welcome to Rails/, action(:readme, "README"))
+    assert_no_match(/Welcome to Rails/, action(:readme, "README.rdoc"))
   end
 
   def test_log

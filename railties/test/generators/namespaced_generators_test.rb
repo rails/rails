@@ -56,10 +56,19 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
     run_generator
     assert_file "config/routes.rb", /get "account\/foo"/, /get "account\/bar"/
   end
-#
+
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["account"]
     assert_file "app/views/test_app/account"
+  end
+
+  def test_namespaced_controller_dont_indent_blank_lines
+    run_generator
+    assert_file "app/controllers/test_app/account_controller.rb" do |content|
+      content.split("\n").each do |line|
+        assert_no_match line, /^\s+$/, "Don't indent blank lines"
+      end
+    end
   end
 end
 
@@ -155,11 +164,7 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
     assert_file "app/mailers/test_app/notifier.rb" do |mailer|
       assert_match(/module TestApp/, mailer)
       assert_match(/class Notifier < ActionMailer::Base/, mailer)
-      if RUBY_VERSION < "1.9"
-        assert_match(/default :from => "from@example.com"/, mailer)
-      else
-        assert_match(/default from: "from@example.com"/, mailer)
-      end
+      assert_match(/default from: "from@example.com"/, mailer)
     end
   end
 

@@ -40,14 +40,15 @@ module ActionController #:nodoc:
     #
     # You can modify the default action cache path by passing a
     # <tt>:cache_path</tt> option. This will be passed directly to
-    # <tt>ActionCachePath.path_for</tt>. This is handy for actions with
+    # <tt>ActionCachePath.new</tt>. This is handy for actions with
     # multiple possible routes that should be cached differently. If a
     # block is given, it is called with the current controller instance.
     #
     # And you can also use <tt>:if</tt> (or <tt>:unless</tt>) to pass a
     # proc that specifies when the action should be cached.
     #
-    # Finally, if you are using memcached, you can also pass <tt>:expires_in</tt>.
+    # As of Rails 3.0, you can also pass <tt>:expires_in</tt> with a time 
+    # interval (in seconds) to schedule expiration of the cached item.
     #
     # The following example depicts some of the points made above:
     #
@@ -56,14 +57,14 @@ module ActionController #:nodoc:
     #
     #     caches_page :public
     #
-    #     caches_action :index, :if => proc do
+    #     caches_action :index, :if => Proc.new do
     #       !request.format.json?  # cache if is not a JSON request
     #     end
     #
     #     caches_action :show, :cache_path => { :project => 1 },
     #       :expires_in => 1.hour
     #
-    #     caches_action :feed, :cache_path => proc do
+    #     caches_action :feed, :cache_path => Proc.new do
     #       if params[:user_id]
     #         user_list_url(params[:user_id, params[:id])
     #       else
@@ -102,8 +103,10 @@ module ActionController #:nodoc:
       end
 
       def _save_fragment(name, options)
-        content = response_body
-        content = content.join if content.is_a?(Array)
+        content = ""
+        response_body.each do |parts|
+          content << parts
+        end
 
         if caching_allowed?
           write_fragment(name, content, options)
@@ -116,9 +119,8 @@ module ActionController #:nodoc:
       def expire_action(options = {})
         return unless cache_configured?
 
-        actions = options[:action]
-        if actions.is_a?(Array)
-          actions.each {|action| expire_action(options.merge(:action => action)) }
+        if options.is_a?(Hash) && options[:action].is_a?(Array)
+          options[:action].each {|action| expire_action(options.merge(:action => action)) }
         else
           expire_fragment(ActionCachePath.new(self, options, false).path)
         end
@@ -131,6 +133,8 @@ module ActionController #:nodoc:
         end
 
         def filter(controller)
+          cache_layout = @cache_layout.respond_to?(:call) ? @cache_layout.call(controller) : @cache_layout
+
           path_options = if @cache_path.respond_to?(:call)
             controller.instance_exec(controller, &@cache_path)
           else
@@ -142,13 +146,13 @@ module ActionController #:nodoc:
           body = controller.read_fragment(cache_path.path, @store_options)
 
           unless body
-            controller.action_has_layout = false unless @cache_layout
+            controller.action_has_layout = false unless cache_layout
             yield
             controller.action_has_layout = true
             body = controller._save_fragment(cache_path.path, @store_options)
           end
 
-          body = controller.render_to_string(:text => body, :layout => true) unless @cache_layout
+          body = controller.render_to_string(:text => body, :layout => true) unless cache_layout
 
           controller.response_body = body
           controller.content_type = Mime[cache_path.extension || :html]
@@ -168,14 +172,14 @@ module ActionController #:nodoc:
             options.reverse_merge!(:format => @extension) if options.is_a?(Hash)
           end
 
-          path = controller.url_for(options).split(%r{://}).last
+          path = controller.url_for(options).split('://', 2).last
           @path = normalize!(path)
         end
 
       private
         def normalize!(path)
           path << 'index' if path[-1] == ?/
-          path << ".#{extension}" if extension and !path.ends_with?(extension)
+          path << ".#{extension}" if extension and !path.split('?', 2).first.ends_with?(".#{extension}")
           URI.parser.unescape(path)
         end
       end

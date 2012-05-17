@@ -5,14 +5,13 @@ require "active_support/log_subscriber/test_helper"
 
 class LogSubscriberTest < ActiveRecord::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
-  include ActiveSupport::BufferedLogger::Severity
+  include ActiveSupport::Logger::Severity
 
   fixtures :posts
 
   def setup
     @old_logger = ActiveRecord::Base.logger
-    @using_identity_map = ActiveRecord::IdentityMap.enabled?
-    ActiveRecord::IdentityMap.enabled = false
+    Developer.primary_key
     super
     ActiveRecord::LogSubscriber.attach_to(:active_record)
   end
@@ -21,7 +20,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
     super
     ActiveRecord::LogSubscriber.log_subscribers.pop
     ActiveRecord::Base.logger = @old_logger
-    ActiveRecord::IdentityMap.enabled = @using_identity_map
   end
 
   def set_logger(logger)
@@ -101,14 +99,5 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def test_initializes_runtime
     Thread.new { assert_equal 0, ActiveRecord::LogSubscriber.runtime }.join
-  end
-
-  def test_log
-    ActiveRecord::IdentityMap.use do
-      Post.find 1
-      Post.find 1
-    end
-    wait
-    assert_match(/From Identity Map/, @logger.logged(:debug).last)
   end
 end

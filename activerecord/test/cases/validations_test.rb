@@ -8,7 +8,7 @@ require 'models/parrot'
 require 'models/company'
 
 class ProtectedPerson < ActiveRecord::Base
-  set_table_name 'people'
+  self.table_name = 'people'
   attr_accessor :addon
   attr_protected :first_name
 end
@@ -89,30 +89,6 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) do
       WrongReply.create!([{ "title" => "OK" }, { "title" => "Wrong Create" }]) do |r|
         r.content = nil
-      end
-    end
-  end
-
-  def test_scoped_create_without_attributes
-    WrongReply.send(:with_scope, :create => {}) do
-      assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
-    end
-  end
-
-  def test_create_with_exceptions_using_scope_for_protected_attributes
-    assert_nothing_raised do
-      ProtectedPerson.send(:with_scope,  :create => { :first_name => "Mary" } ) do
-        person = ProtectedPerson.create! :addon => "Addon"
-        assert_equal person.first_name, "Mary", "scope should ignore attr_protected"
-      end
-    end
-  end
-
-  def test_create_with_exceptions_using_scope_and_empty_attributes
-    assert_nothing_raised do
-      ProtectedPerson.send(:with_scope,  :create => { :first_name => "Mary" } ) do
-        person = ProtectedPerson.create!
-        assert_equal person.first_name, "Mary", "should be ok when no attributes are passed to create!"
       end
     end
   end

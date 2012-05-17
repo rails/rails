@@ -14,10 +14,14 @@ class CachingController < ActionController::Base
 end
 
 class PageCachingTestController < CachingController
+  self.page_cache_compression = :best_compression
+
   caches_page :ok, :no_content, :if => Proc.new { |c| !c.request.format.json? }
   caches_page :found, :not_found
   caches_page :about_me
-
+  caches_page :default_gzip
+  caches_page :no_gzip, :gzip => false
+  caches_page :gzip_level, :gzip => :best_speed
 
   def ok
     head :ok
@@ -38,6 +42,18 @@ class PageCachingTestController < CachingController
   def custom_path
     render :text => "Super soaker"
     cache_page("Super soaker", "/index.html")
+  end
+
+  def default_gzip
+    render :text => "Text"
+  end
+
+  def no_gzip
+    render :text => "PNG"
+  end
+
+  def gzip_level
+    render :text => "Big text"
   end
 
   def expire_custom_path
@@ -86,8 +102,8 @@ class PageCachingTest < ActionController::TestCase
   def test_page_caching_resources_saves_to_correct_path_with_extension_even_if_default_route
     with_routing do |set|
       set.draw do
-        match 'posts.:format', :to => 'posts#index', :as => :formatted_posts
-        match '/', :to => 'posts#index', :as => :main
+        get 'posts.:format', :to => 'posts#index', :as => :formatted_posts
+        get '/', :to => 'posts#index', :as => :main
       end
       @params[:format] = 'rss'
       assert_equal '/posts.rss', @routes.url_for(@params)
@@ -115,6 +131,30 @@ class PageCachingTest < ActionController::TestCase
     assert !File.exist?("#{FILE_STORE_PATH}/index.html")
   end
 
+  def test_should_gzip_cache
+    get :custom_path
+    assert File.exist?("#{FILE_STORE_PATH}/index.html.gz")
+
+    get :expire_custom_path
+    assert !File.exist?("#{FILE_STORE_PATH}/index.html.gz")
+  end
+
+  def test_should_allow_to_disable_gzip
+    get :no_gzip
+    assert File.exist?("#{FILE_STORE_PATH}/page_caching_test/no_gzip.html")
+    assert !File.exist?("#{FILE_STORE_PATH}/page_caching_test/no_gzip.html.gz")
+  end
+
+  def test_should_use_config_gzip_by_default
+    @controller.expects(:cache_page).with(nil, nil, Zlib::BEST_COMPRESSION)
+    get :default_gzip
+  end
+
+  def test_should_set_gzip_level
+    @controller.expects(:cache_page).with(nil, nil, Zlib::BEST_SPEED)
+    get :gzip_level
+  end
+
   def test_should_cache_without_trailing_slash_on_url
     @controller.class.cache_page 'cached content', '/page_caching_test/trailing_slash'
     assert File.exist?("#{FILE_STORE_PATH}/page_caching_test/trailing_slash.html")
@@ -140,7 +180,7 @@ class PageCachingTest < ActionController::TestCase
   end
 
   [:ok, :no_content, :found, :not_found].each do |status|
-    [:get, :post, :put, :delete].each do |method|
+    [:get, :post, :patch, :put, :delete].each do |method|
       unless method == :get && status == :ok
         define_method "test_shouldnt_cache_#{method}_with_#{status}_status" do
           send(method, status)
@@ -194,10 +234,13 @@ class ActionCachingTestController < CachingController
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
   caches_action :with_layout
+  caches_action :with_format_and_http_param, :cache_path => Proc.new { |c| { :key => 'value' } }
   caches_action :layout_false, :layout => false
+  caches_action :with_layout_proc_param, :layout => Proc.new { |c| c.params[:layout] }
   caches_action :record_not_found, :four_oh_four, :simple_runtime_error
+  caches_action :streaming
 
-  layout 'talk_from_action.erb'
+  layout 'talk_from_action'
 
   def index
     @cache_this = MockTime.now.to_f.to_s
@@ -219,6 +262,11 @@ class ActionCachingTestController < CachingController
     render :text => @cache_this, :layout => true
   end
 
+  def with_format_and_http_param
+    @cache_this = MockTime.now.to_f.to_s
+    render :text => @cache_this
+  end
+
   def record_not_found
     raise ActiveRecord::RecordNotFound, "oops!"
   end
@@ -235,6 +283,7 @@ class ActionCachingTestController < CachingController
   alias_method :edit, :index
   alias_method :destroy, :index
   alias_method :layout_false, :with_layout
+  alias_method :with_layout_proc_param, :with_layout
 
   def expire
     expire_action :controller => 'action_caching_test', :action => 'index'
@@ -244,6 +293,15 @@ class ActionCachingTestController < CachingController
   def expire_xml
     expire_action :controller => 'action_caching_test', :action => 'index', :format => 'xml'
     render :nothing => true
+  end
+
+  def expire_with_url_string
+    expire_action url_for(:controller => 'action_caching_test', :action => 'index')
+    render :nothing => true
+  end
+
+  def streaming
+    render :text => "streaming", :stream => true
   end
 end
 
@@ -347,9 +405,38 @@ class ActionCacheTest < ActionController::TestCase
     get :layout_false
     assert_response :success
     assert_not_equal cached_time, @response.body
-
     body = body_to_string(read_fragment('hostname.com/action_caching_test/layout_false'))
     assert_equal cached_time, body
+  end
+
+  def test_action_cache_with_layout_and_layout_cache_false_via_proc
+    get :with_layout_proc_param, :layout => false
+    assert_response :success
+    cached_time = content_to_cache
+    assert_not_equal cached_time, @response.body
+    assert fragment_exist?('hostname.com/action_caching_test/with_layout_proc_param')
+    reset!
+
+    get :with_layout_proc_param, :layout => false
+    assert_response :success
+    assert_not_equal cached_time, @response.body
+    body = body_to_string(read_fragment('hostname.com/action_caching_test/with_layout_proc_param'))
+    assert_equal cached_time, body
+  end
+
+  def test_action_cache_with_layout_and_layout_cache_true_via_proc
+    get :with_layout_proc_param, :layout => true
+    assert_response :success
+    cached_time = content_to_cache
+    assert_not_equal cached_time, @response.body
+    assert fragment_exist?('hostname.com/action_caching_test/with_layout_proc_param')
+    reset!
+
+    get :with_layout_proc_param, :layout => true
+    assert_response :success
+    assert_not_equal cached_time, @response.body
+    body = body_to_string(read_fragment('hostname.com/action_caching_test/with_layout_proc_param'))
+    assert_equal @response.body, body
   end
 
   def test_action_cache_conditional_options
@@ -357,6 +444,13 @@ class ActionCacheTest < ActionController::TestCase
     get :index
     assert_response :success
     assert !fragment_exist?('hostname.com/action_caching_test')
+  end
+
+  def test_action_cache_with_format_and_http_param
+    get :with_format_and_http_param, :format => 'json'
+    assert_response :success
+    assert !fragment_exist?('hostname.com/action_caching_test/with_format_and_http_param.json?key=value.json')
+    assert fragment_exist?('hostname.com/action_caching_test/with_format_and_http_param.json?key=value')
   end
 
   def test_action_cache_with_store_options
@@ -432,6 +526,21 @@ class ActionCacheTest < ActionController::TestCase
     assert_not_equal cached_time, @response.body
   end
 
+  def test_cache_expiration_with_url_string
+    get :index
+    cached_time = content_to_cache
+    reset!
+
+    @request.request_uri = "/action_caching_test/expire_with_url_string"
+    get :expire_with_url_string
+    assert_response :success
+    reset!
+
+    get :index
+    assert_response :success
+    assert_not_equal cached_time, @response.body
+  end
+
   def test_cache_is_scoped_by_subdomain
     @request.host = 'jamis.hostname.com'
     get :index
@@ -482,7 +591,7 @@ class ActionCacheTest < ActionController::TestCase
   def test_xml_version_of_resource_is_treated_as_different_cache
     with_routing do |set|
       set.draw do
-        match ':controller(/:action(.:format))'
+        get ':controller(/:action(.:format))'
       end
 
       get :index, :format => 'xml'
@@ -574,6 +683,13 @@ class ActionCacheTest < ActionController::TestCase
     assert_response 500
   end
 
+  def test_action_caching_plus_streaming
+    get :streaming
+    assert_response :success
+    assert_match(/streaming/, @response.body)
+    assert fragment_exist?('hostname.com/action_caching_test/streaming')
+  end
+
   private
     def content_to_cache
       assigns(:cache_this)
@@ -613,8 +729,6 @@ class FragmentCachingTest < ActionController::TestCase
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
-    @controller.send(:initialize_template_class, @response)
-    @controller.send(:assign_shortcuts, @request, @response)
   end
 
   def test_fragment_cache_key
@@ -722,10 +836,6 @@ class FunctionalCachingController < CachingController
       format.xml
     end
   end
-
-  def rescue_action(e)
-    raise e
-  end
 end
 
 class FunctionalFragmentCachingTest < ActionController::TestCase
@@ -745,6 +855,7 @@ class FunctionalFragmentCachingTest < ActionController::TestCase
     expected_body = <<-CACHED
 Hello
 This bit's fragment cached
+Ciao
 CACHED
     assert_equal expected_body, @response.body
 
@@ -785,4 +896,52 @@ CACHED
 
     assert_equal "  <p>Builder</p>\n", @store.read('views/test.host/functional_caching/formatted_fragment_cached')
   end
+end
+
+class CacheHelperOutputBufferTest < ActionController::TestCase
+
+  class MockController
+    def read_fragment(name, options)
+      return false
+    end
+
+    def write_fragment(name, fragment, options)
+      fragment
+    end
+  end
+
+  def setup
+    super
+  end
+
+  def test_output_buffer
+    output_buffer = ActionView::OutputBuffer.new
+    controller = MockController.new
+    cache_helper = Object.new
+    cache_helper.extend(ActionView::Helpers::CacheHelper)
+    cache_helper.expects(:controller).returns(controller).at_least(0)
+    cache_helper.expects(:output_buffer).returns(output_buffer).at_least(0)
+    # if the output_buffer is changed, the new one should be html_safe and of the same type
+    cache_helper.expects(:output_buffer=).with(responds_with(:html_safe?, true)).with(instance_of(output_buffer.class)).at_least(0)
+
+    assert_nothing_raised do
+      cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+    end
+  end
+
+  def test_safe_buffer
+    output_buffer = ActiveSupport::SafeBuffer.new
+    controller = MockController.new
+    cache_helper = Object.new
+    cache_helper.extend(ActionView::Helpers::CacheHelper)
+    cache_helper.expects(:controller).returns(controller).at_least(0)
+    cache_helper.expects(:output_buffer).returns(output_buffer).at_least(0)
+    # if the output_buffer is changed, the new one should be html_safe and of the same type
+    cache_helper.expects(:output_buffer=).with(responds_with(:html_safe?, true)).with(instance_of(output_buffer.class)).at_least(0)
+
+    assert_nothing_raised do
+      cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+    end
+  end
+
 end

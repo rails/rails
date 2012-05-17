@@ -1,6 +1,6 @@
 require "pathname"
 require "active_support/core_ext/class"
-require "active_support/core_ext/io"
+require "active_support/core_ext/class/attribute_accessors"
 require "action_view/template"
 
 module ActionView
@@ -157,7 +157,7 @@ module ActionView
     end
 
     def escape_entry(entry)
-      entry.gsub(/(\*|\[|\]|\{|\}|\?)/, "\\\\\\1")
+      entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
     end
 
     # Returns the file mtime from the filesystem.
@@ -177,7 +177,7 @@ module ActionView
     end
   end
 
-  # A resolver that loads files from the filesystem. It allows to set your own
+  # A resolver that loads files from the filesystem. It allows setting your own
   # resolving pattern. Such pattern can be a glob string supported by some variables.
   #
   # ==== Examples
@@ -193,7 +193,7 @@ module ActionView
   #
   #   FileSystemResolver.new("/path/to/views", ":prefix/{:formats/,}:action{.:locale,}{.:formats,}{.:handlers,}")
   #
-  # If you don't specify pattern then the default will be used.
+  # If you don't specify a pattern then the default will be used.
   #
   # In order to use any of the customized resolvers above in a Rails application, you just need
   # to configure ActionController::Base.view_paths in an initializer, for example:
@@ -205,10 +205,10 @@ module ActionView
   #
   # ==== Pattern format and variables
   #
-  # Pattern have to be a valid glob string, and it allows you to use the
+  # Pattern has to be a valid glob string, and it allows you to use the
   # following variables:
   #
-  # * <tt>:prefix</tt> - usualy the controller path
+  # * <tt>:prefix</tt> - usually the controller path
   # * <tt>:action</tt> - name of the action
   # * <tt>:locale</tt> - possible locale versions
   # * <tt>:formats</tt> - possible request formats (for example html, json, xml...)

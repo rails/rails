@@ -1,3 +1,3 @@
 class Dashboard < ActiveRecord::Base
-  set_primary_key :dashboard_id
+  self.primary_key = :dashboard_id
 end

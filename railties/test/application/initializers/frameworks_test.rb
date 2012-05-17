@@ -1,7 +1,8 @@
 require "isolation/abstract_unit"
+require 'set'
 
 module ApplicationTests
-  class FrameworksTest < Test::Unit::TestCase
+  class FrameworksTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -66,7 +67,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       assert Foo.method_defined?(:foo_path)
       assert Foo.method_defined?(:main_app)
-      assert_equal ["notify"], Foo.action_methods
+      assert_equal Set.new(["notify"]), Foo.action_methods
     end
 
     test "allows to not load all helpers for controllers" do
@@ -115,7 +116,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match "/:controller(/:action)"
+          get "/:controller(/:action)"
         end
       RUBY
 
@@ -134,6 +135,13 @@ module ApplicationTests
       add_to_config "config.action_dispatch.tld_length = 2"
       require "#{app_path}/config/environment"
       assert_equal 2, ActionDispatch::Http::URL.tld_length
+    end
+
+    test "assignment config.encoding to default_charset" do
+      charset = 'Shift_JIS'
+      add_to_config "config.encoding = '#{charset}'"
+      require "#{app_path}/config/environment"
+      assert_equal charset, ActionDispatch::Response.default_charset
     end
 
     # AS
@@ -185,6 +193,27 @@ module ApplicationTests
       use_frameworks []
       require "#{app_path}/config/environment"
       assert_nil defined?(ActiveRecord::Base)
+    end
+
+    test "use schema cache dump" do
+      Dir.chdir(app_path) do
+        `rails generate model post title:string;
+         bundle exec rake db:migrate db:schema:cache:dump`
+      end
+      require "#{app_path}/config/environment"
+      ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
+      assert ActiveRecord::Base.connection.schema_cache.tables["posts"]
+    end
+
+    test "expire schema cache dump" do
+      Dir.chdir(app_path) do
+        `rails generate model post title:string;
+         bundle exec rake db:migrate db:schema:cache:dump db:rollback`
+      end
+      silence_warnings {
+        require "#{app_path}/config/environment"
+        assert !ActiveRecord::Base.connection.schema_cache.tables["posts"]
+      }
     end
   end
 end

@@ -147,6 +147,7 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_derived_wrapped_keys_from_matching_model
+    User.expects(:respond_to?).with(:accessible_attributes).returns(false)
     User.expects(:respond_to?).with(:attribute_names).returns(true)
     User.expects(:attribute_names).twice.returns(["username"])
 
@@ -159,6 +160,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
   def test_derived_wrapped_keys_from_specified_model
     with_default_wrapper_options do
+      Person.expects(:respond_to?).with(:accessible_attributes).returns(false)
       Person.expects(:respond_to?).with(:attribute_names).returns(true)
       Person.expects(:attribute_names).twice.returns(["username"])
 
@@ -169,8 +171,46 @@ class ParamsWrapperTest < ActionController::TestCase
       assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'person' => { 'username' => 'sikachu' }})
     end
   end
+  
+  def test_accessible_wrapped_keys_from_matching_model
+    User.expects(:respond_to?).with(:accessible_attributes).returns(true)
+    User.expects(:accessible_attributes).with(:default).twice.returns(["username"])
+    
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
+      assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu' }})
+    end
+  end
+  
+  def test_accessible_wrapped_keys_from_specified_model
+    with_default_wrapper_options do
+      Person.expects(:respond_to?).with(:accessible_attributes).returns(true)
+      Person.expects(:accessible_attributes).with(:default).twice.returns(["username"])
+
+      UsersController.wrap_parameters Person
+
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
+      assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'person' => { 'username' => 'sikachu' }})
+    end
+  end
+  
+  def test_accessible_wrapped_keys_with_role_from_specified_model
+    with_default_wrapper_options do
+      Person.expects(:respond_to?).with(:accessible_attributes).returns(true)
+      Person.expects(:accessible_attributes).with(:admin).twice.returns(["username"])
+
+      UsersController.wrap_parameters Person, :as => :admin
+
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
+      assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'person' => { 'username' => 'sikachu' }})
+    end
+  end
 
   def test_not_wrapping_abstract_model
+    User.expects(:respond_to?).with(:accessible_attributes).returns(false)
     User.expects(:respond_to?).with(:attribute_names).returns(true)
     User.expects(:attribute_names).returns([])
 
@@ -282,6 +322,41 @@ class AnonymousControllerParamsWrapperTest < ActionController::TestCase
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu' }
       assert_parameters({ 'username' => 'sikachu', 'guest' => { 'username' => 'sikachu' }})
+    end
+  end
+end
+
+class IrregularInflectionParamsWrapperTest < ActionController::TestCase
+  include ParamsWrapperTestHelp
+
+  class ParamswrappernewsItem
+    def self.attribute_names
+      ['test_attr']
+    end
+  end
+
+  class ParamswrappernewsController < ActionController::Base
+    class << self
+      attr_accessor :last_parameters
+    end
+
+    def parse
+      self.class.last_parameters = request.params.except(:controller, :action)
+      head :ok
+    end
+  end
+
+  tests ParamswrappernewsController
+
+  def test_uses_model_attribute_names_with_irregular_inflection
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.irregular 'paramswrappernews_item', 'paramswrappernews'
+    end
+
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu', 'test_attr' => 'test_value' }
+      assert_parameters({ 'username' => 'sikachu', 'test_attr' => 'test_value', 'paramswrappernews_item' => { 'test_attr' => 'test_value' }})
     end
   end
 end

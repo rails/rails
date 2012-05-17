@@ -43,16 +43,14 @@ module ActionDispatch
     #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
     #   polymorphic_path(@post, :format => :pdf)  # => "/posts/1.pdf"
     #
-    # == Using with mounted engines
+    # == Usage with mounted engines
     #
-    # If you use mounted engine, there is a possibility that you will need to use
-    # polymorphic_url pointing at engine's routes. To do that, just pass proxy used
-    # to reach engine's routes as a first argument:
+    # If you are using a mounted engine and you need to use a polymorphic_url
+    # pointing at the engine's routes, pass in the engine's route proxy as the first
+    # argument to the method. For example:
     #
-    # For example:
-    #
-    # polymorphic_url([blog, @post])  # it will call blog.post_path(@post)
-    # form_for([blog, @post])         # => "/blog/posts/1
+    #   polymorphic_url([blog, @post])  # calls blog.post_path(@post)
+    #   form_for([blog, @post])         # => "/blog/posts/1"
     #
     module PolymorphicRoutes
       # Constructs a call to a named RESTful route for the given record and returns the
@@ -165,7 +163,7 @@ module ActionDispatch
               if parent.is_a?(Symbol) || parent.is_a?(String)
                 parent
               else
-                ActiveModel::Naming.route_key(parent).singularize
+                ActiveModel::Naming.singular_route_key(parent)
               end
             end
           else
@@ -176,9 +174,11 @@ module ActionDispatch
           if record.is_a?(Symbol) || record.is_a?(String)
             route << record
           elsif record
-            route << ActiveModel::Naming.route_key(record)
-            route = [route.join("_").singularize] if inflection == :singular
-            route << "index" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
+            if inflection == :singular
+              route << ActiveModel::Naming.singular_route_key(record)
+            else
+              route << ActiveModel::Naming.route_key(record)
+            end
           else
             raise ArgumentError, "Nil location provided. Can't build URI."
           end

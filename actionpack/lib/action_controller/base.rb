@@ -50,7 +50,7 @@ module ActionController
   #
   # All request parameters, whether they come from a GET or POST request, or from the URL, are available through the params method
   # which returns a hash. For example, an action that was performed through <tt>/posts?category=All&limit=5</tt> will include
-  # <tt>{ "category" => "All", "limit" => 5 }</tt> in params.
+  # <tt>{ "category" => "All", "limit" => "5" }</tt> in params.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
   #
@@ -63,7 +63,7 @@ module ActionController
   #
   # == Sessions
   #
-  # Sessions allows you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
+  # Sessions allow you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
   # such as a Signup object constructed in a multi-paged process, or objects that don't change much and are needed all the time, such
   # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely
   # they could be changed unknowingly. It's usually too much work to keep it all synchronized -- something databases already excel at.
@@ -116,12 +116,12 @@ module ActionController
   #
   #   Title: <%= @post.title %>
   #
-  # You don't have to rely on the automated rendering. For example, actions that could result in the rendering of different templates 
+  # You don't have to rely on the automated rendering. For example, actions that could result in the rendering of different templates
   # will use the manual rendering methods:
   #
   #   def search
   #     @results = Search.find(params[:query])
-  #     case @results
+  #     case @results.count
   #       when 0 then render :action => "no_results"
   #       when 1 then render :action => "show"
   #       when 2..10 then render :action => "show_many"
@@ -133,7 +133,7 @@ module ActionController
   # == Redirects
   #
   # Redirects are used to move from one action to another. For example, after a <tt>create</tt> action, which stores a blog entry to the
-  # database, we might like to show the user the new entry. Because we're following good DRY principles (Don't Repeat Yourself), we're 
+  # database, we might like to show the user the new entry. Because we're following good DRY principles (Don't Repeat Yourself), we're
   # going to reuse (and redirect to) a <tt>show</tt> action that we'll assume has already been created. The code might look like this:
   #
   #   def create
@@ -171,6 +171,16 @@ module ActionController
   class Base < Metal
     abstract!
 
+    # Shortcut helper that returns all the ActionController::Base modules except the ones passed in the argument:
+    #
+    #   class MetalController
+    #     ActionController::Base.without_modules(:ParamsWrapper, :Streaming).each do |left|
+    #       include left
+    #     end
+    #   end
+    #
+    # This gives better control over what you want to exclude and makes it easier
+    # to create a bare controller class, instead of listing the modules required manually.
     def self.without_modules(*modules)
       modules = modules.map do |m|
         m.is_a?(Symbol) ? ActionController.const_get(m) : m
@@ -192,7 +202,6 @@ module ActionController
       Renderers::All,
       ConditionalGet,
       RackDelegation,
-      SessionManagement,
       Caching,
       MimeResponds,
       ImplicitRender,
@@ -228,8 +237,11 @@ module ActionController
       include mod
     end
 
-    # Rails 2.x compatibility
-    include ActionController::Compatibility
+    # Define some internal variables that should not be propagated to the view.
+    self.protected_instance_variables = [
+      :@_status, :@_headers, :@_params, :@_env, :@_response, :@_request,
+      :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout
+    ]
 
     ActiveSupport.run_load_hooks(:action_controller, self)
   end

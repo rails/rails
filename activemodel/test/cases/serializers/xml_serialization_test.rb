@@ -9,6 +9,8 @@ class Contact
 
   attr_accessor :address, :friends
 
+  remove_method :attributes if method_defined?(:attributes)
+
   def attributes
     instance_values.except("address", "friends")
   end
@@ -30,6 +32,12 @@ class Address
 
   def attributes
     instance_values
+  end
+end
+
+class SerializableContact < Contact
+  def serializable_hash(options={})
+    super(options.merge(:only => [:name, :age]))
   end
 end
 
@@ -94,6 +102,17 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{^<xmlContact>},  @xml
     assert_match %r{</xmlContact>$}, @xml
     assert_match %r{<createdAt},     @xml
+  end
+
+  test "should use serialiable hash" do
+    @contact = SerializableContact.new
+    @contact.name = 'aaron stack'
+    @contact.age = 25
+
+    @xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, @xml
+    assert_match %r{<age type="integer">25</age>}, @xml
+    assert_no_match %r{<awesome>}, @xml
   end
 
   test "should allow skipped types" do
@@ -164,6 +183,23 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "include option with plural association" do
+    xml = @contact.to_xml :include => :friends, :indent => 0
+    assert_match %r{<friends type="array">}, xml
+    assert_match %r{<friend type="Contact">}, xml
+  end
+
+  class FriendList
+    def initialize(friends)
+      @friends = friends
+    end
+
+    def to_ary
+      @friends
+    end
+  end
+
+  test "include option with ary" do
+    @contact.friends = FriendList.new(@contact.friends)
     xml = @contact.to_xml :include => :friends, :indent => 0
     assert_match %r{<friends type="array">}, xml
     assert_match %r{<friend type="Contact">}, xml

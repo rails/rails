@@ -1,16 +1,25 @@
 script: 'ci/travis.rb'
+before_install:
+  - gem install bundler
 rvm:
-  - 1.8.7
-  - 1.9.2
   - 1.9.3
 env:
   - "GEM=railties"
-  - "GEM=ap,am,amo,ares,as"
+  - "GEM=ap,am,amo,as"
   - "GEM=ar:mysql"
   - "GEM=ar:mysql2"
   - "GEM=ar:sqlite3"
+  - "GEM=ar:postgresql"
 notifications:
   email: false
   irc:
-    - "irc.freenode.org#rails-contrib"
+    on_success: change
+    on_failure: always
+    channels:
+      - "irc.freenode.org#rails-contrib"
+  campfire:
+    on_success: change
+    on_failure: always
+    rooms:
+      - secure: "CGWvthGkBKNnTnk9YSmf9AXKoiRI33fCl5D3jU4nx3cOPu6kv2R9nMjt9EAo\nOuS4Q85qNSf4VNQ2cUPNiNYSWQ+XiTfivKvDUw/QW9r1FejYyeWarMsSBWA+\n0fADjF1M2dkDIVLgYPfwoXEv7l+j654F1KLKB69F0F/netwP9CQ="
 bundler_args: --path vendor/bundle

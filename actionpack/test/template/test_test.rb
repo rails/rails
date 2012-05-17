@@ -48,7 +48,7 @@ class PeopleHelperTest < ActionView::TestCase
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          match 'people', :to => 'people#index', :as => :people
+          get 'people', :to => 'people#index', :as => :people
         end
         yield
       end
@@ -59,6 +59,22 @@ class CrazyHelperTest < ActionView::TestCase
   tests PeopleHelper
 
   def test_helper_class_can_be_set_manually_not_just_inferred
+    assert_equal PeopleHelper, self.class.helper_class
+  end
+end
+
+class CrazySymbolHelperTest < ActionView::TestCase
+  tests :people
+
+  def test_set_helper_class_using_symbol
+    assert_equal PeopleHelper, self.class.helper_class
+  end
+end
+
+class CrazyStringHelperTest < ActionView::TestCase
+  tests 'people'
+
+  def test_set_helper_class_using_string
     assert_equal PeopleHelper, self.class.helper_class
   end
 end

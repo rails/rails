@@ -39,8 +39,6 @@ module Rails
   # and <tt>autoload_once_paths</tt>, which, differently from a <tt>Railtie</tt>, are scoped to
   # the current engine.
   #
-  # Example:
-  #
   #   class MyEngine < Rails::Engine
   #     # Add a load path for this specific Engine
   #     config.autoload_paths << File.expand_path("../lib/some/path", __FILE__)
@@ -148,7 +146,7 @@ module Rails
   #
   #   # ENGINE/config/routes.rb
   #   MyEngine::Engine.routes.draw do
-  #     match "/" => "posts#index"
+  #     get "/" => "posts#index"
   #   end
   #
   # == Mount priority
@@ -158,7 +156,7 @@ module Rails
   #
   #   MyRailsApp::Application.routes.draw do
   #     mount MyEngine::Engine => "/blog"
-  #     match "/blog/omg" => "main#omg"
+  #     get "/blog/omg" => "main#omg"
   #   end
   #
   # +MyEngine+ is mounted at <tt>/blog</tt>, and <tt>/blog/omg</tt> points to application's
@@ -167,7 +165,7 @@ module Rails
   # It's much better to swap that:
   #
   #   MyRailsApp::Application.routes.draw do
-  #     match "/blog/omg" => "main#omg"
+  #     get "/blog/omg" => "main#omg"
   #     mount MyEngine::Engine => "/blog"
   #   end
   #
@@ -228,7 +226,7 @@ module Rails
   #     resources :articles
   #   end
   #
-  # The routes above will automatically point to <tt>MyEngine::ApplicationContoller</tt>. Furthermore, you don't
+  # The routes above will automatically point to <tt>MyEngine::ArticlesController</tt>. Furthermore, you don't
   # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you should simply use
   # <tt>articles_path</tt> as you would do with your application.
   #
@@ -245,7 +243,7 @@ module Rails
   #
   # Additionally, an isolated engine will set its name according to namespace, so
   # MyEngine::Engine.engine_name will be "my_engine". It will also set MyEngine.table_name_prefix
-  # to "my_engine_", changing the MyEngine::Article model to use the my_engine_article table.
+  # to "my_engine_", changing the MyEngine::Article model to use the my_engine_articles table.
   #
   # == Using Engine's routes outside Engine
   #
@@ -256,7 +254,7 @@ module Rails
   #   # config/routes.rb
   #   MyApplication::Application.routes.draw do
   #     mount MyEngine::Engine => "/my_engine", :as => "my_engine"
-  #     match "/foo" => "foo#index"
+  #     get "/foo" => "foo#index"
   #   end
   #
   # Now, you can use the <tt>my_engine</tt> helper inside your application:
@@ -296,16 +294,16 @@ module Rails
   # If you want to share just a few specific helpers you can add them to application's
   # helpers in ApplicationController:
   #
-  # class ApplicationController < ActionController::Base
-  #   helper MyEngine::SharedEngineHelper
-  # end
+  #   class ApplicationController < ActionController::Base
+  #     helper MyEngine::SharedEngineHelper
+  #   end
   #
-  # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
+  # If you want to include all of the engine's helpers, you can use #helper method on an engine's
   # instance:
   #
-  # class ApplicationController < ActionController::Base
-  #   helper MyEngine::Engine.helpers
-  # end
+  #   class ApplicationController < ActionController::Base
+  #     helper MyEngine::Engine.helpers
+  #   end
   #
   # It will include all of the helpers from engine's directory. Take into account that this does
   # not include helpers defined in controllers with helper_method or other similar solutions,
@@ -326,10 +324,18 @@ module Rails
   # migration in the application and rerun copying migrations.
   #
   # If your engine has migrations, you may also want to prepare data for the database in
-  # the <tt>seeds.rb</tt> file. You can load that data using the <tt>load_seed</tt> method, e.g.
+  # the <tt>db/seeds.rb</tt> file. You can load that data using the <tt>load_seed</tt> method, e.g.
   #
   #   MyEngine::Engine.load_seed
   #
+  # == Loading priority
+  #
+  # In order to change engine's priority you can use +config.railties_order+ in main application.
+  # It will affect the priority of loading views, helpers, assets and all the other files
+  # related to engine or application.
+  #
+  #   # load Blog::Engine with highest priority, followed by application and other railties
+  #   config.railties_order = [Blog::Engine, :main_app, :all]
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
     autoload :Railties,      "rails/engine/railties"
@@ -360,6 +366,7 @@ module Rails
       end
 
       def endpoint(endpoint = nil)
+        @endpoint ||= nil
         @endpoint = endpoint if endpoint
         @endpoint
       end
@@ -370,20 +377,28 @@ module Rails
         self.routes.default_scope = { :module => ActiveSupport::Inflector.underscore(mod.name) }
         self.isolated = true
 
-        unless mod.respond_to?(:_railtie)
-          name = engine_name
-          _railtie = self
+        unless mod.respond_to?(:railtie_namespace)
+          name, railtie = engine_name, self
+
           mod.singleton_class.instance_eval do
-            define_method(:_railtie) do
-              _railtie
-            end
+            define_method(:railtie_namespace) { railtie }
 
             unless mod.respond_to?(:table_name_prefix)
-              define_method(:table_name_prefix) do
-                "#{name}_"
-              end
+              define_method(:table_name_prefix) { "#{name}_" }
             end
-         end
+
+            unless mod.respond_to?(:use_relative_model_naming?)
+              class_eval "def use_relative_model_naming?; true; end", __FILE__, __LINE__
+            end
+
+            unless mod.respond_to?(:railtie_helpers_paths)
+              define_method(:railtie_helpers_paths) { railtie.helpers_paths }
+            end
+
+            unless mod.respond_to?(:railtie_routes_url_helpers)
+              define_method(:railtie_routes_url_helpers) { railtie.routes_url_helpers }
+            end
+          end
         end
       end
 
@@ -428,19 +443,20 @@ module Rails
     def helpers
       @helpers ||= begin
         helpers = Module.new
-
-        helpers_paths = if config.respond_to?(:helpers_paths)
-          config.helpers_paths
-        else
-          paths["app/helpers"].existent
-        end
-
         all = ActionController::Base.all_helpers_from_path(helpers_paths)
         ActionController::Base.modules_for_helpers(all).each do |mod|
           helpers.send(:include, mod)
         end
         helpers
       end
+    end
+
+    def helpers_paths
+      paths["app/helpers"].existent
+    end
+
+    def routes_url_helpers
+      routes.url_helpers
     end
 
     def app
@@ -465,15 +481,27 @@ module Rails
     end
 
     def routes
-      @routes ||= ActionDispatch::Routing::RouteSet.new
+      @routes ||= ActionDispatch::Routing::RouteSet.new.tap do |routes|
+        routes.draw_paths.concat paths["config/routes"].paths
+      end
+
       @routes.append(&Proc.new) if block_given?
       @routes
     end
 
+    def ordered_railties
+      railties.all + [self]
+    end
+
     def initializers
       initializers = []
-      railties.all { |r| initializers += r.initializers }
-      initializers += super
+      ordered_railties.each do |r|
+        if r == self
+          initializers += super
+        else
+          initializers += r.initializers
+        end
+      end
       initializers
     end
 
@@ -486,8 +514,8 @@ module Rails
     #
     # Blog::Engine.load_seed
     def load_seed
-      seed_file = paths["db/seeds"].existent.first
-      load(seed_file) if File.exist?(seed_file)
+      seed_file = paths["db/seeds.rb"].existent.first
+      load(seed_file) if seed_file
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
@@ -514,11 +542,13 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      paths = self.paths["config/routes"].existent
+      paths = self.paths["config/routes.rb"].existent
+      external_paths = self.paths["config/routes"].paths
 
       if routes? || paths.any?
         app.routes_reloader.paths.unshift(*paths)
         app.routes_reloader.route_sets << routes
+        app.routes_reloader.external_routes.unshift(*external_paths)
       end
     end
 
@@ -531,17 +561,18 @@ module Rails
     initializer :add_view_paths do
       views = paths["app/views"].existent
       unless views.empty?
-        ActiveSupport.on_load(:action_controller){ prepend_view_path(views) }
+        ActiveSupport.on_load(:action_controller){ prepend_view_path(views) if respond_to?(:prepend_view_path) }
         ActiveSupport.on_load(:action_mailer){ prepend_view_path(views) }
       end
     end
 
-    initializer :load_environment_config, :before => :load_environment_hook do
-      environment = paths["config/environments"].existent.first
-      require environment if environment
+    initializer :load_environment_config, :before => :load_environment_hook, :group => :all do
+      paths["config/environments"].existent.each do |environment|
+        require environment
+      end
     end
 
-    initializer :append_assets_path do |app|
+    initializer :append_assets_path, :group => :all do |app|
       app.config.assets.paths.unshift(*paths["vendor/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["lib/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["app/assets"].existent_directories)
@@ -573,7 +604,12 @@ module Rails
           desc "Copy migrations from #{railtie_name} to application"
           task :migrations do
             ENV["FROM"] = railtie_name
-            Rake::Task["railties:install:migrations"].invoke
+            if Rake::Task.task_defined?("railties:install:migrations")
+              Rake::Task["railties:install:migrations"].invoke
+            else
+              Rake::Task["app:railties:install:migrations"].invoke
+            end
+
           end
         end
       end
@@ -586,7 +622,7 @@ module Rails
     end
 
     def routes?
-      defined?(@routes)
+      defined?(@routes) && @routes
     end
 
     def has_migrations?

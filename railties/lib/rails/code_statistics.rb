@@ -37,13 +37,26 @@ class CodeStatistics #:nodoc:
 
         next unless file_name =~ pattern
 
-        f = File.open(directory + "/" + file_name)
-
-        while line = f.gets
-          stats["lines"]     += 1
-          stats["classes"]   += 1 if line =~ /class [A-Z]/
-          stats["methods"]   += 1 if line =~ /def [a-z]/
-          stats["codelines"] += 1 unless line =~ /^\s*$/ || line =~ /^\s*#/
+        comment_started = false
+        
+        File.open(directory + "/" + file_name) do |f|
+          while line = f.gets
+            stats["lines"]     += 1
+            if(comment_started)
+              if line =~ /^=end/
+                comment_started = false
+              end
+              next
+            else
+              if line =~ /^=begin/
+                comment_started = true
+                next
+              end
+            end
+            stats["classes"]   += 1 if line =~ /^\s*class\s+[_A-Z]/
+            stats["methods"]   += 1 if line =~ /^\s*def\s+[_a-z]/
+            stats["codelines"] += 1 unless line =~ /^\s*$/ || line =~ /^\s*#/
+          end
         end
       end
 
@@ -82,13 +95,7 @@ class CodeStatistics #:nodoc:
       m_over_c   = (statistics["methods"] / statistics["classes"])   rescue m_over_c = 0
       loc_over_m = (statistics["codelines"] / statistics["methods"]) - 2 rescue loc_over_m = 0
 
-      start = if TEST_TYPES.include? name
-        "| #{name.ljust(20)} "
-      else
-        "| #{name.ljust(20)} "
-      end
-
-      puts start +
+      puts "| #{name.ljust(20)} " +
            "| #{statistics["lines"].to_s.rjust(5)} " +
            "| #{statistics["codelines"].to_s.rjust(5)} " +
            "| #{statistics["classes"].to_s.rjust(7)} " +

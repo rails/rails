@@ -4,6 +4,7 @@ ARGV << '--help' if ARGV.empty?
 
 aliases = {
   "g"  => "generate",
+  "d"  => "destroy",
   "c"  => "console",
   "s"  => "server",
   "db" => "dbconsole",
@@ -56,16 +57,19 @@ when 'server'
 
 when 'dbconsole'
   require 'rails/commands/dbconsole'
-  require APP_PATH
-  Rails::DBConsole.start(Rails.application)
+  Rails::DBConsole.start
 
 when 'application', 'runner'
   require "rails/commands/#{command}"
 
 when 'new'
-  puts "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\n"
-  puts "Type 'rails' for help."
-  exit(1)
+  if ARGV.first.in?(['-h', '--help'])
+    require 'rails/commands/application'
+  else
+    puts "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\n"
+    puts "Type 'rails' for help."
+    exit(1)
+  end
 
 when '--version', '-v'
   ARGV.unshift '--version'
@@ -87,10 +91,10 @@ The most common rails commands are:
 
 In addition to those, there are:
  application  Generate the Rails application code
- destroy      Undo code generated with "generate"
+ destroy      Undo code generated with "generate" (short-cut alias: "d")
  benchmarker  See how fast a piece of code runs
  profiler     Get profile information from a piece of code
- plugin       Install a plugin
+ plugin new   Generates skeleton for developing a Rails plugin
  runner       Run a piece of code in the application environment (short-cut alias: "r")
 
 All commands can be run with -h (or --help) for more information.

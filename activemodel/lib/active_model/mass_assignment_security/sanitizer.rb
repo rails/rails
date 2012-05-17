@@ -1,51 +1,63 @@
-require 'active_support/core_ext/module/delegation'
-
 module ActiveModel
   module MassAssignmentSecurity
     class Sanitizer
-      def initialize(target=nil)
-      end
-
       # Returns all attributes not denied by the authorizer.
-      def sanitize(attributes, authorizer)
-        sanitized_attributes = attributes.reject { |key, value| authorizer.deny?(key) }
-        debug_protected_attribute_removal(attributes, sanitized_attributes)
+      def sanitize(klass, attributes, authorizer)
+        rejected = []
+        sanitized_attributes = attributes.reject do |key, value|
+          rejected << key if authorizer.deny?(key)
+        end
+        process_removed_attributes(klass, rejected) unless rejected.empty?
         sanitized_attributes
       end
 
     protected
 
-      def debug_protected_attribute_removal(attributes, sanitized_attributes)
-        removed_keys = attributes.keys - sanitized_attributes.keys
-        process_removed_attributes(removed_keys) if removed_keys.any?
-      end
-
-      def process_removed_attributes(attrs)
+      def process_removed_attributes(klass, attrs)
         raise NotImplementedError, "#process_removed_attributes(attrs) suppose to be overwritten"
       end
     end
 
     class LoggerSanitizer < Sanitizer
-      delegate :logger, :to => :@target
-
       def initialize(target)
         @target = target
-        super
+        super()
+      end
+
+      def logger
+        @target.logger
       end
 
       def logger?
         @target.respond_to?(:logger) && @target.logger
       end
 
-      def process_removed_attributes(attrs)
-        logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}" if logger?
+      def backtrace
+        if defined? Rails
+          Rails.backtrace_cleaner.clean(caller)
+        else
+          caller
+        end
+      end
+
+      def process_removed_attributes(klass, attrs)
+        if logger?
+          logger.warn do
+            "WARNING: Can't mass-assign protected attributes for #{klass.name}: #{attrs.join(', ')}\n" +
+                backtrace.map { |trace| "\t#{trace}" }.join("\n")
+          end
+        end
       end
     end
 
     class StrictSanitizer < Sanitizer
-      def process_removed_attributes(attrs)
+      def initialize(target = nil)
+        super()
+      end
+
+      def process_removed_attributes(klass, attrs)
         return if (attrs - insensitive_attributes).empty?
-        raise ActiveModel::MassAssignmentSecurity::Error, "Can't mass-assign protected attributes: #{attrs.join(', ')}"
+        raise ActiveModel::MassAssignmentSecurity::Error.new(klass, attrs)
       end
 
       def insensitive_attributes
@@ -54,6 +66,9 @@ module ActiveModel
     end
 
     class Error < StandardError
+      def initialize(klass, attrs)
+        super("Can't mass-assign protected attributes for #{klass.name}: #{attrs.join(', ')}")
+      end
     end
   end
 end

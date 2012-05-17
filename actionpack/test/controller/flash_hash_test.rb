@@ -75,6 +75,7 @@ module ActionDispatch
     def test_discard_no_args
       @hash['hello'] = 'world'
       @hash.discard
+
       @hash.sweep
       assert_equal({}, @hash.to_hash)
     end
@@ -83,8 +84,88 @@ module ActionDispatch
       @hash['hello'] = 'world'
       @hash['omg']   = 'world'
       @hash.discard 'hello'
+
       @hash.sweep
       assert_equal({'omg' => 'world'}, @hash.to_hash)
+    end
+
+    def test_keep_sweep
+      @hash['hello'] = 'world'
+
+      @hash.sweep
+      assert_equal({'hello' => 'world'}, @hash.to_hash)
+    end
+
+    def test_update_sweep
+      @hash['hello'] = 'world'
+      @hash.update({'hi' => 'mom'})
+
+      @hash.sweep
+      assert_equal({'hello' => 'world', 'hi' => 'mom'}, @hash.to_hash)
+    end
+
+    def test_update_delete_sweep
+      @hash['hello'] = 'world'
+      @hash.delete 'hello'
+      @hash.update({'hello' => 'mom'})
+
+      @hash.sweep
+      assert_equal({'hello' => 'mom'}, @hash.to_hash)
+    end
+
+    def test_delete_sweep
+      @hash['hello'] = 'world'
+      @hash['hi']    = 'mom'
+      @hash.delete 'hi'
+
+      @hash.sweep
+      assert_equal({'hello' => 'world'}, @hash.to_hash)
+    end
+
+    def test_clear_sweep
+      @hash['hello'] = 'world'
+      @hash.clear
+
+      @hash.sweep
+      assert_equal({}, @hash.to_hash)
+    end
+
+    def test_replace_sweep
+      @hash['hello'] = 'world'
+      @hash.replace({'hi' => 'mom'})
+
+      @hash.sweep
+      assert_equal({'hi' => 'mom'}, @hash.to_hash)
+    end
+
+    def test_discard_then_add
+      @hash['hello'] = 'world'
+      @hash['omg']   = 'world'
+      @hash.discard 'hello'
+      @hash['hello'] = 'world'
+
+      @hash.sweep
+      assert_equal({'omg' => 'world', 'hello' => 'world'}, @hash.to_hash)
+    end
+
+    def test_keep_all_sweep
+      @hash['hello'] = 'world'
+      @hash['omg']   = 'world'
+      @hash.discard 'hello'
+      @hash.keep
+
+      @hash.sweep
+      assert_equal({'omg' => 'world', 'hello' => 'world'}, @hash.to_hash)
+    end
+
+    def test_double_sweep
+      @hash['hello'] = 'world'
+      @hash.sweep
+
+      assert_equal({'hello' => 'world'}, @hash.to_hash)
+
+      @hash.sweep
+      assert_equal({}, @hash.to_hash)
     end
   end
 end

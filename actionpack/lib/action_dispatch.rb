@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2011 David Heinemeier Hansson
+# Copyright (c) 2004-2012 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,14 +21,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
-
-activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
-$:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include?(activemodel_path)
-
 require 'active_support'
 require 'active_support/dependencies/autoload'
+require 'active_support/core_ext/module/attribute_accessors'
 
 require 'action_pack'
 require 'active_model'
@@ -47,20 +42,23 @@ module ActionDispatch
   end
 
   autoload_under 'middleware' do
+    autoload :RequestId
     autoload :BestStandardsSupport
     autoload :Callbacks
     autoload :Cookies
+    autoload :DebugExceptions
+    autoload :ExceptionWrapper
     autoload :Flash
     autoload :Head
     autoload :ParamsParser
+    autoload :PublicExceptions
     autoload :Reloader
     autoload :RemoteIp
-    autoload :Rescue
     autoload :ShowExceptions
+    autoload :SSL
     autoload :Static
   end
 
-  autoload :ClosedError, 'action_dispatch/middleware/closed_error'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
   autoload :Routing
 
@@ -82,7 +80,10 @@ module ActionDispatch
     autoload :AbstractStore, 'action_dispatch/middleware/session/abstract_store'
     autoload :CookieStore,   'action_dispatch/middleware/session/cookie_store'
     autoload :MemCacheStore, 'action_dispatch/middleware/session/mem_cache_store'
+    autoload :CacheStore,    'action_dispatch/middleware/session/cache_store'
   end
+
+  mattr_accessor :test_app
 
   autoload_under 'testing' do
     autoload :Assertions

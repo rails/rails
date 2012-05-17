@@ -30,9 +30,36 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t = Topic.new
     t.title = "hello there!"
     t.written_on = Time.now
+    t.author_name = ""
     assert t.attribute_present?("title")
     assert t.attribute_present?("written_on")
     assert !t.attribute_present?("content")
+    assert !t.attribute_present?("author_name")
+    
+  end
+
+  def test_attribute_present_with_booleans
+    b1 = Boolean.new
+    b1.value = false
+    assert b1.attribute_present?(:value)
+
+    b2 = Boolean.new
+    b2.value = true
+    assert b2.attribute_present?(:value)
+
+    b3 = Boolean.new
+    assert !b3.attribute_present?(:value)
+
+    b4 = Boolean.new
+    b4.value = false
+    b4.save!
+    assert Boolean.find(b4.id).attribute_present?(:value)
+  end
+
+  def test_caching_nil_primary_key
+    klass = Class.new(Minimalistic)
+    klass.expects(:reset_primary_key).returns(nil).once
+    2.times { klass.primary_key }
   end
 
   def test_attribute_keys_on_new_instance
@@ -78,7 +105,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_respond_to?
     topic = Topic.find(1)
     assert_respond_to topic, "title"
-    assert_respond_to topic, "_title"
     assert_respond_to topic, "title?"
     assert_respond_to topic, "title="
     assert_respond_to topic, :title
@@ -95,9 +121,15 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_not_nil keyboard.key_number
     assert_equal keyboard.key_number, keyboard.id
     assert keyboard.respond_to?('key_number')
-    assert keyboard.respond_to?('_key_number')
     assert keyboard.respond_to?('id')
-    assert keyboard.respond_to?('_id')
+  end
+
+  def test_id_before_type_cast_with_custom_primary_key
+    keyboard = Keyboard.create
+    keyboard.key_number = '10'
+    assert_equal '10', keyboard.id_before_type_cast
+    assert_equal nil, keyboard.read_attribute_before_type_cast('id')
+    assert_equal '10', keyboard.read_attribute_before_type_cast('key_number')
   end
 
   # Syck calls respond_to? before actually calling initialize
@@ -212,7 +244,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     # DB2 is not case-sensitive
     return true if current_adapter?(:DB2Adapter)
 
-    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.find(:first).attributes
+    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.first.attributes
   end
 
   def test_hashes_not_mangled
@@ -237,8 +269,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic.send(:write_attribute, :title, "Still another topic")
     assert_equal "Still another topic", topic.title
 
-    topic.send(:write_attribute, "title", "Still another topic: part 2")
+    topic[:title] = "Still another topic: part 2"
     assert_equal "Still another topic: part 2", topic.title
+
+    topic.send(:write_attribute, "title", "Still another topic: part 3")
+    assert_equal "Still another topic: part 3", topic.title
+
+    topic["title"] = "Still another topic: part 4"
+    assert_equal "Still another topic: part 4", topic.title
   end
 
   def test_read_attribute
@@ -289,6 +327,39 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     # puts topic.inspect
     assert topic.approved?, "approved should be true"
     # puts ""
+  end
+
+  def test_overridden_write_attribute
+    topic = Topic.new
+    def topic.write_attribute(attr_name, value)
+      super(attr_name, value.downcase)
+    end
+
+    topic.send(:write_attribute, :title, "Yet another topic")
+    assert_equal "yet another topic", topic.title
+
+    topic[:title] = "Yet another topic: part 2"
+    assert_equal "yet another topic: part 2", topic.title
+
+    topic.send(:write_attribute, "title", "Yet another topic: part 3")
+    assert_equal "yet another topic: part 3", topic.title
+
+    topic["title"] = "Yet another topic: part 4"
+    assert_equal "yet another topic: part 4", topic.title
+  end
+
+  def test_overridden_read_attribute
+    topic = Topic.new
+    topic.title = "Stop changing the topic"
+    def topic.read_attribute(attr_name)
+      super(attr_name).upcase
+    end
+
+    assert_equal "STOP CHANGING THE TOPIC", topic.send(:read_attribute, "title")
+    assert_equal "STOP CHANGING THE TOPIC", topic["title"]
+
+    assert_equal "STOP CHANGING THE TOPIC", topic.send(:read_attribute, :title)
+    assert_equal "STOP CHANGING THE TOPIC", topic[:title]
   end
 
   def test_read_overridden_attribute
@@ -410,49 +481,25 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_typecast_attribute_from_select_to_false
-    topic = Topic.create(:title => 'Budget')
+    Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.find(:first, :select => "topics.*, 0 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 0 as is_test").first
     else
-      topic = Topic.find(:first, :select => "topics.*, 1=2 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 1=2 as is_test").first
     end
     assert !topic.is_test?
   end
 
   def test_typecast_attribute_from_select_to_true
-    topic = Topic.create(:title => 'Budget')
+    Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.find(:first, :select => "topics.*, 1 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 1 as is_test").first
     else
-      topic = Topic.find(:first, :select => "topics.*, 2=2 as is_test")
+      topic = Topic.scoped(:select => "topics.*, 2=2 as is_test").first
     end
     assert topic.is_test?
-  end
-
-  def test_kernel_methods_not_implemented_in_activerecord
-    %w(test name display y).each do |method|
-      assert !ActiveRecord::Base.instance_method_already_implemented?(method), "##{method} is defined"
-    end
-  end
-
-  def test_defined_kernel_methods_implemented_in_model
-    %w(test name display y).each do |method|
-      klass = Class.new ActiveRecord::Base
-      klass.class_eval "def #{method}() 'defined #{method}' end"
-      assert klass.instance_method_already_implemented?(method), "##{method} is not defined"
-    end
-  end
-
-  def test_defined_kernel_methods_implemented_in_model_abstract_subclass
-    %w(test name display y).each do |method|
-      abstract = Class.new ActiveRecord::Base
-      abstract.class_eval "def #{method}() 'defined #{method}' end"
-      abstract.abstract_class = true
-      klass = Class.new abstract
-      assert klass.instance_method_already_implemented?(method), "##{method} is not defined"
-    end
   end
 
   def test_raises_dangerous_attribute_error_when_defining_activerecord_method_in_model
@@ -513,6 +560,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_write_time_to_date_attributes
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+      record.last_read = Time.utc(2010, 1, 1, 10)
+      assert_equal Date.civil(2010, 1, 1), record.last_read
+    end
+  end
+
   def test_time_attributes_are_retrieved_in_current_time_zone
     in_time_zone "Pacific Time (US & Canada)" do
       utc_time = Time.utc(2008, 1, 1)
@@ -548,6 +603,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_setting_time_zone_aware_read_attribute
+    utc_time = Time.utc(2008, 1, 1)
+    cst_time = utc_time.in_time_zone("Central Time (US & Canada)")
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.create(:written_on => cst_time).reload
+      assert_equal utc_time, record[:written_on]
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record[:written_on].time_zone
+      assert_equal Time.utc(2007, 12, 31, 16), record[:written_on].time
+    end
+  end
+
   def test_setting_time_zone_aware_attribute_with_string
     utc_time = Time.utc(2008, 1, 1)
     (-11..13).each do |timezone_offset|
@@ -562,11 +628,22 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_time_zone_aware_attribute_saved
+    in_time_zone 1 do
+      record = @target.create(:written_on => '2012-02-20 10:00')
+
+      record.written_on = '2012-02-20 09:00'
+      record.save
+      assert_equal Time.zone.local(2012, 02, 20, 9), record.reload.written_on
+    end
+  end
+
   def test_setting_time_zone_aware_attribute_to_blank_string_returns_nil
     in_time_zone "Pacific Time (US & Canada)" do
       record   = @target.new
       record.written_on = ' '
       assert_nil record.written_on
+      assert_nil record[:written_on]
     end
   end
 
@@ -608,7 +685,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new(:title => "The pros and cons of programming naked.")
     assert !topic.respond_to?(:title)
     exception = assert_raise(NoMethodError) { topic.title }
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     assert_equal "I'm private", topic.send(:title)
   end
 
@@ -618,7 +695,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new
     assert !topic.respond_to?(:title=)
     exception = assert_raise(NoMethodError) { topic.title = "Pants"}
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     topic.send(:title=, "Very large pants")
   end
 
@@ -628,7 +705,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new(:title => "Isaac Newton's pants")
     assert !topic.respond_to?(:title?)
     exception = assert_raise(NoMethodError) { topic.title? }
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     assert topic.send(:title?)
   end
 
@@ -659,17 +736,70 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal %w(preferences), Contact.serialized_attributes.keys
   end
 
+  def test_instance_method_should_be_defined_on_the_base_class
+    subklass = Class.new(Topic)
+
+    Topic.define_attribute_methods
+
+    instance = subklass.new
+    instance.id = 5
+    assert_equal 5, instance.id
+    assert subklass.method_defined?(:id), "subklass is missing id method"
+
+    Topic.undefine_attribute_methods
+
+    assert_equal 5, instance.id
+    assert subklass.method_defined?(:id), "subklass is missing id method"
+  end
+
+  def test_dispatching_column_attributes_through_method_missing_deprecated
+    Topic.define_attribute_methods
+
+    topic = Topic.new(:id => 5)
+    topic.id = 5
+
+    topic.method(:id).owner.send(:undef_method, :id)
+
+    assert_deprecated do
+      assert_equal 5, topic.id
+    end
+  ensure
+    Topic.undefine_attribute_methods
+  end
+
+  def test_read_attribute_with_nil_should_not_asplode
+    assert_equal nil, Topic.new.read_attribute(nil)
+  end
+
+  # If B < A, and A defines an accessor for 'foo', we don't want to override
+  # that by defining a 'foo' method in the generated methods module for B.
+  # (That module will be inserted between the two, e.g. [B, <GeneratedAttributes>, A].)
+  def test_inherited_custom_accessors
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.abstract_class = true
+      def title; "omg"; end
+      def title=(val); self.author_name = val; end
+    end
+    subklass = Class.new(klass)
+    [klass, subklass].each(&:define_attribute_methods)
+
+    topic = subklass.find(1)
+    assert_equal "omg", topic.title
+
+    topic.title = "lol"
+    assert_equal "lol", topic.author_name
+  end
+
   private
   def cached_columns
-    @cached_columns ||= (time_related_columns_on_topic + serialized_columns_on_topic).map(&:name)
+    Topic.columns.find_all { |column|
+      !Topic.serialized_attributes.include? column.name
+    }.map(&:name)
   end
 
   def time_related_columns_on_topic
-    Topic.columns.select { |c| c.type.in?([:time, :date, :datetime, :timestamp]) }
-  end
-
-  def serialized_columns_on_topic
-    Topic.columns.select { |c| Topic.serialized_attributes.include?(c.name) }
+    Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
   end
 
   def in_time_zone(zone)

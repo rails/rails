@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/callbacks'
 
 module ActiveModel
@@ -41,7 +40,7 @@ module ActiveModel
   # You can choose not to have all three callbacks by passing a hash to the
   # define_model_callbacks method.
   #
-  #   define_model_callbacks :create, :only => :after, :before
+  #   define_model_callbacks :create, :only => [:after, :before]
   #
   # Would only create the after_create and before_create callback methods in your
   # class.
@@ -89,11 +88,12 @@ module ActiveModel
       options = callbacks.extract_options!
       options = {
          :terminator => "result == false",
+         :skip_after_callbacks_if_terminated => true,
          :scope => [:kind, :name],
          :only => [:before, :around, :after]
       }.merge(options)
 
-      types   = Array.wrap(options.delete(:only))
+      types = Array(options.delete(:only))
 
       callbacks.each do |callback|
         define_callbacks(callback, options)
@@ -125,7 +125,7 @@ module ActiveModel
         def self.after_#{callback}(*args, &block)
           options = args.extract_options!
           options[:prepend] = true
-          options[:if] = Array.wrap(options[:if]) << "!halted && value != false"
+          options[:if] = Array(options[:if]) << "value != false"
           set_callback(:#{callback}, :after, *(args << options), &block)
         end
       CALLBACK

@@ -6,12 +6,11 @@ rescue LoadError => e
 end
 
 require 'digest/md5'
-require 'active_support/core_ext/string/encoding'
 
 module ActiveSupport
   module Cache
     # A cache store implementation which stores data in Memcached:
-    # http://www.danga.com/memcached/
+    # http://memcached.org/
     #
     # This is currently the most popular cache store for production websites.
     #
@@ -21,7 +20,7 @@ module ActiveSupport
     #   server goes down, then MemCacheStore will ignore it until it comes back up.
     #
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
-    # an in memory cache inside of a block.
+    # an in-memory cache inside of a block.
     class MemCacheStore < Store
       module Response # :nodoc:
         STORED      = "STORED\r\n"
@@ -165,7 +164,7 @@ module ActiveSupport
         # characters properly.
         def escape_key(key)
           key = key.to_s.dup
-          key = key.force_encoding("BINARY") if key.encoding_aware?
+          key = key.force_encoding("BINARY")
           key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
           key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
           key

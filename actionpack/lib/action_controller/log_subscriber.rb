@@ -20,13 +20,16 @@ module ActionController
 
       status = payload[:status]
       if status.nil? && payload[:exception].present?
-        status = Rack::Utils.status_code(ActionDispatch::ShowExceptions.rescue_responses[payload[:exception].first]) rescue nil
+        status = ActionDispatch::ExceptionWrapper.new({}, payload[:exception]).status_code
       end
       message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in %.0fms" % event.duration
       message << " (#{additions.join(" | ")})" unless additions.blank?
-      message << "\n"
 
       info(message)
+    end
+
+    def halted_callback(event)
+      info "Filter chain halted as #{event.payload[:filter]} rendered or redirected"
     end
 
     def send_file(event)

@@ -81,7 +81,19 @@ You can review the commits for the 3.0.10 release like this:
 
     [aaron@higgins rails (3-0-10)]$ git log v3.0.9..
 
+If you're doing a stable branch release, you should also ensure that all of
+the CHANGELOG entries in the stable branch are also synced to the master
+branch.
+
 === Update the RAILS_VERSION file to include the RC.
+
+=== Build and test the gem.
+
+Run `rake install` to generate the gems and install them locally. Then try
+generating a new app and ensure that nothing explodes.
+
+This will stop you from looking silly when you push an RC to rubygems.org and
+then realise it is broken.
 
 === Release the gem.
 
@@ -150,6 +162,7 @@ Today, do this stuff in this order:
 * Apply security patches to the release branch
 * Update CHANGELOG with security fixes.
 * Update RAILS_VERSION to remove the rc
+* Build and test the gem
 * Release the gems
 * Email security lists
 * Email general announcement lists
@@ -184,3 +197,34 @@ There are two simple steps for fixing the CI:
 2. Fix it
 
 Repeat these steps until the CI is green.
+
+=== Manually trigger docs generation
+
+We have a post-receive hook in GitHub that calls the docs server on pushes.
+It triggers generation and publication of edge docs, updates the contrib app,
+and generates and publishes stable docs if a new stable tag is detected.
+
+The hook unfortunately is not invoked by tag pushing, so once the new stable
+tag has been pushed to origin, please run
+
+    rake publish_docs
+
+You should see something like this:
+
+    Rails master hook tasks scheduled:
+
+      * updates the local checkout
+      * updates Rails Contributors
+      * generates and publishes edge docs
+
+    If a new stable tag is detected it also
+
+      * generates and publishes stable docs
+
+    This needs typically a few minutes.
+
+Note you do not need to specify the tag, the docs server figures it out.
+
+Also, don't worry if you call that multiple times or the hook is triggered
+again by some immediate regular push, if the scripts are running new calls
+are just queued (in a queue of size 1).

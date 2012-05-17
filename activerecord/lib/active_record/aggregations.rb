@@ -46,7 +46,7 @@ module ActiveRecord
     #
     #    def <=>(other_money)
     #      if currency == other_money.currency
-    #        amount <=> amount
+    #        amount <=> other_money.amount
     #      else
     #        amount <=> other_money.exchange_to(currency).amount
     #      end
@@ -71,7 +71,7 @@ module ActiveRecord
     # Now it's possible to access attributes from the database through the value objects instead. If
     # you choose to name the composition the same as the attribute's name, it will be the only way to
     # access that attribute. That's the case with our +balance+ attribute. You interact with the value
-    # objects just like you would any other attribute, though:
+    # objects just like you would with any other attribute:
     #
     #   customer.balance = Money.new(20)     # sets the Money value object and the attribute
     #   customer.balance                     # => Money value object
@@ -86,6 +86,12 @@ module ActiveRecord
     #   customer.address_street = "Hyancintvej"
     #   customer.address_city   = "Copenhagen"
     #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
+    #
+    #   customer.address_street = "Vesterbrogade"
+    #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
+    #   customer.clear_aggregation_cache
+    #   customer.address        # => Address.new("Vesterbrogade", "Copenhagen")
+    #
     #   customer.address = Address.new("May Street", "Chicago")
     #   customer.address_street # => "May Street"
     #   customer.address_city   # => "Chicago"
@@ -101,8 +107,8 @@ module ActiveRecord
     # ActiveRecord::Base classes are entity objects.
     #
     # It's also important to treat the value objects as immutable. Don't allow the Money object to have
-    # its amount changed after creation. Create a new Money object with the new value instead. This
-    # is exemplified by the Money#exchange_to method that returns a new value object instead of changing
+    # its amount changed after creation. Create a new Money object with the new value instead. The
+    # Money#exchange_to method is an example of this. It returns a new value object instead of changing
     # its own values. Active Record won't persist value objects that have been changed through means
     # other than the writer method.
     #
@@ -119,7 +125,7 @@ module ActiveRecord
     # option, as arguments. If the value class doesn't support this convention then +composed_of+ allows
     # a custom constructor to be specified.
     #
-    # When a new value is assigned to the value object the default assumption is that the new value
+    # When a new value is assigned to the value object, the default assumption is that the new value
     # is an instance of the value class. Specifying a custom converter allows the new value to be automatically
     # converted to an instance of value class if necessary.
     #
@@ -172,8 +178,8 @@ module ActiveRecord
       #   with this option.
       # * <tt>:mapping</tt> - Specifies the mapping of entity attributes to attributes of the value
       #   object. Each mapping is represented as an array where the first item is the name of the
-      #   entity attribute and the second item is the name the attribute in the value object. The
-      #   order in which mappings are defined determine the order in which attributes are sent to the
+      #   entity attribute and the second item is the name of the attribute in the value object. The
+      #   order in which mappings are defined determines the order in which attributes are sent to the
       #   value class constructor.
       # * <tt>:allow_nil</tt> - Specifies that the value object will not be instantiated when all mapped
       #   attributes are +nil+. Setting the value object to +nil+ has the effect of writing +nil+ to all
@@ -191,7 +197,8 @@ module ActiveRecord
       #
       # Option examples:
       #   composed_of :temperature, :mapping => %w(reading celsius)
-      #   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount), :converter => Proc.new { |balance| balance.to_money }
+      #   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount),
+      #                         :converter => Proc.new { |balance| balance.to_money }
       #   composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
       #   composed_of :gps_location
       #   composed_of :gps_location, :allow_nil => true

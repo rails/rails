@@ -11,12 +11,13 @@ class Contact < ActiveRecord::Base
     connection.merge_column('contacts', name, sql_type, options)
   end
 
-  column :name,        :string
-  column :age,         :integer
-  column :avatar,      :binary
-  column :created_at,  :datetime
-  column :awesome,     :boolean
-  column :preferences, :string
+  column :name,           :string
+  column :age,            :integer
+  column :avatar,         :binary
+  column :created_at,     :datetime
+  column :awesome,        :boolean
+  column :preferences,    :string
+  column :alternative_id, :integer
 
   serialize :preferences
 

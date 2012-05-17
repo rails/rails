@@ -1,11 +1,12 @@
+ENV["RAILS_ENV"] ||= "test"
+
 require File.expand_path("../../../load_paths", __FILE__)
 
 require 'stringio'
-require 'test/unit'
+require 'minitest/autorun'
 require 'fileutils'
 
 require 'active_support'
-require 'active_support/core_ext/logger'
 
 require 'action_controller'
 require 'rails/all'

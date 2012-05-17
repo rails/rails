@@ -1,7 +1,6 @@
-require 'active_support/core_ext/module/delegation'
-
 module ActiveSupport
   module Notifications
+    # Instrumentors are stored in a thread local.
     class Instrumenter
       attr_reader :id
 
@@ -14,15 +13,14 @@ module ActiveSupport
       # and publish it. Notice that events get sent even if an error occurs
       # in the passed-in block
       def instrument(name, payload={})
-        started = Time.now
-
+        @notifier.start(name, @id, payload)
         begin
           yield
         rescue Exception => e
           payload[:exception] = [e.class.name, e.message]
           raise e
         ensure
-          @notifier.publish(name, started, Time.now, @id, payload)
+          @notifier.finish(name, @id, payload)
         end
       end
 

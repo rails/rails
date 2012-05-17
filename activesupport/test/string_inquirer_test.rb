@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class StringInquirerTest < Test::Unit::TestCase
+class StringInquirerTest < ActiveSupport::TestCase
   def test_match
     assert ActiveSupport::StringInquirer.new("production").production?
   end

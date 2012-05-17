@@ -1,6 +1,7 @@
 require 'active_model/attribute_methods'
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/object/blank'
 
 module ActiveModel
   # == Active Model Dirty
@@ -29,7 +30,7 @@ module ActiveModel
   #
   #     include ActiveModel::Dirty
   #
-  #     define_attribute_methods = [:name]
+  #     define_attribute_methods :name
   #
   #     def name
   #       @name
@@ -82,6 +83,7 @@ module ActiveModel
   # in-place attributes.
   #
   #   person.name_will_change!
+  #   person.name_change    # => ['Bill', 'Bill']
   #   person.name << 'y'
   #   person.name_change    # => ['Bill', 'Billy']
   module Dirty
@@ -98,7 +100,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed? # => true
     def changed?
-      !changed_attributes.empty?
+      changed_attributes.present?
     end
 
     # List of attributes with unsaved changes.
@@ -150,13 +152,15 @@ module ActiveModel
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
       def attribute_will_change!(attr)
+        return if attribute_changed?(attr)
+
         begin
           value = __send__(attr)
           value = value.duplicable? ? value.clone : value
         rescue TypeError, NoMethodError
         end
 
-        changed_attributes[attr] = value unless changed_attributes.include?(attr)
+        changed_attributes[attr] = value
       end
 
       # Handle <tt>reset_*!</tt> for +method_missing+.

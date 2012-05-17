@@ -1,8 +1,12 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 
-class CompiledTemplatesTest < Test::Unit::TestCase
+class CompiledTemplatesTest < ActiveSupport::TestCase
   def setup
+    # Clean up any details key cached to expose failures
+    # that otherwise would appear just on isolated tests
+    ActionView::LookupContext::DetailsKey.clear
+
     @compiled_templates = ActionView::CompiledTemplates
     @compiled_templates.instance_methods.each do |m|
       @compiled_templates.send(:remove_method, m) if m =~ /^_render_template_/
@@ -10,24 +14,24 @@ class CompiledTemplatesTest < Test::Unit::TestCase
   end
 
   def test_template_gets_recompiled_when_using_different_keys_in_local_assigns
-    assert_equal "one", render(:file => "test/render_file_with_locals_and_default.erb")
-    assert_equal "two", render(:file => "test/render_file_with_locals_and_default.erb", :locals => { :secret => "two" })
+    assert_equal "one", render(:file => "test/render_file_with_locals_and_default")
+    assert_equal "two", render(:file => "test/render_file_with_locals_and_default", :locals => { :secret => "two" })
   end
 
   def test_template_changes_are_not_reflected_with_cached_templates
-    assert_equal "Hello world!", render(:file => "test/hello_world.erb")
+    assert_equal "Hello world!", render(:file => "test/hello_world")
     modify_template "test/hello_world.erb", "Goodbye world!" do
-      assert_equal "Hello world!", render(:file => "test/hello_world.erb")
+      assert_equal "Hello world!", render(:file => "test/hello_world")
     end
-    assert_equal "Hello world!", render(:file => "test/hello_world.erb")
+    assert_equal "Hello world!", render(:file => "test/hello_world")
   end
 
   def test_template_changes_are_reflected_with_uncached_templates
-    assert_equal "Hello world!", render_without_cache(:file => "test/hello_world.erb")
+    assert_equal "Hello world!", render_without_cache(:file => "test/hello_world")
     modify_template "test/hello_world.erb", "Goodbye world!" do
-      assert_equal "Goodbye world!", render_without_cache(:file => "test/hello_world.erb")
+      assert_equal "Goodbye world!", render_without_cache(:file => "test/hello_world")
     end
-    assert_equal "Hello world!", render_without_cache(:file => "test/hello_world.erb")
+    assert_equal "Hello world!", render_without_cache(:file => "test/hello_world")
   end
 
   private

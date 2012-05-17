@@ -211,7 +211,7 @@ module ActiveRecord
       def after_commit(*args, &block)
         options = args.last
         if options.is_a?(Hash) && options[:on]
-          options[:if] = Array.wrap(options[:if])
+          options[:if] = Array(options[:if])
           options[:if] << "transaction_include_action?(:#{options[:on]})"
         end
         set_callback(:commit, :after, *args, &block)
@@ -220,7 +220,7 @@ module ActiveRecord
       def after_rollback(*args, &block)
         options = args.last
         if options.is_a?(Hash) && options[:on]
-          options[:if] = Array.wrap(options[:if])
+          options[:if] = Array(options[:if])
           options[:if] << "transaction_include_action?(:#{options[:on]})"
         end
         set_callback(:rollback, :after, *args, &block)
@@ -251,7 +251,6 @@ module ActiveRecord
       remember_transaction_record_state
       yield
     rescue Exception
-      IdentityMap.remove(self) if IdentityMap.enabled?
       restore_transaction_record_state
       raise
     ensure
@@ -270,7 +269,6 @@ module ActiveRecord
     def rolledback!(force_restore_state = false) #:nodoc:
       run_callbacks :rollback
     ensure
-      IdentityMap.remove(self) if IdentityMap.enabled?
       restore_transaction_record_state(force_restore_state)
     end
 
@@ -292,7 +290,15 @@ module ActiveRecord
       status = nil
       self.class.transaction do
         add_to_transaction
-        status = yield
+        begin
+          status = yield
+        rescue ActiveRecord::Rollback
+          if defined?(@_start_transaction_state) 
+            @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+          end
+          status = nil
+        end
+        
         raise ActiveRecord::Rollback unless status
       end
       status
@@ -301,20 +307,16 @@ module ActiveRecord
     protected
 
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
-    def remember_transaction_record_state #:nodoc
+    def remember_transaction_record_state #:nodoc:
       @_start_transaction_state ||= {}
       @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
-      unless @_start_transaction_state.include?(:new_record)
-        @_start_transaction_state[:new_record] = @new_record
-      end
-      unless @_start_transaction_state.include?(:destroyed)
-        @_start_transaction_state[:destroyed] = @destroyed
-      end
+      @_start_transaction_state[:new_record] = @new_record
+      @_start_transaction_state[:destroyed] = @destroyed
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
     end
 
     # Clear the new record state and id of a record.
-    def clear_transaction_record_state #:nodoc
+    def clear_transaction_record_state #:nodoc:
       if defined?(@_start_transaction_state)
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         remove_instance_variable(:@_start_transaction_state) if @_start_transaction_state[:level] < 1
@@ -322,7 +324,7 @@ module ActiveRecord
     end
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
-    def restore_transaction_record_state(force = false) #:nodoc
+    def restore_transaction_record_state(force = false) #:nodoc:
       if defined?(@_start_transaction_state)
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         if @_start_transaction_state[:level] < 1
@@ -341,12 +343,12 @@ module ActiveRecord
     end
 
     # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
-    def transaction_record_state(state) #:nodoc
+    def transaction_record_state(state) #:nodoc:
       @_start_transaction_state[state] if defined?(@_start_transaction_state)
     end
 
     # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
-    def transaction_include_action?(action) #:nodoc
+    def transaction_include_action?(action) #:nodoc:
       case action
       when :create
         transaction_record_state(:new_record)

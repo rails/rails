@@ -12,17 +12,17 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :nested_attributes_options, :instance_writer => false
+      config_attribute :nested_attributes_options
       self.nested_attributes_options = {}
     end
 
     # = Active Record Nested Attributes
     #
     # Nested attributes allow you to save attributes on associated records
-    # through the parent. By default nested attribute updating is turned off,
-    # you can enable it using the accepts_nested_attributes_for class method.
-    # When you enable nested attributes an attribute writer is defined on
-    # the model.
+    # through the parent. By default nested attribute updating is turned off
+    # and you can enable it using the accepts_nested_attributes_for class
+    # method. When you enable nested attributes an attribute writer is
+    # defined on the model.
     #
     # The attribute writer is named after the association, which means that
     # in the following example, two new methods are added to your model:
@@ -220,7 +220,7 @@ module ActiveRecord
     #     validates_presence_of :member
     #   end
     module ClassMethods
-      REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |_, value| value.blank? } }
+      REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == '_destroy' || value.blank? } }
 
       # Defines an attributes writer for the specified association(s). If you
       # are using <tt>attr_protected</tt> or <tt>attr_accessible</tt>, then you
@@ -239,7 +239,8 @@ module ActiveRecord
       #   is specified, a record will be built for all attribute hashes that
       #   do not have a <tt>_destroy</tt> value that evaluates to true.
       #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
-      #   that will reject a record where all the attributes are blank.
+      #   that will reject a record where all the attributes are blank excluding
+      #   any value for _destroy.
       # [:limit]
       #   Allows you to specify the maximum number of the associated records that
       #   can be processed with the nested attributes. If the size of the
@@ -247,10 +248,18 @@ module ActiveRecord
       #   exception is raised. If omitted, any number associations can be processed.
       #   Note that the :limit option is only applicable to one-to-many associations.
       # [:update_only]
-      #   Allows you to specify that an existing record may only be updated.
-      #   A new record may only be created when there is no existing record.
-      #   This option only works for one-to-one associations and is ignored for
-      #   collection associations. This option is off by default.
+      #   For a one-to-one association, this option allows you to specify how
+      #   nested attributes are to be used when an associated record already
+      #   exists. In general, an existing record may either be updated with the
+      #   new set of attribute values or be replaced by a wholly new record
+      #   containing those values. By default the :update_only option is +false+
+      #   and the nested attributes are used to update the existing record only
+      #   if they include the record's <tt>:id</tt> value. Otherwise a new
+      #   record will be instantiated and used to replace the existing one.
+      #   However if the :update_only option is +true+, the nested attributes
+      #   are used to update the record's attributes always, regardless of
+      #   whether the <tt>:id</tt> is present. The option is ignored for collection
+      #   associations.
       #
       # Examples:
       #   # creates avatar_attributes=
@@ -279,7 +288,7 @@ module ActiveRecord
             # def pirate_attributes=(attributes)
             #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes, mass_assignment_options)
             # end
-            class_eval <<-eoruby, __FILE__, __LINE__ + 1
+            generated_feature_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
               if method_defined?(:#{association_name}_attributes=)
                 remove_method(:#{association_name}_attributes=)
               end
@@ -311,10 +320,13 @@ module ActiveRecord
 
     # Assigns the given attributes to the association.
     #
-    # If update_only is false and the given attributes include an <tt>:id</tt>
-    # that matches the existing record's id, then the existing record will be
-    # modified. If update_only is true, a new record is only created when no
-    # object exists. Otherwise a new record will be built.
+    # If an associated record does not yet exist, one will be instantiated. If
+    # an associated record already exists, the method's behavior depends on
+    # the value of the update_only option. If update_only is +false+ and the
+    # given attributes include an <tt>:id</tt> that matches the existing record's
+    # id, then the existing record will be modified. If no <tt>:id</tt> is provided
+    # it will be replaced with a new record. If update_only is +true+ the existing
+    # record will be modified regardless of whether an <tt>:id</tt> is provided.
     #
     # If the given attributes include a matching <tt>:id</tt> attribute, or
     # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
@@ -381,7 +393,7 @@ module ActiveRecord
       if attributes_collection.is_a? Hash
         keys = attributes_collection.keys
         attributes_collection = if keys.include?('id') || keys.include?(:id)
-          Array.wrap(attributes_collection)
+          [attributes_collection]
         else
           attributes_collection.values
         end

@@ -130,7 +130,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::UrlEncodedParamsParsingTest::TestController
+          post ':action', :to => ::UrlEncodedParamsParsingTest::TestController
         end
         yield
       end
@@ -146,8 +146,6 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     end
 
     def assert_utf8(object)
-      return unless "ruby".encoding_aware?
-
       correct_encoding = Encoding.default_internal
 
       unless object.is_a?(Hash)

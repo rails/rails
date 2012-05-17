@@ -1,6 +1,5 @@
 # encoding: utf-8
 require 'abstract_unit'
-require 'active_support/ordered_hash'
 require 'controller/fake_controllers'
 
 class UrlHelperTest < ActiveSupport::TestCase
@@ -11,11 +10,14 @@ class UrlHelperTest < ActiveSupport::TestCase
   # In those cases, we'll set up a simple mock
   attr_accessor :controller, :request
 
+  cattr_accessor :request_forgery
+  self.request_forgery = false
+
   routes = ActionDispatch::Routing::RouteSet.new
   routes.draw do
-    match "/" => "foo#bar"
-    match "/other" => "foo#other"
-    match "/article/:id" => "foo#article", :as => :article
+    get "/" => "foo#bar"
+    get "/other" => "foo#other"
+    get "/article/:id" => "foo#article", :as => :article
   end
 
   include routes.url_helpers
@@ -28,13 +30,13 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   setup :_prepare_context
 
-  def hash_for(opts = [])
-    ActiveSupport::OrderedHash[*([:controller, "foo", :action, "bar"].concat(opts))]
+  def hash_for(options = {})
+    { :controller => "foo", :action => "bar" }.merge!(options)
   end
   alias url_hash hash_for
 
   def test_url_for_does_not_escape_urls
-    assert_equal "/?a=b&c=d", url_for(hash_for([:a, :b, :c, :d]))
+    assert_equal "/?a=b&c=d", url_for(hash_for(:a => :b, :c => :d))
   end
 
   def test_url_for_with_back
@@ -49,9 +51,20 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal 'javascript:history.back()', url_for(:back)
   end
 
-  # todo: missing test cases
+  # TODO: missing test cases
   def test_button_to_with_straight_url
     assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com")
+  end
+
+  def test_button_to_with_straight_url_and_request_forgery
+    self.request_forgery = true
+
+    assert_dom_equal(
+      %{<form method="post" action="http://www.example.com" class="button_to"><div><input type="submit" value="Hello" /><input name="form_token" type="hidden" value="secret" /></div></form>},
+      button_to("Hello", "http://www.example.com")
+    )
+  ensure
+    self.request_forgery = false
   end
 
   def test_button_to_with_form_class
@@ -84,28 +97,18 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_button_to_with_javascript_disable_with
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\"><div><input data-disable-with=\"Greeting...\" type=\"submit\" value=\"Hello\" /></div></form>",
-      button_to("Hello", "http://www.example.com", :disable_with => "Greeting...")
+      button_to("Hello", "http://www.example.com", 'data-disable-with' => "Greeting...")
     )
+  end
+
+  def test_button_to_with_remote_and_form_options
+    assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"custom-class\" data-remote=\"true\" data-type=\"json\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com", :remote => true, :form => { :class => "custom-class", "data-type" => "json" } )
   end
 
   def test_button_to_with_remote_and_javascript_confirm
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
       button_to("Hello", "http://www.example.com", :remote => true, :confirm => "Are you sure?")
-    )
-  end
-
-  def test_button_to_with_remote_and_javascript_disable_with
-    assert_dom_equal(
-      "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-disable-with=\"Greeting...\" type=\"submit\" value=\"Hello\" /></div></form>",
-      button_to("Hello", "http://www.example.com", :remote => true, :disable_with => "Greeting...")
-    )
-  end
-
-  def test_button_to_with_remote_and_javascript_confirm_and_javascript_disable_with
-    assert_dom_equal(
-      "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-disable-with=\"Greeting...\" data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
-      button_to("Hello", "http://www.example.com", :remote => true, :confirm => "Are you sure?", :disable_with => "Greeting...")
     )
   end
 
@@ -150,7 +153,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_tag_with_host_option
-    hash = hash_for([:host, "www.example.com"])
+    hash = hash_for(:host => "www.example.com")
     expected = %q{<a href="http://www.example.com/">Test Link</a>}
     assert_dom_equal(expected, link_to('Test Link', hash))
   end
@@ -304,8 +307,8 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal "Showing", link_to_if(false, "Showing", url_hash)
   end
 
-  def request_for_url(url)
-    env = Rack::MockRequest.env_for("http://www.example.com#{url}")
+  def request_for_url(url, opts = {})
+    env = Rack::MockRequest.env_for("http://www.example.com#{url}", opts)
     ActionDispatch::Request.new(env)
   end
 
@@ -325,8 +328,14 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_params_that_match
     @request = request_for_url("/?order=desc&page=1")
 
-    assert current_page?(hash_for([:order, "desc", :page, "1"]))
+    assert current_page?(hash_for(:order => "desc", :page => "1"))
     assert current_page?("http://www.example.com/?order=desc&page=1")
+  end
+
+  def test_current_page_with_not_get_verb
+    @request = request_for_url("/events", :method => :post)
+
+    assert !current_page?('/events')
   end
 
   def test_link_unless_current
@@ -347,20 +356,20 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/?order=desc&page=1")
 
     assert_equal "Showing",
-      link_to_unless_current("Showing", hash_for([:order, 'desc', :page, '1']))
+      link_to_unless_current("Showing", hash_for(:order => 'desc', :page => '1'))
     assert_equal "Showing",
       link_to_unless_current("Showing", "http://www.example.com/?order=desc&page=1")
 
     @request = request_for_url("/?order=desc")
 
     assert_equal %{<a href="/?order=asc">Showing</a>},
-      link_to_unless_current("Showing", hash_for([:order, :asc]))
+      link_to_unless_current("Showing", hash_for(:order => :asc))
     assert_equal %{<a href="http://www.example.com/?order=asc">Showing</a>},
       link_to_unless_current("Showing", "http://www.example.com/?order=asc")
 
     @request = request_for_url("/?order=desc")
     assert_equal %{<a href="/?order=desc&amp;page=2\">Showing</a>},
-      link_to_unless_current("Showing", hash_for([:order, "desc", :page, 2]))
+      link_to_unless_current("Showing", hash_for(:order => "desc", :page => 2))
     assert_equal %{<a href="http://www.example.com/?order=desc&amp;page=2">Showing</a>},
       link_to_unless_current("Showing", "http://www.example.com/?order=desc&page=2")
 
@@ -385,12 +394,12 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_mail_to_with_javascript
     snippet = mail_to("me@domain.com", "My email", :encode => "javascript")
-    assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%4d%79%20%65%6d%61%69%6c%3c%5c%2f%61%3e%27%29%3b'))</script>", snippet
+    assert_dom_equal "<script>eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%4d%79%20%65%6d%61%69%6c%3c%5c%2f%61%3e%27%29%3b'))</script>", snippet
   end
 
   def test_mail_to_with_javascript_unicode
     snippet = mail_to("unicode@example.com", "únicode", :encode => "javascript")
-    assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%75%6e%69%63%6f%64%65%40%65%78%61%6d%70%6c%65%2e%63%6f%6d%5c%22%3e%c3%ba%6e%69%63%6f%64%65%3c%5c%2f%61%3e%27%29%3b'))</script>", snippet
+    assert_dom_equal "<script>eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%75%6e%69%63%6f%64%65%40%65%78%61%6d%70%6c%65%2e%63%6f%6d%5c%22%3e%c3%ba%6e%69%63%6f%64%65%3c%5c%2f%61%3e%27%29%3b'))</script>", snippet
   end
 
   def test_mail_with_options
@@ -415,8 +424,8 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal "<a href=\"&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d\">&#109;&#101;&#40;&#97;&#116;&#41;&#100;&#111;&#109;&#97;&#105;&#110;&#46;&#99;&#111;&#109;</a>", mail_to("me@domain.com", nil, :encode => "hex", :replace_at => "(at)")
     assert_dom_equal "<a href=\"&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d\">My email</a>", mail_to("me@domain.com", "My email", :encode => "hex", :replace_at => "(at)")
     assert_dom_equal "<a href=\"&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d\">&#109;&#101;&#40;&#97;&#116;&#41;&#100;&#111;&#109;&#97;&#105;&#110;&#40;&#100;&#111;&#116;&#41;&#99;&#111;&#109;</a>", mail_to("me@domain.com", nil, :encode => "hex", :replace_at => "(at)", :replace_dot => "(dot)")
-    assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%4d%79%20%65%6d%61%69%6c%3c%5c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", "My email", :encode => "javascript", :replace_at => "(at)", :replace_dot => "(dot)")
-    assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%6d%65%28%61%74%29%64%6f%6d%61%69%6e%28%64%6f%74%29%63%6f%6d%3c%5c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", nil, :encode => "javascript", :replace_at => "(at)", :replace_dot => "(dot)")
+    assert_dom_equal "<script>eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%4d%79%20%65%6d%61%69%6c%3c%5c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", "My email", :encode => "javascript", :replace_at => "(at)", :replace_dot => "(dot)")
+    assert_dom_equal "<script>eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%6d%65%28%61%74%29%64%6f%6d%61%69%6e%28%64%6f%74%29%63%6f%6d%3c%5c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", nil, :encode => "javascript", :replace_at => "(at)", :replace_dot => "(dot)")
   end
 
   def test_mail_to_returns_html_safe_string
@@ -425,9 +434,16 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert mail_to("me@domain.com", "My email", :encode => "hex").html_safe?
   end
 
-  # TODO: button_to looks at this ... why?
   def protect_against_forgery?
-    false
+    self.request_forgery
+  end
+
+  def form_authenticity_token
+    "secret"
+  end
+
+  def request_forgery_protection_token
+    "form_token"
   end
 
   private
@@ -441,25 +457,25 @@ end
 class UrlHelperControllerTest < ActionController::TestCase
   class UrlHelperController < ActionController::Base
     test_routes do
-      match 'url_helper_controller_test/url_helper/show/:id',
+      get 'url_helper_controller_test/url_helper/show/:id',
         :to => 'url_helper_controller_test/url_helper#show',
         :as => :show
 
-      match 'url_helper_controller_test/url_helper/profile/:name',
+      get 'url_helper_controller_test/url_helper/profile/:name',
         :to => 'url_helper_controller_test/url_helper#show',
         :as => :profile
 
-      match 'url_helper_controller_test/url_helper/show_named_route',
+      get 'url_helper_controller_test/url_helper/show_named_route',
         :to => 'url_helper_controller_test/url_helper#show_named_route',
         :as => :show_named_route
 
-      match "/:controller(/:action(/:id))"
+      get "/:controller(/:action(/:id))"
 
-      match 'url_helper_controller_test/url_helper/normalize_recall_params',
+      get 'url_helper_controller_test/url_helper/normalize_recall_params',
         :to => UrlHelperController.action(:normalize_recall),
         :as => :normalize_recall_params
 
-      match '/url_helper_controller_test/url_helper/override_url_helper/default',
+      get '/url_helper_controller_test/url_helper/override_url_helper/default',
         :to => 'url_helper_controller_test/url_helper#override_url_helper',
         :as => :override_url_helper
     end
@@ -495,8 +511,6 @@ class UrlHelperControllerTest < ActionController::TestCase
     def recall_params_not_changed
       render :inline => '<%= url_for(:action => :show_url_for) %>'
     end
-
-    def rescue_action(e) raise e end
 
     def override_url_helper
       render :inline => '<%= override_url_helper_path %>'
@@ -538,7 +552,7 @@ class UrlHelperControllerTest < ActionController::TestCase
 
   def test_named_route_should_show_host_and_path_using_controller_default_url_options
     class << @controller
-      def default_url_options(options = nil)
+      def default_url_options
         {:host => 'testtwo.host'}
       end
     end
@@ -584,8 +598,6 @@ class TasksController < ActionController::Base
   def show
     render_default
   end
-
-  def rescue_action(e) raise e end
 
   protected
     def render_default
@@ -645,8 +657,6 @@ class WorkshopsController < ActionController::Base
     @workshop = Workshop.new(params[:id])
     render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
   end
-
-  def rescue_action(e) raise e end
 end
 
 class SessionsController < ActionController::Base
@@ -667,8 +677,6 @@ class SessionsController < ActionController::Base
     @session = Session.new(params[:id])
     render :inline => "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
   end
-
-  def rescue_action(e) raise e end
 end
 
 class PolymorphicControllerTest < ActionController::TestCase

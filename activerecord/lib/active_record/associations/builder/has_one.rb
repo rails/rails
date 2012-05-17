@@ -34,30 +34,23 @@ module ActiveRecord::Associations::Builder
                                  ":nullify or :restrict (#{options[:dependent].inspect})"
           end
 
+          dependent_restrict_deprecation_warning if options[:dependent] == :restrict
           send("define_#{options[:dependent]}_dependency_method")
           model.before_destroy dependency_method_name
         end
       end
 
-      def dependency_method_name
-        "has_one_dependent_#{options[:dependent]}_for_#{name}"
-      end
-
       def define_destroy_dependency_method
-        model.send(:class_eval, <<-eoruby, __FILE__, __LINE__ + 1)
-          def #{dependency_method_name}
-            association(#{name.to_sym.inspect}).delete
-          end
-        eoruby
+        name = self.name
+        mixin.redefine_method(dependency_method_name) do
+          association(name).delete
+        end
       end
       alias :define_delete_dependency_method :define_destroy_dependency_method
       alias :define_nullify_dependency_method :define_destroy_dependency_method
 
-      def define_restrict_dependency_method
-        name = self.name
-        model.redefine_method(dependency_method_name) do
-          raise ActiveRecord::DeleteRestrictionError.new(name) unless send(name).nil?
-        end
+      def dependency_method_name
+        "has_one_dependent_#{options[:dependent]}_for_#{name}"
       end
   end
 end

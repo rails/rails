@@ -27,6 +27,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("800 555 1212", number_to_phone(8005551212, {:delimiter => " "}))
     assert_equal("(800) 555-1212 x 123", number_to_phone(8005551212, {:area_code => true, :extension => 123}))
     assert_equal("800-555-1212", number_to_phone(8005551212, :extension => "  "))
+    assert_equal("555.1212", number_to_phone(5551212, :delimiter => '.'))
     assert_equal("800-555-1212", number_to_phone("8005551212"))
     assert_equal("+1-800-555-1212", number_to_phone(8005551212, :country_code => 1))
     assert_equal("+18005551212", number_to_phone(8005551212, :country_code => 1, :delimiter => ''))
@@ -56,6 +57,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("1000.000%", number_to_percentage("1000"))
     assert_equal("123.4%", number_to_percentage(123.400, :precision => 3, :strip_insignificant_zeros => true))
     assert_equal("1.000,000%", number_to_percentage(1000, :delimiter => '.', :separator => ','))
+    assert_equal("1000.000  %", number_to_percentage(1000, :format => "%n  %"))
   end
 
   def test_number_with_delimiter
@@ -94,6 +96,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("0.001", number_with_precision(0.00111, :precision => 3))
     assert_equal("10.00", number_with_precision(9.995, :precision => 2))
     assert_equal("11.00", number_with_precision(10.995, :precision => 2))
+    assert_equal("0.00", number_with_precision(-0.001, :precision => 2))
   end
 
   def test_number_with_precision_with_custom_delimiter_and_separator
@@ -264,6 +267,31 @@ class NumberHelperTest < ActionView::TestCase
     assert_nil number_with_precision(nil)
     assert_nil number_to_human_size(nil)
     assert_nil number_to_human(nil)
+  end
+
+  def test_number_helpers_do_not_mutate_options_hash
+    options = { 'raise' => true }
+
+    number_to_phone(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_to_currency(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_to_percentage(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_with_delimiter(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_with_precision(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_to_human_size(1, options)
+    assert_equal({ 'raise' => true }, options)
+
+    number_to_human(1, options)
+    assert_equal({ 'raise' => true }, options)
   end
 
   def test_number_helpers_should_return_non_numeric_param_unchanged

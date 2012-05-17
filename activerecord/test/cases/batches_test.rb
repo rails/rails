@@ -27,27 +27,15 @@ class EachTest < ActiveRecord::TestCase
 
   def test_each_should_raise_if_select_is_set_without_id
     assert_raise(RuntimeError) do
-      Post.find_each(:select => :title, :batch_size => 1) { |post| post }
+      Post.select(:title).find_each(:batch_size => 1) { |post| post }
     end
   end
 
   def test_each_should_execute_if_id_is_in_select
     assert_queries(6) do
-      Post.find_each(:select => "id, title, type", :batch_size => 2) do |post|
+      Post.select("id, title, type").find_each(:batch_size => 2) do |post|
         assert_kind_of Post, post
       end
-    end
-  end
-
-  def test_each_should_raise_if_the_order_is_set
-    assert_raise(RuntimeError) do
-      Post.find_each(:order => "title") { |post| post }
-    end
-  end
-
-  def test_each_should_raise_if_the_limit_is_set
-    assert_raise(RuntimeError) do
-      Post.find_each(:limit => 1) { |post| post }
     end
   end
 
@@ -113,7 +101,27 @@ class EachTest < ActiveRecord::TestCase
         batch.map! { not_a_post }
       end
     end
+  end
 
+  def test_find_in_batches_should_ignore_the_order_default_scope
+    # First post is with title scope
+    first_post = PostWithDefaultScope.first
+    posts = []
+    PostWithDefaultScope.find_in_batches  do |batch|
+      posts.concat(batch)
+    end
+    # posts.first will be ordered using id only. Title order scope should not apply here
+    assert_not_equal first_post, posts.first
+    assert_equal posts(:welcome), posts.first
+  end
+
+  def test_find_in_batches_should_not_ignore_the_default_scope_if_it_is_other_then_order
+    special_posts_ids = SpecialPostWithDefaultScope.all.map(&:id).sort
+    posts = []
+    SpecialPostWithDefaultScope.find_in_batches do |batch|
+      posts.concat(batch)
+    end
+    assert_equal special_posts_ids, posts.map(&:id)
   end
 
 end

@@ -48,6 +48,7 @@ module ActiveSupport
       #       end
       #   end
       #
+      # Exceptions raised inside exception handlers are not propagated up.
       def rescue_from(*klasses, &block)
         options = klasses.extract_options!
 
@@ -108,7 +109,11 @@ module ActiveSupport
       when Symbol
         method(rescuer)
       when Proc
-        rescuer.bind(self)
+        if rescuer.arity == 0
+          Proc.new { instance_exec(&rescuer) }
+        else
+          Proc.new { |_exception| instance_exec(_exception, &rescuer) }
+        end
       end
     end
   end

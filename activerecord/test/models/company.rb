@@ -4,7 +4,7 @@ end
 
 class Company < AbstractCompany
   attr_protected :rating
-  set_sequence_name :companies_nonstd_seq
+  self.sequence_name = :companies_nonstd_seq
 
   validates_presence_of :name
 
@@ -42,8 +42,10 @@ class Firm < Company
       :before_remove => :log_before_remove,
       :after_remove  => :log_after_remove
   has_many :unsorted_clients, :class_name => "Client"
+  has_many :unsorted_clients_with_symbol, :class_name => :Client
   has_many :clients_sorted_desc, :class_name => "Client", :order => "id DESC"
   has_many :clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id"
+  has_many :clients_ordered_by_name, :order => "name", :class_name => "Client"
   has_many :unvalidated_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :validate => false
   has_many :dependent_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => :destroy
   has_many :exclusively_dependent_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => :delete_all
@@ -86,6 +88,8 @@ class Firm < Company
   has_one :unautosaved_account, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
   has_many :accounts
   has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
+
+  has_many :association_with_references, :class_name => 'Client', :references => :foo
 
   def log
     @log ||= []
@@ -192,6 +196,11 @@ class Account < ActiveRecord::Base
 
   def self.destroyed_account_ids
     @destroyed_account_ids ||= Hash.new { |h,k| h[k] = [] }
+  end
+
+  # Test private kernel method through collection proxy using has_many.
+  def self.open
+    where('firm_name = ?', '37signals')
   end
 
   before_destroy do |account|

@@ -54,6 +54,11 @@ module ActionController #:nodoc:
       class Sweeper < ActiveRecord::Observer #:nodoc:
         attr_accessor :controller
 
+        def initialize(*args)
+          super
+          @controller = nil
+        end
+
         def before(controller)
           self.controller = controller
           callback(:before) if controller.perform_caching
@@ -88,7 +93,7 @@ module ActionController #:nodoc:
           end
 
           def method_missing(method, *arguments, &block)
-            return if @controller.nil?
+            return super unless @controller
             @controller.__send__(method, *arguments, &block)
           end
       end

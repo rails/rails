@@ -10,7 +10,7 @@ class Object
   #
   #   C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
   def instance_values #:nodoc:
-    Hash[instance_variables.map { |name| [name.to_s[1..-1], instance_variable_get(name)] }]
+    Hash[instance_variables.map { |name| [name[1..-1], instance_variable_get(name)] }]
   end
 
   # Returns an array of instance variable names including "@". They are strings
@@ -23,11 +23,7 @@ class Object
   #   end
   #
   #   C.new(0, 1).instance_variable_names # => ["@y", "@x"]
-  if RUBY_VERSION >= '1.9'
-    def instance_variable_names
-      instance_variables.map { |var| var.to_s }
-    end
-  else
-    alias_method :instance_variable_names, :instance_variables
+  def instance_variable_names
+    instance_variables.map { |var| var.to_s }
   end
 end

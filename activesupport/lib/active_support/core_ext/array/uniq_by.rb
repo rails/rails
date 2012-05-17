@@ -1,16 +1,20 @@
 class Array
-  # Returns an unique array based on the criteria given as a +Proc+.
+  # *DEPRECATED*: Use +Array#uniq+ instead.
+  #
+  # Returns a unique array based on the criteria in the block.
   #
   #   [1, 2, 3, 4].uniq_by { |i| i.odd? } # => [1, 2]
   #
-  def uniq_by
-    hash, array = {}, []
-    each { |i| hash[yield(i)] ||= (array << i) }
-    array
+  def uniq_by(&block)
+    ActiveSupport::Deprecation.warn 'uniq_by is deprecated. Use Array#uniq instead', caller
+    uniq(&block)
   end
 
-  # Same as uniq_by, but modifies self.
-  def uniq_by!
-    replace(uniq_by{ |i| yield(i) })
+  # *DEPRECATED*: Use +Array#uniq!+ instead.
+  #
+  # Same as +uniq_by+, but modifies +self+.
+  def uniq_by!(&block)
+    ActiveSupport::Deprecation.warn 'uniq_by! is deprecated. Use Array#uniq! instead', caller
+    uniq!(&block)
   end
 end

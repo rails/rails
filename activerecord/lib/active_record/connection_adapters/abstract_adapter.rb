@@ -3,28 +3,34 @@ require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_support/deprecation'
+require 'active_record/connection_adapters/schema_cache'
+require 'monitor'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     extend ActiveSupport::Autoload
 
     autoload :Column
+    autoload :ConnectionSpecification
+
+    autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
+      autoload :IndexDefinition
+      autoload :ColumnDefinition
+      autoload :TableDefinition
+      autoload :Table
+    end
+
+    autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
+      autoload :ConnectionHandler
+      autoload :ConnectionManagement
+    end
 
     autoload_under 'abstract' do
-      autoload :IndexDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :ColumnDefinition, 'active_record/connection_adapters/abstract/schema_definitions'
-      autoload :TableDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
-
       autoload :SchemaStatements
       autoload :DatabaseStatements
       autoload :DatabaseLimits
       autoload :Quoting
-
       autoload :ConnectionPool
-      autoload :ConnectionHandler,       'active_record/connection_adapters/abstract/connection_pool'
-      autoload :ConnectionManagement,    'active_record/connection_adapters/abstract/connection_pool'
-      autoload :ConnectionSpecification
-
       autoload :QueryCache
     end
 
@@ -46,37 +52,47 @@ module ActiveRecord
       include DatabaseLimits
       include QueryCache
       include ActiveSupport::Callbacks
+      include MonitorMixin
 
       define_callbacks :checkout, :checkin
 
-      attr_accessor :visitor
+      attr_accessor :visitor, :pool
+      attr_reader :schema_cache, :last_use, :in_use, :logger
+      alias :in_use? :in_use
 
-      def initialize(connection, logger = nil) #:nodoc:
-        @active = nil
-        @connection, @logger = connection, logger
+      def initialize(connection, logger = nil, pool = nil) #:nodoc:
+        super()
+
+        @active              = nil
+        @connection          = connection
+        @in_use              = false
+        @instrumenter        = ActiveSupport::Notifications.instrumenter
+        @last_use            = false
+        @logger              = logger
+        @open_transactions   = 0
+        @pool                = pool
+        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
         @query_cache_enabled = false
-        @query_cache = Hash.new { |h,sql| h[sql] = {} }
-        @open_transactions = 0
-        @instrumenter = ActiveSupport::Notifications.instrumenter
-        @visitor = nil
+        @schema_cache        = SchemaCache.new self
+        @visitor             = nil
       end
 
-      # Returns a visitor instance for this adaptor, which conforms to the Arel::ToSql interface
-      def self.visitor_for(pool) # :nodoc:
-        adapter = pool.spec.config[:adapter]
-
-        if Arel::Visitors::VISITORS[adapter]
-          ActiveSupport::Deprecation.warn(
-            "Arel::Visitors::VISITORS is deprecated and will be removed. Database adapters " \
-            "should define a visitor_for method which returns the appropriate visitor for " \
-            "the database. For example, MysqlAdapter.visitor_for(pool) returns " \
-            "Arel::Visitors::MySQL.new(pool)."
-          )
-
-          Arel::Visitors::VISITORS[adapter].new(pool)
-        else
-          Arel::Visitors::ToSql.new(pool)
+      def lease
+        synchronize do
+          unless in_use
+            @in_use   = true
+            @last_use = Time.now
+          end
         end
+      end
+
+      def schema_cache=(cache)
+        cache.connection = self
+        @schema_cache = cache
+      end
+
+      def expire
+        @in_use = false
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
@@ -129,17 +145,28 @@ module ActiveRecord
         false
       end
 
-      # QUOTING ==================================================
-
-      # Override to return the quoted table name. Defaults to column quoting.
-      def quote_table_name(name)
-        quote_column_name(name)
+      # Does this adapter support index sort order?
+      def supports_index_sort_order?
+        false
       end
+
+      # Does this adapter support partial indices?
+      def supports_partial_index?
+        false
+      end
+
+      # Does this adapter support explain? As of this writing sqlite3,
+      # mysql2, and postgresql are the only ones that do.
+      def supports_explain?
+        false
+      end
+
+      # QUOTING ==================================================
 
       # Returns a bind substitution value given a +column+ and list of current
       # +binds+
       def substitute_at(column, index)
-        Arel.sql '?'
+        Arel::Nodes::BindParam.new '?'
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -237,32 +264,40 @@ module ActiveRecord
         node
       end
 
+      def case_insensitive_comparison(table, attribute, column, value)
+        table[attribute].lower.eq(table.lower(value))
+      end
+
       def current_savepoint_name
         "active_record_#{open_transactions}"
       end
 
+      # Check the connection back in to the connection pool
+      def close
+        pool.checkin self
+      end
+
       protected
 
-        def log(sql, name = "SQL", binds = [])
-          @instrumenter.instrument(
-            "sql.active_record",
-            :sql           => sql,
-            :name          => name,
-            :connection_id => object_id,
-            :binds         => binds) { yield }
-        rescue Exception => e
-          message = "#{e.class.name}: #{e.message}: #{sql}"
-          @logger.debug message if @logger
-          exception = translate_exception(e, message)
-          exception.set_backtrace e.backtrace
-          raise exception
-        end
+      def log(sql, name = "SQL", binds = [])
+        @instrumenter.instrument(
+          "sql.active_record",
+          :sql           => sql,
+          :name          => name,
+          :connection_id => object_id,
+          :binds         => binds) { yield }
+      rescue Exception => e
+        message = "#{e.class.name}: #{e.message}: #{sql}"
+        @logger.error message if @logger
+        exception = translate_exception(e, message)
+        exception.set_backtrace e.backtrace
+        raise exception
+      end
 
-        def translate_exception(e, message)
-          # override in derived class
-          ActiveRecord::StatementInvalid.new(message)
-        end
-
+      def translate_exception(exception, message)
+        # override in derived class
+        ActiveRecord::StatementInvalid.new(message)
+      end
     end
   end
 end

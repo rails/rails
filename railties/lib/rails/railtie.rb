@@ -9,7 +9,7 @@ module Rails
   # Rails and/or modify the initialization process.
   #
   # Every major component of Rails (Action Mailer, Action Controller,
-  # Action View, Active Record and Active Resource) is a Railtie. Each of
+  # Action View and Active Record) is a Railtie. Each of
   # them is responsible for their own initialization. This makes Rails itself
   # absent of any component hooks, allowing other components to be used in
   # place of any of the Rails defaults.
@@ -22,7 +22,7 @@ module Rails
   #
   # * creating initializers
   # * configuring a Rails framework for the application, like setting a generator
-  # * adding config.* keys to the environment
+  # * +adding config.*+ keys to the environment
   # * setting up a subscriber with ActiveSupport::Notifications
   # * adding rake tasks
   #
@@ -103,11 +103,11 @@ module Rails
   #     end
   #   end
   #
-  # == Application, Plugin and Engine
+  # == Application and Engine
   #
   # A Rails::Engine is nothing more than a Railtie with some initializers already set.
-  # And since Rails::Application and Rails::Plugin are engines, the same configuration
-  # described here can be used in all three.
+  # And since Rails::Application is an engine, the same configuration described here
+  # can be used in both.
   #
   # Be sure to look at the documentation of those specific classes for more information.
   #
@@ -117,7 +117,7 @@ module Rails
 
     include Initializable
 
-    ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Plugin Rails::Engine Rails::Application)
+    ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Engine Rails::Application)
 
     class << self
       private :new
@@ -162,7 +162,7 @@ module Rails
 
       protected
         def generate_railtie_name(class_or_module)
-          ActiveSupport::Inflector.underscore(class_or_module).gsub("/", "_")
+          ActiveSupport::Inflector.underscore(class_or_module).tr("/", "_")
         end
     end
 
@@ -181,7 +181,7 @@ module Rails
 
     def load_tasks(app=self)
       extend Rake::DSL if defined? Rake::DSL
-      self.class.rake_tasks.each { |block| block.call(app) }
+      self.class.rake_tasks.each { |block| self.instance_exec(app, &block) }
 
       # load also tasks from all superclasses
       klass = self.class.superclass
@@ -196,7 +196,7 @@ module Rails
     end
 
     def railtie_namespace
-      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:_railtie) }
+      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end
   end
 end

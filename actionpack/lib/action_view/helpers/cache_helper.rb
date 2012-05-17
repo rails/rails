@@ -10,7 +10,6 @@ module ActionView
       #
       # See ActionController::Caching::Fragments for usage instructions.
       #
-      # ==== Examples
       # If you want to cache a navigation menu, you can do following:
       #
       #   <% cache do %>
@@ -54,7 +53,7 @@ module ActionView
           output_safe = output_buffer.html_safe?
           fragment = output_buffer.slice!(pos..-1)
           if output_safe
-            self.output_buffer = output_buffer.html_safe
+            self.output_buffer = output_buffer.class.new(output_buffer)
           end
           controller.write_fragment(name, fragment, options)
         end

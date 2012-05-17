@@ -16,7 +16,7 @@ module ActionController #:nodoc:
     #     caches_page :show, :new
     #   end
     #
-    # This will generate cache files such as <tt>weblog/show/5.html</tt> and <tt>weblog/new.html</tt>, which match the URLs used 
+    # This will generate cache files such as <tt>weblog/show/5.html</tt> and <tt>weblog/new.html</tt>, which match the URLs used
     # that would normally trigger dynamic page generation. Page caching works by configuring a web server to first check for the
     # existence of files on disk, and to serve them directly when found, without passing the request through to Action Pack.
     # This is much faster than handling the full dynamic request in the usual way.
@@ -38,27 +38,30 @@ module ActionController #:nodoc:
       extend ActiveSupport::Concern
 
       included do
-        ##
-        # :singleton-method:
         # The cache directory should be the document root for the web server and is set using <tt>Base.page_cache_directory = "/document/root"</tt>.
         # For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>Rails.root + "/public"</tt>). Changing
         # this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your
         # web server to look in the new location for cached files.
-        config_accessor :page_cache_directory
+        class_attribute :page_cache_directory
         self.page_cache_directory ||= ''
 
-        ##
-        # :singleton-method:
         # Most Rails requests do not have an extension, such as <tt>/weblog/new</tt>. In these cases, the page caching mechanism will add one in
         # order to make it easy for the cached files to be picked up properly by the web server. By default, this cache extension is <tt>.html</tt>.
         # If you want something else, like <tt>.php</tt> or <tt>.shtml</tt>, just set Base.page_cache_extension. In cases where a request already has an
         # extension, such as <tt>.xml</tt> or <tt>.rss</tt>, page caching will not add an extension. This allows it to work well with RESTful apps.
-        config_accessor :page_cache_extension
+        class_attribute :page_cache_extension
         self.page_cache_extension ||= '.html'
+
+        # The compression used for gzip. If false (default), the page is not compressed.
+        # If can be a symbol showing the ZLib compression method, for example, :best_compression
+        # or :best_speed or an integer configuring the compression level.
+        class_attribute :page_cache_compression
+        self.page_cache_compression ||= false
       end
 
       module ClassMethods
-        # Expires the page that was cached with the +path+ as a key. Example:
+        # Expires the page that was cached with the +path+ as a key.
+        #
         #   expire_page "/lists/show"
         def expire_page(path)
           return unless perform_caching
@@ -66,35 +69,59 @@ module ActionController #:nodoc:
 
           instrument_page_cache :expire_page, path do
             File.delete(path) if File.exist?(path)
+            File.delete(path + '.gz') if File.exist?(path + '.gz')
           end
         end
 
-        # Manually cache the +content+ in the key determined by +path+. Example:
+        # Manually cache the +content+ in the key determined by +path+.
+        #
         #   cache_page "I'm the cached content", "/lists/show"
-        def cache_page(content, path, extension = nil)
+        def cache_page(content, path, extension = nil, gzip = Zlib::BEST_COMPRESSION)
           return unless perform_caching
           path = page_cache_path(path, extension)
 
           instrument_page_cache :write_page, path do
             FileUtils.makedirs(File.dirname(path))
             File.open(path, "wb+") { |f| f.write(content) }
+            if gzip
+              Zlib::GzipWriter.open(path + '.gz', gzip) { |f| f.write(content) }
+            end
           end
         end
 
-        # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that
+        # Caches the +actions+ using the page-caching approach that'll store
+        # the cache in a path within the page_cache_directory that
         # matches the triggering url.
         #
-        # Usage:
+        # You can also pass a :gzip option to override the class configuration one.
         #
         #   # cache the index action
         #   caches_page :index
         #
         #   # cache the index action except for JSON requests
-        #   caches_page :index, :if => Proc.new { |c| !c.request.format.json? }
+        #   caches_page :index, :if => Proc.new { !request.format.json? }
+        #
+        #   # don't gzip images
+        #   caches_page :image, :gzip => false
         def caches_page(*actions)
           return unless perform_caching
           options = actions.extract_options!
-          after_filter({:only => actions}.merge(options)) { |c| c.cache_page }
+
+          gzip_level = options.fetch(:gzip, page_cache_compression)
+          gzip_level = case gzip_level
+          when Symbol
+            Zlib.const_get(gzip_level.to_s.upcase)
+          when Fixnum
+            gzip_level
+          when false
+            nil
+          else
+            Zlib::BEST_COMPRESSION
+          end
+
+          after_filter({:only => actions}.merge(options)) do |c|
+            c.cache_page(nil, nil, gzip_level)
+          end
         end
 
         private
@@ -115,14 +142,15 @@ module ActionController #:nodoc:
           end
       end
 
-      # Expires the page that was cached with the +options+ as a key. Example:
+      # Expires the page that was cached with the +options+ as a key.
+      #
       #   expire_page :controller => "lists", :action => "show"
       def expire_page(options = {})
         return unless self.class.perform_caching
 
         if options.is_a?(Hash)
           if options[:action].is_a?(Array)
-            options[:action].dup.each do |action|
+            options[:action].each do |action|
               self.class.expire_page(url_for(options.merge(:only_path => true, :action => action)))
             end
           else
@@ -134,9 +162,10 @@ module ActionController #:nodoc:
       end
 
       # Manually cache the +content+ in the key determined by +options+. If no content is provided, the contents of response.body is used.
-      # If no options are provided, the url of the current request being handled is used. Example:
+      # If no options are provided, the url of the current request being handled is used.
+      #
       #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
-      def cache_page(content = nil, options = nil)
+      def cache_page(content = nil, options = nil, gzip = Zlib::BEST_COMPRESSION)
         return unless self.class.perform_caching && caching_allowed?
 
         path = case options
@@ -152,7 +181,7 @@ module ActionController #:nodoc:
           extension = ".#{type_symbol}"
         end
 
-        self.class.cache_page(content || response.body, path, extension)
+        self.class.cache_page(content || response.body, path, extension, gzip)
       end
 
     end

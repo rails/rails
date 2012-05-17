@@ -52,14 +52,9 @@ module ActionDispatch
           false
         end
       rescue Exception => e # YAML, XML or Ruby code block errors
-        logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
+        logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
 
-        raise
-          { "body"           => request.raw_post,
-            "content_type"   => request.content_mime_type,
-            "content_length" => request.content_length,
-            "exception"      => "#{e.message} (#{e.class})",
-            "backtrace"      => e.backtrace }
+        raise e
       end
 
       def content_type_from_legacy_post_data_format_header(env)
@@ -73,8 +68,8 @@ module ActionDispatch
         nil
       end
 
-      def logger
-        defined?(Rails.logger) ? Rails.logger : Logger.new($stderr)
+      def logger(env)
+        env['action_dispatch.logger'] || ActiveSupport::Logger.new($stderr)
       end
   end
 end

@@ -53,7 +53,7 @@ module ActionController #:nodoc:
   #     end
   #   end
   #
-  # The same happens for PUT and DELETE requests.
+  # The same happens for PATCH/PUT and DELETE requests.
   #
   # === Nested resources
   #
@@ -63,7 +63,7 @@ module ActionController #:nodoc:
   #
   #   def create
   #     @project = Project.find(params[:project_id])
-  #     @task = @project.comments.build(params[:task])
+  #     @task = @project.tasks.build(params[:task])
   #     flash[:notice] = 'Task was successfully created.' if @task.save
   #     respond_with(@project, @task)
   #   end
@@ -84,8 +84,8 @@ module ActionController #:nodoc:
   #
   # === Custom options
   #
-  # <code>respond_with</code> also allow you to pass options that are forwarded
-  # to the underlying render call. Those options are only applied success
+  # <code>respond_with</code> also allows you to pass options that are forwarded
+  # to the underlying render call. Those options are only applied for success
   # scenarios. For instance, you can do the following in the create method above:
   #
   #   def create
@@ -95,7 +95,7 @@ module ActionController #:nodoc:
   #     respond_with(@project, @task, :status => 201)
   #   end
   #
-  # This will return status 201 if the task was saved with success. If not,
+  # This will return status 201 if the task was saved successfully. If not,
   # it will simply ignore the given options and return status 422 and the
   # resource errors. To customize the failure scenario, you can pass a
   # a block to <code>respond_with</code>:
@@ -116,8 +116,9 @@ module ActionController #:nodoc:
   class Responder
     attr_reader :controller, :request, :format, :resource, :resources, :options
 
-    ACTIONS_FOR_VERBS = {
+    DEFAULT_ACTIONS_FOR_VERBS = {
       :post => :new,
+      :patch => :edit,
       :put => :edit
     }
 
@@ -133,7 +134,7 @@ module ActionController #:nodoc:
     end
 
     delegate :head, :render, :redirect_to,   :to => :controller
-    delegate :get?, :post?, :put?, :delete?, :to => :request
+    delegate :get?, :post?, :patch?, :put?, :delete?, :to => :request
 
     # Undefine :to_json and :to_yaml since it's defined on Object
     undef_method(:to_json) if method_defined?(:to_json)
@@ -172,7 +173,7 @@ module ActionController #:nodoc:
     # responds to :to_format and display it.
     #
     def to_format
-      if get? || !has_errors?
+      if get? || !has_errors? || response_overridden?
         default_render
       else
         display_errors
@@ -202,10 +203,8 @@ module ActionController #:nodoc:
         display resource
       elsif post?
         display resource, :status => :created, :location => api_location
-      elsif has_empty_resource_definition?
-        display empty_resource, :status => :ok
       else
-        head :ok
+        head :no_content
       end
     end
 
@@ -224,11 +223,15 @@ module ActionController #:nodoc:
     alias :navigation_location :resource_location
     alias :api_location :resource_location
 
-    # If a given response block was given, use it, otherwise call render on
+    # If a response block was given, use it, otherwise call render on
     # controller.
     #
     def default_render
-      @default_response.call(options)
+      if @default_response
+        @default_response.call(options)
+      else
+        controller.default_render(options)
+      end
     end
 
     # Display is just a shortcut to render a resource with the current format.
@@ -253,7 +256,7 @@ module ActionController #:nodoc:
     end
 
     def display_errors
-      controller.render format => resource.errors, :status => :unprocessable_entity
+      controller.render format => resource_errors, :status => :unprocessable_entity
     end
 
     # Check whether the resource has errors.
@@ -262,29 +265,23 @@ module ActionController #:nodoc:
       resource.respond_to?(:errors) && !resource.errors.empty?
     end
 
-    # By default, render the <code>:edit</code> action for HTML requests with failure, unless
-    # the verb is POST.
+    # By default, render the <code>:edit</code> action for HTML requests with errors, unless
+    # the verb was POST.
     #
     def default_action
-      @action ||= ACTIONS_FOR_VERBS[request.request_method_symbol]
+      @action ||= DEFAULT_ACTIONS_FOR_VERBS[request.request_method_symbol]
     end
 
-    # Check whether resource needs a specific definition of empty resource to be valid
-    #
-    def has_empty_resource_definition?
-      respond_to?("empty_#{format}_resource")
+    def resource_errors
+      respond_to?("#{format}_resource_errors", true) ? send("#{format}_resource_errors") : resource.errors
     end
 
-    # Delegate to proper empty resource method
-    #
-    def empty_resource
-      send("empty_#{format}_resource")
+    def json_resource_errors
+      {:errors => resource.errors}
     end
 
-    # Return a valid empty JSON resource
-    #
-    def empty_json_resource
-      "{}"
+    def response_overridden?
+      @default_response.present?
     end
   end
 end

@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_models'
+require 'active_support/logger'
 require 'pathname'
 
 class RenderJsonTest < ActionController::TestCase
@@ -69,7 +70,7 @@ class RenderJsonTest < ActionController::TestCase
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
     super
-    @controller.logger = Logger.new(nil)
+    @controller.logger = ActiveSupport::Logger.new(nil)
 
     @request.host = "www.nextangle.com"
   end
@@ -101,7 +102,7 @@ class RenderJsonTest < ActionController::TestCase
   def test_render_json_with_callback
     get :render_json_hello_world_with_callback
     assert_equal 'alert({"hello":"world"})', @response.body
-    assert_equal 'application/json', @response.content_type
+    assert_equal 'text/javascript', @response.content_type
   end
 
   def test_render_json_with_custom_content_type

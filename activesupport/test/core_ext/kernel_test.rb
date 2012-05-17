@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/kernel'
 
-class KernelTest < Test::Unit::TestCase
+class KernelTest < ActiveSupport::TestCase
   def test_silence_warnings
     silence_warnings { assert_nil $VERBOSE }
     assert_equal 1234, silence_warnings { 1234 }
@@ -42,11 +42,6 @@ class KernelTest < Test::Unit::TestCase
     assert_equal 1, silence_stderr { 1 }
   end
 
-  def test_singleton_class
-    o = Object.new
-    assert_equal class << o; self end, o.singleton_class
-  end
-
   def test_class_eval
     o = Object.new
     class << o; @x = 1; end
@@ -59,7 +54,7 @@ class KernelTest < Test::Unit::TestCase
   end
 end
 
-class KernelSuppressTest < Test::Unit::TestCase
+class KernelSuppressTest < ActiveSupport::TestCase
   def test_reraise
     assert_raise(LoadError) do
       suppress(ArgumentError) { raise LoadError }
@@ -90,7 +85,7 @@ class MockStdErr
   end
 end
 
-class KernelDebuggerTest < Test::Unit::TestCase
+class KernelDebuggerTest < ActiveSupport::TestCase
   def test_debugger_not_available_message_to_stderr
     old_stderr = $stderr
     $stderr = MockStdErr.new

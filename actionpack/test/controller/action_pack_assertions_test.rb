@@ -71,6 +71,16 @@ class ActionPackAssertionsController < ActionController::Base
     render :text => "Hello!", :content_type => Mime::RSS
   end
 
+  def render_with_layout
+    @variable_for_layout = nil
+    render "test/hello_world", :layout => "layouts/standard"
+  end
+
+  def render_with_layout_and_partial
+    @variable_for_layout = nil
+    render "test/hello_world_with_partial", :layout => "layouts/standard"
+  end
+
   def session_stuffing
     session['xmas'] = 'turkey'
     render :text => "ho ho ho"
@@ -154,24 +164,10 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_equal @response.body, 'request method: GET'
   end
 
-  def test_redirect_to_named_route
-    with_routing do |set|
-      set.draw do
-        match 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
-        match ':controller/:action'
-      end
-      set.install_helpers
-
-      process :redirect_to_named_route
-      assert_redirected_to 'http://test.host/route_one'
-      assert_redirected_to route_one_url
-    end
-  end
-
   def test_string_constraint
     with_routing do |set|
       set.draw do
-        match "photos", :to => 'action_pack_assertions#nothing', :constraints => {:subdomain => "admin"}
+        get "photos", :to => 'action_pack_assertions#nothing', :constraints => {:subdomain => "admin"}
       end
     end
   end
@@ -179,13 +175,16 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_assert_redirect_to_named_route_failure
     with_routing do |set|
       set.draw do
-        match 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
-        match 'route_two', :to => 'action_pack_assertions#nothing', :id => 'two', :as => :route_two
-        match ':controller/:action'
+        get 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
+        get 'route_two', :to => 'action_pack_assertions#nothing', :id => 'two', :as => :route_two
+        get ':controller/:action'
       end
       process :redirect_to_named_route
       assert_raise(ActiveSupport::TestCase::Assertion) do
         assert_redirected_to 'http://test.host/route_two'
+      end
+      assert_raise(ActiveSupport::TestCase::Assertion) do
+        assert_redirected_to %r(^http://test.host/route_two)
       end
       assert_raise(ActiveSupport::TestCase::Assertion) do
         assert_redirected_to :controller => 'action_pack_assertions', :action => 'nothing', :id => 'two'
@@ -201,8 +200,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
     with_routing do |set|
       set.draw do
-        match 'admin/inner_module', :to => 'admin/inner_module#index', :as => :admin_inner_module
-        match ':controller/:action'
+        get 'admin/inner_module', :to => 'admin/inner_module#index', :as => :admin_inner_module
+        get ':controller/:action'
       end
       process :redirect_to_index
       # redirection is <{"action"=>"index", "controller"=>"admin/admin/inner_module"}>
@@ -215,12 +214,13 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
     with_routing do |set|
       set.draw do
-        match '/action_pack_assertions/:id', :to => 'action_pack_assertions#index', :as => :top_level
-        match ':controller/:action'
+        get '/action_pack_assertions/:id', :to => 'action_pack_assertions#index', :as => :top_level
+        get ':controller/:action'
       end
       process :redirect_to_top_level_named_route
       # assert_redirected_to "http://test.host/action_pack_assertions/foo" would pass because of exact match early return
       assert_redirected_to "/action_pack_assertions/foo"
+      assert_redirected_to %r(/action_pack_assertions/foo)
     end
   end
 
@@ -230,8 +230,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         # this controller exists in the admin namespace as well which is the only difference from previous test
-        match '/user/:id', :to => 'user#index', :as => :top_level
-        match ':controller/:action'
+        get '/user/:id', :to => 'user#index', :as => :top_level
+        get ':controller/:action'
       end
       process :redirect_to_top_level_named_route
       # assert_redirected_to top_level_url('foo') would pass because of exact match early return
@@ -347,7 +347,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   end
 
   def test_render_based_on_parameters
-    process :render_based_on_parameters, "name" => "David"
+    process :render_based_on_parameters, "GET", "name" => "David"
     assert_equal "Mr. David", @response.body
   end
 
@@ -469,6 +469,50 @@ class AssertTemplateTest < ActionController::TestCase
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template :hello_planet
     end
+  end
+
+  def test_fails_with_wrong_layout
+    get :render_with_layout
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :layout => "application"
+    end
+  end
+
+  def test_fails_expecting_no_layout
+    get :render_with_layout
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :layout => nil
+    end
+  end
+
+  def test_passes_with_correct_layout
+    get :render_with_layout
+    assert_template :layout => "layouts/standard"
+  end
+
+  def test_passes_with_layout_and_partial
+    get :render_with_layout_and_partial
+    assert_template :layout => "layouts/standard"
+  end
+
+  def test_passed_with_no_layout
+    get :hello_world
+    assert_template :layout => nil
+  end
+
+  def test_passed_with_no_layout_false
+    get :hello_world
+    assert_template :layout => false
+  end
+
+  def test_passes_with_correct_layout_without_layouts_prefix
+    get :render_with_layout
+    assert_template :layout => "standard"
+  end
+
+  def test_passes_with_correct_layout_symbol
+    get :render_with_layout
+    assert_template :layout => :standard
   end
 
   def test_assert_template_reset_between_requests

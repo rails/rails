@@ -1,30 +1,40 @@
 require 'active_support/inflector'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
-require 'active_support/core_ext/module/deprecation'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/object/blank'
 
 module ActiveModel
-  class Name < String
-    attr_reader :singular, :plural, :element, :collection, :partial_path, :route_key, :param_key, :i18n_key
+  class Name
+    include Comparable
+
+    attr_reader :singular, :plural, :element, :collection,
+      :singular_route_key, :route_key, :param_key, :i18n_key,
+      :name
+
     alias_method :cache_key, :collection
 
-    deprecate :partial_path => "ActiveModel::Name#partial_path is deprecated. Call #to_partial_path on model instances directly instead."
+    delegate :==, :===, :<=>, :=~, :"!~", :eql?, :to_s,
+             :to_str, :to => :name
 
     def initialize(klass, namespace = nil, name = nil)
-      name ||= klass.name
-      super(name)
-      @unnamespaced = self.sub(/^#{namespace.name}::/, '') if namespace
+      @name = name || klass.name
 
-      @klass = klass
-      @singular = _singularize(self).freeze
-      @plural = ActiveSupport::Inflector.pluralize(@singular).freeze
-      @element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
-      @human = ActiveSupport::Inflector.humanize(@element).freeze
-      @collection = ActiveSupport::Inflector.tableize(self).freeze
-      @partial_path = "#{@collection}/#{@element}".freeze
-      @param_key = (namespace ? _singularize(@unnamespaced) : @singular).freeze
-      @route_key = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural).freeze
-      @i18n_key = self.underscore.to_sym
+      raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if @name.blank?
+
+      @unnamespaced = @name.sub(/^#{namespace.name}::/, '') if namespace
+      @klass        = klass
+      @singular     = _singularize(@name)
+      @plural       = ActiveSupport::Inflector.pluralize(@singular)
+      @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@name))
+      @human        = ActiveSupport::Inflector.humanize(@element)
+      @collection   = ActiveSupport::Inflector.tableize(@name)
+      @param_key    = (namespace ? _singularize(@unnamespaced) : @singular)
+      @i18n_key     = @name.underscore.to_sym
+
+      @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural.dup)
+      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key)
+      @route_key << "_index" if @plural == @singular
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
@@ -44,7 +54,7 @@ module ActiveModel
       defaults << options[:default] if options[:default]
       defaults << @human
 
-      options = {:scope => [@klass.i18n_scope, :models], :count => 1, :default => defaults}.merge(options.except(:default))
+      options = { :scope => [@klass.i18n_scope, :models], :count => 1, :default => defaults }.merge!(options.except(:default))
       I18n.translate(defaults.shift, options)
     end
 
@@ -68,8 +78,8 @@ module ActiveModel
   #   BookCover.model_name        # => "BookCover"
   #   BookCover.model_name.human  # => "Book cover"
   #
-  #   BookCover.model_name.i18n_key              # => "book_cover"
-  #   BookModule::BookCover.model_name.i18n_key  # => "book_module.book_cover"
+  #   BookCover.model_name.i18n_key              # => :book_cover
+  #   BookModule::BookCover.model_name.i18n_key  # => :"book_module/book_cover"
   #
   # Providing the functionality that ActiveModel::Naming provides in your object
   # is required to pass the Active Model Lint test. So either extending the provided
@@ -79,7 +89,9 @@ module ActiveModel
     # used to retrieve all kinds of naming-related information.
     def model_name
       @_model_name ||= begin
-        namespace = self.parents.detect { |n| n.respond_to?(:_railtie) }
+        namespace = self.parents.detect do |n|
+          n.respond_to?(:use_relative_model_naming?) && n.use_relative_model_naming?
+        end
         ActiveModel::Name.new(self, namespace)
       end
     end
@@ -112,10 +124,25 @@ module ActiveModel
     # namespaced models regarding whether it's inside isolated engine.
     #
     # For isolated engine:
+    # ActiveModel::Naming.route_key(Blog::Post) #=> post
+    #
+    # For shared engine:
+    # ActiveModel::Naming.route_key(Blog::Post) #=> blog_post
+    def self.singular_route_key(record_or_class)
+      model_name_from_record_or_class(record_or_class).singular_route_key
+    end
+
+    # Returns string to use while generating route names. It differs for
+    # namespaced models regarding whether it's inside isolated engine.
+    #
+    # For isolated engine:
     # ActiveModel::Naming.route_key(Blog::Post) #=> posts
     #
     # For shared engine:
     # ActiveModel::Naming.route_key(Blog::Post) #=> blog_posts
+    #
+    # The route key also considers if the noun is uncountable and, in
+    # such cases, automatically appends _index.
     def self.route_key(record_or_class)
       model_name_from_record_or_class(record_or_class).route_key
     end

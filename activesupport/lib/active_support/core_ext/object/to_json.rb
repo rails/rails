@@ -10,10 +10,10 @@ end
 # several cases (for instance, the JSON implementation for Hash does not work) with inheritance
 # and consequently classes as ActiveSupport::OrderedHash cannot be serialized to json.
 [Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass].each do |klass|
-  klass.class_eval <<-RUBY, __FILE__, __LINE__
+  klass.class_eval do
     # Dumps object in JSON (JavaScript Object Notation). See www.json.org for more info.
     def to_json(options = nil)
       ActiveSupport::JSON.encode(self, options)
     end
-  RUBY
+  end
 end
