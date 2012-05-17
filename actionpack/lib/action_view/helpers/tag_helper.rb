@@ -154,8 +154,9 @@ module ActionView
 
         def data_tag_option(key, value, escape)
           key   = "data-#{key.to_s.dasherize}"
-          value = value.to_json if !value.is_a?(String) && !value.is_a?(Symbol)
-
+          unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
+            value = value.to_json
+          end
           tag_option(key, value, escape)
         end
 
