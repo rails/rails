@@ -310,13 +310,13 @@ module ActiveSupport
         method << "value = nil"
         method << "halted = false"
 
-        callbacks = "value = yield if block_given? && !halted"
+        callbacks = "value = !halted && (!block_given? || yield)"
         reverse_each do |callback|
           callbacks = callback.apply(callbacks)
         end
         method << callbacks
 
-        method << "halted ? false : (block_given? ? value : true)"
+        method << "value"
         method.join("\n")
       end
 
