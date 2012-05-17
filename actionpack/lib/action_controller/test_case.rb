@@ -93,7 +93,7 @@ module ActionController
         rendered = @templates
         msg = message || sprintf("expecting <%s> but rendering with <%s>",
                 options.inspect, rendered.keys)
-        assert_block(msg) do
+        assert(msg) do
           if options
             rendered.any? { |t,num| t.match(options) }
           else
