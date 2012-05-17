@@ -1176,7 +1176,7 @@ end
 </ruby>
 
 If you run +rake routes+, you'll see that all the routes that we
-declared before are still available, and the app still works as before.
+declared before are still available:
 
 <shell>
 # rake routes
@@ -1189,6 +1189,9 @@ edit_post GET    /posts/:id/edit(.:format) posts#edit
           DELETE /posts/:id(.:format)      posts#destroy
      root        /                         welcome#index
 </shell>
+
+Also, if you go through the motions of creating, updating and deleting
+posts the app still works as before.
 
 TIP: In general, Rails encourages the use of resources objects in place
 of declaring routes manually. For more information about routing, see
