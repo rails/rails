@@ -48,7 +48,7 @@ module ActiveRecord
       end
     end
 
-    # The SQLite3 adapter works with SQLite 3.6.16 or newer,
+    # The SQLite3 adapter works SQLite 3.6.16 or newer
     # with the sqlite3-ruby drivers (available as gem from https://rubygems.org/gems/sqlite3).
     #
     # Options:
@@ -123,17 +123,17 @@ module ActiveRecord
         'SQLite'
       end
 
-      # Returns true, since this connection adapter supports ddl transactions.
+      # Returns true
       def supports_ddl_transactions?
         true
       end
 
-      # Returns true if SQLite version supports savepoints, false otherwise.
+      # Returns true if SQLite version is '3.6.8' or greater, false otherwise.
       def supports_savepoints?
         sqlite_version >= '3.6.8'
       end
 
-      # Returns true, since this connection adapter supports prepared statement.
+      # Returns true, since this connection adapter supports prepared statement
       # caching.
       def supports_statement_cache?
         true
@@ -144,7 +144,7 @@ module ActiveRecord
         true
       end
 
-      # Returns true, since this connection adapter supports primary key.
+      # Returns true.
       def supports_primary_key? #:nodoc:
         true
       end
@@ -153,12 +153,13 @@ module ActiveRecord
         true
       end
 
-      # Returns true, since this connection adapter supports add column.
+      # Returns true
       def supports_add_column?
         true
       end
-      
-      # Disconnects from the database if already connected.
+
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         super
         clear_cache!
@@ -170,17 +171,16 @@ module ActiveRecord
         @statements.clear
       end
 
-      # Returns true, since this connection adapter count distinct.
+      # Returns true
       def supports_count_distinct? #:nodoc:
         true
       end
 
-      # Returns true, since this connection adapter supports autoincrement.
+      # Returns true
       def supports_autoincrement? #:nodoc:
         true
       end
 
-      # Returns true, since this connection adapter supports
       def supports_index_sort_order?
         true
       end
@@ -207,7 +207,7 @@ module ActiveRecord
         @connection.encoding.to_s
       end
 
-      # Returns true, since this connection adapter supports explain.
+      # Returns true.
       def supports_explain?
         true
       end
