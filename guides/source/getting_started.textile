@@ -1058,7 +1058,10 @@ line like this:
 get "posts/:id" => "posts#show", :as => :post
 </ruby>
 
-Now you'll be able to update posts again.
+The +:as+ option tells the +get+ method that we want to make routing helpers
+called +post_url+ and +post_path+ available to our application. These are
+precisely the methods that the +form_for+ needs when editing a post, and so now
+you'll be able to update posts again.
 
 h4. Deleting Posts
 
