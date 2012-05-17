@@ -101,17 +101,7 @@ module ActionView
       #
       #   highlight('You searched for: rails', 'rails', :highlighter => '<a href="search?q=\1">\1</a>')
       #   # => You searched for: <a href="search?q=rails">rails</a>
-      #
-      # You can still use <tt>highlight</tt> with the old API that accepts the
-      # +highlighter+ as its optional third parameter:
-      #
-      #   highlight('You searched for: rails', 'rails', '<a href="search?q=\1">\1</a>')
-      #   # => You searched for: <a href="search?q=rails">rails</a>
-      def highlight(text, phrases, *args)
-        options = args.extract_options!
-        unless args.empty?
-          options[:highlighter] = args[0]
-        end
+      def highlight(text, phrases, options = {})
         options[:highlighter] ||= '<mark>\1</mark>'
 
         text = sanitize(text) unless options[:sanitize] == false
@@ -143,20 +133,8 @@ module ActionView
       #
       #   excerpt('This is also an example', 'an', :radius => 8, :omission => '<chop> ')
       #   # => <chop> is also an example
-      #
-      # You can still use <tt>excerpt</tt> with the old API that accepts the
-      # +radius+ as its optional third and the +ellipsis+ as its
-      # optional forth parameter:
-      #   excerpt('This is an example', 'an', 5)                   # => ...s is an exam...
-      #   excerpt('This is also an example', 'an', 8, '<chop> ')   # => <chop> is also an example
-      def excerpt(text, phrase, *args)
+      def excerpt(text, phrase, options = {})
         return unless text && phrase
-
-        options = args.extract_options!
-        unless args.empty?
-          options[:radius]   = args[0]
-          options[:omission] = args[1]
-        end
         radius   = options[:radius]   || 100
         omission = options[:omission] || "..."
 
@@ -206,17 +184,7 @@ module ActionView
       #
       #   word_wrap('Once upon a time', :line_width => 1)
       #   # => Once\nupon\na\ntime
-      #
-      # You can still use <tt>word_wrap</tt> with the old API that accepts the
-      # +line_width+ as its optional second parameter:
-      #
-      #   word_wrap('Once upon a time', 8)
-      #   # => Once\nupon a\ntime
-      def word_wrap(text, *args)
-        options = args.extract_options!
-        unless args.blank?
-          options[:line_width] = args[0]
-        end
+      def word_wrap(text, options = {})
         line_width = options[:line_width] || 80
 
         text.split("\n").collect do |line|
