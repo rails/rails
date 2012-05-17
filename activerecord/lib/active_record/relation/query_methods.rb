@@ -300,12 +300,25 @@ module ActiveRecord
       self
     end
 
-    def from(value)
-      spawn.from!(value)
+    # Specifies table from which the records will be fetched. For example:
+    #
+    #   Topic.select('title').from('posts')
+    #   #=> SELECT title FROM posts
+    #
+    # Can accept other relation objects. For example:
+    #
+    #   Topic.select('title').from(Topics.approved)
+    #   # => SELECT title FROM (SELECT * FROM topics WHERE approved = 't') subquery
+    #
+    #   Topics.select('a.title').from(Topics.approved, :a)
+    #   # => SELECT a.title FROM (SELECT * FROM topics WHERE approved = 't') a
+    #
+    def from(value, subquery_name = nil)
+      spawn.from!(value, subquery_name)
     end
 
-    def from!(value)
-      self.from_value = value
+    def from!(value, subquery_name = nil)
+      self.from_value = [value, subquery_name]
       self
     end
 
@@ -415,7 +428,7 @@ module ActiveRecord
       build_select(arel, select_values.uniq)
 
       arel.distinct(uniq_value)
-      arel.from(from_value) if from_value
+      arel.from(build_from) if from_value
       arel.lock(lock_value) if lock_value
 
       arel
@@ -461,6 +474,17 @@ module ActiveRecord
         PredicateBuilder.build_from_hash(table.engine, attributes, table)
       else
         [opts]
+      end
+    end
+
+    def build_from
+      opts, name = from_value
+      case opts
+      when Relation
+        name ||= 'subquery'
+        opts.arel.as(name.to_s)
+      else
+        opts
       end
     end
 

@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added ability to ActiveRecord::Relation#from to accept other ActiveRecord::Relation objects
+
+      Record.from(subquery)
+      Record.from(subquery, :a)
+
+    *Radoslav Stankov*
+
 *   Added custom coders support for ActiveRecord::Store. Now you can set
     your custom coder like this:
 
