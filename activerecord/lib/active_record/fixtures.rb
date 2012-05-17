@@ -83,7 +83,7 @@ module ActiveRecord
   #   end
   #
   #   test "find_alt_method_2" do
-  #     assert_equal "Ruby on Rails", @rubyonrails.news
+  #     assert_equal "Ruby on Rails", @rubyonrails.name
   #   end
   #
   # In order to use these methods to access fixtured data within your testcases, you must specify one of the

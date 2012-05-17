@@ -199,17 +199,19 @@ module ActionView
       #   # => Once upon a time
       #
       #   word_wrap('Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding a successor to the throne turned out to be more trouble than anyone could have imagined...')
-      #   # => Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\n a successor to the throne turned out to be more trouble than anyone could have\n imagined...
+      #   # => Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\na successor to the throne turned out to be more trouble than anyone could have\nimagined...
       #
       #   word_wrap('Once upon a time', :line_width => 8)
-      #   # => Once upon\na time
+      #   # => Once\nupon a\ntime
       #
       #   word_wrap('Once upon a time', :line_width => 1)
       #   # => Once\nupon\na\ntime
       #
       # You can still use <tt>word_wrap</tt> with the old API that accepts the
       # +line_width+ as its optional second parameter:
-      #   word_wrap('Once upon a time', 8)     # => Once upon\na time
+      #
+      #   word_wrap('Once upon a time', 8)
+      #   # => Once\nupon a\ntime
       def word_wrap(text, *args)
         options = args.extract_options!
         unless args.blank?

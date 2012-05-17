@@ -560,19 +560,21 @@ be able to create a post. Try it!
 h4. Listing all posts
 
 We still need a way to list all our posts, so let's do that. As usual,
-we'll need a route, a controller action, and a view:
+we'll need a route placed into +config/routes.rb+:
 
 <ruby>
-# Add to config/routes.rb
 get "posts" => "posts#index"
+</ruby>
 
-# Add to app/controllers/posts_controller.rb
+And an action for that route inside the +PostsController+ in the +app/controllers/posts_controller.rb+ file:
+
+<ruby>
 def index
   @posts = Post.all
 end
 </ruby>
 
-+app/view/posts/index.html.erb+:
+And then finally a view for this action, located at +app/views/posts/index.html.erb+:
 
 <erb>
 <h1>Listing posts</h1>
@@ -583,14 +585,16 @@ end
     <th>Text</th>
   </tr>
 
-<% @posts.each do |post| %>
-  <tr>
-    <td><%= post.title %></td>
-    <td><%= post.text %></td>
-  </tr>
-<% end %>
+  <% @posts.each do |post| %>
+    <tr>
+      <td><%= post.title %></td>
+      <td><%= post.text %></td>
+    </tr>
+  <% end %>
 </table>
 </erb>
+
+Now if you go to +http://localhost:3000/posts+ you will see a list of all the posts that you have created.
 
 h4. Adding links
 
@@ -608,41 +612,25 @@ The +link_to+ method is one of Rails' built-in view helpers. It creates a
 hyperlink based on text to display and where to go - in this case, to the path
 for posts.
 
-Let's add links to the other views as well.
+Let's add links to the other views as well, starting with adding this "New Post" link to +app/views/posts/index.html.erb+, placing it above the +<table>+ tag:
 
 <erb>
-# app/views/posts/index.html.erb
-
-<h1>Listing posts</h1>
-
 <%= link_to 'New post', :action => :new %>
+</erb>
 
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th></th>
-  </tr>
+This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template -- +app/views/posts/new.html.erb+ -- to go back to the +index+ action. Do this by adding this underneath the form in this template:
 
-<% @posts.each do |post| %>
-  <tr>
-    <td><%= post.title %></td>
-    <td><%= post.text %></td>
-    <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
-  </tr>
-<% end %>
-</table>
-
-# app/views/posts/new.html.erb
-
+<erb>
 <%= form_for :post do |f| %>
   ...
 <% end %>
 
 <%= link_to 'Back', :action => :index %>
+</erb>
 
-# app/views/posts/show.html.erb
+Finally, add another link to the +app/views/posts/show.html.erb+ template to go back to the +index+ action as well, so that people who are viewing a single post can go back and view the whole list again:
 
+<erb>
 <p>
   <strong>Title:</strong>
   <%= @post.title %>
@@ -664,7 +652,7 @@ TIP: In development mode (which is what you're working in by default), Rails
 reloads your application with every browser request, so there's no need to stop
 and restart the web server when a change is made.
 
-h4. Adding Some Validation
+h4. Allowing the update of fields
 
 The model file, +app/models/post.rb+ is about as simple as it can get:
 
@@ -679,11 +667,28 @@ your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
 and the ability to relate multiple models to one another.
 
+Rails includes methods to help you secure some of your model fields.
+Open the +app/models/post.rb+ file and edit it:
+
+<ruby>
+class Post < ActiveRecord::Base
+  attr_accessible :text, :title
+end
+</ruby>
+
+This change will ensure that all changes made through HTML forms can edit the content of the text and title fields.
+It will not be possible to define any other field value through forms. You can still define them by calling the `field=` method of course.
+Accessible attributes and the mass assignment probem is covered in details in the "Security guide":security.html#mass-assignment
+
+h4. Adding Some Validation
+
 Rails includes methods to help you validate the data that you send to models.
 Open the +app/models/post.rb+ file and edit it:
 
 <ruby>
 class Post < ActiveRecord::Base
+  attr_accessible :text, :title
+
   validates :title, :presence => true,
                     :length => { :minimum => 5 }
 end
@@ -695,9 +700,12 @@ format, and the existence of associated objects. Validations are covered in deta
 in "Active Record Validations and
 Callbacks":active_record_validations_callbacks.html#validations-overview
 
-If you open +posts_controller+ again, you'll notice that we don't check
-the result of calling +@post.save+. We need to change its behavior to
-show the form back to the user if any error occur:
+With the validation now in place, when you call +@post.save+ on an invalid
+post, it will return +false+. If you open +app/controllers/posts_controller.rb+
+again, you'll notice that we don't check the result of calling +@post.save+
+inside the +create+ action. If +@post.save+ fails in this situation, we need to
+show the form back to the user. To do this, change the +new+ and +create+
+actions inside +app/controllers/posts_controller.rb+ to these:
 
 <ruby>
 def new
@@ -715,13 +723,11 @@ def create
 end
 </ruby>
 
-Notice that I've also added +@post = Post.new+ to the +new+ action. I'll
-explain why I did that in the next section, for now add that to your
-controller as well.
+The +new+ action is now creating a new instance variable called +@post+, and
+you'll see why that is in just a few moments.
 
-Also notice that we use +render+ instead of +redirect_to+ when +save+
-returns false. We can use +render+ so that the +@post+ object is passed
-back to the view.
+Notice that inside the +create+ action we use +render+ instead of +redirect_to+ when +save+
+returns +false+. The +render+ method is used so that the +@post+ object is passed back to the +new+ template when it is rendered. This rendering is done within the same request as the form submission, whereas the +redirect_to+ will tell the browser to issue another request.
 
 If you reload
 "http://localhost:3000/posts/new":http://localhost:3000/posts/new and
@@ -765,9 +771,8 @@ A few things are going on. We check if there are any errors with
 +@post.errors.any?+, and in that case we show a list of all
 errors with +@post.errors.full_messages+.
 
-+pluralize+ is a rails helper
-that takes a number and a string as its arguments. If the number is
-greater than one, the string will be automatically pluralized.
++pluralize+ is a rails helper that takes a number and a string as its
+arguments. If the number is greater than one, the string will be automatically pluralized.
 
 The reason why we added +@post = Post.new+ in +posts_controller+ is that
 otherwise +@post+ would be +nil+ in our view, and calling
@@ -777,7 +782,8 @@ TIP: Rails automatically wraps fields that contain an error with a div
 with class +field_with_errors+. You can define a css rule to make them
 standout.
 
-Now you'll get a nice error message when saving a post without title:
+Now you'll get a nice error message when saving a post without title when you
+attempt to do just that on the "new post form(http://localhost:3000/posts/new)":http://localhost:3000/posts/new.
 
 !images/getting_started/form_with_errors.png(Form With Errors)!
 
@@ -841,21 +847,23 @@ it look as follows:
 <%= link_to 'Back', :action => :index %>
 </erb>
 
-This time we point the form to the +update+ action (not defined yet).
+This time we point the form to the +update+ action, which is not defined yet
+but will be very soon.
+
 The +:method => :put+ option tells Rails that we want this form to be
-submitted via +put+, which is the http method you're expected to use to
+submitted via the +PUT+, HTTP method which is the HTTP method you're expected to use to
 *update* resources according to the REST protocol.
 
 TIP: By default forms built with the +form_for_ helper are sent via +POST+.
 
-Moving on, we need to add the +update+ action. The file
+Next, we need to add the +update+ action. The file
 +config/routes.rb+ will need just one more line:
 
 <ruby>
 put "posts/:id" => "posts#update"
 </ruby>
 
-And the +update+ action in +posts_controller+ itself should not look too complicated by now:
+And then create the +update+ action in +app/controllers/posts_controller.rb+:
 
 <ruby>
 def update
@@ -869,7 +877,7 @@ def update
 end
 </ruby>
 
-The new method +update_attributes+ is used when you want to update a record
+The new method, +update_attributes+, is used when you want to update a record
 that already exists, and it accepts an hash containing the attributes
 that you want to update. As before, if there was an error updating the
 post we want to show the form back to the user.
@@ -879,11 +887,11 @@ example, if you'd call +@post.update_attributes(:title => 'A new title')+
 Rails would only update the +title+ attribute, leaving all other
 attributes untouched.
 
-Finally, we want to show a link to the +edit+ action in the +index+ and
-+show+ views:
+Finally, we want to show a link to the +edit+ action in the list of all the
+posts, so let's add that now to +app/views/posts/index.html.erb+ to make it
+appear next to the "Show" link:
 
 <erb>
-# app/view/posts/index.html.erb
 
 <table>
   <tr>
@@ -902,10 +910,15 @@ Finally, we want to show a link to the +edit+ action in the +index+ and
   </tr>
 <% end %>
 </table>
+</erb>
 
-# app/view/posts/show.html.erb
+And we'll also add one to the +app/views/posts/show.html.erb+ template as well,
+so that there's also an "Edit" link on a post's page. Add this at the bottom of
+the template:
 
+<erb>
 ...
+
 
 <%= link_to 'Back', :action => :index %>
 | <%= link_to 'Edit', :action => :edit, :id => @post.id %>
@@ -935,8 +948,8 @@ simple example:
 <%= @user.about_me %>
 </erb>
 
-The +show+ view will automatically include the content of the
-+_user_details+ view. Note that partials are prefixed by an underscore,
+The +users/show+ template will automatically include the content of the
++users/_user_details+ template. Note that partials are prefixed by an underscore,
 as to not be confused with regular views. However, you don't include the
 underscore when including them with the +helper+ method.
 
@@ -945,7 +958,7 @@ Rails":layouts_and_rendering.html guide.
 
 Our +edit+ action looks very similar to the +new+ action, in fact they
 both share the same code for displaying the form. Lets clean them up by
-using a +_form+ partial.
+using a partial.
 
 Create a new file +app/views/posts/_form.html.erb+ with the following
 content:
@@ -955,7 +968,7 @@ content:
   <% if @post.errors.any? %>
   <div id="errorExplanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
-	    this post from being saved:</h2>
+      this post from being saved:</h2>
     <ul>
     <% @post.errors.full_messages.each do |msg| %>
       <li><%= msg %></li>
@@ -979,23 +992,23 @@ content:
 <% end %>
 </erb>
 
-Everything except for the +form_for+ declaration remained the same. I'll
-explain later how +form_for+ can figure out the right +action+ and
-+method+ attributes when building the form, for now let's update the
-+new+ and +edit+ views:
+Everything except for the +form_for+ declaration remained the same.
+How +form_for+ can figure out the right +action+ and +method+ attributes
+when building the form will be explained in just a moment. For now, let's update the
++app/views/posts/new.html.erb+ view to use this new partial, rewriting it
+completely:
 
 <erb>
-# app/views/posts/new.html.erb
-
 <h1>New post</h1>
 
 <%= render 'form' %>
 
 <%= link_to 'Back', :action => :index %>
+</erb>
 
+Then do the same for the +app/views/posts/edit.html.erb+ view:
 
-# app/views/posts/edit.html.erb
-
+<erb>
 <h1>Edit post</h1>
 
 <%= render 'form' %>
@@ -1003,8 +1016,7 @@ explain later how +form_for+ can figure out the right +action+ and
 <%= link_to 'Back', :action => :index %>
 </erb>
 
-Point your browser to
-"http://localhost:3000/posts/new":http://localhost:3000/posts/new and
+Point your browser to "http://localhost:3000/posts/new":http://localhost:3000/posts/new and
 try creating a new post. Everything still works. Now try editing the
 post and you'll receive the following error:
 
@@ -1022,7 +1034,8 @@ knows that it should create new objects via POST and update them via
 PUT.
 
 If you run +rake routes+ from the console you'll see that we already
-have a +posts_path+ route, which was created automatically by Rails.
+have a +posts_path+ route, which was created automatically by Rails when we
+defined the route for the index action.
 However, we don't have a +post_path+ yet, which is the reason why we
 received an error before.
 
@@ -1045,26 +1058,37 @@ line like this:
 get "posts/:id" => "posts#show", :as => :post
 </ruby>
 
-Now you'll be able to update posts again.
+The +:as+ option tells the +get+ method that we want to make routing helpers
+called +post_url+ and +post_path+ available to our application. These are
+precisely the methods that the +form_for+ needs when editing a post, and so now
+you'll be able to update posts again.
+
+NOTE: The +:as+ option is available on the +post+, +put+, +delete+ and +match+
+routing methods also.
 
 h4. Deleting Posts
 
 We're now ready to cover the "D" part of CRUD, deleting posts from the
 database. Following the REST convention, we're going to add a route for
-deleting posts:
+deleting posts to +config/routes.rb+:
 
 <ruby>
-# config/routes.rb
-
 delete "posts/:id" => "posts#destroy"
 </ruby>
 
-We use the +delete+ method for destroying resources, which is mapped to
-the +destroy+ action, which is provided below:
+The +delete+ routing method should be used for routes that destroy
+resources. If this was left as a typical +get+ route, it could be possible for
+people to craft malicious URLs like this:
+
+<html>
+<a href='http://yoursite.com/posts/1/destroy'>look at this cat!</a>
+</html>
+
+We use the +delete+ method for destroying resources, and this route is mapped to
+the +destroy+ action inside +app/controllers/posts_controller.rb+, which doesn't exist yet, but is
+provided below:
 
 <ruby>
-# app/controllers/posts_controller.rb
-
 def destroy
   @post = Post.find(params[:id])
   @post.destroy
@@ -1074,13 +1098,15 @@ end
 </ruby>
 
 You can call +destroy+ on Active Record objects when you want to delete
-them from the dabase. Note that we don't need to add a view for this
+them from the database. Note that we don't need to add a view for this
 action since we're redirecting to the +index+ action.
 
-Finally, add a 'destroy' link to your +index+ action to wrap everything
+Finally, add a 'destroy' link to your +index+ action template
+(+app/views/posts/index.html.erb) to wrap everything
 together.
 
 <erb>
+<h1>Listing Posts</h1>
 <table>
   <tr>
     <th>Title</th>
@@ -1103,11 +1129,14 @@ together.
 </erb>
 
 Here we're using +link_to+ in a different way. We wrap the
-+:action+ and +:id+ attributes in a hash so that we can pass other
-arguments to +link_to+. The +:method+ and +:confirm+
++:action+ and +:id+ attributes in a hash so that we can pass those two keys in
+first as one argument, and then the final two keys as another argument. The +:method+ and +:confirm+
 options are used as html5 attributes so that when the click is linked,
 Rails will first show a confirm dialog to the user, and then submit the
-link with method +delete+. This is done via javascript automatically.
+link with method +delete+. This is done via the JavaScript file +jquery_ujs+
+which is automatically included into your application's layout
+(+app/views/layouts/application.html.erb+) when you generated the application.
+Without this file, the confirmation dialog box wouldn't appear.
 
 !images/getting_started/confirm_dialog.png(Confirm Dialog)!
 
@@ -1147,7 +1176,7 @@ end
 </ruby>
 
 If you run +rake routes+, you'll see that all the routes that we
-declared before are still available, and the app still works as before.
+declared before are still available:
 
 <shell>
 # rake routes
@@ -1161,18 +1190,22 @@ edit_post GET    /posts/:id/edit(.:format) posts#edit
      root        /                         welcome#index
 </shell>
 
+Also, if you go through the motions of creating, updating and deleting
+posts the app still works as before.
+
 TIP: In general, Rails encourages the use of resources objects in place
-of declaring routes manually. For more information about routing, see
+of declaring routes manually. It was only done in this guide as a learning
+exercise. For more information about routing, see
 "Rails Routing from the Outside In":routing.html.
 
 h3. Adding a Second Model
 
 It's time to add a second model to the application. The second model will handle comments on
-blog posts.
+posts.
 
 h4. Generating a Model
 
-We're going to se the same generator that we used before when creating
+We're going to see the same generator that we used before when creating
 the +Post+ model. This time we'll create a +Comment+ model to hold
 reference of post comments. Run this command in your terminal:
 
@@ -1355,7 +1388,10 @@ So first, we'll wire up the Post show template
 </erb>
 
 This adds a form on the +Post+ show page that creates a new comment by
-calling the +CommentsController+ +create+ action. Let's wire that up:
+calling the +CommentsController+ +create+ action. The +form_for+ call here uses
+an array, which will build a nested route, such as +/posts/1/comments+.
+
+Let's wire up the +create+:
 
 <ruby>
 class CommentsController < ApplicationController
@@ -1439,7 +1475,7 @@ use partials to clean it up.
 
 h4. Rendering Partial Collections
 
-First we will make a comment partial to extract showing all the comments for the
+First, we will make a comment partial to extract showing all the comments for the
 post. Create the file +app/views/comments/_comment.html.erb+ and put the
 following into it:
 

@@ -1323,7 +1323,7 @@ Returns the character of the string at position +position+:
 "hello".at(0)  # => "h"
 "hello".at(4)  # => "o"
 "hello".at(-1) # => "o"
-"hello".at(10) # => ERROR if < 1.9, nil in 1.9
+"hello".at(10) # => nil
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/string/access.rb+.
@@ -1805,7 +1805,7 @@ NOTE: Defined in +active_support/core_ext/numeric/bytes.rb+.
 
 h4. Time
 
-Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.years.
+Enables the use of time calculations and declarations, like @45.minutes <plus> 2.hours <plus> 4.years@.
 
 These methods use Time#advance for precise date calculations when using from_now, ago, etc.
 as well as adding or subtracting their results from a Time object. For example:
