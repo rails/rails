@@ -93,13 +93,13 @@ module ActionController
         rendered = @templates
         msg = message || sprintf("expecting <%s> but rendering with <%s>",
                 options.inspect, rendered.keys)
-        assert(msg) do
+        matches_template =
           if options
             rendered.any? { |t,num| t.match(options) }
           else
             @templates.blank?
           end
-        end
+        assert matches_template, msg
       when Hash
         if options.key?(:layout)
           expected_layout = options[:layout]
