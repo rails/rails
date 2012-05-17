@@ -1365,7 +1365,7 @@ So first, we'll wire up the Post show template
 
 <p>
   <strong>Text:</strong>
-  <%= @post.texthttp://beginningruby.org/ %>
+  <%= @post.text %>
 </p>
 
 <h2>Add a comment:</h2>
