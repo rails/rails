@@ -306,14 +306,14 @@ module ActiveRecord
       #   end
       #
       #   person.pets
-      #   # => [ #<Pet name: "Snoop", type: "dog">, #<Pet name: "Wy", type: "cat"> ] 
+      #   # => [#<Pet id: 1, name: "Wy", group: "cats", person_id: 1>]
       #
-      #   other_pets = [Pet.new(name: 'GorbyPuff', type: 'celibrity')]
+      #   other_pets = [Pet.new(name: 'GorbyPuff', group: 'celebrities']
       #
       #   person.pets.replace(other_pets)
       #
       #   person.pets
-      #   # => [ #<Pet name: "GorbyPuff", type: "celebrity"> ]
+      #   # => [#<Pet id: 2, name: "GorbyPuff", group: "celebrities", person_id: 1>]
       #
       # If the supplied array has an incorrect association type, it raises
       # an ActiveRecord::AssociationTypeMismatch error:
