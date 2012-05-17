@@ -545,7 +545,7 @@ config.assets.initialize_on_precompile = false
 
 The +prefix+ change makes Rails use a different URL for serving assets in development mode, and pass all requests to Sprockets. The prefix is still set to +/assets+ in the production environment. Without this change, the application would serve the precompiled assets from +public/assets+ in development, and you would not see any local changes until you compile assets again.
 
-The +initialize_on_precompile+ change tell the precompile task to run without invoking Rails. This is because the precompile task runs in production mode by default, and without this change the task would attempt to connect to your specfied production database. Please note that you cannot have code in pipeline files that relies on Rails resources (such as the database) when compiling locally with this option.
+The +initialize_on_precompile+ change tells the precompile task to run without invoking Rails. This is because the precompile task runs in production mode by default, and will attempt to connect to your specified production database. Please note that you cannot have code in pipeline files that relies on Rails resources (such as the database) when compiling locally with this option.
 
 You will also need to ensure that any compressors or minifiers are available on your development system.
 
