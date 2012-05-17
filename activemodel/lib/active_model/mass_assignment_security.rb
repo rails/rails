@@ -229,7 +229,7 @@ module ActiveModel
   protected
 
     def sanitize_for_mass_assignment(attributes, role = nil)
-      _mass_assignment_sanitizer.sanitize(attributes, mass_assignment_authorizer(role))
+      _mass_assignment_sanitizer.sanitize(self.class, attributes, mass_assignment_authorizer(role))
     end
 
     def mass_assignment_authorizer(role)
