@@ -61,6 +61,9 @@ module ActiveSupport
           @logged = Hash.new { |h,k| h[k] = [] }
         end
 
+        def debug
+        end
+
         def method_missing(level, message)
           @logged[level] << message
         end
