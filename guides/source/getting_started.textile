@@ -1063,24 +1063,32 @@ called +post_url+ and +post_path+ available to our application. These are
 precisely the methods that the +form_for+ needs when editing a post, and so now
 you'll be able to update posts again.
 
+NOTE: The +:as+ option is available on the +post+, +put+, +delete+ and +match+
+routing methods also.
+
 h4. Deleting Posts
 
 We're now ready to cover the "D" part of CRUD, deleting posts from the
 database. Following the REST convention, we're going to add a route for
-deleting posts:
+deleting posts to +config/routes.rb+:
 
 <ruby>
-# config/routes.rb
-
 delete "posts/:id" => "posts#destroy"
 </ruby>
 
-We use the +delete+ method for destroying resources, which is mapped to
-the +destroy+ action, which is provided below:
+The +delete+ routing method should be used for routes that destroy
+resources. If this was left as a typical +get+ route, it could be possible for
+people to craft malicious URLs like this:
+
+<html>
+<a href='http://yoursite.com/posts/1/destroy'>look at this cat!</a>
+</html>
+
+We use the +delete+ method for destroying resources, and this route is mapped to
+the +destroy+ action inside +app/controllers/posts_controller.rb+, which doesn't exist yet, but is
+provided below:
 
 <ruby>
-# app/controllers/posts_controller.rb
-
 def destroy
   @post = Post.find(params[:id])
   @post.destroy
