@@ -209,7 +209,9 @@ module ActionView
       #
       # You can still use <tt>word_wrap</tt> with the old API that accepts the
       # +line_width+ as its optional second parameter:
-      #   word_wrap('Once upon a time', 8)     # => Once upon\na time
+      #
+      #   word_wrap('Once upon a time', 8)
+      #   # => Once\nupon a\ntime
       def word_wrap(text, *args)
         options = args.extract_options!
         unless args.blank?
