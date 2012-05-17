@@ -1098,7 +1098,7 @@ end
 </ruby>
 
 You can call +destroy+ on Active Record objects when you want to delete
-them from the dabase. Note that we don't need to add a view for this
+them from the database. Note that we don't need to add a view for this
 action since we're redirecting to the +index+ action.
 
 Finally, add a 'destroy' link to your +index+ action to wrap everything
