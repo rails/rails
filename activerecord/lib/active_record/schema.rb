@@ -34,6 +34,15 @@ module ActiveRecord
       ActiveRecord::Migrator.migrations_paths
     end
 
+    def define(info, &block)
+      instance_eval(&block)
+
+      unless info[:version].blank?
+        initialize_schema_migrations_table
+        assume_migrated_upto_version(info[:version], migrations_paths)
+      end
+    end
+
     # Eval the given block. All methods available to the current connection
     # adapter are available within the block, so you can easily use the
     # database definition DSL to build up your schema (+create_table+,
@@ -46,13 +55,7 @@ module ActiveRecord
     #     ...
     #   end
     def self.define(info={}, &block)
-      schema = new
-      schema.instance_eval(&block)
-
-      unless info[:version].blank?
-        initialize_schema_migrations_table
-        assume_migrated_upto_version(info[:version], schema.migrations_paths)
-      end
+      new.define(info, &block)
     end
   end
 end
