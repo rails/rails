@@ -15,7 +15,7 @@ module ActiveRecord
     #
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
-    class CollectionAssociation < Association #:nodoc:
+    class CollectionAssociation < Association
 
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader(force_reload = false)
@@ -298,8 +298,28 @@ module ActiveRecord
         end
       end
 
-      # Replace this collection with +other_array+
-      # This will perform a diff and delete/add only records that have changed.
+      # Replace this collection with +other_array+. This will perform a diff
+      # and delete/add only records that have changed.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [ #<Pet name: "Snoop", type: "dog">, #<Pet name: "Wy", type: "cat"> ] 
+      #
+      #   other_pets = [Pet.new(name: 'GorbyPuff', type: 'celibrity')]
+      #
+      #   person.pets.replace(other_pets)
+      #
+      #   person.pets
+      #   # => [ #<Pet name: "GorbyPuff", type: "celebrity"> ]
+      #
+      # If the supplied array has an incorrect association type, it raises
+      # an ActiveRecord::AssociationTypeMismatch error:
+      #
+      #   person.pets.replace(["doo", "ggie", "gaga"])
+      #   #=> ActiveRecord::AssociationTypeMismatch: Pet expected, got String
       def replace(other_array)
         other_array.each { |val| raise_on_type_mismatch(val) }
         original_target = load_target.dup
