@@ -1,5 +1,4 @@
 module ActiveModel
-
   # == Active Model Acceptance Validator
   module Validations
     class AcceptanceValidator < EachValidator
@@ -59,7 +58,7 @@ module ActiveModel
       #   The method, proc or string should return or evaluate to a true or
       #   false value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict. 
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
       def validates_acceptance_of(*attr_names)
         validates_with AcceptanceValidator, _merge_attributes(attr_names)
       end

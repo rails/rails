@@ -1,5 +1,4 @@
 module ActiveModel
-
   # == Active Model Numericality Validator
   module Validations
     class NumericalityValidator < EachValidator
@@ -93,22 +92,30 @@ module ActiveModel
       #   validation contexts by default (+nil+), other options are <tt>:create</tt>
       #   and <tt>:update</tt>.
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an integer, e.g. an integral value (default is +false+).
-      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is +false+). Notice that for fixnum and float columns empty strings are converted to +nil+.
-      # * <tt>:greater_than</tt> - Specifies the value must be greater than the supplied value.
-      # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be greater than or equal the supplied value.
+      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
+      #   +false+). Notice that for fixnum and float columns empty strings are
+      #   converted to +nil+.
+      # * <tt>:greater_than</tt> - Specifies the value must be greater than the
+      #   supplied value.
+      # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be greater
+      #   than or equal the supplied value.
       # * <tt>:equal_to</tt> - Specifies the value must be equal to the supplied value.
-      # * <tt>:less_than</tt> - Specifies the value must be less than the supplied value.
-      # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less than or equal the supplied value.
+      # * <tt>:less_than</tt> - Specifies the value must be less than the supplied
+      #   value.
+      # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less than
+      #   or equal the supplied value.
       # * <tt>:odd</tt> - Specifies the value must be an odd number.
       # * <tt>:even</tt> - Specifies the value must be an even number.
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a true or false value.
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
+      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a true or false value.
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should not occur (e.g. <tt>:unless => :skip_validation</tt>,
+      #   or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a true or false value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict. 
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
       #
       # The following checks can also be supplied with a proc or a symbol which corresponds to a method:
       # * <tt>:greater_than</tt>
@@ -117,11 +124,12 @@ module ActiveModel
       # * <tt>:less_than</tt>
       # * <tt>:less_than_or_equal_to</tt>
       #
+      # For example:
+      #
       #   class Person < ActiveRecord::Base
       #     validates_numericality_of :width, :less_than => Proc.new { |person| person.height }
       #     validates_numericality_of :width, :greater_than => :minimum_weight
       #   end
-      #
       def validates_numericality_of(*attr_names)
         validates_with NumericalityValidator, _merge_attributes(attr_names)
       end
