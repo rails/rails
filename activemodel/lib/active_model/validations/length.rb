@@ -1,7 +1,6 @@
 require "active_support/core_ext/string/encoding"
 
 module ActiveModel
-
   # == Active Model Length Validator
   module Validations
     class LengthValidator < EachValidator
@@ -68,8 +67,8 @@ module ActiveModel
     end
 
     module HelperMethods
-
-      # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
+      # Validates that the specified attribute matches the length restrictions supplied.
+      # Only one option can be used at a time:
       #
       #   class Person < ActiveRecord::Base
       #     validates_length_of :first_name, :maximum => 30
@@ -79,35 +78,45 @@ module ActiveModel
       #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
       #     validates_length_of :zip_code, :minimum => 5, :too_short => "please enter at least 5 characters"
       #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with 4 characters... don't play me."
-      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least 100 words.", :tokenizer => lambda { |str| str.scan(/\w+/) }
+      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least 100 words.",
+      #                         :tokenizer => lambda { |str| str.scan(/\w+/) }
       #   end
       #
       # Configuration options:
       # * <tt>:minimum</tt> - The minimum size of the attribute.
       # * <tt>:maximum</tt> - The maximum size of the attribute.
       # * <tt>:is</tt> - The exact size of the attribute.
-      # * <tt>:within</tt> - A range specifying the minimum and maximum size of the attribute.
+      # * <tt>:within</tt> - A range specifying the minimum and maximum size of the
+      #   attribute.
       # * <tt>:in</tt> - A synonym(or alias) for <tt>:within</tt>.
       # * <tt>:allow_nil</tt> - Attribute may be +nil+; skip validation.
       # * <tt>:allow_blank</tt> - Attribute may be blank; skip validation.
-      # * <tt>:too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is %{count} characters)").
-      # * <tt>:too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %{count} characters)").
-      # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt> method and the attribute is the wrong size (default is: "is the wrong length (should be %{count} characters)").
-      # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>, <tt>:maximum</tt>, or <tt>:is</tt> violation. An alias of the appropriate <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
+      # * <tt>:too_long</tt> - The error message if the attribute goes over the
+      #   maximum (default is: "is too long (maximum is %{count} characters)").
+      # * <tt>:too_short</tt> - The error message if the attribute goes under the
+      #   minimum (default is: "is too short (min is %{count} characters)").
+      # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt> method
+      #   and the attribute is the wrong size (default is: "is the wrong length
+      #   should be %{count} characters)").
+      # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>,
+      #   <tt>:maximum</tt>, or <tt>:is</tt> violation. An alias of the appropriate
+      #   <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
       # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
       #   validation contexts by default (+nil+), other options are <tt>:create</tt>
       #   and <tt>:update</tt>.
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if
+      #   the validation should occur (e.g. <tt>:if => :allow_validation</tt>, or
+      #   <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The method, proc
+      #   or string should return or evaluate to a true or false value.
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should not occur (e.g. <tt>:unless => :skip_validation</tt>,
+      #   or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string. (e.g. <tt>:tokenizer => lambda {|str| str.scan(/\w+/)}</tt> to
-      #   count words as in above example.)
-      #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
+      # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string.
+      #   (e.g. <tt>:tokenizer => lambda {|str| str.scan(/\w+/)}</tt> to count words
+      #   as in above example). Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)
       end

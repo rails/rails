@@ -54,15 +54,14 @@ module ActiveModel
       #   (<tt>:create</tt> or <tt>:update</tt>
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
-      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).
-      #   The method, proc or string should return or evaluate to a true or false value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to
-      #   determine if the validation should not occur
-      #   (e.g. <tt>:unless => :skip_validation</tt>, or
-      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).
-      #   The method, proc or string should return or evaluate to a true or false value.
+      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a true or false value.
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should not occur (e.g. <tt>:unless => :skip_validation</tt>,
+      #   or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a true or false value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict. 
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
 
       # If you pass any additional configuration options, they will be passed
       # to the class and available as <tt>options</tt>:
@@ -77,7 +76,6 @@ module ActiveModel
       #       options[:my_custom_key] # => "my custom value"
       #     end
       #   end
-      #
       def validates_with(*args, &block)
         options = args.extract_options!
         args.each do |klass|
@@ -128,12 +126,11 @@ module ActiveModel
     # Standard configuration options (:on, :if and :unless), which are
     # available on the class version of validates_with, should instead be
     # placed on the <tt>validates</tt> method as these are applied and tested
-    # in the callback
+    # in the callback.
     #
     # If you pass any additional configuration options, they will be passed
     # to the class and available as <tt>options</tt>, please refer to the
-    # class version of this method for more information
-    #
+    # class version of this method for more information.
     def validates_with(*args, &block)
       options = args.extract_options!
       args.each do |klass|
