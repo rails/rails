@@ -61,7 +61,7 @@ module ActiveSupport
           @logged = Hash.new { |h,k| h[k] = [] }
         end
 
-        def method_missing(level, message)
+        def method_missing(level, message = nil)
            if block_given?
              @logged[level] << yield
            else
