@@ -1101,10 +1101,12 @@ You can call +destroy+ on Active Record objects when you want to delete
 them from the database. Note that we don't need to add a view for this
 action since we're redirecting to the +index+ action.
 
-Finally, add a 'destroy' link to your +index+ action to wrap everything
+Finally, add a 'destroy' link to your +index+ action template
+(+app/views/posts/index.html.erb) to wrap everything
 together.
 
 <erb>
+<h1>Listing Posts</h1>
 <table>
   <tr>
     <th>Title</th>
