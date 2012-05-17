@@ -1388,7 +1388,10 @@ So first, we'll wire up the Post show template
 </erb>
 
 This adds a form on the +Post+ show page that creates a new comment by
-calling the +CommentsController+ +create+ action. Let's wire that up:
+calling the +CommentsController+ +create+ action. The +form_for+ call here uses
+an array, which will build a nested route, such as +/posts/1/comments+.
+
+Let's wire up the +create+:
 
 <ruby>
 class CommentsController < ApplicationController
