@@ -246,17 +246,8 @@ module Rails
         # is easier to silence stdout in the existing test suite this way. The
         # end-user gets the bundler commands called anyway, so no big deal.
         #
-        # We unset temporary bundler variables to load proper bundler and Gemfile.
-        #
         # Thanks to James Tucker for the Gem tricks involved in this call.
-        _bundle_command = Gem.bin_path('bundler', 'bundle')
-
-        bundle_bin_path, bundle_gemfile, rubyopt = ENV['BUNDLE_BIN_PATH'], ENV['BUNDLE_GEMFILE'], ENV['RUBYOPT']
-        ENV['BUNDLE_BIN_PATH'], ENV['BUNDLE_GEMFILE'], ENV['RUBYOPT'] = "", "", ""
-
-        print `"#{Gem.ruby}" "#{_bundle_command}" #{command}`
-
-        ENV['BUNDLE_BIN_PATH'], ENV['BUNDLE_GEMFILE'], ENV['RUBYOPT'] = bundle_bin_path, bundle_gemfile, rubyopt
+        print `"#{Gem.ruby}" "#{Gem.bin_path('bundler', 'bundle')}" #{command}`
       end
 
       def run_bundle
