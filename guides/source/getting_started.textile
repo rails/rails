@@ -1427,7 +1427,7 @@ template. This is where we want the comment to show, so let's add that to the
 
 <p>
   <strong>Text:</strong>
-  <%= @post.texthttp://beginningruby.org/ %>
+  <%= @post.text %>
 </p>
 
 <h2>Comments</h2>
