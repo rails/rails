@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   It's not possible anymore to destroy a model marked as read only.
+
+    *Johannes Barre*
+
+
 *   Added ability to ActiveRecord::Relation#from to accept other ActiveRecord::Relation objects
 
       Record.from(subquery)
