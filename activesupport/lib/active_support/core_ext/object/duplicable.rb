@@ -19,7 +19,7 @@
 class Object
   # Can you safely dup this object?
   #
-  # False for +nil+, +false+, +true+, symbols, numbers, class and module objects;
+  # False for +nil+, +false+, +true+, symbol, and number objects;
   # true otherwise.
   def duplicable?
     true
