@@ -1475,7 +1475,7 @@ use partials to clean it up.
 
 h4. Rendering Partial Collections
 
-First we will make a comment partial to extract showing all the comments for the
+First, we will make a comment partial to extract showing all the comments for the
 post. Create the file +app/views/comments/_comment.html.erb+ and put the
 following into it:
 
