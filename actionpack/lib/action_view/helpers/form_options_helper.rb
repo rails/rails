@@ -464,7 +464,7 @@ module ActionView
       # Options:
       # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this
       #   prepends an option with a generic prompt - "Please select" - or the given prompt string.
-      # * <tt>:delimiter</tt> - the delimiter for the options groups.
+      # * <tt>:divider</tt> - the divider for the options groups.
       #
       # Sample usage (Array):
       #   grouped_options = [
@@ -489,6 +489,24 @@ module ActionView
       #     <option value="France">France</option>
       #   </optgroup>
       #   <optgroup label="North America">
+      #     <option value="US">United States</option>
+      #     <option value="Canada">Canada</option>
+      #   </optgroup>
+      #
+      # Sample usage (divider):
+      #   grouped_options = [
+      #    [['United States','US'], 'Canada'],
+      #    ['Denmark','Germany','France']
+      #   ]
+      #   grouped_options_for_select(grouped_options, divider: '---------')
+      #
+      # Possible output:
+      #   <optgroup label="---------">
+      #     <option value="Denmark">Denmark</option>
+      #     <option value="Germany">Germany</option>
+      #     <option value="France">France</option>
+      #   </optgroup>
+      #   <optgroup label="---------">
       #     <option value="US">United States</option>
       #     <option value="Canada">Canada</option>
       #   </optgroup>
