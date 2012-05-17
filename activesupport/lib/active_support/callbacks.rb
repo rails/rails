@@ -328,24 +328,15 @@ module ActiveSupport
       # if it was not yet defined.
       # This generated method plays caching role.
       def __define_callbacks(kind, object) #:nodoc:
-        name = __callback_runner_name(kind)
+        chain = object.send("_#{kind}_callbacks")
+        name = "_run_callbacks_#{chain.object_id}"
         unless object.respond_to?(name, true)
-          str = object.send("_#{kind}_callbacks").compile
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{name}() #{str} end
+            def #{name}() #{chain.compile} end
             protected :#{name}
           RUBY_EVAL
         end
         name
-      end
-
-      def __reset_runner(symbol)
-        name = __callback_runner_name(symbol)
-        undef_method(name) if method_defined?(name)
-      end
-
-      def __callback_runner_name(kind)
-        "_run__#{self.name.hash.abs}__#{kind}__callbacks"
       end
 
       # This is used internally to append, prepend and skip callbacks to the
@@ -359,7 +350,6 @@ module ActiveSupport
         ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
           chain = target.send("_#{name}_callbacks")
           yield target, chain.dup, type, filters, options
-          target.__reset_runner(name)
         end
       end
 
@@ -447,12 +437,9 @@ module ActiveSupport
           chain = target.send("_#{symbol}_callbacks").dup
           callbacks.each { |c| chain.delete(c) }
           target.send("_#{symbol}_callbacks=", chain)
-          target.__reset_runner(symbol)
         end
 
         self.send("_#{symbol}_callbacks=", callbacks.dup.clear)
-
-        __reset_runner(symbol)
       end
 
       # Define sets of events in the object lifecycle that support callbacks.
