@@ -11,6 +11,19 @@ module ActiveModel
       # If you wish to turn off validations, pass 'validations: false' as an argument.
       # You can add more validations by hand if need be.
       #
+      # Note: the implementation of <tt>has_secure_password</tt> enforces presence validation
+      # on the <tt>:password_digest</tt> attribute rather than on <tt>:password</tt>, which is
+      # in fact a virtual reader attribute.  However, <tt>validates_confirmation_of</tt> ensures
+      # an indirect means of presence validation of <tt>:password</tt> if the
+      # <tt>:password_confirmation</tt> attribute is not nil.
+      #
+      # You may want to add presence validation on <tt>:password</tt> for the benefit of your forms
+      #
+      #   class User < ActiveRecord::Base
+      #     has_secure_password
+      #     validates :password, :presence => { :on => :create }
+      #   end
+      #
       # You need to add bcrypt-ruby (~> 3.0.0) to Gemfile to use has_secure_password:
       #
       #   gem 'bcrypt-ruby', '~> 3.0.0'
