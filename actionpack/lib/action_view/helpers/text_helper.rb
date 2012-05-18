@@ -243,7 +243,7 @@ module ActionView
       #   simple_format(my_text)
       #   # => "<p>Here is some basic text...\n<br />...with a line break.</p>"
       # 
-      #   simple_format(my_text, :wrapper_tag => "div")
+      #   simple_format(my_text, , {} :wrapper_tag => "div")
       #   # => "<div>Here is some basic text...\n<br />...with a line break.</div>"
       #
       #   more_text = "We want to put a paragraph...\n\n...right there."
