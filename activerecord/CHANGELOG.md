@@ -1,9 +1,63 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecated most of the 'dynamic finder' methods. All dynamic methods
+    except for `find_by_...` and `find_by_...!` are deprecated. Here's
+    how you can rewrite the code:
+
+      * `find_all_by_...` can be rewritten using `where(...)`
+      * `find_last_by_...` can be rewritten using `where(...).last`
+      * `scoped_by_...` can be rewritten using `where(...)`
+      * `find_or_initialize_by_...` can be rewritten using
+        `where(...).first_or_initialize`
+      * `find_or_create_by_...` can be rewritten using
+        `where(...).first_or_create!`
+      * `find_or_create_by_...!` can be rewritten using
+        `where(...).first_or_create!`
+
+    The implementation of the deprecated dynamic finders has been moved
+    to the `active_record_deprecated_finders` gem. See below for details.
+
+    *Jon Leighton*
+
+*   Deprecated the old-style hash based finder API. This means that
+    methods which previously accepted "finder options" no longer do. For
+    example this:
+
+        Post.find(:all, :conditions => { :comments_count => 10 }, :limit => 5)
+
+    Should be rewritten in the new style which has existed since Rails 3:
+
+        Post.where(comments_count: 10).limit(5)
+
+    Note that as an interim step, it is possible to rewrite the above as:
+
+        Post.scoped(:where => { :comments_count => 10 }, :limit => 5)
+
+    This could save you a lot of work if there is a lot of old-style
+    finder usage in your application.
+
+    Calling `Post.scoped(options)` is a shortcut for
+    `Post.scoped.merge(options)`. `Relation#merge` now accepts a hash of
+    options, but they must be identical to the names of the equivalent
+    finder method. These are mostly identical to the old-style finder
+    option names, except in the following cases:
+
+      * `:conditions` becomes `:where`
+      * `:include` becomes `:includes`
+      * `:extend` becomes `:extending`
+
+    The code to implement the deprecated features has been moved out to
+    the `active_record_deprecated_finders` gem. This gem is a dependency
+    of Active Record in Rails 4.0. It will no longer be a dependency
+    from Rails 4.1, but if your app relies on the deprecated features
+    then you can add it to your own Gemfile. It will be maintained by
+    the Rails core team until Rails 5.0 is released.
+
+    *Jon Leighton*
+
 *   It's not possible anymore to destroy a model marked as read only.
 
     *Johannes Barre*
-
 
 *   Added ability to ActiveRecord::Relation#from to accept other ActiveRecord::Relation objects
 
