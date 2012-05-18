@@ -4,6 +4,14 @@ require 'active_support/core_ext/object/blank'
 module ActionController
   # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
   module HttpAuthentication
+    module AccessDeniedResponder
+      def respond_with_access_denied(controller, type, header, message=nil)
+        controller.headers["WWW-Authenticate"] = header
+        controller.response_body = message || "HTTP #{type}: Access denied.\n"
+        controller.status = 401
+      end
+    end
+
     # Makes it dead easy to do HTTP \Basic authentication.
     #
     # === Simple \Basic example
@@ -63,6 +71,7 @@ module ActionController
     #   end
     module Basic
       extend self
+      extend AccessDeniedResponder
 
       module ControllerMethods
         extend ActiveSupport::Concern
@@ -109,9 +118,7 @@ module ActionController
       end
 
       def authentication_request(controller, realm)
-        controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.gsub(/"/, "")}")
-        controller.response_body = "HTTP Basic: Access denied.\n"
-        controller.status = 401
+        respond_with_access_denied(controller, "Basic", %(Basic realm="#{realm.gsub(/"/, "")}"))
       end
     end
 
@@ -159,6 +166,7 @@ module ActionController
     # variables, and check for HTTP_AUTHORIZATION, amongst others.
     module Digest
       extend self
+      extend AccessDeniedResponder
 
       module ControllerMethods
         def authenticate_or_request_with_http_digest(realm = "Application", &password_procedure)
@@ -239,14 +247,12 @@ module ActionController
         secret_key = secret_token(controller.request)
         nonce = self.nonce(secret_key)
         opaque = opaque(secret_key)
-        controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")
+        %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")
       end
 
       def authentication_request(controller, realm, message = nil)
         message ||= "HTTP Digest: Access denied.\n"
-        authentication_header(controller, realm)
-        controller.response_body = message
-        controller.status = 401
+        respond_with_access_denied(controller, "Digest", authentication_header(controller, realm), message)
       end
 
       def secret_token(request)
@@ -386,6 +392,7 @@ module ActionController
     #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
       extend self
+      extend AccessDeniedResponder
 
       module ControllerMethods
         def authenticate_or_request_with_http_token(realm = "Application", &login_procedure)
@@ -460,8 +467,7 @@ module ActionController
       #
       # Returns nothing.
       def authentication_request(controller, realm)
-        controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.gsub(/"/, "")}")
-        controller.__send__ :render, :text => "HTTP Token: Access denied.\n", :status => :unauthorized
+        respond_with_access_denied(controller, "Token", %(Token realm="#{realm.gsub(/"/, "")}"))
       end
     end
   end
