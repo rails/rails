@@ -688,7 +688,7 @@ module ActiveRecord #:nodoc:
     extend ActiveSupport::Benchmarkable
     extend ActiveSupport::DescendantsTracker
 
-    extend Querying
+    extend QueryDelegation
     include ReadonlyAttributes
     include ModelSchema
     extend Translation

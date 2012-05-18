@@ -45,6 +45,7 @@ module ActiveRecord
     autoload :Relation
 
     autoload_under 'relation' do
+      autoload :Quering
       autoload :QueryMethods
       autoload :FinderMethods
       autoload :Calculations
@@ -72,7 +73,7 @@ module ActiveRecord
     autoload :Observer
     autoload :Persistence
     autoload :QueryCache
-    autoload :Querying
+    autoload :QueryDelegation
     autoload :ReadonlyAttributes
     autoload :Reflection
     autoload :Result
