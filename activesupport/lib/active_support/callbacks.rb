@@ -329,7 +329,7 @@ module ActiveSupport
       # This generated method plays caching role.
       def __define_callbacks(kind, object) #:nodoc:
         chain = object.send("_#{kind}_callbacks")
-        name = "_run_callbacks_#{chain.object_id}"
+        name = "_run_callbacks_#{chain.object_id.abs}"
         unless object.respond_to?(name, true)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{name}() #{chain.compile} end
