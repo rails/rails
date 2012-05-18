@@ -4,7 +4,7 @@ module ActiveRecord
     #
     # CollectionAssociation is an abstract class that provides common stuff to
     # ease the implementation of association proxies that represent
-    # collections. See the class hierarchy in AssociationProxy
+    # collections. See the class hierarchy in AssociationProxy.
     #
     #   CollectionAssociation:
     #     HasAndBelongsToManyAssociation => has_and_belongs_to_many
@@ -12,7 +12,7 @@ module ActiveRecord
     #       HasManyThroughAssociation + ThroughAssociation => has_many :through
     #
     # CollectionAssociation class provides common methods to the collections
-    # defined by +has_and_belongs_to_many+, +has_many+ and +has_many+ with
+    # defined by +has_and_belongs_to_many+, +has_many+ or +has_many+ with
     # +:through+ association option.
     #
     # You need to be careful with assumptions regarding the target: The proxy
@@ -170,6 +170,17 @@ module ActiveRecord
 
       # Destroy all the records from this association.
       #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.size # => 3
+      #
+      #   person.pets.destroy_all
+      #
+      #   person.pets.size # => 0
+      #   person.pets      # => []
+      #
       # See destroy for more info.
       def destroy_all
         destroy(load_target).tap do
@@ -178,7 +189,7 @@ module ActiveRecord
         end
       end
 
-      # Calculate sum using SQL, not Enumerable
+      # Calculate sum using SQL, not Enumerable.
       def sum(*args)
         if block_given?
           scoped.sum(*args) { |*block_args| yield(*block_args) }
