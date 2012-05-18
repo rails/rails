@@ -380,6 +380,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, active_record.developers_by_sql(true).size
   end
 
+  def test_deleting_all_with_sql
+    project = Project.find(1)
+    project.developers_by_sql.delete_all
+    assert_equal 0, project.developers_by_sql.size
+  end
+
   def test_deleting_all
     david = Developer.find(1)
     david.projects.reload
