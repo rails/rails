@@ -81,8 +81,7 @@ module ActionView
       #   truncate("<p>Once upon a time in a world far far away</p>")
       #   # => "<p>Once upon a time in a wo..."
       def truncate(text, options = {})
-        options.reverse_merge!(:length => 30)
-        text.truncate(options.delete(:length), options) if text
+        text.truncate(options.fetch(:length, 30), options) if text
       end
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
@@ -102,14 +101,14 @@ module ActionView
       #   highlight('You searched for: rails', 'rails', :highlighter => '<a href="search?q=\1">\1</a>')
       #   # => You searched for: <a href="search?q=rails">rails</a>
       def highlight(text, phrases, options = {})
-        options[:highlighter] ||= '<mark>\1</mark>'
-
-        text = sanitize(text) unless options[:sanitize] == false
+        highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
+        
+        text = sanitize(text) if options.fetch(:sanitize, true)
         if text.blank? || phrases.blank?
           text
         else
           match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
-          text.gsub(/(#{match})(?![^<]*?>)/i, options[:highlighter])
+          text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
         end.html_safe
       end
 
@@ -135,8 +134,8 @@ module ActionView
       #   # => <chop> is also an example
       def excerpt(text, phrase, options = {})
         return unless text && phrase
-        radius   = options[:radius]   || 100
-        omission = options[:omission] || "..."
+        radius   = options.fetch(:radius, 100)
+        omission = options.fetch(:omission, "...")
 
         phrase = Regexp.escape(phrase)
         return unless found_pos = text =~ /(#{phrase})/i
@@ -152,7 +151,7 @@ module ActionView
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
-      # it will use the Inflector to determine the plural form
+      # it will use the Inflector to determine the plural form.
       #
       #   pluralize(1, 'person')
       #   # => 1 person
@@ -166,7 +165,13 @@ module ActionView
       #   pluralize(0, 'person')
       #   # => 0 people
       def pluralize(count, singular, plural = nil)
-        "#{count || 0} " + ((count == 1 || count =~ /^1(\.0+)?$/) ? singular : (plural || singular.pluralize))
+        word = if (count == 1 || count =~ /^1(\.0+)?$/) 
+          singular 
+        else
+          plural || singular.pluralize
+        end
+        
+        "#{count || 0} #{word}"
       end
 
       # Wraps the +text+ into lines no longer than +line_width+ width. This method
@@ -185,7 +190,7 @@ module ActionView
       #   word_wrap('Once upon a time', :line_width => 1)
       #   # => Once\nupon\na\ntime
       def word_wrap(text, options = {})
-        line_width = options[:line_width] || 80
+        line_width = options.fetch(:line_width, 80)
 
         text.split("\n").collect do |line|
           line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip : line
@@ -221,9 +226,10 @@ module ActionView
       #
       #   simple_format("<span>I'm allowed!</span> It's true.", {}, :sanitize => false)
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
-      def simple_format(text, html_options={}, options={})
-        text = sanitize(text) unless options[:sanitize] == false
+      def simple_format(text, html_options = {}, options = {})
         wrapper_tag = options.fetch(:wrapper_tag, :p)
+        
+        text = sanitize(text) if options.fetch(:sanitize, true)
         paragraphs = split_paragraphs(text)
 
         if paragraphs.empty?
@@ -274,7 +280,7 @@ module ActionView
       #  <% end %>
       def cycle(first_value, *values)
         options = values.extract_options!
-        name = options.fetch(:name, "default")
+        name = options.fetch(:name, 'default')
 
         values.unshift(first_value)
 
