@@ -235,13 +235,16 @@ module ActionView
       #
       # ==== Options
       # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
-      # * <tt>:wrapper_tag</tt> - String representing the tag wrapper, defaults to <tt>"p"</tt>
+      # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>
       #
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
       #
       #   simple_format(my_text)
       #   # => "<p>Here is some basic text...\n<br />...with a line break.</p>"
+      # 
+      #   simple_format(my_text, :wrapper_tag => "div")
+      #   # => "<div>Here is some basic text...\n<br />...with a line break.</div>"
       #
       #   more_text = "We want to put a paragraph...\n\n...right there."
       #
