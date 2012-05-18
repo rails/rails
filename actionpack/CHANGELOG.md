@@ -1,5 +1,7 @@
 ## Rails 3.2.4 (unreleased) ##
 
+*   Deprecate old APIs for highlight, excerpt and word_wrap *Jeremy Walker*
+
 *   Deprecate `:disable_with` in favor of `'data-disable-with'` option for `button_to`, `button_tag` and `submit_tag` helpers.
 
     *Carlos Galdino + Rafael Mendonça França*
