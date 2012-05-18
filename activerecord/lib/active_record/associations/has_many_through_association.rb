@@ -126,6 +126,10 @@ module ActiveRecord
         def delete_records(records, method)
           ensure_not_nested
 
+          # This is unoptimised; it will load all the target records
+          # even when we just want to delete everything.
+          records = load_target if records == :all
+
           scope = through_association.scoped.where(construct_join_attributes(*records))
 
           case method

@@ -1698,4 +1698,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb1, bulb3], car.bulbs
     assert_equal [bulb1, bulb3], result
   end
+
+  test "delete_all, when not loaded, doesn't load the records" do
+    post = posts(:welcome)
+
+    assert post.taggings_with_delete_all.count > 0
+    assert !post.taggings_with_delete_all.loaded?
+
+    # 2 queries: one DELETE and another to update the counter cache
+    assert_queries(2) do
+      post.taggings_with_delete_all.delete_all
+    end
+  end
 end
