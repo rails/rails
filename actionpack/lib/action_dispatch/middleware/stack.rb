@@ -75,6 +75,11 @@ module ActionDispatch
       middlewares[i]
     end
 
+    def unshift(*args, &block)
+      middleware = self.class::Middleware.new(*args, &block)
+      middlewares.unshift(middleware)
+    end
+
     def initialize_copy(other)
       self.middlewares = other.middlewares.dup
     end
