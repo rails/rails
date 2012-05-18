@@ -4,7 +4,12 @@ module ActiveRecord
     #
     # CollectionAssociation is an abstract class that provides common stuff to
     # ease the implementation of association proxies that represent
-    # collections. See the class hierarchy in AssociationProxy.
+    # collections. See the class hierarchy in AssociationProxy
+    #
+    #   CollectionAssociation:
+    #     HasAndBelongsToManyAssociation => has_and_belongs_to_many
+    #     HasManyAssociation => has_many
+    #       HasManyThroughAssociation + ThroughAssociation => has_many :through
     #
     # You need to be careful with assumptions regarding the target: The proxy
     # does not fetch records from the database until it needs them, but new
@@ -352,7 +357,7 @@ module ActiveRecord
       # an ActiveRecord::AssociationTypeMismatch error:
       #
       #   person.pets.replace(["doo", "ggie", "gaga"])
-      #   #=> ActiveRecord::AssociationTypeMismatch: Pet expected, got String
+      #   # => ActiveRecord::AssociationTypeMismatch: Pet expected, got String
       def replace(other_array)
         other_array.each { |val| raise_on_type_mismatch(val) }
         original_target = load_target.dup
