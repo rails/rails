@@ -305,6 +305,36 @@ module ActiveRecord
         size.zero?
       end
 
+      # Returns true if the collections is not empty.
+      # Equivalent to +!collection.empty?+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count # => 0
+      #   person.pets.any?  # => false
+      #
+      #   person.pets << Pet.new(name: 'Snoop')
+      #   person.pets.count # => 0
+      #   person.pets.any?  # => true
+      #
+      # Also, you can pass a block to define a criteria. The behaviour
+      # is the same, it returns true if the collection based on the
+      # criteria is not empty.
+      #
+      #   person.pets
+      #   # => [#<Pet name: "Snoop", group: "dogs">]
+      #
+      #   person.pets.any? do |pet|
+      #     pet.group == 'cats'
+      #   end
+      #   # => false
+      #
+      #   person.pets.any? do |pet|
+      #     pet.group == 'dogs'
+      #   end
+      #   # => true
       def any?
         if block_given?
           load_target.any? { |*block_args| yield(*block_args) }
