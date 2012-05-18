@@ -282,7 +282,40 @@ module ActiveRecord
         end
       end
 
-      # Returns true if the collection has more than 1 record. Equivalent to collection.size > 1.
+      # Returns true if the collection has more than 1 record.
+      # Equivalent to +collection.size > 1+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count #=> 1
+      #   person.pets.many? #=> false
+      #
+      #   person.pets << Pet.new(name: 'Snoopy')
+      #   person.pets.count #=> 2
+      #   person.pets.many? #=> true
+      #
+      # Also, you can pass a block to define a criteria. The
+      # behaviour is the same, it returns true if the collection
+      # based on the criteria has more than 1 record.
+      #
+      #   person.pets
+      #   # => [
+      #   #      #<Pet name: "GorbyPuff", group: "cats">,
+      #   #      #<Pet name: "Wy", group: "cats">,
+      #   #      #<Pet name: "Snoop", group: "dogs">
+      #   #    ]
+      #
+      #   person.pets.many? do |pet|
+      #     pet.group == 'dogs'
+      #   end
+      #   # => false
+      #
+      #   person.pets.many? do |pet|
+      #     pet.group == 'cats'
+      #   end
+      #   # => true
       def many?
         if block_given?
           load_target.many? { |*block_args| yield(*block_args) }
