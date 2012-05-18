@@ -151,9 +151,7 @@ module ActiveSupport #:nodoc:
     end
 
     def %(args)
-      args = Array(args)
-
-      args.map! do |arg|
+      args = Array(args).map do |arg|
         if !html_safe? || arg.html_safe?
           arg
         else
