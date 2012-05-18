@@ -2113,7 +2113,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_cache_key_format_for_existing_record_with_updated_at
     dev = Developer.first
-    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.to_f.to_s.gsub('.','-')}", dev.cache_key
   end
 
   def test_cache_key_format_for_existing_record_with_nil_updated_at
