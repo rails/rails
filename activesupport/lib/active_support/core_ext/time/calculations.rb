@@ -253,7 +253,7 @@ class Time
       :hour => 23,
       :min => 59,
       :sec => 59,
-      :usec => 999999.999
+      :usec => Rational(999999999, 1000)
     )
   end
 
@@ -268,7 +268,7 @@ class Time
     change(
       :min => 59,
       :sec => 59,
-      :usec => 999999.999
+      :usec => Rational(999999999, 1000)
     )
   end
 
@@ -288,7 +288,7 @@ class Time
       :hour => 23,
       :min  => 59,
       :sec  => 59,
-      :usec => 999999.999
+      :usec => Rational(999999999, 1000)
     )
   end
   alias :at_end_of_month :end_of_month
@@ -321,7 +321,7 @@ class Time
       :hour  => 23,
       :min   => 59,
       :sec   => 59,
-      :usec  => 999999.999
+      :usec  => Rational(999999999, 1000)
     )
   end
   alias :at_end_of_year :end_of_year
