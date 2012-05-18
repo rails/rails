@@ -465,7 +465,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "Concatting with % doesn't modify a string" do
     @other_string = ["<p>", "<b>", "<h1>"]
-    "%s %s %s".html_safe % @other_string
+    _ = "%s %s %s".html_safe % @other_string
 
     assert_equal ["<p>", "<b>", "<h1>"], @other_string
   end
