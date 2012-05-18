@@ -549,6 +549,17 @@ module ActionView
         text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
       end
 
+      # Creates a text field of type "time".
+      #
+      # === Options
+      # * <tt>:min</tt> - The minimum acceptable value.
+      # * <tt>:max</tt> - The maximum acceptable value.
+      # * <tt>:step</tt> - The acceptable value granularity.
+      # * Otherwise accepts the same options as text_field_tag.
+      def time_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "time"))
+      end
+
       # Creates a text field of type "url".
       #
       # ==== Options

@@ -646,6 +646,32 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, date_field("post", "written_on"))
   end
 
+  def test_time_field
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="00:00:00.000" />}
+    assert_dom_equal(expected, time_field("post", "written_on"))
+  end
+
+  def test_time_field_with_datetime_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    assert_dom_equal(expected, time_field("post", "written_on"))
+  end
+
+  def test_time_field_with_timewithzone_value
+    previous_time_zone, Time.zone = Time.zone, 'UTC'
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
+    @post.written_on = Time.zone.parse('2004-06-15 01:02:03')
+    assert_dom_equal(expected, time_field("post", "written_on"))
+  ensure
+    Time.zone = previous_time_zone
+  end
+
+  def test_time_field_with_nil_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" />}
+    @post.written_on = nil
+    assert_dom_equal(expected, time_field("post", "written_on"))
+  end
+
   def test_url_field
     expected = %{<input id="user_homepage" name="user[homepage]" type="url" />}
     assert_dom_equal(expected, url_field("user", "homepage"))
