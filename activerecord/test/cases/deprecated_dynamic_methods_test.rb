@@ -525,6 +525,42 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
 
     assert_equal authors(:david), authors.find_or_create_by_name!(:name => 'David')
   end
+
+  def test_finder_block
+    t = Topic.first
+    found = nil
+    Topic.find_by_id(t.id) { |f| found = f }
+    assert_equal t, found
+  end
+
+  def test_finder_block_nothing_found
+    bad_id = Topic.maximum(:id) + 1
+    assert_nil Topic.find_by_id(bad_id) { |f| raise }
+  end
+
+  def test_find_returns_block_value
+    t = Topic.first
+    x = Topic.find_by_id(t.id) { |f| "hi mom!" }
+    assert_equal "hi mom!", x
+  end
+
+  def test_dynamic_finder_with_invalid_params
+    assert_raise(ArgumentError) { Topic.find_by_title 'No Title', :join => "It should be `joins'" }
+  end
+
+  def test_find_by_one_attribute_with_order_option
+    assert_equal accounts(:signals37), Account.find_by_credit_limit(50, :order => 'id')
+    assert_equal accounts(:rails_core_account), Account.find_by_credit_limit(50, :order => 'id DESC')
+  end
+
+  def test_dynamic_find_by_attributes_should_yield_found_object
+    david = authors(:david)
+    yielded_value = nil
+    Author.find_by_name(david.name) do |author|
+      yielded_value = author
+    end
+    assert_equal david, yielded_value
+  end
 end
 
 class DynamicScopeTest < ActiveRecord::TestCase

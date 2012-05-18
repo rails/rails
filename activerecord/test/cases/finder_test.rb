@@ -589,11 +589,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
   end
 
-  def test_find_by_one_attribute_with_order_option
-    assert_equal accounts(:signals37), Account.find_by_credit_limit(50, :order => 'id')
-    assert_equal accounts(:rails_core_account), Account.find_by_credit_limit(50, :order => 'id DESC')
-  end
-
   def test_find_by_one_attribute_with_conditions
     assert_equal accounts(:rails_core_account), Account.where('firm_id = ?', 6).find_by_credit_limit(50)
   end
@@ -676,10 +671,6 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_with_bad_sql
     assert_raise(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
-  end
-
-  def test_dynamic_finder_with_invalid_params
-    assert_raise(ArgumentError) { Topic.find_by_title 'No Title', :join => "It should be `joins'" }
   end
 
   def test_find_all_with_join

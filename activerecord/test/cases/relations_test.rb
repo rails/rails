@@ -443,15 +443,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
-  def test_dynamic_find_by_attributes_should_yield_found_object
-    david = authors(:david)
-    yielded_value = nil
-    Author.find_by_name(david.name) do |author|
-      yielded_value = author
-    end
-    assert_equal david, yielded_value
-  end
-
   def test_dynamic_find_by_attributes
     david = authors(:david)
     author = Author.preload(:taggings).find_by_id(david.id)

@@ -168,24 +168,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert Topic.table_exists?
   end
 
-  def test_finder_block
-    t = Topic.first
-    found = nil
-    Topic.find_by_id(t.id) { |f| found = f }
-    assert_equal t, found
-  end
-
-  def test_finder_block_nothing_found
-    bad_id = Topic.maximum(:id) + 1
-    assert_nil Topic.find_by_id(bad_id) { |f| raise }
-  end
-
-  def test_find_returns_block_value
-    t = Topic.first
-    x = Topic.find_by_id(t.id) { |f| "hi mom!" }
-    assert_equal "hi mom!", x
-  end
-
   def test_preserving_date_objects
     if current_adapter?(:SybaseAdapter)
       # Sybase ctlib does not (yet?) support the date type; use datetime instead.
