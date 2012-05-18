@@ -313,23 +313,6 @@ module ActiveRecord
       #   person.pets.delete_all
       #   person.pets.count  # => 0
       #   person.pets.empty? # => true
-      #
-      # Also, you can pass a block to define a criteria. The behaviour
-      # is the same, it returns true if the collection based on the
-      # criteria is empty.
-      #
-      #   person.pets
-      #   # => [#<Pet name: "Wy", group: "cats">]
-      #
-      #   person.pets.empty? do |pet|
-      #     pet.group == 'cats'
-      #   end
-      #   # => false
-      #
-      #   person.pets.empty? do |pet|
-      #     pet.group == 'dogs'
-      #   end
-      #   # => true
       def empty?
         size.zero?
       end
