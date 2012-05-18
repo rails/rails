@@ -78,6 +78,8 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '12,345,678-05', number_with_delimiter(12345678.05, :separator => '-')
     assert_equal '12.345.678,05', number_with_delimiter(12345678.05, :separator => ',', :delimiter => '.')
     assert_equal '12.345.678,05', number_with_delimiter(12345678.05, :delimiter => '.', :separator => ',')
+    assert_equal '1&lt;script&gt;&lt;/script&gt;01', number_with_delimiter(1.01, :separator => "<script></script>")
+    assert_equal '1&lt;script&gt;&lt;/script&gt;000', number_with_delimiter(1000, :delimiter => "<script></script>")
   end
 
   def test_number_with_precision
