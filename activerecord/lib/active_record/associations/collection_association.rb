@@ -298,9 +298,38 @@ module ActiveRecord
         load_target.size
       end
 
-      # Equivalent to <tt>collection.size.zero?</tt>. If the collection has
-      # not been already loaded and you are going to fetch the records anyway
-      # it is better to check <tt>collection.length.zero?</tt>.
+      # Returns true if the collection is empty. Equivalent to
+      # <tt>collection.size.zero?</tt>. If the collection has not been already
+      # loaded and you are going to fetch the records anyway it is better to
+      # check <tt>collection.length.zero?</tt>.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count  # => 1
+      #   person.pets.empty? # => false 
+      #
+      #   person.pets.delete_all
+      #   person.pets.count  # => 0
+      #   person.pets.empty? # => true
+      #
+      # Also, you can pass a block to define a criteria. The behaviour
+      # is the same, it returns true if the collection based on the
+      # criteria is empty.
+      #
+      #   person.pets
+      #   # => [#<Pet name: "Wy", group: "cats">]
+      #
+      #   person.pets.empty? do |pet|
+      #     pet.group == 'cats'
+      #   end
+      #   # => false
+      #
+      #   person.pets.empty? do |pet|
+      #     pet.group == 'dogs'
+      #   end
+      #   # => true
       def empty?
         size.zero?
       end
