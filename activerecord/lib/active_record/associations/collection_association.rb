@@ -13,7 +13,7 @@ module ActiveRecord
     #
     # CollectionAssociation class provides common methods to the collections
     # defined by +has_and_belongs_to_many+, +has_many+ or +has_many+ with
-    # +:through+ association option.
+    # +:through association+ option.
     #
     # You need to be careful with assumptions regarding the target: The proxy
     # does not fetch records from the database until it needs them, but new
