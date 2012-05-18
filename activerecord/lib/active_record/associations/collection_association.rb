@@ -24,7 +24,7 @@ module ActiveRecord
     #
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
-    class CollectionAssociation < Association
+    class CollectionAssociation < Association #:nodoc:
 
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader(force_reload = false)
@@ -127,16 +127,6 @@ module ActiveRecord
       # Add +records+ to this association. Returns +self+ so method calls may
       # be chained. Since << flattens its argument list and inserts each record,
       # +push+ and +concat+ behave identically.
-      #
-      #   class Person < ActiveRecord::Base
-      #     pets :has_many
-      #   end
-      #
-      #   person.pets << Person.new(name: 'Nemo')
-      #   person.pets.concat(Person.new(name: 'Droopy'))
-      #   person.pets.push(Person.new(name: 'Ren'))
-      #
-      #   person.pets # => [#<Pet name: "Nemo">, #<Pet name: "Droopy">, #<Pet name: "Ren">]
       def concat(*records)
         load_target if owner.new_record?
 
@@ -180,17 +170,6 @@ module ActiveRecord
       end
 
       # Destroy all the records from this association.
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :pets
-      #   end
-      #
-      #   person.pets.size # => 3
-      #
-      #   person.pets.destroy_all
-      #
-      #   person.pets.size # => 0
-      #   person.pets      # => []
       #
       # See destroy for more info.
       def destroy_all
@@ -302,51 +281,12 @@ module ActiveRecord
       # <tt>collection.size.zero?</tt>. If the collection has not been already
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :pets
-      #   end
-      #
-      #   person.pets.count  # => 1
-      #   person.pets.empty? # => false 
-      #
-      #   person.pets.delete_all
-      #   person.pets.count  # => 0
-      #   person.pets.empty? # => true
       def empty?
         size.zero?
       end
 
       # Returns true if the collections is not empty.
       # Equivalent to +!collection.empty?+.
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :pets
-      #   end
-      #
-      #   person.pets.count # => 0
-      #   person.pets.any?  # => false
-      #
-      #   person.pets << Pet.new(name: 'Snoop')
-      #   person.pets.count # => 0
-      #   person.pets.any?  # => true
-      #
-      # Also, you can pass a block to define a criteria. The behaviour
-      # is the same, it returns true if the collection based on the
-      # criteria is not empty.
-      #
-      #   person.pets
-      #   # => [#<Pet name: "Snoop", group: "dogs">]
-      #
-      #   person.pets.any? do |pet|
-      #     pet.group == 'cats'
-      #   end
-      #   # => false
-      #
-      #   person.pets.any? do |pet|
-      #     pet.group == 'dogs'
-      #   end
-      #   # => true
       def any?
         if block_given?
           load_target.any? { |*block_args| yield(*block_args) }
@@ -357,38 +297,6 @@ module ActiveRecord
 
       # Returns true if the collection has more than 1 record.
       # Equivalent to +collection.size > 1+.
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :pets
-      #   end
-      #
-      #   person.pets.count #=> 1
-      #   person.pets.many? #=> false
-      #
-      #   person.pets << Pet.new(name: 'Snoopy')
-      #   person.pets.count #=> 2
-      #   person.pets.many? #=> true
-      #
-      # Also, you can pass a block to define a criteria. The
-      # behaviour is the same, it returns true if the collection
-      # based on the criteria has more than 1 record.
-      #
-      #   person.pets
-      #   # => [
-      #   #      #<Pet name: "GorbyPuff", group: "cats">,
-      #   #      #<Pet name: "Wy", group: "cats">,
-      #   #      #<Pet name: "Snoop", group: "dogs">
-      #   #    ]
-      #
-      #   person.pets.many? do |pet|
-      #     pet.group == 'dogs'
-      #   end
-      #   # => false
-      #
-      #   person.pets.many? do |pet|
-      #     pet.group == 'cats'
-      #   end
-      #   # => true
       def many?
         if block_given?
           load_target.many? { |*block_args| yield(*block_args) }
@@ -406,26 +314,6 @@ module ActiveRecord
 
       # Replace this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :pets
-      #   end
-      #
-      #   person.pets
-      #   # => [#<Pet id: 1, name: "Wy", group: "cats", person_id: 1>]
-      #
-      #   other_pets = [Pet.new(name: 'GorbyPuff', group: 'celebrities']
-      #
-      #   person.pets.replace(other_pets)
-      #
-      #   person.pets
-      #   # => [#<Pet id: 2, name: "GorbyPuff", group: "celebrities", person_id: 1>]
-      #
-      # If the supplied array has an incorrect association type, it raises
-      # an ActiveRecord::AssociationTypeMismatch error:
-      #
-      #   person.pets.replace(["doo", "ggie", "gaga"])
-      #   # => ActiveRecord::AssociationTypeMismatch: Pet expected, got String
       def replace(other_array)
         other_array.each { |val| raise_on_type_mismatch(val) }
         original_target = load_target.dup
