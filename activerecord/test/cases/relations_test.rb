@@ -408,18 +408,18 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_with_conditions_string
-    assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeveloperCalledDavid.scoped.map(&:id).sort
+    assert_equal Developer.where(name: 'David').map(&:id).sort, DeveloperCalledDavid.scoped.map(&:id).sort
     assert_nil DeveloperCalledDavid.create!.name
   end
 
   def test_default_scope_with_conditions_hash
-    assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeveloperCalledJamis.scoped.map(&:id).sort
+    assert_equal Developer.where(name: 'Jamis').map(&:id).sort, DeveloperCalledJamis.scoped.map(&:id).sort
     assert_equal 'Jamis', DeveloperCalledJamis.create!.name
   end
 
   def test_default_scoping_finder_methods
     developers = DeveloperCalledDavid.order('id').map(&:id).sort
-    assert_equal Developer.find_all_by_name('David').map(&:id).sort, developers
+    assert_equal Developer.where(name: 'David').map(&:id).sort, developers
   end
 
   def test_loading_with_one_association
@@ -471,46 +471,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "David", author.name
 
     assert_raises(ActiveRecord::RecordNotFound) { Author.scoped.find_by_id_and_name!(20, 'invalid') }
-  end
-
-  def test_dynamic_find_all_by_attributes
-    authors = Author.scoped
-
-    davids = authors.find_all_by_name('David')
-    assert_kind_of Array, davids
-    assert_equal [authors(:david)], davids
-  end
-
-  def test_dynamic_find_or_initialize_by_attributes
-    authors = Author.scoped
-
-    lifo = authors.find_or_initialize_by_name('Lifo')
-    assert_equal "Lifo", lifo.name
-    assert !lifo.persisted?
-
-    assert_equal authors(:david), authors.find_or_initialize_by_name(:name => 'David')
-  end
-
-  def test_dynamic_find_or_create_by_attributes
-    authors = Author.scoped
-
-    lifo = authors.find_or_create_by_name('Lifo')
-    assert_equal "Lifo", lifo.name
-    assert lifo.persisted?
-
-    assert_equal authors(:david), authors.find_or_create_by_name(:name => 'David')
-  end
-
-  def test_dynamic_find_or_create_by_attributes_bang
-    authors = Author.scoped
-
-    assert_raises(ActiveRecord::RecordInvalid) { authors.find_or_create_by_name!('') }
-
-    lifo = authors.find_or_create_by_name!('Lifo')
-    assert_equal "Lifo", lifo.name
-    assert lifo.persisted?
-
-    assert_equal authors(:david), authors.find_or_create_by_name!(:name => 'David')
   end
 
   def test_find_id

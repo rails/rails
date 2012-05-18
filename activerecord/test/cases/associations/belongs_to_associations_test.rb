@@ -518,7 +518,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       authors(:david).destroy
     end
 
-    assert_equal [], AuthorAddress.find_all_by_id([author_address.id, author_address_extra.id])
+    assert_equal [], AuthorAddress.where(id: [author_address.id, author_address_extra.id])
     assert_equal [author_address.id], AuthorAddress.destroyed_author_address_ids
   end
 

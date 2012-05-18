@@ -254,11 +254,6 @@ class HasManyScopingTest< ActiveRecord::TestCase
     assert_equal 2, @welcome.comments.search_by_type('Comment').size
   end
 
-  def test_forwarding_to_dynamic_finders
-    assert_equal 4, Comment.find_all_by_type('Comment').size
-    assert_equal 2, @welcome.comments.find_all_by_type('Comment').size
-  end
-
   def test_nested_scope_finder
     Comment.where('1=0').scoping do
       assert_equal 0, @welcome.comments.count
@@ -298,12 +293,6 @@ class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
   def test_forwarding_of_static_methods
     assert_equal 'a category...', Category.what_are_you
     assert_equal 'a category...', @welcome.categories.what_are_you
-  end
-
-  def test_forwarding_to_dynamic_finders
-    assert_equal 4, Category.find_all_by_type('SpecialCategory').size
-    assert_equal 0, @welcome.categories.find_all_by_type('SpecialCategory').size
-    assert_equal 2, @welcome.categories.find_all_by_type('Category').size
   end
 
   def test_nested_scope_finder
@@ -362,12 +351,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_with_conditions_string
-    assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
+    assert_equal Developer.where(name: 'David').map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
     assert_equal nil, DeveloperCalledDavid.create!.name
   end
 
   def test_default_scope_with_conditions_hash
-    assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeveloperCalledJamis.all.map(&:id).sort
+    assert_equal Developer.where(name: 'Jamis').map(&:id).sort, DeveloperCalledJamis.all.map(&:id).sort
     assert_equal 'Jamis', DeveloperCalledJamis.create!.name
   end
 

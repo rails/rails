@@ -272,7 +272,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_should_use_where_in_query_for_scope
-    assert_equal Developer.find_all_by_name('Jamis').to_set, Developer.find_all_by_id(Developer.jamises).to_set
+    assert_equal Developer.where(name: 'Jamis').to_set, Developer.where(id: Developer.jamises).to_set
   end
 
   def test_size_should_use_count_when_results_are_not_loaded
@@ -437,42 +437,5 @@ class NamedScopeTest < ActiveRecord::TestCase
       klass.send(:default_scope, klass.where(:id => posts(:welcome).id))
     end
     assert_equal [posts(:welcome).title], klass.all.map(&:title)
-  end
-end
-
-class DynamicScopeMatchTest < ActiveRecord::TestCase
-  def test_scoped_by_no_match
-    assert_nil ActiveRecord::DynamicMatchers::Method.match(nil, "not_scoped_at_all")
-  end
-
-  def test_scoped_by
-    match = ActiveRecord::DynamicMatchers::Method.match(nil, "scoped_by_age_and_sex_and_location")
-    assert_not_nil match
-    assert_equal %w(age sex location), match.attribute_names
-  end
-end
-
-class DynamicScopeTest < ActiveRecord::TestCase
-  fixtures :posts
-
-  def setup
-    @test_klass = Class.new(Post) do
-      def self.name; "Post"; end
-    end
-  end
-
-  def test_dynamic_scope
-    assert_equal @test_klass.scoped_by_author_id(1).find(1), @test_klass.find(1)
-    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.scoped(:where => { :author_id => 1, :title => "Welcome to the weblog"}).first
-  end
-
-  def test_dynamic_scope_should_create_methods_after_hitting_method_missing
-    assert_blank @test_klass.methods.grep(/scoped_by_type/)
-    @test_klass.scoped_by_type(nil)
-    assert_present @test_klass.methods.grep(/scoped_by_type/)
-  end
-
-  def test_dynamic_scope_with_less_number_of_arguments
-    assert_raise(ArgumentError){ @test_klass.scoped_by_author_id_and_title(1) }
   end
 end

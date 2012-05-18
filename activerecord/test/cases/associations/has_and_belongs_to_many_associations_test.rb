@@ -561,29 +561,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal high_id_jamis, projects(:active_record).developers.find_by_name('Jamis')
   end
 
-  def test_dynamic_find_all_should_respect_association_order
-    # Developers are ordered 'name DESC, id DESC'
-    low_id_jamis = developers(:jamis)
-    middle_id_jamis = developers(:poor_jamis)
-    high_id_jamis = projects(:active_record).developers.create(:name => 'Jamis')
-
-    assert_equal [high_id_jamis, middle_id_jamis, low_id_jamis], projects(:active_record).developers.scoped(:where => "name = 'Jamis'").all
-    assert_equal [high_id_jamis, middle_id_jamis, low_id_jamis], projects(:active_record).developers.find_all_by_name('Jamis')
-  end
-
   def test_find_should_append_to_association_order
     ordered_developers = projects(:active_record).developers.order('projects.id')
     assert_equal ['developers.name desc, developers.id desc', 'projects.id'], ordered_developers.order_values
-  end
-
-  def test_dynamic_find_all_should_respect_association_limit
-    assert_equal 1, projects(:active_record).limited_developers.scoped(:where => "name = 'Jamis'").all.length
-    assert_equal 1, projects(:active_record).limited_developers.find_all_by_name('Jamis').length
-  end
-
-  def test_dynamic_find_all_order_should_override_association_limit
-    assert_equal 2, projects(:active_record).limited_developers.scoped(:where => "name = 'Jamis'", :limit => 9_000).all.length
-    assert_equal 2, projects(:active_record).limited_developers.find_all_by_name('Jamis', :limit => 9_000).length
   end
 
   def test_dynamic_find_all_should_respect_readonly_access

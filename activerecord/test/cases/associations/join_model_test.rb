@@ -54,10 +54,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal 1, authors(:mary).unique_categorized_posts.all.size
   end
 
-  def test_has_many_uniq_through_dynamic_find
-    assert_equal 1, authors(:mary).unique_categorized_posts.find_all_by_title("So I was thinking").size
-  end
-
   def test_polymorphic_has_many_going_through_join_model
     assert_equal tags(:general), tag = posts(:welcome).tags.first
     assert_no_queries do
@@ -294,11 +290,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_has_many_find_conditions
     assert_equal categories(:general), authors(:david).categories.scoped(:where => "categories.name = 'General'").first
     assert_nil authors(:david).categories.scoped(:where => "categories.name = 'Technology'").first
-  end
-
-  def test_has_many_class_methods_called_by_method_missing
-    assert_equal categories(:general), authors(:david).categories.find_all_by_name('General').first
-    assert_nil authors(:david).categories.find_by_name('Technology')
   end
 
   def test_has_many_array_methods_called_by_method_missing
