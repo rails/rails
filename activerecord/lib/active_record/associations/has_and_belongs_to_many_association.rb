@@ -44,6 +44,7 @@ module ActiveRecord
 
         def delete_records(records, method)
           if sql = options[:delete_sql]
+            records = load_target if records == :all
             records.each { |record| owner.connection.delete(interpolate(sql, record)) }
           else
             relation  = join_table
