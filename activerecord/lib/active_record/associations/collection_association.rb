@@ -476,7 +476,7 @@ module ActiveRecord
                                   "new records could not be saved."
           end
 
-          new_target
+          target
         end
 
         def concat_records(records)
