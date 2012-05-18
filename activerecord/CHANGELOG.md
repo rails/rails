@@ -10,7 +10,7 @@
       * `find_or_initialize_by_...` can be rewritten using
         `where(...).first_or_initialize`
       * `find_or_create_by_...` can be rewritten using
-        `where(...).first_or_create!`
+        `where(...).first_or_create`
       * `find_or_create_by_...!` can be rewritten using
         `where(...).first_or_create!`
 
