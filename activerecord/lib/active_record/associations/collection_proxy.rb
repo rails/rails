@@ -33,14 +33,14 @@ module ActiveRecord
     #
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
-    class CollectionProxy < Relation # :nodoc:
+    class CollectionProxy < Relation
       delegate :target, :load_target, :loaded?, :to => :@association
 
       delegate :select, :find, :first, :last,
                :build, :create, :create!,
-               :concat, :replace, :delete_all, :destroy_all, :delete, :destroy, :uniq,
-               :sum, :count, :size, :length, :empty?,
-               :any?, :many?, :include?,
+               :concat, :delete_all, :destroy_all, :delete, :destroy, :uniq,
+               :sum, :count, :size, :length,
+               :include?,
                :to => :@association
 
       def initialize(association)
@@ -97,6 +97,120 @@ module ActiveRecord
       def reload
         proxy_association.reload
         self
+      end
+
+      # Returns true if the collection is empty.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count  # => 1
+      #   person.pets.empty? # => false 
+      #
+      #   person.pets.delete_all
+      #   person.pets.count  # => 0
+      #   person.pets.empty? # => true
+      def empty?
+        proxy_association.empty?
+      end
+
+      # Returns true if the collections is not empty.
+      # Equivalent to +!collection.empty?+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count # => 0
+      #   person.pets.any?  # => false
+      #
+      #   person.pets << Pet.new(name: 'Snoop')
+      #   person.pets.count # => 0
+      #   person.pets.any?  # => true
+      #
+      # Also, you can pass a block to define a criteria. The behaviour
+      # is the same, it returns true if the collection based on the
+      # criteria is not empty.
+      #
+      #   person.pets
+      #   # => [#<Pet name: "Snoop", group: "dogs">]
+      #
+      #   person.pets.any? do |pet|
+      #     pet.group == 'cats'
+      #   end
+      #   # => false
+      #
+      #   person.pets.any? do |pet|
+      #     pet.group == 'dogs'
+      #   end
+      #   # => true
+      def any?(&block)
+        proxy_association.any?(&block)
+      end
+
+      # Returns true if the collection has more than 1 record.
+      # Equivalent to +collection.size > 1+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count #=> 1
+      #   person.pets.many? #=> false
+      #
+      #   person.pets << Pet.new(name: 'Snoopy')
+      #   person.pets.count #=> 2
+      #   person.pets.many? #=> true
+      #
+      # Also, you can pass a block to define a criteria. The
+      # behaviour is the same, it returns true if the collection
+      # based on the criteria has more than 1 record.
+      #
+      #   person.pets
+      #   # => [
+      #   #      #<Pet name: "GorbyPuff", group: "cats">,
+      #   #      #<Pet name: "Wy", group: "cats">,
+      #   #      #<Pet name: "Snoop", group: "dogs">
+      #   #    ]
+      #
+      #   person.pets.many? do |pet|
+      #     pet.group == 'dogs'
+      #   end
+      #   # => false
+      #
+      #   person.pets.many? do |pet|
+      #     pet.group == 'cats'
+      #   end
+      #   # => true
+      def many?(&block)
+        proxy_association.many?(&block)
+      end
+
+      # Replace this collection with +other_array+. This will perform a diff
+      # and delete/add only records that have changed.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [#<Pet id: 1, name: "Wy", group: "cats", person_id: 1>]
+      #
+      #   other_pets = [Pet.new(name: 'GorbyPuff', group: 'celebrities']
+      #
+      #   person.pets.replace(other_pets)
+      #
+      #   person.pets
+      #   # => [#<Pet id: 2, name: "GorbyPuff", group: "celebrities", person_id: 1>]
+      #
+      # If the supplied array has an incorrect association type, it raises
+      # an ActiveRecord::AssociationTypeMismatch error:
+      #
+      #   person.pets.replace(["doo", "ggie", "gaga"])
+      #   # => ActiveRecord::AssociationTypeMismatch: Pet expected, got String
+      def replace(other_array)
+        proxy_association.replace(other_array)
       end
     end
   end
