@@ -152,5 +152,14 @@ module ApplicationTests
       assert_no_match(/RackApp/, output.first)
       assert_no_match(/\/sprockets/, output.first)
     end
+
+    def test_redirect
+      output = draw do
+        match '/foo' => redirect("/bar")
+        match '/foo2' => redirect("/bar", status: 307)
+      end
+      assert_equal " foo  /foo(.:format)  Redirect (301)", output[0]
+      assert_equal "foo2  /foo2(.:format) Redirect (307)", output[1]
+    end
   end
 end
