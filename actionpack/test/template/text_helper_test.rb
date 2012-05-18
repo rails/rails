@@ -120,7 +120,7 @@ class TextHelperTest < ActionView::TestCase
 
     assert_equal(
       "This is a <b>beautiful</b> morning, but also a <b>beautiful</b> day",
-      highlight("This is a beautiful morning, but also a beautiful day", "beautiful", '<b>\1</b>')
+      highlight("This is a beautiful morning, but also a beautiful day", "beautiful", :highlighter => '<b>\1</b>')
     )
 
     assert_equal(
@@ -129,6 +129,12 @@ class TextHelperTest < ActionView::TestCase
     )
 
     assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
+  end
+  
+  def test_highlight_old_api_is_depcrecated
+    assert_deprecated("Calling highlight with a highlighter as an argument is deprecated. Please call with :highlighter => '<mark>\\1</mark>' instead.") do
+      highlight("This is a beautiful morning", "beautiful", '<mark>\1</mark>') 
+    end
   end
 
   def test_highlight_should_sanitize_input
@@ -163,14 +169,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_highlight_with_multiple_phrases_in_one_pass
-    assert_equal %(<em>wow</em> <em>em</em>), highlight('wow em', %w(wow em), '<em>\1</em>')
-  end
-
-  def test_highlight_with_options_hash
-    assert_equal(
-      "This is a <b>beautiful</b> morning, but also a <b>beautiful</b> day",
-      highlight("This is a beautiful morning, but also a beautiful day", "beautiful", :highlighter => '<b>\1</b>')
-    )
+    assert_equal %(<em>wow</em> <em>em</em>), highlight('wow em', %w(wow em), :highlighter => '<em>\1</em>')
   end
 
   def test_highlight_with_html
@@ -201,40 +200,48 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt
-    assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", 5))
-    assert_equal("This is a...", excerpt("This is a beautiful morning", "this", 5))
-    assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", 5))
+    assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", :radius => 5))
+    assert_equal("This is a...", excerpt("This is a beautiful morning", "this", :radius => 5))
+    assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", :radius => 5))
     assert_nil excerpt("This is a beautiful morning", "day")
+  end
+  
+  def test_excerpt_old_api_is_depcrecated
+    assert_deprecated("Calling excerpt with radius and omission as arguments is deprecated. Please call with :radius => 5 instead.") do
+      excerpt("This is a beautiful morning", "morning", 5) 
+    end
+    assert_deprecated("Calling excerpt with radius and omission as arguments is deprecated. Please call with :radius => 5, :omission => 'mor' instead.") do
+      excerpt("This is a beautiful morning", "morning", 5, "mor") 
+    end
   end
 
   def test_excerpt_should_not_be_html_safe
-    assert !excerpt('This is a beautiful! morning', 'beautiful', 5).html_safe?
+    assert !excerpt('This is a beautiful! morning', 'beautiful', :radius => 5).html_safe?
   end
 
   def test_excerpt_in_borderline_cases
-    assert_equal("", excerpt("", "", 0))
-    assert_equal("a", excerpt("a", "a", 0))
-    assert_equal("...b...", excerpt("abc", "b", 0))
-    assert_equal("abc", excerpt("abc", "b", 1))
-    assert_equal("abc...", excerpt("abcd", "b", 1))
-    assert_equal("...abc", excerpt("zabc", "b", 1))
-    assert_equal("...abc...", excerpt("zabcd", "b", 1))
-    assert_equal("zabcd", excerpt("zabcd", "b", 2))
+    assert_equal("", excerpt("", "", :radius => 0))
+    assert_equal("a", excerpt("a", "a", :radius => 0))
+    assert_equal("...b...", excerpt("abc", "b", :radius => 0))
+    assert_equal("abc", excerpt("abc", "b", :radius => 1))
+    assert_equal("abc...", excerpt("abcd", "b", :radius => 1))
+    assert_equal("...abc", excerpt("zabc", "b", :radius => 1))
+    assert_equal("...abc...", excerpt("zabcd", "b", :radius => 1))
+    assert_equal("zabcd", excerpt("zabcd", "b", :radius => 2))
 
     # excerpt strips the resulting string before ap-/prepending excerpt_string.
     # whether this behavior is meaningful when excerpt_string is not to be
     # appended is questionable.
-    assert_equal("zabcd", excerpt("  zabcd  ", "b", 4))
-    assert_equal("...abc...", excerpt("z  abc  d", "b", 1))
+    assert_equal("zabcd", excerpt("  zabcd  ", "b", :radius => 4))
+    assert_equal("...abc...", excerpt("z  abc  d", "b", :radius => 1))
   end
 
   def test_excerpt_with_regex
-    assert_equal('...is a beautiful! mor...', excerpt('This is a beautiful! morning', 'beautiful', 5))
-    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', 'beautiful', 5))
+    assert_equal('...is a beautiful! mor...', excerpt('This is a beautiful! morning', 'beautiful', :radius => 5))
+    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', 'beautiful', :radius => 5))
   end
 
-  def test_excerpt_with_options_hash
-    assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", :radius => 5))
+  def test_excerpt_with_omission
     assert_equal("[...]is a beautiful morn[...]", excerpt("This is a beautiful morning", "beautiful", :omission => "[...]",:radius => 5))
     assert_equal(
       "This is the ultimate supercalifragilisticexpialidoceous very looooooooooooooooooong looooooooooooong beautiful morning with amazing sunshine and awesome tempera[...]",
@@ -246,30 +253,32 @@ class TextHelperTest < ActionView::TestCase
   if RUBY_VERSION < '1.9'
     def test_excerpt_with_utf8
       with_kcode('u') do
-        assert_equal("...\357\254\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', 8))
+        assert_equal("...\357\254\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', :line_width => 8))
       end
       with_kcode('none') do
-        assert_equal("...\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', 8))
+        assert_equal("...\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', :line_width => 8))
       end
     end
   else
     def test_excerpt_with_utf8
-      assert_equal("...\357\254\203ciency could not be...".force_encoding('UTF-8'), excerpt("That's why e\357\254\203ciency could not be helped".force_encoding('UTF-8'), 'could', 8))
+      assert_equal("...\357\254\203ciency could not be...".force_encoding('UTF-8'), excerpt("That's why e\357\254\203ciency could not be helped".force_encoding('UTF-8'), 'could', :radius => 8))
       # .mb_chars always returns UTF-8, even in 1.9. This is not great, but it's how it works. Let's work this out.
       # assert_equal("...\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped".force_encoding("BINARY"), 'could', 8))
     end
   end
 
   def test_word_wrap
-    assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", 15))
+    assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", :line_width => 15))
+  end
+  
+  def test_word_wrap_old_api_is_depcrecated
+    assert_deprecated("Calling word_wrap with line_width as an argument is deprecated. Please call with :line_width => 15 instead.") do
+      word_wrap("my very very very long string", 15)
+    end
   end
 
   def test_word_wrap_with_extra_newlines
-    assert_equal("my very very\nvery long\nstring\n\nwith another\nline", word_wrap("my very very very long string\n\nwith another line", 15))
-  end
-
-  def test_word_wrap_with_options_hash
-    assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", :line_width => 15))
+    assert_equal("my very very\nvery long\nstring\n\nwith another\nline", word_wrap("my very very very long string\n\nwith another line", :line_width => 15))
   end
 
   def test_pluralization
