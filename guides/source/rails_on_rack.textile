@@ -152,9 +152,9 @@ You can swap an existing middleware in the middleware stack using +config.middle
 config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
 </ruby>
 
-h5. Middleware Stack is an Array
+h5. Middleware Stack is an Enumerable
 
-The middleware stack behaves just like a normal +Array+. You can use any +Array+ methods to insert, reorder, or remove items from the stack. Methods described in the section above are just convenience methods.
+The middleware stack behaves just like a normal +Enumerable+. You can use any +Enumerable+ methods to manipulate or interrogate the stack. The middleware stack also implements many +Array+ methods, including <tt>[] unshift delete</tt>. Methods described in the section above are just convenience methods.
 
 Append following lines to your application configuration:
 
