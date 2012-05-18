@@ -208,7 +208,6 @@ module ActiveRecord
         true
       end
 
-
       # QUOTING ==================================================
 
       def quote(value, column = nil)
@@ -219,7 +218,6 @@ module ActiveRecord
           super
         end
       end
-
 
       def quote_string(s) #:nodoc:
         @connection.class.quote(s)
@@ -359,7 +357,7 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables(name = 'SCHEMA', table_name = nil) #:nodoc:
+      def tables(name = nil, table_name = nil) #:nodoc:
         sql = <<-SQL
           SELECT name
           FROM sqlite_master
@@ -367,13 +365,13 @@ module ActiveRecord
         SQL
         sql << " AND name = #{quote_table_name(table_name)}" if table_name
 
-        exec_query(sql, name).map do |row|
+        exec_query(sql, 'SCHEMA').map do |row|
           row['name']
         end
       end
 
-      def table_exists?(name)
-        name && tables('SCHEMA', name).any?
+      def table_exists?(table_name)
+        table_name && tables(nil, table_name).any?
       end
 
       # Returns an array of +SQLite3Column+ objects for the table specified by +table_name+.
@@ -394,12 +392,12 @@ module ActiveRecord
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
-        exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
+        exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", 'SCHEMA').map do |row|
           IndexDefinition.new(
             table_name,
             row['name'],
             row['unique'] != 0,
-            exec_query("PRAGMA index_info('#{row['name']}')").map { |col|
+            exec_query("PRAGMA index_info('#{row['name']}')", "Columns for index #{row['name']} on #{table_name}").map { |col|
               col['name']
             })
         end

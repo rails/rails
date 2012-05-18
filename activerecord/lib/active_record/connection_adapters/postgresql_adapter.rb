@@ -523,7 +523,7 @@ module ActiveRecord
 
       # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
-        @table_alias_length ||= query('SHOW max_identifier_length')[0][0].to_i
+        @table_alias_length ||= query('SHOW max_identifier_length', 'SCHEMA')[0][0].to_i
       end
 
       # QUOTING ==================================================
@@ -985,7 +985,7 @@ module ActiveRecord
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)
-         result = query(<<-SQL, name)
+         result = query(<<-SQL, 'SCHEMA')
            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
            FROM pg_class t
            INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -996,7 +996,6 @@ module ActiveRecord
              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
           ORDER BY i.relname
         SQL
-
 
         result.map do |row|
           index_name = row[0]
@@ -1036,7 +1035,7 @@ module ActiveRecord
 
       # Returns the current database name.
       def current_database
-        query('select current_database()')[0][0]
+        query('select current_database()', 'SCHEMA')[0][0]
       end
 
       # Returns the current schema name.
@@ -1046,7 +1045,7 @@ module ActiveRecord
 
       # Returns the current database encoding format.
       def encoding
-        query(<<-end_sql)[0][0]
+        query(<<-end_sql, 'SCHEMA')[0][0]
           SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
           WHERE pg_database.datname LIKE '#{current_database}'
         end_sql
@@ -1054,7 +1053,7 @@ module ActiveRecord
 
       # Returns an array of schema names.
       def schema_names
-        query(<<-SQL).flatten
+        query(<<-SQL, 'SCHEMA').flatten
           SELECT nspname
             FROM pg_namespace
            WHERE nspname !~ '^pg_.*'

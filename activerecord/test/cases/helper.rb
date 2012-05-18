@@ -121,3 +121,19 @@ class << Time
     @now = nil
   end
 end
+
+module LogIntercepter
+  attr_accessor :logged, :intercepted
+  def self.extended(base)
+    base.logged = []
+  end
+  def log(sql, name, binds = [], &block)
+    if @intercepted
+      @logged << [sql, name, binds]
+      yield
+    else
+      super(sql, name,binds, &block)
+    end
+  end
+end
+

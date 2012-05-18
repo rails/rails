@@ -20,6 +20,14 @@ module ActiveRecord
             number integer
           )
         eosql
+
+        @conn.extend(LogIntercepter)
+        @conn.intercepted = true
+      end
+    
+      def teardown
+        @conn.intercepted = false
+        @conn.logged = []
       end
 
       def test_column_types
@@ -232,11 +240,21 @@ module ActiveRecord
       end
 
       def test_tables_logs_name
-        name = "hello"
-        assert_logged [[name, []]] do
-          @conn.tables(name)
+        assert_logged [['SCHEMA', []]] do
+          @conn.tables('hello')
           assert_not_nil @conn.logged.first.shift
         end
+      end
+
+      def test_indexes_logs_name
+        assert_logged [["PRAGMA index_list(\"items\")", 'SCHEMA', []]] do
+          @conn.indexes('items', 'hello')
+        end
+      end
+
+      def test_table_exists_logs_name
+        assert @conn.table_exists?('items')
+        assert_equal 'SCHEMA', @conn.logged[0][1]
       end
 
       def test_columns
@@ -274,7 +292,6 @@ module ActiveRecord
       end
 
       def test_indexes_logs
-        intercept_logs_on @conn
         assert_difference('@conn.logged.length') do
           @conn.indexes('items')
         end
@@ -326,21 +343,10 @@ module ActiveRecord
       private
 
       def assert_logged logs
-        intercept_logs_on @conn
         yield
         assert_equal logs, @conn.logged
       end
 
-      def intercept_logs_on ctx
-        @conn.extend(Module.new {
-          attr_accessor :logged
-          def log sql, name, binds = []
-            @logged << [sql, name, binds]
-            yield
-          end
-        })
-        @conn.logged = []
-      end
     end
   end
 end
