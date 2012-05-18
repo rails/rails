@@ -1614,4 +1614,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [client], firm.clients_of_firm
     assert_equal [client], firm.reload.clients_of_firm
   end
+
+  test "delete_all, when not loaded, doesn't load the records" do
+    post = posts(:welcome)
+
+    assert post.taggings_with_delete_all.count > 0
+    assert !post.taggings_with_delete_all.loaded?
+
+    # 2 queries: one DELETE and another to update the counter cache
+    assert_queries(2) do
+      post.taggings_with_delete_all.delete_all
+    end
+  end
 end

@@ -146,7 +146,7 @@ module ActiveRecord
       #
       # See delete for more info.
       def delete_all
-        delete(load_target).tap do
+        delete(:all).tap do
           reset
           loaded!
         end
@@ -218,7 +218,17 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
-        delete_or_destroy(records, options[:dependent])
+        dependent = options[:dependent]
+
+        if records.first == :all
+          if loaded? || dependent == :destroy
+            delete_or_destroy(load_target, dependent)
+          else
+            delete_records(:all, dependent)
+          end
+        else
+          delete_or_destroy(records, dependent)
+        end
       end
 
       # Destroy +records+ and remove them from this association calling
