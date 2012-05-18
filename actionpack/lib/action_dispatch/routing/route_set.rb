@@ -412,7 +412,7 @@ module ActionDispatch
           normalize_options!
           normalize_controller_action_id!
           use_relative_controller!
-          controller.sub!(%r{^/}, '') if controller
+          normalize_controller_leading_slash
           handle_nil_action!
         end
 
@@ -476,6 +476,11 @@ module ActionDispatch
             parts = old_parts[0...-size] << controller
             @controller = @options[:controller] = parts.join("/")
           end
+        end
+
+        # remove leading slashes from the controller: '/foo/bar' becomes 'foo/bar'
+        def normalize_controller_leading_slash
+          @controller = @options[:controller] = controller.sub(%r{^/}, '') if controller
         end
 
         # This handles the case of :action => nil being explicitly passed.

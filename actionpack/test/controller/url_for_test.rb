@@ -333,6 +333,14 @@ module AbstractController
         assert_equal("/c/a?show=false", W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :show => false))
       end
 
+      def test_url_for_has_no_side_effects
+        add_host!
+
+        controller_name = '/C'
+        assert_equal('http://www.basecamphq.com/C', W.new.url_for(:controller => controller_name))
+        assert_equal('/C', controller_name)
+      end
+
       private
         def extract_params(url)
           url.split('?', 2).last.split('&').sort
