@@ -11,6 +11,7 @@ end
 gem 'rack-test', github: "brynary/rack-test"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
+gem 'minitest', '~> 3.0.0'
 
 if ENV['JOURNEY']
   gem 'journey', path: ENV['JOURNEY']
