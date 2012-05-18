@@ -152,13 +152,6 @@ module ActiveRecord
         end
       end
 
-      # Called when the association is declared as :dependent => :delete_all. This is
-      # an optimised version which avoids loading the records into memory. Not really
-      # for public consumption.
-      def delete_all_on_destroy
-        scoped.delete_all
-      end
-
       # Destroy all the records from this association.
       #
       # See destroy for more info.
