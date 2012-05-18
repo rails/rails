@@ -124,8 +124,19 @@ module ActiveRecord
         create_record(attributes, options, true, &block)
       end
 
-      # Add +records+ to this association. Returns +self+ so method calls may be chained.
-      # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
+      # Add +records+ to this association. Returns +self+ so method calls may
+      # be chained. Since << flattens its argument list and inserts each record,
+      # +push+ and +concat+ behave identically.
+      #
+      #   class Person < ActiveRecord::Base
+      #     pets :has_many
+      #   end
+      #
+      #   person.pets << Person.new(name: 'Nemo')
+      #   person.pets.concat(Person.new(name: 'Droopy'))
+      #   person.pets.push(Person.new(name: 'Ren'))
+      #
+      #   person.pets # => [#<Pet name: "Nemo">, #<Pet name: "Droopy">, #<Pet name: "Ren">]
       def concat(*records)
         load_target if owner.new_record?
 
@@ -151,7 +162,7 @@ module ActiveRecord
         end
       end
 
-      # Remove all records from this association
+      # Remove all records from this association.
       #
       # See delete for more info.
       def delete_all
