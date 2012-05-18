@@ -459,6 +459,11 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, date_field_tag("cell"))
   end
 
+  def test_time_field_tag
+    expected = %{<input id="cell" name="cell" type="time" />}
+    assert_dom_equal(expected, time_field_tag("cell"))
+  end
+
   def test_url_field_tag
     expected = %{<input id="homepage" name="homepage" type="url" />}
     assert_dom_equal(expected, url_field_tag("homepage"))

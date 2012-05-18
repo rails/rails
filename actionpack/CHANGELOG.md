@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `time_field` and `time_field_tag` helpers which render an `input[type="time"]` tag. *Alex Soulim*
+
 *   Removed old text_helper apis for highlight, excerpt and word_wrap *Jeremy Walker*
 
 *   Templates without a handler extension now raises a deprecation warning but still
