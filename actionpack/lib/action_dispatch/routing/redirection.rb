@@ -35,6 +35,10 @@ module ActionDispatch
       def path(params, request)
         block.call params, request
       end
+
+      def inspect
+        "Redirect (#{status})"
+      end
     end
 
     class OptionRedirect < Redirect # :nodoc:
