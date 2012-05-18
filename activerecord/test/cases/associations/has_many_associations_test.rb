@@ -1687,14 +1687,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb2], car.reload.bulbs
   end
 
-  def test_replace_returns_new_target
+  def test_replace_returns_target
     car = Car.create(:name => 'honda')
     bulb1 = car.bulbs.create
     bulb2 = car.bulbs.create
     bulb3 = Bulb.create
 
     assert_equal [bulb1, bulb2], car.bulbs
-    result = car.bulbs.replace([bulb1, bulb3])
+    result = car.bulbs.replace([bulb3, bulb1])
     assert_equal [bulb1, bulb3], car.bulbs
     assert_equal [bulb1, bulb3], result
   end
