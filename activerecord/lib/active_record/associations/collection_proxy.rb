@@ -239,7 +239,7 @@ module ActiveRecord
       alias_method :to_a, :to_ary
 
       # Adds one or more +records+ to the collection by setting their foreign keys
-      # to the collection‘s primary key. Returns +self+, so several appends may be
+      # to the association‘s primary key. Returns +self+, so several appends may be
       # chained together.
       #
       #   class Person < ActiveRecord::Base
