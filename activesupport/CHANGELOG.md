@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `constantize` now looks in the ancestor chain. *Marc-Andre Lafortune & Andrew White*
+
 *   `Object#try` can't call private methods. *Vasiliy Ermolovich*
 
 *   `AS::Callbacks#run_callbacks` remove `key` argument. *Francesco Rodriguez*
