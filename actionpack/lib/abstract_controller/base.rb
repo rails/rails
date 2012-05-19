@@ -51,7 +51,7 @@ module AbstractController
       # to specify particular actions as hidden.
       #
       # ==== Returns
-      # * <tt>array</tt> - An array of method names that should not be considered actions.
+      # * <tt>Array</tt> - An array of method names that should not be considered actions.
       def hidden_actions
         []
       end
@@ -63,7 +63,7 @@ module AbstractController
       # itself. Finally, #hidden_actions are removed.
       #
       # ==== Returns
-      # * <tt>set</tt> - A set of all methods that should be considered actions.
+      # * <tt>Set</tt> - A set of all methods that should be considered actions.
       def action_methods
         @action_methods ||= begin
           # All public instance methods of this class, including ancestors
@@ -92,11 +92,12 @@ module AbstractController
       # controller_path.
       #
       # ==== Returns
-      # * <tt>string</tt>
+      # * <tt>String</tt>
       def controller_path
         @controller_path ||= name.sub(/Controller$/, '').underscore unless anonymous?
       end
 
+      # Refresh the cached action_methods when a new action_method is added.
       def method_added(name)
         super
         clear_action_methods!
@@ -130,6 +131,7 @@ module AbstractController
       self.class.controller_path
     end
 
+    # Delegates to the class' #action_methods
     def action_methods
       self.class.action_methods
     end
@@ -141,6 +143,12 @@ module AbstractController
     # false and <tt>available_action?("foo")</tt> returns true because
     # available action consider actions that are also available
     # through other means, for example, implicit render ones.
+    #
+    # ==== Parameters
+    # * <tt>action_name</tt> - The name of an action to be tested
+    #
+    # ==== Returns
+    # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
     def available_action?(action_name)
       method_for_action(action_name).present?
     end
