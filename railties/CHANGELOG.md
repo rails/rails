@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Improved `rake routes` output for redirects *Łukasz Strzałkowski & Andrew White*
+
 *   Load all environments available in `config.paths["config/environments"]`. *Piotr Sarnacki*
 
 *   The application generator generates `public/humans.txt` with some basic data. *Paul Campbell*
