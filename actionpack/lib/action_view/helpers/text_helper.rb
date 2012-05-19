@@ -113,7 +113,7 @@ module ActionView
         unless args.empty?
           ActiveSupport::Deprecation.warn "Calling highlight with a highlighter as an argument is deprecated. " \
           "Please call with :highlighter => '#{args[0]}' instead.", caller
-          
+
           options[:highlighter] = args[0] || '<strong class="highlight">\1</strong>'
         end
         options.reverse_merge!(:highlighter => '<strong class="highlight">\1</strong>')
@@ -161,7 +161,7 @@ module ActionView
         unless args.empty?
           ActiveSupport::Deprecation.warn "Calling excerpt with radius and omission as arguments is deprecated. " \
           "Please call with :radius => #{args[0]}#{", :omission => '#{args[1]}'" if args[1]} instead.", caller
-          
+
           options[:radius] = args[0] || 100
           options[:omission] = args[1] || "..."
         end

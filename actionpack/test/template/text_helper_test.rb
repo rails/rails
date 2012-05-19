@@ -130,10 +130,10 @@ class TextHelperTest < ActionView::TestCase
 
     assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
   end
-  
+
   def test_highlight_old_api_is_depcrecated
     assert_deprecated("Calling highlight with a highlighter as an argument is deprecated. Please call with :highlighter => '<mark>\\1</mark>' instead.") do
-      highlight("This is a beautiful morning", "beautiful", '<mark>\1</mark>') 
+      highlight("This is a beautiful morning", "beautiful", '<mark>\1</mark>')
     end
   end
 
@@ -205,13 +205,13 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", :radius => 5))
     assert_nil excerpt("This is a beautiful morning", "day")
   end
-  
+
   def test_excerpt_old_api_is_depcrecated
     assert_deprecated("Calling excerpt with radius and omission as arguments is deprecated. Please call with :radius => 5 instead.") do
-      excerpt("This is a beautiful morning", "morning", 5) 
+      excerpt("This is a beautiful morning", "morning", 5)
     end
     assert_deprecated("Calling excerpt with radius and omission as arguments is deprecated. Please call with :radius => 5, :omission => 'mor' instead.") do
-      excerpt("This is a beautiful morning", "morning", 5, "mor") 
+      excerpt("This is a beautiful morning", "morning", 5, "mor")
     end
   end
 
@@ -253,10 +253,10 @@ class TextHelperTest < ActionView::TestCase
   if RUBY_VERSION < '1.9'
     def test_excerpt_with_utf8
       with_kcode('u') do
-        assert_equal("...\357\254\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', :line_width => 8))
+        assert_equal("...\357\254\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', :radius => 8))
       end
       with_kcode('none') do
-        assert_equal("...\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', :line_width => 8))
+        assert_equal("...\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', :radius => 8))
       end
     end
   else
@@ -270,7 +270,7 @@ class TextHelperTest < ActionView::TestCase
   def test_word_wrap
     assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", :line_width => 15))
   end
-  
+
   def test_word_wrap_old_api_is_depcrecated
     assert_deprecated("Calling word_wrap with line_width as an argument is deprecated. Please call with :line_width => 15 instead.") do
       word_wrap("my very very very long string", 15)
