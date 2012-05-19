@@ -109,7 +109,7 @@ module ActiveRecord
     # It's also important to treat the value objects as immutable. Don't allow the Money object to have
     # its amount changed after creation. Create a new Money object with the new value instead. The
     # Money#exchange_to method is an example of this. It returns a new value object instead of changing
-    # its own values. Active Record wont persist value objects that have been changed through means
+    # its own values. Active Record won't persist value objects that have been changed through means
     # other than the writer method.
     #
     # The immutable requirement is enforced by Active Record by freezing any object assigned as a value
