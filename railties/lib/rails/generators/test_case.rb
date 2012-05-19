@@ -31,7 +31,6 @@ module Rails
       include FileUtils
 
       class_attribute :destination_root, :current_path, :generator_class, :default_arguments
-      delegate :destination_root, :current_path, :generator_class, :default_arguments, :to => :'self.class'
 
       # Generators frequently change the current path using +FileUtils.cd+.
       # So we need to store the path at file load and revert back to it after each test.
