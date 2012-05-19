@@ -238,6 +238,26 @@ module ActiveRecord
       end
       alias_method :to_a, :to_ary
 
+      # Adds one or more +records+ to the collection by setting their foreign keys
+      # to the collection‘s primary key. Returns +self+, so several appends may be
+      # chained together.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.size # => 0
+      #   person.pets << Pet.new(name: 'Fancy-Fancy')
+      #   person.pets << [Pet.new(name: 'Spook'), Pet.new(name: 'Choo-Choo')]
+      #   person.pets.size # => 3
+      #
+      #   person.id # => 1
+      #   person.pets
+      #   # => [
+      #   #      #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
       def <<(*records)
         proxy_association.concat(records) && self
       end
