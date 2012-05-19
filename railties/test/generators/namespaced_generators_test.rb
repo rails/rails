@@ -66,7 +66,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
     run_generator
     assert_file "app/controllers/test_app/account_controller.rb" do |content|
       content.split("\n").each do |line|
-        assert_no_match /^\s+$/, line, "Don't indent blank lines"
+        assert_no_match(/^\s+$/, line, "Don't indent blank lines")
       end
     end
   end
