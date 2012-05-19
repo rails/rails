@@ -678,7 +678,7 @@ end
 
 This change will ensure that all changes made through HTML forms can edit the content of the text and title fields.
 It will not be possible to define any other field value through forms. You can still define them by calling the `field=` method of course.
-Accessible attributes and the mass assignment probem is covered in details in the "Security guide":security.html#mass-assignment
+Accessible attributes and the mass assignment problem is covered in details in the "Security guide":security.html#mass-assignment
 
 h4. Adding Some Validation
 
