@@ -84,7 +84,7 @@ The following values are considered to be blank in a Rails application:
 
 * any other object that responds to +empty?+ and it is empty.
 
-INFO: In Ruby 1.9 the predicate for strings uses the Unicode-aware character class <tt>[:space:]</tt>, so for example U+2029 (paragraph separator) is considered to be whitespace. In Ruby 1.8 whitespace is considered to be <tt>\s</tt> together with the ideographic space U+3000.
+INFO: The predicate for strings uses the Unicode-aware character class <tt>[:space:]</tt>, so for example U+2029 (paragraph separator) is considered to be whitespace.
 
 WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are *not* blank.
 
@@ -2093,7 +2093,7 @@ h5. +to_formatted_s+
 
 The method +to_formatted_s+ acts like +to_s+ by default.
 
-If the array contains items that respond to +id+, however, it may be passed the symbol <tt>:db</tt> as argument. That's typically used with collections of ARs, though technically any object in Ruby 1.8 responds to +id+ indeed. Returned strings are:
+If the array contains items that respond to +id+, however, it may be passed the symbol <tt>:db</tt> as argument. That's typically used with collections of ARs. Returned strings are:
 
 <ruby>
 [].to_formatted_s(:db)            # => "null"
@@ -2869,8 +2869,6 @@ d.prev_year               # => Sun, 28 Feb 1999
 d.next_year               # => Wed, 28 Feb 2001
 </ruby>
 
-Active Support defines these methods as well for Ruby 1.8.
-
 +prev_year+ is aliased to +last_year+.
 
 h6. +prev_month+, +next_month+
@@ -2891,8 +2889,6 @@ Date.new(2000, 3, 31).prev_month # => Tue, 29 Feb 2000
 Date.new(2000, 5, 31).next_month # => Fri, 30 Jun 2000
 Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
 </ruby>
-
-Active Support defines these methods as well for Ruby 1.8.
 
 +prev_month+ is aliased to +last_month+.
 

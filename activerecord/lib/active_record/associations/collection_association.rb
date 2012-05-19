@@ -6,6 +6,15 @@ module ActiveRecord
     # ease the implementation of association proxies that represent
     # collections. See the class hierarchy in AssociationProxy.
     #
+    #   CollectionAssociation:
+    #     HasAndBelongsToManyAssociation => has_and_belongs_to_many
+    #     HasManyAssociation => has_many
+    #       HasManyThroughAssociation + ThroughAssociation => has_many :through
+    #
+    # CollectionAssociation class provides common methods to the collections
+    # defined by +has_and_belongs_to_many+, +has_many+ or +has_many+ with
+    # +:through association+ option.
+    #
     # You need to be careful with assumptions regarding the target: The proxy
     # does not fetch records from the database until it needs them, but new
     # ones created with +build+ are added to the target. So, the target may be
@@ -115,8 +124,9 @@ module ActiveRecord
         create_record(attributes, options, true, &block)
       end
 
-      # Add +records+ to this association. Returns +self+ so method calls may be chained.
-      # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
+      # Add +records+ to this association. Returns +self+ so method calls may
+      # be chained. Since << flattens its argument list and inserts each record,
+      # +push+ and +concat+ behave identically.
       def concat(*records)
         load_target if owner.new_record?
 
@@ -142,7 +152,7 @@ module ActiveRecord
         end
       end
 
-      # Remove all records from this association
+      # Remove all records from this association.
       #
       # See delete for more info.
       def delete_all
@@ -162,7 +172,7 @@ module ActiveRecord
         end
       end
 
-      # Calculate sum using SQL, not Enumerable
+      # Calculate sum using SQL, not Enumerable.
       def sum(*args)
         if block_given?
           scoped.sum(*args) { |*block_args| yield(*block_args) }
@@ -270,13 +280,16 @@ module ActiveRecord
         load_target.size
       end
 
-      # Equivalent to <tt>collection.size.zero?</tt>. If the collection has
-      # not been already loaded and you are going to fetch the records anyway
-      # it is better to check <tt>collection.length.zero?</tt>.
+      # Returns true if the collection is empty. Equivalent to
+      # <tt>collection.size.zero?</tt>. If the collection has not been already
+      # loaded and you are going to fetch the records anyway it is better to
+      # check <tt>collection.length.zero?</tt>.
       def empty?
         size.zero?
       end
 
+      # Returns true if the collections is not empty.
+      # Equivalent to +!collection.empty?+.
       def any?
         if block_given?
           load_target.any? { |*block_args| yield(*block_args) }
@@ -285,7 +298,8 @@ module ActiveRecord
         end
       end
 
-      # Returns true if the collection has more than 1 record. Equivalent to collection.size > 1.
+      # Returns true if the collection has more than 1 record.
+      # Equivalent to +collection.size > 1+.
       def many?
         if block_given?
           load_target.many? { |*block_args| yield(*block_args) }
@@ -301,8 +315,8 @@ module ActiveRecord
         end
       end
 
-      # Replace this collection with +other_array+
-      # This will perform a diff and delete/add only records that have changed.
+      # Replace this collection with +other_array+. This will perform a diff
+      # and delete/add only records that have changed.
       def replace(other_array)
         other_array.each { |val| raise_on_type_mismatch(val) }
         original_target = load_target.dup

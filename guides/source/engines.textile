@@ -738,7 +738,7 @@ This tells sprockets to add you engine assets when +rake assets:precompile+ is r
 You can define assets for precompilation in +engine.rb+
 
 <ruby>
-initializer do |app|
+initializer "blorgh.assets.precompile" do |app|
   app.config.assets.precompile += %w(admin.css admin.js)
 end
 </ruby>
