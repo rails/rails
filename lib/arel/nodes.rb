@@ -13,6 +13,7 @@ require 'arel/nodes/false'
 
 # unary
 require 'arel/nodes/unary'
+require 'arel/nodes/grouping'
 require 'arel/nodes/ascending'
 require 'arel/nodes/descending'
 require 'arel/nodes/unqualified_column'
