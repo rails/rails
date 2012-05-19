@@ -64,6 +64,33 @@ module ActiveRecord
       #   another_person_without.pets.first(3) # => []
 
       ##
+      # :method: last
+      # Returns the last record, or the last +n+ records, from the collection.
+      # If the collection is empty, the first form returns nil, and the second
+      # form returns an empty array.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #
+      #   person.pets.last # => #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   person.pets.last(2)
+      #   # => [
+      #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   another_person_without.pets         # => []
+      #   another_person_without.pets.last    # => nil
+      #   another_person_without.pets.last(3) # => []
+
+      ##
       # :method: concat
       # Add one or more records to the collection by setting their foreign keys
       # to the association's primary key. Since << flattens its argument list and
