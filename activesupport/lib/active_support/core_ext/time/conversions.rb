@@ -6,6 +6,7 @@ class Time
   DATE_FORMATS = {
     :db           => "%Y-%m-%d %H:%M:%S",
     :number       => "%Y%m%d%H%M%S",
+    :nsec         => '%Y%m%d%H%M%S%9N',
     :time         => "%H:%M",
     :short        => "%d %b %H:%M",
     :long         => "%B %d, %Y %H:%M",
