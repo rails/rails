@@ -243,6 +243,32 @@ module ActiveRecord
       end
       alias_method :push, :<<
 
+      # Removes every object from the collection. This does not destroy
+      # the objects, it sets their foreign keys to +NULL+. Returns +self+
+      # so methods can be chained.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets       # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      #   person.pets.clear # => []
+      #   person.pets.size  # => 0
+      #
+      #   Pet.find(1) # => #<Pet id: 1, name: "Snoop", group: "dogs", person_id: nil>
+      #
+      # If they are associated with +dependent: :destroy+ option, it deletes
+      # them directly from the database.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets, dependent: :destroy
+      #   end
+      #
+      #   person.pets       # => [#<Pet id: 2, name: "Wy", group: "cats", person_id: 2>]
+      #   person.pets.clear # => []
+      #   person.pets.size  # => 0
+      #
+      #   Pet.find(2) # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=2
       def clear
         delete_all
         self
