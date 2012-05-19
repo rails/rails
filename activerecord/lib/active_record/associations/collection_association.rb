@@ -274,7 +274,11 @@ module ActiveRecord
       # not been already loaded and you are going to fetch the records anyway
       # it is better to check <tt>collection.length.zero?</tt>.
       def empty?
-        size.zero?
+        if block_given?
+          load_target.empty? { |*block_args| yield(*block_args) }
+        else
+          size.zero?
+        end
       end
 
       def any?

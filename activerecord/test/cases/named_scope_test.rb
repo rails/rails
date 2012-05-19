@@ -165,6 +165,14 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
   end
 
+  def test_empty_should_call_proxy_found_if_using_a_block
+    topics = Topic.base
+    assert_queries(1) do
+      topics.expects(:size).never
+      topics.empty? { true }
+    end
+  end
+
   def test_any_should_not_load_results
     topics = Topic.base
     assert_queries(2) do
