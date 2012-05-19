@@ -514,7 +514,6 @@ module ActionView
       #  number_to_human(343, :units => :distance, :precision => 1)                # => "300 meters"
       #  number_to_human(1, :units => :distance)                                   # => "1 meter"
       #  number_to_human(0.34, :units => :distance)                                # => "34 centimeters"
-      #
       def number_to_human(number, options = {})
         options = options.symbolize_keys
 

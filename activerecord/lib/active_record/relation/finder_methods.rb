@@ -49,7 +49,6 @@ module ActiveRecord
     #
     #   Post.find_by name: 'Spartacus', rating: 4
     #   Post.find_by "published_at < ?", 2.weeks.ago
-    #
     def find_by(*args)
       where(*args).take
     end

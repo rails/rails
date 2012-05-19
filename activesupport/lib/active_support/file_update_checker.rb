@@ -28,7 +28,6 @@ module ActiveSupport
   #   ActionDispatch::Reloader.to_prepare do
   #     i18n_reloader.execute_if_updated
   #   end
-  #
   class FileUpdateChecker
     # It accepts two parameters on initialization. The first is an array
     # of files and the second is an optional hash of directories. The hash must

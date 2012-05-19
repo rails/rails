@@ -138,7 +138,6 @@ module ActiveRecord
     #   Person.pluck('DATEDIFF(updated_at, created_at)')
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
-    #
     def pluck(column_name)
       if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
         column_name = "#{table_name}.#{column_name}"

@@ -17,7 +17,6 @@ module Enumerable
   # The default sum of an empty list is zero. You can override this default:
   #
   #  [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
-  #
   def sum(identity = 0, &block)
     if block_given?
       map(&block).sum(identity)
@@ -32,7 +31,6 @@ module Enumerable
   #     => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
   #   people.index_by { |person| "#{person.first_name} #{person.last_name}" }
   #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
-  #
   def index_by
     if block_given?
       Hash[map { |elem| [yield(elem), elem] }]

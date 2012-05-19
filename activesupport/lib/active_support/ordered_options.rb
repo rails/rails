@@ -13,7 +13,6 @@
 #   h.girl = 'Mary'
 #   h.boy  # => 'John'
 #   h.girl # => 'Mary'
-#
 module ActiveSupport #:nodoc:
   class OrderedOptions < Hash
     alias_method :_get, :[] # preserve the original #[] method

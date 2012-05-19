@@ -586,7 +586,6 @@ module ActionView
       #
       #   current_page?(:controller => 'product', :action => 'index')
       #   # => false
-      #
       def current_page?(options)
         unless request
           raise "You cannot use helpers that need to determine the current " \

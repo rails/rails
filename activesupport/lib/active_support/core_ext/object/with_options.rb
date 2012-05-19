@@ -36,7 +36,6 @@ class Object
   #
   # <tt>with_options</tt> can also be nested since the call is forwarded to its receiver.
   # Each nesting level will merge inherited defaults in addition to their own.
-  #
   def with_options(options)
     yield ActiveSupport::OptionMerger.new(self, options)
   end

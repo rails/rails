@@ -168,7 +168,6 @@ module Rails
         #
         # If the generator is invoked with class name Admin, it will check for
         # the presence of "AdminObserver".
-        #
         def self.check_class_collision(options={})
           define_method :check_class_collision do
             name = if self.respond_to?(:controller_class_name) # for ScaffoldBase

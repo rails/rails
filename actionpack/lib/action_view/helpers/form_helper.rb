@@ -763,7 +763,6 @@ module ActionView
       #
       #   text_field(:snippet, :code, :size => 20, :class => 'code_input')
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
-      #
       def text_field(object_name, method, options = {})
         Tags::TextField.new(object_name, method, self, options).render
       end
@@ -785,7 +784,6 @@ module ActionView
       #
       #   password_field(:account, :pin, :size => 20, :class => 'form_input')
       #   # => <input type="password" id="account_pin" name="account[pin]" size="20" class="form_input" />
-      #
       def password_field(object_name, method, options = {})
         Tags::PasswordField.new(object_name, method, self, options).render
       end
@@ -824,7 +822,6 @@ module ActionView
       #
       #   file_field(:attachment, :file, :class => 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
-      #
       def file_field(object_name, method, options = {})
         Tags::FileField.new(object_name, method, self, options).render
       end
@@ -913,7 +910,6 @@ module ActionView
       #   check_box("eula", "accepted", { :class => 'eula_check' }, "yes", "no")
       #   # => <input name="eula[accepted]" type="hidden" value="no" />
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
-      #
       def check_box(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
         Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options).render
       end
@@ -966,7 +962,6 @@ module ActionView
       #
       #   telephone_field("user", "phone")
       #   # => <input id="user_phone" name="user[phone]" type="tel" />
-      #
       def telephone_field(object_name, method, options = {})
         Tags::TelField.new(object_name, method, self, options).render
       end
@@ -985,7 +980,6 @@ module ActionView
       #   @user.born_on = Date.new(1984, 1, 27)
       #   date_field("user", "born_on", value: "1984-05-12")
       #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-05-12" />
-      #
       def date_field(object_name, method, options = {})
         Tags::DateField.new(object_name, method, self, options).render
       end
@@ -1002,7 +996,6 @@ module ActionView
       # === Example
       #   time_field("task", "started_at")
       #   # => <input id="task_started_at" name="task[started_at]" type="time" />
-      #
       def time_field(object_name, method, options = {})
         Tags::TimeField.new(object_name, method, self, options).render
       end
@@ -1011,7 +1004,6 @@ module ActionView
       #
       #   url_field("user", "homepage")
       #   # => <input id="user_homepage" name="user[homepage]" type="url" />
-      #
       def url_field(object_name, method, options = {})
         Tags::UrlField.new(object_name, method, self, options).render
       end
@@ -1020,7 +1012,6 @@ module ActionView
       #
       #   email_field("user", "address")
       #   # => <input id="user_address" name="user[address]" type="email" />
-      #
       def email_field(object_name, method, options = {})
         Tags::EmailField.new(object_name, method, self, options).render
       end
@@ -1200,7 +1191,6 @@ module ActionView
       #       submit:
       #         post:
       #           create: "Add %{model}"
-      #
       def submit(value=nil, options={})
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
@@ -1233,7 +1223,6 @@ module ActionView
       #       submit:
       #         post:
       #           create: "Add %{model}"
-      #
       def button(value=nil, options={})
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value

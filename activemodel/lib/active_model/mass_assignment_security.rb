@@ -56,8 +56,6 @@ module ActiveModel
     #
     # You can specify your own sanitizer object eg. MySanitizer.new.
     # See <tt>ActiveModel::MassAssignmentSecurity::LoggerSanitizer</tt> for example implementation.
-    #
-    #
     module ClassMethods
       # Attributes named in this macro are protected from mass-assignment
       # whenever attributes are sanitized before assignment. A role for the

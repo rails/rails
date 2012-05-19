@@ -265,7 +265,6 @@ module ActiveRecord
         #
         #   0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
         #   0|1|1|SCAN TABLE posts (~100000 rows)
-        #
         def pp(result) # :nodoc:
           result.rows.map do |row|
             row.join('|')

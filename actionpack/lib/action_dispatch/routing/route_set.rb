@@ -180,7 +180,6 @@ module ActionDispatch
           # Also allow options hash, so you can do:
           #
           #   foo_url(bar, baz, bang, :sort_by => 'baz')
-          #
           def define_url_helper(route, name, options)
             selector = url_helper_name(name, options[:only_path])
 

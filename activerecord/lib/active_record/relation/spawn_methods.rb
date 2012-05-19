@@ -23,7 +23,6 @@ module ActiveRecord
     #   Post.where(:published => true).merge(recent_posts)
     #   # Returns the intersection of all published posts with the 5 most recently created posts.
     #   # (This is just an example. You'd probably want to do this with a single query!)
-    #
     def merge(other)
       if other.is_a?(Array)
         to_a & other
@@ -45,7 +44,6 @@ module ActiveRecord
     #
     #   Post.order('id asc').except(:order)                  # discards the order condition
     #   Post.where('id > 10').order('id asc').except(:where) # discards the where condition but keeps the order
-    #
     def except(*skips)
       result = Relation.new(klass, table, values.except(*skips))
       result.default_scoped = default_scoped
@@ -59,7 +57,6 @@ module ActiveRecord
     #
     #   Post.order('id asc').only(:where)         # discards the order condition
     #   Post.order('id asc').only(:where, :order) # uses the specified order
-    #
     def only(*onlies)
       result = Relation.new(klass, table, values.slice(*onlies))
       result.default_scoped = default_scoped

@@ -36,7 +36,6 @@ module ActiveSupport
     # Options:
     # * <tt>:cipher</tt>      - Cipher to use. Can be any cipher returned by <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-cbc'
     # * <tt>:serializer</tt>  - Object serializer to use. Default is +Marshal+.
-    # 
     def initialize(secret, options = {})
       @secret = secret
       @cipher = options[:cipher] || 'aes-256-cbc'

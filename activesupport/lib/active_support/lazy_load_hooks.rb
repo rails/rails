@@ -17,7 +17,6 @@ module ActiveSupport
   # The very last line of +activerecord/lib/active_record/base.rb+ is:
   #
   #   ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
-  #
   @load_hooks = Hash.new { |h,k| h[k] = [] }
   @loaded = Hash.new { |h,k| h[k] = [] }
 

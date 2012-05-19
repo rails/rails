@@ -90,7 +90,6 @@ module AbstractController
       # +symbols+, +strings+, +modules+ and blocks.
       #
       #   helper(:three, BlindHelper) { def mice() 'mice' end }
-      #
       def helper(*args, &block)
         modules_for_helpers(args).each do |mod|
           add_template_helper(mod)

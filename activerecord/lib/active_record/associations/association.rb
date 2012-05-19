@@ -34,7 +34,6 @@ module ActiveRecord
       # Returns the name of the table of the related class:
       #
       #   post.comments.aliased_table_name # => "comments"
-      #
       def aliased_table_name
         klass.table_name
       end

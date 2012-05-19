@@ -94,7 +94,6 @@ module ActiveModel #:nodoc:
   #
   # This setup method is only called when used with validation macros or the
   # class level <tt>validates_with</tt> method.
-  #
   class Validator
     attr_reader :options
 
@@ -102,7 +101,6 @@ module ActiveModel #:nodoc:
     #
     #   PresenceValidator.kind   # => :presence
     #   UniquenessValidator.kind # => :uniqueness
-    #
     def self.kind
       @kind ||= name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?
     end

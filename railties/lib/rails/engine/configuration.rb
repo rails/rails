@@ -28,7 +28,6 @@ module Rails
       # If you want to disable color in console, do:
       #
       #   config.generators.colorize_logging = false
-      #
       def generators #:nodoc:
         @generators ||= Rails::Configuration::Generators.new
         yield(@generators) if block_given?

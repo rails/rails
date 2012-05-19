@@ -59,7 +59,6 @@ module ActiveRecord
     # * <tt>:sslcert</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslcapath</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslcipher</tt> - Necessary to use MySQL with an SSL connection.
-    #
     class MysqlAdapter < AbstractMysqlAdapter
 
       class Column < AbstractMysqlAdapter::Column #:nodoc:

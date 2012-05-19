@@ -8,7 +8,6 @@ module ActiveSupport
   # you can call this:
   #
   #   Rails.env.production?
-  #
   class StringInquirer < String
     def method_missing(method_name, *arguments)
       if method_name[-1, 1] == "?"

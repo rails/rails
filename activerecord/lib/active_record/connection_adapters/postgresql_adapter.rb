@@ -684,7 +684,6 @@ module ActiveRecord
         #      ->  Seq Scan on posts  (cost=0.00..28.88 rows=8 width=4)
         #            Filter: (posts.user_id = 1)
         #   (6 rows)
-        #
         def pp(result)
           header = result.columns.first
           lines  = result.rows.map(&:first)

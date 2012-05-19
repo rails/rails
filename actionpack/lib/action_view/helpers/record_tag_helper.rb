@@ -29,7 +29,6 @@ module ActionView
       #
       #    <div id="person_123" class="person foo"> Joe Bloggs </div>
       #    <div id="person_124" class="person foo"> Jane Bloggs </div>
-      #
       def div_for(record, *args, &block)
         content_tag_for(:div, record, *args, &block)
       end
@@ -79,7 +78,6 @@ module ActionView
       # produces:
       #
       #    <li id="person_123" class="person bar">...
-      #
       def content_tag_for(tag_name, single_or_multiple_records, prefix = nil, options = nil, &block)
         options, prefix = prefix, nil if prefix.is_a?(Hash)
 

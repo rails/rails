@@ -55,7 +55,6 @@ module ActionView
       # resulting markup is valid (conforming to a document type) or even well-formed.
       # The output may still contain e.g. unescaped '<', '>', '&' characters and
       # confuse browsers.
-      #
       def sanitize(html, options = {})
         self.class.white_list_sanitizer.sanitize(html, options).try(:html_safe)
       end
@@ -144,7 +143,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.full_sanitizer = MySpecialSanitizer.new
         #   end
-        #
         def full_sanitizer
           @full_sanitizer ||= HTML::FullSanitizer.new
         end
@@ -155,7 +153,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.link_sanitizer = MySpecialSanitizer.new
         #   end
-        #
         def link_sanitizer
           @link_sanitizer ||= HTML::LinkSanitizer.new
         end
@@ -166,7 +163,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.white_list_sanitizer = MySpecialSanitizer.new
         #   end
-        #
         def white_list_sanitizer
           @white_list_sanitizer ||= HTML::WhiteListSanitizer.new
         end
@@ -176,7 +172,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.sanitized_uri_attributes = 'lowsrc', 'target'
         #   end
-        #
         def sanitized_uri_attributes=(attributes)
           HTML::WhiteListSanitizer.uri_attributes.merge(attributes)
         end
@@ -186,7 +181,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.sanitized_bad_tags = 'embed', 'object'
         #   end
-        #
         def sanitized_bad_tags=(attributes)
           HTML::WhiteListSanitizer.bad_tags.merge(attributes)
         end
@@ -196,7 +190,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
         #   end
-        #
         def sanitized_allowed_tags=(attributes)
           HTML::WhiteListSanitizer.allowed_tags.merge(attributes)
         end
@@ -206,7 +199,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_attributes = 'onclick', 'longdesc'
         #   end
-        #
         def sanitized_allowed_attributes=(attributes)
           HTML::WhiteListSanitizer.allowed_attributes.merge(attributes)
         end
@@ -216,7 +208,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_css_properties = 'expression'
         #   end
-        #
         def sanitized_allowed_css_properties=(attributes)
           HTML::WhiteListSanitizer.allowed_css_properties.merge(attributes)
         end
@@ -226,7 +217,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_css_keywords = 'expression'
         #   end
-        #
         def sanitized_allowed_css_keywords=(attributes)
           HTML::WhiteListSanitizer.allowed_css_keywords.merge(attributes)
         end
@@ -236,7 +226,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.sanitized_shorthand_css_properties = 'expression'
         #   end
-        #
         def sanitized_shorthand_css_properties=(attributes)
           HTML::WhiteListSanitizer.shorthand_css_properties.merge(attributes)
         end
@@ -246,7 +235,6 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_protocols = 'ssh', 'feed'
         #   end
-        #
         def sanitized_allowed_protocols=(attributes)
           HTML::WhiteListSanitizer.allowed_protocols.merge(attributes)
         end

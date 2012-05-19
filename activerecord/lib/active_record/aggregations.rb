@@ -166,7 +166,6 @@ module ActiveRecord
     # finds all customers with +balance_amount+ equal to 20 and +balance_currency+ equal to "USD":
     #
     #   Customer.where(:balance => Money.new(20, "USD")).all
-    #
     module ClassMethods
       # Adds reader and writer methods for manipulating a value object:
       # <tt>composed_of :address</tt> adds <tt>address</tt> and <tt>address=(new_address)</tt> methods.
@@ -207,7 +206,6 @@ module ActiveRecord
       #               :mapping => %w(ip to_i),
       #               :constructor => Proc.new { |ip| IPAddr.new(ip, Socket::AF_INET) },
       #               :converter => Proc.new { |ip| ip.is_a?(Integer) ? IPAddr.new(ip, Socket::AF_INET) : IPAddr.new(ip.to_s) }
-      #
       def composed_of(part_id, options = {})
         options.assert_valid_keys(:class_name, :mapping, :allow_nil, :constructor, :converter)
 

@@ -124,7 +124,6 @@ module ActiveModel
     #
     # This will call +custom_notification+, passing as arguments
     # the current object and :foo.
-    #
     def notify_observers(method, *extra_args)
       self.class.notify_observers(method, self, *extra_args)
     end
@@ -192,7 +191,6 @@ module ActiveModel
   # If you're using an Observer in a Rails application with Active Record, be sure to
   # read about the necessary configuration in the documentation for
   # ActiveRecord::Observer.
-  #
   class Observer
     include Singleton
     extend ActiveSupport::DescendantsTracker

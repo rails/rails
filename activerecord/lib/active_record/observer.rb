@@ -87,7 +87,6 @@ module ActiveRecord
   # If by any chance you are using observed models in the initialization you can still
   # load their observers by calling <tt>ModelObserver.instance</tt> before. Observers are
   # singletons and that call instantiates and registers them.
-  #
   class Observer < ActiveModel::Observer
 
     protected

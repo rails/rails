@@ -46,7 +46,6 @@ module ActionDispatch
       #   GET /posts/5.xml   | request.format => Mime::XML
       #   GET /posts/5.xhtml | request.format => Mime::HTML
       #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first
-      #
       def format(view_path = [])
         formats.first
       end
@@ -82,7 +81,6 @@ module ActionDispatch
 
       # Receives an array of mimes and return the first user sent mime that
       # matches the order array.
-      #
       def negotiate_mime(order)
         formats.each do |priority|
           if priority == Mime::ALL

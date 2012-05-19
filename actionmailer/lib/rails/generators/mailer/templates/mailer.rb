@@ -7,7 +7,6 @@ class <%= class_name %> < ActionMailer::Base
   # with the following lookup:
   #
   #   en.<%= file_path.tr("/",".") %>.<%= action %>.subject
-  #
   def <%= action %>
     @greeting = "Hi"
 

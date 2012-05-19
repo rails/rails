@@ -38,7 +38,6 @@ module ActiveModel
   # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+ method
   # to your instances initialized with a new <tt>ActiveModel::Errors</tt> object, so
   # there is no need for you to do this manually.
-  #
   module Validations
     extend ActiveSupport::Concern
 
@@ -222,7 +221,6 @@ module ActiveModel
     #       @data[key]
     #     end
     #   end
-    #
     alias :read_attribute_for_validation :send
 
   protected

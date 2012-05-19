@@ -27,7 +27,6 @@ class Module
   #
   #   M.parent          # => Object
   #   Module.new.parent # => Object
-  #
   def parent
     parent_name ? ActiveSupport::Inflector.constantize(parent_name) : Object
   end
@@ -44,7 +43,6 @@ class Module
   #   M.parents    # => [Object]
   #   M::N.parents # => [M, Object]
   #   X.parents    # => [M, Object]
-  #
   def parents
     parents = []
     if parent_name

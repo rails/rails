@@ -98,7 +98,6 @@ module ActionView
     #     <option value="3">Jokes</option>
     #     <option value="4">Poems</option>
     #   </select>
-    #
     module FormOptionsHelper
       # ERB::Util can mask some helpers like textilize. Make sure to include them.
       include TextHelper
@@ -154,7 +153,6 @@ module ActionView
       # key in the query string, that works for ordinary forms.
       #
       # In case if you don't want the helper to generate this hidden field you can specify <tt>:include_blank => false</tt> option.
-      #
       def select(object, method, choices, options = {}, html_options = {})
         Tags::Select.new(object, method, self, choices, options, html_options).render
       end
@@ -241,7 +239,6 @@ module ActionView
       #       <option value="2">Ireland</option>
       #     </optgroup>
       #   </select>
-      #
       def grouped_collection_select(object, method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
         Tags::GroupedCollectionSelect.new(object, method, self, collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options).render
       end

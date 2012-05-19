@@ -317,7 +317,6 @@ module ActiveModel
     # * <tt>activemodel.errors.messages.blank</tt>
     # * <tt>errors.attributes.title.blank</tt>
     # * <tt>errors.messages.blank</tt>
-    #
     def generate_message(attribute, type = :invalid, options = {})
       type = options.delete(:message) if options[:message].is_a?(Symbol)
 

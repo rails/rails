@@ -48,7 +48,6 @@ module Rails
   #   10) Build the middleware stack and run to_prepare callbacks
   #   11) Run config.before_eager_load and eager_load if cache classes is true
   #   12) Run config.after_initialize callbacks
-  #
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configuration,  'rails/application/configuration'

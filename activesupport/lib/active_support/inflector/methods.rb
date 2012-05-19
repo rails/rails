@@ -228,7 +228,6 @@ module ActiveSupport
     #   "blargle".safe_constantize  # => nil
     #   "UnknownModule".safe_constantize  # => nil
     #   "UnknownModule::Foo::Bar".safe_constantize  # => nil
-    #
     def safe_constantize(camel_cased_word)
       begin
         constantize(camel_cased_word)

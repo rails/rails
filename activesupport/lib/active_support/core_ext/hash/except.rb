@@ -10,7 +10,6 @@ class Hash
   #
   #   {:a => 1}.with_indifferent_access.except(:a)  # => {}
   #   {:a => 1}.with_indifferent_access.except('a') # => {}
-  #
   def except(*keys)
     dup.except!(*keys)
   end

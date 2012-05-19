@@ -161,7 +161,6 @@ module Rails
       #   hook_for :resource_controller do |instance, controller|
       #     instance.invoke controller, [ instance.name.pluralize ]
       #   end
-      #
       def self.hook_for(*names, &block)
         options = names.extract_options!
         in_base = options.delete(:in) || base_name

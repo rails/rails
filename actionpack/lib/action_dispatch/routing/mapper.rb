@@ -897,7 +897,6 @@ module ActionDispatch
       #   resources :articles, :id => /[^\/]+/
       #
       # This allows any character other than a slash as part of your +:id+.
-      #
       module Resources
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.

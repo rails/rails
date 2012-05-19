@@ -179,7 +179,6 @@ end
 # We publish a new version by tagging, and pushing a tag does not trigger
 # that webhook. Stable docs would be updated by any subsequent regular
 # push, but if you want that to happen right away just run this.
-#
 desc 'Publishes docs, run this AFTER a new stable tag has been pushed'
 task :publish_docs do
   Net::HTTP.new('api.rubyonrails.org', 8080).start do |http|

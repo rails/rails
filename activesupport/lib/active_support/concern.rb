@@ -94,7 +94,6 @@ module ActiveSupport
   #   class Host
   #     include Bar # works, Bar takes care now of its dependencies
   #   end
-  #
   module Concern
     def self.extended(base)
       base.instance_variable_set("@_dependencies", [])

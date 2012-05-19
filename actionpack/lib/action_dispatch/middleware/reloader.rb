@@ -22,7 +22,6 @@ module ActionDispatch
   # is false. Callbacks may be registered even when it is not included in the
   # middleware stack, but are executed only when <tt>ActionDispatch::Reloader.prepare!</tt>
   # or <tt>ActionDispatch::Reloader.cleanup!</tt> are called manually.
-  #
   class Reloader
     include ActiveSupport::Callbacks
 

@@ -139,7 +139,6 @@ module ActionView
         # you have too many stylesheets for IE to load.
         #
         #   stylesheet_link_tag :all, :concat => true
-        #
         def stylesheet_link_tag(*sources)
           @stylesheet_include ||= StylesheetIncludeTag.new(config, asset_paths)
           @stylesheet_include.include_tag(*sources)

@@ -142,13 +142,11 @@ module ActionController #:nodoc:
 
     # Initializes a new responder an invoke the proper format. If the format is
     # not defined, call to_format.
-    #
     def self.call(*args)
       new(*args).respond
     end
 
     # Main entry point for responder responsible to dispatch to the proper format.
-    #
     def respond
       method = "to_#{format}"
       respond_to?(method) ? send(method) : to_format
@@ -156,7 +154,6 @@ module ActionController #:nodoc:
 
     # HTML format does not render the resource, it always attempt to render a
     # template.
-    #
     def to_html
       default_render
     rescue ActionView::MissingTemplate => e
@@ -171,7 +168,6 @@ module ActionController #:nodoc:
     # All other formats follow the procedure below. First we try to render a
     # template, if the template is not available, we verify if the resource
     # responds to :to_format and display it.
-    #
     def to_format
       if get? || !has_errors? || response_overridden?
         default_render
@@ -209,14 +205,12 @@ module ActionController #:nodoc:
     end
 
     # Checks whether the resource responds to the current format or not.
-    #
     def resourceful?
       resource.respond_to?("to_#{format}")
     end
 
     # Returns the resource location by retrieving it from the options or
     # returning the resources array.
-    #
     def resource_location
       options[:location] || resources
     end
@@ -225,7 +219,6 @@ module ActionController #:nodoc:
 
     # If a response block was given, use it, otherwise call render on
     # controller.
-    #
     def default_render
       if @default_response
         @default_response.call(options)
@@ -250,7 +243,6 @@ module ActionController #:nodoc:
     # Results in:
     #
     #   render :xml => @user, :status => :created
-    #
     def display(resource, given_options={})
       controller.render given_options.merge!(options).merge!(format => resource)
     end
@@ -260,14 +252,12 @@ module ActionController #:nodoc:
     end
 
     # Check whether the resource has errors.
-    #
     def has_errors?
       resource.respond_to?(:errors) && !resource.errors.empty?
     end
 
     # By default, render the <code>:edit</code> action for HTML requests with errors, unless
     # the verb was POST.
-    #
     def default_action
       @action ||= DEFAULT_ACTIONS_FOR_VERBS[request.request_method_symbol]
     end

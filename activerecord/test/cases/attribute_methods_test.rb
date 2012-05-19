@@ -719,7 +719,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_read_attribute_overwrites_private_method_not_considered_implemented
     # simulate a model with a db column that shares its name an inherited
     # private method (e.g. Object#system)
-    #
     Object.class_eval do
       private
       def title; "private!"; end

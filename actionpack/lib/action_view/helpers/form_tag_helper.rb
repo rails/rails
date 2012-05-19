@@ -63,7 +63,6 @@ module ActionView
       #
       #   form_tag('http://far.away.com/form', :authenticity_token => "cf50faa3fe97702ca1ae")
       #   # form with custom authenticity token
-      #
       def form_tag(url_for_options = {}, options = {}, &block)
         html_options = html_options_for_form(url_for_options, options)
         if block_given?
@@ -409,7 +408,6 @@ module ActionView
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
       #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
-      #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
 
@@ -446,7 +444,6 @@ module ActionView
       #   # => <button name="button" type="button">
       #   #     <strong>Ask me!</strong>
       #   #    </button>
-      #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
         options ||= {}

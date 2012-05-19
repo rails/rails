@@ -133,7 +133,6 @@ module ActiveSupport
   #
   # Notifications ships with a queue implementation that consumes and publish events
   # to log subscribers in a thread. You can use any queue implementation you want.
-  #
   module Notifications
     @instrumenters = Hash.new { |h,k| h[k] = notifier.listening?(k) }
 

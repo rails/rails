@@ -42,7 +42,6 @@ module ActiveRecord
       # Returns the AggregateReflection object for the named +aggregation+ (use the symbol).
       #
       #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
-      #
       def reflect_on_aggregation(aggregation)
         reflection = reflections[aggregation]
         reflection if reflection.is_a?(AggregateReflection)
@@ -57,7 +56,6 @@ module ActiveRecord
       #
       #   Account.reflect_on_all_associations             # returns an array of all associations
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
-      #
       def reflect_on_all_associations(macro = nil)
         association_reflections = reflections.values.grep(AssociationReflection)
         macro ? association_reflections.select { |reflection| reflection.macro == macro } : association_reflections
@@ -67,7 +65,6 @@ module ActiveRecord
       #
       #   Account.reflect_on_association(:owner)             # returns the owner AssociationReflection
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
-      #
       def reflect_on_association(association)
         reflection = reflections[association]
         reflection if reflection.is_a?(AssociationReflection)
@@ -386,7 +383,6 @@ module ActiveRecord
       #     has_many :taggings
       #     has_many :tags, :through => :taggings
       #   end
-      #
       def source_reflection
         @source_reflection ||= source_reflection_names.collect { |name| through_reflection.klass.reflect_on_association(name) }.compact.first
       end
@@ -401,7 +397,6 @@ module ActiveRecord
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
       #   taggings_reflection = tags_reflection.through_reflection
-      #
       def through_reflection
         @through_reflection ||= active_record.reflect_on_association(options[:through])
       end
@@ -488,7 +483,6 @@ module ActiveRecord
       # Gets an array of possible <tt>:through</tt> source reflection names:
       #
       #   [:singularized, :pluralized]
-      #
       def source_reflection_names
         @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
       end

@@ -277,7 +277,6 @@ module ActionDispatch
   #   rake routes
   #
   # Target specific controllers by prefixing the command with <tt>CONTROLLER=x</tt>.
-  #
   module Routing
     autoload :Mapper, 'action_dispatch/routing/mapper'
     autoload :RouteSet, 'action_dispatch/routing/route_set'

@@ -77,7 +77,6 @@ module ActiveModel
       # Or to all at the same time:
       #
       #   validates :password, :presence => true, :confirmation => true, :if => :password_required?
-      #
       def validates(*attributes)
         defaults = attributes.extract_options!.dup
         validations = defaults.slice!(*_validates_default_keys)

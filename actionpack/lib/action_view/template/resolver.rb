@@ -215,7 +215,6 @@ module ActionView
   # * <tt>:locale</tt> - possible locale versions
   # * <tt>:formats</tt> - possible request formats (for example html, json, xml...)
   # * <tt>:handlers</tt> - possible handlers (for example erb, haml, builder...)
-  #
   class FileSystemResolver < PathResolver
     def initialize(path, pattern=nil)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)

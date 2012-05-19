@@ -5,7 +5,6 @@ require 'active_support/inflector/transliterate'
 # For instance, you can figure out the name of a table from the name of a class.
 #
 #   'ScaleScore'.tableize # => "scale_scores"
-#
 class String
   # Returns the plural form of the word in the string.
   #
