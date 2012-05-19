@@ -37,8 +37,23 @@ module ActionDispatch
       end
 
       def inspect
-        "Redirect (#{status})"
+        "redirect(#{status})"
       end
+    end
+
+    class PathRedirect < Redirect
+      def path(params, request)
+        (params.empty? || !block.match(/%\{\w*\}/)) ? block : (block % escape(params))
+      end
+
+      def inspect
+        "redirect(#{status}, #{block})"
+      end
+
+      private
+        def escape(params)
+          Hash[params.map{ |k,v| [k, Rack::Utils.escape(v)] }]
+        end
     end
 
     class OptionRedirect < Redirect # :nodoc:
@@ -58,6 +73,10 @@ module ActionDispatch
         end
 
         ActionDispatch::Http::URL.url_for url_options
+      end
+
+      def inspect
+        "redirect(#{status}, #{options.map{ |k,v| "#{k}: #{v}" }.join(', ')})"
       end
 
       private
@@ -106,24 +125,15 @@ module ActionDispatch
       def redirect(*args, &block)
         options = args.extract_options!
         status  = options.delete(:status) || 301
+        path    = args.shift
 
         return OptionRedirect.new(status, options) if options.any?
-
-        path = args.shift
-
-        block = lambda { |params, request|
-          (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % escape(params))
-        } if String === path
+        return PathRedirect.new(status, path) if String === path
 
         block = path if path.respond_to? :call
         raise ArgumentError, "redirection argument not supported" unless block
         Redirect.new status, block
       end
-
-      private
-        def escape(params)
-          Hash[params.map{ |k,v| [k, Rack::Utils.escape(v)] }]
-        end
     end
   end
 end

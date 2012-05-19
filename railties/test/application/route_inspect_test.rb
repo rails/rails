@@ -155,11 +155,14 @@ module ApplicationTests
 
     def test_redirect
       output = draw do
-        match '/foo' => redirect("/bar")
-        match '/foo2' => redirect("/bar", status: 307)
+        get "/foo"    => redirect("/foo/bar"), :constraints => { :subdomain => "admin" }
+        get "/bar"    => redirect(path: "/foo/bar", status: 307)
+        get "/foobar" => redirect{ "/foo/bar" }
       end
-      assert_equal " foo  /foo(.:format)  Redirect (301)", output[0]
-      assert_equal "foo2  /foo2(.:format) Redirect (307)", output[1]
+
+      assert_equal "   foo GET /foo(.:format)    redirect(301, /foo/bar) {:subdomain=>\"admin\"}", output[0]
+      assert_equal "   bar GET /bar(.:format)    redirect(307, path: /foo/bar)", output[1]
+      assert_equal "foobar GET /foobar(.:format) redirect(301)", output[2]
     end
   end
 end
