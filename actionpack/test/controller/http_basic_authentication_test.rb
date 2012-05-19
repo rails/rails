@@ -93,6 +93,33 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert_no_match(/\n/, result)
   end
 
+  test "unsuccessful authentication request with application/json Accept header" do
+    @request.env["HTTP_ACCEPT"] = "application/json"
+    get :index
+
+    assert_response :unauthorized
+    assert_equal '{"error":"HTTP Basic: Access denied."}', @response.body
+    assert @response.headers['Content-Type'].start_with? 'application/json'
+  end
+
+  test "unsuccessful authentication request with text/xml Accept header" do
+    @request.env["HTTP_ACCEPT"] = "application/xml"
+    get :index
+
+    assert_response :unauthorized
+    assert_equal '<error>HTTP Basic: Access denied.</error>', @response.body
+    assert @response.headers['Content-Type'].start_with? 'application/xml'
+  end
+
+  test "unsuccessful authentication request defaults to plain text/html output with typical accept header" do
+    @request.env["HTTP_ACCEPT"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    get :index
+
+    assert_response :unauthorized
+    assert_equal "HTTP Basic: Access denied.\n", @response.body
+    assert @response.headers['Content-Type'].start_with? 'text/html'
+  end
+
   test "authentication request without credential" do
     get :display
 

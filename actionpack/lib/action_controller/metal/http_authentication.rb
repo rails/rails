@@ -5,10 +5,15 @@ module ActionController
   # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
   module HttpAuthentication
     module AccessDeniedResponder
-      def respond_with_access_denied(controller, type, header, message=nil)
+      def respond_with_access_denied(controller, type, header, message_override=nil)
         controller.headers["WWW-Authenticate"] = header
-        controller.response_body = message || "HTTP #{type}: Access denied.\n"
         controller.status = 401
+        error_message = message_override || "HTTP #{type}: Access denied.\n"
+        controller.__send__(:respond_to) do |format|
+          format.json { controller.__send__(:render, :json => {:error => error_message.strip}) }
+          format.xml { controller.__send__(:render, :xml => "<error>#{error_message.strip}</error>") }
+          format.any { controller.__send__(:render, :text => error_message) }
+        end
       end
     end
 
