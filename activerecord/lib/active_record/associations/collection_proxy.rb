@@ -37,6 +37,59 @@ module ActiveRecord
       delegate :target, :load_target, :loaded?, :to => :@association
 
       ##
+      # :method: select
+      #
+      # Works in two ways.
+      #
+      # *First:* Specify a subset of fields to be selected from the result set.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.select(:name)
+      #   # => [
+      #   #      #<Pet id: nil, name: "Fancy-Fancy">,
+      #   #      #<Pet id: nil, name: "Spook">,
+      #   #      #<Pet id: nil, name: "Choo-Choo">
+      #   #    ]
+      #
+      #   person.pets.select([:id, :name])
+      #   # => [
+      #   #      #<Pet id: 1, name: "Fancy-Fancy">,
+      #   #      #<Pet id: 2, name: "Spook">,
+      #   #      #<Pet id: 3, name: "Choo-Choo">
+      #   #    ]
+      #
+      # Be careful because this also means you’re initializing a model
+      # object with only the fields that you’ve selected. If you attempt
+      # to access a field that is not in the initialized record you’ll
+      # receive:
+      #
+      #   person.pets.select(:name).first.person_id
+      #   # => ActiveModel::MissingAttributeError: missing attribute: person_id
+      #
+      # *Second:* You can pass a block so it can be used just like Array#select.
+      # This build an array of objects from the database for the scope,
+      # converting them into an array and iterating through them using
+      # Array#select.
+      #
+      #   person.pets.select { |pet| pet.name =~ /oo/ }
+      #   # => [
+      #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
+
+      ##
       # :method: find
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as +ActiveRecord::Base.find+. Returns +ActiveRecord::RecordNotFound++
@@ -51,7 +104,7 @@ module ActiveRecord
       #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]  
+      #   #    ]
       #   
       #   person.pets.find(1) # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
       #   person.pets.find(4) # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=4
@@ -284,7 +337,7 @@ module ActiveRecord
                :sum, :count, :size, :length, :empty?,
                :any?, :many?, :include?,
                :to => :@association
-
+  
       def initialize(association)
         @association = association
         super association.klass, association.klass.arel_table
