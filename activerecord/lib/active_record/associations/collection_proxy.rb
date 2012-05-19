@@ -51,8 +51,10 @@ module ActiveRecord
       #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
       #
       #   person.pets.first # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
+      #
       #   person.pets.first(2)
       #   # => [
       #   #      #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
@@ -78,8 +80,10 @@ module ActiveRecord
       #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
       #
       #   person.pets.last # => #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #
       #   person.pets.last(2)
       #   # => [
       #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
@@ -116,7 +120,7 @@ module ActiveRecord
       #
       #   person.pets.concat([Pet.new(name: 'Brain'), Pet.new(name: 'Benny')])
       #   person.pets.size # => 5
-      
+
       ##
       # :method: replace
       # Replace this collection with +other_array+. This will perform a diff
@@ -127,17 +131,17 @@ module ActiveRecord
       #   end
       #
       #   person.pets
-      #   # => [#<Pet id: 1, name: "Wy", group: "cats", person_id: 1>]
+      #   # => [#<Pet id: 1, name: "Gorby", group: "cats", person_id: 1>]
       #
-      #   other_pets = [Pet.new(name: 'GorbyPuff', group: 'celebrities']
+      #   other_pets = [Pet.new(name: 'Puff', group: 'celebrities']
       #
       #   person.pets.replace(other_pets)
       #
       #   person.pets
-      #   # => [#<Pet id: 2, name: "GorbyPuff", group: "celebrities", person_id: 1>]
+      #   # => [#<Pet id: 2, name: "Puff", group: "celebrities", person_id: 1>]
       #
       # If the supplied array has an incorrect association type, it raises
-      # an ActiveRecord::AssociationTypeMismatch error:
+      # an <tt>ActiveRecord::AssociationTypeMismatch</tt> error:
       #
       #   person.pets.replace(["doo", "ggie", "gaga"])
       #   # => ActiveRecord::AssociationTypeMismatch: Pet expected, got String
@@ -156,27 +160,26 @@ module ActiveRecord
       #
       #   person.pets.size # => 0
       #   person.pets      # => []
-      
+
       ##
       # :method: empty?
       # Returns true if the collection is empty.
-      # Equivalent to +size.zero?+.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
       #   end
       #
       #   person.pets.count  # => 1
-      #   person.pets.empty? # => false 
+      #   person.pets.empty? # => false
       #
       #   person.pets.delete_all
+      #
       #   person.pets.count  # => 0
       #   person.pets.empty? # => true
 
       ##
       # :method: any?
-      # Returns true if the collections is not empty.
-      # Equivalent to +!collection.empty?+.
+      # Returns true if the collection is not empty.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -189,7 +192,7 @@ module ActiveRecord
       #   person.pets.count # => 0
       #   person.pets.any?  # => true
       #
-      # Also, you can pass a block to define a criteria. The behaviour
+      # You can also pass a block to define criteria. The behaviour
       # is the same, it returns true if the collection based on the
       # criteria is not empty.
       #
@@ -208,7 +211,7 @@ module ActiveRecord
 
       ##
       # :method: many?
-      # Returns true if the collection has more than 1 record.
+      # Returns true if the collection has more than one record.
       # Equivalent to +collection.size > 1+.
       #
       #   class Person < ActiveRecord::Base
@@ -222,14 +225,14 @@ module ActiveRecord
       #   person.pets.count #=> 2
       #   person.pets.many? #=> true
       #
-      # Also, you can pass a block to define a criteria. The
+      # You can also pass a block to define criteria. The
       # behaviour is the same, it returns true if the collection
-      # based on the criteria has more than 1 record.
+      # based on the criteria has more than one record.
       #
       #   person.pets
       #   # => [
-      #   #      #<Pet name: "GorbyPuff", group: "cats">,
-      #   #      #<Pet name: "Wy", group: "cats">,
+      #   #      #<Pet name: "Gorby", group: "cats">,
+      #   #      #<Pet name: "Puff", group: "cats">,
       #   #      #<Pet name: "Snoop", group: "dogs">
       #   #    ]
       #
@@ -349,7 +352,7 @@ module ActiveRecord
       #     has_many :pets, dependent: :destroy
       #   end
       #
-      #   person.pets       # => [#<Pet id: 2, name: "Wy", group: "cats", person_id: 2>]
+      #   person.pets       # => [#<Pet id: 2, name: "Gorby", group: "cats", person_id: 2>]
       #   person.pets.clear # => []
       #   person.pets.size  # => 0
       #
