@@ -42,9 +42,6 @@ group :doc do
   gem 'w3c_validators'
 end
 
-# AS
-gem 'memcache-client', '>= 1.8.5'
-
 # Add your own local bundler stuff
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exists? local_gemfile
