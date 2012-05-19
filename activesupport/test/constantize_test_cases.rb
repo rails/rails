@@ -29,6 +29,7 @@ module ConstantizeTestCases
     assert_nothing_raised { assert_equal Ace::Base::Case::Dice, yield("Ace::Base::Case::Dice") }
     assert_nothing_raised { assert_equal Ace::Base::Fase::Dice, yield("Ace::Base::Fase::Dice") }
     assert_nothing_raised { assert_equal Ace::Gas::Case, yield("Ace::Gas::Case") }
+    assert_nothing_raised { assert_equal Ace::Gas::Case::Dice, yield("Ace::Gas::Case::Dice") }
     assert_nothing_raised { assert_equal Case::Dice, yield("Case::Dice") }
     assert_nothing_raised { assert_equal Case::Dice, yield("Object::Case::Dice") }
     assert_nothing_raised { assert_equal ConstantizeTestCases, yield("ConstantizeTestCases") }
@@ -52,6 +53,7 @@ module ConstantizeTestCases
     assert_nothing_raised { assert_equal Ace::Base::Case::Dice, yield("Ace::Base::Case::Dice") }
     assert_nothing_raised { assert_equal Ace::Base::Fase::Dice, yield("Ace::Base::Fase::Dice") }
     assert_nothing_raised { assert_equal Ace::Gas::Case, yield("Ace::Gas::Case") }
+    assert_nothing_raised { assert_equal Ace::Gas::Case::Dice, yield("Ace::Gas::Case::Dice") }
     assert_nothing_raised { assert_equal Case::Dice, yield("Case::Dice") }
     assert_nothing_raised { assert_equal Case::Dice, yield("Object::Case::Dice") }
     assert_nothing_raised { assert_equal ConstantizeTestCases, yield("ConstantizeTestCases") }

@@ -198,21 +198,26 @@ module ActiveSupport
     #
     # NameError is raised when the name is not in CamelCase or the constant is
     # unknown.
-    def constantize(camel_cased_word) #:nodoc:
+    def constantize(camel_cased_word)
       names = camel_cased_word.split('::')
       names.shift if names.empty? || names.first.empty?
 
       names.inject(Object) do |constant, name|
-        candidate = constant.const_get(name)
-        if constant.const_defined?(name, false) || constant == Object || !Object.const_defined?(name)
-          candidate
+        if constant == Object
+          constant.const_get(name)
         else
+          candidate = constant.const_get(name)
+          next candidate if constant.const_defined?(name, false)
+          next candidate unless Object.const_defined?(name)
+
           # Go down the ancestors to check it it's owned
           # directly before we reach Object or the end of ancestors.
-          constant.ancestors.each do |ancestor|
-            break if ancestor == Object
-            return candidate if ancestor.const_defined?(name, false)
+          constant = constant.ancestors.inject do |constant, ancestor|
+            break constant if ancestor == Object
+            break ancestor if ancestor.const_defined?(name, false)
+            constant
           end
+
           # owner is in Object, so raise
           constant.const_get(name, false)
         end
