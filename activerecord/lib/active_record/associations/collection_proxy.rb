@@ -37,6 +37,26 @@ module ActiveRecord
       delegate :target, :load_target, :loaded?, :to => :@association
 
       ##
+      # :method: find
+      # Finds an object in the collection responding to the +id+. Uses the same
+      # rules as +ActiveRecord::Base.find+. Returns +ActiveRecord::RecordNotFound++
+      # error if the object can not be found.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]  
+      #   
+      #   person.pets.find(1) # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
+      #   person.pets.find(4) # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=4
+
+      ##
       # :method: first
       # Returns the first record, or the first +n+ records, from the collection.
       # If the collection is empty, the first form returns nil, and the second
