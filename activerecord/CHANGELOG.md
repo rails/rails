@@ -1,5 +1,10 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Fix a problem with `translate_exception` method in a non English environment.
+    Backport of #6397.
+
+    *kennyj*
+
 *   Fix dirty attribute checks for TimeZoneConversion with nil and blank
     datetime attributes. Setting a nil datetime to a blank string should not
     result in a change being flagged. Fix #8310 [Backport #8311]
