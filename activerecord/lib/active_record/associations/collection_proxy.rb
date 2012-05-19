@@ -177,6 +177,19 @@ module ActiveRecord
       #     pet.group == 'cats'
       #   end
       #   # => true
+
+      ##
+      # :method: include?
+      # Returns true if the given object is present in the collection.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets # => [#<Pet id: 20, name: "Snoop">]
+      #
+      #   person.pets.include?(Pet.find(20)) # => true
+      #   person.pets.include?(Pet.find(21)) # => false
       delegate :select, :find, :first, :last,
                :build, :create, :create!,
                :concat, :replace, :delete_all, :destroy_all, :delete, :destroy, :uniq,
