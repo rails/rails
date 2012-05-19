@@ -10,9 +10,9 @@ module ActiveRecord
     # Active Record implements aggregation through a macro-like class method called +composed_of+
     # for representing attributes  as value objects. It expresses relationships like "Account [is]
     # composed of Money [among other things]" or "Person [is] composed of [an] address". Each call
-    # to the macro adds a description of how the value objects  are created from the attributes of
-    # the entity object (when the entity is initialized either  as a new object or from finding an
-    # existing object) and how it can be turned back into attributes  (when the entity is saved to
+    # to the macro adds a description of how the value objects are created from the attributes of
+    # the entity object (when the entity is initialized either as a new object or from finding an
+    # existing object) and how it can be turned back into attributes (when the entity is saved to
     # the database).
     #
     #   class Customer < ActiveRecord::Base
@@ -109,7 +109,7 @@ module ActiveRecord
     # It's also important to treat the value objects as immutable. Don't allow the Money object to have
     # its amount changed after creation. Create a new Money object with the new value instead. The
     # Money#exchange_to method is an example of this. It returns a new value object instead of changing
-    # its own values. Active Record won't persist value objects that have been changed through means
+    # its own values. Active Record wont persist value objects that have been changed through means
     # other than the writer method.
     #
     # The immutable requirement is enforced by Active Record by freezing any object assigned as a value
