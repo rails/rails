@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `divider` option to `grouped_options_for_select` to generate a separator
+    `optgroup` automatically, and deprecate `prompt` as third argument, in favor
+    of using an options hash. *Nicholas Greenfield*
+
 *   Add `time_field` and `time_field_tag` helpers which render an `input[type="time"]` tag. *Alex Soulim*
 
 *   Removed old text_helper apis for highlight, excerpt and word_wrap *Jeremy Walker*

@@ -477,8 +477,8 @@ module ActionView
       #
       # Sample usage (Hash):
       #   grouped_options = {
-      #    'North America' => [['United States','US'], 'Canada'],
-      #    'Europe' => ['Denmark','Germany','France']
+      #     'North America' => [['United States','US'], 'Canada'],
+      #     'Europe' => ['Denmark','Germany','France']
       #   }
       #   grouped_options_for_select(grouped_options)
       #
@@ -495,10 +495,10 @@ module ActionView
       #
       # Sample usage (divider):
       #   grouped_options = [
-      #    [['United States','US'], 'Canada'],
-      #    ['Denmark','Germany','France']
+      #     [['United States','US'], 'Canada'],
+      #     ['Denmark','Germany','France']
       #   ]
-      #   grouped_options_for_select(grouped_options, divider: '---------')
+      #   grouped_options_for_select(grouped_options, nil, divider: '---------')
       #
       # Possible output:
       #   <optgroup label="---------">
@@ -513,15 +513,14 @@ module ActionView
       #
       # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
       # wrap the output in an appropriate <tt><select></tt> tag.
-      def grouped_options_for_select(*args)
-        grouped_options = args.shift
-        options = args.extract_options!
-        selected_key = args.shift
-        if prompt = args.shift
-          ActiveSupport::Deprecation.warn 'Passing the prompt to grouped_options_for_select as an argument is deprecated. Please pass it in an options hash.'
-        else
-          prompt = options[:prompt]
+      def grouped_options_for_select(grouped_options, selected_key = nil, options = {})
+        if options.is_a?(Hash)
+          prompt  = options[:prompt]
           divider = options[:divider]
+        else
+          prompt  = options
+          options = {}
+          ActiveSupport::Deprecation.warn "Passing the prompt to grouped_options_for_select as an argument is deprecated. Please use an options hash like `{ prompt: #{prompt.inspect} }`."
         end
 
         body = "".html_safe
@@ -534,7 +533,7 @@ module ActionView
 
         grouped_options.each do |container|
           if divider
-            label, container = divider, container
+            label = divider
           else
             label, container = container
           end

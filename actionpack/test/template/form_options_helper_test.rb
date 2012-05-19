@@ -300,12 +300,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<optgroup label=\"----------\"><option value=\"US\">US</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"----------\"><option value=\"GB\">GB</option>\n<option value=\"Germany\">Germany</option></optgroup>",
 
-      grouped_options_for_select([['US',"Canada"] , ["GB", "Germany"]], divider: "----------")
+      grouped_options_for_select([['US',"Canada"] , ["GB", "Germany"]], nil, divider: "----------")
     )
   end
 
   def test_grouped_options_for_select_with_selected_and_prompt_deprecated
-    assert_deprecated 'Passing the prompt to grouped_options_for_select as an argument is deprecated. Please pass it in an options hash.' do
+    assert_deprecated 'Passing the prompt to grouped_options_for_select as an argument is deprecated. Please use an options hash like `{ prompt: "Choose a product..." }`.' do
       assert_dom_equal(
         "<option value=\"\">Choose a product...</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
         grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], "Cowboy Hat", "Choose a product...")
