@@ -882,7 +882,7 @@ YAML
         module Bukkits
           class Engine < ::Rails::Engine
             config.generators do |g|
-              g.orm             :datamapper
+              g.orm             :data_mapper
               g.template_engine :haml
               g.test_framework  :rspec
             end
@@ -910,7 +910,7 @@ YAML
       assert_equal :test_unit, app_generators[:test_framework]
 
       generators = Bukkits::Engine.config.generators.options[:rails]
-      assert_equal :datamapper, generators[:orm]
+      assert_equal :data_mapper, generators[:orm]
       assert_equal :haml      , generators[:template_engine]
       assert_equal :rspec     , generators[:test_framework]
     end
