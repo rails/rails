@@ -141,11 +141,6 @@ module ActiveRecord
       #    name varchar(80)
       #  )
       #
-      # ====== Add a custom primary key column
-      #  create_table(:objects, :id => false) do |t|
-      #    t.string :slug, :primary => true
-      #  end
-      # 
       # ====== Do not add a primary key column
       #  create_table(:categories_suppliers, :id => false) do |t|
       #    t.column :category_id, :integer
