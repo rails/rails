@@ -139,14 +139,18 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a hash keyed by the thread id.
       def connection
-        @reserved_connections[current_connection_id] ||= checkout
+        synchronize do
+          @reserved_connections[current_connection_id] ||= checkout
+        end
       end
 
       # Is there an open connection that is being used for the current thread?
       def active_connection?
-        @reserved_connections.fetch(current_connection_id) {
-          return false
-        }.in_use?
+        synchronize do
+          @reserved_connections.fetch(current_connection_id) {
+            return false
+          }.in_use?
+        end
       end
 
       # Signal that the thread is finished with the current connection.
