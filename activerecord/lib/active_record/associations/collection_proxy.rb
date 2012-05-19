@@ -38,19 +38,30 @@ module ActiveRecord
 
       ##
       # :method: concat
-      # Add +records+ to this association. Returns +self+ so method calls may
-      # be chained. Since << flattens its argument list and inserts each record,
-      # +push+ and +concat+ behave identically.
+      # Add one or more records to the collection by setting their foreign keys
+      # to the association's primary key. Since << flattens its argument list and
+      # inserts each record, +push+ and +concat+ behave identically. Returns +self+
+      # so method calls may be chained.
       #
       #   class Person < ActiveRecord::Base
       #     pets :has_many
       #   end
       #
-      #   person.pets << Person.new(name: 'Nemo')
-      #   person.pets.concat(Person.new(name: 'Droopy'))
-      #   person.pets.push(Person.new(name: 'Ren'))
+      #   person.pets.size # => 0
+      #   person.pets.concat(Pet.new(name: 'Fancy-Fancy'))
+      #   person.pets.concat(Pet.new(name: 'Spook'), Pet.new(name: 'Choo-Choo'))
+      #   person.pets.size # => 3
       #
-      #   person.pets # => [#<Pet name: "Nemo">, #<Pet name: "Droopy">, #<Pet name: "Ren">]
+      #   person.id # => 1
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.concat([Pet.new(name: 'Brain'), Pet.new(name: 'Benny')])
+      #   person.pets.size # => 5
       
       ##
       # :method: replace
