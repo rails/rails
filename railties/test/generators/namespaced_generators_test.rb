@@ -20,8 +20,14 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_namespaced_controller_skeleton_is_created
     run_generator
-    assert_file "app/controllers/test_app/account_controller.rb", /module TestApp/, /  class AccountController < ApplicationController/
-    assert_file "test/functional/test_app/account_controller_test.rb", /module TestApp/, /  class AccountControllerTest/
+    assert_file "app/controllers/test_app/account_controller.rb",
+                /require "test_app\/application_controller"/,
+                /module TestApp/,
+                /  class AccountController < ApplicationController/
+
+    assert_file "test/functional/test_app/account_controller_test.rb",
+                /module TestApp/,
+                /  class AccountControllerTest/
   end
 
   def test_skipping_namespace
@@ -222,9 +228,10 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     end
 
     # Controller
-    assert_file "app/controllers/test_app/product_lines_controller.rb" do |content|
-      assert_match(/module TestApp\n  class ProductLinesController < ApplicationController/, content)
-    end
+    assert_file "app/controllers/test_app/product_lines_controller.rb",
+                /require "test_app\/application_controller"/,
+                /module TestApp/,
+                /class ProductLinesController < ApplicationController/
 
     assert_file "test/functional/test_app/product_lines_controller_test.rb",
                 /module TestApp\n  class ProductLinesControllerTest < ActionController::TestCase/
