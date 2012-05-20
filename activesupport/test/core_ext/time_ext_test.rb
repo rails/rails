@@ -906,4 +906,17 @@ class TimeExtMarshalingTest < ActiveSupport::TestCase
     assert_equal t.to_f, unmarshaled.to_f
     assert_equal t, unmarshaled
   end
+
+
+  def test_next_quarter_on_31st
+    assert_equal Time.local(2005, 11, 30), Time.local(2005, 8, 31).next_quarter
+  end
+
+  def test_prev_quarter_on_31st
+    assert_equal Time.local(2004, 2, 29), Time.local(2004, 5, 31).prev_quarter
+  end
+
+  def test_last_quarter_on_31st
+    assert_equal Time.local(2004, 2, 29), Time.local(2004, 5, 31).last_quarter
+  end
 end
