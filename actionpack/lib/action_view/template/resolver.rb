@@ -2,6 +2,7 @@ require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/io"
 require "action_view/template"
+require "thread"
 
 module ActionView
   # = Action View Resolver
@@ -34,10 +35,17 @@ module ActionView
     def initialize
       @cached = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
         h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
+      @cached_monitor = Monitor.new
     end
 
     def clear_cache
-      @cached.clear
+      # This method has been fixed just enough to get the tests to pass, but
+      # is no longer really useful. Within rails itself it's not used, but is this
+      # intended to be part of the public API?
+      @cached_monitor.synchronize {
+        @cached.clear
+        Thread.current["per_thread_template_cache-#{self.object_id}"] = nil
+      }
     end
 
     # Normalizes the arguments and passes it on to find_template.
@@ -50,6 +58,24 @@ module ActionView
   private
 
     delegate :caching?, :to => "self.class"
+
+    # The per thread cache
+    def per_thread_cache
+      # First check the thread local cache, and avoid the synchronization lock
+      #
+      # There is no clean up of template caches in the case that the resolver is
+      # replaced - and this might be challenging to implement. Is this likely to
+      # occur?
+      if cache = Thread.current["per_thread_template_cache-#{self.object_id}"]
+        return cache
+      end
+
+      @cached_monitor.synchronize {
+        Thread.current["per_thread_template_cache-#{self.object_id}"] =
+          Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
+            h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
+      }
+    end
 
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
@@ -71,21 +97,41 @@ module ActionView
       name, prefix, partial = path_info
       locals = locals.map { |x| x.to_s }.sort!
 
-      if key && caching?
-        @cached[key][name][prefix][partial][locals] ||= decorate(yield, path_info, details, locals)
-      else
-        fresh = decorate(yield, path_info, details, locals)
-        return fresh unless key
+      if caching?
+        if key
+          # Access to the cache needs to be synchronized, as Hash accesses aren't Threadsafe
+          # in all Rubys (for example JRuby).
+          #
+          # Cache both in the global cache and additionally in a Thread local cache. This means
+          # that we can avoid synchronizing in the most common situations. This relies on the fact
+          # that one a value is cached it is never replaced
+          if cache = per_thread_cache[key][name][prefix][partial][locals]
+            return cache
+          end
 
-        scope = @cached[key][name][prefix][partial]
-        cache = scope[locals]
-        mtime = cache && cache.map(&:updated_at).max
-
-        if !mtime || fresh.empty?  || fresh.any? { |t| t.updated_at > mtime }
-          scope[locals] = fresh
+          @cached_monitor.synchronize {
+            per_thread_cache[key][name][prefix][partial][locals] =
+              @cached[key][name][prefix][partial][locals] ||= decorate(yield, path_info, details, locals)
+          }
         else
-          cache
+          decorate(yield, path_info, details, locals)
         end
+      else
+        # Caching is unlikely to be off in performance sensitive situations so there is
+        # no issue locking in the general case
+        @cached_monitor.synchronize {
+          fresh = decorate(yield, path_info, details, locals)
+
+          scope = @cached[key][name][prefix][partial]
+          cache = scope[locals]
+          mtime = cache && cache.map(&:updated_at).max
+
+          if !mtime || fresh.empty?  || fresh.any? { |t| t.updated_at > mtime }
+            per_thread_cache[key][name][prefix][partial][locals] = scope[locals] = fresh
+          else
+            cache
+          end
+        }
       end
     end
 
