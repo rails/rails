@@ -28,7 +28,7 @@ module ActionDispatch
             assert @response.send("#{type}?"), message
           else
             code = Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
-            assert_equal @response.response_code, code, message
+            assert_equal code, @response.response_code, message
           end
         else
           assert_equal type, @response.response_code, message
