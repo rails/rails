@@ -2,6 +2,7 @@ require 'action_dispatch/http/request'
 require 'active_support/core_ext/uri'
 require 'active_support/core_ext/array/extract_options'
 require 'rack/utils'
+require 'action_controller/metal/exceptions'
 
 module ActionDispatch
   module Routing
@@ -15,6 +16,14 @@ module ActionDispatch
 
       def call(env)
         req = Request.new(env)
+
+        # If any of the path parameters has a invalid encoding then
+        # raise since it's likely to trigger errors further on.
+        req.symbolized_path_parameters.each do |key, value|
+          unless value.valid_encoding?
+            raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+          end
+        end
 
         uri = URI.parse(path(req.symbolized_path_parameters, req))
         uri.scheme ||= req.scheme

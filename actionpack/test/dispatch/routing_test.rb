@@ -2697,3 +2697,34 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
     assert_response :success
   end
 end
+
+class TestInvalidUrls < ActionDispatch::IntegrationTest
+  class FooController < ActionController::Base
+    def show
+      render :text => "foo#show"
+    end
+  end
+
+  test "invalid UTF-8 encoding returns a 400 Bad Request" do
+    with_routing do |set|
+      set.draw do
+        get "/bar/:id", :to => redirect("/foo/show/%{id}")
+        get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
+        get "/foo(/:action(/:id))", :to => "test_invalid_urls/foo"
+        get "/:controller(/:action(/:id))"
+      end
+
+      get "/%E2%EF%BF%BD%A6"
+      assert_response :bad_request
+
+      get "/foo/%E2%EF%BF%BD%A6"
+      assert_response :bad_request
+
+      get "/foo/show/%E2%EF%BF%BD%A6"
+      assert_response :bad_request
+
+      get "/bar/%E2%EF%BF%BD%A6"
+      assert_response :bad_request
+    end
+  end
+end

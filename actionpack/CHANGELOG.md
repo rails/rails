@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   URL path parameters with invalid encoding now raise ActionController::BadRequest. *Andrew White*
+
 *   Malformed query and request parameter hashes now raise ActionController::BadRequest. *Andrew White*
 
 *   Add `divider` option to `grouped_options_for_select` to generate a separator
