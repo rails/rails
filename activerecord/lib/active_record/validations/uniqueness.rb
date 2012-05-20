@@ -60,7 +60,7 @@ module ActiveRecord
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           relation = klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
-          value    = klass.connection.case_sensitive_modifier(value)
+          value    = klass.connection.case_sensitive_modifier(value) if value
           relation = table[attribute].eq(value)
         end
 
