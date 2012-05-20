@@ -105,6 +105,17 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "ambiguous query string returns a bad request" do
+    with_routing do |set|
+      set.draw do
+        get ':action', :to => ::QueryStringParsingTest::TestController
+      end
+
+      get "/parse", nil, "QUERY_STRING" => "foo[]=bar&foo[4]=bar"
+      assert_response :bad_request
+    end
+  end
+
   private
     def assert_parses(expected, actual)
       with_routing do |set|

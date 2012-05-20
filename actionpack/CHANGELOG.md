@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Malformed query and request parameter hashes now raise ActionController::BadRequest. *Andrew White*
+
 *   Add `divider` option to `grouped_options_for_select` to generate a separator
     `optgroup` automatically, and deprecate `prompt` as third argument, in favor
     of using an options hash. *Nicholas Greenfield*

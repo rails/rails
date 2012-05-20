@@ -12,7 +12,8 @@ module ActionDispatch
       'ActionController::MethodNotAllowed'         => :method_not_allowed,
       'ActionController::NotImplemented'           => :not_implemented,
       'ActionController::UnknownFormat'            => :not_acceptable,
-      'ActionController::InvalidAuthenticityToken' => :unprocessable_entity
+      'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
+      'ActionController::BadRequest'               => :bad_request
     )
 
     cattr_accessor :rescue_templates
