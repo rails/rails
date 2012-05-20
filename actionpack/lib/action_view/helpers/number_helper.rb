@@ -1,8 +1,10 @@
 # encoding: utf-8
 
+require 'active_support/i18n'
 require 'active_support/core_ext/big_decimal/conversions'
+require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/string/output_safety'
+require 'action_view/helpers/output_safety_helper'
 
 module ActionView
   # = Action View Number Helpers
@@ -15,6 +17,7 @@ module ActionView
     # Most methods expect a +number+ argument, and will return it
     # unchanged if can't be converted into a valid number.
     module NumberHelper
+      include OutputSafetyHelper
 
       DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :negative_format => "-%u%n", :unit => "$", :separator => ".", :delimiter => ",",
                                   :precision => 2, :significant => false, :strip_insignificant_zeros => false }
