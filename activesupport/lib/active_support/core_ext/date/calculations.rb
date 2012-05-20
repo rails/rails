@@ -202,6 +202,17 @@ class Date
     acts_like?(:time) ? result.change(:hour => 0) : result
   end
 
+  # Short-hand for months_ago(3)
+  def prev_quarter
+    months_ago(3)
+  end
+  alias_method :last_quarter, :prev_quarter
+
+  # Short-hand for months_since(3)
+  def next_quarter
+    months_since(3)
+  end
+
   # Returns a new Date/DateTime representing the start of the month (1st of the month; DateTime objects will have time set to 0:00)
   def beginning_of_month
     acts_like?(:time) ? change(:day => 1, :hour => 0) : change(:day => 1)

@@ -186,6 +186,17 @@ class Time
     months_since(1)
   end
 
+  # Short-hand for months_ago(3)
+  def prev_quarter
+    months_ago(3)
+  end
+  alias_method :last_quarter, :prev_quarter
+
+  # Short-hand for months_since(3)
+  def next_quarter
+    months_since(3)
+  end
+
   # Returns number of days to start of this week, week starts on start_day (default is :monday).
   def days_to_week_start(start_day = :monday)
     start_day_number = DAYS_INTO_WEEK[start_day]
