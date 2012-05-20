@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `assert_generates`, `assert_recognizes`, and `assert_routing` all raise
+    `Assertion` instead of `RoutingError` *David Chelimsky*
+
 *   URL path parameters with invalid encoding now raise ActionController::BadRequest. *Andrew White*
 
 *   Malformed query and request parameter hashes now raise ActionController::BadRequest. *Andrew White*
@@ -189,9 +192,6 @@
 
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
-
-*   `assert_generates`, `assert_recognizes`, and `assert_routing` all raise
-    `Assertion` instead of `RoutingError` *David Chelimsky*
 
 
 ## Rails 3.2.3 (March 30, 2012) ##
