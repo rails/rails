@@ -69,11 +69,9 @@ module ActionDispatch
       #   assert_generates "changesets/12", { :controller => 'scm', :action => 'show_diff', :revision => "12" }
       def assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)
         if expected_path =~ %r{://}
-          begin
+          fail_on(URI::InvalidURIError) do
             uri = URI.parse(expected_path)
             expected_path = uri.path.to_s.empty? ? "/" : uri.path
-          rescue URI::InvalidURIError => e
-            raise ActionController::RoutingError, e.message
           end
         else
           expected_path = "/#{expected_path}" unless expected_path.first == '/'
@@ -189,14 +187,12 @@ module ActionDispatch
           request = ActionController::TestRequest.new
 
           if path =~ %r{://}
-            begin
+            fail_on(URI::InvalidURIError) do
               uri = URI.parse(path)
               request.env["rack.url_scheme"] = uri.scheme || "http"
               request.host = uri.host if uri.host
               request.port = uri.port if uri.port
               request.path = uri.path.to_s.empty? ? "/" : uri.path
-            rescue URI::InvalidURIError => e
-              raise ActionController::RoutingError, e.message
             end
           else
             path = "/#{path}" unless path.first == "/"
@@ -205,10 +201,20 @@ module ActionDispatch
 
           request.request_method = method if method
 
-          params = @routes.recognize_path(path, { :method => method, :extras => extras })
+          params = fail_on(ActionController::RoutingError) do
+            @routes.recognize_path(path, { :method => method, :extras => extras })
+          end
           request.path_parameters = params.with_indifferent_access
 
           request
+        end
+
+        def fail_on(exception_class)
+          begin
+            yield
+          rescue exception_class => e
+            raise MiniTest::Assertion, e.message
+          end
         end
     end
   end

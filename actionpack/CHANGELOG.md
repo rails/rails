@@ -186,6 +186,9 @@
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
 
+*   `assert_generates`, `assert_recognizes`, and `assert_routing` all raise
+    `Assertion` instead of `RoutingError` *David Chelimsky*
+
 
 ## Rails 3.2.3 (March 30, 2012) ##
 
