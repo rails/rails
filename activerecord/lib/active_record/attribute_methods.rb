@@ -49,14 +49,6 @@ module ActiveRecord
         @attribute_methods_generated ||= false
       end
 
-      # We will define the methods as instance methods, but will call them as singleton
-      # methods. This allows us to use method_defined? to check if the method exists,
-      # which is fast and won't give any false positives from the ancestors (because
-      # there are no ancestors).
-      def generated_external_attribute_methods
-        @generated_external_attribute_methods ||= Module.new { extend self }
-      end
-
       def undefine_attribute_methods
         super if attribute_methods_generated?
         @attribute_methods_generated = false

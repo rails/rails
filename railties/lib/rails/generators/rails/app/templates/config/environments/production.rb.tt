@@ -21,7 +21,7 @@
   # Generate digests for assets URLs.
   config.assets.digest = true
 
-  # Defaults to Rails.root.join("public/assets").
+  # Defaults to nil and saved in location specified by config.assets.prefix
   # config.assets.manifest = YOUR_PATH
   <%- end -%>
 
@@ -32,8 +32,8 @@
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # config.force_ssl = true
 
-  # See everything in the log (default is :info).
-  # config.log_level = :debug
+  # Set to :debug to see everything in the log.
+  config.log_level = :info
 
   # Prepend all log lines with the following tags.
   # config.log_tags = [ :subdomain, :uuid ]
@@ -76,4 +76,8 @@
 
   # Use default logging formatter so that PID and timestamp are not suppressed
   config.log_formatter = ::Logger::Formatter.new
+
+  # Default the production mode queue to an in-memory queue. You will probably
+  # want to replace this with an out-of-process queueing solution
+  config.queue = Rails::Queueing::Queue
 end

@@ -45,6 +45,10 @@ class TestCaseTest < ActionController::TestCase
       render :text => request.fullpath
     end
 
+    def test_format
+      render :text => request.format
+    end
+
     def test_query_string
       render :text => request.query_string
     end
@@ -138,7 +142,7 @@ XML
     @request.env['PATH_INFO'] = nil
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        match ':controller(/:action(/:id))'
+        get ':controller(/:action(/:id))'
       end
     end
   end
@@ -222,6 +226,26 @@ XML
     assert_equal 'value1', session[:string]
     assert_equal 'value2', session['symbol']
     assert_equal 'value2', session[:symbol]
+  end
+
+  def test_process_merges_session_arg
+    session[:foo] = 'bar'
+    get :no_op, nil, { :bar => 'baz' }
+    assert_equal 'bar', session[:foo]
+    assert_equal 'baz', session[:bar]
+  end
+
+  def test_merged_session_arg_is_retained_across_requests
+    get :no_op, nil, { :foo => 'bar' }
+    assert_equal 'bar', session[:foo]
+    get :no_op
+    assert_equal 'bar', session[:foo]
+  end
+
+  def test_process_overwrites_existing_session_arg
+    session[:foo] = 'bar'
+    get :no_op, nil, { :foo => 'baz' }
+    assert_equal 'baz', session[:foo]
   end
 
   def test_session_is_cleared_from_controller_after_reset_session
@@ -524,7 +548,7 @@ XML
     with_routing do |set|
       set.draw do
         namespace :admin do
-          match 'user' => 'user#index'
+          get 'user' => 'user#index'
         end
       end
 
@@ -534,7 +558,7 @@ XML
 
   def test_assert_routing_with_glob
     with_routing do |set|
-      set.draw { match('*path' => "pages#show") }
+      set.draw { get('*path' => "pages#show") }
       assert_routing('/company/about', { :controller => 'pages', :action => 'show', :path => 'company/about' })
     end
   end
@@ -559,14 +583,34 @@ XML
     )
   end
 
+  def test_params_passing_with_fixnums_when_not_html_request
+    get :test_params, :format => 'json', :count => 999
+    parsed_params = eval(@response.body)
+    assert_equal(
+      {'controller' => 'test_case_test/test', 'action' => 'test_params',
+       'format' => 'json', 'count' => 999 },
+      parsed_params
+    )
+  end
+
+  def test_params_passing_path_parameter_is_string_when_not_html_request
+    get :test_params, :format => 'json', :id => 1
+    parsed_params = eval(@response.body)
+    assert_equal(
+      {'controller' => 'test_case_test/test', 'action' => 'test_params',
+       'format' => 'json', 'id' => '1' },
+      parsed_params
+    )
+  end
+
   def test_params_passing_with_frozen_values
     assert_nothing_raised do
-      get :test_params, :frozen => 'icy'.freeze, :frozens => ['icy'.freeze].freeze
+      get :test_params, :frozen => 'icy'.freeze, :frozens => ['icy'.freeze].freeze, :deepfreeze => { :frozen => 'icy'.freeze }.freeze
     end
     parsed_params = eval(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
-       'frozen' => 'icy', 'frozens' => ['icy']},
+       'frozen' => 'icy', 'frozens' => ['icy'], 'deepfreeze' => { 'frozen' => 'icy' }},
       parsed_params
     )
   end
@@ -585,8 +629,8 @@ XML
   def test_array_path_parameter_handled_properly
     with_routing do |set|
       set.draw do
-        match 'file/*path', :to => 'test_case_test/test#test_params'
-        match ':controller/:action'
+        get 'file/*path', :to => 'test_case_test/test#test_params'
+        get ':controller/:action'
       end
 
       get :test_params, :path => ['hello', 'world']
@@ -665,6 +709,20 @@ XML
     @request.env.delete("HTTPS")
     get :test_protocol
     assert_equal "http://", @response.body
+  end
+
+  def test_request_format
+    get :test_format, :format => 'html'
+    assert_equal 'text/html', @response.body
+
+    get :test_format, :format => 'json'
+    assert_equal 'application/json', @response.body
+
+    get :test_format, :format => 'xml'
+    assert_equal 'application/xml', @response.body
+
+    get :test_format
+    assert_equal 'text/html', @response.body
   end
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
@@ -826,5 +884,26 @@ class NamedRoutesControllerTest < ActionController::TestCase
       assert_equal 'http://test.host/contents/new', new_content_url
       assert_equal 'http://test.host/contents/1', content_url(:id => 1)
     end
+  end
+end
+
+class AnonymousControllerTest < ActionController::TestCase
+  def setup
+    @controller = Class.new(ActionController::Base) do
+      def index
+        render :text => params[:controller]
+      end
+    end.new
+
+    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
+      r.draw do
+        get ':controller(/:action(/:id))'
+      end
+    end
+  end
+
+  def test_controller_name
+    get :index
+    assert_equal 'anonymous', @response.body
   end
 end

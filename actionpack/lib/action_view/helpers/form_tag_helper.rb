@@ -2,6 +2,7 @@ require 'cgi'
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionView
   # = Action View Form Tag Helpers
@@ -17,6 +18,9 @@ module ActionView
       include UrlHelper
       include TextHelper
 
+      mattr_accessor :embed_authenticity_token_in_remote_forms
+      self.embed_authenticity_token_in_remote_forms = false
+
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
@@ -27,9 +31,11 @@ module ActionView
       #   is added to simulate the verb over post.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
       #   pass custom authenticity token string, or to not add authenticity_token field at all
-      #   (by passing <tt>false</tt>). If this is a remote form, the authenticity_token will by default
-      #   not be included as the ajax handler will get it from the meta-tag (but you can force it to be
-      #   rendered anyway in that case by passing <tt>true</tt>).
+      #   (by passing <tt>false</tt>).  Remote forms may omit the embedded authenticity token
+      #   by setting <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
+      #   This is helpful when you're fragment-caching the form. Remote forms get the
+      #   authenticity from the <tt>meta</tt> tag, so embedding is unnecessary unless you
+      #   support browsers without JavaScript.
       # * A list of parameters to feed to the URL the form will be posted to.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
@@ -39,7 +45,7 @@ module ActionView
       #   # => <form action="/posts" method="post">
       #
       #   form_tag('/posts/1', :method => :put)
-      #   # => <form action="/posts/1" method="put">
+      #   # => <form action="/posts/1" method="post"> ... <input name="_method" type="hidden" value="put" /> ...
       #
       #   form_tag('/upload', :multipart => true)
       #   # => <form action="/upload" method="post" enctype="multipart/form-data">
@@ -95,7 +101,7 @@ module ActionView
       #   # => <select id="colors" multiple="multiple" name="colors[]"><option>Red</option>
       #   #    <option>Green</option><option>Blue</option></select>
       #
-      #   select_tag "locations", "<option>Home</option><option selected="selected">Work</option><option>Out</option>".html_safe
+      #   select_tag "locations", "<option>Home</option><option selected='selected'>Work</option><option>Out</option>".html_safe
       #   # => <select id="locations" name="locations"><option>Home</option><option selected='selected'>Work</option>
       #   #    <option>Out</option></select>
       #
@@ -116,11 +122,11 @@ module ActionView
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
 
         if options.delete(:include_blank)
-          option_tags = "<option value=\"\"></option>".html_safe + option_tags
+          option_tags = content_tag(:option, '', :value => '').safe_concat(option_tags)
         end
 
         if prompt = options.delete(:prompt)
-          option_tags = "<option value=\"\">#{prompt}</option>".html_safe + option_tags
+          option_tags = content_tag(:option, prompt, :value => '').safe_concat(option_tags)
         end
 
         content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
@@ -380,9 +386,6 @@ module ActionView
       #   drivers will provide a prompt with the question specified. If the user accepts,
       #   the form is processed normally, otherwise no action is taken.
       # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
-      #   disabled version of the submit button when the form is submitted. This feature is
-      #   provided by the unobtrusive JavaScript driver.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -395,24 +398,20 @@ module ActionView
       #   submit_tag "Save edits", :disabled => true
       #   # => <input disabled="disabled" name="commit" type="submit" value="Save edits" />
       #
-      #   submit_tag "Complete sale", :disable_with => "Please wait..."
+      #   submit_tag "Complete sale", :data => { :disable_with => "Please wait..." }
       #   # => <input name="commit" data-disable-with="Please wait..." type="submit" value="Complete sale" />
       #
       #   submit_tag nil, :class => "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
-      #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit_button"
-      #   # => <input class="edit_button" data-disable_with="Editing..." name="commit" type="submit" value="Edit" />
+      #   submit_tag "Edit", :class => "edit_button"
+      #   # => <input class="edit_button" name="commit" type="submit" value="Edit" />
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
       #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
-
-        if disable_with = options.delete("disable_with")
-          options["data-disable-with"] = disable_with
-        end
 
         if confirm = options.delete("confirm")
           options["data-confirm"] = confirm
@@ -435,10 +434,6 @@ module ActionView
       #   processed normally, otherwise no action is taken.
       # * <tt>:disabled</tt> - If true, the user will not be able to
       #   use this input.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
-      #   used as the value for a disabled version of the submit
-      #   button when the form is submitted. This feature is provided
-      #   by the unobtrusive JavaScript driver.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -452,17 +447,10 @@ module ActionView
       #   #     <strong>Ask me!</strong>
       #   #    </button>
       #
-      #   button_tag "Checkout", :disable_with => "Please wait..."
-      #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
-      #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
         options ||= {}
         options = options.stringify_keys
-
-        if disable_with = options.delete("disable_with")
-          options["data-disable-with"] = disable_with
-        end
 
         if confirm = options.delete("confirm")
           options["data-confirm"] = confirm
@@ -496,6 +484,9 @@ module ActionView
       #
       #   image_submit_tag("agree.png", :disabled => true, :class => "agree_disagree_button")
       #   # => <input class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
+      #
+      #   image_submit_tag("save.png", :confirm => "Are you sure?")
+      #   # => <input src="/images/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
 
@@ -558,6 +549,17 @@ module ActionView
         text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
       end
 
+      # Creates a text field of type "time".
+      #
+      # === Options
+      # * <tt>:min</tt> - The minimum acceptable value.
+      # * <tt>:max</tt> - The maximum acceptable value.
+      # * <tt>:step</tt> - The acceptable value granularity.
+      # * Otherwise accepts the same options as text_field_tag.
+      def time_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "time"))
+      end
+
       # Creates a text field of type "url".
       #
       # ==== Options
@@ -618,16 +620,18 @@ module ActionView
             # responsibility of the caller to escape all the values.
             html_options["action"]  = url_for(url_for_options)
             html_options["accept-charset"] = "UTF-8"
-            
+
             html_options["data-remote"] = true if html_options.delete("remote")
 
-            if html_options["data-remote"] && html_options["authenticity_token"] == true
+            if html_options["data-remote"] &&
+               !embed_authenticity_token_in_remote_forms &&
+               html_options["authenticity_token"].blank?
+              # The authenticity token is taken from the meta tag in this case
+              html_options["authenticity_token"] = false
+            elsif html_options["authenticity_token"] == true
               # Include the default authenticity_token, which is only generated when its set to nil,
               # but we needed the true value to override the default of no authenticity_token on data-remote.
               html_options["authenticity_token"] = nil
-            elsif html_options["data-remote"]
-              # The authenticity token is taken from the meta tag in this case
-              html_options["authenticity_token"] = false
             end
           end
         end

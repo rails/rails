@@ -264,7 +264,6 @@ module ActionView
       # Finally, this method supports a <tt>:default</tt> option, which selects
       # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
       #
-      # Examples:
       #   time_zone_select( "user", "time_zone", nil, :include_blank => true)
       #
       #   time_zone_select( "user", "time_zone", nil, :default => "Pacific Time (US & Canada)" )
@@ -288,38 +287,55 @@ module ActionView
       #
       # Examples (call, result):
       #   options_for_select([["Dollar", "$"], ["Kroner", "DKK"]])
-      #     <option value="$">Dollar</option>\n<option value="DKK">Kroner</option>
+      #   # <option value="$">Dollar</option>
+      #   # <option value="DKK">Kroner</option>
       #
       #   options_for_select([ "VISA", "MasterCard" ], "MasterCard")
-      #     <option>VISA</option>\n<option selected="selected">MasterCard</option>
+      #   # <option>VISA</option>
+      #   # <option selected="selected">MasterCard</option>
       #
       #   options_for_select({ "Basic" => "$20", "Plus" => "$40" }, "$40")
-      #     <option value="$20">Basic</option>\n<option value="$40" selected="selected">Plus</option>
+      #   # <option value="$20">Basic</option>
+      #   # <option value="$40" selected="selected">Plus</option>
       #
       #   options_for_select([ "VISA", "MasterCard", "Discover" ], ["VISA", "Discover"])
-      #     <option selected="selected">VISA</option>\n<option>MasterCard</option>\n<option selected="selected">Discover</option>
+      #   # <option selected="selected">VISA</option>
+      #   # <option>MasterCard</option>
+      #   # <option selected="selected">Discover</option>
       #
       # You can optionally provide html attributes as the last element of the array.
       #
       # Examples:
       #   options_for_select([ "Denmark", ["USA", {:class => 'bold'}], "Sweden" ], ["USA", "Sweden"])
-      #     <option value="Denmark">Denmark</option>\n<option value="USA" class="bold" selected="selected">USA</option>\n<option value="Sweden" selected="selected">Sweden</option>
+      #   # <option value="Denmark">Denmark</option>
+      #   # <option value="USA" class="bold" selected="selected">USA</option>
+      #   # <option value="Sweden" selected="selected">Sweden</option>
       #
       #   options_for_select([["Dollar", "$", {:class => "bold"}], ["Kroner", "DKK", {:onclick => "alert('HI');"}]])
-      #     <option value="$" class="bold">Dollar</option>\n<option value="DKK" onclick="alert('HI');">Kroner</option>
+      #   # <option value="$" class="bold">Dollar</option>
+      #   # <option value="DKK" onclick="alert('HI');">Kroner</option>
       #
       # If you wish to specify disabled option tags, set +selected+ to be a hash, with <tt>:disabled</tt> being either a value
       # or array of values to be disabled. In this case, you can use <tt>:selected</tt> to specify selected option tags.
       #
       # Examples:
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :disabled => "Super Platinum")
-      #     <option value="Free">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # <option value="Free">Free</option>
+      #   # <option value="Basic">Basic</option>
+      #   # <option value="Advanced">Advanced</option>
+      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :disabled => ["Advanced", "Super Platinum"])
-      #     <option value="Free">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced" disabled="disabled">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # <option value="Free">Free</option>
+      #   # <option value="Basic">Basic</option>
+      #   # <option value="Advanced" disabled="disabled">Advanced</option>
+      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :selected => "Free", :disabled => "Super Platinum")
-      #     <option value="Free" selected="selected">Free</option>\n<option value="Basic">Basic</option>\n<option value="Advanced">Advanced</option>\n<option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # <option value="Free" selected="selected">Free</option>
+      #   # <option value="Basic">Basic</option>
+      #   # <option value="Advanced">Advanced</option>
+      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_for_select(container, selected = nil)
@@ -444,8 +460,11 @@ module ActionView
       # * +selected_key+ - A value equal to the +value+ attribute for one of the <tt><option></tt> tags,
       #   which will have the +selected+ attribute set. Note: It is possible for this value to match multiple options
       #   as you might have the same option in multiple groups. Each will then get <tt>selected="selected"</tt>.
-      # * +prompt+ - set to true or a prompt string. When the select element doesn't have a value yet, this
+      #
+      # Options:
+      # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this
       #   prepends an option with a generic prompt - "Please select" - or the given prompt string.
+      # * <tt>:divider</tt> - the divider for the options groups.
       #
       # Sample usage (Array):
       #   grouped_options = [
@@ -458,8 +477,8 @@ module ActionView
       #
       # Sample usage (Hash):
       #   grouped_options = {
-      #    'North America' => [['United States','US'], 'Canada'],
-      #    'Europe' => ['Denmark','Germany','France']
+      #     'North America' => [['United States','US'], 'Canada'],
+      #     'Europe' => ['Denmark','Germany','France']
       #   }
       #   grouped_options_for_select(grouped_options)
       #
@@ -474,15 +493,50 @@ module ActionView
       #     <option value="Canada">Canada</option>
       #   </optgroup>
       #
+      # Sample usage (divider):
+      #   grouped_options = [
+      #     [['United States','US'], 'Canada'],
+      #     ['Denmark','Germany','France']
+      #   ]
+      #   grouped_options_for_select(grouped_options, nil, divider: '---------')
+      #
+      # Possible output:
+      #   <optgroup label="---------">
+      #     <option value="Denmark">Denmark</option>
+      #     <option value="Germany">Germany</option>
+      #     <option value="France">France</option>
+      #   </optgroup>
+      #   <optgroup label="---------">
+      #     <option value="US">United States</option>
+      #     <option value="Canada">Canada</option>
+      #   </optgroup>
+      #
       # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
       # wrap the output in an appropriate <tt><select></tt> tag.
-      def grouped_options_for_select(grouped_options, selected_key = nil, prompt = nil)
+      def grouped_options_for_select(grouped_options, selected_key = nil, options = {})
+        if options.is_a?(Hash)
+          prompt  = options[:prompt]
+          divider = options[:divider]
+        else
+          prompt  = options
+          options = {}
+          ActiveSupport::Deprecation.warn "Passing the prompt to grouped_options_for_select as an argument is deprecated. Please use an options hash like `{ prompt: #{prompt.inspect} }`."
+        end
+
         body = "".html_safe
-        body.safe_concat content_tag(:option, prompt, :value => "") if prompt
+
+        if prompt
+          body.safe_concat content_tag(:option, prompt_text(prompt), :value => "")
+        end
 
         grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
 
-        grouped_options.each do |label, container|
+        grouped_options.each do |container|
+          if divider
+            label = divider
+          else
+            label, container = container
+          end
           body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), :label => label)
         end
 
@@ -697,6 +751,10 @@ module ActionView
 
         def value_for_collection(item, value)
           value.respond_to?(:call) ? value.call(item) : item.send(value)
+        end
+
+        def prompt_text(prompt)
+          prompt = prompt.kind_of?(String) ? prompt : I18n.translate('helpers.select.prompt', :default => 'Please select')
         end
     end
 

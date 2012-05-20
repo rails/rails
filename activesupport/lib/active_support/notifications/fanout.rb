@@ -9,7 +9,7 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, block = Proc.new)
-        subscriber = Subscriber.new(pattern, block)
+        subscriber = Subscribers.new pattern, block
         @subscribers << subscriber
         @listeners_for.clear
         subscriber
@@ -18,6 +18,14 @@ module ActiveSupport
       def unsubscribe(subscriber)
         @subscribers.reject! { |s| s.matches?(subscriber) }
         @listeners_for.clear
+      end
+
+      def start(name, id, payload)
+        listeners_for(name).each { |s| s.start(name, id, payload) }
+      end
+
+      def finish(name, id, payload)
+        listeners_for(name).each { |s| s.finish(name, id, payload) }
       end
 
       def publish(name, *args)
@@ -36,23 +44,89 @@ module ActiveSupport
       def wait
       end
 
-      class Subscriber #:nodoc:
-        def initialize(pattern, delegate)
-          @pattern = pattern
-          @delegate = delegate
+      module Subscribers # :nodoc:
+        def self.new(pattern, listener)
+          if listener.respond_to?(:call)
+            subscriber = Timed.new pattern, listener
+          else
+            subscriber = Evented.new pattern, listener
+          end
+
+          unless pattern
+            AllMessages.new(subscriber)
+          else
+            subscriber
+          end
         end
 
-        def publish(message, *args)
-          @delegate.call(message, *args)
+        class Evented #:nodoc:
+          def initialize(pattern, delegate)
+            @pattern = pattern
+            @delegate = delegate
+          end
+
+          def start(name, id, payload)
+            @delegate.start name, id, payload
+          end
+
+          def finish(name, id, payload)
+            @delegate.finish name, id, payload
+          end
+
+          def subscribed_to?(name)
+            @pattern === name.to_s
+          end
+
+          def matches?(subscriber_or_name)
+            self === subscriber_or_name ||
+              @pattern && @pattern === subscriber_or_name
+          end
         end
 
-        def subscribed_to?(name)
-          !@pattern || @pattern === name.to_s
+        class Timed < Evented
+          def initialize(pattern, delegate)
+            @timestack = Hash.new { |h,id|
+              h[id] = Hash.new { |ids,name| ids[name] = [] }
+            }
+            super
+          end
+
+          def publish(name, *args)
+            @delegate.call name, *args
+          end
+
+          def start(name, id, payload)
+            @timestack[id][name].push Time.now
+          end
+
+          def finish(name, id, payload)
+            started = @timestack[id][name].pop
+            @delegate.call(name, started, Time.now, id, payload)
+          end
         end
 
-        def matches?(subscriber_or_name)
-          self === subscriber_or_name ||
-            @pattern && @pattern === subscriber_or_name
+        class AllMessages # :nodoc:
+          def initialize(delegate)
+            @delegate = delegate
+          end
+
+          def start(name, id, payload)
+            @delegate.start name, id, payload
+          end
+
+          def finish(name, id, payload)
+            @delegate.finish name, id, payload
+          end
+
+          def publish(name, *args)
+            @delegate.publish name, *args
+          end
+
+          def subscribed_to?(name)
+            true
+          end
+
+          alias :matches? :===
         end
       end
     end

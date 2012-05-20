@@ -28,7 +28,7 @@ module ActiveModel
   #     attribute_method_affix  :prefix => 'reset_', :suffix => '_to_default!'
   #     attribute_method_suffix '_contrived?'
   #     attribute_method_prefix 'clear_'
-  #     define_attribute_methods ['name']
+  #     define_attribute_methods 'name'
   #
   #     attr_accessor :name
   #
@@ -86,7 +86,7 @@ module ActiveModel
       #     include ActiveModel::AttributeMethods
       #     attr_accessor :name
       #     attribute_method_prefix 'clear_'
-      #     define_attribute_methods [:name]
+      #     define_attribute_methods :name
       #
       #     private
       #
@@ -124,7 +124,7 @@ module ActiveModel
       #     include ActiveModel::AttributeMethods
       #     attr_accessor :name
       #     attribute_method_suffix '_short?'
-      #     define_attribute_methods [:name]
+      #     define_attribute_methods :name
       #
       #     private
       #
@@ -162,7 +162,7 @@ module ActiveModel
       #     include ActiveModel::AttributeMethods
       #     attr_accessor :name
       #     attribute_method_affix :prefix => 'reset_', :suffix => '_to_default!'
-      #     define_attribute_methods [:name]
+      #     define_attribute_methods :name
       #
       #     private
       #
@@ -180,6 +180,18 @@ module ActiveModel
         undefine_attribute_methods
       end
 
+
+      # Allows you to make aliases for attributes.
+      #
+      #   class Person
+      #     attr_accessor :name
+      #     alias_attribute :nickname, :name
+      #   end
+      #
+      #   person = Person.new
+      #   person.nickname = "Bob"
+      #   person.nickname # => "Bob"
+      #   person.name     # => "Bob"
       def alias_attribute(new_name, old_name)
         attribute_method_matchers.each do |matcher|
           matcher_new = matcher.method_name(new_name).to_s
@@ -204,7 +216,7 @@ module ActiveModel
       #     # Call to define_attribute_methods must appear after the
       #     # attribute_method_prefix, attribute_method_suffix or
       #     # attribute_method_affix declares.
-      #     define_attribute_methods [:name, :age, :address]
+      #     define_attribute_methods :name, :age, :address
       #
       #     private
       #
@@ -212,8 +224,8 @@ module ActiveModel
       #       ...
       #     end
       #   end
-      def define_attribute_methods(attr_names)
-        attr_names.each { |attr_name| define_attribute_method(attr_name) }
+      def define_attribute_methods(*attr_names)
+        attr_names.flatten.each { |attr_name| define_attribute_method(attr_name) }
       end
 
       def define_attribute_method(attr_name)
@@ -243,11 +255,7 @@ module ActiveModel
 
       # Returns true if the attribute methods defined have been generated.
       def generated_attribute_methods #:nodoc:
-        @generated_attribute_methods ||= begin
-          mod = Module.new
-          include mod
-          mod
-        end
+        @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
       end
 
       protected

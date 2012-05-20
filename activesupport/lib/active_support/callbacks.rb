@@ -23,8 +23,6 @@ module ActiveSupport
   # methods, procs or lambdas, or callback objects that respond to certain predetermined
   # methods. See +ClassMethods.set_callback+ for details.
   #
-  # ==== Example
-  #
   #   class Record
   #     include ActiveSupport::Callbacks
   #     define_callbacks :save
@@ -54,7 +52,6 @@ module ActiveSupport
   #   saving...
   #   - save
   #   saved
-  #
   module Callbacks
     extend Concern
 
@@ -73,10 +70,9 @@ module ActiveSupport
     #   run_callbacks :save do
     #     save
     #   end
-    #
-    def run_callbacks(kind, key = nil, &block)
-      #TODO: deprecate key argument
-      self.class.__run_callbacks(kind, self, &block)
+    def run_callbacks(kind, &block)
+      runner_name = self.class.__define_callbacks(kind, self)
+      send(runner_name, &block)
     end
 
     private
@@ -187,7 +183,7 @@ module ActiveSupport
       # Compile around filters with conditions into proxy methods
       # that contain the conditions.
       #
-      # For `around_save :filter_name, :if => :condition':
+      # For `set_callback :save, :around, :filter_name, :if => :condition':
       #
       # def _conditional_callback_save_17
       #   if condition
@@ -198,7 +194,6 @@ module ActiveSupport
       #     yield self
       #   end
       # end
-      #
       def define_conditional_callback
         name = "_conditional_callback_#{@kind}_#{next_id}"
         @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
@@ -252,7 +247,6 @@ module ActiveSupport
       #   Objects::
       #     a method is created that calls the before_foo method
       #     on the object.
-      #
       def _compile_filter(filter)
         method_name = "_callback_#{@kind}_#{next_id}"
         case filter
@@ -316,43 +310,33 @@ module ActiveSupport
         method << "value = nil"
         method << "halted = false"
 
-        callbacks = "value = yield if block_given? && !halted"
+        callbacks = "value = !halted && (!block_given? || yield)"
         reverse_each do |callback|
           callbacks = callback.apply(callbacks)
         end
         method << callbacks
 
-        method << "halted ? false : (block_given? ? value : true)"
-        method.flatten.compact.join("\n")
+        method << "value"
+        method.join("\n")
       end
 
     end
 
     module ClassMethods
 
-      # This method runs callback chain for the given kind.
-      # If this called first time it creates a new callback method for the kind.
+      # This method defines callback chain method for the given kind
+      # if it was not yet defined.
       # This generated method plays caching role.
-      #
-      def __run_callbacks(kind, object, &blk) #:nodoc:
-        name = __callback_runner_name(kind)
+      def __define_callbacks(kind, object) #:nodoc:
+        chain = object.send("_#{kind}_callbacks")
+        name = "_run_callbacks_#{chain.object_id.abs}"
         unless object.respond_to?(name, true)
-          str = object.send("_#{kind}_callbacks").compile
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{name}() #{str} end
+            def #{name}() #{chain.compile} end
             protected :#{name}
           RUBY_EVAL
         end
-        object.send(name, &blk)
-      end
-
-      def __reset_runner(symbol)
-        name = __callback_runner_name(symbol)
-        undef_method(name) if method_defined?(name)
-      end
-
-      def __callback_runner_name(kind)
-        "_run__#{self.name.hash.abs}__#{kind}__callbacks"
+        name
       end
 
       # This is used internally to append, prepend and skip callbacks to the
@@ -366,7 +350,6 @@ module ActiveSupport
         ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
           chain = target.send("_#{name}_callbacks")
           yield target, chain.dup, type, filters, options
-          target.__reset_runner(name)
         end
       end
 
@@ -405,7 +388,6 @@ module ActiveSupport
       #   will be called only when it returns a false value.
       # * <tt>:prepend</tt> - If true, the callback will be prepended to the existing
       #   chain rather than appended.
-      #
       def set_callback(name, *filter_list, &block)
         mapped = nil
 
@@ -430,7 +412,6 @@ module ActiveSupport
       #   class Writer < Person
       #      skip_callback :validate, :before, :check_membership, :if => lambda { self.age > 18 }
       #   end
-      #
       def skip_callback(name, *filter_list, &block)
         __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           filters.each do |filter|
@@ -449,7 +430,6 @@ module ActiveSupport
       end
 
       # Remove all set callbacks for the given event.
-      #
       def reset_callbacks(symbol)
         callbacks = send("_#{symbol}_callbacks")
 
@@ -457,12 +437,9 @@ module ActiveSupport
           chain = target.send("_#{symbol}_callbacks").dup
           callbacks.each { |c| chain.delete(c) }
           target.send("_#{symbol}_callbacks=", chain)
-          target.__reset_runner(symbol)
         end
 
         self.send("_#{symbol}_callbacks=", callbacks.dup.clear)
-
-        __reset_runner(symbol)
       end
 
       # Define sets of events in the object lifecycle that support callbacks.
@@ -530,7 +507,6 @@ module ActiveSupport
       #     define_callbacks :save, :scope => [:name]
       #
       #   would call <tt>Audit#save</tt>.
-      #
       def define_callbacks(*callbacks)
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
         callbacks.each do |callback|

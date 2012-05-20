@@ -56,10 +56,19 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
     run_generator
     assert_file "config/routes.rb", /get "account\/foo"/, /get "account\/bar"/
   end
-#
+
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["account"]
     assert_file "app/views/test_app/account"
+  end
+
+  def test_namespaced_controller_dont_indent_blank_lines
+    run_generator
+    assert_file "app/controllers/test_app/account_controller.rb" do |content|
+      content.split("\n").each do |line|
+        assert_no_match(/^\s+$/, line, "Don't indent blank lines")
+      end
+    end
   end
 end
 

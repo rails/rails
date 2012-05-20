@@ -52,6 +52,7 @@ module Rails
         :orm => false,
         :performance_tool => nil,
         :resource_controller => :controller,
+        :resource_route => true,
         :scaffold_controller => :scaffold_controller,
         :stylesheets => true,
         :stylesheet_engine => :css,
@@ -94,7 +95,6 @@ module Rails
     # some of them are not available by adding a fallback:
     #
     #   Rails::Generators.fallbacks[:shoulda] = :test_unit
-    #
     def self.fallbacks
       @fallbacks ||= {}
     end
@@ -114,8 +114,6 @@ module Rails
     # Generators names must end with "_generator.rb". This is required because Rails
     # looks in load paths and loads the generator just before it's going to be used.
     #
-    # ==== Examples
-    #
     #   find_by_namespace :webrat, :rails, :integration
     #
     # Will search for the following generators:
@@ -124,7 +122,6 @@ module Rails
     #
     # Notice that "rails:generators:webrat" could be loaded as well, what
     # Rails looks for is the first and last parts of the namespace.
-    #
     def self.find_by_namespace(name, base=nil, context=nil) #:nodoc:
       lookups = []
       lookups << "#{base}:#{name}"    if base
@@ -172,6 +169,7 @@ module Rails
 
         [
           "rails",
+          "resource_route",
           "#{orm}:migration",
           "#{orm}:model",
           "#{orm}:observer",

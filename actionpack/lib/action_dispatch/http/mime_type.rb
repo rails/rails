@@ -38,7 +38,7 @@ module Mime
   #       respond_to do |format|
   #         format.html
   #         format.ics { render :text => post.to_ics, :mime_type => Mime::Type["text/calendar"]  }
-  #         format.xml { render :xml => @people.to_xml }
+  #         format.xml { render :xml => @people }
   #       end
   #     end
   #   end
@@ -179,11 +179,11 @@ module Mime
         end
       end
 
-      # input: 'text'
-      # returned value:  [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
+      # For an input of <tt>'text'</tt>, returns <tt>[Mime::JSON, Mime::XML, Mime::ICS,
+      # Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]</tt>.
       #
-      # input: 'application'
-      # returned value: [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM]
+      # For an input of <tt>'application'</tt>, returns <tt>[Mime::HTML, Mime::JS,
+      # Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM]</tt>.
       def parse_data_with_trailing_star(input)
         Mime::SET.select { |m| m =~ input }
       end
@@ -192,7 +192,7 @@ module Mime
       #
       # Usage:
       #
-      # Mime::Type.unregister(:mobile)
+      #   Mime::Type.unregister(:mobile)
       def unregister(symbol)
         symbol = symbol.to_s.upcase
         mime = Mime.const_get(symbol)

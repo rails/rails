@@ -251,7 +251,7 @@ module ActiveRecord
       end
 
       # MysqlAdapter has to free a result after using it, so we use this method to write
-      # stuff in a abstract way without concerning ourselves about whether it needs to be
+      # stuff in an abstract way without concerning ourselves about whether it needs to be
       # explicitly freed or not.
       def execute_and_free(sql, name = nil) #:nodoc:
         yield execute(sql, name)
@@ -294,19 +294,10 @@ module ActiveRecord
 
       # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
       # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
-      # these, we must use a subquery. However, MySQL is too stupid to create a
-      # temporary table for this automatically, so we have to give it some prompting
-      # in the form of a subsubquery. Ugh!
+      # these, we must use a subquery.
       def join_to_update(update, select) #:nodoc:
         if select.limit || select.offset || select.orders.any?
-          subsubselect = select.clone
-          subsubselect.projections = [update.key]
-
-          subselect = Arel::SelectManager.new(select.engine)
-          subselect.project Arel.sql(update.key.name)
-          subselect.from subsubselect.as('__active_record_temp')
-
-          update.where update.key.in(subselect)
+          super
         else
           update.table select.source
           update.wheres = select.constraints
@@ -525,8 +516,8 @@ module ActiveRecord
       def pk_and_sequence_for(table)
         execute_and_free("SHOW CREATE TABLE #{quote_table_name(table)}", 'SCHEMA') do |result|
           create_table = each_hash(result).first[:"Create Table"]
-          if create_table.to_s =~ /PRIMARY KEY\s+\((.+)\)/
-            keys = $1.split(",").map { |key| key.gsub(/[`"]/, "") }
+          if create_table.to_s =~ /PRIMARY KEY\s+(?:USING\s+\w+\s+)?\((.+)\)/
+            keys = $1.split(",").map { |key| key.delete('`"') }
             keys.length == 1 ? [keys.first, nil] : nil
           else
             nil
@@ -557,6 +548,17 @@ module ActiveRecord
       end
 
       protected
+
+      # MySQL is too stupid to create a temporary table for use subquery, so we have
+      # to give it some prompting in the form of a subsubquery. Ugh!
+      def subquery_for(key, select)
+        subsubselect = select.clone
+        subsubselect.projections = [key]
+
+        subselect = Arel::SelectManager.new(select.engine)
+        subselect.project Arel.sql(key.name)
+        subselect.from subsubselect.as('__active_record_temp')
+      end
 
       def add_index_length(option_strings, column_names, options = {})
         if options.is_a?(Hash) && length = options[:length]

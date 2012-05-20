@@ -11,7 +11,7 @@ class InfoControllerTest < ActionController::TestCase
 
   def setup
     Rails.application.routes.draw do
-      match '/rails/info/properties' => "rails/info#properties"
+      get '/rails/info/properties' => "rails/info#properties"
     end
     @request.stubs(:local? => true)
     @controller.stubs(:consider_all_requests_local? => false)

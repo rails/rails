@@ -22,7 +22,7 @@ module Rails
   #
   # * creating initializers
   # * configuring a Rails framework for the application, like setting a generator
-  # * adding config.* keys to the environment
+  # * +adding config.*+ keys to the environment
   # * setting up a subscriber with ActiveSupport::Notifications
   # * adding rake tasks
   #
@@ -162,7 +162,7 @@ module Rails
 
       protected
         def generate_railtie_name(class_or_module)
-          ActiveSupport::Inflector.underscore(class_or_module).gsub("/", "_")
+          ActiveSupport::Inflector.underscore(class_or_module).tr("/", "_")
         end
     end
 

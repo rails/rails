@@ -1,6 +1,4 @@
 require 'active_support/time'
-require 'active_support/core_ext/object/inclusion'
-require 'active_support/core_ext/object/blank'
 
 module Rails
   module Generators
@@ -21,7 +19,18 @@ module Rails
           has_index, type = type, nil if INDEX_OPTIONS.include?(type)
 
           type, attr_options = *parse_type_and_options(type)
+          type = type.to_sym if type
+
+          if type && reference?(type)
+            references_index = UNIQ_INDEX_OPTIONS.include?(has_index) ? { :unique => true } : true
+            attr_options[:index] = references_index
+          end
+
           new(name, type, has_index, attr_options)
+        end
+
+        def reference?(type)
+          [:references, :belongs_to].include? type
         end
 
         private
@@ -42,7 +51,7 @@ module Rails
 
       def initialize(name, type=nil, index_type=false, attr_options={})
         @name           = name
-        @type           = (type.presence || :string).to_sym
+        @type           = type || :string
         @has_index      = INDEX_OPTIONS.include?(index_type)
         @has_uniq_index = UNIQ_INDEX_OPTIONS.include?(index_type)
         @attr_options   = attr_options
@@ -87,7 +96,7 @@ module Rails
       end
 
       def reference?
-        self.type.in?(:references, :belongs_to)
+        self.class.reference?(type)
       end
 
       def has_index?

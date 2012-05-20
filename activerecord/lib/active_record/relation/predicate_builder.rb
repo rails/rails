@@ -34,12 +34,9 @@ module ActiveRecord
     private
       def self.build(attribute, value)
         case value
-        when ActiveRecord::Relation
-          value = value.select(value.klass.arel_table[value.klass.primary_key]) if value.select_values.empty?
-          attribute.in(value.arel.ast)
         when Array, ActiveRecord::Associations::CollectionProxy
           values = value.to_a.map {|x| x.is_a?(ActiveRecord::Model) ? x.id : x}
-          ranges, values = values.partition {|v| v.is_a?(Range) || v.is_a?(Arel::Relation)}
+          ranges, values = values.partition {|v| v.is_a?(Range)}
 
           values_predicate = if values.include?(nil)
             values = values.compact
@@ -59,7 +56,10 @@ module ActiveRecord
           array_predicates = ranges.map { |range| attribute.in(range) }
           array_predicates << values_predicate
           array_predicates.inject { |composite, predicate| composite.or(predicate) }
-        when Range, Arel::Relation
+        when ActiveRecord::Relation
+          value = value.select(value.klass.arel_table[value.klass.primary_key]) if value.select_values.empty?
+          attribute.in(value.arel.ast)
+        when Range
           attribute.in(value)
         when ActiveRecord::Model
           attribute.eq(value.id)

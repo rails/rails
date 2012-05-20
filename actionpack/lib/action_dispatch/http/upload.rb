@@ -17,7 +17,7 @@ module ActionDispatch
       end
 
       # Delegate these methods to the tempfile.
-      [:open, :path, :rewind, :size].each do |method|
+      [:open, :path, :rewind, :size, :eof?].each do |method|
         class_eval "def #{method}; @tempfile.#{method}; end"
       end
 

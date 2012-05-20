@@ -59,7 +59,6 @@ Now we'll create a simple "Hello World" application that uses the +titleize+ met
 *hello_world.rb:*
 
 <ruby>
-require 'rubygems'
 require 'active_support/core_ext/string/inflections'
 require 'rack'
 
@@ -94,7 +93,6 @@ Now we'll create the same "Hello World" application in Sinatra.
 *hello_world.rb:*
 
 <ruby>
-require 'rubygems'
 require 'action_view'
 require 'sinatra'
 
@@ -550,9 +548,9 @@ Register one or more JavaScript files to be included when symbol is passed to ja
 ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
 
 javascript_include_tag :monkey # =>
-  <script type="text/javascript" src="/javascripts/head.js"></script>
-  <script type="text/javascript" src="/javascripts/body.js"></script>
-  <script type="text/javascript" src="/javascripts/tail.js"></script>
+  <script src="/javascripts/head.js"></script>
+  <script src="/javascripts/body.js"></script>
+  <script src="/javascripts/tail.js"></script>
 </ruby>
 
 h5. register_stylesheet_expansion
@@ -563,9 +561,9 @@ Register one or more stylesheet files to be included when symbol is passed to +s
 ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
 
 stylesheet_link_tag :monkey # =>
-  <link href="/stylesheets/head.css" media="screen" rel="stylesheet" type="text/css" />
-  <link href="/stylesheets/body.css" media="screen" rel="stylesheet" type="text/css" />
-  <link href="/stylesheets/tail.css" media="screen" rel="stylesheet" type="text/css" />
+  <link href="/stylesheets/head.css" media="screen" rel="stylesheet" />
+  <link href="/stylesheets/body.css" media="screen" rel="stylesheet" />
+  <link href="/stylesheets/tail.css" media="screen" rel="stylesheet" />
 </ruby>
 
 h5. auto_discovery_link_tag
@@ -607,7 +605,7 @@ Returns an html script tag for each of the sources provided. You can pass in the
 
 <ruby>
 javascript_include_tag "common" # =>
-  <script type="text/javascript" src="/javascripts/common.js"></script>
+  <script src="/javascripts/common.js"></script>
 </ruby>
 
 If the application does not use the asset pipeline, to include the jQuery JavaScript library in your application, pass +:defaults+ as the source. When using +:defaults+, if an +application.js+ file exists in your +public/javascripts+ directory, it will be included as well.
@@ -626,7 +624,7 @@ You can also cache multiple JavaScript files into one file, which requires less 
 
 <ruby>
 javascript_include_tag :all, :cache => true # =>
-  <script type="text/javascript" src="/javascripts/all.js"></script>
+  <script src="/javascripts/all.js"></script>
 </ruby>
 
 h5. javascript_path
@@ -651,7 +649,7 @@ Returns a stylesheet link tag for the sources specified as arguments. If you don
 
 <ruby>
 stylesheet_link_tag "application" # =>
-  <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+  <link href="/stylesheets/application.css" media="screen" rel="stylesheet" />
 </ruby>
 
 You can also include all styles in the stylesheet directory using :all as the source:
@@ -664,7 +662,7 @@ You can also cache multiple stylesheets into one file, which requires less HTTP 
 
 <ruby>
 stylesheet_link_tag :all, :cache => true
-  <link href="/stylesheets/all.css"  media="screen" rel="stylesheet" type="text/css" />
+  <link href="/stylesheets/all.css"  media="screen" rel="stylesheet" />
 </ruby>
 
 h5. stylesheet_path
@@ -805,7 +803,7 @@ For example, let's say we have a standard application layout, but also a special
 <p>This is a special page.</p>
 
 <% content_for :special_script do %>
-  <script type="text/javascript">alert('Hello!')</script>
+  <script>alert('Hello!')</script>
 <% end %>
 </ruby>
 
@@ -833,7 +831,7 @@ Reports the approximate distance in time between two Time or Date objects or int
 
 <ruby>
 distance_of_time_in_words(Time.now, Time.now + 15.seconds)        # => less than a minute
-distance_of_time_in_words(Time.now, Time.now + 15.seconds, true)  # => less than 20 seconds
+distance_of_time_in_words(Time.now, Time.now + 15.seconds, :include_seconds => true)  # => less than 20 seconds
 </ruby>
 
 h5. select_date
@@ -1501,7 +1499,7 @@ javascript_tag "alert('All is good')"
 </ruby>
 
 <html>
-<script type="text/javascript">
+<script>
 //<![CDATA[
 alert('All is good')
 //]]>

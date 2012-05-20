@@ -83,6 +83,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal false, $?.success?
   end
 
+  def test_application_new_show_help_message_inside_existing_rails_directory
+    app_root = File.join(destination_root, 'myfirstapp')
+    run_generator [app_root]
+    output = Dir.chdir(app_root) do
+      `rails new --help`
+    end
+    assert_match(/rails new APP_PATH \[options\]/, output)
+    assert_equal true, $?.success?
+  end
+
   def test_application_name_is_detected_if_it_exists_and_app_folder_renamed
     app_root       = File.join(destination_root, "myapp")
     app_moved_root = File.join(destination_root, "myapp_moved")
@@ -136,9 +146,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "config/database.yml", /sqlite3/
     unless defined?(JRUBY_VERSION)
-      assert_file "Gemfile", /^gem\s+["']sqlite3["']$/
+      assert_gem "sqlite3"
     else
-      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
+      assert_gem "activerecord-jdbcsqlite3-adapter"
     end
   end
 
@@ -146,9 +156,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
     unless defined?(JRUBY_VERSION)
-      assert_file "Gemfile", /^gem\s+["']mysql2["']$/
+      assert_gem "mysql2"
     else
-      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
+      assert_gem "activerecord-jdbcmysql-adapter"
     end
   end
 
@@ -156,45 +166,45 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator([destination_root, "-d", "postgresql"])
     assert_file "config/database.yml", /postgresql/
     unless defined?(JRUBY_VERSION)
-      assert_file "Gemfile", /^gem\s+["']pg["']$/
+      assert_gem "pg"
     else
-      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcpostgresql-adapter["']$/
+      assert_gem "activerecord-jdbcpostgresql-adapter"
     end
   end
 
   def test_config_jdbcmysql_database
     run_generator([destination_root, "-d", "jdbcmysql"])
     assert_file "config/database.yml", /mysql/
-    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
+    assert_gem "activerecord-jdbcmysql-adapter"
     # TODO: When the JRuby guys merge jruby-openssl in
     # jruby this will be removed
-    assert_file "Gemfile", /^gem\s+["']jruby-openssl["']$/ if defined?(JRUBY_VERSION)
+    assert_gem "jruby-openssl" if defined?(JRUBY_VERSION)
   end
 
   def test_config_jdbcsqlite3_database
     run_generator([destination_root, "-d", "jdbcsqlite3"])
     assert_file "config/database.yml", /sqlite3/
-    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
+    assert_gem "activerecord-jdbcsqlite3-adapter"
   end
 
   def test_config_jdbcpostgresql_database
     run_generator([destination_root, "-d", "jdbcpostgresql"])
     assert_file "config/database.yml", /postgresql/
-    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcpostgresql-adapter["']$/
+    assert_gem "activerecord-jdbcpostgresql-adapter"
   end
 
   def test_config_jdbc_database
     run_generator([destination_root, "-d", "jdbc"])
     assert_file "config/database.yml", /jdbc/
     assert_file "config/database.yml", /mssql/
-    assert_file "Gemfile", /^gem\s+["']activerecord-jdbc-adapter["']$/
+    assert_gem "activerecord-jdbc-adapter"
   end
 
   def test_config_jdbc_database_when_no_option_given
     if defined?(JRUBY_VERSION)
       run_generator([destination_root])
       assert_file "config/database.yml", /sqlite3/
-      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
+      assert_gem "activerecord-jdbcsqlite3-adapter"
     end
   end
 
@@ -234,10 +244,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_inclusion_of_javascript_runtime
     run_generator([destination_root])
     if defined?(JRUBY_VERSION)
-      assert_file "Gemfile", /gem\s+["']therubyrhino["']$/
+      assert_gem "therubyrhino"
     else
-      assert_file "Gemfile", /# gem\s+["']therubyracer["']$/
+      assert_file "Gemfile", /# gem\s+["']therubyracer["']+, platform: :ruby$/
     end
+  end
+
+  def test_generator_if_skip_index_html_is_given
+    run_generator [destination_root, "--skip-index-html"]
+    assert_no_file "public/index.html"
+    assert_no_file "app/assets/images/rails.png"
+    assert_file "app/assets/images/.gitkeep"
   end
 
   def test_creation_of_a_test_directory
@@ -261,9 +278,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match %r{^//= require jquery}, contents
       assert_match %r{^//= require jquery_ujs}, contents
     end
-    assert_file 'Gemfile' do |contents|
-      assert_match(/^gem 'jquery-rails'/, contents)
-    end
+    assert_gem "jquery-rails"
   end
 
   def test_other_javascript_libraries
@@ -272,9 +287,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match %r{^//= require prototype}, contents
       assert_match %r{^//= require prototype_ujs}, contents
     end
-    assert_file 'Gemfile' do |contents|
-      assert_match(/^gem 'prototype-rails'/, contents)
-    end
+    assert_gem "prototype-rails"
   end
 
   def test_javascript_is_skipped_if_required
@@ -284,11 +297,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_ruby_debug19
+  def test_inclusion_of_debugger
     run_generator
-    assert_file "Gemfile" do |contents|
-      assert_match(/gem 'ruby-debug19', :require => 'ruby-debug'/, contents)
-    end
+    assert_file "Gemfile", /# gem 'debugger'/
   end
 
   def test_template_from_dir_pwd
@@ -302,7 +313,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_default_usage
-    File.expects(:exist?).returns(false)
+    Rails::Generators::AppGenerator.expects(:usage_path).returns(nil)
     assert_match(/Create rails files for app generator/, Rails::Generators::AppGenerator.desc)
   end
 
@@ -366,10 +377,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_match(/run  bundle install/, output)
   end
 
+  def test_humans_txt_file
+    run_generator [File.join(destination_root, 'things-43')]
+    assert_file "things-43/public/humans.txt", /Name: Things43/, /Software: Ruby on Rails/
+  end
+
 protected
 
   def action(*args, &block)
     silence(:stdout) { generator.send(*args, &block) }
+  end
+
+  def assert_gem(gem)
+    assert_file "Gemfile", /^gem\s+["']#{gem}["']$/
   end
 end
 

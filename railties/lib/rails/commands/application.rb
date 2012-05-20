@@ -19,7 +19,6 @@ else
   end
 end
 
-require 'rubygems' if ARGV.include?("--dev")
 require 'rails/generators'
 require 'rails/generators/rails/app/app_generator'
 

@@ -14,8 +14,12 @@ module ActionView
       BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
                            autoplay controls loop selected hidden scoped async
                            defer reversed ismap seemless muted required
-                           autofocus novalidate formnovalidate open pubdate).to_set
+                           autofocus novalidate formnovalidate open pubdate itemscope).to_set
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
+
+      PRE_CONTENT_STRINGS = {
+        :textarea => "\n"
+      }
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
@@ -37,7 +41,7 @@ module ActionView
       # thus accessed as <tt>dataset.userId</tt>.
       #
       # Values are encoded to JSON, with the exception of strings and symbols.
-      # This may come in handy when using jQuery's HTML5-aware <tt>.data()<tt>
+      # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
       # from 1.4.3.
       #
       # ==== Examples
@@ -99,19 +103,21 @@ module ActionView
       # otherwise be recognized as markup. CDATA sections begin with the string
       # <tt><![CDATA[</tt> and end with (and may not contain) the string <tt>]]></tt>.
       #
-      # ==== Examples
       #   cdata_section("<hello world>")
       #   # => <![CDATA[<hello world>]]>
       #
       #   cdata_section(File.read("hello_world.txt"))
       #   # => <![CDATA[<hello from a text file]]>
+      #
+      #   cdata_section("hello]]>world")
+      #   # => <![CDATA[hello]]]]><![CDATA[>world]]>
       def cdata_section(content)
-        "<![CDATA[#{content}]]>".html_safe
+        splitted = content.gsub(']]>', ']]]]><![CDATA[>')
+        "<![CDATA[#{splitted}]]>".html_safe
       end
 
       # Returns an escaped version of +html+ without affecting existing escaped entities.
       #
-      # ==== Examples
       #   escape_once("1 < 2 &amp; 3")
       #   # => "1 &lt; 2 &amp; 3"
       #
@@ -126,7 +132,7 @@ module ActionView
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
           content     = ERB::Util.h(content) if escape
-          "<#{name}#{tag_options}>#{content}</#{name}>".html_safe
+          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name.to_sym]}#{content}</#{name}>".html_safe
         end
 
         def tag_options(options, escape = true)
@@ -148,8 +154,9 @@ module ActionView
 
         def data_tag_option(key, value, escape)
           key   = "data-#{key.to_s.dasherize}"
-          value = value.to_json if !value.is_a?(String) && !value.is_a?(Symbol)
-
+          unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
+            value = value.to_json
+          end
           tag_option(key, value, escape)
         end
 

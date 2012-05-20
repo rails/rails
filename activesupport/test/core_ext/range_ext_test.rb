@@ -41,6 +41,18 @@ class RangeTest < ActiveSupport::TestCase
     assert((1..10).include?(1...10))
   end
 
+  def test_should_compare_identical_inclusive
+    assert((1..10) === (1..10))
+  end
+
+  def test_should_compare_identical_exclusive
+    assert((1...10) === (1...10))
+  end
+
+  def test_should_compare_other_with_exlusive_end
+    assert((1..10) === (1...10))
+  end
+
   def test_exclusive_end_should_not_include_identical_with_inclusive_end
     assert !(1...10).include?(1..10)
   end
@@ -55,16 +67,6 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_should_include_identical_exclusive_with_floats
     assert((1.0...10.0).include?(1.0...10.0))
-  end
-
-  def test_blockless_step
-    assert_equal [1,3,5,7,9], (1..10).step(2)
-  end
-
-  def test_original_step
-    array = []
-    (1..10).step(2) {|i| array << i }
-    assert_equal [1,3,5,7,9], array
   end
 
   def test_cover_is_not_override

@@ -32,7 +32,7 @@ module ActionView
   #
   #   <%= render :partial => "account", :object => @buyer %>
   #
-  # would provide the +@buyer+ object to the partial, available under the local variable +account+ and is
+  # would provide the <tt>@buyer</tt> object to the partial, available under the local variable +account+ and is
   # equivalent to:
   #
   #   <%= render :partial => "account", :locals => { :account => @buyer } %>
@@ -158,8 +158,8 @@ module ActionView
   #     Name: <%= user.name %>
   #   </div>
   #
-  # If a collection is given, the layout will be rendered once for each item in the collection. Just think
-  # these two snippets have the same output:
+  # If a collection is given, the layout will be rendered once for each item in
+  # the collection. Just think these two snippets have the same output:
   #
   #   <%# app/views/users/_user.html.erb %>
   #   Name: <%= user.name %>
@@ -184,7 +184,7 @@ module ActionView
   #     <%= render :partial => "user", :layout => "li_layout", :collection => users %>
   #   </ul>
   #
-  #   Given two users whose names are Alice and Bob, these snippets return:
+  # Given two users whose names are Alice and Bob, these snippets return:
   #
   #   <ul>
   #     <li>
@@ -194,6 +194,10 @@ module ActionView
   #       Name: Bob
   #     </li>
   #   </ul>
+  #
+  # The current object being rendered, as well as the object_counter, will be
+  # available as local variables inside the layout template under the same names
+  # as available in the partial.
   #
   # You can also apply a layout to a block within any template:
   #
@@ -245,17 +249,24 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer
-    PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
+    PREFIXED_PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
 
     def initialize(*)
       super
       @context_prefix = @lookup_context.prefixes.first
-      @partial_names = PARTIAL_NAMES[@context_prefix]
     end
 
     def render(context, options, block)
       setup(context, options, block)
       identifier = (@template = find_partial) ? @template.identifier : @path
+
+      @lookup_context.rendered_format ||= begin
+        if @template && @template.formats.present?
+          @template.formats.first
+        else
+          formats.first
+        end
+      end
 
       if @collection
         instrument(:collection, :identifier => identifier || "collection", :count => @collection.size) do
@@ -272,26 +283,19 @@ module ActionView
       return nil if @collection.blank?
 
       if @options.key?(:spacer_template)
-        spacer = find_template(@options[:spacer_template]).render(@view, @locals)
-      end
-
-      if layout = @options[:layout]
-        layout = find_template(layout)
+        spacer = find_template(@options[:spacer_template], @locals.keys).render(@view, @locals)
       end
 
       result = @template ? collection_with_template : collection_without_template
-      
-      result.map!{|content| layout.render(@view, @locals) { content } } if layout
-      
       result.join(spacer).html_safe
     end
 
     def render_partial
-      locals, view, block = @locals, @view, @block
+      view, locals, block = @view, @locals, @block
       object, as = @object, @variable
 
       if !block && (layout = @options[:layout])
-        layout = find_template(layout)
+        layout = find_template(layout, @template_keys)
       end
 
       object ||= locals[as]
@@ -316,8 +320,6 @@ module ActionView
       @block   = block
       @details = extract_details(options)
 
-      @lookup_context.rendered_format ||= formats.first
-
       if String === partial
         @object     = options[:object]
         @path       = partial
@@ -335,14 +337,15 @@ module ActionView
 
       if @path
         @variable, @variable_counter = retrieve_variable(@path)
+        @template_keys = retrieve_template_keys
       else
         paths.map! { |path| retrieve_variable(path).unshift(path) }
       end
 
       if String === partial && @variable.to_s !~ /^[a-z_][a-zA-Z_0-9]*$/
         raise ArgumentError.new("The partial name (#{partial}) is not a valid Ruby identifier; " +
-                                "make sure your partial name starts with a letter or underscore, " +
-                                "and is followed by any combinations of letters, numbers, or underscores.")
+                                "make sure your partial name starts with a lowercase letter or underscore, " +
+                                "and is followed by any combination of letters, numbers and underscores.")
       end
 
       self
@@ -356,56 +359,55 @@ module ActionView
     end
 
     def collection_from_object
-      if @object.respond_to?(:to_ary)
-        @object.to_ary
-      end
+      @object.to_ary if @object.respond_to?(:to_ary)
     end
 
     def find_partial
       if path = @path
-        locals = @locals.keys
-        locals << @variable
-        locals << @variable_counter if @collection
-        find_template(path, locals)
+        find_template(path, @template_keys)
       end
     end
 
-    def find_template(path=@path, locals=@locals.keys)
+    def find_template(path, locals)
       prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
       @lookup_context.find_template(path, prefixes, true, locals, @details)
     end
 
     def collection_with_template
-      segments, locals, template = [], @locals, @template
+      view, locals, template = @view, @locals, @template
       as, counter = @variable, @variable_counter
 
-      locals[counter] = -1
-
-      @collection.each do |object|
-        locals[counter] += 1
-        locals[as] = object
-        segments << template.render(@view, locals)
+      if layout = @options[:layout]
+        layout = find_template(layout, @template_keys)
       end
-      
-      segments
+
+      index = -1
+      @collection.map do |object|
+        locals[as]      = object
+        locals[counter] = (index += 1)
+
+        content = template.render(view, locals)
+        content = layout.render(view, locals) { content } if layout
+        content
+      end
     end
-    
 
     def collection_without_template
-      segments, locals, collection_data = [], @locals, @collection_data
-      index, template, cache = -1, nil, {}
-      keys = @locals.keys
+      view, locals, collection_data = @view, @locals, @collection_data
+      cache = {}
+      keys  = @locals.keys
 
-      @collection.each_with_index do |object, i|
-        path, *data = collection_data[i]
-        template = (cache[path] ||= find_template(path, keys + data))
-        locals[data[0]] = object
-        locals[data[1]] = (index += 1)
-        segments << template.render(@view, locals)
+      index = -1
+      @collection.map do |object|
+        index += 1
+        path, as, counter = collection_data[index]
+
+        locals[as]      = object
+        locals[counter] = index
+
+        template = (cache[path] ||= find_template(path, keys + [as, counter]))
+        template.render(view, locals)
       end
-
-      @template = template
-      segments
     end
 
     def partial_path(object = @object)
@@ -417,7 +419,15 @@ module ActionView
         raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.")
       end
 
-      @partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
+      if @view.prefix_partial_path_with_controller_namespace
+        prefixed_partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
+      else
+        path
+      end
+    end
+
+    def prefixed_partial_names
+      @prefixed_partial_names ||= PREFIXED_PARTIAL_NAMES[@context_prefix]
     end
 
     def merge_prefix_into_object_path(prefix, object_path)
@@ -437,8 +447,15 @@ module ActionView
       end
     end
 
+    def retrieve_template_keys
+      keys = @locals.keys
+      keys << @variable
+      keys << @variable_counter if @collection
+      keys
+    end
+
     def retrieve_variable(path)
-      variable = @options[:as].try(:to_sym) || path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
+      variable = @options.fetch(:as) { path[%r'_?(\w+)(\.\w+)*$', 1] }.try(:to_sym)
       variable_counter = :"#{variable}_counter" if @collection
       [variable, variable_counter]
     end

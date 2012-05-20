@@ -95,7 +95,7 @@ module ActiveModel
       end
 
       def define
-        host.singleton_class.class_eval <<-CODE, __FILE__, __LINE__
+        host.singleton_class.class_eval <<-CODE, __FILE__, __LINE__ + 1
           attr_accessor :#{name}
           def #{name}?; !!#{name}; end
         CODE
@@ -107,7 +107,7 @@ module ActiveModel
           define_method("#{name}?") { !!send(name) }
         end
 
-        host.class_eval <<-CODE
+        host.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name};  defined?(@#{name}) ? @#{name} : self.class.#{name}; end
           def #{name}?; !!#{name}; end
         CODE
@@ -117,7 +117,7 @@ module ActiveModel
             define_method("#{name}=") { |val| host.send("#{name}=", val) }
           end
         else
-          class_methods.class_eval <<-CODE, __FILE__, __LINE__
+          class_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
             def #{name}=(val)
               singleton_class.class_eval do
                 remove_possible_method(:#{name})

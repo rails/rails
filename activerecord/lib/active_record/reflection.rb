@@ -153,6 +153,10 @@ module ActiveRecord
     # Holds all the meta-data about an aggregation as it was specified in the
     # Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:
+      def mapping
+        mapping = options[:mapping] || [name, name]
+        mapping.first.is_a?(Array) ? mapping : [mapping]
+      end
     end
 
     # Holds all the meta-data about an association as it was specified in the

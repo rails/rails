@@ -38,7 +38,11 @@ ActiveRecord::Schema.define do
   create_table :admin_users, :force => true do |t|
     t.string :name
     t.text :settings, :null => true
-    t.text :preferences, :null => false, :default => ""
+    # MySQL does not allow default values for blobs. Fake it out with a
+    # big varchar below.
+    t.string :preferences, :null => false, :default => '', :limit => 1024
+    t.string :json_data, :null => true, :limit => 1024
+    t.string :json_data_empty, :null => false, :default => "", :limit => 1024
     t.references :account
   end
 
@@ -76,6 +80,7 @@ ActiveRecord::Schema.define do
   create_table :binaries, :force => true do |t|
     t.string :name
     t.binary :data
+    t.binary :short_data, :limit => 2048
   end
 
   create_table :birds, :force => true do |t|
@@ -91,6 +96,7 @@ ActiveRecord::Schema.define do
 
   create_table :booleans, :force => true do |t|
     t.boolean :value
+    t.boolean :has_fun, :null => false, :default => false
   end
 
   create_table :bulbs, :force => true do |t|
@@ -172,6 +178,7 @@ ActiveRecord::Schema.define do
     t.integer :client_of
     t.integer :rating, :default => 1
     t.integer :account_id
+    t.string :description, :null => false, :default => ""
   end
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
@@ -425,6 +432,7 @@ ActiveRecord::Schema.define do
     t.string :name
     t.column :updated_at, :datetime
     t.column :happy_at,   :datetime
+    t.column :eats_at,    :time
     t.string :essay_id
   end
 
@@ -438,6 +446,7 @@ ActiveRecord::Schema.define do
 
   create_table :parrots, :force => true do |t|
     t.column :name, :string
+    t.column :color, :string
     t.column :parrot_sti_class, :string
     t.column :killer_id, :integer
     t.column :created_at, :datetime
@@ -466,6 +475,11 @@ ActiveRecord::Schema.define do
     t.references :best_friend
     t.references :best_friend_of
     t.timestamps
+  end
+
+  create_table :peoples_treasures, :id => false, :force => true do |t|
+    t.column :rich_person_id, :integer
+    t.column :treasure_id, :integer
   end
 
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|

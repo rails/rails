@@ -5,7 +5,7 @@ module ActionView
 
   # = Action View Context
   #
-  # Action View contexts are supplied to Action Controller to render template.
+  # Action View contexts are supplied to Action Controller to render a template.
   # The default Action View context is ActionView::Base.
   #
   # In order to work with ActionController, a Context must just include this module.
@@ -25,7 +25,7 @@ module ActionView
     end
 
     # Encapsulates the interaction with the view flow so it
-    # returns the correct buffer on yield. This is usually
+    # returns the correct buffer on +yield+. This is usually
     # overwriten by helpers to add more behavior.
     # :api: plugin
     def _layout_for(name=nil)

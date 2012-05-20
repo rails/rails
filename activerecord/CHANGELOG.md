@@ -1,5 +1,165 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecated most of the 'dynamic finder' methods. All dynamic methods
+    except for `find_by_...` and `find_by_...!` are deprecated. Here's
+    how you can rewrite the code:
+
+      * `find_all_by_...` can be rewritten using `where(...)`
+      * `find_last_by_...` can be rewritten using `where(...).last`
+      * `scoped_by_...` can be rewritten using `where(...)`
+      * `find_or_initialize_by_...` can be rewritten using
+        `where(...).first_or_initialize`
+      * `find_or_create_by_...` can be rewritten using
+        `where(...).first_or_create`
+      * `find_or_create_by_...!` can be rewritten using
+        `where(...).first_or_create!`
+
+    The implementation of the deprecated dynamic finders has been moved
+    to the `active_record_deprecated_finders` gem. See below for details.
+
+    *Jon Leighton*
+
+*   Deprecated the old-style hash based finder API. This means that
+    methods which previously accepted "finder options" no longer do. For
+    example this:
+
+        Post.find(:all, :conditions => { :comments_count => 10 }, :limit => 5)
+
+    Should be rewritten in the new style which has existed since Rails 3:
+
+        Post.where(comments_count: 10).limit(5)
+
+    Note that as an interim step, it is possible to rewrite the above as:
+
+        Post.scoped(:where => { :comments_count => 10 }, :limit => 5)
+
+    This could save you a lot of work if there is a lot of old-style
+    finder usage in your application.
+
+    Calling `Post.scoped(options)` is a shortcut for
+    `Post.scoped.merge(options)`. `Relation#merge` now accepts a hash of
+    options, but they must be identical to the names of the equivalent
+    finder method. These are mostly identical to the old-style finder
+    option names, except in the following cases:
+
+      * `:conditions` becomes `:where`
+      * `:include` becomes `:includes`
+      * `:extend` becomes `:extending`
+
+    The code to implement the deprecated features has been moved out to
+    the `active_record_deprecated_finders` gem. This gem is a dependency
+    of Active Record in Rails 4.0. It will no longer be a dependency
+    from Rails 4.1, but if your app relies on the deprecated features
+    then you can add it to your own Gemfile. It will be maintained by
+    the Rails core team until Rails 5.0 is released.
+
+    *Jon Leighton*
+
+*   It's not possible anymore to destroy a model marked as read only.
+
+    *Johannes Barre*
+
+*   Added ability to ActiveRecord::Relation#from to accept other ActiveRecord::Relation objects
+
+      Record.from(subquery)
+      Record.from(subquery, :a)
+
+    *Radoslav Stankov*
+
+*   Added custom coders support for ActiveRecord::Store. Now you can set
+    your custom coder like this:
+
+        store :settings, accessors: [ :color, :homepage ], coder: JSON
+
+    *Andrey Voronkov*
+
+*   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by
+    default to avoid silent data loss. This can be disabled by specifying
+    `strict: false` in your `database.yml`.
+
+    *Michael Pearson*
+
+*   Added default order to `first` to assure consistent results among
+    diferent database engines. Introduced `take` as a replacement to
+    the old behavior of `first`.
+
+    *Marcelo Silveira*
+
+*   Added an :index option to automatically create indexes for references
+    and belongs_to statements in migrations.
+
+    The `references` and `belongs_to` methods now support an `index`
+    option that receives either a boolean value or an options hash
+    that is identical to options available to the add_index method:
+
+      create_table :messages do |t|
+        t.references :person, :index => true
+      end
+
+      Is the same as:
+
+      create_table :messages do |t|
+        t.references :person
+      end
+      add_index :messages, :person_id
+
+    Generators have also been updated to use the new syntax.
+
+    [Joshua Wood]
+
+*   Added bang methods for mutating `ActiveRecord::Relation` objects.
+    For example, while `foo.where(:bar)` will return a new object
+    leaving `foo` unchanged, `foo.where!(:bar)` will mutate the foo
+    object
+
+    *Jon Leighton*
+
+*   Added `#find_by` and `#find_by!` to mirror the functionality
+    provided by dynamic finders in a way that allows dynamic input more
+    easily:
+
+        Post.find_by name: 'Spartacus', rating: 4
+        Post.find_by "published_at < ?", 2.weeks.ago
+        Post.find_by! name: 'Spartacus'
+
+    *Jon Leighton*
+
+*   Added ActiveRecord::Base#slice to return a hash of the given methods with
+    their names as keys and returned values as values.
+
+    *Guillermo Iguaran*
+
+*   Deprecate eager-evaluated scopes.
+
+    Don't use this:
+
+        scope :red, where(color: 'red')
+        default_scope where(color: 'red')
+
+    Use this:
+
+        scope :red, -> { where(color: 'red') }
+        default_scope { where(color: 'red') }
+
+    The former has numerous issues. It is a common newbie gotcha to do
+    the following:
+
+        scope :recent, where(published_at: Time.now - 2.weeks)
+
+    Or a more subtle variant:
+
+        scope :recent, -> { where(published_at: Time.now - 2.weeks) }
+        scope :recent_red, recent.where(color: 'red')
+
+    Eager scopes are also very complex to implement within Active
+    Record, and there are still bugs. For example, the following does
+    not do what you expect:
+
+        scope :remove_conditions, except(:where)
+        where(...).remove_conditions # => still has conditions
+
+    *Jon Leighton*
+
 *   Remove IdentityMap
 
     IdentityMap has never graduated to be an "enabled-by-default" feature, due
@@ -164,7 +324,7 @@
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
 
-## Rails 3.2.3 (unreleased) ##
+## Rails 3.2.3 (March 30, 2012) ##
 
 *   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
 
@@ -505,19 +665,6 @@
     a URI that specifies the connection configuration.  For example:
         ActiveRecord::Base.establish_connection 'postgres://localhost/foo'
 
-*   Active Record's dynamic finder will now raise the error if you passing in less number of arguments than what you call in method signature.
-
-    So if you were doing this and expecting the second argument to be nil:
-
-        User.find_by_username_and_group("sikachu")
-
-    You'll now get `ArgumentError: wrong number of arguments (1 for 2).` You'll then have to do this:
-
-        User.find_by_username_and_group("sikachu", nil)
-
-    *Prem Sichanugrist*
-
-
 ## Rails 3.1.0 (August 30, 2011) ##
 
 *   Add a proxy_association method to association proxies, which can be called by association
@@ -552,7 +699,7 @@
           has_one :account
         end
 
-        user.build_account{ |a| a.credit_limit => 100.0 }
+        user.build_account{ |a| a.credit_limit = 100.0 }
 
     The block is called after the instance has been initialized. *Andrew White*
 
@@ -3925,7 +4072,7 @@
 
 *   Fixed that adding a record to a has_and_belongs_to collection would always save it -- now it only saves if its a new record #1203 *Alisdair McDiarmid*
 
-*   Fixed saving of in-memory association structures to happen as a after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
+*   Fixed saving of in-memory association structures to happen as an after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
 
 *   Allow any Enumerable, not just Array, to work as bind variables #1344 *Jeremy Kemper*
 
@@ -5438,7 +5585,7 @@
 
 *   Fixed that adding a record to a has_and_belongs_to collection would always save it -- now it only saves if its a new record #1203 *Alisdair McDiarmid*
 
-*   Fixed saving of in-memory association structures to happen as a after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
+*   Fixed saving of in-memory association structures to happen as an after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
 
 *   Allow any Enumerable, not just Array, to work as bind variables #1344 *Jeremy Kemper*
 
@@ -6360,7 +6507,7 @@
         post.categories.push_with_attributes(category, :added_on => Date.today)
         post.categories.first.added_on # => Date.today
 
-    NOTE: The categories table doesn't have a added_on column, it's the categories_post join table that does!
+    NOTE: The categories table doesn't have an added_on column, it's the categories_post join table that does!
 
 *   Fixed that :exclusively_dependent and :dependent can't be activated at the same time on has_many associations *Jeremy Kemper*
 

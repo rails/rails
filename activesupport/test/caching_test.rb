@@ -568,6 +568,13 @@ class FileStoreTest < ActiveSupport::TestCase
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
 
+  def test_clear
+    filepath = File.join(cache_dir, ".gitkeep")
+    FileUtils.touch(filepath)
+    @cache.clear
+    assert File.exist?(filepath)
+  end
+
   def test_key_transformation
     key = @cache.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
@@ -577,6 +584,16 @@ class FileStoreTest < ActiveSupport::TestCase
     FileUtils.touch(File.join(cache_dir, "foo"))
     key = @cache_with_pathname.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache_with_pathname.send(:file_path_key, key)
+  end
+
+  # Test that generated cache keys are short enough to have Tempfile stuff added to them and 
+  # remain valid
+  def test_filename_max_size
+    key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
+    path = @cache.send(:key_file_path, key)
+    Dir::Tmpname.create(path) do |tmpname, n, opts|
+      assert File.basename(tmpname+'.lock').length <= 255, "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
+    end
   end
 
   # Because file systems have a maximum filename size, filenames > max size should be split in to directories
@@ -666,6 +683,13 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(3)
     assert @cache.exist?(2)
     assert !@cache.exist?(1)
+  end
+
+  def test_write_with_unless_exist
+    assert_equal true, @cache.write(1, "aaaaaaaaaa")
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", :unless_exist => true)
+    @cache.write(1, nil)
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", :unless_exist => true)
   end
 end
 

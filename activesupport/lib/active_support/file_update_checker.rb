@@ -9,7 +9,7 @@ module ActiveSupport
   #   the filesystem or not;
   #
   # * +execute+ which executes the given block on initialization
-  #   and updates the counter to the latest timestamp;
+  #   and updates the latest watched files and timestamp;
   #
   # * +execute_if_updated+ which just executes the block if it was updated;
   #
@@ -39,13 +39,13 @@ module ActiveSupport
     #
     # == Implementation details
     #
-    # This particular implementation checks for added and updated files,
-    # but not removed files. Directories lookup are compiled to a glob for
-    # performance. Therefore, while someone can add new files to the +files+
-    # array after initialization (and parts of Rails do depend on this feature),
-    # adding new directories after initialization is not allowed.
+    # This particular implementation checks for added, updated, and removed
+    # files. Directories lookup are compiled to a glob for performance.
+    # Therefore, while someone can add new files to the +files+ array after
+    # initialization (and parts of Rails do depend on this feature), adding
+    # new directories after initialization is not supported.
     #
-    # Notice that other objects that implements FileUpdateChecker API may
+    # Notice that other objects that implement the FileUpdateChecker API may
     # not even allow new files to be added after initialization. If this
     # is the case, we recommend freezing the +files+ after initialization to
     # avoid changes that won't make effect.
@@ -53,27 +53,41 @@ module ActiveSupport
       @files = files
       @glob  = compile_glob(dirs)
       @block = block
+
+      @watched    = nil
       @updated_at = nil
-      @last_update_at = updated_at
+
+      @last_watched   = watched
+      @last_update_at = updated_at(@last_watched)
     end
 
-    # Check if any of the entries were updated. If so, the updated_at
-    # value is cached until the block is executed via +execute+ or +execute_if_updated+
+    # Check if any of the entries were updated. If so, the watched and/or
+    # updated_at values are cached until the block is executed via +execute+
+    # or +execute_if_updated+
     def updated?
-      current_updated_at = updated_at
-      if @last_update_at < current_updated_at
-        @updated_at = updated_at
+      current_watched = watched
+      if @last_watched.size != current_watched.size
+        @watched = current_watched
         true
       else
-        false
+        current_updated_at = updated_at(current_watched)
+        if @last_update_at < current_updated_at
+          @watched    = current_watched
+          @updated_at = current_updated_at
+          true
+        else
+          false
+        end
       end
     end
 
-    # Executes the given block and updates the counter to latest timestamp.
+    # Executes the given block and updates the latest watched files and timestamp.
     def execute
-      @last_update_at = updated_at
+      @last_watched   = watched
+      @last_update_at = updated_at(@last_watched)
       @block.call
     ensure
+      @watched = nil
       @updated_at = nil
     end
 
@@ -89,16 +103,19 @@ module ActiveSupport
 
     private
 
-    def updated_at #:nodoc:
-      @updated_at || begin
+    def watched
+      @watched || begin
         all = @files.select { |f| File.exists?(f) }
-        all.concat Dir[@glob] if @glob
-        all.map! { |path| File.mtime(path) }
-        all.max || Time.at(0)
+        all.concat(Dir[@glob]) if @glob
+        all
       end
     end
 
-    def compile_glob(hash) #:nodoc:
+    def updated_at(paths)
+      @updated_at || paths.map { |path| File.mtime(path) }.max || Time.at(0)
+    end
+
+    def compile_glob(hash)
       hash.freeze # Freeze so changes aren't accidently pushed
       return if hash.empty?
 
@@ -112,7 +129,7 @@ module ActiveSupport
       key.gsub(',','\,')
     end
 
-    def compile_ext(array) #:nodoc:
+    def compile_ext(array)
       array = Array(array)
       return if array.empty?
       ".{#{array.join(",")}}"

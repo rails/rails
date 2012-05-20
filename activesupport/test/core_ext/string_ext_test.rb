@@ -279,6 +279,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => ' ')
   end
 
+  def test_truncate_with_omission_and_regexp_seperator
+    assert_equal "Hello[...]", "Hello Big World!".truncate(13, :omission => "[...]", :separator => /\s/)
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, :omission => "[...]", :separator => /\s/)
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => /\s/)
+  end
+
   def test_truncate_multibyte
     assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
       "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8').truncate(10)
@@ -431,6 +437,37 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     @other_string << string
     assert @other_string.html_safe?
+  end
+
+  test "Concatting safe onto unsafe with % yields unsafe" do
+    @other_string = "other%s"
+    string = @string.html_safe
+
+    @other_string = @other_string % string
+    assert !@other_string.html_safe?
+  end
+
+  test "Concatting unsafe onto safe with % yields escaped safe" do
+    @other_string = "other%s".html_safe
+    string = @other_string % "<foo>"
+
+    assert_equal "other&lt;foo&gt;", string
+    assert string.html_safe?
+  end
+
+  test "Concatting safe onto safe with % yields safe" do
+    @other_string = "other%s".html_safe
+    string = @string.html_safe
+
+    @other_string = @other_string % string
+    assert @other_string.html_safe?
+  end
+
+  test "Concatting with % doesn't modify a string" do
+    @other_string = ["<p>", "<b>", "<h1>"]
+    _ = "%s %s %s".html_safe % @other_string
+
+    assert_equal ["<p>", "<b>", "<h1>"], @other_string
   end
 
   test "Concatting a fixnum to safe always yields safe" do

@@ -11,7 +11,7 @@ class MyLogSubscriber < ActiveSupport::LogSubscriber
 
   def foo(event)
     debug "debug"
-    info "info"
+    info { "info" }
     warn "warn"
   end
 

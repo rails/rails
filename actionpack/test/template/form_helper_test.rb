@@ -97,7 +97,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    match "/foo", :to => "controller#action"
+    get "/foo", :to => "controller#action"
     root :to => "main#index"
   end
 
@@ -350,36 +350,52 @@ class FormHelperTest < ActionView::TestCase
       text_field("user", "email", :type => "email")
   end
 
-  def test_check_box
+  def test_check_box_is_html_safe
     assert check_box("post", "secret").html_safe?
+  end
+
+  def test_check_box_checked_if_object_value_is_same_that_check_value
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
+  end
+
+  def test_check_box_not_checked_if_object_value_is_same_that_unchecked_value
     @post.secret = 0
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
+  end
+
+  def test_check_box_checked_if_option_checked_is_present
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret" ,{"checked"=>"checked"})
     )
+  end
+
+  def test_check_box_checked_if_object_value_is_true
     @post.secret = true
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
+
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret?")
     )
+  end
 
+  def test_check_box_checked_if_object_value_includes_checked_value
     @post.secret = ['0']
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
+
     @post.secret = ['1']
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
@@ -392,11 +408,91 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal('<input id="post_secret" name="post[secret]" type="checkbox" value="1" />', check_box("post", "secret", :include_hidden => false))
   end
 
-  def test_check_box_with_explicit_checked_and_unchecked_values
+  def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_string
     @post.secret = "on"
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" />',
       check_box("post", "secret", {}, "on", "off")
+    )
+
+    @post.secret = "off"
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="on" />',
+      check_box("post", "secret", {}, "on", "off")
+    )
+  end
+
+  def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_boolean
+    @post.secret = false
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="true" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="false" />',
+      check_box("post", "secret", {}, false, true)
+    )
+
+    @post.secret = true
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="true" /><input id="post_secret" name="post[secret]" type="checkbox" value="false" />',
+      check_box("post", "secret", {}, false, true)
+    )
+  end
+
+  def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_integer
+    @post.secret = 0
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="1" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      check_box("post", "secret", {}, 0, 1)
+    )
+
+    @post.secret = 1
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      check_box("post", "secret", {}, 0, 1)
+    )
+
+    @post.secret = 2
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      check_box("post", "secret", {}, 0, 1)
+    )
+  end
+
+  def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_float
+    @post.secret = 0.0
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="1" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      check_box("post", "secret", {}, 0, 1)
+    )
+
+    @post.secret = 1.1
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      check_box("post", "secret", {}, 0, 1)
+    )
+
+    @post.secret = 2.2
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      check_box("post", "secret", {}, 0, 1)
+    )
+  end
+
+  def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_big_decimal
+    @post.secret = BigDecimal.new(0)
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="1" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      check_box("post", "secret", {}, 0, 1)
+    )
+
+    @post.secret = BigDecimal.new(1)
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      check_box("post", "secret", {}, 0, 1)
+    )
+
+    @post.secret = BigDecimal.new(2.2, 1)
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      check_box("post", "secret", {}, 0, 1)
     )
   end
 
@@ -548,6 +644,32 @@ class FormHelperTest < ActionView::TestCase
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" />}
     @post.written_on = nil
     assert_dom_equal(expected, date_field("post", "written_on"))
+  end
+
+  def test_time_field
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="00:00:00.000" />}
+    assert_dom_equal(expected, time_field("post", "written_on"))
+  end
+
+  def test_time_field_with_datetime_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    assert_dom_equal(expected, time_field("post", "written_on"))
+  end
+
+  def test_time_field_with_timewithzone_value
+    previous_time_zone, Time.zone = Time.zone, 'UTC'
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
+    @post.written_on = Time.zone.parse('2004-06-15 01:02:03')
+    assert_dom_equal(expected, time_field("post", "written_on"))
+  ensure
+    Time.zone = previous_time_zone
+  end
+
+  def test_time_field_with_nil_value
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" />}
+    @post.written_on = nil
+    assert_dom_equal(expected, time_field("post", "written_on"))
   end
 
   def test_url_field
@@ -1046,6 +1168,54 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_label_error_wrapping
+    form_for(@post) do |f|
+      concat f.label(:author_name, :class => 'label')
+      concat f.text_field(:author_name)
+      concat f.submit('Create post')
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123' , 'edit_post', 'patch') do
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Author name</label></div>" +
+      "<div class='field_with_errors'><input name='post[author_name]' type='text' id='post_author_name' value='' /></div>" +
+      "<input name='commit' type='submit' value='Create post' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_label_error_wrapping_without_conventional_instance_variable
+    post = remove_instance_variable :@post
+
+    form_for(post) do |f|
+      concat f.label(:author_name, :class => 'label')
+      concat f.text_field(:author_name)
+      concat f.submit('Create post')
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123' , 'edit_post', 'patch') do
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Author name</label></div>" +
+      "<div class='field_with_errors'><input name='post[author_name]' type='text' id='post_author_name' value='' /></div>" +
+      "<input name='commit' type='submit' value='Create post' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_label_error_wrapping_block_and_non_block_versions
+    form_for(@post) do |f|
+      concat f.label(:author_name, 'Name', :class => 'label')
+      concat f.label(:author_name, :class => 'label') { 'Name' }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123' , 'edit_post', 'patch') do
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Name</label></div>" +
+      "<div class='field_with_errors'><label for='post_author_name' class='label'>Name</label></div>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_namespace
     form_for(@post, :namespace => 'namespace') do |f|
       concat f.text_field(:title)
@@ -1061,6 +1231,14 @@ class FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_namespace_with_date_select
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.date_select(:written_on)
+    end
+
+    assert_select 'select#namespace_post_written_on_1i'
   end
 
   def test_form_for_with_namespace_with_label
@@ -1779,6 +1957,56 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_index_method_with_existing_records_on_a_nested_attributes_collection_association
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+
+    form_for(@post) do |f|
+      expected = 0
+      @post.comments.each do |comment|
+        f.fields_for(:comments, comment) { |cf|
+          assert_equal cf.index, expected
+          expected += 1
+        }
+      end
+    end
+  end
+
+  def test_nested_fields_for_index_method_with_existing_and_new_records_on_a_nested_attributes_collection_association
+    @post.comments = [Comment.new(321), Comment.new]
+
+    form_for(@post) do |f|
+      expected = 0
+      @post.comments.each do |comment|
+        f.fields_for(:comments, comment) { |cf|
+          assert_equal cf.index, expected
+          expected += 1
+        }
+      end
+    end
+  end
+
+  def test_nested_fields_for_index_method_with_existing_records_on_a_supplied_nested_attributes_collection
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+
+    form_for(@post) do |f|
+      expected = 0
+      f.fields_for(:comments, @post.comments) { |cf|
+        assert_equal cf.index, expected
+        expected += 1
+      }
+    end
+  end
+
+  def test_nested_fields_for_index_method_with_child_index_option_override_on_a_nested_attributes_collection_association
+    @post.comments = []
+
+    form_for(@post) do |f|
+      f.fields_for(:comments, Comment.new(321), :child_index => 'abc') { |cf|
+        assert_equal cf.index, 'abc'
+      }
+    end
+  end
+
   def test_nested_fields_uses_unique_indices_for_different_collection_associations
     @post.comments = [Comment.new(321)]
     @post.tags = [Tag.new(123), Tag.new(456)]
@@ -2063,6 +2291,23 @@ class FormHelperTest < ActionView::TestCase
     ActionView::Base.default_form_builder = old_default_form_builder
   end
 
+  def test_lazy_loading_default_form_builder
+    old_default_form_builder, ActionView::Base.default_form_builder =
+      ActionView::Base.default_form_builder, "FormHelperTest::LabelledFormBuilder"
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'patch') do
+      "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  ensure
+    ActionView::Base.default_form_builder = old_default_form_builder
+  end
+
   def test_fields_for_with_labelled_builder
     output_buffer = fields_for(:post, @post, :builder => LabelledFormBuilder) do |f|
       concat f.text_field(:title)
@@ -2221,6 +2466,18 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_returns_block_result
     output = fields_for(Post.new) { |f| "fields" }
     assert_equal "fields", output
+  end
+
+  def test_form_builder_block_argument_deprecation
+    builder_class = Class.new(ActionView::Helpers::FormBuilder) do
+      def initialize(object_name, object, template, options, block)
+        super
+      end
+    end
+
+    assert_deprecated(/Giving a block to FormBuilder is deprecated and has no effect anymore/) do
+      builder_class.new(:foo, nil, nil, {}, proc {})
+    end
   end
 
   protected

@@ -66,8 +66,6 @@ module ActiveSupport
 
     # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.
     #
-    # ==== Examples
-    #
     #   class Person
     #     def to_param
     #       "#{id}-#{name.parameterize}"

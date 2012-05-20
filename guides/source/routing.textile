@@ -25,7 +25,7 @@ GET /patients/17
 it asks the router to match it to a controller action. If the first matching route is
 
 <ruby>
-match "/patients/:id" => "patients#show"
+get "/patients/:id" => "patients#show"
 </ruby>
 
 the request is dispatched to the +patients+ controller's +show+ action with <tt>{ :id => "17" }</tt> in +params+.
@@ -121,7 +121,7 @@ h4. Singular Resources
 Sometimes, you have a resource that clients always look up without referencing an ID. For example, you would like +/profile+ to always show the profile of the currently logged in user. In this case, you can use a singular resource to map +/profile+ (rather than +/profile/:id+) to the +show+ action.
 
 <ruby>
-match "profile" => "users#show"
+get "profile" => "users#show"
 </ruby>
 
 This resourceful route
@@ -374,7 +374,7 @@ h4. Bound Parameters
 When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: +:controller+ maps to the name of a controller in your application, and +:action+ maps to the name of an action within that controller. For example, consider one of the default Rails routes:
 
 <ruby>
-match ':controller(/:action(/:id))'
+get ':controller(/:action(/:id))'
 </ruby>
 
 If an incoming request of +/photos/show/1+ is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the +show+ action of the +PhotosController+, and to make the final parameter +"1"+ available as +params[:id]+. This route will also route the incoming request of +/photos+ to +PhotosController#index+, since +:action+ and +:id+ are optional parameters, denoted by parentheses.
@@ -384,7 +384,7 @@ h4. Dynamic Segments
 You can set up as many dynamic segments within a regular route as you like. Anything other than +:controller+ or +:action+ will be available to the action as part of +params+. If you set up this route:
 
 <ruby>
-match ':controller/:action/:id/:user_id'
+get ':controller/:action/:id/:user_id'
 </ruby>
 
 An incoming path of +/photos/show/1/2+ will be dispatched to the +show+ action of the +PhotosController+. +params[:id]+ will be +"1"+, and +params[:user_id]+ will be +"2"+.
@@ -392,7 +392,7 @@ An incoming path of +/photos/show/1/2+ will be dispatched to the +show+ action o
 NOTE: You can't use +:namespace+ or +:module+ with a +:controller+ path segment. If you need to do this then use a constraint on :controller that matches the namespace you require. e.g:
 
 <ruby>
-match ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
+get ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
 </ruby>
 
 TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment add a constraint which overrides this - for example +:id+ => /[^\/]+/ allows anything except a slash.
@@ -402,7 +402,7 @@ h4. Static Segments
 You can specify static segments when creating a route:
 
 <ruby>
-match ':controller/:action/:id/with_user/:user_id'
+get ':controller/:action/:id/with_user/:user_id'
 </ruby>
 
 This route would respond to paths such as +/photos/show/1/with_user/2+. In this case, +params+ would be <tt>{ :controller => "photos", :action => "show", :id => "1", :user_id => "2" }</tt>.
@@ -412,7 +412,7 @@ h4. The Query String
 The +params+ will also include any parameters from the query string. For example, with this route:
 
 <ruby>
-match ':controller/:action/:id'
+get ':controller/:action/:id'
 </ruby>
 
 An incoming path of +/photos/show/1?user_id=2+ will be dispatched to the +show+ action of the +Photos+ controller. +params+ will be <tt>{ :controller => "photos", :action => "show", :id => "1", :user_id => "2" }</tt>.
@@ -422,7 +422,7 @@ h4. Defining Defaults
 You do not need to explicitly use the +:controller+ and +:action+ symbols within a route. You can supply them as defaults:
 
 <ruby>
-match 'photos/:id' => 'photos#show'
+get 'photos/:id' => 'photos#show'
 </ruby>
 
 With this route, Rails will match an incoming path of +/photos/12+ to the +show+ action of +PhotosController+.
@@ -430,7 +430,7 @@ With this route, Rails will match an incoming path of +/photos/12+ to the +show+
 You can also define other defaults in a route by supplying a hash for the +:defaults+ option. This even applies to parameters that you do not specify as dynamic segments. For example:
 
 <ruby>
-match 'photos/:id' => 'photos#show', :defaults => { :format => 'jpg' }
+get 'photos/:id' => 'photos#show', :defaults => { :format => 'jpg' }
 </ruby>
 
 Rails would match +photos/12+ to the +show+ action of +PhotosController+, and set +params[:format]+ to +"jpg"+.
@@ -440,49 +440,45 @@ h4. Naming Routes
 You can specify a name for any route using the +:as+ option.
 
 <ruby>
-match 'exit' => 'sessions#destroy', :as => :logout
+get 'exit' => 'sessions#destroy', :as => :logout
 </ruby>
 
 This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/exit+
 
 h4. HTTP Verb Constraints
 
-You can use the +:via+ option to constrain the request to one or more HTTP methods:
+In general, you should use the +get+, +post+, +put+ and +delete+ methods to constrain a route to a particular verb. You can use the +match+ method with the +:via+ option to match multiple verbs at once:
 
 <ruby>
-match 'photos/show' => 'photos#show', :via => :get
+match 'photos' => 'photos#show', :via => [:get, :post]
 </ruby>
 
-There is a shorthand version of this as well:
+You can match all verbs to a particular route using +:via => :all+:
 
 <ruby>
-get 'photos/show'
+match 'photos' => 'photos#show', :via => :all
 </ruby>
 
-You can also permit more than one verb to a single route:
-
-<ruby>
-match 'photos/show' => 'photos#show', :via => [:get, :post]
-</ruby>
+You should avoid routing all verbs to an action unless you have a good reason to, as routing both +GET+ requests and +POST+ requests to a single action has security implications.
 
 h4. Segment Constraints
 
 You can use the +:constraints+ option to enforce a format for a dynamic segment:
 
 <ruby>
-match 'photos/:id' => 'photos#show', :constraints => { :id => /[A-Z]\d{5}/ }
+get 'photos/:id' => 'photos#show', :constraints => { :id => /[A-Z]\d{5}/ }
 </ruby>
 
 This route would match paths such as +/photos/A12345+. You can more succinctly express the same route this way:
 
 <ruby>
-match 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
+get 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
 </ruby>
 
 +:constraints+ takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:
 
 <ruby>
-match '/:id' => 'posts#show', :constraints => {:id => /^\d/}
+get '/:id' => 'posts#show', :constraints => {:id => /^\d/}
 </ruby>
 
 However, note that you don't need to use anchors because all routes are anchored at the start.
@@ -490,8 +486,8 @@ However, note that you don't need to use anchors because all routes are anchored
 For example, the following routes would allow for +posts+ with +to_param+ values like +1-hello-world+ that always begin with a number and +users+ with +to_param+ values like +david+ that never begin with a number to share the root namespace:
 
 <ruby>
-match '/:id' => 'posts#show', :constraints => { :id => /\d.+/ }
-match '/:username' => 'users#show'
+get '/:id' => 'posts#show', :constraints => { :id => /\d.+/ }
+get '/:username' => 'users#show'
 </ruby>
 
 h4. Request-Based Constraints
@@ -501,7 +497,7 @@ You can also constrain a route based on any method on the <a href="action_contro
 You specify a request-based constraint the same way that you specify a segment constraint:
 
 <ruby>
-match "photos", :constraints => {:subdomain => "admin"}
+get "photos", :constraints => {:subdomain => "admin"}
 </ruby>
 
 You can also specify constraints in a block form:
@@ -530,17 +526,28 @@ class BlacklistConstraint
 end
 
 TwitterClone::Application.routes.draw do
-  match "*path" => "blacklist#index",
+  get "*path" => "blacklist#index",
     :constraints => BlacklistConstraint.new
 end
 </ruby>
+
+You can also specify constraints as a lambda:
+
+<ruby>
+TwitterClone::Application.routes.draw do
+  get "*path" => "blacklist#index",
+    :constraints => lambda { |request| Blacklist.retrieve_ips.include?(request.remote_ip) }
+end
+</ruby>
+
+Both the +matches?+ method and the lambda gets the +request+ object as an argument.
 
 h4. Route Globbing
 
 Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example
 
 <ruby>
-match 'photos/*other' => 'photos#unknown'
+get 'photos/*other' => 'photos#unknown'
 </ruby>
 
 This route would match +photos/12+ or +/photos/long/path/to/12+, setting +params[:other]+ to +"12"+ or +"long/path/to/12"+.
@@ -548,7 +555,7 @@ This route would match +photos/12+ or +/photos/long/path/to/12+, setting +params
 Wildcard segments can occur anywhere in a route. For example,
 
 <ruby>
-match 'books/*section/:title' => 'books#show'
+get 'books/*section/:title' => 'books#show'
 </ruby>
 
 would match +books/some/section/last-words-a-memoir+ with +params[:section]+ equals +"some/section"+, and +params[:title]+ equals +"last-words-a-memoir"+.
@@ -556,7 +563,7 @@ would match +books/some/section/last-words-a-memoir+ with +params[:section]+ equ
 Technically a route can have even more than one wildcard segment. The matcher assigns segments to parameters in an intuitive way. For example,
 
 <ruby>
-match '*a/foo/*b' => 'test#index'
+get '*a/foo/*b' => 'test#index'
 </ruby>
 
 would match +zoo/woo/foo/bar/baz+ with +params[:a]+ equals +"zoo/woo"+, and +params[:b]+ equals +"bar/baz"+.
@@ -564,19 +571,19 @@ would match +zoo/woo/foo/bar/baz+ with +params[:a]+ equals +"zoo/woo"+, and +par
 NOTE: Starting from Rails 3.1, wildcard routes will always match the optional format segment by default. For example if you have this route:
 
 <ruby>
-match '*pages' => 'pages#show'
+get '*pages' => 'pages#show'
 </ruby>
 
 NOTE: By requesting +"/foo/bar.json"+, your +params[:pages]+ will be equals to +"foo/bar"+ with the request format of JSON. If you want the old 3.0.x behavior back, you could supply +:format => false+ like this:
 
 <ruby>
-match '*pages' => 'pages#show', :format => false
+get '*pages' => 'pages#show', :format => false
 </ruby>
 
 NOTE: If you want to make the format segment mandatory, so it cannot be omitted, you can supply +:format => true+ like this:
 
 <ruby>
-match '*pages' => 'pages#show', :format => true
+get '*pages' => 'pages#show', :format => true
 </ruby>
 
 h4. Redirection
@@ -584,20 +591,20 @@ h4. Redirection
 You can redirect any path to another path using the +redirect+ helper in your router:
 
 <ruby>
-match "/stories" => redirect("/posts")
+get "/stories" => redirect("/posts")
 </ruby>
 
 You can also reuse dynamic segments from the match in the path to redirect to:
 
 <ruby>
-match "/stories/:name" => redirect("/posts/%{name}")
+get "/stories/:name" => redirect("/posts/%{name}")
 </ruby>
 
 You can also provide a block to redirect, which receives the params and (optionally) the request object:
 
 <ruby>
-match "/stories/:name" => redirect {|params| "/posts/#{params[:name].pluralize}" }
-match "/stories" => redirect {|p, req| "/posts/#{req.subdomain}" }
+get "/stories/:name" => redirect {|params| "/posts/#{params[:name].pluralize}" }
+get "/stories" => redirect {|p, req| "/posts/#{req.subdomain}" }
 </ruby>
 
 Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
@@ -609,10 +616,10 @@ h4. Routing to Rack Applications
 Instead of a String, like +"posts#index"+, which corresponds to the +index+ action in the +PostsController+, you can specify any <a href="rails_on_rack.html">Rack application</a> as the endpoint for a matcher.
 
 <ruby>
-match "/application.js" => Sprockets
+match "/application.js" => Sprockets, :via => :all
 </ruby>
 
-As long as +Sprockets+ responds to +call+ and returns a <tt>[status, headers, body]</tt>, the router won't know the difference between the Rack application and an action.
+As long as +Sprockets+ responds to +call+ and returns a <tt>[status, headers, body]</tt>, the router won't know the difference between the Rack application and an action. This is an appropriate use of +:via => :all+, as you will want to allow your Rack application to handle all verbs as it considers appropriate.
 
 NOTE: For the curious, +"posts#index"+ actually expands out to +PostsController.action(:index)+, which returns a valid Rack application.
 
@@ -626,6 +633,8 @@ root 'pages#main' # shortcut for the above
 </ruby>
 
 You should put the +root+ route at the top of the file, because it is the most popular route and should be matched first. You also need to delete the +public/index.html+ file for the root route to take effect.
+
+NOTE: The +root+ route only routes +GET+ requests to the action.
 
 h3. Customizing Resourceful Routes
 
@@ -819,6 +828,24 @@ end
 </ruby>
 
 This will create routing helpers such as +magazine_periodical_ads_url+ and +edit_magazine_periodical_ad_path+.
+
+h3. Breaking Up a Large Route File
+
+If you have a large route file that you would like to break up into multiple files, you can use the +#draw+ method in your router:
+
+<ruby>
+draw :admin
+</ruby>
+
+Then, create a file called +config/routes/admin.rb+. Name the file the same as the symbol passed to the +draw+ method. You can then use the normal routing DSL inside that file:
+
+<ruby>
+# in config/routes/admin.rb
+
+namespace :admin do
+  resources :posts
+end
+</ruby>
 
 h3. Inspecting and Testing Routes
 

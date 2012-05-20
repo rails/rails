@@ -39,7 +39,6 @@ module ActionDispatch
       # The selector may be a CSS selector expression (String), an expression
       # with substitution values (Array) or an HTML::Selector object.
       #
-      # ==== Examples
       #   # Selects all div tags
       #   divs = css_select("div")
       #
@@ -58,7 +57,6 @@ module ActionDispatch
       #     inputs = css_select(form, "input")
       #     ...
       #   end
-      #
       def css_select(*args)
         # See assert_select to understand what's going on here.
         arg = args.shift
@@ -269,6 +267,7 @@ module ActionDispatch
               end
             end
             text.strip! unless NO_STRIP.include?(match.name)
+            text.sub!(/\A\n/, '') if match.name == "textarea"
             unless match_with.is_a?(Regexp) ? (text =~ match_with) : (text == match_with.to_s)
               content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, text)
               true
@@ -339,7 +338,6 @@ module ActionDispatch
       # The content of each element is un-encoded, and wrapped in the root
       # element +encoded+. It then calls the block with all un-encoded elements.
       #
-      # ==== Examples
       #   # Selects all bold tags from within the title of an Atom feed's entries (perhaps to nab a section name prefix)
       #   assert_select "feed[xmlns='http://www.w3.org/2005/Atom']" do
       #     # Select each entry item and then the title item
@@ -400,8 +398,6 @@ module ActionDispatch
       # You must enable deliveries for this assertion to work, use:
       #   ActionMailer::Base.perform_deliveries = true
       #
-      # ==== Examples
-      #
       #  assert_select_email do
       #    assert_select "h1", "Email alert"
       #  end
@@ -412,7 +408,6 @@ module ActionDispatch
       #       # Work with items here...
       #    end
       #  end
-      #
       def assert_select_email(&block)
         deliveries = ActionMailer::Base.deliveries
         assert !deliveries.empty?, "No e-mail in delivery list"

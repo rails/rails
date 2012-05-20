@@ -5,12 +5,15 @@ require 'active_support/core_ext/module/remove_method'
 
 class Date
   DATE_FORMATS = {
-    :short        => "%e %b",
-    :long         => "%B %e, %Y",
-    :db           => "%Y-%m-%d",
-    :number       => "%Y%m%d",
-    :long_ordinal => lambda { |date| date.strftime("%B #{ActiveSupport::Inflector.ordinalize(date.day)}, %Y") }, # => "April 25th, 2007"
-    :rfc822       => "%e %b %Y"
+    :short        => '%e %b',
+    :long         => '%B %e, %Y',
+    :db           => '%Y-%m-%d',
+    :number       => '%Y%m%d',
+    :long_ordinal => lambda { |date|
+      day_format = ActiveSupport::Inflector.ordinalize(date.day)
+      date.strftime("%B #{day_format}, %Y") # => "April 25th, 2007"
+    },
+    :rfc822       => '%e %b %Y'
   }
 
   # Ruby 1.9 has Date#to_time which converts to localtime only.
@@ -23,7 +26,6 @@ class Date
   #
   # This method is aliased to <tt>to_s</tt>.
   #
-  # ==== Examples
   #   date = Date.new(2007, 11, 10)       # => Sat, 10 Nov 2007
   #
   #   date.to_formatted_s(:db)            # => "2007-11-10"
@@ -40,7 +42,7 @@ class Date
   # or Proc instance that takes a date argument as the value.
   #
   #   # config/initializers/time_formats.rb
-  #   Date::DATE_FORMATS[:month_and_year] = "%B %Y"
+  #   Date::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Date::DATE_FORMATS[:short_ordinal] = lambda { |date| date.strftime("%B #{date.day.ordinalize}") }
   def to_formatted_s(format = :default)
     if formatter = DATE_FORMATS[format]
@@ -58,7 +60,7 @@ class Date
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
   def readable_inspect
-    strftime("%a, %d %b %Y")
+    strftime('%a, %d %b %Y')
   end
   alias_method :default_inspect, :inspect
   alias_method :inspect, :readable_inspect
@@ -66,7 +68,6 @@ class Date
   # Converts a Date instance to a Time, where the time is set to the beginning of the day.
   # The timezone can be either :local or :utc (default :local).
   #
-  # ==== Examples
   #   date = Date.new(2007, 11, 10)  # => Sat, 10 Nov 2007
   #
   #   date.to_time                   # => Sat Nov 10 00:00:00 0800 2007

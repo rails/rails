@@ -1,10 +1,12 @@
 require 'set'
 require 'cgi'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module HTML
   class Sanitizer
     def sanitize(text, options = {})
+      validate_options(options)
       return text unless sanitizeable?(text)
       tokenize(text, options).join
     end
@@ -26,6 +28,16 @@ module HTML
 
     def process_node(node, result, options)
       result << node.to_s
+    end
+
+    def validate_options(options)
+      if options[:tags] && !options[:tags].is_a?(Enumerable)
+        raise ArgumentError, "You should pass :tags as an Enumerable"
+      end
+
+      if options[:attributes] && !options[:attributes].is_a?(Enumerable)
+        raise ArgumentError, "You should pass :attributes as an Enumerable"
+      end
     end
   end
 
@@ -88,7 +100,7 @@ module HTML
     self.allowed_protocols      = Set.new(%w(ed2k ftp http https irc mailto news gopher nntp telnet webcal xmpp callto
       feed svn urn aim rsync tag ssh sftp rtsp afs))
 
-    # Specifies the default Set of acceptable css keywords that #sanitize and #sanitize_css will accept.
+    # Specifies the default Set of acceptable css properties that #sanitize and #sanitize_css will accept.
     self.allowed_css_properties = Set.new(%w(azimuth background-color border-bottom-color border-collapse
       border-color border-left-color border-right-color border-top-color clear color cursor direction display
       elevation float font font-family font-size font-style font-variant font-weight height letter-spacing line-height

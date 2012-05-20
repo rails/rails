@@ -148,18 +148,19 @@ In this case, when a user opens the URL +/clients/active+, +params[:status]+ wil
 
 h4. +default_url_options+
 
-You can set global default parameters that will be used when generating URLs with +default_url_options+. To do this, define a method with that name in your controller:
+You can set global default parameters for URL generation by defining a method called +default_url_options+ in your controller. Such a method must return a hash with the desired defaults, whose keys must be symbols:
 
 <ruby>
 class ApplicationController < ActionController::Base
-  # The options parameter is the hash passed in to 'url_for'
-  def default_url_options(options)
+  def default_url_options
     {:locale => I18n.locale}
   end
 end
 </ruby>
 
-These options will be used as a starting-point when generating URLs, so it's possible they'll be overridden by +url_for+. Because this method is defined in the controller, you can define it on +ApplicationController+ so it would be used for all URL generation, or you could define it on only one controller for all URLs generated there.
+These options will be used as a starting point when generating URLs, so it's possible they'll be overridden by the options passed in +url_for+ calls.
+
+If you define +default_url_options+ in +ApplicationController+, as in the example above, it would be used for all URL generation. The method can also be defined in one specific controller, in which case it only affects URLs generated there.
 
 
 h3. Session

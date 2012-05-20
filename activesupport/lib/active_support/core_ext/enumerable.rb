@@ -1,5 +1,5 @@
 module Enumerable
-  # Calculates a sum from the elements. Examples:
+  # Calculates a sum from the elements.
   #
   #  payments.sum { |p| p.price * p.tax_rate }
   #  payments.sum(&:price)
@@ -11,7 +11,7 @@ module Enumerable
   # It can also calculate the sum without the use of a block.
   #
   #  [5, 15, 10].sum # => 30
-  #  ["foo", "bar"].sum # => "foobar"
+  #  ['foo', 'bar'].sum # => "foobar"
   #  [[1, 2], [3, 1, 5]].sum => [1, 2, 3, 1, 5]
   #
   # The default sum of an empty list is zero. You can override this default:
@@ -26,7 +26,7 @@ module Enumerable
     end
   end
 
-  # Convert an enumerable to a hash. Examples:
+  # Convert an enumerable to a hash.
   #
   #   people.index_by(&:login)
   #     => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
@@ -34,8 +34,11 @@ module Enumerable
   #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
   #
   def index_by
-    return to_enum :index_by unless block_given?
-    Hash[map { |elem| [yield(elem), elem] }]
+    if block_given?
+      Hash[map { |elem| [yield(elem), elem] }]
+    else
+      to_enum :index_by
+    end
   end
 
   # Returns true if the enumerable has more than 1 element. Functionally equivalent to enum.to_a.size > 1.
@@ -48,7 +51,7 @@ module Enumerable
         cnt > 1
       end
     else
-      any?{ (cnt += 1) > 1 }
+      any? { (cnt += 1) > 1 }
     end
   end
 
@@ -62,8 +65,11 @@ class Range #:nodoc:
   # Optimize range sum to use arithmetic progression if a block is not given and
   # we have a range of numeric values.
   def sum(identity = 0)
-    return super if block_given? || !(first.instance_of?(Integer) && last.instance_of?(Integer))
-    actual_last = exclude_end? ? (last - 1) : last
-    (actual_last - first + 1) * (actual_last + first) / 2
+    if block_given? || !(first.instance_of?(Integer) && last.instance_of?(Integer))
+      super
+    else
+      actual_last = exclude_end? ? (last - 1) : last
+      (actual_last - first + 1) * (actual_last + first) / 2
+    end
   end
 end

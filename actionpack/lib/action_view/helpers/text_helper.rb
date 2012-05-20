@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/filters'
+require 'active_support/core_ext/array/extract_options'
 
 module ActionView
   # = Action View Text Helpers
@@ -36,7 +37,6 @@ module ActionView
       # do not operate as expected in an eRuby code block. If you absolutely must
       # output text within a non-output code block (i.e., <% %>), you can use the concat method.
       #
-      # ==== Examples
       #   <%
       #       concat "hello"
       #       # is the equivalent of <%= "hello" %>
@@ -44,7 +44,7 @@ module ActionView
       #       if logged_in
       #         concat "Logged in!"
       #       else
-      #         concat link_to('login', :action => login)
+      #         concat link_to('login', :action => :login)
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
@@ -66,8 +66,6 @@ module ActionView
       # used in views, unless wrapped by <tt>raw()</tt>. Care should be taken if +text+ contains HTML tags
       # or entities, because truncation may produce invalid HTML (such as unbalanced or incomplete tags).
       #
-      # ==== Examples
-      #
       #   truncate("Once upon a time in a world far far away")
       #   # => "Once upon a time in a world..."
       #
@@ -83,16 +81,14 @@ module ActionView
       #   truncate("<p>Once upon a time in a world far far away</p>")
       #   # => "<p>Once upon a time in a wo..."
       def truncate(text, options = {})
-        options.reverse_merge!(:length => 30)
-        text.truncate(options.delete(:length), options) if text
+        text.truncate(options.fetch(:length, 30), options) if text
       end
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
-      # as a single-quoted string with \1 where the phrase is to be inserted (defaults to
+      # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
       # '<mark>\1</mark>')
       #
-      # ==== Examples
       #   highlight('You searched for: rails', 'rails')
       #   # => You searched for: <mark>rails</mark>
       #
@@ -104,23 +100,15 @@ module ActionView
       #
       #   highlight('You searched for: rails', 'rails', :highlighter => '<a href="search?q=\1">\1</a>')
       #   # => You searched for: <a href="search?q=rails">rails</a>
-      #
-      # You can still use <tt>highlight</tt> with the old API that accepts the
-      # +highlighter+ as its optional third parameter:
-      #   highlight('You searched for: rails', 'rails', '<a href="search?q=\1">\1</a>')     # => You searched for: <a href="search?q=rails">rails</a>
-      def highlight(text, phrases, *args)
-        options = args.extract_options!
-        unless args.empty?
-          options[:highlighter] = args[0] || '<mark>\1</mark>'
-        end
-        options.reverse_merge!(:highlighter => '<mark>\1</mark>')
-
-        text = sanitize(text) unless options[:sanitize] == false
+      def highlight(text, phrases, options = {})
+        highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
+        
+        text = sanitize(text) if options.fetch(:sanitize, true)
         if text.blank? || phrases.blank?
           text
         else
           match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
-          text.gsub(/(#{match})(?![^<]*?>)/i, options[:highlighter])
+          text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
         end.html_safe
       end
 
@@ -130,7 +118,6 @@ module ActionView
       # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The resulting string
       # will be stripped in any case. If the +phrase+ isn't found, nil is returned.
       #
-      # ==== Examples
       #   excerpt('This is an example', 'an', :radius => 5)
       #   # => ...s is an exam...
       #
@@ -145,39 +132,27 @@ module ActionView
       #
       #   excerpt('This is also an example', 'an', :radius => 8, :omission => '<chop> ')
       #   # => <chop> is also an example
-      #
-      # You can still use <tt>excerpt</tt> with the old API that accepts the
-      # +radius+ as its optional third and the +ellipsis+ as its
-      # optional forth parameter:
-      #   excerpt('This is an example', 'an', 5)                   # => ...s is an exam...
-      #   excerpt('This is also an example', 'an', 8, '<chop> ')   # => <chop> is also an example
-      def excerpt(text, phrase, *args)
+      def excerpt(text, phrase, options = {})
         return unless text && phrase
-
-        options = args.extract_options!
-        unless args.empty?
-          options[:radius] = args[0] || 100
-          options[:omission] = args[1] || "..."
-        end
-        options.reverse_merge!(:radius => 100, :omission => "...")
+        radius   = options.fetch(:radius, 100)
+        omission = options.fetch(:omission, "...")
 
         phrase = Regexp.escape(phrase)
         return unless found_pos = text =~ /(#{phrase})/i
 
-        start_pos = [ found_pos - options[:radius], 0 ].max
-        end_pos   = [ [ found_pos + phrase.length + options[:radius] - 1, 0].max, text.length ].min
+        start_pos = [ found_pos - radius, 0 ].max
+        end_pos   = [ [ found_pos + phrase.length + radius - 1, 0].max, text.length ].min
 
-        prefix  = start_pos > 0 ? options[:omission] : ""
-        postfix = end_pos < text.length - 1 ? options[:omission] : ""
+        prefix  = start_pos > 0 ? omission : ""
+        postfix = end_pos < text.length - 1 ? omission : ""
 
         prefix + text[start_pos..end_pos].strip + postfix
       end
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
-      # it will use the Inflector to determine the plural form
+      # it will use the Inflector to determine the plural form.
       #
-      # ==== Examples
       #   pluralize(1, 'person')
       #   # => 1 person
       #
@@ -190,39 +165,35 @@ module ActionView
       #   pluralize(0, 'person')
       #   # => 0 people
       def pluralize(count, singular, plural = nil)
-        "#{count || 0} " + ((count == 1 || count =~ /^1(\.0+)?$/) ? singular : (plural || singular.pluralize))
+        word = if (count == 1 || count =~ /^1(\.0+)?$/) 
+          singular 
+        else
+          plural || singular.pluralize
+        end
+        
+        "#{count || 0} #{word}"
       end
 
       # Wraps the +text+ into lines no longer than +line_width+ width. This method
       # breaks on the first whitespace character that does not exceed +line_width+
       # (which is 80 by default).
       #
-      # ==== Examples
-      #
       #   word_wrap('Once upon a time')
       #   # => Once upon a time
       #
       #   word_wrap('Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding a successor to the throne turned out to be more trouble than anyone could have imagined...')
-      #   # => Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\n a successor to the throne turned out to be more trouble than anyone could have\n imagined...
+      #   # => Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\na successor to the throne turned out to be more trouble than anyone could have\nimagined...
       #
       #   word_wrap('Once upon a time', :line_width => 8)
-      #   # => Once upon\na time
+      #   # => Once\nupon a\ntime
       #
       #   word_wrap('Once upon a time', :line_width => 1)
       #   # => Once\nupon\na\ntime
-      #
-      # You can still use <tt>word_wrap</tt> with the old API that accepts the
-      # +line_width+ as its optional second parameter:
-      #   word_wrap('Once upon a time', 8)     # => Once upon\na time
-      def word_wrap(text, *args)
-        options = args.extract_options!
-        unless args.blank?
-          options[:line_width] = args[0] || 80
-        end
-        options.reverse_merge!(:line_width => 80)
+      def word_wrap(text, options = {})
+        line_width = options.fetch(:line_width, 80)
 
         text.split("\n").collect do |line|
-          line.length > options[:line_width] ? line.gsub(/(.{1,#{options[:line_width]}})(\s+|$)/, "\\1\n").strip : line
+          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip : line
         end * "\n"
       end
 
@@ -237,12 +208,16 @@ module ActionView
       #
       # ==== Options
       # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
+      # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>
       #
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
       #
       #   simple_format(my_text)
       #   # => "<p>Here is some basic text...\n<br />...with a line break.</p>"
+      # 
+      #   simple_format(my_text, {}, :wrapper_tag => "div")
+      #   # => "<div>Here is some basic text...\n<br />...with a line break.</div>"
       #
       #   more_text = "We want to put a paragraph...\n\n...right there."
       #
@@ -254,17 +229,19 @@ module ActionView
       #
       #   simple_format("<span>I'm allowed!</span> It's true.", {}, :sanitize => false)
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
-      def simple_format(text, html_options={}, options={})
-        text = '' if text.nil?
-        text = text.dup
-        start_tag = tag('p', html_options, true)
-        text = sanitize(text) unless options[:sanitize] == false
-        text = text.to_str
-        text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
-        text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
-        text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br
-        text.insert 0, start_tag
-        text.html_safe.safe_concat("</p>")
+      def simple_format(text, html_options = {}, options = {})
+        wrapper_tag = options.fetch(:wrapper_tag, :p)
+        
+        text = sanitize(text) if options.fetch(:sanitize, true)
+        paragraphs = split_paragraphs(text)
+
+        if paragraphs.empty?
+          content_tag(wrapper_tag, nil, html_options)
+        else
+          paragraphs.map { |paragraph|
+            content_tag(wrapper_tag, paragraph, html_options, options[:sanitize])
+          }.join("\n\n").html_safe
+        end
       end
 
       # Creates a Cycle object whose _to_s_ method cycles through elements of an
@@ -276,7 +253,6 @@ module ActionView
       # and passing the name of the cycle. The current cycle string can be obtained
       # anytime using the current_cycle method.
       #
-      # ==== Examples
       #   # Alternate CSS classes for even and odd numbers...
       #   @items = [1,2,3,4]
       #   <table>
@@ -306,12 +282,9 @@ module ActionView
       #    </tr>
       #  <% end %>
       def cycle(first_value, *values)
-        if (values.last.instance_of? Hash)
-          params = values.pop
-          name = params[:name]
-        else
-          name = "default"
-        end
+        options = values.extract_options!
+        name = options.fetch(:name, 'default')
+
         values.unshift(first_value)
 
         cycle = get_cycle(name)
@@ -325,7 +298,6 @@ module ActionView
       # for complex table highlighting or any other design need which requires
       # the current cycle string in more than one place.
       #
-      # ==== Example
       #   # Alternate background colors
       #   @items = [1,2,3,4]
       #   <% @items.each do |item| %>
@@ -341,7 +313,6 @@ module ActionView
       # Resets a cycle so that it starts from the first element the next time
       # it is called. Pass in +name+ to reset a named cycle.
       #
-      # ==== Example
       #   # Alternate CSS classes for even and odd numbers...
       #   @items = [[1,2,3,4], [5,6,3], [3,4,5,6,7,4]]
       #   <table>
@@ -411,6 +382,14 @@ module ActionView
         def set_cycle(name, cycle_object)
           @_cycles = Hash.new unless defined?(@_cycles)
           @_cycles[name] = cycle_object
+        end
+
+        def split_paragraphs(text)
+          return [] if text.blank?
+
+          text.to_str.gsub(/\r\n?/, "\n").split(/\n\n+/).map! do |t|
+            t.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') || t
+          end
         end
     end
   end

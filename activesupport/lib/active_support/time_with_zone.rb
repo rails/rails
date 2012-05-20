@@ -8,7 +8,6 @@ module ActiveSupport
   #
   # You shouldn't ever need to create a TimeWithZone instance directly via <tt>new</tt> . Instead use methods
   # +local+, +parse+, +at+ and +now+ on TimeZone instances, and +in_time_zone+ on Time and DateTime instances.
-  # Examples:
   #
   #   Time.zone = 'Eastern Time (US & Canada)'        # => 'Eastern Time (US & Canada)'
   #   Time.zone.local(2007, 2, 10, 15, 30, 45)        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
@@ -20,7 +19,6 @@ module ActiveSupport
   # See Time and TimeZone for further documentation of these methods.
   #
   # TimeWithZone instances implement the same API as Ruby Time instances, so that Time and TimeWithZone instances are interchangeable.
-  # Examples:
   #
   #   t = Time.zone.now                     # => Sun, 18 May 2008 13:27:25 EDT -04:00
   #   t.hour                                # => 13
@@ -35,8 +33,10 @@ module ActiveSupport
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
   #
   class TimeWithZone
+
+    # Report class name as 'Time' to thwart type checking
     def self.name
-      'Time' # Report class name as 'Time' to thwart type checking
+      'Time'
     end
 
     include Comparable
@@ -119,8 +119,6 @@ module ActiveSupport
     # Coerces time to a string for JSON encoding. The default format is ISO 8601. You can get
     # %Y/%m/%d %H:%M:%S +offset style by setting <tt>ActiveSupport::JSON::Encoding.use_standard_json_time_format</tt>
     # to false.
-    #
-    # ==== Examples
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = true
     #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
@@ -311,16 +309,15 @@ module ActiveSupport
     end
 
     # Ensure proxy class responds to all methods that underlying time instance responds to.
-    def respond_to?(sym, include_priv = false)
+    def respond_to_missing?(sym, include_priv)
       # consistently respond false to acts_like?(:date), regardless of whether #time is a Time or DateTime
-      return false if sym.to_s == 'acts_like_date?'
-      super || time.respond_to?(sym, include_priv)
+      return false if sym.to_sym == :acts_like_date?
+      time.respond_to?(sym, include_priv)
     end
 
     # Send the missing method to +time+ instance, and wrap result in a new TimeWithZone with the existing +time_zone+.
     def method_missing(sym, *args, &block)
-      result = time.__send__(sym, *args, &block)
-      result.acts_like?(:time) ? self.class.new(nil, time_zone, result) : result
+      wrap_with_time_zone time.__send__(sym, *args, &block)
     end
 
     private
@@ -338,11 +335,21 @@ module ActiveSupport
       end
 
       def transfer_time_values_to_utc_constructor(time)
-        ::Time.utc_time(time.year, time.month, time.day, time.hour, time.min, time.sec, time.respond_to?(:usec) ? time.usec : 0)
+        ::Time.utc_time(time.year, time.month, time.day, time.hour, time.min, time.sec, time.respond_to?(:nsec) ? Rational(time.nsec, 1000) : 0)
       end
 
       def duration_of_variable_length?(obj)
         ActiveSupport::Duration === obj && obj.parts.any? {|p| p[0].in?([:years, :months, :days]) }
+      end
+
+      def wrap_with_time_zone(time)
+        if time.acts_like?(:time)
+          self.class.new(nil, time_zone, time)
+        elsif time.is_a?(Range)
+          wrap_with_time_zone(time.begin)..wrap_with_time_zone(time.end)
+        else
+          time
+        end
       end
   end
 end

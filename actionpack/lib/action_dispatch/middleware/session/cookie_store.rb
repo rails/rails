@@ -27,7 +27,7 @@ module ActionDispatch
     #   CGI::Session instance as an argument. It's important that the secret
     #   is not vulnerable to a dictionary attack. Therefore, you should choose
     #   a secret consisting of random numbers and letters and more than 30
-    #   characters. Examples:
+    #   characters.
     #
     #     :secret => '449fe2e7daee471bffae2fd8dc02313d'
     #     :secret => Proc.new { User.current_user.secret_key }
@@ -43,6 +43,7 @@ module ActionDispatch
     class CookieStore < Rack::Session::Cookie
       include Compatibility
       include StaleSessionCheck
+      include SessionObject
 
       private
 
@@ -59,7 +60,8 @@ module ActionDispatch
       end
 
       def set_session(env, sid, session_data, options)
-        session_data.merge("session_id" => sid)
+        session_data["session_id"] = sid
+        session_data
       end
 
       def set_cookie(env, session_id, cookie)

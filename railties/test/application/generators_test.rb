@@ -45,10 +45,10 @@ module ApplicationTests
 
     test "generators set rails options" do
       with_bare_config do |c|
-        c.generators.orm            = :datamapper
+        c.generators.orm            = :data_mapper
         c.generators.test_framework = :rspec
         c.generators.helper         = false
-        expected = { :rails => { :orm => :datamapper, :test_framework => :rspec, :helper => false } }
+        expected = { :rails => { :orm => :data_mapper, :test_framework => :rspec, :helper => false } }
         assert_equal(expected, c.generators.options)
       end
     end
@@ -64,7 +64,7 @@ module ApplicationTests
     test "generators aliases, options, templates and fallbacks on initialization" do
       add_to_config <<-RUBY
         config.generators.rails :aliases => { :test_framework => "-w" }
-        config.generators.orm :datamapper
+        config.generators.orm :data_mapper
         config.generators.test_framework :rspec
         config.generators.fallbacks[:shoulda] = :test_unit
         config.generators.templates << "some/where"
@@ -95,15 +95,15 @@ module ApplicationTests
     test "generators with hashes for options and aliases" do
       with_bare_config do |c|
         c.generators do |g|
-          g.orm    :datamapper, :migration => false
+          g.orm    :data_mapper, :migration => false
           g.plugin :aliases => { :generator => "-g" },
                    :generator => true
         end
 
         expected = {
-          :rails => { :orm => :datamapper },
+          :rails => { :orm => :data_mapper },
           :plugin => { :generator => true },
-          :datamapper => { :migration => false }
+          :data_mapper => { :migration => false }
         }
 
         assert_equal expected, c.generators.options
@@ -114,12 +114,12 @@ module ApplicationTests
     test "generators with string and hash for options should generate symbol keys" do
       with_bare_config do |c|
         c.generators do |g|
-          g.orm    'datamapper', :migration => false
+          g.orm    'data_mapper', :migration => false
         end
 
         expected = {
-          :rails => { :orm => :datamapper },
-          :datamapper => { :migration => false }
+          :rails => { :orm => :data_mapper },
+          :data_mapper => { :migration => false }
         }
 
         assert_equal expected, c.generators.options

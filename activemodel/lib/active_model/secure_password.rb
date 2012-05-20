@@ -6,8 +6,9 @@ module ActiveModel
       # Adds methods to set and authenticate against a BCrypt password.
       # This mechanism requires you to have a password_digest attribute.
       #
-      # Validations for presence of password, confirmation of password (using
+      # Validations for presence of password on create, confirmation of password (using
       # a "password_confirmation" attribute) are automatically added.
+      # If you wish to turn off validations, pass 'validations: false' as an argument.
       # You can add more validations by hand if need be.
       #
       # You need to add bcrypt-ruby (~> 3.0.0) to Gemfile to use has_secure_password:
@@ -31,16 +32,20 @@ module ActiveModel
       #   user.authenticate("mUc3m00RsqyRe")                             # => user
       #   User.find_by_name("david").try(:authenticate, "notright")      # => false
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
-      def has_secure_password
+      def has_secure_password(options = {})
         # Load bcrypt-ruby only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework) being dependent on a binary library.
         gem 'bcrypt-ruby', '~> 3.0.0'
         require 'bcrypt'
 
         attr_reader :password
-
-        validates_confirmation_of :password
-        validates_presence_of     :password_digest
+        
+        if options.fetch(:validations, true)
+          validates_confirmation_of :password
+          validates_presence_of     :password, :on => :create
+        end
+        
+        before_create { raise "Password digest missing on new record" if password_digest.blank? }
 
         include InstanceMethodsOnActivation
 
@@ -55,17 +60,14 @@ module ActiveModel
     module InstanceMethodsOnActivation
       # Returns self if the password is correct, otherwise false.
       def authenticate(unencrypted_password)
-        if BCrypt::Password.new(password_digest) == unencrypted_password
-          self
-        else
-          false
-        end
+        BCrypt::Password.new(password_digest) == unencrypted_password && self
       end
 
-      # Encrypts the password into the password_digest attribute.
+      # Encrypts the password into the password_digest attribute, only if the
+      # new password is not blank.
       def password=(unencrypted_password)
-        @password = unencrypted_password
         unless unencrypted_password.blank?
+          @password = unencrypted_password
           self.password_digest = BCrypt::Password.create(unencrypted_password)
         end
       end

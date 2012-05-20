@@ -1,6 +1,6 @@
 require 'active_support/deprecation'
 require 'active_support/ordered_options'
-require 'active_support/core_ext/hash/deep_dup'
+require 'active_support/core_ext/object'
 require 'rails/paths'
 require 'rails/rack'
 
@@ -16,7 +16,7 @@ module Rails
     #
     #     config.middleware.use Magical::Unicorns
     #
-    # This will put the +Magical::Unicorns+ middleware on the end of the stack.
+    # This will put the <tt>Magical::Unicorns</tt> middleware on the end of the stack.
     # You can use +insert_before+ if you wish to add a middleware before another:
     #
     #     config.middleware.insert_before ActionDispatch::Head, Magical::Unicorns

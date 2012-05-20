@@ -4,9 +4,17 @@ require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/numeric/time'
 
 class DuplicableTest < ActiveSupport::TestCase
-  RAISE_DUP  = [nil, false, true, :symbol, 1, 2.3, BigDecimal.new('4.56'), 5.seconds]
-  YES = ['1', Object.new, /foo/, [], {}, Time.now]
-  NO = [Class.new, Module.new]
+  RAISE_DUP  = [nil, false, true, :symbol, 1, 2.3, 5.seconds]
+  YES = ['1', Object.new, /foo/, [], {}, Time.now, Class.new, Module.new]
+  NO = []
+
+  begin
+    bd = BigDecimal.new('4.56')
+    YES << bd.dup
+  rescue TypeError
+    RAISE_DUP << bd
+  end
+
 
   def test_duplicable
     (RAISE_DUP + NO).each do |v|
@@ -14,7 +22,7 @@ class DuplicableTest < ActiveSupport::TestCase
     end
 
     YES.each do |v|
-      assert v.duplicable?
+      assert v.duplicable?, "#{v.class} should be duplicable"
     end
 
     (YES + NO).each do |v|

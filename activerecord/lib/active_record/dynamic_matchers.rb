@@ -1,83 +1,130 @@
 module ActiveRecord
-  module DynamicMatchers
-    def respond_to?(method_id, include_private = false)
-      match       = find_dynamic_match(method_id)
-      valid_match = match && all_attributes_exists?(match.attribute_names)
+  module DynamicMatchers #:nodoc:
+    # This code in this file seems to have a lot of indirection, but the indirection
+    # is there to provide extension points for the active_record_deprecated_finders
+    # gem. When we stop supporting active_record_deprecated_finders (from Rails 5),
+    # then we can remove the indirection.
 
-      valid_match || super
+    def respond_to?(name, include_private = false)
+      match = Method.match(self, name)
+      match && match.valid? || super
     end
 
     private
 
-    # Enables dynamic finders like <tt>User.find_by_user_name(user_name)</tt> and
-    # <tt>User.scoped_by_user_name(user_name). Refer to Dynamic attribute-based finders
-    # section at the top of this file for more detailed information.
-    #
-    # It's even possible to use all the additional parameters to +find+. For example, the
-    # full interface for +find_all_by_amount+ is actually <tt>find_all_by_amount(amount, options)</tt>.
-    #
-    # Each dynamic finder using <tt>scoped_by_*</tt> is also defined in the class after it
-    # is first invoked, so that future attempts to use it do not run through method_missing.
-    def method_missing(method_id, *arguments, &block)
-      if match = find_dynamic_match(method_id)
-        attribute_names = match.attribute_names
-        super unless all_attributes_exists?(attribute_names)
+    def method_missing(name, *arguments, &block)
+      match = Method.match(self, name)
 
-        unless match.valid_arguments?(arguments)
-          method_trace = "#{__FILE__}:#{__LINE__}:in `#{method_id}'"
-          backtrace = [method_trace] + caller
-          raise ArgumentError, "wrong number of arguments (#{arguments.size} for #{attribute_names.size})", backtrace
-        end
-
-        if match.respond_to?(:scope?) && match.scope?
-          define_scope_method(method_id, attribute_names)
-          send(method_id, *arguments)
-        elsif match.finder?
-          options = arguments.extract_options!
-          relation = options.any? ? scoped(options) : scoped
-          relation.send :find_by_attributes, match, attribute_names, *arguments, &block
-        elsif match.instantiator?
-          scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
-        end
+      if match && match.valid?
+        match.define
+        send(name, *arguments, &block)
       else
         super
       end
     end
 
-    def define_scope_method(method_id, attribute_names) #:nodoc
-      self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def self.#{method_id}(*args)                                    # def self.scoped_by_user_name_and_password(*args)
-          conditions = Hash[[:#{attribute_names.join(',:')}].zip(args)] #   conditions = Hash[[:user_name, :password].zip(args)]
-          where(conditions)                                             #   where(conditions)
-        end                                                             # end
-      METHOD
-    end
+    class Method
+      @matchers = []
 
-    def find_dynamic_match(method_id) #:nodoc:
-      DynamicFinderMatch.match(method_id) || DynamicScopeMatch.match(method_id)
-    end
+      class << self
+        attr_reader :matchers
 
-    # Similar in purpose to +expand_hash_conditions_for_aggregates+.
-    def expand_attribute_names_for_aggregates(attribute_names)
-      attribute_names.map do |attribute_name|
-        if aggregation = reflect_on_aggregation(attribute_name.to_sym)
-          aggregate_mapping(aggregation).map do |field_attr, _|
-            field_attr.to_sym
-          end
-        else
-          attribute_name.to_sym
+        def match(model, name)
+          klass = matchers.find { |k| name =~ k.pattern }
+          klass.new(model, name) if klass
         end
-      end.flatten
+
+        def pattern
+          /^#{prefix}_([_a-zA-Z]\w*)#{suffix}$/
+        end
+
+        def prefix
+          raise NotImplementedError
+        end
+
+        def suffix
+          ''
+        end
+      end
+
+      attr_reader :model, :name, :attribute_names
+
+      def initialize(model, name)
+        @model           = model
+        @name            = name.to_s
+        @attribute_names = @name.match(self.class.pattern)[1].split('_and_')
+      end
+
+      def valid?
+        attribute_names.all? { |name| model.columns_hash[name] || model.reflect_on_aggregation(name.to_sym) }
+      end
+
+      def define
+        model.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          def self.#{name}(#{signature})
+            #{body}
+          end
+        CODE
+      end
+
+      def body
+        raise NotImplementedError
+      end
     end
 
-    def all_attributes_exists?(attribute_names)
-      (expand_attribute_names_for_aggregates(attribute_names) -
-       column_methods_hash.keys).empty?
+    module Finder
+      # Extended in active_record_deprecated_finders
+      def body
+        result
+      end
+
+      # Extended in active_record_deprecated_finders
+      def result
+        "#{finder}(#{attributes_hash})"
+      end
+
+      # Extended in active_record_deprecated_finders
+      def signature
+        attribute_names.join(', ')
+      end
+
+      def attributes_hash
+        "{" + attribute_names.map { |name| ":#{name} => #{name}" }.join(',') + "}"
+      end
+
+      def finder
+        raise NotImplementedError
+      end
     end
 
-    def aggregate_mapping(reflection)
-      mapping = reflection.options[:mapping] || [reflection.name, reflection.name]
-      mapping.first.is_a?(Array) ? mapping : [mapping]
+    class FindBy < Method
+      Method.matchers << self
+      include Finder
+
+      def self.prefix
+        "find_by"
+      end
+
+      def finder
+        "find_by"
+      end
+    end
+
+    class FindByBang < Method
+      Method.matchers << self
+      include Finder
+
+      def self.prefix
+        "find_by"
+      end
+
+      def self.suffix
+        "!"
+      end
+
+      def finder
+        "find_by!"
+      end
     end
   end
 end

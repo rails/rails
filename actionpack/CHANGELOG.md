@@ -1,5 +1,70 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   URL path parameters with invalid encoding now raise ActionController::BadRequest. *Andrew White*
+
+*   Malformed query and request parameter hashes now raise ActionController::BadRequest. *Andrew White*
+
+*   Add `divider` option to `grouped_options_for_select` to generate a separator
+    `optgroup` automatically, and deprecate `prompt` as third argument, in favor
+    of using an options hash. *Nicholas Greenfield*
+
+*   Add `time_field` and `time_field_tag` helpers which render an `input[type="time"]` tag. *Alex Soulim*
+
+*   Removed old text_helper apis for highlight, excerpt and word_wrap *Jeremy Walker*
+
+*   Templates without a handler extension now raises a deprecation warning but still
+    defaults to ERb. In future releases, it will simply return the template contents. *Steve Klabnik*
+
+*   Remove `:disable_with` in favor of `'data-disable-with'` option from `submit_tag`, `button_tag` and `button_to` helpers.
+
+    *Carlos Galdino + Rafael Mendonça França*
+
+*   Remove `:mouseover` option from `image_tag` helper. *Rafael Mendonça França*
+
+*   The `select` method (select tag) forces :include_blank  if `required` is true and
+    `display size` is one and `multiple` is not true. *Angelo Capilleri*
+
+*   Copy literal route constraints to defaults so that url generation know about them.
+    The copied constraints are `:protocol`, `:subdomain`, `:domain`, `:host` and `:port`.
+
+    *Andrew White*
+
+*   `respond_to` and `respond_with` now raise ActionController::UnknownFormat instead
+    of directly returning head 406. The exception is rescued and converted to 406
+    in the exception handling middleware. *Steven Soroka*
+
+*   Allows `assert_redirected_to` to match against a regular expression. *Andy Lindeman*
+
+*   Add backtrace to development routing error page. *Richard Schneeman*
+
+*   Replace `include_seconds` boolean argument with `:include_seconds => true` option
+    in `distance_of_time_in_words` and `time_ago_in_words` signature. *Dmitriy Kiriyenko*
+
+*   Remove `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
+
+*   Make current object and counter (when it applies) variables accessible when
+    rendering templates with :object / :collection. *Carlos Antonio da Silva*
+
+*   JSONP now uses mimetype application/javascript instead of application/json. *omjokine*
+
+*   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*
+
+*   Session arguments passed to `process` calls in functional tests are now merged into
+    the existing session, whereas previously they would replace the existing session.
+    This change may break some existing tests if they are asserting the exact contents of
+    the session but should not break existing tests that only assert individual keys.
+
+    *Andrew White*
+
+*   Add `index` method to FormBuilder class. *Jorge Bejar*
+
+*   Remove the leading \n added by textarea on assert_select. *Santiago Pastorino*
+
+*   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`
+    to `false`. This change breaks remote forms that need to work also without javascript,
+    so if you need such behavior, you can either set it to `true` or explicitly pass
+    `:authenticity_token => true` in form options
+
 *   Added ActionDispatch::SSL middleware that when included force all the requests to be under HTTPS protocol. *Rafael Mendonça França*
 
 *   Add `include_hidden` option to select tag. With `:include_hidden => false` select with `multiple` attribute doesn't generate hidden input with blank value. *Vasiliy Ermolovich*
@@ -125,8 +190,13 @@
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
 
+*   `assert_generates`, `assert_recognizes`, and `assert_routing` all raise
+    `Assertion` instead of `RoutingError` *David Chelimsky*
 
-## Rails 3.2.3 (unreleased) ##
+
+## Rails 3.2.3 (March 30, 2012) ##
+
+*   Add `config.action_view.embed_authenticity_token_in_remote_forms` (defaults to true) which allows to set if authenticity token will be included by default in remote forms. If you change it to false, you can still force authenticity token by passing `:authenticity_token => true` in form options *Piotr Sarnacki*
 
 *   Do not include the authenticity token in forms where remote: true as ajax forms use the meta-tag value *DHH*
 
@@ -5737,7 +5807,7 @@
         == Rendering a collection of partials
 
         The example of partial use describes a familar pattern where a template needs
-        to iterate over a array and render a sub template for each of the elements.
+        to iterate over an array and render a sub template for each of the elements.
         This pattern has been implemented as a single method that accepts an array and
         renders a partial by the same name of as the elements contained within. So the
         three-lined example in "Using partials" can be rewritten with a single line:

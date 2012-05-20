@@ -2,8 +2,9 @@ require 'base64'
 require 'active_support/core_ext/object/blank'
 
 module ActionController
+  # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
   module HttpAuthentication
-    # Makes it dead easy to do HTTP \Basic and \Digest authentication.
+    # Makes it dead easy to do HTTP \Basic authentication.
     #
     # === Simple \Basic example
     #
@@ -60,47 +61,6 @@ module ActionController
     #
     #     assert_equal 200, status
     #   end
-    #
-    # === Simple \Digest example
-    #
-    #   require 'digest/md5'
-    #   class PostsController < ApplicationController
-    #     REALM = "SuperSecret"
-    #     USERS = {"dhh" => "secret", #plain text password
-    #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
-    #
-    #     before_filter :authenticate, :except => [:index]
-    #
-    #     def index
-    #       render :text => "Everyone can see me!"
-    #     end
-    #
-    #     def edit
-    #       render :text => "I'm only accessible if you know the password"
-    #     end
-    #
-    #     private
-    #       def authenticate
-    #         authenticate_or_request_with_http_digest(REALM) do |username|
-    #           USERS[username]
-    #         end
-    #       end
-    #   end
-    #
-    # === Notes
-    #
-    # The +authenticate_or_request_with_http_digest+ block must return the user's password
-    # or the ha1 digest hash so the framework can appropriately hash to check the user's
-    # credentials. Returning +nil+ will cause authentication to fail.
-    #
-    # Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
-    # the password file or database is compromised, the attacker would be able to use the ha1 hash to
-    # authenticate as the user at this +realm+, but would not have the user's password to try using at
-    # other sites.
-    #
-    # In rare instances, web servers or front proxies strip authorization headers before
-    # they reach your application. You can debug this situation by logging all environment
-    # variables, and check for HTTP_AUTHORIZATION, amongst others.
     module Basic
       extend self
 
@@ -155,6 +115,48 @@ module ActionController
       end
     end
 
+    # Makes it dead easy to do HTTP \Digest authentication.
+    #
+    # === Simple \Digest example
+    #
+    #   require 'digest/md5'
+    #   class PostsController < ApplicationController
+    #     REALM = "SuperSecret"
+    #     USERS = {"dhh" => "secret", #plain text password
+    #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
+    #
+    #     before_filter :authenticate, :except => [:index]
+    #
+    #     def index
+    #       render :text => "Everyone can see me!"
+    #     end
+    #
+    #     def edit
+    #       render :text => "I'm only accessible if you know the password"
+    #     end
+    #
+    #     private
+    #       def authenticate
+    #         authenticate_or_request_with_http_digest(REALM) do |username|
+    #           USERS[username]
+    #         end
+    #       end
+    #   end
+    #
+    # === Notes
+    #
+    # The +authenticate_or_request_with_http_digest+ block must return the user's password
+    # or the ha1 digest hash so the framework can appropriately hash to check the user's
+    # credentials. Returning +nil+ will cause authentication to fail.
+    #
+    # Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
+    # the password file or database is compromised, the attacker would be able to use the ha1 hash to
+    # authenticate as the user at this +realm+, but would not have the user's password to try using at
+    # other sites.
+    #
+    # In rare instances, web servers or front proxies strip authorization headers before
+    # they reach your application. You can debug this situation by logging all environment
+    # variables, and check for HTTP_AUTHORIZATION, amongst others.
     module Digest
       extend self
 
@@ -229,7 +231,7 @@ module ActionController
       def decode_credentials(header)
         Hash[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
           key, value = pair.split('=', 2)
-          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')]
+          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').delete('\'')]
         end]
       end
 

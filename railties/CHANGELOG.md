@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Improved `rake routes` output for redirects *Łukasz Strzałkowski & Andrew White*
+
+*   Load all environments available in `config.paths["config/environments"]`. *Piotr Sarnacki*
+
+*   The application generator generates `public/humans.txt` with some basic data. *Paul Campbell*
+
+*   Add `config.queue_consumer` to allow the default consumer to be configurable. *Carlos Antonio da Silva*
+
+*   Add Rails.queue as an interface with a default implementation that consumes jobs in a separate thread. *Yehuda Katz*
+
 *   Remove Rack::SSL in favour of ActionDispatch::SSL. *Rafael Mendonça França*
 
 *   Remove Active Resource from Rails framework. *Prem Sichangrist*

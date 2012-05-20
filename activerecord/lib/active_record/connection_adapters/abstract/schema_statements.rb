@@ -16,12 +16,11 @@ module ActiveRecord
 
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
-        table_name[0...table_alias_length].gsub(/\./, '_')
+        table_name[0...table_alias_length].tr('.', '_')
       end
 
       # Checks to see if the table +table_name+ exists on the database.
       #
-      # === Example
       #   table_exists?(:developers)
       def table_exists?(table_name)
         tables.include?(table_name.to_s)
@@ -32,7 +31,6 @@ module ActiveRecord
 
       # Checks to see if an index exists on a table for a given index definition.
       #
-      # === Examples
       #  # Check an index exists
       #  index_exists?(:suppliers, :company_id)
       #
@@ -126,7 +124,6 @@ module ActiveRecord
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
       #
-      # ===== Examples
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #  create_table(:suppliers, :options => 'ENGINE=InnoDB DEFAULT CHARSET=utf8')
       # generates:
@@ -171,10 +168,11 @@ module ActiveRecord
         create_sql << td.to_sql
         create_sql << ") #{options[:options]}"
         execute create_sql
+        td.indexes.each_pair { |c,o| add_index table_name, c, o }
       end
 
       # Creates a new join table with the name created using the lexical order of the first two
-      # arguments. These arguments can be be a String or a Symbol.
+      # arguments. These arguments can be a String or a Symbol.
       #
       #  # Creates a table called 'assemblies_parts' with no id.
       #  create_join_table(:assemblies, :parts)
@@ -192,7 +190,6 @@ module ActiveRecord
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
       #
-      # ===== Examples
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #  create_join_table(:assemblies, :parts, :options => 'ENGINE=InnoDB DEFAULT CHARSET=utf8')
       # generates:
@@ -214,7 +211,6 @@ module ActiveRecord
 
       # A block for changing columns in +table+.
       #
-      # === Example
       #  # change_table() yields a Table instance
       #  change_table(:suppliers) do |t|
       #    t.column :name, :string, :limit => 60
@@ -228,7 +224,6 @@ module ActiveRecord
       #
       #   Defaults to false.
       #
-      # ===== Examples
       # ====== Add a column
       #  change_table(:suppliers) do |t|
       #    t.column :name, :string, :limit => 60
@@ -287,7 +282,7 @@ module ActiveRecord
       end
 
       # Renames a table.
-      # ===== Example
+      #
       #  rename_table('octopuses', 'octopi')
       def rename_table(table_name, new_name)
         raise NotImplementedError, "rename_table is not implemented"
@@ -307,7 +302,7 @@ module ActiveRecord
       end
 
       # Removes the column(s) from the table definition.
-      # ===== Examples
+      #
       #  remove_column(:suppliers, :qualification)
       #  remove_columns(:suppliers, :qualification, :experience)
       def remove_column(table_name, *column_names)
@@ -317,7 +312,7 @@ module ActiveRecord
 
       # Changes the column's definition according to the new options.
       # See TableDefinition#column for details of the options you can use.
-      # ===== Examples
+      #
       #  change_column(:suppliers, :name, :string, :limit => 80)
       #  change_column(:accounts, :description, :text)
       def change_column(table_name, column_name, type, options = {})
@@ -325,7 +320,7 @@ module ActiveRecord
       end
 
       # Sets a new default value for a column.
-      # ===== Examples
+      #
       #  change_column_default(:suppliers, :qualification, 'new')
       #  change_column_default(:accounts, :authorized, 1)
       #  change_column_default(:users, :email, nil)
@@ -334,7 +329,7 @@ module ActiveRecord
       end
 
       # Renames a column.
-      # ===== Example
+      #
       #  rename_column(:suppliers, :description, :name)
       def rename_column(table_name, column_name, new_column_name)
         raise NotImplementedError, "rename_column is not implemented"
@@ -345,8 +340,6 @@ module ActiveRecord
       #
       # The index will be named after the table and the column name(s), unless
       # you pass <tt>:name</tt> as an option.
-      #
-      # ===== Examples
       #
       # ====== Creating a simple index
       #  add_index(:suppliers, :name)
@@ -375,7 +368,7 @@ module ActiveRecord
       # Note: SQLite doesn't support index length
       #
       # ====== Creating an index with a sort order (desc or asc, asc is the default)
-      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :part_id => :asc})
+      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :party_id => :asc})
       # generates
       #  CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
       #
@@ -536,7 +529,7 @@ module ActiveRecord
       end
 
       # Adds timestamps (created_at and updated_at) columns to the named table.
-      # ===== Examples
+      #
       #  add_timestamps(:suppliers)
       def add_timestamps(table_name)
         add_column table_name, :created_at, :datetime
@@ -544,7 +537,7 @@ module ActiveRecord
       end
 
       # Removes the timestamp columns (created_at and updated_at) from the table definition.
-      # ===== Examples
+      #
       #  remove_timestamps(:suppliers)
       def remove_timestamps(table_name)
         remove_column table_name, :updated_at
@@ -617,8 +610,6 @@ module ActiveRecord
         end
 
         def columns_for_remove(table_name, *column_names)
-          column_names = column_names.flatten
-
           raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.blank?
           column_names.map {|column_name| quote_column_name(column_name) }
         end

@@ -2,6 +2,7 @@ require File.expand_path('../../../../load_paths', __FILE__)
 
 require 'config'
 
+gem 'minitest'
 require 'minitest/autorun'
 require 'stringio'
 require 'mocha'
@@ -36,7 +37,7 @@ def current_adapter?(*types)
 end
 
 def in_memory_db?
-  current_adapter?(:SQLiteAdapter) &&
+  current_adapter?(:SQLite3Adapter) &&
   ActiveRecord::Base.connection_pool.spec.config[:database] == ":memory:"
 end
 
@@ -80,8 +81,8 @@ class ActiveSupport::TestCase
   self.use_instantiated_fixtures  = false
   self.use_transactional_fixtures = true
 
-  def create_fixtures(*table_names, &block)
-    ActiveRecord::Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, fixture_class_names, &block)
+  def create_fixtures(*fixture_set_names, &block)
+    ActiveRecord::Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
   end
 end
 

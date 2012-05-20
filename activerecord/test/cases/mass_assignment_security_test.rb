@@ -247,6 +247,23 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
       assert !Task.new.respond_to?("#{method}=")
     end
   end
+end
+
+
+# This class should be deleted when we removed active_record_deprecated_finders as a
+# dependency.
+class MassAssignmentSecurityDeprecatedFindersTest < ActiveRecord::TestCase
+  include MassAssignmentTestHelpers
+
+  def setup
+    super
+    @deprecation_behavior = ActiveSupport::Deprecation.behavior
+    ActiveSupport::Deprecation.behavior = :silence
+  end
+
+  def teardown
+    ActiveSupport::Deprecation.behavior = @deprecation_behavior
+  end
 
   def test_find_or_initialize_by_with_attr_accessible_attributes
     p = TightPerson.find_or_initialize_by_first_name('Josh', attributes_hash)

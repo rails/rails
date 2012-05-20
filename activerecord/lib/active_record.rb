@@ -22,9 +22,9 @@
 #++
 
 require 'active_support'
-require 'active_support/i18n'
 require 'active_model'
 require 'arel'
+require 'active_record_deprecated_finders'
 
 require 'active_record/version'
 
@@ -62,8 +62,6 @@ module ActiveRecord
     autoload :CounterCache
     autoload :ConnectionHandling
     autoload :DynamicMatchers
-    autoload :DynamicFinderMatch
-    autoload :DynamicScopeMatch
     autoload :Explain
     autoload :Inheritance
     autoload :Integration
@@ -146,4 +144,6 @@ ActiveSupport.on_load(:active_record) do
   Arel::Table.engine = self
 end
 
-I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'
+end

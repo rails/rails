@@ -126,11 +126,22 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     assert_parses expected, query
   end
 
+  test "ambiguous params returns a bad request" do
+    with_routing do |set|
+      set.draw do
+        post ':action', :to => ::UrlEncodedParamsParsingTest::TestController
+      end
+
+      post "/parse", "foo[]=bar&foo[4]=bar"
+      assert_response :bad_request
+    end
+  end
+
   private
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::UrlEncodedParamsParsingTest::TestController
+          post ':action', :to => ::UrlEncodedParamsParsingTest::TestController
         end
         yield
       end

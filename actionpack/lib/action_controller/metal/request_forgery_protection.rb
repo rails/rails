@@ -17,7 +17,6 @@ module ActionController #:nodoc:
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
   # which checks the token and resets the session if it doesn't match what was expected.
   # A call to this method is generated for new \Rails applications by default.
-  # You can customize the error message by editing public/422.html.
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
@@ -51,8 +50,6 @@ module ActionController #:nodoc:
 
     module ClassMethods
       # Turn on request forgery protection. Bear in mind that only non-GET, HTML/JavaScript requests are checked.
-      #
-      # Example:
       #
       #   class FooController < ApplicationController
       #     protect_from_forgery :except => :index

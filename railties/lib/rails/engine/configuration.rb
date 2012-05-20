@@ -20,7 +20,7 @@ module Rails
       # Holds generators configuration:
       #
       #   config.generators do |g|
-      #     g.orm             :datamapper, :migration => true
+      #     g.orm             :data_mapper, :migration => true
       #     g.template_engine :haml
       #     g.test_framework  :rspec
       #   end
@@ -52,10 +52,11 @@ module Rails
           paths.add "config/environments", :glob => "#{Rails.env}.rb"
           paths.add "config/initializers", :glob => "**/*.rb"
           paths.add "config/locales",      :glob => "*.{rb,yml}"
-          paths.add "config/routes",       :with => "config/routes.rb"
+          paths.add "config/routes.rb"
+          paths.add "config/routes",       :glob => "**/*.rb"
           paths.add "db"
           paths.add "db/migrate"
-          paths.add "db/seeds",            :with => "db/seeds.rb"
+          paths.add "db/seeds.rb"
           paths.add "vendor",              :load_path => true
           paths.add "vendor/assets",       :glob => "*"
           paths

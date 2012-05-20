@@ -124,7 +124,7 @@ h4. Log Levels
 
 When something is logged it's printed into the corresponding log if the log level of the message is equal or higher than the configured log level. If you want to know the current log level you can call the +Rails.logger.level+ method.
 
-The available log levels are: +:debug+, +:info+, +:warn+, +:error+, and +:fatal+, corresponding to the log level numbers from 0 up to 4 respectively. To change the default log level, use
+The available log levels are: +:debug+, +:info+, +:warn+, +:error+, +:fatal+, and +:unknown+, corresponding to the log level numbers from 0 up to 5 respectively. To change the default log level, use
 
 <ruby>
 config.log_level = :warn # In any environment initializer, or
@@ -191,7 +191,7 @@ Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localh
 
 Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels, to avoid filling your production logs with useless trivia.
 
-h3. Debugging with +ruby-debug+
+h3. Debugging with the +debugger+ gem
 
 When your code is behaving in unexpected ways, you can try printing to logs or the console to diagnose the problem. Unfortunately, there are times when this sort of error tracking is not effective in finding the root cause of a problem. When you actually need to journey into your running source code, the debugger is your best companion.
 
@@ -199,17 +199,13 @@ The debugger can also help you if you want to learn about the Rails source code 
 
 h4. Setup
 
-The debugger used by Rails, +ruby-debug+, comes as a gem. To install it, just run:
+Rails uses the +debugger+ gem to set breakpoints and step through live code. To install it, just run:
 
 <shell>
-$ sudo gem install ruby-debug
+$ gem install debugger
 </shell>
 
-TIP: If you are using Ruby 1.9, you can install a compatible version of +ruby-debug+ by running +sudo gem install ruby-debug19+
-
-In case you want to download a particular version or get the source code, refer to the "project's page on rubyforge":http://rubyforge.org/projects/ruby-debug/.
-
-Rails has had built-in support for ruby-debug since Rails 2.0. Inside any Rails application you can invoke the debugger by calling the +debugger+ method.
+Rails has had built-in support for debugging since Rails 2.0. Inside any Rails application you can invoke the debugger by calling the +debugger+ method.
 
 Here's an example:
 
@@ -238,11 +234,11 @@ $ rails server --debugger
 ...
 </shell>
 
-TIP: In development mode, you can dynamically +require \'ruby-debug\'+ instead of restarting the server, if it was started without +--debugger+.
+TIP: In development mode, you can dynamically +require \'debugger\'+ instead of restarting the server, if it was started without +--debugger+.
 
 h4. The Shell
 
-As soon as your application calls the +debugger+ method, the debugger will be started in a debugger shell inside the terminal window where you launched your application server, and you will be placed at ruby-debug's prompt +(rdb:n)+. The _n_ is the thread number. The prompt will also show you the next line of code that is waiting to run.
+As soon as your application calls the +debugger+ method, the debugger will be started in a debugger shell inside the terminal window where you launched your application server, and you will be placed at the debugger's prompt +(rdb:n)+. The _n_ is the thread number. The prompt will also show you the next line of code that is waiting to run.
 
 If you got there by a browser request, the browser tab containing the request will be hung until the debugger has finished and the trace has finished processing the entire request.
 
@@ -270,7 +266,7 @@ continue   edit     frame   method  putl  set      tmate   where
 
 TIP: To view the help menu for any command use +help &lt;command-name&gt;+ in active debug mode. For example: _+help var+_
 
-The next command to learn is one of the most useful: +list+. You can also abbreviate ruby-debug commands by supplying just enough letters to distinguish them from other commands, so you can also use +l+ for the +list+ command.
+The next command to learn is one of the most useful: +list+. You can abbreviate any debugging command by supplying just enough letters to distinguish them from other commands, so you can also use +l+ for the +list+ command.
 
 This command shows you where you are in the code by printing 10 lines centered around the current line; the current line in this particular case is line 6 and is marked by +=>+.
 
@@ -347,7 +343,7 @@ h4. The Context
 
 When you start debugging your application, you will be placed in different contexts as you go through the different parts of the stack.
 
-ruby-debug creates a context when a stopping point or an event is reached. The context has information about the suspended program which enables a debugger to inspect the frame stack, evaluate variables from the perspective of the debugged program, and contains information about the place where the debugged program is stopped.
+The debugger creates a context when a stopping point or an event is reached. The context has information about the suspended program which enables a debugger to inspect the frame stack, evaluate variables from the perspective of the debugged program, and contains information about the place where the debugged program is stopped.
 
 At any time you can call the +backtrace+ command (or its alias +where+) to print the backtrace of the application. This can be very helpful to know how you got where you are. If you ever wondered about how you got somewhere in your code, then +backtrace+ will supply the answer.
 
@@ -463,7 +459,7 @@ h4. Step by Step
 
 Now you should know where you are in the running trace and be able to print the available variables. But lets continue and move on with the application execution.
 
-Use +step+ (abbreviated +s+) to continue running your program until the next logical stopping point and return control to ruby-debug.
+Use +step+ (abbreviated +s+) to continue running your program until the next logical stopping point and return control to the debugger.
 
 TIP: You can also use <tt>step<plus> n</tt> and <tt>step- n</tt> to move forward or backward +n+ steps respectively.
 
@@ -485,12 +481,12 @@ class Author < ActiveRecord::Base
 end
 </ruby>
 
-TIP: You can use ruby-debug while using +rails console+. Just remember to +require "ruby-debug"+ before calling the +debugger+ method.
+TIP: You can use the debugger while using +rails console+. Just remember to +require "debugger"+ before calling the +debugger+ method.
 
 <shell>
 $ rails console
 Loading development environment (Rails 3.1.0)
->> require "ruby-debug"
+>> require "debugger"
 => []
 >> author = Author.first
 => #<Author id: 1, first_name: "Bob", last_name: "Smith", created_at: "2008-07-31 12:46:10", updated_at: "2008-07-31 12:46:10">
@@ -603,7 +599,7 @@ A simple quit tries to terminate all threads in effect. Therefore your server wi
 
 h4. Settings
 
-There are some settings that can be configured in ruby-debug to make it easier to debug your code. Here are a few of the available options:
+The +debugger+ gem can automatically show the code you're stepping through and reload it when you change it in an editor. Here are a few of the available options:
 
 * +set reload+: Reload source code when changed.
 * +set autolist+: Execute +list+ command on every breakpoint.
@@ -612,7 +608,7 @@ There are some settings that can be configured in ruby-debug to make it easier t
 
 You can see the full list by using +help set+. Use +help set _subcommand_+ to learn about a particular +set+ command.
 
-TIP: You can include any number of these configuration lines inside a +.rdebugrc+ file in your HOME directory. ruby-debug will read this file every time it is loaded and configure itself accordingly.
+TIP: You can save these settings in an +.rdebugrc+ file in your home directory. The debugger reads these global settings when it starts.
 
 Here's a good start for an +.rdebugrc+:
 
@@ -637,7 +633,7 @@ If a Ruby object does not go out of scope, the Ruby Garbage Collector won't swee
 To install it run:
 
 <shell>
-$ sudo gem install bleak_house
+$ gem install bleak_house
 </shell>
 
 Then setup your application for profiling. Then add the following at the bottom of config/environment.rb:
@@ -703,11 +699,12 @@ There are some Rails plugins to help you to find errors and debug your applicati
 h3. References
 
 * "ruby-debug Homepage":http://www.datanoise.com/ruby-debug
+* "debugger Homepage":http://github.com/cldwalker/debugger
 * "Article: Debugging a Rails application with ruby-debug":http://www.sitepoint.com/article/debug-rails-app-ruby-debug/
 * "ruby-debug Basics screencast":http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/
-* "Ryan Bate's ruby-debug screencast":http://railscasts.com/episodes/54-debugging-with-ruby-debug
-* "Ryan Bate's stack trace screencast":http://railscasts.com/episodes/24-the-stack-trace
-* "Ryan Bate's logger screencast":http://railscasts.com/episodes/56-the-logger
+* "Ryan Bates' debugging ruby (revised) screencast":http://railscasts.com/episodes/54-debugging-ruby-revised
+* "Ryan Bates' stack trace screencast":http://railscasts.com/episodes/24-the-stack-trace
+* "Ryan Bates' logger screencast":http://railscasts.com/episodes/56-the-logger
 * "Debugging with ruby-debug":http://bashdb.sourceforge.net/ruby-debug.html
 * "ruby-debug cheat sheet":http://cheat.errtheblog.com/s/rdebug/
 * "Ruby on Rails Wiki: How to Configure Logging":http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging

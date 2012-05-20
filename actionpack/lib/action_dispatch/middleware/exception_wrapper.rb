@@ -1,5 +1,6 @@
 require 'action_controller/metal/exceptions'
 require 'active_support/core_ext/exception'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module ActionDispatch
   class ExceptionWrapper
@@ -10,7 +11,9 @@ module ActionDispatch
       'AbstractController::ActionNotFound'         => :not_found,
       'ActionController::MethodNotAllowed'         => :method_not_allowed,
       'ActionController::NotImplemented'           => :not_implemented,
-      'ActionController::InvalidAuthenticityToken' => :unprocessable_entity
+      'ActionController::UnknownFormat'            => :not_acceptable,
+      'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
+      'ActionController::BadRequest'               => :bad_request
     )
 
     cattr_accessor :rescue_templates

@@ -68,7 +68,7 @@ module ActionDispatch
     # This generates, among other things, the method <tt>users_path</tt>. By default,
     # this method is accessible from your controllers, views and mailers. If you need
     # to access this auto-generated method from other places (such as a model), then
-    # you can do that by including ActionController::UrlFor in your class:
+    # you can do that by including Rails.application.routes.url_helpers in your class:
     #
     #   class User < ActiveRecord::Base
     #     include Rails.application.routes.url_helpers
@@ -132,8 +132,6 @@ module ActionDispatch
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
       # +url_for+ is forwarded to the Routes module.
       #
-      # Examples:
-      #
       #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :port => '8080'
       #    # => 'http://somehost.org:8080/tasks/testing'
       #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :anchor => 'ok', :only_path => true
@@ -144,10 +142,12 @@ module ActionDispatch
       #    # => 'http://somehost.org/tasks/testing?number=33'
       def url_for(options = nil)
         case options
+        when nil
+          _routes.url_for(url_options.symbolize_keys)
+        when Hash
+          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
         when String
           options
-        when nil, Hash
-          _routes.url_for((options || {}).symbolize_keys.reverse_merge!(url_options))
         else
           polymorphic_url(options)
         end

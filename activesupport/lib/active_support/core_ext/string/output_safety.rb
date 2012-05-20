@@ -14,8 +14,7 @@ class ERB
     # In your ERB templates, use this method to escape any unsafe content. For example:
     #   <%=h @person.name %>
     #
-    # ==== Example:
-    #   puts html_escape("is a > 0 & a < 10?")
+    #   puts html_escape('is a > 0 & a < 10?')
     #   # => is a &gt; 0 &amp; a &lt; 10?
     def html_escape(s)
       s = s.to_s
@@ -37,11 +36,10 @@ class ERB
 
     # A utility method for escaping HTML without affecting existing escaped entities.
     #
-    # ==== Examples
-    #   html_escape_once("1 < 2 &amp; 3")
+    #   html_escape_once('1 < 2 &amp; 3')
     #   # => "1 &lt; 2 &amp; 3"
     #
-    #   html_escape_once("&lt;&lt; Accept & Checkout")
+    #   html_escape_once('&lt;&lt; Accept & Checkout')
     #   # => "&lt;&lt; Accept &amp; Checkout"
     def html_escape_once(s)
       result = s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP) { |special| HTML_ESCAPE[special] }
@@ -53,7 +51,7 @@ class ERB
     # A utility method for escaping HTML entities in JSON strings
     # using \uXXXX JavaScript escape sequences for string literals:
     #
-    #   json_escape("is a > 0 & a < 10?")
+    #   json_escape('is a > 0 & a < 10?')
     #   # => is a \u003E 0 \u0026 a \u003C 10?
     #
     # Note that after this operation is performed the output is not
@@ -92,26 +90,31 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
-    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase", "prepend"].freeze
+    UNSAFE_STRING_METHODS = %w(
+      capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
+      slice squeeze strip sub succ swapcase tr tr_s upcase prepend
+    )
 
     alias_method :original_concat, :concat
     private :original_concat
 
     class SafeConcatError < StandardError
       def initialize
-        super "Could not concatenate to the buffer because it is not html safe."
+        super 'Could not concatenate to the buffer because it is not html safe.'
       end
     end
 
     def [](*args)
-      return super if args.size < 2
-
-      if html_safe?
-        new_safe_buffer = super
-        new_safe_buffer.instance_eval { @html_safe = true }
-        new_safe_buffer
+      if args.size < 2
+        super
       else
-        to_str[*args]
+        if html_safe?
+          new_safe_buffer = super
+          new_safe_buffer.instance_eval { @html_safe = true }
+          new_safe_buffer
+        else
+          to_str[*args]
+        end
       end
     end
 
@@ -145,6 +148,18 @@ module ActiveSupport #:nodoc:
 
     def +(other)
       dup.concat(other)
+    end
+
+    def %(args)
+      args = Array(args).map do |arg|
+        if !html_safe? || arg.html_safe?
+          arg
+        else
+          ERB::Util.h(arg)
+        end
+      end
+
+      self.class.new(super(args))
     end
 
     def html_safe?

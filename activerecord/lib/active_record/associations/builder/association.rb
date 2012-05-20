@@ -69,12 +69,12 @@ module ActiveRecord::Associations::Builder
       def define_restrict_dependency_method
         name = self.name
         mixin.redefine_method(dependency_method_name) do
-          # has_many or has_one associations
-          if send(name).respond_to?(:exists?) ? send(name).exists? : !send(name).nil?
+          has_one_macro = association(name).reflection.macro == :has_one
+          if has_one_macro ? !send(name).nil? : send(name).exists?
             if dependent_restrict_raises?
               raise ActiveRecord::DeleteRestrictionError.new(name)
             else
-              key  = association(name).reflection.macro == :has_one ? "one" : "many"
+              key  = has_one_macro ? "one" : "many"
               errors.add(:base, :"restrict_dependent_destroy.#{key}",
                          :record => self.class.human_attribute_name(name).downcase)
               return false

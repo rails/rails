@@ -33,16 +33,231 @@ module ActiveRecord
     #
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
-    class CollectionProxy # :nodoc:
-      alias :proxy_extend :extend
-
-      instance_methods.each { |m| undef_method m unless m.to_s =~ /^(?:nil\?|send|object_id|to_a)$|^__|^respond_to|proxy_/ }
-
-      delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from,
-               :lock, :readonly, :having, :pluck, :to => :scoped
-
+    class CollectionProxy < Relation
       delegate :target, :load_target, :loaded?, :to => :@association
 
+      ##
+      # :method: first
+      # Returns the first record, or the first +n+ records, from the collection.
+      # If the collection is empty, the first form returns nil, and the second
+      # form returns an empty array.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.first # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
+      #
+      #   person.pets.first(2)
+      #   # => [
+      #   #      #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #      #<Pet id: 2, name: "Spook", person_id: 1>
+      #   #    ]
+      #
+      #   another_person_without.pets          # => []
+      #   another_person_without.pets.first    # => nil
+      #   another_person_without.pets.first(3) # => []
+
+      ##
+      # :method: last
+      # Returns the last record, or the last +n+ records, from the collection.
+      # If the collection is empty, the first form returns nil, and the second
+      # form returns an empty array.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.last # => #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #
+      #   person.pets.last(2)
+      #   # => [
+      #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   another_person_without.pets         # => []
+      #   another_person_without.pets.last    # => nil
+      #   another_person_without.pets.last(3) # => []
+
+      ##
+      # :method: concat
+      # Add one or more records to the collection by setting their foreign keys
+      # to the association's primary key. Since << flattens its argument list and
+      # inserts each record, +push+ and +concat+ behave identically. Returns +self+
+      # so method calls may be chained.
+      #
+      #   class Person < ActiveRecord::Base
+      #     pets :has_many
+      #   end
+      #
+      #   person.pets.size # => 0
+      #   person.pets.concat(Pet.new(name: 'Fancy-Fancy'))
+      #   person.pets.concat(Pet.new(name: 'Spook'), Pet.new(name: 'Choo-Choo'))
+      #   person.pets.size # => 3
+      #
+      #   person.id # => 1
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.concat([Pet.new(name: 'Brain'), Pet.new(name: 'Benny')])
+      #   person.pets.size # => 5
+
+      ##
+      # :method: replace
+      # Replace this collection with +other_array+. This will perform a diff
+      # and delete/add only records that have changed.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [#<Pet id: 1, name: "Gorby", group: "cats", person_id: 1>]
+      #
+      #   other_pets = [Pet.new(name: 'Puff', group: 'celebrities']
+      #
+      #   person.pets.replace(other_pets)
+      #
+      #   person.pets
+      #   # => [#<Pet id: 2, name: "Puff", group: "celebrities", person_id: 1>]
+      #
+      # If the supplied array has an incorrect association type, it raises
+      # an <tt>ActiveRecord::AssociationTypeMismatch</tt> error:
+      #
+      #   person.pets.replace(["doo", "ggie", "gaga"])
+      #   # => ActiveRecord::AssociationTypeMismatch: Pet expected, got String
+
+      ##
+      # :method: destroy_all
+      # Destroy all the records from this association.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.size # => 3
+      #
+      #   person.pets.destroy_all
+      #
+      #   person.pets.size # => 0
+      #   person.pets      # => []
+
+      ##
+      # :method: empty?
+      # Returns true if the collection is empty.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count  # => 1
+      #   person.pets.empty? # => false
+      #
+      #   person.pets.delete_all
+      #
+      #   person.pets.count  # => 0
+      #   person.pets.empty? # => true
+
+      ##
+      # :method: any?
+      # Returns true if the collection is not empty.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count # => 0
+      #   person.pets.any?  # => false
+      #
+      #   person.pets << Pet.new(name: 'Snoop')
+      #   person.pets.count # => 0
+      #   person.pets.any?  # => true
+      #
+      # You can also pass a block to define criteria. The behaviour
+      # is the same, it returns true if the collection based on the
+      # criteria is not empty.
+      #
+      #   person.pets
+      #   # => [#<Pet name: "Snoop", group: "dogs">]
+      #
+      #   person.pets.any? do |pet|
+      #     pet.group == 'cats'
+      #   end
+      #   # => false
+      #
+      #   person.pets.any? do |pet|
+      #     pet.group == 'dogs'
+      #   end
+      #   # => true
+
+      ##
+      # :method: many?
+      # Returns true if the collection has more than one record.
+      # Equivalent to +collection.size > 1+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count #=> 1
+      #   person.pets.many? #=> false
+      #
+      #   person.pets << Pet.new(name: 'Snoopy')
+      #   person.pets.count #=> 2
+      #   person.pets.many? #=> true
+      #
+      # You can also pass a block to define criteria. The
+      # behaviour is the same, it returns true if the collection
+      # based on the criteria has more than one record.
+      #
+      #   person.pets
+      #   # => [
+      #   #      #<Pet name: "Gorby", group: "cats">,
+      #   #      #<Pet name: "Puff", group: "cats">,
+      #   #      #<Pet name: "Snoop", group: "dogs">
+      #   #    ]
+      #
+      #   person.pets.many? do |pet|
+      #     pet.group == 'dogs'
+      #   end
+      #   # => false
+      #
+      #   person.pets.many? do |pet|
+      #     pet.group == 'cats'
+      #   end
+      #   # => true
+
+      ##
+      # :method: include?
+      # Returns true if the given object is present in the collection.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets # => [#<Pet id: 20, name: "Snoop">]
+      #
+      #   person.pets.include?(Pet.find(20)) # => true
+      #   person.pets.include?(Pet.find(21)) # => false
       delegate :select, :find, :first, :last,
                :build, :create, :create!,
                :concat, :replace, :delete_all, :destroy_all, :delete, :destroy, :uniq,
@@ -52,7 +267,8 @@ module ActiveRecord
 
       def initialize(association)
         @association = association
-        Array(association.options[:extend]).each { |ext| proxy_extend(ext) }
+        super association.klass, association.klass.arel_table
+        merge! association.scoped
       end
 
       alias_method :new, :build
@@ -61,50 +277,28 @@ module ActiveRecord
         @association
       end
 
-      def scoped
+      # We don't want this object to be put on the scoping stack, because
+      # that could create an infinite loop where we call an @association
+      # method, which gets the current scope, which is this object, which
+      # delegates to @association, and so on.
+      def scoping
+        @association.scoped.scoping { yield }
+      end
+
+      def spawn
+        scoped
+      end
+
+      def scoped(options = nil)
         association = @association
-        association.scoped.extending do
+
+        super.extending! do
           define_method(:proxy_association) { association }
         end
       end
 
-      def respond_to?(name, include_private = false)
-        super ||
-        (load_target && target.respond_to?(name, include_private)) ||
-        proxy_association.klass.respond_to?(name, include_private)
-      end
-
-      def method_missing(method, *args, &block)
-        match = DynamicFinderMatch.match(method)
-        if match && match.instantiator?
-          send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |r|
-            proxy_association.send :set_owner_attributes, r
-            proxy_association.send :add_to_target, r
-            yield(r) if block_given?
-          end
-
-        elsif target.respond_to?(method) || (!proxy_association.klass.respond_to?(method) && Class.respond_to?(method))
-          if load_target
-            if target.respond_to?(method)
-              target.send(method, *args, &block)
-            else
-              begin
-                super
-              rescue NoMethodError => e
-                raise e, e.message.sub(/ for #<.*$/, " via proxy for #{target}")
-              end
-            end
-          end
-
-        else
-          scoped.readonly(nil).send(method, *args, &block)
-        end
-      end
-
-      # Forwards <tt>===</tt> explicitly to the \target because the instance method
-      # removal above doesn't catch it. Loads the \target if needed.
-      def ===(other)
-        other === load_target
+      def ==(other)
+        load_target == other
       end
 
       def to_ary
@@ -112,11 +306,57 @@ module ActiveRecord
       end
       alias_method :to_a, :to_ary
 
+      # Adds one or more +records+ to the collection by setting their foreign keys
+      # to the association‘s primary key. Returns +self+, so several appends may be
+      # chained together.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.size # => 0
+      #   person.pets << Pet.new(name: 'Fancy-Fancy')
+      #   person.pets << [Pet.new(name: 'Spook'), Pet.new(name: 'Choo-Choo')]
+      #   person.pets.size # => 3
+      #
+      #   person.id # => 1
+      #   person.pets
+      #   # => [
+      #   #      #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
       def <<(*records)
         proxy_association.concat(records) && self
       end
       alias_method :push, :<<
 
+      # Removes every object from the collection. This does not destroy
+      # the objects, it sets their foreign keys to +NULL+. Returns +self+
+      # so methods can be chained.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets       # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      #   person.pets.clear # => []
+      #   person.pets.size  # => 0
+      #
+      #   Pet.find(1) # => #<Pet id: 1, name: "Snoop", group: "dogs", person_id: nil>
+      #
+      # If they are associated with +dependent: :destroy+ option, it deletes
+      # them directly from the database.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets, dependent: :destroy
+      #   end
+      #
+      #   person.pets       # => [#<Pet id: 2, name: "Gorby", group: "cats", person_id: 2>]
+      #   person.pets.clear # => []
+      #   person.pets.size  # => 0
+      #
+      #   Pet.find(2) # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=2
       def clear
         delete_all
         self

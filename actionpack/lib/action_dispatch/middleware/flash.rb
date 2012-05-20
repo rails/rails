@@ -1,23 +1,23 @@
 module ActionDispatch
-  class Request
+  class Request < Rack::Request
     # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.
     def flash
-      @env[Flash::KEY] ||= (session["flash"] || Flash::FlashHash.new)
+      @env[Flash::KEY] ||= (session["flash"] || Flash::FlashHash.new).tap(&:sweep)
     end
   end
 
   # The flash provides a way to pass temporary objects between actions. Anything you place in the flash will be exposed
   # to the very next action and then cleared out. This is a great way of doing notices and alerts, such as a create
   # action that sets <tt>flash[:notice] = "Post successfully created"</tt> before redirecting to a display action that can
-  # then expose the flash to its template. Actually, that exposure is automatically done. Example:
+  # then expose the flash to its template. Actually, that exposure is automatically done.
   #
   #   class PostsController < ActionController::Base
   #     def create
   #       # save post
   #       flash[:notice] = "Post successfully created"
-  #       redirect_to posts_path(@post)
+  #       redirect_to @post
   #     end
   #
   #     def show
@@ -79,7 +79,6 @@ module ActionDispatch
 
       def initialize #:nodoc:
         @discard = Set.new
-        @closed  = false
         @flashes = {}
         @now     = nil
       end
@@ -217,13 +216,9 @@ module ActionDispatch
     end
 
     def call(env)
-      if (session = env['rack.session']) && (flash = session['flash'])
-        flash.sweep
-      end
-
       @app.call(env)
     ensure
-      session    = env['rack.session'] || {}
+      session    = Request::Session.find(env) || {}
       flash_hash = env[KEY]
 
       if flash_hash
@@ -237,7 +232,8 @@ module ActionDispatch
         env[KEY] = new_hash
       end
 
-      if session.key?('flash') && session['flash'].empty?
+      if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
+         session.key?('flash') && session['flash'].empty?
         session.delete('flash')
       end
     end

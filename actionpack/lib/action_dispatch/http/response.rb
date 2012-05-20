@@ -29,7 +29,7 @@ module ActionDispatch # :nodoc:
   #  class DemoControllerTest < ActionDispatch::IntegrationTest
   #    def test_print_root_path_to_console
   #      get('/')
-  #      puts @response.body
+  #      puts response.body
   #    end
   #  end
   class Response

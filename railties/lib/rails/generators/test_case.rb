@@ -31,7 +31,6 @@ module Rails
       include FileUtils
 
       class_attribute :destination_root, :current_path, :generator_class, :default_arguments
-      delegate :destination_root, :current_path, :generator_class, :default_arguments, :to => :'self.class'
 
       # Generators frequently change the current path using +FileUtils.cd+.
       # So we need to store the path at file load and revert back to it after each test.
@@ -79,8 +78,8 @@ module Rails
       #
       # Finally, when a block is given, it yields the file content:
       #
-      #   assert_file "app/controller/products_controller.rb" do |controller|
-      #     assert_instance_method :index, content do |index|
+      #   assert_file "app/controllers/products_controller.rb" do |controller|
+      #     assert_instance_method :index, controller do |index|
       #       assert_match(/Product\.all/, index)
       #     end
       #   end
@@ -135,7 +134,7 @@ module Rails
       # Asserts a given migration does not exist. You need to supply an absolute path or a
       # path relative to the configured destination:
       #
-      #   assert_no_file "config/random.rb"
+      #   assert_no_migration "db/migrate/create_products.rb"
       #
       def assert_no_migration(relative)
         file_name = migration_file_name(relative)
@@ -159,8 +158,8 @@ module Rails
       # Asserts the given method exists in the given content. When a block is given,
       # it yields the content of the method.
       #
-      #   assert_file "app/controller/products_controller.rb" do |controller|
-      #     assert_instance_method :index, content do |index|
+      #   assert_file "app/controllers/products_controller.rb" do |controller|
+      #     assert_instance_method :index, controller do |index|
       #       assert_match(/Product\.all/, index)
       #     end
       #   end
@@ -182,7 +181,7 @@ module Rails
 
       # Asserts the given attribute type gets a proper default value:
       #
-      #   assert_field_type :string, "MyString"
+      #   assert_field_default_value :string, "MyString"
       #
       def assert_field_default_value(attribute_type, value)
         assert_equal(value, create_generated_attribute(attribute_type).default)

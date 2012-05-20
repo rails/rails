@@ -3,36 +3,41 @@ source 'https://rubygems.org'
 gemspec
 
 if ENV['AREL']
-  gem 'arel', :path => ENV['AREL']
+  gem 'arel', path: ENV['AREL']
 else
   gem 'arel'
 end
 
-gem 'rack-test', :git => "git://github.com/brynary/rack-test.git"
+gem 'rack-test', github: "brynary/rack-test"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
+gem 'minitest', '~> 3.0.0'
 
 if ENV['JOURNEY']
-  gem 'journey', :path => ENV['JOURNEY']
+  gem 'journey', path: ENV['JOURNEY']
 else
-  gem 'journey', :git => "git://github.com/rails/journey"
+  gem 'journey', github: "rails/journey"
+end
+
+if ENV['AR_DEPRECATED_FINDERS']
+  gem 'active_record_deprecated_finders', path: ENV['AR_DEPRECATED_FINDERS']
+else
+  gem 'active_record_deprecated_finders', github: 'rails/active_record_deprecated_finders'
 end
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
-gem 'uglifier', '>= 1.0.3', :require => false
-
-gem 'sprockets-rails', :git => "git://github.com/rails/sprockets-rails.git"
+gem 'uglifier', '>= 1.0.3', require: false
 
 gem 'rake', '>= 0.8.7'
-gem 'mocha', '>= 0.9.8'
+gem 'mocha', '>= 0.11.2'
 
 group :doc do
   # The current sdoc cannot generate GitHub links due
   # to a bug, but the PR that fixes it has been there
   # for some weeks unapplied. As a temporary solution
   # this is our own fork with the fix.
-  gem 'sdoc',  :git => 'git://github.com/fxn/sdoc.git'
+  gem 'sdoc',  github: 'fxn/sdoc'
   gem 'RedCloth', '~> 4.2'
   gem 'w3c_validators'
 end
@@ -46,7 +51,7 @@ instance_eval File.read local_gemfile if File.exists? local_gemfile
 
 platforms :mri do
   group :test do
-    gem 'ruby-prof'
+    gem 'ruby-prof', '~> 0.11.2'
   end
 end
 
@@ -56,7 +61,7 @@ platforms :ruby do
   gem 'nokogiri', '>= 1.4.5'
 
   # AR
-  gem 'sqlite3', '~> 1.3.5'
+  gem 'sqlite3', '~> 1.3.6'
 
   group :db do
     gem 'pg', '>= 0.11.0'
@@ -86,9 +91,9 @@ if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
     gem 'ruby-oci8', '>= 2.0.4'
   end
   if ENV['ORACLE_ENHANCED_PATH']
-    gem 'activerecord-oracle_enhanced-adapter', :path => ENV['ORACLE_ENHANCED_PATH']
+    gem 'activerecord-oracle_enhanced-adapter', path: ENV['ORACLE_ENHANCED_PATH']
   else
-    gem 'activerecord-oracle_enhanced-adapter', :git => 'git://github.com/rsim/oracle-enhanced.git'
+    gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced'
   end
 end
 

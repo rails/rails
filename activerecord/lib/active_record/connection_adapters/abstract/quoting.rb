@@ -34,6 +34,7 @@ module ActiveRecord
         when Numeric    then value.to_s
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
+        when Class      then "'#{value.to_s}'"
         else
           "'#{quote_string(YAML.dump(value))}'"
         end

@@ -6,28 +6,30 @@ module ActiveRecord
   # = Active Record Relation
   class Relation
     JoinOperation = Struct.new(:relation, :join_class, :on)
-    ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
-    MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind, :references]
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering, :reverse_order, :uniq]
+
+    MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
+                            :order, :joins, :where, :having, :bind, :references,
+                            :extending]
+
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
+                            :reverse_order, :uniq, :create_with]
+
+    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
-    attr_accessor :extensions, :default_scoped
+    attr_accessor :default_scoped
     alias :loaded? :loaded
     alias :default_scoped? :default_scoped
 
-    def initialize(klass, table)
-      @klass, @table = klass, table
-
+    def initialize(klass, table, values = {})
+      @klass             = klass
+      @table             = table
+      @values            = values
       @implicit_readonly = nil
       @loaded            = false
       @default_scoped    = false
-
-      SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
-      (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
-      @extensions = []
-      @create_with_value = {}
     end
 
     def insert(values)
@@ -78,7 +80,8 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      @bind_values = @bind_values.dup
+      @values        = @values.dup
+      @values[:bind] = @values[:bind].dup if @values[:bind]
       reset
     end
 
@@ -168,17 +171,17 @@ module ActiveRecord
       default_scoped = with_default_scope
 
       if default_scoped.equal?(self)
-        @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
+        @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
 
-        preload = @preload_values
-        preload +=  @includes_values unless eager_loading?
+        preload = preload_values
+        preload +=  includes_values unless eager_loading?
         preload.each do |associations|
           ActiveRecord::Associations::Preloader.new(@records, associations).run
         end
 
         # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
         # are JOINS and no explicit SELECT.
-        readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
+        readonly = readonly_value.nil? ? @implicit_readonly : readonly_value
         @records.each { |record| record.readonly! } if readonly
       else
         @records = default_scoped.to_a
@@ -218,7 +221,7 @@ module ActiveRecord
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
       else
-        @limit_value ? to_a.many? : size > 1
+        limit_value ? to_a.many? : size > 1
       end
     end
 
@@ -233,7 +236,10 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      @klass.with_scope(self, :overwrite) { yield }
+      previous, klass.current_scope = klass.current_scope, self
+      yield
+    ensure
+      klass.current_scope = previous
     end
 
     # Updates all records with details given if they match a set of conditions supplied, limits and order can
@@ -254,39 +260,26 @@ module ActiveRecord
     #   Customer.update_all :wants_email => true
     #
     #   # Update all books with 'Rails' in their title
-    #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
-    #
-    #   # Update all avatars migrated more than a week ago
-    #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
-    #
-    #   # Update all books that match conditions, but limit it to 5 ordered by date
-    #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
-    #
-    #   # Conditions from the current relation also works
     #   Book.where('title LIKE ?', '%Rails%').update_all(:author => 'David')
     #
-    #   # The same idea applies to limit and order
+    #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
-    def update_all(updates, conditions = nil, options = {})
-      if conditions || options.present?
-        where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
+    def update_all(updates)
+      stmt = Arel::UpdateManager.new(arel.engine)
+
+      stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
+      stmt.table(table)
+      stmt.key = table[primary_key]
+
+      if joins_values.any?
+        @klass.connection.join_to_update(stmt, arel)
       else
-        stmt = Arel::UpdateManager.new(arel.engine)
-
-        stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
-        stmt.table(table)
-        stmt.key = table[primary_key]
-
-        if joins_values.any?
-          @klass.connection.join_to_update(stmt, arel)
-        else
-          stmt.take(arel.limit)
-          stmt.order(*arel.orders)
-          stmt.wheres = arel.constraints
-        end
-
-        @klass.connection.update stmt, 'SQL', bind_values
+        stmt.take(arel.limit)
+        stmt.order(*arel.orders)
+        stmt.wheres = arel.constraints
       end
+
+      @klass.connection.update stmt, 'SQL', bind_values
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -377,17 +370,12 @@ module ActiveRecord
       end
     end
 
-    # Deletes the records matching +conditions+ without instantiating the records first, and hence not
-    # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
-    # goes straight to the database, much more efficient than +destroy_all+. Be careful with relations
-    # though, in particular <tt>:dependent</tt> rules defined on associations are not honored. Returns
-    # the number of rows affected.
-    #
-    # ==== Parameters
-    #
-    # * +conditions+ - Conditions are specified the same way as with +find+ method.
-    #
-    # ==== Example
+    # Deletes the records matching +conditions+ without instantiating the records
+    # first, and hence not calling the +destroy+ method nor invoking callbacks. This
+    # is a single SQL DELETE statement that goes straight to the database, much more
+    # efficient than +destroy_all+. Be careful with relations though, in particular
+    # <tt>:dependent</tt> rules defined on associations are not honored. Returns the
+    # number of rows affected.
     #
     #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
     #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
@@ -396,12 +384,27 @@ module ActiveRecord
     # Both calls delete the affected posts all at once with a single DELETE statement.
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the +destroy_all+ method instead.
+    #
+    # If a limit scope is supplied, +delete_all+ raises an ActiveRecord error:
+    #
+    #   Post.limit(100).delete_all
+    #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit scope
     def delete_all(conditions = nil)
+      raise ActiveRecordError.new("delete_all doesn't support limit scope") if self.limit_value
+
       if conditions
         where(conditions).delete_all
       else
-        statement = arel.compile_delete
-        affected = @klass.connection.delete(statement, 'SQL', bind_values)
+        stmt = Arel::DeleteManager.new(arel.engine)
+        stmt.from(table)
+
+        if joins_values.any?
+          @klass.connection.join_to_delete(stmt, arel, table[primary_key])
+        else
+          stmt.wheres = arel.constraints
+        end
+
+        affected = @klass.connection.delete(stmt, 'SQL', bind_values)
 
         reset
         affected
@@ -446,7 +449,7 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= klass.connection.to_sql(arel, @bind_values.dup)
+      @to_sql ||= klass.connection.to_sql(arel, bind_values.dup)
     end
 
     def where_values_hash
@@ -468,8 +471,8 @@ module ActiveRecord
 
     def eager_loading?
       @should_eager_load ||=
-        @eager_load_values.any? ||
-        @includes_values.any? && (joined_includes_values.any? || references_eager_loaded_tables?)
+        eager_load_values.any? ||
+        includes_values.any? && (joined_includes_values.any? || references_eager_loaded_tables?)
     end
 
     # Joins that are also marked for preloading. In which case we should just eager load them.
@@ -477,7 +480,7 @@ module ActiveRecord
     # represent the same association, but that aren't matched by this. Also, we could have
     # nested hashes which partially match, e.g. { :a => :b } & { :a => [:b, :c] }
     def joined_includes_values
-      @includes_values & @joins_values
+      includes_values & joins_values
     end
 
     def ==(other)
@@ -509,6 +512,10 @@ module ActiveRecord
 
     def blank?
       to_a.blank?
+    end
+
+    def values
+      @values.dup
     end
 
     private

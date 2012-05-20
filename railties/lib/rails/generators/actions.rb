@@ -8,12 +8,9 @@ module Rails
       # Adds an entry into Gemfile for the supplied gem. If env
       # is specified, add the gem to the given environment.
       #
-      # ==== Example
-      #
       #   gem "rspec", :group => :test
       #   gem "technoweenie-restful-authentication", :lib => "restful-authentication", :source => "http://gems.github.com/"
       #   gem "rails", "3.0", :git => "git://github.com/rails/rails"
-      #
       def gem(*args)
         options = args.extract_options!
         name, version = args
@@ -43,12 +40,9 @@ module Rails
 
       # Wraps gem entries inside a group.
       #
-      # ==== Example
-      #
       #   gem_group :development, :test do
       #     gem "rspec-rails"
       #   end
-      #
       def gem_group(*names, &block)
         name = names.map(&:inspect).join(", ")
         log :gemfile, "group #{name}"
@@ -66,8 +60,6 @@ module Rails
 
       # Add the given source to Gemfile
       #
-      # ==== Example
-      #
       #   add_source "http://gems.github.com/"
       def add_source(source, options={})
         log :source, source
@@ -82,6 +74,13 @@ module Rails
       # If options :env is specified, the line is appended to the corresponding
       # file in config/environments.
       #
+      #   environment do
+      #     "config.autoload_paths += %W(#{config.root}/extras)"
+      #   end
+      #
+      #   environment(nil, :env => "development") do
+      #     "config.active_record.observers = :cacher"
+      #   end
       def environment(data=nil, options={}, &block)
         sentinel = /class [a-z_:]+ < Rails::Application/i
         env_file_sentinel = /::Application\.configure do/
@@ -101,12 +100,9 @@ module Rails
 
       # Run a command in git.
       #
-      # ==== Examples
-      #
       #   git :init
       #   git :add => "this.file that.rb"
       #   git :add => "onefile.rb", :rm => "badfile.cxx"
-      #
       def git(commands={})
         if commands.is_a?(Symbol)
           run "git #{commands}"
@@ -120,15 +116,12 @@ module Rails
       # Create a new file in the vendor/ directory. Code can be specified
       # in a block or a data string can be given.
       #
-      # ==== Examples
-      #
       #   vendor("sekrit.rb") do
       #     sekrit_salt = "#{Time.now}--#{3.years.ago}--#{rand}--"
       #     "salt = '#{sekrit_salt}'"
       #   end
       #
       #   vendor("foreign.rb", "# Foreign code is fun")
-      #
       def vendor(filename, data=nil, &block)
         log :vendor, filename
         create_file("vendor/#{filename}", data, :verbose => false, &block)
@@ -137,14 +130,11 @@ module Rails
       # Create a new file in the lib/ directory. Code can be specified
       # in a block or a data string can be given.
       #
-      # ==== Examples
-      #
       #   lib("crypto.rb") do
       #     "crypted_special_value = '#{rand}--#{Time.now}--#{rand(1337)}--'"
       #   end
       #
       #   lib("foreign.rb", "# Foreign code is fun")
-      #
       def lib(filename, data=nil, &block)
         log :lib, filename
         create_file("lib/#{filename}", data, :verbose => false, &block)
@@ -152,30 +142,25 @@ module Rails
 
       # Create a new Rakefile with the provided code (either in a block or a string).
       #
-      # ==== Examples
-      #
       #   rakefile("bootstrap.rake") do
       #     project = ask("What is the UNIX name of your project?")
       #
       #     <<-TASK
       #       namespace :#{project} do
       #         task :bootstrap do
-      #           puts "i like boots!"
+      #           puts "I like boots!"
       #         end
       #       end
       #     TASK
       #   end
       #
-      #   rakefile("seed.rake", "puts 'im plantin ur seedz'")
-      #
+      #   rakefile('seed.rake', 'puts "Planting seeds"')
       def rakefile(filename, data=nil, &block)
         log :rakefile, filename
         create_file("lib/tasks/#{filename}", data, :verbose => false, &block)
       end
 
       # Create a new initializer with the provided code (either in a block or a string).
-      #
-      # ==== Examples
       #
       #   initializer("globals.rb") do
       #     data = ""
@@ -188,7 +173,6 @@ module Rails
       #   end
       #
       #   initializer("api.rb", "API_KEY = '123456'")
-      #
       def initializer(filename, data=nil, &block)
         log :initializer, filename
         create_file("config/initializers/#{filename}", data, :verbose => false, &block)
@@ -198,10 +182,7 @@ module Rails
       # The second parameter is the argument string that is passed to
       # the generator or an Array that is joined.
       #
-      # ==== Example
-      #
       #   generate(:authenticated, "user session")
-      #
       def generate(what, *args)
         log :generate, what
         argument = args.map {|arg| arg.to_s }.flatten.join(" ")
@@ -211,12 +192,9 @@ module Rails
 
       # Runs the supplied rake task
       #
-      # ==== Example
-      #
       #   rake("db:migrate")
       #   rake("db:migrate", :env => "production")
       #   rake("gems:install", :sudo => true)
-      #
       def rake(command, options={})
         log :rake, command
         env  = options[:env] || ENV["RAILS_ENV"] || 'development'
@@ -226,10 +204,7 @@ module Rails
 
       # Just run the capify command in root
       #
-      # ==== Example
-      #
       #   capify!
-      #
       def capify!
         log :capify, ""
         in_root { run("#{extify(:capify)} .", :verbose => false) }
@@ -237,10 +212,7 @@ module Rails
 
       # Make an entry in Rails routing file config/routes.rb
       #
-      # === Example
-      #
-      #   route "root :to => 'welcome'"
-      #
+      #   route "root :to => 'welcome#index'"
       def route(routing_code)
         log :route, routing_code
         sentinel = /\.routes\.draw do\s*$/
@@ -252,10 +224,7 @@ module Rails
 
       # Reads the given file at the source root and prints it in the console.
       #
-      # === Example
-      #
       #   readme "README"
-      #
       def readme(path)
         log File.read(find_in_source_paths(path))
       end
@@ -265,7 +234,6 @@ module Rails
         # Define log for backwards compatibility. If just one argument is sent,
         # invoke say, otherwise invoke say_status. Differently from say and
         # similarly to say_status, this method respects the quiet? option given.
-        #
         def log(*args)
           if args.size == 1
             say args.first.to_s unless options.quiet?
@@ -276,7 +244,6 @@ module Rails
         end
 
         # Add an extension to the given name based on the platform.
-        #
         def extify(name)
           if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
             "#{name}.bat"

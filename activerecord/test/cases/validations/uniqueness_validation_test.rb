@@ -189,7 +189,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t_utf8.save, "Should save t_utf8 as unique"
 
     # If database hasn't UTF-8 character set, this test fails
-    if Topic.find(t_utf8, :select => 'LOWER(title) AS title').title == "я тоже уникальный!"
+    if Topic.scoped(:select => 'LOWER(title) AS title').find(t_utf8).title == "я тоже уникальный!"
       t2_utf8 = Topic.new("title" => "я тоже УНИКАЛЬНЫЙ!")
       assert !t2_utf8.valid?, "Shouldn't be valid"
       assert !t2_utf8.save, "Shouldn't save t2_utf8 as unique"
@@ -261,10 +261,10 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert i1.errors[:value].any?, "Should not be empty"
   end
 
-  def test_validates_uniqueness_inside_with_scope
+  def test_validates_uniqueness_inside_scoping
     Topic.validates_uniqueness_of(:title)
 
-    Topic.send(:with_scope, :find => { :conditions => { :author_name => "David" } }) do
+    Topic.where(:author_name => "David").scoping do
       t1 = Topic.new("title" => "I'm unique!", "author_name" => "Mary")
       assert t1.save
       t2 = Topic.new("title" => "I'm unique!", "author_name" => "David")
@@ -328,8 +328,8 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   
   def test_validate_uniqueness_with_conditions
     Topic.validates_uniqueness_of(:title, :conditions => Topic.where('approved = ?', true))
-    t1 = Topic.create("title" => "I'm a topic", "approved" => true)
-    t2 = Topic.create("title" => "I'm an unapproved topic", "approved" => false)
+    Topic.create("title" => "I'm a topic", "approved" => true)
+    Topic.create("title" => "I'm an unapproved topic", "approved" => false)
     
     t3 = Topic.new("title" => "I'm a topic", "approved" => true)
     assert !t3.valid?, "t3 shouldn't be valid"

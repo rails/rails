@@ -42,7 +42,7 @@ module ActiveRecord::Associations::Builder
       def define_delete_all_dependency_method
         name = self.name
         mixin.redefine_method(dependency_method_name) do
-          association(name).delete_all_on_destroy
+          association(name).delete_all
         end
       end
 

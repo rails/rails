@@ -108,7 +108,6 @@ module ActionController
     # Sets a HTTP 1.1 Cache-Control header. Defaults to issuing a <tt>private</tt> instruction, so that
     # intermediate caches must not cache the response.
     #
-    # Examples:
     #   expires_in 20.minutes
     #   expires_in 3.hours, :public => true
     #   expires_in 3.hours, :public => true, :must_revalidate => true

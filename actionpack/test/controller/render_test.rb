@@ -102,12 +102,12 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello_with_expires_in_with_public_with_more_keys
-    expires_in 1.minute, :public => true, 'max-stale' => 5.hours
+    expires_in 1.minute, :public => true, 's-maxage' => 5.hours
     render :action => 'hello_world'
   end
 
   def conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax
-    expires_in 1.minute, :public => true, :private => nil, 'max-stale' => 5.hours
+    expires_in 1.minute, :public => true, :private => nil, 's-maxage' => 5.hours
     render :action => 'hello_world'
   end
 
@@ -505,6 +505,14 @@ class TestController < ActionController::Base
     render :text => "hello world!"
   end
 
+  def head_created
+    head :created
+  end
+
+  def head_created_with_application_json_content_type
+    head :created, :content_type => "application/json"
+  end
+
   def head_with_location_header
     head :location => "/foo"
   end
@@ -551,6 +559,10 @@ class TestController < ActionController::Base
 
   def partial
     render :partial => 'partial'
+  end
+
+  def partial_html_erb
+    render :partial => 'partial_html_erb'
   end
 
   def render_to_string_with_partial
@@ -1018,6 +1030,7 @@ class RenderTest < ActionController::TestCase
   def test_accessing_local_assigns_in_inline_template
     get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
     assert_equal "Goodbye, Local David", @response.body
+    assert_equal "text/html", @response.content_type
   end
 
   def test_should_implicitly_render_html_template_from_xhr_request
@@ -1172,6 +1185,19 @@ class RenderTest < ActionController::TestCase
     assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
   end
 
+  def test_head_created
+    post :head_created
+    assert_blank @response.body
+    assert_response :created
+  end
+
+  def test_head_created_with_application_json_content_type
+    post :head_created_with_application_json_content_type
+    assert_blank @response.body
+    assert_equal "application/json", @response.content_type
+    assert_response :created
+  end
+
   def test_head_with_location_header
     get :head_with_location_header
     assert_blank @response.body
@@ -1183,7 +1209,7 @@ class RenderTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :customers
-        match ':controller/:action'
+        get ':controller/:action'
       end
 
       get :head_with_location_object
@@ -1269,6 +1295,15 @@ class RenderTest < ActionController::TestCase
   def test_should_render_html_formatted_partial
     get :partial
     assert_equal "partial html", @response.body
+    assert_equal "text/html", @response.content_type
+  end
+
+  def test_render_html_formatted_partial_even_with_other_mime_time_in_accept
+    @request.accept = "text/javascript, text/html"
+
+    get :partial_html_erb
+
+    assert_equal "partial.html.erb", @response.body.strip
     assert_equal "text/html", @response.content_type
   end
 
@@ -1464,12 +1499,12 @@ class ExpiresInRenderTest < ActionController::TestCase
 
   def test_expires_in_header_with_additional_headers
     get :conditional_hello_with_expires_in_with_public_with_more_keys
-    assert_equal "max-age=60, public, max-stale=18000", @response.headers["Cache-Control"]
+    assert_equal "max-age=60, public, s-maxage=18000", @response.headers["Cache-Control"]
   end
 
   def test_expires_in_old_syntax
     get :conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax
-    assert_equal "max-age=60, public, max-stale=18000", @response.headers["Cache-Control"]
+    assert_equal "max-age=60, public, s-maxage=18000", @response.headers["Cache-Control"]
   end
 
   def test_expires_now

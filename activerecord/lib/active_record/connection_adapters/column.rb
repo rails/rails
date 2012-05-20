@@ -1,4 +1,5 @@
 require 'set'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # :stopdoc:
@@ -94,7 +95,7 @@ module ActiveRecord
 
         case type
         when :string, :text        then value
-        when :integer              then value.to_i rescue value ? 1 : 0
+        when :integer              then value.to_i
         when :float                then value.to_f
         when :decimal              then klass.value_to_decimal(value)
         when :datetime, :timestamp then klass.string_to_time(value)
@@ -107,6 +108,9 @@ module ActiveRecord
       end
 
       def type_cast_code(var_name)
+        ActiveSupport::Deprecation.warn("Column#type_cast_code is deprecated in favor of" \
+          "using Column#type_cast only, and it is going to be removed in future Rails versions.")
+
         klass = self.class.name
 
         case type
@@ -120,6 +124,7 @@ module ActiveRecord
         when :binary               then "#{klass}.binary_to_string(#{var_name})"
         when :boolean              then "#{klass}.value_to_boolean(#{var_name})"
         when :hstore               then "#{klass}.string_to_hstore(#{var_name})"
+        when :inet, :cidr          then "#{klass}.string_to_cidr(#{var_name})"
         else var_name
         end
       end
@@ -154,7 +159,7 @@ module ActiveRecord
 
         def value_to_date(value)
           if value.is_a?(String)
-            return nil if value.empty?
+            return nil if value.blank?
             fast_string_to_date(value) || fallback_string_to_date(value)
           elsif value.respond_to?(:to_date)
             value.to_date
@@ -165,14 +170,14 @@ module ActiveRecord
 
         def string_to_time(string)
           return string unless string.is_a?(String)
-          return nil if string.empty?
+          return nil if string.blank?
 
           fast_string_to_time(string) || fallback_string_to_time(string)
         end
 
         def string_to_dummy_time(string)
           return string unless string.is_a?(String)
-          return nil if string.empty?
+          return nil if string.blank?
 
           string_to_time "2000-01-01 #{string}"
         end

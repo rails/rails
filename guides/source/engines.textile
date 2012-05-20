@@ -16,7 +16,7 @@ Engines can be considered miniature applications that provide functionality to t
 
 Therefore, engines and applications can be thought of almost the same thing, just with very minor differences, as you'll see throughout this guide. Engines and applications also share a common structure.
 
-Engines are also closely related to plugins where the two share a common +lib+ directory structure and are both generated using the +rails plugin new+ generator. The difference being that an engine is considered a "full plugin" by Rails -- as indicated by the +--full+ option that's passed to the generator command -- but this guide will refer to them simply as "engines" throughout. An engine *can* be a plugin, and a plugin *can* be an engine.
+Engines are also closely related to plugins where the two share a common +lib+ directory structure and are both generated using the +rails plugin new+ generator. The difference being that an engine is considered a "full plugin" by Rails as indicated by the +--full+ option that's passed to the generator command, but this guide will refer to them simply as "engines" throughout. An engine *can* be a plugin, and a plugin *can* be an engine.
 
 The engine that will be created in this guide will be called "blorgh". The engine will provide blogging functionality to its host applications, allowing for new posts and comments to be created. At the beginning of this guide, you will be working solely within the engine itself, but in later sections you'll see how to hook it into an application.
 
@@ -51,7 +51,7 @@ h5. Critical files
 At the root of this brand new engine's directory, lives a +blorgh.gemspec+ file. When you include the engine into the application later on, you will do so with this line in a Rails application's +Gemfile+:
 
 <ruby>
-  gem 'blorgh', :path => "vendor/engines/blorgh"
+gem 'blorgh', :path => "vendor/engines/blorgh"
 </ruby>
 
 By specifying it as a gem within the +Gemfile+, Bundler will load it as such, parsing this +blorgh.gemspec+ file and requiring a file within the +lib+ directory called +lib/blorgh.rb+. This file requires the +blorgh/engine.rb+ file (located at +lib/blorgh/engine.rb+) and defines a base module called +Blorgh+.
@@ -77,7 +77,7 @@ end
 
 By inheriting from the +Rails::Engine+ class, this gem notifies Rails that there's an engine at the specified path, and will correctly mount the engine inside the application, performing tasks such as adding the +app+ directory of the engine to the load path for models, mailers, controllers and views.
 
-The +isolate_namespace+ method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace, away from similar components inside hte application. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption, or that important engine components could be overriden by similarly named things within the application. One of the examples of such conflicts are helpers. Without calling +isolate_namespace+, engine's helpers would be included in application's controllers.
+The +isolate_namespace+ method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace, away from similar components inside the application. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption, or that important engine components could be overridden by similarly named things within the application. One of the examples of such conflicts are helpers. Without calling +isolate_namespace+, engine's helpers would be included in application's controllers.
 
 NOTE: It is *highly* recommended that the +isolate_namespace+ line be left within the +Engine+ class definition. Without it, classes generated in an engine *may* conflict with an application.
 
@@ -115,7 +115,6 @@ The +test+ directory is where tests for the engine will go. To test the engine, 
 
 <ruby>
 Rails.application.routes.draw do
-
   mount Blorgh::Engine => "/blorgh"
 end
 </ruby>
@@ -126,7 +125,7 @@ Also in the test directory is the +test/integration+ directory, where integratio
 
 h3. Providing engine functionality
 
-The engine that this guide covers will provide posting and commenting functionality and follows a similar thread to the "Getting Started Guide":getting-started.html, with some new twists.
+The engine that this guide covers will provide posting and commenting functionality and follows a similar thread to the "Getting Started Guide":getting_started.html, with some new twists.
 
 h4. Generating a post resource
 
@@ -179,7 +178,6 @@ After that, a line for the resource is inserted into the +config/routes.rb+ file
 <ruby>
 Blorgh::Engine.routes.draw do
   resources :posts
-
 end
 </ruby>
 
@@ -219,17 +217,13 @@ By default, the scaffold styling is not applied to the engine as the engine's la
 <%= stylesheet_link_tag "scaffold" %>
 </erb>
 
-You can see what the engine has so far by running +rake db:migrate+ at the root of our engine to run the migration generated by the scaffold generator, and then running +rails server+. When you open +http://localhost:3000/blorgh/posts+ you will see the default scaffold that has been generated.
-
-!images/engines_scaffold.png(Blank engine scaffold)!
-
-Click around! You've just generated your first engine's first functions.
+You can see what the engine has so far by running +rake db:migrate+ at the root of our engine to run the migration generated by the scaffold generator, and then running +rails server+ in +test/dummy+. When you open +http://localhost:3000/blorgh/posts+ you will see the default scaffold that has been generated. Click around! You've just generated your first engine's first functions.
 
 If you'd rather play around in the console, +rails console+ will also work just like a Rails application. Remember: the +Post+ model is namespaced, so to reference it you must call it as +Blorgh::Post+.
 
 <ruby>
-  >> Blorgh::Post.find(1)
-  => #<Blorgh::Post id: 1 ...>
+>> Blorgh::Post.find(1)
+=> #<Blorgh::Post id: 1 ...>
 </ruby>
 
 One final thing is that the +posts+ resource for this engine should be the root of the engine. Whenever someone goes to the root path where the engine is mounted, they should be shown a list of posts. This can be made to happen if this line is inserted into the +config/routes.rb+ file inside the engine:
@@ -263,7 +257,7 @@ create      test/fixtures/blorgh/comments.yml
 
 This generator call will generate just the necessary model files it needs, namespacing the files under a +blorgh+ directory and creating a model class called +Blorgh::Comment+.
 
-To show the comments on a post, edit +app/views/posts/show.html.erb+ and add this line before the "Edit" link:
+To show the comments on a post, edit +app/views/blorgh/posts/show.html.erb+ and add this line before the "Edit" link:
 
 <erb>
 <h3>Comments</h3>
@@ -355,11 +349,11 @@ end
 
 This is the final part required to get the new comment form working. Displaying the comments however, is not quite right yet. If you were to create a comment right now you would see this error:
 
-<text>
-  Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder], :formats=>[:html], :locale=>[:en, :en]}. Searched in:
-    * "/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"
-    * "/Users/ryan/Sites/side_projects/blorgh/app/views"
-</text>
+<plain>
+Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder], :formats=>[:html], :locale=>[:en, :en]}. Searched in:
+  * "/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"
+  * "/Users/ryan/Sites/side_projects/blorgh/app/views"
+</plain>
 
 The engine is unable to find the partial required for rendering the comments. Rails has looked firstly in the application's (+test/dummy+) +app/views+ directory and then in the engine's +app/views+ directory. When it can't find it, it will throw this error. The engine knows to look for +blorgh/comments/comment+ because the model object it is receiving is from the +Blorgh::Comment+ class.
 
@@ -454,6 +448,8 @@ rake db:migrate SCOPE=blorgh VERSION=0
 
 h4. Using a class provided by the application
 
+h5. Using a model provided by the application
+
 When an engine is created, it may want to use specific classes from an application to provide links between the pieces of the engine and the pieces of the application. In the case of the +blorgh+ engine, making posts and comments have authors would make a lot of sense.
 
 Usually, an application would have a +User+ class that would provide the objects that would represent the posts' and comments' authors, but there could be a case where the application calls this class something different, such as +Person+. It's because of this reason that the engine should not hardcode the associations to be exactly for a +User+ class, but should allow for some flexibility around what the class is called.
@@ -511,11 +507,11 @@ $ rake blorgh:install:migrations
 
 Notice here that only _one_ migration was copied over here. This is because the first two migrations were copied over the first time this command was run.
 
-<shell>
-  NOTE: Migration [timestamp]_create_blorgh_posts.rb from blorgh has been skipped. Migration with the same name already exists.
-  NOTE: Migration [timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration with the same name already exists.
-  Copied migration [timestamp]_add_author_id_to_blorgh_posts.rb from blorgh
-</shell>
+<plain>
+NOTE Migration [timestamp]_create_blorgh_posts.rb from blorgh has been skipped. Migration with the same name already exists.
+NOTE Migration [timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration with the same name already exists.
+Copied migration [timestamp]_add_author_id_to_blorgh_posts.rb from blorgh
+</plain>
 
 Run this migration using this command:
 
@@ -536,9 +532,9 @@ Finally, the author's name should be displayed on the post's page. Add this code
 
 By outputting +@post.author+ using the +<%=+ tag the +to_s+ method will be called on the object. By default, this will look quite ugly:
 
-<text>
+<plain>
 #<User:0x00000100ccb3b0>
-</text>
+</plain>
 
 This is undesirable and it would be much better to have the user's name there. To do this, add a +to_s+ method to the +User+ class within the application:
 
@@ -549,6 +545,19 @@ end
 </ruby>
 
 Now instead of the ugly Ruby object output the author's name will be displayed.
+
+h5. Using a controller provided by the application
+
+Because Rails controllers generally share code for things like authentication and accessing session variables, by default they inherit from <tt>ApplicationController</tt>. Rails engines, however are scoped to run independently from the main application, so each engine gets a scoped +ApplicationController+. This namespace prevents code collisions, but often engine controllers should access methods in the main application's +ApplicationController+. An easy way to provide this access is to change the engine's scoped +ApplicationController+ to inherit from the main application's +ApplicationController+. For our Blorgh engine this would be done by changing +app/controllers/blorgh/application_controller.rb+ to look like:
+
+<ruby>
+class Blorgh::ApplicationController < ApplicationController
+end
+</ruby>
+
+By default, the engine's controllers inherit from <tt>Blorgh::ApplicationController</tt>. So, after making this change they will have access to the main applications +ApplicationController+ as though they were part of the main application.
+
+This change does require that the engine is run from a Rails application that has an +ApplicationController+. 
 
 h4. Configuring an engine
 
@@ -581,9 +590,9 @@ self.author = Blorgh.user_class.constantize.find_or_create_by_name(author_name)
 To save having to call +constantize+ on the +user_class+ result all the time, you could instead just override the +user_class+ getter method inside the +Blorgh+ module in the +lib/blorgh.rb+ file to always call +constantize+ on the saved value before returning the result:
 
 <ruby>
-  def self.user_class
-    @@user_class.constantize
-  end
+def self.user_class
+  @@user_class.constantize
+end
 </ruby>
 
 This would then turn the above code for +self.author=+ into this:
@@ -663,10 +672,6 @@ Try this now by creating a new file at +app/views/blorgh/posts/index.html.erb+ a
 <% end %>
 </erb>
 
-Rather than looking like the default scaffold, the page will now look like this:
-
-!images/engines_post_override.png(Engine scaffold overriden)!
-
 h4. Routes
 
 Routes inside an engine are, by default, isolated from the application. This is done by the +isolate_namespace+ call inside the +Engine+ class. This essentially means that the application and its engines can have identically named routes, and that they will not clash.
@@ -674,9 +679,9 @@ Routes inside an engine are, by default, isolated from the application. This is 
 Routes inside an engine are drawn on the +Engine+ class within +config/routes.rb+, like this:
 
 <ruby>
-  Blorgh::Engine.routes.draw do
-    resources :posts
-  end
+Blorgh::Engine.routes.draw do
+  resources :posts
+end
 </ruby>
 
 By having isolated routes such as this, if you wish to link to an area of an engine from within an application, you will need to use the engine's routing proxy method. Calls to normal routing methods such as +posts_path+ may end up going to undesired locations if both the application and the engine both have such a helper defined.
@@ -705,7 +710,7 @@ If a template is rendered from within an engine and it's attempting to use one o
 
 h4. Assets
 
-Assets within an engine work in an identical way to a full application. Because the engine class inherits from +Rails::Engine+, the application will know to look up in the engine's +app/assets+ directory for potential assets.
+Assets within an engine work in an identical way to a full application. Because the engine class inherits from +Rails::Engine+, the application will know to look up in the engine's +app/assets+ and +lib/assets+ directories for potential assets.
 
 Much like all the other components of an engine, the assets should also be namespaced. This means if you have an asset called +style.css+, it should be placed at +app/assets/stylesheets/[engine name]/style.css+, rather than +app/assets/stylesheets/style.css+. If this asset wasn't namespaced, then there is a possibility that the host application could have an asset named identically, in which case the application's asset would take precedence and the engine's one would be all but ignored.
 
@@ -717,11 +722,26 @@ Imagine that you did have an asset located at +app/assets/stylesheets/blorgh/sty
 
 You can also specify these assets as dependencies of other assets using the Asset Pipeline require statements in processed files:
 
-<css>
+<plain>
 /*
  *= require blorgh/style
 */
-</css>
+</plain>
+
+h4. Separate Assets & Precompiling
+
+There are some situations where your engine's assets not required by the host application. For example, say that you've created
+an admin functionality that only exists for your engine. In this case, the host application doesn't need to require +admin.css+
+or +admin.js+. Only the gem's admin layout needs these assets. It doesn't make sense for the host app to include +"blorg/admin.css"+ in it's stylesheets. In this situation, you should explicitly define these assets for precompilation.
+This tells sprockets to add you engine assets when +rake assets:precompile+ is ran. 
+
+You can define assets for precompilation in +engine.rb+
+
+<ruby>
+initializer "blorgh.assets.precompile" do |app|
+  app.config.assets.precompile += %w(admin.css admin.js)
+end
+</ruby>
 
 For more information, read the "Asset Pipeline guide":http://guides.rubyonrails.org/asset_pipeline.html
 

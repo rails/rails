@@ -127,7 +127,7 @@ If you want to translate your Rails application to a *single language other than
 
 However, you would probably like to *provide support for more locales* in your application. In such case, you need to set and pass the locale between requests.
 
-WARNING: You may be tempted to store the chosen locale in a _session_ or a <em>cookie</em>. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being "<em>RESTful</em>":http://en.wikipedia.org/wiki/Representational_State_Transfer. Read more about the RESTful approach in "Stefan Tilkov's articles":http://www.infoq.com/articles/rest-introduction. There may be some exceptions to this rule, which are discussed below.
+WARNING: You may be tempted to store the chosen locale in a _session_ or a <em>cookie</em>, however *do not do this*. The locale should be transparent and a part of the URL. This way you won't break people's basic assumptions about the web itself: if you send a URL to a friend, they should see the same page and content as you. A fancy word for this would be that you're being "<em>RESTful</em>":http://en.wikipedia.org/wiki/Representational_State_Transfer. Read more about the RESTful approach in "Stefan Tilkov's articles":http://www.infoq.com/articles/rest-introduction. Sometimes there are exceptions to this rule and those are discussed below.
 
 The _setting part_ is easy. You can set the locale in a +before_filter+ in the +ApplicationController+ like this:
 
@@ -220,7 +220,7 @@ Every helper method dependent on +url_for+ (e.g. helpers for named routes like +
 
 You may be satisfied with this. It does impact the readability of URLs, though, when the locale "hangs" at the end of every URL in your application. Moreover, from the architectural standpoint, locale is usually hierarchically above the other parts of the application domain: and URLs should reflect this.
 
-You probably want URLs to look like this: +www.example.com/en/books+ (which loads the English locale) and +www.example.com/nl/books+ (which loads the Netherlands locale). This is achievable with the "over-riding +default_url_options+" strategy from above: you just have to set up your routes with "+path_prefix+":http://api.rubyonrails.org/classes/ActionController/Resources.html#M000354 option in this way:
+You probably want URLs to look like this: +www.example.com/en/books+ (which loads the English locale) and +www.example.com/nl/books+ (which loads the Dutch locale). This is achievable with the "over-riding +default_url_options+" strategy from above: you just have to set up your routes with "+path_prefix+":http://api.rubyonrails.org/classes/ActionController/Resources.html#M000354 option in this way:
 
 <ruby>
 # config/routes.rb
@@ -229,7 +229,7 @@ scope "/:locale" do
 end
 </ruby>
 
-Now, when you call the +books_path+ method you should get +"/en/books"+ (for the default locale). An URL like +http://localhost:3001/nl/books+ should load the Netherlands locale, then, and following calls to +books_path+ should return +"/nl/books"+ (because the locale changed).
+Now, when you call the +books_path+ method you should get +"/en/books"+ (for the default locale). An URL like +http://localhost:3001/nl/books+ should load the Dutch locale, then, and following calls to +books_path+ should return +"/nl/books"+ (because the locale changed).
 
 If you don't want to force the use of a locale in your routes you can use an optional path scope (denoted by the parentheses) like so:
 
@@ -866,19 +866,35 @@ The I18n API will catch all of these exceptions when they are thrown in the back
 
 The reason for this is that during development you'd usually want your views to still render even though a translation is missing.
 
-In other contexts you might want to change this behaviour, though. E.g. the default exception handling does not allow to catch missing translations during automated tests easily. For this purpose a different exception handler can be specified. The specified exception handler must be a method on the I18n module:
+In other contexts you might want to change this behaviour, though. E.g. the default exception handling does not allow to catch missing translations during automated tests easily. For this purpose a different exception handler can be specified. The specified exception handler must be a method on the I18n module or a class with +#call+ method:
 
 <ruby>
 module I18n
-  def self.just_raise_that_exception(*args)
-    raise args.first
+  class JustRaiseExceptionHandler < ExceptionHandler
+    def call(exception, locale, key, options)
+      if exception.is_a?(MissingTranslation)
+        raise exception.to_exception
+      else
+        super
+      end
+    end
   end
 end
 
-I18n.exception_handler = :just_raise_that_exception
+I18n.exception_handler = I18n::JustRaiseExceptionHandler.new
 </ruby>
 
-This would re-raise all caught exceptions including +MissingTranslationData+.
+This would re-raise only the +MissingTranslationData+ exception, passing all other input to the default exception handler.
+
+However, if you are using +I18n::Backend::Pluralization+ this handler will also raise +I18n::MissingTranslationData: translation missing: en.i18n.plural.rule+ exception that should normally be ignored to fall back to the default pluralization rule for English locale. To avoid this you may use additional check for translation key:
+
+<ruby>
+if exception.is_a?(MissingTranslation) && key.to_s != 'i18n.plural.rule'
+  raise exception.to_exception
+else
+  super
+end
+</ruby>
 
 Another example where the default behaviour is less desirable is the Rails TranslationHelper which provides the method +#t+ (as well as +#translate+). When a +MissingTranslationData+ exception occurs in this context, the helper wraps the message into a span with the CSS class +translation_missing+.
 

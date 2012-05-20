@@ -17,9 +17,7 @@ module Rails
 
     private
       def add_gem_filters
-        return unless defined?(Gem)
-
-        gems_paths = (Gem.path + [Gem.default_dir]).uniq.map!{ |p| Regexp.escape(p) }
+        gems_paths = (Gem.path | [Gem.default_dir]).map { |p| Regexp.escape(p) }
         return if gems_paths.empty?
 
         gems_regexp = %r{(#{gems_paths.join('|')})/gems/([^/]+)-([\w.]+)/(.*)}

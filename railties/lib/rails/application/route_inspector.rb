@@ -16,7 +16,7 @@ module Rails
           class_name = app.class.name.to_s
           if class_name == "ActionDispatch::Routing::Mapper::Constraints"
             rack_app(app.app)
-          elsif class_name !~ /^ActionDispatch::Routing/
+          elsif ActionDispatch::Routing::Redirect === app || class_name !~ /^ActionDispatch::Routing/
             app
           end
         end
@@ -67,7 +67,7 @@ module Rails
         @engines = Hash.new
       end
 
-      def format all_routes, filter = nil
+      def format(all_routes, filter = nil)
         if filter
           all_routes = all_routes.select{ |route| route.defaults[:controller] == filter }
         end

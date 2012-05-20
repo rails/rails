@@ -1,0 +1,1 @@
+get '/external' => 'external#index'

@@ -61,7 +61,7 @@ module ActiveSupport
         ensure
           begin
             teardown
-            run_callbacks :teardown, :enumerator => :reverse_each
+            run_callbacks :teardown
           rescue Exception => e
             result = @runner.puke(self.class, method_name, e)
           end
@@ -126,7 +126,7 @@ module ActiveSupport
         def record; end
       end
 
-      class Benchmarker < Performer     
+      class Benchmarker < Performer
         def initialize(*args)
           super
           @supported = @metric.respond_to?('measure')
@@ -196,6 +196,7 @@ module ActiveSupport
 
         class Base
           include ActionView::Helpers::NumberHelper
+          include ActionView::Helpers::OutputSafetyHelper
 
           attr_reader :total
 
@@ -207,7 +208,7 @@ module ActiveSupport
             @name ||= self.class.name.demodulize.underscore
           end
 
-          def benchmark            
+          def benchmark
             with_gc_stats do
               before = measure
               yield

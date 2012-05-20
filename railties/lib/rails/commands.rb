@@ -57,16 +57,19 @@ when 'server'
 
 when 'dbconsole'
   require 'rails/commands/dbconsole'
-  require APP_PATH
-  Rails::DBConsole.start(Rails.application)
+  Rails::DBConsole.start
 
 when 'application', 'runner'
   require "rails/commands/#{command}"
 
 when 'new'
-  puts "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\n"
-  puts "Type 'rails' for help."
-  exit(1)
+  if ARGV.first.in?(['-h', '--help'])
+    require 'rails/commands/application'
+  else
+    puts "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\n"
+    puts "Type 'rails' for help."
+    exit(1)
+  end
 
 when '--version', '-v'
   ARGV.unshift '--version'

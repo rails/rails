@@ -1,4 +1,6 @@
 require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/enumerable'
 require 'active_support/inflector'
@@ -34,6 +36,8 @@ module ActionDispatch
           }
 
           return true
+        ensure
+          req.reset_parameters
         end
 
         def call(env)
@@ -58,6 +62,16 @@ module ActionDispatch
           @options = (@scope[:options] || {}).merge(options)
           @path = normalize_path(path)
           normalize_options!
+
+          via_all = @options.delete(:via) if @options[:via] == :all
+
+          if !via_all && request_method_condition.empty?
+            msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
+                  "If you want to expose your action to GET, use `get` in the router:\n\n" \
+                  "  Instead of: match \"controller#action\"\n" \
+                  "  Do: get \"controller#action\""
+            raise msg
+          end
         end
 
         def to_route
@@ -86,6 +100,10 @@ module ActionDispatch
               if requirement.multiline?
                 raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
               end
+            end
+
+            if @options[:constraints].is_a?(Hash)
+              (@options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(@options[:constraints]))
             end
           end
 
@@ -232,6 +250,11 @@ module ActionDispatch
           def default_action
             @options[:action] || @scope[:action]
           end
+
+          def defaults_from_constraints(constraints)
+            url_keys = [:protocol, :subdomain, :domain, :host, :port]
+            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
+          end
       end
 
       # Invokes Rack::Mount::Utils.normalize path and ensure that
@@ -244,7 +267,7 @@ module ActionDispatch
       end
 
       def self.normalize_name(name)
-        normalize_path(name)[1..-1].gsub("/", "_")
+        normalize_path(name)[1..-1].tr("/", "_")
       end
 
       module Base
@@ -263,7 +286,7 @@ module ActionDispatch
         # of most Rails applications, this is beneficial.
         def root(options = {})
           options = { :to => options } if options.is_a?(String)
-          match '/', { :as => :root }.merge(options)
+          match '/', { :as => :root, :via => :get }.merge(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
@@ -416,7 +439,7 @@ module ActionDispatch
 
           options[:as] ||= app_name(app)
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false))
+          match(path, options.merge(:to => app, :anchor => false, :format => false, :via => :all))
 
           define_generate_prefix(app, options[:as])
           self
@@ -441,7 +464,7 @@ module ActionDispatch
               app.railtie_name
             else
               class_name = app.class.is_a?(Class) ? app.name : app.class.name
-              ActiveSupport::Inflector.underscore(class_name).gsub("/", "_")
+              ActiveSupport::Inflector.underscore(class_name).tr("/", "_")
             end
           end
 
@@ -472,8 +495,6 @@ module ActionDispatch
         # Define a route that only recognizes HTTP GET.
         # For supported arguments, see <tt>Base#match</tt>.
         #
-        # Example:
-        #
         #   get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
           map_method(:get, args, &block)
@@ -481,8 +502,6 @@ module ActionDispatch
 
         # Define a route that only recognizes HTTP POST.
         # For supported arguments, see <tt>Base#match</tt>.
-        #
-        # Example:
         #
         #   post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
@@ -492,8 +511,6 @@ module ActionDispatch
         # Define a route that only recognizes HTTP PATCH.
         # For supported arguments, see <tt>Base#match</tt>.
         #
-        # Example:
-        #
         #   patch 'bacon', :to => 'food#bacon'
         def patch(*args, &block)
           map_method(:patch, args, &block)
@@ -501,8 +518,6 @@ module ActionDispatch
 
         # Define a route that only recognizes HTTP PUT.
         # For supported arguments, see <tt>Base#match</tt>.
-        #
-        # Example:
         #
         #   put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
@@ -512,8 +527,6 @@ module ActionDispatch
         # Define a route that only recognizes HTTP DELETE.
         # For supported arguments, see <tt>Base#match</tt>.
         #
-        # Example:
-        #
         #   delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, args, &block)
@@ -522,7 +535,8 @@ module ActionDispatch
         private
           def map_method(method, args, &block)
             options = args.extract_options!
-            options[:via] = method
+            options[:via]    = method
+            options[:path] ||= args.first if args.first.is_a?(String)
             match(*args, options, &block)
             self
           end
@@ -627,6 +641,10 @@ module ActionDispatch
             block, options[:constraints] = options[:constraints], {}
           end
 
+          if options[:constraints].is_a?(Hash)
+            (options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(options[:constraints]))
+          end
+
           scope_options.each do |option|
             if value = options.delete(option)
               recover[option] = @scope[option]
@@ -653,7 +671,6 @@ module ActionDispatch
 
         # Scopes routes to a specific controller
         #
-        # Example:
         #   controller "food" do
         #     match "bacon", :action => "bacon"
         #   end
@@ -835,6 +852,11 @@ module ActionDispatch
           def override_keys(child) #:nodoc:
             child.key?(:only) || child.key?(:except) ? [:only, :except] : []
           end
+
+          def defaults_from_constraints(constraints)
+            url_keys = [:protocol, :subdomain, :domain, :host, :port]
+            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
+          end
       end
 
       # Resource routing allows you to quickly declare all of the common routes
@@ -880,17 +902,18 @@ module ActionDispatch
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
-          attr_reader :controller, :path, :options
+          attr_reader :controller, :path, :options, :param
 
           def initialize(entities, options = {})
             @name       = entities.to_s
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
             @as         = options[:as]
+            @param      = options[:param] || :id
             @options    = options
           end
 
@@ -935,7 +958,7 @@ module ActionDispatch
           alias :collection_scope :path
 
           def member_scope
-            "#{path}/:id"
+            "#{path}/:#{param}"
           end
 
           def new_scope(new_path)
@@ -943,7 +966,7 @@ module ActionDispatch
           end
 
           def nested_scope
-            "#{path}/:#{singular}_id"
+            "#{path}/:#{singular}_#{param}"
           end
 
         end
@@ -1134,6 +1157,25 @@ module ActionDispatch
         #     comment          PATCH/PUT /sekret/comments/:id(.:format)
         #     comment          DELETE    /sekret/comments/:id(.:format)
         #
+        # [:shallow_prefix]
+        #   Prefixes nested shallow route names with specified prefix.
+        #
+        #     scope :shallow_prefix => "sekret" do
+        #       resources :posts do
+        #         resources :comments, :shallow => true
+        #       end
+        #     end
+        #
+        #   The +comments+ resource here will have the following routes generated for it:
+        #
+        #     post_comments           GET       /posts/:post_id/comments(.:format)
+        #     post_comments           POST      /posts/:post_id/comments(.:format)
+        #     new_post_comment        GET       /posts/:post_id/comments/new(.:format)
+        #     edit_sekret_comment     GET       /comments/:id/edit(.:format)
+        #     sekret_comment          GET       /comments/:id(.:format)
+        #     sekret_comment          PATCH/PUT /comments/:id(.:format)
+        #     sekret_comment          DELETE    /comments/:id(.:format)
+        #
         # === Examples
         #
         #   # routes call <tt>Admin::PostsController</tt>
@@ -1272,6 +1314,22 @@ module ActionDispatch
 
         def shallow?
           parent_resource.instance_of?(Resource) && @scope[:shallow]
+        end
+
+        def draw(name)
+          path = @draw_paths.find do |_path|
+            _path.join("#{name}.rb").file?
+          end
+
+          unless path
+            msg  = "Your router tried to #draw the external file #{name}.rb,\n" \
+                   "but the file was not found in:\n\n"
+            msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
+            raise ArgumentError, msg
+          end
+          
+          route_path = path.join("#{name}.rb")
+          instance_eval(route_path.read, route_path.to_s)
         end
 
         # match 'path' => 'controller#action'
@@ -1461,7 +1519,7 @@ module ActionDispatch
             prefix = shallow_scoping? ?
               "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
 
-            path = if canonical_action?(action, path.blank?)
+            if canonical_action?(action, path.blank?)
               prefix.to_s
             else
               "#{prefix}/#{action_path(action, path)}"
@@ -1523,6 +1581,7 @@ module ActionDispatch
 
       def initialize(set) #:nodoc:
         @set = set
+        @draw_paths = set.draw_paths
         @scope = { :path_names => @set.resources_path_names }
       end
 

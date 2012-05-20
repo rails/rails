@@ -31,12 +31,6 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Location']
   end
 
-  def test_exclude_from_redirect
-    self.app = ActionDispatch::SSL.new(default_app, :exclude => lambda { |env| true })
-    get "http://example.org/"
-    assert_response :success
-  end
-
   def test_hsts_header_by_default
     get "https://example.org/"
     assert_equal "max-age=31536000",
@@ -87,6 +81,34 @@ class SSLTest < ActionDispatch::IntegrationTest
 
     get "https://example.org/"
     assert_equal ["problem=def; path=/; HttpOnly; secure"],
+      response.headers['Set-Cookie'].split("\n")
+  end
+
+  def test_flag_cookies_as_secure_with_more_spaces_before
+    self.app = ActionDispatch::SSL.new(lambda { |env|
+      headers = {
+        'Content-Type' => "text/html",
+        'Set-Cookie' => "problem=def; path=/; HttpOnly;  secure"
+      }
+      [200, headers, ["OK"]]
+    })
+
+    get "https://example.org/"
+    assert_equal ["problem=def; path=/; HttpOnly;  secure"],
+      response.headers['Set-Cookie'].split("\n")
+  end
+
+  def test_flag_cookies_as_secure_with_more_spaces_after
+    self.app = ActionDispatch::SSL.new(lambda { |env|
+      headers = {
+        'Content-Type' => "text/html",
+        'Set-Cookie' => "problem=def; path=/; secure;  HttpOnly"
+      }
+      [200, headers, ["OK"]]
+    })
+
+    get "https://example.org/"
+    assert_equal ["problem=def; path=/; secure;  HttpOnly"],
       response.headers['Set-Cookie'].split("\n")
   end
 

@@ -254,12 +254,19 @@ class ActiveRecordStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_session_store_with_all_domains
+    with_test_route_set(:domain => :all) do
+      get '/set_session_value'
+      assert_response :success
+    end
+  end
+
   private
 
     def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do
-          match ':action', :to => 'active_record_store_test/test'
+          get ':action', :to => 'active_record_store_test/test'
         end
 
         @app = self.class.build_app(set) do |middleware|

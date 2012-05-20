@@ -28,6 +28,7 @@ module ActiveRecord
     alias :map! :map
     alias :collect! :map
 
+    # Returns true if there are no records.
     def empty?
       rows.empty?
     end

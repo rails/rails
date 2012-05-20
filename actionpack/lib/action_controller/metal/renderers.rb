@@ -49,7 +49,6 @@ module ActionController
     # is the value paired with its key and the second is the remaining
     # hash of options passed to +render+.
     #
-    # === Example
     # Create a csv renderer:
     #
     #   ActionController::Renderers.add :csv do |obj, options|
@@ -91,9 +90,14 @@ module ActionController
 
     add :json do |json, options|
       json = json.to_json(options) unless json.kind_of?(String)
-      json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
-      self.content_type ||= Mime::JSON
-      json
+
+      if options[:callback].present?
+        self.content_type ||= Mime::JS
+        "#{options[:callback]}(#{json})"
+      else
+        self.content_type ||= Mime::JSON
+        json
+      end
     end
 
     add :js do |js, options|

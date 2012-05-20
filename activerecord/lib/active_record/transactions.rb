@@ -290,7 +290,15 @@ module ActiveRecord
       status = nil
       self.class.transaction do
         add_to_transaction
-        status = yield
+        begin
+          status = yield
+        rescue ActiveRecord::Rollback
+          if defined?(@_start_transaction_state) 
+            @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+          end
+          status = nil
+        end
+        
         raise ActiveRecord::Rollback unless status
       end
       status
@@ -302,12 +310,8 @@ module ActiveRecord
     def remember_transaction_record_state #:nodoc:
       @_start_transaction_state ||= {}
       @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
-      unless @_start_transaction_state.include?(:new_record)
-        @_start_transaction_state[:new_record] = @new_record
-      end
-      unless @_start_transaction_state.include?(:destroyed)
-        @_start_transaction_state[:destroyed] = @destroyed
-      end
+      @_start_transaction_state[:new_record] = @new_record
+      @_start_transaction_state[:destroyed] = @destroyed
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
     end
 

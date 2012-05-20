@@ -45,7 +45,7 @@ class DefaultUrlOptionsController < ActionController::Base
     render :inline => "<%= #{params[:route]} %>"
   end
 
-  def default_url_options(options = nil)
+  def default_url_options
     { :host => 'www.override.com', :action => 'new', :locale => 'en' }
   end
 end
@@ -158,7 +158,7 @@ class UrlOptionsTest < ActionController::TestCase
   def test_url_for_query_params_included
     rs = ActionDispatch::Routing::RouteSet.new
     rs.draw do
-      match 'home' => 'pages#home'
+      get 'home' => 'pages#home'
     end
 
     options = {
@@ -174,8 +174,8 @@ class UrlOptionsTest < ActionController::TestCase
   def test_url_options_override
     with_routing do |set|
       set.draw do
-        match 'from_view', :to => 'url_options#from_view', :as => :from_view
-        match ':controller/:action'
+        get 'from_view', :to => 'url_options#from_view', :as => :from_view
+        get ':controller/:action'
       end
 
       get :from_view, :route => "from_view_url"
@@ -189,7 +189,7 @@ class UrlOptionsTest < ActionController::TestCase
   def test_url_helpers_does_not_become_actions
     with_routing do |set|
       set.draw do
-        match "account/overview"
+        get "account/overview"
       end
 
       assert !@controller.class.action_methods.include?("account_overview_path")
@@ -208,8 +208,8 @@ class DefaultUrlOptionsTest < ActionController::TestCase
   def test_default_url_options_override
     with_routing do |set|
       set.draw do
-        match 'from_view', :to => 'default_url_options#from_view', :as => :from_view
-        match ':controller/:action'
+        get 'from_view', :to => 'default_url_options#from_view', :as => :from_view
+        get ':controller/:action'
       end
 
       get :from_view, :route => "from_view_url"
@@ -226,7 +226,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
         scope("/:locale") do
           resources :descriptions
         end
-        match ':controller/:action'
+        get ':controller/:action'
       end
 
       get :from_view, :route => "description_path(1)"

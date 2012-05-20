@@ -12,7 +12,7 @@ endprologue.
 
 NOTE: This tutorial assumes you have basic Rails knowledge from reading the "Getting Started with Rails Guide":getting_started.html.
 
-WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
+WARNING. This Guide is based on Rails 3.2. Some of the code shown here will not work in earlier versions of Rails.
 
 h3. Command Line Basics
 
@@ -31,7 +31,7 @@ h4. +rails new+
 
 The first thing we'll want to do is create a new Rails application by running the +rails new+ command after installing Rails.
 
-WARNING: You can install the rails gem by typing +gem install rails+, if you don't have it already. Follow the instructions in the "Rails 3 Release Notes":/3_0_release_notes.html
+TIP: You can install the rails gem by typing +gem install rails+, if you don't have it already.
 
 <shell>
 $ rails new commandsapp
@@ -185,8 +185,6 @@ $ rails server
 => Booting WEBrick...
 </shell>
 
-WARNING: Make sure that you do not have any "tilde backup" files in +app/views/(controller)+, or else WEBrick will _not_ show the expected output. This seems to be a *bug* in Rails 2.3.0.
-
 The URL will be "http://localhost:3000/greetings/hello":http://localhost:3000/greetings/hello.
 
 INFO: With a normal, plain-old Rails application, your URLs will generally follow the pattern of http://(host)/(controller)/(action), and a URL like http://(host)/(controller) will hit the *index* action of that controller.
@@ -277,6 +275,12 @@ h4. +rails console+
 The +console+ command lets you interact with your Rails application from the command line. On the underside, +rails console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
 You can also use the alias "c" to invoke the console: <tt>rails c</tt>.
+
+You can specify the environment in which the +console+ command should operate using the +-e+ switch.
+
+<shell>
+$ rails console -e staging
+</shell>
 
 If you wish to test out some code without changing any data, you can do that by invoking +rails console --sandbox+.
 
@@ -439,6 +443,18 @@ app/model/post.rb:
 </shell>
 
 NOTE. When using specific annotations and custom annotations, the annotation name (FIXME, BUG etc) is not displayed in the output lines.
+
+By default, +rake notes+ will look in the +app+, +config+, +lib+, +script+ and +test+ directories. If you would like to search other directories, you can provide them as a comma separated list in an environment variable +SOURCE_ANNOTATION_DIRECTORIES+.
+
+<shell>
+$ export SOURCE_ANNOTATION_DIRECTORIES='rspec,vendor'
+$ rake notes
+(in /home/foobar/commandsapp)
+app/model/user.rb:
+  * [ 35] [FIXME] User should have a subscription at this point
+rspec/model/user_spec.rb:
+  * [122] [TODO] Verify the user that has a subscription works
+</shell>
 
 h4. +routes+
 

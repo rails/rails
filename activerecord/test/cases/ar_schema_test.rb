@@ -37,6 +37,13 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
       end
     end
+
+    def test_schema_subclass
+      Class.new(ActiveRecord::Schema).define(:version => 9) do
+        create_table :fruits
+      end
+      assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
+    end
   end
 
 end

@@ -20,7 +20,7 @@ module ActionController
 
       status = payload[:status]
       if status.nil? && payload[:exception].present?
-        status = Rack::Utils.status_code(ActionDispatch::ExceptionWrapper.new({}, payload[:exception]).status_code)
+        status = ActionDispatch::ExceptionWrapper.new({}, payload[:exception]).status_code
       end
       message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in %.0fms" % event.duration
       message << " (#{additions.join(" | ")})" unless additions.blank?
@@ -33,9 +33,7 @@ module ActionController
     end
 
     def send_file(event)
-      message = "Sent file %s"
-      message << " (%.1fms)"
-      info(message % [event.payload[:path], event.duration])
+      info("Sent file %s (%.1fms)" % [event.payload[:path], event.duration])
     end
 
     def redirect_to(event)

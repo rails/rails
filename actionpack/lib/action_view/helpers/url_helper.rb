@@ -108,7 +108,7 @@ module ActionView
           options
         when nil, Hash
           options ||= {}
-          options = options.symbolize_keys.reverse_merge!(:only_path => options[:host].nil?)
+          options = { :only_path => options[:host].nil? }.merge!(options.symbolize_keys)
           super
         when :back
           controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
@@ -303,7 +303,10 @@ module ActionView
       #
       #   <%= button_to "Create", :action => "create", :remote => true, :form => { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
-      #   #      <div><input value="Create" type="submit" /></div>
+      #   #      <div>
+      #   #        <input value="Create" type="submit" />
+      #   #        <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      </div>
       #   #    </form>"
       #
       #
@@ -312,17 +315,19 @@ module ActionView
       #   # => "<form method="post" action="/images/delete/1" class="button_to">
       #   #      <div>
       #   #        <input type="hidden" name="_method" value="delete" />
-      #   #        <input data-confirm='Are you sure?' value="Delete" type="submit" />
+      #   #        <input data-confirm='Are you sure?' value="Delete Image" type="submit" />
+      #   #        <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #      </div>
       #   #    </form>"
       #
       #
       #   <%= button_to('Destroy', 'http://www.example.com', :confirm => 'Are you sure?',
-      #             :method => "delete", :remote => true, :disable_with => 'loading...') %>
+      #             :method => "delete", :remote => true) %>
       #   # => "<form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
       #   #       <div>
       #   #         <input name='_method' value='delete' type='hidden' />
-      #   #         <input value='Destroy' type='submit' disable_with='loading...' data-confirm='Are you sure?' />
+      #   #         <input value='Destroy' type='submit' data-confirm='Are you sure?' />
+      #   #         <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #       </div>
       #   #     </form>"
       #   #
@@ -334,7 +339,7 @@ module ActionView
         remote = html_options.delete('remote')
 
         method     = html_options.delete('method').to_s
-        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ""
+        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ''.html_safe
 
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
@@ -347,7 +352,8 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
         html_options.merge!("type" => "submit", "value" => name || url)
 
-        "#{tag(:form, form_options, true)}<div>#{method_tag}#{tag("input", html_options)}#{request_token_tag}</div></form>".html_safe
+        inner_tags = method_tag.safe_concat tag('input', html_options).safe_concat request_token_tag
+        content_tag('form', content_tag('div', inner_tags), form_options)
       end
 
 
@@ -480,7 +486,7 @@ module ActionView
       #   # => <a href="mailto:me@domain.com">me@domain.com</a>
       #
       #   mail_to "me@domain.com", "My email", :encode => "javascript"
-      #   # => <script type="text/javascript">eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
+      #   # => <script>eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
       #
       #   mail_to "me@domain.com", "My email", :encode => "hex"
       #   # => <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
@@ -514,7 +520,7 @@ module ActionView
           "document.write('#{html}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
-          "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
+          "<script>eval(decodeURIComponent('#{string}'))</script>".html_safe
         when "hex"
           email_address_encoded = email_address_obfuscated.unpack('C*').map {|c|
             sprintf("&#%d;", c)
@@ -610,11 +616,9 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            disable_with = html_options.delete("disable_with")
             confirm = html_options.delete('confirm')
             method  = html_options.delete('method')
 
-            html_options["data-disable-with"] = disable_with if disable_with
             html_options["data-confirm"] = confirm if confirm
             add_method_to_attributes!(html_options, method) if method
 
@@ -664,11 +668,11 @@ module ActionView
         end
 
         def token_tag(token=nil)
-          if token == false || !protect_against_forgery?
-            ''
-          else
+          if token != false && protect_against_forgery?
             token ||= form_authenticity_token
             tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
+          else
+            ''
           end
         end
 

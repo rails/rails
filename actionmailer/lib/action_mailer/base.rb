@@ -3,6 +3,7 @@ require 'action_mailer/collector'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/module/anonymous'
 require 'action_mailer/log_subscriber'
 
 module ActionMailer #:nodoc:
@@ -14,15 +15,15 @@ module ActionMailer #:nodoc:
   #
   #   $ rails generate mailer Notifier
   #
-  # The generated model inherits from <tt>ActionMailer::Base</tt>. Emails are defined by creating methods
-  # within the model which are then used to set variables to be used in the mail template, to
-  # change options on the mail, or to add attachments.
+  # The generated model inherits from <tt>ActionMailer::Base</tt>. A mailer model defines methods
+  # used to generate an email message. In these methods, you can setup variables to be used in
+  # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
   #
   # Examples:
   #
   #   class Notifier < ActionMailer::Base
   #     default :from => 'no-reply@example.com',
-  #            :return_path => 'system@example.com'
+  #             :return_path => 'system@example.com'
   #
   #     def welcome(recipient)
   #       @account = recipient
@@ -401,7 +402,7 @@ module ActionMailer #:nodoc:
       end
 
       def mailer_name
-        @mailer_name ||= name.underscore
+        @mailer_name ||= anonymous? ? "anonymous" : name.underscore
       end
       attr_writer :mailer_name
       alias :controller_path :mailer_name
@@ -486,7 +487,7 @@ module ActionMailer #:nodoc:
       self.class.mailer_name
     end
 
-    # Allows you to pass random and unusual headers to the new +Mail::Message+ object
+    # Allows you to pass random and unusual headers to the new <tt>Mail::Message</tt> object
     # which will add them to itself.
     #
     #   headers['X-Special-Domain-Specific-Header'] = "SecretValue"
@@ -497,7 +498,7 @@ module ActionMailer #:nodoc:
     #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
     #           'In-Reply-To' => incoming.message_id
     #
-    # The resulting Mail::Message will have the following in it's header:
+    # The resulting Mail::Message will have the following in its header:
     #
     #   X-Special-Domain-Specific-Header: SecretValue
     def headers(args=nil)
@@ -696,7 +697,7 @@ module ActionMailer #:nodoc:
     # If it does not find a translation for the +subject+ under the specified scope it will default to a
     # humanized version of the <tt>action_name</tt>.
     def default_i18n_subject #:nodoc:
-      mailer_scope = self.class.mailer_name.gsub('/', '.')
+      mailer_scope = self.class.mailer_name.tr('/', '.')
       I18n.t(:subject, :scope => [mailer_scope, action_name], :default => action_name.humanize)
     end
 

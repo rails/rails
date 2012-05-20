@@ -19,33 +19,12 @@ module ActiveRecord
       assert !relation.loaded, 'relation is not loaded'
     end
 
-    def test_single_values
-      assert_equal [:limit, :offset, :lock, :readonly, :from, :reordering, :reverse_order, :uniq].map(&:to_s).sort,
-        Relation::SINGLE_VALUE_METHODS.map(&:to_s).sort
-    end
-
     def test_initialize_single_values
       relation = Relation.new :a, :b
-      Relation::SINGLE_VALUE_METHODS.each do |method|
+      (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |method|
         assert_nil relation.send("#{method}_value"), method.to_s
       end
-    end
-
-    def test_association_methods
-      assert_equal [:includes, :eager_load, :preload].map(&:to_s).sort,
-        Relation::ASSOCIATION_METHODS.map(&:to_s).sort
-    end
-
-    def test_initialize_association_methods
-      relation = Relation.new :a, :b
-      Relation::ASSOCIATION_METHODS.each do |method|
-        assert_equal [], relation.send("#{method}_values"), method.to_s
-      end
-    end
-
-    def test_multi_value_methods
-      assert_equal [:select, :group, :order, :joins, :where, :having, :bind, :references].map(&:to_s).sort,
-        Relation::MULTI_VALUE_METHODS.map(&:to_s).sort
+      assert_equal({}, relation.create_with_value)
     end
 
     def test_multi_value_initialize
@@ -64,19 +43,19 @@ module ActiveRecord
       relation = Relation.new :a, :b
       assert_equal({}, relation.where_values_hash)
 
-      relation.where_values << :hello
+      relation.where! :hello
       assert_equal({}, relation.where_values_hash)
     end
 
     def test_has_values
       relation = Relation.new Post, Post.arel_table
-      relation.where_values << relation.table[:id].eq(10)
+      relation.where! relation.table[:id].eq(10)
       assert_equal({:id => 10}, relation.where_values_hash)
     end
 
     def test_values_wrong_table
       relation = Relation.new Post, Post.arel_table
-      relation.where_values << Comment.arel_table[:id].eq(10)
+      relation.where! Comment.arel_table[:id].eq(10)
       assert_equal({}, relation.where_values_hash)
     end
 
@@ -85,7 +64,7 @@ module ActiveRecord
       left     = relation.table[:id].eq(10)
       right    = relation.table[:id].eq(10)
       combine  = left.and right
-      relation.where_values << combine
+      relation.where! combine
       assert_equal({}, relation.where_values_hash)
     end
 
@@ -108,7 +87,7 @@ module ActiveRecord
 
     def test_create_with_value_with_wheres
       relation = Relation.new Post, Post.arel_table
-      relation.where_values << relation.table[:id].eq(10)
+      relation.where! relation.table[:id].eq(10)
       relation.create_with_value = {:hello => 'world'}
       assert_equal({:hello => 'world', :id => 10}, relation.scope_for_create)
     end
@@ -118,7 +97,7 @@ module ActiveRecord
       relation = Relation.new Post, Post.arel_table
       assert_equal({}, relation.scope_for_create)
 
-      relation.where_values << relation.table[:id].eq(10)
+      relation.where! relation.table[:id].eq(10)
       assert_equal({}, relation.scope_for_create)
 
       relation.create_with_value = {:hello => 'world'}
@@ -132,7 +111,7 @@ module ActiveRecord
 
     def test_eager_load_values
       relation = Relation.new :a, :b
-      relation.eager_load_values << :b
+      relation.eager_load! :b
       assert relation.eager_loading?
     end
 
@@ -149,10 +128,121 @@ module ActiveRecord
       assert_equal ['foo'], relation.references_values
     end
 
-    def test_apply_finder_options_takes_references
+    test 'merging a hash into a relation' do
       relation = Relation.new :a, :b
-      relation = relation.apply_finder_options(:references => :foo)
-      assert_equal ['foo'], relation.references_values
+      relation = relation.merge where: :lol, readonly: true
+
+      assert_equal [:lol], relation.where_values
+      assert_equal true, relation.readonly_value
+    end
+
+    test 'merging an empty hash into a relation' do
+      assert_equal [], Relation.new(:a, :b).merge({}).where_values
+    end
+
+    test 'merging a hash with unknown keys raises' do
+      assert_raises(ArgumentError) { Relation::HashMerger.new(nil, omg: 'lol') }
+    end
+
+    test '#values returns a dup of the values' do
+      relation = Relation.new(:a, :b).where! :foo
+      values   = relation.values
+
+      values[:where] = nil
+      assert_not_nil relation.where_values
+    end
+
+    test 'relations can be created with a values hash' do
+      relation = Relation.new(:a, :b, where: [:foo])
+      assert_equal [:foo], relation.where_values
+    end
+
+    test 'merging a single where value' do
+      relation = Relation.new(:a, :b)
+      relation.merge!(where: :foo)
+      assert_equal [:foo], relation.where_values
+    end
+
+    test 'merging a hash interpolates conditions' do
+      klass = stub
+      klass.stubs(:sanitize_sql).with(['foo = ?', 'bar']).returns('foo = bar')
+
+      relation = Relation.new(klass, :b)
+      relation.merge!(where: ['foo = ?', 'bar'])
+      assert_equal ['foo = bar'], relation.where_values
+    end
+  end
+
+  class RelationMutationTest < ActiveSupport::TestCase
+    def relation
+      @relation ||= Relation.new :a, :b
+    end
+
+    (Relation::MULTI_VALUE_METHODS - [:references, :extending]).each do |method|
+      test "##{method}!" do
+        assert relation.public_send("#{method}!", :foo).equal?(relation)
+        assert_equal [:foo], relation.public_send("#{method}_values")
+      end
+    end
+
+    test '#references!' do
+      assert relation.references!(:foo).equal?(relation)
+      assert relation.references_values.include?('foo')
+    end
+
+    test 'extending!' do
+      mod = Module.new
+
+      assert relation.extending!(mod).equal?(relation)
+      assert [mod], relation.extending_values
+      assert relation.is_a?(mod)
+    end
+
+    test 'extending! with empty args' do
+      relation.extending!
+      assert_equal [], relation.extending_values
+    end
+
+    (Relation::SINGLE_VALUE_METHODS - [:from, :lock, :reordering, :reverse_order, :create_with]).each do |method|
+      test "##{method}!" do
+        assert relation.public_send("#{method}!", :foo).equal?(relation)
+        assert_equal :foo, relation.public_send("#{method}_value")
+      end
+    end
+
+    test '#from!' do
+      assert relation.from!('foo').equal?(relation)
+      assert_equal ['foo', nil], relation.from_value
+    end
+
+    test '#lock!' do
+      assert relation.lock!('foo').equal?(relation)
+      assert_equal 'foo', relation.lock_value
+    end
+
+    test '#reorder!' do
+      relation = self.relation.order('foo')
+
+      assert relation.reorder!('bar').equal?(relation)
+      assert_equal ['bar'], relation.order_values
+      assert relation.reordering_value
+    end
+
+    test 'reverse_order!' do
+      assert relation.reverse_order!.equal?(relation)
+      assert relation.reverse_order_value
+      relation.reverse_order!
+      assert !relation.reverse_order_value
+    end
+
+    test 'create_with!' do
+      assert relation.create_with!(foo: 'bar').equal?(relation)
+      assert_equal({foo: 'bar'}, relation.create_with_value)
+    end
+
+    test 'merge!' do
+      assert relation.merge!(where: :foo).equal?(relation)
+      assert_equal [:foo], relation.where_values
     end
   end
 end

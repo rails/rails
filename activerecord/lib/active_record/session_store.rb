@@ -119,7 +119,7 @@ module ActiveRecord
               class << self; remove_possible_method :find_by_session_id; end
 
               def self.find_by_session_id(session_id)
-                find :first, :conditions => {:session_id=>session_id}
+                where(session_id: session_id).first
               end
             end
           end
@@ -201,10 +201,10 @@ module ActiveRecord
 
       class << self
         alias :data_column_name :data_column
-        
+
         # Use the ActiveRecord::Base.connection by default.
         attr_writer :connection
-        
+
         # Use the ActiveRecord::Base.connection_pool by default.
         attr_writer :connection_pool
 
@@ -218,12 +218,12 @@ module ActiveRecord
 
         # Look up a session by id and unmarshal its data if found.
         def find_by_session_id(session_id)
-          if record = connection.select_one("SELECT * FROM #{@@table_name} WHERE #{@@session_id_column}=#{connection.quote(session_id)}")
+          if record = connection.select_one("SELECT * FROM #{@@table_name} WHERE #{@@session_id_column}=#{connection.quote(session_id.to_s)}")
             new(:session_id => session_id, :marshaled_data => record['data'])
           end
         end
       end
-      
+
       delegate :connection, :connection=, :connection_pool, :connection_pool=, :to => self
 
       attr_reader :session_id, :new_record
@@ -239,6 +239,11 @@ module ActiveRecord
         @data           = attributes[:data]
         @marshaled_data = attributes[:marshaled_data]
         @new_record     = @marshaled_data.nil?
+      end
+
+      # Returns true if the record is persisted, i.e. it's not a new record
+      def persisted?
+        !@new_record
       end
 
       # Lazy-unmarshal session state.
@@ -287,7 +292,7 @@ module ActiveRecord
         connect = connection
         connect.delete <<-end_sql, 'Destroy session'
           DELETE FROM #{table_name}
-          WHERE #{connect.quote_column_name(session_id_column)}=#{connect.quote(session_id)}
+          WHERE #{connect.quote_column_name(session_id_column)}=#{connect.quote(session_id.to_s)}
         end_sql
       end
     end

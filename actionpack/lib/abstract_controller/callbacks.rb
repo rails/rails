@@ -14,7 +14,7 @@ module AbstractController
     # Override AbstractController::Base's process_action to run the
     # process_action callbacks around the normal behavior.
     def process_action(*args)
-      run_callbacks(:process_action, action_name) do
+      run_callbacks(:process_action) do
         super
       end
     end
@@ -163,11 +163,11 @@ module AbstractController
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           # Append a before, after or around filter. See _insert_callbacks
           # for details on the allowed parameters.
-          def #{filter}_filter(*names, &blk)                                                 # def before_filter(*names, &blk)
-            _insert_callbacks(names, blk) do |name, options|                                 #   _insert_callbacks(names, blk) do |name, options|
-              set_callback(:process_action, :#{filter}, name, options)                       #     set_callback(:process_action, :before, name, options)
-            end                                                                              #   end
-          end                                                                                # end
+          def #{filter}_filter(*names, &blk)                                                    # def before_filter(*names, &blk)
+            _insert_callbacks(names, blk) do |name, options|                                    #   _insert_callbacks(names, blk) do |name, options|
+              set_callback(:process_action, :#{filter}, name, options)                          #     set_callback(:process_action, :before, name, options)
+            end                                                                                 #   end
+          end                                                                                   # end
 
           # Prepend a before, after or around filter. See _insert_callbacks
           # for details on the allowed parameters.
@@ -179,11 +179,11 @@ module AbstractController
 
           # Skip a before, after or around filter. See _insert_callbacks
           # for details on the allowed parameters.
-          def skip_#{filter}_filter(*names)                              # def skip_before_filter(*names)
-            _insert_callbacks(names) do |name, options|                  #   _insert_callbacks(names) do |name, options|
-              skip_callback(:process_action, :#{filter}, name, options)  #     skip_callback(:process_action, :before, name, options)
-            end                                                          #   end
-          end                                                            # end
+          def skip_#{filter}_filter(*names)                                                     # def skip_before_filter(*names)
+            _insert_callbacks(names) do |name, options|                                         #   _insert_callbacks(names) do |name, options|
+              skip_callback(:process_action, :#{filter}, name, options)                         #     skip_callback(:process_action, :before, name, options)
+            end                                                                                 #   end
+          end                                                                                   # end
 
           # *_filter is the same as append_*_filter
           alias_method :append_#{filter}_filter, :#{filter}_filter  # alias_method :append_before_filter, :before_filter

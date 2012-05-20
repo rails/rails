@@ -3,7 +3,7 @@ require 'active_support/core_ext/module'
 module ActionController
   # The record identifier encapsulates a number of naming conventions for dealing with records, like Active Records or
   # pretty much any other model type that has an id. These patterns are then used to try elevate the view actions to
-  # a higher logical level. Example:
+  # a higher logical level.
   #
   #   # routes
   #   resources :posts
@@ -30,7 +30,7 @@ module ActionController
     JOIN = '_'.freeze
     NEW = 'new'.freeze
 
-    # The DOM class convention is to use the singular form of an object or class. Examples:
+    # The DOM class convention is to use the singular form of an object or class.
     #
     #   dom_class(post)   # => "post"
     #   dom_class(Person) # => "person"
@@ -45,7 +45,7 @@ module ActionController
     end
 
     # The DOM id convention is to use the singular form of an object or class with the id following an underscore.
-    # If no id is found, prefix with "new_" instead. Examples:
+    # If no id is found, prefix with "new_" instead.
     #
     #   dom_id(Post.find(45))       # => "post_45"
     #   dom_id(Post.new)            # => "new_post"
@@ -53,6 +53,7 @@ module ActionController
     # If you need to address multiple instances of the same class in the same view, you can prefix the dom_id:
     #
     #   dom_id(Post.find(45), :edit) # => "edit_post_45"
+    #   dom_id(Post.new, :custom)    # => "custom_post"
     def dom_id(record, prefix = nil)
       if record_id = record_key_for_dom_id(record)
         "#{dom_class(record, prefix)}#{JOIN}#{record_id}"
@@ -74,12 +75,7 @@ module ActionController
     def record_key_for_dom_id(record)
       record = record.to_model if record.respond_to?(:to_model)
       key = record.to_key
-      key ? sanitize_dom_id(key.join('_')) : key
-    end
-
-    # Replaces characters that are invalid in HTML DOM ids with valid ones.
-    def sanitize_dom_id(candidate_id)
-      candidate_id # TODO implement conversion to valid DOM id values
+      key ? key.join('_') : key
     end
   end
 end

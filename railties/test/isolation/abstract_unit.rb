@@ -8,7 +8,7 @@
 # Rails booted up.
 require 'fileutils'
 
-require 'rubygems'
+require 'bundler/setup'
 require 'minitest/autorun'
 require 'active_support/test_case'
 
@@ -17,9 +17,8 @@ RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
 
 # These files do not require any others and are needed
 # to run the tests
-require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/isolation"
-require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/declarative"
-require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/core_ext/kernel/reporting"
+require "active_support/testing/isolation"
+require "active_support/core_ext/kernel/reporting"
 
 module TestHelpers
   module Paths
@@ -112,7 +111,7 @@ module TestHelpers
       routes = File.read("#{app_path}/config/routes.rb")
       if routes =~ /(\n\s*end\s*)\Z/
         File.open("#{app_path}/config/routes.rb", 'w') do |f|
-          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)'\n" + $1
+          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)', :via => :all\n" + $1
         end
       end
 
@@ -143,7 +142,7 @@ module TestHelpers
       app.initialize!
 
       app.routes.draw do
-        match "/" => "omg#index"
+        get "/" => "omg#index"
       end
 
       require 'rack/test'
@@ -161,7 +160,7 @@ module TestHelpers
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          get ':controller(/:action)'
         end
       RUBY
     end
@@ -249,7 +248,6 @@ module TestHelpers
 
     def use_frameworks(arr)
       to_remove =  [:actionmailer,
-                    :activemodel,
                     :activerecord] - arr
       if to_remove.include? :activerecord
         remove_from_config "config.active_record.whitelist_attributes = true"
@@ -268,7 +266,6 @@ class ActiveSupport::TestCase
   include TestHelpers::Paths
   include TestHelpers::Rack
   include TestHelpers::Generation
-  extend  ActiveSupport::Testing::Declarative
 end
 
 # Create a scope and build a fixture rails app

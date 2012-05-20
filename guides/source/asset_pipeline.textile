@@ -204,6 +204,8 @@ Images can also be organized into subdirectories if required, and they can be ac
 <%= image_tag "icons/rails.png" %>
 </erb>
 
+WARNING: If you're precompiling your assets (see "In Production":#in-production below), linking to an asset that does not exist will raise an exception in the calling page. This includes linking to a blank string. As such, be careful using <tt>image_tag</tt> and the other helpers with user-supplied data.
+
 h5. CSS and ERB
 
 The asset pipeline automatically evaluates ERB. This means that if you add an +erb+ extension to a CSS asset (for example, +application.css.erb+), then helpers like +asset_path+ are available in your CSS rules:
@@ -328,9 +330,9 @@ This manifest +app/assets/javascripts/application.js+:
 would generate this HTML:
 
 <html>
-<script src="/assets/core.js?body=1" type="text/javascript"></script>
-<script src="/assets/projects.js?body=1" type="text/javascript"></script>
-<script src="/assets/tickets.js?body=1" type="text/javascript"></script>
+<script src="/assets/core.js?body=1"></script>
+<script src="/assets/projects.js?body=1"></script>
+<script src="/assets/tickets.js?body=1"></script>
 </html>
 
 The +body+ param is required by Sprockets.
@@ -346,7 +348,7 @@ config.assets.debug = false
 When debug mode is off, Sprockets concatenates and runs the necessary preprocessors on all files. With debug mode turned off the manifest above would generate instead:
 
 <html>
-<script src="/assets/application.js" type="text/javascript"></script>
+<script src="/assets/application.js"></script>
 </html>
 
 Assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-revalidate+ Cache-Control HTTP header to reduce request overhead on subsequent requests -- on these the browser gets a 304 (Not Modified) response.
@@ -380,8 +382,8 @@ For example this:
 generates something like this:
 
 <html>
-<script src="/assets/application-908e25f4bf641868d8683022a5b62f54.js" type="text/javascript"></script>
-<link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" media="screen" rel="stylesheet" type="text/css" />
+<script src="/assets/application-908e25f4bf641868d8683022a5b62f54.js"></script>
+<link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" media="screen" rel="stylesheet" />
 </html>
 
 The fingerprinting behavior is controlled by the setting of +config.assets.digest+ setting in Rails (which defaults to +true+ for production and +false+ for everything else).
@@ -394,7 +396,7 @@ Rails comes bundled with a rake task to compile the asset manifests and other fi
 
 Compiled assets are written to the location specified in +config.assets.prefix+. By default, this is the +public/assets+ directory.
 
-You can call this task on the server during deployment to create compiled versions of your assets directly on the server. If you do not have write access to your production file system, you can call this task locally and then deploy the compiled assets.
+You can call this task on the server during deployment to create compiled versions of your assets directly on the server. See the next section for information on compiling locally.
 
 The rake task is:
 
@@ -409,7 +411,9 @@ cannot see application objects or methods. *Heroku requires this to be false.*
 WARNING: If you set +config.assets.initialize_on_precompile+ to false, be sure to
 test +rake assets:precompile+ locally before deploying. It may expose bugs where
 your assets reference application objects or methods, since those are still
-in scope in development mode regardless of the value of this flag.
+in scope in development mode regardless of the value of this flag. Changing this flag also affects
+engines. Engines can define assets for precompilation as well. Since the complete environment is not loaded,
+engines (or other gems) will not be loaded, which can cause missing assets.
 
 Capistrano (v2.8.0 and above) includes a recipe to handle this in deployment. Add the following line to +Capfile+:
 
@@ -511,6 +515,41 @@ This directive is available if the core module that provides this feature was co
 If you're compiling nginx with Phusion Passenger you'll need to pass that option when prompted.
 
 A robust configuration for Apache is possible but tricky; please Google around. (Or help update this Guide if you have a good example configuration for Apache.)
+
+h4. Local Precompilation
+
+There are several reasons why you might want to precompile your assets locally. Among them are:
+
+* You may not have write access to your production file system.
+* You may be deploying to more than one server, and want to avoid the duplication of work.
+* You may be doing frequent deploys that do not include asset changes.
+
+Local compilation allows you to commit the compiled files into source control, and deploy as normal.
+
+There are two caveats:
+
+* You must not run the Capistrano deployment task that precompiles assets.
+* You must change the following two application configuration settings.
+
+In <tt>config/environments/development.rb</tt>, place the following line:
+
+<erb>
+config.assets.prefix = "/dev-assets"
+</erb>
+
+You will also need this in application.rb:
+
+<erb>
+config.assets.initialize_on_precompile = false
+</erb>
+
+The +prefix+ change makes Rails use a different URL for serving assets in development mode, and pass all requests to Sprockets. The prefix is still set to +/assets+ in the production environment. Without this change, the application would serve the precompiled assets from +public/assets+ in development, and you would not see any local changes until you compile assets again.
+
+The +initialize_on_precompile+ change tells the precompile task to run without invoking Rails. This is because the precompile task runs in production mode by default, and will attempt to connect to your specified production database. Please note that you cannot have code in pipeline files that relies on Rails resources (such as the database) when compiling locally with this option.
+
+You will also need to ensure that any compressors or minifiers are available on your development system.
+
+In practice, this will allow you to precompile locally, have those files in your working tree, and commit those files to source control when needed. Development mode will work as expected.
 
 h4. Live Compilation
 
@@ -671,7 +710,7 @@ config.assets.compile = false
 # Generate digests for assets URLs.
 config.assets.digest = true
 
-# Defaults to Rails.root.join("public/assets")
+# Defaults to nil and saved in location specified by config.assets.prefix
 # config.assets.manifest = YOUR_PATH
 
 # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
