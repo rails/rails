@@ -54,7 +54,7 @@ module ActiveRecord
 
       def build_relation(klass, table, attribute, value) #:nodoc:
         column = klass.columns_hash[attribute.to_s]
-        value = column.limit ? value.to_s.mb_chars[0, column.limit] : value.to_s if column.text?
+        value = column.limit ? value.to_s.mb_chars[0, column.limit] : value.to_s if value && column.text?
 
         if !options[:case_sensitive] && value && column.text?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
@@ -81,7 +81,7 @@ module ActiveRecord
       #
       #   class Person < ActiveRecord::Base
       #     validates_uniqueness_of :user_name, :scope => :account_id
-      #   end 
+      #   end
       #
       # Or even multiple scope parameters. For example, making sure that a teacher can only be on the schedule once
       # per semester for a particular class.

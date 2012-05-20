@@ -293,4 +293,15 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert w6.errors[:city].any?, "Should have errors for city"
     assert_equal ["has already been taken"], w6.errors[:city], "Should have uniqueness message for city"
   end
+
+  def test_allow_nil_is_false
+    Topic.validates_uniqueness_of(:title, :allow_nil => false)
+    Topic.destroy_all
+
+    Topic.create!("title" => nil)
+    topic = Topic.new("title" => nil)
+    assert !topic.valid?, "topic should not be valid"
+    assert topic.errors[:title].any?, "Should have errors for title"
+    assert_equal ["has already been taken"], topic.errors[:title], "Should have uniqueness message for title"
+  end
 end
