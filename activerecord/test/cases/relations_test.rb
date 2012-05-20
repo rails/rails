@@ -133,7 +133,7 @@ class RelationTest < ActiveRecord::TestCase
     assert topics.loaded?
   end
 
-  def test_finiding_with_subquery
+  def test_finding_with_subquery
     relation = Topic.where(:approved => true)
     assert_equal relation.to_a, Topic.select('*').from(relation).to_a
     assert_equal relation.to_a, Topic.select('subquery.*').from(relation).to_a
