@@ -221,18 +221,26 @@ module ActiveRecord
 
       ##
       # :method: destroy_all
-      # Destroy all the records from this association.
+      # Deletes the records of the collection directly from the database.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
       #   end
       #
       #   person.pets.size # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
       #
       #   person.pets.destroy_all
       #
       #   person.pets.size # => 0
       #   person.pets      # => []
+      #
+      #   Pet.find(1) # => Couldn't find Pet with id=1
 
       ##
       # :method: empty?
