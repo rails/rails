@@ -2,6 +2,7 @@ require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/io"
 require "action_view/template"
+require "thread"
 
 module ActionView
   # = Action View Resolver
@@ -24,6 +25,46 @@ module ActionView
       end
     end
 
+    # Threadsafe template cache
+    class Cache
+      def initialize
+        @data = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
+                  h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
+        @mutex = Mutex.new
+      end
+
+      # Cache the templates returned by the block
+      def cache(key, name, prefix, partial, locals)
+        @mutex.synchronize do
+          if Resolver.caching?
+            # all templates are cached forever the first time they are accessed
+            @data[key][name][prefix][partial][locals] ||= yield
+          else
+            # templates are still cached, but are only returned if they are
+            # all still current
+            fresh = yield
+
+            cache = @data[key][name][prefix][partial][locals]
+            mtime = cache && cache.map(&:updated_at).max
+
+            newer = !mtime || fresh.empty?  || fresh.any? { |t| t.updated_at > mtime }
+
+            if newer
+              @data[key][name][prefix][partial][locals] = fresh
+            else
+              @data[key][name][prefix][partial][locals]
+            end
+          end
+        end
+      end
+
+      def clear
+        @mutex.synchronize do
+          @data.clear
+        end
+      end
+    end
+
     cattr_accessor :caching
     self.caching = true
 
@@ -32,12 +73,11 @@ module ActionView
     end
 
     def initialize
-      @cached = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
-        h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
+      @cache = Cache.new
     end
 
     def clear_cache
-      @cached.clear
+      @cache.clear
     end
 
     # Normalizes the arguments and passes it on to find_template.
@@ -65,27 +105,18 @@ module ActionView
 
     # Handles templates caching. If a key is given and caching is on
     # always check the cache before hitting the resolver. Otherwise,
-    # it always hits the resolver but check if the resolver is fresher
-    # before returning it.
+    # it always hits the resolver but if the key is present, check if the
+    # resolver is fresher before returning it.
     def cached(key, path_info, details, locals) #:nodoc:
       name, prefix, partial = path_info
       locals = locals.map { |x| x.to_s }.sort!
 
-      if key && caching?
-        @cached[key][name][prefix][partial][locals] ||= decorate(yield, path_info, details, locals)
-      else
-        fresh = decorate(yield, path_info, details, locals)
-        return fresh unless key
-
-        scope = @cached[key][name][prefix][partial]
-        cache = scope[locals]
-        mtime = cache && cache.map(&:updated_at).max
-
-        if !mtime || fresh.empty?  || fresh.any? { |t| t.updated_at > mtime }
-          scope[locals] = fresh
-        else
-          cache
+      if key
+        @cache.cache(key, name, prefix, partial, locals) do
+          decorate(yield, path_info, details, locals)
         end
+      else
+        decorate(yield, path_info, details, locals)
       end
     end
 
