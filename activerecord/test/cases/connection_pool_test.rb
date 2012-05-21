@@ -230,7 +230,7 @@ module ActiveRecord
         threads = expected.map do |i|
           t = Thread.new {
             begin
-              conn = @pool.checkout # never checked back in
+              @pool.checkout # never checked back in
               mutex.synchronize { order << i }
             rescue => e
               mutex.synchronize { errors << e }
@@ -273,7 +273,7 @@ module ActiveRecord
         make_thread = proc do |i|
           t = Thread.new {
             begin
-              conn = @pool.checkout # never checked back in
+              @pool.checkout # never checked back in
               mutex.synchronize { successes << i }
             rescue => e
               mutex.synchronize { errors << e }
