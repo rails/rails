@@ -222,6 +222,8 @@ module ActiveRecord
       ##
       # :method: destroy_all
       # Deletes the records of the collection directly from the database.
+      # This will _always_ remove the records ignoring the +:dependent+
+      # option.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -243,6 +245,45 @@ module ActiveRecord
       #   Pet.find(1) # => Couldn't find Pet with id=1
 
       ##
+      # :method: destroy
+      # Destroy the +records+ supplied and remove them from the collection.
+      # This method will _always_ remove record from the database ignoring
+      # the +:dependent+ option. Returns an array with the deleted records.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.size # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.destroy(Pet.find(1))
+      #   # => [#<Pet id: 1, name: "Fancy-Fancy", person_id: 1>]
+      #
+      #   person.pets.size # => 2
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.destroy(Pet.find(2), Pet.find(3))
+      #   # => [
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.size # => 0
+      #   person.pets      # => []
+      #
+      #   Pet.find([1, 2, 3]) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (1, 2, 3)
+
+      ##
       # :method: empty?
       # Returns true if the collection is empty.
       #
@@ -257,7 +298,7 @@ module ActiveRecord
       #
       #   person.pets.count  # => 0
       #   person.pets.empty? # => true
-
+      
       ##
       # :method: any?
       # Returns true if the collection is not empty.
