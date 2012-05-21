@@ -169,7 +169,7 @@ class LookupContextTest < ActiveSupport::TestCase
 
     assert_not_equal template, old_template
   end
-  
+
   test "responds to #prefixes" do
     assert_equal [], @lookup_context.prefixes
     @lookup_context.prefixes = ["foo"]
@@ -180,7 +180,7 @@ end
 class LookupContextWithFalseCaching < ActiveSupport::TestCase
   def setup
     @resolver = ActionView::FixtureResolver.new("test/_foo.erb" => ["Foo", Time.utc(2000)])
-    @resolver.stubs(:caching?).returns(false)
+    ActionView::Resolver.stubs(:caching?).returns(false)
     @lookup_context = ActionView::LookupContext.new(@resolver, {})
   end
 
@@ -247,6 +247,6 @@ class TestMissingTemplate < ActiveSupport::TestCase
       @lookup_context.view_paths.find("foo", "parent", true, details)
     end
     assert_match %r{Missing partial parent/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
-  end 
-  
+  end
+
 end
