@@ -307,6 +307,9 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{\A<link href="/assets/style-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />\Z},
       stylesheet_link_tag("style", "style")
 
+    assert_match %r{\A<link href="/assets/style-[0-9a-f]+.ext" media="screen" rel="stylesheet" type="text/css" />\Z},
+      stylesheet_link_tag("style.ext")
+
     @config.assets.compile = true
     @config.assets.debug = true
     assert_match %r{<link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />},
