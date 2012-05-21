@@ -329,8 +329,40 @@ h4. Commit Your Changes
 When you're happy with the code on your computer, you need to commit the changes to git:
 
 <shell>
-$ git commit -a -m "Here is a commit message on what I changed in this commit"
+$ git commit -a
 </shell>
+
+At this point, your editor should be fired up and you can write a message for this commit. Well formatted and descriptive commit messages are extremely helpful for the others, especially when figuring out why given change was made, so please take the time to write it.
+
+Good commit message should be formatted according to the following example:
+
+<plain>
+Short summary (ideally 50 characters or less)
+
+More detailed description, if necessary. It should be wrapped to 72
+characters. Try to be as descriptive as you can, even if you think that
+the commit content is obvious, it may not be obvious to others. You
+should add such description also if it's already present in bug tracker,
+it should not be necessary to visit a webpage to check the history.
+
+Description can have multiple paragraps and you can use code examples
+inside, just indent it with 4 spaces:
+
+    class PostsController
+      def index
+        respond_with Post.limit(10)
+      end
+    end
+
+You can also add bullet points:
+
+- you can use dashes or asterisks
+
+- also, try to indent next line of a point for readability, if it's too
+  long to fit in 72 characters
+</plain>
+
+TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean.
 
 h4. Update master
 
