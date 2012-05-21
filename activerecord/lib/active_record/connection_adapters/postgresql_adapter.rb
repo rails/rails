@@ -1067,14 +1067,25 @@ module ActiveRecord
 
       # Maps logical Rails types to PostgreSQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-        return super unless type.to_s == 'integer'
-        return 'integer' unless limit
-
-        case limit
-          when 1, 2; 'smallint'
-          when 3, 4; 'integer'
-          when 5..8; 'bigint'
-          else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
+        case type.to_s
+        when 'binary'
+          # PostgreSQL doesn't support limits on binary (bytea) columns.
+          # The hard limit is 1Gb, because of a 32-bit size field, and TOAST.
+          case limit
+          when nil, 0..0x3fffffff; super(type)
+          else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
+          end
+        when 'integer'
+          return 'integer' unless limit
+  
+          case limit
+            when 1, 2; 'smallint'
+            when 3, 4; 'integer'
+            when 5..8; 'bigint'
+            else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
+          end
+        else
+          super
         end
       end
 
