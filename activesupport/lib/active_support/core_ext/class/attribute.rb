@@ -65,10 +65,12 @@ class Class
   # To opt out of the instance writer method, pass :instance_writer => false.
   #
   #   object.setting = false  # => NoMethodError
+  #
+  # To opt out of both instance methods, pass :instance_accessor => false.
   def class_attribute(*attrs)
     options = attrs.extract_options!
-    instance_reader = options.fetch(:instance_reader, true)
-    instance_writer = options.fetch(:instance_writer, true)
+    instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
+    instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
 
     attrs.each do |name|
       class_eval <<-RUBY, __FILE__, __LINE__ + 1

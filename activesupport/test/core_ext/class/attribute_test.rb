@@ -66,6 +66,13 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_raise(NoMethodError) { object.setting? }
   end
 
+  test 'disabling both instance writer and reader' do
+    object = Class.new { class_attribute :setting, :instance_accessor => false }.new
+    assert_raise(NoMethodError) { object.setting }
+    assert_raise(NoMethodError) { object.setting? }
+    assert_raise(NoMethodError) { object.setting = 'boom' }
+  end
+
   test 'works well with singleton classes' do
     object = @klass.new
     object.singleton_class.setting = 'foo'

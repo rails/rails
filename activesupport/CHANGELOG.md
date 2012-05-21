@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `:instance_accessor` option for `class_attribute`. *Alexey Vakhov*
+
 *   `constantize` now looks in the ancestor chain. *Marc-Andre Lafortune & Andrew White*
 
 *   `Object#try` can't call private methods. *Vasiliy Ermolovich*
