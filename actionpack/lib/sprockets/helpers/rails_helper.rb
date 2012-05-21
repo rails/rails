@@ -155,8 +155,13 @@ module Sprockets
         end
 
         def rewrite_extension(source, dir, ext)
-          if ext && File.extname(source) != ".#{ext}"
-            "#{source}.#{ext}"
+          source_ext = File.extname(source)
+          if ext && source_ext != ".#{ext}"
+            if !source_ext.empty? && asset_environment[source]
+              source
+            else
+              "#{source}.#{ext}"
+            end
           else
             source
           end
