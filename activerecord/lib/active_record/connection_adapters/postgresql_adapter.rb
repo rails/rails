@@ -778,20 +778,16 @@ module ActiveRecord
 
       # Queries the database and returns the results in an Array-like object
       def query(sql, name = nil) #:nodoc:
-        with_auto_reconnect do
-          log(sql, name) do
-            result_as_array @connection.async_exec(sql)
-          end
+        wrap_execute(sql, name) do
+          result_as_array @connection.async_exec(sql)
         end
       end
 
       # Executes an SQL statement, returning a PGresult object on success
       # or raising a PGError exception otherwise.
       def execute(sql, name = nil)
-        with_auto_reconnect do
-          log(sql, name) do
-            @connection.async_exec(sql)
-          end
+        wrap_execute(sql, name) do
+          @connection.async_exec(sql)
         end
       end
 
@@ -807,37 +803,33 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [])
-        with_auto_reconnect do
-          log(sql, name, binds) do
-            result = binds.empty? ? exec_no_cache(sql, binds) :
-                                    exec_cache(sql, binds)
+        wrap_execute(sql, name, binds) do
+          result = binds.empty? ? exec_no_cache(sql, binds) :
+                                  exec_cache(sql, binds)
 
-            types = {}
-            result.fields.each_with_index do |fname, i|
-              ftype = result.ftype i
-              fmod  = result.fmod i
-              types[fname] = OID::TYPE_MAP.fetch(ftype, fmod) { |oid, mod|
-                warn "unknown OID: #{fname}(#{oid}) (#{sql})"
-                OID::Identity.new
-              }
-            end
-
-            ret = Result.new(result.fields, result.values, types)
-            result.clear
-            return ret
+          types = {}
+          result.fields.each_with_index do |fname, i|
+            ftype = result.ftype i
+            fmod  = result.fmod i
+            types[fname] = OID::TYPE_MAP.fetch(ftype, fmod) { |oid, mod|
+              warn "unknown OID: #{fname}(#{oid}) (#{sql})"
+              OID::Identity.new
+            }
           end
+
+          ret = Result.new(result.fields, result.values, types)
+          result.clear
+          return ret
         end
       end
 
       def exec_delete(sql, name = 'SQL', binds = [])
-        with_auto_reconnect do
-          log(sql, name, binds) do
-            result = binds.empty? ? exec_no_cache(sql, binds) :
-                                    exec_cache(sql, binds)
-            affected = result.cmd_tuples
-            result.clear
-            affected
-          end
+        wrap_execute(sql, name, binds) do
+          result = binds.empty? ? exec_no_cache(sql, binds) :
+                                  exec_cache(sql, binds)
+          affected = result.cmd_tuples
+          result.clear
+          affected
         end
       end
       alias :exec_update :exec_delete
@@ -1355,6 +1347,14 @@ module ActiveRecord
             InvalidForeignKey.new(message, exception)
           else
             super
+          end
+        end
+
+        def wrap_execute(sql, name = "SQL", binds = [])
+          with_auto_reconnect do
+            log(sql, name, binds) do
+              yield
+            end
           end
         end
 

@@ -97,21 +97,23 @@ module ActiveRecord
         # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
         # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
         def test_reconnect_with_actual_killed_connection
-          skip "with_manual_interventions is false in configuration" unless ARTest.config['with_manual_interventions']
+          skip "with_manual_interventions is set to false in configuration" unless ARTest.config['with_manual_interventions']
 
-          original_connection_pid = @conn.query('select pg_backend_pid()')
+          original_connection_pid = @conn.query('select pg_backend_pid()').flatten.first
 
-          puts 'Kill the connection now (e.g. by restarting the PostgreSQL ' +
-               'server with the "-m fast" option) and then press enter.'
+          puts
+          puts "Kill the PostgreSQL connection with pid #{original_connection_pid} " +
+               "now (e.g. by restarting the PostgreSQL server with the \"-m fast\" option) " +
+               "and then press enter."
           $stdin.gets
 
           # If we get no exception here, then either we re-connected successfully, or
           # we never actually got disconnected.
-          new_connection_pid = @conn.query('select pg_backend_pid()')
+          new_connection_pid = @conn.query('select pg_backend_pid()').flatten.first
 
           assert_not_equal original_connection_pid, new_connection_pid,
             "umm -- looks like you didn't break the connection, because we're still " +
-            "successfully querying with the same connection pid."
+            "connected to PostgreSQL using the original connection pid."
         end
       end
     end
