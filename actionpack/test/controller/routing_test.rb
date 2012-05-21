@@ -1037,6 +1037,16 @@ class RouteSetTest < ActiveSupport::TestCase
     end
   end
 
+  def test_route_error_with_missing_controller
+    set.draw do
+      get    "/people" => "missing#index"
+    end
+    
+    assert_raise(ActionController::RoutingError) {
+      set.recognize_path("/people", :method => :get)
+    }
+  end
+
   def test_recognize_with_encoded_id_and_regex
     set.draw do
       get 'page/:id' => 'pages#show', :id => /[a-zA-Z0-9\+]+/
