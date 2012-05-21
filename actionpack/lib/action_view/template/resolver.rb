@@ -27,6 +27,16 @@ module ActionView
 
     # Threadsafe template cache
     class Cache #:nodoc:
+      class CacheEntry
+        attr_accessor :templates
+
+        delegate :synchronize, :to => "@mutex"
+
+        def initialize
+          @mutex = Mutex.new
+        end
+      end
+
       def initialize
         @data = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
                   h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
@@ -35,24 +45,32 @@ module ActionView
 
       # Cache the templates returned by the block
       def cache(key, name, prefix, partial, locals)
+        cache_entry = nil
+
+        # first obtain a lock on the main data structure to create the cache entry
         @mutex.synchronize do
+          cache_entry = @data[key][name][prefix][partial][locals] ||= CacheEntry.new
+        end
+
+        # then to avoid a long lasting global lock, obtain a more granular lock
+        # on the CacheEntry itself
+        cache_entry.synchronize do
           if Resolver.caching?
             # all templates are cached forever the first time they are accessed
-            @data[key][name][prefix][partial][locals] ||= yield
+            cache_entry.templates ||= yield
           else
             # templates are still cached, but are only returned if they are
             # all still current
             fresh = yield
 
-            cache = @data[key][name][prefix][partial][locals]
-            mtime = cache && cache.map(&:updated_at).max
+            mtime = cache_entry.templates && cache_entry.templates.map(&:updated_at).max
 
             newer = !mtime || fresh.empty?  || fresh.any? { |t| t.updated_at > mtime }
 
             if newer
-              @data[key][name][prefix][partial][locals] = fresh
+              cache_entry.templates = fresh
             else
-              @data[key][name][prefix][partial][locals]
+              cache_entry.templates
             end
           end
         end
