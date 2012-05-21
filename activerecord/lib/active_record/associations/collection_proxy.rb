@@ -112,7 +112,7 @@ module ActiveRecord
       ##
       # :method: first
       # Returns the first record, or the first +n+ records, from the collection.
-      # If the collection is empty, the first form returns nil, and the second
+      # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
       #
       #   class Person < ActiveRecord::Base
@@ -141,7 +141,7 @@ module ActiveRecord
       ##
       # :method: last
       # Returns the last record, or the last +n+ records, from the collection.
-      # If the collection is empty, the first form returns nil, and the second
+      # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
       #
       #   class Person < ActiveRecord::Base
@@ -317,7 +317,7 @@ module ActiveRecord
 
       ##
       # :method: empty?
-      # Returns true if the collection is empty.
+      # Returns +true+ if the collection is empty.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -333,7 +333,7 @@ module ActiveRecord
 
       ##
       # :method: any?
-      # Returns true if the collection is not empty.
+      # Returns +true+ if the collection is not empty.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -366,7 +366,7 @@ module ActiveRecord
       ##
       # :method: many?
       # Returns true if the collection has more than one record.
-      # Equivalent to +collection.size > 1+.
+      # Equivalent to <tt>collection.size > 1</tt>.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -402,7 +402,7 @@ module ActiveRecord
 
       ##
       # :method: include?
-      # Returns true if the given object is present in the collection.
+      # Returns +true+ if the given object is present in the collection.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -499,7 +499,7 @@ module ActiveRecord
       #
       #   Pet.find(1) # => #<Pet id: 1, name: "Snoop", group: "dogs", person_id: nil>
       #
-      # If they are associated with +dependent: :destroy+ option, it deletes
+      # If they are associated with <tt>dependent: :destroy</tt> option, it deletes
       # them directly from the database.
       #
       #   class Person < ActiveRecord::Base
@@ -517,7 +517,7 @@ module ActiveRecord
       end
 
       # Reloads the collection from the database. Returns +self+.
-      # Equivalent to +collection(true)+.
+      # Equivalent to <tt>collection(true)</tt>.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
