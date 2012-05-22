@@ -214,3 +214,6 @@ class RenderJsonTestException < Exception
     return { :error => self.class.name, :message => self.to_s }.to_json
   end
 end
+
+class Car < Struct.new(:color)
+end
