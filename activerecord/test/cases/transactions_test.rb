@@ -363,10 +363,12 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_rollback_when_saving_a_frozen_record
+    expected_raise = (RUBY_VERSION < '1.9') ? TypeError : RuntimeError
+
     topic = Topic.new(:title => 'test')
     topic.freeze
-    e = assert_raise(RuntimeError) { topic.save }
-    assert_equal "can't modify frozen Hash", e.message
+    e = assert_raise(expected_raise) { topic.save }
+    assert_equal "can't modify frozen hash", e.message.downcase
     assert !topic.persisted?, 'not persisted'
     assert_nil topic.id
     assert topic.frozen?, 'not frozen'
