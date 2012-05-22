@@ -21,7 +21,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
   def test_namespaced_controller_skeleton_is_created
     run_generator
     assert_file "app/controllers/test_app/account_controller.rb",
-                /require "test_app\/application_controller"/,
+                /require_dependency "test_app\/application_controller"/,
                 /module TestApp/,
                 /  class AccountController < ApplicationController/
 
@@ -234,7 +234,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Controller
     assert_file "app/controllers/test_app/product_lines_controller.rb",
-                /require "test_app\/application_controller"/,
+                /require_dependency "test_app\/application_controller"/,
                 /module TestApp/,
                 /class ProductLinesController < ApplicationController/
 
