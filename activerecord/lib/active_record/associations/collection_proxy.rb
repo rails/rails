@@ -116,6 +116,15 @@ module ActiveRecord
       #   
       #   person.pets.find(1) # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
       #   person.pets.find(4) # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=4
+      #
+      #   person.pets.find(2) { |pet| pet.name.downcase! }
+      #   # => #<Pet id: 2, name: "fancy-fancy", person_id: 1>
+      #
+      #   person.pets.find(2, 3)
+      #   # => [
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
 
       ##
       # :method: first
