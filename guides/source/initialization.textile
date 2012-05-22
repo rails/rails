@@ -187,6 +187,8 @@ h4. +rails/commands.rb+
 Once +config/boot.rb+ has finished, the next file that is required is +rails/commands+ which will execute a command based on the arguments passed in. In this case, the +ARGV+ array simply contains +server+ which is extracted into the +command+ variable using these lines:
 
 <ruby>
+ARGV << '--help' if ARGV.empty?
+
 aliases = {
   "g"  => "generate",
   "c"  => "console",
@@ -198,6 +200,9 @@ aliases = {
 command = ARGV.shift
 command = aliases[command] || command
 </ruby>
+
+TIP: As you can see, an empty ARGV list will make Rails show the help
+snippet.
 
 If we used <tt>s</tt> rather than +server+, Rails will use the +aliases+ defined in the file and match them to their respective commands. With the +server+ command, Rails will run this code:
 
