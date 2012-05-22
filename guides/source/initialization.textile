@@ -138,23 +138,23 @@ The +APP_PATH+ constant will be used later in +rails/commands+. The +config/boot
 
 h4. +config/boot.rb+
 
-+config/boot.rb+ contains this:
++config/boot.rb+ contains:
 
 <ruby>
 # Set up gems listed in the Gemfile.
-gemfile = File.expand_path('../../Gemfile', __FILE__)
-begin
-  ENV['BUNDLE_GEMFILE'] = gemfile
-  require 'bundler'
-  Bundler.setup
-rescue Bundler::GemNotFound => e
-  STDERR.puts e.message
-  STDERR.puts "Try running `bundle install`."
-  exit!
-end if File.exist?(gemfile)
+ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
+
+require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
 </ruby>
 
-In a standard Rails application, there's a +Gemfile+ which declares all dependencies of the application. +config/boot.rb+ sets +ENV["BUNDLE_GEMFILE"]+ to the location of this file, then requires Bundler and calls +Bundler.setup+ which adds the dependencies of the application (including all the Rails parts) to the load path, making them available for the application to load. The gems that a Rails 3.1 application depends on are as follows:
+In a standard Rails application, there's a +Gemfile+ which declares all
+dependencies of the application. +config/boot.rb+ sets
++ENV['BUNDLE_GEMFILE']+ to the location of this file. If the Gemfile
+exists, +bundler/setup+ is then required.
+
+The gems that a Rails 4 application depends on are as follows:
+
+TODO: change these when the Rails 4 release is near.
 
 * abstract (1.0.0)
 * actionmailer (3.1.0.beta)
