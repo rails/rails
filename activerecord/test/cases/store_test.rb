@@ -41,6 +41,40 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal false, @john.remember_login
   end
 
+  test "preserve store attributes data in HashWithIndifferentAccess format without any conversion" do
+    @john.json_data = HashWithIndifferentAccess.new(:height => 'tall', 'weight' => 'heavy')
+    @john.height = 'low'
+    assert_equal true, @john.json_data.instance_of?(HashWithIndifferentAccess)
+    assert_equal 'low', @john.json_data[:height]
+    assert_equal 'low', @john.json_data['height']
+    assert_equal 'heavy', @john.json_data[:weight]
+    assert_equal 'heavy', @john.json_data['weight']
+  end
+
+  test "convert store attributes from Hash to HashWithIndifferentAccess saving the data and access attributes indifferently" do
+    @john.json_data = { :height => 'tall', 'weight' => 'heavy' }
+    assert_equal true, @john.json_data.instance_of?(Hash)
+    assert_equal 'tall', @john.json_data[:height]
+    assert_equal nil, @john.json_data['height']
+    assert_equal nil, @john.json_data[:weight]
+    assert_equal 'heavy', @john.json_data['weight']
+    @john.height = 'low'
+    assert_equal true, @john.json_data.instance_of?(HashWithIndifferentAccess)
+    assert_equal 'low', @john.json_data[:height]
+    assert_equal 'low', @john.json_data['height']
+    assert_equal 'heavy', @john.json_data[:weight]
+    assert_equal 'heavy', @john.json_data['weight']
+  end
+
+  test "convert store attributes from any format other than Hash or HashWithIndifferent access losing the data" do
+    @john.json_data = "somedata"
+    @john.height = 'low'
+    assert_equal true, @john.json_data.instance_of?(HashWithIndifferentAccess)
+    assert_equal 'low', @john.json_data[:height]
+    assert_equal 'low', @john.json_data['height']
+    assert_equal false, @john.json_data.delete_if { |k, v| k == 'height' }.any?
+  end
+
   test "reading store attributes through accessors encoded with JSON" do
     assert_equal 'tall', @john.height
     assert_nil @john.weight
