@@ -652,7 +652,7 @@ module Rails
       root = File.exist?("#{root_path}/#{flag}") ? root_path : default
       raise "Could not find root path for #{self}" unless root
 
-      RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ?
+      RUBY_PLATFORM =~ /mswin|mingw/ ?
         Pathname.new(root).expand_path : Pathname.new(root).realpath
     end
 
