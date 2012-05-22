@@ -577,9 +577,8 @@ module ActiveRecord
       end
       alias_method :push, :<<
 
-      # Removes every object from the collection. This does not destroy
-      # the objects, it sets their foreign keys to +NULL+. Returns +self+
-      # so methods can be chained.
+      # Equivalent to +delete_all+. The difference is that returns +self+, instead
+      # of an array with the deleted objects, so methods can be chained.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
