@@ -22,7 +22,6 @@
 #++
 
 require 'active_support'
-require 'active_support/lazy_load_hooks'
 require 'active_model'
 require 'arel'
 require 'active_record_deprecated_finders'

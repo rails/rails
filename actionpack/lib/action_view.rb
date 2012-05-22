@@ -22,7 +22,6 @@
 #++
 
 require 'active_support'
-require 'active_support/lazy_load_hooks'
 require 'action_pack'
 
 module ActionView
