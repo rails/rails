@@ -56,21 +56,14 @@ module ActionView
         # on the CacheEntry itself
         cache_entry.synchronize do
           if Resolver.caching?
-            # all templates are cached forever the first time they are accessed
             cache_entry.templates ||= yield
           else
-            # templates are still cached, but are only returned if they are
-            # all still current
-            fresh = yield
+            fresh_templates = yield
 
-            mtime = cache_entry.templates && cache_entry.templates.map(&:updated_at).max
-
-            newer = !mtime || fresh.empty?  || fresh.any? { |t| t.updated_at > mtime }
-
-            if newer
-              cache_entry.templates = fresh
+            if templates_have_changed?(cache_entry.templates, fresh_templates)
+              cache_entry.templates = fresh_templates
             else
-              cache_entry.templates
+              cache_entry.templates ||= []
             end
           end
         end
@@ -80,6 +73,21 @@ module ActionView
         @mutex.synchronize do
           @data.clear
         end
+      end
+
+      private
+
+      def templates_have_changed?(cached_templates, fresh_templates)
+        # if either the old or new template list is empty, we don't need to (and can't)
+        # compare modification times, and instead just check whether the lists are different
+        if cached_templates.blank? || fresh_templates.blank?
+          return fresh_templates.blank? != cached_templates.blank?
+        end
+
+        cached_templates_max_updated_at = cached_templates.map(&:updated_at).max
+
+        # if a template has changed, it will be now be newer than all the cached templates
+        fresh_templates.any? { |t| t.updated_at > cached_templates_max_updated_at }
       end
     end
 
