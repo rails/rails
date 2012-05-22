@@ -277,7 +277,6 @@ module ActiveRecord
       #   person.pets.create!(name: nil)
       #   # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 
-
       ##
       # :method: concat
       #
@@ -337,7 +336,6 @@ module ActiveRecord
       #
       #   person.pets.replace(["doo", "ggie", "gaga"])
       #   # => ActiveRecord::AssociationTypeMismatch: Pet expected, got String
-      
 
       ##
       # :method: delete_all
@@ -531,6 +529,31 @@ module ActiveRecord
       #   person.pets       # => []
       #
       #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (4, 5, 6)
+      
+      ##
+      # :method: size
+      #
+      # Returns the size of the collection. If the collection hasn't been loaded,
+      # it executes a <tt>SELECT COUNT(*)</tt> query.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   # This will execute:
+      #   # SELECT COUNT(*) FROM "pets" WHERE "pets"."person_id" = ?  [["person_id", 1]]
+      #   person.pets.size # => 3
+      #
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   # Because the collection is already loaded, this will behave like
+      #   <tt>collection.size</tt> and no SQL count query is executed.
+      #   person.pets.size # => 3
 
       ##
       # :method: empty?
