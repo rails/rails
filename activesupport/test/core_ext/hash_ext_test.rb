@@ -255,6 +255,14 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal hash.delete('a'), nil
   end
 
+  def test_indifferent_delete_if
+    get_hash = proc{ { :a => 'foo' }.with_indifferent_access }
+    hash = get_hash.call
+    assert_equal false, hash.delete_if { |k, v| k == :a }.any?
+    hash = get_hash.call
+    assert_equal false, hash.delete_if { |k, v| k == 'a' }.any?
+  end
+
   def test_indifferent_to_hash
     # Should convert to a Hash with String keys.
     assert_equal @strings, @mixed.with_indifferent_access.to_hash

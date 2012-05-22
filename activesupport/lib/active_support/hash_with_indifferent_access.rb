@@ -140,6 +140,20 @@ module ActiveSupport
       super(convert_key(key))
     end
 
+    # Deletes every key-value pair from hash for which block evaluates to true. Symbol and string keys are
+    # compared indifferently.
+    def delete_if(&block)
+      wrapper = lambda do |key, value|
+        key = key.dup
+        key.define_singleton_method("==") do |arg|
+          arg = arg.to_s if arg.kind_of?(Symbol)
+          super(arg)
+        end
+        block.call(key, value)
+      end
+      super(&wrapper)
+    end
+
     def stringify_keys!; self end
     def stringify_keys; dup end
     undef :symbolize_keys!
