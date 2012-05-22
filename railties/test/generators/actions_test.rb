@@ -67,6 +67,14 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'Gemfile', /^gem "rspec-rails"$/
   end
 
+  def test_gem_should_include_options
+    run_generator
+
+    action :gem, 'rspec', github: 'dchelimsky/rspec', tag: '1.2.9.rc1'
+
+    assert_file 'Gemfile', /gem "rspec", github: "dchelimsky\/rspec", tag: "1\.2\.9\.rc1"/
+  end
+
   def test_gem_group_should_wrap_gems_in_a_group
     run_generator
 
